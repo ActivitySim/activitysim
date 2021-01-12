@@ -3,6 +3,13 @@
 import os
 import subprocess
 
+from activitysim.core import inject
+
+
+def teardown_function(func):
+    inject.clear_cache()
+    inject.reinject_decorated_tables()
+
 
 def test_mp_run():
 

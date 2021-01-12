@@ -1,26 +1,26 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import zip
-from builtins import range
 
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import expressions
+
 from activitysim.core.mem import force_garbage_collect
 
-from .util.expressions import annotate_preprocessors
-
 from activitysim.core import assign
+from activitysim.core import los
+
 from activitysim.core.util import assign_in_place
 
-from .util.expressions import skim_time_period_label
-
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 def trip_mode_choice(
         trips,
         tours_merged,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id):
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
@@ -73,15 +73,24 @@ def trip_mode_choice(
 
     # setup skim keys
     assert ('trip_period' not in trips_merged)
-    trips_merged['trip_period'] = skim_time_period_label(trips_merged.depart)
+    trips_merged['trip_period'] = network_los.skim_time_period_label(trips_merged.depart)
 
     orig_col = 'origin'
     dest_col = 'destination'
 
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col, right_key=dest_col,
-                                             skim_key='trip_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col, right_key=orig_col,
-                                             skim_key='trip_period')
+    constants = {}
+    constants.update(config.get_model_constants(model_settings))
+    constants.update({
+        'ORIGIN': orig_col,
+        'DESTINATION': dest_col
+    })
+
+    skim_dict = network_los.get_default_skim_dict()
+
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col, dest_key=dest_col,
+                                               dim3_key='trip_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col, dest_key=orig_col,
+                                               dim3_key='trip_period')
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
 
     skims = {
@@ -90,11 +99,21 @@ def trip_mode_choice(
         "od_skims": od_skim_wrapper,
     }
 
-    constants = config.get_model_constants(model_settings)
-    constants.update({
-        'ORIGIN': orig_col,
-        'DESTINATION': dest_col
-    })
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = network_los.tvpb
+
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           cache_choices=True,
+                                           trace_label=trace_label, tag='tvpb_logsum_odt')
+        skims.update({
+            'tvpb_logsum_odt': tvpb_logsum_odt,
+            # 'tvpb_logsum_dot': tvpb_logsum_dot
+        })
+
+        # TVPB constants can appear in expressions
+        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     choices_list = []
     for primary_purpose, trips_segment in trips_merged.groupby('primary_purpose'):
@@ -107,11 +126,15 @@ def trip_mode_choice(
         # name index so tracing knows how to slice
         assert trips_segment.index.name == 'trip_id'
 
+        if network_los.zone_system == los.THREE_ZONE:
+            tvpb_logsum_odt.extend_trace_label(primary_purpose)
+            # tvpb_logsum_dot.extend_trace_label(primary_purpose)
+
         locals_dict = assign.evaluate_constants(omnibus_coefficients[primary_purpose],
                                                 constants=constants)
         locals_dict.update(constants)
 
-        annotate_preprocessors(
+        expressions.annotate_preprocessors(
             trips_segment, locals_dict, skims,
             model_settings, segment_trace_label)
 
@@ -150,11 +173,27 @@ def trip_mode_choice(
         # FIXME - force garbage collection
         force_garbage_collect()
 
-    choices = pd.concat(choices_list)
+    choices_df = pd.concat(choices_list)
 
-    # keep mode_choice and (optionally) logsum columns
+    # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
+    if network_los.zone_system == los.THREE_ZONE:
+
+        tvpb_mode_path_types = model_settings.get('tvpb_mode_path_types')
+        for mode, path_type in tvpb_mode_path_types.items():
+
+            skim_cache = tvpb_logsum_odt.cache[path_type]
+
+            print(f"mode {mode} path_type {path_type}")
+
+            for c in skim_cache:
+                dest_col = c
+                if dest_col not in choices_df:
+                    choices_df[dest_col] = np.nan
+                choices_df[dest_col].where(choices_df[mode_column_name] != mode, skim_cache[c], inplace=True)
+
+    # update trips table with choices (and otionally logssums)
     trips_df = trips.to_frame()
-    assign_in_place(trips_df, choices)
+    assign_in_place(trips_df, choices_df)
 
     tracing.print_summary('tour_modes',
                           trips_merged.tour_mode, value_counts=True)

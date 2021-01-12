@@ -1,0 +1,8 @@
+Description,Target,Expression
+#,,
+,_inVehicleTime,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'TRN_IVT_FAST')"
+,_iwait,"out_of_vehicle_wait_time_weight * los.get_tappairs3d(df.btap, df.atap, df.tod, 'TRN_IWAIT_FAST')"
+,_xwait,"out_of_vehicle_wait_time_weight * los.get_tappairs3d(df.btap, df.atap, df.tod, 'TRN_XWAIT_FAST')"
+,_waux,"out_of_vehicle_walk_time_weight * los.get_tappairs3d(df.btap, df.atap, df.tod, 'TRN_WAUX_FAST')"
+,_outOfVehicleTime,_iwait + _xwait + _waux
+,transit_time,(_inVehicleTime + _outOfVehicleTime) / 100.0

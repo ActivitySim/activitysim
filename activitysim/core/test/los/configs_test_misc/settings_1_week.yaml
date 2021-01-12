@@ -1,0 +1,17 @@
+
+zone_system: 1
+
+taz_skims: z1_taz_skims.omx
+
+skim_time_periods:
+    time_window: 10080  # One Week
+    period_minutes: 1440  # One Day
+    periods: [0, 1, 2, 3, 4, 5, 6, 7]
+    labels:
+        - Sunday
+        - Monday
+        - Tuesday
+        - Wednesday
+        - Thursday
+        - Friday
+        - Saturday

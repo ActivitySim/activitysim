@@ -249,6 +249,7 @@ class ShadowPriceCalculator(object):
             first_in = self.shared_data[TALLY_CHECKIN] == 0
             # add local data from df to shared data buffer
             # final column is used for tallys, hence the negative index
+            # Ellipsis expands : to fill available dims so [..., 0:-1] is the whole array except for the tallys
             self.shared_data[..., 0:-1] += local_modeled_size.values
             self.shared_data[TALLY_CHECKIN] += 1
 
@@ -364,7 +365,7 @@ class ShadowPriceCalculator(object):
         total_fails = (rel_diff > 0).values.sum()
 
         # FIXME - should not count zones where desired_size < threshold? (could calc in init)
-        max_fail = (fail_threshold / 100.0) * np.prod(desired_size.shape)
+        max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
 
         converged = (total_fails <= max_fail)
 
@@ -585,7 +586,7 @@ def get_shadow_pricing_info():
     shadow_settings = config.read_model_settings('shadow_pricing.yaml')
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
-    shadow_pricing_models = shadow_settings['shadow_pricing_models']
+    shadow_pricing_models = shadow_settings.get('shadow_pricing_models', {})
 
     blocks = OrderedDict()
     for model_selector in shadow_pricing_models:
@@ -638,11 +639,11 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     data_buffers = {}
     for block_key, block_shape in block_shapes.items():
 
-        # buffer_size must be int (or p2.7 long), not np.int64
-        buffer_size = int(np.prod(block_shape, dtype=np.int64))
+        # buffer_size must be int, not np.int64
+        buffer_size = util.iprod(block_shape)
 
         csz = buffer_size * np.dtype(dtype).itemsize
-        logger.info("allocating shared buffer %s %s buffer_size %s bytes %s (%s)" %
+        logger.info("allocating shared shadow pricing buffer %s %s buffer_size %s bytes %s (%s)" %
                     (block_key, buffer_size, block_shape, csz, util.GB(csz)))
 
         if np.issubdtype(dtype, np.int64):
@@ -772,15 +773,15 @@ def add_size_tables():
     use_shadow_pricing = bool(config.setting('use_shadow_pricing'))
 
     shadow_settings = config.read_model_settings('shadow_pricing.yaml')
-    shadow_pricing_models = shadow_settings['shadow_pricing_models']
-
-    # probably ought not scale if not shadow_pricing (breaks partial sample replicability)
-    # but this allows compatability with existing CTRAMP behavior...
-    scale_size_table = shadow_settings.get('SCALE_SIZE_TABLE', False)
+    shadow_pricing_models = shadow_settings.get('shadow_pricing_models')
 
     if shadow_pricing_models is None:
         logger.warning('shadow_pricing_models list not found in shadow_pricing settings')
         return
+
+    # probably ought not scale if not shadow_pricing (breaks partial sample replicability)
+    # but this allows compatability with existing CTRAMP behavior...
+    scale_size_table = shadow_settings.get('SCALE_SIZE_TABLE', False)
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process

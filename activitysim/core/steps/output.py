@@ -4,8 +4,6 @@ import logging
 import sys
 import pandas as pd
 
-from collections import OrderedDict
-
 from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import config
@@ -21,6 +19,8 @@ def track_skim_usage(output_dir):
 
     FIXME - have not yet implemented a facility to avoid loading of unused skims
 
+    FIXME - if resume_after, this will only reflect skims used after resume
+
     Parameters
     ----------
     output_dir: str
@@ -30,42 +30,18 @@ def track_skim_usage(output_dir):
     pd.options.display.max_rows = 100
 
     skim_dict = inject.get_injectable('skim_dict')
-    skim_stack = inject.get_injectable('skim_stack', None)
 
     mode = 'wb' if sys.version_info < (3,) else 'w'
     with open(config.output_file_path('skim_usage.txt'), mode) as output_file:
 
         print("\n### skim_dict usage", file=output_file)
-        for key in skim_dict.usage:
+        for key in skim_dict.get_skim_usage():
             print(key, file=output_file)
 
-        if skim_stack is None:
+        unused = set(k for k in skim_dict.skim_info.base_keys) - set(k for k in skim_dict.get_skim_usage())
 
-            unused_keys = {k for k in skim_dict.skim_info['omx_keys']} - \
-                          {k for k in skim_dict.usage}
-
-            print("\n### unused skim keys", file=output_file)
-            for key in unused_keys:
-                print(key, file=output_file)
-
-        else:
-
-            print("\n### skim_stack usage", file=output_file)
-            for key in skim_stack.usage:
-                print(key, file=output_file)
-
-            unused = {k for k in skim_dict.skim_info['omx_keys'] if not isinstance(k, tuple)} - \
-                     {k for k in skim_dict.usage if not isinstance(k, tuple)}
-            print("\n### unused skim str keys", file=output_file)
-            for key in unused:
-                print(key, file=output_file)
-
-                unused = {k[0] for k in skim_dict.skim_info['omx_keys'] if isinstance(k, tuple)} - \
-                         {k[0] for k in skim_dict.usage if isinstance(k, tuple)} - \
-                         {k for k in skim_stack.usage}
-            print("\n### unused skim dim3 keys", file=output_file)
-            for key in unused:
-                print(key, file=output_file)
+        for key in unused:
+            print(key, file=output_file)
 
 
 def write_data_dictionary(output_dir):
@@ -227,16 +203,16 @@ def write_tables(output_dir):
     tables = output_tables_settings.get('tables')
     prefix = output_tables_settings.get('prefix', 'final_')
     h5_store = output_tables_settings.get('h5_store', False)
-
-    if action not in ['include', 'skip']:
-        raise "expected %s action '%s' to be either 'include' or 'skip'" % \
-              (output_tables_settings_name, action)
+    sort = output_tables_settings.get('sort', False)
 
     checkpointed_tables = pipeline.checkpointed_tables()
     if action == 'include':
         output_tables_list = tables
     elif action == 'skip':
         output_tables_list = [t for t in checkpointed_tables if t not in tables]
+    else:
+        raise "expected %s action '%s' to be either 'include' or 'skip'" % \
+              (output_tables_settings_name, action)
 
     for table_name in output_tables_list:
 
@@ -247,6 +223,23 @@ def write_tables(output_dir):
                 logger.warning("Skipping '%s': Table not found." % table_name)
                 continue
             df = pipeline.get_table(table_name)
+
+            if sort:
+                traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+
+                if df.index.name in traceable_table_indexes:
+                    df = df.sort_index()
+                    logger.debug(f"write_tables sorting {table_name} on index {df.index.name}")
+                else:
+                    # find all registered columns we can use to sort this table
+                    # (they are ordered appropriately in traceable_table_indexes)
+                    sort_columns = [c for c in traceable_table_indexes if c in df.columns]
+                    if len(sort_columns) > 0:
+                        df = df.sort_values(by=sort_columns)
+                        logger.debug(f"write_tables sorting {table_name} on columns {sort_columns}")
+                    else:
+                        logger.debug(f"write_tables couldn't find a column or index to sort {table_name}"
+                                     f" in traceable_table_indexes: {traceable_table_indexes}")
 
         if h5_store:
             file_path = config.output_file_path('%soutput_tables.h5' % prefix)

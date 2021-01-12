@@ -5,12 +5,10 @@ import logging
 from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import los
+from activitysim.core import expressions
 
-from activitysim.core.assign import evaluate_constants
-
-
-from . import expressions
-
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +17,7 @@ def filter_chooser_columns(choosers, logsum_settings, model_settings):
 
     chooser_columns = logsum_settings.get('LOGSUM_CHOOSER_COLUMNS', [])
 
-    if 'CHOOSER_ORIG_COL_NAME' in model_settings:
+    if 'CHOOSER_ORIG_COL_NAME' in model_settings and model_settings['CHOOSER_ORIG_COL_NAME'] not in chooser_columns:
         chooser_columns.append(model_settings['CHOOSER_ORIG_COL_NAME'])
 
     missing_columns = [c for c in chooser_columns if c not in choosers]
@@ -36,7 +34,7 @@ def filter_chooser_columns(choosers, logsum_settings, model_settings):
 def compute_logsums(choosers,
                     tour_purpose,
                     logsum_settings, model_settings,
-                    skim_dict, skim_stack,
+                    network_los,
                     chunk_size, trace_label):
     """
 
@@ -46,8 +44,7 @@ def compute_logsums(choosers,
     tour_purpose
     logsum_settings
     model_settings
-    skim_dict
-    skim_stack
+    network_los
     chunk_size
     trace_hh_id
     trace_label
@@ -59,6 +56,7 @@ def compute_logsums(choosers,
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
+    logger.debug("Running compute_logsums with %d choosers" % choosers.shape[0])
 
     # compute_logsums needs to know name of dest column in interaction_sample
     orig_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
@@ -66,32 +64,37 @@ def compute_logsums(choosers,
 
     # FIXME - are we ok with altering choosers (so caller doesn't have to set these)?
     assert ('in_period' not in choosers) and ('out_period' not in choosers)
-    choosers['in_period'] = expressions.skim_time_period_label(model_settings['IN_PERIOD'])
-    choosers['out_period'] = expressions.skim_time_period_label(model_settings['OUT_PERIOD'])
+    choosers['in_period'] = network_los.skim_time_period_label(model_settings['IN_PERIOD'])
+    choosers['out_period'] = network_los.skim_time_period_label(model_settings['OUT_PERIOD'])
 
     assert ('duration' not in choosers)
     choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
 
     logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
     coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)
+
     logsum_spec = simulate.eval_coefficients(logsum_spec, coefficients, estimator=None)
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
 
-    constants = config.get_model_constants(logsum_settings)
-
-    logger.debug("Running compute_logsums with %d choosers" % choosers.shape[0])
+    locals_dict = {}
+    # model_constants can appear in expressions
+    locals_dict.update(config.get_model_constants(logsum_settings))
+    # constrained coefficients can appear in expressions
+    locals_dict.update(coefficients)
 
     # setup skim keys
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,
-                                             skim_key='out_period')
-    dot_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
-                                             skim_key='in_period')
-    odr_skim_stack_wrapper = skim_stack.wrap(left_key=orig_col_name, right_key=dest_col_name,
-                                             skim_key='in_period')
-    dor_skim_stack_wrapper = skim_stack.wrap(left_key=dest_col_name, right_key=orig_col_name,
-                                             skim_key='out_period')
+    skim_dict = network_los.get_default_skim_dict()
+
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='out_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='in_period')
+    odr_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='in_period')
+    dor_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='out_period')
     od_skim_stack_wrapper = skim_dict.wrap(orig_col_name, dest_col_name)
 
     skims = {
@@ -104,12 +107,26 @@ def compute_logsums(choosers,
         'dest_col_name': dest_col_name
     }
 
-    locals_dict = {}
-    locals_dict.update(constants)
-    locals_dict.update(skims)
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = network_los.tvpb
 
-    # constrained coefficients can appear in expressions
-    locals_dict.update(coefficients)
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col_name, dest_key=dest_col_name,
+                                           tod_key='out_period', segment_key='demographic_segment',
+                                           trace_label=trace_label, tag='tvpb_logsum_odt')
+        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=dest_col_name, dest_key=orig_col_name,
+                                           tod_key='in_period', segment_key='demographic_segment',
+                                           trace_label=trace_label, tag='tvpb_logsum_dot')
+
+        skims.update({
+            'tvpb_logsum_odt': tvpb_logsum_odt,
+            'tvpb_logsum_dot': tvpb_logsum_dot
+        })
+
+        # TVPB constants can appear in expressions
+        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+
+    locals_dict.update(skims)
 
     # - run preprocessor to annotate choosers
     # allow specification of alternate preprocessor for nontour choosers
@@ -133,7 +150,6 @@ def compute_logsums(choosers,
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
-        trace_label=trace_label,
-        alt_col_name=dest_col_name)
+        trace_label=trace_label)
 
     return logsums

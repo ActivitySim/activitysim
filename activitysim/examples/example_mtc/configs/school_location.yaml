@@ -1,19 +1,19 @@
 SAMPLE_SIZE: 30
 
 SIMULATE_CHOOSER_COLUMNS:
-  - TAZ
+  - home_zone_id
   - school_segment
   - household_id
 
 # model-specific logsum-related settings
-CHOOSER_ORIG_COL_NAME: TAZ
+CHOOSER_ORIG_COL_NAME: home_zone_id
 ALT_DEST_COL_NAME: alt_dest
 IN_PERIOD: 14
 OUT_PERIOD: 8
 
-DEST_CHOICE_COLUMN_NAME: school_taz
+DEST_CHOICE_COLUMN_NAME: school_zone_id
 # comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if not desired in persons table
-DEST_CHOICE_LOGSUM_COLUMN_NAME: school_taz_logsum
+DEST_CHOICE_LOGSUM_COLUMN_NAME: school_location_logsum
 
 # comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
 DEST_CHOICE_SAMPLE_TABLE_NAME: school_location_sample
@@ -55,6 +55,12 @@ SEGMENT_IDS:
   university: 3
   highschool: 2
   gradeschool: 1
+
+
+segment_preprocessor:
+  SPEC: school_location_segment_choosers_preprocessor
+  DF: persons
+
 
 # model adds these tables (informational - not added if commented out)
 SHADOW_PRICE_TABLE: school_shadow_prices

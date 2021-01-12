@@ -20,8 +20,8 @@ from activitysim.core import inject
 from activitysim.core import config
 
 # set the max households for all tests (this is to limit memory use on travis)
-HOUSEHOLDS_SAMPLE_SIZE = 100
-HOUSEHOLDS_SAMPLE_RATE = 0.02  # HOUSEHOLDS_SAMPLE_RATE / 5000 households
+HOUSEHOLDS_SAMPLE_SIZE = 50
+HOUSEHOLDS_SAMPLE_RATE = 0.01  # HOUSEHOLDS_SAMPLE_RATE / 5000 households
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
 HH_ID = 257341
@@ -39,6 +39,8 @@ def example_path(dirname):
 
 
 def setup_dirs(ancillary_configs_dir=None, data_dir=None):
+
+    # ancillary_configs_dir is used by run_mp to test multiprocess
 
     test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), 'configs_test_pipeline')
     example_configs_dir = example_path('configs')
@@ -114,8 +116,8 @@ def regress_mini_auto():
 
     # regression test: these are among the middle households in households table
     # should be the same results as in run_mp (multiprocessing) test case
-    hh_ids = [932147, 982875, 983048, 1024353]
-    choices = [1, 1, 1, 0]
+    hh_ids = [1099626, 1173905, 1196298, 1286259]
+    choices = [1, 1, 0, 0]
     expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
                                 name='auto_ownership')
 
@@ -128,14 +130,14 @@ def regress_mini_auto():
 
     """
     auto_choice
-     household_id
-    932147     1
-    982875     1
-    983048     1
-    1024353    0
+    household_id
+    1099626    1
+    1173905    1
+    1196298    0
+    1286259    0
     Name: auto_ownership, dtype: int64
     """
-    pdt.assert_series_equal(auto_choice, expected_choice)
+    pdt.assert_series_equal(auto_choice, expected_choice, check_dtype=False)
 
 
 def regress_mini_mtf():
@@ -143,27 +145,25 @@ def regress_mini_mtf():
     mtf_choice = pipeline.get_table("persons").sort_index().mandatory_tour_frequency
 
     # these choices are for pure regression - their appropriateness has not been checked
-    per_ids = [2566698, 2877284, 2877287]
-    choices = ['work1', 'work_and_school', 'school1']
+    per_ids = [2566701, 2566702, 3061895]
+    choices = ['school1', 'school1', 'work1']
     expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='person_id'),
                                 name='mandatory_tour_frequency')
 
     mtf_choice = mtf_choice[mtf_choice != '']  # drop null (empty string) choices
 
     offset = len(mtf_choice) // 2  # choose something midway as hh_id ordered by hh size
-    print("mtf_choice\n%s" % mtf_choice.head(offset).tail(5))
+    print("mtf_choice\n%s" % mtf_choice.head(offset).tail(3))
 
     """
     mtf_choice
-     person_id
-    2458502            school1
-    2458503            school1
-    2566698              work1
-    2877284    work_and_school
-    2877287            school1
+    person_id
+    2566701    school1
+    2566702    school1
+    3061895      work1
     Name: mandatory_tour_frequency, dtype: object
     """
-    pdt.assert_series_equal(mtf_choice.reindex(per_ids), expected_choice)
+    pdt.assert_series_equal(mtf_choice.reindex(per_ids), expected_choice, check_dtype=False)
 
 
 def regress_mini_location_choice_logsums():
@@ -171,11 +171,11 @@ def regress_mini_location_choice_logsums():
     persons = pipeline.get_table("persons")
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
-    assert 'school_taz_logsum' in persons
-    assert not persons.school_taz_logsum.isnull().all()
+    assert 'school_location_logsum' in persons
+    assert not persons.school_location_logsum.isnull().all()
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is NOT specified in workplace_location.yaml
-    assert 'workplace_taz_logsum' not in persons
+    assert 'workplace_location_logsum' not in persons
 
 
 def test_mini_pipeline_run():
@@ -309,6 +309,7 @@ def full_run(resume_after=None, chunk_size=0,
         trace_od=trace_od,
         testing_fail_trip_destination=False,
         check_for_variability=check_for_variability,
+        want_dest_choice_sample_tables=False,
         use_shadow_pricing=False)  # shadow pricing breaks replicability when sample_size varies
 
     # FIXME should enable testing_fail_trip_destination?
@@ -343,7 +344,7 @@ def get_trace_csv(file_name):
     return df
 
 
-EXPECT_TOUR_COUNT = 205
+EXPECT_TOUR_COUNT = 120
 
 
 def regress_tour_modes(tours_df):
@@ -518,7 +519,7 @@ def test_full_run4_stability():
         return
 
     tour_count = full_run(trace_hh_id=HH_ID,
-                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE+10)
+                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE-10)
 
     regress()
 
@@ -527,13 +528,16 @@ def test_full_run4_stability():
 
 def test_full_run5_singleton():
 
-    # should wrk with only one hh
+    # should work with only one hh
+    # run with minimum chunk size to drive potential chunking errors in models
+    # where choosers has multiple rows that all have to be included in the same chunk
 
     if SKIP_FULL_RUN:
         return
 
     tour_count = full_run(trace_hh_id=HH_ID,
-                          households_sample_size=1)
+                          households_sample_size=1,
+                          chunk_size=1)
 
     regress()
 

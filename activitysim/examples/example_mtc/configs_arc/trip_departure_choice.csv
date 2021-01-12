@@ -1,0 +1,8 @@
+Description,Expression,outbound,inbound
+StopTimeWork,@(df['stop_time_duration'] * df['is_work'].astype(int)).astype(int),0.933020,0.933020
+StopTimeSchool,@(df['stop_time_duration'] * df['is_school'].astype(int)).astype(int),0.370260,0.370260
+StopTimeEatOut,@(df['stop_time_duration'] * df['is_eatout'].astype(int)).astype(int),0.994840,0.994840
+StopTimeMainen,@(df['stop_time_duration'] * df['is_other_maintenance'].astype(int)).astype(int),0.254180,0.254180
+StopTimeShop,@(df['stop_time_duration'] * df['is_shopping'].astype(int)).astype(int),0.619340,0.619340
+StopTimeSocial,@(df['stop_time_duration'] * df['is_social'].astype(int)).astype(int),0.784420,0.784420
+StopTimeDiscre,@(df['stop_time_duration'] * df['is_othdisc'].astype(int)).astype(int),1.277000,1.277000

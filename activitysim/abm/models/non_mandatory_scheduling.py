@@ -10,8 +10,8 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import timetable as tt
 from activitysim.core import simulate
+from activitysim.core import expressions
 
-from .util import expressions
 from .util import estimation
 
 from .util.vectorize_tour_scheduling import vectorize_tour_scheduling

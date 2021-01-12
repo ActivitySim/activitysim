@@ -10,9 +10,9 @@ Description,Target,Expression
 #,,
 ,is_joint,df.tour_category=='joint'
 ,_HH_PERSON_COUNT,"lambda exp, persons: persons.query(exp).groupby('household_id').size()"
-,num_full,"reindex_i(_HH_PERSON_COUNT('ptype == %s' % constants.PEMPLOY_FULL, persons), df.household_id)"
-,num_part,"reindex_i(_HH_PERSON_COUNT('ptype == %s' % constants.PEMPLOY_PART, persons), df.household_id)"
-,num_student,"reindex_i(_HH_PERSON_COUNT('pstudent != %s' % constants.PSTUDENT_NOT, persons), df.household_id)"
+,num_full,"reindex_i(_HH_PERSON_COUNT('ptype == %s' % PEMPLOY_FULL, persons), df.household_id)"
+,num_part,"reindex_i(_HH_PERSON_COUNT('ptype == %s' % PEMPLOY_PART, persons), df.household_id)"
+,num_student,"reindex_i(_HH_PERSON_COUNT('pstudent != %s' % PSTUDENT_NOT, persons), df.household_id)"
 Num Kids between 0 and 4 (including) years old,num_age_0_4,"reindex_i(_HH_PERSON_COUNT('age < 5', persons), df.household_id)"
 Num kids between 4 and 15 (including) years old,num_age_5_15,"reindex_i(_HH_PERSON_COUNT('(age >= 5) & (age <16)', persons), df.household_id)"
 Number of Adults (>= 16 years old),num_adult,"reindex_i(_HH_PERSON_COUNT('age >= 16', persons), df.household_id)"
@@ -35,7 +35,7 @@ Number of subtours in the tour,num_atwork_subtours,"df.atwork_subtour_frequency.
 #,,
 Number of hh shop tours including joint,num_hh_shop_tours,"reindex_i(df[df.tour_type==SHOP_TOUR].groupby('household_id').size(), df.person_id)"
 Number of hh maint tours including joint,num_hh_maint_tours,"reindex_i(df[df.tour_type==MAINT_TOUR].groupby('household_id').size(), df.person_id)"
-tourStartsInPeakPeriod,_tour_starts_in_peak,(skim_time_period_label(df.start) == 'AM') | (skim_time_period_label(df.start) == 'PM')
+tourStartsInPeakPeriod,_tour_starts_in_peak,(network_los.skim_time_period_label(df.start) == 'AM') | (network_los.skim_time_period_label(df.start) == 'PM')
 AccesibilityAtOrigin fallback,hhacc,0
 AccesibilityAtOrigin if transit,hhacc,"hhacc.where(~tour_mode_is_transit, df.trPkRetail.where(_tour_starts_in_peak, df.trOpRetail))"
 AccesibilityAtOrigin if non_motorized,hhacc,"hhacc.where(~tour_mode_is_non_motorized, df.nmRetail)"

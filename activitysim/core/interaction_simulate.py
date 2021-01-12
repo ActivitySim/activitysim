@@ -63,7 +63,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         Will have the index of `df` and a single column of utilities
 
     """
-    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utilities")
+    trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
     assert(len(spec.columns) == 1)
@@ -75,6 +75,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
     def to_series(x):
         if np.isscalar(x):
             return pd.Series([x] * len(df), index=df.index)
+        if isinstance(x, np.ndarray):
+            return pd.Series(x, index=df.index)
         return x
 
     if trace_rows is not None and trace_rows.any():
@@ -171,7 +173,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                 trace_eval_results[k] = v[trace_rows] * coefficient
 
         except Exception as err:
-            logger.exception("Variable evaluation failed for: %s" % str(expr))
+            logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
             raise err
 
         # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
@@ -273,6 +275,7 @@ def _interaction_simulate(
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
     if skims is not None:
+        alternatives = alternatives.copy()
         alternatives[alternatives.index.name] = alternatives.index
 
     # cross join choosers and alternatives (cartesian product)
@@ -304,12 +307,18 @@ def _interaction_simulate(
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
+    print(f"interaction_df {interaction_df.shape}")
+    print(f"interaction_utilities {interaction_utilities.shape}")
+
+    del interaction_df
+    chunk.log_df(trace_label, 'interaction_df', None)
+
     if have_trace_targets:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
                                                tracing.extend_trace_label(trace_label, 'eval'))
 
         tracing.trace_df(interaction_utilities[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_utilities'),
+                         tracing.extend_trace_label(trace_label, 'interaction_utils'),
                          slicer='NONE', transpose=False)
 
     # reshape utilities (one utility column and one row per row in model_design)
@@ -320,7 +329,7 @@ def _interaction_simulate(
     chunk.log_df(trace_label, 'utilities', utilities)
 
     if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utilities'),
+        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utils'),
                          column_labels=['alternative', 'utility'])
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
@@ -329,6 +338,9 @@ def _interaction_simulate(
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'probs', probs)
+
+    del utilities
+    chunk.log_df(trace_label, 'utilities', None)
 
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
@@ -363,32 +375,40 @@ def _interaction_simulate(
     return choices
 
 
-def calc_rows_per_chunk(chunk_size, choosers, alternatives, sample_size, skims, trace_label=None):
+def interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skims, trace_label):
 
-    num_choosers = len(choosers.index)
+    sizer = chunk.RowSizeEstimator(trace_label)
 
-    # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers, 0
-
+    sample_size = sample_size or len(alternatives)
     chooser_row_size = len(choosers.columns)
-
-    # alternative columns plus join column
-    alt_row_size = alternatives.shape[1] + 1
-
+    # alternative columns plus join column and (possibly) skim destination
+    alt_row_size = alternatives.shape[1] + 1 + int(skims is not None)
     if skims is not None:
         alt_row_size += 1
 
-    sample_size = sample_size or alternatives.shape[0]
-    row_size = (chooser_row_size + alt_row_size) * sample_size
+    logger.debug(f"{trace_label} #chunk_calc chooser_row_size {chooser_row_size}")
+    logger.debug(f"{trace_label} #chunk_calc alt_row_size {alt_row_size}")
+    logger.debug(f"{trace_label} #chunk_calc sample_size {sample_size}")
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-    # logger.debug("%s #chunk_calc alternatives %s" % (trace_label, alternatives.shape))
-    # logger.debug("%s #chunk_calc chooser_row_size %s" % (trace_label, chooser_row_size))
-    # logger.debug("%s #chunk_calc sample_size %s" % (trace_label, sample_size))
-    # logger.debug("%s #chunk_calc alt_row_size %s" % (trace_label, alt_row_size))
+    # interaction_df
+    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
 
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+    # interaction_df is almost certainly the HWM - if so, no need to worry about the crumbs...
+
+    # interaction_utilities utilities probs
+    sizer.add_elements(0, 'interaction_utilities')
+    sizer.add_elements(0, 'utilities')
+    sizer.add_elements(0, 'probs')
+
+    sizer.drop_elements('utilities')
+
+    sizer.add_elements(0, 'positions')
+    sizer.add_elements(0, 'rands')
+    sizer.add_elements(0, 'choices')
+
+    row_size = sizer.get_hwm()
+
+    return row_size
 
 
 def interaction_simulate(
@@ -450,28 +470,18 @@ def interaction_simulate(
 
     assert len(choosers) > 0
 
-    rows_per_chunk, effective_chunk_size = \
-        calc_rows_per_chunk(chunk_size, choosers, alternatives=alternatives,
-                            sample_size=sample_size, skims=skims,
-                            trace_label=trace_label)
+    row_size = chunk_size and \
+        interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skims, trace_label)
 
     result_list = []
-    for i, num_chunks, chooser_chunk in chunk.chunked_choosers(choosers, rows_per_chunk):
-
-        logger.info("Running chunk %s of %s size %d" % (i, num_chunks, len(chooser_chunk)))
-
-        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
-            if num_chunks > 1 else trace_label
-
-        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+    for i, chooser_chunk, chunk_trace_label \
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
 
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,
                                         chunk_trace_label,
                                         trace_choice_name,
                                         estimator)
-
-        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

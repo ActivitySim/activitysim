@@ -12,19 +12,20 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
+from activitysim.core import los
+from activitysim.core import assign
+from activitysim.core import expressions
 
 from activitysim.core.tracing import print_elapsed_time
 
 from activitysim.core.util import reindex
 from activitysim.core.util import assign_in_place
 
-from .util import expressions
-
-from activitysim.core import assign
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
-from activitysim.core.skim import DataFrameMatrix
+from activitysim.core.skim_dictionary import DataFrameMatrix
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
@@ -66,10 +67,10 @@ def trip_destination_sample(
     destination_sample: pandas.dataframe
         choices_df from interaction_sample with (up to) sample_size alts for each chooser row
         index (non unique) is trip_id from trips (duplicated for each alt)
-        and columns dest_taz, prob, and pick_count
+        and columns dest_zone_id, prob, and pick_count
 
-        dest_taz: int
-            alt identifier (dest_taz) from alternatives[<alt_col_name>]
+        dest_zone_id: int
+            alt identifier from alternatives[<alt_col_name>]
         prob: float
             the probability of the chosen alternative
         pick_count : int
@@ -166,6 +167,9 @@ def compute_logsums(
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
 
+    # FIXME should pass this in?
+    network_los = inject.get_injectable('network_los')
+
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
         trips,
@@ -196,6 +200,10 @@ def compute_logsums(
     locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
     locals_dict.update(constants)
 
+    if network_los.zone_system == los.THREE_ZONE:
+        # TVPB constants can appear in expressions
+        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+
     # - od_logsums
     od_skims = {
         'ORIGIN': model_settings['TRIP_ORIGIN'],
@@ -204,6 +212,11 @@ def compute_logsums(
         "dot_skims": skims['dot_skims'],
         "od_skims": skims['od_skims'],
     }
+    if network_los.zone_system == los.THREE_ZONE:
+        od_skims.update({
+            'tvpb_logsum_odt':  skims['tvpb_logsum_odt'],
+            'tvpb_logsum_dot': skims['tvpb_logsum_dot']
+        })
     destination_sample['od_logsum'] = compute_ood_logsums(
         choosers,
         logsum_settings,
@@ -220,6 +233,12 @@ def compute_logsums(
         "dot_skims": skims['pdt_skims'],
         "od_skims": skims['dp_skims'],
     }
+    if network_los.zone_system == los.THREE_ZONE:
+        dp_skims.update({
+            'tvpb_logsum_odt':  skims['tvpb_logsum_dpt'],
+            'tvpb_logsum_dot': skims['tvpb_logsum_pdt']
+        })
+
     destination_sample['dp_logsum'] = compute_ood_logsums(
         choosers,
         logsum_settings,
@@ -249,7 +268,7 @@ def trip_destination_simulate(
     choices - pandas.Series
         destination alt chosen
     """
-    trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_simulate')
+    trace_label = tracing.extend_trace_label(trace_label, 'trip_dest_simulate')
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SPEC', primary_purpose)
 
@@ -368,7 +387,7 @@ def choose_trip_destination(
     return destinations, destination_sample
 
 
-def wrap_skims(model_settings):
+def wrap_skims(model_settings, trace_label):
     """
     wrap skims of trip destination using origin, dest column names from model settings.
     Various of these are used by destination_sample, compute_logsums, and destination_simulate
@@ -377,12 +396,12 @@ def wrap_skims(model_settings):
     Note that compute_logsums aliases their names so it can use the same equations to compute
     logsums from origin to alt_dest, and from alt_dest to primarly destination
 
-    odt_skims - SkimStackWrapper: trip origin, trip alt_dest, time_of_day
-    dot_skims - SkimStackWrapper: trip alt_dest, trip origin, time_of_day
-    dpt_skims - SkimStackWrapper: trip alt_dest, trip primary_dest, time_of_day
-    pdt_skims - SkimStackWrapper: trip primary_dest,trip alt_dest, time_of_day
-    od_skims - SkimDictWrapper: trip origin, trip alt_dest
-    dp_skims - SkimDictWrapper: trip alt_dest, trip primary_dest
+    odt_skims - Skim3dWrapper: trip origin, trip alt_dest, time_of_day
+    dot_skims - Skim3dWrapper: trip alt_dest, trip origin, time_of_day
+    dpt_skims - Skim3dWrapper: trip alt_dest, trip primary_dest, time_of_day
+    pdt_skims - Skim3dWrapper: trip primary_dest,trip alt_dest, time_of_day
+    od_skims - SkimWrapper: trip origin, trip alt_dest
+    dp_skims - SkimWrapper: trip alt_dest, trip primary_dest
 
     Parameters
     ----------
@@ -393,21 +412,45 @@ def wrap_skims(model_settings):
         dict containing skims, keyed by canonical names relative to tour orientation
     """
 
-    skim_dict = inject.get_injectable('skim_dict')
-    skim_stack = inject.get_injectable('skim_stack')
+    network_los = inject.get_injectable('network_los')
+    skim_dict = network_los.get_default_skim_dict()
 
     o = model_settings['TRIP_ORIGIN']
     d = model_settings['ALT_DEST_COL_NAME']
     p = model_settings['PRIMARY_DEST']
 
     skims = {
-        "odt_skims": skim_stack.wrap(left_key=o, right_key=d, skim_key='trip_period'),
-        "dot_skims": skim_stack.wrap(left_key=d, right_key=o, skim_key='trip_period'),
-        "dpt_skims": skim_stack.wrap(left_key=d, right_key=p, skim_key='trip_period'),
-        "pdt_skims": skim_stack.wrap(left_key=p, right_key=d, skim_key='trip_period'),
+        "odt_skims": skim_dict.wrap_3d(orig_key=o, dest_key=d, dim3_key='trip_period'),
+        "dot_skims": skim_dict.wrap_3d(orig_key=d, dest_key=o, dim3_key='trip_period'),
+        "dpt_skims": skim_dict.wrap_3d(orig_key=d, dest_key=p, dim3_key='trip_period'),
+        "pdt_skims": skim_dict.wrap_3d(orig_key=p, dest_key=d, dim3_key='trip_period'),
         "od_skims": skim_dict.wrap(o, d),
         "dp_skims": skim_dict.wrap(d, p),
     }
+
+    if network_los.zone_system == los.THREE_ZONE:
+        # fixme - is this a lightweight object?
+        tvpb = network_los.tvpb
+
+        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=trace_label, tag='tvpb_logsum_odt')
+        tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=d, dest_key=o,
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=trace_label, tag='tvpb_logsum_dot')
+        tvpb_logsum_dpt = tvpb.wrap_logsum(orig_key=d, dest_key=p,
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=trace_label, tag='tvpb_logsum_dpt')
+        tvpb_logsum_pdt = tvpb.wrap_logsum(orig_key=p, dest_key=d,
+                                           tod_key='trip_period', segment_key='demographic_segment',
+                                           trace_label=trace_label, tag='tvpb_logsum_pdt')
+
+        skims.update({
+            'tvpb_logsum_odt': tvpb_logsum_odt,
+            'tvpb_logsum_dot': tvpb_logsum_dot,
+            'tvpb_logsum_dpt': tvpb_logsum_dpt,
+            'tvpb_logsum_pdt': tvpb_logsum_pdt
+        })
 
     return skims
 
@@ -453,6 +496,7 @@ def run_trip_destination(
 
     land_use = inject.get_table('land_use')
     size_terms = inject.get_injectable('size_terms')
+    network_los = inject.get_injectable('network_los')
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
@@ -475,17 +519,17 @@ def run_trip_destination(
     tours_merged = tours_merged[tours_merged_cols]
 
     # - skims
-    skims = wrap_skims(model_settings)
+    skims = wrap_skims(model_settings, trace_label)
 
     # - size_terms and alternatives
     alternatives = tour_destination_size_terms(land_use, size_terms, 'trip')
 
-    # DataFrameMatrix alows us to treat dataframe as virtual a 2-D array, indexed by TAZ, purpose
-    # e.g. size_terms.get(df.dest_taz, df.purpose)
-    # returns a series of size_terms for each chooser's dest_taz and purpose with chooser index
+    # DataFrameMatrix alows us to treat dataframe as virtual a 2-D array, indexed by zone_id, purpose
+    # e.g. size_terms.get(df.dest_zone_id, df.purpose)
+    # returns a series of size_terms for each chooser's dest_zone_id and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
 
-    # don't need size terms in alternatives, just TAZ index
+    # don't need size terms in alternatives, just zone_id index
     alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = model_settings['ALT_DEST_COL_NAME']
 
@@ -504,12 +548,17 @@ def run_trip_destination(
             nth_trips = trips[intermediate & (trips.trip_num == trip_num)]
             nth_trace_label = tracing.extend_trace_label(trace_label, 'trip_num_%s' % trip_num)
 
+            locals_dict = {
+                'network_los': network_los
+            }
+            locals_dict.update(config.get_model_constants(model_settings))
+
             # - annotate nth_trips
             if preprocessor_settings:
                 expressions.assign_columns(
                     df=nth_trips,
                     model_settings=preprocessor_settings,
-                    locals_dict=config.get_model_constants(model_settings),
+                    locals_dict=locals_dict,
                     trace_label=nth_trace_label)
 
             logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])

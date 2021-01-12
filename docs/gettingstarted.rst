@@ -41,7 +41,7 @@ Installation
 ::
 
   # required packages for running ActivitySim
-  conda install cytoolz numpy pandas psutil
+  conda install cytoolz numpy pandas psutil pyarrow numba
   conda install -c anaconda pytables pyyaml
   pip install openmatrix zbox requests
 
@@ -110,7 +110,7 @@ Run the Example
 
 ActivitySim includes a :ref:`cli` for creating examples and running the model.
 
-To setup and run the :ref:`example`, do the following:
+To setup and run the primary :ref:`example`, do the following:
 
 * Open a command prompt
 * Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)
@@ -122,8 +122,9 @@ To setup and run the :ref:`example`, do the following:
 .. note::
    Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
 
-More complete examples, including the full scale MTC regional demand model are available for creation by typing ``activitysim create -l``.  To create 
-these examples, ActivitySim downloads the large input files from the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.
+More complete examples, including the full scale MTC regional demand model, estimation integration examples, and multiple zone system examples, 
+are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
+the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.
 
 Try the Notebooks
 -----------------
@@ -148,6 +149,7 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 * The number of households to be simulated for disaggregate model steps
 * The number of model zones (for each zone system) for aggregate model steps
 * The number and size of network skims by mode and time-of-day
+* The number of zone systems, see :ref:`multiple_zone_systems`
 * The desired runtimes
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce

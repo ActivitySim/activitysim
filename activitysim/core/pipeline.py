@@ -17,6 +17,7 @@ from . import random
 from . import tracing
 from . import mem
 
+
 from . import util
 from .tracing import print_elapsed_time
 
@@ -389,6 +390,7 @@ def load_checkpoint(checkpoint_name):
 
     # register for tracing in order that tracing.register_traceable_table wants us to register them
     traceable_tables = inject.get_injectable('traceable_tables', [])
+
     for table_name in traceable_tables:
         if table_name in loaded_tables:
             tracing.register_traceable_table(table_name, loaded_tables[table_name])
@@ -462,15 +464,15 @@ def run_model(model_name):
     inject.set_step_args(args)
 
     t0 = print_elapsed_time()
+    logger.info(f"#run_model running step {step_name}")
     orca.run([step_name])
-    t0 = print_elapsed_time("run_model step '%s'" % model_name, t0, debug=True)
+    t0 = print_elapsed_time("#run_model completed step '%s'" % model_name, t0, debug=True)
 
     inject.set_step_args(None)
 
     _PIPELINE.rng().end_step(model_name)
     if checkpoint:
         add_checkpoint(model_name)
-        t0 = print_elapsed_time("run_model add_checkpoint '%s'" % model_name, t0, debug=True)
     else:
         logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
@@ -578,15 +580,22 @@ def run(models, resume_after=None):
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
 
+    mem.init_trace(config.setting('mem_tick'), write_header=True)
+    mem.trace_memory_info('#MEM pipeline.run before preload_injectables')
+
     # preload any bulky injectables (e.g. skims) not in pipeline
     if orca.is_injectable('preload_injectables'):
         orca.get_injectable('preload_injectables')
         t0 = print_elapsed_time('preload_injectables', t0)
 
+    mem.trace_memory_info('#MEM pipeline.run before run_models')
+
     t0 = print_elapsed_time()
     for model in models:
-
         run_model(model)
+        mem.trace_memory_info(f"pipeline.run after {model}")
+
+    mem.trace_memory_info('#MEM pipeline.run after run_models')
 
     t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 

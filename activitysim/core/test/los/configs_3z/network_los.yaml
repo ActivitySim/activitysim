@@ -1,0 +1,61 @@
+zone_system: 3
+
+taz_skims: z3_taz_skims.omx
+
+# we require that skims for all tap_tap sets have unique names
+# and can therefor share a single skim_dict without name collision
+# e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
+tap_skims: z3_tap_skims.omx
+
+maz: maz.csv
+
+tap: tap.csv
+
+maz_to_maz:
+  tables:
+    - maz_to_maz_walk.csv
+    - maz_to_maz_bike.csv
+
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  max_blend_distance:
+    DIST: 5
+    # blend distance of 0 means no blending
+    DISTBIKE: 0
+    DISTWALK: 1
+
+  # missing means use the skim value itself rather than DIST skim (e.g. DISTBIKE)
+  blend_distance_skim_name: DIST
+
+maz_to_tap:
+  walk:
+    table: maz_to_tap_walk.csv
+  drive:
+    table: maz_to_tap_drive.csv
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 60
+    periods: [0, 6, 11, 16, 20, 24]
+    labels: &skim_time_period_labels ['EA', 'AM', 'MD', 'PM', 'EV']
+
+demographic_segments: &demographic_segments
+  - &low_income_segment_id 0
+  - &high_income_segment_id 1
+
+
+# transit virtual path builder settings
+TVPB_SETTINGS:
+  tour_mode_choice:
+    tap_tap_settings:
+      SPEC: tvpb_utility_tap_tap.csv
+      PREPROCESSOR:
+        SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
+        DF: df
+      # FIXME this has to be explicitly specified, since e.g. attribute columns are assigned in expression files
+      attribute_segments:
+        demographic_segment: *demographic_segments
+        tod: *skim_time_period_labels
+        access_mode: ['drive', 'walk']
+      attributes_as_columns:
+        - demographic_segment
+        - tod

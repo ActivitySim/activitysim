@@ -1,5 +1,6 @@
 coefficient_name,eatout,escort,othdiscr,othmaint,school,shopping,social,univ,work,atwork
-#same for all sergments,,,,,,,,,,
+#same for all segments,,,,,,,,,,
+coef_one,,,,,,,,,,
 coef_nest_root,,,,,,,,,,
 coef_nest_AUTO,,,,,,,,,,
 coef_nest_AUTO_DRIVEALONE,,,,,,,,,,

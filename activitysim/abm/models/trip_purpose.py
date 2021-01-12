@@ -11,10 +11,12 @@ from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import pipeline
-
-from .util import expressions
+from activitysim.core import expressions
 
 logger = logging.getLogger(__name__)
+
+
+PROBS_JOIN_COLUMNS = ['primary_purpose', 'outbound', 'person_type']
 
 
 def trip_purpose_probs():
@@ -23,29 +25,20 @@ def trip_purpose_probs():
     return df
 
 
-def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
+def trip_purpose_calc_row_size(choosers, spec, trace_label):
     """
     rows_per_chunk calculator for trip_purpose
     """
 
-    num_choosers = len(choosers.index)
-
-    # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers, 0
+    sizer = chunk.RowSizeEstimator(trace_label)
 
     chooser_row_size = len(choosers.columns)
+    spec_columns = spec.shape[1] - len(PROBS_JOIN_COLUMNS)
 
-    # extra columns from spec
-    extra_columns = spec.shape[1]
+    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
 
-    row_size = chooser_row_size + extra_columns
-
-    # logger.debug("%s #chunk_calc choosers %s", trace_label, choosers.shape)
-    # logger.debug("%s #chunk_calc spec %s", trace_label, spec.shape)
-    # logger.debug("%s #chunk_calc extra_columns %s", trace_label, extra_columns)
-
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+    row_size = sizer.get_hwm()
+    return row_size
 
 
 def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label):
@@ -58,21 +51,19 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
-    probs_join_cols = ['primary_purpose', 'outbound', 'person_type']
-    non_purpose_cols = probs_join_cols + ['depart_range_start', 'depart_range_end']
+    non_purpose_cols = PROBS_JOIN_COLUMNS + ['depart_range_start', 'depart_range_end']
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
 
     num_trips = len(trips.index)
     have_trace_targets = trace_hh_id and tracing.has_trace_targets(trips)
 
-    # probs shold sum to 1 across rows
+    # probs should sum to 1 across rows
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
     probs_spec.loc[:, purpose_cols] = probs_spec.loc[:, purpose_cols].div(sum_probs, axis=0)
 
     # left join trips to probs (there may be multiple rows per trip for multiple depart ranges)
-    choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
+    choosers = pd.merge(trips.reset_index(), probs_spec, on=PROBS_JOIN_COLUMNS,
                         how='left').set_index('trip_id')
-
     chunk.log_df(trace_label, 'choosers', choosers)
 
     # select the matching depart range (this should result on in exactly one chooser row per trip)
@@ -166,25 +157,16 @@ def run_trip_purpose(
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    rows_per_chunk, effective_chunk_size = \
-        trip_purpose_rpc(chunk_size, trips_df, probs_spec, trace_label=trace_label)
+    row_size = chunk_size and trip_purpose_calc_row_size(trips_df, probs_spec, trace_label)
 
-    for i, num_chunks, trips_chunk in chunk.chunked_choosers(trips_df, rows_per_chunk):
-
-        logger.info("Running chunk %s of %s size %d", i, num_chunks, len(trips_chunk))
-
-        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
-            if num_chunks > 1 else trace_label
-
-        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+    for i, trips_chunk, chunk_trace_label in \
+            chunk.adaptive_chunked_choosers(trips_df, chunk_size, row_size, trace_label):
 
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,
             trace_hh_id,
             trace_label=chunk_trace_label)
-
-        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 

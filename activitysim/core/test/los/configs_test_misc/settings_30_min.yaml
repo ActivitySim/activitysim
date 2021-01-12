@@ -1,0 +1,15 @@
+
+zone_system: 1
+
+taz_skims: z1_taz_skims.omx
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 30
+    periods: [0, 12, 22, 32, 40, 48]
+    labels:
+        - EA
+        - AM
+        - MD
+        - PM
+        - EV

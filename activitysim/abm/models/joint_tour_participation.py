@@ -10,10 +10,11 @@ from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import logit
+from activitysim.core import expressions
+from activitysim.core import chunk
 
 from activitysim.core.util import assign_in_place
 
-from .util import expressions
 from .util import estimation
 
 from activitysim.core.util import reindex
@@ -285,7 +286,13 @@ def joint_tour_participation(
         estimator.write_coefficients(coefficients_df)
         estimator.write_choosers(candidates)
 
-    choices = simulate.simple_simulate(
+    # add tour-based chunk_id so we can chunk all trips in tour together
+    assert 'chunk_id' not in candidates.columns
+    unique_household_ids = candidates.household_id.unique()
+    household_chunk_ids = pd.Series(range(len(unique_household_ids)), index=unique_household_ids)
+    candidates['chunk_id'] = reindex(household_chunk_ids, candidates.household_id)
+
+    choices = simulate.simple_simulate_by_chunk_id(
         choosers=candidates,
         spec=model_spec,
         nest_spec=nest_spec,

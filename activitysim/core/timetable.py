@@ -9,10 +9,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config
 from activitysim.core import pipeline
-from activitysim.core import tracing
-from activitysim.core import util
 
 logger = logging.getLogger(__name__)
 

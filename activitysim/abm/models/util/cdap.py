@@ -35,9 +35,6 @@ MAX_HHSIZE = 5
 
 MAX_INTERACTION_CARDINALITY = 3
 
-WORKER_PTYPES = [1, 2]
-CHILD_PTYPES = [6, 7, 8]
-
 
 def set_hh_index(df):
 
@@ -61,7 +58,7 @@ def add_pn(col, pnum):
         raise RuntimeError("add_pn col not list or str")
 
 
-def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
+def assign_cdap_rank(persons, person_type_map, trace_hh_id=None, trace_label=None):
     """
     Assign an integer index, cdap_rank, to each household member. (Starting with 1, not 0)
 
@@ -109,7 +106,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 
     # choose up to 2 workers, preferring full over part, older over younger
     workers = \
-        persons.loc[persons[_ptype_].isin(WORKER_PTYPES), [_hh_id_, _ptype_]]\
+        persons.loc[persons[_ptype_].isin(person_type_map['WORKER']), [_hh_id_, _ptype_]]\
         .sort_values(by=[_hh_id_, _ptype_], ascending=[True, True])\
         .groupby(_hh_id_).head(2)
     # tag the selected workers
@@ -118,7 +115,7 @@ def assign_cdap_rank(persons, trace_hh_id=None, trace_label=None):
 
     # choose up to 3, preferring youngest
     children = \
-        persons.loc[persons[_ptype_].isin(CHILD_PTYPES), [_hh_id_, _ptype_, _age_]]\
+        persons.loc[persons[_ptype_].isin(person_type_map['CHILD']), [_hh_id_, _ptype_, _age_]]\
         .sort_values(by=[_hh_id_, _ptype_], ascending=[True, True])\
         .groupby(_hh_id_).head(3)
     # tag the selected children
@@ -795,6 +792,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
 
 def _run_cdap(
         persons,
+        person_type_map,
         cdap_indiv_spec,
         interaction_coefficients,
         cdap_fixed_relative_proportions,
@@ -815,7 +813,8 @@ def _run_cdap(
     # assign integer cdap_rank to each household member
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model
     # extra household members, will have activities assigned by in fixed proportions
-    assign_cdap_rank(persons, trace_hh_id, trace_label)
+    assign_cdap_rank(persons, person_type_map, trace_hh_id, trace_label)
+    chunk.log_df(trace_label, 'persons', persons)
 
     # Calculate CDAP utilities for each individual, ignoring interactions
     # ind_utils has index of 'person_id' and a column for each alternative
@@ -823,6 +822,7 @@ def _run_cdap(
     indiv_utils = individual_utilities(persons[persons.cdap_rank <= MAX_HHSIZE],
                                        cdap_indiv_spec, locals_d,
                                        trace_hh_id, trace_label)
+    chunk.log_df(trace_label, 'indiv_utils', indiv_utils)
 
     # compute interaction utilities, probabilities, and hh activity pattern choices
     # for each size household separately in turn up to MAX_HHSIZE
@@ -836,9 +836,11 @@ def _run_cdap(
         hh_choices_list.append(choices)
 
     del indiv_utils
+    chunk.log_df(trace_label, 'indiv_utils', None)
 
     # concat all the household choices into a single series indexed on _hh_index_
     hh_activity_choices = pd.concat(hh_choices_list)
+    chunk.log_df(trace_label, 'hh_activity_choices', hh_activity_choices)
 
     # unpack the household activity choice list into choices for each (non-extra) household member
     # resulting series contains one activity per individual hh member, indexed on _persons_index_
@@ -858,6 +860,7 @@ def _run_cdap(
     person_choices = pd.concat([cdap_person_choices, extra_person_choices])
 
     persons['cdap_activity'] = person_choices
+    chunk.log_df(trace_label, 'persons', persons)
 
     # if DUMP:
     #     tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
@@ -865,33 +868,41 @@ def _run_cdap(
     #     tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
     #                      transpose=False, slicer='NONE')
 
-    chunk.log_df(trace_label, 'persons', persons)
+    result = persons[['cdap_rank', 'cdap_activity']]
 
-    return persons[['cdap_rank', 'cdap_activity']]
+    del persons
+    chunk.log_df(trace_label, 'persons', None)
+
+    return result
 
 
-def calc_rows_per_chunk(chunk_size, choosers, trace_label=None):
+def cdap_calc_row_size(choosers, cdap_indiv_spec, trace_label):
+
+    sizer = chunk.RowSizeEstimator(trace_label)
 
     # NOTE we chunk chunk_id
     num_choosers = choosers['chunk_id'].max() + 1
+    rows_per_chunk_id = len(choosers) / num_choosers
 
-    # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers, 0
+    chooser_row_size = len(choosers.columns)
 
-    chooser_row_size = choosers.shape[1]
+    sizer.add_elements(chooser_row_size, 'persons')
+    sizer.add_elements(len(cdap_indiv_spec), 'indiv_utils')
+    sizer.add_elements(1, 'hh_activity_choices')
+    sizer.add_elements(1, 'cdap_rank')
+    sizer.add_elements(1, 'cdap_activity')
+
+    row_size = sizer.get_hwm()
 
     # scale row_size by average number of chooser rows per chunk_id
-    rows_per_chunk_id = choosers.shape[0] / float(num_choosers)
-    row_size = int(rows_per_chunk_id * chooser_row_size)
+    row_size = row_size * rows_per_chunk_id
 
-    # logger.debug("%s #chunk_calc choosers %s" % (trace_label, choosers.shape))
-
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+    return row_size
 
 
 def run_cdap(
         persons,
+        person_type_map,
         cdap_indiv_spec,
         cdap_interaction_coefficients,
         cdap_fixed_relative_proportions,
@@ -935,28 +946,21 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, 'cdap')
 
-    rows_per_chunk, effective_chunk_size = \
-        calc_rows_per_chunk(chunk_size, persons, trace_label=trace_label)
+    row_size = chunk_size and cdap_calc_row_size(persons, cdap_indiv_spec, trace_label)
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, num_chunks, persons_chunk in chunk.chunked_choosers_by_chunk_id(persons, rows_per_chunk):
-
-        logger.info("Running chunk %s of %s with %d persons" % (i, num_chunks, len(persons_chunk)))
-
-        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i)
-
-        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+    for i, persons_chunk, chunk_trace_label \
+            in chunk.adaptive_chunked_choosers_by_chunk_id(persons, chunk_size, row_size, trace_label):
 
         cdap_results = \
             _run_cdap(persons_chunk,
+                      person_type_map,
                       cdap_indiv_spec,
                       cdap_interaction_coefficients,
                       cdap_fixed_relative_proportions,
                       locals_d,
                       trace_hh_id, chunk_trace_label)
-
-        chunk.log_close(chunk_trace_label)
 
         result_list.append(cdap_results)
 

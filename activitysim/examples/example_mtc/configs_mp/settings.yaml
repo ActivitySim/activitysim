@@ -12,7 +12,7 @@ fail_fast: True
 
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
-#chunk_size:  80000000000
+chunk_size:  80000000000
 
 #num_processes: 60
 
@@ -23,19 +23,20 @@ strict: False
 mem_tick: 30
 use_shadow_pricing: False
 
-households_sample_size:  2000
-chunk_size: 0
+# households_sample_size:  2000
+#chunk_size: 0
 num_processes: 2
 
 # - -------------------------
 
+# not recommended or supported for multiprocessing
 want_dest_choice_sample_tables: False
 
 #read_skim_cache: True
 #write_skim_cache: True
 
 # - tracing
-trace_hh_id:
+#trace_hh_id:
 trace_od:
 
 # to resume after last successful checkpoint, specify resume_after: _

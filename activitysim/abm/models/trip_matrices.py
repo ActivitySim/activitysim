@@ -10,15 +10,13 @@ import numpy as np
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-
-from .util import expressions
-from .util.expressions import skim_time_period_label
+from activitysim.core import expressions
 
 logger = logging.getLogger(__name__)
 
 
 @inject.step()
-def write_trip_matrices(trips, skim_dict, skim_stack):
+def write_trip_matrices(trips, network_los):
     """
     Write trip matrices step.
 
@@ -28,10 +26,17 @@ def write_trip_matrices(trips, skim_dict, skim_stack):
     """
 
     model_settings = config.read_model_settings('write_trip_matrices.yaml')
-    trips_df = annotate_trips(trips, skim_dict, skim_stack, model_settings)
+    trips_df = annotate_trips(trips, network_los, model_settings)
 
     if bool(model_settings.get('SAVE_TRIPS_TABLE')):
         pipeline.replace_table('trips', trips_df)
+
+    if 'parking_location' in config.setting('models'):
+        parking_settings = config.read_model_settings('parking_location_choice.yaml')
+        parking_taz_col_name = parking_settings['ALT_DEST_COL_NAME']
+        if parking_taz_col_name in trips_df:
+            trips_df.loc[trips_df[parking_taz_col_name] > 0, 'destination'] = trips_df[parking_taz_col_name]
+        # Also need address the return trip
 
     logger.info('Aggregating trips...')
     aggregate_trips = trips_df.groupby(['origin', 'destination'], sort=False).sum()
@@ -57,7 +62,7 @@ def write_trip_matrices(trips, skim_dict, skim_stack):
     write_matrices(aggregate_trips, zone_index, orig_index, dest_index, model_settings)
 
 
-def annotate_trips(trips, skim_dict, skim_stack, model_settings):
+def annotate_trips(trips, network_los, model_settings):
     """
     Add columns to local trips table. The annotator has
     access to the origin/destination skims and everything
@@ -71,12 +76,13 @@ def annotate_trips(trips, skim_dict, skim_stack, model_settings):
 
     trace_label = 'trip_matrices'
 
+    skim_dict = network_los.get_default_skim_dict()
+
     # setup skim keys
-    assert ('trip_period' not in trips_df)
-    trips_df['trip_period'] = skim_time_period_label(trips_df.depart)
+    if 'trip_period' not in trips_df:
+        trips_df['trip_period'] = network_los.skim_time_period_label(trips_df.depart)
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
-    odt_skim_stack_wrapper = skim_stack.wrap(left_key='origin', right_key='destination',
-                                             skim_key='trip_period')
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='origin', dest_key='destination', dim3_key='trip_period')
     skims = {
         'od_skims': od_skim_wrapper,
         "odt_skims": odt_skim_stack_wrapper

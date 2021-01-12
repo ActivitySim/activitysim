@@ -1,0 +1,5 @@
+Description,Target,Expression
+school_segment gradeschool,school_segment,"np.where(persons.is_gradeschool, SCHOOL_SEGMENT_GRADE, SCHOOL_SEGMENT_NONE)"
+school_segment highschool,school_segment,"np.where(persons.is_highschool, SCHOOL_SEGMENT_HIGH, school_segment)"
+school_segment university,school_segment,"np.where(persons.is_university, SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
+

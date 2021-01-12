@@ -126,8 +126,8 @@ models:
   - trip_purpose
   - trip_destination
 #  - trip_purpose_and_destination
-#  - trip_scheduling
-#  - trip_mode_choice
+  - trip_scheduling
+  - trip_mode_choice
 #  - write_data_dictionary
 #  - track_skim_usage
 #  - write_trip_matrices

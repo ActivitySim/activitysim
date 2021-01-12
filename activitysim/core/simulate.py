@@ -277,8 +277,7 @@ def get_segment_coefficients(model_settings, segment_name):
     coefficients_df = read_model_coefficients(model_settings)
     template_df = read_model_coefficient_template(model_settings)
 
-    #bug
-    dump_mapped_coefficients(model_settings)
+    # dump_mapped_coefficients(model_settings)
 
     coefficients_col = template_df[segment_name].map(coefficients_df.value).astype(float)
 

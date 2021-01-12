@@ -3,11 +3,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Core Components &mdash; ActivitySim 0.9.5.2 documentation</title>
+  <title>Core Components &mdash; ActivitySim 0.9.7 documentation</title>
   
 
   
@@ -17,7 +17,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -30,7 +33,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -52,7 +54,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> ActivitySim
+            <a href="index.html" class="icon icon-home"> ActivitySim
           
 
           
@@ -62,7 +64,7 @@
             
             
               <div class="version">
-                0.9.5.2
+                0.9.7
               </div>
             
           
@@ -102,20 +104,24 @@
 <li class="toctree-l4"><a class="reference internal" href="#id1">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#skim">Skim</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#los">LOS</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id2">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#skims">Skims</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id3">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#random">Random</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pipeline">Pipeline</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id4">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#random">Random</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id5">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#tracing">Tracing</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id6">API</a></li>
 </ul>
 </li>
 </ul>
@@ -123,62 +129,68 @@
 <li class="toctree-l2"><a class="reference internal" href="#utility-expressions">Utility Expressions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#conventions">Conventions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-expressions-file">Example Expressions File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">Expressions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sampling-with-interaction">Sampling with Interaction</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id6">API</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#simulate">Simulate</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id8">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#simulate-with-interaction">Simulate with Interaction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#simulate">Simulate</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id10">API</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#simulate-with-interaction">Simulate with Interaction</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id12">API</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#simulate-with-sampling-and-interaction">Simulate with Sampling and Interaction</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id11">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id13">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#assign">Assign</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id12">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id14">API</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#choice-models">Choice Models</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#logit">Logit</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id13">API</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id15">API</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#person-time-windows">Person Time Windows</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id14">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#transit-virtual-path-builder">Transit Virtual Path Builder</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id18">API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-activitysim.core.pathbuilder_cache">Cache API</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#helpers">Helpers</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#chunk">Chunk</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id15">API</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id16">API</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#id17">API</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="#inject">Inject</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id19">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#mem">Mem</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#utilities">Utilities</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id20">API</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#output">Output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#config">Config</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id21">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#inject">Inject</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id23">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#mem">Mem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id24">API</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#output">Output</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id25">API</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#tests">Tests</a></li>
@@ -228,6 +240,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -239,7 +253,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/core.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -257,18 +271,18 @@
 <h1>Core Components<a class="headerlink" href="#core-components" title="Permalink to this headline">¶</a></h1>
 <p>ActivitySim’s core components include features for multiprocessing, data management,
 utility expressions, choice models, person time window management, and helper
-functions.  These core components include the multiprocessor, skim matrix manager, the
+functions.  These core components include the multiprocessor, network LOS (skim) manager, the
 data pipeline manager, the random number manager, the tracer, sampling
 methods, simulation methods, model specification readers and expression
-evaluators, choice models, timetable, and helper functions.</p>
+evaluators, choice models, timetable, transit virtual path builder, and helper functions.</p>
 <div class="section" id="multiprocessing">
 <span id="multiprocessing-in-detail"></span><h2>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this headline">¶</a></h2>
 <p>Parallelization using multiprocessing</p>
 <div class="section" id="module-activitysim.core.mp_tasks">
 <span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.core.mp_tasks" title="Permalink to this headline">¶</a></h3>
 <dl class="py data">
-<dt id="activitysim.core.mp_tasks.TEST_SPAWN">
-<code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">TEST_SPAWN</code><em class="property"> = False</em><a class="headerlink" href="#activitysim.core.mp_tasks.TEST_SPAWN" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.mp_tasks.LAST_CHECKPOINT">
+<code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">LAST_CHECKPOINT</code><em class="property"> = '_'</em><a class="headerlink" href="#activitysim.core.mp_tasks.LAST_CHECKPOINT" title="Permalink to this definition">¶</a></dt>
 <dd><p>mp_tasks - activitysim multiprocessing overview</p>
 <p>Activitysim runs a list of models sequentially, performing various computational operations
 on tables. Model steps can modify values in existing tables, add columns, or create additional
@@ -382,7 +396,7 @@ essentially the same tables and results as if the whole simulation had been run 
 <dl class="py function">
 <dt id="activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers">
 <code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">allocate_shared_shadow_pricing_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is called by the main process and allocate memory buffer to share with subprocs</p>
+<dd><p>This is called by the main process to allocate memory buffer to share with subprocs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
@@ -396,10 +410,11 @@ essentially the same tables and results as if the whole simulation had been run 
 <dt id="activitysim.core.mp_tasks.allocate_shared_skim_buffers">
 <code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">allocate_shared_skim_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.allocate_shared_skim_buffers" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is called by the main process to allocate shared memory buffer to share with subprocs</p>
+<p>Note: Buffers must be allocated BEFORE network_los.load_data</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>skim_buffers</strong><span class="classifier">dict {&lt;block_name&gt;: &lt;multiprocessing.RawArray&gt;}</span></dt><dd></dd>
+<dt><strong>skim_buffers</strong><span class="classifier">dict {&lt;skim_tag&gt;: &lt;multiprocessing.RawArray&gt;}</span></dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -407,7 +422,7 @@ essentially the same tables and results as if the whole simulation had been run 
 
 <dl class="py function">
 <dt id="activitysim.core.mp_tasks.apportion_pipeline">
-<code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">apportion_pipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sub_proc_names</span></em>, <em class="sig-param"><span class="n">slice_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.apportion_pipeline" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">apportion_pipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sub_proc_names</span></em>, <em class="sig-param"><span class="n">step_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.apportion_pipeline" title="Permalink to this definition">¶</a></dt>
 <dd><p>apportion pipeline for multiprocessing step</p>
 <p>create pipeline files for sub_procs, apportioning data based on slice_rules</p>
 <p>Called at the beginning of a multiprocess step prior to launching the sub-processes
@@ -417,7 +432,7 @@ Pipeline files have well known names (pipeline file name prefixed by subjob name
 <dd class="field-odd"><dl class="simple">
 <dt><strong>sub_proc_names</strong><span class="classifier">list of str</span></dt><dd><p>names of the sub processes to apportion</p>
 </dd>
-<dt><strong>slice_info</strong><span class="classifier">dict</span></dt><dd><p>slice_info from multiprocess_steps</p>
+<dt><strong>step_info</strong><span class="classifier">dict</span></dt><dd><p>step_info from multiprocess_steps for step we are apportioning pipeline tables for</p>
 </dd>
 </dl>
 </dd>
@@ -672,7 +687,7 @@ so main log file can display only warnings and errors from subtasks</p>
 
 <dl class="py function">
 <dt id="activitysim.core.mp_tasks.mp_apportion_pipeline">
-<code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">mp_apportion_pipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">injectables</span></em>, <em class="sig-param"><span class="n">sub_proc_names</span></em>, <em class="sig-param"><span class="n">slice_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.mp_apportion_pipeline" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.mp_tasks.</code><code class="sig-name descname">mp_apportion_pipeline</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">injectables</span></em>, <em class="sig-param"><span class="n">sub_proc_names</span></em>, <em class="sig-param"><span class="n">step_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.mp_apportion_pipeline" title="Permalink to this definition">¶</a></dt>
 <dd><p>mp entry point for apportion_pipeline</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -681,7 +696,7 @@ so main log file can display only warnings and errors from subtasks</p>
 </dd>
 <dt><strong>sub_proc_names</strong><span class="classifier">list of str</span></dt><dd><p>names of the sub processes to apportion</p>
 </dd>
-<dt><strong>slice_info</strong><span class="classifier">dict</span></dt><dd><p>slice_info from multiprocess_steps</p>
+<dt><strong>step_info</strong><span class="classifier">dict</span></dt><dd><p>step_info for multiprocess_step we are apportioning</p>
 </dd>
 </dl>
 </dd>
@@ -993,7 +1008,7 @@ the locutor flag indicates that this sub process is the designated singleton spo
 <dt id="activitysim.core.input.read_input_table">
 <code class="sig-prename descclassname">activitysim.core.input.</code><code class="sig-name descname">read_input_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tablename</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.input.read_input_table" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads input table name and returns cleaned DataFrame.</p>
-<p>Uses settings found in input_table_list in settings.yaml</p>
+<p>Uses settings found in input_table_list in global settings file</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1010,14 +1025,453 @@ the locutor flag indicates that this sub process is the designated singleton spo
 
 </div>
 </div>
-<div class="section" id="skim">
-<span id="skims-in-detail"></span><h3>Skim<a class="headerlink" href="#skim" title="Permalink to this headline">¶</a></h3>
-<p>Skim matrix data access</p>
+<div class="section" id="los">
+<span id="los-in-detail"></span><h3>LOS<a class="headerlink" href="#los" title="Permalink to this headline">¶</a></h3>
+<p>Network Level of Service (LOS) data access</p>
 <div class="section" id="id2">
 <h4>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
-<span class="target" id="module-activitysim.core.skim"></span><dl class="py class">
-<dt id="activitysim.core.skim.DataFrameMatrix">
-<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim.</code><code class="sig-name descname">DataFrameMatrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.DataFrameMatrix" title="Permalink to this definition">¶</a></dt>
+<span class="target" id="module-activitysim.core.los"></span><dl class="py class">
+<dt id="activitysim.core.los.Network_LOS">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.los.</code><code class="sig-name descname">Network_LOS</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">los_settings_file_name</span><span class="o">=</span><span class="default_value">'network_los.yaml'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS" title="Permalink to this definition">¶</a></dt>
+<dd><p>singleton object to manage skims and skim-related tables</p>
+<div class="line-block">
+<div class="line">los_settings_file_name: str        # e.g. ‘network_los.yaml’</div>
+<div class="line">skim_dtype_name:str                # e.g. ‘float32’</div>
+<div class="line"><br /></div>
+<div class="line">dict_factory_name: str             # e.g. ‘NumpyArraySkimFactory’</div>
+<div class="line">zone_system: str                   # str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)</div>
+<div class="line">skim_time_periods = None           # list of str e.g. [‘AM’, ‘MD’, ‘PM’]</div>
+<div class="line"><br /></div>
+<div class="line">skims_info: dict                   # dict of SkimInfo keyed by skim_tag</div>
+<div class="line">skim_buffers: dict                 # when multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag</div>
+<div class="line">skim_dicts: dice                   # dict of SkimDict keyed by skim_tag</div>
+<div class="line"><br /></div>
+<div class="line"># TWO_ZONE and THREE_ZONE</div>
+<div class="line">maz_taz_df: pandas.DataFrame       # DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ</div>
+<div class="line">maz_to_maz_df: pandas.DataFrame    # maz_to_maz attributes for MazSkimDict sparse skims</div>
+<div class="line-block">
+<div class="line"># indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)</div>
+</div>
+<div class="line">maz_ceiling: int                   # max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)</div>
+<div class="line">max_blend_distance: dict           # dict of int maz_to_maz max_blend_distance values keyed by skim_tag</div>
+<div class="line"><br /></div>
+<div class="line"># THREE_ZONE only</div>
+<div class="line">tap_df: pandas.DataFrame           # taps data frame</div>
+<div class="line">tap_lines_df: pandas.DataFrame     # if specified in settings, list of transit lines served, indexed by TAP</div>
+<div class="line-block">
+<div class="line"># used to prune maz_to_tap_dfs to drop more distant TAPS with redundant service</div>
+<div class="line"># since a TAP can serve multiple lines, tap_lines_df TAP index is not unique</div>
+</div>
+<div class="line">maz_to_tap_dfs: dict               # dict of maz_to_tap DataFrames indexed by access mode (e.g. ‘walk’, ‘drive’)</div>
+<div class="line-block">
+<div class="line"># maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns</div>
+</div>
+<div class="line">tap_tap_uid: TapTapUidCalculator</div>
+</div>
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.allocate_shared_skim_buffers">
+<code class="sig-name descname">allocate_shared_skim_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.allocate_shared_skim_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocate multiprocessing.RawArray shared data buffers sized to hold data for the omx skims.
+Only called when multiprocessing - BEFORE load_data()</p>
+<p>Returns dict of allocated buffers so they can be added to mp_tasks can add them to dict of data
+to be shared with subprocesses.</p>
+<p>Note: we are only allocating storage, but not loading any skim data into it</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>dict of multiprocessing.RawArray keyed by skim_tag</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.create_skim_dict">
+<code class="sig-name descname">create_skim_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_tag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.create_skim_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new SkimDict of type specified by skim_tag (e.g. ‘taz’, ‘maz’ or ‘tap’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_tag: str</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>SkimDict or subclass (e.g. MazSkimDict)</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.get_cache_dir">
+<code class="sig-name descname">get_cache_dir</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_cache_dir" title="Permalink to this definition">¶</a></dt>
+<dd><p>return path of cache directory in output_dir (creating it, if need be)</p>
+<dl class="simple">
+<dt>cache directory is used to store</dt><dd><p>skim memmaps created by skim+dict_factories
+tvpb tap_tap table cache</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>str path</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.get_default_skim_dict">
+<code class="sig-name descname">get_default_skim_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_default_skim_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the default (non-transit) skim dict for the (1, 2, or 3) zone_system</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>TAZ SkimDict for ONE_ZONE, MazSkimDict for TWO_ZONE and THREE_ZONE</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.get_mazpairs">
+<code class="sig-name descname">get_mazpairs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">omaz</span></em>, <em class="sig-param"><span class="n">dmaz</span></em>, <em class="sig-param"><span class="n">attribute</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_mazpairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>look up attribute values of maz od pairs in sparse maz_to_maz df</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>omaz: array-like list of omaz zone_ids</strong></dt><dd></dd>
+<dt><strong>dmaz: array-like list of omaz zone_ids</strong></dt><dd></dd>
+<dt><strong>attribute: str name of attribute column in maz_to_maz_df</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Numpy.ndarray: list of attribute values for od pairs</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.get_skim_dict">
+<code class="sig-name descname">get_skim_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_tag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_skim_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get SkimDict for the specified skim_tag (e.g. ‘taz’, ‘maz’, or ‘tap’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>SkimDict or subclass (e.g. MazSkimDict)</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.get_tappairs3d">
+<code class="sig-name descname">get_tappairs3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">otap</span></em>, <em class="sig-param"><span class="n">dtap</span></em>, <em class="sig-param"><span class="n">dim3</span></em>, <em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_tappairs3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>TAP skim lookup</p>
+<p>FIXME - why do we provide this for taps, but use skim wrappers for TAZ?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>otap: pandas.Series</strong></dt><dd><p>origin (boarding tap) zone_ids</p>
+</dd>
+<dt><strong>dtap: pandas.Series</strong></dt><dd><p>dest (aligting tap) zone_ids</p>
+</dd>
+<dt><strong>dim3: pandas.Series or str</strong></dt><dd><p>dim3 (e.g. tod) str</p>
+</dd>
+<dt><strong>key</strong></dt><dd><p>skim key (e.g. ‘IWAIT_SET1’)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Numpy.ndarray: list of tap skim values for odt tuples</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.load_data">
+<code class="sig-name descname">load_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load tables and skims from files specified in network_los settigns</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.load_settings">
+<code class="sig-name descname">load_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.load_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read setting file and initialize object variables (see class docstring for list of object variables)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.load_shared_data">
+<code class="sig-name descname">load_shared_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shared_data_buffers</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.load_shared_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load omx skim data into shared_data buffers
+Only called when multiprocessing - BEFORE any models are run or any call to load_data()</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shared_data_buffers: dict of multiprocessing.RawArray keyed by skim_tag</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.load_skim_info">
+<code class="sig-name descname">load_skim_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.load_skim_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>read skim info from omx files into SkimInfo, and store in self.skims_info dict keyed by skim_tag</p>
+<p>ONE_ZONE and TWO_ZONE systems have only TAZ skims
+THREE_ZONE systems have both TAZ and TAP skims</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.multiprocess">
+<code class="sig-name descname">multiprocess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.multiprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>return True if this is a multiprocessing run (even if it is a main or single-process subprocess)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>bool</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.omx_file_names">
+<code class="sig-name descname">omx_file_names</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_tag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.omx_file_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of omx file names from network_los settings file for the specified skim_tag (e.g. ‘taz’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_tag: str (e.g. ‘taz’)</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>list of str</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.los.Network_LOS.skim_time_period_label">
+<code class="sig-name descname">skim_time_period_label</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time_period</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.skim_time_period_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert time period times to skim time period labels (e.g. 9 -&gt; ‘AM’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time_period</strong><span class="classifier">pandas Series</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas Series</dt><dd><p>string time period labels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="skims">
+<h3>Skims<a class="headerlink" href="#skims" title="Permalink to this headline">¶</a></h3>
+<p>Skims data access</p>
+<div class="section" id="id3">
+<h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.skim_dict_factory"></span><dl class="py class">
+<dt id="activitysim.core.skim_dict_factory.AbstractSkimFactory">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dict_factory.</code><code class="sig-name descname">AbstractSkimFactory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">network_los</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.AbstractSkimFactory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provide access to skim data from store.</p>
+<dl class="simple">
+<dt>load_skim_info(skim_tag: str): dict</dt><dd><p>Read omx files for skim &lt;skim_tag&gt; (e.g. ‘TAZ’) and build skim_info dict</p>
+</dd>
+<dt>get_skim_data(skim_tag: str, skim_info: dict): SkimData</dt><dd><p>Read skim data from backing store and return it as a 3D ndarray quack-alike SkimData object</p>
+</dd>
+<dt>allocate_skim_buffer(skim_info, shared: bool): 1D array buffer sized for 3D SkimData</dt><dd><p>Allocate a ram skim buffer (ndarray or multiprocessing.Array) to use as frombuffer for SkimData</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.AbstractSkimFactory.allocate_skim_buffer">
+<code class="sig-name descname">allocate_skim_buffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_info</span></em>, <em class="sig-param"><span class="n">shared</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.AbstractSkimFactory.allocate_skim_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>For multiprocessing</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.AbstractSkimFactory.supports_shared_data_for_multiprocessing">
+<em class="property">property </em><code class="sig-name descname">supports_shared_data_for_multiprocessing</code><a class="headerlink" href="#activitysim.core.skim_dict_factory.AbstractSkimFactory.supports_shared_data_for_multiprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does subclass support shareable data for multiprocessing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>boolean</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.skim_dict_factory.JitMemMapSkimData">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dict_factory.</code><code class="sig-name descname">JitMemMapSkimData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_cache_path</span></em>, <em class="sig-param"><span class="n">skim_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.JitMemMapSkimData" title="Permalink to this definition">¶</a></dt>
+<dd><p>SkimData subclass for just-in-time memmap.</p>
+<p>Since opening a memmap is fast, open the memmap read the data on demand and immediately close it.
+This essentially eliminates RAM usage, but it means we are loading the data every time we access the skim,
+which may be significantly slower, depending on patterns of usage.</p>
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.JitMemMapSkimData.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#activitysim.core.skim_dict_factory.JitMemMapSkimData.shape" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>list-like shape tuple as returned by numpy.shape</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.skim_dict_factory.MemMapSkimFactory">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dict_factory.</code><code class="sig-name descname">MemMapSkimFactory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">network_los</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.MemMapSkimFactory" title="Permalink to this definition">¶</a></dt>
+<dd><p>The numpy.memmap docs states: The memmap object can be used anywhere an ndarray is accepted.
+You might think that since memmap duck-types ndarray, we could simply wrap it in a SkimData object.</p>
+<p>But, as the numpy.memmap docs also say: “Memory-mapped files are used for accessing
+small segments of large files on disk, without reading the entire file into memory.”</p>
+<p>The words “small segments” are not accidental, because, as you gradually access all the parts
+of the memmapped array, memory usage increases as all the memory is loaded into RAM.</p>
+<p>Under this scenario, the MemMapSkimFactory operates as a just-in-time loader, with no net savings
+in RAM footprint (other than potentially avoiding loading any unused skims).</p>
+<p>Alternatively, since opening a memmap is fast, you could just open the memmap read the data on demand,
+and immediately close it. This essentially eliminates RAM usage, but it means you are loading the data
+every time you access the skim, which, depending on you patterns of usage, may or may not be acceptable.</p>
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.MemMapSkimFactory.get_skim_data">
+<code class="sig-name descname">get_skim_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_tag</span></em>, <em class="sig-param"><span class="n">skim_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.MemMapSkimFactory.get_skim_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read skim data from backing store and return it as a 3D ndarray quack-alike SkimData object
+(either a JitMemMapSkimData or a memmap backed SkimData object)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_tag: str</strong></dt><dd></dd>
+<dt><strong>skim_info: string</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>SkimData or subclass</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dict_factory.</code><code class="sig-name descname">NumpyArraySkimFactory</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">network_los</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory.allocate_skim_buffer">
+<code class="sig-name descname">allocate_skim_buffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_info</span></em>, <em class="sig-param"><span class="n">shared</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory.allocate_skim_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allocate a ram skim buffer to use as frombuffer for SkimData
+If shared is True, return a shareable multiprocessing.RawArray, otherwise a numpy.ndarray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_info: dict</strong></dt><dd></dd>
+<dt><strong>shared: boolean</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>multiprocessing.RawArray or numpy.ndarray</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory.get_skim_data">
+<code class="sig-name descname">get_skim_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_tag</span></em>, <em class="sig-param"><span class="n">skim_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory.get_skim_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read skim data from backing store and return it as a 3D ndarray quack-alike SkimData object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_tag: str</strong></dt><dd></dd>
+<dt><strong>skim_info: string</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>SkimData</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory.load_skims_to_buffer">
+<code class="sig-name descname">load_skims_to_buffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_info</span></em>, <em class="sig-param"><span class="n">skim_buffer</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory.load_skims_to_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load skims from disk store (omx or cache) into ram skim buffer (multiprocessing.RawArray or numpy.ndarray)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_info: doct</strong></dt><dd></dd>
+<dt><strong>skim_buffer: 1D buffer sized to hold all skims (multiprocessing.RawArray or numpy.ndarray)</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory.supports_shared_data_for_multiprocessing">
+<em class="property">property </em><code class="sig-name descname">supports_shared_data_for_multiprocessing</code><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory.supports_shared_data_for_multiprocessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does subclass support shareable data for multiprocessing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>boolean</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.skim_dict_factory.SkimData">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dict_factory.</code><code class="sig-name descname">SkimData</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.SkimData" title="Permalink to this definition">¶</a></dt>
+<dd><p>A facade for 3D skim data exposing numpy indexing and shape
+The primary purpose is to document and police the api used to access skim data
+Subclasses using a different backing store to perform additional/alternative
+only need to implement the methods exposed here.</p>
+<p>For instance, to open/close memmapped files just in time, or to access backing data via an alternate api</p>
+<dl class="py method">
+<dt id="activitysim.core.skim_dict_factory.SkimData.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#activitysim.core.skim_dict_factory.SkimData.shape" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>list-like shape tuple as returned by numpy.shape</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-activitysim.core.skim_dictionary"></span><dl class="py class">
+<dt id="activitysim.core.skim_dictionary.DataFrameMatrix">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dictionary.</code><code class="sig-name descname">DataFrameMatrix</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.DataFrameMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Utility class to allow a pandas dataframe to be treated like a 2-D array,
 indexed by rowid, colname</p>
 <p>For use in vectorized expressions where the desired values depend on both a row column selector
@@ -1032,8 +1486,8 @@ e.g. size_terms.get(df.dest_taz, df.purpose)</p>
 </pre></div>
 </div>
 <dl class="py method">
-<dt id="activitysim.core.skim.DataFrameMatrix.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row_ids</span></em>, <em class="sig-param"><span class="n">col_ids</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.DataFrameMatrix.get" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.skim_dictionary.DataFrameMatrix.get">
+<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">row_ids</span></em>, <em class="sig-param"><span class="n">col_ids</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.DataFrameMatrix.get" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1053,15 +1507,89 @@ e.g. size_terms.get(df.dest_taz, df.purpose)</p>
 </dd></dl>
 
 <dl class="py class">
-<dt id="activitysim.core.skim.OffsetMapper">
-<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim.</code><code class="sig-name descname">OffsetMapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset_int</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.skim_dictionary.MazSkimDict">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dictionary.</code><code class="sig-name descname">MazSkimDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_tag</span></em>, <em class="sig-param"><span class="n">network_los</span></em>, <em class="sig-param"><span class="n">taz_skim_dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.MazSkimDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>MazSkimDict provides a facade that allows skim-like lookup by maz orig,dest zone_id
+when there are often too many maz zones to create maz skims.</p>
+<p>Dependencies: network_los.load_data must have already loaded: taz skim_dict, maz_to_maz_df, and maz_taz_df</p>
+<p>It performs lookups from a sparse list of maz-maz od pairs on selected attributes (e.g. WALKDIST)
+where accuracy for nearby od pairs is critical. And is backed by a fallback taz skim dict
+to return values of for more distant pairs (or for skims that are not attributes in the maz-maz table.)</p>
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.MazSkimDict.get_skim_usage">
+<code class="sig-name descname">get_skim_usage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.MazSkimDict.get_skim_usage" title="Permalink to this definition">¶</a></dt>
+<dd><p>return set of keys of skims looked up. e.g. {‘DIST’, ‘SOV’}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>set:</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.MazSkimDict.lookup">
+<code class="sig-name descname">lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig</span></em>, <em class="sig-param"><span class="n">dest</span></em>, <em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.MazSkimDict.lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of skim values of skims(s) at orig/dest in skim with the specified key (e.g. ‘DIST’)</p>
+<p>Look up in sparse table (backed by taz skims) if key is a sparse_key, otherwise look up in taz skims
+For taz skim lookups, the offset_mapper will convert maz zone_ids directly to taz skim indexes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>orig: list of orig zone_ids</strong></dt><dd></dd>
+<dt><strong>dest: list of dest zone_ids</strong></dt><dd></dd>
+<dt><strong>key: str</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Numpy.ndarray: list of skim values for od pairs</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.MazSkimDict.sparse_lookup">
+<code class="sig-name descname">sparse_lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig</span></em>, <em class="sig-param"><span class="n">dest</span></em>, <em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.MazSkimDict.sparse_lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get impedence values for a set of origin, destination pairs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>orig</strong><span class="classifier">1D array</span></dt><dd></dd>
+<dt><strong>dest</strong><span class="classifier">1D array</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>values</strong><span class="classifier">numpy 1D array</span></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.skim_dictionary.OffsetMapper">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dictionary.</code><code class="sig-name descname">OffsetMapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset_int</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">offset_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">offset_series</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.OffsetMapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Utility to map skim zone ids to ordinal offsets (e.g. numpy array indices)</p>
 <p>Can map either by a fixed offset (e.g. -1 to map 1-based to 0-based)
 or by an explicit mapping of zone id to offset (slower but more flexible)</p>
+<p>Internally, there are two representations:</p>
+<dl class="simple">
+<dt>offset_int:</dt><dd><p>int offset which when added to zone_id yields skim array index (e.g. -1 to map 1-based zones to 0-based index)</p>
+</dd>
+<dt>offset_series:</dt><dd><p>pandas series with zone_id index and skim array offset values. Ordinarily, index is just range(0, omx_size)
+if series has duplicate offset values, this can map multiple zone_ids to a single skim array index
+(e.g. can map maz zone_ids to corresponding taz skim offset)</p>
+</dd>
+</dl>
 <dl class="py method">
-<dt id="activitysim.core.skim.OffsetMapper.map">
-<code class="sig-name descname">map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zone_ids</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper.map" title="Permalink to this definition">¶</a></dt>
-<dd><p>map zone_ids to offsets</p>
+<dt id="activitysim.core.skim_dictionary.OffsetMapper.map">
+<code class="sig-name descname">map</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">zone_ids</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.OffsetMapper.map" title="Permalink to this definition">¶</a></dt>
+<dd><p>map zone_ids to skim indexes</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1077,9 +1605,9 @@ or by an explicit mapping of zone id to offset (slower but more flexible)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="activitysim.core.skim.OffsetMapper.set_offset_int">
-<code class="sig-name descname">set_offset_int</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset_int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper.set_offset_int" title="Permalink to this definition">¶</a></dt>
-<dd><p>specify fixed offset (e.g. -1 to map 1-based to 0-based)</p>
+<dt id="activitysim.core.skim_dictionary.OffsetMapper.set_offset_int">
+<code class="sig-name descname">set_offset_int</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset_int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.OffsetMapper.set_offset_int" title="Permalink to this definition">¶</a></dt>
+<dd><p>specify int offset which when added to zone_id yields skim array index (e.g. -1 to map 1-based to 0-based)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1090,12 +1618,10 @@ or by an explicit mapping of zone id to offset (slower but more flexible)</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="activitysim.core.skim.OffsetMapper.set_offset_list">
-<code class="sig-name descname">set_offset_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset_list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.OffsetMapper.set_offset_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Specify the zone ids corresponding to the offsets (ordinal positions)</p>
-<p>set_offset_list([10, 20, 30, 40])
-map([30, 20, 40])
-returns offsets [2, 1, 3]</p>
+<dt id="activitysim.core.skim_dictionary.OffsetMapper.set_offset_list">
+<code class="sig-name descname">set_offset_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset_list</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.OffsetMapper.set_offset_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method to set offset_series using an integer list the same size as target skim dimension
+with implicit skim index mapping (e.g. an omx mapping as returned by omx_file.mapentries)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1105,66 +1631,171 @@ returns offsets [2, 1, 3]</p>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.OffsetMapper.set_offset_series">
+<code class="sig-name descname">set_offset_series</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">offset_series</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.OffsetMapper.set_offset_series" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>offset_series: pandas.Series</strong></dt><dd><p>series with zone_id index and skim array offset values (can map many zone_ids to skim array index)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
-<dt id="activitysim.core.skim.SkimDict">
-<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim.</code><code class="sig-name descname">SkimDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_data</span></em>, <em class="sig-param"><span class="n">skim_info</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict" title="Permalink to this definition">¶</a></dt>
-<dd><p>A SkimDict object is a wrapper around a dict of multiple skim objects,
-where each object is identified by a key.  It operates like a
-dictionary - i.e. use brackets to add and get skim objects.</p>
-<p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
-<dl class="py method">
-<dt id="activitysim.core.skim.SkimDict.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get an available wrapped skim object (not the lookup)</p>
+<dt id="activitysim.core.skim_dictionary.Skim3dWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dictionary.</code><code class="sig-name descname">Skim3dWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_dict</span></em>, <em class="sig-param"><span class="n">orig_key</span></em>, <em class="sig-param"><span class="n">dest_key</span></em>, <em class="sig-param"><span class="n">dim3_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.Skim3dWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>This works the same as a SkimWrapper above, except the third dim3 is also supplied,
+and a 3D lookup is performed using orig, dest, and dim3.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>key</strong><span class="classifier">hashable</span></dt><dd><p>The key (identifier) for this skim object</p>
+<dt><strong>skims: Skims</strong></dt><dd><p>This is the Skims object to wrap</p>
+</dd>
+<dt><strong>dim3_key</strong><span class="classifier">str</span></dt><dd><p>This identifies the column in the dataframe which is used to
+select among Skim object using the SECOND item in each tuple (see
+above for a more complete description)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.Skim3dWrapper.set_df">
+<code class="sig-name descname">set_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.Skim3dWrapper.set_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">DataFrame</span></dt><dd><p>The dataframe which contains the orig, dest, and dim3 values</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>skim: Skim</dt><dd><p>The skim object</p>
+<dt>self (to facilitiate chaining)</dt><dd></dd>
+</dl>
 </dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.skim_dictionary.SkimDict">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dictionary.</code><code class="sig-name descname">SkimDict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_tag</span></em>, <em class="sig-param"><span class="n">skim_info</span></em>, <em class="sig-param"><span class="n">skim_data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SkimDict object is a wrapper around a dict of multiple skim objects,
+where each object is identified by a key.</p>
+<p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.SkimDict.get_skim_usage">
+<code class="sig-name descname">get_skim_usage</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.get_skim_usage" title="Permalink to this definition">¶</a></dt>
+<dd><p>return set of keys of skims looked up. e.g. {‘DIST’, ‘SOV’}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>set:</dt><dd></dd>
 </dl>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt id="activitysim.core.skim.SkimDict.wrap">
-<code class="sig-name descname">wrap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">left_key</span></em>, <em class="sig-param"><span class="n">right_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDict.wrap" title="Permalink to this definition">¶</a></dt>
-<dd><p>return a SkimDictWrapper for self</p>
+<dt id="activitysim.core.skim_dictionary.SkimDict.lookup">
+<code class="sig-name descname">lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig</span></em>, <em class="sig-param"><span class="n">dest</span></em>, <em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.lookup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of skim values of skims(s) at orig/dest in skim with the specified key (e.g. ‘DIST’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>orig: list of orig zone_ids</strong></dt><dd></dd>
+<dt><strong>dest: list of dest zone_ids</strong></dt><dd></dd>
+<dt><strong>key: str</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Numpy.ndarray: list of skim values for od pairs</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.SkimDict.lookup_3d">
+<code class="sig-name descname">lookup_3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig</span></em>, <em class="sig-param"><span class="n">dest</span></em>, <em class="sig-param"><span class="n">dim3</span></em>, <em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.lookup_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>3D lookup of skim values of skims(s) at orig/dest for stacked skims indexed by dim3 selector</p>
+<p>The idea is that skims may be stacked in groups with a base key and a dim3 key (usually a time of day key)</p>
+<p>On import (from omx) skims stacks are represented by base and dim3 keys seperated by a double_underscore</p>
+<p>e.g. DRV_COM_WLK_BOARDS__AM indicates base skim key DRV_COM_WLK_BOARDS with a time of day (dim3) of ‘AM’</p>
+<p>Since all the skimsa re stored in a single contiguous 3D array, we can use the dim3 key as a third index
+and thus rapidly get skim values for a list of (orig, dest, tod) tuples using index arrays (‘fancy indexing’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>orig: list of orig zone_ids</strong></dt><dd></dd>
+<dt><strong>dest: list of dest zone_ids</strong></dt><dd></dd>
+<dt><strong>block_offsets: list with one dim3 key for each orig/dest pair</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Numpy.ndarray: list of skim values</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.SkimDict.wrap">
+<code class="sig-name descname">wrap</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig_key</span></em>, <em class="sig-param"><span class="n">dest_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.wrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a SkimWrapper for self</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.SkimDict.wrap_3d">
+<code class="sig-name descname">wrap_3d</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig_key</span></em>, <em class="sig-param"><span class="n">dest_key</span></em>, <em class="sig-param"><span class="n">dim3_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.wrap_3d" title="Permalink to this definition">¶</a></dt>
+<dd><p>return a SkimWrapper for self</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.skim_dictionary.SkimDict.zone_ids">
+<em class="property">property </em><code class="sig-name descname">zone_ids</code><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.zone_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of zone_ids we grok in skim index order</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ndarray of int domain zone_ids</dt><dd></dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt id="activitysim.core.skim.SkimDictWrapper">
-<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim.</code><code class="sig-name descname">SkimDictWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_dict</span></em>, <em class="sig-param"><span class="n">left_key</span></em>, <em class="sig-param"><span class="n">right_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>A SkimDictWrapper object is an access wrapper around a SkimDict of multiple skim objects,
-where each object is identified by a key.  It operates like a
-dictionary - i.e. use brackets to add and get skim objects - but also
-has information on how to lookup against the skim objects.
-Specifically, this object has a dataframe, a left_key and right_key.
-It is assumed that left_key and right_key identify columns in df.  The
-parameter df is usually set by the simulation itself as it’s a result of
-interacting choosers and alternatives.</p>
+<dt id="activitysim.core.skim_dictionary.SkimWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim_dictionary.</code><code class="sig-name descname">SkimWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">skim_dict</span></em>, <em class="sig-param"><span class="n">orig_key</span></em>, <em class="sig-param"><span class="n">dest_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>A SkimWrapper object is an access wrapper around a SkimDict of multiple skim objects,
+where each object is identified by a key.</p>
+<p>This is just a way to simplify expression files by hiding the and orig, dest arguments
+when the orig and dest vectors are in a dataframe with known column names (specified at init time)
+The dataframe is identified by set_df because it may not be available (e.g. due to chunking)
+at the time the SkimWrapper is instantiated.</p>
 <p>When the user calls skims[key], key is an identifier for which skim
 to use, and the object automatically looks up impedances of that skim
-using the specified left_key column in df as the origin and
-the right_key column in df as the destination.  In this way, the user
+using the specified orig_key column in df as the origin and
+the dest_key column in df as the destination.  In this way, the user
 does not do the O-D lookup by hand and only specifies which skim to use
 for this lookup.  This is the only purpose of this object: to
 abstract away the O-D lookup and use skims by specifying which skim
 to use in the expressions.</p>
 <p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
 <dl class="py method">
-<dt id="activitysim.core.skim.SkimDictWrapper.lookup">
-<code class="sig-name descname">lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">reverse</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.lookup" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.skim_dictionary.SkimWrapper.lookup">
+<code class="sig-name descname">lookup</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em>, <em class="sig-param"><span class="n">reverse</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimWrapper.lookup" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generally not called by the user - use __getitem__ instead</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1187,20 +1818,20 @@ with the same index as df</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="activitysim.core.skim.SkimDictWrapper.max">
-<code class="sig-name descname">max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.max" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.skim_dictionary.SkimWrapper.max">
+<code class="sig-name descname">max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimWrapper.max" title="Permalink to this definition">¶</a></dt>
 <dd><p>return max skim value in either o-d or d-o direction</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="activitysim.core.skim.SkimDictWrapper.reverse">
-<code class="sig-name descname">reverse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.reverse" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.skim_dictionary.SkimWrapper.reverse">
+<code class="sig-name descname">reverse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimWrapper.reverse" title="Permalink to this definition">¶</a></dt>
 <dd><p>return skim value in reverse (d-o) direction</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="activitysim.core.skim.SkimDictWrapper.set_df">
-<code class="sig-name descname">set_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimDictWrapper.set_df" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.skim_dictionary.SkimWrapper.set_df">
+<code class="sig-name descname">set_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimWrapper.set_df" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set the dataframe</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -1211,107 +1842,7 @@ with the same index as df</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>Nothing</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="activitysim.core.skim.SkimStackWrapper">
-<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim.</code><code class="sig-name descname">SkimStackWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">stack</span></em>, <em class="sig-param"><span class="n">left_key</span></em>, <em class="sig-param"><span class="n">right_key</span></em>, <em class="sig-param"><span class="n">skim_key</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimStackWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>A SkimStackWrapper object wraps a SkimStack object to add an additional wrinkle of
-lookup functionality.  Upon init the separate skims objects are
-processed into a 3D matrix so that lookup of the different skims can
-be performed quickly for each row in the dataframe.  In this very
-particular formulation, the keys are assumed to be tuples with two
-elements - the second element of which will be taken from the
-different rows in the dataframe.  The first element can then be
-dereferenced like an array.  This is useful, for instance, to have a
-certain skim vary by time of day - the skims are set with keys of
-(‘SOV’, ‘AM”), (‘SOV’, ‘PM’) etc.  The time of day is then taken to
-be different for every row in the tours table, and the ‘SOV’ portion
-of the key can be used in __getitem__.</p>
-<p>To be more explicit, the input is a dictionary of Skims objects, each of
-which contains a 2D matrix.  These are stacked into a 3D matrix with a
-mapping of keys to indexes which is applied using pandas .map to a third
-column in the object dataframe.  The three columns - left_key and
-right_key from the Skims object and skim_key from this one, are then used to
-dereference the 3D matrix.  The tricky part comes in defining the key which
-matches the 3rd dimension of the matrix, and the key which is passed into
-__getitem__ below (i.e. the one used in the specs).  By convention,
-every key in the Skims object that is passed in MUST be a tuple with 2
-items.  The second item in the tuple maps to the items in the dataframe
-referred to by the skim_key column and the first item in the tuple is
-then available to pass directly to __getitem__.</p>
-<p>The sum conclusion of this is that in the specs, you can say something
-like out_skim[‘SOV’] and it will automatically dereference the 3D matrix
-using origin, destination, and time of day.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>skims: Skims</strong></dt><dd><p>This is the Skims object to wrap</p>
-</dd>
-<dt><strong>skim_key</strong><span class="classifier">str</span></dt><dd><p>This identifies the column in the dataframe which is used to
-select among Skim object using the SECOND item in each tuple (see
-above for a more complete description)</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="activitysim.core.skim.SkimStackWrapper.set_df">
-<code class="sig-name descname">set_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimStackWrapper.set_df" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set the dataframe</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>df</strong><span class="classifier">DataFrame</span></dt><dd><p>The dataframe which contains the origin and destination ids</p>
-</dd>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<dt>Nothing</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="activitysim.core.skim.SkimWrapper">
-<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.skim.</code><code class="sig-name descname">SkimWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="n">offset_mapper</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Container for skim arrays.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>data</strong><span class="classifier">2D array</span></dt><dd></dd>
-<dt><strong>offset</strong><span class="classifier">int, optional</span></dt><dd><p>An optional offset that will be added to origin/destination
-values to turn them into array indices.
-For example, if zone IDs are 1-based, an offset of -1
-would turn them into 0-based array indices.</p>
-</dd>
-</dl>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="activitysim.core.skim.SkimWrapper.get">
-<code class="sig-name descname">get</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">orig</span></em>, <em class="sig-param"><span class="n">dest</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim.SkimWrapper.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get impedence values for a set of origin, destination pairs.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl class="simple">
-<dt><strong>orig</strong><span class="classifier">1D array</span></dt><dd></dd>
-<dt><strong>dest</strong><span class="classifier">1D array</span></dt><dd></dd>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<dt><strong>values</strong><span class="classifier">1D array</span></dt><dd></dd>
+<dt>self (to facilitiate chaining)</dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -1326,8 +1857,8 @@ would turn them into 0-based array indices.</p>
 <p>Data pipeline manager, which manages the list of model steps, runs them via orca, reads
 and writes data tables from/to the pipeline datastore, and supports restarting of the pipeline
 at any model step.</p>
-<div class="section" id="id3">
-<h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id4">
+<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.pipeline"></span><dl class="py function">
 <dt id="activitysim.core.pipeline.add_checkpoint">
 <code class="sig-prename descclassname">activitysim.core.pipeline.</code><code class="sig-name descname">add_checkpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">checkpoint_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.add_checkpoint" title="Permalink to this definition">¶</a></dt>
@@ -1658,8 +2189,8 @@ possible across alternative scenarios.  This is done for trips as well, by direc
 <p class="admonition-title">Note</p>
 <p>The Random module contains max model steps constants by chooser type - household, person, tour, trip - needs to be equal to the number of chooser sub-models.</p>
 </div>
-<div class="section" id="id4">
-<h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id5">
+<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.random"></span><dl class="py class">
 <dt id="activitysim.core.random.SimpleChannel">
 <em class="property">class </em><code class="sig-prename descclassname">activitysim.core.random.</code><code class="sig-name descname">SimpleChannel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel_name</span></em>, <em class="sig-param"><span class="n">base_seed</span></em>, <em class="sig-param"><span class="n">domain_df</span></em>, <em class="sig-param"><span class="n">step_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel" title="Permalink to this definition">¶</a></dt>
@@ -1856,26 +2387,13 @@ comprehensive set of trace files for all calculations for all household members:
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
-<div class="section" id="id5">
-<h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id6">
+<h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.tracing"></span><dl class="py function">
 <dt id="activitysim.core.tracing.config_logger">
 <code class="sig-prename descclassname">activitysim.core.tracing.</code><code class="sig-name descname">config_logger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">basic</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.config_logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Configure logger</p>
 <p>look for conf file in configs_dir, if not found use basicConfig</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><dl class="simple">
-<dt>Nothing</dt><dd></dd>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt id="activitysim.core.tracing.delete_csv_files">
-<code class="sig-prename descclassname">activitysim.core.tracing.</code><code class="sig-name descname">delete_csv_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.delete_csv_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete CSV files in output_dir</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1905,8 +2423,21 @@ help debug data and/or logic errors.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="activitysim.core.tracing.delete_trace_files">
+<code class="sig-prename descclassname">activitysim.core.tracing.</code><code class="sig-name descname">delete_trace_files</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.delete_trace_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete CSV files in output_dir</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>Nothing</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt id="activitysim.core.tracing.get_trace_target">
-<code class="sig-prename descclassname">activitysim.core.tracing.</code><code class="sig-name descname">get_trace_target</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">slicer</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.get_trace_target" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.tracing.</code><code class="sig-name descname">get_trace_target</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">slicer</span></em>, <em class="sig-param"><span class="n">column</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.get_trace_target" title="Permalink to this definition">¶</a></dt>
 <dd><p>get target ids and column or index to identify target trace rows in df</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -2170,7 +2701,7 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 <li><p>global constants are specified in the settings file</p></li>
 <li><p>comments are specified with <code class="docutils literal notranslate"><span class="pre">#</span></code></p></li>
 <li><p>you can refer to the current table being operated on as <code class="docutils literal notranslate"><span class="pre">df</span></code></p></li>
-<li><p>often an object called <code class="docutils literal notranslate"><span class="pre">skims</span></code>, <code class="docutils literal notranslate"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information.</p></li>
+<li><p>often an object called <code class="docutils literal notranslate"><span class="pre">skims</span></code>, <code class="docutils literal notranslate"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="#los-in-detail"><span class="std std-ref">LOS</span></a> for more information.</p></li>
 <li><p>when editing the CSV files in Excel, use single quote ‘ or space at the start of a cell to get Excel to accept the expression</p></li>
 </ul>
 </div>
@@ -2284,6 +2815,74 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 <li><p>Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a> model implements this approach.</p></li>
 </ul>
 </div>
+<div class="section" id="id7">
+<h3>Expressions<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<p>The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate
+a number of additional table fields, and join the fields to the target table.  An example table annotation expressions
+file is found in the example configuration files for households for the CDAP model -
+<a class="reference external" href="https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv">annotate_households_cdap.csv</a>.</p>
+<span class="target" id="module-activitysim.core.expressions"></span><dl class="py function">
+<dt id="activitysim.core.expressions.assign_columns">
+<code class="sig-prename descclassname">activitysim.core.expressions.</code><code class="sig-name descname">assign_columns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">model_settings</span></em>, <em class="sig-param"><span class="n">locals_dict</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.expressions.assign_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate expressions in context of df and assign resulting target columns to df</p>
+<p>Can add new or modify existing columns (if target same as existing df column name)</p>
+<p>Parameters - same as for compute_columns except df must not be None
+Returns - nothing since we modify df in place</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activitysim.core.expressions.compute_columns">
+<code class="sig-prename descclassname">activitysim.core.expressions.</code><code class="sig-name descname">compute_columns</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">model_settings</span></em>, <em class="sig-param"><span class="n">locals_dict</span><span class="o">=</span><span class="default_value">{}</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.expressions.compute_columns" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate expressions_spec in context of df, with optional additional pipeline tables in locals</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">pandas DataFrame</span></dt><dd><p>or if None, expect name of pipeline table to be specified by DF in model_settings</p>
+</dd>
+<dt><strong>model_settings</strong><span class="classifier">dict or str</span></dt><dd><dl class="simple">
+<dt>dict with keys:</dt><dd><p>DF - df_alias and (additionally, if df is None) name of pipeline table to load as df
+SPEC - name of expressions file (csv suffix optional) if different from model_settings
+TABLES - list of pipeline tables to load and make available as (read only) locals</p>
+</dd>
+<dt>str:</dt><dd><p>name of yaml file in configs_dir to load dict from</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>locals_dict</strong><span class="classifier">dict</span></dt><dd><p>dict of locals (e.g. utility functions) to add to the execution environment</p>
+</dd>
+<dt><strong>trace_label</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>results: pandas.DataFrame</dt><dd><p>one column for each expression (except temps with ALL_CAP target names)
+same index as df</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activitysim.core.expressions.skim_time_period_label">
+<code class="sig-prename descclassname">activitysim.core.expressions.</code><code class="sig-name descname">skim_time_period_label</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">time_period</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.expressions.skim_time_period_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert time period times to skim time period labels (e.g. 9 -&gt; ‘AM’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time_period</strong><span class="classifier">pandas Series</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas Series</dt><dd><p>string time period labels</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
 <div class="section" id="sampling-with-interaction">
 <h3>Sampling with Interaction<a class="headerlink" href="#sampling-with-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, and sampling (i.e. making multiple choices),
@@ -2304,8 +2903,8 @@ calculated as follows:</p>
 <p>As the alternative is oversampled, its utility goes up for final selection.  The unique set
 of alternatives is passed to the final choice model and the correction factor is
 included in the utility.</p>
-<div class="section" id="id6">
-<h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id8">
+<h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample"></span><dl class="py function">
 <dt id="activitysim.core.interaction_sample.interaction_sample">
 <code class="sig-prename descclassname">activitysim.core.interaction_sample.</code><code class="sig-name descname">interaction_sample</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">alternatives</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">sample_size</span></em>, <em class="sig-param"><span class="n">alt_col_name</span></em>, <em class="sig-param"><span class="n">allow_zero_probs</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">¶</a></dt>
@@ -2391,11 +2990,11 @@ and columns alt_col_name, prob, rand, pick_count</p>
 </div>
 </div>
 <div class="section" id="simulate">
-<span id="id7"></span><h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
+<span id="id9"></span><h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, choosing (i.e. making choices) from a fixed set of choices
 defined in the specification file.</p>
-<div class="section" id="id8">
-<h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id10">
+<h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.simulate"></span><dl class="py function">
 <dt id="activitysim.core.simulate.compute_base_probabilities">
 <code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">compute_base_probabilities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nested_probabilities</span></em>, <em class="sig-param"><span class="n">nests</span></em>, <em class="sig-param"><span class="n">spec</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.compute_base_probabilities" title="Permalink to this definition">¶</a></dt>
@@ -2473,7 +3072,7 @@ except in nested logit, its sib group is restricted to the nest</p>
 
 <dl class="py function">
 <dt id="activitysim.core.simulate.eval_mnl">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_mnl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">locals_d</span></em>, <em class="sig-param"><span class="n">custom_chooser</span></em>, <em class="sig-param"><span class="n">estimator</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_mnl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">locals_d</span></em>, <em class="sig-param"><span class="n">custom_chooser</span></em>, <em class="sig-param"><span class="n">estimator</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_column_names</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_mnl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -2503,6 +3102,8 @@ when household tracing enabled. No tracing occurs if label is empty or None.</p>
 </dd>
 <dt><strong>trace_choice_name: str</strong></dt><dd><p>This is the column label to be used in trace file csv dump of choices</p>
 </dd>
+<dt><strong>trace_column_names: str or list of str</strong></dt><dd><p>chooser columns to include when tracing expression_values</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -2531,7 +3132,7 @@ of <cite>spec</cite>.</p>
 
 <dl class="py function">
 <dt id="activitysim.core.simulate.eval_nl">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_nl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">locals_d</span></em>, <em class="sig-param"><span class="n">custom_chooser</span></em>, <em class="sig-param"><span class="n">estimator</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_nl</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">locals_d</span></em>, <em class="sig-param"><span class="n">custom_chooser</span></em>, <em class="sig-param"><span class="n">estimator</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_column_names</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run a nested-logit simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
@@ -2558,6 +3159,8 @@ when household tracing enabled. No tracing occurs if label is empty or None.</p>
 </dd>
 <dt><strong>trace_choice_name: str</strong></dt><dd><p>This is the column label to be used in trace file csv dump of choices</p>
 </dd>
+<dt><strong>trace_column_names: str or list of str</strong></dt><dd><p>chooser columns to include when tracing expression_values</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -2572,7 +3175,7 @@ of <cite>spec</cite>.</p>
 
 <dl class="py function">
 <dt id="activitysim.core.simulate.eval_nl_logsums">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_nl_logsums</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">locals_d</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alt_col_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl_logsums" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_nl_logsums</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">locals_d</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_nl_logsums" title="Permalink to this definition">¶</a></dt>
 <dd><p>like eval_nl except return logsums instead of making choices</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -2586,7 +3189,7 @@ of <cite>spec</cite>.</p>
 
 <dl class="py function">
 <dt id="activitysim.core.simulate.eval_utilities">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_utilities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">have_trace_targets</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">estimator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alt_col_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_utilities" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">eval_utilities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">have_trace_targets</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">trace_all_rows</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">estimator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_column_names</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_utilities" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -2598,9 +3201,12 @@ should have a column for each alternative.</p>
 <dt><strong>locals_d</strong><span class="classifier">Dict or None</span></dt><dd><p>This is a dictionary of local variables that will be the environment
 for an evaluation of an expression that begins with &#64;</p>
 </dd>
-<dt><strong>trace_label</strong></dt><dd></dd>
-<dt><strong>have_trace_targets</strong></dt><dd></dd>
+<dt><strong>trace_label: str</strong></dt><dd></dd>
+<dt><strong>have_trace_targets: boolean - choosers has targets to trace</strong></dt><dd></dd>
+<dt><strong>trace_all_rows: boolean - trace all chooser rows, bypassing tracing.trace_targets</strong></dt><dd></dd>
 <dt><strong>estimator :</strong></dt><dd><p>called to report intermediate table results (used for estimation)</p>
+</dd>
+<dt><strong>trace_column_names: str or list of str</strong></dt><dd><p>chooser columns to include when tracing expression_values</p>
 </dd>
 </dl>
 </dd>
@@ -2686,7 +3292,7 @@ of segment-specific coefficients coef_ivt_school_univ, coef_ivt_work, coef_ivt_a
 
 <dl class="py function">
 <dt id="activitysim.core.simulate.read_model_spec">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">read_model_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">spec_dir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">read_model_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.read_model_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
 <p>file_path : str   absolute or relative path to file</p>
 <p>The CSV is expected to have columns for component descriptions
@@ -2700,9 +3306,7 @@ and expressions, plus one or more alternatives.</p>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>model_settings</strong><span class="classifier">dict</span></dt><dd><p>name of spec_file is in model_settings[‘SPEC’] and file is relative to configs</p>
 </dd>
-<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd><p>file_name id spec file in configs folder (or in spec_dir is specified)</p>
-</dd>
-<dt><strong>spec_dir</strong><span class="classifier">str</span></dt><dd><p>directory in which to fine spec file if not in configs</p>
+<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd><p>file_name id spec file in configs folder</p>
 </dd>
 <dt><strong>description_name</strong><span class="classifier">str, optional</span></dt><dd><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
 </dd>
@@ -2723,7 +3327,7 @@ expression values are set as the table index.</p>
 <dl class="py function">
 <dt id="activitysim.core.simulate.set_skim_wrapper_targets">
 <code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">set_skim_wrapper_targets</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">skims</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.set_skim_wrapper_targets" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add the dataframe to the SkimDictWrapper object so that it can be dereferenced
+<dd><p>Add the dataframe to the SkimWrapper object so that it can be dereferenced
 using the parameters of the skims object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -2731,7 +3335,7 @@ using the parameters of the skims object.</p>
 <dt><strong>df</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>Table to which to add skim data as new columns.
 <cite>df</cite> is modified in-place.</p>
 </dd>
-<dt><strong>skims</strong><span class="classifier">SkimDictWrapper or SkimStackWrapper object, or a list or dict of skims</span></dt><dd><p>The skims object is used to contain multiple matrices of
+<dt><strong>skims</strong><span class="classifier">SkimWrapper or Skim3dWrapper object, or a list or dict of skims</span></dt><dd><p>The skims object is used to contain multiple matrices of
 origin-destination impedances.  Make sure to also add it to the
 locals_d below in order to access it in expressions.  The <em>only</em> job
 of this method in regards to skims is to call set_df with the
@@ -2746,15 +3350,27 @@ the skims object is intended to be used.</p>
 
 <dl class="py function">
 <dt id="activitysim.core.simulate.simple_simulate">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">custom_chooser</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">estimator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">custom_chooser</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">estimator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_column_names</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run an MNL or NL simulation for when the model spec does not involve alternative
 specific data, e.g. there are no interactions with alternative
 properties and no need to sample from alternatives.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt id="activitysim.core.simulate.simple_simulate_by_chunk_id">
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate_by_chunk_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">custom_chooser</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">estimator</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_by_chunk_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>chunk_by_chunk_id wrapper for simple_simulate</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activitysim.core.simulate.simple_simulate_calc_row_size">
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate_calc_row_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_calc_row_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>rows_per_chunk calculator for simple_simulate</p>
+</dd></dl>
+
+<dl class="py function">
 <dt id="activitysim.core.simulate.simple_simulate_logsums">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate_logsums</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alt_col_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_logsums" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate_logsums</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_logsums" title="Permalink to this definition">¶</a></dt>
 <dd><p>like simple_simulate except return logsums instead of making choices</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -2767,15 +3383,9 @@ properties and no need to sample from alternatives.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="activitysim.core.simulate.simple_simulate_logsums_rpc">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate_logsums_rpc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">chunk_size</span></em>, <em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">trace_label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_logsums_rpc" title="Permalink to this definition">¶</a></dt>
+<dt id="activitysim.core.simulate.simple_simulate_logsums_calc_row_size">
+<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate_logsums_calc_row_size</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">skims</span></em>, <em class="sig-param"><span class="n">trace_label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_logsums_calc_row_size" title="Permalink to this definition">¶</a></dt>
 <dd><p>calculate rows_per_chunk for simple_simulate_logsums</p>
-</dd></dl>
-
-<dl class="py function">
-<dt id="activitysim.core.simulate.simple_simulate_rpc">
-<code class="sig-prename descclassname">activitysim.core.simulate.</code><code class="sig-name descname">simple_simulate_rpc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">chunk_size</span></em>, <em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">nest_spec</span></em>, <em class="sig-param"><span class="n">trace_label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.simple_simulate_rpc" title="Permalink to this definition">¶</a></dt>
-<dd><p>rows_per_chunk calculator for simple_simulate</p>
 </dd></dl>
 
 <dl class="py function">
@@ -2803,11 +3413,11 @@ properties and no need to sample from alternatives.</p>
 </div>
 </div>
 <div class="section" id="simulate-with-interaction">
-<span id="id9"></span><h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
+<span id="id11"></span><h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, choosing (i.e. making choices),
 with interaction with the chooser table.</p>
-<div class="section" id="id10">
-<h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id12">
+<h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_simulate"></span><dl class="py function">
 <dt id="activitysim.core.interaction_simulate.eval_interaction_utilities">
 <code class="sig-prename descclassname">activitysim.core.interaction_simulate.</code><code class="sig-name descname">eval_interaction_utilities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">locals_d</span></em>, <em class="sig-param"><span class="n">trace_label</span></em>, <em class="sig-param"><span class="n">trace_rows</span></em>, <em class="sig-param"><span class="n">estimator</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_simulate.eval_interaction_utilities" title="Permalink to this definition">¶</a></dt>
@@ -2906,8 +3516,8 @@ choices are simulated in the standard Monte Carlo fashion</p>
 <h3>Simulate with Sampling and Interaction<a class="headerlink" href="#simulate-with-sampling-and-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, sampling (i.e. making multiple choices),
 and choosing (i.e. making choices), with interaction with the chooser table.</p>
-<div class="section" id="id11">
-<h4>API<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id13">
+<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample_simulate"></span><dl class="py function">
 <dt id="activitysim.core.interaction_sample_simulate.interaction_sample_simulate">
 <code class="sig-prename descclassname">activitysim.core.interaction_sample_simulate.</code><code class="sig-name descname">interaction_sample_simulate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">alternatives</span></em>, <em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">choice_column</span></em>, <em class="sig-param"><span class="n">allow_zero_probs</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">zero_prob_choice_val</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">want_logsums</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">skims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">locals_d</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">chunk_size</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choice_name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">estimator</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="Permalink to this definition">¶</a></dt>
@@ -2975,8 +3585,8 @@ choices[‘logsum’] : float logsum of choice utilities across alternatives</p>
 <p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
 Temporary variables are identified in the expressions as starting with “_”, such as “_hh_density_bin”.  These
 fields are not saved to the data pipeline store.  This feature is used by the <a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a> model.</p>
-<div class="section" id="id12">
-<h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id14">
+<h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.assign"></span><dl class="py function">
 <dt id="activitysim.core.assign.assign_variables">
 <code class="sig-prename descclassname">activitysim.core.assign.</code><code class="sig-name descname">assign_variables</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">assignment_expressions</span></em>, <em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">locals_dict</span></em>, <em class="sig-param"><span class="n">df_alias</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_rows</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.assign_variables" title="Permalink to this definition">¶</a></dt>
@@ -3059,7 +3669,7 @@ constants are passed in here</p>
 
 <dl class="py function">
 <dt id="activitysim.core.assign.read_assignment_spec">
-<code class="sig-prename descclassname">activitysim.core.assign.</code><code class="sig-name descname">read_assignment_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fname</span></em>, <em class="sig-param"><span class="n">description_name</span><span class="o">=</span><span class="default_value">'Description'</span></em>, <em class="sig-param"><span class="n">target_name</span><span class="o">=</span><span class="default_value">'Target'</span></em>, <em class="sig-param"><span class="n">expression_name</span><span class="o">=</span><span class="default_value">'Expression'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.read_assignment_spec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.assign.</code><code class="sig-name descname">read_assignment_spec</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">description_name</span><span class="o">=</span><span class="default_value">'Description'</span></em>, <em class="sig-param"><span class="n">target_name</span><span class="o">=</span><span class="default_value">'Target'</span></em>, <em class="sig-param"><span class="n">expression_name</span><span class="o">=</span><span class="default_value">'Expression'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.assign.read_assignment_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Read a CSV model specification into a Pandas DataFrame or Series.</p>
 <p>The CSV is expected to have columns for component descriptions
 targets, and expressions,</p>
@@ -3070,7 +3680,7 @@ targets, and expressions,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>fname</strong><span class="classifier">str</span></dt><dd><p>Name of a CSV spec file.</p>
+<dt><strong>file_name</strong><span class="classifier">str</span></dt><dd><p>Name of a CSV spec file.</p>
 </dd>
 <dt><strong>description_name</strong><span class="classifier">str, optional</span></dt><dd><p>Name of the column in <cite>fname</cite> that contains the component description.</p>
 </dd>
@@ -3116,8 +3726,8 @@ as the expressions and data handling described in the <a class="reference intern
 <li><p>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal notranslate"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></p></li>
 <li><p>call <code class="docutils literal notranslate"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal notranslate"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</p></li>
 </ul>
-<div class="section" id="id13">
-<h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id15">
+<h4>API<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.logit"></span><dl class="py class">
 <dt id="activitysim.core.logit.Nest">
 <em class="property">class </em><code class="sig-prename descclassname">activitysim.core.logit.</code><code class="sig-name descname">Nest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">level</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">¶</a></dt>
@@ -3168,8 +3778,7 @@ None yields all nests
 <code class="sig-prename descclassname">activitysim.core.logit.</code><code class="sig-name descname">interaction_dataset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">alternatives</span></em>, <em class="sig-param"><span class="n">sample_size</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">alt_index_id</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.interaction_dataset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine choosers and alternatives into one table for the purposes
 of creating interaction variables and/or sampling alternatives.</p>
-<p>Any duplicate column names in alternatives table will be renamed with an ‘_r’ suffix.
-(e.g. TAZ field in alternatives will appear as TAZ_r so that it can be targeted in a skim)</p>
+<p>Any duplicate column names in choosers table will be renamed with an ‘_chooser’ suffix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -3192,7 +3801,7 @@ len(alternatives) or <cite>sample_size</cite> times.</p>
 
 <dl class="py function">
 <dt id="activitysim.core.logit.make_choices">
-<code class="sig-prename descclassname">activitysim.core.logit.</code><code class="sig-name descname">make_choices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">probs</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choosers</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.make_choices" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.core.logit.</code><code class="sig-name descname">make_choices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">probs</span></em>, <em class="sig-param"><span class="n">trace_label</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">trace_choosers</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">allow_bad_probs</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.make_choices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make choices for each chooser from among a set of alternatives.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -3316,8 +3925,8 @@ Each column is coded as follows:</p>
 </ul>
 <p>A good example of a time window expression is <code class="docutils literal notranslate"><span class="pre">&#64;tt.previous_tour_ends(df.person_id,</span> <span class="pre">df.start)</span></code>.  This
 uses the person id and the tour start period to check if a previous tour ends in the same time period.</p>
-<div class="section" id="id14">
-<h3>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="id16">
+<h3>API<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.core.timetable"></span><dl class="py class">
 <dt id="activitysim.core.timetable.TimeTable">
 <em class="property">class </em><code class="sig-prename descclassname">activitysim.core.timetable.</code><code class="sig-name descname">TimeTable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">windows_df</span></em>, <em class="sig-param"><span class="n">tdd_alts_df</span></em>, <em class="sig-param"><span class="n">table_name</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable" title="Permalink to this definition">¶</a></dt>
@@ -3633,16 +4242,245 @@ checkpoint the table in another context where it does not know that name.</p>
 
 </div>
 </div>
+<div class="section" id="transit-virtual-path-builder">
+<span id="id17"></span><h2>Transit Virtual Path Builder<a class="headerlink" href="#transit-virtual-path-builder" title="Permalink to this headline">¶</a></h2>
+<p>Transit virtual path builder (TVPB) for three zone system (see <a class="reference internal" href="abmexample.html#multiple-zone-systems"><span class="std std-ref">Multiple Zone Systems</span></a>) transit path utility calculations.
+TAP to TAP skims and walk access and egress times between MAZs and TAPs are input to the
+demand model.  ActivitySim then assembles the total transit path utility based on the user specified TVPB
+expression files for the respective components:</p>
+<ul class="simple">
+<li><p>from MAZ to first boarding TAP +</p></li>
+<li><p>from first boarding to final alighting TAP +</p></li>
+<li><p>from alighting TAP to destination MAZ</p></li>
+</ul>
+<p>This assembling is done via the TVPB, which considers all the possible combinations of nearby boarding and alighting TAPs for each origin
+destination MAZ pair and selects the user defined N best paths to represent the transit mode.  After selecting N best paths, the logsum across
+N best paths is calculated and exposed to the mode choice models and a random number is drawn and a path is chosen. The boarding TAP,
+alighting TAP, and TAP to TAP skim set for the chosen path is saved to the chooser table.</p>
+<p>The initialize TVPB submodel (see <a class="reference internal" href="models.html#initialize-los"><span class="std std-ref">Initialize LOS</span></a>) pre-computes TAP to TAP total utilities for the user defined attribute_segments,
+which are typically demographic segment (for example household income bin), time-of-day, and access/egress mode.  This submodel can be
+run in both single process and multiprocess mode, with single process excellent for development/debugging and multiprocess excellent
+for application.  ActivitySim saves the pre-calculated TAP to TAP total utilities to a memory mapped cache file for reuse by downstream models
+such as tour mode choice.  In tour mode choice, the pre-computed TAP to TAP total utilities for the attribute_segment, along with the
+access and egress impedances, are used to evaluate the best N TAP pairs for each origin MAZ destination MAZ pair being evaluated.
+Assembling the total transit path impedance and then picking the best N is quick since it is done in a de-duplicated manner within
+each chunk of multiprocessed choosers.</p>
+<p>A model with TVPB can take considerably longer to run than a traditional TAZ based model since it does an order of magnitude more
+calculations.  Thus, it is important to be mindful of your approach to your network model as well, especially the number of TAPs
+accessible to each MAZ, which is the key determinant of runtime.</p>
+<div class="section" id="id18">
+<h3>API<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<span class="target" id="module-activitysim.core.pathbuilder"></span><dl class="py class">
+<dt id="activitysim.core.pathbuilder.TransitVirtualPathBuilder">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.pathbuilder.</code><code class="sig-name descname">TransitVirtualPathBuilder</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">network_los</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transit virtual path builder for three zone systems</p>
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder.TransitVirtualPathBuilder.compute_tap_tap_utilities">
+<code class="sig-name descname">compute_tap_tap_utilities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">recipe</span></em>, <em class="sig-param"><span class="n">access_df</span></em>, <em class="sig-param"><span class="n">egress_df</span></em>, <em class="sig-param"><span class="n">chooser_attributes</span></em>, <em class="sig-param"><span class="n">path_info</span></em>, <em class="sig-param"><span class="n">trace_label</span></em>, <em class="sig-param"><span class="n">trace</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder.compute_tap_tap_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>create transit_df and compute utilities for all atap-btap pairs between omaz in access and dmaz in egress_df
+compute the utilities using the tap_tap utilitiy expressions file specified in tap_tap_settings</p>
+<p>transit_df contains all possible access omaz/btap to egress dmaz/atap transit path pairs for each chooser</p>
+<p>trace should be True as we don’t encourage/support dynamic utility computation except when tracing
+(precompute being fairly fast)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>recipe: str</strong></dt><dd><p>‘recipe’ key in network_los.yaml TVPB_SETTINGS e.g. tour_mode_choice</p>
+</dd>
+<dt><strong>access_df: pandas.DataFrame</strong></dt><dd><p>dataframe with ‘idx’ and ‘omaz’ columns</p>
+</dd>
+<dt><strong>egress_df: pandas.DataFrame</strong></dt><dd><p>dataframe with ‘idx’ and ‘dmaz’ columns</p>
+</dd>
+<dt><strong>chooser_attributes: dict</strong></dt><dd></dd>
+<dt><strong>path_info</strong></dt><dd></dd>
+<dt><strong>trace_label: str</strong></dt><dd></dd>
+<dt><strong>trace: boolean</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>transit_df: pandas.dataframe</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder.TransitVirtualPathBuilder.lookup_tap_tap_utilities">
+<code class="sig-name descname">lookup_tap_tap_utilities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">recipe</span></em>, <em class="sig-param"><span class="n">maz_od_df</span></em>, <em class="sig-param"><span class="n">access_df</span></em>, <em class="sig-param"><span class="n">egress_df</span></em>, <em class="sig-param"><span class="n">chooser_attributes</span></em>, <em class="sig-param"><span class="n">path_info</span></em>, <em class="sig-param"><span class="n">trace_label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder.lookup_tap_tap_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>create transit_df and compute utilities for all atap-btap pairs between omaz in access and dmaz in egress_df
+look up the utilities in the precomputed tap_cache data (which is indexed by uid_calculator unique_ids)
+(unique_id can used as a zero-based index into the data array)</p>
+<p>transit_df contains all possible access omaz/btap to egress dmaz/atap transit path pairs for each chooser</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>recipe</strong></dt><dd></dd>
+<dt><strong>maz_od_df</strong></dt><dd></dd>
+<dt><strong>access_df</strong></dt><dd></dd>
+<dt><strong>egress_df</strong></dt><dd></dd>
+<dt><strong>chooser_attributes</strong></dt><dd></dd>
+<dt><strong>path_info</strong></dt><dd></dd>
+<dt><strong>trace_label</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.pathbuilder.</code><code class="sig-name descname">TransitVirtualPathLogsumWrapper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pathbuilder</span></em>, <em class="sig-param"><span class="n">orig_key</span></em>, <em class="sig-param"><span class="n">dest_key</span></em>, <em class="sig-param"><span class="n">tod_key</span></em>, <em class="sig-param"><span class="n">segment_key</span></em>, <em class="sig-param"><span class="n">cache_choices</span></em>, <em class="sig-param"><span class="n">trace_label</span></em>, <em class="sig-param"><span class="n">tag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transit virtual path builder logsum wrapper for three zone systems</p>
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper.set_df">
+<code class="sig-name descname">set_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper.set_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the dataframe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">DataFrame</span></dt><dd><p>The dataframe which contains the origin and destination ids</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>self (to facilitiate chaining)</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="activitysim.core.pathbuilder.compute_utilities">
+<code class="sig-prename descclassname">activitysim.core.pathbuilder.</code><code class="sig-name descname">compute_utilities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">network_los</span></em>, <em class="sig-param"><span class="n">model_settings</span></em>, <em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">model_constants</span></em>, <em class="sig-param"><span class="n">trace_label</span></em>, <em class="sig-param"><span class="n">trace</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">trace_column_names</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.compute_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute utilities</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activitysim.core.pathbuilder_cache">
+<span id="cache-api"></span><h3>Cache API<a class="headerlink" href="#module-activitysim.core.pathbuilder_cache" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="activitysim.core.pathbuilder_cache.TVPBCache">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.pathbuilder_cache.</code><code class="sig-name descname">TVPBCache</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">network_los</span></em>, <em class="sig-param"><span class="n">uid_calculator</span></em>, <em class="sig-param"><span class="n">cache_tag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transit virtual path builder cache for three zone systems</p>
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder_cache.TVPBCache.allocate_data_buffer">
+<code class="sig-name descname">allocate_data_buffer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shared</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.allocate_data_buffer" title="Permalink to this definition">¶</a></dt>
+<dd><p>allocate fully_populated_shape data buffer for cached data</p>
+<p>if shared, return a multiprocessing.Array that can be shared across subprocesses
+if not shared, return a numpy ndarrray</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>shared: boolean</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>multiprocessing.Array or numpy ndarray sized to hole fully_populated utility array</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder_cache.TVPBCache.cleanup">
+<code class="sig-name descname">cleanup</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.cleanup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called prior to</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder_cache.TVPBCache.close">
+<code class="sig-name descname">close</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trace</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>write any changes, free data, and mark as closed</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder_cache.TVPBCache.get_data_and_lock_from_buffers">
+<code class="sig-name descname">get_data_and_lock_from_buffers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.get_data_and_lock_from_buffers" title="Permalink to this definition">¶</a></dt>
+<dd><p>return shared data buffer previously allocated by allocate_data_buffer and injected mp_tasks.run_simulation
+Returns either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder_cache.TVPBCache.open">
+<code class="sig-name descname">open</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache.open" title="Permalink to this definition">¶</a></dt>
+<dd><p>open STATIC cache and populate with cached data</p>
+<dl class="simple">
+<dt>if multiprocessing</dt><dd><p>always STATIC cache with data fully_populated preloaded shared data buffer</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activitysim.core.pathbuilder_cache.TapTapUidCalculator">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.pathbuilder_cache.</code><code class="sig-name descname">TapTapUidCalculator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">network_los</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transit virtual path builder TAP to TAP unique ID calculator for three zone systems</p>
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_od_dataframe">
+<code class="sig-name descname">get_od_dataframe</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">scalar_attributes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_od_dataframe" title="Permalink to this definition">¶</a></dt>
+<dd><p>return tap-tap od dataframe with unique_id index for ‘skim_offset’ for scalar_attributes</p>
+<p>i.e. a dataframe which may be used to compute utilities, together with scalar or column attributes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>scalar_attributes: dict of scalar attribute name:value pairs</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.Dataframe</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_unique_ids">
+<code class="sig-name descname">get_unique_ids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">scalar_attributes</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_unique_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>compute canonical unique_id for each row in df
+btap and atap will be in dataframe, but the other attributes may be either df columns or scalar_attributes</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df: pandas DataFrame</strong></dt><dd><p>with btap, atap, and optionally additional attribute columns</p>
+</dd>
+<dt><strong>scalar_attributes: dict</strong></dt><dd><p>dict of scalar attributes e.g. {‘tod’: ‘AM’, ‘demographic_segment’: 0}</p>
+</dd>
+<dt><strong>Returns</strong></dt><dd></dd>
+<dt><strong>——-</strong></dt><dd></dd>
+<dt><strong>ndarray of integer uids</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
 <div class="section" id="helpers">
 <h2>Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="chunk">
 <span id="chunk-in-detail"></span><h3>Chunk<a class="headerlink" href="#chunk" title="Permalink to this headline">¶</a></h3>
 <p>Chunking management</p>
-<div class="section" id="id15">
-<h4>API<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
-<span class="target" id="module-activitysim.core.chunk"></span><dl class="py function">
-<dt id="activitysim.core.chunk.chunked_choosers_and_alts">
-<code class="sig-prename descclassname">activitysim.core.chunk.</code><code class="sig-name descname">chunked_choosers_and_alts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">alternatives</span></em>, <em class="sig-param"><span class="n">rows_per_chunk</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.chunked_choosers_and_alts" title="Permalink to this definition">¶</a></dt>
+<div class="section" id="id19">
+<h4>API<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.chunk"></span><dl class="py class">
+<dt id="activitysim.core.chunk.RowSizeEstimator">
+<em class="property">class </em><code class="sig-prename descclassname">activitysim.core.chunk.</code><code class="sig-name descname">RowSizeEstimator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trace_label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.RowSizeEstimator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility for estimating row_size</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activitysim.core.chunk.adaptive_chunked_choosers_and_alts">
+<code class="sig-prename descclassname">activitysim.core.chunk.</code><code class="sig-name descname">adaptive_chunked_choosers_and_alts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">choosers</span></em>, <em class="sig-param"><span class="n">alternatives</span></em>, <em class="sig-param"><span class="n">chunk_size</span></em>, <em class="sig-param"><span class="n">row_size</span></em>, <em class="sig-param"><span class="n">trace_label</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.adaptive_chunked_choosers_and_alts" title="Permalink to this definition">¶</a></dt>
 <dd><p>generator to iterate over choosers and alternatives in chunk_size chunks</p>
 <p>like chunked_choosers, but also chunks alternatives
 for use with sampled alternatives which will have different alternatives (and numbers of alts)</p>
@@ -3676,13 +4514,30 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt id="activitysim.core.chunk.log_df">
+<code class="sig-prename descclassname">activitysim.core.chunk.</code><code class="sig-name descname">log_df</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">trace_label</span></em>, <em class="sig-param"><span class="n">table_name</span></em>, <em class="sig-param"><span class="n">df</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.log_df" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>trace_label :</strong></dt><dd><p>serves as a label for this nesting level of logging</p>
+</dd>
+<dt><strong>table_name</strong><span class="classifier">str</span></dt><dd><p>name to use logging df, and which will be used in any subsequent calls reporting activity on the table</p>
+</dd>
+<dt><strong>df: numpy.ndarray, pandas.Series, pandas.DataFrame, or None</strong></dt><dd><p>table to log (or None if df was deleted)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <p>Vectorized helper functions</p>
-<div class="section" id="id16">
-<h4>API<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id20">
+<h4>API<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="py function">
 <dt id="activitysim.core.util.assign_in_place">
 <code class="sig-prename descclassname">activitysim.core.util.</code><code class="sig-name descname">assign_in_place</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">df</span></em>, <em class="sig-param"><span class="n">df2</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.assign_in_place" title="Permalink to this definition">¶</a></dt>
@@ -3696,6 +4551,27 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 </dd>
 <dt><strong>Returns</strong></dt><dd></dd>
 <dt><strong>——-</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activitysim.core.util.iprod">
+<code class="sig-prename descclassname">activitysim.core.util.</code><code class="sig-name descname">iprod</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ints</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.iprod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the product of hte ints in the list or tuple as an unlimited precision python int</p>
+<p>Specifically intended to compute arrray/buffer size for skims where np.proc might overflow for default dtypes.
+(Narrowing rules for np.prod are different on Windows and linux)
+an alternative to the unwieldy: int(np.prod(ints, dtype=np.int64))</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ints: list or tuple of ints or int wannabees</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>returns python int</dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -3835,14 +4711,26 @@ table and would require a second step to change the index.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt id="activitysim.core.util.reindex_i">
+<code class="sig-prename descclassname">activitysim.core.util.</code><code class="sig-name descname">reindex_i</code><span class="sig-paren">(</span><em class="sig-param">series1</em>, <em class="sig-param">series2</em>, <em class="sig-param">dtype=&lt;class 'numpy.int8'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.reindex_i" title="Permalink to this definition">¶</a></dt>
+<dd><p>version of reindex that replaces missing na values and converts to int
+helpful in expression files that compute counts (e.g. num_work_tours)</p>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for configuring a model run</p>
-<div class="section" id="id17">
-<h4>API<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h4>
-<span class="target" id="module-activitysim.core.config"></span><dl class="py function">
+<div class="section" id="id21">
+<h4>API<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h4>
+<span class="target" id="module-activitysim.core.config"></span><dl class="py exception">
+<dt id="activitysim.core.config.SettingsFileNotFound">
+<em class="property">exception </em><code class="sig-prename descclassname">activitysim.core.config.</code><code class="sig-name descname">SettingsFileNotFound</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">configs_dir</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.SettingsFileNotFound" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="activitysim.core.config.base_settings_file_path">
 <code class="sig-prename descclassname">activitysim.core.config.</code><code class="sig-name descname">base_settings_file_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.base_settings_file_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>FIXME - should be in configs</p>
@@ -3864,6 +4752,20 @@ table and would require a second step to change the index.</p>
 <dt id="activitysim.core.config.filter_warnings">
 <code class="sig-prename descclassname">activitysim.core.config.</code><code class="sig-name descname">filter_warnings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.filter_warnings" title="Permalink to this definition">¶</a></dt>
 <dd><p>set warning filter to ‘strict’ if specified in settings</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activitysim.core.config.get_global_constants">
+<code class="sig-prename descclassname">activitysim.core.config.</code><code class="sig-name descname">get_global_constants</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.get_global_constants" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read global constants from settings file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>constants</strong><span class="classifier">dict</span></dt><dd><p>dictionary of constants to add to locals for use by expressions in model spec</p>
+</dd>
+</dl>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -3919,13 +4821,42 @@ table and would require a second step to change the index.</p>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt id="activitysim.core.config.read_settings_file">
+<code class="sig-prename descclassname">activitysim.core.config.</code><code class="sig-name descname">read_settings_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_name</span></em>, <em class="sig-param"><span class="n">mandatory</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">include_stack</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">configs_dir_list</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.read_settings_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>look for first occurence of yaml file named &lt;file_name&gt; in directories in configs_dir list,
+read settings from yaml file and return as dict.</p>
+<p>Settings file may contain directives that affect which file settings are returned:</p>
+<dl class="simple">
+<dt>inherit_settings: boolean</dt><dd><p>backfill settings in the current file with values from the next settings file in configs_dir list</p>
+</dd>
+<dt>include_settings: string &lt;include_file_name&gt;</dt><dd><p>read settings from specified include_file in place of the current file settings
+(to avoid confusion, this directive must appea ALONE in fiel, without any additional settings or directives.)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file_name</strong></dt><dd></dd>
+<dt><strong>mandatory: booelan</strong></dt><dd><p>if true, raise SettingsFileNotFound exception if no settings file, otherwise return empty dict</p>
+</dd>
+<dt><strong>include_stack: boolean</strong></dt><dd><p>only used for recursive calls to provide list of files included so far to detect cycles</p>
+</dd>
+<dt><strong>Returns: dict</strong></dt><dd><p>settings from speciified settings file/s</p>
+</dd>
+<dt><strong>——-</strong></dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 </div>
 <div class="section" id="inject">
-<span id="id18"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
+<span id="id22"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
 <p>Wrap ORCA class to make it easier to track and manage interaction with the data pipeline.</p>
-<div class="section" id="id19">
-<h4>API<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id23">
+<h4>API<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject"></span><dl class="py function">
 <dt id="activitysim.core.inject.add_table">
 <code class="sig-prename descclassname">activitysim.core.inject.</code><code class="sig-name descname">add_table</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">table_name</span></em>, <em class="sig-param"><span class="n">table</span></em>, <em class="sig-param"><span class="n">replace</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.add_table" title="Permalink to this definition">¶</a></dt>
@@ -3944,20 +4875,21 @@ Silently replace if replace=True.</p>
 <div class="section" id="mem">
 <h3>Mem<a class="headerlink" href="#mem" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for tracking memory usage</p>
-<div class="section" id="id20">
-<h4>API<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id24">
+<h4>API<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.mem"></span></div>
 </div>
 <div class="section" id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
 <p>Write output files and track skim usage.</p>
-<div class="section" id="id21">
-<h4>API<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h4>
+<div class="section" id="id25">
+<h4>API<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.steps.output"></span><dl class="py function">
 <dt id="activitysim.core.steps.output.track_skim_usage">
 <code class="sig-prename descclassname">activitysim.core.steps.output.</code><code class="sig-name descname">track_skim_usage</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_dir</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.steps.output.track_skim_usage" title="Permalink to this definition">¶</a></dt>
 <dd><p>write statistics on skim usage (diagnostic to detect loading of un-needed skims)</p>
 <p>FIXME - have not yet implemented a facility to avoid loading of unused skims</p>
+<p>FIXME - if resume_after, this will only reflect skims used after resume</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -4033,37 +4965,29 @@ if no output_tables list is specified, then no checkpointed tables will be writt
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="cli.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="howitworks.html" class="btn btn-neutral float-left" title="How the System Works" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="cli.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="howitworks.html" class="btn btn-neutral float-left" title="How the System Works" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright contributing authors
+        &#169; Copyright contributing authors.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

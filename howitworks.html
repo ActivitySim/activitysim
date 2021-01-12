@@ -3,11 +3,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How the System Works &mdash; ActivitySim 0.9.5.2 documentation</title>
+  <title>How the System Works &mdash; ActivitySim 0.9.7 documentation</title>
   
 
   
@@ -17,7 +17,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -30,7 +33,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -52,7 +54,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> ActivitySim
+            <a href="index.html" class="icon icon-home"> ActivitySim
           
 
           
@@ -62,7 +64,7 @@
             
             
               <div class="version">
-                0.9.5.2
+                0.9.7
               </div>
             
           
@@ -162,6 +164,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -173,7 +177,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/howitworks.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -189,7 +193,7 @@
             
   <div class="section" id="how-the-system-works">
 <h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h1>
-<p>This page describes how the software works, how multiprocessing works, and the example model data schema.</p>
+<p>This page describes how the software works, how multiprocessing works, and the primary example model data schema.</p>
 <div class="section" id="execution-flow">
 <span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this headline">¶</a></h2>
 <p>The example model run starts by running <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">--working_dir</span> <span class="pre">my_test_example</span></code>
@@ -243,7 +247,7 @@ the <code class="docutils literal notranslate"><span class="pre">&#64;inject.ste
 
 <span class="c1">#then in accessibility.py</span>
 <span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-<span class="k">def</span> <span class="nf">compute_accessibility</span><span class="p">(</span><span class="n">accessibility</span><span class="p">,</span> <span class="n">skim_dict</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">trace_od</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">compute_accessibility</span><span class="p">(</span><span class="n">accessibility</span><span class="p">,</span> <span class="n">network_los</span><span class="p">,</span> <span class="n">land_use</span><span class="p">,</span> <span class="n">trace_od</span><span class="p">):</span>
 </pre></div>
 </div>
 <p>Back in the main <code class="docutils literal notranslate"><span class="pre">run</span></code> command, the next steps are to load the tracing, configuration, setting, and pipeline classes
@@ -390,7 +394,7 @@ actually reads the input tables from the input HDF5 or CSV file using the <code 
 for later calculations, the school location model can be run.  The school location model is defined
 in <a class="reference internal" href="models.html#module-activitysim.abm.models.location_choice" title="activitysim.abm.models.location_choice"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.models.location_choice</span></code></a>.  As shown below, the school location model
 actually uses the <code class="docutils literal notranslate"><span class="pre">persons_merged</span></code> table, which includes joined household, land use, and accessibility
-tables as well.  The school location model also requires the skims dictionary object, which is discussed next.
+tables as well.  The school location model also requires the network_los object, which is discussed next.
 Before running the generic iterate location choice function, the model reads the model settings file, which
 defines various settings, including the expression files, sample size, mode choice logsum
 calculation settings, time periods for skim lookups, shadow pricing settings, etc.</p>
@@ -404,8 +408,7 @@ calculation settings, time periods for skim lookups, shadow pricing settings, et
 <span class="nd">@inject</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
 <span class="k">def</span> <span class="nf">school_location</span><span class="p">(</span>
      <span class="n">persons_merged</span><span class="p">,</span> <span class="n">persons</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span>
-     <span class="n">skim_dict</span><span class="p">,</span> <span class="n">skim_stack</span><span class="p">,</span>
-     <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">,</span> <span class="n">locutor</span>
+     <span class="n">network_los</span><span class="p">,</span> <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">,</span> <span class="n">locutor</span>
      <span class="p">):</span>
 
   <span class="n">trace_label</span> <span class="o">=</span> <span class="s1">&#39;school_location&#39;</span>
@@ -414,22 +417,23 @@ calculation settings, time periods for skim lookups, shadow pricing settings, et
   <span class="n">iterate_location_choice</span><span class="p">(</span>
      <span class="n">model_settings</span><span class="p">,</span>
      <span class="n">persons_merged</span><span class="p">,</span> <span class="n">persons</span><span class="p">,</span> <span class="n">households</span><span class="p">,</span>
-     <span class="n">skim_dict</span><span class="p">,</span> <span class="n">skim_stack</span><span class="p">,</span>
+     <span class="n">network_los</span><span class="p">,</span>
      <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">,</span> <span class="n">locutor</span><span class="p">,</span> <span class="n">trace_label</span>
 </pre></div>
 </div>
-<p>Deep inside the method calls, the skim matrix lookups required for this model are configured. The following code
-sets the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> column
+<p>Deep inside the method calls, the skim matrix lookups required for this model are configured via <code class="docutils literal notranslate"><span class="pre">network_los</span></code>. The following
+code sets the keys for looking up the skim values for this model. In this case there is a <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> column
 in the households table that is renamed to <cite>TAZ_chooser`</cite> and a <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> in the alternatives generation code.
 The skims are lazy loaded under the name “skims” and are available in the expressions using the <code class="docutils literal notranslate"><span class="pre">&#64;skims</span></code> expression.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create wrapper with keys for this lookup - in this case there is a TAZ in the choosers</span>
-<span class="c1"># and a TAZ in the alternatives which get merged during interaction</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers</span>
+<span class="c1"># and a zone_id in the alternatives which get merged during interaction</span>
 <span class="c1"># (logit.interaction_dataset suffixes duplicate chooser column with &#39;_chooser&#39;)</span>
 <span class="c1"># the skims will be available under the name &quot;skims&quot; for any @ expressions</span>
-<span class="n">skims</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="s1">&#39;TAZ_chooser&#39;</span><span class="p">,</span> <span class="s1">&#39;TAZ&#39;</span><span class="p">)</span>
+<span class="n">skim_dict</span> <span class="o">=</span> <span class="n">network_los</span><span class="o">.</span><span class="n">get_default_skim_dict</span><span class="p">()</span>
+<span class="n">skims</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="s1">&#39;home_zone_id&#39;</span><span class="p">,</span> <span class="s1">&#39;zone_id&#39;</span><span class="p">)</span>
 
 <span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;skims&#39;</span><span class="p">:</span> <span class="n">skims</span>
+    <span class="s1">&#39;skims&#39;</span><span class="p">:</span> <span class="n">skims</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -462,7 +466,7 @@ logit choice model.  The <a class="reference internal" href="core.html#activitys
 the <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE</span></code> setting in the model settings YAML file.   The <code class="docutils literal notranslate"><span class="pre">auto_ownership.yaml</span></code> file for example specifies
 the <code class="docutils literal notranslate"><span class="pre">LOGIT_TYPE</span></code> as <code class="docutils literal notranslate"><span class="pre">MNL.</span></code></p>
 <p>If the expression is a skim matrix, then the entire column of chooser OD pairs is retrieved from the matrix (i.e. numpy array)
-in one vectorized step.  The <code class="docutils literal notranslate"><span class="pre">orig</span></code> and <code class="docutils literal notranslate"><span class="pre">dest</span></code> objects in <code class="docutils literal notranslate"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <a class="reference internal" href="core.html#module-activitysim.core.skim" title="activitysim.core.skim"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.skim</span></code></a> are vectors
+in one vectorized step.  The <code class="docutils literal notranslate"><span class="pre">orig</span></code> and <code class="docutils literal notranslate"><span class="pre">dest</span></code> objects in <code class="docutils literal notranslate"><span class="pre">self.data[orig,</span> <span class="pre">dest]</span></code> in <a class="reference internal" href="core.html#module-activitysim.core.los" title="activitysim.core.los"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.los</span></code></a> are vectors
 and selecting numpy array items with vector indexes returns a vector.  Trace data is also written out if configured (not shown below).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># evaluate expressions from the spec multiply by coefficients and sum</span>
 <span class="n">interaction_utilities</span><span class="p">,</span> <span class="n">trace_eval_results</span> \
@@ -506,7 +510,7 @@ then used for the next model step - solving the logsums for the sample.</p>
 <span class="n">location_sample_df</span> <span class="o">=</span> <span class="n">run_location_logsums</span><span class="p">(</span>
            <span class="n">segment_name</span><span class="p">,</span>
            <span class="n">choosers</span><span class="p">,</span>
-           <span class="n">skim_dict</span><span class="p">,</span> <span class="n">skim_stack</span><span class="p">,</span>
+           <span class="n">network_los</span><span class="p">,</span>
            <span class="n">location_sample_df</span><span class="p">,</span>
            <span class="n">model_settings</span><span class="p">,</span>
            <span class="n">chunk_size</span><span class="p">,</span>
@@ -523,7 +527,7 @@ logsums settings and expression files.  The resulting logsums are added to the c
    <span class="n">choosers</span><span class="p">,</span>
    <span class="n">tour_purpose</span><span class="p">,</span>
    <span class="n">logsum_settings</span><span class="p">,</span> <span class="n">model_settings</span><span class="p">,</span>
-   <span class="n">skim_dict</span><span class="p">,</span> <span class="n">skim_stack</span><span class="p">,</span>
+   <span class="n">network_los</span><span class="p">,</span>
    <span class="n">chunk_size</span><span class="p">,</span>
    <span class="n">trace_label</span><span class="p">)</span>
 
@@ -544,7 +548,7 @@ above and is called as follows:</p>
         <span class="n">segment_name</span><span class="p">,</span>
         <span class="n">choosers</span><span class="p">,</span>
         <span class="n">location_sample_df</span><span class="p">,</span>
-        <span class="n">skim_dict</span><span class="p">,</span>
+        <span class="n">network_los</span><span class="p">,</span>
         <span class="n">dest_size_terms</span><span class="p">,</span>
         <span class="n">model_settings</span><span class="p">,</span>
         <span class="n">chunk_size</span><span class="p">,</span>
@@ -559,7 +563,7 @@ each chooser using the school location simulate expression files and the
 <a class="reference internal" href="core.html#activitysim.core.interaction_sample_simulate.interaction_sample_simulate" title="activitysim.core.interaction_sample_simulate.interaction_sample_simulate"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.interaction_sample_simulate.interaction_sample_simulate()</span></code></a> function.</p>
 <p>Back in <code class="docutils literal notranslate"><span class="pre">iterate_location_choice()</span></code>, the model adds the choices as a column to the <code class="docutils literal notranslate"><span class="pre">persons</span></code> table and adds
 additional output columns using a postprocessor table annotation if specified in the settings file.  Refer
-to <a class="reference internal" href="models.html#table-annotation"><span class="std std-ref">Estimation</span></a> for more information and the <a class="reference internal" href="models.html#activitysim.abm.models.util.expressions.assign_columns" title="activitysim.abm.models.util.expressions.assign_columns"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.expressions.assign_columns()</span></code></a>
+to <a class="reference internal" href="models.html#table-annotation"><span class="std std-ref">Estimation</span></a> for more information and the <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.expressions.assign_columns()</span></code>
 function.  The overall school location model is run within a shadow pricing iterative loop as shown below.  Refer
 to <a class="reference internal" href="models.html#shadow-pricing"><span class="std std-ref">Shadow Pricing</span></a> for more information.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># in iterate_location_choice() in location_choice.py</span>
@@ -570,7 +574,7 @@ to <a class="reference internal" href="models.html#shadow-pricing"><span class="
 
      <span class="n">choices</span> <span class="o">=</span> <span class="n">run_location_choice</span><span class="p">(</span>
          <span class="n">persons_merged_df</span><span class="p">,</span>
-         <span class="n">skim_dict</span><span class="p">,</span> <span class="n">skim_stack</span><span class="p">,</span>
+         <span class="n">network_los</span><span class="p">,</span>
          <span class="n">spc</span><span class="p">,</span>
          <span class="n">model_settings</span><span class="p">,</span>
          <span class="n">chunk_size</span><span class="p">,</span> <span class="n">trace_hh_id</span><span class="p">,</span>
@@ -662,20 +666,34 @@ the <code class="docutils literal notranslate"><span class="pre">tours</span></c
 </div>
 <div class="section" id="vectorized-3d-skim-indexing">
 <h3>Vectorized 3D Skim Indexing<a class="headerlink" href="#vectorized-3d-skim-indexing" title="Permalink to this headline">¶</a></h3>
-<p>The mode choice model uses the <a class="reference internal" href="core.html#activitysim.core.skim.SkimStackWrapper" title="activitysim.core.skim.SkimStackWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">activitysim.core.skim.SkimStackWrapper</span></code></a> class in addition to the skims (2D)
-class.  The SkimStackWrapper class represents a collection of skims with a third dimension, which in this case
-is time period.  Setting up the 3D index for SkimStackWrapper is done as follows:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># setup three skim keys based on columns in the chooser table</span>
-<span class="c1"># origin, destination, time period; destination, origin, time period; origin, destination</span>
-<span class="n">odt_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_stack</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">left_key</span><span class="o">=</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;out_period&quot;</span><span class="p">)</span>
-<span class="n">dot_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_stack</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">left_key</span><span class="o">=</span><span class="s1">&#39;destination&#39;</span><span class="p">,</span> <span class="n">right_key</span><span class="o">=</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="n">skim_key</span><span class="o">=</span><span class="s2">&quot;in_period&quot;</span><span class="p">)</span>
-<span class="n">od_skims</span>               <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="s1">&#39;TAZ&#39;</span><span class="p">,</span> <span class="s1">&#39;destination&#39;</span><span class="p">)</span>
+<p>The mode choice model uses a collection of skims with a third dimension, which in this case
+is time period.  Setting up the 3D index for skims is done as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">skim_dict</span> <span class="o">=</span> <span class="n">network_los</span><span class="o">.</span><span class="n">get_default_skim_dict</span><span class="p">()</span>
 
-<span class="c1">#pass these into simple_simulate so they can be used in expressions</span>
-<span class="n">locals_d</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;odt_skims&quot;</span><span class="p">:</span> <span class="n">odt_skim_stack_wrapper</span><span class="p">,</span>
-  <span class="s2">&quot;dot_skims&quot;</span><span class="p">:</span> <span class="n">dot_skim_stack_wrapper</span><span class="p">,</span>
-  <span class="s2">&quot;od_skims&quot;</span><span class="p">:</span> <span class="n">od_skim_stack_wrapper</span>
+<span class="c1"># setup skim keys</span>
+<span class="n">orig_col_name</span> <span class="o">=</span> <span class="s1">&#39;home_zone_id&#39;</span>
+<span class="n">dest_col_name</span> <span class="o">=</span> <span class="s1">&#39;destination&#39;</span>
+
+<span class="n">out_time_col_name</span> <span class="o">=</span> <span class="s1">&#39;start&#39;</span>
+<span class="n">in_time_col_name</span> <span class="o">=</span> <span class="s1">&#39;end&#39;</span>
+<span class="n">odt_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap_3d</span><span class="p">(</span><span class="n">orig_key</span><span class="o">=</span><span class="n">orig_col_name</span><span class="p">,</span> <span class="n">dest_key</span><span class="o">=</span><span class="n">dest_col_name</span><span class="p">,</span>
+                                           <span class="n">dim3_key</span><span class="o">=</span><span class="s1">&#39;out_period&#39;</span><span class="p">)</span>
+<span class="n">dot_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap_3d</span><span class="p">(</span><span class="n">orig_key</span><span class="o">=</span><span class="n">dest_col_name</span><span class="p">,</span> <span class="n">dest_key</span><span class="o">=</span><span class="n">orig_col_name</span><span class="p">,</span>
+                                           <span class="n">dim3_key</span><span class="o">=</span><span class="s1">&#39;in_period&#39;</span><span class="p">)</span>
+<span class="n">odr_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap_3d</span><span class="p">(</span><span class="n">orig_key</span><span class="o">=</span><span class="n">orig_col_name</span><span class="p">,</span> <span class="n">dest_key</span><span class="o">=</span><span class="n">dest_col_name</span><span class="p">,</span>
+                                           <span class="n">dim3_key</span><span class="o">=</span><span class="s1">&#39;in_period&#39;</span><span class="p">)</span>
+<span class="n">dor_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap_3d</span><span class="p">(</span><span class="n">orig_key</span><span class="o">=</span><span class="n">dest_col_name</span><span class="p">,</span> <span class="n">dest_key</span><span class="o">=</span><span class="n">orig_col_name</span><span class="p">,</span>
+                                           <span class="n">dim3_key</span><span class="o">=</span><span class="s1">&#39;out_period&#39;</span><span class="p">)</span>
+<span class="n">od_skim_stack_wrapper</span> <span class="o">=</span> <span class="n">skim_dict</span><span class="o">.</span><span class="n">wrap</span><span class="p">(</span><span class="n">orig_col_name</span><span class="p">,</span> <span class="n">dest_col_name</span><span class="p">)</span>
+
+<span class="n">skims</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;odt_skims&quot;</span><span class="p">:</span> <span class="n">odt_skim_stack_wrapper</span><span class="p">,</span>
+    <span class="s2">&quot;dot_skims&quot;</span><span class="p">:</span> <span class="n">dot_skim_stack_wrapper</span><span class="p">,</span>
+    <span class="s2">&quot;od_skims&quot;</span><span class="p">:</span> <span class="n">od_skim_stack_wrapper</span><span class="p">,</span>
+    <span class="s1">&#39;orig_col_name&#39;</span><span class="p">:</span> <span class="n">orig_col_name</span><span class="p">,</span>
+    <span class="s1">&#39;dest_col_name&#39;</span><span class="p">:</span> <span class="n">dest_col_name</span><span class="p">,</span>
+    <span class="s1">&#39;out_time_col_name&#39;</span><span class="p">:</span> <span class="n">out_time_col_name</span><span class="p">,</span>
+    <span class="s1">&#39;in_time_col_name&#39;</span><span class="p">:</span> <span class="n">in_time_col_name</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -685,7 +703,7 @@ out_periods can be retrieved in one vectorized request.</p>
 <p>All the skims are preloaded (cached) by the pipeline manager at the beginning of the model
 run in order to avoid repeatedly reading the skims from the OMX files on disk.  This saves
 significant model runtime.</p>
-<p>See <a class="reference internal" href="core.html#skims-in-detail"><span class="std std-ref">Skim</span></a> for more information on skim handling.</p>
+<p>See <a class="reference internal" href="core.html#los-in-detail"><span class="std std-ref">LOS</span></a> for more information on skim handling.</p>
 </div>
 <div class="section" id="accessibilities-model">
 <h3>Accessibilities Model<a class="headerlink" href="#accessibilities-model" title="Permalink to this headline">¶</a></h3>
@@ -820,14 +838,14 @@ data passed to them by the parent process:</p>
 <div class="section" id="data-schema">
 <span id="index-3"></span><h2>Data Schema<a class="headerlink" href="#data-schema" title="Permalink to this headline">¶</a></h2>
 <p>The ActivitySim data schema depends on the sub-models implemented.  The data schema listed below is for
-the example model.  These tables and skims are defined in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.tables</span></code> package.</p>
+the primary TM1 example model.  These tables and skims are defined in the <code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.abm.tables</span></code> package.</p>
 <span class="target" id="index-4"></span><span class="target" id="index-5"></span><span class="target" id="index-6"></span><span class="target" id="index-7"></span><span class="target" id="index-8"></span><span class="target" id="index-9"></span><span class="target" id="index-10"></span><span class="target" id="index-11"></span><div class="section" id="data-tables">
 <span id="index-12"></span><h3>Data Tables<a class="headerlink" href="#data-tables" title="Permalink to this headline">¶</a></h3>
 <p>The following tables are currently implemented:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>households - household attributes for each household being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">household_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.households.py</span></code>)</p></li>
-<li><p>landuse - zonal land use (such as population and employment) attributes. Index: <code class="docutils literal notranslate"><span class="pre">TAZ</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.landuse.py</span></code>)</p></li>
+<li><p>landuse - zonal land use (such as population and employment) attributes. Index: <code class="docutils literal notranslate"><span class="pre">zone_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.landuse.py</span></code>)</p></li>
 <li><p>persons - person attributes for each person being simulated.  Index: <code class="docutils literal notranslate"><span class="pre">person_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.persons.py</span></code>)</p></li>
 <li><p>time windows - manages person time windows throughout the simulation.  See <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.  Index:  <code class="docutils literal notranslate"><span class="pre">person_id</span></code> (see the person_windows table create decorator in <code class="docutils literal notranslate"><span class="pre">activitysim.abm.tables.time_windows.py</span></code>)</p></li>
 <li><p>tours - tour attributes for each tour (mandatory, non-mandatory, joint, and atwork-subtour) being simulated.  Index:  <code class="docutils literal notranslate"><span class="pre">tour_id</span></code> (see <code class="docutils literal notranslate"><span class="pre">activitysim.abm.models.util.tour_frequency.py</span></code>)</p></li>
@@ -2285,7 +2303,7 @@ uses the information stored in the pipeline file to create the table below for a
 <td><p>271</p></td>
 </tr>
 <tr class="row-even"><td><p>persons</p></td>
-<td><p>work_taz_area_type</p></td>
+<td><p>work_zone_area_type</p></td>
 <td><p>float64</p></td>
 <td><p>workplace_location</p></td>
 <td><p>52</p></td>
@@ -2810,29 +2828,6 @@ uses the information stored in the pipeline file to create the table below for a
 <p>The skims class defines orca injectables to access the skim matrices.  The skims class reads the
 skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
 The skims are float64 matrix.</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 13%" />
-<col style="width: 17%" />
-<col style="width: 71%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Table</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Creation</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>skim_dict</p></td>
-<td><p>SkimDict</p></td>
-<td><p>skims.py defines skim_dict which reads omx_file</p></td>
-</tr>
-<tr class="row-odd"><td><p>skim_stack</p></td>
-<td><p>SkimStack</p></td>
-<td><p>skims.py defines skim_stack which calls skim_dict which reads omx_file</p></td>
-</tr>
-</tbody>
-</table>
 <p>Skims are named &lt;PATHTYPE&gt;_&lt;MEASURE&gt;__&lt;TIME PERIOD&gt;:</p>
 <ul class="simple">
 <li><p>Highway paths are SOV, HOV2, HOV3, SOVTOLL, HOV2TOLL, HOV3TOLL</p></li>
@@ -5347,37 +5342,29 @@ The skims are float64 matrix.</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="core.html" class="btn btn-neutral float-right" title="Core Components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="core.html" class="btn btn-neutral float-right" title="Core Components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright contributing authors
+        &#169; Copyright contributing authors.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

@@ -3,11 +3,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Example &mdash; ActivitySim 0.9.5.2 documentation</title>
+  <title>Example &mdash; ActivitySim 0.9.7 documentation</title>
   
 
   
@@ -17,7 +17,10 @@
 
   
   
+
   
+  
+
   
 
   
@@ -30,7 +33,6 @@
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -52,7 +54,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home" alt="Documentation Home"> ActivitySim
+            <a href="index.html" class="icon icon-home"> ActivitySim
           
 
           
@@ -62,7 +64,7 @@
             
             
               <div class="version">
-                0.9.5.2
+                0.9.7
               </div>
             
           
@@ -125,6 +127,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#settings">Settings</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#multiple-zone-systems">Multiple Zone Systems</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">Settings</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
@@ -172,6 +179,8 @@
 
 
 
+
+
 <div role="navigation" aria-label="breadcrumbs navigation">
 
   <ul class="wy-breadcrumbs">
@@ -183,7 +192,7 @@
     
       <li class="wy-breadcrumbs-aside">
         
-            
+          
             <a href="_sources/abmexample.rst.txt" rel="nofollow"> View page source</a>
           
         
@@ -217,35 +226,17 @@ methods capture aggregate outcomes through the representation of the behavior of
 individual decision-makers.</p>
 <div class="section" id="space">
 <h3>Space<a class="headerlink" href="#space" title="Permalink to this headline">¶</a></h3>
-<p>TM1 uses the 1454-zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
+<p>TM1 uses the 1454 TAZ zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
 which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the
 original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
 of activity-based models typically use an improved approach to spatial representation called multiple zone systems.</p>
-<p>In brief, under a multiple zone system approach, all households are assigned to microzones (which are smaller than traditional
-TAZs) and trips are assigned to origin and destination microzones.  When considering network level-of-service (LOS) indicators,
-the model uses different spatial resolutions for different travel modes.  For example:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>TAZs are used for auto network modeling and a set of taz-to-taz skims is input to the demand model</p></li>
-<li><p>Microzones are used for nearby non-motorized mode (walk and bike) network modeling and skims and a set of nearby maz-to-maz skims is input to the demand model</p></li>
-<li><p>Transit access points (TAPs) (or transit catchment areas) are used for transit network modeling and skims and a set of tap-to-tap skims is input to the demand model</p></li>
-<li><p>Microzone to transit access point for transit access/egress LOS is input to the demand model</p></li>
-</ul>
-</div></blockquote>
-<p>Since trips are modeled in the demand model from microzone to microzone, but transit network LOS is split across
-two input data sets, transit virtual path building (TVPB) is done to generate LOS measures from:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>the trip origin microzone to a select number of nearby TAPs using microzone to TAP LOS measures</p></li>
-<li><p>boarding TAP to alighting TAP LOS measures (TAP to TAP skims)</p></li>
-<li><p>alighting TAP to destination microzone using microzone to TAP LOS measures</p></li>
-</ul>
-</div></blockquote>
-<p>The resulting complete transit path LOS for the best, or a bundle of, paths is then used in the demand model
-for representing transit LOS at the microzone level.</p>
-<p>Support for multiple zone systems is <strong>NOT YET IMPLEMENTED</strong>, but planned for the next release.  For the time being,
-all travel is modeled at the TAZ level.</p>
+<p>In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
+than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
+indicators (e.g. skims), the model uses different spatial resolutions for different travel modes in order to reduce the network
+modeling burden.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone system for
+non-motorized travel, and optionally a transit access points (TAPs) zone system for transit.  See <a class="reference internal" href="#multiple-zone-systems"><span class="std std-ref">Multiple Zone Systems</span></a> for
+more information.</p>
 </div>
 <div class="section" id="decision-making-units">
 <h3>Decision-making units<a class="headerlink" href="#decision-making-units" title="Permalink to this headline">¶</a></h3>
@@ -430,36 +421,29 @@ reference the appropriate transport network depending on their trip mode and the
 time. The definition of time periods for LOS matrices is given below.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 41%" />
-<col style="width: 32%" />
-<col style="width: 27%" />
+<col style="width: 56%" />
+<col style="width: 44%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Time Period</p></th>
 <th class="head"><p>Start Hour</p></th>
-<th class="head"><p>End Hour</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>EA</p></td>
 <td><p>3</p></td>
-<td><p>6</p></td>
 </tr>
 <tr class="row-odd"><td><p>AM</p></td>
-<td><p>6</p></td>
-<td><p>11</p></td>
+<td><p>5</p></td>
 </tr>
 <tr class="row-even"><td><p>MD</p></td>
-<td><p>11</p></td>
-<td><p>15</p></td>
+<td><p>9</p></td>
 </tr>
 <tr class="row-odd"><td><p>PM</p></td>
-<td><p>15</p></td>
-<td><p>20</p></td>
+<td><p>14</p></td>
 </tr>
 <tr class="row-even"><td><p>EV</p></td>
-<td><p>20</p></td>
-<td><p>3</p></td>
+<td><p>18</p></td>
 </tr>
 </tbody>
 </table>
@@ -591,14 +575,14 @@ can be aggregated into travel demand matrices for network loading.</p>
 <div><ul class="simple">
 <li><p>configs - settings, expressions files, etc.</p></li>
 <li><p>configs_mp - override settings for the multiprocess configuration</p></li>
-<li><p>data - input data such as land use, synthetic population files, and skims</p></li>
+<li><p>data - input data such as land use, synthetic population files, and network LOS / skims</p></li>
 <li><p>output - outputs folder</p></li>
 </ul>
 </div></blockquote>
 </div>
 <div class="section" id="inputs">
 <h3>Inputs<a class="headerlink" href="#inputs" title="Permalink to this headline">¶</a></h3>
-<p>In order to run the example, you first need the input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code> file:</p>
+<p>In order to run the example, you first need the input files in the <code class="docutils literal notranslate"><span class="pre">data</span></code> folder as identified in the <code class="docutils literal notranslate"><span class="pre">configs\settings.yaml</span></code> file and the <code class="docutils literal notranslate"><span class="pre">configs\network_los.yaml</span></code> file:</p>
 <ul>
 <li><p>input_table_list: the input CSV tables from MTC travel model one:</p>
 <blockquote>
@@ -609,10 +593,10 @@ can be aggregated into travel demand matrices for network loading.</p>
 </ul>
 </div></blockquote>
 </li>
-<li><p>skims_file: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.</p></li>
+<li><p>taz_skims: skims.omx - an OMX matrix file containing the MTC travel model one skim matrices for a subset of zones.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM.</p></li>
 </ul>
 <p>These files are used in the tests as well and are in the <code class="docutils literal notranslate"><span class="pre">activitysim\abm\test\data</span></code> folder.  The full set
-of MTC TM1 households, persons, and OMX skims are on the MTC <a class="reference external" href="https://mtcdrive.app.box.com/v/activitysim">box account</a>.</p>
+of MTC TM1 households, persons, and OMX skims are on the ActivitySim <a class="reference external" href="https://github.com/rsginc/activitysim_resources">resources repository</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
@@ -647,23 +631,28 @@ is the main settings file for the model run.  This file includes:</p>
 </div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">create_input_store</span></code> - write new ‘input_data.h5’ file to outputs folder using CSVs from <cite>input_table_list</cite> to use for subsequent model runs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">skims_file</span></code> - skim matrices in one OMX file</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - batch size for processing choosers and should be set to 1 for dynamic chunking, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> - turn shadow_pricing on and off for work and school location</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output_tables</span></code> - list of output tables to write to CSV or HDF5</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_sample_tables</span></code> - turn writing of sample_tables on and off for all models</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">read_skim_cache</span></code> - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">write_skim_cache</span></code> - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">skim_cache_dir</span></code> - alternate dir to read/write skim cache (defaults to output_dir)</p></li>
 <li><p>global variables that can be used in expressions tables and Python code such as:</p>
 <blockquote>
-<div><ul>
+<div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">urban_threshold</span></code> - urban threshold area type max value</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">county_map</span></code> - mapping of county codes to county names</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">household_median_value_of_time</span></code> - various household and person value-of-time model settings</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>Also in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code>, which includes network LOS / skims settings such as:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - 1 (taz), 2 (maz and taz), or 3 (maz, taz, tap)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">taz_skims</span></code> - skim matrices in one OMX file.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">skim_time_periods</span></code> - time period upper bound values and labels</p>
 <blockquote>
 <div><ul class="simple">
@@ -674,10 +663,9 @@ is the main settings file for the model run.  This file includes:</p>
 </ul>
 </div></blockquote>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">household_median_value_of_time</span></code> - various household and person value-of-time model settings</p></li>
-</ul>
-</div></blockquote>
-</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">read_skim_cache</span></code> - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">write_skim_cache</span></code> - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_dir</span></code> - alternate dir to read/write skim cache (defaults to output_dir)</p></li>
 </ul>
 </div>
 <div class="section" id="sub-model-specification-files">
@@ -963,14 +951,14 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-scheduling"><span class="std std-ref">Trip Scheduling</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#trip-scheduling"><span class="std std-ref">Trip Scheduling (Probablistic)</span></a></p></td>
 <td><ul class="simple">
 <li><p>trip_scheduling.yaml</p></li>
 <li><p>trip_scheduling_probs.csv</p></li>
 </ul>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Mode Choice</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#trip-mode-choice"><span class="std std-ref">Trip Scheduling Choice (Logit Choice)</span></a></p></td>
 <td><ul class="simple">
 <li><p>trip_mode_choice.yaml</p></li>
 <li><p>trip_mode_choice_annotate_trips_preprocessor.csv</p></li>
@@ -979,7 +967,17 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </ul>
 </td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="models.html#write-trip-matrices"><span class="std std-ref">Write Trip Matrices</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#parking-location-choice"><span class="std std-ref">Parking Location Choice</span></a>
+(optional model)</p></td>
+<td><ul class="simple">
+<li><p>parking_location_choice.yaml</p></li>
+<li><p>parking_location_choice_annotate_trips_preprocessor.csv</p></li>
+<li><p>parking_location_choice_coeffs.csv</p></li>
+<li><p>parking_location_choice.csv</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#write-trip-matrices"><span class="std std-ref">Write Trip Matrices</span></a></p></td>
 <td><ul class="simple">
 <li><p>write_trip_matrices.yaml</p></li>
 <li><p>write_trip_matrices_annotate_trips_preprocessor.csv</p></li>
@@ -991,14 +989,11 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 </div>
 <div class="section" id="chunk-size">
 <span id="index-2"></span><span id="id3"></span><h3>Chunk size<a class="headerlink" href="#chunk-size" title="Permalink to this headline">¶</a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> is the number of doubles in a chunk of the choosers table.  It is approximately the number
-of rows times the number of columns and it needs to be set to a value that efficiently processes the table with
-the available RAM.  For example, a chunk size of 1,000,000 could be 100,000 household records with 10 columns of attributes.
-Setting the chunk size too high will run into memory errors such as <code class="docutils literal notranslate"><span class="pre">OverflowError:</span> <span class="pre">Python</span> <span class="pre">int</span>
-<span class="pre">too</span> <span class="pre">large</span> <span class="pre">to</span> <span class="pre">convert</span> <span class="pre">to</span> <span class="pre">C</span> <span class="pre">long.</span></code> Setting the chunk size too low may result in smaller than optimal vector
-lengths, which may waste runtime.  The chunk size is dependent on the size of the population, the complexity
-of the utility expressions, the amount of RAM on the machine, and other problem specific dimensions.  Thus,
-it needs to be set via experimentation.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> is the number of doubles in a chunk of a choosers table.  It is approximately the number
+of rows times the number of columns.  If set greater than 0, then it is now dynamically calculated by processing a
+small sample of households to determine the necessary size for each submodel based on the size of the population,
+the complexity of the utility expressions, the amount of RAM on the machine, the number of processors,
+and other problem specific dimensions.</p>
 </div>
 <div class="section" id="logging">
 <h3>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h3>
@@ -1120,7 +1115,7 @@ include the multiprocessing configuration settings as well:</p>
 included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server
 machine with 28 cores &#64; 2.56GHz and 224GB RAM with the configuration below.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> for more information.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">households_sample_size</span><span class="p">:</span>  <span class="mi">0</span>
-<span class="n">chunk_size</span><span class="p">:</span>  <span class="mi">5000000000</span>
+<span class="n">chunk_size</span><span class="p">:</span>  <span class="mi">1</span>
 <span class="n">num_processes</span><span class="p">:</span> <span class="mi">24</span>
 </pre></div>
 </div>
@@ -1463,12 +1458,239 @@ combination of functionality means:</p>
 </div>
 <div class="section" id="settings">
 <h3>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h3>
-<p>Additional settings for running ActivitySim in estimation mode are specified in an <code class="docutils literal notranslate"><span class="pre">estimation.yaml</span></code> file that is specified in addition to <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>.  The settings are:</p>
+<p>Additional settings for running ActivitySim in estimation mode are specified in the <code class="docutils literal notranslate"><span class="pre">estimation.yaml</span></code> file.  The settings are:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">enable</span></code> - enable estimation, either True or False</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bundles</span></code> - the list of submodels for which to write EDBs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">survey_tables</span></code> - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the <code class="docutils literal notranslate"><span class="pre">scripts\infer.py</span></code> script that pre-processes the ActivitySim format household travel survey files</p></li>
 </ul>
+</div>
+</div>
+<div class="section" id="multiple-zone-systems">
+<span id="id8"></span><h2>Multiple Zone Systems<a class="headerlink" href="#multiple-zone-systems" title="Permalink to this headline">¶</a></h2>
+<p>ActivitySim supports models with multiple zone systems.  The three versions of multiple zone systems are one-zone, two-zone, and three-zone.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>One-zone</strong>: This version is based on TM1 and supports only TAZs. All origins and destinations are represented at the TAZ level, and all skims including auto, transit, and non-motorized times and costs are also represented at the TAZ level.</p></li>
+<li><p><strong>Two-zone</strong>: This version is similar to many DaySim models. It uses microzones (MAZs) for origins and destinations, and TAZs for specification of auto and transit times and costs. Impedance for walk or bike “all the way” from the origin to the destination can be specified at the MAZ level for close together origins and destinations, and at the TAZ level for further origins and destinations. Users can also override transit walk access and egress times with times specified in the MAZ file by transit mode.  Careful pre-calculation of the assumed transit walk access and egress time by MAZ and transit mode is required depending on the network scenario.</p></li>
+<li><p><strong>Three-zone</strong>: This version is based on the SANDAG generation of CT-RAMP models. Origins and destinations are represented at the MAZ level. Impedance for walk or bike “all the way” from the origin to the destination can be specified at the MAZ level for close together origins and destinations, and at the TAZ level for further origins and destinations, just like the two-zone system. TAZs are used for auto times and costs. The difference between this system and the two-zone system is that transit times and costs are represented between Transit Access Points (TAPs), which are essentially dummy zones that represent transit stops or clusters of stops. Transit skims are built between TAPs, since there are typically too many MAZs to build skims between them. Often multiple sets of TAP to TAP skims (local bus only, all modes, etc.) are created and input to the demand model for consideration.  Walk access and egress times are also calculated between the MAZ and the TAP, and total transit path utilities are assembled from their respective components - from MAZ to first boarding TAP, from first boarding to final alighting TAP, and from alighting TAP to destination MAZ. This assembling is done via the <a class="reference internal" href="core.html#transit-virtual-path-builder"><span class="std std-ref">Transit Virtual Path Builder</span></a> (TVPB), which considers all possible combinations of nearby boarding and alighting TAPs for each origin destination MAZ pair.</p></li>
+</ul>
+</div></blockquote>
+<p>Regions that have an interest in more precise transit forecasts may wish to adopt the three-zone approach, while other regions may adopt the one or two-zone approach.  The microzone version requires coding households and land use at the microzone level.  Typically an all-streets network is used for representation of non-motorized impedances. This requires a routable all-streets network, with centroids and connectors for microzones.  If the three-zone system is adopted, procedures need to be developed to code TAPs from transit stops and populate the all-street network with TAP centroids and centroid connectors.  A model with transit virtual path building takes longer to run than a traditional
+TAZ only model, but it provides a much richer framework for transit modeling.</p>
+<p>Example configurations and inputs for two and three-zone system models are described below.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The two and three zone system test examples are dummy examples developed from the TM1 example.  To develop the two zone system
+example, TM1 TAZs were labeled MAZs, each MAZ was assigned a TAZ, and MAZ to MAZ impedance files were created from the
+TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed
+so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for
+initial development, these examples were insufficient for validation and performance testing of the new software.</p>
+<p>To finalize development and verification of the multiple zone system and transit virtual path building components, the
+<a class="reference external" href="https://www.tam.ca.gov/">Transportation Authority of Marin County</a> version of MTC’s travel model two (TM2) work
+tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.
+The complete runnable setup is available from ActivitySim’s command line interface as <cite>example_3_marin_full</cite>.  This example
+has essentially the same configuration as illustrated by the simpler examples below.</p>
+</div>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>To run the two zone and three zone system examples, do the following:</p>
+<ul class="simple">
+<li><p>Activate the correct conda environment if needed</p></li>
+<li><p>Create a local copy of the example</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple two zone example</span>
+<span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">example_2_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_example_2_zone</span>
+
+<span class="c1"># simple three zone example</span>
+<span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">example_3_zone</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_example_3_zone</span>
+
+<span class="c1"># Marin TM2 work tour mode choice for the MTC region</span>
+<span class="n">activitysim</span> <span class="n">create</span> <span class="o">-</span><span class="n">e</span> <span class="n">example_3_marin_full</span> <span class="o">-</span><span class="n">d</span> <span class="n">test_example_3_marin_full</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Change to the example directory</p></li>
+<li><p>Run the example</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># simple two zone example</span>
+<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_local</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_2_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_2</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_2</span>
+
+<span class="c1"># simple three zone example, single process and multiprocess</span>
+<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_local</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_static</span><span class="o">.</span><span class="n">yaml</span>
+<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_local</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_mp</span><span class="o">.</span><span class="n">yaml</span>
+
+<span class="c1"># Marin TM2 work tour mode choice for the MTC region</span>
+<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone_marin_full</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_3_zone_marin</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_3_marin_full</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_3_marin_full</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_mp</span><span class="o">.</span><span class="n">yaml</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="id9">
+<h3>Settings<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<p>Additional settings for running ActivitySim with two or three zone systems are specified in the <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code> file.  The settings are:</p>
+<p><strong>Two Zone</strong></p>
+<p>The additional two zone system settings and inputs are described and illustrated below.  No additional utility expression files or expression revisions are required beyond the one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is available using the existing skim expressions.  Users can specify mode utilities using MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - set to 2 for two zone system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz</span></code> -  MAZ data file, with MAZ ID, TAZ, and land use and other MAZ attributes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:tables</span></code> - list of MAZ to MAZ impedance tables.  These tables are read as pandas DataFrames and the columns are exposed to expressions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:max_blend_distance</span></code> - in order to avoid cliff effects, the lookup of MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and origin TAZ to destination TAZ impedance up to a max distance.  The calculated value is the (MAZ to MAZ distance) * (distance / max distance) * (TAZ to TAZ distance) * (1 - (distance / max distance)).  This requires specifying a distance TAZ skim and distance columns from the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the same so the blending can happen on-the-fly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:blend_distance_skim_name</span></code> - Identify the distance skim for the blending calculation if different than the blend skim.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zone_system</span><span class="p">:</span> <span class="mi">2</span>
+<span class="n">maz</span><span class="p">:</span> <span class="n">maz</span><span class="o">.</span><span class="n">csv</span>
+
+<span class="n">maz_to_maz</span><span class="p">:</span>
+  <span class="n">tables</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">maz_to_maz_walk</span><span class="o">.</span><span class="n">csv</span>
+    <span class="o">-</span> <span class="n">maz_to_maz_bike</span><span class="o">.</span><span class="n">csv</span>
+
+  <span class="n">max_blend_distance</span><span class="p">:</span>
+    <span class="n">DIST</span><span class="p">:</span> <span class="mi">5</span>
+    <span class="n">DISTBIKE</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">DISTWALK</span><span class="p">:</span> <span class="mi">1</span>
+
+  <span class="n">blend_distance_skim_name</span><span class="p">:</span> <span class="n">DIST</span>
+</pre></div>
+</div>
+<p><strong>Three Zone</strong></p>
+<p>In addition to the extra two zone system settings and inputs above, the following additional settings and inputs are required for a three zone system model.  Examples values are illustrated below.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See <a class="reference internal" href="models.html#initialize-los"><span class="std std-ref">Initialize LOS</span></a>.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">initialize_landuse</span>
+  <span class="o">-</span> <span class="n">compute_accessibility</span>
+  <span class="o">-</span> <span class="n">initialize_households</span>
+  <span class="c1"># ---</span>
+  <span class="o">-</span> <span class="n">initialize_los</span>
+  <span class="o">-</span> <span class="n">initialize_tvpb</span>
+  <span class="c1"># ---</span>
+  <span class="o">-</span> <span class="n">school_location</span>
+  <span class="o">-</span> <span class="n">workplace_location</span>
+</pre></div>
+</div>
+<p>In <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - set to 3 for three zone system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rebuild_tvpb_cache</span></code> - rebuild and overwrite existing pre-computed TAP to TAP utilities cache</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace_tvpb_cache_as_csv</span></code> - write a CSV version of TVPB cache for tracing</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tap_skims</span></code> - TAP to TAP skims OMX file name. The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tap</span></code> - TAPs table</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tap_lines</span></code> - table of transit line names served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are further away and serve new service are included in the TAP set for consideration.  It is a very important file to include as it can considerably reduce runtimes.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap</span></code> - list of MAZ to TAP access/egress impedance files by user defined mode.  Examples include “walk” and “drive”.  The file also includes MAZ to TAP impedances.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap:{walk}:max_dist</span></code> - max distance from MAZ to TAP to consider TAP</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap:{walk}:tap_line_distance_col</span></code> - MAZ to TAP data field to use for TAP lines distance filter</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">demographic_segments</span></code> - list of user defined demographic_segments for pre-computed TVPB impedances.  Each chooser is coded with a user defined demographic segment.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:units</span></code> - specify the units for calculations, e.g. utility or time.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types</span></code> - user defined set of TVPB path types to be calculated and available to the mode choice models.  Examples include walk transit walk (“WTW”), drive transit walk (“DTW”), and walk transit drive (“WTD”).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:access</span></code> - access mode for the path type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:egress</span></code> - egress mode for the path type</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:max_paths_across_tap_sets</span></code> - max paths to keep across all skim sets, for example, 3 TAP to TAP pairs per origin MAZ destination MAZ pair</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:path_types:{WTW}:max_paths_per_tap_set</span></code> - max paths to keep per skim set, for example 1 per skim set - all transit submodes, local bus only, etc.</p></li>
+</ul>
+<p>Unlike the one and two zone system approach, the three zone system approach requires additional expression files for the TVPB.  The additional expression files for the TVPB are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:SPEC</span></code> - TAP to TAP expressions, e.g. tvpb_utility_tap_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:PREPROCESSOR:SPEC</span></code> - TAP to TAP chooser preprocessor, e.g. tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:walk:SPEC</span></code> - MAZ to TAP {walk} expressions, e.g. tvpb_utility_walk_maz_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:drive:SPEC</span></code> - MAZ to TAP {drive} expressions, e.g. tvpb_utility_drive_maz_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:accessibility:tap_tap_settings:SPEC</span></code> - TAP to TAP expressions for the accessibility calculator, e.g. tvpb_accessibility_tap_tap.csv</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:accessibility:maz_tap_settings:walk:SPEC</span></code> - MAz to TAP {walk} expressions for the accessibility calculator, e.g. tvpb_accessibility_walk_maz_tap.csv</p></li>
+</ul>
+<p>Additional settings to configure the TVPB are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:tap_tap_settings:attribute_segments:demographic_segment</span></code> - TVPB pre-computes TAP to TAP total utilities for demographic segments.  These are defined using the attribute_segments keyword.  In the example below, the segments are demographic_segment (household income bin), tod (time-of-day), and access_mode (drive, walk).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:{walk}:CHOOSER_COLUMNS</span></code> - input impedance columns to expose for TVPB calculations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TVPB_SETTINGS:maz_tap_settings:{walk}:CONSTANTS</span></code> - constants for TVPB calculations.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">accessibility:...</span></code> - for the accessibility model step, the same basic set of TVPB configurations are available.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zone_system</span><span class="p">:</span> <span class="mi">3</span>
+
+<span class="n">rebuild_tvpb_cache</span><span class="p">:</span> <span class="kc">False</span>
+<span class="n">trace_tvpb_cache_as_csv</span><span class="p">:</span> <span class="kc">False</span>
+<span class="n">tap_skims</span><span class="p">:</span> <span class="n">tap_skims</span><span class="o">.</span><span class="n">omx</span>
+<span class="n">tap</span><span class="p">:</span> <span class="n">tap</span><span class="o">.</span><span class="n">csv</span>
+<span class="n">maz_to_tap</span><span class="p">:</span>
+  <span class="n">walk</span><span class="p">:</span>
+    <span class="n">table</span><span class="p">:</span> <span class="n">maz_to_tap_walk</span><span class="o">.</span><span class="n">csv</span>
+  <span class="n">drive</span><span class="p">:</span>
+    <span class="n">table</span><span class="p">:</span> <span class="n">maz_to_tap_drive</span><span class="o">.</span><span class="n">csv</span>
+
+<span class="n">demographic_segments</span><span class="p">:</span> <span class="o">&amp;</span><span class="n">demographic_segments</span>
+<span class="o">-</span> <span class="o">&amp;</span><span class="n">low_income_segment_id</span> <span class="mi">0</span>
+<span class="o">-</span> <span class="o">&amp;</span><span class="n">high_income_segment_id</span> <span class="mi">1</span>
+
+<span class="n">TVPB_SETTINGS</span><span class="p">:</span>
+  <span class="n">tour_mode_choice</span><span class="p">:</span>
+    <span class="n">units</span><span class="p">:</span> <span class="n">utility</span>
+    <span class="n">path_types</span><span class="p">:</span>
+      <span class="n">WTW</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+      <span class="n">DTW</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">drive</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+      <span class="n">WTD</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">drive</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">3</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="n">tap_tap_settings</span><span class="p">:</span>
+      <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_tap_tap</span><span class="o">.</span><span class="n">csv</span>
+      <span class="n">PREPROCESSOR</span><span class="p">:</span>
+        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_tap_tap_annotate_choosers_preprocessor</span><span class="o">.</span><span class="n">csv</span>
+        <span class="n">DF</span><span class="p">:</span> <span class="n">df</span>
+      <span class="n">attribute_segments</span><span class="p">:</span>
+        <span class="n">demographic_segment</span><span class="p">:</span> <span class="o">*</span><span class="n">demographic_segments</span>
+        <span class="n">tod</span><span class="p">:</span> <span class="o">*</span><span class="n">skim_time_period_labels</span>
+        <span class="n">access_mode</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;drive&#39;</span><span class="p">,</span> <span class="s1">&#39;walk&#39;</span><span class="p">]</span>
+      <span class="n">attributes_as_columns</span><span class="p">:</span>
+        <span class="o">-</span> <span class="n">demographic_segment</span>
+        <span class="o">-</span> <span class="n">tod</span>
+    <span class="n">maz_tap_settings</span><span class="p">:</span>
+      <span class="n">walk</span><span class="p">:</span>
+        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_walk_maz_tap</span><span class="o">.</span><span class="n">csv</span>
+        <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
+          <span class="o">-</span> <span class="n">walk_time</span>
+      <span class="n">drive</span><span class="p">:</span>
+        <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_utility_drive_maz_tap</span><span class="o">.</span><span class="n">csv</span>
+        <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
+          <span class="o">-</span> <span class="n">drive_time</span>
+          <span class="o">-</span> <span class="n">DIST</span>
+    <span class="n">CONSTANTS</span><span class="p">:</span>
+      <span class="n">c_ivt_high_income</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.028</span>
+      <span class="o">...</span>
+
+  <span class="n">accessibility</span><span class="p">:</span>
+    <span class="n">units</span><span class="p">:</span> <span class="n">time</span>
+    <span class="n">path_types</span><span class="p">:</span>
+      <span class="n">WTW</span><span class="p">:</span>
+        <span class="n">access</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">egress</span><span class="p">:</span> <span class="n">walk</span>
+        <span class="n">max_paths_across_tap_sets</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="n">max_paths_per_tap_set</span><span class="p">:</span> <span class="mi">1</span>
+    <span class="n">tap_tap_settings</span><span class="p">:</span>
+      <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_accessibility_tap_tap_</span><span class="o">.</span><span class="n">csv</span>
+    <span class="n">maz_tap_settings</span><span class="p">:</span>
+        <span class="n">walk</span><span class="p">:</span>
+          <span class="n">SPEC</span><span class="p">:</span> <span class="n">tvpb_accessibility_walk_maz_tap</span><span class="o">.</span><span class="n">csv</span>
+          <span class="n">CHOOSER_COLUMNS</span><span class="p">:</span>
+            <span class="o">-</span> <span class="n">walk_time</span>
+    <span class="n">CONSTANTS</span><span class="p">:</span>
+        <span class="n">out_of_vehicle_walk_time_weight</span><span class="p">:</span> <span class="mf">1.5</span>
+        <span class="n">out_of_vehicle_wait_time_weight</span><span class="p">:</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In three zone system mode, the boarding TAP, alighting TAP, and transit skim set is added to the relevant chooser table (e.g. tours and trips) when the chosen mode is transit.</p>
+</div>
 </div>
 </div>
 </div>
@@ -1478,37 +1700,29 @@ combination of functionality means:</p>
            
           </div>
           <footer>
-  
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="gettingstarted.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+        <a href="models.html" class="btn btn-neutral float-right" title="Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="gettingstarted.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
     <p>
-        
-        &copy; Copyright contributing authors
+        &#169; Copyright contributing authors.
 
     </p>
   </div>
     
     
     
-    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     
-    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
     
     provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
-
         </div>
       </div>
 

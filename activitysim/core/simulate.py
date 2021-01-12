@@ -220,6 +220,28 @@ def read_model_coefficient_template(model_settings):
     return template
 
 
+def dump_mapped_coefficients(model_settings):
+    """
+    dump template_df with coefficient values
+    """
+
+    coefficients_df = read_model_coefficients(model_settings)
+    template_df = read_model_coefficient_template(model_settings)
+
+    for c in template_df.columns:
+        template_df[c] = template_df[c].map(coefficients_df.value)
+
+    coefficients_template_file_name = model_settings['COEFFICIENT_TEMPLATE']
+    file_path = config.output_file_path(coefficients_template_file_name)
+    template_df.to_csv(file_path, index=True)
+    logger.info(f"wrote mapped coefficient template to {file_path}")
+
+    coefficients_file_name = model_settings['COEFFICIENTS']
+    file_path = config.output_file_path(coefficients_file_name)
+    coefficients_df.to_csv(file_path, index=True)
+    logger.info(f"wrote raw coefficients to {file_path}")
+
+
 def get_segment_coefficients(model_settings, segment_name):
     """
     Return a dict mapping generic coefficient names to segment-specific coefficient values
@@ -255,22 +277,8 @@ def get_segment_coefficients(model_settings, segment_name):
     coefficients_df = read_model_coefficients(model_settings)
     template_df = read_model_coefficient_template(model_settings)
 
-    DUMP = False
-    if DUMP:
-        for c in template_df.columns:
-            template_df[c] = template_df[c].map(coefficients_df.value)
-
-        coefficients_template_file_name = model_settings['COEFFICIENT_TEMPLATE']
-        file_path = config.output_file_path(coefficients_template_file_name)
-        template_df.to_csv(file_path, index=True)
-        print(template_df)
-        print(f"wrote {file_path}")
-
-        coefficients_file_name = model_settings['COEFFICIENTS']
-        file_path = config.output_file_path(coefficients_file_name)
-        coefficients_df.to_csv(file_path, index=True)
-        print(coefficients_df)
-        print(f"wrote {file_path}")
+    #bug
+    dump_mapped_coefficients(model_settings)
 
     coefficients_col = template_df[segment_name].map(coefficients_df.value).astype(float)
 

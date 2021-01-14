@@ -11,9 +11,8 @@ input_table_list:
     index_col: person_id
   - tablename: land_use
     filename: land_use.csv
-    index_col: TAZ
+    index_col: zone_id
     rename_columns:
-      ZONE: TAZ
       COUNTY: county_id
     keep_columns:
       - DISTRICT
@@ -47,6 +46,7 @@ rng_base_seed: 0
 use_shadow_pricing: False
 
 # turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
 want_dest_choice_sample_tables: False
 
 # number of households to simulate

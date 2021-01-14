@@ -1,3 +1,4 @@
 override_configs/
 simulation_mp.py
 notes.txt
+output_*/

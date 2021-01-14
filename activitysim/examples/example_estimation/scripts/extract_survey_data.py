@@ -48,11 +48,11 @@ tours = pd.read_csv(os.path.join(input_dir, inputs['tours']))
 joint_tour_participants = pd.read_csv(os.path.join(input_dir, inputs['joint_tour_participants']))
 
 households = households[
-    ['household_id', 'TAZ', 'income', 'hhsize', 'HHT', 'auto_ownership', 'num_workers']
+    ['household_id', 'home_zone_id', 'income', 'hhsize', 'HHT', 'auto_ownership', 'num_workers']
 ]
 persons = persons[
     ['person_id', 'household_id', 'age', 'PNUM', 'sex',
-     'pemploy', 'pstudent', 'ptype', 'school_taz', 'workplace_taz', 'free_parking_at_work']
+     'pemploy', 'pstudent', 'ptype', 'school_zone_id', 'workplace_zone_id', 'free_parking_at_work']
 ]
 tours = tours[
     ['tour_id', 'person_id', 'household_id', 'tour_type', 'tour_category',
@@ -67,8 +67,10 @@ persons.to_csv(os.path.join(output_dir, surveys['persons']), index=False)
 tours.to_csv(os.path.join(output_dir, surveys['tours']), index=False)
 joint_tour_participants.to_csv(os.path.join(output_dir, surveys['joint_tour_participants']), index=False)
 
-# household_id,TAZ,income,PERSONS,HHT,VEHICL,workers
-raw_households = households[['household_id', 'TAZ', 'income', 'hhsize', 'HHT', 'auto_ownership', 'num_workers']]
+# household_id,home_zone_id,income,PERSONS,HHT,VEHICL,workers
+raw_households = households[
+    ['household_id', 'home_zone_id', 'income', 'hhsize', 'HHT', 'auto_ownership', 'num_workers']
+]
 raw_households = raw_households.rename({'hhsize': 'PERSONS', 'num_workers': 'workers', 'auto_ownership': 'VEHICL'})
 raw_households.to_csv(os.path.join(data_dir, 'households.csv'), index=False)
 

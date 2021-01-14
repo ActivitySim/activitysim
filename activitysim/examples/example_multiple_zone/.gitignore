@@ -1,0 +1,9 @@
+legacy_example/
+data_*/
+install.txt
+test.py
+notes.txt
+output_3_example_marin/
+output_3_example_sf/
+data_marin_full/
+*_local/

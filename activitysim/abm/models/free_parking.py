@@ -7,8 +7,8 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
+from activitysim.core import expressions
 
-from .util import expressions
 from .util import estimation
 
 logger = logging.getLogger(__name__)
@@ -16,9 +16,8 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def free_parking(
-        persons_merged, persons, households,
-        skim_dict, skim_stack,
-        chunk_size, trace_hh_id, locutor):
+        persons_merged, persons,
+        chunk_size, trace_hh_id):
     """
 
     """
@@ -27,7 +26,7 @@ def free_parking(
     model_settings_file_name = 'free_parking.yaml'
 
     choosers = persons_merged.to_frame()
-    choosers = choosers[choosers.workplace_taz > -1]
+    choosers = choosers[choosers.workplace_zone_id > -1]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_settings = config.read_model_settings(model_settings_file_name)

@@ -1,0 +1,21 @@
+inherit_settings: True
+
+#households_sample_size:  100000
+households_sample_size: 10
+
+#chunk_size: 0
+#chunk_size: 4000000000
+
+
+
+# household with mandatory, non mandatory, atwork_subtours, and joint tours
+trace_hh_id: 2848373
+
+
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: write_trip_matrices
+
+#cleanup_trace_files_on_resume: True
+
+#trace_od: [5000, 11000]
+

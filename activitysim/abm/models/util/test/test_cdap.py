@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 
 import os.path
+import yaml
 
 import pandas as pd
 import pandas.testing as pdt
@@ -10,16 +11,13 @@ import pytest
 from .. import cdap
 
 from activitysim.core import simulate
+from activitysim.core import inject
+from activitysim.core import config
 
 
 @pytest.fixture(scope='module')
 def data_dir():
     return os.path.join(os.path.dirname(__file__), 'data')
-
-
-@pytest.fixture(scope='module')
-def configs_dir():
-    return os.path.join(os.path.dirname(__file__), 'configs')
 
 
 @pytest.fixture(scope='module')
@@ -29,29 +27,33 @@ def people(data_dir):
         index_col='id')
 
 
-@pytest.fixture(scope='module')
-def cdap_indiv_and_hhsize1(configs_dir):
-    return simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv', spec_dir=configs_dir)
+def teardown_function(func):
+    inject.clear_cache()
+    inject.reinject_decorated_tables()
 
 
 @pytest.fixture(scope='module')
-def cdap_interaction_coefficients(configs_dir):
-    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
-    coefficients = pd.read_csv(f, comment='#')
+def model_settings(configs_dir):
+    yml_file = os.path.join(configs_dir, 'cdap.yaml')
+    with open(yml_file) as f:
+        model_settings = yaml.load(f, Loader=yaml.loader.SafeLoader)
+    return model_settings
+
+
+@pytest.fixture(scope='module')
+def configs_dir():
+    return os.path.join(os.path.dirname(__file__), 'configs')
+
+
+def setup_function():
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    inject.add_injectable("configs_dir", configs_dir)
+
+
+def test_bad_coefficients():
+
+    coefficients = pd.read_csv(config.config_file_path('cdap_interaction_coefficients.csv'), comment='#')
     coefficients = cdap.preprocess_interaction_coefficients(coefficients)
-    return coefficients
-
-
-@pytest.fixture(scope='module')
-def individual_utils(
-        people, cdap_indiv_and_hhsize1):
-    return cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
-
-
-def test_bad_coefficients(configs_dir):
-
-    f = os.path.join(configs_dir, 'cdap_interaction_coefficients.csv')
-    coefficients = pd.read_csv(f, comment='#')
 
     coefficients.loc[2, 'activity'] = 'AA'
 
@@ -60,9 +62,11 @@ def test_bad_coefficients(configs_dir):
     assert "Expect only M, N, or H" in str(excinfo.value)
 
 
-def test_assign_cdap_rank(people):
+def test_assign_cdap_rank(people, model_settings):
 
-    cdap.assign_cdap_rank(people)
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
+
+    cdap.assign_cdap_rank(people, person_type_map)
 
     expected = pd.Series(
         [1, 1, 1, 2, 2, 1, 3, 1, 2, 1, 3, 2, 1, 3, 2, 4, 1, 3, 4, 2],
@@ -72,10 +76,14 @@ def test_assign_cdap_rank(people):
     pdt.assert_series_equal(people['cdap_rank'], expected, check_dtype=False, check_names=False)
 
 
-def test_individual_utilities(people, cdap_indiv_and_hhsize1):
+def test_individual_utilities(people, model_settings):
 
-    cdap.assign_cdap_rank(people)
+    cdap_indiv_and_hhsize1 = simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv')
+
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
+    cdap.assign_cdap_rank(people, person_type_map)
     individual_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
+
     individual_utils = individual_utils[['M', 'N', 'H']]
 
     expected = pd.DataFrame([
@@ -105,16 +113,21 @@ def test_individual_utilities(people, cdap_indiv_and_hhsize1):
         individual_utils, expected, check_dtype=False, check_names=False)
 
 
-def test_build_cdap_spec_hhsize2(people, cdap_indiv_and_hhsize1, cdap_interaction_coefficients):
+def test_build_cdap_spec_hhsize2(people, model_settings):
 
     hhsize = 2
+    cdap_indiv_and_hhsize1 = simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv')
 
-    cdap.assign_cdap_rank(people)
+    interaction_coefficients = pd.read_csv(config.config_file_path('cdap_interaction_coefficients.csv'), comment='#')
+    interaction_coefficients = cdap.preprocess_interaction_coefficients(interaction_coefficients)
+
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
+    cdap.assign_cdap_rank(people, person_type_map)
     indiv_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
     choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
 
-    spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize=hhsize, cache=False)
+    spec = cdap.build_cdap_spec(interaction_coefficients, hhsize=hhsize, cache=False)
 
     vars = simulate.eval_variables(spec.index, choosers)
 

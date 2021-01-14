@@ -5,11 +5,11 @@ from builtins import range
 import logging
 
 import pandas as pd
-import numpy as np
 
 from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import inject
+from activitysim.core import mem
 
 from activitysim.core.input import read_input_table
 
@@ -92,17 +92,13 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
 
     logger.info("loaded households %s" % (df.shape,))
 
-    # FIXME - pathological knowledge of name of chunk_id column used by chunked_choosers_by_chunk_id
-    assert 'chunk_id' not in df.columns
-    df['chunk_id'] = pd.Series(list(range(len(df))), df.index)
-
     # replace table function with dataframe
     inject.add_table('households', df)
 
     pipeline.get_rn_generator().add_channel('households', df)
 
+    tracing.register_traceable_table('households', df)
     if trace_hh_id:
-        tracing.register_traceable_table('households', df)
         tracing.trace_df(df, "raw.households", warn_if_empty=True)
 
     return df
@@ -111,12 +107,11 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
 # this is a common merge so might as well define it once here and use it
 @inject.table()
 def households_merged(households, land_use, accessibility):
-    return inject.merge_tables(households.name, tables=[
-        households, land_use, accessibility])
+    return inject.merge_tables(households.name, tables=[households, land_use, accessibility])
 
 
 inject.broadcast('households', 'persons', cast_index=True, onto_on='household_id')
 
 # this would be accessibility around the household location - be careful with
 # this one as accessibility at some other location can also matter
-inject.broadcast('accessibility', 'households', cast_index=True, onto_on='TAZ')
+inject.broadcast('accessibility', 'households', cast_index=True, onto_on='home_zone_id')

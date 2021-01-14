@@ -31,7 +31,7 @@ def run_destination_sample(
         tours,
         households_merged,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
@@ -56,14 +56,18 @@ def run_destination_sample(
         logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
         sample_size = 0
 
-    # create wrapper with keys for this lookup - in this case there is a workplace_taz
-    # in the choosers and a TAZ in the alternatives which get merged during interaction
-    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
+    # create wrapper with keys for this lookup - in this case there is a workplace_zone_id
+    # in the choosers and a zone_id in the alternatives which ge t merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
     origin_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
-    if origin_col_name == 'TAZ':
-        origin_col_name = 'TAZ_chooser'
-    skims = skim_dict.wrap(origin_col_name, 'TAZ')
+    dest_column_name = destination_size_terms.index.name
+
+    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
+    if (origin_col_name == dest_column_name):
+        origin_col_name = f'{origin_col_name}_chooser'
+
+    skim_dict = network_los.get_default_skim_dict()
+    skims = skim_dict.wrap(origin_col_name, dest_column_name)
 
     locals_d = {
         'skims': skims
@@ -96,12 +100,12 @@ def run_destination_logsums(
         persons_merged,
         destination_sample,
         model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id, trace_label):
     """
     add logsum column to existing tour_destination_sample table
 
-    logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
+    logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
     in destination_sample, and computing the logsum of all the utilities
     """
 
@@ -123,7 +127,7 @@ def run_destination_logsums(
         choosers,
         tour_purpose,
         logsum_settings, model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_label)
 
@@ -139,7 +143,7 @@ def run_destination_simulate(
         destination_sample,
         want_logsums,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
@@ -173,9 +177,10 @@ def run_destination_simulate(
 
     logger.info("Running tour_destination_simulate with %d persons", len(choosers))
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
+    skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap(origin_col_name, alt_dest_col_name)
 
     locals_d = {
@@ -197,6 +202,11 @@ def run_destination_simulate(
         trace_choice_name='destination',
         estimator=estimator)
 
+    if not want_logsums:
+        # for consistency, always return a dataframe with canonical column name
+        assert isinstance(choices, pd.Series)
+        choices = choices.to_frame('choice')
+
     return choices
 
 
@@ -207,8 +217,7 @@ def run_joint_tour_destination(
         want_logsums,
         want_sample_table,
         model_settings,
-        skim_dict,
-        skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, trace_label):
 
@@ -249,7 +258,7 @@ def run_joint_tour_destination(
                 choosers,
                 households_merged,
                 model_settings,
-                skim_dict,
+                network_los,
                 segment_destination_size_terms,
                 estimator,
                 chunk_size,
@@ -263,7 +272,7 @@ def run_joint_tour_destination(
                 persons_merged,
                 location_sample_df,
                 model_settings,
-                skim_dict, skim_stack,
+                network_los,
                 chunk_size, trace_hh_id,
                 tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
 
@@ -277,7 +286,7 @@ def run_joint_tour_destination(
                 destination_sample=location_sample_df,
                 want_logsums=want_logsums,
                 model_settings=model_settings,
-                skim_dict=skim_dict,
+                network_los=network_los,
                 destination_size_terms=segment_destination_size_terms,
                 estimator=estimator,
                 chunk_size=chunk_size,
@@ -316,7 +325,7 @@ def joint_tour_destination(
         tours,
         persons_merged,
         households_merged,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_hh_id):
 
@@ -368,8 +377,7 @@ def joint_tour_destination(
         want_logsums,
         want_sample_table,
         model_settings,
-        skim_dict,
-        skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, trace_label)
 

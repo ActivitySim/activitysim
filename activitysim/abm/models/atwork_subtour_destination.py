@@ -27,7 +27,7 @@ def atwork_subtour_destination_sample(
         tours,
         persons_merged,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
@@ -54,10 +54,12 @@ def atwork_subtour_destination_sample(
 
     logger.info("Running atwork_subtour_location_sample with %d tours", len(choosers))
 
-    # create wrapper with keys for this lookup - in this case there is a workplace_taz
-    # in the choosers and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a workplace_zone_id
+    # in the choosers and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap('workplace_taz', 'TAZ')
+    dest_column_name = destination_size_terms.index.name
+    skim_dict = network_los.get_default_skim_dict()
+    skims = skim_dict.wrap('workplace_zone_id', dest_column_name)
 
     locals_d = {
         'skims': skims
@@ -86,16 +88,16 @@ def atwork_subtour_destination_logsums(
         persons_merged,
         destination_sample,
         model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_label):
     """
     add logsum column to existing atwork_subtour_destination_sample table
 
-    logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
+    logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
     in atwork_subtour_destination_sample, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+
-    | person_id | dest_TAZ     | rand           | pick_count | logsum (added) |
+    | person_id | dest_zone_id | rand           | pick_count | logsum (added) |
     +===========+==============+================+============+================+
     | 23750     |  14          | 0.565502716034 | 4          |  1.85659498857 |
     +-----------+--------------+----------------+------------+----------------+
@@ -132,7 +134,7 @@ def atwork_subtour_destination_logsums(
         choosers,
         tour_purpose,
         logsum_settings, model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_label)
 
@@ -147,7 +149,7 @@ def atwork_subtour_destination_simulate(
         destination_sample,
         want_logsums,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
@@ -175,7 +177,7 @@ def atwork_subtour_destination_simulate(
         estimator.write_choosers(choosers)
 
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    chooser_col_name = 'workplace_taz'
+    chooser_col_name = 'workplace_zone_id'
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge destination_size_terms columns into alt sample list
@@ -189,9 +191,10 @@ def atwork_subtour_destination_simulate(
 
     logger.info("Running atwork_subtour_destination_simulate with %d persons", len(choosers))
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
+    skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap(chooser_col_name, alt_dest_col_name)
 
     locals_d = {
@@ -212,7 +215,7 @@ def atwork_subtour_destination_simulate(
         locals_d=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='workplace_location',
+        trace_choice_name='atwork_subtour',
         estimator=estimator)
 
     if not want_logsums:
@@ -227,8 +230,7 @@ def atwork_subtour_destination_simulate(
 def atwork_subtour_destination(
         tours,
         persons_merged,
-        skim_dict,
-        skim_stack,
+        network_los,
         land_use, size_terms,
         chunk_size, trace_hh_id):
 
@@ -271,7 +273,7 @@ def atwork_subtour_destination(
         subtours,
         persons_merged,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator=estimator,
         chunk_size=chunk_size,
@@ -281,7 +283,7 @@ def atwork_subtour_destination(
         persons_merged,
         destination_sample_df,
         model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size=chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, 'logsums'))
 
@@ -291,7 +293,7 @@ def atwork_subtour_destination(
         destination_sample_df,
         want_logsums,
         model_settings,
-        skim_dict,
+        network_los,
         destination_size_terms,
         estimator=estimator,
         chunk_size=chunk_size,

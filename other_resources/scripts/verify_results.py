@@ -161,7 +161,7 @@ if process_sp:
 
     asim_cdap = pd.read_csv(asim_per_filename)
     asim_cdap["HomeCounty"] = tazs["COUNTYNAME"].loc[asim_cdap["home_taz"]].tolist()
-    asim_cdap["WorkCounty"] = tazs["COUNTYNAME"].loc[asim_cdap["workplace_taz"]].tolist()
+    asim_cdap["WorkCounty"] = tazs["COUNTYNAME"].loc[asim_cdap["workplace_zone_id"]].tolist()
     asim_work_counties = asim_cdap.groupby(["HomeCounty", "WorkCounty"]).count()["household_id"]
     asim_work_counties = asim_work_counties.reset_index()
     asim_work_counties = asim_work_counties.pivot(index="HomeCounty", columns="WorkCounty")

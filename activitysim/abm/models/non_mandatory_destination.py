@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def non_mandatory_tour_destination(
         tours,
         persons_merged,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_hh_id):
 
@@ -71,8 +71,7 @@ def non_mandatory_tour_destination(
         want_logsums,
         want_sample_table,
         model_settings,
-        skim_dict,
-        skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, trace_label)
 

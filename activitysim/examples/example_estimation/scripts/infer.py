@@ -4,13 +4,13 @@
 import sys
 import os
 import logging
+import yaml
 
 import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util import tour_frequency as tf
 from activitysim.core.util import reindex
-from activitysim.abm.tables import constants
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -19,6 +19,8 @@ logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
 logger.addHandler(ch)
+
+CONSTANTS = {}
 
 SURVEY_TOUR_ID = 'survey_tour_id'
 SURVEY_PARENT_TOUR_ID = 'survey_parent_tour_id'
@@ -391,7 +393,7 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
         reindex(persons.mandatory_tour_frequency, mandatory_tours.person_id)
     is_worker = \
         reindex(persons.pemploy, mandatory_tours.person_id).\
-        isin([constants.PEMPLOY_FULL, constants.PEMPLOY_PART])
+        isin([CONSTANTS['PEMPLOY_FULL'], CONSTANTS['PEMPLOY_PART']])
     work_and_school_and_worker = (mandatory_tour_frequency == 'work_and_school') & is_worker
 
     # calculate tour_num for work tours (required to set_tour_index for atwork subtours)
@@ -601,6 +603,9 @@ assert len(args) == 2, "usage: python infer.py <data_dir> <configs_dir>"
 
 data_dir = args[0]
 configs_dir = args[1]
+
+with open(os.path.join(configs_dir, 'constants.yaml')) as stream:
+    CONSTANTS = yaml.load(stream, Loader=yaml.SafeLoader)
 
 input_dir = os.path.join(data_dir, 'survey_data/')
 output_dir = input_dir

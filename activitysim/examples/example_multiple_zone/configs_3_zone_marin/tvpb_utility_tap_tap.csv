@@ -1,0 +1,82 @@
+Label,Description,Expression,set1,set2,set3
+# Set 1,,,,,
+set1_unavailable,Shut off set if unavailable,@df.not_transit_available_set1,C_UNAVAILABLE,,
+set1_ivt,set In-Vehicle Time,@~df.not_transit_available_set1 * df.c_ivt_for_segment * df.totalIVT_set1,1,,
+set1_first_wait_time,First wait time,"@~df.not_transit_available_set1 * c_fwt * df.c_ivt_for_segment * los.get_tappairs3d(df.btap, df.atap, df.tod, 'IWAIT_SET1')",1,,
+set1_xfer_wait_time,set Transfer Wait Time,"@~df.not_transit_available_set1 * c_xwt * df.c_ivt_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'XWAIT_SET1')",1,,
+set1_xfer_walk_time,set Walk transfer time,"@~df.not_transit_available_set1 * c_waux * df.c_ivt_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'XWTIME_SET1')",1,,
+set1_fare,set Fare,"@~df.not_transit_available_set1 * df.c_cost_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'FARE_SET1') * 100",1,,
+set1_xfers1,0-1 transfers constant,@~df.not_transit_available_set1 * ~df.bartOnly_set1 * df.xfers1_set1 * c_xfers1 * df.c_ivt_for_segment,1,,
+set1_xfers2,1-2 transfers constant,@~df.not_transit_available_set1 * ~df.bartOnly_set1 * df.xfers2_set1 * c_xfers2 * df.c_ivt_for_segment,1,,
+set1_sfers3,>2 transfers constant,@~df.not_transit_available_set1 * ~df.bartOnly_set1 * df.xfers3_set1 * c_xfers3 * df.c_ivt_for_segment,1,,
+set1_xfers1_drive,0-1 transfers penalty for drive access,@~df.not_transit_available_set1 * ~df.bartOnly_set1 * df.xfers1_set1 * (access_mode=='drive') * (df.c_ivt_for_segment * 15),1,,
+set1_xfers2_drive,1-2 transfers penalty for drive access,@~df.not_transit_available_set1 * ~df.bartOnly_set1 * df.xfers2_set1 * (access_mode=='drive') * (df.c_ivt_for_segment * 15),1,,
+set1_sfers3_drive,>2 transfers penalty for drive access,@~df.not_transit_available_set1 * ~df.bartOnly_set1 * df.xfers3_set1 * (access_mode=='drive') * (df.c_ivt_for_segment * 15),1,,
+set1_xfers1_bart,0-1 transfers constant when using only BART,@~df.not_transit_available_set1 * df.bartOnly_set1 * df.xfers1_set1 * (df.c_ivt_for_segment * 5),1,,
+set1_xfers2_bart,1-2 transfers constant when using only BART,@~df.not_transit_available_set1 * df.bartOnly_set1 * df.xfers2_set1 * (df.c_ivt_for_segment * 5),1,,
+set1_sfers3_bart,>2 transfers constant when using only BART,@~df.not_transit_available_set1 * df.bartOnly_set1 * df.xfers3_set1 * (df.c_ivt_for_segment * 5),1,,
+set1_cr_20_40,CR distance 20-40 miles,@~df.not_transit_available_set1 * (df.crDistance_set1>20) * (df.crDistance_set1<=40) * c_cr20_40 * df.c_ivt_for_segment,1,,
+set1_cr_40_plus,CR distance > 40 miles,@~df.not_transit_available_set1 * (df.crDistance_set1>40) * c_cr40plus * df.c_ivt_for_segment,1,,
+set1_CR_drive,drive access to CR,"@~df.not_transit_available_set1 * (access_mode=='drive') * c_drvCR * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET1')>0)",1,,
+set1_HR_drive,drive access to HR,"@~df.not_transit_available_set1 * (access_mode=='drive') * c_drvHeavy * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET1')>0)",1,,
+set1_FR_drive,drive access to FR,"@~df.not_transit_available_set1 * (access_mode=='drive') * c_drvFR * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET1')>0)",1,,
+set1_LRT_drive,drive access to LRT,"@~df.not_transit_available_set1 * (access_mode=='drive') * c_drvLRT * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET1')>0)",1,,
+set1_EB_drive,drive access to EB,"@~df.not_transit_available_set1 * (access_mode=='drive') * c_drvExpress * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET1')>0)",1,,
+set1_ASC_CR,ASC CR,"@~df.not_transit_available_set1 * c_cr_asc * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET1')>0) * (np.where(df.premWithXfer_set1, 0.333, 1.0))",1,,
+set1_ASC_HR,ASC HR,"@~df.not_transit_available_set1 * c_hr_asc * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET1')>0) * (np.where(df.premWithXfer_set1, 0.333, 1.0))",1,,
+set1_ASC_FR,ASC FR,"@~df.not_transit_available_set1 * c_fr_asc * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET1')>0) * (np.where(df.premWithXfer_set1, 0.333, 1.0))",1,,
+set1_ASC_LRT,ASC LRT,"@~df.not_transit_available_set1 * c_lrt_asc * df.c_ivt_for_segment * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET1')>0) * (np.where(df.premWithXfer_set1, 0.333, 1.0))",1,,
+# Set 2,,,,,
+set2_unavailable,Shut off set if unavailable,@df.not_transit_available_set2,,C_UNAVAILABLE,
+set2_ivt,set In-Vehicle Time,@~df.not_transit_available_set2 * df.c_ivt_for_segment * df.totalIVT_set2,,1,
+set2_first_wait_time,First wait time,"@~df.not_transit_available_set2 * c_fwt * df.c_ivt_for_segment * los.get_tappairs3d(df.btap, df.atap, df.tod, 'IWAIT_SET2')",,1,
+set2_xfer_wait_time,set Transfer Wait Time,"@~df.not_transit_available_set2 * c_xwt * df.c_ivt_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'XWAIT_SET2')",,1,
+set2_xfer_walk_time,set Walk transfer time,"@~df.not_transit_available_set2 * c_waux * df.c_ivt_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'XWTIME_SET2')",,1,
+set2_fare,set Fare,"@~df.not_transit_available_set2 * df.c_cost_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'FARE_SET2') * 100",,1,
+set2_xfers1,0-1 transfers constant,@~df.not_transit_available_set2 * ~df.bartOnly_set2 * df.xfers1_set2 * c_xfers1 * df.c_ivt_for_segment,,1,
+set2_xfers2,1-2 transfers constant,@~df.not_transit_available_set2 * ~df.bartOnly_set2 * df.xfers2_set2 * c_xfers2 * df.c_ivt_for_segment,,1,
+set2_sfers3,>2 transfers constant,@~df.not_transit_available_set2 * ~df.bartOnly_set2 * df.xfers3_set2 * c_xfers3 * df.c_ivt_for_segment,,1,
+set2_xfers1_drive,0-1 transfers penalty for drive access,@~df.not_transit_available_set2 * ~df.bartOnly_set2 * df.xfers1_set2 * (access_mode=='drive') * (df.c_ivt_for_segment * 15),,1,
+set2_xfers2_drive,1-2 transfers penalty for drive access,@~df.not_transit_available_set2 * ~df.bartOnly_set2 * df.xfers2_set2 * (access_mode=='drive') * (df.c_ivt_for_segment * 15),,1,
+set2_sfers3_drive,>2 transfers penalty for drive access,@~df.not_transit_available_set2 * ~df.bartOnly_set2 * (access_mode=='drive') * df.xfers3_set2 * (df.c_ivt_for_segment * 15),,1,
+set2_xfers1_bart,0-1 transfers constant when using only BART,@~df.not_transit_available_set2 * df.bartOnly_set2 * df.xfers1_set2 * (df.c_ivt_for_segment * 5),,1,
+set2_xfers2_bart,1-2 transfers constant when using only BART,@~df.not_transit_available_set2 * df.bartOnly_set2 * df.xfers2_set2 * (df.c_ivt_for_segment * 5),,1,
+set2_sfers3_bart,>2 transfers constant when using only BART,@~df.not_transit_available_set2 * df.bartOnly_set2 * df.xfers3_set2 * (df.c_ivt_for_segment * 5),,1,
+set2_cr_20_40,CR distance 20-40 miles,@~df.not_transit_available_set2 * (df.crDistance_set2>20) * (df.crDistance_set2<=40) * c_cr20_40 * df.c_ivt_for_segment,,1,
+set2_cr_40_plus,CR distance > 40 miles,@~df.not_transit_available_set2 * (df.crDistance_set2>40) * c_cr40plus * df.c_ivt_for_segment,,1,
+set2_CR_drive,drive access to CR,"@~df.not_transit_available_set2 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET2')>0) * c_drvCR * df.c_ivt_for_segment",,1,
+set2_HR_drive,drive access to HR,"@~df.not_transit_available_set2 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET2')>0) * c_drvHeavy * df.c_ivt_for_segment",,1,
+set2_FR_drive,drive access to FR,"@~df.not_transit_available_set2 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET2')>0) * c_drvFR * df.c_ivt_for_segment",,1,
+set2_LRT_drive,drive access to LRT,"@~df.not_transit_available_set2 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET2')>0) * c_drvLRT * df.c_ivt_for_segment",,1,
+set2_EB_drive,drive access to EB,"@~df.not_transit_available_set2 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET2')>0) * c_drvExpress * df.c_ivt_for_segment",,1,
+set2_ASC_CR,ASC CR,"@~df.not_transit_available_set2 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET2')>0) * c_cr_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set2, 0.333, 1.0))",,1,
+set2_ASC_HR,ASC HR,"@~df.not_transit_available_set2 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET2')>0) * c_hr_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set2, 0.333, 1.0))",,1,
+set2_ASC_FR,ASC FR,"@~df.not_transit_available_set2 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET2')>0) * c_fr_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set2, 0.333, 1.0))",,1,
+set2_ASC_LRT,ASC LRT,"@~df.not_transit_available_set2 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET2')>0) * c_lrt_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set2, 0.333, 1.0))",,1,
+# Set 3,,,,,
+set3_unavailable,Shut off set if unavailable,@df.not_transit_available_set3,,,C_UNAVAILABLE
+set3_ivt,set In-Vehicle Time,@~df.not_transit_available_set3 * df.c_ivt_for_segment * df.totalIVT_set3,,,1
+set3_first_wait_time,First wait time,"@~df.not_transit_available_set3 * c_fwt * df.c_ivt_for_segment * los.get_tappairs3d(df.btap, df.atap, df.tod, 'IWAIT_SET3')",,,1
+set3_xfer_wait_time,set Transfer Wait Time,"@~df.not_transit_available_set3 * c_xwt * df.c_ivt_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'XWAIT_SET3')",,,1
+set3_xfer_walk_time,set Walk transfer time,"@~df.not_transit_available_set3 * c_waux * df.c_ivt_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'XWTIME_SET3')",,,1
+set3_fare,set Fare,"@~df.not_transit_available_set3 * df.c_cost_for_segment *  los.get_tappairs3d(df.btap, df.atap, df.tod, 'FARE_SET3') * 100",,,1
+set3_xfers1,0-1 transfers constant,@~df.not_transit_available_set3 * ~df.bartOnly_set3 * df.xfers1_set3 * c_xfers1 * df.c_ivt_for_segment,,,1
+set3_xfers2,1-2 transfers constant,@~df.not_transit_available_set3 * ~df.bartOnly_set3 * df.xfers2_set3 * c_xfers2 * df.c_ivt_for_segment,,,1
+set3_sfers3,>2 transfers constant,@~df.not_transit_available_set3 * ~df.bartOnly_set3 * df.xfers3_set3 * c_xfers3 * df.c_ivt_for_segment,,,1
+set3_xfers1_drive,0-1 transfers penalty for drive access,@~df.not_transit_available_set3 * ~df.bartOnly_set3 * (access_mode=='drive') * df.xfers1_set3 * (df.c_ivt_for_segment * 15),,,1
+set3_xfers2_drive,1-2 transfers penalty for drive access,@~df.not_transit_available_set3 * ~df.bartOnly_set3 * (access_mode=='drive') * df.xfers2_set3 * (df.c_ivt_for_segment * 15),,,1
+set3_sfers3_drive,>2 transfers penalty for drive access,@~df.not_transit_available_set3 * ~df.bartOnly_set3 * (access_mode=='drive') * df.xfers3_set3 * (df.c_ivt_for_segment * 15),,,1
+set3_xfers1_bart,0-1 transfers constant when using only BART,@~df.not_transit_available_set3 * df.bartOnly_set3 * df.xfers1_set3 * (df.c_ivt_for_segment * 5),,,1
+set3_xfers2_bart,1-2 transfers constant when using only BART,@~df.not_transit_available_set3 * df.bartOnly_set3 * df.xfers2_set3 * (df.c_ivt_for_segment * 5),,,1
+set3_sfers3_bart,>2 transfers constant when using only BART,@~df.not_transit_available_set3 * df.bartOnly_set3 * df.xfers3_set3 * (df.c_ivt_for_segment * 5),,,1
+set3_cr_20_40,CR distance 20-40 miles,@~df.not_transit_available_set3 * (df.crDistance_set3>20) * (df.crDistance_set3<=40) * c_cr20_40 * df.c_ivt_for_segment,,,1
+set3_cr_40_plus,CR distance > 40 miles,@~df.not_transit_available_set3 * (df.crDistance_set3>40) * c_cr40plus * df.c_ivt_for_segment,,,1
+set3_CR_drive,drive access to CR,"@~df.not_transit_available_set3 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET3')>0) * c_drvCR * df.c_ivt_for_segment",,,1
+set3_HR_drive,drive access to HR,"@~df.not_transit_available_set3 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET3')>0) * c_drvHeavy * df.c_ivt_for_segment",,,1
+set3_FR_drive,drive access to FR,"@~df.not_transit_available_set3 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET3')>0) * c_drvFR * df.c_ivt_for_segment",,,1
+set3_LRT_drive,drive access to LRT,"@~df.not_transit_available_set3 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET3')>0) * c_drvLRT * df.c_ivt_for_segment",,,1
+set3_EB_drive,drive access to EB,"@~df.not_transit_available_set3 * (access_mode=='drive') * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET3')>0) * c_drvExpress* df.c_ivt_for_segment",,,1
+set3_ASC_CR,ASC CR,"@~df.not_transit_available_set3 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET3')>0) * c_cr_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set3, 0.333, 1.0))",,,1
+set3_ASC_HR,ASC HR,"@~df.not_transit_available_set3 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET3')>0) * c_hr_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set3, 0.333, 1.0))",,,1
+set3_ASC_FR,ASC FR,"@~df.not_transit_available_set3 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET3')>0) * c_fr_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set3, 0.333, 1.0))",,,1
+set3_ASC_LRT,ASC LRT,"@~df.not_transit_available_set3 * (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET3')>0) * c_lrt_asc * df.c_ivt_for_segment * (np.where(df.premWithXfer_set3, 0.333, 1.0))",,,1

@@ -1,0 +1,7 @@
+inherit_settings: True
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if not desired in persons table
+DEST_CHOICE_LOGSUM_COLUMN_NAME:
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: workplace_location_sample

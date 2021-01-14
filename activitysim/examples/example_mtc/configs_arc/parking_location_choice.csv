@@ -1,0 +1,2 @@
+Description,Expression,mandatory_free,mandatory_pay,nonmandatory
+Distance-Parking Zone to Destination,@pd_skims['DIST'],-0.4048,-4.366,-0.2572

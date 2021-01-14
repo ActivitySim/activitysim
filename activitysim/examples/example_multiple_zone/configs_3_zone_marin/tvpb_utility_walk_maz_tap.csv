@@ -1,0 +1,4 @@
+Label,Description,Expression,utility
+#,,,FIXME column values shouldn't ever be na if different moides have different tables?
+#util_walk_available,walk available,@df.walk_time.isna() * C_UNAVAILABLE,1
+util_walk_time,walk time,"@np.where(df.demographic_segment==C_HIGH_INCOME_SEGMENT_ID, c_ivt_high_income, c_ivt_low_income) * c_walkAcc * df.WALK_TRANSIT_DIST*(60/walk_speed)",1

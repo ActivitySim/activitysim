@@ -1,0 +1,8 @@
+PERSON_TYPE_MAP:
+  WORKER:
+    - 1
+    - 2
+  CHILD:
+    - 6
+    - 7
+    - 8

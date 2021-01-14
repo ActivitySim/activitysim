@@ -1,6 +1,0 @@
-CONSTANTS:
-  ivt_vot: -0.05
-  wait_vot: -0.10
-  walk_vot: -0.075
-  drive_vot: -0.075
-  walk_fpm: 264

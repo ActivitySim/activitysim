@@ -1,4 +1,4 @@
-person_id,household_id,age,PNUM,sex,pemploy,pstudent,ptype,school_taz,workplace_taz,free_parking_at_work,cdap_activity,mandatory_tour_frequency,_escort,_shopping,_othmaint,_othdiscr,_eatout,_social,non_mandatory_tour_frequency
+person_id,household_id,age,PNUM,sex,pemploy,pstudent,ptype,school_zone_id,workplace_zone_id,free_parking_at_work,cdap_activity,mandatory_tour_frequency,_escort,_shopping,_othmaint,_othdiscr,_eatout,_social,non_mandatory_tour_frequency
 166,166,54,1,2,3,3,4,-1,-1,False,N,,0,0,0,0,1,0,4
 197,197,46,1,2,3,3,4,-1,-1,False,N,,0,1,0,0,0,0,16
 268,268,46,1,1,3,3,4,-1,-1,False,N,,0,0,1,1,0,0,9

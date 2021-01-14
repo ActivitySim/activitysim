@@ -1,5 +1,24 @@
+
+
 # input tables
+#
+# activitysim uses "well-known" index and foreign key names for imported tables (e.g. households, persons, land_use)
+# as well as for created tables (tours, joint_tour_participants, trips)
+# e.g. the households table must have an index column 'household_id' and the foreign key to households in the
+# persons table is also household_id. This naming convention allows activitysim to intuit the relationship
+# between tables - for instance, to ensure that multiprocess slicing includes all the persons, tours, and trips
+# in the same subprocess pipeline. The same strategy is also when chunking choosers, and to support tracing by
+# household_id.
+#
+# the input_table_list index_col directive instructs activitysim to set the imported table index to zone_id
+# you cannot change the well-known name of the index by modifying this directive. However, if your input file
+# has a different id column name, you can rename it to the required index name with the rename_columns directive.
+# In the settings below, the 'TAZ' column in the imported table is renamed 'zone_id' in the rename_columns settings.
+#
 input_table_list:
+  #
+  # households (table index 'household_id')
+  #
   - tablename: households
     filename: households.csv
     index_col: household_id
@@ -8,13 +27,17 @@ input_table_list:
       PERSONS: hhsize
       workers: num_workers
       VEHICL: auto_ownership
+      TAZ: home_zone_id
     keep_columns:
-      - TAZ
+      - home_zone_id
       - income
       - hhsize
       - HHT
       - auto_ownership
       - num_workers
+  #
+  # persons (table index 'person_id')
+  #
   - tablename: persons
     filename: persons.csv
     index_col: person_id
@@ -28,11 +51,14 @@ input_table_list:
       - pemploy
       - pstudent
       - ptype
+  #
+  # land_use (table index 'zone_id')
+  #
   - tablename: land_use
     filename: land_use.csv
-    index_col: TAZ
+    index_col: zone_id
     rename_columns:
-      ZONE: TAZ
+      TAZ: zone_id
       COUNTY: county_id
     keep_columns:
       - DISTRICT
@@ -60,10 +86,6 @@ input_table_list:
       - TOPOLOGY
       - TERMINAL
 
-
-# input skims
-skims_file: skims.omx
-
 # convert input CSVs to HDF5 format and save to outputs directory
 # create_input_store: True
 
@@ -87,15 +109,9 @@ check_for_variability: False
 use_shadow_pricing: False
 
 # turn writing of sample_tables on and off for all models
-# want_dest_choice_sample_tables: False
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
 
-
-# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
-#read_skim_cache: True
-# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
-#write_skim_cache: True
-#alternate dir to read/write skim cache (defaults to output_dir)
-#skim_cache_dir: data/cache
 
 # - tracing
 
@@ -146,7 +162,6 @@ models:
   - write_trip_matrices
   - write_tables
 
-
 output_tables:
   h5_store: False
   action: include
@@ -164,33 +179,7 @@ output_tables:
 # area_types less than this are considered urban
 urban_threshold: 4
 cbd_threshold: 2
-rural_threshold: 6
-
-# upperEA	Upper limit on time of day for the Early morning time period		5
-# upperAM	Upper limit on time of day for the AM peak time period		10
-# upperMD	Upper limit on time of day for the Midday time period		15
-# upperPM	Upper limit on time of day for the PM time peak period		19
-
-skim_time_periods:
-    period_minutes: 60
-    periods:
-        - 0
-        - 6
-        - 11
-        - 16
-        - 20
-        - 24
-    labels:
-        - EA
-        - AM
-        - MD
-        - PM
-        - EV
-
 # - value of time
-
-# value_of_time = lognormal(np.log(median_value_of_time * mu), sigma).clip(min_vot, max_vot)
-
 min_value_of_time: 1
 max_value_of_time: 50
 distributed_vot_mu: 0.684

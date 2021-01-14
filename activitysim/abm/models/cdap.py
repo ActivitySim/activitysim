@@ -9,9 +9,11 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import expressions
+
+from activitysim.core.util import reindex
 
 from .util import cdap
-from .util import expressions
 from .util import estimation
 
 logger = logging.getLogger(__name__)
@@ -32,7 +34,7 @@ def cdap_simulate(persons_merged, persons, households,
 
     trace_label = 'cdap'
     model_settings = config.read_model_settings('cdap.yaml')
-
+    person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
     cdap_indiv_spec = simulate.read_model_spec(file_name=model_settings['INDIV_AND_HHSIZE1_SPEC'])
 
     # Rules and coefficients for generating interaction specs for different household sizes
@@ -50,6 +52,12 @@ def cdap_simulate(persons_merged, persons, households,
         simulate.read_model_spec(file_name=model_settings['FIXED_RELATIVE_PROPORTIONS_SPEC'])
 
     persons_merged = persons_merged.to_frame()
+
+    # add tour-based chunk_id so we can chunk all trips in tour together
+    assert 'chunk_id' not in persons_merged.columns
+    unique_household_ids = persons_merged.household_id.unique()
+    household_chunk_ids = pd.Series(range(len(unique_household_ids)), index=unique_household_ids)
+    persons_merged['chunk_id'] = reindex(household_chunk_ids, persons_merged.household_id)
 
     constants = config.get_model_constants(model_settings)
 
@@ -80,6 +88,7 @@ def cdap_simulate(persons_merged, persons, households,
 
     choices = cdap.run_cdap(
         persons=persons_merged,
+        person_type_map=person_type_map,
         cdap_indiv_spec=cdap_indiv_spec,
         cdap_interaction_coefficients=cdap_interaction_coefficients,
         cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,

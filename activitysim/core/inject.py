@@ -86,6 +86,7 @@ def add_table(table_name, table, replace=False):
         logger.warning("inject add_table replacing existing table %s" % table_name)
         assert False
 
+    # FIXME - should add table.copy() instead, so it can't be modified behind our back?
     return orca.add_table(table_name, table, cache=False)
 
 

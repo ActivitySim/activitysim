@@ -1981,7 +1981,7 @@ TABLES in the preprocessor settings.</p>
 
 <dl class="py function">
 <dt id="activitysim.abm.models.trip_matrices.write_matrices">
-<code class="sig-prename descclassname">activitysim.abm.models.trip_matrices.</code><code class="sig-name descname">write_matrices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">aggregate_trips</span></em>, <em class="sig-param"><span class="n">zone_index</span></em>, <em class="sig-param"><span class="n">orig_index</span></em>, <em class="sig-param"><span class="n">dest_index</span></em>, <em class="sig-param"><span class="n">model_settings</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_matrices.write_matrices" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">activitysim.abm.models.trip_matrices.</code><code class="sig-name descname">write_matrices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">aggregate_trips</span></em>, <em class="sig-param"><span class="n">zone_index</span></em>, <em class="sig-param"><span class="n">orig_index</span></em>, <em class="sig-param"><span class="n">dest_index</span></em>, <em class="sig-param"><span class="n">model_settings</span></em>, <em class="sig-param"><span class="n">is_tap</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.trip_matrices.write_matrices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write aggregated trips to OMX format.</p>
 <p>The MATRICES setting lists the new OMX files to write.
 Each file can contain any number of ‘tables’, each specified by a
@@ -1998,6 +1998,13 @@ but the table ‘data_field’s must be summable types: ints, floats, bools.</p>
 <p>Adds boolean columns to local trips table via annotation expressions,
 then aggregates trip counts and writes OD matrices to OMX.  Save annotated
 trips table to pipeline if desired.</p>
+<p>Writes taz trip tables for one and two zone system.  Writes taz and tap
+trip tables for three zone system.  Add <code class="docutils literal notranslate"><span class="pre">is_tap:True</span></code> to the settings file
+to identify an output matrix as tap level trips as opposed to taz level trips.</p>
+<p>For one zone system, uses the land use table for the set of possible tazs.
+For two zone system, uses the taz skim zone names for the set of possible tazs.
+For three zone system, uses the taz skim zone names for the set of possible tazs
+and uses the tap skim zone names for the set of possible taps.</p>
 </dd></dl>
 
 </div>

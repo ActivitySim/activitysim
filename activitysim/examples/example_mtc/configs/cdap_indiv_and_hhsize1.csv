@@ -58,3 +58,9 @@ Pre-driving-age child who is too young for school interaction with off-peak acce
 # Pre-driving age child who is in school interaction with no usual school location,(ptype == 7) * noUsualWorkLocation,-0.866,,
 #tm1 scenario test,,,,
 #Simulate telecommuting by reducing mandatory patterns,(ptype == 1) * (income_in_thousands >= 50),-0.142930042,,
+Telecommutes 1 day per week,telecommute_frequency=='1_day_week',,0.526,0.496
+Telecommutes 2-3 days per week,telecommute_frequency=='2_3_days_week',,1.387,1.584
+Telecommutes 4 days per week,telecommute_frequency=='4_days_week',,1.848,1.711
+#Turning Mandatory pattern off for FT and PT who work from home (sandag),,,,
+"Full time worker, works from home",(ptype == 1) & (work_from_home),-999,,
+"Part time worker, works from home",(ptype == 2) & (work_from_home),-999,,

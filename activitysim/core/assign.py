@@ -160,7 +160,7 @@ def local_utilities():
     return utility_dict
 
 
-def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, trace_rows=None):
+def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, trace_rows=None, trace_label=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -252,6 +252,9 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
         if target in local_keys:
             logger.warning("assign_variables target obscures local_d name '%s'", str(target))
+
+        if trace_label:
+            logger.debug(f"{trace_label}.assign_variables {target} = {expression}")
 
         if is_temp_scalar(target) or is_throwaway(target):
             try:

@@ -11,9 +11,8 @@ import pandas as pd
 
 from activitysim.core import util
 from activitysim.core import config
-from activitysim.core import expressions
+from activitysim.core import los
 from activitysim.core import pipeline
-from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
@@ -151,7 +150,6 @@ def local_utilities():
         'reindex_i': util.reindex_i,
         'setting': config.setting,
         'other_than': util.other_than,
-        'skim_time_period_label': expressions.skim_time_period_label,
         'rng': pipeline.get_rn_generator(),
     }
 

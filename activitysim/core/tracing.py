@@ -126,6 +126,7 @@ def delete_trace_files():
     delete_output_files(CSV_FILE_TYPE, subdir='trace')
 
     active_log_files = [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
+
     delete_output_files('log', ignore=active_log_files)
 
 
@@ -164,18 +165,6 @@ def config_logger(basic=False):
 
     else:
         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-
-    # if log_config_file:
-    #     with open(log_config_file) as f:
-    #         #bug
-    #         print("############################################# opening", log_config_file)
-    #         # FIXME need alternative to yaml.UnsafeLoader?
-    #         config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
-    #         config_dict = config_dict['logging']
-    #         config_dict.setdefault('version', 1)
-    #         logging.config.dictConfig(config_dict)
-    # else:
-    #     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
     logger = logging.getLogger(ASIM_LOGGER)
 

@@ -566,50 +566,6 @@ def block_name(model_selector):
     return model_selector
 
 
-def get_shadow_pricing_info():
-    """
-    return dict with info about dtype and shapes of desired and modeled size tables
-
-    block shape is (num_zones, num_segments + 1)
-
-
-    Returns
-    -------
-    shadow_pricing_info: dict
-        dtype: <sp_dtype>,
-        block_shapes: dict {<model_selector>: <block_shape>}
-    """
-
-    land_use = inject.get_table('land_use')
-    size_terms = inject.get_injectable('size_terms')
-
-    shadow_settings = config.read_model_settings('shadow_pricing.yaml')
-
-    # shadow_pricing_models is dict of {<model_selector>: <model_name>}
-    shadow_pricing_models = shadow_settings.get('shadow_pricing_models', {})
-
-    blocks = OrderedDict()
-    for model_selector in shadow_pricing_models:
-
-        sp_rows = len(land_use)
-        sp_cols = len(size_terms[size_terms.model_selector == model_selector])
-
-        # extra tally column for TALLY_CHECKIN and TALLY_CHECKOUT semaphores
-        blocks[block_name(model_selector)] = (sp_rows, sp_cols + 1)
-
-    sp_dtype = np.int64
-
-    shadow_pricing_info = {
-        'dtype': sp_dtype,
-        'block_shapes': blocks,
-    }
-
-    for k in shadow_pricing_info:
-        logger.debug("shadow_pricing_info %s: %s" % (k, shadow_pricing_info.get(k)))
-
-    return shadow_pricing_info
-
-
 def buffers_for_shadow_pricing(shadow_pricing_info):
     """
     Allocate shared_data buffers for multiprocess shadow pricing
@@ -730,9 +686,7 @@ def load_shadow_price_calculator(model_settings):
 
         # - shadow_pricing_info
         shadow_pricing_info = inject.get_injectable('shadow_pricing_info', None)
-        if shadow_pricing_info is None:
-            shadow_pricing_info = get_shadow_pricing_info()
-            inject.add_injectable('shadow_pricing_info', shadow_pricing_info)
+        assert shadow_pricing_info is not None
 
         # - extract data buffer and reshape as numpy array
         data, lock = \
@@ -840,3 +794,57 @@ def add_size_tables():
             scaled_size = raw_size
 
         inject.add_table(size_table_name(model_selector), scaled_size)
+
+
+def get_shadow_pricing_info():
+    """
+    return dict with info about dtype and shapes of desired and modeled size tables
+
+    block shape is (num_zones, num_segments + 1)
+
+
+    Returns
+    -------
+    shadow_pricing_info: dict
+        dtype: <sp_dtype>,
+        block_shapes: dict {<model_selector>: <block_shape>}
+    """
+
+    land_use = inject.get_table('land_use')
+    size_terms = inject.get_injectable('size_terms')
+
+    shadow_settings = config.read_model_settings('shadow_pricing.yaml')
+
+    # shadow_pricing_models is dict of {<model_selector>: <model_name>}
+    shadow_pricing_models = shadow_settings.get('shadow_pricing_models', {})
+
+    blocks = OrderedDict()
+    for model_selector in shadow_pricing_models:
+
+        sp_rows = len(land_use)
+        sp_cols = len(size_terms[size_terms.model_selector == model_selector])
+
+        # extra tally column for TALLY_CHECKIN and TALLY_CHECKOUT semaphores
+        blocks[block_name(model_selector)] = (sp_rows, sp_cols + 1)
+
+    sp_dtype = np.int64
+
+    shadow_pricing_info = {
+        'dtype': sp_dtype,
+        'block_shapes': blocks,
+    }
+
+    for k in shadow_pricing_info:
+        logger.debug("shadow_pricing_info %s: %s" % (k, shadow_pricing_info.get(k)))
+
+    return shadow_pricing_info
+
+
+@inject.injectable(cache=True)
+def shadow_pricing_info():
+
+    # when multiprocessing with shared data mp_tasks has to call network_los methods
+    # get_shadow_pricing_info() and buffers_for_shadow_pricing()
+    logger.debug("loading shadow_pricing_info injectable")
+
+    return get_shadow_pricing_info()

@@ -75,8 +75,6 @@ def validate_injectable(name):
         if not os.path.exists(dir_path):
             sys.exit("Could not find %s '%s'" % (name, os.path.abspath(dir_path)))
 
-    logger.info('using %s: %s' % (name, dir_paths))
-
     return dir_paths
 
 
@@ -127,9 +125,7 @@ def handle_standard_args(args, multiprocess=True):
 
 def cleanup_output_files():
 
-    active_log_files = \
-        [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
-    tracing.delete_output_files('log', ignore=active_log_files)
+    tracing.delete_trace_files()
 
     tracing.delete_output_files('h5')
     tracing.delete_output_files('csv')
@@ -137,20 +133,6 @@ def cleanup_output_files():
     tracing.delete_output_files('yaml')
     tracing.delete_output_files('prof')
     tracing.delete_output_files('omx')
-
-
-def log_settings():
-
-    settings = [
-        'households_sample_size',
-        'chunk_size',
-        'multiprocess',
-        'num_processes',
-        'resume_after',
-    ]
-
-    for k in settings:
-        logger.info('setting %s: %s' % (k, config.setting(k)))
 
 
 def run(args):
@@ -162,17 +144,8 @@ def run(args):
 
     """
 
-    from activitysim import abm  # register injectables
-
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
-    tracing.config_logger(basic=False)  # update using possibly new logging configs
-    config.filter_warnings()
-    logging.captureWarnings(capture=True)
-
-    log_settings()
-
-    t0 = tracing.print_elapsed_time()
 
     # If you provide a resume_after argument to pipeline.run
     # the pipeline manager will attempt to load checkpointed tables from the checkpoint store
@@ -184,6 +157,20 @@ def run(args):
         cleanup_output_files()
     elif config.setting('cleanup_trace_files_on_resume', False):
         tracing.delete_trace_files()
+
+    tracing.config_logger(basic=False)  # update using possibly new logging configs
+    config.filter_warnings()
+    logging.captureWarnings(capture=True)
+
+    # directories
+    for k in ['configs_dir', 'settings_file_name', 'data_dir', 'output_dir']:
+        logger.info('SETTING %s: %s' % (k, inject.get_injectable(k, None)))
+
+    log_settings = inject.get_injectable('log_settings', {})
+    for k in log_settings:
+        logger.info('SETTING %s: %s' % (k, config.setting(k)))
+
+    t0 = tracing.print_elapsed_time()
 
     if config.setting('multiprocess', False):
         logger.info('run multiprocess simulation')
@@ -203,6 +190,9 @@ def run(args):
 
 
 if __name__ == '__main__':
+
+    from activitysim import abm  # register injectables
+
     parser = argparse.ArgumentParser()
     add_run_args(parser)
     args = parser.parse_args()

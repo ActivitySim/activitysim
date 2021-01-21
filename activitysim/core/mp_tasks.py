@@ -20,15 +20,8 @@ from activitysim.core import config
 
 from activitysim.core import chunk
 from activitysim.core import mem
-from activitysim.core import los
 
 from activitysim.core.config import setting
-
-# activitysim.abm imported for its side-effects (dependency injection)
-from activitysim import abm
-
-from activitysim.abm.tables import shadow_pricing
-
 
 logger = logging.getLogger(__name__)
 
@@ -323,10 +316,9 @@ def build_slice_rules(slice_info, pipeline_tables):
 
     Note: tables listed in slice_info must appear in same order and before any others in tables dict
 
-    The index of the first table in the 'tables' list is the primary_slicer. Subsequent tables
-    are dependent (have a column with the sae
+    The index of the first table in the 'tables' list is the primary_slicer.
 
-    Any other tables listed ar dependent tables with either ref_cols to the primary_slicer
+    Any other tables listed are dependent tables with either ref_cols to the primary_slicer
     or with the same index (i.e. having an index with the same name). This cascades, so any
     tables dependent on the primary_table can in turn have dependent tables that will be sliced
     by index or ref_col.
@@ -536,6 +528,8 @@ def apportion_pipeline(sub_proc_names, step_info):
 
             # - for each table in pipeline
             for table_name, rule in slice_rules.items():
+
+                logger.debug(f"slicing table'{table_name}' by rule {rule}")
 
                 df = tables[table_name]
 
@@ -851,8 +845,10 @@ def mp_setup_skims(injectables, **kwargs):
     try:
         shared_data_buffer = kwargs
 
-        network_los_preload = inject.get_injectable('network_los_preload')
-        network_los_preload.load_shared_data(shared_data_buffer)
+        network_los_preload = inject.get_injectable('network_los_preload', None)
+
+        if network_los_preload is not None:
+            network_los_preload.load_shared_data(shared_data_buffer)
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_setup_skims: {str(e)}")
@@ -901,8 +897,11 @@ def allocate_shared_skim_buffers():
 
     info("allocate_shared_skim_buffer")
 
-    network_los = inject.get_injectable('network_los_preload')
-    skim_buffers = network_los.allocate_shared_skim_buffers()
+    network_los = inject.get_injectable('network_los_preload', None)
+    if network_los is not None:
+        skim_buffers = network_los.allocate_shared_skim_buffers()
+    else:
+        skim_buffers = {}
 
     return skim_buffers
 
@@ -918,8 +917,13 @@ def allocate_shared_shadow_pricing_buffers():
 
     info("allocate_shared_shadow_pricing_buffers")
 
-    shadow_pricing_info = shadow_pricing.get_shadow_pricing_info()
-    shadow_pricing_buffers = shadow_pricing.buffers_for_shadow_pricing(shadow_pricing_info)
+    shadow_pricing_info = inject.get_injectable('shadow_pricing_info', None)
+
+    if shadow_pricing_info is not None:
+        from activitysim.abm.tables import shadow_pricing
+        shadow_pricing_buffers = shadow_pricing.buffers_for_shadow_pricing(shadow_pricing_info)
+    else:
+        shadow_pricing_buffers = {}
 
     return shadow_pricing_buffers
 
@@ -1238,12 +1242,13 @@ def run_multiprocess(run_list, injectables):
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
 
     # - mp_setup_skims
-    run_sub_task(
-        multiprocessing.Process(
-            target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
-            kwargs=shared_data_buffers)
-    )
-    t0 = tracing.print_elapsed_time('setup skims', t0)
+    if len(shared_data_buffers) > 0:
+        run_sub_task(
+            multiprocessing.Process(
+                target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
+                kwargs=shared_data_buffers)
+        )
+        t0 = tracing.print_elapsed_time('setup shared_data_buffers', t0)
 
     # - for each step in run list
     for step_info in run_list['multiprocess_steps']:

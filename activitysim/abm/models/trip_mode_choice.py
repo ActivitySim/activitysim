@@ -55,7 +55,14 @@ def trip_mode_choice(
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     tours_merged = tours_merged.to_frame()
-    tours_merged = tours_merged[model_settings['TOURS_MERGED_CHOOSER_COLUMNS']]
+
+    # - filter tours_merged (AFTER copying destination and origin columns to trips)
+    # tours_merged is used for logsums, we filter it here upfront to save space and time
+    tours_merged_cols = model_settings['TOURS_MERGED_CHOOSER_COLUMNS']
+    if 'REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS' in model_settings:
+        redundant_cols = model_settings['REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS']
+        tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]
+    tours_merged = tours_merged[tours_merged_cols]
 
     nest_spec = config.get_logit_model_settings(model_settings)
 

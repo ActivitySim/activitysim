@@ -82,23 +82,24 @@ def process_trips(tours, stop_frequency_alts):
 
     trips['person_id'] = reindex(tours.person_id, trips.tour_id)
     trips['household_id'] = reindex(tours.household_id, trips.tour_id)
+    trips['number_of_participants'] = reindex(tours.number_of_participants, trips.tour_id)
 
     trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
 
     # reorder columns and drop 'direction'
     trips = trips[['person_id', 'household_id', 'tour_id', 'primary_purpose',
-                   'trip_num', 'outbound', 'trip_count']]
+                   'trip_num', 'outbound', 'trip_count', 'number_of_participants']]
 
     """
-      person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count
-    0     32927         32927   954910             work        1      True           2
-    1     32927         32927   954910             work        2      True           2
-    2     32927         32927   954910             work        1     False           2
-    3     32927         32927   954910             work        2     False           2
-    4     33993         33993   985824             univ        1      True           1
-    5     33993         33993   985824             univ        1     False           2
-    6     33993         33993   985824             univ        2     False           2
-
+      person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count  number_of_participants
+    0     32927         32927   954910             work        1      True           2                       1
+    1     32927         32927   954910             work        2      True           2                       1
+    2     32927         32927   954910             work        1     False           2                       1
+    3     32927         32927   954910             work        2     False           2                       1
+    4     33993         33993   985824             univ        1      True           1                       1
+    5     33993         33993   985824             univ        1     False           2                       1
+    6     33993         33993   985824             univ        2     False           2                       1
+    7     53993         53993   785824            joint        1      True           2                       3
     """
 
     # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.

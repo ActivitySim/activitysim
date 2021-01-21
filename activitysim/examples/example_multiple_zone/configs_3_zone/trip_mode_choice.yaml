@@ -178,4 +178,7 @@ TOURS_MERGED_CHOOSER_COLUMNS:
   - income_segment
 #  - demographic_segment
 
+REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
+  - number_of_participants
+
 MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

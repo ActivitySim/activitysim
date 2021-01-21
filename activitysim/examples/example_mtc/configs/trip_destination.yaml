@@ -18,6 +18,7 @@ PRIMARY_DEST: destination
 
 REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
   - tour_mode
+  - number_of_participants
 
 CONSTANTS:
     max_walk_distance: 3

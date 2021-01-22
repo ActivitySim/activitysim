@@ -24,6 +24,7 @@ from . import non_mandatory_scheduling
 from . import non_mandatory_tour_frequency
 from . import stop_frequency
 from . import tour_mode_choice
+from . import tour_od_choice
 from . import trip_destination
 from . import trip_mode_choice
 from . import trip_purpose

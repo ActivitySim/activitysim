@@ -119,6 +119,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         labels = spec.index
 
     for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
+
         try:
 
             # - allow temps of form _od_DIST@od_skim['DIST']

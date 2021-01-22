@@ -676,4 +676,3 @@ def school_location(
 
     if estimator:
         estimator.end_estimation()
-

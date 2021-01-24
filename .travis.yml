@@ -8,14 +8,23 @@ env:
   jobs:
    # Add new TEST_SUITE jobs as needed via Travis build matrix expansion
   - TEST_SUITE=activitysim/abm/models
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
   - TEST_SUITE=activitysim/abm/test/test_misc.py
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
   - TEST_SUITE=activitysim/abm/test/test_mp_pipeline.py
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
   - TEST_SUITE=activitysim/abm/test/test_multi_zone.py
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
   - TEST_SUITE=activitysim/abm/test/test_multi_zone_mp.py
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
   - TEST_SUITE=activitysim/abm/test/test_pipeline.py
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
   - TEST_SUITE=activitysim/abm/test/test_estimation.py
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle pytest-regressions larch -c conda-forge
   - TEST_SUITE=activitysim/cli
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
   - TEST_SUITE=activitysim/core
+    TEST_DEPENDS=pytest pytest-cov coveralls pycodestyle
 
 python:
   - '3.7'
@@ -31,8 +40,7 @@ install:
 - conda info -a
 - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 - conda activate test-environment
-- conda install pytest pytest-cov coveralls pycodestyle
-- pip install pytest-regressions
+- conda install $TEST_DEPENDS
 - pip install .
 - pip freeze
 

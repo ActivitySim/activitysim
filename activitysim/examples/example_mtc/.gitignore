@@ -1,4 +1,4 @@
-override_configs/
+*_local/
 simulation_mp.py
 notes.txt
-output_*/
+

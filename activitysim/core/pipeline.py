@@ -125,7 +125,7 @@ def open_pipeline_store(overwrite=False):
 
     _PIPELINE.pipeline_store = pd.HDFStore(pipeline_file_path, mode='a')
 
-    logger.debug("opened pipeline_store")
+    logger.debug(f"opened pipeline_store {pipeline_file_path}")
 
 
 def get_pipeline_store():

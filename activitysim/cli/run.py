@@ -4,6 +4,7 @@ import sys
 import os
 import logging
 import argparse
+import warnings
 
 from activitysim.core import inject
 from activitysim.core import tracing
@@ -146,6 +147,23 @@ def run(args):
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
+
+    # legacy support for run_list setting nested 'models' and 'resume_after' settings
+    if config.setting('run_list'):
+        warnings.warn("Support for 'run_list' settings group will be removed.\n"
+                      "The run_list.steps setting is renamed 'models'.\n"
+                      "The run_list.resume_after setting is renamed 'resume_after'.\n"
+                      "Specify both 'models' and 'resume_after' directly in settings config file.", FutureWarning)
+        run_list = config.setting('run_list')
+        if 'steps' in run_list:
+            assert not config.setting('models'), \
+                f"Don't expect 'steps' in run_list and 'models' as stand-alone setting!"
+            config.override_setting('models', run_list['steps'])
+
+        if 'resume_after' in run_list:
+            assert not config.setting('resume_after'), \
+                f"Don't expect 'resume_after' both in run_list and as stand-alone setting!"
+            config.override_setting('resume_after', run_list['resume_after'])
 
     # If you provide a resume_after argument to pipeline.run
     # the pipeline manager will attempt to load checkpointed tables from the checkpoint store

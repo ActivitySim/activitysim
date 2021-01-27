@@ -14,7 +14,7 @@ env:
   - TEST_SUITE=activitysim/abm/test/test_multi_zone_mp.py
   - TEST_SUITE=activitysim/abm/test/test_pipeline.py
   - TEST_SUITE=activitysim/abm/test/test_estimation.py
-    TEST_DEPENDS="pytest-regressions larch>=5.4.11 -c conda-forge"
+    TEST_DEPENDS="pytest-regressions>=2.2 larch>=5.4.11 -c conda-forge"
   - TEST_SUITE=activitysim/cli
   - TEST_SUITE=activitysim/core
 

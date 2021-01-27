@@ -66,8 +66,8 @@ def test_auto_ownership(est_data, num_regression, dataframe_regression):
     r = m.maximize_loglike()
     num_regression.check(
         {
-            "loglike_prior": np.array([loglike_prior]),
-            "loglike_converge": np.array([r.loglike]),
+            "loglike_prior": loglike_prior,
+            "loglike_converge": r.loglike,
         },
         basename="test_auto_ownership_loglike",
     )
@@ -83,8 +83,8 @@ def test_workplace_location(est_data, num_regression, dataframe_regression):
     r = m.maximize_loglike(method="SLSQP")
     num_regression.check(
         {
-            "loglike_prior": np.array([loglike_prior]),
-            "loglike_converge": np.array([r.loglike]),
+            "loglike_prior": loglike_prior,
+            "loglike_converge": r.loglike,
         },
         basename="test_workplace_location_loglike",
     )
@@ -100,8 +100,8 @@ def test_school_location(est_data, num_regression, dataframe_regression):
     r = m.maximize_loglike(method="BHHH")
     num_regression.check(
         {
-            "loglike_prior": np.array([loglike_prior]),
-            "loglike_converge": np.array([r.loglike]),
+            "loglike_prior": loglike_prior,
+            "loglike_converge": r.loglike,
         },
         basename="test_school_location_loglike",
     )
@@ -117,8 +117,8 @@ def test_cdap_model(est_data, num_regression, dataframe_regression):
     r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000})
     num_regression.check(
         {
-            "loglike_prior": np.array([loglike_prior]),
-            "loglike_converge": np.array([r.loglike]),
+            "loglike_prior": loglike_prior,
+            "loglike_converge": r.loglike,
         },
         basename="test_cdap_model_loglike",
     )
@@ -135,8 +135,8 @@ def test_tour_mode_choice(est_data, num_regression, dataframe_regression):
     r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000})
     num_regression.check(
         {
-            "loglike_prior": np.array([loglike_prior]),
-            "loglike_converge": np.array([r.loglike]),
+            "loglike_prior": loglike_prior,
+            "loglike_converge": r.loglike,
         },
         basename="test_tour_mode_choice_loglike",
     )
@@ -161,8 +161,8 @@ def test_nonmand_tour_freq(est_data, num_regression, dataframe_regression):
     loglike_converge = [value.loglike for key, value in sorted(r.items())]
     num_regression.check(
         {
-            "loglike_prior": np.asarray(loglike_priors, dtype=np.float64),
-            "loglike_converge": np.asarray(loglike_converge, dtype=np.float64),
+            "loglike_prior": loglike_priors,
+            "loglike_converge": loglike_converge,
         },
         basename="test_nonmand_tour_freq_loglike",
     )

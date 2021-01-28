@@ -17,7 +17,7 @@ from activitysim.core import mem
 logger = logging.getLogger(__name__)
 
 
-def read_input_table(tablename):
+def read_input_table(tablename, required=True):
     """Reads input table name and returns cleaned DataFrame.
 
     Uses settings found in input_table_list in global settings file
@@ -38,10 +38,14 @@ def read_input_table(tablename):
         if info['tablename'] == tablename:
             table_info = info
 
-    assert table_info is not None, \
-        f"could not find info for for tablename {tablename} in settings file"
+    if table_info is not None:
+        df = read_from_table_info(table_info)
+    else:
+        if required:
+            raise RuntimeError(f"could not find info for for tablename {tablename} in settings file")
+        df = None
 
-    return read_from_table_info(table_info)
+    return df
 
 
 def read_from_table_info(table_info):

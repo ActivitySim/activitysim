@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 @inject.step()
-def compute_accessibility(accessibility, network_los, land_use, trace_od):
+def compute_accessibility(land_use, accessibility, network_los, trace_od):
 
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
@@ -42,6 +42,9 @@ def compute_accessibility(accessibility, network_los, land_use, trace_od):
     assignment_spec = assign.read_assignment_spec(config.config_file_path('accessibility.csv'))
 
     accessibility_df = accessibility.to_frame()
+    if len(accessibility_df.columns) > 0:
+        logger.warning(f"accessibility table is not empty. Columns:{list(accessibility_df.columns)}")
+        raise RuntimeError(f"accessibility table is not empty.")
 
     constants = config.get_model_constants(model_settings)
 

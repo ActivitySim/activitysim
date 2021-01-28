@@ -614,6 +614,7 @@ def coalesce_pipelines(sub_proc_names, slice_info):
     debug(f"coalesce_pipelines to: {pipeline_file_name}")
 
     # - read all tables from first process pipeline
+    # FIXME - note: assumes any new tables will be present in ALL subprocess pipelines
     tables = {}
     pipeline_path = config.build_output_file_path(pipeline_file_name, use_prefix=sub_proc_names[0])
 
@@ -637,10 +638,11 @@ def coalesce_pipelines(sub_proc_names, slice_info):
     # populationsim multiprocessing!
     coalesce_tables = slice_info.get('coalesce', [])
 
-    # ensure presence of slice_info.coalesce tables in pipeline
+    # report absence of any slice_info.coalesce tables not in pipeline
+    # we don't require their presence in case there are tracing tables that will only be present if tracing is enabled
     for table_name in coalesce_tables:
         if table_name not in tables:
-            raise RuntimeError("slicer coalesce.table %s not found in pipeline" % table_name)
+            logger.warning("slicer coalesce.table %s not found in pipeline" % table_name)
 
     # - use slice rules followed by apportion_pipeline to identify mirrored tables
     # (tables that are identical in every pipeline and so don't need to be concatenated)

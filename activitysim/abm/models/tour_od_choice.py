@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def tour_od_choice(
         tours,
+        persons,
+        households,
         network_los,
         chunk_size,
         trace_hh_id):
@@ -35,11 +37,10 @@ def tour_od_choice(
     trace_label = 'tour_od_choice'
     model_settings_file_name = 'tour_od_choice.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
-    choice_column = model_settings['DEST_CHOICE_COLUMN_NAME']
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
 
-    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
+    sample_table_name = model_settings.get('OD_CHOICE_SAMPLE_TABLE_NAME')
     want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     tours = tours.to_frame()
@@ -71,11 +72,14 @@ def tour_od_choice(
         estimator.write_override_choices(choices_df.choice)
         estimator.end_estimation()
 
-    tours[choice_column] = choices_df.choice
     tours[origin_col_name] = choices_df[origin_col_name]
     tours[dest_col_name] = choices_df[dest_col_name]
+    households[origin_col_name] = tours[origin_col_name].reindex(households['tour_id'])
+    persons[origin_col_name] = tours[origin_col_name].reindex(persons['tour_id'])
 
     pipeline.replace_table("tours", tours)
+    pipeline.replace_table("persons", persons)
+    pipeline.replace_table("households", households)
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)

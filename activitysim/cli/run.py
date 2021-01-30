@@ -145,6 +145,11 @@ def run(args):
 
     """
 
+    # by default, assume we are running activitysim.abm register abm steps and other abm-specific injectables
+    # other callers will have to arrange to register their own steps and injectables
+    if not inject.is_injectable('preload_injectables'):
+        from activitysim import abm  # register abm steps and other abm-specific injectables
+
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
 

@@ -584,8 +584,7 @@ def run(models, resume_after=None):
     mem.trace_memory_info('#MEM pipeline.run before preload_injectables')
 
     # preload any bulky injectables (e.g. skims) not in pipeline
-    if orca.is_injectable('preload_injectables'):
-        orca.get_injectable('preload_injectables')
+    if inject.get_injectable('preload_injectables', None):
         t0 = print_elapsed_time('preload_injectables', t0)
 
     mem.trace_memory_info('#MEM pipeline.run before run_models')

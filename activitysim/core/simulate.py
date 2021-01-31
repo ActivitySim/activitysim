@@ -387,10 +387,8 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         # data.shape = (len(spec), len(offsets))
         data = expression_values[:, offsets]
 
-        # index is utility expressions
-        index = spec.index.get_level_values(SPEC_LABEL_NAME) if isinstance(spec.index, pd.MultiIndex) else spec.index
-
-        expression_values_df = pd.DataFrame(data=data, index=index)
+        # index is utility expressions (and optional label if MultiIndex)
+        expression_values_df = pd.DataFrame(data=data, index=spec.index)
 
         if trace_column_names is not None:
             if isinstance(trace_column_names, str):

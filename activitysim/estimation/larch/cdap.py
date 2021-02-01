@@ -9,14 +9,13 @@ import larch
 import os
 import yaml
 import importlib
-
-asim_cdap = importlib.import_module("activitysim.abm.models.util.cdap")
-
 import logging
 from larch.log import logger_name
 from pathlib import Path
 
+from ...abm.models.util import cdap
 from .general import apply_coefficients, explicit_value_parameters
+
 
 _logger = logging.getLogger(logger_name)
 
@@ -323,7 +322,7 @@ def cdap_data(
     except FileNotFoundError:
         persons = pd.read_csv(persons_file)
 
-    person_rank = asim_cdap.assign_cdap_rank(persons)
+    person_rank = cdap.assign_cdap_rank(persons)
 
     coefficients = read_csv(
         coefficients_file, index_col="coefficient_name", comment="#",
@@ -331,7 +330,7 @@ def cdap_data(
 
     interaction_coef = read_csv(
         interaction_coeffs_file,
-        dtype={"interaction_ptypes": str,},
+        dtype={"interaction_ptypes": str},
         keep_default_na=False,
         comment="#",
     )

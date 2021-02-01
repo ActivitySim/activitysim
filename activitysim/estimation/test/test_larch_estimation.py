@@ -1,12 +1,8 @@
 import os
-import larch  # !conda install larch #for estimation
 import pandas as pd
 import pytest
-import yaml
-import numpy as np
 import subprocess
 
-from pytest import approx
 from activitysim.cli.create import get_example
 
 
@@ -64,7 +60,7 @@ def test_auto_ownership(est_data, num_regression, dataframe_regression):
     loglike_prior = m.loglike()
     r = m.maximize_loglike()
     num_regression.check(
-        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename="test_auto_ownership_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
@@ -78,7 +74,7 @@ def test_workplace_location(est_data, num_regression, dataframe_regression):
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP")
     num_regression.check(
-        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename="test_workplace_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
@@ -92,7 +88,7 @@ def test_school_location(est_data, num_regression, dataframe_regression):
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="BHHH")
     num_regression.check(
-        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename="test_school_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
@@ -106,7 +102,7 @@ def test_cdap_model(est_data, num_regression, dataframe_regression):
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000})
     num_regression.check(
-        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename="test_cdap_model_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
@@ -121,7 +117,7 @@ def test_tour_mode_choice(est_data, num_regression, dataframe_regression):
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000})
     num_regression.check(
-        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename="test_tour_mode_choice_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
@@ -144,7 +140,7 @@ def test_nonmand_tour_freq(est_data, num_regression, dataframe_regression):
     loglike_priors = [value for key, value in sorted(loglike_prior.items())]
     loglike_converge = [value.loglike for key, value in sorted(r.items())]
     num_regression.check(
-        {"loglike_prior": loglike_priors, "loglike_converge": loglike_converge,},
+        {"loglike_prior": loglike_priors, "loglike_converge": loglike_converge},
         basename="test_nonmand_tour_freq_loglike",
     )
     _regression_check(dataframe_regression, pd.concat([x.pf for x in m.values()]))

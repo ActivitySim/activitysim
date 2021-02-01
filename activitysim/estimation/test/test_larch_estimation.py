@@ -1,6 +1,5 @@
 import os
 import larch  # !conda install larch #for estimation
-import larch.util.activitysim as la
 import pandas as pd
 import pytest
 import yaml
@@ -58,75 +57,63 @@ def _regression_check(dataframe_regression, df):
 
 
 def test_auto_ownership(est_data, num_regression, dataframe_regression):
-    from larch.util.activitysim.auto_ownership import auto_ownership_model
+    from activitysim.estimation.larch.auto_ownership import auto_ownership_model
 
     m = auto_ownership_model()
     m.load_data()
     loglike_prior = m.loglike()
     r = m.maximize_loglike()
     num_regression.check(
-        {
-            "loglike_prior": loglike_prior,
-            "loglike_converge": r.loglike,
-        },
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
         basename="test_auto_ownership_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
 
 
 def test_workplace_location(est_data, num_regression, dataframe_regression):
-    from larch.util.activitysim.location_choice import location_choice_model
+    from activitysim.estimation.larch.location_choice import location_choice_model
 
     m = location_choice_model(model_selector="workplace")
     m.load_data()
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP")
     num_regression.check(
-        {
-            "loglike_prior": loglike_prior,
-            "loglike_converge": r.loglike,
-        },
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
         basename="test_workplace_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
 
 
 def test_school_location(est_data, num_regression, dataframe_regression):
-    from larch.util.activitysim.location_choice import location_choice_model
+    from activitysim.estimation.larch.location_choice import location_choice_model
 
     m = location_choice_model(model_selector="school")
     m.load_data()
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="BHHH")
     num_regression.check(
-        {
-            "loglike_prior": loglike_prior,
-            "loglike_converge": r.loglike,
-        },
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
         basename="test_school_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
 
 
 def test_cdap_model(est_data, num_regression, dataframe_regression):
-    from larch.util.activitysim.cdap import cdap_model
+    from activitysim.estimation.larch.cdap import cdap_model
 
     m = cdap_model()
     m.load_data()
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000})
     num_regression.check(
-        {
-            "loglike_prior": loglike_prior,
-            "loglike_converge": r.loglike,
-        },
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
         basename="test_cdap_model_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
 
 
 def test_tour_mode_choice(est_data, num_regression, dataframe_regression):
-    from larch.util.activitysim.tour_mode_choice import tour_mode_choice_model
+    from activitysim.estimation.larch.tour_mode_choice import tour_mode_choice_model
 
     m = tour_mode_choice_model()
     m.load_data()
@@ -134,17 +121,14 @@ def test_tour_mode_choice(est_data, num_regression, dataframe_regression):
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000})
     num_regression.check(
-        {
-            "loglike_prior": loglike_prior,
-            "loglike_converge": r.loglike,
-        },
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike,},
         basename="test_tour_mode_choice_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
 
 
 def test_nonmand_tour_freq(est_data, num_regression, dataframe_regression):
-    from larch.util.activitysim.nonmand_tour_freq import nonmand_tour_freq_model
+    from activitysim.estimation.larch.nonmand_tour_freq import nonmand_tour_freq_model
 
     m = nonmand_tour_freq_model()
     loglike_prior = {}
@@ -160,10 +144,7 @@ def test_nonmand_tour_freq(est_data, num_regression, dataframe_regression):
     loglike_priors = [value for key, value in sorted(loglike_prior.items())]
     loglike_converge = [value.loglike for key, value in sorted(r.items())]
     num_regression.check(
-        {
-            "loglike_prior": loglike_priors,
-            "loglike_converge": loglike_converge,
-        },
+        {"loglike_prior": loglike_priors, "loglike_converge": loglike_converge,},
         basename="test_nonmand_tour_freq_loglike",
     )
     _regression_check(dataframe_regression, pd.concat([x.pf for x in m.values()]))

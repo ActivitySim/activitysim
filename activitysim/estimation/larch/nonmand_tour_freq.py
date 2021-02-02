@@ -139,14 +139,14 @@ def nonmand_tour_freq_model(
         # and set to root_id to a value other than zero.
         segment_model.initialize_graph(alternative_codes=alt_def.index, root_id=9999)
 
-        ### Utility specifications
+        # Utility specifications
         segment_model.utility_ca = linear_utility_from_spec(
             spec, x_col="Label", p_col=segment_name,
         )
         apply_coefficients(coefficients[segment_name], segment_model)
         segment_model.choice_co_code = "override_choice"
 
-        ### Attach Data
+        # Attach Data
         x_co = (
             chooser_data[segment_name]
             .set_index("person_id")

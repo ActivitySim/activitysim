@@ -84,7 +84,10 @@ def test_workplace_location(est_data, num_regression, dataframe_regression):
     size_spec = update_size_spec(
         m, data, result_dir=None, output_file=None,
     )
-    _regression_check(dataframe_regression, size_spec, basename="test_workplace_location_size_spec")
+    dataframe_regression.check(
+        size_spec,
+        basename="test_workplace_location_size_spec",
+    )
 
 
 def test_school_location(est_data, num_regression, dataframe_regression):
@@ -103,6 +106,10 @@ def test_school_location(est_data, num_regression, dataframe_regression):
         m, data, result_dir=None, output_file=None,
     )
     _regression_check(dataframe_regression, size_spec, basename="test_school_location_size_spec")
+    dataframe_regression.check(
+        size_spec,
+        basename="test_school_location_size_spec",
+    )
 
 
 def test_cdap_model(est_data, num_regression, dataframe_regression):

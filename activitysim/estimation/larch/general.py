@@ -462,8 +462,14 @@ def simple_simulate_data(
     )
 
 
-def update_coefficients(model, data):
+def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
     coefficients = data.coefficients.copy()
     est_names = [j for j in coefficients.index if j in model.pf.index]
     coefficients.loc[est_names, "value"] = model.pf.loc[est_names, "value"]
+    if output_file is not None:
+        os.makedirs(result_dir, exist_ok=True)
+        coefficients.reset_index().to_csv(
+            result_dir/output_file,
+            index=False,
+        )
     return coefficients

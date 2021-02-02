@@ -48,8 +48,11 @@ def est_data():
     #     os.remove("_test_est")
 
 
-def _regression_check(dataframe_regression, df):
-    dataframe_regression.check(df.select_dtypes("number").clip(-9e9, 9e9))
+def _regression_check(dataframe_regression, df, basename=None):
+    dataframe_regression.check(
+        df.select_dtypes("number").clip(-9e9, 9e9),
+        basename=basename,
+    )
 
 
 def test_auto_ownership(est_data, num_regression, dataframe_regression):
@@ -67,9 +70,9 @@ def test_auto_ownership(est_data, num_regression, dataframe_regression):
 
 
 def test_workplace_location(est_data, num_regression, dataframe_regression):
-    from activitysim.estimation.larch.location_choice import location_choice_model
+    from activitysim.estimation.larch import location_choice_model, update_size_spec
 
-    m = location_choice_model(model_selector="workplace")
+    m, data = location_choice_model(model_selector="workplace", return_data=True)
     m.load_data()
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="SLSQP")
@@ -78,12 +81,16 @@ def test_workplace_location(est_data, num_regression, dataframe_regression):
         basename="test_workplace_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
+    size_spec = update_size_spec(
+        m, data, result_dir=None, output_file=None,
+    )
+    _regression_check(dataframe_regression, size_spec, basename="test_workplace_location_size_spec")
 
 
 def test_school_location(est_data, num_regression, dataframe_regression):
-    from activitysim.estimation.larch.location_choice import location_choice_model
+    from activitysim.estimation.larch import location_choice_model, update_size_spec
 
-    m = location_choice_model(model_selector="school")
+    m, data = location_choice_model(model_selector="school", return_data=True)
     m.load_data()
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method="BHHH")
@@ -92,6 +99,10 @@ def test_school_location(est_data, num_regression, dataframe_regression):
         basename="test_school_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
+    size_spec = update_size_spec(
+        m, data, result_dir=None, output_file=None,
+    )
+    _regression_check(dataframe_regression, size_spec, basename="test_school_location_size_spec")
 
 
 def test_cdap_model(est_data, num_regression, dataframe_regression):

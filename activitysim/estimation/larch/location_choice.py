@@ -54,7 +54,7 @@ def location_choice_model(
     alt_values = _read_csv(alt_values_file)
     chooser_data = _read_csv(chooser_file)
     landuse = _read_csv(landuse_file, index_col="zone_id")
-    size_spec = _read_csv(size_spec_file)
+    master_size_spec = _read_csv(size_spec_file)
 
     settings_file = settings_file.format(model_selector=model_selector)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
@@ -64,7 +64,7 @@ def location_choice_model(
 
     # filter size spec for this location choice only
     size_spec = (
-        size_spec.query(f"model_selector == '{model_selector}'")
+        master_size_spec.query(f"model_selector == '{model_selector}'")
         .drop(columns="model_selector")
         .set_index("segment")
     )
@@ -163,7 +163,40 @@ def location_choice_model(
                 landuse=landuse,
                 spec=spec,
                 size_spec=size_spec,
+                master_size_spec=master_size_spec,
+                model_selector=model_selector,
             ),
         )
 
     return m
+
+
+def update_size_spec(model, data, result_dir=Path('.'), output_file=None):
+    master_size_spec = data.master_size_spec
+    size_spec = data.size_spec
+    model_selector = data.model_selector
+
+    # Write size coefficients into size_spec
+    for c in size_spec.columns:
+        for i in size_spec.index:
+            param_name = f"{i}_{c}"
+            j = (master_size_spec['segment'] == i) & (master_size_spec['model_selector'] == model_selector)
+            try:
+                master_size_spec.loc[j, c] = np.exp(model.get_value(param_name))
+            except KeyError:
+                pass
+
+    # Rescale each row to total 1, not mathematically needed
+    # but to maintain a consistent approach from existing ASim
+    master_size_spec.iloc[:, 2:] = (
+        master_size_spec.iloc[:, 2:].div(master_size_spec.iloc[:, 2:].sum(1), axis=0)
+    )
+
+    if output_file is not None:
+        os.makedirs(result_dir, exist_ok=True)
+        master_size_spec.reset_index().to_csv(
+            result_dir/output_file,
+            index=False,
+        )
+
+    return master_size_spec

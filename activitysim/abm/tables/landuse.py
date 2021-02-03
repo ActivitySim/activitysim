@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 import logging
 
+import pandas as pd
+
 from activitysim.core import inject
 from activitysim.core.input import read_input_table
 

@@ -17,7 +17,7 @@ from activitysim.core import mem
 logger = logging.getLogger(__name__)
 
 
-def read_input_table(tablename):
+def read_input_table(tablename, required=True):
     """Reads input table name and returns cleaned DataFrame.
 
     Uses settings found in input_table_list in global settings file
@@ -38,10 +38,14 @@ def read_input_table(tablename):
         if info['tablename'] == tablename:
             table_info = info
 
-    assert table_info is not None, \
-        f"could not find info for for tablename {tablename} in settings file"
+    if table_info is not None:
+        df = read_from_table_info(table_info)
+    else:
+        if required:
+            raise RuntimeError(f"could not find info for for tablename {tablename} in settings file")
+        df = None
 
-    return read_from_table_info(table_info)
+    return df
 
 
 def read_from_table_info(table_info):
@@ -80,13 +84,14 @@ def read_from_table_info(table_info):
     keep_columns = table_info.get('keep_columns', None)
     rename_columns = table_info.get('rename_columns', None)
     index_col = table_info.get('index_col', None)
+    csv_dtypes = table_info.get('dtypes', {})
 
     assert tablename is not None, 'no tablename provided'
     assert data_filename is not None, 'no input file provided'
 
     data_file_path = config.data_file_path(data_filename)
 
-    df = _read_input_file(data_file_path, h5_tablename=h5_tablename)
+    df = _read_input_file(data_file_path, h5_tablename=h5_tablename, csv_dtypes=csv_dtypes)
 
     # logger.debug('raw %s table columns: %s' % (tablename, df.columns.values))
     logger.debug('raw %s table size: %s' % (tablename, util.df_size(df)))
@@ -150,11 +155,11 @@ def read_from_table_info(table_info):
     return df
 
 
-def _read_input_file(filepath, h5_tablename=None):
+def _read_input_file(filepath, h5_tablename=None, csv_dtypes=None):
     assert os.path.exists(filepath), 'input file not found: %s' % filepath
 
     if filepath.endswith('.csv'):
-        return _read_csv_with_fallback_encoding(filepath)
+        return _read_csv_with_fallback_encoding(filepath, csv_dtypes)
 
     if filepath.endswith('.h5'):
         assert h5_tablename is not None, 'must provide a tablename to read HDF5 table'
@@ -166,7 +171,7 @@ def _read_input_file(filepath, h5_tablename=None):
         'ActivitySim supports CSV and HDF5 files only' % filepath)
 
 
-def _read_csv_with_fallback_encoding(filepath):
+def _read_csv_with_fallback_encoding(filepath, dtypes=None):
     """read a CSV to a pandas DataFrame using default utf-8 encoding,
     but try alternate Windows-compatible cp1252 if unicode fails
 
@@ -174,8 +179,15 @@ def _read_csv_with_fallback_encoding(filepath):
 
     try:
         logger.info('Reading CSV file %s' % filepath)
-        return pd.read_csv(filepath, comment='#')
+        df = pd.read_csv(filepath, comment='#', dtype=dtypes)
     except UnicodeDecodeError:
         logger.warning(
             'Reading %s with default utf-8 encoding failed, trying cp1252 instead', filepath)
-        return pd.read_csv(filepath, comment='#', encoding='cp1252')
+        df = pd.read_csv(filepath, comment='#', encoding='cp1252', dtype=dtypes)
+
+    if dtypes:
+        # although the dtype argument suppresses the DtypeWarning, it does not coerce recognized types (e.g. int)
+        for c, dtype in dtypes.items():
+            df[c] = df[c].astype(dtype)
+
+    return df

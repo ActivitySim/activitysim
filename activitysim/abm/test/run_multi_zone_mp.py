@@ -5,6 +5,8 @@ import os
 import pandas as pd
 import pandas.testing as pdt
 
+from activitysim import abm  # register injectables
+
 from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import mp_tasks

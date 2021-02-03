@@ -3,6 +3,7 @@
 from . import households
 from . import persons
 from . import landuse
+from . import accessibility
 from . import skims
 from . import tours
 from . import size_terms

@@ -20,15 +20,8 @@ from activitysim.core import config
 
 from activitysim.core import chunk
 from activitysim.core import mem
-from activitysim.core import los
 
 from activitysim.core.config import setting
-
-# activitysim.abm imported for its side-effects (dependency injection)
-from activitysim import abm
-
-from activitysim.abm.tables import shadow_pricing
-
 
 logger = logging.getLogger(__name__)
 
@@ -221,7 +214,8 @@ def log(msg, level, write_to_log_file=True):
             print(f"mp_tasks - {process_name} - {msg}", file=log_file)
 
     if write_to_log_file:
-        logger.log(level, f"mp_tasks - {process_name} - {msg}")
+        # logger.log(level, f"mp_tasks - {process_name} - {msg}")
+        logger.log(level, msg)
 
 
 def debug(msg, write_to_log_file=True):
@@ -323,10 +317,9 @@ def build_slice_rules(slice_info, pipeline_tables):
 
     Note: tables listed in slice_info must appear in same order and before any others in tables dict
 
-    The index of the first table in the 'tables' list is the primary_slicer. Subsequent tables
-    are dependent (have a column with the sae
+    The index of the first table in the 'tables' list is the primary_slicer.
 
-    Any other tables listed ar dependent tables with either ref_cols to the primary_slicer
+    Any other tables listed are dependent tables with either ref_cols to the primary_slicer
     or with the same index (i.e. having an index with the same name). This cascades, so any
     tables dependent on the primary_table can in turn have dependent tables that will be sliced
     by index or ref_col.
@@ -397,7 +390,7 @@ def build_slice_rules(slice_info, pipeline_tables):
     primary_slicer = slicer_table_names[0]
 
     # - ensure that tables listed in slice_info appear in correct order and before any others
-    tables = OrderedDict([(table_name, None) for table_name in slice_info['tables']])
+    tables = OrderedDict([(table_name, None) for table_name in slicer_table_names])
 
     for table_name in pipeline_tables.keys():
         tables[table_name] = pipeline_tables[table_name]
@@ -405,14 +398,20 @@ def build_slice_rules(slice_info, pipeline_tables):
     if primary_slicer not in tables:
         raise RuntimeError("primary slice table '%s' not in pipeline" % primary_slicer)
 
-    debug(f"build_slice_rules tables {list(tables.keys())}")
-    debug(f"build_slice_rules primary_slicer {primary_slicer}")
-    debug(f"build_slice_rules slicer_table_names {slicer_table_names}")
-    debug(f"build_slice_rules slicer_table_exceptions {slicer_table_exceptions}")
+    # allow wildcard 'True' to avoid slicing (or coalescing) any tables no explicitly listed in slice_info.tables
+    # populationsim uses slice.except wildcards to avoid listing control tables (etc) that should not be sliced,
+    # followed by a slice.coalesce directive to explicitly list the omnibus tables created by the subprocesses.
+    # So don't change this behavior withoyt testing populationsim multiprocess!
+    if slicer_table_exceptions is True:
+        debug(f"slice.except wildcard (True): excluding all tables not explicitly listed in slice.tables")
+        slicer_table_exceptions = [t for t in tables if t not in slicer_table_names]
 
     # dict mapping slicer table_name to index name
     # (also presumed to be name of ref col name in referencing table)
     slicer_ref_cols = OrderedDict()
+
+    if slicer_table_exceptions == '*':
+        slicer_table_exceptions = [t for t in tables if t not in slicer_table_names]
 
     # build slice rules for loaded tables
     slice_rules = OrderedDict()
@@ -426,7 +425,7 @@ def build_slice_rules(slice_info, pipeline_tables):
             rule['slice_by'] = None
         else:
             for slicer_table_name in slicer_ref_cols:
-                if df.index.name == tables[slicer_table_name].index.name:
+                if df.index.name is not None and (df.index.name == tables[slicer_table_name].index.name):
                     # slice df with same index name as a known slicer
                     rule = {'slice_by': 'index', 'source': slicer_table_name}
                 else:
@@ -448,8 +447,10 @@ def build_slice_rules(slice_info, pipeline_tables):
 
         slice_rules[table_name] = rule
 
-    for table_name in slice_rules:
-        debug(f"table_name: {table_name} slice_rules: {slice_rules[table_name]}")
+    for table_name, rule in slice_rules.items():
+        if rule['slice_by'] is not None:
+            debug(f"### table_name: {table_name} slice_rules: {slice_rules[table_name]}")
+    debug(f"### slicer_ref_cols: {slicer_ref_cols}")
 
     return slice_rules
 
@@ -483,34 +484,41 @@ def apportion_pipeline(sub_proc_names, step_info):
     # get last checkpoint from first job pipeline
     pipeline_path = config.build_output_file_path(pipeline_file_name)
 
-    debug(f"apportion_pipeline pipeline_path: {pipeline_path}")
+    # ensure that if we are resuming, we don't apportion any tables from future model steps
+    last_model_in_previous_multiprocess_step = step_info.get('last_model_in_previous_multiprocess_step', None)
+    assert last_model_in_previous_multiprocess_step is not None
+    pipeline.open_pipeline(resume_after=last_model_in_previous_multiprocess_step)
 
-    # - load all tables from pipeline
-    tables = {}
-    with pd.HDFStore(pipeline_path, mode='r') as pipeline_store:
+    # adds a checkpoint named multiprocess_step_name with no tables modified
+    # (most importantly, truncates pipeline to last_model_in_previous_multiprocess_step if resuming)
+    checkpoint_name = multiprocess_step_name
+    pipeline.add_checkpoint(checkpoint_name)
 
-        checkpoints_df = pipeline_store[pipeline.CHECKPOINT_TABLE_NAME]
+    # ensure all tables are in the pipeline
+    checkpointed_tables = pipeline.checkpointed_tables()
+    for table_name in slice_info['tables']:
+        if table_name not in checkpointed_tables:
+            raise RuntimeError(f"slicer table {table_name} not found in pipeline")
 
-        # hdf5_keys is a dict mapping table_name to pipeline hdf5_key
-        checkpoint_name, hdf5_keys = pipeline_table_keys(pipeline_store)
+    checkpoints_df = pipeline.get_checkpoints()
 
-        # ensure presence of slicer tables in pipeline
-        for table_name in slice_info['tables']:
-            if table_name not in hdf5_keys:
-                raise RuntimeError("slicer table %s not found in pipeline" % table_name)
-
-        # load all tables from pipeline
-        for table_name, hdf5_key in hdf5_keys.items():
-            # new checkpoint for all tables the same
-            checkpoints_df[table_name] = checkpoint_name
-            # load the dataframe
-            tables[table_name] = pipeline_store[hdf5_key]
-
-            debug(f"loaded table {table_name} {tables[table_name].shape}")
-
-    # keep only the last row of checkpoints and patch the last checkpoint name
+    # for the subprocess pipelines, keep only the last row of checkpoints and patch the last checkpoint name
     checkpoints_df = checkpoints_df.tail(1).copy()
-    checkpoints_df[list(tables.keys())] = checkpoint_name
+
+    # load all tables from pipeline
+    tables = {}
+    for table_name in checkpointed_tables:
+        # patch last checkpoint name for all tables
+        checkpoints_df[table_name] = checkpoint_name
+        # load the dataframe
+        tables[table_name] = pipeline.get_table(table_name)
+
+        debug(f"loaded table {table_name} {tables[table_name].shape}")
+
+    pipeline.close_pipeline()
+
+    # should only be one checkpoint (named <multiprocess_step_name>)
+    assert len(checkpoints_df) == 1
 
     # - build slice rules for loaded tables
     slice_rules = build_slice_rules(slice_info, tables)
@@ -550,6 +558,11 @@ def apportion_pipeline(sub_proc_names, step_info):
                     # slice primary apportion table by num_sub_procs strides
                     # this hopefully yields a more random distribution
                     # (e.g.) households are ordered by size in input store
+                    # we are assuming that the primary table index is unique
+                    # otherwise we should slice by strides in df.index.unique
+                    # we could easily work around this, but it seems likely this was an error on the user's part
+                    assert not df.index.duplicated().any()
+
                     primary_df = df[np.asanyarray(list(range(df.shape[0]))) % num_sub_procs == i]
                     sliced_tables[table_name] = primary_df
                 elif rule['slice_by'] == 'index':
@@ -601,6 +614,7 @@ def coalesce_pipelines(sub_proc_names, slice_info):
     debug(f"coalesce_pipelines to: {pipeline_file_name}")
 
     # - read all tables from first process pipeline
+    # FIXME - note: assumes any new tables will be present in ALL subprocess pipelines
     tables = {}
     pipeline_path = config.build_output_file_path(pipeline_file_name, use_prefix=sub_proc_names[0])
 
@@ -613,10 +627,30 @@ def coalesce_pipelines(sub_proc_names, slice_info):
             debug(f"loading table {table_name} {hdf5_key}")
             tables[table_name] = pipeline_store[hdf5_key]
 
+    # slice.coalesce is an override  list of omnibus tables created by subprocesses that should be coalesced,
+    # whether or not they satisfy the slice rules. Ordinarily all tables qualify for slicing by the slice rules
+    # will be coalesced, including any new tables created by the subprocess that have sliceable indexes or ref_cols.
+    # Any other new tables that don't match the slice rules will be considered mirrored. This is usually the desired
+    # behavior, especially in activitysim abm models. However, if the "slice.except: True" wildcard is used, it
+    # prevents the inference for newly generated tables, and this directive permits explicit specification of
+    # which new tables to coalesce. Populationsim uses this wildcard except directives to avoid having to list
+    # many slice exceptions, and just lists weigh tables to coalesce. So don't change this behavior without testing
+    # populationsim multiprocessing!
+    coalesce_tables = slice_info.get('coalesce', [])
+
+    # report absence of any slice_info.coalesce tables not in pipeline
+    # we don't require their presence in case there are tracing tables that will only be present if tracing is enabled
+    for table_name in coalesce_tables:
+        if table_name not in tables:
+            logger.warning("slicer coalesce.table %s not found in pipeline" % table_name)
+
     # - use slice rules followed by apportion_pipeline to identify mirrored tables
     # (tables that are identical in every pipeline and so don't need to be concatenated)
     slice_rules = build_slice_rules(slice_info, tables)
-    mirrored_table_names = [t for t, rule in slice_rules.items() if rule['slice_by'] is None]
+
+    # table is mirrored if no slice rule or explicitly listed in slice_info.coalesce setting
+    mirrored_table_names = \
+        [t for t, rule in slice_rules.items() if rule['slice_by'] is None and t not in coalesce_tables]
     mirrored_tables = {t: tables[t] for t in mirrored_table_names}
     omnibus_keys = {t: k for t, k in hdf5_keys.items() if t not in mirrored_table_names}
 
@@ -851,8 +885,10 @@ def mp_setup_skims(injectables, **kwargs):
     try:
         shared_data_buffer = kwargs
 
-        network_los_preload = inject.get_injectable('network_los_preload')
-        network_los_preload.load_shared_data(shared_data_buffer)
+        network_los_preload = inject.get_injectable('network_los_preload', None)
+
+        if network_los_preload is not None:
+            network_los_preload.load_shared_data(shared_data_buffer)
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_setup_skims: {str(e)}")
@@ -901,8 +937,11 @@ def allocate_shared_skim_buffers():
 
     info("allocate_shared_skim_buffer")
 
-    network_los = inject.get_injectable('network_los_preload')
-    skim_buffers = network_los.allocate_shared_skim_buffers()
+    network_los = inject.get_injectable('network_los_preload', None)
+    if network_los is not None:
+        skim_buffers = network_los.allocate_shared_skim_buffers()
+    else:
+        skim_buffers = {}
 
     return skim_buffers
 
@@ -918,8 +957,13 @@ def allocate_shared_shadow_pricing_buffers():
 
     info("allocate_shared_shadow_pricing_buffers")
 
-    shadow_pricing_info = shadow_pricing.get_shadow_pricing_info()
-    shadow_pricing_buffers = shadow_pricing.buffers_for_shadow_pricing(shadow_pricing_info)
+    shadow_pricing_info = inject.get_injectable('shadow_pricing_info', None)
+
+    if shadow_pricing_info is not None:
+        from activitysim.abm.tables import shadow_pricing
+        shadow_pricing_buffers = shadow_pricing.buffers_for_shadow_pricing(shadow_pricing_info)
+    else:
+        shadow_pricing_buffers = {}
 
     return shadow_pricing_buffers
 
@@ -1238,12 +1282,13 @@ def run_multiprocess(run_list, injectables):
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
 
     # - mp_setup_skims
-    run_sub_task(
-        multiprocessing.Process(
-            target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
-            kwargs=shared_data_buffers)
-    )
-    t0 = tracing.print_elapsed_time('setup skims', t0)
+    if len(shared_data_buffers) > 0:
+        run_sub_task(
+            multiprocessing.Process(
+                target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
+                kwargs=shared_data_buffers)
+        )
+        t0 = tracing.print_elapsed_time('setup shared_data_buffers', t0)
 
     # - for each step in run list
     for step_info in run_list['multiprocess_steps']:
@@ -1537,6 +1582,10 @@ def get_run_list():
                 raise RuntimeError("%s tag '%s' for step '%s' (%s)"
                                    " falls before that of prior step in models list" %
                                    (start_tag, start, name, istep))
+
+            # remember last_model_in_previous_multiprocess_step for apportion_pipeline
+            multiprocess_steps[istep]['last_model_in_previous_multiprocess_step'] = \
+                models[models.index(start) - 1] if models.index(start) > 0 else None
 
         # - build individual step model lists based on starts
         starts.append(len(models))  # so last step gets remaining models in list

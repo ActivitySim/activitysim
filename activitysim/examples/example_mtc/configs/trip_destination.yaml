@@ -16,6 +16,8 @@ TRIP_ORIGIN: origin
 ALT_DEST_COL_NAME: dest_taz
 PRIMARY_DEST: destination
 
+# tour_mode is already in trips table, so we don't need it from tours
+# (it is assigned in trip_destination_annotate_trips_preprocessor )
 REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
   - tour_mode
 

@@ -397,8 +397,8 @@ class SkimWrapper(object):
         -------
         self (to facilitiate chaining)
         """
-        assert self.orig_key in df
-        assert self.dest_key in df
+        assert self.orig_key in df, f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
+        assert self.dest_key in df, f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
         self.df = df
         return self
 
@@ -519,9 +519,9 @@ class Skim3dWrapper(object):
         -------
         self (to facilitiate chaining)
         """
-        assert self.orig_key in df
-        assert self.dest_key in df
-        assert self.dim3_key in df
+        assert self.orig_key in df, f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
+        assert self.dest_key in df, f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
+        assert self.dim3_key in df, f"dim3_key '{self.dim3_key}' not in df columns: {list(df.columns)}"
         self.df = df
         return self
 

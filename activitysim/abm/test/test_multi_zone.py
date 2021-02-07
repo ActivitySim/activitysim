@@ -20,11 +20,11 @@ from activitysim.core import inject
 from activitysim.core import config
 
 HOUSEHOLDS_SAMPLE_SIZE = 50
-EXPECT_2_ZONE_TOUR_COUNT = 120
+EXPECT_2_ZONE_TOUR_COUNT = 118
 
 # 3-zone is currently big and slow - so set this way low
 HOUSEHOLDS_SAMPLE_SIZE_3_ZONE = 5
-EXPECT_3_ZONE_TOUR_COUNT = 13
+EXPECT_3_ZONE_TOUR_COUNT = 14
 
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours

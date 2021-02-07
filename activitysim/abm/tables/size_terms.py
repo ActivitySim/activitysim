@@ -93,4 +93,8 @@ def tour_destination_size_terms(land_use, size_terms, model_selector):
     if not (df.dtypes == 'float64').all():
         logger.warning('Surprised to find that not all size_terms were float64!')
 
+    if df.isna().any(axis=None):
+        logger.warning(f"tour_destination_size_terms with NAN values\n{df[df.isna().any(axis=1)]}")
+        assert not df.isna(axis=None).any()
+
     return df

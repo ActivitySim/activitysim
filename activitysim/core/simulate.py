@@ -170,7 +170,8 @@ def spec_for_segment(model_settings, spec_id, segment_name, estimator):
         spec = spec[[segment_name]]
     else:
         # otherwise we expect a single coefficient column
-        assert spec.columns[0] == 'coefficient'
+        # doesn't really matter what it is called, but this may catch errors
+        assert spec.columns[0] in ['coefficient', segment_name]
 
     spec = eval_coefficients(spec, coefficients, estimator)
 

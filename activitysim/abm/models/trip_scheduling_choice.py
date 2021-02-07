@@ -287,9 +287,6 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
 
         assert len(choices.index) == len(choosers.index)
 
-        # _interaction_sample_simulate no longer alters alternatives
-        #choices = schedules[schedules[SCHEDULE_ID].isin(choices)].drop(columns='tour_id')
-        assert 'tour_id' not in schedules
         choices = schedules[schedules[SCHEDULE_ID].isin(choices)]
 
         result_list.append(choices)

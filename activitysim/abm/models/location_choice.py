@@ -22,6 +22,7 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from .util import logsums as logsum
 from .util import estimation
+from .util import tour_destination
 
 from activitysim.abm.tables import shadow_pricing
 
@@ -198,136 +199,14 @@ HOME_MAZ = 'home_zone_id'
 DEST_MAZ = 'dest_MAZ'
 
 
-def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms):
-
-    chooser_id_col = taz_sample.index.name  # should be canonical chooser index name (e.g. 'person_id')
-
-    taz_choices = taz_sample[[DEST_TAZ, 'prob']].reset_index(drop=False)
-    taz_choices = taz_choices.reindex(taz_choices.index.repeat(taz_sample.pick_count)).reset_index(drop=True)
-
-    # print(f"taz_sample\n{taz_sample}")
-    #            dest_TAZ      prob  pick_count
-    # person_id
-    # 55227             7  0.009827           1
-    # 55227            10  0.000656           1
-    # 55227            18  0.014871           1
-    # 55227            20  0.035548           3
-
-    # print(f"taz_choices\n{taz_choices}")
-    #      person_id  dest_TAZ
-    # 0        55227         7
-    # 1        55227        10
-    # 2        55227        18
-    # 3        55227        20
-    # 4        55227        20
-
-    # print(f"MAZ_size_terms\n{MAZ_size_terms}")
-    #       zone_id  dest_TAZ  size_term
-    # 0      106097         2      0.774
-    # 1      124251         2      0.258
-    # 2      124252         2      0.387
-    # 3      106165         3      5.031
-
-    # for random_for_df, we need df with de-duplicated chooser canonical index
-    chooser_df = pd.DataFrame(index=taz_sample.index[~taz_sample.index.duplicated()])
-    num_choosers = len(chooser_df)
-    assert chooser_df.index.name == chooser_id_col
-
-    # to make choices, <taz_sample_size> rands for each chooser (one rand for each sampled TAZ)
-    # taz_sample_size will be model_settings['SAMPLE_SIZE'] samples, except if we are estimating
-    taz_sample_size = taz_choices.groupby(chooser_id_col)[DEST_TAZ].count().max()
-
-    # taz_choices index values should be contiguous
-    assert (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size)).all()
-
-    # we need to choose a MAZ for each DEST_TAZ choice
-    # probability of choosing MAZ based on MAZ size_term fraction of TAZ total
-    # there will be a different set (and number) of candidate MAZs for each TAZ
-    # (preserve index, which will have duplicates as result of join)
-    maz_sizes = pd.merge(taz_choices.reset_index(), MAZ_size_terms, how='left', on=DEST_TAZ).set_index('index')
-
-    # print(f"maz_sizes\n{maz_sizes}")
-    #     person_id  dest_TAZ  zone_id  size_term
-    # 0       55227         7   114664      4.386
-    # 0       55227         7   127232     16.125
-    # 1       55227        10   125313      0.129
-    # 1       55227        10   133545      0.129
-    # 2       55227        18   100498      3.741
-
-    # number of DEST_TAZ candidates per chooser
-    maz_counts = maz_sizes.groupby(maz_sizes.index).size().values
-    # print(maz_counts)
-
-    # max number of MAZs for any TAZ
-    max_maz_count = maz_counts.max()
-    # print(f"max_maz_count {max_maz_count}")
-
-    # offsets of the first and last rows of each chooser in sparse interaction_utilities
-    last_row_offsets = maz_counts.cumsum()
-    first_row_offsets = np.insert(last_row_offsets[:-1], 0, 0)
-
-    # repeat the row offsets once for each dummy utility to insert
-    # (we want to insert dummy utilities at the END of the list of alternative utilities)
-    # inserts is a list of the indices at which we want to do the insertions
-    inserts = np.repeat(last_row_offsets, max_maz_count - maz_counts)
-
-    # insert zero filler to pad each alternative set to same size
-    padded_maz_sizes = np.insert(maz_sizes.size_term.values, inserts, 0.0)
-    padded_maz_sizes = padded_maz_sizes.reshape(-1, max_maz_count)
-
-    # prob array with one row TAZ_choice, one column per alternative
-    row_sums = padded_maz_sizes.sum(axis=1)
-    maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
-    assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
-
-    rands = pipeline.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size).reshape(-1, 1)
-    assert len(rands) == num_choosers * taz_sample_size
-    assert len(rands) == maz_probs.shape[0]
-
-    # make choices
-    # positions is array with the chosen alternative represented as a column index in probs
-    # which is an integer between zero and max_maz_count
-    positions = np.argmax((maz_probs.cumsum(axis=1) - rands) > 0.0, axis=1)
-
-    # shouldn't have chosen any of the dummy pad positions
-    assert (positions < maz_counts).all()
-
-    taz_choices[DEST_MAZ] = maz_sizes['zone_id'].take(positions + first_row_offsets)
-    maz_probs = maz_probs[np.arange(maz_probs.shape[0]), positions]
-
-    taz_choices['prob'] *= maz_probs
-
-    taz_choices = \
-        taz_choices.groupby([chooser_id_col, DEST_MAZ]).agg(prob=('prob', 'max'), pick_count=('prob', 'count'))
-
-    taz_choices.reset_index(level=DEST_MAZ, inplace=True)
-
-    return taz_choices
-
-
-def location_presample(
-        segment_name,
-        persons_merged,
-        network_los,
-        dest_size_terms,
-        estimator,
-        model_settings,
-        chunk_size, trace_label):
-
-    trace_label = tracing.extend_trace_label(trace_label, 'presample')
-
-    logger.info(f"{trace_label} location_presample")
-
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    assert DEST_TAZ != alt_dest_col_name
-
+def aggregate_size_terms(dest_size_terms, network_los):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
     #
 
     MAZ_size_terms = dest_size_terms.copy()
 
-    # map MAZ zone_ids to DEST_TAZ ids
+    # add crosswalk DEST_TAZ column to MAZ_size_terms
     maz_to_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').sort_values(by='TAZ').TAZ
     MAZ_size_terms[DEST_TAZ] = MAZ_size_terms.index.map(maz_to_taz)
 
@@ -351,7 +230,6 @@ def location_presample(
     # 3            20.511                                1.0                                0
     # 4            19.737                                1.0                                0
 
-    # MAZ_size_terms = MAZ_size_terms.sort_values([DEST_TAZ, 'size_term'])  # maybe helpful for debugging
     MAZ_size_terms = MAZ_size_terms[[DEST_TAZ, 'size_term']].reset_index(drop=False)
     MAZ_size_terms = MAZ_size_terms.sort_values([DEST_TAZ, 'zone_id']).reset_index(drop=True)
 
@@ -362,12 +240,35 @@ def location_presample(
     # 2      124252         2      0.387
     # 3      106165         3      5.031
 
+    return MAZ_size_terms, TAZ_size_terms
+
+
+def location_presample(
+        segment_name,
+        persons_merged,
+        network_los,
+        dest_size_terms,
+        estimator,
+        model_settings,
+        chunk_size, trace_label):
+
+    trace_label = tracing.extend_trace_label(trace_label, 'presample')
+
+    logger.info(f"{trace_label} location_presample")
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    assert DEST_TAZ != alt_dest_col_name
+
+    MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(dest_size_terms, network_los)
+
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
     assert HOME_MAZ in persons_merged
     assert HOME_TAZ in persons_merged  # 'TAZ' should already be in persons_merged from land_use
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
+    # FIXME we don't actually require that land_use provide a TAZ crosswalk
+    # FIXME maybe we should add it for multi-zone (from maz_taz) if missing?
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     chooser_columns = [HOME_TAZ if c == HOME_MAZ else c for c in chooser_columns]
     choosers = persons_merged[chooser_columns]
@@ -398,7 +299,7 @@ def location_presample(
     # 55227            20  0.035548           3
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms)
+    maz_choices = tour_destination.choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms)
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
@@ -432,6 +333,7 @@ def run_location_sample(
     23751,      14,           0.972732479292,  2
     """
 
+    #FIXME how about if utility_adjustment is nonzero (shouldn't happen when desired size is 0?)
     logger.debug(f"dropping {(~(dest_size_terms.size_term > 0)).sum()} "
                  f"of {len(dest_size_terms)} rows where size_term is zero")
     dest_size_terms = dest_size_terms[dest_size_terms.size_term > 0]

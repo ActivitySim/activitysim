@@ -774,6 +774,14 @@ class DataFrameMatrix(object):
 
         row_indexes = self.offset_mapper.map(np.asanyarray(row_ids))
 
+        not_in_skim = (row_indexes == NOT_IN_SKIM_ZONE_ID)
+        if not_in_skim.any():
+            logger.warning(f"DataFrameMatrix: {not_in_skim.sum()} row_ids of {len(row_ids)} not in skim.")
+            not_in_skim = not_in_skim.values
+            logger.warning(f"row_ids: {row_ids[not_in_skim]}")
+            logger.warning(f"col_ids: {col_ids[not_in_skim]}")
+            raise RuntimeError(f"DataFrameMatrix: {not_in_skim.sum()} row_ids of {len(row_ids)} not in skim.")
+
         assert (row_indexes >= 0).all(), f"{row_indexes}"
 
         result = self.data[row_indexes, col_indexes]

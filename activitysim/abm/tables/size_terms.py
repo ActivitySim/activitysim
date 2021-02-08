@@ -95,6 +95,6 @@ def tour_destination_size_terms(land_use, size_terms, model_selector):
 
     if df.isna().any(axis=None):
         logger.warning(f"tour_destination_size_terms with NAN values\n{df[df.isna().any(axis=1)]}")
-        assert not df.isna(axis=None).any()
+        assert not df.isna().any(axis=None)
 
     return df

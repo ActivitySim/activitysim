@@ -319,7 +319,7 @@ is the main settings file for the model run.  This file includes:
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_size`` - batch size for processing choosers and should be set to 1 for dynamic chunking, see :ref:`chunk_size`
+* ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`.  
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
@@ -543,10 +543,10 @@ Chunk size
 ~~~~~~~~~~
 
 The ``chunk_size`` is the number of doubles in a chunk of a choosers table.  It is approximately the number
-of rows times the number of columns.  If set greater than 0, then it is now dynamically calculated by processing a 
-small sample of households to determine the necessary size for each submodel based on the size of the population, 
-the complexity of the utility expressions, the amount of RAM on the machine, the number of processors, 
-and other problem specific dimensions.
+of rows times the number of columns.  If set to zero, no chunking will be performed.  If there is a chunk size setting, 
+dynamic chunking will start out using the estimated number of rows per chunk calculation performed by the various 
+submodels but will adjust the number of chooser rows per chunk in light of how much memory is actually 
+used by the chunk iteration.
 
 Logging
 ~~~~~~~
@@ -689,7 +689,6 @@ machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See
 ::
 
   households_sample_size:  0
-  chunk_size:  1
   num_processes: 24
 
 .. note::

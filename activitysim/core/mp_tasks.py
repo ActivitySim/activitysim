@@ -707,6 +707,13 @@ def setup_injectables_and_logging(injectables, locutor=True):
     injects injectables
     """
 
+    # register abm steps and other abm-specific injectables
+    # by default, assume we are running activitysim.abm
+    # other callers (e.g. piopulationsim) will have to arrange to register their own steps and injectables
+    # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
+    if not inject.is_injectable('preload_injectables'):
+        from activitysim import abm  # register abm steps and other abm-specific injectables
+
     try:
 
         for k, v in injectables.items():
@@ -776,8 +783,7 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
         info(f"Resuming model run list after {last_checkpoint}")
         models = models[models.index(last_checkpoint) + 1:]
 
-    # preload any bulky injectables (e.g. skims) not in pipeline
-    inject.get_injectable('preload_injectables', None)
+    assert inject.get_injectable('preload_injectables', None)
 
     t0 = tracing.print_elapsed_time()
     for model in models:

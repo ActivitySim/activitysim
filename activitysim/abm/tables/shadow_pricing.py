@@ -763,8 +763,6 @@ def add_size_tables():
 
         if use_shadow_pricing or scale_size_table:
 
-            inject.add_table('raw_' + size_table_name(model_selector), raw_size)
-
             # - scale size_table counts to sample population
             # scaled_size = zone_size * (total_segment_modeled / total_segment_desired)
 
@@ -792,6 +790,8 @@ def add_size_tables():
             scaled_size = (raw_size * segment_scale_factors).round()
         else:
             scaled_size = raw_size
+
+        logger.debug(f"add_size_table {size_table_name(model_selector)} ({scaled_size.shape}) for {model_selector}")
 
         inject.add_table(size_table_name(model_selector), scaled_size)
 

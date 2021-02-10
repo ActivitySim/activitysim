@@ -244,6 +244,11 @@ class SkimDict(object):
         in_skim = (mapped_orig >= 0) & (mapped_orig < self.omx_shape[0]) & \
                   (mapped_dest >= 0) & (mapped_dest < self.omx_shape[1])
 
+        if not ((in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all()):
+            print(f"orig\n{orig}")
+            print(f"dest\n{dest}")
+            print(f"in_skim\n{in_skim}")
+
         # check for bad indexes (other than NOT_IN_SKIM_ZONE_ID)
         assert (in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all(), \
             f"{(~in_skim).sum()} od pairs not in skim"
@@ -397,8 +402,8 @@ class SkimWrapper(object):
         -------
         self (to facilitiate chaining)
         """
-        assert self.orig_key in df
-        assert self.dest_key in df
+        assert self.orig_key in df, f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
+        assert self.dest_key in df, f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
         self.df = df
         return self
 
@@ -519,9 +524,9 @@ class Skim3dWrapper(object):
         -------
         self (to facilitiate chaining)
         """
-        assert self.orig_key in df
-        assert self.dest_key in df
-        assert self.dim3_key in df
+        assert self.orig_key in df, f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
+        assert self.dest_key in df, f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
+        assert self.dim3_key in df, f"dim3_key '{self.dim3_key}' not in df columns: {list(df.columns)}"
         self.df = df
         return self
 
@@ -768,6 +773,14 @@ class DataFrameMatrix(object):
         col_indexes = np.vectorize(self.cols_to_indexes.get)(col_ids)
 
         row_indexes = self.offset_mapper.map(np.asanyarray(row_ids))
+
+        not_in_skim = (row_indexes == NOT_IN_SKIM_ZONE_ID)
+        if not_in_skim.any():
+            logger.warning(f"DataFrameMatrix: {not_in_skim.sum()} row_ids of {len(row_ids)} not in skim.")
+            not_in_skim = not_in_skim.values
+            logger.warning(f"row_ids: {row_ids[not_in_skim]}")
+            logger.warning(f"col_ids: {col_ids[not_in_skim]}")
+            raise RuntimeError(f"DataFrameMatrix: {not_in_skim.sum()} row_ids of {len(row_ids)} not in skim.")
 
         assert (row_indexes >= 0).all(), f"{row_indexes}"
 

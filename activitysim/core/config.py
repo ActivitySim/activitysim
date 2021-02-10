@@ -4,6 +4,7 @@ import argparse
 import os
 import yaml
 import sys
+import warnings
 
 import logging
 from activitysim.core import inject
@@ -110,10 +111,37 @@ def read_model_settings(file_name, mandatory=False):
 
     """
 
-    if not file_name.lower().endswith('.yaml'):
-        file_name = '%s.yaml' % (file_name, )
-
     model_settings = read_settings_file(file_name, mandatory=mandatory)
+
+    return model_settings
+
+
+def future_model_settings(model_name, model_settings, future_settings):
+    """
+    Warn users of new required model settings, and substitute default values
+
+    Parameters
+    ----------
+    model_name: str
+        name of model
+    model_settings: dict
+        model_settings from settigns file
+    future_settings: dict
+        default values for new required settings
+
+    Returns
+    -------
+        dict
+            model_settings with any missing future_settings added
+
+    """
+    model_settings = model_settings.copy()
+    for key, setting in future_settings.items():
+        if key not in model_settings.items():
+            warnings.warn(f"Setting '{key}' not found in {model_name} model settings."
+                          f"Replacing with default value: {setting}."
+                          f"This setting will be required in future versions", FutureWarning)
+            model_settings[key] = setting
 
     return model_settings
 
@@ -307,6 +335,9 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
         assert len(configs_dir_list) == len(set(configs_dir_list)), \
             f"repeating file names not allowed in config_dir list: {configs_dir_list}"
 
+    if not file_name.lower().endswith('.yaml'):
+        file_name = '%s.yaml' % (file_name,)
+
     inheriting = False
     settings = {}
     source_file_paths = include_stack.copy()
@@ -395,8 +426,6 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
 
 def base_settings_file_path(file_name):
     """
-
-    FIXME - should be in configs
 
     Parameters
     ----------

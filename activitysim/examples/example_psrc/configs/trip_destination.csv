@@ -1,0 +1,19 @@
+Description,Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+# size term,"@np.log1p(size_terms.get(df.dest_taz, df.purpose))",1,1,1,1,1,1,1,1,1,1
+# no attractions,"@size_terms.get(df.dest_taz, df.purpose) == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+size term,"@np.log1p(size_terms.get(df.alt_dest, df.purpose))",1,1,1,1,1,1,1,1,1,1
+no attractions,"@size_terms.get(df.alt_dest, df.purpose) == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+#stop zone CBD area type,"@reindex(land_use.area_type, df.dest_taz) < setting('cbd_threshold')",,,,,,,,,,
+distance (calibration adjustment individual - inbound),@(~df.is_joint & ~df.outbound) * (od_skims['DIST'] + dp_skims['DIST']),-0.04972591574229,-0.0613,-0.1056,-0.1491,-0.1192,-0.1029,-0.0962,-0.1329,-0.126172224,-0.122334597
+distance (calibration adjustment individual - outbound),@(~df.is_joint & df.outbound) * (od_skims['DIST'] + dp_skims['DIST']),0.147813278663948,-0.0613,-0.1056,-0.1491,-0.1192,-0.1029,-0.0962,-0.1329,-0.126172224,-0.122334597
+distance (calibration adjustment joint),@df.is_joint * (od_skims['DIST'] + dp_skims['DIST']),0,0,0,-0.1238,-0.1238,-0.1238,-0.1238,-0.1238,-0.123801985,0
+stop proximity to home (outbound),@df.outbound * od_skims['DIST'],-0.3800,0,0,0,0,0,0,0,0,0
+stop proximity to home (inbound),@~df.outbound * dp_skims['DIST'],-0.1500,0,0,0,0,0,0,0,0,0
+stop proximity to main destination (outbound),@df.outbound * dp_skims['DIST'],-0.26,,,,,,,,,
+stop proximity to main destination (inbound),@~df.outbound * od_skims['DIST'],0,,,,,,,,,
+#,,,,,,,,,,,
+"Sample of alternatives correction factor","@np.minimum(np.log(df.pick_count/df.prob), 60)",1,1,1,1,1,1,1,1,1,1
+Mode choice logsum from origin to stop,od_logsum,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821
+Can't access stop zone by this tour mode,(od_logsum < -100),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Mode choice logsum from stop to destination,dp_logsum,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821,1.821
+Can't access destination zone by this tour mode,(dp_logsum < -100),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

@@ -1,0 +1,4 @@
+Description,Target,Expression
+destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, non_mandatory_tours.destination) < setting('cbd_threshold')) * 1"
+#,,
+,num_person_joint_tours,"reindex_i(joint_tour_participants.groupby('person_id').size(), non_mandatory_tours.person_id)"

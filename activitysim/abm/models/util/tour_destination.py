@@ -391,8 +391,12 @@ def run_destination_sample(
         logger.debug(f"run_destination_sample {trace_label} sorting choosers because not monotonic_increasing")
         choosers = choosers.sort_index()
 
-    multi_zone = not (network_los.zone_system == los.ONE_ZONE)
-    pre_sample_taz = multi_zone and model_settings.get('PRESAMPLE_ALTS', multi_zone)
+    # by default, enable presampling for multizone systems, unless they disable it in settings file
+    pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
+    if pre_sample_taz and not config.setting('want_dest_choice_presampling', True):
+        pre_sample_taz = False
+        logger.info(f"Disabled destination zone presampling for {trace_label} "
+                    f"because 'want_dest_choice_presampling' setting is False")
 
     if pre_sample_taz:
 

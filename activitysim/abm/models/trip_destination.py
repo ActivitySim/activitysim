@@ -67,6 +67,21 @@ def _destination_sample(
         alt_dest_col_name,
         chunk_size,
         trace_label):
+    """
+
+    Note: trips with no viable destination receive no sample rows
+    (because we call interaction_sample with allow_zero_probs=True)
+    All other trips will have one or more rows with pick_count summing to sample_size
+
+    returns
+        choices: pandas.DataFrame
+
+               alt_dest      prob  pick_count
+    trip_id
+    102829169      2898  0.002333           1
+    102829169      2901  0.004976           1
+    102829169      3193  0.002628           1
+    """
 
     spec = get_spec_for_purpose(model_settings, 'DESTINATION_SAMPLE_SPEC', primary_purpose)
     sample_size = model_settings['SAMPLE_SIZE']
@@ -78,7 +93,6 @@ def _destination_sample(
     # cannot be determined until after choosers are joined with alternatives
     # (unless we iterate over trip.purpose - which we could, though we are already iterating over trip_num)
     # so, instead, expressions determine row-specific size_term by a call to: size_terms.get(df.alt_dest, df.purpose)
-    #FIXME a regrettably inelegant implementation intrusion on the expression files
     locals_dict.update({
         'size_terms': size_term_matrix
     })
@@ -154,6 +168,11 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trips, network_los, alt_dest_
     dataframe with with duplicated index <chooser_id_col> and columns: <alt_dest_col_name>, prob, pick_count
     """
 
+    if len(taz_sample) == 0:
+        # it can happen that all trips have no viable destinations (and so are dropped from the sample)
+        # in which case we can just return the empty taz_sample, since it has the same columns
+        return taz_sample.copy()
+
     # we had to use alt_dest_col_name as specified in model_settings for interaction_sample
     # because expressions reference it to look up size_terms by trip purpose
     DEST_MAZ = alt_dest_col_name
@@ -197,6 +216,8 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trips, network_los, alt_dest_
 
     # taz_choices index values should be contiguous
     assert (taz_choices[chooser_id_col] == np.repeat(chooser_df.index, taz_sample_size)).all()
+
+    #FIXME need to trace dests and rands
 
     # we need to choose a MAZ for each DEST_TAZ choice
     # probability of choosing MAZ based on MAZ size_term fraction of TAZ total
@@ -348,9 +369,16 @@ def trip_destination_sample(
     """
     trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_sample')
 
+    assert len(trips) > 0
+    assert len(alternatives) > 0
+
+    # by default, enable presampling for multizone systems, unless they disable it in settings file
     network_los = inject.get_injectable('network_los')
-    multi_zone = not (network_los.zone_system == los.ONE_ZONE)
-    pre_sample_taz = multi_zone and model_settings.get('PRESAMPLE_ALTS', multi_zone)
+    pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
+    if pre_sample_taz and not config.setting('want_dest_choice_presampling', True):
+        pre_sample_taz = False
+        logger.info(f"Disabled destination zone presampling for {trace_label} "
+                    f"because 'want_dest_choice_presampling' setting is False")
 
     if pre_sample_taz:
 
@@ -942,13 +970,19 @@ def trip_destination(
 
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
     if config.setting('testing_fail_trip_destination', False) and not trips_df.failed.any():
+        if (trips_df.trip_num < trips_df.trip_count).sum() == 0:
+            raise RuntimeError(f"can't honor 'testing_fail_trip_destination' setting because no intermediate trips")
+
         fail_o = trips_df[trips_df.trip_num < trips_df.trip_count].origin.max()
         trips_df.failed = (trips_df.origin == fail_o) & \
                           (trips_df.trip_num < trips_df.trip_count)
 
     if trips_df.failed.any():
         logger.warning("%s %s failed trips", trace_label, trips_df.failed.sum())
-        file_name = "%s_failed_trips" % trace_label
+        if inject.get_injectable('pipeline_file_prefix', None):
+            file_name = f"{trace_label}_failed_trips_{inject.get_injectable('pipeline_file_prefix')}"
+        else:
+            file_name = f"{trace_label}_failed_trips"
         logger.info("writing failed trips to %s", file_name)
         tracing.write_csv(trips_df[trips_df.failed], file_name=file_name, transpose=False)
 

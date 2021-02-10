@@ -111,9 +111,6 @@ def read_model_settings(file_name, mandatory=False):
 
     """
 
-    if not file_name.lower().endswith('.yaml'):
-        file_name = '%s.yaml' % (file_name, )
-
     model_settings = read_settings_file(file_name, mandatory=mandatory)
 
     return model_settings
@@ -338,6 +335,9 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
         assert len(configs_dir_list) == len(set(configs_dir_list)), \
             f"repeating file names not allowed in config_dir list: {configs_dir_list}"
 
+    if not file_name.lower().endswith('.yaml'):
+        file_name = '%s.yaml' % (file_name,)
+
     inheriting = False
     settings = {}
     source_file_paths = include_stack.copy()
@@ -426,8 +426,6 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
 
 def base_settings_file_path(file_name):
     """
-
-    FIXME - should be in configs
 
     Parameters
     ----------

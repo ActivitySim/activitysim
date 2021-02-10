@@ -338,8 +338,12 @@ def run_location_sample(
                  f"of {len(dest_size_terms)} rows where size_term is zero")
     dest_size_terms = dest_size_terms[dest_size_terms.size_term > 0]
 
-    multi_zone = (network_los.zone_system == los.TWO_ZONE) or (network_los.zone_system == los.THREE_ZONE)
-    pre_sample_taz = multi_zone and model_settings.get('PRESAMPLE_ALTS', multi_zone)
+    # by default, enable presampling for multizone systems, unless they disable it in settings file
+    pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
+    if pre_sample_taz and not config.setting('want_dest_choice_presampling', True):
+        pre_sample_taz = False
+        logger.info(f"Disabled destination zone presampling for {trace_label} "
+                    f"because 'want_dest_choice_presampling' setting is False")
 
     if pre_sample_taz:
 

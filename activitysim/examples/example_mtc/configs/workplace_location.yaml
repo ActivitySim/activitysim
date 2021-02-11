@@ -6,7 +6,7 @@ SIMULATE_CHOOSER_COLUMNS:
 
 SAMPLE_SPEC: workplace_location_sample.csv
 SPEC: workplace_location.csv
-COEFFICIENTS: workplace_location_coeffs.csv
+COEFFICIENTS: workplace_location_coefficients.csv
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 LOGSUM_PREPROCESSOR: nontour_preprocessor

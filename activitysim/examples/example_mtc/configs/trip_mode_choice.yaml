@@ -1,40 +1,43 @@
+# trip_mode_choice.yaml
+
 SPEC: trip_mode_choice.csv
-COEFFICIENTS: trip_mode_choice_coeffs.csv
+COEFFICIENTS: trip_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: trip_mode_choice_coefficients_template.csv
 
 LOGIT_TYPE: NL
 
 NESTS:
   name: root
-  coefficient: 1.00
+  coefficient: coef_nest_root
   alternatives:
       - name: AUTO
-        coefficient: 0.72
+        coefficient: coef_nest_AUTO
         alternatives:
             - name: DRIVEALONE
-              coefficient: 0.35
+              coefficient: coef_nest_AUTO_DRIVEALONE
               alternatives:
                 - DRIVEALONEFREE
                 - DRIVEALONEPAY
             - name: SHAREDRIDE2
-              coefficient: 0.35
+              coefficient: coef_nest_AUTO_SHAREDRIDE2
               alternatives:
                 - SHARED2FREE
                 - SHARED2PAY
             - name: SHAREDRIDE3
-              coefficient: 0.35
+              coefficient: coef_nest_AUTO_SHAREDRIDE3
               alternatives:
                 - SHARED3FREE
                 - SHARED3PAY
       - name: NONMOTORIZED
-        coefficient: 0.72
+        coefficient: coef_nest_NONMOTORIZED
         alternatives:
           - WALK
           - BIKE
       - name: TRANSIT
-        coefficient:  0.72
+        coefficient:  coef_nest_TRANSIT
         alternatives:
             - name: WALKACCESS
-              coefficient: 0.5
+              coefficient: coef_nest_TRANSIT_WALKACCESS
               alternatives:
               - WALK_LOC
               - WALK_LRF
@@ -42,7 +45,7 @@ NESTS:
               - WALK_HVY
               - WALK_COM
             - name: DRIVEACCESS
-              coefficient: 0.5
+              coefficient: coef_nest_TRANSIT_DRIVEACCESS
               alternatives:
               - DRIVE_LOC
               - DRIVE_LRF
@@ -50,7 +53,7 @@ NESTS:
               - DRIVE_HVY
               - DRIVE_COM
       - name: RIDEHAIL
-        coefficient: 0.36
+        coefficient: coef_nest_RIDEHAIL
         alternatives:
           - TAXI
           - TNC_SINGLE
@@ -157,6 +160,22 @@ CONSTANTS:
     5: 0
   min_waitTime: 0
   max_waitTime: 50
+  ivt_cost_multiplier: 0.6
+  topology_bike_multiplier: 20
+  topology_trn_multiplier: 2.20
+  topology_walk_multiplier: 15
+  ridehail_wait_time_multiplier: 1.5
+  walktimelong_multiplier: 5
+  biketimelong_multiplier: 5
+  xfers_wlk_multiplier: 5
+  xfers_drv_multiplier: 15
+  dacc_ratio_multiplier: 0
+  density_index_multiplier: -5
+  origin_density_index_multiplier: -15
+  origin_density_index_max: -15
+  ivt_com_multiplier: 0.80
+  ivt_exp_multiplier: -0.0175
+  ivt_hvy_multiplier: 0.80
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor:

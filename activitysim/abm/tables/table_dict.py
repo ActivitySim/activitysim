@@ -4,6 +4,7 @@ import logging
 from collections import OrderedDict
 
 from activitysim.core import inject
+from activitysim.abm.models.util import canonical_ids as cid
 
 
 logger = logging.getLogger(__name__)
@@ -13,14 +14,11 @@ When the pipeline is restarted and tables are loaded, we need to know which ones
 should be registered as random number generator channels.
 """
 
-RANDOM_CHANNELS = ['households', 'persons', 'tours', 'joint_tour_participants', 'trips']
-TRACEABLE_TABLES = ['households', 'persons', 'tours', 'joint_tour_participants', 'trips']
-
 
 @inject.injectable()
 def rng_channels():
 
-    return RANDOM_CHANNELS
+    return cid.RANDOM_CHANNELS
 
 
 @inject.injectable()
@@ -29,7 +27,7 @@ def traceable_tables():
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
 
-    return TRACEABLE_TABLES
+    return cid.TRACEABLE_TABLES
 
 
 @inject.injectable()
@@ -43,3 +41,9 @@ def traceable_table_indexes():
 def traceable_table_ids():
     # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
     return dict()
+
+
+@inject.injectable()
+def canonical_table_index_names():
+    # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
+    return cid.CANONICAL_TABLE_INDEX_NAMES

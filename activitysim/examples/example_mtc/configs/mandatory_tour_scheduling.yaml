@@ -29,10 +29,10 @@ TOUR_SPEC_SEGMENTS:
 SPEC_SEGMENTS:
   work:
     'SPEC': tour_scheduling_work.csv
-    'COEFFICIENTS': tour_scheduling_work_coeffs.csv
+    'COEFFICIENTS': tour_scheduling_work_coefficients.csv
   school:
     'SPEC': tour_scheduling_school.csv
-    'COEFFICIENTS': tour_scheduling_school_coeffs.csv
+    'COEFFICIENTS': tour_scheduling_school_coefficients.csv
 
 #CHOOSER_ORIG_COL_NAME: home_zone_id
 

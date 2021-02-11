@@ -265,7 +265,9 @@ class TVPBCache(object):
     def get_data_and_lock_from_buffers(self):
         """
         return shared data buffer previously allocated by allocate_data_buffer and injected mp_tasks.run_simulation
-        Returns either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
+        Returns
+        -------
+            either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
         """
         data_buffers = inject.get_injectable('data_buffers', None)
         assert self.cache_tag in data_buffers  # internal error

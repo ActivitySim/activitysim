@@ -3,7 +3,7 @@
 
 from builtins import range
 
-import os
+import warnings
 import logging
 from collections import OrderedDict
 
@@ -140,7 +140,21 @@ def read_model_coefficients(model_settings=None, file_name=None):
         file_name = model_settings['COEFFICIENTS']
 
     file_path = config.config_file_path(file_name)
-    coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    try:
+        coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient File Invalid: %s" % str(file_path))
+        raise
+
+    if coefficients.index.duplicated().any():
+        print(coefficients[coefficients.index.duplicated()])
+        bug
+    assert not coefficients.index.duplicated().any()
+
+    if coefficients.value.isnull().any():
+        print(coefficients[coefficients.value.isnull()])
+        bug
+    assert not coefficients.value.isnull().any()
 
     return coefficients
 
@@ -186,10 +200,14 @@ def read_model_coefficient_template(model_settings):
     assert 'COEFFICIENT_TEMPLATE' in model_settings, \
         "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get('source_file_paths')
 
-    coeffs_file_name = model_settings['COEFFICIENT_TEMPLATE']
+    coefficients_file_name = model_settings['COEFFICIENT_TEMPLATE']
 
-    file_path = config.config_file_path(coeffs_file_name)
-    template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    file_path = config.config_file_path(coefficients_file_name)
+    try:
+        template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient Template File Invalid: %s" % str(file_path))
+        raise
 
     # by convention, an empty cell in the template indicates that
     # the coefficient name should be propogated to across all segments
@@ -198,7 +216,31 @@ def read_model_coefficient_template(model_settings):
     # replace missing cell values with coefficient_name from index
     template = template.where(~template.isnull(), template.index)
 
+    assert not template.index.duplicated().any()
+
     return template
+
+
+def dump_mapped_coefficients(model_settings):
+    """
+    dump template_df with coefficient values
+    """
+
+    coefficients_df = read_model_coefficients(model_settings)
+    template_df = read_model_coefficient_template(model_settings)
+
+    for c in template_df.columns:
+        template_df[c] = template_df[c].map(coefficients_df.value)
+
+    coefficients_template_file_name = model_settings['COEFFICIENT_TEMPLATE']
+    file_path = config.output_file_path(coefficients_template_file_name)
+    template_df.to_csv(file_path, index=True)
+    logger.info(f"wrote mapped coefficient template to {file_path}")
+
+    coefficients_file_name = model_settings['COEFFICIENTS']
+    file_path = config.output_file_path(coefficients_file_name)
+    coefficients_df.to_csv(file_path, index=True)
+    logger.info(f"wrote raw coefficients to {file_path}")
 
 
 def get_segment_coefficients(model_settings, segment_name):
@@ -235,12 +277,15 @@ def get_segment_coefficients(model_settings, segment_name):
 
     coefficients_df = read_model_coefficients(model_settings)
     template_df = read_model_coefficient_template(model_settings)
-    coefficients_col = template_df[segment_name].map(coefficients_df.value)
+
+    # dump_mapped_coefficients(model_settings)
+
+    coefficients_col = template_df[segment_name].map(coefficients_df.value).astype(float)
 
     return coefficients_col.to_dict()
 
 
-def eval_nest_coefficients(nest_spec, coefficients):
+def eval_nest_coefficients(nest_spec, coefficients, trace_label):
 
     def replace_coefficients(nest):
         if isinstance(nest, dict):
@@ -261,6 +306,8 @@ def eval_nest_coefficients(nest_spec, coefficients):
         coefficients = coefficients['value'].to_dict()
 
     replace_coefficients(nest_spec)
+
+    logit.validate_nest_spec(nest_spec, trace_label)
 
     return nest_spec
 
@@ -336,7 +383,6 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     locals_dict['df'] = choosers
 
     # - eval spec expressions
-
     if isinstance(spec.index, pd.MultiIndex):
         # spec MultiIndex with expression and label
         exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
@@ -348,11 +394,17 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     for i, expr in enumerate(exprs):
         try:
-            # logger.debug(f"{trace_label} expr {expr}")
-            if expr.startswith('@'):
-                expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
-            else:
-                expression_values[i] = choosers.eval(expr)
+            with warnings.catch_warnings(record=True) as w:
+                # Cause all warnings to always be triggered.
+                warnings.simplefilter("always")
+                if expr.startswith('@'):
+                    expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
+                else:
+                    expression_values[i] = choosers.eval(expr)
+
+                if len(w) > 0:
+                    for wrn in w:
+                        logger.warning(f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}")
 
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")

@@ -21,7 +21,7 @@ DEST_CHOICE_SAMPLE_TABLE_NAME: school_location_sample
 
 SAMPLE_SPEC: school_location_sample.csv
 SPEC: school_location.csv
-COEFFICIENTS: school_location_coeffs.csv
+COEFFICIENTS: school_location_coefficients.csv
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 LOGSUM_PREPROCESSOR: nontour_preprocessor

@@ -130,52 +130,6 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
 # helpers
 # ##################################################################################################
 
-def skim_time_period_label(time_period):
-    """
-    convert time period times to skim time period labels (e.g. 9 -> 'AM')
-
-    Parameters
-    ----------
-    time_period : pandas Series
-
-    Returns
-    -------
-    pandas Series
-        string time period labels
-    """
-
-    skim_time_periods = config.setting('skim_time_periods')
-
-    # Default to 60 minute time periods
-    period_minutes = 60
-    if 'period_minutes' in skim_time_periods.keys():
-        period_minutes = skim_time_periods['period_minutes']
-
-    # Default to a day
-    model_time_window_min = 1440
-    if ('time_window') in skim_time_periods.keys():
-        model_time_window_min = skim_time_periods['time_window']
-
-    # Check to make sure the intervals result in no remainder time throught 24 hour day
-    assert 0 == model_time_window_min % period_minutes
-    total_periods = model_time_window_min / period_minutes
-
-    # FIXME - eventually test and use np version always?
-    period_label = 'periods'
-    if 'hours' in skim_time_periods.keys():
-        period_label = 'hours'
-        warnings.warn('`skim_time_periods` key `hours` in settings.yml will be removed in '
-                      'future verions. Use `periods` instead',
-                      FutureWarning)
-
-    if np.isscalar(time_period):
-        bin = np.digitize([time_period % total_periods],
-                          skim_time_periods[period_label], right=True)[0] - 1
-        return skim_time_periods['labels'][bin]
-
-    return pd.cut(time_period, skim_time_periods[period_label],
-                  labels=skim_time_periods['labels'], ordered=False).astype(str)
-
 
 def annotate_preprocessors(
         tours_df, locals_dict, skims,

@@ -1,0 +1,17 @@
+Description,value,coefficient_name
+Middle to Low Income HH ,0.45,coef_middle_to_low_income_hh_
+Number of eating tours tours undertaken by the person,-0.28,coef_number_of_eating_tours_tours_undertaken_by_the_person
+Subtour departure less than or equal to 11AM,0.31,coef_subtour_departure_less_than_or_equal_to_11am
+Subtour return time greater or equal to 2PM,0.34,coef_subtour_return_time_greater_or_equal_to_2pm
+Subtour duration in hours (integer),0.56,coef_subtour_duration_in_hours_integer_
+dummy for subtour origin (tour destination) at Exurban  or Rual (AreaTypes = 6 or 7),0.27,coef_dummy_for_subtour_origin_tour_destination_at_exurban_or_rual_areatypes_6_or_7_
+Primary Destination Accessibility (LOG of it),0.18,coef_primary_destination_accessibility_log_of_it_
+subtour distance in miles (from tour destination to subtour primary destination one way),0.02,coef_subtour_distance_in_miles_from_tour_destination_to_subtour_primary_destination_one_way_
+Alternative specific constant for return  stops,-3.6710000000000003,coef_alternative_specific_constant_for_return_stops_0out_1in
+Alternative specific constant for return  stops,-5.388,coef_alternative_specific_constant_for_return_stops_0out_2in
+Alternative specific constant for the total number of stops,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
+Alternative specific constant for return  stops,-6.21,coef_alternative_specific_constant_for_return_stops_0out_3in
+Alternative specific constant for outbound stops,-3.8960000000000004,coef_alternative_specific_constant_for_outbound_stops_1out_0in
+Alternative specific constant for the total number of stops,2.127,coef_alternative_specific_constant_for_the_total_number_of_stops_1out_3in
+Alternative specific constant for outbound stops,-5.709,coef_alternative_specific_constant_for_outbound_stops_2out_0in
+Alternative specific constant for outbound stops,-7.361000000000001,coef_alternative_specific_constant_for_outbound_stops_3out_0in

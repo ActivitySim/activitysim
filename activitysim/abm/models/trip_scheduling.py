@@ -19,6 +19,8 @@ from activitysim.core.util import reindex
 from activitysim.abm.models.util.trip import failed_trip_cohorts
 from activitysim.abm.models.util.trip import cleanup_failed_trips
 
+from activitysim.abm.models.util import estimation
+
 
 logger = logging.getLogger(__name__)
 
@@ -420,12 +422,11 @@ def run_trip_scheduling(
         tours,
         probs_spec,
         model_settings,
+        estimator,
         last_iteration,
         chunk_size,
         trace_hh_id,
         trace_label):
-
-    set_tour_hour(trips, tours)
 
     row_size = chunk_size and trip_scheduling_calc_row_size(trips, probs_spec, trace_label)
 
@@ -507,10 +508,10 @@ def trip_scheduling(
     a tour is very short (e.g. one time period) and the prob spec having a zero probability for
     that tour hour.
 
-    Therefor we need to handle trips that could not be scheduled. There are two ways (at least)
+    Therefore we need to handle trips that could not be scheduled. There are two ways (at least)
     to solve this problem:
 
-    1) CHOOSE_MOST_INITIAL
+    1) choose_most_initial
     simply assign a depart time to the trip, even if it has a zero probability. It makes
     most sense, in this case, to assign the 'most initial' depart time, so that subsequent trips
     are minimally impacted. This can be done in the final iteration, thus affecting only the
@@ -520,24 +521,40 @@ def trip_scheduling(
     drop trips that could no be scheduled, and adjust their leg mates, as is done for failed
     trips in trip_destination.
 
-    For now we are choosing among these approaches with a manifest constant, but this could
-    be made a model setting...
+    Which option is applied is determined by the FAILFIX model setting
 
     """
     trace_label = "trip_scheduling"
-
-    model_settings = config.read_model_settings('trip_scheduling.yaml')
-    assert 'DEPART_ALT_BASE' in model_settings
-
-    failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
-
-    probs_spec = pd.read_csv(config.config_file_path('trip_scheduling_probs.csv'), comment='#')
+    model_settings_file_name = 'trip_scheduling.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
 
     trips_df = trips.to_frame()
     tours = tours.to_frame()
 
+    # add columns 'tour_hour', 'earliest', 'latest' to trips
+    set_tour_hour(trips_df, tours)
+
+    # trip_scheduling is a probabilistic model ane we don't support estimation,
+    # but we do need to override choices in estimation mode
+    estimator = estimation.manager.begin_estimation('trip_scheduling')
+    if estimator:
+        estimator.write_spec(model_settings, tag='PROBS_SPEC')
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        chooser_cols_for_estimation = ['person_id',  'household_id',  'tour_id',  'trip_num', 'trip_count',
+                                       'primary_purpose', 'outbound', 'earliest', 'latest', 'tour_hour', ]
+        estimator.write_choosers(trips_df[chooser_cols_for_estimation])
+
+    probs_spec = pd.read_csv(config.config_file_path('trip_scheduling_probs.csv'), comment='#')
+    # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
+    # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
+    # coefficients_df = simulate.read_model_coefficients(model_settings)
+    # probs_spec = map_coefficients(probs_spec, coefficients_df)
+
     # add tour-based chunk_id so we can chunk all trips in tour together
     trips_df['chunk_id'] = reindex(pd.Series(list(range(len(tours))), tours.index), trips_df.tour_id)
+
+    assert 'DEPART_ALT_BASE' in model_settings
+    failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
 
     max_iterations = model_settings.get('MAX_ITERATIONS', 1)
     assert max_iterations > 0
@@ -558,6 +575,7 @@ def trip_scheduling(
                 tours,
                 probs_spec,
                 model_settings,
+                estimator=estimator,
                 last_iteration=last_iteration,
                 trace_hh_id=trace_hh_id,
                 chunk_size=chunk_size,
@@ -579,6 +597,14 @@ def trip_scheduling(
 
     choices = pd.concat(choices_list)
     choices = choices.reindex(trips_df.index)
+
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'trips', 'depart')  # override choices
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
+        assert not choices.isnull().any()
+
     if choices.isnull().any():
         logger.warning("%s of %s trips could not be scheduled after %s iterations" %
                        (choices.isnull().sum(), trips_df.shape[0], i))

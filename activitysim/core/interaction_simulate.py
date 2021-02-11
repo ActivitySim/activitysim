@@ -307,8 +307,8 @@ def _interaction_simulate(
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
-    print(f"interaction_df {interaction_df.shape}")
-    print(f"interaction_utilities {interaction_utilities.shape}")
+    # print(f"interaction_df {interaction_df.shape}")
+    # print(f"interaction_utilities {interaction_utilities.shape}")
 
     del interaction_df
     chunk.log_df(trace_label, 'interaction_df', None)

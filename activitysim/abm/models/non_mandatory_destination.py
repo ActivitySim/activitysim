@@ -57,7 +57,7 @@ def non_mandatory_tour_destination(
 
     estimator = estimation.manager.begin_estimation('non_mandatory_tour_destination')
     if estimator:
-        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
+        estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
         estimator.write_spec(model_settings, tag='SPEC')
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])

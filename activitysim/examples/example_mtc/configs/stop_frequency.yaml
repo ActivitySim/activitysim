@@ -8,6 +8,39 @@ preprocessor:
     - land_use
     - accessibility
 
+SEGMENT_COL: primary_purpose
+
+SPEC_SEGMENTS:
+  - primary_purpose: work
+    SPEC: stop_frequency_work.csv
+    COEFFICIENTS: stop_frequency_coefficients_work.csv
+  - primary_purpose: school
+    SPEC: stop_frequency_school.csv
+    COEFFICIENTS: stop_frequency_coefficients_school.csv
+  - primary_purpose: univ
+    SPEC: stop_frequency_univ.csv
+    COEFFICIENTS: stop_frequency_coefficients_univ.csv
+  - primary_purpose: social
+    SPEC: stop_frequency_social.csv
+    COEFFICIENTS: stop_frequency_coefficients_social.csv
+  - primary_purpose: shopping
+    SPEC: stop_frequency_shopping.csv
+    COEFFICIENTS: stop_frequency_coefficients_shopping.csv
+  - primary_purpose: eatout
+    SPEC: stop_frequency_eatout.csv
+    COEFFICIENTS: stop_frequency_coefficients_eatout.csv
+  - primary_purpose: escort
+    SPEC: stop_frequency_escort.csv
+    COEFFICIENTS: stop_frequency_coefficients_escort.csv
+  - primary_purpose: othmaint
+    SPEC: stop_frequency_othmaint.csv
+    COEFFICIENTS: stop_frequency_coefficients_othmaint.csv
+  - primary_purpose: othdiscr
+    SPEC: stop_frequency_othdiscr.csv
+    COEFFICIENTS: stop_frequency_coefficients_othdiscr.csv
+  - primary_purpose: atwork
+    SPEC: stop_frequency_atwork.csv
+    COEFFICIENTS: stop_frequency_coefficients_atwork.csv
 
 CONSTANTS:
   TRANSIT_MODES:

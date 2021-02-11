@@ -8,7 +8,7 @@ households_sample_size: 500
 chunk_size: 0
 
 #trace_hh_id: 662398
-# trace_hh_id: 479617
+trace_hh_id:
 
 # input tables
 input_table_list:
@@ -142,7 +142,9 @@ input_table_list:
 
   - tablename: tours
     filename: work_tours.csv
-    # index_col: <canonical tour_id will be assigned by initialize_tours>
+    # since tours has a canonical index name 'tour_id', we must explicitly indicate that no index should be assigned
+    # canonical index_col 'tour_id' will be assigned by initialize_tours
+    index_col:
     rename_columns:
       hh_id: household_id
       start_period: start

@@ -270,7 +270,7 @@ calculation settings, time periods for skim lookups, shadow pricing settings, et
         chunk_size, trace_hh_id, locutor, trace_label
 
 
-Deep inside the method calls, the skim matrix lookups required for this model are configured via ``network_los``. The following 
+Deep inside the method calls, the skim matrix lookups required for this model are configured via ``network_los``. The following
 code sets the keys for looking up the skim values for this model. In this case there is a ``TAZ`` column
 in the households table that is renamed to `TAZ_chooser`` and a ``TAZ`` in the alternatives generation code.
 The skims are lazy loaded under the name "skims" and are available in the expressions using the ``@skims`` expression.

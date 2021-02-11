@@ -244,10 +244,10 @@ class SkimDict(object):
         in_skim = (mapped_orig >= 0) & (mapped_orig < self.omx_shape[0]) & \
                   (mapped_dest >= 0) & (mapped_dest < self.omx_shape[1])
 
-        if not ((in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all()):
-            print(f"orig\n{orig}")
-            print(f"dest\n{dest}")
-            print(f"in_skim\n{in_skim}")
+        # if not ((in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all()):
+        #     print(f"orig\n{orig}")
+        #     print(f"dest\n{dest}")
+        #     print(f"in_skim\n{in_skim}")
 
         # check for bad indexes (other than NOT_IN_SKIM_ZONE_ID)
         assert (in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all(), \

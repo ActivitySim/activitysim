@@ -1,4 +1,4 @@
-Label,Description,Expression,work_away_from_home,work_at_home
+Label,Description,Expression,work_at_home,work_away_from_home
 util_work_from_home_constant,Constant for Working from home,1,coef_work_from_home_constant,0
 util_full_time_worker,Full time worker (1 if true),@df.pemploy==PEMPLOY_FULL,coef_full_time_worker,0
 util_female_worker,Female Worker,@df.sex==2,coef_female_worker,0

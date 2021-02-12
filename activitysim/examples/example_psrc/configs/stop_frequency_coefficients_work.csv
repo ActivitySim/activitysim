@@ -1,0 +1,34 @@
+Description,value,coefficient_name
+Middle to Low Income HH,0.17,coef_middle_to_low_income_hh
+Mid to High Income HH,0.23,coef_mid_to_high_income_hh
+High Income HH,0.24,coef_high_income_hh
+Number of HH Persons,-0.31,coef_number_of_hh_persons
+Number of Students in HH,0.21,coef_number_of_students_in_hh
+Presence of Kids between 0 and 4 (including) years old,0.74,coef_presence_of_kids_between_0_and_4_including_years_old
+Num kids between 5 and 15 (including) years old,0.08,coef_num_kids_between_5_and_15_including_years_old
+Presence of kids between 5 and 15 (including) years old,0.26,coef_presence_of_kids_between_5_and_15_including_years_old
+Number of Adults (>= 16 years old),0.03,coef_number_of_adults_16_years_old_
+Number of Cars > Number of Workers,0.16,coef_number_of_cars_number_of_workers
+Dummy for female,0.22,coef_dummy_for_female
+Dummy for all stops made by transit,-0.7,coef_dummy_for_all_stops_made_by_transit
+Dummy for walking to all stops,-1.54,coef_dummy_for_walking_to_all_stops
+Number of work tours undertaken by the person,-0.15,coef_number_of_work_tours_undertaken_by_the_person
+Number of university tours tours undertaken by the person,-0.48,coef_number_of_university_tours_tours_undertaken_by_the_person
+Number of school tours tours undertaken by the person,-1.55,coef_number_of_school_tours_tours_undertaken_by_the_person
+Number of escort tours tours undertaken by the person,0.2,coef_number_of_escort_tours_tours_undertaken_by_the_person
+Number of shop tours undertaken by the houshold,-0.05,coef_number_of_shop_tours_undertaken_by_the_houshold
+AM Peak departure between 6AM and 7 AM (including) Interacted with outbound tours,-1.93,coef_am_peak_departure_between_6am_and_7_am_including_interacted_with_outbound_tours
+Evening Arrival (>=19:00) Interacted with return tours,0.31,coef_evening_arrival_19_00_interacted_with_return_tours
+Dummy for the duration of the tour being equal or greater than or equal to 11 hours,0.6,coef_dummy_for_the_duration_of_the_tour_being_equal_or_greater_than_or_equal_to_11_hours
+dummy for distance less than 20 Miles,-0.22,coef_dummy_for_distance_less_than_20_miles
+dummy for distance in miles,0.01,coef_dummy_for_distance_in_miles
+No stops if tour mode is driveTransit,-999.0,coef_no_stops_if_tour_mode_is_drivetransit
+Alternative specific constant for return  stops,-0.445,coef_alternative_specific_constant_for_return_stops_0out_1in
+Number of subtours in the tour,0.19,coef_number_of_subtours_in_the_tour
+Alternative specific constant for return  stops,-1.775,coef_alternative_specific_constant_for_return_stops_0out_2in
+Alternative specific constant for the total number of stops,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
+Alternative specific constant for return  stops,-2.1390000000000002,coef_alternative_specific_constant_for_return_stops_0out_3in
+Alternative specific constant for outbound stops,-0.833,coef_alternative_specific_constant_for_outbound_stops_1out_0in
+Alternative specific constant for outbound stops,-2.613,coef_alternative_specific_constant_for_outbound_stops_2out_0in
+Alternative specific constant for the total number of stops,0.695,coef_alternative_specific_constant_for_the_total_number_of_stops_2out_3in
+Alternative specific constant for outbound stops,-3.9339999999999997,coef_alternative_specific_constant_for_outbound_stops_3out_0in

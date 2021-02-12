@@ -156,7 +156,11 @@ def read_from_table_info(table_info):
     if index_col is not None:
         if index_col in df.columns:
             assert not df.duplicated(index_col).any()
-            #df[index_col] = df[index_col].astype(int)
+            if canonical_index_col:
+                # we expect canonical indexes to be integer-valued
+                assert (df[index_col] == df[index_col].astype(int)).all(), \
+                    f"Index col '{index_col}' has non-integer values"
+                df[index_col] = df[index_col].astype(int)
             df.set_index(index_col, inplace=True)
         else:
             # FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?

@@ -84,11 +84,10 @@
 - name: example_2_zone
   description: 2 zone system test example based on TM1
   # activitysim create -e example_2_zone -d test_example_2_zone
-  # activitysim run -c configs_local -c configs_2_zone -c configs -d data_2 -o output_2
+  # activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
   include:
     - example_mtc/configs
     - example_multiple_zone/configs_2_zone
-    - example_multiple_zone/configs_local
     - example_multiple_zone/data_2
     - example_multiple_zone/output_2
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_2/households.csv
@@ -152,9 +151,9 @@
   # activitysim run -c configs_3_zone_marin -d data_3_marin -o output_3_marin
   # activitysim run -c configs_3_zone_marin -d data_3_marin -o output_3_marin -s settings_mp.yaml
   include:
-    - example_multiple_zone/configs_3_zone_marin
-    - example_multiple_zone/data_3_marin
-    - example_multiple_zone/output_3_marin
+    - example_marin/configs_3_zone_marin
+    - example_marin/data_3_marin
+    - example_marin/output_3_marin
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMAM_taz_rename.omx
       data_3_marin/HWYSKMAM_taz_rename.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMEA_taz_rename.omx
@@ -225,10 +224,10 @@
   # activitysim create -e example_3_marin_full -d test_example_3_marin_full
   # activitysim run -c configs_3_zone_marin_full -c configs_3_zone_marin -d data_3_marin_full -o output_3_marin_full -s settings_mp.yaml
   include:
-    - example_multiple_zone/configs_3_zone_marin
-    - example_multiple_zone/configs_3_zone_marin_full
-    - example_multiple_zone/data_3_marin_full
-    - example_multiple_zone/output_3_marin_full
+    - example_marin/configs_3_zone_marin
+    - example_marin/configs_3_zone_marin_full
+    - example_marin/data_3_marin_full
+    - example_marin/output_3_marin_full
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/HWYSKMAM_taz_rename.omx
       data_3_marin_full/HWYSKMAM_taz_rename.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/HWYSKMEA_taz_rename.omx

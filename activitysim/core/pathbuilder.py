@@ -553,7 +553,6 @@ class TransitVirtualPathBuilder(object):
         access_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.access')
         egress_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.egress')
         path_types_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}')
-        paths_nest_nesting_coefficient = path_types_settings.get('paths_nest_nesting_coefficient', 1)
 
         # maz od pairs requested
         with memo("#TVPB build_virtual_path maz_od_df"):
@@ -650,9 +649,10 @@ class TransitVirtualPathBuilder(object):
                     # most likely "divide by zero encountered in log" caused by all transit sets non-viable
                     warnings.simplefilter("always")
 
-                    #logsums = np.maximum(np.log(np.nansum(np.exp(utilities_df.values), axis=1)), UNAVAILABLE)
-                    logsums = np.maximum(np.log(np.nansum(np.exp(utilities_df.values / paths_nest_nesting_coefficient),
-                                                          axis=1)), UNAVAILABLE)
+                    paths_nest_nesting_coefficient = path_types_settings.get('paths_nest_nesting_coefficient', 1)
+                    exp_utilities = np.exp(utilities_df.values / paths_nest_nesting_coefficient)
+                    logsums = np.maximum(np.log(np.nansum(exp_utilities, axis=1)), UNAVAILABLE)
+
                     if len(w) > 0:
                         for wrn in w:
                             logger.warning(

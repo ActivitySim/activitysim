@@ -151,7 +151,7 @@ def run_trip_purpose(
     model_settings_file_name = 'trip_purpose.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    spec_file_name = model_settings.get('PROBS_SPEC')
+    spec_file_name = model_settings.get('PROBS_SPEC', 'trip_purpose_probs.csv')
     probs_spec = pd.read_csv(config.config_file_path(spec_file_name), comment='#')
     # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
     # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation

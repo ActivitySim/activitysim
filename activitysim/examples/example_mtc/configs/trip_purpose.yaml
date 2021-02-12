@@ -1,7 +1,6 @@
 
 
 PROBS_SPEC: trip_purpose_probs.csv
-COEFFICIENTS: trip_purpose_coefficients.csv
 
 preprocessor:
   SPEC: trip_purpose_annotate_trips_preprocessor

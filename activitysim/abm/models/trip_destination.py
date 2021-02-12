@@ -865,7 +865,6 @@ class SkimHotel(object):
         return skims
 
 
-
 def run_trip_destination(
         trips,
         tours_merged,

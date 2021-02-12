@@ -336,7 +336,6 @@ def run_location_sample(
     23751,      14,           0.972732479292,  2
     """
 
-    #FIXME how about if utility_adjustment is nonzero (shouldn't happen when desired size is 0?)
     logger.debug(f"dropping {(~(dest_size_terms.size_term > 0)).sum()} "
                  f"of {len(dest_size_terms)} rows where size_term is zero")
     dest_size_terms = dest_size_terms[dest_size_terms.size_term > 0]

@@ -61,3 +61,141 @@ ALT_DEST_COL_NAME: alt_dest
 read_skim_cache: True
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
 write_skim_cache: True
+
+
+###
+##### trip_purpose.yaml
+###
+
+PROBS_SPEC: trip_purpose_probs.csv
+
+
+###
+##### trip_destination.yaml
+###
+
+# will need coefficients file to run estimation...
+#COEFFICIENTS: trip_destination_coefficients.csv
+
+###
+##### trip_mode_choice_coeffs.csv
+##### trip_mode_choice_coefficients_template.csv
+###
+
+# rename trip_mode_choice_coeffs.csv to trip_mode_choice_coefficients_template.csv
+
+WARNING - duplicate coefficient names in trip_mode_choice_coefficients_template.csv:
+                                      work      univ   school   escort shopping   eatout othmaint   social othdiscr   atwork
+coefficient_name
+drive_transit_ASC_rh                0.6674   -0.6328  -0.1272   0.6870   0.6870   3.5701   0.6870   3.5701   3.5701  -6.9520
+drive_transit_ASC_rh                 -4.25     -4.25    -4.25    -4.25    -4.25    -4.25    -4.25    -4.25    -4.25    -4.25
+joint_auto_ASC_rh                        0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_auto_ASC_rh                        0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_sr2                  0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_sr2                  0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_sr3p                 0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_sr3p                 0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_walk                 0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_walk                 0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_walk_transit         0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_walk_transit         0         0        0        0        0        0        0        0        0        0
+ride_hail_ASC_sr2                   -6.108   -4.3372  -1.5869  -5.6483  -5.6483  -5.9692  -5.6483  -5.9692  -5.9692  -5.2763
+ride_hail_ASC_sr2                  -3.9085   -2.5785  -3.0613  -3.3353  -3.3353  -3.3010  -3.3353  -3.3010  -3.3010  -4.2636
+ride_hail_ASC_sr3p                      -7    -4.922  -2.5362       -7       -7  -6.7199       -7  -6.7199  -6.7199       -7
+ride_hail_ASC_sr3p                -10.8661   -3.1888  -4.0886  -7.0000  -7.0000  -4.0649  -7.0000  -4.0649  -4.0649  -7.0000
+ride_hail_ASC_walk                  1.4970  -10.8471  -1.2386  -7.0000  -7.0000  -1.3318  -7.0000  -1.3318  -1.3318  -1.6755
+ride_hail_ASC_walk                  0.2858        -7    0.245       -7       -7  -3.3603       -7  -3.3603  -3.3603  -2.6103
+ride_hail_ASC_walk_transit        -10.8661   -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000
+ride_hail_ASC_walk_transit               0         0        0        0        0        0        0        0        0        0
+
+# comment out first instance of duplicates
+
+# drive_transit_ASC_rh,0.6674,-0.6328,-0.1272,0.6870,0.6870,3.5701,0.6870,3.5701,3.5701,-6.9520
+# ride_hail_ASC_sr2,-3.9085,-2.5785,-3.0613,-3.3353,-3.3353,-3.3010,-3.3353,-3.3010,-3.3010,-4.2636
+# ride_hail_ASC_sr3p,-10.8661,-3.1888,-4.0886,-7.0000,-7.0000,-4.0649,-7.0000,-4.0649,-4.0649,-7.0000
+# ride_hail_ASC_walk,1.4970,-10.8471,-1.2386,-7.0000,-7.0000,-1.3318,-7.0000,-1.3318,-1.3318,-1.6755
+# ride_hail_ASC_walk_transit,-10.8661,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000
+...
+# joint_auto_ASC_rh,0,0,0,0,-7,-7,-7,-7,-7,0
+...
+# joint_ride_hail_ASC_sr2,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+# joint_ride_hail_ASC_sr3p,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+# joint_ride_hail_ASC_walk,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+# joint_ride_hail_ASC_walk_transit,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+
+
+###
+##### cdap_indiv_and_hhsize1.csv
+##### cdap_coefficients.csv
+##### cdap_interaction_coefficients.csv
+###
+
+copied from mtc because it looks like the coefficients in earlier format of
+cdap_indiv_and_hhsize1.csv and cdap_interaction_coefficients.csv were same as in mtc
+
+
+###
+##### non_mandatory_tour_destination_coeffs.csv
+###
+WARNING - duplicate coefficients in configs/non_mandatory_tour_destination_coeffs.csv
+                       value constrain
+coefficient_name
+coef_eatout_dist_0_2 -0.5609         F
+coef_eatout_dist_0_2 -0.7841         F
+
+# coef_eatout_dist_0_2,-0.7841,F
+
+
+###
+##### stop_frequency.yaml
+###
+
+SEGMENT_COL: primary_purpose
+
+SPEC_SEGMENTS:
+  - primary_purpose: work
+    SPEC: stop_frequency_work.csv
+    COEFFICIENTS: stop_frequency_coefficients_work.csv
+  - primary_purpose: school
+    SPEC: stop_frequency_school.csv
+    COEFFICIENTS: stop_frequency_coefficients_school.csv
+  - primary_purpose: univ
+    SPEC: stop_frequency_univ.csv
+    COEFFICIENTS: stop_frequency_coefficients_univ.csv
+  - primary_purpose: social
+    SPEC: stop_frequency_social.csv
+    COEFFICIENTS: stop_frequency_coefficients_social.csv
+  - primary_purpose: shopping
+    SPEC: stop_frequency_shopping.csv
+    COEFFICIENTS: stop_frequency_coefficients_shopping.csv
+  - primary_purpose: eatout
+    SPEC: stop_frequency_eatout.csv
+    COEFFICIENTS: stop_frequency_coefficients_eatout.csv
+  - primary_purpose: escort
+    SPEC: stop_frequency_escort.csv
+    COEFFICIENTS: stop_frequency_coefficients_escort.csv
+  - primary_purpose: othmaint
+    SPEC: stop_frequency_othmaint.csv
+    COEFFICIENTS: stop_frequency_coefficients_othmaint.csv
+  - primary_purpose: othdiscr
+    SPEC: stop_frequency_othdiscr.csv
+    COEFFICIENTS: stop_frequency_coefficients_othdiscr.csv
+  - primary_purpose: atwork
+    SPEC: stop_frequency_atwork.csv
+    COEFFICIENTS: stop_frequency_coefficients_atwork.csv
+
+
+###
+##### stop_frequency_<tour_purpose>.yaml
+##### stop_coefficients_<tour_purpose>.yaml
+###
+
+replaced/add mtc versions with coefficient files with because it appeared they had the same coefficient values
+
+
+###
+##### trip_mode_choice_*.csv
+###
+
+replace with mtc versions because they appeared to share the same expressions and coefficients
+

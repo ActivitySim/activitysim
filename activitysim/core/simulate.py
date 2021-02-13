@@ -192,7 +192,8 @@ def spec_for_segment(model_settings, spec_id, segment_name, estimator):
         try:
             assert (spec.astype(float) == spec).all(axis=None)
         except (ValueError, AssertionError):
-            raise RuntimeError(f"No coefficient file specified for {spec_file_name} but not all spec column values are numeric")
+            raise RuntimeError(f"No coefficient file specified for {spec_file_name} "
+                               f"but not all spec column values are numeric")
 
         return spec
 

@@ -3,26 +3,51 @@ import pandas as pd
 import openmatrix as omx
 import numpy as np
 
-
-input_dir = './data_raw'
+import argparse
 
 MAZ_OFFSET = 0
 
-seg = 'seattle'
-check_geography = seg == 'full'
+segments = {
+    'test': (331, 358),  # north part of peninsula including university
+    'downtown': (339, 630),   # downtown seattle tazs (339 instead of 400 because need university)
+    'seattle': (0, 857),  # seattle tazs
+    'full': (0, 100000),
+}
 
-output_dir = f'./data_{seg}'
-if seg == 'downtown':
-    taz_min = 339  # instead of 400 because need university
-    taz_max = 630  # downtown seattle tazs
-elif seg == 'seattle':
-    taz_min = 0
-    taz_max = 857  # seattle tazs
-elif seg == 'full':
-    taz_min = 0
-    taz_max = 100000
-else:
-    raise RuntimeError(f"Unknown seg: {seg}")
+parser = argparse.ArgumentParser(description='crop PSRC raw_data')
+parser.add_argument('segment_name', metavar='segment_name', type=str, nargs=1,
+                    help=f"geography segmentation (e.g. full)")
+
+parser.add_argument('-c', '--check_geography',
+                    default=False,
+                    action='store_true',
+                    help='check consistency of MAZ, TAZ zone_ids and foreigh keys')
+
+args = parser.parse_args()
+
+
+segment_name = args.segment_name[0]
+check_geography = args.check_geography
+
+assert segment_name in segments.keys(), f"Unknown seg: {segment_name}"
+taz_min, taz_max = segments[segment_name]
+
+input_dir = './data_raw'
+output_dir = f'./data_{segment_name}'
+
+
+print(f"segment_name {segment_name}")
+
+print(f"input_dir {input_dir}")
+print(f"output_dir {output_dir}")
+print(f"taz_min {taz_min}")
+print(f"taz_max {taz_max}")
+
+print(f"check_geography {check_geography}")
+
+if not os.path.isdir(output_dir):
+    print(f"creating output directory {output_dir}")
+    os.mkdir(output_dir)
 
 
 def input_path(file_name):
@@ -68,7 +93,11 @@ if check_geography:
     households = read_csv("households.csv")
     orphan_households = households[~households.MAZ.isin(land_use.MAZ)]
     print(f"{len(orphan_households)} orphan_households")
-    to_csv(orphan_households, "orphan_households.csv")
+
+    # write orphan_households to INPUT directory (since it doesn't belong in output)
+    file_name = "orphan_households.csv"
+    print(f"writing {file_name} {orphan_households.shape} to {input_path(file_name)}")
+    orphan_households.to_csv(input_path(file_name), index=False)
 
     # ######## check that land_use and maz and taz tables have same MAZs and TAZs
 

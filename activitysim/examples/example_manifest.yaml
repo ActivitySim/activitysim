@@ -324,10 +324,8 @@
     - example_psrc/data
     - example_psrc/output
     - example_psrc/README.MD
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/skims1.omx
-      data/skims1.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/skims2.omx
-      data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/skims.omx
+      data/skims.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/households.csv
       data/households.csv
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/persons.csv
@@ -349,10 +347,8 @@
     - example_psrc/data
     - example_psrc/output
     - example_psrc/README.MD
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/skims1.omx
-      data/skims1.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/skims2.omx
-      data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/skims.omx
+      data/skims.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/households.csv
       data/households.csv
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/persons.csv
@@ -374,10 +370,8 @@
     - example_psrc/data
     - example_psrc/output
     - example_psrc/README.MD
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/skims1.omx
-      data/skims1.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/skims1.omx
-      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/skims.omx
+      data/skims.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/households.csv
       data/households.csv
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/persons.csv
@@ -403,6 +397,10 @@
       data/skims1.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/skims2.omx
       data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/skims3.omx
+      data/skims3.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/skims4.omx
+      data/skims4.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/households.csv
       data/households.csv
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/persons.csv

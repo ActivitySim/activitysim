@@ -1,4 +1,4 @@
-inherit_settings: True
+#inherit_settings: True
 
 # activitysim run -c configs -d data -o output
 

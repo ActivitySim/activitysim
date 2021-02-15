@@ -227,7 +227,7 @@ tazs_indexes = taz.index.tolist()  # index of TAZ in skim (zero-based, no mappin
 taz_labels = taz.TAZ.tolist()  # TAZ zone_ids in omx index order
 
 # create
-num_outfiles = 2
+num_outfiles = 4 if segment_name == 'full' else 1
 if num_outfiles == 1:
     omx_out = [omx.open_file(output_path(f"skims.omx"), 'w')]
 else:

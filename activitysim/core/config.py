@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import argparse
 import os
+import glob
 import yaml
 import sys
 import warnings
@@ -201,7 +202,7 @@ def build_output_file_path(file_name, use_prefix=None):
     return file_path
 
 
-def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=True):
+def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=True, allow_glob=False):
 
     dir_paths = inject.get_injectable(dir_list_injectable_name)
     dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
@@ -213,6 +214,10 @@ def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=Tru
             file_path = p
             break
 
+        if allow_glob and len(glob.glob(p)) > 0:
+            file_path = p
+            break
+
     if mandatory and not file_path:
         raise RuntimeError("file_path %s: file '%s' not in %s" %
                            (dir_list_injectable_name, file_name, dir_paths))
@@ -220,9 +225,54 @@ def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=Tru
     return file_path
 
 
-def data_file_path(file_name, mandatory=True):
+def data_file_path(file_name, mandatory=True, allow_glob=False):
 
-    return cascading_input_file_path(file_name, 'data_dir', mandatory)
+    return cascading_input_file_path(file_name, 'data_dir', mandatory=mandatory, allow_glob=allow_glob)
+
+
+def expand_input_file_list(input_files):
+    """
+    expand list by unglobbing globs globs
+    """
+
+    # be nice and accept a string as well as a list of strings
+    if isinstance(input_files, str):
+        input_files = [input_files]
+
+    expanded_files = []
+    ungroked_files = 0
+
+    for file_name in input_files:
+
+        file_name = data_file_path(file_name, allow_glob=True)
+
+        if os.path.isfile(file_name):
+            expanded_files.append(file_name)
+            continue
+
+        if os.path.isdir(file_name):
+            logger.warning("WARNING: expand_input_file_list skipping directory: "
+                           "(use glob instead): %s", file_name)
+            ungroked_files += 1
+            continue
+
+        # - glob
+        logger.debug(f"expand_input_file_list trying {file_name} as glob")
+        globbed_files = glob.glob(file_name)
+        for globbed_file in globbed_files:
+            if os.path.isfile(globbed_file):
+                expanded_files.append(globbed_file)
+            else:
+                logger.warning("WARNING: expand_input_file_list skipping: "
+                               "(does not grok) %s", file_name)
+                ungroked_files += 1
+
+        if len(globbed_files) == 0:
+            logger.warning("WARNING: expand_input_file_list file/glob not found: %s", file_name)
+
+    assert ungroked_files == 0, f"{ungroked_files} ungroked file names"
+
+    return sorted(expanded_files)
 
 
 def config_file_path(file_name, mandatory=True):

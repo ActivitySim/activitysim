@@ -199,3 +199,40 @@ replaced/add mtc versions with coefficient files with because it appeared they h
 
 replace with mtc versions because they appeared to share the same expressions and coefficients
 
+
+###
+##### data cleaning
+###
+
+# cleaned up data and created smaller subset geographies for testing and development. (see scripts/psrc_crop.py)
+# The script has a dict with format {<geog>: (<min_TAZ>, <max_TAZ>), ...} that can be modied to
+#
+#    'test': (331, 358),  # north part of peninsula including university
+#    'downtown': (339, 630),   # downtown seattle tazs (339 instead of 400 because need university)
+#    'seattle': (0, 857),  # seattle tazs
+#    'full': (0, 100000),
+#
+# $ python scripts/psrc_crop.py -h
+# usage: psrc_crop.py [-h] [-c] segment_name
+#
+# crop PSRC raw_data
+#
+# positional arguments:
+#   segment_name          geography segmentation (e.g. full)
+#
+# optional arguments:
+#   -h, --help            show this help message and exit
+#   -c, --check_geography
+#                         check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file
+#
+# the script expects to raw data for the entire PSRC model in data_raw
+# and creates a cropped subset in seperate directory (e.g. data_test, data_downtown, data
+# removes orphan households (with empty MAZ zone_ids or zone_ids not in land_use file
+# creates a cropped subset in separate directory (e.g. "python psrc_crop.py test" creates outpur directory "data_test")
+# strips all unused TAZ ods from skims
+
+# here are the orphan_households in my version of data_raw:
+BLDGSZ,HHID,HHT,MAZ,NOC,PERSONS,PUMA5,SERIALNO,TENURE,UNITTYPE,VEHICL,bucketBin,h0511,h1215,h1617,h1824,h2534,h3549,h5064,h6579,h80up,hNOCcat,hadkids,hadnwst,hadwpst,hinccat1,hinccat2,hmultiunit,hownrent,hsizecat,htypdwel,hunittype,hwrkrcat,income,workers
+2.0,24890,3.0,,0.0,3,11802,2017000950242,2.0,1,1.0,1,0,0,1,0,1,0,0,1,0,0,0,1,0,2.0,5.0,0,1,3,1.0,1,0.0,44900,1.0
+7.0,26138,3.0,,1.0,2,11802,2015001323987,3.0,1,1.0,1,1,0,0,0,1,0,0,0,0,0,0,1,0,2.0,5.0,1,2,2,2.0,1,1.0,45000,1.0
+2.0,26277,1.0,,0.0,3,11802,2017000505074,1.0,1,3.0,1,0,0,0,1,0,0,2,0,0,0,0,0,1,4.0,9.0,0,1,3,1.0,1,3.0,199000,3.0

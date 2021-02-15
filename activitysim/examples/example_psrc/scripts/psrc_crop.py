@@ -8,7 +8,7 @@ import argparse
 MAZ_OFFSET = 0
 
 segments = {
-    'test': (331, 358),  # north part of peninsula including university
+    'test': (331, 358),  # north part of peninsula including university (no HSENROLL but nice MAZ-TAZ distrib)
     'downtown': (339, 630),   # downtown seattle tazs (339 instead of 400 because need university)
     'seattle': (0, 857),  # seattle tazs
     'full': (0, 100000),
@@ -21,7 +21,7 @@ parser.add_argument('segment_name', metavar='segment_name', type=str, nargs=1,
 parser.add_argument('-c', '--check_geography',
                     default=False,
                     action='store_true',
-                    help='check consistency of MAZ, TAZ zone_ids and foreigh keys')
+                    help='check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file')
 
 args = parser.parse_args()
 
@@ -144,6 +144,17 @@ land_use = land_use[(land_use["TAZ"] >= taz_min) & (land_use["TAZ"] <= taz_max)]
 integerize_id_columns(land_use, 'land_use')
 land_use = land_use.sort_values('MAZ')
 
+# make sure we have some HSENROLL and COLLFTE, even for very for small samples
+if land_use['HSENROLL'].sum() == 0:
+    assert segment_name != 'full', f"land_use['HSENROLL'] is 0 for full sample!"
+    land_use['HSENROLL'] = land_use['AGE0519']
+    print(f"\nWARNING: land_use.HSENROLL is 0, so backfilled with AGE0519\n")
+
+if land_use['COLLFTE'].sum() == 0:
+    assert segment_name != 'full', f"land_use['COLLFTE'] is 0 for full sample!"
+    land_use['COLLFTE'] = land_use['HSENROLL']
+    print(f"\nWARNING: land_use.COLLFTE is 0, so backfilled with HSENROLL\n")
+
 # move MAZ and TAZ columns to front
 land_use = land_use[['MAZ', 'TAZ'] + [c for c in land_use.columns if c not in ['MAZ', 'TAZ']]]
 to_csv(land_use, "land_use.csv")
@@ -204,8 +215,9 @@ for file_name in ["maz_to_maz_walk.csv", "maz_to_maz_bike.csv"]:
 #
 # skims
 #
-omx_file_name = 'skims.omx'
-omx_in = omx.open_file(input_path(omx_file_name))
+omx_infile_name = 'skims.omx'
+
+omx_in = omx.open_file(input_path(omx_infile_name))
 print(f"omx_in shape {omx_in.shape()}")
 
 assert not omx_in.listMappings()
@@ -214,23 +226,29 @@ taz.index = taz.TAZ - 1
 tazs_indexes = taz.index.tolist()  # index of TAZ in skim (zero-based, no mapping)
 taz_labels = taz.TAZ.tolist()  # TAZ zone_ids in omx index order
 
+# create
+num_outfiles = 2
+if num_outfiles == 1:
+    omx_out = [omx.open_file(output_path(f"skims.omx"), 'w')]
+else:
+    omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
 
-omx_out = omx.open_file(output_path(omx_file_name), 'w')
+for omx_file in omx_out:
+    omx_file.create_mapping('ZONE', taz_labels)
 
-# write mapping
-omx_out.create_mapping('ZONE', taz_labels)
-
+iskim = 0
 for mat_name in omx_in.list_matrices():
 
     # make sure we have a vanilla numpy array, not a CArray
     m = np.asanyarray(omx_in[mat_name])
-
     m = m[tazs_indexes, :][:, tazs_indexes]
-
     print(f"{mat_name} {m.shape}")
 
-    omx_out[mat_name] = m
+    omx_file = omx_out[iskim % num_outfiles]
+    omx_file[mat_name] = m
+    iskim += 1
 
 
 omx_in.close()
-omx_out.close()
+for omx_file in omx_out:
+    omx_file.close()

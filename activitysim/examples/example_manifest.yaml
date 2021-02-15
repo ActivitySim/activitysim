@@ -303,3 +303,113 @@
     - example_mtc/configs_arc
     - example_mtc/output
     - example_mtc/README.MD
+
+- name: example_psrc
+  description: 27-TAZ 487-MAZ example for the PSRC region
+  # activitysim create -e example_psrc -d test_example_psrc
+  # activitysim run -c configs -o output -d data
+  instructions: |
+    \nTo run the example, cd into the directory and use the command:
+       cd example_psrc
+       activitysim run -c configs -o output -d data
+    To skip rerunning the accessibility calculations on subsequent runs,
+    copy the output file output/final_accessability.csv to the data folder
+       copy output\final_accessibility.csv data\final_acccessibility (on Windows)
+       cp output/final_accessibility.csv data/final_acccessibility  (on Mac or linux)
+    and then use the command:
+       activitysim run -c configs_skip_accessibility -c configs -o output -d data
+  include:
+    - example_psrc/configs
+    - example_psrc/configs_skip_accessibility
+    - example_psrc/data
+    - example_psrc/output
+    - example_psrc/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/skims1.omx
+      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/skims2.omx
+      data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/land_use.csv
+      data/land_use.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/maz_to_maz_walk.csv
+      data/maz_to_maz_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/maz_to_maz_bike.csv
+      data/maz_to_maz_bike.csv
+
+- name: example_psrc_downtown
+  description: 259-TAZ 2153-MAZ example for the PSRC region
+  # activitysim create -e example_psrc_downtown -d test_example_downtown
+  # activitysim run -c configs -o output -d data
+  include:
+    - example_psrc/configs
+    - example_psrc/configs_na
+    - example_psrc/data
+    - example_psrc/output
+    - example_psrc/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/skims1.omx
+      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/skims2.omx
+      data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/land_use.csv
+      data/land_use.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/maz_to_maz_walk.csv
+      data/maz_to_maz_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_downtown/maz_to_maz_bike.csv
+      data/maz_to_maz_bike.csv
+
+- name: example_psrc_seattle
+  description: 781-TAZ 8400-MAZ example for the PSRC region
+  # activitysim create -e example_psrc_seattle -d test_example_seattle
+  # activitysim run -c configs -o output -d data
+  include:
+    - example_psrc/configs
+    - example_psrc/configs_na
+    - example_psrc/data
+    - example_psrc/output
+    - example_psrc/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/skims1.omx
+      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/skims1.omx
+      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/land_use.csv
+      data/land_use.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/maz_to_maz_walk.csv
+      data/maz_to_maz_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_seattle/maz_to_maz_bike.csv
+      data/maz_to_maz_bike.csv
+
+- name: example_psrc_full
+  description: 3444-TAZ 43589-MAZ example for the PSRC region
+  # activitysim create -e example_psrc_full -d test_example_full
+  # activitysim run -c configs -o output -d data
+  include:
+    - example_psrc/configs
+    - example_psrc/configs_na
+    - example_psrc/data
+    - example_psrc/output
+    - example_psrc/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/skims1.omx
+      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/skims2.omx
+      data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/land_use.csv
+      data/land_use.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/maz_to_maz_walk.csv
+      data/maz_to_maz_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/maz_to_maz_bike.csv
+      data/maz_to_maz_bike.csv

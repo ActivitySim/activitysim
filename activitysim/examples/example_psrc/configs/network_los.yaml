@@ -7,7 +7,9 @@ write_skim_cache: True
 
 zone_system: 2
 
-taz_skims: skims.omx
+taz_skims:
+  - skims1.omx
+  - skims2.omx
 
 maz: maz.csv
 

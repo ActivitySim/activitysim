@@ -236,3 +236,11 @@ BLDGSZ,HHID,HHT,MAZ,NOC,PERSONS,PUMA5,SERIALNO,TENURE,UNITTYPE,VEHICL,bucketBin,
 2.0,24890,3.0,,0.0,3,11802,2017000950242,2.0,1,1.0,1,0,0,1,0,1,0,0,1,0,0,0,1,0,2.0,5.0,0,1,3,1.0,1,0.0,44900,1.0
 7.0,26138,3.0,,1.0,2,11802,2015001323987,3.0,1,1.0,1,1,0,0,0,1,0,0,0,0,0,0,1,0,2.0,5.0,1,2,2,2.0,1,1.0,45000,1.0
 2.0,26277,1.0,,0.0,3,11802,2017000505074,1.0,1,3.0,1,0,0,0,1,0,0,2,0,0,0,0,0,1,4.0,9.0,0,1,3,1.0,1,3.0,199000,3.0
+
+
+###
+##### data/maz_to_maz_bike.csv
+##### data/maz_to_maz_walk.csv
+###
+
+# these files are wrong - they were simply copied from the example_multiple_zone 2-zone example data for MTC

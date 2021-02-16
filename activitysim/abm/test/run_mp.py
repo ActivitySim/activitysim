@@ -5,6 +5,8 @@ import os
 import pandas as pd
 import pandas.testing as pdt
 
+from activitysim import abm  # register injectables
+
 from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import mp_tasks
@@ -16,22 +18,6 @@ HOUSEHOLDS_SAMPLE_SIZE = 100
 
 # household with mandatory, non mandatory, atwork_subtours, and joint tours
 HH_ID = 1396417
-
-#  [1081630 1396417 1511245 1594943 1747572 1931915 2222690 2366390 2727112]
-
-# def teardown_function(func):
-#     inject.clear_cache()
-#     inject.reinject_decorated_tables()
-#
-#
-# def close_handlers():
-#
-#     loggers = logging.Logger.manager.loggerDict
-#     for name in loggers:
-#         logger = logging.getLogger(name)
-#         logger.handlers = []
-#         logger.propagate = True
-#         logger.setLevel(logging.NOTSET)
 
 
 def regress_mini_auto():

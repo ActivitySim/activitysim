@@ -1,0 +1,118 @@
+inherit_settings: True
+
+# activitysim run -c configs_skip_accessibility -c configs -o output -d data
+
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      HHID: household_id
+      PERSONS: hhsize
+      workers: num_workers
+      VEHICL: auto_ownership
+      MAZ: home_zone_id
+    keep_columns:
+      - home_zone_id
+      - income
+      - hhsize
+      - HHT
+      - auto_ownership
+      - num_workers
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    rename_columns:
+      PERID: person_id
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+      - sex
+      - pemploy
+      - pstudent
+      - ptype
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      MAZ: zone_id
+      COUNTY: county_id
+    keep_columns:
+      - TAZ
+      - DISTRICT
+      - SD
+      - county_id
+      - TOTHH
+      - TOTPOP
+      - TOTACRE
+      - RESACRE
+      - CIACRE
+      - TOTEMP
+      - AGE0519
+      - RETEMPN
+      - FPSEMPN
+      - HEREMPN
+      - OTHEMPN
+      - AGREMPN
+      - MWTEMPN
+      - PRKCST
+      - OPRKCST
+      - area_type
+      - HSENROLL
+      - COLLFTE
+      - COLLPTE
+      - TOPOLOGY
+      - TERMINAL
+#      - access_dist_transit
+  - tablename: accessibility
+    filename: final_accessibility.csv
+    index_col: zone_id
+    keep_columns:
+      - auPkRetail
+      - auPkTotal
+      - auOpRetail
+      - auOpTotal
+      - trPkRetail
+      - trPkTotal
+      - trOpRetail
+      - trOpTotal
+      - nmRetail
+      - nmTotal
+
+
+models:
+  - initialize_landuse
+#  - compute_accessibility
+  - initialize_households
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - write_tables
+  # - track_skim_usage
+  # - write_trip_matrices

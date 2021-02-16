@@ -1,0 +1,19 @@
+METADATA:
+  CHOOSER: tours
+  INPUT:
+    persons:
+    trips:
+    tours:
+  OUTPUT:
+    trips:
+      - start_period
+      - end_period
+
+SPECIFICATION: trip_scheduling_choice.csv
+COEFFICIENTS: trip_scheduling_choice_coeff.csv
+
+PREPROCESSOR:
+  SPEC: trip_scheduling_choice_preprocessor
+  DF: tours
+  TABLES:
+    - trips

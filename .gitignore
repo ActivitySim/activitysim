@@ -67,4 +67,8 @@ docs/_build/
 # macOS
 *.DS_Store
 _test_est
-activitysim/examples/example_estimation/notebooks/test
+
+# activitysim conventions
+*_local/
+*_local.*
+

@@ -147,14 +147,14 @@ def read_model_coefficients(model_settings=None, file_name=None):
         raise
 
     if coefficients.index.duplicated().any():
-        print(coefficients[coefficients.index.duplicated()])
-        bug
-    assert not coefficients.index.duplicated().any()
+        logger.warning(f"duplicate coefficients in {file_path}\n"
+                       f"{coefficients[coefficients.index.duplicated(keep=False)]}")
+        raise RuntimeError(f"duplicate coefficients in {file_path}")
 
     if coefficients.value.isnull().any():
-        print(coefficients[coefficients.value.isnull()])
-        bug
-    assert not coefficients.value.isnull().any()
+        logger.warning(
+            f"null coefficients in {file_path}\n{coefficients[coefficients.value.isnull()]}")
+        raise RuntimeError(f"null coefficients in {file_path}")
 
     return coefficients
 
@@ -176,15 +176,28 @@ def spec_for_segment(model_settings, spec_id, segment_name, estimator):
         canonical spec file with expressions in index and single column with utility coefficients
     """
 
-    spec = read_model_spec(file_name=model_settings[spec_id])
-    coefficients = read_model_coefficients(model_settings)
+    spec_file_name = model_settings[spec_id]
+    spec = read_model_spec(file_name=spec_file_name)
 
     if len(spec.columns) > 1:
         # if spec is segmented
         spec = spec[[segment_name]]
     else:
         # otherwise we expect a single coefficient column
-        assert spec.columns[0] == 'coefficient'
+        # doesn't really matter what it is called, but this may catch errors
+        assert spec.columns[0] in ['coefficient', segment_name]
+
+    if 'COEFFICIENTS' not in model_settings:
+        logger.warning(f"no coefficient file specified in model_settings for {spec_file_name}")
+        try:
+            assert (spec.astype(float) == spec).all(axis=None)
+        except (ValueError, AssertionError):
+            raise RuntimeError(f"No coefficient file specified for {spec_file_name} "
+                               f"but not all spec column values are numeric")
+
+        return spec
+
+    coefficients = read_model_coefficients(model_settings)
 
     spec = eval_coefficients(spec, coefficients, estimator)
 
@@ -215,7 +228,10 @@ def read_model_coefficient_template(model_settings):
     # replace missing cell values with coefficient_name from index
     template = template.where(~template.isnull(), template.index)
 
-    assert not template.index.duplicated().any()
+    if template.index.duplicated().any():
+        dupes = template[template.index.duplicated(keep=False)].sort_index()
+        logger.warning(f"duplicate coefficient names in {coefficients_file_name}:\n{dupes}")
+        assert not template.index.duplicated().any()
 
     return template
 
@@ -439,10 +455,8 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         # data.shape = (len(spec), len(offsets))
         data = expression_values[:, offsets]
 
-        # index is utility expressions
-        index = spec.index.get_level_values(SPEC_LABEL_NAME) if isinstance(spec.index, pd.MultiIndex) else spec.index
-
-        expression_values_df = pd.DataFrame(data=data, index=index)
+        # index is utility expressions (and optional label if MultiIndex)
+        expression_values_df = pd.DataFrame(data=data, index=spec.index)
 
         if trace_column_names is not None:
             if isinstance(trace_column_names, str):

@@ -75,6 +75,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
     def to_series(x):
         if np.isscalar(x):
             return pd.Series([x] * len(df), index=df.index)
+        if isinstance(x, np.ndarray):
+            return pd.Series(x, index=df.index)
         return x
 
     if trace_rows is not None and trace_rows.any():
@@ -100,7 +102,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         assert alt_id in df.columns
         expression_values_df = df[[alt_id]]
 
-        # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
+        # FIXME estimation_requires_chooser_id_in_df_column
         # estimation requires that chooser_id is either in index or a column of interaction_dataset
         # so it can be reformatted (melted) and indexed by chooser_id and alt_id
         # we assume caller has this under control if index is named
@@ -272,7 +274,7 @@ def _interaction_simulate(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims is not None:
+    if skims is not None and alternatives.index.name not in alternatives:
         alternatives = alternatives.copy()
         alternatives[alternatives.index.name] = alternatives.index
 
@@ -305,8 +307,8 @@ def _interaction_simulate(
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
-    print(f"interaction_df {interaction_df.shape}")
-    print(f"interaction_utilities {interaction_utilities.shape}")
+    # print(f"interaction_df {interaction_df.shape}")
+    # print(f"interaction_utilities {interaction_utilities.shape}")
 
     del interaction_df
     chunk.log_df(trace_label, 'interaction_df', None)

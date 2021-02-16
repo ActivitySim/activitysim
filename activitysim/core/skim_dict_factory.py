@@ -101,7 +101,9 @@ class SkimInfo(object):
 
         """
 
-        self.omx_file_names = self.network_los.omx_file_names(skim_tag)
+        omx_file_names = self.network_los.omx_file_names(skim_tag)
+
+        self.omx_file_paths = config.expand_input_file_list(omx_file_names)
 
         # ignore any 3D skims not in skim_time_periods
         # specifically, load all skims except those with key2 not in dim3_tags_to_load
@@ -110,11 +112,9 @@ class SkimInfo(object):
 
         self.omx_manifest = {}  # dict mapping { omx_key: skim_name }
 
-        for omx_file_name in self.omx_file_names:
+        for omx_file_path in self.omx_file_paths:
 
-            omx_file_path = config.data_file_path(omx_file_name)
-
-            # logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
+            logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
             with omx.open_file(omx_file_path) as omx_file:
 
@@ -127,7 +127,7 @@ class SkimInfo(object):
                 for skim_name in omx_file.listMatrices():
                     assert skim_name not in self.omx_manifest, \
                         f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
-                    self.omx_manifest[skim_name] = omx_file_name
+                    self.omx_manifest[skim_name] = omx_file_path
 
                 for m in omx_file.listMappings():
                     if self.offset_map is None:
@@ -265,9 +265,8 @@ class AbstractSkimFactory(ABC):
         omx_keys = skim_info.omx_keys
         omx_manifest = skim_info.omx_manifest  # dict mapping { omx_key: skim_name }
 
-        for omx_file_name in skim_info.omx_file_names:
+        for omx_file_path in skim_info.omx_file_paths:
 
-            omx_file_path = config.data_file_path(omx_file_name)
             num_skims_loaded = 0
 
             logger.info(f"_read_skims_from_omx {omx_file_path}")
@@ -276,10 +275,10 @@ class AbstractSkimFactory(ABC):
             with omx.open_file(omx_file_path) as omx_file:
                 for skim_key, omx_key in omx_keys.items():
 
-                    if omx_manifest[omx_key] == omx_file_name:
+                    if omx_manifest[omx_key] == omx_file_path:
 
                         offset = skim_info.block_offsets[skim_key]
-                        logger.debug(f"_read_skims_from_omx file {omx_file_name} omx_key {omx_key} "
+                        logger.debug(f"_read_skims_from_omx file {omx_file_path} omx_key {omx_key} "
                                      f"skim_key {skim_key} to offset {offset}")
 
                         if skim_dictionary.ROW_MAJOR_LAYOUT:
@@ -293,7 +292,7 @@ class AbstractSkimFactory(ABC):
 
                         num_skims_loaded += 1
 
-            logger.info(f"_read_skims_from_omx loaded {num_skims_loaded} skims from {omx_file_name}")
+            logger.info(f"_read_skims_from_omx loaded {num_skims_loaded} skims from {omx_file_path}")
 
     def _open_existing_readonly_memmap_skim_cache(self, skim_info):
         """

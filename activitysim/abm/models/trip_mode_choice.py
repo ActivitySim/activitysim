@@ -20,8 +20,8 @@ from activitysim.core import los
 
 from activitysim.core.util import assign_in_place
 
-from .util import estimation
 from .util.mode import mode_choice_simulate
+from .util import estimation
 
 
 logger = logging.getLogger(__name__)

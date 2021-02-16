@@ -70,6 +70,9 @@ def memo(tag, console=False, disable_gc=True):
 
 
 class TVPBCache(object):
+    """
+    Transit virtual path builder cache for three zone systems
+    """
     def __init__(self, network_los, uid_calculator, cache_tag):
 
         # lightweight until opened
@@ -281,7 +284,9 @@ class TVPBCache(object):
 
 
 class TapTapUidCalculator(object):
-
+    """
+    Transit virtual path builder TAP to TAP unique ID calculator for three zone systems
+    """
     def __init__(self, network_los):
 
         self.network_los = network_los

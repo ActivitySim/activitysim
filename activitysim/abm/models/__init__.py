@@ -22,6 +22,7 @@ from . import mandatory_tour_frequency
 from . import non_mandatory_destination
 from . import non_mandatory_scheduling
 from . import non_mandatory_tour_frequency
+from . import parking_location_choice
 from . import stop_frequency
 from . import tour_mode_choice
 from . import trip_destination
@@ -29,5 +30,7 @@ from . import trip_mode_choice
 from . import trip_purpose
 from . import trip_purpose_and_destination
 from . import trip_scheduling
+from . import trip_departure_choice
+from . import trip_scheduling_choice
 from . import trip_matrices
 from . import summarize

@@ -16,7 +16,6 @@ from activitysim.core import pathbuilder
 from activitysim.core import mem
 from activitysim.core import tracing
 
-#
 from activitysim.core.skim_dict_factory import NumpyArraySkimFactory
 from activitysim.core.skim_dict_factory import MemMapSkimFactory
 
@@ -418,6 +417,7 @@ class Network_LOS(object):
     def multiprocess(self):
         """
         return True if this is a multiprocessing run (even if it is a main or single-process subprocess)
+
         Returns
         -------
             bool
@@ -597,4 +597,4 @@ class Network_LOS(object):
             return self.skim_time_periods['labels'][bin]
 
         return pd.cut(time_period, self.skim_time_periods['periods'],
-                      labels=self.skim_time_periods['labels'], right=True).astype(str)
+                      labels=self.skim_time_periods['labels'], ordered=False).astype(str)

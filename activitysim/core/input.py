@@ -22,7 +22,7 @@ def canonical_table_index_name(table_name):
     return table_index_names and table_index_names.get(table_name, None)
 
 
-def read_input_table(tablename):
+def read_input_table(tablename, required=True):
     """Reads input table name and returns cleaned DataFrame.
 
     Uses settings found in input_table_list in global settings file
@@ -43,10 +43,14 @@ def read_input_table(tablename):
         if info['tablename'] == tablename:
             table_info = info
 
-    assert table_info is not None, \
-        f"could not find info for for tablename {tablename} in settings file"
+    if table_info is not None:
+        df = read_from_table_info(table_info)
+    else:
+        if required:
+            raise RuntimeError(f"could not find info for for tablename {tablename} in settings file")
+        df = None
 
-    return read_from_table_info(table_info)
+    return df
 
 
 def read_from_table_info(table_info):
@@ -84,6 +88,7 @@ def read_from_table_info(table_info):
     column_map = table_info.get('column_map', None)
     keep_columns = table_info.get('keep_columns', None)
     rename_columns = table_info.get('rename_columns', None)
+    csv_dtypes = table_info.get('dtypes', {})
 
     # don't require a redundant index_col directive for canonical tables
     # but allow explicit disabling of assignment of index col for canonical tables, in which case, presumably,
@@ -116,7 +121,7 @@ def read_from_table_info(table_info):
 
     data_file_path = config.data_file_path(data_filename)
 
-    df = _read_input_file(data_file_path, h5_tablename=h5_tablename)
+    df = _read_input_file(data_file_path, h5_tablename=h5_tablename, csv_dtypes=csv_dtypes)
 
     # logger.debug('raw %s table columns: %s' % (tablename, df.columns.values))
     logger.debug('raw %s table size: %s' % (tablename, util.df_size(df)))
@@ -151,6 +156,11 @@ def read_from_table_info(table_info):
     if index_col is not None:
         if index_col in df.columns:
             assert not df.duplicated(index_col).any()
+            if canonical_index_col:
+                # we expect canonical indexes to be integer-valued
+                assert (df[index_col] == df[index_col].astype(int)).all(), \
+                    f"Index col '{index_col}' has non-integer values"
+                df[index_col] = df[index_col].astype(int)
             df.set_index(index_col, inplace=True)
         else:
             # FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?
@@ -180,11 +190,11 @@ def read_from_table_info(table_info):
     return df
 
 
-def _read_input_file(filepath, h5_tablename=None):
+def _read_input_file(filepath, h5_tablename=None, csv_dtypes=None):
     assert os.path.exists(filepath), 'input file not found: %s' % filepath
 
     if filepath.endswith('.csv'):
-        return _read_csv_with_fallback_encoding(filepath)
+        return _read_csv_with_fallback_encoding(filepath, csv_dtypes)
 
     if filepath.endswith('.h5'):
         assert h5_tablename is not None, 'must provide a tablename to read HDF5 table'
@@ -196,7 +206,7 @@ def _read_input_file(filepath, h5_tablename=None):
         'ActivitySim supports CSV and HDF5 files only' % filepath)
 
 
-def _read_csv_with_fallback_encoding(filepath):
+def _read_csv_with_fallback_encoding(filepath, dtypes=None):
     """read a CSV to a pandas DataFrame using default utf-8 encoding,
     but try alternate Windows-compatible cp1252 if unicode fails
 
@@ -204,8 +214,15 @@ def _read_csv_with_fallback_encoding(filepath):
 
     try:
         logger.info('Reading CSV file %s' % filepath)
-        return pd.read_csv(filepath, comment='#')
+        df = pd.read_csv(filepath, comment='#', dtype=dtypes)
     except UnicodeDecodeError:
         logger.warning(
             'Reading %s with default utf-8 encoding failed, trying cp1252 instead', filepath)
-        return pd.read_csv(filepath, comment='#', encoding='cp1252')
+        df = pd.read_csv(filepath, comment='#', encoding='cp1252', dtype=dtypes)
+
+    if dtypes:
+        # although the dtype argument suppresses the DtypeWarning, it does not coerce recognized types (e.g. int)
+        for c, dtype in dtypes.items():
+            df[c] = df[c].astype(dtype)
+
+    return df

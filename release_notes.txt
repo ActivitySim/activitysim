@@ -1,0 +1,33 @@
+
+	modified:   configs/atwork_subtour_destination.csv
+	modified:   configs/atwork_subtour_destination.yaml
+	modified:   configs/atwork_subtour_destination_sample.csv
+
+###
+### atwork_subtour_destination.yaml
+###
+
+# modified: new required settings
+# severity: FutureWarning
+# action:   add settings to model_settings file
+
+SIZE_TERM_SELECTOR: atwork
+
+SEGMENTS:
+  - atwork
+
+ORIG_ZONE_ID: workplace_zone_id
+
+###
+### atwork_subtour_destination_sample.csv
+### atwork_subtour_destination.csv
+###
+
+# modified: size_term column renamed from 'atwork' to 'size_term'
+# severity: Exception
+# action:   change 'atwork' column references to 'size_term' in expression files
+
+# util_size_variable_atwork,Size variable atwork,"@df['atwork'].apply(np.log1p)",coef_size_variable_atwork
+# util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",atwork==0,coef_no_attractions_atwork_size_variable_is_0
+util_size_variable_atwork,atwork size_term variable,"@df['size_term'].apply(np.log1p)",coef_size_variable_atwork
+util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size_term variable is 0",size_term==0,coef_no_attractions_atwork_size_variable_is_0

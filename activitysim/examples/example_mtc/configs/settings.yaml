@@ -8,9 +8,10 @@
 # in the same subprocess pipeline. The same strategy is also when chunking choosers, and to support tracing by
 # household_id.
 #
-# You cannot change the well-known name of the index. However, if your input file has a different id column name,
-# you can rename it to the required index name with the rename_columns directive.
-# In the settings below, the 'TAZ' column in the imported table is renamed 'TAZ' in the rename_columns settings.
+# the input_table_list index_col directive instructs activitysim to set the imported table index to zone_id
+# you cannot change the well-known name of the index by modifying this directive. However, if your input file
+# has a different id column name, you can rename it to the required index name with the rename_columns directive.
+# In the settings below, the 'TAZ' column in the imported table is renamed 'zone_id' in the rename_columns settings.
 #
 input_table_list:
   #
@@ -18,6 +19,7 @@ input_table_list:
   #
   - tablename: households
     filename: households.csv
+    index_col: household_id
     rename_columns:
       HHID: household_id  # household_id is the required index column
       PERSONS: hhsize
@@ -36,6 +38,7 @@ input_table_list:
   #
   - tablename: persons
     filename: persons.csv
+    index_col: person_id
     rename_columns:
       PERID: person_id  # person_id is the required index column
     keep_columns:
@@ -51,12 +54,9 @@ input_table_list:
   #
   - tablename: land_use
     filename: land_use.csv
+    index_col: zone_id
     rename_columns:
-      # zone_id is the required index column
-      # providing two possible mappings to zone_id allows accepts ZONE or TAZ column name in input file
-      # (but if both columns are present, will throw error)
-      ZONE: zone_id
-      TAZ: zone_id
+      TAZ: zone_id  # person_id is the required index column
       COUNTY: county_id
     keep_columns:
       - DISTRICT
@@ -116,7 +116,7 @@ want_dest_choice_sample_tables: False
 # trace household id; comment out or leave empty for no trace
 # households with all tour types
 #  [ 728370 1234067 1402924 1594625 1595333 1747572 1896849 1931818 2222690 2344951 2677154]
-#trace_hh_id: 2223759
+trace_hh_id:
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
 # trace_od: [5, 11]

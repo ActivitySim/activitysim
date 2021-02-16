@@ -13,15 +13,24 @@ from .general import (
     explicit_value_parameters,
     apply_coefficients,
     clean_values,
-    simple_simulate_data,
 )
+from .simple_simulate import simple_simulate_data, construct_availability
 from larch import Model, DataFrames, P, X
 
 
-def tour_mode_choice_model(
-    edb_directory="output/estimation_data_bundle/{name}/", return_data=False,
+def mode_choice_model(
+        name,
+        edb_directory="output/estimation_data_bundle/{name}/",
+        return_data=False,
+        override_filenames=None,
 ):
-    data = simple_simulate_data(name="tour_mode_choice", edb_directory=edb_directory,)
+    if override_filenames is None:
+        override_filenames = {}
+    data = simple_simulate_data(
+        name=name,
+        edb_directory=edb_directory,
+        **override_filenames,
+    )
     coefficients = data.coefficients
     coef_template = data.coef_template
     spec = data.spec
@@ -30,7 +39,6 @@ def tour_mode_choice_model(
 
     chooser_data = clean_values(
         chooser_data,
-        data.alt_names,
         alt_names_to_codes=data.alt_names_to_codes,
         choice_code="override_choice_code",
     )
@@ -38,9 +46,13 @@ def tour_mode_choice_model(
     tree = construct_nesting_tree(data.alt_names, settings["NESTS"])
 
     purposes = list(coef_template.columns)
+    if "atwork" in name:
+        purposes = ['atwork']
+    elif 'atwork' in purposes:
+        purposes.remove('atwork')
 
     # Setup purpose specific models
-    m = {purpose: Model(graph=tree) for purpose in purposes}
+    m = {purpose: Model(graph=tree, title=purpose) for purpose in purposes}
     for alt_code, alt_name in tree.elemental_names().items():
         # Read in base utility function for this alt_name
         u = linear_utility_from_spec(
@@ -58,31 +70,20 @@ def tour_mode_choice_model(
         explicit_value_parameters(model)
     apply_coefficients(coefficients, m)
 
-    avail = {}
-    for acode, aname in data.alt_codes_to_names.items():
-        unavail_cols = list(
-            (
-                chooser_data[i.data]
-                if i.data in chooser_data
-                else chooser_data.eval(i.data)
-            )
-            for i in m[purposes[0]].utility_co[acode]
-            if i.param == "-999"
-        )
-        if len(unavail_cols):
-            avail[acode] = sum(unavail_cols) == 0
-        else:
-            avail[acode] = 1
-    avail = pd.DataFrame(avail).astype(np.int8)
-    avail.index = chooser_data.index
+    avail = construct_availability(m[purposes[0]], chooser_data, data.alt_codes_to_names)
 
     d = DataFrames(
         co=chooser_data, av=avail, alt_codes=data.alt_codes, alt_names=data.alt_names,
     )
 
-    for purpose, model in m.items():
-        model.dataservice = d.selector_co(f"tour_type=='{purpose}'")
-        model.choice_co_code = "override_choice_code"
+    if 'atwork' not in name:
+        for purpose, model in m.items():
+            model.dataservice = d.selector_co(f"tour_type=='{purpose}'")
+            model.choice_co_code = "override_choice_code"
+    else:
+        for purpose, model in m.items():
+            model.dataservice = d
+            model.choice_co_code = "override_choice_code"
 
     from larch.model.model_group import ModelGroup
 
@@ -98,7 +99,47 @@ def tour_mode_choice_model(
                 coefficients=coefficients,
                 coef_template=coef_template,
                 spec=spec,
+                settings=settings,
             ),
         )
 
     return mg
+
+
+def tour_mode_choice_model(
+    name="tour_mode_choice",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return mode_choice_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+    )
+
+
+def trip_mode_choice_model(
+    name="trip_mode_choice",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return mode_choice_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+    )
+
+
+def atwork_subtour_mode_choice_model(
+    name="atwork_subtour_mode_choice",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return mode_choice_model(
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
+        override_filenames=dict(
+            coefficients_file="tour_mode_choice_coefficients.csv",
+        )
+    )

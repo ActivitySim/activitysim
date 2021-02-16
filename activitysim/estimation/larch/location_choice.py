@@ -32,21 +32,24 @@ def size_coefficients_from_spec(size_spec):
 
 
 def location_choice_model(
-    model_selector="workplace",
-    edb_directory="output/estimation_data_bundle/{model_selector}_location/",
-    coefficients_file="{model_selector}_location_coefficients.csv",
-    spec_file="{model_selector}_location_SPEC.csv",
-    size_spec_file="{model_selector}_location_size_terms.csv",
-    alt_values_file="{model_selector}_location_alternatives_combined.csv",
-    chooser_file="{model_selector}_location_choosers_combined.csv",
-    settings_file="{model_selector}_location_model_settings.yaml",
-    landuse_file="{model_selector}_location_landuse.csv",
+    name="workplace_location",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    coefficients_file="{name}_coefficients.csv",
+    spec_file="{name}_SPEC.csv",
+    size_spec_file="{name}_size_terms.csv",
+    alt_values_file="{name}_alternatives_combined.csv",
+    chooser_file="{name}_choosers_combined.csv",
+    settings_file="{name}_model_settings.yaml",
+    landuse_file="{name}_landuse.csv",
     return_data=False,
 ):
-    edb_directory = edb_directory.format(model_selector=model_selector)
+    model_selector = name.replace("_location","")
+    model_selector = model_selector.replace("_destination","")
+    model_selector = model_selector.replace("_subtour","")
+    edb_directory = edb_directory.format(name=name)
 
     def _read_csv(filename, **kwargs):
-        filename = filename.format(model_selector=model_selector)
+        filename = filename.format(name=name)
         return pd.read_csv(os.path.join(edb_directory, filename), **kwargs)
 
     coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
@@ -56,11 +59,11 @@ def location_choice_model(
     landuse = _read_csv(landuse_file, index_col="zone_id")
     master_size_spec = _read_csv(size_spec_file)
 
-    settings_file = settings_file.format(model_selector=model_selector)
+    settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
         settings = yaml.load(yf, Loader=yaml.SafeLoader,)
-    CHOOSER_SEGMENT_COLUMN_NAME = settings["CHOOSER_SEGMENT_COLUMN_NAME"]
-    SEGMENT_IDS = settings["SEGMENT_IDS"]
+    CHOOSER_SEGMENT_COLUMN_NAME = settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
+    SEGMENT_IDS = settings.get("SEGMENT_IDS")
 
     # filter size spec for this location choice only
     size_spec = (
@@ -72,22 +75,24 @@ def location_choice_model(
 
     size_coef = size_coefficients_from_spec(size_spec)
 
+    indexes_to_drop = [
+        "util_size_variable",         # pre-computed size (will be re-estimated)
+        "util_size_variable_atwork",  # pre-computed size (will be re-estimated)
+        "util_utility_adjustment",    # shadow pricing (ignored in estimation)
+    ]
+    indexes_to_drop = [i for i in indexes_to_drop if i in spec.Label.to_numpy()]
+
     # Remove shadow pricing and pre-existing size expression for re-estimation
     spec = (
         spec.set_index("Label")
-        .drop(
-            index=[
-                "util_size_variable",  # pre-computed size (will be re-estimated)
-                "util_utility_adjustment",  # shadow pricing (ignored in estimation)
-            ]
-        )
+        .drop(index=indexes_to_drop)
         .reset_index()
     )
 
     m = Model()
     if len(spec.columns) == 4:  # ['Label', 'Description', 'Expression', 'coefficient']
         m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col="coefficient", ignore_x=("local_dist",),
+            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
         )
     else:
         m.utility_ca = linear_utility_from_spec(
@@ -98,24 +103,37 @@ def location_choice_model(
             segment_id=CHOOSER_SEGMENT_COLUMN_NAME,
         )
 
-    m.quantity_ca = sum(
-        P(f"{i}_{q}") * X(q) * X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={SEGMENT_IDS[i]}")
-        for i in size_spec.index
-        for q in size_spec.columns
-        if size_spec.loc[i, q] != 0
-    )
+    if CHOOSER_SEGMENT_COLUMN_NAME is None:
+        assert len(size_spec) == 1
+        m.quantity_ca = sum(
+            P(f"{i}_{q}") * X(q)
+            for i in size_spec.index
+            for q in size_spec.columns
+            if size_spec.loc[i, q] != 0
+        )
+    else:
+        m.quantity_ca = sum(
+            P(f"{i}_{q}") * X(q) * X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={SEGMENT_IDS[i]}")
+            for i in size_spec.index
+            for q in size_spec.columns
+            if size_spec.loc[i, q] != 0
+        )
 
     apply_coefficients(coefficients, m)
     apply_coefficients(size_coef, m, minimum=-6, maximum=6)
 
-    x_co = chooser_data.set_index("person_id")
-    x_ca = cv_to_ca(alt_values.set_index(["person_id", "variable"]))
+    chooser_index_name = chooser_data.columns[0]
+    x_co = chooser_data.set_index(chooser_index_name)
+    x_ca = cv_to_ca(alt_values.set_index([chooser_index_name, alt_values.columns[1]]))
 
-    # label segments with names
-    SEGMENT_IDS_REVERSE = {v: k for k, v in SEGMENT_IDS.items()}
-    x_co["_segment_label"] = x_co[CHOOSER_SEGMENT_COLUMN_NAME].apply(
-        lambda x: SEGMENT_IDS_REVERSE[x]
-    )
+    if CHOOSER_SEGMENT_COLUMN_NAME is not None:
+        # label segments with names
+        SEGMENT_IDS_REVERSE = {v: k for k, v in SEGMENT_IDS.items()}
+        x_co["_segment_label"] = x_co[CHOOSER_SEGMENT_COLUMN_NAME].apply(
+            lambda x: SEGMENT_IDS_REVERSE[x]
+        )
+    else:
+        x_co["_segment_label"] = size_spec.index[0]
 
     # compute total size values by segment
     for segment in size_spec.index:
@@ -139,7 +157,7 @@ def location_choice_model(
     # Remove choosers with invalid observed choice (appropriate total size value = 0)
     valid_observed_zone = x_co["total_size_segment"] > 0
     x_co = x_co[valid_observed_zone]
-    x_ca = x_ca[x_ca.index.get_level_values("person_id").isin(x_co.index)]
+    x_ca = x_ca[x_ca.index.get_level_values(chooser_index_name).isin(x_co.index)]
 
     # Merge land use characteristics into CA data
     x_ca_1 = pd.merge(x_ca, landuse, on="zone_id", how="left")
@@ -200,3 +218,24 @@ def update_size_spec(model, data, result_dir=Path('.'), output_file=None):
         )
 
     return master_size_spec
+
+
+def workplace_location_model(return_data=False):
+    return location_choice_model(
+        name="workplace_location",
+        return_data=return_data,
+    )
+
+
+def school_location_model(return_data=False):
+    return location_choice_model(
+        name="school_location",
+        return_data=return_data,
+    )
+
+
+def atwork_subtour_destination_model(return_data=False):
+    return location_choice_model(
+        name="atwork_subtour_destination",
+        return_data=return_data,
+    )

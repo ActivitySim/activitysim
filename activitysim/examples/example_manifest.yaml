@@ -358,6 +358,7 @@
   include:
     - example_psrc/configs
     - example_psrc/configs_skip_accessibility
+    - example_psrc/configs_accessibility
     - example_psrc/data
     - example_psrc/output
     - example_psrc/README.MD
@@ -395,6 +396,7 @@
   include:
     - example_psrc/configs
     - example_psrc/configs_skip_accessibility
+    - example_psrc/configs_accessibility
     - example_psrc/data
     - example_psrc/output
     - example_psrc/README.MD

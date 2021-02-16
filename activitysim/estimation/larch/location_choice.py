@@ -13,6 +13,7 @@ from .general import (
     explicit_value_parameters,
     apply_coefficients,
     cv_to_ca,
+    str_repr,
 )
 from larch import Model, DataFrames, P, X
 
@@ -46,6 +47,7 @@ def location_choice_model(
     model_selector = name.replace("_location","")
     model_selector = model_selector.replace("_destination","")
     model_selector = model_selector.replace("_subtour","")
+    model_selector = model_selector.replace("_tour","")
     edb_directory = edb_directory.format(name=name)
 
     def _read_csv(filename, **kwargs):
@@ -62,8 +64,19 @@ def location_choice_model(
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
         settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+
+    include_settings = settings.get("include_settings")
+    if include_settings:
+        with open(os.path.join(edb_directory, include_settings), "r") as yf:
+            more_settings = yaml.load(yf, Loader=yaml.SafeLoader, )
+        settings.update(more_settings)
+
     CHOOSER_SEGMENT_COLUMN_NAME = settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
     SEGMENT_IDS = settings.get("SEGMENT_IDS")
+    if SEGMENT_IDS is None:
+        SEGMENTS = settings.get("SEGMENTS")
+        if SEGMENTS is not None:
+            SEGMENT_IDS = {i:i for i in SEGMENTS}
 
     # filter size spec for this location choice only
     size_spec = (
@@ -76,28 +89,56 @@ def location_choice_model(
     size_coef = size_coefficients_from_spec(size_spec)
 
     indexes_to_drop = [
-        "util_size_variable",         # pre-computed size (will be re-estimated)
-        "util_size_variable_atwork",  # pre-computed size (will be re-estimated)
-        "util_utility_adjustment",    # shadow pricing (ignored in estimation)
+        "util_size_variable",               # pre-computed size (will be re-estimated)
+        "util_size_variable_atwork",        # pre-computed size (will be re-estimated)
+        "util_utility_adjustment",          # shadow pricing (ignored in estimation)
+        "@df['size_term'].apply(np.log1p)", # pre-computed size (will be re-estimated)
     ]
-    indexes_to_drop = [i for i in indexes_to_drop if i in spec.Label.to_numpy()]
+    if 'Label' in spec.columns:
+        indexes_to_drop = [i for i in indexes_to_drop if i in spec.Label.to_numpy()]
+        label_column_name = 'Label'
+    elif 'Expression' in spec.columns:
+        indexes_to_drop = [i for i in indexes_to_drop if i in spec.Expression.to_numpy()]
+        label_column_name = 'Expression'
+    else:
+        raise ValueError("cannot find Label or Expression in spec file")
+
+    expression_labels = None
+    if label_column_name == 'Expression':
+        expression_labels = {
+            expr: f"variable_label{n:04d}"
+            for n, expr in enumerate(spec.Expression.to_numpy())
+        }
 
     # Remove shadow pricing and pre-existing size expression for re-estimation
     spec = (
-        spec.set_index("Label")
+        spec.set_index(label_column_name)
         .drop(index=indexes_to_drop)
         .reset_index()
     )
 
+    if label_column_name == 'Expression':
+        spec.insert(0, "Label", spec['Expression'].map(expression_labels))
+        alt_values['variable'] = alt_values['variable'].map(expression_labels)
+        label_column_name = "Label"
+
+
     m = Model()
-    if len(spec.columns) == 4:  # ['Label', 'Description', 'Expression', 'coefficient']
+    if len(spec.columns) == 4 and all(spec.columns == ['Label', 'Description', 'Expression', 'coefficient']):
+        m.utility_ca = linear_utility_from_spec(
+            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+        )
+    elif len(spec.columns) == 4 \
+            and all(spec.columns[:3] == ['Label', 'Description', 'Expression']) \
+            and len(SEGMENT_IDS) == 1 \
+            and spec.columns[3] == list(SEGMENT_IDS.values())[0]:
         m.utility_ca = linear_utility_from_spec(
             spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
         )
     else:
         m.utility_ca = linear_utility_from_spec(
             spec,
-            x_col="Label",
+            x_col=label_column_name,
             p_col=SEGMENT_IDS,
             ignore_x=("local_dist",),
             segment_id=CHOOSER_SEGMENT_COLUMN_NAME,
@@ -113,7 +154,7 @@ def location_choice_model(
         )
     else:
         m.quantity_ca = sum(
-            P(f"{i}_{q}") * X(q) * X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={SEGMENT_IDS[i]}")
+            P(f"{i}_{q}") * X(q) * X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={str_repr(SEGMENT_IDS[i])}")
             for i in size_spec.index
             for q in size_spec.columns
             if size_spec.loc[i, q] != 0
@@ -160,13 +201,23 @@ def location_choice_model(
     x_ca = x_ca[x_ca.index.get_level_values(chooser_index_name).isin(x_co.index)]
 
     # Merge land use characteristics into CA data
-    x_ca_1 = pd.merge(x_ca, landuse, on="zone_id", how="left")
+    try:
+        x_ca_1 = pd.merge(x_ca, landuse, on="zone_id", how="left")
+    except KeyError:
+        # Missing the zone_id variable?
+        # Use the alternative id's instead, which assumes no sampling of alternatives
+        x_ca_1 = pd.merge(x_ca, landuse, left_on=x_ca.index.get_level_values(1), right_index=True, how="left")
     x_ca_1.index = x_ca.index
 
     # Availability of choice zones
-    av = x_ca_1["util_no_attractions"].apply(lambda x: False if x == 1 else True)
+    if "util_no_attractions" in x_ca_1:
+        av = x_ca_1["util_no_attractions"].apply(lambda x: False if x == 1 else True).astype(np.int8)
+    elif "@df['size_term']==0" in x_ca_1:
+        av = x_ca_1["@df['size_term']==0"].apply(lambda x: False if x == 1 else True).astype(np.int8)
+    else:
+        av = 1
 
-    d = DataFrames(co=x_co, ca=x_ca_1, av=av,)
+    d = DataFrames(co=x_co, ca=x_ca_1, av=av)
     m.dataservice = d
     m.choice_co_code = "override_choice"
 
@@ -239,3 +290,21 @@ def atwork_subtour_destination_model(return_data=False):
         name="atwork_subtour_destination",
         return_data=return_data,
     )
+
+
+def joint_tour_destination_model(return_data=False):
+    # goes with non_mandatory_tour_destination
+    return location_choice_model(
+        name="joint_tour_destination",
+        coefficients_file="non_mandatory_tour_destination_coefficients.csv",
+        return_data=return_data,
+    )
+
+
+def non_mandatory_tour_destination_model(return_data=False):
+    # goes with joint_tour_destination
+    return location_choice_model(
+        name="non_mandatory_tour_destination",
+        return_data=return_data,
+    )
+

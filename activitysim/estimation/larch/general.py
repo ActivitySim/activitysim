@@ -92,6 +92,12 @@ def prevent_overlapping_column_names(x_ca, x_co):
     return x_ca, x_co
 
 
+def str_repr(x):
+    if isinstance(x, str):
+        return repr(x)
+    return x
+
+
 def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
     """
     Create a linear function from a spec DataFrame.
@@ -129,7 +135,7 @@ def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
         for seg_p_col, segval in p_col.items():
             partial_utility[seg_p_col] = linear_utility_from_spec(
                 spec, x_col, seg_p_col, ignore_x,
-            ) * X(f"{segment_id}=={segval}")
+            ) * X(f"{segment_id}=={str_repr(segval)}")
         return sum(partial_utility.values())
     parts = []
     for i in spec.index:

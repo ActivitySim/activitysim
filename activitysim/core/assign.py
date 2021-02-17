@@ -13,7 +13,7 @@ from activitysim.core import util
 from activitysim.core import config
 from activitysim.core import expressions
 from activitysim.core import pipeline
-from activitysim.core import inject
+from activitysim.core import chunk
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +158,20 @@ def local_utilities():
     return utility_dict
 
 
-def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, trace_rows=None, trace_label=None):
+def is_throwaway(target):
+    return target == '_'
+
+
+def is_temp_scalar(target):
+    return target.startswith('_') and target.isupper()
+
+
+def is_temp(target):
+    return target.startswith('_')
+
+
+def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
+                     trace_rows=None, trace_label=None, chunk_log=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -200,15 +213,6 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
 
     np_logger = NumpyLogger(logger)
 
-    def is_throwaway(target):
-        return target == '_'
-
-    def is_temp_scalar(target):
-        return target.startswith('_') and target.isupper()
-
-    def is_temp(target):
-        return target.startswith('_')
-
     def to_series(x):
         if x is None or np.isscalar(x):
             return pd.Series([x] * len(df.index), index=df.index)
@@ -238,6 +242,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     # build a dataframe of eval results for non-temp targets
     # since we allow targets to be recycled, we want to only keep the last usage
     variables = OrderedDict()
+    temps = OrderedDict()
 
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
@@ -266,6 +271,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
                 _locals_dict[target] = x
                 if trace_assigned_locals is not None:
                     trace_assigned_locals[uniquify_key(trace_assigned_locals, target)] = x
+
             continue
 
         try:
@@ -292,11 +298,14 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             logger.exception(f"assign_variables - {type(err).__name__} ({str(err)}) evaluating: {str(expression)}")
             raise err
 
-        if not is_temp(target):
-            variables[target] = expr_values
-
         if trace_results is not None:
             trace_results[uniquify_key(trace_results, target)] = expr_values[trace_rows]
+
+        # just keeping track of temps so we can chunk.log_df
+        if is_temp(target):
+            temps[target] = expr_values
+        else:
+            variables[target] = expr_values
 
         # update locals to allows us to ref previously assigned targets
         _locals_dict[target] = expr_values
@@ -311,6 +320,13 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         trace_results = pd.concat([df[trace_rows], trace_results], axis=1)
 
     assert variables, "No non-temp variables were assigned."
+
+    if chunk_log:
+        chunk.log_df(trace_label, 'temps', temps)
+        chunk.log_df(trace_label, 'variables', variables)
+        # these are going away - let caller log result df
+        chunk.log_df(trace_label, 'temps', None)
+        chunk.log_df(trace_label, 'variables', None)
 
     # we stored result in dict - convert to df
     variables = util.df_from_dict(variables, index=df.index)

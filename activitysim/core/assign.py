@@ -171,9 +171,11 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     lowercase variables starting with underscore are temp variables (e.g. _local_var)
     and not returned except in trace_results
 
-    uppercase variables starting with underscore are temp scalar variables (e.g. _LOCAL_SCALAR)
+    uppercase variables starting with underscore are temp singular variables (e.g. _LOCAL_SCALAR)
     and not returned except in trace_assigned_locals
-    This is useful for defining general purpose local constants in expression file
+    This is useful for defining general purpose local variables that don't vary across
+    choosers or alternatives and therefore don't need to be stored as series/columns
+    in the main choosers dataframe from which utilities are computed.
 
     Users should take care that expressions (other than temp scalar variables) should result in
     a Pandas Series (scalars will be automatically promoted to series.)
@@ -203,10 +205,10 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
     def is_throwaway(target):
         return target == '_'
 
-    def is_temp_scalar(target):
+    def is_temp_singular(target):
         return target.startswith('_') and target.isupper()
 
-    def is_temp(target):
+    def is_temp_series_val(target):
         return target.startswith('_')
 
     def to_series(x):
@@ -251,7 +253,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
         if target in local_keys:
             logger.warning("assign_variables target obscures local_d name '%s'", str(target))
 
-        if is_temp_scalar(target) or is_throwaway(target):
+        if is_temp_singular(target) or is_throwaway(target):
             try:
                 x = eval(expression, globals(), _locals_dict)
             except Exception as err:
@@ -289,7 +291,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None, tra
             logger.exception(f"assign_variables - {type(err).__name__} ({str(err)}) evaluating: {str(expression)}")
             raise err
 
-        if not is_temp(target):
+        if not is_temp_series_val(target):
             variables[target] = expr_values
 
         if trace_results is not None:

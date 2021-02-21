@@ -15,99 +15,92 @@ from activitysim.core import expressions
 from activitysim.core.util import assign_in_place
 from activitysim.core.util import reindex
 
+from .util import trip
+
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable()
-def stop_frequency_alts():
-    # alt file for building trips even though simulation is simple_simulate not interaction_simulate
-    file_path = config.config_file_path('stop_frequency_alternatives.csv')
-    df = pd.read_csv(file_path, comment='#')
-    df.set_index('alt', inplace=True)
-    return df
+# def process_trips(tours, stop_frequency_alts):
 
+#     MAX_TRIPS_PER_LEG = 4  # max number of trips per leg (inbound or outbound) of tour
+#     OUTBOUND_ALT = 'out'
+#     assert OUTBOUND_ALT in stop_frequency_alts.columns
 
-def process_trips(tours, stop_frequency_alts):
+#     # get the actual alternatives for each person - have to go back to the
+#     # stop_frequency_alts dataframe to get this - the stop_frequency choice
+#     # column has the index values for the chosen alternative
 
-    MAX_TRIPS_PER_LEG = 4  # max number of trips per leg (inbound or outbound) of tour
-    OUTBOUND_ALT = 'out'
-    assert OUTBOUND_ALT in stop_frequency_alts.columns
+#     trips = stop_frequency_alts.loc[tours.stop_frequency]
 
-    # get the actual alternatives for each person - have to go back to the
-    # stop_frequency_alts dataframe to get this - the stop_frequency choice
-    # column has the index values for the chosen alternative
+#     # assign tour ids to the index
+#     trips.index = tours.index
 
-    trips = stop_frequency_alts.loc[tours.stop_frequency]
+#     """
 
-    # assign tour ids to the index
-    trips.index = tours.index
+#     ::
 
-    """
+#       tours.stop_frequency    =>    proto trips table
+#       ________________________________________________________
+#                 stop_frequency      |                out  in
+#       tour_id                       |     tour_id
+#       954910          1out_1in      |     954910       1   1
+#       985824          0out_1in      |     985824       0   1
+#     """
 
-    ::
+#     # reformat with the columns given below
+#     trips = trips.stack().reset_index()
+#     trips.columns = ['tour_id', 'direction', 'trip_count']
 
-      tours.stop_frequency    =>    proto trips table
-      ________________________________________________________
-                stop_frequency      |                out  in
-      tour_id                       |     tour_id
-      954910          1out_1in      |     954910       1   1
-      985824          0out_1in      |     985824       0   1
-    """
+#     # tours legs have one more leg than stop
+#     trips.trip_count += 1
 
-    # reformat with the columns given below
-    trips = trips.stack().reset_index()
-    trips.columns = ['tour_id', 'direction', 'trip_count']
+#     # prefer direction as boolean
+#     trips['outbound'] = trips.direction == OUTBOUND_ALT
 
-    # tours legs have one more leg than stop
-    trips.trip_count += 1
+#     """
+#            tour_id direction  trip_count  outbound
+#     0       954910       out           2      True
+#     1       954910        in           2     False
+#     2       985824       out           1      True
+#     3       985824        in           2     False
+#     """
 
-    # prefer direction as boolean
-    trips['outbound'] = trips.direction == OUTBOUND_ALT
+#     # now do a repeat and a take, so if you have two trips of given type you
+#     # now have two rows, and zero trips yields zero rows
+#     trips = trips.take(np.repeat(trips.index.values, trips.trip_count.values))
+#     trips = trips.reset_index(drop=True)
 
-    """
-           tour_id direction  trip_count  outbound
-    0       954910       out           2      True
-    1       954910        in           2     False
-    2       985824       out           1      True
-    3       985824        in           2     False
-    """
+#     grouped = trips.groupby(['tour_id', 'outbound'])
+#     trips['trip_num'] = grouped.cumcount() + 1
 
-    # now do a repeat and a take, so if you have two trips of given type you
-    # now have two rows, and zero trips yields zero rows
-    trips = trips.take(np.repeat(trips.index.values, trips.trip_count.values))
-    trips = trips.reset_index(drop=True)
+#     trips['person_id'] = reindex(tours.person_id, trips.tour_id)
+#     trips['household_id'] = reindex(tours.household_id, trips.tour_id)
 
-    grouped = trips.groupby(['tour_id', 'outbound'])
-    trips['trip_num'] = grouped.cumcount() + 1
+#     trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
 
-    trips['person_id'] = reindex(tours.person_id, trips.tour_id)
-    trips['household_id'] = reindex(tours.household_id, trips.tour_id)
+#     # reorder columns and drop 'direction'
+#     trips = trips[['person_id', 'household_id', 'tour_id', 'primary_purpose',
+#                    'trip_num', 'outbound', 'trip_count']]
 
-    trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
+#     """
+#       person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count
+#     0     32927         32927   954910             work        1      True           2
+#     1     32927         32927   954910             work        2      True           2
+#     2     32927         32927   954910             work        1     False           2
+#     3     32927         32927   954910             work        2     False           2
+#     4     33993         33993   985824             univ        1      True           1
+#     5     33993         33993   985824             univ        1     False           2
+#     6     33993         33993   985824             univ        2     False           2
 
-    # reorder columns and drop 'direction'
-    trips = trips[['person_id', 'household_id', 'tour_id', 'primary_purpose',
-                   'trip_num', 'outbound', 'trip_count']]
+#     """
 
-    """
-      person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count
-    0     32927         32927   954910             work        1      True           2
-    1     32927         32927   954910             work        2      True           2
-    2     32927         32927   954910             work        1     False           2
-    3     32927         32927   954910             work        2     False           2
-    4     33993         33993   985824             univ        1      True           1
-    5     33993         33993   985824             univ        1     False           2
-    6     33993         33993   985824             univ        2     False           2
+#     # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
+#     canonical_trip_num = (~trips.outbound * MAX_TRIPS_PER_LEG) + trips.trip_num
+#     trips['trip_id'] = trips.tour_id * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
 
-    """
+#     trips.set_index('trip_id', inplace=True, verify_integrity=True)
 
-    # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
-    canonical_trip_num = (~trips.outbound * MAX_TRIPS_PER_LEG) + trips.trip_num
-    trips['trip_id'] = trips.tour_id * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
-
-    trips.set_index('trip_id', inplace=True, verify_integrity=True)
-
-    return trips
+#     return trips
 
 
 @inject.step()
@@ -224,8 +217,8 @@ def stop_frequency(
     pipeline.replace_table("tours", tours)
 
     # create trips table
-    trips = process_trips(tours, stop_frequency_alts)
-    trips = pipeline.extend_table("trips", trips)
+    trips = trip.initialize_from_tours(tours, stop_frequency_alts)
+    trips = pipeline.replace_table("trips", trips)
     tracing.register_traceable_table('trips', trips)
     pipeline.get_rn_generator().add_channel('trips', trips)
 

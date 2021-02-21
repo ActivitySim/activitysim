@@ -54,7 +54,9 @@ class SizeTermCalculator(object):
         size_terms.columns = ['size_term']
         return size_terms
 
-    def od_size_terms_df(self, segment_name, new_index_name=None, origin_filter=None, origin_attr_cols=None):
+    def od_size_terms_df(
+            self, segment_name, new_index_name=None, origin_id_col='origin',
+            dest_id_col='destination', origin_filter=None, origin_attr_cols=None):
         # if sampling/simulating origins and destinations at the same time,
         # size terms df must be the same shape as the full table of alternatives. by
         # default this will be the n x n set of zone-to-zone pairs. optionally, the
@@ -64,7 +66,6 @@ class SizeTermCalculator(object):
         # applying the filter
         size_terms = self.dest_size_terms_df(segment_name)
         land_use = self.land_use.to_frame()
-        origin_id_col = 'origin_' + size_terms.index.name
         
         if origin_filter:
             origins = land_use.query(origin_filter)
@@ -74,7 +75,7 @@ class SizeTermCalculator(object):
         n_repeat = len(origins)
         size_terms = size_terms.reindex(size_terms.index.repeat(n_repeat))
         size_terms[origin_id_col] = list(origins.index.values) * len(land_use)
-        size_terms.index.name = 'destination_' + size_terms.index.name
+        size_terms.index.name = dest_id_col
         size_terms.reset_index(inplace=True)
             
         if new_index_name:
@@ -308,7 +309,8 @@ def run_tour_od(
         # size_term segment is segment_name
         origin_attr_cols = model_settings['ORIGIN_ATTR_COLS_TO_USE']
         segment_od_size_terms = size_term_calculator.od_size_terms_df(
-            segment_name, size_term_index_name, origin_filter, origin_attr_cols)
+            segment_name, size_term_index_name, origin_col_name, dest_col_name,
+            origin_filter, origin_attr_cols)
 
         if choosers.shape[0] == 0:
             logger.info("%s skipping segment %s: no choosers", trace_label, segment_name)

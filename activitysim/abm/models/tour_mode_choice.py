@@ -10,13 +10,15 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import simulate
+from activitysim.core import logit
 from activitysim.core.mem import force_garbage_collect
-from activitysim.core.util import assign_in_place
+from activitysim.core.util import assign_in_place, reindex
 
 from activitysim.core import los
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 from .util.mode import run_tour_mode_choice_simulate
+from .util import trip
 from .util import estimation
 
 logger = logging.getLogger(__name__)
@@ -82,7 +84,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     model_settings = config.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
-    mode_column_name = 'tour_mode'  # FIXME - should be passed in?
+    mode_column_name = model_settings['CHOICE_COL_NAME']
 
     primary_tours = tours.to_frame()
     assert not (primary_tours.tour_category == 'atwork').any()
@@ -103,7 +105,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     skim_dict = network_los.get_default_skim_dict()
 
     # setup skim keys
-    orig_col_name = 'home_zone_id'
+    orig_col_name = 'origin'
     dest_col_name = 'destination'
 
     out_time_col_name = 'start'
@@ -166,6 +168,52 @@ def tour_mode_choice_simulate(tours, persons_merged,
     not_university = (primary_tours_merged.tour_type != 'school') | ~primary_tours_merged.is_university
     primary_tours_merged['tour_purpose'] = \
         primary_tours_merged.tour_type.where(not_university, 'univ')
+
+    # append xborder wait times if specified
+    # (should this be its own model step??? util module?)
+    if model_settings.get('XBORDER_WAIT_TIME_SPEC'):
+        wait_time_geog_col = model_settings['XBORDER_WAIT_TIME_GEOG_COL']
+        tour_geog_merge_col = model_settings['XBORDER_TOUR_GEOG_MERGE_COL']
+        wait_times = pd.read_csv(config.config_file_path(model_settings['XBORDER_WAIT_TIME_SPEC']))
+        tours_all_waits = pd.merge(
+            primary_tours_merged.reset_index(), wait_times, left_on=tour_geog_merge_col, right_on=wait_time_geog_col)
+        assert tours_all_waits['tour_id'].nunique() == len(primary_tours_merged)
+        tours_w_waits = tours_all_waits[(
+            tours_all_waits['start'] >= tours_all_waits['StartPeriod']) & (
+            tours_all_waits['end'] <= tours_all_waits['EndPeriod'])].set_index('tour_id')
+        assert len(tours_w_waits) == len(primary_tours_merged)
+
+        primary_tours_merged['std_wait'] = tours_w_waits['StandardWait'].reindex(tours.index)
+        primary_tours_merged['sentri_wait'] = tours_w_waits['SENTRIWait'].reindex(tours.index)
+        primary_tours_merged['ped_wait'] = tours_w_waits['PedestrianWait'].reindex(tours.index)
+
+    # if trip logsums are used, run trip mode choice 
+    if model_settings['COMPUTE_TRIP_MODE_CHOICE_LOGSUMS']:
+        primary_tours_merged['stop_frequency'] = '0out_0in'
+        primary_tours_merged['primary_purpose'] = primary_tours_merged['tour_purpose']
+        trips = trip.initialize_from_tours(primary_tours_merged)
+        outbound = trips['outbound']
+        trips['depart'] = reindex(primary_tours_merged.start, trips.tour_id)
+        trips.loc[~outbound, 'depart'] = reindex(primary_tours_merged.end, trips.loc[~outbound,'tour_id'])
+
+        logsum_trips = pd.DataFrame()
+        nest_spec = config.get_logit_model_settings(model_settings)
+
+        # actual coeffs dont matter here, just need to load the nest structure
+        coefficients = simulate.get_segment_coefficients(model_settings, primary_tours_merged.iloc[0]['tour_purpose'])
+        nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
+        tour_mode_alts = []
+        for nest in logit.each_nest(nest_spec):
+            if nest.is_leaf:
+                tour_mode_alts.append(nest.name)
+        for tour_mode in tour_mode_alts:
+            trips['tour_mode'] = tour_mode
+            logsum_trips = pd.concat((logsum_trips, trips), ignore_index=True)
+        logsum_trips.index.name = 'trip_id'
+
+        pipeline.replace_table('trips', logsum_trips)
+        tracing.register_traceable_table('trips', logsum_trips)
+        pipeline.get_rn_generator().add_channel('trips', logsum_trips)
 
     choices_list = []
     for tour_purpose, tours_segment in primary_tours_merged.groupby('tour_purpose'):

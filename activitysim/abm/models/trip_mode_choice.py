@@ -77,12 +77,16 @@ def trip_mode_choice(
 
     orig_col = 'origin'
     dest_col = 'destination'
+    min_per_period = network_los.skim_time_periods['period_minutes']
+    periods_per_hour = 60 / min_per_period
 
     constants = {}
     constants.update(config.get_model_constants(model_settings))
     constants.update({
         'ORIGIN': orig_col,
-        'DESTINATION': dest_col
+        'DESTINATION': dest_col,
+        'MIN_PER_PERIOD': min_per_period,
+        'PERIODS_PER_HOUR': periods_per_hour
     })
 
     skim_dict = network_los.get_default_skim_dict()
@@ -100,6 +104,7 @@ def trip_mode_choice(
     }
 
     if network_los.zone_system == los.THREE_ZONE:
+
         # fixme - is this a lightweight object?
         tvpb = network_los.tvpb
 
@@ -109,7 +114,6 @@ def trip_mode_choice(
                                            trace_label=trace_label, tag='tvpb_logsum_odt')
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
-            # 'tvpb_logsum_dot': tvpb_logsum_dot
         })
 
         # TVPB constants can appear in expressions
@@ -132,6 +136,8 @@ def trip_mode_choice(
 
         locals_dict = assign.evaluate_constants(omnibus_coefficients[primary_purpose],
                                                 constants=constants)
+        
+        # TVPB TOUR CONSTANTS OVERWRITE TRIP MODE CHOICE CONSTANTS HERE (e.g. c_ivt, c_cost)
         locals_dict.update(constants)
 
         expressions.annotate_preprocessors(

@@ -585,10 +585,13 @@ class Network_LOS(object):
         total_periods = model_time_window_min / period_minutes
 
         # FIXME - eventually test and use np version always?
-        if np.isscalar(time_period):
-            bin = np.digitize([time_period % total_periods],
-                              self.skim_time_periods['periods'], right=True)[0] - 1
-            return self.skim_time_periods['labels'][bin]
+        # if np.isscalar(time_period):
+        #     bin = np.digitize([time_period % total_periods],
+        #                       self.skim_time_periods['periods'], right=True)[0] - 1
+        #     return self.skim_time_periods['labels'][bin]
 
-        return pd.cut(time_period, self.skim_time_periods['periods'],
-                      labels=self.skim_time_periods['labels'], right=True).astype(str)
+        # return pd.cut(time_period, self.skim_time_periods['periods'],
+                      # labels=self.skim_time_periods['labels'], right=True).astype(str)
+
+        bins = np.digitize([time_period % total_periods], self.skim_time_periods['periods'], right=True)[0] - 1
+        return np.array(self.skim_time_periods['labels'])[bins]

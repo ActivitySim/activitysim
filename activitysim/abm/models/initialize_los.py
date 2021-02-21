@@ -285,7 +285,7 @@ def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):
     return row_size
 
 
-def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
+def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
 
     # scalar_attributes is a dict of attribute name/value pairs for this combination
     # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
@@ -396,7 +396,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
         offset = network_los.tvpb.uid_calculator.get_skim_offset(scalar_attributes)
         tuple_trace_label = tracing.extend_trace_label(trace_label, f'offset{offset}')
 
-        compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
+        compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
 
         # make sure we populated the entire offset
         assert not uninitialized(data.reshape(uid_calculator.skim_shape)[offset], lock).any()

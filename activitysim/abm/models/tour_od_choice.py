@@ -74,11 +74,18 @@ def tour_od_choice(
 
     tours[origin_col_name] = choices_df[origin_col_name]
     tours[dest_col_name] = choices_df[dest_col_name]
-    households[origin_col_name] = tours[origin_col_name].reindex(households['tour_id'])
-    persons[origin_col_name] = tours[origin_col_name].reindex(persons['tour_id'])
 
-    pipeline.replace_table("tours", tours)
-    pipeline.replace_table("persons", persons)
+    households = households.to_frame()
+    persons = persons.to_frame()
+    households[origin_col_name] = tours.set_index('household_id')[origin_col_name].reindex(households.index)
+    persons[origin_col_name] = households[origin_col_name].reindex(persons.household_id)
+
+    # these columns seem necessary
+    households['home_zone_id'] = households[origin_col_name]
+    persons['home_zone_id'] = persons[origin_col_name]
+
+    pipeline.replace_table("tours", tours)  # replace runs on pandas dfs
+    pipeline.replace_table("persons", persons)  # extend runs on orca df wrappers
     pipeline.replace_table("households", households)
 
     if want_sample_table:

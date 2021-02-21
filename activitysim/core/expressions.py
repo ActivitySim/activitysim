@@ -131,7 +131,7 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
 
 
 def annotate_preprocessors(
-        tours_df, locals_dict, skims,
+        df, locals_dict, skims,
         model_settings, trace_label):
 
     locals_d = {}
@@ -143,17 +143,17 @@ def annotate_preprocessors(
         assert isinstance(preprocessor_settings, dict)
         preprocessor_settings = [preprocessor_settings]
 
-    simulate.set_skim_wrapper_targets(tours_df, skims)
+    simulate.set_skim_wrapper_targets(df, skims)
 
     for model_settings in preprocessor_settings:
 
         results = compute_columns(
-            df=tours_df,
+            df=df,
             model_settings=model_settings,
             locals_dict=locals_d,
             trace_label=trace_label)
 
-        assign_in_place(tours_df, results)
+        assign_in_place(df, results)
 
 
 def filter_chooser_columns(choosers, chooser_columns):

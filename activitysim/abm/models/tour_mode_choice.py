@@ -11,6 +11,7 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import logit
+from activitysim.core import orca
 from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import assign_in_place, reindex
 
@@ -180,7 +181,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         assert tours_all_waits['tour_id'].nunique() == len(primary_tours_merged)
         tours_w_waits = tours_all_waits[(
             tours_all_waits['start'] >= tours_all_waits['StartPeriod']) & (
-            tours_all_waits['end'] <= tours_all_waits['EndPeriod'])].set_index('tour_id')
+            tours_all_waits['start'] <= tours_all_waits['EndPeriod'])].set_index('tour_id')
         assert len(tours_w_waits) == len(primary_tours_merged)
 
         primary_tours_merged['std_wait'] = tours_w_waits['StandardWait'].reindex(tours.index)
@@ -189,7 +190,11 @@ def tour_mode_choice_simulate(tours, persons_merged,
 
     # if trip logsums are used, run trip mode choice 
     if model_settings['COMPUTE_TRIP_MODE_CHOICE_LOGSUMS']:
-        primary_tours_merged['stop_frequency'] = '0out_0in'
+
+        # Construct table of hypothetical trips from tours for each potential
+        # tour mode. Two trips (1 inbound, 1 outbound) per [tour, mode] bundle.
+        # O/D, purpose, and departure times are inherited from tour.
+        primary_tours_merged['stop_frequency'] = '0out_0in'  # no intermediate stops
         primary_tours_merged['primary_purpose'] = primary_tours_merged['tour_purpose']
         trips = trip.initialize_from_tours(primary_tours_merged)
         outbound = trips['outbound']
@@ -199,21 +204,41 @@ def tour_mode_choice_simulate(tours, persons_merged,
         logsum_trips = pd.DataFrame()
         nest_spec = config.get_logit_model_settings(model_settings)
 
-        # actual coeffs dont matter here, just need to load the nest structure
-        coefficients = simulate.get_segment_coefficients(model_settings, primary_tours_merged.iloc[0]['tour_purpose'])
+        # actual coeffs dont matter here, just need them to load the nest structure
+        coefficients = simulate.get_segment_coefficients(
+            model_settings, primary_tours_merged.iloc[0]['tour_purpose'])
         nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
         tour_mode_alts = []
         for nest in logit.each_nest(nest_spec):
             if nest.is_leaf:
                 tour_mode_alts.append(nest.name)
+
+        # repeat rows from the trips table iterating over tour mode
         for tour_mode in tour_mode_alts:
             trips['tour_mode'] = tour_mode
             logsum_trips = pd.concat((logsum_trips, trips), ignore_index=True)
+        assert len(logsum_trips) == len(trips) * len(tour_mode_alts)
         logsum_trips.index.name = 'trip_id'
 
         pipeline.replace_table('trips', logsum_trips)
         tracing.register_traceable_table('trips', logsum_trips)
         pipeline.get_rn_generator().add_channel('trips', logsum_trips)
+
+        # run trip mode choice on pseudo-trips. use orca instead of pipeline to
+        # execute the step because pipeline can only handle one open step at a time
+        orca.run(['trip_mode_choice'])
+
+        # grab trip mode choice logsums and pivot by tour mode and direction, index
+        # on tour_id to enable merge back to choosers table
+        trips = inject.get_table('trips').to_frame()
+        trip_dir_mode_logsums = trips.pivot(
+            index='tour_id', columns=['tour_mode', 'outbound'], values='trip_mode_choice_logsum')
+        new_cols = [
+            '_'.join(['logsum', mode, 'outbound' if outbound else 'inbound'])
+            for mode, outbound in trip_dir_mode_logsums.columns]
+        trip_dir_mode_logsums.columns = new_cols
+        trip_dir_mode_logsums.reindex(primary_tours_merged.index)
+        primary_tours_merged = pd.merge(primary_tours_merged, trip_dir_mode_logsums, left_index=True, right_index=True)
 
     choices_list = []
     for tour_purpose, tours_segment in primary_tours_merged.groupby('tour_purpose'):
@@ -254,25 +279,26 @@ def tour_mode_choice_simulate(tours, persons_merged,
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
 
-        tvpb_mode_path_types = model_settings.get('tvpb_mode_path_types')
-        for mode, path_types in tvpb_mode_path_types.items():
+        tvpb_mode_path_types = model_settings.get('tvpb_mode_path_types', False)
+        if tvpb_mode_path_types:
+            for mode, path_types in tvpb_mode_path_types.items():
 
-            for direction, skim in zip(['od', 'do'], [tvpb_logsum_odt, tvpb_logsum_dot]):
+                for direction, skim in zip(['od', 'do'], [tvpb_logsum_odt, tvpb_logsum_dot]):
 
-                path_type = path_types[direction]
-                skim_cache = skim.cache[path_type]
+                    path_type = path_types[direction]
+                    skim_cache = skim.cache[path_type]
 
-                print(f"mode {mode} direction {direction} path_type {path_type}")
+                    print(f"mode {mode} direction {direction} path_type {path_type}")
 
-                for c in skim_cache:
+                    for c in skim_cache:
 
-                    dest_col = f'{direction}_{c}'
+                        dest_col = f'{direction}_{c}'
 
-                    if dest_col not in choices_df:
-                        choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
-                    choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
+                        if dest_col not in choices_df:
+                            choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
+                        choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
 
-        #tvpb.flush_cache()  # flush changes (if any - which could only exist if cache is DYNAMIC)
+            #tvpb.flush_cache()  # flush changes (if any - which could only exist if cache is DYNAMIC)
 
     if estimator:
         estimator.write_choices(choices_df.tour_mode)

@@ -56,6 +56,7 @@ def _regression_check(dataframe_regression, df, basename=None):
 
 
 @pytest.mark.parametrize("name,method", [
+    ("free_parking", "BHHH"),
     ("mandatory_tour_frequency", "SLSQP"),
     ("joint_tour_frequency", "SLSQP"),
     ("joint_tour_composition", "SLSQP"),

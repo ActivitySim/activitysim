@@ -1,0 +1,34 @@
+SPEC: tour_scheduling_nonmandatory.csv
+COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
+
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: non_mandatory_tour_scheduling_annotate_tours_preprocessor
+  DF: non_mandatory_tours
+  TABLES:
+    - land_use
+    - joint_tour_participants
+    
+SIMULATE_CHOOSER_COLUMNS:
+  
+  - age
+  - is_female
+  - adult
+  - ptype
+  - has_pre_school_child_with_mandatory
+  - has_driving_age_child_with_mandatory
+  - retired_adults_only_hh
+  - is_income_less25K
+  - is_income_25K_to_60K
+  - is_income_60K_to_120K
+  - auto_ownership
+  - num_children
+  - num_adults
+  - num_mand_tours
+  - num_joint_tours
+  - num_escort_tours
+  - num_non_escort_tours
+  - num_add_shop_maint_tours
+  - num_add_soc_discr_tours
+  

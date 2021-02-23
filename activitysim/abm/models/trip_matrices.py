@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @inject.step()
-def write_trip_matrices(trips, network_los):
+def write_trip_matrices(network_los):
     """
     Write trip matrices step.
 
@@ -35,6 +35,14 @@ def write_trip_matrices(trips, network_los):
     and uses the tap skim zone names for the set of possible taps.
 
     """
+
+    trips = inject.get_table('trips', None)
+    if trips is None:
+        # this step is a NOP if there is no trips table
+        # this might legitimately happen if they comment out some steps to debug but still want write_tables
+        # this saves them the hassle of remembering to comment out this step
+        logger.warning(f"write_trip_matrices returning empty-handed because there is no trips table")
+        return
 
     model_settings = config.read_model_settings('write_trip_matrices.yaml')
     trips_df = annotate_trips(trips, network_los, model_settings)

@@ -145,15 +145,19 @@
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3/taz_skims.omx
       data_3/taz_skims.omx
 
-- name: example_3_marin
-  description: Marin TM2 work tour mode choice cropped to one county for testing
-  # activitysim create -e example_3_marin -d test_example_3_marin
+- name: example_marin
+  description: Marin TM2 work tour mode choice cropped to one county for testing (2054 MAZ
+  # activitysim create -e example_marin -d test_example_marin
   # activitysim run -c configs_3_zone_marin -d data_3_marin -o output_3_marin
-  # activitysim run -c configs_3_zone_marin -d data_3_marin -o output_3_marin -s settings_mp.yaml
+  # activitysim run -c configs -d data -o output_3_marin -s settings_mp.yaml
+  instructions: |
+    \nTo run the example, cd into the directory and use the command:
+       cd example_marin
+       activitysim run -c configs -o output -d data
   include:
-    - example_marin/configs_3_zone_marin
-    - example_marin/data_3_marin
-    - example_marin/output_3_marin
+    - example_marin/config
+    - example_marin/data
+    - example_marin/output
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMAM_taz_rename.omx
       data_3_marin/HWYSKMAM_taz_rename.omx
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMEA_taz_rename.omx
@@ -424,3 +428,29 @@
       data/maz_to_maz_bike.csv
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/final_accessibility.csv
       data/final_accessibility.csv
+
+- name: example_semcog
+  description: 67 zone 19942 household test example for the SEMCOG region
+  # activitysim create -e example_semcog -d test_example_semcog
+  instructions: |
+    \nTo run the example, cd into the directory and use the command:
+       cd example_semcog
+       activitysim run -c configs -o output -d data
+  include:
+    - example_semcog/data
+    - example_semcog/configs
+    - example_semcog/configs_mp
+    - example_semcog/output
+
+- name: example_arc
+  description: 36 zone 24061 household test example for the ARC region
+  # activitysim create -e example_arc -d test_example_arc
+  instructions: |
+    \nTo run the example, cd into the directory and use the command:
+       cd example_semcog
+       activitysim run -c configs -o output -d data
+  include:
+    - example_semcog/data
+    - example_semcog/configs
+    - example_semcog/configs_mp
+    - example_semcog/output

@@ -747,79 +747,14 @@ class SkimHotel(object):
 
         skims = {
             "od_skims": skim_dict.wrap(o, d),
-            "dp_skims": skim_dict.wrap(d, p)
-        }
-        return skims
+            "dp_skims": skim_dict.wrap(d, p),
 
-    def logsum_skims(self):
-
-        o = self.model_settings['TRIP_ORIGIN']
-        d = self.model_settings['ALT_DEST_COL_NAME']
-        p = self.model_settings['PRIMARY_DEST']
-        skim_dict = self.network_los.get_default_skim_dict()
-
-        skims = {
             "odt_skims": skim_dict.wrap_3d(orig_key=o, dest_key=d, dim3_key='trip_period'),
             "dot_skims": skim_dict.wrap_3d(orig_key=d, dest_key=o, dim3_key='trip_period'),
             "dpt_skims": skim_dict.wrap_3d(orig_key=d, dest_key=p, dim3_key='trip_period'),
             "pdt_skims": skim_dict.wrap_3d(orig_key=p, dest_key=d, dim3_key='trip_period'),
-            "od_skims": skim_dict.wrap(o, d),
-            "dp_skims": skim_dict.wrap(d, p),
         }
 
-        if self.zone_system == los.THREE_ZONE:
-            # fixme - is this a lightweight object?
-            tvpb = self.network_los.tvpb
-
-            tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=o, dest_key=d,
-                                               tod_key='trip_period', segment_key='demographic_segment',
-                                               trace_label=self.trace_label, tag='tvpb_logsum_odt')
-            tvpb_logsum_dot = tvpb.wrap_logsum(orig_key=d, dest_key=o,
-                                               tod_key='trip_period', segment_key='demographic_segment',
-                                               trace_label=self.trace_label, tag='tvpb_logsum_dot')
-            tvpb_logsum_dpt = tvpb.wrap_logsum(orig_key=d, dest_key=p,
-                                               tod_key='trip_period', segment_key='demographic_segment',
-                                               trace_label=self.trace_label, tag='tvpb_logsum_dpt')
-            tvpb_logsum_pdt = tvpb.wrap_logsum(orig_key=p, dest_key=d,
-                                               tod_key='trip_period', segment_key='demographic_segment',
-                                               trace_label=self.trace_label, tag='tvpb_logsum_pdt')
-
-            skims.update({
-                'tvpb_logsum_odt': tvpb_logsum_odt,
-                'tvpb_logsum_dot': tvpb_logsum_dot,
-                'tvpb_logsum_dpt': tvpb_logsum_dpt,
-                'tvpb_logsum_pdt': tvpb_logsum_pdt
-            })
-
-        return skims
-
-
-class SkimHotel(object):
-
-    def __init__(self, model_settings, network_los, trace_label):
-
-        self.model_settings = model_settings
-        self.trace_label = tracing.extend_trace_label(trace_label, 'skim_hotel')
-
-        self.network_los = network_los
-        self.zone_system = network_los.zone_system
-
-    def sample_skims(self, presample):
-
-        o = self.model_settings['TRIP_ORIGIN']
-        d = self.model_settings['ALT_DEST_COL_NAME']
-        p = self.model_settings['PRIMARY_DEST']
-
-        if presample:
-            assert not (self.zone_system == los.ONE_ZONE)
-            skim_dict = self.network_los.get_skim_dict('taz')
-        else:
-            skim_dict = self.network_los.get_default_skim_dict()
-
-        skims = {
-            "od_skims": skim_dict.wrap(o, d),
-            "dp_skims": skim_dict.wrap(d, p)
-        }
         return skims
 
     def logsum_skims(self):

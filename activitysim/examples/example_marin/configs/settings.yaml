@@ -13,7 +13,7 @@ trace_hh_id:
 # input tables
 input_table_list:
   - tablename: households
-    filename: households_asim.csv
+    filename: households.csv
     index_col: household_id
     rename_columns:
       HHID: household_id
@@ -30,7 +30,7 @@ input_table_list:
       #- TYPE
 
   - tablename: persons
-    filename: persons_asim.csv
+    filename: persons.csv
     index_col: person_id
     rename_columns:
       HHID: household_id
@@ -51,7 +51,7 @@ input_table_list:
       #- SCHG
 
   - tablename: land_use
-    filename: maz_data_asim.csv
+    filename: land_use.csv
     index_col: zone_id
     rename_columns:
       MAZ: zone_id

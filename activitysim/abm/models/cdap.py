@@ -44,13 +44,22 @@ def cdap_simulate(persons_merged, persons, households,
     cdap_indiv_spec = simulate.eval_coefficients(cdap_indiv_spec, coefficients_df, estimator)
 
     # Rules and coefficients for generating interaction specs for different household sizes
+    interaction_coefficients_file_name = \
+        model_settings.get('INTERACTION_COEFFICIENTS', 'cdap_interaction_coefficients.csv')
     cdap_interaction_coefficients = \
-        pd.read_csv(config.config_file_path('cdap_interaction_coefficients.csv'), comment='#')
+        pd.read_csv(config.config_file_path(interaction_coefficients_file_name), comment='#')
 
     # replace cdap_interaction_coefficients coefficient labels with numeric values
-    cdap_interaction_coefficients.coefficient = \
-        cdap_interaction_coefficients.coefficient.map(coefficients_df.value.to_dict())
-    assert not cdap_interaction_coefficients.coefficient.isnull().any()
+    # for backward compatibility, use where() to allow hard-coded coefficients and dummy (empty) coefficients_file
+    coefficients = cdap_interaction_coefficients.coefficient.map(coefficients_df.value.to_dict())
+    coefficients = cdap_interaction_coefficients.coefficient.where(coefficients.isnull(), coefficients)
+    coefficients = pd.to_numeric(coefficients, errors='coerce').astype(float)
+    if coefficients.isnull().any():
+        # show them the offending lines from interaction_coefficients_file
+        logger.warning(f"bad coefficients in INTERACTION_COEFFICIENTS {interaction_coefficients_file_name}\n"
+                       f"{cdap_interaction_coefficients[coefficients.isnull()]}")
+        assert not coefficients.isnull().any()
+    cdap_interaction_coefficients.coefficient = coefficients
 
     """
     spec to compute/specify the relative proportions of each activity (M, N, H)

@@ -1,0 +1,8 @@
+#LOGIT_TYPE: NL
+
+LOGIT_TYPE: MNL
+
+FREE_PARKING_ALT: 0
+
+SPEC: free_parking.csv
+COEFFICIENTS: free_parking_coeffs.csv

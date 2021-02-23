@@ -46,13 +46,9 @@ tap_skims:
     - transit_skims_PM_SET2_rename.omx
     - transit_skims_PM_SET3_rename.omx
 
-
-# FIXME why no taz.csv?
-# tas: taz.csv
-
 maz: maz_taz.csv
 
-tap: tap_data.csv
+tap: tap.csv
 
 tap_lines: tap_lines.csv
 

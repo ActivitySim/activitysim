@@ -1,0 +1,23 @@
+PTYPE_FULL: &ptype_full 1
+PTYPE_PART: &ptype_part 2
+PTYPE_UNIVERSITY: &ptype_university 3
+PTYPE_NONWORK: &ptype_nonwork 4
+PTYPE_RETIRED: &ptype_retired 5
+PTYPE_DRIVING: &ptype_driving 6
+PTYPE_SCHOOL: &ptype_school 7
+PTYPE_PRESCHOOL:  &ptype_preschool 8
+
+# these appear as column headers in non_mandatory_tour_frequency.csv
+PTYPE_NAME:
+  *ptype_full: PTYPE_FULL
+  *ptype_part: PTYPE_PART
+  *ptype_university: PTYPE_UNIVERSITY
+  *ptype_nonwork: PTYPE_NONWORK
+  *ptype_retired: PTYPE_RETIRED
+  *ptype_driving: PTYPE_DRIVING
+  *ptype_school: PTYPE_SCHOOL
+  *ptype_preschool: PTYPE_PRESCHOOL
+
+CDAP_ACTIVITY_MANDATORY: M
+CDAP_ACTIVITY_NONMANDATORY: N
+CDAP_ACTIVITY_HOME: H

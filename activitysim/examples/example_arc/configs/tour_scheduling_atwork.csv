@@ -1,0 +1,50 @@
+Description,Expression,Coefficient
+Female - Departure after 12:30 pm - Linear,"@np.where(((df.is_female) & (df.start>19)), (np.where((df.start<= 19), np.minimum(19 - df.start, 48), 0) + np.where((df.start > 19), np.minimum(df.start - 19, 48), 0)), 0)",0.05574558
+Part-time worker - Departure after 12:30 pm  - Linear,"@np.where(((df.ptype == 2) & (df.start>19)), (np.where((df.start<= 19), np.minimum(19 - df.start, 48), 0) + np.where((df.start > 19), np.minimum(df.start - 19, 48), 0)), 0)",0.129291333
+Part-time worker - Duration greater than 0.5 hours (depart and arrive in the same period),"@np.where(((df.ptype == 2) & (df.duration>1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",0.162008704
+Low income (<25000) - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where(((df.is_income_less25K) & (df.duration<1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",0.885322446
+Med income (25k to 60k) - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where(((df.is_income_25K_to_60K) & (df.duration<1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",0.526935246
+Med income (25k to 60k) - Duration greater than 0.5 hours,"@np.where(((df.is_income_25K_to_60K) & (df.duration>1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",-0.081917021
+Med-high income (60k to 120k) - Duration greater than 0.5 hours,"@np.where(((df.is_income_60K_to_120K) & (df.duration>1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",-0.068358924
+Blue collar - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where(((df.work_segment == 5) & (df.duration<1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",1.191378628
+Blue collar - Duration greater than 0.5 hours,"@np.where(((df.work_segment == 5) & (df.duration>1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",0.123072852
+Health - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where(((df.work_segment == 3) & (df.duration<1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",0.791205377
+Distance to destination - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where((df.duration<1), ((np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0))) * df.od_distance, 0)",-0.292363361
+Distance to destination - Duration greater than 0.5 hours,"@np.where((df.duration>1), ((np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0))) * df.od_distance, 0)",0.006885922
+Subtour purpose: Business - Departure before 12:00 pm  - Linear,"@np.where(((df.tour_type == 'business') & (df.start<19)), (np.where((df.start<= 19), np.minimum(19 - df.start, 48), 0) + np.where((df.start > 19), np.minimum(df.start - 19, 48), 0)), 0)",0.268963895
+Subtour purpose: Business - Departure after 12:30 pm - Linear,"@np.where(((df.tour_type == 'business') & (df.start>19)), (np.where((df.start<= 19), np.minimum(19 - df.start, 48), 0) + np.where((df.start > 19), np.minimum(df.start - 19, 48), 0)), 0)",0.17631122
+Subtour purpose: Business - Duration greater than 0.5 hours,"@np.where(((df.tour_type == 'business') & (df.duration>1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",0.362189199
+Subtour purpose: Eat-out - Departure before 12:00 pm  - Linear,"@np.where(((df.tour_type == 'eat') & (df.start<19)), (np.where((df.start<= 19), np.minimum(19 - df.start, 48), 0) + np.where((df.start > 19), np.minimum(df.start - 19, 48), 0)), 0)",-0.250770206
+Subtour purpose: Eat-out - Departure after 12:30 pm - Linear,"@np.where(((df.tour_type == 'eat') & (df.start>19)), (np.where((df.start<= 19), np.minimum(19 - df.start, 48), 0) + np.where((df.start > 19), np.minimum(df.start - 19, 48), 0)), 0)",-0.169861029
+Subtour purpose: Eat-out - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where(((df.tour_type == 'eat') & (df.duration<1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",-0.678939929
+# Departure constants,,
+Shift for every 30 minutes before 10:30 am - Linear,"@np.where((df.start<16), (np.where((df.start<= 16), np.minimum(16 - df.start, 9), 0) + np.where((df.start> 21), np.minimum(df.start - 21, 11), 0)), 0)",-0.731880037
+Before 11:00 AM,@(df.start<17),-2.176744062
+11:00 AM - 11:30 AM,@(df.start==17),-1.190017952
+11:30 AM - 12:00 PM,@(df.start==18),-0.198229872
+12:00 AM - 12:30 PM,@(df.start==19),0
+12:30 PM - 01:00 PM,@(df.start==20),-0.084950396
+After 01:00 PM,@(df.start>20),-0.205562723
+Shift for every 30 minutes after 1:30 pm - Square Root,"@np.where((df.start>21), ((np.where((df.start <= 16), np.minimum(16 - df.start, 9), 0) + np.where((df.start > 21), np.minimum(df.start - 21, 11), 0))** 0.5), 0)",0.539088697
+# Arrival constants,,
+Shift for every 30 minutes before 11:30 am - Linear,"@np.where((df.end<18), (np.where((df.end <= 14), np.minimum(14 - df.end, 9), 0) + np.where((df.end > 24), np.minimum(df.end - 24, 10), 0)), 0)",0.414546555
+Before 12:00 PM,@(df.end<19),0.279351638
+12:00 AM - 12:30 PM,@(df.end==19),-0.045281832
+12:30 PM - 01:00 PM,@(df.end==20),0.214070736
+01:00 PM - 01:30 PM,@(df.end==21),0
+01:30 PM - 02:00 PM,@(df.end==22),-0.69742748
+02:00 PM - 02:30 PM,@(df.end==23),-1.284283533
+After 02:30 PM,@(df.end>23),-2.119733896
+Shift for every 30 minutes after 3:00 pm - Linear,"@np.where((df.end>24), (np.where((df.end <= 14), np.minimum(14 - df.end, 9), 0) + np.where((df.end > 24), np.minimum(df.end - 24, 10), 0)), 0)",-0.508006414
+# Duration constants,,
+0 hrs,@(df.duration==0),-0.969734874
+0.5 hrs,@(df.duration==1),0
+1 hrs,@(df.duration==2),0.177457256
+1.5hrs,@(df.duration==3),-0.171124657
+2 hrs,@(df.duration==4),-0.4678094
+Longer than 2 hrs,@(df.duration>4),-0.523935526
+Shift for every 30 minutes more than 2.5 hrs - Square Root,"@np.where((df.duration>5), ((np.where((df.duration < 0), np.minimum(0 - df.duration, 47), 0) + np.where((df.duration > 5), np.minimum(df.duration - 5, 13), 0)) ** 0.5), 0)",-0.424301372
+Calibration Constant - Departure = 18,@(df.start==18),-0.045958531
+Calibration Constant - Departure = 19,@(df.start==19),-0.099009925
+Calibration Constant - Arrival = 20,@(df.end==20),-0.0698094
+Calibration Constant - Arrival = 21,@(df.end==21),-0.064355276

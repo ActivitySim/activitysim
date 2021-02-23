@@ -1,0 +1,15 @@
+Description,Target,Expression
+#,, annotate persons table after non_mandatory_tour_frequency model has run
+num_non_mand,num_non_mand,tours[tours.tour_category=='non_mandatory'].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)
+num_escort_tours,num_escort_tours,tours[tours.tour_type == 'escort'].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)
+num_eatout_tours,num_eatout_tours,tours[tours.tour_type == 'eatout'].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)
+num_shop_tours,num_shop_tours,tours[tours.tour_type == 'shopping'].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)
+num_maint_tours,num_maint_tours,tours[tours.tour_type == 'othmaint'].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)
+num_discr_tours,num_discr_tours,tours[tours.tour_type == 'othdiscr'].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)
+num_social_tours,num_social_tours,tours[tours.tour_type == 'social'].groupby('person_id').size().reindex(persons.index).fillna(0).astype(np.int8)
+num_non_escort_tours,num_non_escort_tours,num_non_mand-num_escort_tours
+total shopping and maintenance tours,num_shop_maint_tours,num_shop_tours + num_maint_tours
+"total shopping, maintenance and escort tours",num_shop_maint_escort_tours,num_shop_tours + num_maint_tours + num_escort_tours
+number of additional shopping and maintenance tours,num_add_shop_maint_tours,"np.where (num_shop_maint_tours>0, 1, 0) *  (num_shop_maint_tours - 1)"
+total social and discretionary tours,num_soc_discr_tours,num_social_tours + num_discr_tours
+number of additional social and discretionary,num_add_soc_discr_tours,"np.where (num_soc_discr_tours>0, 1, 0) *  (num_soc_discr_tours - 1)"

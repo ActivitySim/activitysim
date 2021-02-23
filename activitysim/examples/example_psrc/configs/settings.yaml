@@ -142,6 +142,7 @@ output_tables:
   h5_store: False
   action: include
   prefix: final_
+  sort: True
   tables:
     - checkpoints
     - accessibility

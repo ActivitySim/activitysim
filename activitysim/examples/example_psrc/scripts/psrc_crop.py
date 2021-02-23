@@ -8,7 +8,7 @@ import argparse
 MAZ_OFFSET = 0
 
 segments = {
-    'test': (331, 358),  # north part of peninsula including university (no HSENROLL but nice MAZ-TAZ distrib)
+    'test': (331, 358),  # north part of peninsul a including university (no HSENROLL but nice MAZ-TAZ distrib)
     'downtown': (339, 630),   # downtown seattle tazs (339 instead of 400 because need university)
     'seattle': (0, 857),  # seattle tazs
     'full': (0, 100000),

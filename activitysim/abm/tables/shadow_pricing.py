@@ -746,6 +746,7 @@ def add_size_tables():
 
         assert model_selector == model_settings['MODEL_SELECTOR']
 
+        assert 'SEGMENT_IDS' in model_settings, f"missing SEGMENT_IDS setting in {model_name} model_settings"
         segment_ids = model_settings['SEGMENT_IDS']
         chooser_table_name = model_settings['CHOOSER_TABLE_NAME']
         chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']

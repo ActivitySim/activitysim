@@ -154,7 +154,7 @@ def trip_mode_choice(
         choices = mode_choice_simulate(
             choosers=trips_segment,
             spec=simulate.eval_coefficients(model_spec, coefficients, estimator),
-            nest_spec=simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label),
+            nest_spec=simulate.eval_nest_coefficients(nest_spec, coefficients, segment_trace_label),
             skims=skims,
             locals_d=locals_dict,
             chunk_size=chunk_size,

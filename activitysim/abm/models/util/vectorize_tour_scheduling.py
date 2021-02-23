@@ -364,7 +364,7 @@ def _schedule_tours(
     choice_column = TDD_CHOICE_COLUMN
     alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
                                       tour_trace_label)
-    print(f"tours {tours.shape} alts {alts.shape}")
+    # print(f"tours {tours.shape} alts {alts.shape}")
     chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     # - add logsums

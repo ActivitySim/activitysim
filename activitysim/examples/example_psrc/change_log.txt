@@ -1,3 +1,30 @@
+
+###
+##### annotate_persons.csv
+###
+
+# restore the following commented out lines in annotate_persons.csv (if they are commented out)
+
+school_segment gradeschool,school_segment,"np.where(is_gradeschool, SCHOOL_SEGMENT_GRADE, SCHOOL_SEGMENT_NONE)"
+school_segment highschool,school_segment,"np.where(is_highschool, SCHOOL_SEGMENT_HIGH, school_segment)"
+school_segment university,school_segment,"np.where(is_university, SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
+
+###
+##### school_location_segment_choosers_preprocessor.csv
+###
+
+# delete this file (if you ahve it)
+
+###
+##### school_location.yaml
+###
+
+# remove the following lines (if you ahve them) from school_location.yaml
+
+segment_preprocessor:
+  SPEC: school_location_segment_choosers_preprocessor
+  DF: persons
+
 ###
 ##### atwork_subtour_destination.csv
 ##### atwork_subtour_destination_sample.csv
@@ -48,9 +75,12 @@ no attractions,"@size_terms.get(df.alt_dest, df.purpose) == 0",-999,-999,-999,-9
 ##### trip_destination.yaml
 ###
 
+# will need coefficients file to run estimation...
+#COEFFICIENTS: trip_destination_coefficients.csv
+COEFFICIENTS: _dummy_coefficients.csv
+
 # ALT_DEST_COL_NAME: dest_taz
 ALT_DEST_COL_NAME: alt_dest
-
 
 ###
 ##### network_los.yaml
@@ -69,13 +99,6 @@ write_skim_cache: True
 
 PROBS_SPEC: trip_purpose_probs.csv
 
-
-###
-##### trip_destination.yaml
-###
-
-# will need coefficients file to run estimation...
-#COEFFICIENTS: trip_destination_coefficients.csv
 
 ###
 ##### trip_mode_choice_coeffs.csv

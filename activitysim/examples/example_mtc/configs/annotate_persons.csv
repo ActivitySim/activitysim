@@ -29,9 +29,9 @@ preschool age can go to preschool,pstudent,"pstudent.where(persons.age > GRADE_S
 is_gradeschool,is_gradeschool,(pstudent == PSTUDENT_GRADE_OR_HIGH) & (persons.age <= GRADE_SCHOOL_MAX_AGE)
 is_highschool,is_highschool,(pstudent == PSTUDENT_GRADE_OR_HIGH) & (persons.age > GRADE_SCHOOL_MAX_AGE)
 is_university,is_university,pstudent == PSTUDENT_UNIVERSITY
-#school_segment gradeschool,school_segment,"np.where(is_gradeschool, SCHOOL_SEGMENT_GRADE, SCHOOL_SEGMENT_NONE)"
-#school_segment highschool,school_segment,"np.where(is_highschool, SCHOOL_SEGMENT_HIGH, school_segment)"
-#school_segment university,school_segment,"np.where(is_university, SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
+school_segment gradeschool,school_segment,"np.where(is_gradeschool, SCHOOL_SEGMENT_GRADE, SCHOOL_SEGMENT_NONE)"
+school_segment highschool,school_segment,"np.where(is_highschool, SCHOOL_SEGMENT_HIGH, school_segment)"
+school_segment university,school_segment,"np.where(is_university, SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
 #,,
 is_worker,is_worker,"persons.pemploy.isin([PEMPLOY_FULL, PEMPLOY_PART])"
 #,,

@@ -1,0 +1,60 @@
+Description,Expression,Coefficient
+"# Note: In CTRAMP, duration is from 1 to 48 but in ActivitySim, it is from 0 to 47 since duration was calculated as (end - start). Therefore, duration in ActivitySim expression = CTRAMP duration expresssion - 1 ",,
+SCHOOL - Mode Choice Logsum,mode_choice_logsum,0.524017431
+SCHOOL - Low income (<25000) - Departure before 7:30 am  - Linear,"@((df.is_income_less25K) & (df.start<10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",0.134574548
+SCHOOL - Low income (<25000) - Departure after 8:00 am - Linear,"@((df.is_income_less25K) & (df.start>10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",-0.075554725
+SCHOOL - Low income (<25000) - Duration < 8hrs,"@((df.is_income_less25K) & (df.duration<8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",-0.150039779
+SCHOOL - Low income (<25000) - Duration > 8hrs,"@((df.is_income_less25K) & (df.duration>8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",-0.043562413
+SCHOOL - Med income (25k to 60k) - Departure before 7:30 am  - Linear,"@((df.is_income_25K_to_60K) & (df.start<10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",0.102594589
+SCHOOL - Age 0 to 5 yrs - Departure Before 7:30 am,"@(((df.age>=0) & (df.age<=5)) & (df.start<10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",-0.178916721
+SCHOOL - Age 13 to 15 yrs - Departure Before 7:30 am,"@(((df.age>=13) & (df.age<=15)) & (df.start<10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",-0.164708594
+SCHOOL - Age 13 to 15 yrs - Departure After 8:00 am,"@(((df.age>=13) & (df.age<=15)) & (df.start>10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",0.169641715
+SCHOOL - Age 16 to 17 yrs - Departure After 8:00 am,"@(((df.age>=16) & (df.age<=17)) & (df.start>10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",0.077527892
+SCHOOL - Age 0 to 5 yrs - Duration < 8hrs,"@(((df.age>0) & (df.age<=5)) & (df.duration<8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",0.254486164
+SCHOOL - Age 0 to 5 yrs - Duration > 8hrs,"@(((df.age>0) & (df.age<=5)) & (df.duration>8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",0.14409403
+SCHOOL - Age 13 to 15 yrs - Duration < 8hrs,"@(((df.age>=13) & (df.age<=15)) & (df.duration<8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",-0.211129273
+SCHOOL - Age 13 to 15 yrs - Duration > 8hrs,"@(((df.age>=13) & (df.age<=15)) & (df.duration>8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",0.102348303
+SCHOOL - Age 16 to 17 yrs - Duration > 8hrs,"@(((df.age>=16) & (df.age<=17)) & (df.duration>8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",0.1184616
+SCHOOL - Time (SOV freeflow) to destination - Departure before 7:30 am  - Linear,"@(df.start<10) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10))) * (df.auto_time_home_to_school)",0.011813391
+SCHOOL - Time (SOV freeflow) to destination - Departure after 8:00 am - Linear,"@(df.start>10) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10))) * (df.auto_time_home_to_school)",-0.0088956
+SCHOOL - Time (SOV freeflow) to destination - Duration < 8hrs,"@(df.end<27) * ((np.minimum(27-df.end,48)*(df.end<=27)) + (np.minimum(df.end-27,48)*(df.end>27))) * (df.auto_time_home_to_school)",-0.011793416
+SCHOOL - Time (SOV freeflow) to destination - Duration > 8hrs,"@(df.end>27) * ((np.minimum(27-df.end,48)*(df.end<=27)) + (np.minimum(df.end-27,48)*(df.end>27))) * (df.auto_time_home_to_school)",0.001485453
+SCHOOL - All adults in the household are fulltime workers - Departure before 7:30 am  - Linear,"@((df.is_all_adults_full_time_workers) & (df.start<10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",0.1625279
+SCHOOL - All adults in the household are fulltime workers - Departure after 8:00 am - Linear,"@((df.is_all_adults_full_time_workers) & (df.start>10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",-0.161840551
+SCHOOL - All adults in the household are fulltime workers - Duration < 8hrs,"@((df.is_all_adults_full_time_workers) & (df.end<27)) * ((np.minimum(27-df.end,48)*(df.end<=27)) + (np.minimum(df.end-27,48)*(df.end>27)))",-0.233061473
+SCHOOL - All adults in the household are fulltime workers - Duration > 8hrs,"@((df.is_all_adults_full_time_workers) & (df.end>27)) * ((np.minimum(27-df.end,48)*(df.end<=27)) + (np.minimum(df.end-27,48)*(df.end>27)))",0.08462748
+SCHOOL - Subsequent tour is work tour: Duration < 8 hours,"@(((df.tour_count>1) & (df.tour_num == 1) & (df.tour_type == 'work')) & (df.duration<8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",0.154332088
+SCHOOL - Subsequent tour is work tour: Duration > 8 hours,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'work')) & (df.duration>8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",-0.62871831
+SCHOOL - Subsequent tour is school tour: Departure after 8:00 am,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'school')) & (df.start>10)) * ((np.minimum(10-df.start,48)*(df.start<=10)) + (np.minimum(df.start-10,48)*(df.start>10)))",-0.41618671
+SCHOOL - Subsequent tour is school tour: Duration < 8 hours,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'school')) & (df.duration<8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",0.261423274
+SCHOOL - Subsequent tour is school tour: Duration > 8 hours,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'school')) & (df.duration>8)) * ((np.minimum(8-df.duration,47)*(df.duration<=8)) + (np.minimum(df.duration-8,47)*(df.duration>8)))",-0.263857404
+SCHOOL - Second tour of two mandatory tours: Duration < 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.duration<7)) * ((np.minimum(7-df.duration,47)*(df.duration<=7)) + (np.minimum(df.duration-7,47)*(df.duration>7)))",-0.537535787
+SCHOOL - Second tour of two mandatory tours: Duration > 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.duration>7)) * ((np.minimum(7-df.duration,47)*(df.duration<=7)) + (np.minimum(df.duration-7,47)*(df.duration>7)))",-0.545479806
+SCHOOL - Departure Constant: Before 06:00 AM,@(df.start<7),-10.04417122
+SCHOOL - Departure Constant: 06:00 AM to 06:30 AM (7),@(df.start==7),-3.792318538
+SCHOOL - Departure Constant: 06:30 AM to 07:00 AM (8),@(df.start==8),-1.941704371
+SCHOOL - Departure Constant: 07:00 AM to 07:30 AM (9),@(df.start==9),-0.558080224
+SCHOOL - Departure Constant: 07:30 AM to 08:00 AM (10),@(df.start==10),0
+SCHOOL - Departure Constant: After 08:00 AM,@(df.start>10),-0.280439854
+SCHOOL - Departure Constant: Shift for every 30 minutes after 8:30 am - Linear,"@((df.start>11)) * ((np.minimum(7-df.start,48)*(df.start<7)) + (np.minimum(df.start-11,23)*(df.start>11)))",0.293697164
+SCHOOL - Departure Constant: Shift for every 30 minutes after 8:30 am - Square Root,"@((df.start>11)) * (((np.minimum(7-df.start,48)*(df.start<7)) + (np.minimum(df.start-11,23)*(df.start>11))) ** 0.5)",-1.220165702
+SCHOOL - Arrival Constant: Before 02:30 PM,@(df.end<24),0.720751128
+SCHOOL - Arrival Constant: 02:30 PM - 03:00 PM (24) ,@(df.end==24),1.605012317
+SCHOOL - Arrival Constant: 03:00 PM - 03:30 PM (25) ,@(df.end==25),0.463502951
+SCHOOL - Arrival Constant: 03:30 PM - 04:00 PM (26) ,@(df.end==26),0.196107179
+SCHOOL - Arrival Constant: 04:00 PM - 04:30 PM (27) ,@(df.end==27),0
+SCHOOL - Arrival Constant: 04:30 PM - 05:00 PM (28) ,@(df.end==28),-0.389421484
+SCHOOL - Arrival Constant: 05:00 PM - 05:30 PM (29),@(df.end==29),-1.412720271
+SCHOOL - Arrival Constant: 05:30 PM - 06:00 PM (30) ,@(df.end==30),-1.938567609
+SCHOOL - Arrival Constant: After 06:00 PM,@(df.end>30),-2.246103785
+SCHOOL - Arrival Constant: Shift for every 30 minutes after 6:30 pm - Linear,"@(df.end>31) * ((np.minimum(24-df.end,6)*(df.end<24)) + (np.minimum(df.end-31,12)*(df.end>31)))",-0.552223894
+SCHOOL - Duration Constant: Shift for every 30 minutes less than 6.5 hrs - Linear,"@((df.duration<13)) * ((np.minimum(13-df.duration,48)*(df.duration<13)) + (np.minimum(df.duration-19,9)*(df.duration>19)))",-0.249724903
+SCHOOL - Duration Constant: Shorter than 7 hrs,@(df.duration<14),-2.791243553
+SCHOOL - Duration Constant: 7 hours,@(df.duration==14),-1.679006455
+SCHOOL - Duration Constant: 7.5 hours,@(df.duration==15),-0.555288612
+SCHOOL - Duration Constant: 8 hours,@(df.duration==16),0
+SCHOOL - Duration Constant: 8.5 hours,@(df.duration==17),-0.139412248
+SCHOOL - Duration Constant: 9 hours,@(df.duration==18),-0.509620713
+SCHOOL - Duration Constant: Longer than 9 hrs,@(df.duration>18),-0.561449384
+SCHOOL - Duration Constant: Shift for every 30 minutes more than 9.5 hrs - Linear,"@(df.duration>19) * ((np.minimum(13-df.duration,47)*(df.duration<13)) + (np.minimum(df.duration-19,9)*(df.duration>19)))",0.379484906
+SCHOOL - Duration Constant: Shift for every 30 minutes more than 9.5 hrs - Squared,"@(df.duration>19) * (((np.minimum(13-df.duration,47)*(df.duration<13)) + (np.minimum(df.duration-19,9)*(df.duration>19))) ** 2)",-0.028814477

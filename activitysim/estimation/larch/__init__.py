@@ -6,6 +6,7 @@ from .general import *
 from .location_choice import *
 from .mode_choice import *
 from .nonmand_tour_freq import *
+from .scheduling import *
 from .simple_simulate import *
 from .stop_frequency import *
 

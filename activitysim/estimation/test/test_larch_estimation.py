@@ -106,6 +106,32 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
         basename=f"test_loc_{name}_size_spec",
     )
 
+
+@pytest.mark.parametrize("name,method", [
+    ("non_mandatory_tour_scheduling", "BHHH"),
+])
+def test_scheduling_model(est_data, num_regression, dataframe_regression, name, method):
+    from activitysim.estimation.larch import component_model, update_size_spec
+
+    m, data = component_model(name, return_data=True)
+    m.load_data()
+    m.doctor(repair_ch_av='-')
+    loglike_prior = m.loglike()
+    r = m.maximize_loglike(method=method)
+    num_regression.check(
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
+        basename=f"test_loc_{name}_loglike",
+    )
+    _regression_check(dataframe_regression, m.pf)
+    size_spec = update_size_spec(
+        m, data, result_dir=None, output_file=None,
+    )
+    dataframe_regression.check(
+        size_spec,
+        basename=f"test_loc_{name}_size_spec",
+    )
+
+
 def test_workplace_location(est_data, num_regression, dataframe_regression):
     from activitysim.estimation.larch import component_model, update_size_spec
 

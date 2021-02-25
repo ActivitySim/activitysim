@@ -15,18 +15,18 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def test_arc():
+def test_marin():
 
     def example_path(dirname):
-        resource = os.path.join('examples', 'example_psrc', dirname)
+        resource = os.path.join('examples', 'example_marin', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress():
-        regress_trips_df = pd.read_csv(test_path('regress_trips.csv'))
-        final_trips_df = pd.read_csv(test_path('output/final_trips.csv'))
+        regress_trips_df = pd.read_csv(test_path('regress/final_tours.csv'))
+        final_trips_df = pd.read_csv(test_path('output/final_tours.csv'))
 
         # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,
         # destination,origin,destination_logsum,depart,trip_mode,mode_choice_logsum
@@ -45,4 +45,4 @@ def test_arc():
 
 if __name__ == '__main__':
 
-    test_arc()
+    test_xmarin()

@@ -34,4 +34,4 @@ output_tables:
   prefix: final_
   sort: True
   tables:
-    - trips
+    - tours

@@ -19,32 +19,20 @@ rebuild_tvpb_cache: True
 # (n.b. csv file could be quite large if cache is STATIC!)
 trace_tvpb_cache_as_csv: False
 
-taz_skims: 
-  - HWYSKMAM_taz_rename.omx
-  - HWYSKMEA_taz_rename.omx
-  - HWYSKMEV_taz_rename.omx
-  - HWYSKMMD_taz_rename.omx
-  - HWYSKMPM_taz_rename.omx
+taz_skims:
+  - highway_skims_AM.omx
+  - highway_skims_EA.omx
+  - highway_skims_EV.omx
+  - highway_skims_MD.omx
+  - highway_skims_PM.omx
 
 tap_skims:
     # we require that skims for all tap_tap sets have unique names
-    # and can therefor share a single skim_dict without name collision
+    # and cso an share a single skim_dict without name collision
     # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
-    - transit_skims_AM_SET1_rename.omx
-    - transit_skims_AM_SET2_rename.omx
-    - transit_skims_AM_SET3_rename.omx
-    - transit_skims_EA_SET1_rename.omx
-    - transit_skims_EA_SET2_rename.omx
-    - transit_skims_EA_SET3_rename.omx
-    - transit_skims_EV_SET1_rename.omx
-    - transit_skims_EV_SET2_rename.omx
-    - transit_skims_EV_SET3_rename.omx
-    - transit_skims_MD_SET1_rename.omx
-    - transit_skims_MD_SET2_rename.omx
-    - transit_skims_MD_SET3_rename.omx
-    - transit_skims_PM_SET1_rename.omx
-    - transit_skims_PM_SET2_rename.omx
-    - transit_skims_PM_SET3_rename.omx
+    - transit_skims_SET1.omx
+    - transit_skims_SET2.omx
+    - transit_skims_SET3.omx
 
 maz: maz_taz.csv
 

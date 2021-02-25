@@ -305,7 +305,7 @@ def location_presample(
     # 55227            20  0.035548           3
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = tour_destination.choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms)
+    maz_choices = tour_destination.choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})

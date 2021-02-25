@@ -18,14 +18,14 @@ def teardown_function(func):
 def test_arc():
 
     def example_path(dirname):
-        resource = os.path.join('examples', 'example_psrc', dirname)
+        resource = os.path.join('examples', 'example_arc', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress():
-        regress_trips_df = pd.read_csv(test_path('regress_trips.csv'))
+        regress_trips_df = pd.read_csv(test_path('regress/final_trips.csv'))
         final_trips_df = pd.read_csv(test_path('output/final_trips.csv'))
 
         # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,

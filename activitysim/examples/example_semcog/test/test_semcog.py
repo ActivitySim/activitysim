@@ -25,7 +25,7 @@ def test_semcog():
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress():
-        regress_trips_df = pd.read_csv(test_path('regress_trips.csv'))
+        regress_trips_df = pd.read_csv(test_path('regress/final_trips.csv'))
         final_trips_df = pd.read_csv(test_path('output/final_trips.csv'))
 
         # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,

@@ -123,6 +123,7 @@ to_csv(persons, "persons.csv")
 # skims
 #
 omx_infile_name = 'skims.omx'
+skim_data_type = np.float32
 
 omx_in = omx.open_file(input_path(omx_infile_name))
 print(f"omx_in shape {omx_in.shape()}")
@@ -149,7 +150,7 @@ iskim = 0
 for mat_name in omx_in.list_matrices():
 
     # make sure we have a vanilla numpy array, not a CArray
-    m = np.asanyarray(omx_in[mat_name])
+    m = np.asanyarray(omx_in[mat_name]).astype(skim_data_type)
     m = m[zone_indexes, :][:, zone_indexes]
     print(f"{mat_name} {m.shape}")
 

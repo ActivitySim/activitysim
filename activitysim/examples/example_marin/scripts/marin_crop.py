@@ -207,32 +207,36 @@ to_csv(work_tours, "work_tours.csv")
 
 taz_indexes = (tazs - 1).tolist()  # offset_map
 tap_indexes = (taps["TAP"] - 1).tolist()  # offset_map
-
 time_periods = ["AM", "EA", "EV", "MD", "PM"]
-taz_file_out = omx.open_file(output_path('taz_skims.omx'), 'w')
-taz_file_out.create_mapping('ZONE', tazs.tolist())
+skim_data_type = np.float32
+
+# taz skims with skim_data_type np.float32 are under 2GB - otherwise we would need to further segment them
+
 for tp in time_periods:
     in_file_name = f'HWYSKM{tp}_taz_rename.omx'
     taz_file_in = omx.open_file(input_path(in_file_name))
+    out_file_name = f'highway_skims_{tp}.omx'
+    taz_file_out = omx.open_file(output_path(out_file_name), 'w')
+    taz_file_out.create_mapping('ZONE', tazs.tolist())
     for mat_name in taz_file_in.list_matrices():
         # make sure we have a vanilla numpy array, not a CArray
-        m = np.asanyarray(taz_file_in[mat_name])
+        m = np.asanyarray(taz_file_in[mat_name]).astype(skim_data_type)
         m = m[taz_indexes, :][:, taz_indexes]
         taz_file_out[mat_name] = m
         print(f"taz {mat_name} {m.shape}")
     taz_file_in.close()
-taz_file_out.close()
+    taz_file_out.close()
 
 for skim_set in ["SET1", "SET2", "SET3"]:
     out_file_name = f'transit_skims_{skim_set}.omx'
     tap_file_out = omx.open_file(output_path(out_file_name), 'w')
-    tap_file_out.create_mapping('ZONE', taps["TAP"].tolist())
+    tap_file_out.create_mapping('TAP', taps["TAP"].tolist())
     for tp in time_periods:
         in_file_name = f'transit_skims_{tp}_{skim_set}_rename.omx'
         tap_file_in = omx.open_file(input_path(in_file_name))
         for mat_name in tap_file_in.list_matrices():
             # make sure we have a vanilla numpy array, not a CArray
-            m = np.asanyarray(tap_file_in[mat_name])
+            m = np.asanyarray(tap_file_in[mat_name]).astype(skim_data_type)
             m = m[tap_indexes, :][:, tap_indexes]
             tap_file_out[mat_name] = m
             print(f"tap {skim_set} {mat_name} {m.shape}")

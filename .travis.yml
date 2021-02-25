@@ -40,8 +40,8 @@ install:
 
 script:
 # build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
-- python activitysim/examples/example_multiple_zone/two_zone_example_data.py
-- python activitysim/examples/example_multiple_zone/three_zone_example_data.py
+- python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
+- python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
 - python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
 # pycodestyle

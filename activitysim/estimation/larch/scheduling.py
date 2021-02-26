@@ -102,7 +102,7 @@ def schedule_choice_model(
         )
 
 
-    apply_coefficients(coefficients, m)
+    apply_coefficients(coefficients, m, minimum=-25, maximum=25)
 
     chooser_index_name = chooser_data.columns[0]
     x_co = chooser_data.set_index(chooser_index_name)
@@ -196,5 +196,19 @@ def mandatory_tour_scheduling_model(return_data=False):
 def non_mandatory_tour_scheduling_model(return_data=False):
     return schedule_choice_model(
         name="non_mandatory_tour_scheduling",
+        return_data=return_data,
+    )
+
+
+def joint_tour_scheduling_model(return_data=False):
+    return schedule_choice_model(
+        name="joint_tour_scheduling",
+        return_data=return_data,
+    )
+
+
+def atwork_subtour_scheduling_model(return_data=False):
+    return schedule_choice_model(
+        name="atwork_subtour_scheduling",
         return_data=return_data,
     )

@@ -171,7 +171,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         primary_tours_merged.tour_type.where(not_university, 'univ')
 
     # append xborder wait times if specified
-    # (should this be its own model step??? util module?)
+    # MOVE TO PREPROCESSING CODE
     if model_settings.get('XBORDER_WAIT_TIME_SPEC'):
         wait_time_geog_col = model_settings['XBORDER_WAIT_TIME_GEOG_COL']
         tour_geog_merge_col = model_settings['XBORDER_TOUR_GEOG_MERGE_COL']
@@ -189,7 +189,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         primary_tours_merged['ped_wait'] = tours_w_waits['PedestrianWait'].reindex(tours.index)
 
     # if trip logsums are used, run trip mode choice 
-    if model_settings['COMPUTE_TRIP_MODE_CHOICE_LOGSUMS']:
+    if model_settings.get('COMPUTE_TRIP_MODE_CHOICE_LOGSUMS', False):
 
         # Construct table of hypothetical trips from tours for each potential
         # tour mode. Two trips (1 inbound, 1 outbound) per [tour, mode] bundle.

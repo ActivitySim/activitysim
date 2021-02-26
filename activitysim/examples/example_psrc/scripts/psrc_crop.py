@@ -83,6 +83,7 @@ def to_csv(df, file_name):
 
 print(f"output_dir {output_dir} taz_min {taz_min} taz_max {taz_max}")
 
+
 if check_geography:
 
     # ######## check for orphan_households not in any maz in land_use
@@ -234,15 +235,22 @@ if num_outfiles == 1:
 else:
     omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
 
-for omx_file in omx_out:
-    omx_file.create_mapping('ZONE', taz_labels)
+OFFSET_MAP = False  #BUG
+
+if OFFSET_MAP:
+    for omx_file in omx_out:
+        omx_file.create_mapping('ZONE', taz_labels)
 
 iskim = 0
 for mat_name in omx_in.list_matrices():
 
     # make sure we have a vanilla numpy array, not a CArray
     m = np.asanyarray(omx_in[mat_name]).astype(skim_data_type)
-    m = m[tazs_indexes, :][:, tazs_indexes]
+    if OFFSET_MAP:
+        m = m[tazs_indexes, :][:, tazs_indexes]
+    else:
+        max_taz = taz.TAZ.max()
+        m = m[0:max_taz, 0:max_taz]
     print(f"{mat_name} {m.shape}")
 
     omx_file = omx_out[iskim % num_outfiles]

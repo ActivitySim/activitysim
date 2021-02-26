@@ -223,7 +223,7 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     # 542963          53  0.004224           2      13243
     # 542963          59  0.008628           1      13243
 
-    SLICE_TRACERS = False
+    SLICE_TRACERS = False  # dev debug junk while implementing tracing
 
     trace_hh_id = inject.get_injectable("trace_hh_id", None)
     have_trace_targets = SLICE_TRACERS and trace_hh_id and tracing.has_trace_targets(taz_sample)
@@ -232,7 +232,6 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
 
         #bug
         trace_targets = tracing.trace_targets(taz_sample)
-
 
         #BUG just want traced rows for debugging...
         taz_sample = taz_sample[trace_targets]
@@ -326,7 +325,6 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     # insert zero filler to pad each alternative set to same size
     padded_maz_sizes = np.insert(maz_sizes.size_term.values, inserts, 0.0).reshape(-1, max_maz_count)
 
-
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
@@ -351,18 +349,17 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
 
         for c in ['zone_id', 'size_term']:
             padded_maz_sizes = np.insert(maz_sizes[c].values, inserts, 0.0).reshape(-1, max_maz_count)
-            df = pd.DataFrame(data=padded_maz_sizes, index = taz_choices.index)
+            df = pd.DataFrame(data=padded_maz_sizes, index=taz_choices.index)
             df.insert(0, 'what', c)
             dfs.append(df)
 
-        df = pd.DataFrame(data=maz_probs, index = taz_choices.index)
+        df = pd.DataFrame(data=maz_probs, index=taz_choices.index)
         df.insert(0, 'what', 'maz_prob')
         dfs.append(df)
 
         df = pd.concat(dfs).sort_index(kind='mergesort')
         print(f"df\n{df}")
         bug
-
 
         print(f"maz_probs.shape  reshaped {maz_probs.shape}")
         print(f"rands.shape {rands.shape}")

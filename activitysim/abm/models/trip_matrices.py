@@ -95,9 +95,7 @@ def write_trip_matrices(network_los):
         orig_vals = aggregate_trips.index.get_level_values('otaz')
         dest_vals = aggregate_trips.index.get_level_values('dtaz')
 
-        # use the taz skim zone names for the set of possible tazs
-        zone_index = pd.Index(network_los.skims_info['taz'].offset_map,
-                              name=network_los.skims_info['taz'].offset_map_name)
+        zone_index = pd.Index(network_los.get_tazs(), name='TAZ')
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 
@@ -121,9 +119,7 @@ def write_trip_matrices(network_los):
         orig_vals = aggregate_trips.index.get_level_values('otaz')
         dest_vals = aggregate_trips.index.get_level_values('dtaz')
 
-        # use the taz skim zone names for the set of possible tazs
-        zone_index = pd.Index(network_los.skims_info['taz'].offset_map,
-                              name=network_los.skims_info['taz'].offset_map_name)
+        zone_index = pd.Index(network_los.get_tazs(), name='TAZ')
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 
@@ -143,9 +139,7 @@ def write_trip_matrices(network_los):
         orig_vals = aggregate_trips.index.get_level_values('btap')
         dest_vals = aggregate_trips.index.get_level_values('atap')
 
-        # use the tap skim zone names for the set of possible taps
-        zone_index = pd.Index(network_los.skims_info['tap'].offset_map,
-                              name=network_los.skims_info['tap'].offset_map_name)
+        zone_index = pd.Index(network_los.get_taps(), name='TAP')
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 

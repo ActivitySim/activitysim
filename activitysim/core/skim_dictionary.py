@@ -79,7 +79,10 @@ class OffsetMapper(object):
         ----------
         offset_list : list of int
         """
-        assert isinstance(offset_list, list)
+        assert isinstance(offset_list, list) or isinstance(offset_list, np.ndarray)
+
+        if isinstance(offset_list, np.ndarray):
+            offset_list = list(offset_list)
 
         # - for performance, check if this is a simple range that can ber represented by an int offset
         first_offset = offset_list[0]
@@ -614,7 +617,19 @@ class MazSkimDict(SkimDict):
         taz_offset_mapper = super()._offset_mapper()
         maz_to_skim_offset = taz_offset_mapper.map(maz_to_taz)
 
-        offset_mapper = OffsetMapper(offset_series=maz_to_skim_offset)
+        if isinstance(maz_to_skim_offset, np.ndarray):
+            maz_to_skim_offset = pd.Series(maz_to_skim_offset, maz_to_taz.index)  # bug
+
+        # MAZ
+        # 19062    330 <- The TAZ would be, say, 331, and the offset is 330
+        # 8429     330
+        # 9859     331
+
+        assert isinstance(maz_to_skim_offset, np.ndarray) or isinstance(maz_to_skim_offset, pd.Series)
+        if isinstance(maz_to_skim_offset, pd.Series):
+            offset_mapper = OffsetMapper(offset_series=maz_to_skim_offset)
+        elif isinstance(maz_to_skim_offset, np.ndarray):
+            offset_mapper = OffsetMapper(offset_list=maz_to_skim_offset)
 
         return offset_mapper
 

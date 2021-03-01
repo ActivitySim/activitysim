@@ -235,22 +235,15 @@ if num_outfiles == 1:
 else:
     omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
 
-OFFSET_MAP = False  #BUG
-
-if OFFSET_MAP:
-    for omx_file in omx_out:
-        omx_file.create_mapping('ZONE', taz_labels)
+for omx_file in omx_out:
+    omx_file.create_mapping('ZONE', taz_labels)
 
 iskim = 0
 for mat_name in omx_in.list_matrices():
 
     # make sure we have a vanilla numpy array, not a CArray
     m = np.asanyarray(omx_in[mat_name]).astype(skim_data_type)
-    if OFFSET_MAP:
-        m = m[tazs_indexes, :][:, tazs_indexes]
-    else:
-        max_taz = taz.TAZ.max()
-        m = m[0:max_taz, 0:max_taz]
+    m = m[tazs_indexes, :][:, tazs_indexes]
     print(f"{mat_name} {m.shape}")
 
     omx_file = omx_out[iskim % num_outfiles]

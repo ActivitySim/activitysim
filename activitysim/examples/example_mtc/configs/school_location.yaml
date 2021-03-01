@@ -52,14 +52,9 @@ CHOOSER_FILTER_COLUMN_NAME: is_student
 
 # FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
 SEGMENT_IDS:
-  university: 3
-  highschool: 2
-  gradeschool: 1
-
-
-segment_preprocessor:
-  SPEC: school_location_segment_choosers_preprocessor
-  DF: persons
+  university: 3  # SCHOOL_SEGMENT_UNIV
+  highschool: 2  # SCHOOL_SEGMENT_HIGH
+  gradeschool: 1  # SCHOOL_SEGMENT_GRADE
 
 
 # model adds these tables (informational - not added if commented out)

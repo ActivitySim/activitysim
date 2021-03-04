@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def stop_frequency(
         tours, tours_merged,
-        stop_frequency_alts,
         network_los,
         chunk_size,
         trace_hh_id):
@@ -134,8 +133,8 @@ def stop_frequency(
     pipeline.replace_table("tours", tours)
 
     # create trips table
-    trips = trip.initialize_from_tours(tours, stop_frequency_alts)
-    trips = pipeline.replace_table("trips", trips)
+    trips = trip.initialize_from_tours(tours)
+    pipeline.replace_table("trips", trips)
     tracing.register_traceable_table('trips', trips)
     pipeline.get_rn_generator().add_channel('trips', trips)
 

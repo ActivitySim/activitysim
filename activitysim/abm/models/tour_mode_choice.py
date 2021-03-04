@@ -239,6 +239,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         trip_dir_mode_logsums.columns = new_cols
         trip_dir_mode_logsums.reindex(primary_tours_merged.index)
         primary_tours_merged = pd.merge(primary_tours_merged, trip_dir_mode_logsums, left_index=True, right_index=True)
+        pipeline.get_rn_generator().drop_channel('trips')
 
     choices_list = []
     for tour_purpose, tours_segment in primary_tours_merged.groupby('tour_purpose'):

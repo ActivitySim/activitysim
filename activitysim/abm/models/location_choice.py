@@ -574,6 +574,9 @@ def run_location_choice(
         # size_term and shadow price adjustment - one row per zone
         dest_size_terms = shadow_price_calculator.dest_size_terms(segment_name)
 
+        assert dest_size_terms.index.is_monotonic_increasing, \
+            f"shadow_price_calculator.dest_size_terms({segment_name}) not monotonic_increasing"
+
         if choosers.shape[0] == 0:
             logger.info(f"{trace_label} skipping segment {segment_name}: no choosers")
             continue

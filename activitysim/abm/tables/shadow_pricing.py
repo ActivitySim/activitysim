@@ -125,6 +125,9 @@ class ShadowPriceCalculator(object):
         # - destination_size_table (desired_size)
         self.desired_size = inject.get_table(size_table_name(self.model_selector)).to_frame()
 
+        assert self.desired_size.index.is_monotonic_increasing, \
+            f"{size_table_name(self.model_selector)} not is_monotonic_increasing"
+
         # - shared_data
         if shared_data is not None:
             assert shared_data.shape[0] == self.desired_size.shape[0]
@@ -509,11 +512,15 @@ class ShadowPriceCalculator(object):
             else:
                 raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
-        return pd.DataFrame({
+        size_terms = pd.DataFrame({
             'size_term': self.desired_size[segment],
             'shadow_price_size_term_adjustment': size_term_adjustment,
             'shadow_price_utility_adjustment': utility_adjustment},
             index=self.desired_size.index)
+
+        assert size_terms.index.is_monotonic_increasing
+
+        return size_terms
 
     def write_trace_files(self, iteration):
         """
@@ -793,6 +800,9 @@ def add_size_tables():
             scaled_size = raw_size
 
         logger.debug(f"add_size_table {size_table_name(model_selector)} ({scaled_size.shape}) for {model_selector}")
+
+        assert scaled_size.index.is_monotonic_increasing, \
+            f"size table {size_table_name(model_selector)} not is_monotonic_increasing"
 
         inject.add_table(size_table_name(model_selector), scaled_size)
 

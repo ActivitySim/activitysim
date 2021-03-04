@@ -104,8 +104,8 @@ input_table_list:
 
 models:
   - initialize_landuse
-  - compute_accessibility
   - initialize_households
+  - compute_accessibility
   - school_location
   - workplace_location
   - auto_ownership_simulate

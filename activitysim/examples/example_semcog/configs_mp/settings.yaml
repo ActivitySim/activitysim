@@ -27,8 +27,8 @@ resume_after:
 models:
   ### mp_initialize step
   - initialize_landuse
-  - compute_accessibility
   - initialize_households
+  - compute_accessibility
   ### mp_households step
   - school_location
   - workplace_location

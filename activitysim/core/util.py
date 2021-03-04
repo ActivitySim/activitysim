@@ -25,7 +25,7 @@ def GB(bytes):
 
 
 def df_size(df):
-    bytes = df.memory_usage(index=True).sum()
+    bytes = 0 if df.empty else df.memory_usage(index=True).sum()
     return "%s %s" % (df.shape, GB(bytes))
 
 

@@ -34,8 +34,8 @@ multiprocess_steps:
     slice:
       tables:
         - accessibility
-      except:
-        - land_use
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True
   - name: mp_summarize
     begin: write_data_dictionary
 

@@ -3,8 +3,8 @@ inherit_settings: settings.yaml
 
 models:
   - initialize_landuse
-  - compute_accessibility
   - initialize_households
+  - compute_accessibility
   # --- STATIC cache prebuild steps
   # single-process step to create attribute_combination list
   - initialize_los

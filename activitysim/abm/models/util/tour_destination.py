@@ -36,7 +36,7 @@ class SizeTermCalculator(object):
 
     def __init__(self, size_term_selector):
 
-        # do this once so they can request siae_terms for various segments (tour_type or purpose)
+        # do this once so they can request size_terms for various segments (tour_type or purpose)
         land_use = inject.get_table('land_use')
         size_terms = inject.get_injectable('size_terms')
         self.destination_size_terms = \

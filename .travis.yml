@@ -15,6 +15,7 @@ env:
   - TEST_SUITE=activitysim/abm/test/test_pipeline.py
   - TEST_SUITE=activitysim/cli
   - TEST_SUITE=activitysim/core
+  - TEST_SUITE=activitysim/examples/example_mtc/test
   - TEST_SUITE=activitysim/examples/example_arc/test
   - TEST_SUITE=activitysim/examples/example_semcog/test
   - TEST_SUITE=activitysim/examples/example_psrc/test

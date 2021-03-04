@@ -158,10 +158,10 @@ def log_df(trace_label, table_name, df):
     def size_it(df):
         if isinstance(df, pd.Series):
             elements = util.iprod(df.shape)
-            bytes = df.memory_usage(index=True)
+            bytes = 0 if not elements else df.memory_usage(index=True)
         elif isinstance(df, pd.DataFrame):
             elements = util.iprod(df.shape)
-            bytes = df.memory_usage(index=True).sum()
+            bytes = 0 if not elements else df.memory_usage(index=True).sum()
         elif isinstance(df, np.ndarray):
             elements = util.iprod(df.shape)
             bytes = df.nbytes

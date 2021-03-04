@@ -77,8 +77,8 @@ trace_od:
 
 models:
   - initialize_landuse
-  - compute_accessibility
   - initialize_households
+  - compute_accessibility
   - school_location
   - workplace_location
   - work_from_home

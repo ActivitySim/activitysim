@@ -70,84 +70,6 @@ def write_data_dictionary(output_dir):
             print(df.dtypes, file=output_file)
 
 
-# def xwrite_data_dictionary(output_dir):
-#     """
-#     Write table_name, number of rows, columns, and bytes for each checkpointed table
-#
-#     Parameters
-#     ----------
-#     output_dir: str
-#
-#     """
-#     pd.options.display.max_columns = 500
-#     pd.options.display.max_rows = 100
-#
-#     checkpoints = pipeline.get_checkpoints()
-#     tables = OrderedDict()
-#
-#     table_names = [c for c in checkpoints if c not in pipeline.NON_TABLE_COLUMNS]
-#
-#     with open(config.output_file_path('data_dict.txt'), 'wb') as file:
-#
-#         for index, row in checkpoints.iterrows():
-#
-#             checkpoint = row[pipeline.CHECKPOINT_NAME]
-#
-#             print("\n##########################################", file=file)
-#             print("# %s" % checkpoint, file=file)
-#             print("##########################################", file=file)
-#
-#             for table_name in table_names:
-#
-#                 if row[table_name] == '' and table_name in tables:
-#                     print("\n### %s dropped %s" % (checkpoint, table_name, ), file=file)
-#                     del tables[table_name]
-#
-#                 if row[table_name] == checkpoint:
-#                     df = pipeline.get_table(table_name, checkpoint)
-#                     info = tables.get(table_name, None)
-#                     if info is None:
-#
-#                         print("\n### %s created %s %s\n" %
-#                               (checkpoint, table_name, df.shape), file=file)
-#
-#                         print(df.dtypes, file=file)
-#                         print('index:', df.index.name, df.index.dtype, file=file)
-#
-#                     else:
-#                         new_cols = [c for c in df.columns.values if c not in info['columns']]
-#                         dropped_cols = [c for c in info['columns'] if c not in df.columns.values]
-#                         new_rows = df.shape[0] - info['num_rows']
-#                         if new_cols:
-#
-#                             print("\n### %s added %s columns to %s %s\n" %
-#                                   (checkpoint, len(new_cols), table_name, df.shape), file=file)
-#                             print(df[new_cols].dtypes, file=file)
-#
-#                         if dropped_cols:
-#                             print("\n### %s dropped %s columns from %s %s\n" %
-#                                   (checkpoint,  len(dropped_cols), table_name, df.shape),
-#                                   file=file)
-#                             print(dropped_cols, file=file)
-#
-#                         if new_rows > 0:
-#                             print("\n### %s added %s rows to %s %s" %
-#                                   (checkpoint, new_rows, table_name, df.shape), file=file)
-#                         elif new_rows < 0:
-#                             print("\n### %s dropped %s rows from %s %s" %
-#                                   (checkpoint, new_rows, table_name, df.shape), file=file)
-#                         else:
-#                             if not new_cols and not dropped_cols:
-#                                 print("\n### %s modified %s %s" %
-#                                       (checkpoint, table_name, df.shape), file=file)
-#
-#                     tables[table_name] = {
-#                         'checkpoint_name': checkpoint,
-#                         'columns': df.columns.values,
-#                         'num_rows': df.shape[0]
-#                     }
-
-
 def write_tables(output_dir):
     """
     Write pipeline tables as csv files (in output directory) as specified by output_tables list
@@ -238,8 +160,8 @@ def write_tables(output_dir):
                         df = df.sort_values(by=sort_columns)
                         logger.debug(f"write_tables sorting {table_name} on columns {sort_columns}")
                     else:
-                        logger.debug(f"write_tables couldn't find a column or index to sort {table_name}"
-                                     f" in traceable_table_indexes: {traceable_table_indexes}")
+                        logger.debug(f"write_tables sorting {table_name} on unrecognized index {df.index.name}")
+                        df = df.sort_index()
 
         if h5_store:
             file_path = config.output_file_path('%soutput_tables.h5' % prefix)

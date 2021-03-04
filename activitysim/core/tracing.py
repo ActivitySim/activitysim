@@ -104,12 +104,15 @@ def delete_output_files(file_type, ignore=None, subdir=None):
             if the_file.endswith(file_type):
                 file_path = os.path.join(dir, the_file)
 
+                logger.debug("delete_output_files considering %s" % os.path.realpath(file_path))
+
                 if ignore and os.path.realpath(file_path) in ignore:
-                    logger.debug("delete_output_files ignoring %s" % file_path)
+                    # logger.debug("delete_output_files ignoring %s" % file_path)
                     continue
 
                 try:
                     if os.path.isfile(file_path):
+                        # logger.debug("delete_output_files deleting %s" % file_path)
                         os.unlink(file_path)
                 except Exception as e:
                     print(e)
@@ -204,6 +207,14 @@ def print_summary(label, df, describe=False, value_counts=False):
 
     if describe:
         logger.info("%s summary:\n%s" % (label, df.describe()))
+
+
+def initialize_traceable_tables():
+
+    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    if len(traceable_table_ids) > 0:
+        logger.debug(f"initialize_traceable_tables resetting table_ids for {list(traceable_table_ids.keys())}")
+    inject.add_injectable('traceable_table_ids', {})
 
 
 def register_traceable_table(table_name, df):

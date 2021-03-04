@@ -206,11 +206,22 @@ def run(args):
         run_list = mp_tasks.get_run_list()
         injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
         mp_tasks.run_multiprocess(run_list, injectables)
+
+        assert not pipeline.is_open()
+
+        if config.setting('cleanup_pipeline_after_run', False):
+            pipeline.cleanup_pipeline()
+
     else:
         logger.info('run single process simulation')
 
         pipeline.run(models=config.setting('models'), resume_after=resume_after)
-        pipeline.close_pipeline()
+
+        if config.setting('cleanup_pipeline_after_run', False):
+            pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
+        else:
+            pipeline.close_pipeline()
+
         chunk.log_write_hwm()
 
     tracing.print_elapsed_time('all models', t0)

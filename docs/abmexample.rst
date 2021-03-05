@@ -69,16 +69,16 @@ with respect to age, work status, and school status.
 
 +------------------+-----------------------------------------------------------+---------+------------------+---------------+
 | Person Type Code | Person Type                                               | Age     | Work Status      | School Status |
-+------------------+===========================================================+=========+==================+===============+
++==================+===========================================================+=========+==================+===============+
 | 1                | Full-time worker (30+ hours a week)                       | 18+     | Full-time        | None          |
 +------------------+-----------------------------------------------------------+---------+------------------+---------------+
 | 2                | Part-time worker (<30 hours but works on a regular basis) | 18+     | Part-time        | None          |
 +------------------+-----------------------------------------------------------+---------+------------------+---------------+
-| 3                | Non-working adult                                         | 18 - 64 | Unemployed       | None          |
+| 4                | Non-working adult                                         | 18 - 64 | Unemployed       | None          |
 +------------------+-----------------------------------------------------------+---------+------------------+---------------+
-| 4                | Retired person                                            | 65+     | Unemployed       | None          |
+| 5                | Retired person                                            | 65+     | Unemployed       | None          |
 +------------------+-----------------------------------------------------------+---------+------------------+---------------+
-| 5                | College student                                           | 18+     | Any              | College       |
+| 3                | College student                                           | 18+     | Any              | College       |
 +------------------+-----------------------------------------------------------+---------+------------------+---------------+
 | 6                | Driving age student                                       | 16 - 17 | Any              | Pre-college   |
 +------------------+-----------------------------------------------------------+---------+------------------+---------------+
@@ -269,7 +269,7 @@ Inputs
 
 In order to run the example, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file and the ``configs\network_los.yaml`` file:
 
-* input_table_list: the input CSV tables from MTC travel model one:
+* input_table_list: the input CSV tables from MTC travel model one (see below for column definitions):
 
     * households - Synthetic population household records for a subset of zones.
     * persons - Synthetic population person records for a subset of zones.
@@ -279,6 +279,92 @@ In order to run the example, you first need the input files in the ``data`` fold
 
 These files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  The full set
 of MTC TM1 households, persons, and OMX skims are on the ActivitySim `resources repository <https://github.com/rsginc/activitysim_resources>`__.
+
+Additional details on these files is available in the original `Travel Model 1 repository <https://github.com/BayAreaMetro/modeling-website/wiki/DataDictionary>`_,
+although many of the files described there are not used in ActivitySim.
+
+Households
+^^^^^^^^^^
+The households table contains the following synthetic population columns:
+
+* household_id: numeric ID of this household, used in persons table to join with household characteristics
+* TAZ: zone where this household lives
+* income: Annual household income, in dollars
+* hhsize: Household size
+* HHT: Household type (see below)
+* auto_ownership: number of cars owned by this household (0--6)
+* num_workers: number of workers in the household
+* sample_rate
+
+Household types
+"""""""""""""""
+
+These are household types defined by the Census Bureau and used in `ACS table B11001<https://censusreporter.org/tables/B11001/>`_.
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 0    | None                                     |
++------+------------------------------------------+
+| 1    | Married-couple family                    |
++------+------------------------------------------+
+| 2    | Male householder, no spouse present      |
++------+------------------------------------------+
+| 3    | Female householder, no spouse present    |
++------+------------------------------------------+
+| 4    | Nonfamily household, male alone          |
++------+------------------------------------------+
+| 5    | Nonfamily household, male not alone      |
++------+------------------------------------------+
+| 6    | Nonfamily household, female alone        |
++------+------------------------------------------+
+| 7    | Nonfamily household, female not alone    |
++------+------------------------------------------+
+
+
+Persons
+^^^^^^^
+
+This table describes attributes of the persons that constitute each household. This file contains the following columns:
+
+* person_id: Unique integer identifier for each person. This value is globally unique, i.e.
+  no two individuals have the same person ID, even if they are in different households.
+* household_id: Household identifier for this person, foreign key to households table
+* age: Age in years
+* PNUM: Person number in household, starting from 1.
+* sex: Sex, 1 = Male, 2 = Female
+* pemploy: Employment status (see below)
+* pstudent: Student status (see below)
+* ptype: Person type (see "person type segmentation" above)
+
+Employment status
+"""""""""""""""""
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 1    | Full-time worker                         |
++------+------------------------------------------+
+| 2    | Part-time worker                         |
++------+------------------------------------------+
+| 3    | Not in labor force                       |
++------+------------------------------------------+
+| 4    | Student under 16                         |
++------+------------------------------------------+
+
+Student status
+""""""""""""""
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 1    | Preschool through Grade 12 student       |
++------+------------------------------------------+
+| 2    | University/professional school student   |
++------+------------------------------------------+
+| 3    | Not a student                            |
++------+------------------------------------------+
+
 
 .. note::
   

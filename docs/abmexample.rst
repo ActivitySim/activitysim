@@ -365,6 +365,81 @@ Student status
 | 3    | Not a student                            |
 +------+------------------------------------------+
 
+Land use
+^^^^^^^^
+
+All values are raw numbers and not proportions of the total.
+
+* TAZ: Zone which this row describes
+* DISTRICT: Superdistrict where this TAZ is (34 superdistricts in the Bay Area)
+* SD: Duplicate of DISTRICT
+* COUNTY: County within the Bay Area (see below)
+* TOTHH: Total households in TAZ
+* TOTPOP: Total population in TAZ
+* TOTACRE: Area of TAZ, acres
+* RESACRE: Residential area of TAZ, acres
+* CIACRE: Commercial/industrial area of TAZ, acres
+* TOTEMP: Total employment
+* AGE0519: Persons age 5 to 19 (inclusive)
+* RETEMPN: NAICS-based total retail employment
+* FPSEMPN: NAICS-based financial and professional services employment
+* HEREMPN: NAICS-based health, education, and recreational service employment
+* AGREMPN: NAICS-based agricultural and natural resources employment
+* MWTEMPN: NAICS-based manufacturing and wholesale trade employment
+* OTHEMP: NAICS-based other employment
+* PRKCST: Hourly cost paid by long-term (8+ hours) parkers, year 2000 cents
+* OPRKCST: Hourly cost paid by short term parkers, year 2000 cents
+* area_type: Area type designation (see below)
+* HSENROLL: High school students enrolled at schools in this TAZ
+* COLLFTE: College students enrolled full-time at colleges in this TAZ
+* COLLPTE: College students enrolled part-time at colleges in this TAZ
+* TERMINAL: Average time to travel from automobile storage location to origin/destination (floating-point minutes)
+
+Counties
+""""""""
+
++------+------------------------------------------+
+| Code | Name                                     |
++======+==========================================+
+| 1    | San Francisco                            |
++------+------------------------------------------+
+| 2    | San Mateo                                |
++------+------------------------------------------+
+| 3    | Santa Clara                              |
++------+------------------------------------------+
+| 4    | Alameda                                  |
++------+------------------------------------------+
+| 5    | Contra Costa                             |
++------+------------------------------------------+
+| 6    | Solano                                   |
++------+------------------------------------------+
+| 7    | Napa                                     |
++------+------------------------------------------+
+| 8    | Sonoma                                   |
++------+------------------------------------------+
+| 9    | Marin                                    |
++------+------------------------------------------+
+
+Area types
+""""""""""
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 0    | Regional core                            |
++------+------------------------------------------+
+| 1    | Central business district                |
++------+------------------------------------------+
+| 2    | Urban business                           |
++------+------------------------------------------+
+| 3    | Urban                                    |
++------+------------------------------------------+
+| 4    | Suburban                                 |
++------+------------------------------------------+
+| 5    | Rural                                    |
++------+------------------------------------------+
+
+
 
 .. note::
   

@@ -289,7 +289,7 @@ The households table contains the following synthetic population columns:
 
 * household_id: numeric ID of this household, used in persons table to join with household characteristics
 * TAZ: zone where this household lives
-* income: Annual household income, in dollars
+* income: Annual household income, in 2000 dollars
 * hhsize: Household size
 * HHT: Household type (see below)
 * auto_ownership: number of cars owned by this household (0--6)
@@ -299,7 +299,7 @@ The households table contains the following synthetic population columns:
 Household types
 """""""""""""""
 
-These are household types defined by the Census Bureau and used in `ACS table B11001<https://censusreporter.org/tables/B11001/>`_.
+These are household types defined by the Census Bureau and used in `ACS table B11001 <https://censusreporter.org/tables/B11001/>`_.
 
 +------+------------------------------------------+
 | Code | Description                              |

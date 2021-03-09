@@ -21,8 +21,8 @@ coef_Shift_for_every_30_minutes_before_1030_am_Linear,-0.731880037,F
 coef_Before_1100_AM,-2.176744062,F
 coef_1100_AM_1130_AM,-1.190017952,F
 coef_1130_AM_1200_PM,-0.198229872,F
-coef_1200_AM_1230_PM,0,T
-coef_1230_PM_0100_PM,-0.084950396,F
+#coef_1200_AM_1230_PM,0,T
+#coef_1230_PM_0100_PM,-0.084950396,F
 coef_After_0100_PM,-0.205562723,F
 coef_Shift_for_every_30_minutes_after_130_pm_Square_Root,0.539088697,F
 coef_Shift_for_every_30_minutes_before_1130_am_Linear,0.414546555,F

@@ -400,7 +400,7 @@
   # activitysim create -e example_semcog -d test_example_semcog
   instructions: |
     To run the example, cd into the directory and use the command:
-       cd example_semcog
+       cd example_semcog_z500
        activitysim run -c configs -o output -d data
   include:
     - example_semcog/data
@@ -422,7 +422,7 @@
   # activitysim create -e example_semcog -d test_example_semcog
   instructions: |
     To run the example, cd into the directory and use the command:
-       cd example_semcog
+       cd example_semcog_full
        activitysim run -c configs -o output -d data
   include:
     - example_semcog/data
@@ -430,15 +430,15 @@
     - example_semcog/configs_mp
     - example_semcog/output
     - example_semcog/README.MD
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/skims1.omx
       data/skims1.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/skims2.omx
       data/skims2.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/households.csv
       data/households.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/persons.csv
       data/persons.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/land_use.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/land_use.csv
       data/land_use.csv
 
 - name: example_arc
@@ -446,7 +446,7 @@
   # activitysim create -e example_semcog -d test_example_semcog
   instructions: |
     To run the example, cd into the directory and use the command:
-       cd example_semcog
+       cd example_arc
        activitysim run -c configs -o output -d data
   include:
     - example_arc/data
@@ -459,7 +459,7 @@
   # activitysim create -e example_arc -d test_example_arc
   instructions: |
     To run the example, cd into the directory and use the command:
-       cd example_semcog
+       cd example_arc_fulton
        activitysim run -c configs -o output -d data
   include:
     - example_arc/data
@@ -480,7 +480,7 @@
   # activitysim create -e example_arc -d test_example_arc
   instructions: |
     To run the example, cd into the directory and use the command:
-       cd example_semcog
+       cd example_arc_full
        activitysim run -c configs -o output -d data
   include:
     - example_arc/data

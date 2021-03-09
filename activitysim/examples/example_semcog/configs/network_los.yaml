@@ -8,7 +8,7 @@ write_skim_cache: True
 
 zone_system: 1
 
-taz_skims: skims.omx
+taz_skims: skims*.omx
 
 skim_time_periods:
     time_window: 1440

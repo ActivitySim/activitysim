@@ -127,6 +127,16 @@ LEGACY_COEFFICIENTS: trip_mode_choice_coeffs.csv
 coefficient_name,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
 
 ###
+##### atwork_subtour_destination.csv
+##### atwork_subtour_destination_sample.csv
+###
+
+# util_size_variable_atwork,Size variable atwork,@df['atwork'].apply(np.log1p),coef_size_variable_atwork
+# util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",atwork==0,coef_no_attractions_atwork_size_variable_is_0
+util_size_variable_atwork,Size variable atwork,@df['size_term'].apply(np.log1p),coef_size_variable_atwork
+util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",size_term==0,coef_no_attractions_atwork_size_variable_is_0
+
+###
 ##### tour_scheduling_non_mandatory.csv
 ###
 
@@ -139,6 +149,16 @@ util_shopping_time_pressure_duration_greater_than_1_hour_30_minutes,SHOPPING - T
 
 # and similar changes in 8 other lines where the same substitution
 
+###
+##### tour_scheduling_atwork_coeffs.csv
+###
+
+# remove duplicate coefficients
+
+#coef_1200_AM_1230_PM,0,T
+#coef_1230_PM_0100_PM,-0.084950396,F
+coef_1200_AM_1230_PM,-0.045281832,F
+coef_1230_PM_0100_PM,0.214070736,F
 
 ###
 ##### work_from_home.py
@@ -151,3 +171,29 @@ util_shopping_time_pressure_duration_greater_than_1_hour_30_minutes,SHOPPING - T
     # E712 comparison to True should be 'if cond is True:' or 'if cond:'
     # persons[dest_choice_column_name] = np.where(persons.work_from_home == True, -1, persons[dest_choice_column_name])
     persons[dest_choice_column_name] = np.where(persons.work_from_home is True, -1, persons[dest_choice_column_name])
+
+
+###
+##### tour_departure_and_duration_segments.csv
+###
+
+# new file - contents of which I just guessed at - you should check
+
+tour_purpose,time_period,start,end
+work,EA,3,5
+work,AM,8,11
+work,MD,14,22
+work,PM,26,30
+work,EV,33,44
+#,,,
+school,EA,3,5
+school,AM,8,11
+school,MD,14,22
+school,PM,26,30
+school,EV,33,44
+#,,,
+univ,EA,3,5
+univ,AM,8,11
+univ,MD,14,22
+univ,PM,26,30
+univ,EV,33,44

@@ -90,8 +90,7 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     choosers = alt_tdd.join(tours_merged, how='left', rsuffix='_chooser')
-    logger.info("%s compute_logsums for %d choosers%s alts" %
-                (trace_label, choosers.shape[0], alt_tdd.shape[0]))
+    logger.info(f"{trace_label} compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts")
 
     # - locals_dict
     constants = config.get_model_constants(logsum_settings)
@@ -142,6 +141,75 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
     return logsums
 
 
+def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
+
+    tdd_segments = inject.get_injectable('tdd_alt_segments', None)
+    alt_tdd_periods = None
+
+    if tdd_segments is not None:
+
+        dedupe_columns = ['out_period', 'in_period']
+
+        # tdd_alt_segments is optionally segmented by tour purpose
+        if 'tour_purpose' in tdd_segments:
+            tdd_segments = tdd_segments[tdd_segments.tour_purpose == tour_purpose].drop(columns=['tour_purpose'])
+            assert len(tdd_segments) > 0, f"tour_purpose '{tour_purpose}' not in tdd_alt_segments"
+
+        # left join representative start on out_period
+        alt_tdd_periods = \
+            pd.merge(alt_tdd[['out_period', 'in_period']].reset_index(),
+                     tdd_segments[['time_period', 'start']].rename(columns={'time_period': 'out_period'}),
+                     how='left', on='out_period')
+
+        # left join representative end on in_period
+        alt_tdd_periods = \
+            pd.merge(alt_tdd_periods,
+                     tdd_segments[['time_period', 'end']].rename(columns={'time_period': 'in_period'}),
+                     how='left', on=['in_period'])
+
+        if tdd_segments.start.isnull().any():
+            missing_periods = tdd_segments.out_period[tdd_segments.start.isnull()].unique()
+            logger.warning(f"missing out_periods in tdd_alt_segments: {missing_periods}")
+
+        if tdd_segments.end.isnull().any():
+            missing_periods = tdd_segments.in_period[tdd_segments.end.isnull()].unique()
+            logger.warning(f"missing in_periods in tdd_alt_segments: {missing_periods}")
+
+        assert not tdd_segments.start.isnull().any()
+        assert not tdd_segments.end.isnull().any()
+
+        # drop duplicates
+        alt_tdd_periods = alt_tdd_periods.drop_duplicates().set_index(alt_tdd.index.name)
+
+        # representative duration
+        alt_tdd_periods['duration'] = alt_tdd_periods['end'] - alt_tdd_periods['start']
+
+        logger.debug(f"{trace_label} "
+                     f"dedupe_alt_tdd.tdd_alt_segments reduced number of rows by "
+                     f"{round(100 * (len(alt_tdd) - len(alt_tdd_periods)) / len(alt_tdd), 2)}% "
+                     f"from {len(alt_tdd)} to {len(alt_tdd_periods)}")
+
+    # if there is no tdd_alt_segments file, we can at least dedupe on 'out_period', 'in_period', 'duration'
+    if alt_tdd_periods is None:
+
+        # FIXME This won't work if they reference start or end in logsum calculations
+        # for MTC only duration is used (to calculate all_day parking cost)
+        dedupe_columns = ['out_period', 'in_period', 'duration']
+
+        logger.warning(f"No tdd_alt_segments so fallback to deduping tdd_alts by time_period and duration")
+
+        # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
+        # we can cut the number of alts roughly in half (for mtctm1) by conflating duplicates
+        alt_tdd_periods = alt_tdd[dedupe_columns].reset_index().drop_duplicates().set_index(alt_tdd.index.name)
+
+        logger.debug(f"{trace_label} "
+                     f"dedupe_alt_tdd.drop_duplicates reduced number of rows by "
+                     f"{round(100 * (len(alt_tdd) - len(alt_tdd_periods)) / len(alt_tdd), 2)}% "
+                     f"from {len(alt_tdd)} to {len(alt_tdd_periods)}")
+
+    return alt_tdd_periods, dedupe_columns
+
+
 def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, skims, trace_label):
     """
     Compute logsums for the tour alt_tdds, which will differ based on their different start, stop
@@ -155,6 +223,7 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, skims, 
     (out-period, in-period) pairs and then join them back to the alt_tdds.
     """
 
+    trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     network_los = inject.get_injectable('network_los')
 
     # - in_period and out_period
@@ -169,27 +238,39 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, skims, 
         logsums = _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label)
         return logsums
 
-    # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
-    # we can cut the number of alts roughly in half (for mtctm1) by conflating duplicates
     index_name = alt_tdd.index.name
-    alt_tdd_periods = alt_tdd[['out_period', 'in_period', 'duration']]\
-        .reset_index().drop_duplicates().set_index(index_name)
+    deduped_alt_tdds, redupe_columns = dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label)
+
+    logger.info(f"{trace_label} compute_logsums "
+                f"deduped_alt_tdds reduced number of rows by "
+                f"{round(100 * (len(alt_tdd) - len(deduped_alt_tdds)) / len(alt_tdd), 2)}% "
+                f"from {len(alt_tdd)} to {len(deduped_alt_tdds)} compared to USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS")
+
+    t0 = tracing.print_elapsed_time()
 
     # - compute logsums for the alt_tdd_periods
-    alt_tdd_periods['logsums'] = \
-        _compute_logsums(alt_tdd_periods, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label)
+    deduped_alt_tdds['logsums'] = \
+        _compute_logsums(deduped_alt_tdds, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label)
 
-    logger.debug(f"{trace_label} compute_logsums "
-                 f"alt_tdd_periods reduced number of rows by {round(100*len(alt_tdd_periods)/len(alt_tdd), 2)}% "
-                 f" compared to alt_tdd len when USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS")
+    # tracing.log_runtime(model_name=trace_label, start_time=t0)
 
-    # - join the alt_tdd_period logsums to alt_tdd to get logsums for alt_tdd
+    # redupe - join the alt_tdd_period logsums to alt_tdd to get logsums for alt_tdd
     logsums = pd.merge(
         alt_tdd.reset_index(),
-        alt_tdd_periods.reset_index(),
-        on=[index_name, 'out_period', 'in_period', 'duration'],
+        deduped_alt_tdds.reset_index(),
+        on=[index_name] + redupe_columns,
         how='left'
     ).set_index(index_name).logsums
+
+    # this is really expensive
+    TRACE = False
+    if TRACE:
+        trace_logsums_df = logsums.to_frame('representative_logsum')
+        trace_logsums_df['brute_force_logsum'] = \
+            _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label)
+        tracing.trace_df(trace_logsums_df,
+                         label=tracing.extend_trace_label(trace_label, 'representative_logsums'),
+                         slicer='NONE', transpose=False)
 
     return logsums
 
@@ -428,7 +509,7 @@ def _schedule_tours(
 
 def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, spec, model_settings, trace_label):
 
-    # this will no be consistent across mandatory tours (highest), non_mandatory tours, and atwork subtours (lowest)
+    # this will not be consistent across mandatory tours (highest), non_mandatory tours, and atwork subtours (lowest)
     TIMETABLE_AVAILABILITY_REDUCTION_FACTOR = 1
     # this appears to be more stable
     LOGSUM_DUPLICATE_REDUCTION_FACTOR = 0.5
@@ -497,6 +578,58 @@ def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, sp
     return row_size
 
 
+def prefilter_tdd_alts(alts, model_settings, tour_purpose):
+    """
+
+    Parameters
+    ----------
+    alts
+    model_settings
+    tour_purpose
+
+    SCHEDULING_WINDOW:
+        first_start: 7
+        last_end: 18
+
+    SCHEDULING_WINDOW:
+        work:
+            first_start: 3
+            last_end: 24
+        school:
+            first_start: 7
+            last_end: 18
+
+    Returns
+    -------
+    pandas.DataFrame
+        alts df filtered to remove alts outside optional tdd_window settings in model_settings
+    """
+
+    # FIXME do we need this? existing expression files do no seem to rule out any start or end, even for school
+
+    if 'SCHEDULING_WINDOW' not in model_settings:
+        logger.debug(f"prefilter_tdd_alts - not prefiltering because SCHEDULING_WINDOW not in model_settings")
+        return alts
+
+    scheduling_window = model_settings['SCHEDULING_WINDOW']
+    # check for nested breakout by tour_purpose
+    if tour_purpose in scheduling_window:
+        scheduling_window = scheduling_window[tour_purpose]
+
+    assert 'first_start' in scheduling_window and 'last_end' in scheduling_window, \
+        f"Expected to find 'first_start' and 'last_end' in model_setting SCHEDULING_WINDOW"
+
+    first_start = int(scheduling_window['first_start'])
+    last_end = int(scheduling_window['last_end'])
+
+    filtered_alts = alts[(alts.start >= first_start) & (alts.end <= last_end)].reset_index(drop=True)
+
+    logger.debug(f"prefilter_tdd_alts tour_purpose {tour_purpose} "
+                 f"reduced tdd_alts from {len(alts)} to {len(filtered_alts)} alternatives")
+
+    return filtered_alts
+
+
 def schedule_tours(
         tours, persons_merged, alts,
         spec, logsum_tour_purpose,
@@ -532,6 +665,8 @@ def schedule_tours(
         skims = skims_for_logsums(logsum_tour_purpose, model_settings, tour_trace_label)
     else:
         skims = None
+
+    alts = prefilter_tdd_alts(alts, model_settings, logsum_tour_purpose)
 
     row_size = chunk_size and \
         tour_scheduling_calc_row_size(tours, persons_merged, alts, skims, spec, model_settings,  tour_trace_label)
@@ -669,6 +804,9 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, timetable,
 
         else:
 
+            # MTC non_mandatory_tours are not segmented by tour_purpose and do not require logsums
+            # FIXME should support logsums?
+
             assert not compute_logsums, "logsums for unsegmented spec not implemented because not currently needed"
             assert tour_segments.get('spec_segment_name') is None
 
@@ -701,7 +839,7 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
     subtours have a few peculiarities necessitating separate treatment:
 
     Timetable has to be initialized to set all timeperiods outside parent tour footprint as
-    unavailable. So atwork subtour timewindows are limited to the foorprint of the parent work
+    unavailable. So atwork subtour timewindows are limited to the footprint of the parent work
     tour. And parent_tour_id' column of tours is used instead of parent_id as timetable row_id.
 
     Parameters
@@ -738,7 +876,7 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
 
     timetable_window_id_col = 'parent_tour_id'
     tour_owner_id_col = 'parent_tour_id'
-    segment = None
+    logsum_tour_purpose = None  # FIXME logsums not currently supported
 
     # timetable with a window for each parent tour
     parent_tour_windows = tt.create_timetable_windows(parent_tours, alts)
@@ -776,7 +914,7 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
         choices = \
             schedule_tours(nth_tours,
                            persons_merged, alts,
-                           spec, segment,
+                           spec, logsum_tour_purpose,
                            model_settings,
                            timetable, timetable_window_id_col,
                            previous_tour_by_parent_tour_id, tour_owner_id_col,
@@ -863,7 +1001,7 @@ def vectorize_joint_tour_scheduling(
 
     timetable_window_id_col = None
     tour_owner_id_col = 'household_id'
-    segment = None
+    logsum_tour_purpose = None  # FIXME logsums not currently supported
 
     choice_list = []
 
@@ -895,7 +1033,8 @@ def vectorize_joint_tour_scheduling(
         choices = \
             schedule_tours(nth_tours,
                            persons_merged, alts,
-                           spec, segment,
+                           spec,
+                           logsum_tour_purpose,
                            model_settings,
                            timetable, timetable_window_id_col,
                            previous_tour_by_householdid, tour_owner_id_col,

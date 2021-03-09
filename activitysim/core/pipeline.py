@@ -466,6 +466,7 @@ def run_model(model_name):
     t0 = print_elapsed_time()
     logger.info(f"#run_model running step {step_name}")
     orca.run([step_name])
+
     t0 = print_elapsed_time("#run_model completed step '%s'" % model_name, t0, debug=True)
 
     inject.set_step_args(None)
@@ -545,7 +546,7 @@ def close_pipeline():
 
     _PIPELINE.init_state()
 
-    logger.info("close_pipeline")
+    logger.debug("close_pipeline")
 
 
 def run(models, resume_after=None):
@@ -594,8 +595,11 @@ def run(models, resume_after=None):
 
     t0 = print_elapsed_time()
     for model in models:
+        t1 = print_elapsed_time()
         run_model(model)
         mem.trace_memory_info(f"pipeline.run after {model}")
+
+        tracing.log_runtime(model_name=model, start_time=t1)
 
     mem.trace_memory_info('#MEM pipeline.run after run_models')
 

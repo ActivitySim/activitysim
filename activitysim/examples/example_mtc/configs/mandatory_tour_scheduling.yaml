@@ -34,8 +34,6 @@ SPEC_SEGMENTS:
     'SPEC': tour_scheduling_school.csv
     'COEFFICIENTS': tour_scheduling_school_coefficients.csv
 
-#CHOOSER_ORIG_COL_NAME: home_zone_id
-
 DESTINATION_FOR_TOUR_PURPOSE:
   work: workplace_zone_id
   school: school_zone_id

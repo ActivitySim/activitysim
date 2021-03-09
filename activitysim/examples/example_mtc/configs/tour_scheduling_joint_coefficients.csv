@@ -1,4 +1,5 @@
 coefficient_name,value,constrain
+coef_dummy,1,T
 coef_unavailable,-999,T
 coef_free_flow_round_trip_auto_time_shift_effects_duration,0.003195,F
 coef_shopping_tour_departure_shift_effects,-0.06015,F

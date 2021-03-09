@@ -267,3 +267,14 @@ BLDGSZ,HHID,HHT,MAZ,NOC,PERSONS,PUMA5,SERIALNO,TENURE,UNITTYPE,VEHICL,bucketBin,
 ###
 
 # these files are wrong - they were simply copied from the example_multiple_zone 2-zone example data for MTC
+
+###
+### tour_scheduling_work.csv
+###
+
+remove these redundant lines that got uncommented when label column was added
+
+#util_adjacent_window_exists_before_this_departure_hour_first_tour_interaction,#Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_before(df.person_id, df.start)",coef_adjacent_window_exists_before_this_departure_hour_first_tour_interaction
+#util_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction,#Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_after(df.person_id, df.end)",coef_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction
+#util_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction,#Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_before(df.person_id, df.start)",coef_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction
+#util_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction,#Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_after(df.person_id, df.end)",coef_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction

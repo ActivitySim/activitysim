@@ -44,13 +44,6 @@ SPEC_SEGMENTS:
     'SPEC': tour_scheduling_university.csv
     'COEFFICIENTS': tour_scheduling_university_coeffs.csv
 
-#SPEC:
-#  work: tour_scheduling_work.csv
-#  school: tour_scheduling_school.csv
-#  univ: tour_scheduling_university.csv
-
-#CHOOSER_ORIG_COL_NAME: TAZ
-
 DESTINATION_FOR_TOUR_PURPOSE:
   work: workplace_zone_id
   school: school_zone_id

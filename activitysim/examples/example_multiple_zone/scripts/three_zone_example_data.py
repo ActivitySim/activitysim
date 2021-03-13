@@ -136,6 +136,9 @@ with omx.open_file(os.path.join(input_data, 'skims.omx')) as ur_skims:
 # create tap file
 # currently the only attribute is its containing maz
 
+
+np.random.seed(42)  # seed for random_variation so we build the same data every time
+
 taz_zone_labels = taz_df.TAZ.values
 tap_zone_labels = taz_zone_labels + TAP_OFFSET
 maz_zone_labels = taz_zone_labels * MAZ_MULTIPLIER

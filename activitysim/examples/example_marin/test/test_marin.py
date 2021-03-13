@@ -45,4 +45,4 @@ def test_marin():
 
 if __name__ == '__main__':
 
-    test_xmarin()
+    test_marin()

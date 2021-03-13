@@ -10,12 +10,12 @@ env:
   - TEST_SUITE=activitysim/abm/models
   - TEST_SUITE=activitysim/abm/test/test_misc.py
   - TEST_SUITE=activitysim/abm/test/test_mp_pipeline.py
-  - TEST_SUITE=activitysim/abm/test/test_multi_zone.py
-  - TEST_SUITE=activitysim/abm/test/test_multi_zone_mp.py
   - TEST_SUITE=activitysim/abm/test/test_pipeline.py
   - TEST_SUITE=activitysim/cli
   - TEST_SUITE=activitysim/core
   - TEST_SUITE=activitysim/examples/example_mtc/test
+  - TEST_SUITE=activitysim/examples/example_multiple_zone/test
+  - TEST_SUITE=activitysim/examples/example_marin/test
   - TEST_SUITE=activitysim/examples/example_arc/test
   - TEST_SUITE=activitysim/examples/example_semcog/test
   - TEST_SUITE=activitysim/examples/example_psrc/test
@@ -40,11 +40,6 @@ install:
 - pip freeze
 
 script:
-# build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
-- python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-- python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
-- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/two_zone_example_data.py
-- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/three_zone_example_data.py
 # pycodestyle
 - pycodestyle activitysim
 # run specific TEST_SUITE job on travis to avoid job max time

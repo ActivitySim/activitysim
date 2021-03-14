@@ -27,8 +27,10 @@ def mtc_example_path(dirname):
 
 
 def build_data():
-    subprocess.check_call(['coverage', 'run', example_path('scripts/two_zone_example_data.py')])
-    subprocess.check_call(['coverage', 'run', example_path('scripts/three_zone_example_data.py')])
+    # FIXME this irks travis
+    # subprocess.check_call(['coverage', 'run', example_path('scripts/two_zone_example_data.py')])
+    # subprocess.check_call(['coverage', 'run', example_path('scripts/three_zone_example_data.py')])
+    pass
 
 
 @pytest.fixture(scope='module')
@@ -73,12 +75,12 @@ def run_test(zone, multiprocess=False):
     regress(zone)
 
 
-# def test_2_zone(data):
-#    run_test(zone='2', multiprocess=False)
-#
-#
-# def test_2_zone_mp(data):
-#    run_test(zone='2', multiprocess=True)
+def test_2_zone(data):
+   run_test(zone='2', multiprocess=False)
+
+
+def test_2_zone_mp(data):
+   run_test(zone='2', multiprocess=True)
 
 
 def test_3_zone(data):

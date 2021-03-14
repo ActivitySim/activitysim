@@ -1,5 +1,7 @@
 inherit_settings: True
 
+strict: True
+
 # number of households to simulate
 households_sample_size:  10
 # simulate all households

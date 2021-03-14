@@ -5,6 +5,8 @@ households_sample_size:  10
 # simulate all households
 # households_sample_size: 0
 
+strict: True
+
 chunk_size: 0
 
 # - shadow pricing global switches

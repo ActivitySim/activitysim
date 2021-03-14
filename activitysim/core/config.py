@@ -515,6 +515,14 @@ def filter_warnings():
         # indirectly raises tables DeprecationWarning: tostring() is deprecated. Use tobytes() instead.
         warnings.filterwarnings('default', category=DeprecationWarning, module='tables', message='tostring')
 
+        #   File "tables/hdf5extension.pyx", line 1450, in tables.hdf5extension.Array._open_array
+        #   File "/home/travis/miniconda/envs/test-environment/lib/python3.7/site-packages/numpy/__init__.py", line 287, in __getattr__
+        #     warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        # DeprecationWarning: `np.object` is a deprecated alias for the builtin `object`. To silence this warning, use `object` by itself. Doing this will not modify any behavior and is safe.
+        # Deprecated in NumPy 1.20; for more details and guidance: https://numpy.org/devdocs/release/1.20.0-notes.html#deprecations
+        warnings.filterwarnings('default', category=DeprecationWarning, module='numpy', message='np.object')
+
+
 
 def handle_standard_args(parser=None):
 

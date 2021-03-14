@@ -10,7 +10,7 @@
 # This script should work for the full TM1 example as well.
 
 import os
-import shutil
+import sys
 
 import pandas as pd
 import numpy as np
@@ -236,3 +236,5 @@ distance_table.loc[distance_table['DIST'] <= max_distance_for_nearby_taps_bike,
 distance_table.loc[distance_table['DIST'] <= max_distance_for_nearby_taps_drive,
                    ['MAZ', 'TAP', 'DIST', 'drive_time']]. \
     to_csv(os.path.join(output_data, 'maz_to_tap_drive.csv'), index=False)
+
+sys.exit(0)

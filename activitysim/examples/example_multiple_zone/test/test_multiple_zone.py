@@ -76,11 +76,11 @@ def run_test(zone, multiprocess=False):
 
 
 def test_2_zone(data):
-   run_test(zone='2', multiprocess=False)
+    run_test(zone='2', multiprocess=False)
 
 
 def test_2_zone_mp(data):
-   run_test(zone='2', multiprocess=True)
+    run_test(zone='2', multiprocess=True)
 
 
 def test_3_zone(data):

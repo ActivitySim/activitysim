@@ -6,7 +6,7 @@ import pytest
 from activitysim.abm.models import trip_scheduling_choice as tsc
 from activitysim.abm.tables.skims import skim_dict
 from activitysim.core import los
-from .test_pipeline import setup_dirs
+from .setup_utils import setup_dirs
 
 
 @pytest.fixture(scope='module')

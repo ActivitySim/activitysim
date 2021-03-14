@@ -19,8 +19,8 @@ from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import config
 
-from .test_pipeline import setup_dirs
-from .test_pipeline import inject_settings
+from .setup_utils import setup_dirs
+from .setup_utils import inject_settings
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50

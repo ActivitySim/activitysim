@@ -514,11 +514,11 @@ def filter_warnings():
         # pandas pytables.py __getitem__ (e.g. df = store['any_string'])
         # indirectly raises tables DeprecationWarning: tostring() is deprecated. Use tobytes() instead.
         warnings.filterwarnings('default', category=DeprecationWarning, module='tables', message='tostring')
-
         #   File "tables/hdf5extension.pyx", line 1450, in tables.hdf5extension.Array._open_array
         # DeprecationWarning: `np.object` is a deprecated alias for the builtin `object`.
         # Deprecated in NumPy 1.20;
-        warnings.filterwarnings('default', category=DeprecationWarning, module='numpy', message='np.object')
+        # warnings.filterwarnings('default', category=DeprecationWarning, module='numpy', message='np.object')
+        warnings.filterwarnings('ignore', category=DeprecationWarning, module='numpy')
 
 
 def handle_standard_args(parser=None):

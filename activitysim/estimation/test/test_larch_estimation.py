@@ -52,6 +52,9 @@ def _regression_check(dataframe_regression, df, basename=None):
     dataframe_regression.check(
         df.select_dtypes("number").clip(-9e9, 9e9),
         basename=basename,
+        default_tolerance=dict(atol=1e-6, rtol=1e-2)
+        # set a little loose, as there is sometimes a little variance in these
+        # results when switching backend implementations.
     )
 
 
@@ -60,10 +63,11 @@ def _regression_check(dataframe_regression, df, basename=None):
     ("mandatory_tour_frequency", "SLSQP"),
     ("joint_tour_frequency", "SLSQP"),
     ("joint_tour_composition", "SLSQP"),
-    # ("joint_tour_participation", "SLSQP"),
+    ("joint_tour_participation", "SLSQP"),
     ("mandatory_tour_frequency", "BHHH"),
+    ("atwork_subtour_frequency", "SLSQP"),
     ("auto_ownership", "BHHH"),
-    # ("trip_mode_choice", "SLSQP"),
+    ("trip_mode_choice", "SLSQP"),
 ])
 def test_simple_simulate(est_data, num_regression, dataframe_regression, name, method):
     from activitysim.estimation.larch import component_model
@@ -76,6 +80,7 @@ def test_simple_simulate(est_data, num_regression, dataframe_regression, name, m
     num_regression.check(
         {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename=f"test_simple_simulate_{name}_{method}_loglike",
+        default_tolerance=dict(atol=1e-6, rtol=1e-3),
     )
     _regression_check(dataframe_regression, m.pf)
 
@@ -85,6 +90,7 @@ def test_simple_simulate(est_data, num_regression, dataframe_regression, name, m
     ("school_location", "SLSQP"),
     ("non_mandatory_tour_destination", "SLSQP"),
     ("atwork_subtour_destination", "BHHH"),
+    ("trip_destination", "SLSQP"),
 ])
 def test_location_model(est_data, num_regression, dataframe_regression, name, method):
     from activitysim.estimation.larch import component_model, update_size_spec
@@ -104,6 +110,9 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     dataframe_regression.check(
         size_spec,
         basename=f"test_loc_{name}_size_spec",
+        default_tolerance=dict(atol=1e-6, rtol=1e-3)
+        # set a little loose, as there is sometimes a little variance in these
+        # results when switching backend implementations.
     )
 
 
@@ -182,6 +191,21 @@ def test_cdap_model(est_data, num_regression, dataframe_regression):
     )
     _regression_check(dataframe_regression, m.pf)
 
+
+def test_nonmand_and_joint_tour_dest_choice(est_data, num_regression, dataframe_regression):
+    from activitysim.estimation.larch import component_model
+
+    modelname = ("non_mandatory_tour_destination", "joint_tour_destination")
+    m, d = component_model(modelname, return_data=True)
+    m.load_data()
+    m.doctor(repair_ch_av="-")
+    loglike_prior = m.loglike()
+    r = m.maximize_loglike(method="SLSQP", options={"maxiter": 1000})
+    num_regression.check(
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
+        basename="test_nonmand_and_joint_tour_dest_choice_loglike",
+    )
+    _regression_check(dataframe_regression, m.pf)
 
 
 def test_tour_and_subtour_mode_choice(est_data, num_regression, dataframe_regression):

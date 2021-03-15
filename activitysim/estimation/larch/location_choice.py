@@ -48,6 +48,8 @@ def location_choice_model(
     model_selector = model_selector.replace("_destination","")
     model_selector = model_selector.replace("_subtour","")
     model_selector = model_selector.replace("_tour","")
+    if model_selector == 'joint':
+        model_selector = 'non_mandatory'
     edb_directory = edb_directory.format(name=name)
 
     def _read_csv(filename, **kwargs):
@@ -78,9 +80,11 @@ def location_choice_model(
         if SEGMENTS is not None:
             SEGMENT_IDS = {i:i for i in SEGMENTS}
 
+    SIZE_TERM_SELECTOR = settings.get('SIZE_TERM_SELECTOR', model_selector)
+
     # filter size spec for this location choice only
     size_spec = (
-        master_size_spec.query(f"model_selector == '{model_selector}'")
+        master_size_spec.query(f"model_selector == '{SIZE_TERM_SELECTOR}'")
         .drop(columns="model_selector")
         .set_index("segment")
     )
@@ -122,46 +126,10 @@ def location_choice_model(
         alt_values['variable'] = alt_values['variable'].map(expression_labels)
         label_column_name = "Label"
 
-
-    m = Model()
-    if len(spec.columns) == 4 and all(spec.columns == ['Label', 'Description', 'Expression', 'coefficient']):
-        m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
-        )
-    elif len(spec.columns) == 4 \
-            and all(spec.columns[:3] == ['Label', 'Description', 'Expression']) \
-            and len(SEGMENT_IDS) == 1 \
-            and spec.columns[3] == list(SEGMENT_IDS.values())[0]:
-        m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
-        )
-    else:
-        m.utility_ca = linear_utility_from_spec(
-            spec,
-            x_col=label_column_name,
-            p_col=SEGMENT_IDS,
-            ignore_x=("local_dist",),
-            segment_id=CHOOSER_SEGMENT_COLUMN_NAME,
-        )
-
-    if CHOOSER_SEGMENT_COLUMN_NAME is None:
-        assert len(size_spec) == 1
-        m.quantity_ca = sum(
-            P(f"{i}_{q}") * X(q)
-            for i in size_spec.index
-            for q in size_spec.columns
-            if size_spec.loc[i, q] != 0
-        )
-    else:
-        m.quantity_ca = sum(
-            P(f"{i}_{q}") * X(q) * X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={str_repr(SEGMENT_IDS[i])}")
-            for i in size_spec.index
-            for q in size_spec.columns
-            if size_spec.loc[i, q] != 0
-        )
-
-    apply_coefficients(coefficients, m)
-    apply_coefficients(size_coef, m, minimum=-6, maximum=6)
+    if name == 'trip_destination':
+        CHOOSER_SEGMENT_COLUMN_NAME = 'primary_purpose'
+        primary_purposes = spec.columns[3:]
+        SEGMENT_IDS = {pp:pp for pp in primary_purposes}
 
     chooser_index_name = chooser_data.columns[0]
     x_co = chooser_data.set_index(chooser_index_name)
@@ -218,7 +186,47 @@ def location_choice_model(
         av = 1
 
     d = DataFrames(co=x_co, ca=x_ca_1, av=av)
-    m.dataservice = d
+
+    m = Model(dataservice=d)
+    if len(spec.columns) == 4 and all(spec.columns == ['Label', 'Description', 'Expression', 'coefficient']):
+        m.utility_ca = linear_utility_from_spec(
+            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+        )
+    elif len(spec.columns) == 4 \
+            and all(spec.columns[:3] == ['Label', 'Description', 'Expression']) \
+            and len(SEGMENT_IDS) == 1 \
+            and spec.columns[3] == list(SEGMENT_IDS.values())[0]:
+        m.utility_ca = linear_utility_from_spec(
+            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+        )
+    else:
+        m.utility_ca = linear_utility_from_spec(
+            spec,
+            x_col=label_column_name,
+            p_col=SEGMENT_IDS,
+            ignore_x=("local_dist",),
+            segment_id=CHOOSER_SEGMENT_COLUMN_NAME,
+        )
+
+    if CHOOSER_SEGMENT_COLUMN_NAME is None:
+        assert len(size_spec) == 1
+        m.quantity_ca = sum(
+            P(f"{i}_{q}") * X(q)
+            for i in size_spec.index
+            for q in size_spec.columns
+            if size_spec.loc[i, q] != 0
+        )
+    else:
+        m.quantity_ca = sum(
+            P(f"{i}_{q}") * X(q) * X(f"{CHOOSER_SEGMENT_COLUMN_NAME}=={str_repr(SEGMENT_IDS[i])}")
+            for i in size_spec.index
+            for q in size_spec.columns
+            if size_spec.loc[i, q] != 0
+        )
+
+    apply_coefficients(coefficients, m)
+    apply_coefficients(size_coef, m, minimum=-6, maximum=6)
+
     m.choice_co_code = "override_choice"
 
     if return_data:
@@ -234,6 +242,7 @@ def location_choice_model(
                 size_spec=size_spec,
                 master_size_spec=master_size_spec,
                 model_selector=model_selector,
+                settings=settings,
             ),
         )
 
@@ -308,3 +317,9 @@ def non_mandatory_tour_destination_model(return_data=False):
         return_data=return_data,
     )
 
+
+def trip_destination_model(return_data=False):
+    return location_choice_model(
+        name="trip_destination",
+        return_data=return_data,
+    )

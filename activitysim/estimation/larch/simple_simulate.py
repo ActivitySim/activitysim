@@ -78,7 +78,7 @@ def simple_simulate_data(
         except FileNotFoundError:
             coef_template = None
 
-        spec = _read_csv(spec_file,)
+        spec = _read_csv(spec_file, comment="#")
         spec = remove_apostrophes(spec, ["Label"])
         alt_names = list(spec.columns[3:])
         alt_codes = np.arange(1, len(alt_names) + 1)
@@ -173,9 +173,10 @@ def simple_simulate_model(
         return_data=False,
         choices=None,
         construct_avail=False,
+        values_index_col="household_id",
 ):
     data = simple_simulate_data(
-        name=name, edb_directory=edb_directory, values_index_col="household_id",
+        name=name, edb_directory=edb_directory, values_index_col=values_index_col,
     )
     coefficients = data.coefficients
     # coef_template = data.coef_template # not used
@@ -197,7 +198,7 @@ def simple_simulate_model(
         tree = construct_nesting_tree(data.alt_names, settings["NESTS"])
         m = Model(graph=tree)
     else:
-        m = Model()
+        m = Model(alts=data.alt_codes_to_names)
 
     m.utility_co = dict_of_linear_utility_from_spec(
         spec, "Label", dict(zip(alt_names, alt_codes)),
@@ -283,6 +284,19 @@ def joint_tour_frequency_model(
     )
 
 
+def atwork_subtour_frequency_model(
+    name="atwork_subtour_frequency",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+):
+    return simple_simulate_model(
+        name=name,
+        edb_directory=edb_directory,
+        values_index_col="tour_id",
+        return_data=return_data,
+    )
+
+
 def joint_tour_composition_model(
     name="joint_tour_composition",
     edb_directory="output/estimation_data_bundle/{name}/",
@@ -304,8 +318,8 @@ def joint_tour_participation_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
-        choices={True: 1, False: 2, 1:2, 0:1}  # True means participate, which is the 1st alternative
-                                               # leading to this counterintuitive coding
+        choices={True: 1, False: 2, }, # True means participate, which is the 1st alternative
+                                       # leading to this counterintuitive coding
     )
 
 

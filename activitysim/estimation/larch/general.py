@@ -139,9 +139,21 @@ def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
         return sum(partial_utility.values())
     parts = []
     for i in spec.index:
-        _x = spec.loc[i, x_col].strip()
-        _p = spec.loc[i, p_col]
-        if (_x not in ignore_x) and not pd.isna(_p):
+        _x = spec.loc[i, x_col]
+        try:
+            _x = _x.strip()
+        except AttributeError:
+            if np.isnan(_x):
+                _x = None
+            else:
+                raise
+        try:
+            _p = spec.loc[i, p_col]
+        except:
+            print("i",i,"p_col",p_col)
+            raise
+
+        if _x is not None and (_x not in ignore_x) and not pd.isna(_p):
             # process coefficients when they are multiples instead of raw names
             if isinstance(_p, str) and "*" in _p:
                 _p_star = [i.strip() for i in _p.split("*")]

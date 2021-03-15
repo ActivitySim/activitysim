@@ -1,0 +1,22 @@
+# for the marin data
+
+you will need the data_3_marin folder with files created/processed by marin_work_tour_mode_choice_data.py
+
+These were originally created for the purpose of creating a 'fake' pipeline database to resume before tour_mode_choice
+
+When we decided to implement initialize_tours, I chose to remove some of the asim-style columns
+so the data input files would look 'realistic' - and that work is now done instead by 'import_tours'
+annotation expression files
+
+the marin_fix.py script does the job of removing those fields and writes them into a 'fix' folder.
+Once they have been created they can replace the original input files.
+
+You will also need to add (and rename) the tap_lines.csv file to the data_3_marin folder
+
+the marin_crop.py script has been modified to work with the 'fixed' input files.
+marin_crop.py writes a complete data folder into the 'crop' folder (which you will need to create)
+which should be copied and renamed to somewhere more appropriate (or you can specify the marin_crop ouput_dir in script)
+
+python simulation.py -c configs_3_zone_marin -d data_3_marin -o output_3_marin
+
+python simulation.py -c configs_3_zone_marin_full -c configs_3_zone_marin -d data_3_marin_full -o output_3_marin_full -s settings_mp.yaml

@@ -154,7 +154,7 @@ def trip_mode_choice(
         choices = mode_choice_simulate(
             choosers=trips_segment,
             spec=simulate.eval_coefficients(model_spec, coefficients, estimator),
-            nest_spec=simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label),
+            nest_spec=simulate.eval_nest_coefficients(nest_spec, coefficients, segment_trace_label),
             skims=skims,
             locals_d=locals_dict,
             chunk_size=chunk_size,
@@ -195,12 +195,10 @@ def trip_mode_choice(
 
             skim_cache = tvpb_logsum_odt.cache[path_type]
 
-            print(f"mode {mode} path_type {path_type}")
-
             for c in skim_cache:
                 dest_col = c
                 if dest_col not in choices_df:
-                    choices_df[dest_col] = np.nan
+                    choices_df[dest_col] = np.nan if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
                 choices_df[dest_col].where(choices_df[mode_column_name] != mode, skim_cache[c], inplace=True)
 
     if estimator:
@@ -209,7 +207,7 @@ def trip_mode_choice(
         estimator.write_override_choices(choices_df.trip_mode)
         estimator.end_estimation()
 
-    # update trips table with choices (and otionally logssums)
+    # update trips table with choices (and potionally logssums)
     trips_df = trips.to_frame()
     assign_in_place(trips_df, choices_df)
 

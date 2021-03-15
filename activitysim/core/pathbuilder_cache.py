@@ -112,6 +112,8 @@ class TVPBCache(object):
 
         data = data.reshape(self.uid_calculator.fully_populated_shape)
 
+        # np.savetxt(self.csv_trace_path, data, fmt='%.18e', delimiter=',')
+
         logger.debug(f"#TVPB CACHE write_static_cache df {data.shape}")
 
         mm_data = np.memmap(self.cache_path,

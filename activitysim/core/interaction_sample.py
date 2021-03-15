@@ -447,7 +447,7 @@ def interaction_sample(
     assert alt_col_name is not None
     assert choosers.index.is_monotonic_increasing
 
-    #FIXME - this will just affect pick_count? In which case, does it matter?
+    # FIXME - legacy logic - not sure this is needed or even correct?
     sample_size = min(sample_size, len(alternatives.index))
 
     row_size = chunk_size and interaction_sample_calc_row_size(choosers, alternatives, trace_label)

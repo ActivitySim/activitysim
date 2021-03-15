@@ -138,6 +138,7 @@ def read_model_coefficients(model_settings=None, file_name=None):
         assert 'COEFFICIENTS' in model_settings, \
             "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get('source_file_paths')
         file_name = model_settings['COEFFICIENTS']
+        logger.debug(f"read_model_coefficients file_name {file_name}")
 
     file_path = config.config_file_path(file_name)
     try:
@@ -290,14 +291,38 @@ def get_segment_coefficients(model_settings, segment_name):
 
     """
 
-    coefficients_df = read_model_coefficients(model_settings)
-    template_df = read_model_coefficient_template(model_settings)
+    if 'COEFFICIENTS' in model_settings and 'COEFFICIENT_TEMPLATE' in model_settings:
+        legacy = False
+    elif 'COEFFICIENTS' in model_settings:
+        legacy = 'COEFFICIENTS'
+        warnings.warn("Support for COEFFICIENTS without COEFFICIENT_TEMPLATE in model settings file will be removed."
+                      "Use COEFFICIENT and COEFFICIENT_TEMPLATE to support estimation.", FutureWarning)
+    elif 'LEGACY_COEFFICIENTS' in model_settings:
+        legacy = 'LEGACY_COEFFICIENTS'
+        warnings.warn("Support for 'LEGACY_COEFFICIENTS' setting in model settings file will be removed."
+                      "Use COEFFICIENT and COEFFICIENT_TEMPLATE to support estimation.", FutureWarning)
+    else:
+        raise RuntimeError(f"No COEFFICIENTS setting in model_settings")
 
-    # dump_mapped_coefficients(model_settings)
+    if legacy:
+        constants = config.get_model_constants(model_settings)
+        legacy_coeffs_file_path = config.config_file_path(model_settings['LEGACY_COEFFICIENTS'])
+        omnibus_coefficients = pd.read_csv(legacy_coeffs_file_path, comment='#', index_col='coefficient_name')
+        coefficients_dict = assign.evaluate_constants(omnibus_coefficients[segment_name], constants=constants)
+    else:
+        coefficients_df = read_model_coefficients(model_settings)
+        template_df = read_model_coefficient_template(model_settings)
+        coefficients_col = template_df[segment_name].map(coefficients_df.value).astype(float)
 
-    coefficients_col = template_df[segment_name].map(coefficients_df.value).astype(float)
+        if coefficients_col.isnull().any():
+            # show them the offending lines from interaction_coefficients_file
+            logger.warning(f"bad coefficients in COEFFICIENTS {model_settings['COEFFICIENTS']}\n"
+                           f"{coefficients_col[coefficients_col.isnull()]}")
+            assert not coefficients_col.isnull().any()
 
-    return coefficients_col.to_dict()
+        coefficients_dict = coefficients_col.to_dict()
+
+    return coefficients_dict
 
 
 def eval_nest_coefficients(nest_spec, coefficients, trace_label):

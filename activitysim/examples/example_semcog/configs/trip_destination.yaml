@@ -1,0 +1,36 @@
+SAMPLE_SIZE: 30
+
+DESTINATION_SAMPLE_SPEC: trip_destination_sample.csv
+DESTINATION_SPEC: trip_destination.csv
+COEFFICIENTS: _dummy_coefficients.csv
+
+LOGSUM_SETTINGS: trip_mode_choice.yaml
+
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: trip_destination_sample
+
+# model-specific logsum-related settings
+TRIP_ORIGIN: origin
+ALT_DEST_COL_NAME: dest_taz
+PRIMARY_DEST: destination
+
+REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
+  - tour_mode
+
+CONSTANTS:
+    max_walk_distance: 3
+    max_bike_distance: 8
+
+preprocessor:
+  SPEC: trip_destination_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+    - persons
+
+# drop failed trips and cleanup failed trip leg_mates for consistency
+# (i.e. adjust trip_count, trip_num, first for missing failed trips)
+CLEANUP: False

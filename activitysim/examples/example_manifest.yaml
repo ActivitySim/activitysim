@@ -55,6 +55,17 @@
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/mtc_data_sf/land_use.csv
       data/land_use.csv
 
+- name: example_mtc_arc_extensions
+  description: 25-zone example for the MTC region with ARC extensions
+  # activitysim create -e example_mtc_arc_extensions -d test_example_mtc_arc_extensions
+  # activitysim run -c configs_arc -c configs -o output -d data
+  include:
+    - example_mtc/data
+    - example_mtc/configs
+    - example_mtc/configs_arc
+    - example_mtc/output
+    - example_mtc/README.MD
+
 - name: example_estimation
   description: Estimation mode 25 zone example
   # activitysim create -e example_estimation -d test_example_estimation
@@ -145,171 +156,132 @@
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3/taz_skims.omx
       data_3/taz_skims.omx
 
-- name: example_3_marin
-  description: Marin TM2 work tour mode choice cropped to one county for testing
-  # activitysim create -e example_3_marin -d test_example_3_marin
+- name: example_marin
+  description: Marin TM2 work tour mode choice cropped to Downtown SF for testing (2054 MAZ
+  # activitysim create -e example_marin -d test_example_marin
   # activitysim run -c configs_3_zone_marin -d data_3_marin -o output_3_marin
-  # activitysim run -c configs_3_zone_marin -d data_3_marin -o output_3_marin -s settings_mp.yaml
+  # activitysim run -c configs -d data -o output_3_marin -s settings_mp.yaml
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_marin
+       activitysim run -c configs -o output -d data
   include:
-    - example_marin/configs_3_zone_marin
-    - example_marin/data_3_marin
-    - example_marin/output_3_marin
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMAM_taz_rename.omx
-      data_3_marin/HWYSKMAM_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMEA_taz_rename.omx
-      data_3_marin/HWYSKMEA_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMEV_taz_rename.omx
-      data_3_marin/HWYSKMEV_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMMD_taz_rename.omx
-      data_3_marin/HWYSKMMD_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/HWYSKMPM_taz_rename.omx
-      data_3_marin/HWYSKMPM_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/access.csv
-      data_3_marin/access.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/households_asim.csv
-      data_3_marin/households_asim.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/maz_data_asim.csv
-      data_3_marin/maz_data_asim.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/maz_maz_bike.csv
-      data_3_marin/maz_maz_bike.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/maz_maz_walk.csv
-      data_3_marin/maz_maz_walk.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/maz_tap_walk.csv
-      data_3_marin/maz_tap_walk.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/maz_taz.csv
-      data_3_marin/maz_taz.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/maz_taz_tap_drive.csv
-      data_3_marin/maz_taz_tap_drive.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/persons_asim.csv
-      data_3_marin/persons_asim.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/tap_data.csv
-      data_3_marin/tap_data.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/tap_lines.csv
-      data_3_marin/tap_lines.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_AM_SET1_rename.omx
-      data_3_marin/transit_skims_AM_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_AM_SET2_rename.omx
-      data_3_marin/transit_skims_AM_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_AM_SET3_rename.omx
-      data_3_marin/transit_skims_AM_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_EA_SET1_rename.omx
-      data_3_marin/transit_skims_EA_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_EA_SET2_rename.omx
-      data_3_marin/transit_skims_EA_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_EA_SET3_rename.omx
-      data_3_marin/transit_skims_EA_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_EV_SET1_rename.omx
-      data_3_marin/transit_skims_EV_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_EV_SET2_rename.omx
-      data_3_marin/transit_skims_EV_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_EV_SET3_rename.omx
-      data_3_marin/transit_skims_EV_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_MD_SET1_rename.omx
-      data_3_marin/transit_skims_MD_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_MD_SET2_rename.omx
-      data_3_marin/transit_skims_MD_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_MD_SET3_rename.omx
-      data_3_marin/transit_skims_MD_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_PM_SET1_rename.omx
-      data_3_marin/transit_skims_PM_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_PM_SET2_rename.omx
-      data_3_marin/transit_skims_PM_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/transit_skims_PM_SET3_rename.omx
-      data_3_marin/transit_skims_PM_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin/work_tours.csv
-      data_3_marin/work_tours.csv
+    - example_marin/configs
+    - example_marin/data
+    - example_marin/output
+    - example_marin/README.MD
+
+- name: example_marin_sf
+  description: Marin TM2 work tour mode choice cropped to marin and sf counties for testing (2054 MAZ
+  # activitysim create -e example_marin -d test_example_marin
+  # activitysim run -c configs_3_zone_marin -d data_3_marin -o output_3_marin
+  # activitysim run -c configs -d data -o output_3_marin -s settings_mp.yaml
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_marin_sf
+       activitysim run -c configs -o output -d data
+  include:
+    - example_marin/configs
+    - example_marin/data
+    - example_marin/output
+    - example_marin/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/highway_skims_AM.omx
+      data/highway_skims_AM.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/highway_skims_EA.omx
+      data/highway_skims_EA.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/highway_skims_EV.omx
+      data/highway_skims_EV.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/highway_skims_MD.omx
+      data/highway_skims_MD.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/highway_skims_PM.omx
+      data/highway_skims_PM.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/accessibility.csv
+      data/accessibility.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/households_asim.csv
+      data/households_asim.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/maz_data_asim.csv
+      data/maz_data_asim.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/maz_maz_bike.csv
+      data/maz_maz_bike.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/maz_maz_walk.csv
+      data/maz_maz_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/maz_tap_walk.csv
+      data/maz_tap_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/maz_taz.csv
+      data/maz_taz.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/maz_taz_tap_drive.csv
+      data/maz_taz_tap_drive.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/persons_asim.csv
+      data/persons_asim.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/tap_data.csv
+      data/tap_data.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/tap_lines.csv
+      data/tap_lines.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/transit_skims_SET1.omx
+      data/transit_skims_SET1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/transit_skims_SET2.omx
+      data/transit_skims_SET2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/transit_skims_SET3.omx
+      data/transit_skims_SET3.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_marin_sf/work_tours.csv
+      data/work_tours.csv
 
 - name: example_3_marin_full
   description: Marin TM2 work tour mode choice for the 9 county MTC region
   # activitysim create -e example_3_marin_full -d test_example_3_marin_full
   # activitysim run -c configs_3_zone_marin_full -c configs_3_zone_marin -d data_3_marin_full -o output_3_marin_full -s settings_mp.yaml
   include:
-    - example_marin/configs_3_zone_marin
-    - example_marin/configs_3_zone_marin_full
-    - example_marin/data_3_marin_full
-    - example_marin/output_3_marin_full
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/HWYSKMAM_taz_rename.omx
-      data_3_marin_full/HWYSKMAM_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/HWYSKMEA_taz_rename.omx
-      data_3_marin_full/HWYSKMEA_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/HWYSKMEV_taz_rename.omx
-      data_3_marin_full/HWYSKMEV_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/HWYSKMMD_taz_rename.omx
-      data_3_marin_full/HWYSKMMD_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/HWYSKMPM_taz_rename.omx
-      data_3_marin_full/HWYSKMPM_taz_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/access.csv
-      data_3_marin_full/access.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/households_asim.csv
-      data_3_marin_full/households_asim.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/maz_data_asim.csv
-      data_3_marin_full/maz_data_asim.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/maz_maz_bike.csv
-      data_3_marin_full/maz_maz_bike.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/maz_maz_walk.csv
-      data_3_marin_full/maz_maz_walk.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/maz_tap_walk.csv
-      data_3_marin_full/maz_tap_walk.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/maz_taz.csv
-      data_3_marin_full/maz_taz.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/maz_taz_tap_drive.csv
-      data_3_marin_full/maz_taz_tap_drive.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/persons_asim.csv
-      data_3_marin_full/persons_asim.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/tap_data.csv
-      data_3_marin_full/tap_data.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/tap_lines.csv
-      data_3_marin_full/tap_lines.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_AM_SET1_rename.omx
-      data_3_marin_full/transit_skims_AM_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_AM_SET2_rename.omx
-      data_3_marin_full/transit_skims_AM_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_AM_SET3_rename.omx
-      data_3_marin_full/transit_skims_AM_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_EA_SET1_rename.omx
-      data_3_marin_full/transit_skims_EA_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_EA_SET2_rename.omx
-      data_3_marin_full/transit_skims_EA_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_EA_SET3_rename.omx
-      data_3_marin_full/transit_skims_EA_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_EV_SET1_rename.omx
-      data_3_marin_full/transit_skims_EV_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_EV_SET2_rename.omx
-      data_3_marin_full/transit_skims_EV_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_EV_SET3_rename.omx
-      data_3_marin_full/transit_skims_EV_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_MD_SET1_rename.omx
-      data_3_marin_full/transit_skims_MD_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_MD_SET2_rename.omx
-      data_3_marin_full/transit_skims_MD_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_MD_SET3_rename.omx
-      data_3_marin_full/transit_skims_MD_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_PM_SET1_rename.omx
-      data_3_marin_full/transit_skims_PM_SET1_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_PM_SET2_rename.omx
-      data_3_marin_full/transit_skims_PM_SET2_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/transit_skims_PM_SET3_rename.omx
-      data_3_marin_full/transit_skims_PM_SET3_rename.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/data_3_marin_full/work_tours.csv
-      data_3_marin_full/work_tours.csv
-
-- name: example_mtc_arc_extensions
-  description: 25-zone example for the MTC region with ARC extensions
-  # activitysim create -e example_mtc_arc_extensions -d test_example_mtc_arc_extensions
-  # activitysim run -c configs_arc -c configs -o output -d data
-  include:
-    - example_mtc/data
-    - example_mtc/configs
-    - example_mtc/configs_arc
-    - example_mtc/output
-    - example_mtc/README.MD
+    - example_marin/configs
+    - example_marin/data
+    - example_marin/output
+    - example_marin/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/highway_skims_AM.omx
+      data/highway_skims_AM.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/highway_skims_EA.omx
+      data/highway_skims_EA.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/highway_skims_EV.omx
+      data/highway_skims_EV.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/highway_skims_MD.omx
+      data/highway_skims_MD.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/highway_skims_PM.omx
+      data/highway_skims_PM.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/accessibility.csv
+      data/accessibility.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/households_asim.csv
+      data/households_asim.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/maz_data_asim.csv
+      data/maz_data_asim.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/maz_maz_bike.csv
+      data/maz_maz_bike.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/maz_maz_walk.csv
+      data/maz_maz_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/maz_tap_walk.csv
+      data/maz_tap_walk.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/maz_taz.csv
+      data/maz_taz.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/maz_taz_tap_drive.csv
+      data/maz_taz_tap_drive.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/persons_asim.csv
+      data/persons_asim.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/tap_data.csv
+      data/tap_data.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/tap_lines.csv
+      data/tap_lines.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/transit_skims_SET1.omx
+      data/transit_skims_SET1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/transit_skims_SET2.omx
+      data/transit_skims_SET2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/transit_skims_SET3.omx
+      data/transit_skims_SET3.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/marin_data_full/work_tours.csv
+      data/work_tours.csv
 
 - name: example_psrc
   description: 27-TAZ 487-MAZ example for the PSRC region, with 14871 Households
   # activitysim create -e example_psrc -d test_example_psrc
   # activitysim run -c configs -o output -d data
   instructions: |
-    \nTo run the example, cd into the directory and use the command:
+    To run the example, cd into the directory and use the command:
        cd example_psrc
        activitysim run -c configs -o output -d data
     To skip rerunning the accessibility calculations on subsequent runs,
@@ -324,29 +296,13 @@
     - example_psrc/data
     - example_psrc/output
     - example_psrc/README.MD
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/skims.omx
-      data/skims.omx
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/households.csv
-      data/households.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/persons.csv
-      data/persons.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/land_use.csv
-      data/land_use.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/maz.csv
-      data/maz.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/taz.csv
-      data/taz.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/maz_to_maz_walk.csv
-      data/maz_to_maz_walk.csv
-    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_test/maz_to_maz_bike.csv
-      data/maz_to_maz_bike.csv
 
 - name: example_psrc_seattle
   description: 781-TAZ 8400-MAZ example for the PSRC region, with 336,725 Households
   # activitysim create -e example_psrc_seattle -d test_example_seattle
   # activitysim run -c configs -o output -d data
   instructions: |
-    \nTo run the example, cd into the directory and use the command:
+    To run the example, cd into the directory and use the command:
        cd example_psrc_seattle
        activitysim run -c configs -o output -d data
     To skip rerunning the accessibility calculations on subsequent runs,
@@ -384,7 +340,7 @@
   # activitysim create -e example_psrc_full -d test_example_full
   # activitysim run -c configs -o output -d data
   instructions: |
-    \nTo run the example, cd into the directory and use the command:
+    To run the example, cd into the directory and use the command:
        cd example_psrc_full
        activitysim run -c configs -o output -d data
     To skip rerunning the accessibility calculations on subsequent runs,
@@ -424,3 +380,124 @@
       data/maz_to_maz_bike.csv
     - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/psrc_data_full/final_accessibility.csv
       data/final_accessibility.csv
+
+- name: example_semcog
+  description: 67 zone test example for the SEMCOG region
+  # activitysim create -e example_semcog -d test_example_semcog
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_semcog
+       activitysim run -c configs -o output -d data
+  include:
+    - example_semcog/data
+    - example_semcog/configs
+    - example_semcog/configs_mp
+    - example_semcog/output
+    - example_semcog/README.MD
+
+- name: example_semcog_z500
+  description: 500 zone intermediate size example for the SEMCOG region
+  # activitysim create -e example_semcog -d test_example_semcog
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_semcog_z500
+       activitysim run -c configs -o output -d data
+  include:
+    - example_semcog/data
+    - example_semcog/configs
+    - example_semcog/configs_mp
+    - example_semcog/output
+    - example_semcog/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/skims.omx
+      data/skims.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_z500/land_use.csv
+      data/land_use.csv
+
+- name: example_semcog_full
+  description: 2899 zone full size example for the SEMCOG region
+  # activitysim create -e example_semcog -d test_example_semcog
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_semcog_full
+       activitysim run -c configs -o output -d data
+  include:
+    - example_semcog/data
+    - example_semcog/configs
+    - example_semcog/configs_mp
+    - example_semcog/output
+    - example_semcog/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/skims1.omx
+      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/skims2.omx
+      data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/semcog_data_full/land_use.csv
+      data/land_use.csv
+
+- name: example_arc
+  description: 36 zone test example for the ARC region
+  # activitysim create -e example_semcog -d test_example_semcog
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_arc
+       activitysim run -c configs -o output -d data
+  include:
+    - example_arc/data
+    - example_arc/configs
+    - example_arc/output
+    - example_arc/README.MD
+
+- name: example_arc_fulton
+  description: 1296 zone fulton county example for the ARC region
+  # activitysim create -e example_arc -d test_example_arc
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_arc_fulton
+       activitysim run -c configs -o output -d data
+  include:
+    - example_arc/data
+    - example_arc/configs
+    - example_arc/output
+    - example_arc/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_fulton/skims.omx
+      data/skims.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_fulton/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_fulton/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_fulton/land_use.csv
+      data/land_use.csv
+
+- name: example_arc_full
+  description: 5922 zone full example for the ARC region
+  # activitysim create -e example_arc -d test_example_arc
+  instructions: |
+    To run the example, cd into the directory and use the command:
+       cd example_arc_full
+       activitysim run -c configs -o output -d data
+  include:
+    - example_arc/data
+    - example_arc/configs
+    - example_arc/output
+    - example_arc/README.MD
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_full/skims1.omx
+      data/skims1.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_full/skims2.omx
+      data/skims2.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_full/skims3.omx
+      data/skims3.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_full/skims4.omx
+      data/skims4.omx
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_full/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_full/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/RSGInc/activitysim_resources/master/arc_data_full/land_use.csv
+      data/land_use.csv

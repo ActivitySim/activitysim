@@ -26,10 +26,8 @@ multiprocess_steps:
     slice:
       tables:
         - accessibility
-      except:
-        - land_use
-  - name: mp_initialize_households
-    begin: initialize_households
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True
   - name: mp_households
     begin: school_location
     slice:

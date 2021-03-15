@@ -188,7 +188,10 @@ def stop_frequency(
                           tours_merged.primary_purpose, value_counts=True)
 
     spec_segments = model_settings.get('SPEC_SEGMENTS')
+    assert spec_segments is not None, f"SPEC_SEGMENTS setting not found in model settings: {model_settings_file_name}"
     segment_col = model_settings.get('SEGMENT_COL')
+    assert segment_col is not None, f"SEGMENT_COL setting not found in model settings: {model_settings_file_name}"
+
     nest_spec = config.get_logit_model_settings(model_settings)
 
     choices_list = []

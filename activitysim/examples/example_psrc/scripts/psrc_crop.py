@@ -8,7 +8,7 @@ import argparse
 MAZ_OFFSET = 0
 
 segments = {
-    'test': (331, 358),  # north part of peninsula including university (no HSENROLL but nice MAZ-TAZ distrib)
+    'test': (331, 358),  # north part of peninsul a including university (no HSENROLL but nice MAZ-TAZ distrib)
     'downtown': (339, 630),   # downtown seattle tazs (339 instead of 400 because need university)
     'seattle': (0, 857),  # seattle tazs
     'full': (0, 100000),
@@ -82,6 +82,7 @@ def to_csv(df, file_name):
 
 
 print(f"output_dir {output_dir} taz_min {taz_min} taz_max {taz_max}")
+
 
 if check_geography:
 
@@ -216,6 +217,7 @@ for file_name in ["maz_to_maz_walk.csv", "maz_to_maz_bike.csv"]:
 # skims
 #
 omx_infile_name = 'skims.omx'
+skim_data_type = np.float32
 
 omx_in = omx.open_file(input_path(omx_infile_name))
 print(f"omx_in shape {omx_in.shape()}")
@@ -240,7 +242,7 @@ iskim = 0
 for mat_name in omx_in.list_matrices():
 
     # make sure we have a vanilla numpy array, not a CArray
-    m = np.asanyarray(omx_in[mat_name])
+    m = np.asanyarray(omx_in[mat_name]).astype(skim_data_type)
     m = m[tazs_indexes, :][:, tazs_indexes]
     print(f"{mat_name} {m.shape}")
 

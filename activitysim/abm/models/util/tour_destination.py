@@ -36,7 +36,7 @@ class SizeTermCalculator(object):
 
     def __init__(self, size_term_selector):
 
-        # do this once so they can request siae_terms for various segments (tour_type or purpose)
+        # do this once so they can request size_terms for various segments (tour_type or purpose)
         land_use = inject.get_table('land_use')
         size_terms = inject.get_injectable('size_terms')
         self.destination_size_terms = \
@@ -201,7 +201,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
     return MAZ_size_terms, TAZ_size_terms
 
 
-def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms):
+def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
     choose MAZ probabilistically (proportionally by size_term) from set of MAZ zones in parent TAZ
@@ -223,11 +223,27 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms):
     # 542963          53  0.004224           2      13243
     # 542963          59  0.008628           1      13243
 
+    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    have_trace_targets = trace_hh_id and tracing.has_trace_targets(taz_sample)
+    if have_trace_targets:
+        trace_label = tracing.extend_trace_label(trace_label, 'choose_MAZ_for_TAZ')
+
+        CHOOSER_ID = taz_sample.index.name  # zone_id for tours, but person_id for location choice
+        assert CHOOSER_ID is not None
+
+        # write taz choices, pick_counts, probs
+        trace_targets = tracing.trace_targets(taz_sample)
+        tracing.trace_df(taz_sample[trace_targets],
+                         label=tracing.extend_trace_label(trace_label, 'taz_sample'),
+                         transpose=False)
+
+    # redupe taz_sample[[DEST_TAZ, 'prob']] using pick_count to repeat rows
     taz_choices = taz_sample[[DEST_TAZ, 'prob']].reset_index(drop=False)
     taz_choices = taz_choices.reindex(taz_choices.index.repeat(taz_sample.pick_count)).reset_index(drop=True)
+    taz_choices = taz_choices.rename(columns={'prob': 'TAZ_prob'})
 
     # print(f"taz_choices\n{taz_choices}")
-    #        tour_id  dest_TAZ      prob
+    #        tour_id  dest_TAZ  TAZ_prob
     # 0       542963        18  0.004778
     # 1       542963        53  0.004224
     # 2       542963        53  0.004224
@@ -258,10 +274,10 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms):
     # probability of choosing MAZ based on MAZ size_term fraction of TAZ total
     # there will be a different set (and number) of candidate MAZs for each TAZ
     # (preserve index, which will have duplicates as result of join)
+    # maz_sizes.index is the integer offset into taz_choices of the taz for which the maz_size row is a candidate)
     maz_sizes = pd.merge(taz_choices[[chooser_id_col, DEST_TAZ]].reset_index(),
                          MAZ_size_terms, how='left', on=DEST_TAZ).set_index('index')
 
-    # print(f"maz_sizes\n{maz_sizes}")
     #         tour_id  dest_TAZ  zone_id  size_term
     # index
     # 0        542963        18      498     12.130
@@ -270,13 +286,20 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms):
     # 0        542963        18    21429     29.938
     # 1        542963        53    17563     34.252
 
+    if have_trace_targets:
+        # write maz_sizes: maz_sizes[index,tour_id,dest_TAZ,zone_id,size_term]
+
+        maz_sizes_trace_targets = tracing.trace_targets(maz_sizes, slicer=CHOOSER_ID)
+        trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
+        tracing.trace_df(trace_maz_sizes,
+                         label=tracing.extend_trace_label(trace_label, 'maz_sizes'),
+                         transpose=False)
+
     # number of DEST_TAZ candidates per chooser
     maz_counts = maz_sizes.groupby(maz_sizes.index).size().values
-    # print(maz_counts)
 
     # max number of MAZs for any TAZ
     max_maz_count = maz_counts.max()
-    # print(f"max_maz_count {max_maz_count}")
 
     # offsets of the first and last rows of each chooser in sparse interaction_utilities
     last_row_offsets = maz_counts.cumsum()
@@ -288,15 +311,15 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms):
     inserts = np.repeat(last_row_offsets, max_maz_count - maz_counts)
 
     # insert zero filler to pad each alternative set to same size
-    padded_maz_sizes = np.insert(maz_sizes.size_term.values, inserts, 0.0)
-    padded_maz_sizes = padded_maz_sizes.reshape(-1, max_maz_count)
+    padded_maz_sizes = np.insert(maz_sizes.size_term.values, inserts, 0.0).reshape(-1, max_maz_count)
 
     # prob array with one row TAZ_choice, one column per alternative
     row_sums = padded_maz_sizes.sum(axis=1)
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
     assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
 
-    rands = pipeline.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size).reshape(-1, 1)
+    rands = pipeline.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+    rands = rands.reshape(-1, 1)
     assert len(rands) == num_choosers * taz_sample_size
     assert len(rands) == maz_probs.shape[0]
 
@@ -309,12 +332,49 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms):
     assert (positions < maz_counts).all()
 
     taz_choices[DEST_MAZ] = maz_sizes['zone_id'].take(positions + first_row_offsets)
-    maz_probs = maz_probs[np.arange(maz_probs.shape[0]), positions]
+    taz_choices['MAZ_prob'] = maz_probs[np.arange(maz_probs.shape[0]), positions]
+    taz_choices['prob'] = taz_choices['TAZ_prob'] * taz_choices['MAZ_prob']
 
-    taz_choices['prob'] *= maz_probs
+    if have_trace_targets:
 
-    taz_choices = \
-        taz_choices.groupby([chooser_id_col, DEST_MAZ]).agg(prob=('prob', 'max'), pick_count=('prob', 'count'))
+        taz_choices_trace_targets = tracing.trace_targets(taz_choices, slicer=CHOOSER_ID)
+        trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
+        tracing.trace_df(trace_taz_choices_df,
+                         label=tracing.extend_trace_label(trace_label, 'taz_choices'),
+                         transpose=False)
+
+        lhs_df = trace_taz_choices_df[[CHOOSER_ID, DEST_TAZ]]
+        alt_dest_columns = [f'dest_maz_{c}' for c in range(max_maz_count)]
+
+        # following the same logic as the full code, but for trace cutout
+        trace_maz_counts = maz_counts[taz_choices_trace_targets]
+        trace_last_row_offsets = maz_counts[taz_choices_trace_targets].cumsum()
+        trace_inserts = np.repeat(trace_last_row_offsets, max_maz_count - trace_maz_counts)
+
+        # trace dest_maz_alts
+        padded_maz_sizes = np.insert(trace_maz_sizes[CHOOSER_ID].values, trace_inserts, 0.0).reshape(-1, max_maz_count)
+        df = pd.DataFrame(data=padded_maz_sizes,
+                          columns=alt_dest_columns, index=trace_taz_choices_df.index)
+        df = pd.concat([lhs_df, df], axis=1)
+        tracing.trace_df(df, label=tracing.extend_trace_label(trace_label, 'dest_maz_alts'), transpose=False)
+
+        # trace dest_maz_size_terms
+        padded_maz_sizes = np.insert(trace_maz_sizes['size_term'].values, trace_inserts, 0.0).reshape(-1, max_maz_count)
+        df = pd.DataFrame(data=padded_maz_sizes,
+                          columns=alt_dest_columns, index=trace_taz_choices_df.index)
+        df = pd.concat([lhs_df, df], axis=1)
+        tracing.trace_df(df, label=tracing.extend_trace_label(trace_label, 'dest_maz_size_terms'), transpose=False)
+
+        # trace dest_maz_probs
+        df = pd.DataFrame(data=maz_probs[taz_choices_trace_targets],
+                          columns=alt_dest_columns, index=trace_taz_choices_df.index)
+        df = pd.concat([lhs_df, df], axis=1)
+        df['rand'] = rands[taz_choices_trace_targets]
+        tracing.trace_df(df, label=tracing.extend_trace_label(trace_label, 'dest_maz_probs'), transpose=False)
+
+    taz_choices = taz_choices.drop(columns=['TAZ_prob', 'MAZ_prob'])
+    taz_choices = taz_choices.groupby([chooser_id_col, DEST_MAZ]).agg(prob=('prob', 'max'),
+                                                                      pick_count=('prob', 'count'))
 
     taz_choices.reset_index(level=DEST_MAZ, inplace=True)
 
@@ -362,7 +422,7 @@ def destination_presample(
         trace_label)
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms)
+    maz_choices = choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
@@ -653,8 +713,7 @@ def run_tour_destination(
 
         if want_sample_table:
             # FIXME - sample_table
-            location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
-                                         append=True, inplace=True)
+            location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
             sample_list.append(location_sample_df)
 
         # FIXME - want to do this here?

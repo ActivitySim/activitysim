@@ -1,0 +1,21 @@
+Description,Target,Expression
+#,,
+,max_window,person_max_window(persons)/2.25
+,log_max_window,np.log1p(max_window)
+,medium_low_income,(persons.income_in_thousands > 20) & (persons.income_in_thousands <= 50)
+,medium_high_income,(persons.income_in_thousands > 50) & (persons.income_in_thousands <= 100)
+,high_income,(persons.income_in_thousands > 100)
+,no_cars,(persons.auto_ownership == 0)
+,car_sufficiency,persons.auto_ownership-persons.num_workers
+#,,
+# UEC file comments says these are joint tour counts per persons but code is for household counts,,
+,_JOINT_TOURS,tours[tours.tour_category=='joint']
+,num_hh_joint_tours,"reindex_i(_JOINT_TOURS.groupby('household_id').size(), persons.household_id)"
+,num_hh_joint_shop_tours,"reindex_i(_JOINT_TOURS[_JOINT_TOURS.tour_type=='shopping'].groupby('household_id').size(), persons.household_id)"
+,num_hh_joint_eatout_tours,"reindex_i(_JOINT_TOURS[_JOINT_TOURS.tour_type=='eatout'].groupby('household_id').size(), persons.household_id)"
+,num_hh_joint_maint_tours,"reindex_i(_JOINT_TOURS[_JOINT_TOURS.tour_type=='maint'].groupby('household_id').size(), persons.household_id)"
+,num_hh_joint_social_tours,"reindex_i(_JOINT_TOURS[_JOINT_TOURS.tour_type=='social'].groupby('household_id').size(), persons.household_id)"
+,num_hh_joint_othdiscr_tours,"reindex_i(_JOINT_TOURS[_JOINT_TOURS.tour_type=='othdiscr'].groupby('household_id').size(), persons.household_id)"
+# non_mandatory tour frequency extension,,
+,has_mandatory_tour,(persons.num_mand > 0) * 1
+,has_joint_tour,(persons.num_joint_tours > 0) * 1

@@ -8,7 +8,8 @@ bundles:
   - free_parking
   - cdap
   - mandatory_tour_frequency
-  - mandatory_tour_scheduling
+  - mandatory_tour_scheduling_work
+  - mandatory_tour_scheduling_school
   - joint_tour_frequency
   - joint_tour_composition
   - joint_tour_participation
@@ -102,7 +103,8 @@ model_estimation_table_types:
   free_parking: simple_simulate
   cdap: cdap_simulate
   mandatory_tour_frequency: simple_simulate
-  mandatory_tour_scheduling: interaction_sample_simulate
+  mandatory_tour_scheduling_work: interaction_sample_simulate
+  mandatory_tour_scheduling_school: interaction_sample_simulate
   joint_tour_frequency: simple_simulate
   joint_tour_composition: simple_simulate
   joint_tour_participation: simple_simulate

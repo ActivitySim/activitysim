@@ -136,7 +136,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                 if trace_eval_results is not None:
                     trace_eval_results[expr] = v[trace_rows]
 
-                # mem.trace_memory_info("eval_interaction_utilities TEMP: %s" % expr)
+                # don't add temps to utility sums
+                # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
                 continue
 
             if expr.startswith('@'):

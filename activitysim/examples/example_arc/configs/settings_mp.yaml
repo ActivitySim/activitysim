@@ -1,0 +1,230 @@
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    # The index column is set before keep_columns,
+    # so don't put index in keep columns
+    index_col: household_id
+    rename_columns:
+      maz: zone_id
+      np: hhsize
+      nwrkrs_esr: num_workers
+    keep_columns:
+      #- household_id
+      - zone_id
+      - hhsize
+      - num_workers
+      - hincp
+      #- hhincAdj
+      #- adjinc
+      #- veh
+      - hht
+      #- bld
+      #- type
+  - tablename: persons
+    filename: persons.csv
+    # The index column is set before keep_columns,
+    # so don't put index in keep columns
+    index_col: person_id
+    rename_columns:
+      maz: zone_id
+      sporder: PNUM
+    keep_columns:
+      #- person_id
+      - household_id
+      - zone_id
+      - PNUM
+      - agep
+      #- employed
+      - pecasOcc
+      - sex
+      - esr
+      - wkw
+      - wkhp
+      #-mil
+      - schg
+      #-schl
+      #-indp02
+      #-indp07
+      #-occp02
+      #-occp10
+      #-n
+  - tablename: land_use
+    filename: land_use.csv
+    # The index column is set before keep_columns,
+    # so don't put index in keep columns
+    index_col: zone_id
+#    rename_columns:
+#
+    keep_columns:
+      #- TAZ
+#      - construc
+#      - manufac
+#      - TCU
+#      - wholesl
+      - retail
+#      - FIRE
+      - service
+#      - private
+#      - govt
+      - emp
+      - pop
+      - hshld
+      - univ
+      - acres
+#      - otherEmp
+#      - district
+      - PARKTOT
+      - PARKLNG
+      - PROPFREE
+      - PARKRATE
+      - areatype
+#      - county
+      - CBDFlag
+      - N11
+      - N21
+      - N22
+      - N23
+      - N313233
+      - N42
+      - N4445
+      - N4849
+      - N51
+      - N52
+      - N53
+      - N54
+      - N55
+      - N56
+      - N61
+      - N62
+      - N71
+      - N72
+      - N81
+      - N92
+      - EnrollDS
+      - EnrollPD
+      - I_PCTLT10K
+      - I_PCT10TO20
+      - I_PCT20TO40
+      - I_PCTGT40
+      - RetailEmp30
+
+#input data store and skims
+#input_store: arc_asim.h5
+skims_file: skims.omx
+
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+use_shadow_pricing: True
+
+#trace_od: [100,10]
+# 309462, 390302
+trace_hh_id: 333650
+#trace_hh_id: 2
+#trace_hh_id: 1643904
+
+chunk_size: 300000000
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling_choice
+  - trip_departure_choice
+  - trip_mode_choice
+  - parking_location
+#  - write_data_dictionary
+#  - track_skim_usage
+#  - write_trip_matrices
+  - write_tables
+ 
+#resume_after: trip_mode_choice
+
+multiprocess: True
+fail_fast: True
+
+multiprocess_steps:
+  - name: mp_initialize_landuse
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    num_processes: 40
+    slice:
+      tables:
+        - accessibility
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True
+  - name: mp_households
+    begin: school_location
+    num_processes: 40
+    #chunk_size: 1000000000
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_tables
+  
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+    - joint_tour_participants
+    
+
+skim_time_periods:
+    period_minutes: 30
+    periods:
+        - 0
+        - 6
+        - 12
+        - 20
+        - 30
+        - 38
+        - 48
+    labels:
+        - EV
+        - EA
+        - AM
+        - MD
+        - PM
+        - EV
+
+min_value_of_time: 1
+max_value_of_time: 50
+distributed_vot_mu: 0.684
+distributed_vot_sigma: 0.85

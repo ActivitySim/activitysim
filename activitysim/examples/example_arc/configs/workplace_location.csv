@@ -1,0 +1,21 @@
+Description,Expression,white_collar,service,health,retail_food,blue_collar
+Mode choice logsum,mode_choice_logsum,0.65,0.65,0.65,0.65,0.65
+# Intrazonal (origin == dest),@(df['zone_id']==df['home_zone_id']),0.9833,0.9833,0.9833,0.9833,0.9833
+Intrazonal (origin == dest),@(df['alt_dest']==df['home_zone_id']),0.9833,0.9833,0.9833,0.9833,0.9833
+Distance,"@skims[('SOV_FREE_DISTANCE', 'MD')]",0.014674,0.014674,0.014674,0.014674,0.014674
+Distance Squared,"@(skims[('SOV_FREE_DISTANCE', 'MD')] ** 2)",-0.000135,-0.000135,-0.000135,-0.000135,-0.000135
+Distance Cubed,"@(skims[('SOV_FREE_DISTANCE', 'MD')] ** 3)",0.000001119,0.000001119,0.000001119,0.000001119,0.000001119
+Log of Distance,"@np.log(skims[('SOV_FREE_DISTANCE', 'MD')])",-0.7777058,-0.7777058,-0.7777058,-0.7777058,-0.7777058
+Distance - low,"@(df['is_low_income'] * skims[('SOV_FREE_DISTANCE', 'MD')])",-0.01817,-0.01817,-0.01817,-0.01817,-0.01817
+Distance - very high,"@(df['is_very_high_income'] * skims[('SOV_FREE_DISTANCE', 'MD')])",0.008615,0.008615,0.008615,0.008615,0.008615
+Distance - part-time worker,"@((~df['is_fulltime_worker']) * skims[('SOV_FREE_DISTANCE', 'MD')])",-0.02001,-0.02001,-0.02001,-0.02001,-0.02001
+Distance - sub/exurban resident,"@(df['areatype'].isin([5,6]) * skims[('SOV_FREE_DISTANCE', 'MD')])",-0.00547,-0.00547,-0.00547,-0.00547,-0.00547
+Distance - rural resident,"@(df['areatype'] == 7 * skims[('SOV_FREE_DISTANCE', 'MD')])",-0.01748,-0.01748,-0.01748,-0.01748,-0.01748
+Size Variable,@(df['size_term'] * df['shadow_price_size_term_adjustment']).apply(np.log1p),1,1,1,1,1
+No Cars in HH & short walk,@(df['auto_ownership'] == 0),2.853,2.853,2.853,2.853,2.853
+No. of Cars Less than Workers & Short Walk,@(df['auto_ownership'] < df['num_workers']),1.409,1.409,1.409,1.409,1.409
+No Attractions,@df['size_term']==0,-999,-999,-999,-999,-999
+Y17 Calib - Distance - Income Low,"@(df['is_low_income'] * skims[('SOV_FREE_DISTANCE', 'MD')])",0.11,0.11,0.11,0.11,0.11
+Y17 Calib - Distance - Full Time Worker,"@(df['is_fulltime_worker'] * skims[('SOV_FREE_DISTANCE', 'MD')])",0.01,0.01,0.01,0.01,0.01
+Y17 Calib - Distance,"@(skims[('SOV_FREE_DISTANCE', 'MD')])",0.003,0.003,0.003,0.003,0.003
+Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1,1,1,1,1

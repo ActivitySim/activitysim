@@ -10,7 +10,7 @@
 # This script should work for the full TM1 example as well.
 
 import os
-import shutil
+import sys
 
 import pandas as pd
 import numpy as np
@@ -136,6 +136,9 @@ with omx.open_file(os.path.join(input_data, 'skims.omx')) as ur_skims:
 # create tap file
 # currently the only attribute is its containing maz
 
+
+np.random.seed(42)  # seed for random_variation so we build the same data every time
+
 taz_zone_labels = taz_df.TAZ.values
 tap_zone_labels = taz_zone_labels + TAP_OFFSET
 maz_zone_labels = taz_zone_labels * MAZ_MULTIPLIER
@@ -233,3 +236,5 @@ distance_table.loc[distance_table['DIST'] <= max_distance_for_nearby_taps_bike,
 distance_table.loc[distance_table['DIST'] <= max_distance_for_nearby_taps_drive,
                    ['MAZ', 'TAP', 'DIST', 'drive_time']]. \
     to_csv(os.path.join(output_data, 'maz_to_tap_drive.csv'), index=False)
+
+sys.exit(0)

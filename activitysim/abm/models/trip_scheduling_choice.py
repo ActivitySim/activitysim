@@ -251,59 +251,56 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
     # We only need to determine schedules for tours with intermediate stops
     indirect_tours = tours.loc[tours[HAS_OB_STOPS] | tours[HAS_IB_STOPS]]
 
-    # Crudely calculate a chunk size
-    # 5=number of columns in the alternatives (3 leg times + index)
-    tour_row_size = (4 + len(tours.columns)) * indirect_tours[NUM_ALTERNATIVES].mean()
+    if len(indirect_tours) > 0:
 
-    # rpc, effective_chunk_size = chunk.rows_per_chunk(chunk_size, tour_row_size, indirect_tours.shape[0], trace_label)
-    row_size = chunk_size and trip_schedule_calc_row_size(indirect_tours, trace_label)
-    # Iterate through the chunks
-    result_list = []
-    for i, choosers, chunk_trace_label in \
-            chunk.adaptive_chunked_choosers(indirect_tours, chunk_size, row_size, trace_label):
+        row_size = chunk_size and trip_schedule_calc_row_size(indirect_tours, trace_label)
+        # Iterate through the chunks
+        result_list = []
+        for i, choosers, chunk_trace_label in \
+                chunk.adaptive_chunked_choosers(indirect_tours, chunk_size, row_size, trace_label):
 
-        # Sort the choosers and get the schedule alternatives
-        choosers = choosers.sort_index()
-        schedules = generate_schedule_alternatives(choosers).sort_index()
+            # Sort the choosers and get the schedule alternatives
+            choosers = choosers.sort_index()
+            schedules = generate_schedule_alternatives(choosers).sort_index()
 
-        # Assuming we did the max_alt_size calculation correctly,
-        # we should get the same sizes here.
-        assert choosers[NUM_ALTERNATIVES].sum() == schedules.shape[0]
+            # Assuming we did the max_alt_size calculation correctly,
+            # we should get the same sizes here.
+            assert choosers[NUM_ALTERNATIVES].sum() == schedules.shape[0]
 
-        # Run the simulation
-        choices = _interaction_sample_simulate(
-            choosers=choosers,
-            alternatives=schedules,
-            spec=spec,
-            choice_column=SCHEDULE_ID,
-            allow_zero_probs=True, zero_prob_choice_val=-999,
-            want_logsums=False,
-            skims=skims,
-            locals_d=locals_dict,
-            trace_label=chunk_trace_label,
-            trace_choice_name='trip_schedule_stage_1',
-            estimator=None
-        )
+            # Run the simulation
+            choices = _interaction_sample_simulate(
+                choosers=choosers,
+                alternatives=schedules,
+                spec=spec,
+                choice_column=SCHEDULE_ID,
+                allow_zero_probs=True, zero_prob_choice_val=-999,
+                want_logsums=False,
+                skims=skims,
+                locals_d=locals_dict,
+                trace_label=chunk_trace_label,
+                trace_choice_name='trip_schedule_stage_1',
+                estimator=None
+            )
 
-        assert len(choices.index) == len(choosers.index)
+            assert len(choices.index) == len(choosers.index)
 
-        choices = schedules[schedules[SCHEDULE_ID].isin(choices)]
+            choices = schedules[schedules[SCHEDULE_ID].isin(choices)]
 
-        result_list.append(choices)
+            result_list.append(choices)
 
-        force_garbage_collect()
+            force_garbage_collect()
 
-    # FIXME: this will require 2X RAM
-    # if necessary, could append to hdf5 store on disk:
-    # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
-    if len(result_list) > 1:
-        choices = pd.concat(result_list)
+        # FIXME: this will require 2X RAM
+        # if necessary, could append to hdf5 store on disk:
+        # http://pandas.pydata.org/pandas-docs/stable/io.html#id2
+        if len(result_list) > 1:
+            choices = pd.concat(result_list)
 
-    assert len(choices.index) == len(indirect_tours.index)
+        assert len(choices.index) == len(indirect_tours.index)
 
-    # The choices here are only the indirect tours, so the durations
-    # need to be updated on the main tour dataframe.
-    tours.update(choices[[MAIN_LEG_DURATION, OB_DURATION, IB_DURATION]])
+        # The choices here are only the indirect tours, so the durations
+        # need to be updated on the main tour dataframe.
+        tours.update(choices[[MAIN_LEG_DURATION, OB_DURATION, IB_DURATION]])
 
     # Cleanup data types and drop temporary columns
     tours[[MAIN_LEG_DURATION, OB_DURATION, IB_DURATION]] = \

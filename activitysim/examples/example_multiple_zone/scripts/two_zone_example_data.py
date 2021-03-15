@@ -10,7 +10,7 @@
 # This script should work for the full TM1 example as well.
 
 import os
-import shutil
+import sys
 
 import pandas as pd
 import numpy as np
@@ -147,3 +147,5 @@ with omx.open_file(os.path.join(input_data, 'skims.omx')) as skims_file:
 
     maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_bike, ['OMAZ', 'DMAZ', 'DIST', 'DISTBIKE']].\
         to_csv(os.path.join(output_data, 'maz_to_maz_bike.csv'), index=False)
+
+sys.exit(0)

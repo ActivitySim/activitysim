@@ -1,0 +1,105 @@
+coefficient_name,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+c_ivt,-0.022,-0.0271,-0.0271,-0.0279,-0.0279,-0.0279,-0.0175,-0.0175,-0.0279,-0.0279
+c_ivt_pmov,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt,1.0 * c_ivt
+c_ivt_stcar,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt
+c_ivt_brt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt,0.90 * c_ivt
+c_ivt_urb,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt,0.80 * c_ivt
+c_ivt_com,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt,0.70 * c_ivt
+c_short_i_wait,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376
+c_long_i_wait,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,1.00 * c_ivt,-0.0188
+c_wacc,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376
+c_wegr,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376
+c_waux,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376
+c_dtim,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376
+c_xfers_wlk,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt,5.00 * c_ivt
+c_xfers_drv,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt
+c_xwait,c_short_i_wait,c_short_i_wait,c_short_i_wait,c_short_i_wait,c_short_i_wait,c_short_i_wait,c_short_i_wait,c_short_i_wait,c_short_i_wait,c_short_i_wait
+c_walktimeshort,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,2.00 * c_ivt,-0.0376
+c_walktimelong,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort,5.00 * c_walktimeshort
+c_biketimeshort,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,4.00 * c_ivt,-0.0752
+c_biketimelong,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort,5.00 * c_biketimeshort
+#value_of_time is a person attribute so we cant compute c_cost as scalar here,,,,,,,,,,
+#c_cost,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.60 * ivt) / valueOfTime,(0.6*ivt) / valueOfTime
+c_dacc_ratio,0,0,0,0,0,0,0,0,0,0
+c_topology_walk,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt,15.00 * c_ivt
+c_topology_bike,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt,20.00 * c_ivt
+c_topology_trn,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt,2.20 * c_ivt
+c_density_index,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0,c_ivt / -5.0
+c_origin_density_index,c_density_index * 3,c_density_index * 3,c_density_index * 3,c_density_index * 3,c_density_index * 3,c_density_index * 3,c_density_index * 3,c_density_index * 3,c_density_index * 3,c_density_index * 3
+c_origin_density_index_max,c_ivt * -15,c_ivt * -15,c_ivt * -15,c_ivt * -15,c_ivt * -15,c_ivt * -15,c_ivt * -15,c_ivt * -15,c_ivt * -15,c_ivt * -15
+origin_density_applied,False,False,False,True,True,True,True,True,True,True
+c_age1619_da,0,0,0,0,0,0,0,0,0,0
+c_age010_trn,0,0,0,0,0,0,0,0,0,0
+c_age16p_sr,0,0,0,0,0,0,0,0,0,0
+c_hhsize1_sr,-0.7346,-0.7346,-0.7346,-0.7346,-0.7346,-0.7346,-0.7346,-0.7346,-0.7346,-0.7346
+c_hhsize2_sr,0,0,0,0,0,0,0,0,0,0
+#free_parking_allowed,1,0,0,0,0,0,0,0,0,0
+#indiv tour ASCs,,,,,,,,,,
+sov_ASC_sr2,-999,-999,-999,0,-999,-999,-999,-999,-999,-999
+sov_ASC_sr3p,-999,-999,-999,0,-999,-999,-999,-999,-999,-999
+sov_ASC_walk,-1.579278297,-0.329078195,-3,-0.407754765,-1.884354765,-1.129357279,-1.707054765,-1.592757279,-1.335757279,-3.034080783
+sov_ASC_rh,-7,-6.649,-5.6549,0,0,0,0,0,0,-7
+#sr2_ASC_sr2 - reference mode,0,0,0,0,0,0,0,0,0,0
+sr2_ASC_sov,-0.51299105,-1.058942553,-0.293588173,-0.536498222,-0.536498222,-0.849808648,-0.536498222,-0.849808648,-0.849808648,-0.601604001
+sr2_ASC_walk,-0.407385039,0.166984338,-0.173411375,-3.466936859,-1.525836859,-0.739819085,-2.013036859,-1.460119085,-0.693719085,-4.398412986
+sr2_ASC_rh,-7,-6.6897,-7,-7,-7,-7,-7,-7,-7,-7
+sr3p_ASC_sov,-0.229516694,-1.142035901,-1.860536359,-1.111545636,-1.111545636,-1.592880167,-1.111545636,-1.592880167,-1.592880167,-0.915383849
+sr3p_ASC_sr2,-0.333410245,-0.795945688,-1.095643656,-0.656228794,-0.466128794,-0.748226556,-0.683828794,-0.586026556,-1.044626556,-0.75108718
+#sr3p_ASC_sr3p - reference mode,0,0,0,0,0,0,0,0,0,0
+sr3p_ASC_walk,-0.72844504,0.021931966,-0.70641187,-2.362025557,-1.862425557,-0.146994878,-1.312325557,-0.416994878,-0.630794878,-3.892581674
+sr3p_ASC_rh,-71.9177,-7,-6.6714,-7,-7,-7,-7,-7,-7,-6.026
+walk_ASC_rh,-7,-7,-7,-7,-7,-7,-7,-7,-7,-7
+bike_ASC_walk,-2.8333,-2.49405068,-3.238666604,-15.5203,-3.0245,-3.699,-2.5706,-14.2384,-2.3577,-5.0532
+bike_ASC_rh,-7,-7,-7,-7,-7,-7,-7,-7,-7,-7
+#walktransit_ASC_walktransit - reference mode,0,0,0,0,0,0,0,0,0,0
+walktransit_ASC_sr2,-3.705971533,-4.132166342,-3.186743446,-3.139673944,-3.139673944,-3.696770924,-3.139673944,-3.696770924,-3.696770924,-4
+walktransit_ASC_sr3p,-3.578423306,-5.496253927,-3.595736858,-6.198039835,-6.198039835,-3.455537128,-6.198039835,-3.455537128,-3.455537128,-1.156825048
+walktransit_ASC_walk,2.289791885,0.742780398,-0.458321333,1.976505237,1.976505237,2.544557044,1.976505237,2.544557044,2.544557044,1.038327796
+walk_transit_ASC_rh,-3.7408,-4.2691,-7,-3.1136,-3.1136,-4.7508,-3.1136,-4.7508,-4.7508,-3.8506
+drive_transit_ASC_rh,0.6674,-0.6328,-0.1272,0.687,0.687,3.5701,0.687,3.5701,3.5701,-6.952
+ride_hail_ASC_sr2,-3.9085,-2.5785,-3.0613,-3.3353,-3.3353,-3.301,-3.3353,-3.301,-3.301,-4.2636
+ride_hail_ASC_sr3p,-10.8661,-3.1888,-4.0886,-7,-7,-4.0649,-7,-4.0649,-4.0649,-7
+ride_hail_ASC_walk,1.497,-10.8471,-1.2386,-7,-7,-1.3318,-7,-1.3318,-1.3318,-1.6755
+ride_hail_ASC_walk_transit,-10.8661,-7,-7,-7,-7,-7,-7,-7,-7,-7
+drive_transit_ASC_rh,-4.25,-4.25,-4.25,-4.25,-4.25,-4.25,-4.25,-4.25,-4.25,-4.25
+ride_hail_ASC_sr2,-6.108,-4.3372,-1.5869,-5.6483,-5.6483,-5.9692,-5.6483,-5.9692,-5.9692,-5.2763
+ride_hail_ASC_sr3p,-7,-4.922,-2.5362,-7,-7,-6.7199,-7,-6.7199,-6.7199,-7
+ride_hail_ASC_walk,0.2858,-7,0.245,-7,-7,-3.3603,-7,-3.3603,-3.3603,-2.6103
+ride_hail_ASC_walk_transit,0,0,0,0,0,0,0,0,0,0
+ride_hail_ASC_taxi,-2.385,-1.5994,-0.5869,-3.6629,-3.6629,-2.5543,-3.6629,-2.5543,-2.5543,-1.7764
+ride_hail_ASC_tnc_single,0.735,0.1081,0.3201,0.7879,0.7879,0.8274,0.7879,0.8274,0.8274,1.2143
+ride_hail_ASC_tnc_shared,0,0,0,0,0,0,0,0,0,0
+#pnr_ASC_pnr - reference mode,0,0,0,0,0,0,0,0,0,0
+#knr_ASC_knr - reference mode,0,0,0,0,0,0,0,0,0,0
+#joint tour ASCs,,,,,,,,,,
+joint_auto_ASC_rh,0,0,0,0,-7,-7,-7,-7,-7,0
+joint_auto_ASC_rh,0,0,0,0,-7,-7,-7,-7,-7,0
+joint_walk_ASC_rh,0,0,0,0,-3.0362,-3.0362,-3.0362,-3.0362,-3.0362,0
+#joint_sr2_ASC_sr2 - reference mode,0,0,0,0,0,0,0,0,0,0
+joint_sr2_ASC_walk,0,0,0,-2.620466384,-2.620466384,-2.620466384,-2.620466384,-2.620466384,-2.620466384,0
+#joint_sr3p_ASC_sr3p - reference mode,0,0,0,0,0,0,0,0,0,0
+joint_sr3p_ASC_sr2,0,0,0,1.576317444,1.576317444,1.576317444,1.576317444,1.576317444,1.576317444,0
+joint_sr3p_ASC_walk,0,0,0,-1.238904557,-1.238904557,-1.238904557,-1.238904557,-1.238904557,-1.238904557,0
+joint_bike_ASC_walk,0,0,0,-3,-3,-3,-3,-3,-3,0
+joint_bike_ASC_rh,0,0,0,0,-12.3057,-12.3057,-12.3057,-12.3057,-12.3057,0
+#joint_walktransit_ASC_walktransit - reference mode,0,0,0,0,0,0,0,0,0,0
+joint_walktransit_ASC_sr2,0,0,0,-2.312902942,-2.312902942,-2.312902942,-2.312902942,-2.312902942,-2.312902942,0
+joint_walktransit_ASC_sr3p,0,0,0,-3.877768519,-3.877768519,-3.877768519,-3.877768519,-3.877768519,-3.877768519,0
+joint_walktransit_ASC_walk,0,0,0,1.576823424,1.576823424,1.576823424,1.576823424,1.576823424,1.576823424,0
+joint_walk_transit_ASC_rh,0,0,0,0,1.2266,1.2266,1.2266,1.2266,1.2266,0
+joint_drive_transit_ASC_rh,0,0,0,0,4.6138,4.6138,4.6138,4.6138,4.6138,0
+joint_ride_hail_ASC_taxi,0,0,0,0,-7,-7,-7,-7,-7,0
+joint_ride_hail_ASC_tnc_single,0,0,0,0,-4.7339,-4.7339,-4.7339,-4.7339,-4.7339,0
+joint_ride_hail_ASC_tnc_shared,0,0,0,0,0,0,0,0,0,0
+#joint_pnr_ASC_pnr - reference mode,0,0,0,0,0,0,0,0,0,0
+#joint_knr_ASC_knr - reference mode,0,0,0,0,0,0,0,0,0,0
+#,,,,,,,,,,
+schoolbus_ASC_sr2,0,0,-3.289069276,0,0,0,0,0,0,0
+schoolbus_ASC_sr3p,0,0,-3.217740129,0,0,0,0,0,0,0
+schoolbus_ASC_walk,0,0,-2.277998613,0,0,0,0,0,0,0
+#c_walk_express_penalty,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt
+local_ASC,0,0,0,0,0,0,0,0,0,0
+premium_ASC,0,0,0,0,0,0,0,0,0,0
+mix_ASC,0,0,0,0,0,0,0,0,0,0
+c_walk_express_penalty,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt,10.00 * c_ivt
+adjust_tnc_shared,30 * c_ivt,30 * c_ivt,30 * c_ivt,30 * c_ivt,30 * c_ivt,30 * c_ivt,30 * c_ivt,30 * c_ivt,30 * c_ivt,30 * c_ivt

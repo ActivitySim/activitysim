@@ -216,12 +216,11 @@ class Estimator(object):
             concat_axis = 1 if omnibus_table in self.omnibus_tables_append_columns else 0
 
             df = pd.concat([self.tables[t] for t in table_names], axis=concat_axis)
+            df.sort_index(ascending=True, inplace=True, kind='mergesort')
 
             file_path = self.output_file_path(omnibus_table, 'csv')
-
             assert not os.path.isfile(file_path)
 
-            df.sort_index(ascending=True, inplace=True, kind='mergesort')
             df.to_csv(file_path, mode='a', index=True, header=True)
 
             self.debug('write_omnibus_choosers: %s' % file_path)
@@ -468,6 +467,7 @@ class EstimationManager(object):
         bundle_name = bundle_name or model_name
 
         if bundle_name not in self.bundles:
+            logger.warning(f"estimation bundle {bundle_name} not in settings file {ESTIMATION_SETTINGS_FILE_NAME}")
             return None
 
         # can't estimate the same model simultaneously

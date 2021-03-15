@@ -16,6 +16,7 @@ from activitysim.core import pathbuilder
 from activitysim.core import mem
 from activitysim.core import tracing
 
+from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
 from activitysim.core.skim_dict_factory import NumpyArraySkimFactory
 from activitysim.core.skim_dict_factory import MemMapSkimFactory
 
@@ -208,7 +209,7 @@ class Network_LOS(object):
 
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
-            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True)).sort_values('TAP')
             self.tvpb = pathbuilder.TransitVirtualPathBuilder(self)  # dependent on self.tap_df
 
     def load_data(self):
@@ -324,7 +325,7 @@ class Network_LOS(object):
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
-        # make sure skim has all tap_ids
+        # make sure skim has all taz_ids
         # FIXME - weird that there is no list of tazs?
 
         # create MazSkimDict facade
@@ -332,16 +333,19 @@ class Network_LOS(object):
             # create MazSkimDict facade skim_dict
             # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
             assert 'maz' not in self.skim_dicts
-            self.skim_dicts['maz'] = self.create_skim_dict('maz')
+            maz_skim_dict = self.create_skim_dict('maz')
+            self.skim_dicts['maz'] = maz_skim_dict
+
             # make sure skim has all maz_ids
-            assert set(self.maz_taz_df['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
+            assert not (maz_skim_dict.offset_mapper.map(self.maz_taz_df['MAZ'].values) == NOT_IN_SKIM_ZONE_ID).any()
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
             assert 'tap' not in self.skim_dicts
-            self.skim_dicts['tap'] = self.create_skim_dict('tap')
+            tap_skim_dict = self.create_skim_dict('tap')
+            self.skim_dicts['tap'] = tap_skim_dict
             # make sure skim has all tap_ids
-            assert set(self.tap_df['TAP'].values).issubset(set(self.skim_dicts['tap'].zone_ids))
+            assert not (tap_skim_dict.offset_mapper.map(self.tap_df['TAP'].values) == NOT_IN_SKIM_ZONE_ID).any()
 
         mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
@@ -598,3 +602,26 @@ class Network_LOS(object):
 
         return pd.cut(time_period, self.skim_time_periods['periods'],
                       labels=self.skim_time_periods['labels'], ordered=False).astype(str)
+
+    def get_tazs(self):
+        # FIXME - should compute on init?
+        if self.zone_system == ONE_ZONE:
+            tazs = inject.get_table('land_use').index.values
+        else:
+            tazs = self.maz_taz_df.TAZ.unique()
+        assert isinstance(tazs, np.ndarray)
+        return tazs
+
+    def get_mazs(self):
+        # FIXME - should compute on init?
+        assert self.zone_system in [TWO_ZONE, THREE_ZONE]
+        mazs = self.maz_taz_df.MAZ.values
+        assert isinstance(mazs, np.ndarray)
+        return mazs
+
+    def get_taps(self):
+        # FIXME - should compute on init?
+        assert self.zone_system == THREE_ZONE
+        taps = self.tap_df.TAP.values
+        assert isinstance(taps, np.ndarray)
+        return taps

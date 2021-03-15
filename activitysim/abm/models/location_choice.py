@@ -213,15 +213,18 @@ def aggregate_size_terms(dest_size_terms, network_los):
     maz_to_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').sort_values(by='TAZ').TAZ
     MAZ_size_terms[DEST_TAZ] = MAZ_size_terms.index.map(maz_to_taz)
 
-    # shadow_price_size_term_adjustment is a multiplicative factor, so we want weighted average (???)
-    #FIXME should shadow_price_size_term_adjustment be weighted average???
-    # shadow_price_utility_adjustment is a utility, so we want sum
-    MAZ_size_terms['shadow_price_size_term_adjustment'] *= MAZ_size_terms['size_term']
+    weighted_average_cols = ['shadow_price_size_term_adjustment', 'shadow_price_utility_adjustment']
+    for c in weighted_average_cols:
+        MAZ_size_terms[c] *= MAZ_size_terms['size_term']  # weighted average
+
     TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg(
         {'size_term': 'sum',
          'shadow_price_size_term_adjustment': 'sum',
          'shadow_price_utility_adjustment': 'sum'})
-    TAZ_size_terms['shadow_price_size_term_adjustment'] /= TAZ_size_terms['size_term']
+
+    for c in weighted_average_cols:
+        TAZ_size_terms[c] /= TAZ_size_terms['size_term']  # weighted average
+
     if TAZ_size_terms.isna().any(axis=None):
         logger.warning(f"TAZ_size_terms with NAN values\n{TAZ_size_terms[TAZ_size_terms.isna().any(axis=1)]}")
         assert not TAZ_size_terms.isna(axis=None).any()
@@ -302,7 +305,7 @@ def location_presample(
     # 55227            20  0.035548           3
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = tour_destination.choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms)
+    maz_choices = tour_destination.choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
@@ -571,6 +574,9 @@ def run_location_choice(
         # size_term and shadow price adjustment - one row per zone
         dest_size_terms = shadow_price_calculator.dest_size_terms(segment_name)
 
+        assert dest_size_terms.index.is_monotonic_increasing, \
+            f"shadow_price_calculator.dest_size_terms({segment_name}) not monotonic_increasing"
+
         if choosers.shape[0] == 0:
             logger.info(f"{trace_label} skipping segment {segment_name}: no choosers")
             continue
@@ -730,25 +736,8 @@ def iterate_location_choice(
     # chooser segmentation allows different sets coefficients for e.g. different income_segments or tour_types
     chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
 
-    # - run segment preprocessor to assign chooser_segment_column if it is not already in chooser df
-    segment_preprocessor_settings = model_settings.get('segment_preprocessor')
-    if segment_preprocessor_settings:
-
-        assert chooser_segment_column not in persons_merged_df, \
-            f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' already in persons " \
-            f"but segment_preprocessor was specified in model settings."
-
-        expressions.assign_columns(
-            df=persons_merged_df,
-            model_settings=segment_preprocessor_settings,
-            trace_label=tracing.extend_trace_label(trace_label, 'segment_preprocessor'))
-
-        assert chooser_segment_column in persons_merged_df, \
-            f"segment_preprocessor failed to add CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' to persons table. "
-    else:
-        assert chooser_segment_column in persons_merged_df, \
-            f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' not already in persons table " \
-            f"and no segment_preprocessor specified in model settings fiel to add it."
+    assert chooser_segment_column in persons_merged_df, \
+        f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' not in persons_merged table."
 
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
     max_iterations = spc.max_iterations

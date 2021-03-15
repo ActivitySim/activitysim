@@ -1,5 +1,7 @@
 inherit_settings: True
 
+strict: True
+
 # number of households to simulate
 households_sample_size:  10
 # simulate all households
@@ -28,3 +30,10 @@ trace_hh_id:
 # trace_od: [5, 11]
 trace_od:
 
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  sort: True
+  tables:
+    - trips

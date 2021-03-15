@@ -310,7 +310,12 @@ class AbstractSkimFactory(ABC):
 
         logger.info(f"reading skim cache {skim_info.skim_tag} {skim_info.skim_data_shape} from {skim_cache_path}")
 
-        data = np.memmap(skim_cache_path, shape=skim_info.skim_data_shape, dtype=dtype, mode='r')
+        try:
+            data = np.memmap(skim_cache_path, shape=skim_info.skim_data_shape, dtype=dtype, mode='r')
+        except Exception as e:
+            logger.warning(f"{type(e).__name__} reading {skim_info.skim_tag} skim_cache {skim_cache_path}:  {str(e)}")
+            logger.warning(f"ignoring incompatible {skim_info.skim_tag} skim_cache {skim_cache_path}")
+            return None
 
         return data
 

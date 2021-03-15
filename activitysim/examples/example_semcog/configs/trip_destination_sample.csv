@@ -1,0 +1,18 @@
+Description,Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+,_od_DIST@od_skims['DIST'],1,1,1,1,1,1,1,1,1,1
+,_dp_DIST@dp_skims['DIST'],1,1,1,1,1,1,1,1,1,1
+Not available if walk tour not within walking distance,@(df.tour_mode=='WALK') & (od_skims['DISTWALK'] > max_walk_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Not available if walk tour not within walking distance,@(df.tour_mode=='WALK') & (dp_skims['DISTWALK'] > max_walk_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Not available if bike tour not within biking distance,@(df.tour_mode=='BIKE') & (od_skims['DISTBIKE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Not available if bike tour not within biking distance,@(df.tour_mode=='BIKE') & (dp_skims['DISTBIKE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+#If transit tour is not in walk sub-zone it must be walkable,,,,,,,,,,,
+size term,"@np.log1p(size_terms.get(df.dest_taz, df.purpose))",1,1,1,1,1,1,1,1,1,1
+no attractions,"@size_terms.get(df.dest_taz, df.purpose) == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+#stop zone CBD area type,"@reindex(land_use.AreaType, df.dest_taz) < setting('cbd_threshold')",,,,,,,,,,
+distance (calibration adjustment individual - inbound),@(~df.is_joint & ~df.outbound) * (_od_DIST + _dp_DIST),-0.049725916,-0.0613,-0.1056,-0.1491,-0.1192,-0.1029,-0.0962,-0.1329,-0.126172224,-0.122334597
+distance (calibration adjustment individual - outbound),@(~df.is_joint & df.outbound) * (_od_DIST + _dp_DIST),0.147813279,-0.0613,-0.1056,-0.1491,-0.1192,-0.1029,-0.0962,-0.1329,-0.126172224,-0.122334597
+distance (calibration adjustment joint),@df.is_joint * (_od_DIST + _dp_DIST),0,0,0,-0.1238,-0.1238,-0.1238,-0.1238,-0.1238,-0.123801985,0
+stop proximity to home (outbound),@df.outbound * _od_DIST,-0.38,0,0,0,0,0,0,0,0,0
+stop proximity to home (inbound),@~df.outbound * _od_DIST,-0.15,0,0,0,0,0,0,0,0,0
+stop proximity to main destination (outbound),@df.outbound * _dp_DIST,-0.26,,,,,,,,,
+stop proximity to main destination (inbound),@~df.outbound * _od_DIST,0,,,,,,,,,

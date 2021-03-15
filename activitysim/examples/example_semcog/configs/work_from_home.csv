@@ -1,0 +1,15 @@
+Label,Description,Expression,work_at_home,work_away_from_home
+util_work_from_home_constant,Constant for Working from home,1,coef_work_from_home_constant,0
+util_full_time_worker,Full time worker (1 if true),@df.pemploy==PEMPLOY_FULL,coef_full_time_worker,0
+util_female_worker,Female Worker,@df.sex==2,coef_female_worker,0
+util_female_worker_preschool_child,Female worker with a Preschool Child in Household,"@df.sex==2 & other_than(df.household_id, df.ptype == PTYPE_SCHOOL)",coef_female_worker_preschool_child,0
+util_access_to_workplaces,Accessibility to workplaces of the home mgra,@df.workplace_location_logsum,coef_access_to_workplaces,0
+util_non_working_adult_in_hh,Presence of Non Working Adult in the Household,"@other_than(df.household_id, df.ptype == PTYPE_NONWORK)",coef_non_working_adult_in_hh,0
+util_education_ba_plus,Education Level Bachelors or higher degree,0,coef_education_ba_plus,0
+util_low_income,Household income Less than 30K,@df.income < 30000,coef_low_income,0
+util_age_lt_35,Age Group - Less than 35 years,@df.age < 35,coef_age_lt_35,0
+util_age_35_to_45,Age Group - 35 yrs to 45 yrs,"@df.age.between(35, 45)",coef_age_35_to_45,0
+util_age_45_to_55,Age Group - 45 yrs to 55 yrs,"@df.age.between(45, 55)",coef_age_45_to_55,0
+util_age_55_to_65,Age Group - 55 yrs to 65 yrs,"@df.age.between(55, 65)",coef_age_55_to_65,0
+util_age_65_plus,Age Group - Older than 65yrs,@df.age > 65,coef_age_65_plus,0
+util_calibration,ABM2 calibration - work from home,1,coef_calibration,0

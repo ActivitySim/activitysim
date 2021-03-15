@@ -1,0 +1,187 @@
+# read trips table post preprocessor and run expressions to code
+# additional data fields, with one data fields for each matrix specified below
+
+preprocessor:
+  SPEC: write_trip_matrices_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+
+# divide trip counts by household expansion factor
+HH_EXPANSION_WEIGHT_COL: sample_rate  # added when households read in
+
+# save preprocessed trips table to pipeline if desired
+SAVE_TRIPS_TABLE: False
+
+MATRICES:
+  - file_name: trips_ea.omx
+    tables:
+      - name: DRIVEALONEFREE_EA
+        data_field: DRIVEALONEFREE_EA
+      - name: DRIVEALONEPAY_EA
+        data_field: DRIVEALONEPAY_EA
+      - name: SHARED2FREE_EA
+        data_field: SHARED2FREE_EA
+      - name: SHARED2PAY_EA
+        data_field: SHARED2PAY_EA
+      - name: SHARED3FREE_EA
+        data_field: SHARED3FREE_EA
+      - name: SHARED3PAY_EA
+        data_field: SHARED3PAY_EA
+      - name: WALK_EA
+        data_field: WALK_EA
+      - name: BIKE_EA
+        data_field: BIKE_EA
+      - name: WALK_ALLTRN_EA
+        data_field: WALK_ALLTRN_EA
+      - name: WALK_PRMTRN_EA
+        data_field: WALK_PRMTRN_EA
+      - name: PNR_ALLTRN_EA
+        data_field: PNR_ALLTRN_EA
+      - name: PNR_PRMTRN_EA
+        data_field: PNR_PRMTRN_EA
+      - name: KNR_ALLTRN_EA
+        data_field: KNR_ALLTRN_EA
+      - name: KNR_PRMTRN_EA
+        data_field: KNR_PRMTRN_EA
+  - file_name: trips_am.omx
+    tables:
+      - name: DRIVEALONEFREE_AM
+        data_field: DRIVEALONEFREE_AM
+      - name: DRIVEALONEPAY_AM
+        data_field: DRIVEALONEPAY_AM
+      - name: SHARED2FREE_AM
+        data_field: SHARED2FREE_AM
+      - name: SHARED2PAY_AM
+        data_field: SHARED2PAY_AM
+      - name: SHARED3FREE_AM
+        data_field: SHARED3FREE_AM
+      - name: SHARED3PAY_AM
+        data_field: SHARED3PAY_AM
+      - name: WALK_AM
+        data_field: WALK_AM
+      - name: BIKE_AM
+        data_field: BIKE_AM
+      - name: WALK_ALLTRN_AM
+        data_field: WALK_ALLTRN_AM
+      - name: WALK_PRMTRN_AM
+        data_field: WALK_PRMTRN_AM
+      - name: PNR_ALLTRN_AM
+        data_field: PNR_ALLTRN_AM
+      - name: PNR_PRMTRN_AM
+        data_field: PNR_PRMTRN_AM
+      - name: KNR_ALLTRN_AM
+        data_field: KNR_ALLTRN_AM
+      - name: KNR_PRMTRN_AM
+        data_field: KNR_PRMTRN_AM
+  - file_name: trips_md.omx
+    tables:
+      - name: DRIVEALONEFREE_MD
+        data_field: DRIVEALONEFREE_MD
+      - name: DRIVEALONEPAY_MD
+        data_field: DRIVEALONEPAY_MD
+      - name: SHARED2FREE_MD
+        data_field: SHARED2FREE_MD
+      - name: SHARED2PAY_MD
+        data_field: SHARED2PAY_MD
+      - name: SHARED3FREE_MD
+        data_field: SHARED3FREE_MD
+      - name: SHARED3PAY_MD
+        data_field: SHARED3PAY_MD
+      - name: WALK_MD
+        data_field: WALK_MD
+      - name: BIKE_MD
+        data_field: BIKE_MD
+      - name: WALK_ALLTRN_MD
+        data_field: WALK_ALLTRN_MD
+      - name: WALK_PRMTRN_MD
+        data_field: WALK_PRMTRN_MD
+      - name: PNR_ALLTRN_MD
+        data_field: PNR_ALLTRN_MD
+      - name: PNR_PRMTRN_MD
+        data_field: PNR_PRMTRN_MD
+      - name: KNR_ALLTRN_MD
+        data_field: KNR_ALLTRN_MD
+      - name: KNR_PRMTRN_MD
+        data_field: KNR_PRMTRN_MD
+  - file_name: trips_pm.omx
+    tables:
+      - name: DRIVEALONEFREE_PM
+        data_field: DRIVEALONEFREE_PM
+      - name: DRIVEALONEPAY_PM
+        data_field: DRIVEALONEPAY_PM
+      - name: SHARED2FREE_PM
+        data_field: SHARED2FREE_PM
+      - name: SHARED2PAY_PM
+        data_field: SHARED2PAY_PM
+      - name: SHARED3FREE_PM
+        data_field: SHARED3FREE_PM
+      - name: SHARED3PAY_PM
+        data_field: SHARED3PAY_PM
+      - name: WALK_PM
+        data_field: WALK_PM
+      - name: BIKE_PM
+        data_field: BIKE_PM
+      - name: WALK_ALLTRN_PM
+        data_field: WALK_ALLTRN_PM
+      - name: WALK_PRMTRN_PM
+        data_field: WALK_PRMTRN_PM
+      - name: PNR_ALLTRN_PM
+        data_field: PNR_ALLTRN_PM
+      - name: PNR_PRMTRN_PM
+        data_field: PNR_PRMTRN_PM
+      - name: KNR_ALLTRN_PM
+        data_field: KNR_ALLTRN_PM
+      - name: KNR_PRMTRN_PM
+        data_field: KNR_PRMTRN_PM
+  - file_name: trips_ev.omx
+    tables:
+      - name: DRIVEALONEFREE_EV
+        data_field: DRIVEALONEFREE_EV
+      - name: DRIVEALONEPAY_EV
+        data_field: DRIVEALONEPAY_EV
+      - name: SHARED2FREE_EV
+        data_field: SHARED2FREE_EV
+      - name: SHARED2PAY_EV
+        data_field: SHARED2PAY_EV
+      - name: SHARED3FREE_EV
+        data_field: SHARED3FREE_EV
+      - name: SHARED3PAY_EV
+        data_field: SHARED3PAY_EV
+      - name: WALK_EV
+        data_field: WALK_EV
+      - name: BIKE_EV
+        data_field: BIKE_EV
+      - name: WALK_ALLTRN_EV
+        data_field: WALK_ALLTRN_EV
+      - name: WALK_PRMTRN_EV
+        data_field: WALK_PRMTRN_EV
+      - name: PNR_ALLTRN_EV
+        data_field: PNR_ALLTRN_EV
+      - name: PNR_PRMTRN_EV
+        data_field: PNR_PRMTRN_EV
+      - name: KNR_ALLTRN_EV
+        data_field: KNR_ALLTRN_EV
+      - name: KNR_PRMTRN_EV
+        data_field: KNR_PRMTRN_EV
+
+CONSTANTS:
+  time_periods:
+    EA:
+      first_hour: 1
+      last_hour: 6
+    AM:
+      first_hour: 7
+      last_hour: 14
+    MD:
+      first_hour: 15
+      last_hour: 24
+    PM:
+      first_hour: 25
+      last_hour: 32
+    EV:
+      first_hour: 33
+      last_hour: 48
+  # SHARED2 and SHARED3 Occupancies
+  OCC_SHARED2: 2.0
+  OCC_SHARED3: 3.33

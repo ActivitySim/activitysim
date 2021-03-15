@@ -1,6 +1,6 @@
 annotate_tables:
   - tablename: persons
-    column_map:
+    rename_columns:
       maz: home_zone_id
       sporder: PNUM
     annotate:
@@ -9,7 +9,7 @@ annotate_tables:
       TABLES:
         - households
   - tablename: households
-    column_map:
+    rename_columns:
       np: hhsize
       nwrkrs_esr: num_workers
       maz: home_zone_id

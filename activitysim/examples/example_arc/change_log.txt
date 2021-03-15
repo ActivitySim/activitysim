@@ -148,3 +148,19 @@ LEGACY_COEFFICIENTS: trip_mode_choice_coeffs.csv
 #Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
 coefficient_name,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
 
+
+###
+##### initialize_households.yaml
+###
+
+# FutureWarning: initialize_households - annotate_tables option 'column_map' renamed 'rename_columns'
+
+annotate_tables:
+  - tablename: persons
+#   column_map:
+    rename_columns:
+...
+  - tablename: households
+#   column_map:
+    rename_columns:
+

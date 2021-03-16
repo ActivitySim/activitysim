@@ -334,7 +334,8 @@ def joint_tour_participation(
 
         # but estimation software wants to know the choices value (alternative index)
         choices = participate.replace({True: PARTICIPATE_CHOICE, False: 1-PARTICIPATE_CHOICE})
-        estimator.write_override_choices(participate)
+        # estimator.write_override_choices(participate)  # write choices as boolean participate
+        estimator.write_override_choices(choices)  # write choices as int alt indexes
 
         estimator.end_estimation()
 

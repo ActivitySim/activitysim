@@ -219,7 +219,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
 
     if we are multiprocessing, then the attribute_combinations will have been sliced and we compute only a subset
     of the tuples (and the other processes will compute the rest). All process wait until the cache is fully
-    populated before returning, and the spokesman/locutor process writes the results.
+    populated before returning, and the locutor process writes the results.
 
 
     FIXME - if we did not close this, we could avoid having to reload it from mmap when single-process?

@@ -78,20 +78,22 @@ def mandatory_tour_scheduling(tours,
     estimators = {}
     for spec_segment_name, spec_settings in spec_segment_settings.items():
 
+        # seperate bundles for work and school
+        model_name = f'mandatory_tour_scheduling_{spec_segment_name}'
+
         # estimator for this tour_segment
-        estimator = estimation.manager.begin_estimation(model_name='mandatory_tour_scheduling_%s' % spec_segment_name,
-                                                        bundle_name='mandatory_tour_scheduling')
+        estimator = estimation.manager.begin_estimation(model_name=model_name, bundle_name=model_name)
 
         spec_file_name = spec_settings['SPEC']
         model_spec = simulate.read_model_spec(file_name=spec_file_name)
-        coefficients_df = simulate.read_model_coefficients(spec_segment_settings[spec_segment_name])
+        coefficients_df = simulate.read_model_coefficients(spec_settings)
         specs[spec_segment_name] = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
         if estimator:
             estimators[spec_segment_name] = estimator  # add to local list
             estimator.write_model_settings(model_settings, model_settings_file_name)
             estimator.write_spec(spec_settings)
-            estimator.write_coefficients(coefficients_df)
+            estimator.write_coefficients(coefficients_df, spec_settings)
 
     # - spec dict segmented by primary_purpose
     tour_segment_settings = model_settings.get('TOUR_SPEC_SEGMENTS', {})

@@ -66,3 +66,9 @@ docs/_build/
 
 # macOS
 *.DS_Store
+_test_est
+
+# activitysim conventions
+*_local/
+*_local.*
+

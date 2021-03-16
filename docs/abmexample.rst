@@ -35,11 +35,11 @@ original model zones were further sub-divided into three categories of transit a
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
 of activity-based models typically use an improved approach to spatial representation called multiple zone systems.
 
-In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller 
-than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS) 
-indicators (e.g. skims), the model uses different spatial resolutions for different travel modes in order to reduce the network 
-modeling burden.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone system for 
-non-motorized travel, and optionally a transit access points (TAPs) zone system for transit.  See :ref:`multiple_zone_systems` for 
+In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
+than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
+indicators (e.g. skims), the model uses different spatial resolutions for different travel modes in order to reduce the network
+modeling burden.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone system for
+non-motorized travel, and optionally a transit access points (TAPs) zone system for transit.  See :ref:`multiple_zone_systems` for
 more information.
 
 Decision-making units
@@ -319,7 +319,7 @@ is the main settings file for the model run.  This file includes:
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`.  
+* ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`.
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
@@ -423,30 +423,30 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - joint_tour_frequency_alternatives.csv                           |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_composition`                  |  - joint_tour_composition.yaml                                     |
-|                                                |  - joint_tour_composition_coeffs.csv                               |
+|                                                |  - joint_tour_composition_coefficients.csv                         |
 |                                                |  - joint_tour_composition_annotate_households_preprocessor.csv     |
 |                                                |  - joint_tour_composition.csv                                      |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_participation`                |  - joint_tour_participation.yaml                                   |
-|                                                |  - joint_tour_participation_coeffs.csv                             |
+|                                                |  - joint_tour_participation_coefficients.csv                       |
 |                                                |  - joint_tour_participation_annotate_participants_preprocessor.csv |
 |                                                |  - joint_tour_participation.csv                                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_destination_choice`           |  - joint_tour_destination.yaml                                     |
-|                                                |  - non_mandatory_tour_destination_coeffs.csv                       |
+|                                                |  - non_mandatory_tour_destination_coefficients.csv                 |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
 |                                                |  - non_mandatory_tour_destination.csv                              |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`joint_tour_scheduling`                   |  - joint_tour_scheduling.yaml                                      |
-|                                                |  - tour_scheduling_joint_coeffs.csv                                |
+|                                                |  - tour_scheduling_joint_coefficients.csv                          |
 |                                                |  - joint_tour_scheduling_annotate_tours_preprocessor.csv           |
 |                                                |  - tour_scheduling_joint.csv                                       |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_frequency`            |  - non_mandatory_tour_frequency.yaml                               |
-|                                                |  - non_mandatory_tour_frequency_coeffs_{ptype}.csv                 |
+|                                                |  - non_mandatory_tour_frequency_coefficients_{ptype}.csv           |
 |                                                |  - non_mandatory_tour_frequency.csv                                |
 |                                                |  - non_mandatory_tour_frequency_alternatives.csv                   |
 |                                                |  - non_mandatory_tour_frequency_annotate_persons_preprocessor.csv  |
@@ -454,14 +454,14 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 |                                                |  - annotate_persons_nmtf.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_destination_choice`   |  - non_mandatory_tour_destination.yaml                             |
-|                                                |  - non_mandatory_tour_destination_coeffs.csv                       |
+|                                                |  - non_mandatory_tour_destination_coefficients.csv                 |
 |                                                |  - non_mandatory_tour_destination.csv                              |
 |                                                |  - non_mandatory_tour_destination_sample.csv                       |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`non_mandatory_tour_scheduling`           |  - non_mandatory_tour_scheduling.yaml                              |
-|                                                |  - tour_scheduling_nonmandatory_coeffs.csv                         |
+|                                                |  - tour_scheduling_nonmandatory_coefficients.csv                   |
 |                                                |  - non_mandatory_tour_scheduling_annotate_tours_preprocessor.csv   |
 |                                                |  - tour_scheduling_nonmandatory.csv                                |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
@@ -469,24 +469,24 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 | :ref:`tour_mode_choice`                        |  - tour_mode_choice.yaml                                           |
 |                                                |  - tour_mode_choice_annotate_choosers_preprocessor.csv             |
 |                                                |  - tour_mode_choice.csv                                            |
-|                                                |  - tour_mode_choice_coeffs.csv                                     |
+|                                                |  - tour_mode_choice_coefficients.csv                               |
 |                                                |  - tour_mode_choice_coeffs_template.csv                            |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`atwork_subtour_frequency`               |  - atwork_subtour_frequency.yaml                                   |
-|                                                |  - atwork_subtour_frequency_coeffs.csv                             |
+|                                                |  - atwork_subtour_frequency_coefficients.csv                       |
 |                                                |  - atwork_subtour_frequency.csv                                    |
 |                                                |  - atwork_subtour_frequency_alternatives.csv                       |
 |                                                |  - atwork_subtour_frequency_annotate_tours_preprocessor.csv        |
 +------------------------------------------------+--------------------------------------------------------------------+
 |   :ref:`atwork_subtour_destination`            |  - atwork_subtour_destination.yaml                                 |
-|                                                |  - atwork_subtour_destination_coeffs.csv                           |
+|                                                |  - atwork_subtour_destination_coefficients.csv                     |
 |                                                |  - atwork_subtour_destination_sample.csv                           |
 |                                                |  - atwork_subtour_destination.csv                                  |
 |                                                |  - tour_mode_choice.yaml (and related files)                       |
 |                                                |  - destination_choice_size_terms.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 | :ref:`atwork_subtour_scheduling`               |  - tour_scheduling_atwork.yaml                                     |
-|                                                |  - tour_scheduling_atwork_coeffs.csv                               |
+|                                                |  - tour_scheduling_atwork_coefficients.csv                         |
 |                                                |  - tour_scheduling_atwork.csv                                      |
 |                                                |  - tour_scheduling_atwork_preprocessor.csv                         |
 |                                                |  - tour_departure_and_duration_alternatives.csv                    |
@@ -524,7 +524,7 @@ columns indicates the number of non-mandatory tours by purpose.  The current set
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`trip_mode_choice`                       |  - trip_mode_choice.yaml                                           |
 |                                                |  - trip_mode_choice_annotate_trips_preprocessor.csv                |
-|                                                |  - trip_mode_choice_coeffs.csv                                     |
+|                                                |  - trip_mode_choice_coefficients.csv                               |
 |                                                |  - trip_mode_choice.csv                                            |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`parking_location_choice`                |  - parking_location_choice.yaml                                    |
@@ -543,9 +543,9 @@ Chunk size
 ~~~~~~~~~~
 
 The ``chunk_size`` is the number of doubles in a chunk of a choosers table.  It is approximately the number
-of rows times the number of columns.  If set to zero, no chunking will be performed.  If there is a chunk size setting, 
-dynamic chunking will start out using the estimated number of rows per chunk calculation performed by the various 
-submodels but will adjust the number of chooser rows per chunk in light of how much memory is actually 
+of rows times the number of columns.  If set to zero, no chunking will be performed.  If there is a chunk size setting,
+dynamic chunking will start out using the estimated number of rows per chunk calculation performed by the various
+submodels but will adjust the number of chooser rows per chunk in light of how much memory is actually
 used by the chunk iteration.
 
 Logging
@@ -939,7 +939,7 @@ Additional settings for running ActivitySim in estimation mode are specified in 
 Multiple Zone Systems
 ---------------------
 
-ActivitySim supports models with multiple zone systems.  The three versions of multiple zone systems are one-zone, two-zone, and three-zone. 
+ActivitySim supports models with multiple zone systems.  The three versions of multiple zone systems are one-zone, two-zone, and three-zone.
 
   * **One-zone**: This version is based on TM1 and supports only TAZs. All origins and destinations are represented at the TAZ level, and all skims including auto, transit, and non-motorized times and costs are also represented at the TAZ level.
   * **Two-zone**: This version is similar to many DaySim models. It uses microzones (MAZs) for origins and destinations, and TAZs for specification of auto and transit times and costs. Impedance for walk or bike "all the way" from the origin to the destination can be specified at the MAZ level for close together origins and destinations, and at the TAZ level for further origins and destinations. Users can also override transit walk access and egress times with times specified in the MAZ file by transit mode.  Careful pre-calculation of the assumed transit walk access and egress time by MAZ and transit mode is required depending on the network scenario.
@@ -953,13 +953,13 @@ Example configurations and inputs for two and three-zone system models are descr
 .. note::
    The two and three zone system test examples are dummy examples developed from the TM1 example.  To develop the two zone system
    example, TM1 TAZs were labeled MAZs, each MAZ was assigned a TAZ, and MAZ to MAZ impedance files were created from the
-   TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed 
-   so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for 
+   TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed
+   so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for
    initial development, these examples were insufficient for validation and performance testing of the new software.
-   
-   To finalize development and verification of the multiple zone system and transit virtual path building components, the 
-   `Transportation Authority of Marin County <https://www.tam.ca.gov/>`__ version of MTC's travel model two (TM2) work 
-   tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.  
+
+   To finalize development and verification of the multiple zone system and transit virtual path building components, the
+   `Transportation Authority of Marin County <https://www.tam.ca.gov/>`__ version of MTC's travel model two (TM2) work
+   tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.
    The complete runnable setup is available from ActivitySim's command line interface as `example_3_marin_full`.  This example
    has essentially the same configuration as illustrated by the simpler examples below.
 
@@ -975,13 +975,13 @@ To run the two zone and three zone system examples, do the following:
 
   # simple two zone example
   activitysim create -e example_2_zone -d test_example_2_zone
-  
+
   # simple three zone example
   activitysim create -e example_3_zone -d test_example_3_zone
-  
+
   # Marin TM2 work tour mode choice for the MTC region
   activitysim create -e example_3_marin_full -d test_example_3_marin_full
-  
+
 
 * Change to the example directory
 * Run the example
@@ -990,11 +990,11 @@ To run the two zone and three zone system examples, do the following:
 
   # simple two zone example
   activitysim run -c configs_local -c configs_2_zone -c configs -d data_2 -o output_2
-  
+
   # simple three zone example, single process and multiprocess
   activitysim run -c configs_local -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_static.yaml
   activitysim run -c configs_local -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml
-  
+
   # Marin TM2 work tour mode choice for the MTC region
   activitysim run -c configs_3_zone_marin_full -c configs_3_zone_marin -d data_3_marin_full -o output_3_marin_full -s settings_mp.yaml
 
@@ -1018,17 +1018,17 @@ The additional two zone system settings and inputs are described and illustrated
 
   zone_system: 2
   maz: maz.csv
-  
+
   maz_to_maz:
     tables:
       - maz_to_maz_walk.csv
       - maz_to_maz_bike.csv
-  
+
     max_blend_distance:
       DIST: 5
       DISTBIKE: 0
       DISTWALK: 1
-  
+
     blend_distance_skim_name: DIST
 
 
@@ -1040,7 +1040,7 @@ In ``settings.yaml``
 
 * ``models`` - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See :ref:`initialize_los`.
 
-:: 
+::
 
   models:
     - initialize_landuse
@@ -1057,10 +1057,10 @@ In ``network_los.yaml``
 
 * ``zone_system`` - set to 3 for three zone system
 * ``rebuild_tvpb_cache`` - rebuild and overwrite existing pre-computed TAP to TAP utilities cache
-* ``trace_tvpb_cache_as_csv`` - write a CSV version of TVPB cache for tracing 
+* ``trace_tvpb_cache_as_csv`` - write a CSV version of TVPB cache for tracing
 * ``tap_skims`` - TAP to TAP skims OMX file name. The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM.
 * ``tap`` - TAPs table
-* ``tap_lines`` - table of transit line names served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are further away and serve new service are included in the TAP set for consideration.  It is a very important file to include as it can considerably reduce runtimes.  
+* ``tap_lines`` - table of transit line names served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are further away and serve new service are included in the TAP set for consideration.  It is a very important file to include as it can considerably reduce runtimes.
 * ``maz_to_tap`` - list of MAZ to TAP access/egress impedance files by user defined mode.  Examples include "walk" and "drive".  The file also includes MAZ to TAP impedances.
 * ``maz_to_tap:{walk}:max_dist`` - max distance from MAZ to TAP to consider TAP
 * ``maz_to_tap:{walk}:tap_line_distance_col`` - MAZ to TAP data field to use for TAP lines distance filter
@@ -1086,12 +1086,12 @@ Additional settings to configure the TVPB are:
 * ``TVPB_SETTINGS:tap_tap_settings:attribute_segments:demographic_segment`` - TVPB pre-computes TAP to TAP total utilities for demographic segments.  These are defined using the attribute_segments keyword.  In the example below, the segments are demographic_segment (household income bin), tod (time-of-day), and access_mode (drive, walk).
 * ``TVPB_SETTINGS:maz_tap_settings:{walk}:CHOOSER_COLUMNS`` - input impedance columns to expose for TVPB calculations.
 * ``TVPB_SETTINGS:maz_tap_settings:{walk}:CONSTANTS`` - constants for TVPB calculations.
-* ``accessibility:...`` - for the accessibility model step, the same basic set of TVPB configurations are available.  
+* ``accessibility:...`` - for the accessibility model step, the same basic set of TVPB configurations are available.
 
 ::
 
   zone_system: 3
-  
+
   rebuild_tvpb_cache: False
   trace_tvpb_cache_as_csv: False
   tap_skims: tap_skims.omx
@@ -1150,7 +1150,7 @@ Additional settings to configure the TVPB are:
       CONSTANTS:
         c_ivt_high_income: -0.028
         ...
-  
+
     accessibility:
       units: time
       path_types:

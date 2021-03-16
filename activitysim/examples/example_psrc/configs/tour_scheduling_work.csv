@@ -1,0 +1,136 @@
+Label,Description,Expression,Coefficient
+util_free_flow_round_trip_auto_time_shift_effects_departure,Free-flow round trip auto time shift effects - departure,roundtrip_auto_time_to_work * start,coef_free_flow_round_trip_auto_time_shift_effects_departure
+util_free_flow_round_trip_auto_time_shift_effects_duration,Free-flow round trip auto time shift effects - duration,roundtrip_auto_time_to_work * duration,coef_free_flow_round_trip_auto_time_shift_effects_duration
+util_part_time_worker_departure_shift_effects,Part-time worker departure shift effects,(ptype == 2) * start,coef_part_time_worker_departure_shift_effects
+util_non_working_adult_duration_shift_effects,Non-working adult duration shift effects,(ptype == 4) * duration,coef_non_working_adult_duration_shift_effects
+util_university_student_departure_shift_effects,University student departure shift effects,(ptype == 3) * start,coef_university_student_departure_shift_effects
+util_household_income_departure_shift_effects,Household income departure shift effects,income_in_thousands * start,coef_household_income_departure_shift_effects
+util_destination_in_cbd_departure_shift_effects,Destination in CBD departure shift effects,workplace_in_cbd * start,coef_destination_in_cbd_departure_shift_effects
+util_destination_in_cbd_duration_shift_effects,Destination in CBD duration shift effects,workplace_in_cbd * duration,coef_destination_in_cbd_duration_shift_effects
+util_subsequent_tour_must_start_after_previous_tour_ends,Subsequent tour must start after previous tour ends,(tour_num > 1) & (start < end_previous),coef_subsequent_tour_must_start_after_previous_tour_ends
+util_first_of_2plus_work_tours_departure_shift_effects,First of 2+ work tours departure shift effects,((tour_count>1) & (tour_num == 1)) * start,coef_first_of_2plus_work_tours_departure_shift_effects
+util_first_of_2plus_work_tours_duration_shift_effects,First of 2+ work tours duration shift effects,((tour_count>1) & (tour_num == 1)) * duration,coef_first_of_2plus_work_tours_duration_shift_effects
+util_subsequent_2plus_work_departure_tours_shift_effects,Subsequent 2+ work departure tours shift effects,(tour_num == 2) * start,coef_subsequent_2plus_work_departure_tours_shift_effects
+util_subsequent_2plus_work_duration_tours_shift_effects,Subsequent 2+ work duration tours shift effects,(tour_num == 2) * duration,coef_subsequent_2plus_work_duration_tours_shift_effects
+util_household_income_early_departure_interaction,Household income -- Early departure interaction,(income_in_thousands > 100) & (start < 6),coef_household_income_early_departure_interaction
+util_household_income_late_arrival_interaction,Household income -- Late arrival interaction,(income_in_thousands > 100) & (end > 22),coef_household_income_late_arrival_interaction
+util_destination_in_cbd_early_departure_interaction,Destination in CBD -- Early departure interaction,workplace_in_cbd & (start < 6),coef_destination_in_cbd_early_departure_interaction
+util_destination_in_cbd_late_arrival_interaction,Destination in CBD -- Late arrival interaction,workplace_in_cbd & (end > 22),coef_destination_in_cbd_late_arrival_interaction
+util_rural_household_early_departure_interaction,Rural household -- Early departure interaction,home_is_rural & (start < 6),coef_rural_household_early_departure_interaction
+util_rural_household_late_arrival_interaction,Rural household -- Late arrival interaction,home_is_rural & (end > 22),coef_rural_household_late_arrival_interaction
+util_full_time_worker_duration_lt_9_hours_interaction,Full-time worker -- duration < 9 hours interaction,(ptype == 1) & (duration < 9),coef_full_time_worker_duration_lt_9_hours_interaction
+util_full_time_worker_10_to_12_departure_interaction,Full-time worker -- 10 to 12 departure interaction,(ptype == 1) & (start > 9) & (start < 13),coef_full_time_worker_10_to_12_departure_interaction
+util_worker_13_to_15_arrival_interaction,Part-time worker -- 13 to 15 arrival interaction,(ptype == 2) & (end > 12) & (end < 16),coef_part_time_worker_13_to_15_arrival_interaction
+util_first_of_2plus_work_tours_duration_lt_8_hrs,First of 2+ work tours- duration<8 hrs,((tour_count>1) & (tour_num == 1)) & (duration < 8),coef_first_of_2plus_work_tours_duration_lt_8_hrs
+util_subsequent_of_2plus_work_tours_duration_lt_8_hrs,Subsequent of 2+ work tours- duration<8 hrs,(tour_num == 2) & (duration < 8),coef_subsequent_of_2plus_work_tours_duration_lt_8_hrs
+util_tours_by_worker_duration_lt_8_hrs,Work+school tours by worker- duration<8 hrs,(mandatory_tour_frequency == 'work_and_school') & is_worker & (duration < 8),coef_tours_by_worker_duration_lt_8_hrs
+util_tours_by_student_duration_lt_8_hrs,School+work tours by student- duration<8 hrs,(mandatory_tour_frequency == 'work_and_school') & is_student & (duration < 8),coef_tours_by_student_duration_lt_8_hrs
+util_mode_choice_logsum,Mode Choice Logsum,mode_choice_logsum,coef_mode_choice_logsum
+util_uled_tour_ends_in_this_departure_hour,Previously-scheduled tour ends in this departure hour,"@tt.previous_tour_ends(df.person_id, df.start)",coef_previously_scheduled_tour_ends_in_this_departure_hour
+util_previously_scheduled_tour_begins_in_this_arrival_hour,Previously-scheduled tour begins in this arrival hour,"@tt.previous_tour_begins(df.person_id, df.end)",coef_previously_scheduled_tour_begins_in_this_arrival_hour
+#,FIXME - use temps as timetable ops can be very time-consuming,,
+util_dummy_adjacent_before,local temp variable,"_adjacent_window_before@tt.adjacent_window_before(df.person_id, df.start)",coef_dummy
+util_dummy_adjacent_after,local temp variable,"_adjacent_window_after@tt.adjacent_window_after(df.person_id, df.end)",coef_dummy
+util_adjacent_window_exists_before_this_departure_hour_first_tour_interaction,Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & _adjacent_window_before",coef_adjacent_window_exists_before_this_departure_hour_first_tour_interaction
+util_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction,Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & _adjacent_window_after",coef_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction
+util_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction,Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) & _adjacent_window_before",coef_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction
+util_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction,Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) & _adjacent_window_after",coef_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction
+util_remaining_tours_to_be_scheduled_div_number_of_unscheduled_hours,Remaining work/school tours to be scheduled / number of unscheduled hours,"@((df.tour_count>1) & (df.tour_num == 1)) * 1.0 / tt.remaining_periods_available(df.person_id, df.start, df.end)",coef_remaining_tours_to_be_scheduled_div_number_of_unscheduled_hours
+util_departure_constants_early,Departure Constants -- Early (up to 5),start < 6,coef_departure_constants_early
+util_departure_constants_am_peak_1,Departure Constants -- AM peak 1 (6),start == 6,coef_departure_constants_am_peak_1
+util_departure_constants_am_peak_2,Departure Constants -- AM peak 2 (7),start == 7,coef_departure_constants_am_peak_2
+util_departure_constants_am_peak_3,Departure Constants -- AM peak 3 (8),start == 8,coef_departure_constants_am_peak_3
+util_departure_constants_am_peak_4,Departure Constants -- AM peak 4 (9),start == 9,coef_departure_constants_am_peak_4
+util_departure_constants_midday_1,Departure Constants -- Midday 1 (10 to 12),(start > 9) & (start < 13),coef_departure_constants_midday_1
+util_departure_constants_midday_2,Departure Constants -- Midday 2 (13 to 15),(start > 12) & (start < 16),coef_departure_constants_midday_2
+util_departure_constants_pm_peak,Departure Constants -- PM peak (16 to 18),(start > 15) & (start < 19),coef_departure_constants_pm_peak
+util_departure_constants_evening,Departure Constants -- Evening (19 to 21),(start > 18) & (start < 22),coef_departure_constants_evening
+util_departure_constants_late,Departure Constants -- Late (22 and later),start > 21,coef_departure_constants_late
+util_arrival_constants_early,Arrival Constants -- Early (up to 6),end < 7,coef_arrival_constants_early
+util_arrival_constants_am_peak,Arrival Constants -- AM peak (7 to 9),(end > 6) & (end < 10),coef_arrival_constants_am_peak
+util_arrival_constants_midday_1,Arrival Constants -- Midday 1 (10 to 12),(end > 9) & (end < 13),coef_arrival_constants_midday_1
+util_arrival_constants_midday_2,Arrival Constants -- Midday 2 (13 to 14),(end > 12) & (end < 15),coef_arrival_constants_midday_2
+util_arrival_constants_pm_peak_1,Arrival Constants -- PM peak 1 (15),end == 15,coef_arrival_constants_pm_peak_1
+util_arrival_constants_pm_peak_2,Arrival Constants -- PM peak 2 (16),end == 16,coef_arrival_constants_pm_peak_2
+util_arrival_constants_pm_peak_3,Arrival Constants -- PM peak 3 (17),end == 17,coef_arrival_constants_pm_peak_3
+util_arrival_constants_pm_peak_4,Arrival Constants -- PM peak 4 (18),end == 18,coef_arrival_constants_pm_peak_4
+util_arrival_constants_evening,Arrival Constants -- Evening (19 to 21),(end > 18) & (end < 22),coef_arrival_constants_evening
+util_arrival_constants_late,Arrival Constants -- Late (22 and later),end > 21,coef_arrival_constants_late
+util_duration_constants_0_to_2_hours,Duration Constants -- 0 to 2 hours,duration < 3,coef_duration_constants_0_to_2_hours
+util_duration_constants_3_to_4_hours,Duration Constants -- 3 to 4 hours,(duration > 2) & (duration < 5),coef_duration_constants_3_to_4_hours
+util_duration_constants_5_to_6_hours,Duration Constants -- 5 to 6 hours,(duration > 4) & (duration < 7),coef_duration_constants_5_to_6_hours
+util_duration_constants_7_to_8_hours,Duration Constants -- 7 to 8 hours,(duration > 6) & (duration < 9),coef_duration_constants_7_to_8_hours
+util_duration_constants_9_hours,Duration Constants -- 9 hours,duration == 9,coef_duration_constants_9_hours
+util_duration_constants_10_hours,Duration Constants -- 10 hours,duration == 10,coef_duration_constants_10_hours
+util_duration_constants_11_hours,Duration Constants -- 11 hours,duration == 11,coef_duration_constants_11_hours
+util_duration_constants_12_to_13_hours,Duration Constants -- 12 to 13 hours,(duration > 11) & (duration < 14),coef_duration_constants_12_to_13_hours
+util_duration_constants_14_to_18_hours,Duration Constants -- 14 to 18 hours,(duration > 13) & (duration < 19),coef_duration_constants_14_to_18_hours
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

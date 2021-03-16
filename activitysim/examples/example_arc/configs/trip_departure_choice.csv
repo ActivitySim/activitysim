@@ -1,0 +1,37 @@
+Description,Expression,outbound,inbound
+alternative is invalid if stop time is greater than leg time,"@np.where((df['stop_time_duration'] > df['outbound_duration']), 1, 0)",-999,-999
+Trip time and duration interaction effect,@df['stop_time_duration'] * df['tripFFT'],0.018148,0.015935
+TravelTimeGT30StopTime0,"@np.where(df['stop_time_duration'] == 0, np.maximum(df['tripFFT'] - 30, 0), 0)",-0.42651,-0.31579
+StopTimeWork           ,@((df['is_work'].astype(int)) * df['stop_time_duration']),1.3611,0.93302
+StopTimeSchool         ,@((df['is_school'].astype(int)) * df['stop_time_duration']),0.97993,0.37026
+StopTimeEatOut         ,@((df['is_eatout'].astype(int)) * df['stop_time_duration']),0.97704,0.99484
+StopTimeMainen         ,@((df['is_other_maintenance'].astype(int)) * df['stop_time_duration']),0.30313,0.25418
+StopTimeShop           ,@((df['is_shopping'].astype(int)) * df['stop_time_duration']),0.49923,0.61934
+StopTimeSocial         ,@((df['is_social'].astype(int)) * df['stop_time_duration']),0.99123,0.78442
+StopTimeDiscre         ,@((df['is_othdisc'].astype(int)) * df['stop_time_duration']),1.069,1.277
+StopTimeGT2Work        ,"@((df['is_work'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-1.1407,-0.7656
+StopTimeGT2School      ,"@((df['is_school'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-0.63764,-0.29493
+StopTimeGT2Escort      ,"@((df['is_escort'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-0.96923,-0.60769
+StopTimeGT2EatOut      ,"@((df['is_eatout'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-1.4599,-1.4239
+StopTimeGT2Mainen      ,"@((df['is_other_maintenance'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-0.59134,-0.7239
+StopTimeGT2Shop        ,"@((df['is_shopping'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-1.2525,-1.3313
+StopTimeGT2Social      ,"@((df['is_social'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-1.0334,-0.78693
+StopTimeGT2Discre      ,"@((df['is_othdisc'].astype(int)) * np.maximum(df['stop_time_duration'] -2, 0))",-0.84788,-1.2634
+Calibration,"@np.where(((df['is_work'])&(df['stop_time_duration'] == 0)), 1, 0)",-1.267536174,-1.292679281
+Calibration,"@np.where(((df['is_work'])&(df['stop_time_duration'] == 1)), 1, 0)",0.324477436,0.324847134
+Calibration,"@np.where(((df['is_work'])&(df['stop_time_duration'] == 2)), 1, 0)",0.280178447,0.109727347
+Calibration,"@np.where(((df['is_work'])&(df['stop_time_duration'] == 3)), 1, 0)",0.455607344,0.319339905
+Calibration,"@np.where(((df['is_escort'])&(df['stop_time_duration'] == 0)), 1, 0)",-0.372219646,-0.732246551
+Calibration,"@np.where(((df['is_escort'])&(df['stop_time_duration'] == 1)), 1, 0)",0.875838089,1.094027461
+Calibration,"@np.where(((df['is_other_maintenance'])&(df['stop_time_duration'] == 0)), 1, 0)",-0.627963063,-0.692359277
+Calibration,"@np.where(((df['is_other_maintenance'])&(df['stop_time_duration'] == 1)), 1, 0)",1.024745683,0.911413157
+Calibration,"@np.where(((df['is_shopping'])&(df['stop_time_duration'] == 0)), 1, 0)",-0.754931734,-1.187318779
+Calibration,"@np.where(((df['is_shopping'])&(df['stop_time_duration'] == 1)), 1, 0)",0.912096306,0.944362847
+Calibration,"@np.where(((df['is_shopping'])&(df['stop_time_duration'] == 2)), 1, 0)",-0.001897873,0.117543609
+Calibration,"@np.where(((df['is_eatout'])&(df['stop_time_duration'] == 0)), 1, 0)",-1.32329358,-1.643610342
+Calibration,"@np.where(((df['is_eatout'])&(df['stop_time_duration'] == 1)), 1, 0)",0.620950917,0.499837595
+Calibration,"@np.where(((df['is_eatout'])&(df['stop_time_duration'] == 2)), 1, 0)",0.353345405,0.313213554
+Calibration,"@np.where(((df['is_eatout'])&(df['stop_time_duration'] == 3)), 1, 0)",0.680021134,0.625487082
+Calibration,"@np.where(((df['is_social'])&(df['stop_time_duration'] == 0)), 1, 0)",-2.224576225,-1.607226974
+Calibration,"@np.where(((df['is_social'])&(df['stop_time_duration'] == 1)), 1, 0)",0.676113439,0.317814064
+Calibration,"@np.where(((df['is_social'])&(df['stop_time_duration'] == 2)), 1, 0)",0.491799082,0.423724199

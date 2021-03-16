@@ -13,7 +13,6 @@ fail_fast: True
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
 chunk_size:  80000000000
-
 #num_processes: 60
 
 
@@ -89,32 +88,14 @@ multiprocess_steps:
     slice:
       tables:
         - accessibility
-      except:
-        - land_use
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True
   - name: mp_households
     begin: school_location
-    #num_processes: 9
-    #chunk_size: 1000000000
     slice:
       tables:
         - households
         - persons
   - name: mp_summarize
     begin: write_data_dictionary
-
-
-output_tables:
-  action: include
-  prefix: final_
-  tables:
-    - checkpoints
-    - accessibility
-    - land_use
-    - households
-    - persons
-    - tours
-    - trips
-    - school_shadow_prices
-    - workplace_shadow_prices
-
 

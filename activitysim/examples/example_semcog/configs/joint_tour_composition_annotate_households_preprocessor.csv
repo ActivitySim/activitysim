@@ -1,0 +1,22 @@
+Description,Target,Expression
+#,,
+,_HH_OVERLAPS,"hh_time_window_overlap(households, persons)"
+,time_window_overlap_adult,_HH_OVERLAPS['aa']/2.25
+,time_window_overlap_child,_HH_OVERLAPS['cc']/2.25
+,time_window_overlap_adult_child,_HH_OVERLAPS['ac']/2.25
+logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(time_window_overlap_adult)
+logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(time_window_overlap_child)
+logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time_window_overlap_adult_child)
+#,,
+,_HH_PERSON_COUNT,"lambda exp, households, persons: persons.query(exp).groupby('household_id').size().reindex(households.index).fillna(0)"
+,_num_full,"_HH_PERSON_COUNT('ptype == %s' % PTYPE_FULL, households, persons)"
+,_num_part,"_HH_PERSON_COUNT('ptype == %s' % PTYPE_PART, households, persons)"
+,num_full_max3,"_num_full.clip(0,3)"
+,num_part_max3,"_num_part.clip(0,3)"
+,num_univ_max3,"_HH_PERSON_COUNT('ptype == %s' % PTYPE_UNIVERSITY, households, persons).clip(0,3)"
+,num_nonwork_max3,"_HH_PERSON_COUNT('ptype == %s' % PTYPE_NONWORK, households, persons).clip(0,3)"
+,num_preschool_max3,"_HH_PERSON_COUNT('ptype == %s' % PTYPE_PRESCHOOL, households, persons).clip(0,3)"
+,num_school_max3,"_HH_PERSON_COUNT('ptype == %s' % PTYPE_SCHOOL, households, persons).clip(0,3)"
+,num_driving_max3,"_HH_PERSON_COUNT('ptype == %s' % PTYPE_DRIVING, households, persons).clip(0,3)"
+#,,
+,more_cars_than_workers,households.auto_ownership > (_num_full + _num_part)

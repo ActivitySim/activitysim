@@ -59,9 +59,8 @@ def annotate_tables(model_settings, trace_label):
         column_map = table_info.get('column_map', None)
         if column_map:
 
-            warnings.warn(f"{trace_label} - annotate_tables option 'column_map' renamed 'rename_columns' "
-                          f"and moved to global settings file. Support for 'column_map' in annotate_tables "
-                          f"will be removed in future versions.",
+            warnings.warn(f"Setting 'column_map' has been changed to 'rename_columns'. "
+                          f"Support for 'column_map' in annotate_tables  will be removed in future versions.",
                           FutureWarning)
 
             logger.info(f"{trace_label} - renaming {tablename} columns {column_map}")
@@ -149,8 +148,6 @@ def preload_injectables():
         table_names = [t['tablename'] for t in table_list]
         for t in table_names:
             df = inject.get_table(t).to_frame()
-            if t == 'households':
-                df.drop(columns='chunk_id', inplace=True)
             df.to_csv(os.path.join(csv_dir, '%s.csv' % t), index=True)
 
     t0 = tracing.print_elapsed_time()

@@ -1,0 +1,57 @@
+# Config for logging
+# ------------------
+# See http://docs.python.org/2.7/library/logging.config.html#configuration-dictionary-schema
+
+logging:
+  version: 1
+  disable_existing_loggers: true
+
+
+  # Configuring the default (root) logger is highly recommended
+  root:
+    level: DEBUG
+    handlers: [console, logfile]
+
+  loggers:
+
+    activitysim:
+      level: DEBUG
+      handlers: [console, logfile]
+      propagate: false
+
+    orca:
+      level: WARNING
+      handlers: [console, logfile]
+      propagate: false
+
+  handlers:
+
+    logfile:
+      class: logging.FileHandler
+      filename: !!python/object/apply:activitysim.core.config.log_file_path ['activitysim.log']
+      mode: w
+      formatter: fileFormatter
+      level: NOTSET
+
+    console:
+      class: logging.StreamHandler
+      stream: ext://sys.stdout
+      formatter: simpleFormatter
+      #level: NOTSET
+      level: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [WARNING, NOTSET]
+
+  formatters:
+
+    simpleFormatter:
+      class: logging.Formatter
+      #format: '%(processName)-10s %(levelname)s - %(name)s - %(message)s'
+      format: !!python/object/apply:activitysim.core.mp_tasks.if_sub_task [
+        '%(processName)-10s %(levelname)s - %(name)s - %(message)s',
+        '%(levelname)s - %(name)s - %(message)s']
+      datefmt: '%d/%m/%Y %H:%M:%S'
+
+    fileFormatter:
+      class: logging.Formatter
+      format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+      datefmt: '%d/%m/%Y %H:%M:%S'
+

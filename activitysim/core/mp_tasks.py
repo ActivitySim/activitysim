@@ -707,13 +707,20 @@ def setup_injectables_and_logging(injectables, locutor=True):
     injects injectables
     """
 
+    # register abm steps and other abm-specific injectables
+    # by default, assume we are running activitysim.abm
+    # other callers (e.g. piopulationsim) will have to arrange to register their own steps and injectables
+    # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
+    if not inject.is_injectable('preload_injectables'):
+        from activitysim import abm  # register abm steps and other abm-specific injectables
+
     try:
 
         for k, v in injectables.items():
             inject.add_injectable(k, v)
 
-        inject.add_injectable("is_sub_task", True)
-        inject.add_injectable("locutor", locutor)
+        inject.add_injectable('is_sub_task', True)
+        inject.add_injectable('locutor', locutor)
 
         config.filter_warnings()
 
@@ -776,8 +783,7 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
         info(f"Resuming model run list after {last_checkpoint}")
         models = models[models.index(last_checkpoint) + 1:]
 
-    # preload any bulky injectables (e.g. skims) not in pipeline
-    inject.get_injectable('preload_injectables', None)
+    assert inject.get_injectable('preload_injectables', None)
 
     t0 = tracing.print_elapsed_time()
     for model in models:
@@ -790,6 +796,7 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
             warning(f"{type(e).__name__} exception running {model} model: {str(e)}")
             raise e
 
+        tracing.log_runtime(model_name=model, start_time=t1)
         queue.put({'model': model, 'time': time.time()-t1})
 
     tracing.print_elapsed_time("run (%s models)" % len(models), t0)
@@ -817,9 +824,9 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
         shared_data_buffers passed as kwargs to avoid picking dict
     """
 
-    debug(f"mp_run_simulation {step_info['name']}", write_to_log_file=False)
-
     setup_injectables_and_logging(injectables, locutor=locutor)
+
+    debug(f"mp_run_simulation {step_info['name']} locutor={inject.get_injectable('locutor', False)} ")
 
     try:
         mem.init_trace(setting('mem_tick'))
@@ -1092,9 +1099,9 @@ def run_sub_simulations(
 
     for i, process_name in enumerate(process_names):
         q = multiprocessing.Queue()
-        spokesman = (i == 0)
+        locutor = (i == 0)
 
-        args = OrderedDict(spokesman=spokesman,
+        args = OrderedDict(locutor=locutor,
                            queue=q,
                            injectables=injectables,
                            step_info=step_info,
@@ -1107,7 +1114,7 @@ def run_sub_simulations(
         #     debug(f"create_process {process_name} shared_data_buffers {k}={shared_data_buffers[k]}")
 
         p = multiprocessing.Process(target=mp_run_simulation, name=process_name,
-                                    args=(spokesman, q, injectables, step_info, resume_after,),
+                                    args=(locutor, q, injectables, step_info, resume_after,),
                                     kwargs=shared_data_buffers)
 
         procs.append(p)
@@ -1223,6 +1230,13 @@ def drop_breadcrumb(step_name, crumb, value=True):
 def run_multiprocess(run_list, injectables):
     """
     run the steps in run_list, possibly resuming after checkpoint specified by resume_after
+
+    we never open the pipeline since that is all done within multi-processing steps
+        mp_apportion_pipeline
+        run_sub_simulations
+        mp_coalesce_pipelines
+    each of which opens the pipeline/s and closes it/them within the sub-process
+    This 'feature' makes the pipeline state a bit opaque to us, for better or worse...
 
     Steps may be either single or multi process.
     For multi-process steps, we need to apportion pipelines before running sub processes

@@ -1,0 +1,51 @@
+Description,Expression,0out_0in,0out_1in,0out_2in,0out_3in,1out_0in,1out_1in,1out_2in,1out_3in,2out_0in,2out_1in,2out_2in,2out_3in,3out_0in,3out_1in,3out_2in,3out_3in
+Middle to Low Income HH ,(income_in_thousands>19999) & (income_in_thousands<50000),,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17,0.17
+Mid to High Income HH,(income_in_thousands>=50000) & (income_in_thousands<100000),,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23,0.23
+High Income HH,(income_in_thousands>=100000),,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24,0.24
+Number of HH Persons,hhsize,,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31,-0.31
+Number of full time workes in HH,num_full,,,,,,,,,,,,,,,,
+Number of Students in HH,num_student,,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21,0.21
+Num Kids between 0 and 4 (including) years old,num_age_0_4,,,,,,,,,,,,,,,,
+Presence of Kids between 0 and 4 (including) years old,(num_age_0_4 > 0),,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74,0.74
+Num kids between 4 and 15 (including) years old,num_age_5_15,,,,,,,,,,,,,,,,
+Presence of kids between 5 and 15 (including) years old,(num_age_5_15 > 0),,,,,,,,,,,,,,,,
+Number of Adults (>= 16 years old),num_adult,,,,,,,,,,,,,,,,
+Dummy for single parent household,(num_adult == 1) & (num_age_0_4 + num_age_5_15 > 0),,,,,,,,,,,,,,,,
+Number of Cars > Number of Workers,more_cars_than_workers,,,,,,,,,,,,,,,,
+Number of Vehicles,auto_ownership,,,,,,,,,,,,,,,,
+Dummy for female,~is_joint & female,,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012,0.3012
+Dummy for all stops made by transit,tour_mode_is_transit,,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7,-0.7
+Dummy for walking to all stops,tour_mode_is_non_motorized,,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329,-1.4329
+Number of work tours undertaken by the person,~is_joint * num_work_tours,,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364,-0.364
+Number of university tours tours undertaken by the person,~is_joint * num_univ_tours,,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252,-0.6252
+Number of shool tours tours undertaken by the person,~is_joint * num_school_tours,,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135,-1.4135
+Number of escort tours tours undertaken by the person,~is_joint * num_escort_tours,,,,,,,,,,,,,,,,
+Number of shop tours undertaken by the person,~is_joint * num_shop_tours,,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428,-0.1428
+Number of maintenace tours tours undertaken by the person,~is_joint * num_maint_tours,,,,,,,,,,,,,,,,
+Number of eating tours tours undertaken by the person,~is_joint * num_eatout_tours,,,,,,,,,,,,,,,,
+Number of visit tours tours undertaken by the person,~is_joint * num_social_tours,,,,,,,,,,,,,,,,
+Number of shop tours undertaken by the houshold,num_hh_shop_tours,,,,,,,,,,,,,,,,
+Number of maintenace tours undertaken by the houshold,num_hh_maint_tours,,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468,-0.0468
+Number of persons participating in the tour.Outgoing stops interaction,is_joint * number_of_participants,,,,,,,,,,,,,,,,
+Number of persons participating in the tour.Return stops interaction,is_joint * number_of_participants,,0.4904,0.4904,0.4904,,0.4904,0.4904,0.4904,,0.4904,0.4904,0.4904,,0.4904,0.4904,0.4904
+AM Peak departure between 6AM and 7 AM (including) Interacted with outbound tours,(start>6) & (start<11),,,,,,,,,,,,,,,,
+Arrival later than 17:00.,(end > 28),,,,,,,,,,,,,,,,
+Evening Arrival (>=19:00) Interacted with return tours,(end > 32),,,,,,,,,,,,,,,,
+Dummy for the duration of the tour being equal or greater than or equal to 11 hours,(duration > 21),,,,,,,,,,,,,,,,
+Dummy for the duration of the tour being equal or greater than or equal to 9 hours ,(duration > 17),,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134,0.5134
+Dummy for the duration of the tour being equal or greater than or equal to 3 hours ,(duration > 5),,,,,,,,,,,,,,,,
+HH accesibility for outbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
+HH accesibility for inbound tours. Interaction,hhacc,,,,,,,,,,,,,,,,
+Primary Destination Accessibility for outbound tours. Interaction,pracc,,,,,,,,,,,,,,,,
+Primary Destination Accessibility for return tours. Interaction,pracc,,,,,,,,,,,,,,,,
+dummy for distance less than 20 Miles ,(distance_in_miles < 20),,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408,-0.408
+dummy for distance in miles,distance_in_miles,,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273,0.0273
+#distance in miles * Number of stops,distance_in_miles * @@numStopsAlt,,,,,,,,,,,,,,,,
+No stops if tour mode is driveTransit,tour_mode_is_drive_transit,,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Alternative specific constant for outbound stops,~is_joint,,,,,-1.761,-1.761,-1.761,-1.761,-3.661,-3.661,-3.661,-3.661,-5.426,-5.426,-5.426,-5.426
+Alternative specific constant for return  stops,~is_joint,,-0.585,-1.48,-2.462,,-0.585,-1.48,-2.462,,-0.585,-1.48,-2.462,,-0.585,-1.48,-2.462
+Alternative specific constant for the total number of stops,~is_joint,,,0,0,,0,0,0.414,0,0,0.414,0.488,0,0.414,0.488,0.488
+Alternative specific constant for outbound stops on joint tours,is_joint,,,,,-1.783,-1.783,-1.783,-1.783,-4.067,-4.067,-4.067,-4.067,-4.998,-4.998,-4.998,-4.998
+Alternative specific constant for return  stops on joint tours,is_joint,,-1.329,-2.796,-3.379,,-1.329,-2.796,-3.379,,-1.329,-2.796,-3.379,,-1.329,-2.796,-3.379
+Alternative specific constant for the total number of stops on joint tours,is_joint,,,0,0,,0,0,0.518,0,0,0.518,1.497,0,0.518,1.497,1.497
+Phase1_Calibration,~is_joint,,0.475190752,0.530588025,1.389497026,0.960593185,0.775245847,1.122815367,1.226361438,1.683900584,1.594911845,1.101961687,2.302278146,3.35277309,2.734475828,2.746850954,3.93916549

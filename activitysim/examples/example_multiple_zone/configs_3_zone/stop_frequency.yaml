@@ -1,13 +1,4 @@
-LOGIT_TYPE: MNL
-
-preprocessor:
-  SPEC: stop_frequency_annotate_tours_preprocessor
-  DF: tours_merged
-  TABLES:
-    - persons
-    - land_use
-    - accessibility
-
+inherit_settings: True
 
 CONSTANTS:
   TRANSIT_MODES:

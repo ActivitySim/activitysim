@@ -4,6 +4,7 @@
 from builtins import next
 from builtins import range
 
+import multiprocessing  # for process name
 import os
 import logging
 import logging.config
@@ -69,6 +70,24 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
+def log_runtime(model_name, start_time=None, timing=None):
+
+    assert (start_time or timing) and not (start_time and timing)
+
+    timing = timing if timing else time.time() - start_time
+    seconds = round(timing, 1)
+    minutes = round(timing / 60, 1)
+
+    process_name = multiprocessing.current_process().name
+
+    # only log runtime for locutor
+    if config.setting('multiprocess', False) and not inject.get_injectable('locutor', False):
+        return
+
+    with config.open_log_file('timing_log.txt', 'a') as log_file:
+        print(f"{process_name}, {model_name}, {seconds} seconds, {minutes} minutes", file=log_file)
+
+
 def delete_output_files(file_type, ignore=None, subdir=None):
     """
     Delete files in output directory of specified type
@@ -105,11 +124,11 @@ def delete_output_files(file_type, ignore=None, subdir=None):
                 file_path = os.path.join(dir, the_file)
 
                 if ignore and os.path.realpath(file_path) in ignore:
-                    logger.debug("delete_output_files ignoring %s" % file_path)
                     continue
 
                 try:
                     if os.path.isfile(file_path):
+                        logger.debug("delete_output_files deleting %s" % file_path)
                         os.unlink(file_path)
                 except Exception as e:
                     print(e)
@@ -204,6 +223,14 @@ def print_summary(label, df, describe=False, value_counts=False):
 
     if describe:
         logger.info("%s summary:\n%s" % (label, df.describe()))
+
+
+def initialize_traceable_tables():
+
+    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    if len(traceable_table_ids) > 0:
+        logger.debug(f"initialize_traceable_tables resetting table_ids for {list(traceable_table_ids.keys())}")
+    inject.add_injectable('traceable_table_ids', {})
 
 
 def register_traceable_table(table_name, df):

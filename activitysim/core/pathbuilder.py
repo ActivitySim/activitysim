@@ -3,7 +3,7 @@
 from builtins import range
 
 import logging
-
+import warnings
 import numpy as np
 import pandas as pd
 
@@ -553,7 +553,6 @@ class TransitVirtualPathBuilder(object):
         access_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.access')
         egress_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.egress')
         path_types_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}')
-        paths_nest_nesting_coefficient = path_types_settings.get('paths_nest_nesting_coefficient', 1)
 
         # maz od pairs requested
         with memo("#TVPB build_virtual_path maz_od_df"):
@@ -645,8 +644,25 @@ class TransitVirtualPathBuilder(object):
 
                 chunk.log_df(trace_label, "utilities_df", utilities_df)
 
-                logsums = np.maximum(np.log(np.nansum(np.exp(utilities_df.values/paths_nest_nesting_coefficient),
-                                                      axis=1)), UNAVAILABLE)
+                with warnings.catch_warnings(record=True) as w:
+                    # Cause all warnings to always be triggered.
+                    # most likely "divide by zero encountered in log" caused by all transit sets non-viable
+                    warnings.simplefilter("always")
+
+                    paths_nest_nesting_coefficient = path_types_settings.get('paths_nest_nesting_coefficient', 1)
+                    exp_utilities = np.exp(utilities_df.values / paths_nest_nesting_coefficient)
+                    logsums = np.maximum(np.log(np.nansum(exp_utilities, axis=1)), UNAVAILABLE)
+
+                    if len(w) > 0:
+                        for wrn in w:
+                            logger.warning(
+                                f"{trace_label} - {type(wrn).__name__} ({wrn.message})")
+
+                        DUMP = False
+                        if DUMP:
+                            zero_utilities_df = utilities_df[np.nansum(np.exp(utilities_df.values), axis=1) == 0]
+                            zero_utilities_df.to_csv(config.output_file_path('warning_utilities_df.csv'), index=True)
+                            bug
 
             if want_choices:
 

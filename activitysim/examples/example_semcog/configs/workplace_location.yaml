@@ -1,0 +1,77 @@
+SAMPLE_SIZE: 30
+
+SIMULATE_CHOOSER_COLUMNS:
+  - income_segment
+  - home_zone_id
+  - is_student
+  - pemploy
+
+SAMPLE_SPEC: workplace_location_sample.csv
+SPEC: workplace_location.csv
+COEFFICIENTS: workplace_location_coeffs.csv
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+LOGSUM_PREPROCESSOR: nontour_preprocessor
+LOGSUM_TOUR_PURPOSE: work
+
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: home_zone_id
+ALT_DEST_COL_NAME: alt_dest
+IN_PERIOD: 17
+OUT_PERIOD: 8
+
+DEST_CHOICE_COLUMN_NAME: workplace_zone_id
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if not desired in persons table
+DEST_CHOICE_LOGSUM_COLUMN_NAME: workplace_location_logsum
+
+# comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if saved alt logsum table
+DEST_CHOICE_SAMPLE_TABLE_NAME: workplace_location_sample
+
+annotate_persons:
+  SPEC: annotate_persons_workplace
+  DF: persons
+  TABLES:
+    - land_use
+
+annotate_households:
+  SPEC: annotate_households_workplace
+  DF: households
+  TABLES:
+    - persons
+
+# - shadow pricing
+
+
+# income_segment is in households, but we want to count persons
+CHOOSER_TABLE_NAME: persons_merged
+
+# size_terms model_selector
+MODEL_SELECTOR: workplace
+
+# we can't use use household income_segment as this will also be set for non-workers
+CHOOSER_SEGMENT_COLUMN_NAME: income_segment
+
+# boolean column to filter choosers (True means keep)
+CHOOSER_FILTER_COLUMN_NAME: is_worker
+
+# FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
+# FIXME - these are not needed for this model and should be re/factored out
+SEGMENT_IDS:
+  work_low: 1
+  work_med: 2
+  work_high: 3
+  work_veryhigh: 4
+
+CONSTANTS:
+  WORK_LOW_SEGMENT_ID: 1
+  WORK_MED_SEGMENT_ID: 2
+  WORK_HIGH_SEGMENT_ID: 3
+  WORK_VERYHIGH_SEGMENT_ID: 4
+
+
+# model adds these tables (informational - not added if commented out)
+SHADOW_PRICE_TABLE: workplace_shadow_prices
+MODELED_SIZE_TABLE: workplace_modeled_size
+
+# not loaded if commented out
+SAVED_SHADOW_PRICE_TABLE_NAME: final_workplace_shadow_prices.csv

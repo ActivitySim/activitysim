@@ -1,0 +1,4 @@
+Description,Target,Expression
+#,, annotate persons table after cdap model has run
+travel_active,travel_active,persons.cdap_activity != CDAP_ACTIVITY_HOME
+under16_not_at_school,under16_not_at_school,"((persons.ptype==7)|(persons.ptype==8)) & (persons.cdap_activity.isin(['N', 'H']))"

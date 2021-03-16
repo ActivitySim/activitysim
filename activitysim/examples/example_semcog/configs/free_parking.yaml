@@ -1,0 +1,14 @@
+
+SPEC: free_parking.csv
+COEFFICIENTS: free_parking_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+
+FREE_PARKING_ALT: 0
+
+preprocessor:
+  SPEC: free_parking_annotate_persons_preprocessor
+  DF: persons
+  TABLES:
+    - land_use

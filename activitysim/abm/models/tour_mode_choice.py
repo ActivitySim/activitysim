@@ -14,7 +14,6 @@ from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 from activitysim.core import los
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 from .util.mode import run_tour_mode_choice_simulate
 from .util import estimation
@@ -25,48 +24,6 @@ logger = logging.getLogger(__name__)
 Tour mode choice is run for all tours to determine the transportation mode that
 will be used for the tour
 """
-
-
-def write_coefficient_template(model_settings):
-    coefficients = simulate.read_model_coefficients(model_settings)
-
-    coefficients = coefficients.transpose()
-    coefficients.columns.name = None
-
-    template = coefficients.copy()
-
-    coef_names = []
-    coef_values = []
-
-    for c in coefficients.columns:
-
-        values = coefficients[c]
-        unique_values = values.unique()
-
-        for uv in unique_values:
-
-            if len(unique_values) == 1:
-                uv_coef_name = c + '_all'
-            else:
-                uv_coef_name = c + '_' + '_'.join(values[values == uv].index.values)
-
-            coef_names.append(uv_coef_name)
-            coef_values.append(uv)
-
-            template[c] = template[c].where(values != uv, uv_coef_name)
-
-    refactored_coefficients = pd.DataFrame({'coefficient_name': coef_names,  'value': coef_values})
-    refactored_coefficients.value = refactored_coefficients.value.astype(np.float32)
-    print(refactored_coefficients)
-
-    template = template.transpose()
-    template.to_csv(
-        config.output_file_path('tour_mode_choice_coefficients_template.csv'),
-        mode='w', index=True, header=True)
-
-    refactored_coefficients.to_csv(
-        config.output_file_path('tour_mode_choice_refactored_coefficients.csv'),
-        mode='w', index=False, header=True)
 
 
 @inject.step()
@@ -82,7 +39,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     model_settings = config.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
-    mode_column_name = 'tour_mode'  # FIXME - should be passed in?
+    mode_column_name = 'tour_mode'
 
     primary_tours = tours.to_frame()
     assert not (primary_tours.tour_category == 'atwork').any()
@@ -154,8 +111,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
 
     estimator = estimation.manager.begin_estimation('tour_mode_choice')
     if estimator:
-        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
-        estimator.write_coefficients_template(simulate.read_model_coefficient_template(model_settings))
+        estimator.write_coefficients(model_settings=model_settings)
+        estimator.write_coefficients_template(model_settings=model_settings)
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
         # (run_tour_mode_choice_simulate writes choosers post-annotation)
@@ -221,7 +178,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
                     dest_col = f'{direction}_{c}'
 
                     if dest_col not in choices_df:
-                        choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
+                        choices_df[dest_col] = np.nan if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
                     choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
 
     if estimator:

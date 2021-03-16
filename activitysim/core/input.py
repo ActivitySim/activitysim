@@ -17,6 +17,11 @@ from activitysim.core import mem
 logger = logging.getLogger(__name__)
 
 
+def canonical_table_index_name(table_name):
+    table_index_names = inject.get_injectable('canonical_table_index_names', None)
+    return table_index_names and table_index_names.get(table_name, None)
+
+
 def read_input_table(tablename, required=True):
     """Reads input table name and returns cleaned DataFrame.
 
@@ -83,8 +88,33 @@ def read_from_table_info(table_info):
     column_map = table_info.get('column_map', None)
     keep_columns = table_info.get('keep_columns', None)
     rename_columns = table_info.get('rename_columns', None)
-    index_col = table_info.get('index_col', None)
     csv_dtypes = table_info.get('dtypes', {})
+
+    # don't require a redundant index_col directive for canonical tables
+    # but allow explicit disabling of assignment of index col for canonical tables, in which case, presumably,
+    # the canonical index will be assigned in a subsequent initialization step (e.g. initialize_tours)
+    canonical_index_col = canonical_table_index_name(tablename)
+
+    # if there is an explicit index_col entry in table_info
+    if 'index_col' in table_info:
+        # honor explicit index_col unless it conflicts with canonical name
+
+        index_col = table_info['index_col']
+
+        if canonical_index_col:
+            if index_col:
+                # if there is a non-empty index_col directive, it should be for canonical_table_index_name
+                assert index_col == canonical_index_col, \
+                    f"{tablename} index_col {table_info.get('index_col')} should be {index_col}"
+            else:
+                logger.info(f"Not assigning canonical index_col {tablename}.{canonical_index_col} "
+                            f"because settings file index_col directive is explicitly None.")
+
+        #  if there is an index_col directive for a canonical table, it should be for canonical_table_index_name
+
+    else:
+        # otherwise default is to use canonical index name for known tables, and no index for unknown tables
+        index_col = canonical_index_col
 
     assert tablename is not None, 'no tablename provided'
     assert data_filename is not None, 'no input file provided'
@@ -126,6 +156,11 @@ def read_from_table_info(table_info):
     if index_col is not None:
         if index_col in df.columns:
             assert not df.duplicated(index_col).any()
+            if canonical_index_col:
+                # we expect canonical indexes to be integer-valued
+                assert (df[index_col] == df[index_col].astype(int)).all(), \
+                    f"Index col '{index_col}' has non-integer values"
+                df[index_col] = df[index_col].astype(int)
             df.set_index(index_col, inplace=True)
         else:
             # FIXME not sure we want to do this. More likely they omitted index col than that they want to name it?

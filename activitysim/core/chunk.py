@@ -155,6 +155,21 @@ def log_df(trace_label, table_name, df):
         table to log (or None if df was deleted)
     """
 
+    def size_it(df):
+        if isinstance(df, pd.Series):
+            elements = util.iprod(df.shape)
+            bytes = 0 if not elements else df.memory_usage(index=True)
+        elif isinstance(df, pd.DataFrame):
+            elements = util.iprod(df.shape)
+            bytes = 0 if not elements else df.memory_usage(index=True).sum()
+        elif isinstance(df, np.ndarray):
+            elements = util.iprod(df.shape)
+            bytes = df.nbytes
+        else:
+            logger.error(f"size_it unknown type: {type(df)}")
+            assert False
+        return elements, bytes
+
     if df is None:
         # FIXME force_garbage_collect on delete?
         mem.force_garbage_collect()
@@ -173,15 +188,23 @@ def log_df(trace_label, table_name, df):
                      f"elements: {0} : {trace_label}")
     else:
 
-        elements = util.iprod(df.shape)
         op = 'add'
 
-        if isinstance(df, pd.Series):
-            bytes = df.memory_usage(index=True)
-        elif isinstance(df, pd.DataFrame):
-            bytes = df.memory_usage(index=True).sum()
-        elif isinstance(df, np.ndarray):
-            bytes = df.nbytes
+        if isinstance(df, (pd.Series, pd.DataFrame, np.ndarray)):
+            elements, bytes = size_it(df)
+            shape = df.shape
+        elif isinstance(df, dict):
+            # dict of series, dataframe, or ndarray (e.g. assign assign_variables target and temp dicts)
+            elements = 0
+            bytes = 0
+            for k, s in df.items():
+                e, b = size_it(s)
+                elements += e
+                bytes += b
+            n = len(df.keys())
+            # shape is informational and only used for logging so no big deal if all elements are not same length
+            # though they ordinarily will be for in assign_variables, unless expresssion file is being awfully clever
+            shape = (n, elements/n if n else 0)
         else:
             logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
             assert False
@@ -192,7 +215,7 @@ def log_df(trace_label, table_name, df):
         logger.debug(f"log_df {table_name} "
                      f"elements: {commas(elements)} "
                      f"bytes: {GB(bytes)} "
-                     f"shape: {df.shape} : {trace_label}")
+                     f"shape: {shape} : {trace_label}")
 
     hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
     mem.trace_memory_info(hwm_trace_label)

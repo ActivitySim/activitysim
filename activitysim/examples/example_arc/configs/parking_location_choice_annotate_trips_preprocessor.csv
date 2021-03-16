@@ -1,0 +1,13 @@
+Description,Target,Expression
+#,,
+,_area_type,"reindex(land_use.areatype, df.destination)"
+,is_CBD,_area_type == 1
+,PROPFREE,"reindex(land_use.PROPFREE, df.destination)"
+,PARKTOT,"reindex(land_use.PARKTOT, df.destination)"
+,PARKLNG,"reindex(land_use.PARKLNG, df.destination)"
+,PARKRATE,"reindex(land_use.PARKRATE, df.destination)"
+,is_drive,"df.trip_mode.isin(['DRIVEALONEFREE', 'DRIVEALONEPAY', 'SHARED2FREE', 'SHARED2PAY', 'SHARED3FREE', 'SHARED3PAY'])"
+,is_park_eligible, is_CBD & (PARKTOT > 0) & is_drive
+,tour_category,"reindex(tours.tour_category, df.tour_id)"
+,_free_parking,"reindex(persons.free_parking_at_work, df.person_id)"
+,parking_segment,"np.where(tour_category == 'mandatory', np.where(_free_parking,'mandatory_free', 'mandatory_pay'),'nonmandatory')"

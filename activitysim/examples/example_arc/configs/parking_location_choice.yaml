@@ -1,0 +1,36 @@
+METADATA:
+  CHOOSER: trips_merged
+  INPUT:
+    persons:
+    trips:
+    tours:
+  OUTPUT:
+    trips:
+      - parking_zone_id
+
+SPECIFICATION: parking_location_choice.csv
+COEFFICIENTS: parking_location_choice_coeffs.csv
+
+PREPROCESSOR:
+  SPEC: parking_location_choice_annotate_trips_preprocessor
+  DF: trips_merged
+  TABLES:
+    - land_use
+    - persons
+    - tours
+
+# boolean column to filter choosers (True means keep)
+CHOOSER_FILTER_COLUMN_NAME: is_park_eligible
+CHOOSER_SEGMENT_COLUMN_NAME: parking_segment
+
+ALTERNATIVE_FILTER_COLUMN_NAME: is_parking_zone
+TRIP_DEPARTURE_PERIOD: depart
+
+SEGMENTS:
+  - mandatory_free
+  - mandatory_pay
+  - nonmandatory
+  
+ALT_DEST_COL_NAME: parking_zone_id
+TRIP_ORIGIN: origin
+TRIP_DESTINATION: destination

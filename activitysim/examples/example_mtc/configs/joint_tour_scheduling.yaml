@@ -1,6 +1,6 @@
 
 SPEC: tour_scheduling_joint.csv
-COEFFICIENTS: tour_scheduling_joint_coeffs.csv
+COEFFICIENTS: tour_scheduling_joint_coefficients.csv
 
 LOGIT_TYPE: MNL
 

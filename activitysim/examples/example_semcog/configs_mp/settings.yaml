@@ -1,0 +1,95 @@
+inherit_settings: True
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+# - ------------------------- dev config
+multiprocess: True
+strict: False
+mem_tick: 30
+use_shadow_pricing: True
+
+
+## - example sample
+households_sample_size: 0
+chunk_size: 1000000000
+num_processes: 24
+
+# - tracing
+trace_hh_id: 
+trace_od:
+#trace_hh_id: 1482966
+#trace_od: [5, 11]
+
+# to resume after last successful checkpoint, specify resume_after: _
+resume_after:
+
+models:
+  ### mp_initialize step
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  ### mp_households step
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  ### mp_summarize step
+  - write_data_dictionary
+  - write_tables
+  - write_trip_matrices
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_households
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary
+
+
+output_tables:
+  action: include
+  prefix: final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+    - school_shadow_prices
+    - workplace_shadow_prices
+    - joint_tour_participants
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+#read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+#write_skim_cache: True

@@ -1,0 +1,39 @@
+Description,Target,Expression
+#,,annotate persons table after workplace_location model has run
+work_zone_area_type,work_zone_area_type,"reindex(land_use.areatype, persons.workplace_zone_id)"
+Maximum Work Tour Time (minutes),_MAX_TIME_TO_WORK,999
+#Auto Time,,
+Auto Time to Work,auto_time_home_to_work,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('SOV_FREE_TIME', 'MD'))"
+Auto Time from Work,auto_time_work_to_home,"skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('SOV_FREE_TIME', 'MD'))"
+Roundtrip Auto Time,roundtrip_auto_time_to_work,"np.where(persons.workplace_zone_id>=0,(auto_time_home_to_work+auto_time_work_to_home),0)"
+# Transit Time,,
+"All Transit time, outbound",_all_transitTime_hmToWrk,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_IWAIT', 'MD'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_XWAIT', 'MD'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_WALK', 'MD'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_IVT', 'MD'))"
+"All Transit time, return",_all_transitTime_wrkToHm,"skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_ALLTRN_WLK_IWAIT', 'MD'))+skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_ALLTRN_WLK_XWAIT', 'MD'))+skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_ALLTRN_WLK_WALK', 'MD'))+skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_ALLTRN_WLK_IVT', 'MD'))"
+"Premium Transit time, outbound",_prm_transitTime_hmToWrk,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_PRMTRN_WLK_IWAIT', 'MD'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_PRMTRN_WLK_XWAIT', 'MD'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_PRMTRN_WLK_WALK', 'MD'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_PRMTRN_WLK_IVT', 'MD'))"
+"Premium Transit time, return",_prm_transitTime_wrkToHm,"skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_PRMTRN_WLK_IWAIT', 'MD'))+skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_PRMTRN_WLK_XWAIT', 'MD'))+skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_PRMTRN_WLK_WALK', 'MD'))+skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('WLK_PRMTRN_WLK_IVT', 'MD'))"
+Best outbound transit time,_OutboundTransitTime,"np.where((_all_transitTime_hmToWrk>0)*(_all_transitTime_hmToWrk<_prm_transitTime_hmToWrk),_all_transitTime_hmToWrk, 0) + np.where((_prm_transitTime_hmToWrk>0)* (_prm_transitTime_hmToWrk<_all_transitTime_hmToWrk),_prm_transitTime_hmToWrk,0)"
+Best return transit time,_ReturnTransitTime,"np.where((_all_transitTime_wrkToHm>0)*(_all_transitTime_wrkToHm<_prm_transitTime_wrkToHm),_all_transitTime_wrkToHm,0)+np.where((_prm_transitTime_wrkToHm>0)* (_prm_transitTime_wrkToHm<_all_transitTime_wrkToHm),_prm_transitTime_wrkToHm,0)"
+Roundtrip Transit Time,_roundtrip_transit_time_to_work,"np.where((_OutboundTransitTime>0)*(_ReturnTransitTime>0),(_OutboundTransitTime+_ReturnTransitTime),0)"
+#Walk Time (3 mph walk speed),,
+Walk time home to work,_walk_time_hmToWrk,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('SOV_FREE_DISTANCE', 'MD'))* 60/3"
+Walk time work to home,_walk_time_wrkTohm,"skim_dict.lookup(persons.workplace_zone_id, persons.home_zone_id, ('SOV_FREE_DISTANCE', 'MD')) * 60/3"
+Is walk available,_work_walk_available,(_walk_time_hmToWrk>0) & (_walk_time_wrkTohm>0)
+Roundtrip Walk Time,_roundtrip_walk_time_to_work,"np.where(_work_walk_available,_walk_time_hmToWrk+_walk_time_wrkTohm,0)"
+#Auto savings ratio/auto dependency calculation,,
+Minimum between walk and transit time,_minWalkTransit,"np.where(_roundtrip_transit_time_to_work > 0, np.minimum(_roundtrip_transit_time_to_work,_roundtrip_walk_time_to_work),_roundtrip_walk_time_to_work)"
+Auto savings,_autoSavings,"np.where(persons.is_worker,(_minWalkTransit - roundtrip_auto_time_to_work), 0)"
+Worker auto savings,work_auto_savings_ratio,"np.where(_autoSavings<120,_autoSavings/120, 1)"
+#Workers Rail Proportion,,
+Premium-Only Premium IVT (excludes express bus),_PremOnlyPremIVT,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id,('WLK_PRMTRN_WLK_HRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_PRMTRN_WLK_BRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_PRMTRN_WLK_LRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_PRMTRN_WLK_COMRAIL', 'AM'))"
+All-Transit Premium IVT,_AllTransitPremIVT,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id,('WLK_ALLTRN_WLK_HRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_BRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_LRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_COMRAIL', 'AM'))"
+Premium IVT,workers_prmTrn_ivt,"np.where((_PremOnlyPremIVT > 0) * (_PremOnlyPremIVT <999), _PremOnlyPremIVT, _AllTransitPremIVT)"
+Total IVT,workers_totalTrn_ivt,"np.where((_PremOnlyPremIVT > 0) * (_PremOnlyPremIVT <999), skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id,('WLK_PRMTRN_WLK_IVT', 'AM')),skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('WLK_ALLTRN_WLK_IVT', 'AM')))"
+#Students Rail Proportion,,
+Premium-Only Premium IVT (excludes express bus),_PremOnlyPremIVT_Sch,"skim_dict.lookup(persons.home_zone_id, persons.school_zone_id,('WLK_PRMTRN_WLK_HRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.school_zone_id,('WLK_PRMTRN_WLK_BRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('WLK_PRMTRN_WLK_LRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('WLK_PRMTRN_WLK_COMRAIL', 'AM'))"
+All-Transit Premium IVT,_AllTransitPremIVT_Sch,"skim_dict.lookup(persons.home_zone_id, persons.school_zone_id,('WLK_ALLTRN_WLK_HRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.school_zone_id,('WLK_ALLTRN_WLK_BRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('WLK_ALLTRN_WLK_LRT', 'AM'))+skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('WLK_ALLTRN_WLK_COMRAIL', 'AM'))"
+Premium IVT,students_prmTrn_ivt,"np.where((_PremOnlyPremIVT_Sch > 0) * (_PremOnlyPremIVT_Sch <999), _PremOnlyPremIVT_Sch, _AllTransitPremIVT_Sch)"
+Total IVT,students_totalTrn_ivt,"np.where((_PremOnlyPremIVT_Sch > 0) * (_PremOnlyPremIVT_Sch <999), skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('WLK_PRMTRN_WLK_IVT', 'AM')),skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('WLK_ALLTRN_WLK_IVT', 'AM')))"
+Usual work location is home,usualWorkLocationIsHome,"np.where(persons.workplace_zone_id == persons.home_zone_id, 1, 0)"
+#Followed MTC convention - not sure why workplace taz equal to 0 was not used,,
+No usual work location,noUsualWorkLocation,"np.where(persons.workplace_zone_id < 0, 1, 0)"
+Distance to work,distance_to_work,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('SOV_FREE_DISTANCE', 'MD'))"

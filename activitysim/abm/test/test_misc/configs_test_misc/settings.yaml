@@ -1,0 +1,4 @@
+
+# dummy so yaml.load returns a dict instead of None
+
+dummy: 0

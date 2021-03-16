@@ -2,14 +2,24 @@ Description,Target,Expression
 ,is_joint,(df.number_of_participants > 1)
 ,is_indiv,(df.number_of_participants == 1)
 ,is_atwork_subtour,~df.parent_tour_id.isnull()
-,c_cost,(0.60 * c_ivt) / df.value_of_time
 #,,
-# TVPB,,
+#,,
+#,,estimation_larch
+,ivot,1.0 / df.value_of_time
 #,,
 ,demographic_segment,df.income_segment.map(TVPB_demographic_segments_by_income_segment)
-,c_ivt_for_segment,"np.where(demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_ivt_low_income, c_ivt_high_income)"
-,c_cost_for_segment,"np.where(demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_cost_low_income, c_cost_high_income)"
-
+,dest_density_index,"reindex(land_use.density_index, df[dest_col_name])"
+#,,
+#,,
+# #,,develop
+# ,c_cost,(0.60 * c_ivt) / df.value_of_time
+# #,,
+# # TVPB,,
+# #,,
+# ,demographic_segment,df.income_segment.map(TVPB_demographic_segments_by_income_segment)
+# ,c_ivt_for_segment,"np.where(demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_ivt_low_income, c_ivt_high_income)"
+# ,c_cost_for_segment,"np.where(demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_cost_low_income, c_cost_high_income)"
+#,,
 #,,
 #atwork subtours,,
 #FIXME tripModeChoice uec wrongly conflates these with tour_mode_is_bike?,,

@@ -1,0 +1,17 @@
+Description,Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+#,_od_DIST@od_skims['DIST'],1,1,1,1,1,1,1,1,1,1
+#,_dp_DIST@dp_skims['DIST'],1,1,1,1,1,1,1,1,1,1
+distance from origin to stop,_od_DIST@odt_skims['SOV_FREE_DISTANCE'],1,1,1,1,1,1,1,1,1,1
+distance from stop to destination,_dp_DIST@dpt_skims['SOV_FREE_DISTANCE'],1,1,1,1,1,1,1,1,1,1
+walk all transit origin to stop ivt,_od_AllIVT@odt_skims['WLK_ALLTRN_WLK_IVT'],1,1,1,1,1,1,1,1,1,1
+walk all transit stop to destination ivt,_dp_AllIVT@dpt_skims['WLK_ALLTRN_WLK_IVT'],1,1,1,1,1,1,1,1,1,1
+walk premium transit origin to stop ivt,_od_PRMIVT@odt_skims['WLK_PRMTRN_WLK_IVT'],1,1,1,1,1,1,1,1,1,1
+walk premium transit stop to destination ivt,_dp_PRMIVT@dpt_skims['WLK_PRMTRN_WLK_IVT'],1,1,1,1,1,1,1,1,1,1
+SOV distance (origin-stop-destination),@(_od_DIST + _dp_DIST),-0.255,-0.255,-0.255,-0.255,-0.255,-0.255,-0.255,-0.255,-0.255,-0.255
+not available if walk tour not within walking distance,@(df.tour_mode=='WALK') & (odt_skims['SOV_FREE_DISTANCE'] > max_walk_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+not available if walk tour not within walking distance,@(df.tour_mode=='WALK') & (dpt_skims['SOV_FREE_DISTANCE'] > max_walk_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+not available if bike tour not within biking distance,@(df.tour_mode=='BIKE') & (odt_skims['SOV_FREE_DISTANCE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+not available if bike tour not within biking distance,@(df.tour_mode=='BIKE') & (dpt_skims['SOV_FREE_DISTANCE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+"stop not available if tourMode is transit, and stop isn't walkable or accessible by transit","@np.where((((df.tour_mode=='WALK_ALLTRN')|(df.tour_mode=='WALK_PRMTRN')) & (((_od_AllIVT > 0) & (_od_DIST > 3) & (_dp_AllIVT > 0) & (_dp_DIST > 3)) | ((_od_AllIVT > 0) & (_od_DIST > 3) & (_dp_AllIVT > 0) & (_dp_DIST > 3)))), 1, 0)",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Size variable ,"@np.log1p(size_terms.get(df.dest_zone_id, df.purpose))",1,1,1,1,1,1,1,1,1,1
+No attractions,"@np.where(size_terms.get(df.dest_zone_id, df.purpose) == 0, 1, 0)",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

@@ -1,0 +1,21 @@
+coefficient_name,value,constrain
+coef_mode_logsum,0.6755,F
+coef_escort_dist_0_2,-0.1499,F
+coef_eatout_dist_0_2,-0.5609,F
+coef_eatout_social_0_2,-0.5609,F
+# coef_eatout_dist_0_2,-0.7841,F
+coef_othdiscr_dist_0_2,-0.1677,F
+coef_escort_dist_2_5,-0.8671,F
+coef_shopping_dist_2_5,-0.5655,F
+coef_eatout_dist_2_5,-0.3192,F
+coef_othmaint_dist_2_5,-0.6055,F
+coef_social_dist_2_5,-0.3485,F
+coef_othdiscr_dist_2_5,-0.4955,F
+coef_escort_dist_5_plus,-0.2137,F
+coef_shopping_dist_5_plus,-0.1832,F
+coef_eatout_dist_5_plus,-0.1238,F
+coef_othmaint_dist_5_plus,-0.1093,F
+coef_social_dist_5_plus,-0.1306,F
+coef_othdiscr_dist_5_plus,-0.1193,F
+
+

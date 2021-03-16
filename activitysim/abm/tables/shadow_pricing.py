@@ -125,6 +125,9 @@ class ShadowPriceCalculator(object):
         # - destination_size_table (desired_size)
         self.desired_size = inject.get_table(size_table_name(self.model_selector)).to_frame()
 
+        assert self.desired_size.index.is_monotonic_increasing, \
+            f"{size_table_name(self.model_selector)} not is_monotonic_increasing"
+
         # - shared_data
         if shared_data is not None:
             assert shared_data.shape[0] == self.desired_size.shape[0]
@@ -509,11 +512,15 @@ class ShadowPriceCalculator(object):
             else:
                 raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
-        return pd.DataFrame({
+        size_terms = pd.DataFrame({
             'size_term': self.desired_size[segment],
             'shadow_price_size_term_adjustment': size_term_adjustment,
             'shadow_price_utility_adjustment': utility_adjustment},
             index=self.desired_size.index)
+
+        assert size_terms.index.is_monotonic_increasing
+
+        return size_terms
 
     def write_trace_files(self, iteration):
         """
@@ -746,6 +753,7 @@ def add_size_tables():
 
         assert model_selector == model_settings['MODEL_SELECTOR']
 
+        assert 'SEGMENT_IDS' in model_settings, f"missing SEGMENT_IDS setting in {model_name} model_settings"
         segment_ids = model_settings['SEGMENT_IDS']
         chooser_table_name = model_settings['CHOOSER_TABLE_NAME']
         chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
@@ -762,8 +770,6 @@ def add_size_tables():
         assert set(raw_size.columns) == set(segment_ids.keys())
 
         if use_shadow_pricing or scale_size_table:
-
-            inject.add_table('raw_' + size_table_name(model_selector), raw_size)
 
             # - scale size_table counts to sample population
             # scaled_size = zone_size * (total_segment_modeled / total_segment_desired)
@@ -792,6 +798,11 @@ def add_size_tables():
             scaled_size = (raw_size * segment_scale_factors).round()
         else:
             scaled_size = raw_size
+
+        logger.debug(f"add_size_table {size_table_name(model_selector)} ({scaled_size.shape}) for {model_selector}")
+
+        assert scaled_size.index.is_monotonic_increasing, \
+            f"size table {size_table_name(model_selector)} not is_monotonic_increasing"
 
         inject.add_table(size_table_name(model_selector), scaled_size)
 

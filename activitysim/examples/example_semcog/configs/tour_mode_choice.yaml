@@ -1,0 +1,182 @@
+LOGIT_TYPE: NL
+#LOGIT_TYPE: MNL
+
+NESTS:
+  name: root
+  coefficient: coef_nest_root
+  alternatives:
+      - name: AUTO
+        coefficient: coef_nest_AUTO
+        alternatives:
+            - DRIVEALONE
+            - SHARED2
+            - SHARED3
+      - name: NONMOTORIZED
+        coefficient: coef_nest_NONMOTORIZED
+        alternatives:
+          - WALK
+          - BIKE
+      - name: TRANSIT
+        coefficient:  coef_nest_TRANSIT
+        alternatives:
+            - name: WALKACCESS
+              coefficient: coef_nest_TRANSIT_WALKACCESS
+              alternatives:
+              - WALK_LOC
+              - WALK_PRM
+              - WALK_MIX
+            - name: PNRACCESS
+              coefficient: coef_nest_TRANSIT_PNRACCESS
+              alternatives:
+              - PNR_LOC
+              - PNR_PRM
+              - PNR_MIX
+            - name: KNRACCESS
+              coefficient: coef_nest_TRANSIT_KNRACCESS
+              alternatives:
+              - KNR_LOC
+              - KNR_PRM
+              - KNR_MIX
+      - name: SCHOOL_BUS
+        coefficient: coef_nest_SCHOOL_BUS
+        alternatives:
+          - SCHOOLBUS
+      - name: RIDEHAIL
+        coefficient: coef_nest_RIDEHAIL
+        alternatives:
+          - TAXI
+          - TNC_SINGLE
+          - TNC_SHARED
+
+SPEC: tour_mode_choice.csv
+COEFFICIENTS: tour_mode_choice_coeffs.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
+
+CONSTANTS:
+    #valueOfTime: 8.00
+    costPerMile: 18.29
+    costShareSr2: 1.75
+    costShareSr3: 2.50
+    waitThresh: 10.00
+    walkThresh: 1.50
+    shortWalk: 0.333
+    longWalk: 0.667
+    walkSpeed: 3.00
+    bikeThresh: 6.00
+    bikeSpeed: 12.00
+    maxCbdAreaTypeThresh: 2
+    indivTour: 1.00000
+    upperEA: 5
+    upperAM: 10
+    upperMD: 15
+    upperPM: 19
+    # RIDEHAIL Settings
+    Taxi_baseFare: 2.20
+    Taxi_costPerMile: 2.30
+    Taxi_costPerMinute: 0.10
+    Taxi_waitTime_mean:
+      1: 5.5
+      2: 9.5
+      3: 13.3
+      4: 17.3
+      5: 26.5
+    Taxi_waitTime_sd:
+      1: 0
+      2: 0
+      3: 0
+      4: 0
+      5: 0
+    TNC_single_baseFare: 2.20
+    TNC_single_costPerMile: 1.33
+    TNC_single_costPerMinute: 0.24
+    TNC_single_costMinimum: 7.20
+    TNC_single_waitTime_mean:
+      1: 3.0
+      2: 6.3
+      3: 8.4
+      4: 8.5
+      5: 10.3
+    TNC_single_waitTime_sd:
+      1: 0
+      2: 0
+      3: 0
+      4: 0
+      5: 0
+    TNC_shared_baseFare: 2.20
+    TNC_shared_costPerMile: 0.53
+    TNC_shared_costPerMinute: 0.10
+    TNC_shared_costMinimum: 3.00
+    TNC_shared_IVTFactor: 1.5
+    TNC_shared_waitTime_mean:
+      1: 5.0
+      2: 8.0
+      3: 11.0
+      4: 15.0
+      5: 15.0
+    TNC_shared_waitTime_sd:
+      1: 0
+      2: 0
+      3: 0
+      4: 0
+      5: 0
+    min_waitTime: 0
+    max_waitTime: 50
+
+    ivt_cost_multiplier: 0.6
+    ivt_pmov_multiplier: 1.0
+    ivt_stcar_multiplier: 0.9
+    ivt_brt_multiplier: 0.9
+    ivt_urb_multiplier: 0.8
+    ivt_com_multiplier: 0.7
+    walktimeshort_multiplier: 2
+    walktimelong_multiplier: 10
+    biketimeshort_multiplier: 4
+    biketimelong_multiplier: 20
+    short_i_wait_multiplier: 2
+    long_i_wait_multiplier: 1
+    wacc_multiplier: 2
+    wegr_multiplier: 2
+    waux_multiplier: 2
+    dtim_multiplier: 2
+    xwait_multiplier: 2
+    dacc_ratio: 0
+    xfers_wlk_multiplier: 10
+    xfers_drv_multiplier: 20
+    drvtrn_distpen_0_multiplier: 270
+    drvtrn_distpen_max: 15
+    density_index_multiplier: -0.2
+#    joint_sr2_ASC_no_auto: 0
+#    joint_sr2_ASC_auto_deficient: 0
+#    joint_sr2_ASC_auto_sufficient: 0
+#    joint_drive_transit_ASC_no_auto: 0
+
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - tours
+
+nontour_preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+
+# to reduce memory needs filter chooser table to these fields
+LOGSUM_CHOOSER_COLUMNS:
+  - tour_type
+  - hhsize
+  - density_index
+  - age
+  - age_16_p
+  - age_16_to_19
+  - auto_ownership
+  - number_of_participants
+  - tour_category
+  - num_workers
+  - value_of_time
+  - free_parking_at_work
+
+MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

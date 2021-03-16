@@ -1,0 +1,33 @@
+
+SPEC: atwork_subtour_destination.csv
+SAMPLE_SPEC:  atwork_subtour_destination_sample.csv
+COEFFICIENTS: atwork_subtour_destination_coeffs.csv
+
+
+SAMPLE_SIZE: 30
+
+SIZE_TERM_SELECTOR: atwork
+
+SEGMENTS:
+  - atwork
+
+ORIG_ZONE_ID: workplace_zone_id
+
+SIMULATE_CHOOSER_COLUMNS:
+  - person_id
+  - income_segment
+  - workplace_zone_id
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: workplace_zone_id
+ALT_DEST_COL_NAME: alt_dest
+IN_PERIOD: 14
+OUT_PERIOD: 14
+
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
+
+# comment out to omit
+DEST_CHOICE_SAMPLE_TABLE_NAME: tour_destination_sample

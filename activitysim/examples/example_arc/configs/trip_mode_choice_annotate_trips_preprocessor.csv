@@ -1,0 +1,56 @@
+Description,Target,Expression
+,is_joint,(df.number_of_participants > 1)
+,i_tour_mode,df.tour_mode.map(I_MODE_MAP)
+,inbound,~df.outbound
+,first_trip,df.trip_num == 1
+,last_trip,df.trip_num == df.trip_count
+free parking availability,free_parking_available,(df.tour_type == 'work') & df.free_parking_at_work
+"parking rate, origin stop",org_park_rate,"reindex(land_use.PARKRATE, df[ORIGIN])"
+"parking rate, destination stop",dest_park_rate,"reindex(land_use.PARKRATE, df[DESTINATION])"
+"parking cost, origin stop",_parking_cost_org,(org_park_rate*100*cost_parking_org)/2.0
+"parking cost, destination stop",_parking_cost_dest,(dest_park_rate*100*cost_parking_dest)/2.0
+,parking_cost,_parking_cost_org + _parking_cost_dest
+#cost coefficients,,
+,c_cost,(c_cost_low * df.is_low_income)+(c_cost_med * df.is_medium_income)+(c_cost_high * df.is_high_income)+(c_cost_high * df.is_very_high_income)
+#,,
+is_morning_period,_out_period,"(df.trip_period.isin(['EA','AM','MD']))"
+is_afternoon_period,_in_period,"(df.trip_period.isin(['MD','PM']))"
+#,,
+WLKALL transit in-vehicle time - outbound direction,walk_allTransit_ivt,odt_skims['WLK_ALLTRN_WLK_LOCAL']+expr*odt_skims['WLK_ALLTRN_WLK_XBUS']+hrt*odt_skims['WLK_ALLTRN_WLK_HRT']+brt*odt_skims['WLK_ALLTRN_WLK_BRT']+lrt*odt_skims['WLK_ALLTRN_WLK_LRT']+crl*odt_skims['WLK_ALLTRN_WLK_COMRAIL']
+WLKPRM transit in-vehicle time - outbound direction,walk_prmTransit_ivt,odt_skims['WLK_PRMTRN_WLK_LOCAL']+expr*odt_skims['WLK_PRMTRN_WLK_XBUS']+hrt*odt_skims['WLK_PRMTRN_WLK_HRT']+brt*odt_skims['WLK_PRMTRN_WLK_BRT']+lrt*odt_skims['WLK_PRMTRN_WLK_LRT']+crl*odt_skims['WLK_PRMTRN_WLK_COMRAIL']
+WLKALL availability,walk_allTransit_available,odt_skims['WLK_ALLTRN_WLK_LOCAL'] > 0 
+WLKPRM availability,walk_prmTransit_available,walk_prmTransit_ivt > 0
+#,,
+PNRALL transit in-vehicle time - outbound,pnr_allTransit_ivt_out,(_out_period)*odt_skims['PNR_ALLTRN_WLK_LOCAL']+(_out_period)*expr*odt_skims['PNR_ALLTRN_WLK_XBUS']+(_out_period)*hrt*odt_skims['PNR_ALLTRN_WLK_HRT']+(_out_period)*brt*odt_skims['PNR_ALLTRN_WLK_BRT']+(_out_period)*lrt*odt_skims['PNR_ALLTRN_WLK_LRT']+crl*odt_skims['PNR_ALLTRN_WLK_COMRAIL']
+PNRALL transit in-vehicle time - inbound,pnr_allTransit_ivt_in,(_in_period)*odt_skims['WLK_ALLTRN_PNR_LOCAL']+(_in_period)*expr*odt_skims['WLK_ALLTRN_PNR_XBUS']+(_in_period)*hrt*odt_skims['WLK_ALLTRN_PNR_HRT']+(_in_period)*brt*odt_skims['WLK_ALLTRN_PNR_BRT']+(_in_period)*lrt*odt_skims['WLK_ALLTRN_PNR_LRT']+crl*odt_skims['WLK_ALLTRN_PNR_COMRAIL']
+PNRALL availability - outbound,pnr_allTransit_available_out,(_out_period) & (odt_skims['PNR_ALLTRN_WLK_LOCAL']>0)
+PNRALL availability - inbound,pnr_allTransit_available_in,(_in_period) & (odt_skims['WLK_ALLTRN_PNR_LOCAL']>0)
+#,,
+PNRPRM transit in-vehicle time - outbound,pnr_prmTransit_ivt_out,(_out_period)*odt_skims['PNR_PRMTRN_WLK_LOCAL']+(_out_period)*expr*odt_skims['PNR_PRMTRN_WLK_XBUS']+(_out_period)*hrt*odt_skims['PNR_PRMTRN_WLK_HRT']+(_out_period)*brt*odt_skims['PNR_PRMTRN_WLK_BRT']+(_out_period)*lrt*odt_skims['PNR_PRMTRN_WLK_LRT']+crl*odt_skims['PNR_PRMTRN_WLK_COMRAIL']
+PNRPRM transit in-vehicle time - inbound,pnr_prmTransit_ivt_in,(_in_period)*odt_skims['WLK_PRMTRN_PNR_LOCAL']+(_in_period)*expr*odt_skims['WLK_PRMTRN_PNR_XBUS']+(_in_period)*hrt*odt_skims['WLK_PRMTRN_PNR_HRT']+(_in_period)*brt*odt_skims['WLK_PRMTRN_PNR_BRT']+(_in_period)*lrt*odt_skims['WLK_PRMTRN_PNR_LRT']+crl*odt_skims['WLK_PRMTRN_PNR_COMRAIL']
+PNRPRM availability - outbound,pnr_prmTransit_available_out,pnr_prmTransit_ivt_out > 0
+PNRPRM availability - inbound,pnr_prmTransit_available_in,pnr_prmTransit_ivt_in > 0
+#,,
+KNRALL transit in-vehicle time - outbound,knr_allTransit_ivt_out,(_out_period)*odt_skims['KNR_ALLTRN_WLK_LOCAL']+(_out_period)*expr*odt_skims['KNR_ALLTRN_WLK_XBUS']+(_out_period)*hrt*odt_skims['KNR_ALLTRN_WLK_HRT']+(_out_period)*brt*odt_skims['KNR_ALLTRN_WLK_BRT']+(_out_period)*lrt*odt_skims['KNR_ALLTRN_WLK_LRT']+crl*odt_skims['KNR_ALLTRN_WLK_COMRAIL']
+KNRALL transit in-vehicle time - inbound,knr_allTransit_ivt_in,(_in_period)*odt_skims['WLK_ALLTRN_KNR_LOCAL']+(_in_period)*expr*odt_skims['WLK_ALLTRN_KNR_XBUS']+(_in_period)*hrt*odt_skims['WLK_ALLTRN_KNR_HRT']+(_in_period)*brt*odt_skims['WLK_ALLTRN_KNR_BRT']+(_in_period)*lrt*odt_skims['WLK_ALLTRN_KNR_LRT']+crl*odt_skims['WLK_ALLTRN_KNR_COMRAIL']
+KNRALL availability - outbound,knr_allTransit_available_out,(_out_period) & (odt_skims['KNR_ALLTRN_WLK_LOCAL']>0)
+KNRALL availability - inbound,knr_allTransit_available_in,(_in_period) & (odt_skims['WLK_ALLTRN_KNR_LOCAL']>0)
+#,,
+KNRPRM transit in-vehicle time - outbound,knr_prmTransit_ivt_out,(_out_period)*odt_skims['KNR_PRMTRN_WLK_LOCAL']+(_out_period)*expr*odt_skims['KNR_PRMTRN_WLK_XBUS']+(_out_period)*hrt*odt_skims['KNR_PRMTRN_WLK_HRT']+(_out_period)*brt*odt_skims['KNR_PRMTRN_WLK_BRT']+(_out_period)*lrt*odt_skims['KNR_PRMTRN_WLK_LRT']+crl*odt_skims['KNR_PRMTRN_WLK_COMRAIL']
+KNRPRM transit in-vehicle time - inbound,knr_prmTransit_ivt_in,(_in_period)*odt_skims['WLK_PRMTRN_KNR_LOCAL']+(_in_period)*expr*odt_skims['WLK_PRMTRN_KNR_XBUS']+(_in_period)*hrt*odt_skims['WLK_PRMTRN_KNR_HRT']+(_in_period)*brt*odt_skims['WLK_PRMTRN_KNR_BRT']+(_in_period)*lrt*odt_skims['WLK_PRMTRN_KNR_LRT']+crl*odt_skims['WLK_PRMTRN_KNR_COMRAIL']
+KNRPRM availability - outbound,knr_prmTransit_available_out,knr_prmTransit_ivt_out > 0
+KNRPRM availability - inbound,knr_prmTransit_available_in,knr_prmTransit_ivt_in > 0
+#,,
+School Bus availability ,school_mode_available,(odt_skims['SOV_FREE_DISTANCE'] < 25.01)
+#,,
+,_area_type,"(reindex(land_use.areatype, df[DESTINATION]))"
+Rural Destination,ruralDestination,_area_type == 7
+# tourTodIn < 6 for 5 pm doesn't look correct ,,
+SCHOOL depart from home before 8 am( todOut<2),time_out_school,(df.start < 11)
+SCHOOL return to home before 5 pm (tourTodIn<6),time_in_school,(df.end < 28)
+#,,
+,sovpay_available,odt_skims['SOV_TOLL_TOLLDISTANCE'] > 0
+,hov2pay_available,odt_skims['HOV2_TOLL_TOLLDISTANCE'] > 0
+,hov3pay_available,odt_skims['HOV3_TOLL_TOLLDISTANCE'] > 0
+,walk_available,odt_skims['SOV_FREE_DISTANCE'] < 3.01
+,bike_available,odt_skims['SOV_FREE_DISTANCE'] < 8.01

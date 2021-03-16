@@ -3,7 +3,6 @@ inherit_settings: True
 
 models:
   - initialize_landuse
-  - compute_accessibility
   - initialize_households
   - school_location
   - workplace_location

@@ -49,12 +49,15 @@ def non_mandatory_tour_scheduling(tours,
                                                model_settings['SIMULATE_CHOOSER_COLUMNS'])
 
     constants = config.get_model_constants(model_settings)
+    timetable = inject.get_injectable("timetable")
 
     # - run preprocessor to annotate choosers
     preprocessor_settings = model_settings.get('preprocessor', None)
     if preprocessor_settings:
 
-        locals_d = {}
+        locals_d = {
+            'tt': timetable
+        }
         if constants is not None:
             locals_d.update(constants)
 
@@ -63,8 +66,6 @@ def non_mandatory_tour_scheduling(tours,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label)
-
-    timetable = inject.get_injectable("timetable")
 
     estimator = estimation.manager.begin_estimation('non_mandatory_tour_scheduling')
 
@@ -75,7 +76,7 @@ def non_mandatory_tour_scheduling(tours,
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         timetable.begin_transaction(estimator)
 
     # - non_mandatory tour scheduling is not segmented by tour type

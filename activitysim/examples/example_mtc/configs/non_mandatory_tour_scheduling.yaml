@@ -1,6 +1,6 @@
 
 SPEC: tour_scheduling_nonmandatory.csv
-COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
+COEFFICIENTS: tour_scheduling_nonmandatory_coefficients.csv
 
 LOGIT_TYPE: MNL
 

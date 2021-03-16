@@ -17,6 +17,7 @@ from activitysim.abm.models.trip_destination import run_trip_destination
 from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
 from activitysim.abm.models.util.trip import cleanup_failed_trips
 
+from .util import estimation
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ def run_trip_purpose_and_destination(
 
     choices = run_trip_purpose(
         trips_df,
+        estimator=None,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'purpose')
@@ -42,7 +44,9 @@ def run_trip_purpose_and_destination(
     trips_df, save_sample_df = run_trip_destination(
         trips_df,
         tours_merged_df,
-        chunk_size, trace_hh_id,
+        estimator=None,
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, 'destination'))
 
     return trips_df, save_sample_df
@@ -105,6 +109,12 @@ def trip_purpose_and_destination(
                 save_sample_df.drop(trips_df.index, level='trip_id', inplace=True)
                 pipeline.replace_table(sample_table_name, save_sample_df)
                 del save_sample_df
+
+    # if we estimated trip_destination, there should have been no failed trips
+    # if we didn't, but it is enabled, it is probably a configuration error
+    # if we just estimated trip_purpose, it isn't clear what they are trying to do , nor how to handle it
+    assert not (estimation.manager.begin_estimation('trip_purpose')
+                or estimation.manager.begin_estimation('trip_destination'))
 
     processed_trips = []
     save_samples = []

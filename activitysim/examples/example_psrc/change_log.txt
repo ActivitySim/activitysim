@@ -1,0 +1,280 @@
+
+###
+##### annotate_persons.csv
+###
+
+# restore the following commented out lines in annotate_persons.csv (if they are commented out)
+
+school_segment gradeschool,school_segment,"np.where(is_gradeschool, SCHOOL_SEGMENT_GRADE, SCHOOL_SEGMENT_NONE)"
+school_segment highschool,school_segment,"np.where(is_highschool, SCHOOL_SEGMENT_HIGH, school_segment)"
+school_segment university,school_segment,"np.where(is_university, SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
+
+###
+##### school_location_segment_choosers_preprocessor.csv
+###
+
+# delete this file (if you ahve it)
+
+###
+##### school_location.yaml
+###
+
+# remove the following lines (if you ahve them) from school_location.yaml
+
+segment_preprocessor:
+  SPEC: school_location_segment_choosers_preprocessor
+  DF: persons
+
+###
+##### atwork_subtour_destination.csv
+##### atwork_subtour_destination_sample.csv
+###
+
+# util_size_variable_atwork,Size variable atwork,"@df['atwork'].apply(np.log1p)",coef_size_variable_atwork
+# util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",atwork==0,coef_no_attractions_atwork_size_variable_is_0
+util_size_variable_atwork,atwork size_term variable,"@df['size_term'].apply(np.log1p)",coef_size_variable_atwork
+util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size_term variable is 0",size_term==0,coef_no_attractions_atwork_size_variable_is_0
+
+###
+##### atwork_subtour_destination.yaml
+###
+
+SIZE_TERM_SELECTOR: atwork
+
+SEGMENTS:
+  - atwork
+
+ORIG_ZONE_ID: workplace_zone_id
+
+###
+##### cdap.yaml
+###
+
+PERSON_TYPE_MAP:
+  WORKER:
+    - 1
+    - 2
+  CHILD:
+    - 6
+    - 7
+    - 8
+
+
+###
+##### trip_destination.csv
+##### trip_destination_sample.csv
+###
+### more appropriate name since they aren't TAZs
+
+# size term,"@np.log1p(size_terms.get(df.dest_taz, df.purpose))",1,1,1,1,1,1,1,1,1,1
+# no attractions,"@size_terms.get(df.dest_taz, df.purpose) == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+size term,"@np.log1p(size_terms.get(df.alt_dest, df.purpose))",1,1,1,1,1,1,1,1,1,1
+no attractions,"@size_terms.get(df.alt_dest, df.purpose) == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+
+###
+##### trip_destination.yaml
+###
+
+# will need coefficients file to run estimation...
+#COEFFICIENTS: trip_destination_coefficients.csv
+COEFFICIENTS: _dummy_coefficients.csv
+
+# ALT_DEST_COL_NAME: dest_taz
+ALT_DEST_COL_NAME: alt_dest
+
+###
+##### network_los.yaml
+###
+### not necessary, but speeds up subsequent runs, though the cache in output folder can be large
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: True
+
+
+###
+##### trip_purpose.yaml
+###
+
+PROBS_SPEC: trip_purpose_probs.csv
+
+
+###
+##### trip_mode_choice_coeffs.csv
+##### trip_mode_choice_coefficients_template.csv
+###
+
+# rename trip_mode_choice_coeffs.csv to trip_mode_choice_coefficients_template.csv
+
+WARNING - duplicate coefficient names in trip_mode_choice_coefficients_template.csv:
+                                      work      univ   school   escort shopping   eatout othmaint   social othdiscr   atwork
+coefficient_name
+drive_transit_ASC_rh                0.6674   -0.6328  -0.1272   0.6870   0.6870   3.5701   0.6870   3.5701   3.5701  -6.9520
+drive_transit_ASC_rh                 -4.25     -4.25    -4.25    -4.25    -4.25    -4.25    -4.25    -4.25    -4.25    -4.25
+joint_auto_ASC_rh                        0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_auto_ASC_rh                        0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_sr2                  0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_sr2                  0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_sr3p                 0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_sr3p                 0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_walk                 0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_walk                 0         0        0        0       -7       -7       -7       -7       -7        0
+joint_ride_hail_ASC_walk_transit         0         0        0        0  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000        0
+joint_ride_hail_ASC_walk_transit         0         0        0        0        0        0        0        0        0        0
+ride_hail_ASC_sr2                   -6.108   -4.3372  -1.5869  -5.6483  -5.6483  -5.9692  -5.6483  -5.9692  -5.9692  -5.2763
+ride_hail_ASC_sr2                  -3.9085   -2.5785  -3.0613  -3.3353  -3.3353  -3.3010  -3.3353  -3.3010  -3.3010  -4.2636
+ride_hail_ASC_sr3p                      -7    -4.922  -2.5362       -7       -7  -6.7199       -7  -6.7199  -6.7199       -7
+ride_hail_ASC_sr3p                -10.8661   -3.1888  -4.0886  -7.0000  -7.0000  -4.0649  -7.0000  -4.0649  -4.0649  -7.0000
+ride_hail_ASC_walk                  1.4970  -10.8471  -1.2386  -7.0000  -7.0000  -1.3318  -7.0000  -1.3318  -1.3318  -1.6755
+ride_hail_ASC_walk                  0.2858        -7    0.245       -7       -7  -3.3603       -7  -3.3603  -3.3603  -2.6103
+ride_hail_ASC_walk_transit        -10.8661   -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000  -7.0000
+ride_hail_ASC_walk_transit               0         0        0        0        0        0        0        0        0        0
+
+# comment out first instance of duplicates
+
+# drive_transit_ASC_rh,0.6674,-0.6328,-0.1272,0.6870,0.6870,3.5701,0.6870,3.5701,3.5701,-6.9520
+# ride_hail_ASC_sr2,-3.9085,-2.5785,-3.0613,-3.3353,-3.3353,-3.3010,-3.3353,-3.3010,-3.3010,-4.2636
+# ride_hail_ASC_sr3p,-10.8661,-3.1888,-4.0886,-7.0000,-7.0000,-4.0649,-7.0000,-4.0649,-4.0649,-7.0000
+# ride_hail_ASC_walk,1.4970,-10.8471,-1.2386,-7.0000,-7.0000,-1.3318,-7.0000,-1.3318,-1.3318,-1.6755
+# ride_hail_ASC_walk_transit,-10.8661,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000
+...
+# joint_auto_ASC_rh,0,0,0,0,-7,-7,-7,-7,-7,0
+...
+# joint_ride_hail_ASC_sr2,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+# joint_ride_hail_ASC_sr3p,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+# joint_ride_hail_ASC_walk,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+# joint_ride_hail_ASC_walk_transit,0,0,0,0,-7.0000,-7.0000,-7.0000,-7.0000,-7.0000,0
+
+
+###
+##### cdap_indiv_and_hhsize1.csv
+##### cdap_coefficients.csv
+##### cdap_interaction_coefficients.csv
+###
+
+copied from mtc because it looks like the coefficients in earlier format of
+cdap_indiv_and_hhsize1.csv and cdap_interaction_coefficients.csv were same as in mtc
+
+
+###
+##### non_mandatory_tour_destination_coeffs.csv
+###
+WARNING - duplicate coefficients in configs/non_mandatory_tour_destination_coeffs.csv
+                       value constrain
+coefficient_name
+coef_eatout_dist_0_2 -0.5609         F
+coef_eatout_dist_0_2 -0.7841         F
+
+# coef_eatout_dist_0_2,-0.7841,F
+
+
+###
+##### stop_frequency.yaml
+###
+
+SEGMENT_COL: primary_purpose
+
+SPEC_SEGMENTS:
+  - primary_purpose: work
+    SPEC: stop_frequency_work.csv
+    COEFFICIENTS: stop_frequency_coefficients_work.csv
+  - primary_purpose: school
+    SPEC: stop_frequency_school.csv
+    COEFFICIENTS: stop_frequency_coefficients_school.csv
+  - primary_purpose: univ
+    SPEC: stop_frequency_univ.csv
+    COEFFICIENTS: stop_frequency_coefficients_univ.csv
+  - primary_purpose: social
+    SPEC: stop_frequency_social.csv
+    COEFFICIENTS: stop_frequency_coefficients_social.csv
+  - primary_purpose: shopping
+    SPEC: stop_frequency_shopping.csv
+    COEFFICIENTS: stop_frequency_coefficients_shopping.csv
+  - primary_purpose: eatout
+    SPEC: stop_frequency_eatout.csv
+    COEFFICIENTS: stop_frequency_coefficients_eatout.csv
+  - primary_purpose: escort
+    SPEC: stop_frequency_escort.csv
+    COEFFICIENTS: stop_frequency_coefficients_escort.csv
+  - primary_purpose: othmaint
+    SPEC: stop_frequency_othmaint.csv
+    COEFFICIENTS: stop_frequency_coefficients_othmaint.csv
+  - primary_purpose: othdiscr
+    SPEC: stop_frequency_othdiscr.csv
+    COEFFICIENTS: stop_frequency_coefficients_othdiscr.csv
+  - primary_purpose: atwork
+    SPEC: stop_frequency_atwork.csv
+    COEFFICIENTS: stop_frequency_coefficients_atwork.csv
+
+
+###
+##### stop_frequency_<tour_purpose>.yaml
+##### stop_coefficients_<tour_purpose>.yaml
+###
+
+replaced/add mtc versions with coefficient files with because it appeared they had the same coefficient values
+
+
+###
+##### trip_mode_choice_*.csv
+###
+
+replace with mtc versions because they appeared to share the same expressions and coefficients
+
+
+###
+##### data cleaning
+###
+
+# cleaned up data and created smaller subset geographies for testing and development. (see scripts/psrc_crop.py)
+# The script has a dict with format {<geog>: (<min_TAZ>, <max_TAZ>), ...} that can be modied to
+#
+#    'test': (331, 358),  # north part of peninsula including university
+#    'downtown': (339, 630),   # downtown seattle tazs (339 instead of 400 because need university)
+#    'seattle': (0, 857),  # seattle tazs
+#    'full': (0, 100000),
+#
+# $ python scripts/psrc_crop.py -h
+# usage: psrc_crop.py [-h] [-c] segment_name
+#
+# crop PSRC raw_data
+#
+# positional arguments:
+#   segment_name          geography segmentation (e.g. full)
+#
+# optional arguments:
+#   -h, --help            show this help message and exit
+#   -c, --check_geography
+#                         check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file
+#
+# the script expects to raw data for the entire PSRC model in data_raw
+# and creates a cropped subset in seperate directory (e.g. data_test, data_downtown, data
+# removes orphan households (with empty MAZ zone_ids or zone_ids not in land_use file
+# creates a cropped subset in separate directory (e.g. "python psrc_crop.py test" creates outpur directory "data_test")
+# strips all unused TAZ ods from skims
+
+# here are the orphan_households in my version of data_raw:
+BLDGSZ,HHID,HHT,MAZ,NOC,PERSONS,PUMA5,SERIALNO,TENURE,UNITTYPE,VEHICL,bucketBin,h0511,h1215,h1617,h1824,h2534,h3549,h5064,h6579,h80up,hNOCcat,hadkids,hadnwst,hadwpst,hinccat1,hinccat2,hmultiunit,hownrent,hsizecat,htypdwel,hunittype,hwrkrcat,income,workers
+2.0,24890,3.0,,0.0,3,11802,2017000950242,2.0,1,1.0,1,0,0,1,0,1,0,0,1,0,0,0,1,0,2.0,5.0,0,1,3,1.0,1,0.0,44900,1.0
+7.0,26138,3.0,,1.0,2,11802,2015001323987,3.0,1,1.0,1,1,0,0,0,1,0,0,0,0,0,0,1,0,2.0,5.0,1,2,2,2.0,1,1.0,45000,1.0
+2.0,26277,1.0,,0.0,3,11802,2017000505074,1.0,1,3.0,1,0,0,0,1,0,0,2,0,0,0,0,0,1,4.0,9.0,0,1,3,1.0,1,3.0,199000,3.0
+
+
+###
+##### data/maz_to_maz_bike.csv
+##### data/maz_to_maz_walk.csv
+###
+
+# these files are wrong - they were simply copied from the example_multiple_zone 2-zone example data for MTC
+
+###
+### tour_scheduling_work.csv
+###
+
+remove these redundant lines that got uncommented when label column was added
+
+#util_adjacent_window_exists_before_this_departure_hour_first_tour_interaction,#Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_before(df.person_id, df.start)",coef_adjacent_window_exists_before_this_departure_hour_first_tour_interaction
+#util_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction,#Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & tt.adjacent_window_after(df.person_id, df.end)",coef_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction
+#util_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction,#Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_before(df.person_id, df.start)",coef_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction
+#util_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction,#Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) & tt.adjacent_window_after(df.person_id, df.end)",coef_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction

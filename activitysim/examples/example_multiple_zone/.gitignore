@@ -1,7 +1,4 @@
 legacy_example/
-data_*/
-install.txt
 test.py
-notes.txt
-data_marin_full/
-*_local/
+# marin example used to cohabit this directory
+*marin*/

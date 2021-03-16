@@ -1,0 +1,239 @@
+inherit_settings: True
+
+# number of households to simulate
+#households_sample_size: 200000
+households_sample_size: 500
+
+#chunk_size: 4000000000
+chunk_size: 0
+
+#trace_hh_id: 662398
+trace_hh_id:
+
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      HHID: household_id
+      MAZ: home_zone_id
+    keep_columns:
+      - home_zone_id
+      - HHINCADJ
+      - NWRKRS_ESR
+      - VEH
+      - NP
+      #- MTCCountyID
+      #- HHT
+      #- BLD
+      #- TYPE
+
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    rename_columns:
+      HHID: household_id
+      PERID: person_id
+    keep_columns:
+      - AGEP
+      - household_id
+      - type
+      - value_of_time
+      - fp_choice
+      - SEX
+      #- SCHL
+      #- OCCP
+      #- WKHP
+      #- WKW
+      #- EMPLOYED
+      #- ESR
+      #- SCHG
+
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      MAZ: zone_id
+      CountyID: county_id
+    keep_columns:
+      - TAZ
+      - DistID
+      - ACRES
+      - POP
+      - emp_total
+      - hparkcost
+      - TERMINALTIME
+      - county_id
+      - TotInt
+      - EmpDen
+      - RetEmpDen
+      - DUDen
+#      - level_0
+#      - index
+#      - MAZ_ORIGINAL
+#      - TAZ_ORIGINAL
+#      - DistName
+#      - CountyID
+#      - CountyName
+#      - HH
+#      - ag
+#      - art_rec
+#      - constr
+#      - eat
+#      - ed_high
+#      - ed_k12
+#      - ed_oth
+#      - fire
+#      - gov
+#      - health
+#      - hotel
+#      - info
+#      - lease
+#      - logis
+#      - man_bio
+#      - man_lgt
+#      - man_hvy
+#      - man_tech
+#      - natres
+#      - prof
+#      - ret_loc
+#      - ret_reg
+#      - serv_bus
+#      - serv_pers
+#      - serv_soc
+#      - transp
+#      - util
+#      - publicEnrollGradeKto8
+#      - privateEnrollGradeKto8
+#      - publicEnrollGrade9to12
+#      - privateEnrollGrade9to12
+#      - comm_coll_enroll
+#      - EnrollGradeKto8
+#      - EnrollGrade9to12
+#      - collegeEnroll
+#      - otherCollegeEnroll
+#      - AdultSchEnrl
+#      - hstallsoth
+#      - hstallssam
+#      - dstallsoth
+#      - dstallssam
+#      - mstallsoth
+#      - mstallssam
+#      - park_area
+#      - numfreehrs
+#      - dparkcost
+#      - mparkcost
+#      - ech_dist
+#      - hch_dist
+#      - parkarea
+#      - MAZ_X
+#      - MAZ_Y
+#      - PopDen
+#      - IntDenBin
+#      - EmpDenBin
+#      - DuDenBin
+#      - PopEmpDenPerMi
+#      - mgra
+#      - mgraParkArea
+#      - lsWgtAvgCostM
+#      - lsWgtAvgCostD
+#      - lsWgtAvgCostH
+
+  - tablename: tours
+    filename: work_tours.csv
+    # since tours has a canonical index name 'tour_id', we must explicitly indicate that no index should be assigned
+    # canonical index_col 'tour_id' will be assigned by initialize_tours
+    index_col:
+    rename_columns:
+      hh_id: household_id
+      start_period: start
+      end_period: end
+      tour_id: tm2_tour_id
+      tour_mode: tm2_tour_mode
+      out_btap: tm2_out_btap
+      out_atap: tm2_out_atap
+      in_btap: tm2_in_btap
+      in_atap: tm2_in_atap
+      out_set: tm2_out_set
+      in_set: tm2_in_set
+    keep_columns:
+      - person_id
+      - household_id
+      - tour_category
+      - tour_purpose
+      - orig_mgra
+      - dest_mgra
+      - start
+      - end
+      # ctramp tm2 fields for validation
+      - tm2_tour_id  # really just ordinal position in ctramp tour file, put probably will be useful for validation
+      - tm2_tour_mode
+      - tm2_out_btap
+      - tm2_out_atap
+      - tm2_in_btap
+      - tm2_in_atap
+      - tm2_out_set
+      - tm2_in_set
+#      - person_num
+#      - person_type
+#      - tour_distance
+#      - tour_time
+#      - atWork_freq
+#      - num_ob_stops
+#      - num_ib_stops
+
+
+# set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: False
+
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+
+#resume_after: initialize_tvpb
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - initialize_tours
+  # --- STATIC cache prebuild steps
+  # single-process step to create attribute_combination list
+  - initialize_los
+  # multi-processable step to build STATIC cache
+  # (this step is a NOP if cache already exists and network_los.rebuild_tvpb_cache setting is False)
+  - initialize_tvpb
+  # ---
+  - tour_mode_choice_simulate
+  - write_data_dictionary
+  - track_skim_usage
+  - write_tables
+  - write_summaries
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  # FIXME sort is an undocumented feature - sorts table by best index or ref_col according to traceable_table_indexes
+  sort: True
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - attribute_combinations
+
+output_summaries:
+  tours:
+    - tour_mode
+    - od_path_set
+    - do_path_set

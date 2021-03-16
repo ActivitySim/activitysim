@@ -1,0 +1,21 @@
+Label,Description,Expression,No_Telecommute,1_day_week,2_3_days_week,4_days_week
+#util_Services,Services,@df.occup==52,0,coef_Services_1day,coef_Services_23day,coef_Services_4day
+#util_SalesOffice,SalesOffice,@df.occup==53,0,coef_SalesOffice_1day,coef_SalesOffice_23day,coef_SalesOffice_4day
+#util_ResourceConstruct,ResourceConstruct,@df.occup==54,0,coef_ResourceConstruct_1day,coef_ResourceConstruct_23day,coef_ResourceConstruct_4day
+#util_TransportMat,TransportMat,@df.occup==55,0,coef_TransportMat_1day,coef_TransportMat_23day,coef_TransportMat_4day
+util_HasChildren0to5,Has children 0 to 5 years old,@df.has_young_children,0,coef_HasChildren0to5_1day,coef_HasChildren0to5_23day,coef_HasChildren0to5_4day
+util_HasChildren6to12,Has children 6 to 12 years old,@df.has_children_6_to_12,0,coef_HasChildren6to12_1day,coef_HasChildren6to12_23day,coef_HasChildren6to12_4day
+util_OneAdultInHH,One adult in hh,@df.num_adults==1,0,coef_OneAdultInHH_1day,coef_OneAdultInHH_23day,coef_OneAdultInHH_4day
+util_2plusAdultsInHH,2 or more adults in hh,@df.num_adults==2,0,coef_2plusAdultsInHH_1day,coef_2plusAdultsInHH_23day,coef_2plusAdultsInHH_4day
+util_Female,female,@df.sex==2,0,coef_Female_1day,coef_Female_23day,coef_Female_4day
+util_PartTimeWorker,Part-time worker,@df.pemploy==PEMPLOY_PART,0,coef_PartTimeWorker_1day,coef_PartTimeWorker_23day,coef_PartTimeWorker_4day
+util_CollegeStudent,College student,@df.ptype==PTYPE_UNIVERSITY,0,coef_CollegeStudent_1day,coef_CollegeStudent_23day,coef_CollegeStudent_4day
+util_PaysToPark,Pays to park,@~df.free_parking_at_work,0,coef_PaysToPark_1day,coef_PaysToPark_23day,coef_PaysToPark_4day
+util_Income60to100k,Income 60-100k,"@df.income.between(60000, 100000)",0,coef_Income60to100k_1day,coef_Income60to100k_23day,coef_Income60to100k_4day
+util_Income100to150k,Income 100-150k,"@df.income.between(100000, 150000)",0,coef_Income100to150k_1day,coef_Income100to150k_23day,coef_Income100to150k_4day
+util_Income150kplus,Income 150k+,@df.income > 150000,0,coef_Income150kplus_1day,coef_Income150kplus_23day,coef_Income150kplus_4day
+util_0Autos,0 Autos,@df.auto_ownership==0,0,coef_0Autos_1day,coef_0Autos_23day,coef_0Autos_4day
+util_1Auto,1 Auto,@df.auto_ownership==1,0,coef_1Auto_1day,coef_1Auto_23day,coef_1Auto_4day
+util_3plusAutos,3+ Autos,@df.auto_ownership>=3,0,coef_3plusAutos_1day,coef_3plusAutos_23day,coef_3plusAutos_4day
+util_DistanceToWork,Distance to work,@df.distance_to_work,0,coef_DistanceToWork_1day,coef_DistanceToWork_23day,coef_DistanceToWork_4day
+util_temp,temp_calibration,1,0.00,-4.00,-4.25,-6.00

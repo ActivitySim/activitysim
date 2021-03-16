@@ -1,0 +1,4 @@
+coefficient_name,value,constrain
+coeff_mode_univ,0.65,F
+coeff_mode_k12_predrive,0.65,F
+coeff_mode_k12_drive,0.65,F

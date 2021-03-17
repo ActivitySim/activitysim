@@ -170,24 +170,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
     primary_tours_merged['tour_purpose'] = \
         primary_tours_merged.tour_type.where(not_university, 'univ')
 
-    # append xborder wait times if specified
-    # MOVE TO PREPROCESSING CODE
-    if model_settings.get('XBORDER_WAIT_TIME_SPEC'):
-        wait_time_geog_col = model_settings['XBORDER_WAIT_TIME_GEOG_COL']
-        tour_geog_merge_col = model_settings['XBORDER_TOUR_GEOG_MERGE_COL']
-        wait_times = pd.read_csv(config.config_file_path(model_settings['XBORDER_WAIT_TIME_SPEC']))
-        tours_all_waits = pd.merge(
-            primary_tours_merged.reset_index(), wait_times, left_on=tour_geog_merge_col, right_on=wait_time_geog_col)
-        assert tours_all_waits['tour_id'].nunique() == len(primary_tours_merged)
-        tours_w_waits = tours_all_waits[(
-            tours_all_waits['start'] >= tours_all_waits['StartPeriod']) & (
-            tours_all_waits['start'] <= tours_all_waits['EndPeriod'])].set_index('tour_id')
-        assert len(tours_w_waits) == len(primary_tours_merged)
-
-        primary_tours_merged['std_wait'] = tours_w_waits['StandardWait'].reindex(tours.index)
-        primary_tours_merged['sentri_wait'] = tours_w_waits['SENTRIWait'].reindex(tours.index)
-        primary_tours_merged['ped_wait'] = tours_w_waits['PedestrianWait'].reindex(tours.index)
-
     # if trip logsums are used, run trip mode choice 
     if model_settings.get('COMPUTE_TRIP_MODE_CHOICE_LOGSUMS', False):
 
@@ -196,7 +178,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         # O/D, purpose, and departure times are inherited from tour.
         primary_tours_merged['stop_frequency'] = '0out_0in'  # no intermediate stops
         primary_tours_merged['primary_purpose'] = primary_tours_merged['tour_purpose']
-        trips = trip.initialize_from_tours(primary_tours_merged)
+        trips = trip.initialize_from_tours(primary_tours_merged, use_tour_ods=True)
         outbound = trips['outbound']
         trips['depart'] = reindex(primary_tours_merged.start, trips.tour_id)
         trips.loc[~outbound, 'depart'] = reindex(primary_tours_merged.end, trips.loc[~outbound,'tour_id'])

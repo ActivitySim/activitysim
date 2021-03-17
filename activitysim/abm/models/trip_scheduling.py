@@ -42,7 +42,8 @@ FAILFIX_CHOOSE_MOST_INITIAL = 'choose_most_initial'
 FAILFIX_DROP_AND_CLEANUP = 'drop_and_cleanup'
 FAILFIX_DEFAULT = FAILFIX_CHOOSE_MOST_INITIAL
 
-PROBS_JOIN_COLUMNS = ['primary_purpose', 'outbound', 'tour_hour', 'trip_num']
+PROBS_JOIN_COLUMNS_DEPARTURE_BASED = ['primary_purpose', 'outbound', 'tour_hour', 'trip_num']
+PROBS_JOIN_COLUMNS_DURATION_BASED = ['outbound', 'stop_num']
 
 
 def set_tour_hour(trips, tours):
@@ -89,10 +90,65 @@ def set_tour_hour(trips, tours):
         reindex(subtours[subtours.tour_num == subtours.tour_count]['end'], trips[inbound].tour_id)
 
 
+def set_stop_num(trips):
+    """
+    Convert trip_num to stop_num in order to work with duration-based
+    probs that are keyed on stop num. For outbound trips, trip n chooses
+    the duration of stop n-1 (the trip origin). For inbound trips, trip n
+    chooses the duration of stop n (the trip destination). This means
+    outbound trips technically choose a departure time while inbound trips
+    choose an arrival. 
+    """
+    trips['stop_num'] = trips['trip_num'] - 1
+    trips['stop_num'] = trips.stop_num.where(trips['outbound'], trips['trip_num'])
+
+
+def update_tour_earliest(trips, outbound_choices):
+    """
+    Updates "earliest" column for inbound trips based on
+    the maximum outbound trip departure time of the tour.
+    This is done to ensure inbound trips do not depart
+    before the last outbound trip of a tour. 
+    Parameters
+    ----------
+    trips: pd.DataFrame
+    outbound_choices: pd.Series
+        time periods depart choices, one per trip (except for trips with
+        zero probs)
+    Returns
+    -------
+    modifies trips in place
+    """
+    # append outbound departure times to trips
+    tmp_trips = trips.copy()
+    tmp_trips['outbound_departure'] = outbound_choices.reindex(tmp_trips.index)
+
+    # get max outbound trip departure times for all person-tours
+    max_outbound_person_departures = tmp_trips.groupby(
+        ['person_id', 'tour_id'])['outbound_departure'].max()
+    max_outbound_person_departures.name = 'max_outbound_departure'
+
+    # append max outbound trip departure times to trips
+    tmp_trips = tmp_trips.merge(
+        max_outbound_person_departures,
+        left_on=['person_id','tour_id'], right_index=True)
+
+    # set the trips "earliest" column equal to the max outbound departure
+    # time for all inbound trips. preserve values that were used for outbound trips
+    tmp_trips['earliest'] = tmp_trips['earliest'].where(
+        tmp_trips['outbound'], tmp_trips['max_outbound_departure'])
+
+    trips['earliest'] = tmp_trips['earliest'].reindex(trips.index)
+
+    return
+
+
 def schedule_nth_trips(
         trips,
+        scheduling_mode,
         probs_spec,
-        model_settings,
+        probs_join_cols,
+        depart_alt_base,
         first_trip_in_leg,
         report_failed_trips,
         trace_hh_id,
@@ -120,13 +176,11 @@ def schedule_nth_trips(
     choices: pd.Series
         time periods depart choices, one per trip (except for trips with zero probs)
     """
-
-    depart_alt_base = model_settings.get('DEPART_ALT_BASE')
-    probs_join_cols = PROBS_JOIN_COLUMNS
-    choices = ps.probabilistic_scheduling(
-        trips, prob_spec, probs_join_cols, trace_label, trace_hh_id,
-        trace_choice_col_name='depart', report_failed_trips=report_failed_trips,
-        clip_earliest_latest=True, first_trip_in_leg=first_trip_in_leg)
+        
+    choices, failed = ps.make_scheduling_choices(
+        trips, scheduling_mode, probs_spec, probs_join_cols,
+        depart_alt_base, first_trip_in_leg, report_failed_trips.
+        trace_label, trace_hh_id)
 
     assert (choices >= trips.earliest[~failed]).all()
     assert (choices <= trips.latest[~failed]).all()
@@ -140,7 +194,8 @@ def schedule_trips_in_leg(
         probs_spec,
         model_settings,
         last_iteration,
-        trace_hh_id, trace_label):
+        trace_hh_id,
+        trace_label):
     """
 
     Parameters
@@ -160,56 +215,70 @@ def schedule_trips_in_leg(
     """
 
     failfix = model_settings.get(FAILFIX, FAILFIX_DEFAULT)
+    depart_alt_base = model_settings.get('DEPART_ALT_BASE', 0)
+    scheduling_mode = model_settings.get('scheduling_mode', 'departure')
+
+    if scheduling_mode == 'departure':
+        probs_join_cols = model_settings.get('probs_join_cols', PROBS_JOIN_COLUMNS_DEPARTURE_BASED)
+    elif scheduling_mode == 'stop_duration':
+        probs_join_cols = model_settings.get('probs_join_cols', PROBS_JOIN_COLUMNS_DURATION_BASED)
+    else:
+        logger.error("Invalid scheduling mode specified: {0}.".format(scheduling_mode),
+            "Please select one of ['departure', 'stop_duration'] and try again.")
 
     # logger.debug("%s scheduling %s trips" % (trace_label, trips.shape[0]))
 
     assert len(trips) > 0
-
     assert (trips.outbound == outbound).all()
 
-    # initial trip of leg and all atwork trips get tour_hour
-    is_initial = (trips.trip_num == 1) if outbound else (trips.trip_num == trips.trip_count)
-    no_scheduling = is_initial | (trips.primary_purpose == 'atwork')
-    choices = trips.tour_hour[no_scheduling]
-
-    if no_scheduling.all():
-        return choices
-
     result_list = []
+
+    # trips to/from tour origin or atwork get tour_hour departure times 
+    # no need to schedule them if there are no intermediate stops
+    to_from_tour_orig = (trips.trip_num == 1) if outbound else (trips.trip_num == trips.trip_count)
+    do_not_schedule = to_from_tour_orig | (trips.primary_purpose == 'atwork')
+    choices = trips.tour_hour[do_not_schedule]
+    
+    if do_not_schedule.all():
+        return choices
+    
     result_list.append(choices)
-    trips = trips[~no_scheduling]
+    trips = trips[~do_not_schedule]
 
-    # add next_trip_id temp column (temp as trips is now a copy, as result of slicing)
+    # add next_trip_id temp column, and specificy departure constraint column to update
     trips = trips.sort_index()
-    trips['next_trip_id'] = np.roll(trips.index, -1 if outbound else 1)
-    is_final = (trips.trip_num == trips.trip_count) if outbound else (trips.trip_num == 1)
+    if outbound or scheduling_mode == 'stop_duration':
+        trips['next_trip_id'] = np.roll(trips.index, -1)
+        is_final = trips.trip_num == trips.trip_count
+        # each trip's depart constrains next trip's earliest depart option
+        ADJUST_NEXT_DEPART_COL = 'earliest'
+    else:
+        trips['next_trip_id'] = np.roll(trips.index, 1)
+        is_final = trips.trip_num == 1
+        # if inbound, we are handling in reverse order, so each choice
+        # constrains latest depart of the preceding trip
+        ADJUST_NEXT_DEPART_COL = 'latest'
     trips.next_trip_id = trips.next_trip_id.where(~is_final, NO_TRIP_ID)
-
-    # iterate over outbound trips in ascending trip_num order, skipping the initial trip
-    # iterate over inbound trips in descending trip_num order, skipping the finial trip
+    
     first_trip_in_leg = True
     for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
 
-        if outbound:
+        if outbound or scheduling_mode == 'stop_duration':
+            # iterate in ascending trip_num order
             nth_trips = trips[trips.trip_num == i]
         else:
+            # iterate over inbound trips in descending trip_num order, skipping the final trip
             nth_trips = trips[trips.trip_num == trips.trip_count - i]
 
         nth_trace_label = tracing.extend_trace_label(trace_label, 'num_%s' % i)
 
         with chunk.chunk_log(nth_trace_label):
-            choices = schedule_nth_trips(
-                nth_trips,
-                probs_spec,
-                model_settings,
-                first_trip_in_leg=first_trip_in_leg,
+            choices = ps.make_scheduling_choices(
+                nth_trips, scheduling_mode, probs_spec, probs_join_cols,
+                depart_alt_base, first_trip_in_leg,
                 report_failed_trips=last_iteration,
                 trace_hh_id=trace_hh_id,
                 trace_label=nth_trace_label)
-
-        # if outbound, this trip's depart constrains next trip's earliest depart option
-        # if inbound, we are handling in reverse order, so it constrains latest depart instead
-        ADJUST_NEXT_DEPART_COL = 'earliest' if outbound else 'latest'
 
         # most initial departure (when no choice was made because all probs were zero)
         if last_iteration and (failfix == FAILFIX_CHOOSE_MOST_INITIAL):
@@ -247,6 +316,7 @@ def run_trip_scheduling(
         trace_label):
 
     set_tour_hour(trips, tours)
+    set_stop_num(trips)
 
     row_size = chunk_size and ps.calc_row_size(
             trips, prob_spec, probs_join_cols, trace_label, 'trip')
@@ -274,8 +344,14 @@ def run_trip_scheduling(
                         trace_label=leg_trace_label)
                 result_list.append(choices)
 
+            # departure time of last outbound trips must constrain
+            # departure times for initial inbound trips
+            update_tour_earliest(trips_chunk, choices)
+            
+
         if (~trips_chunk.outbound).any():
             leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
+            
             with chunk.chunk_log(leg_trace_label):
                 choices = \
                     schedule_trips_in_leg(

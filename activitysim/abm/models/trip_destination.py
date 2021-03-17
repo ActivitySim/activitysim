@@ -197,6 +197,7 @@ def compute_logsums(
     coefficient_spec = omnibus_coefficient_spec[primary_purpose]
 
     constants = config.get_model_constants(logsum_settings)
+    constants.update({'PERIODS_PER_HOUR': 60 / network_los.skim_time_periods['period_minutes']})  # required for trip mode choice logsums
     locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
     locals_dict.update(constants)
 
@@ -425,7 +426,9 @@ def wrap_skims(model_settings, trace_label):
         "dpt_skims": skim_dict.wrap_3d(orig_key=d, dest_key=p, dim3_key='trip_period'),
         "pdt_skims": skim_dict.wrap_3d(orig_key=p, dest_key=d, dim3_key='trip_period'),
         "od_skims": skim_dict.wrap(o, d),
+        "od_skims": skim_dict.wrap(d, o),
         "dp_skims": skim_dict.wrap(d, p),
+        "dp_skims": skim_dict.wrap(p, d),
     }
 
     if network_los.zone_system == los.THREE_ZONE:

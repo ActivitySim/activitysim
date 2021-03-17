@@ -38,7 +38,8 @@ def trip_purpose_calc_row_size(choosers, spec, probs_join_cols, trace_label):
     return row_size
 
 
-def choose_intermediate_trip_purpose(trips, probs_spec, probs_join_cols, use_depart_time, trace_hh_id, trace_label):
+def choose_intermediate_trip_purpose(
+        trips, probs_spec, probs_join_cols, use_depart_time, trace_hh_id, trace_label):
     """
     chose purpose for intermediate trips based on probs_spec
     which assigns relative weights (summing to 1) to the possible purpose choices
@@ -119,7 +120,7 @@ def run_trip_purpose(
     trip purpose - main functionality separated from model step so it can be called iteratively
 
     For each intermediate stop on a tour (i.e. trip other than the last trip outbound or inbound)
-    Each trip is assigned a purpose based on an observed frequency distribution
+    each trip is assigned a purpose based on an observed frequency distribution
 
     The distribution should always be segmented by tour purpose and tour direction. By default it is also
     segmented by person type. The join columns can be overwritten using the "probs_join_cols" parameter in

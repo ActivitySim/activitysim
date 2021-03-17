@@ -81,7 +81,7 @@ def cleanup_failed_trips(trips):
     return trips
 
 
-def initialize_from_tours(tours):
+def initialize_from_tours(tours, use_tour_ods=False):
 
     stop_frequency_alts = pd.read_csv(
         config.config_file_path('stop_frequency_alternatives.csv'), comment='#')
@@ -116,7 +116,7 @@ def initialize_from_tours(tours):
     trips = trips.stack().reset_index()
     trips.columns = ['tour_id', 'direction', 'trip_count']
 
-    # tours legs have one more leg than stop
+    # tours legs have one more trip than stop
     trips.trip_count += 1
 
     # prefer direction as boolean

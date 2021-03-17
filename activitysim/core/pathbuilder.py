@@ -415,9 +415,29 @@ class TransitVirtualPathBuilder(object):
 
         assignment_spec = assign.read_assignment_spec(file_name=config.config_file_path(tap_tap_settings['SPEC']))
 
-        results, _, _ = assign.assign_variables(assignment_spec, transit_df, locals_d)
-        assert len(results.columns == 1)
-        transit_df['transit'] = results
+        DEDUPE = True
+        if DEDUPE:
+            # dedupe
+            dedupe_columns = ['btap', 'atap', 'tod']
+            unique_transit_df = transit_df[dedupe_columns].drop_duplicates()
+            logger.info(f"#TVPB CACHE deduped transit_df from {len(transit_df)} to {len(unique_transit_df)}")
+
+            # assign_variables
+            results, _, _ = assign.assign_variables(assignment_spec, unique_transit_df, locals_d)
+            assert len(results.columns == 1)
+            unique_transit_df['transit'] = results
+
+            # redupe
+            transit_df = pd.merge(
+                transit_df,
+                unique_transit_df,
+                on=dedupe_columns,
+                how='left'
+            )
+        else:
+            results, _, _ = assign.assign_variables(assignment_spec, transit_df, locals_d)
+            assert len(results.columns == 1)
+            transit_df['transit'] = results
 
         # filter out unavailable btap_atap pairs
         logger.debug(f"{(transit_df['transit'] <= 0).sum()} unavailable tap_tap pairs out of {len(transit_df)}")

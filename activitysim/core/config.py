@@ -506,27 +506,25 @@ def filter_warnings():
     """
 
     if setting('strict', False):  # noqa: E402
-        import warnings
         warnings.filterwarnings('error', category=Warning)
         warnings.filterwarnings('default', category=PendingDeprecationWarning, module='future')
         warnings.filterwarnings('default', category=FutureWarning, module='pandas')
         warnings.filterwarnings('default', category=RuntimeWarning, module='numpy')
 
-        # pandas pytables.py __getitem__ (e.g. df = store['any_string'])
-        # indirectly raises tables DeprecationWarning: tostring() is deprecated. Use tobytes() instead.
-        warnings.filterwarnings('default', category=DeprecationWarning, module='tables', message='tostring')
+    # pandas pytables.py __getitem__ (e.g. df = store['any_string'])
+    # indirectly raises tables DeprecationWarning: tostring() is deprecated. Use tobytes() instead.
+    warnings.filterwarnings('ignore', category=DeprecationWarning, module='tables', message='tostring')
 
-        #   File "tables/hdf5extension.pyx", line 1450, in tables.hdf5extension.Array._open_array
-        # DeprecationWarning: `np.object` is a deprecated alias for the builtin `object`.
-        # Deprecated in NumPy 1.20;
-        warnings.filterwarnings('default', category=DeprecationWarning, module='tables',
-                                message='`np.object` is a deprecated alias')
+    #   File "tables/hdf5extension.pyx", line 1450, in tables.hdf5extension.Array._open_array
+    # DeprecationWarning: `np.object` is a deprecated alias for the builtin `object`.
+    # Deprecated in NumPy 1.20;
+    warnings.filterwarnings('ignore', category=DeprecationWarning, module='tables',
+                            message='`np.object` is a deprecated alias')
 
 
 def handle_standard_args(parser=None):
 
     from activitysim.cli import run
-    import warnings
 
     warnings.warn('config.handle_standard_args() has been moved to the command line '
                   'module and will be removed in future versions.',

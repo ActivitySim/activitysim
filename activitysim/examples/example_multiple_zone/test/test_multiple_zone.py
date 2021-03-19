@@ -70,7 +70,7 @@ def run_test(zone, multiprocess=False):
     elif zone == '3':
         run_args = run_args + ['-s', 'settings_static']
 
-    subprocess.run(['coverage', 'run', file_path] + run_args, check=True)
+    subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
 
     regress(zone)
 

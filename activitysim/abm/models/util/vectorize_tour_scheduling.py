@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 TDD_CHOICE_COLUMN = 'tdd'
 USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS = False
 
+RUN_ALTS_PREPROCESSOR_BEFORE_MERGE = True
+
 
 def skims_for_logsums(tour_purpose, model_settings, trace_label):
 
@@ -39,7 +41,14 @@ def skims_for_logsums(tour_purpose, model_settings, trace_label):
     skim_dict = network_los.get_default_skim_dict()
 
     orig_col_name = 'home_zone_id'
-    dest_col_name = model_settings.get('DESTINATION_FOR_TOUR_PURPOSE').get(tour_purpose)
+
+    destination_for_tour_purpose = model_settings.get('DESTINATION_FOR_TOUR_PURPOSE')
+    if isinstance(destination_for_tour_purpose, str):
+        dest_col_name = destination_for_tour_purpose
+    elif isinstance(destination_for_tour_purpose, dict):
+        dest_col_name = destination_for_tour_purpose.get(tour_purpose)
+    else:
+        raise RuntimeError(f"expected string or dict DESTINATION_FOR_TOUR_PURPOSE model_setting for {tour_purpose}")
 
     odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
                                                dim3_key='out_period')
@@ -152,7 +161,16 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
 
         # tdd_alt_segments is optionally segmented by tour purpose
         if 'tour_purpose' in tdd_segments:
-            tdd_segments = tdd_segments[tdd_segments.tour_purpose == tour_purpose].drop(columns=['tour_purpose'])
+
+            print(tdd_segments)  #bug
+
+            is_tdd_for_tour_purpose = (tdd_segments.tour_purpose == tour_purpose)
+            if not is_tdd_for_tour_purpose.any():
+                is_tdd_for_tour_purpose = tdd_segments.tour_purpose.isnull()
+            assert is_tdd_for_tour_purpose.any(), \
+                f"no segments found for tour purpose {tour_purpose} in tour_departure_and_duration_segments"
+
+            tdd_segments = tdd_segments[is_tdd_for_tour_purpose].drop(columns=['tour_purpose'])
             assert len(tdd_segments) > 0, f"tour_purpose '{tour_purpose}' not in tdd_alt_segments"
 
         # left join representative start on out_period
@@ -369,6 +387,57 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
     return alt_tdd
 
 
+def run_alts_preprocessor(model_settings, alts, segment, locals_dict, trace_label):
+    """
+    run preprocessor on alts, as specified by ALTS_PREPROCESSOR in model_settings
+
+    we are agnostic on whether alts are merged or not
+
+    Parameters
+    ----------
+    model_settings: dict
+        yaml model settings file as dict
+    alts: pandas.DataFrame
+        tdd_alts or tdd_alts merged wiht choosers (we are agnostic)
+    segment: string
+        segment selector as understood by caller (e.g. logsum_tour_purpose)
+    locals_dict: dict
+        we let caller worry about what needs to be in it. though actually depends on modelers needs
+    trace_label: string
+
+    Returns
+    -------
+    alts: pandas.DataFrame
+        we modify the alts parameter (object passed by reference) so really only returned by courtesy
+    """
+
+    preprocessor_settings = model_settings.get('ALTS_PREPROCESSOR', {})
+
+    if segment in preprocessor_settings:
+        # segmented by logsum_tour_purpose
+        preprocessor_settings = preprocessor_settings.get(segment)
+        logger.debug(f"running ALTS_PREPROCESSOR with spec for {segment}: {preprocessor_settings.get('SPEC')}")
+    elif 'SPEC' in preprocessor_settings:
+        # unsegmented (either because no segmentation, or fallback if settings has generic preprocessor)
+        logger.debug(f"running ALTS_PREPROCESSOR with unsegmented spec {preprocessor_settings.get('SPEC')}")
+    else:
+        logger.debug(f"skipping alts preprocesser because no ALTS_PREPROCESSOR segment for {segment}")
+        preprocessor_settings = None
+
+    if preprocessor_settings:
+
+        logger.debug(f"run_alts_preprocessor calling assign_columns for {segment} preprocessor_settings\n{preprocessor_settings}")
+        alts = alts.copy()   #bug
+
+        expressions.assign_columns(
+            df=alts,
+            model_settings=preprocessor_settings,
+            locals_dict=locals_dict,
+            trace_label=trace_label)
+
+    return alts
+
+
 def _schedule_tours(
         tours, persons_merged, alts,
         spec, logsum_tour_purpose,
@@ -470,14 +539,16 @@ def _schedule_tours(
     if constants is not None:
         locals_d.update(constants)
 
-    preprocessor_settings = model_settings.get('ALTS_PREPROCESSOR', None)
-
-    if preprocessor_settings and preprocessor_settings.get(logsum_tour_purpose):
-        expressions.assign_columns(
-            df=alt_tdd,
-            model_settings=preprocessor_settings.get(logsum_tour_purpose),
-            locals_dict=locals_d,
-            trace_label=tour_trace_label)
+    if not RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
+        # Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
+        # and he was using logsum_tour_purpose as selector, although logically it should be the spec_segment
+        # It just happened to work for example_arc.mandatory_tour_scheduling because, in that model, (unlike semcog)
+        # logsum_tour_purpose and spec_segments are aligned (both logsums and spec are segmented on work, school, univ)
+        # In any case, I don't see any benefit to doing it here - at lest not for any existing implementations
+        # but if we do, it will require passing spec_segment to schedule_tours  and _schedule_tours
+        spec_segment = logsum_tour_purpose  #FIXME this is not always right - see note above
+        alt_tdd = run_alts_preprocessor(model_settings, alt_tdd, spec_segment, locals_d, tour_trace_label)
+        chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     if estimator:
         # write choosers after annotation
@@ -578,58 +649,6 @@ def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, sp
     return row_size
 
 
-def prefilter_tdd_alts(alts, model_settings, tour_purpose):
-    """
-
-    Parameters
-    ----------
-    alts
-    model_settings
-    tour_purpose
-
-    SCHEDULING_WINDOW:
-        first_start: 7
-        last_end: 18
-
-    SCHEDULING_WINDOW:
-        work:
-            first_start: 3
-            last_end: 24
-        school:
-            first_start: 7
-            last_end: 18
-
-    Returns
-    -------
-    pandas.DataFrame
-        alts df filtered to remove alts outside optional tdd_window settings in model_settings
-    """
-
-    # FIXME do we need this? existing expression files do no seem to rule out any start or end, even for school
-
-    if 'SCHEDULING_WINDOW' not in model_settings:
-        logger.debug(f"prefilter_tdd_alts - not prefiltering because SCHEDULING_WINDOW not in model_settings")
-        return alts
-
-    scheduling_window = model_settings['SCHEDULING_WINDOW']
-    # check for nested breakout by tour_purpose
-    if tour_purpose in scheduling_window:
-        scheduling_window = scheduling_window[tour_purpose]
-
-    assert 'first_start' in scheduling_window and 'last_end' in scheduling_window, \
-        f"Expected to find 'first_start' and 'last_end' in model_setting SCHEDULING_WINDOW"
-
-    first_start = int(scheduling_window['first_start'])
-    last_end = int(scheduling_window['last_end'])
-
-    filtered_alts = alts[(alts.start >= first_start) & (alts.end <= last_end)].reset_index(drop=True)
-
-    logger.debug(f"prefilter_tdd_alts tour_purpose {tour_purpose} "
-                 f"reduced tdd_alts from {len(alts)} to {len(filtered_alts)} alternatives")
-
-    return filtered_alts
-
-
 def schedule_tours(
         tours, persons_merged, alts,
         spec, logsum_tour_purpose,
@@ -665,8 +684,6 @@ def schedule_tours(
         skims = skims_for_logsums(logsum_tour_purpose, model_settings, tour_trace_label)
     else:
         skims = None
-
-    alts = prefilter_tdd_alts(alts, model_settings, logsum_tour_purpose)
 
     row_size = chunk_size and \
         tour_scheduling_calc_row_size(tours, persons_merged, alts, skims, spec, model_settings,  tour_trace_label)
@@ -778,14 +795,19 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, timetable,
 
                 segment_trace_label = tracing.extend_trace_label(tour_trace_label, tour_segment_name)
 
-                # assume segmentation of spec and logsum coefficients are aligned
+                # assume segmentation of spec and coefficients are aligned
                 spec_segment_name = tour_segment_info.get('spec_segment_name')
-                logsum_tour_purpose = spec_segment_name if compute_logsums else None
+                # assume logsum segmentation is same as tours
+                logsum_tour_purpose = tour_segment_name if compute_logsums else None
 
                 nth_tours_in_segment = nth_tours[nth_tours[tour_segment_col] == tour_segment_name]
                 if nth_tours_in_segment.empty:
                     logger.info("skipping empty segment %s" % tour_segment_name)
                     continue
+
+                if RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
+                    locals_dict = {}
+                    alts = run_alts_preprocessor(model_settings, alts, spec_segment_name, locals_dict, tour_trace_label)
 
                 choices = \
                     schedule_tours(nth_tours_in_segment, persons_merged, alts,

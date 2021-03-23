@@ -7,13 +7,13 @@ logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(time_window_ove
 logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(time_window_overlap_child)
 logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time_window_overlap_adult_child)
 #,,
-,person_is_full,participants.ptype == constants.PTYPE_FULL
-,person_is_part,participants.ptype == constants.PTYPE_PART
-,person_is_univ,participants.ptype == constants.PTYPE_UNIVERSITY
-,person_is_nonwork,participants.ptype == constants.PTYPE_NONWORK
-,person_is_driving,participants.ptype == constants.PTYPE_DRIVING
-,person_is_school,participants.ptype == constants.PTYPE_SCHOOL
-,person_is_preschool,participants.ptype == constants.PTYPE_PRESCHOOL
+,person_is_full,participants.ptype == PTYPE_FULL
+,person_is_part,participants.ptype == PTYPE_PART
+,person_is_univ,participants.ptype == PTYPE_UNIVERSITY
+,person_is_nonwork,participants.ptype == PTYPE_NONWORK
+,person_is_driving,participants.ptype == PTYPE_DRIVING
+,person_is_school,participants.ptype == PTYPE_SCHOOL
+,person_is_preschool,participants.ptype == PTYPE_PRESCHOOL
 ,tour_type_is_eat,participants.tour_type=='eat'
 ,tour_type_is_disc,participants.tour_type=='disc'
 ,tour_composition_is_adults,participants.composition=='adults'

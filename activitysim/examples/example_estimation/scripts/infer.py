@@ -4,13 +4,15 @@
 import sys
 import os
 import logging
+import yaml
 
 import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util import tour_frequency as tf
 from activitysim.core.util import reindex
-from activitysim.abm.tables import constants
+
+from activitysim.abm.models.util import canonical_ids as cid
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -20,11 +22,17 @@ ch = logging.StreamHandler()
 ch.setFormatter(logging.Formatter('%(levelname)s - %(message)s'))
 logger.addHandler(ch)
 
+CONSTANTS = {}
+
 SURVEY_TOUR_ID = 'survey_tour_id'
 SURVEY_PARENT_TOUR_ID = 'survey_parent_tour_id'
 SURVEY_PARTICIPANT_ID = 'survey_participant_id'
+SURVEY_TRIP_ID = 'survey_trip_id'
 ASIM_TOUR_ID = 'tour_id'
 ASIM_PARENT_TOUR_ID = 'parent_tour_id'
+ASIM_TRIP_ID = 'trip_id'
+
+ASIM_PARTICIPANT_ID = 'participant_id'
 
 survey_tables = {
     'households': {
@@ -41,13 +49,17 @@ survey_tables = {
     'joint_tour_participants': {
         'file_name': 'survey_joint_tour_participants.csv'
     },
+    'trips': {
+        'file_name': 'survey_trips.csv'
+    },
 }
 
 outputs = {
     'households': 'override_households.csv',
     'persons': 'override_persons.csv',
     'tours': 'override_tours.csv',
-    'joint_tour_participants': 'override_joint_tour_participants.csv'
+    'joint_tour_participants': 'override_joint_tour_participants.csv',
+    'trips': 'override_trips.csv',
 }
 
 control_tables = {
@@ -64,6 +76,9 @@ control_tables = {
     },
     'joint_tour_participants': {
         'file_name': 'final_joint_tour_participants.csv'
+    },
+    'trips': {
+        'file_name': 'final_trips.csv'
     },
 }
 apply_controls = True
@@ -328,12 +343,11 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
         tours['tour_type_num'] = \
             tours.sort_values(by=group_cols).groupby(group_cols).cumcount() + 1
 
-        return tf.set_tour_index(tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint)
+        return cid.set_tour_index(tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint)
 
     assert 'mandatory_tour_frequency' in persons
 
     # replace survey_tour ids with asim standard tour_ids (which are based on person_id and tour_type)
-    # tours.insert(loc=0, column='legacy_index', value=tours.index)
 
     #####################
     # mandatory tours
@@ -368,6 +382,12 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
     patched_joint_tour_participants[ASIM_TOUR_ID] = \
         reindex(asim_tour_id, patched_joint_tour_participants[SURVEY_TOUR_ID])
 
+    # participant_id is formed by combining tour_id and participant pern.PNUM
+    # pathological knowledge, but awkward to conflate with joint_tour_participation.py logic
+    participant_pnum = reindex(persons.PNUM, patched_joint_tour_participants['person_id'])
+    patched_joint_tour_participants[ASIM_PARTICIPANT_ID] = \
+        (patched_joint_tour_participants[ASIM_TOUR_ID] * cid.MAX_PARTICIPANT_PNUM) + participant_pnum
+
     #####################
     # non_mandatory tours
     #####################
@@ -391,19 +411,19 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
         reindex(persons.mandatory_tour_frequency, mandatory_tours.person_id)
     is_worker = \
         reindex(persons.pemploy, mandatory_tours.person_id).\
-        isin([constants.PEMPLOY_FULL, constants.PEMPLOY_PART])
+        isin([CONSTANTS['PEMPLOY_FULL'], CONSTANTS['PEMPLOY_PART']])
     work_and_school_and_worker = (mandatory_tour_frequency == 'work_and_school') & is_worker
 
     # calculate tour_num for work tours (required to set_tour_index for atwork subtours)
 
-    parent_tours = mandatory_tours[['survey_tour_id']]
+    parent_tours = mandatory_tours[[SURVEY_TOUR_ID]]
     parent_tours['tour_num'] = \
         mandatory_tours.\
         sort_values(by=['person_id', 'tour_category', 'tour_type']).\
         groupby(['person_id', 'tour_category']).cumcount() + 1
 
     parent_tours.tour_num = parent_tours.tour_num.where(~work_and_school_and_worker, 3 - parent_tours.tour_num)
-    parent_tours = parent_tours.set_index('survey_tour_id', drop=True)
+    parent_tours = parent_tours.set_index(SURVEY_TOUR_ID, drop=True)
 
     # temporarily add parent_tour_num column to atwork tours, call set_tour_index, and then delete it
     atwork_tours['parent_tour_num'] = reindex(parent_tours.tour_num, atwork_tours[SURVEY_PARENT_TOUR_ID])
@@ -421,14 +441,14 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
     #####################
 
     # only true for fake data
-    assert (mandatory_tours.index == unmangle_ids(mandatory_tours.survey_tour_id)).all()
-    assert (joint_tours.index == unmangle_ids(joint_tours.survey_tour_id)).all()
-    assert (non_mandatory_tours.index == unmangle_ids(non_mandatory_tours.survey_tour_id)).all()
+    assert (mandatory_tours.index == unmangle_ids(mandatory_tours[SURVEY_TOUR_ID])).all()
+    assert (joint_tours.index == unmangle_ids(joint_tours[SURVEY_TOUR_ID])).all()
+    assert (non_mandatory_tours.index == unmangle_ids(non_mandatory_tours[SURVEY_TOUR_ID])).all()
 
     patched_tours = pd.concat([mandatory_tours, joint_tours, non_mandatory_tours, atwork_tours])
 
-    assert patched_tours.index.name == 'tour_id'
-    patched_tours = patched_tours.reset_index().rename(columns={'tour_id': ASIM_TOUR_ID})
+    assert patched_tours.index.name == ASIM_TOUR_ID
+    patched_tours = patched_tours.reset_index()
 
     del patched_tours['tour_type_num']
 
@@ -491,6 +511,66 @@ def infer_atwork_subtour_frequency(configs_dir, tours):
     return atwork_subtour_frequency
 
 
+def patch_trip_ids(tours, trips):
+    """
+    replace survey trip_ids with asim standard trip_id
+    replace survey tour_id foreign key with asim standard tour_id
+    """
+
+    # tour_id is a column, not index
+    assert ASIM_TOUR_ID in tours
+
+    # patch tour_id foreign key
+    # tours['household_id'] = reindex(persons.household_id, tours.person_id)
+    asim_tour_id = pd.Series(tours[ASIM_TOUR_ID].values, index=tours[SURVEY_TOUR_ID].values)
+    trips[ASIM_TOUR_ID] = reindex(asim_tour_id, trips[SURVEY_TOUR_ID])
+
+    # person_is_university = persons.pstudent == constants.PSTUDENT_UNIVERSITY
+    # tour_is_university = reindex(person_is_university, tours.person_id)
+    # tour_primary_purpose = tours.tour_type.where((tours.tour_type != 'school') | ~tour_is_university, 'univ')
+    # tour_primary_purpose = tour_primary_purpose.where(tours.tour_category!='atwork', 'atwork')
+    #
+    # trips['primary_purpose'] = reindex(tour_primary_purpose, trips.tour_id)
+
+    # if order is ambiguous if trips depart in same time slot - order by SURVEY_TRIP_ID hoping that increases with time
+    if 'trip_num' not in trips:
+        trips['trip_num'] = \
+            trips.sort_values(by=['tour_id', 'outbound', 'depart', SURVEY_TRIP_ID]).\
+            groupby(['tour_id', 'outbound']).\
+            cumcount() + 1
+
+    cid.set_trip_index(trips)
+
+    assert trips.index.name == ASIM_TRIP_ID
+    trips = trips.reset_index().rename(columns={'trip_id': ASIM_TRIP_ID})
+
+    return trips
+
+
+def infer_stop_frequency(configs_dir, tours, trips):
+
+    # alt,out,in
+    # 0out_0in,0,0
+    # 0out_1in,0,1
+    # ...
+    alts = pd.read_csv(os.path.join(configs_dir, 'stop_frequency_alternatives.csv'), comment='#')
+    assert 'alt' in alts
+    assert 'in' in alts
+    assert 'out' in alts
+
+    freq = pd.DataFrame(index=tours[SURVEY_TOUR_ID])
+
+    # number of trips is one less than number of stops
+    freq['out'] = trips[trips.outbound].groupby(SURVEY_TOUR_ID).trip_num.max() - 1
+    freq['in'] = trips[~trips.outbound].groupby(SURVEY_TOUR_ID).trip_num.max() - 1
+
+    freq = pd.merge(freq.reset_index(), alts, on=['out', 'in'], how='left')
+
+    assert (freq[SURVEY_TOUR_ID] == tours[SURVEY_TOUR_ID]).all()
+
+    return freq.alt
+
+
 def read_tables(input_dir, tables):
 
     for table, info in tables.items():
@@ -507,8 +587,9 @@ def read_tables(input_dir, tables):
     persons = tables['persons'].get('table')
     tours = tables['tours'].get('table')
     joint_tour_participants = tables['joint_tour_participants'].get('table')
+    trips = tables['trips'].get('table')
 
-    return households, persons, tours, joint_tour_participants
+    return households, persons, tours, joint_tour_participants, trips
 
 
 def check_controls(table_name, column_name):
@@ -524,8 +605,8 @@ def check_controls(table_name, column_name):
     if dont_match.any():
         print("check_controls %s.%s: %s out of %s do not match" %
               (table_name, column_name, dont_match.sum(), len(table)))
-        # print("control\n%s" % c_table[dont_match][[column_name]])
-        # print("survey\n%s" % table[dont_match][[column_name]])
+        print("control\n%s" % c_table[dont_match][[column_name]])
+        print("survey\n%s" % table[dont_match][[column_name]])
 
         print("control\n%s" % c_table[dont_match][table.columns])
         print("survey\n%s" % table[dont_match][table.columns])
@@ -536,18 +617,21 @@ def check_controls(table_name, column_name):
 
 def infer(configs_dir, input_dir, output_dir):
 
-    households, persons, tours, joint_tour_participants = read_tables(input_dir, survey_tables)
+    households, persons, tours, joint_tour_participants, trips = read_tables(input_dir, survey_tables)
 
     # be explicit about all tour_ids to avoid confusion between asim and survey ids
     tours = tours.rename(columns={'tour_id': SURVEY_TOUR_ID, 'parent_tour_id': SURVEY_PARENT_TOUR_ID})
     joint_tour_participants = \
         joint_tour_participants.rename(columns={'tour_id': SURVEY_TOUR_ID, 'participant_id': SURVEY_PARTICIPANT_ID})
+    trips = trips.rename(columns={'trip_id': SURVEY_TRIP_ID, 'tour_id': SURVEY_TOUR_ID})
 
     # mangle survey tour ids to keep us honest
     tours[SURVEY_TOUR_ID] = mangle_ids(tours[SURVEY_TOUR_ID])
     tours[SURVEY_PARENT_TOUR_ID] = mangle_ids(tours[SURVEY_PARENT_TOUR_ID])
     joint_tour_participants[SURVEY_TOUR_ID] = mangle_ids(joint_tour_participants[SURVEY_TOUR_ID])
     joint_tour_participants[SURVEY_PARTICIPANT_ID] = mangle_ids(joint_tour_participants[SURVEY_PARTICIPANT_ID])
+    trips[SURVEY_TRIP_ID] = mangle_ids(trips[SURVEY_TRIP_ID])
+    trips[SURVEY_TOUR_ID] = mangle_ids(trips[SURVEY_TOUR_ID])
 
     # persons.cdap_activity
     persons['cdap_activity'] = infer_cdap_activity(persons, tours, joint_tour_participants)
@@ -573,6 +657,11 @@ def infer(configs_dir, input_dir, output_dir):
     assert skip_controls or check_controls('tours', 'index')
     assert skip_controls or check_controls('joint_tour_participants', 'index')
 
+    # patch_tour_ids
+    trips = patch_trip_ids(tours, trips)
+    survey_tables['trips']['table'] = trips  # so we can check_controls
+    assert skip_controls or check_controls('trips', 'index')
+
     # households.joint_tour_frequency
     households['joint_tour_frequency'] = infer_joint_tour_frequency(configs_dir, households, tours)
     assert skip_controls or check_controls('households', 'joint_tour_frequency')
@@ -588,11 +677,15 @@ def infer(configs_dir, input_dir, output_dir):
     tours['atwork_subtour_frequency'] = infer_atwork_subtour_frequency(configs_dir, tours)
     assert skip_controls or check_controls('tours', 'atwork_subtour_frequency')
 
+    tours['stop_frequency'] = infer_stop_frequency(configs_dir, tours, trips)
+    assert skip_controls or check_controls('tours', 'stop_frequency')
+
     # write output files
     households.to_csv(os.path.join(output_dir, outputs['households']), index=True)
     persons.to_csv(os.path.join(output_dir, outputs['persons']), index=True)
     tours.to_csv(os.path.join(output_dir, outputs['tours']), index=False)
     joint_tour_participants.to_csv(os.path.join(output_dir, outputs['joint_tour_participants']), index=False)
+    trips.to_csv(os.path.join(output_dir, outputs['trips']), index=False)
 
 
 # python infer.py data
@@ -601,6 +694,9 @@ assert len(args) == 2, "usage: python infer.py <data_dir> <configs_dir>"
 
 data_dir = args[0]
 configs_dir = args[1]
+
+with open(os.path.join(configs_dir, 'constants.yaml')) as stream:
+    CONSTANTS = yaml.load(stream, Loader=yaml.SafeLoader)
 
 input_dir = os.path.join(data_dir, 'survey_data/')
 output_dir = input_dir

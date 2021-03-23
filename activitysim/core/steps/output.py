@@ -3,8 +3,7 @@
 import logging
 import sys
 import pandas as pd
-
-from collections import OrderedDict
+import numpy as np
 
 from activitysim.core import pipeline
 from activitysim.core import inject
@@ -21,6 +20,8 @@ def track_skim_usage(output_dir):
 
     FIXME - have not yet implemented a facility to avoid loading of unused skims
 
+    FIXME - if resume_after, this will only reflect skims used after resume
+
     Parameters
     ----------
     output_dir: str
@@ -30,45 +31,21 @@ def track_skim_usage(output_dir):
     pd.options.display.max_rows = 100
 
     skim_dict = inject.get_injectable('skim_dict')
-    skim_stack = inject.get_injectable('skim_stack', None)
 
     mode = 'wb' if sys.version_info < (3,) else 'w'
     with open(config.output_file_path('skim_usage.txt'), mode) as output_file:
 
         print("\n### skim_dict usage", file=output_file)
-        for key in skim_dict.usage:
+        for key in skim_dict.get_skim_usage():
             print(key, file=output_file)
 
-        if skim_stack is None:
+        unused = set(k for k in skim_dict.skim_info.base_keys) - set(k for k in skim_dict.get_skim_usage())
 
-            unused_keys = {k for k in skim_dict.skim_info['omx_keys']} - \
-                          {k for k in skim_dict.usage}
-
-            print("\n### unused skim keys", file=output_file)
-            for key in unused_keys:
-                print(key, file=output_file)
-
-        else:
-
-            print("\n### skim_stack usage", file=output_file)
-            for key in skim_stack.usage:
-                print(key, file=output_file)
-
-            unused = {k for k in skim_dict.skim_info['omx_keys'] if not isinstance(k, tuple)} - \
-                     {k for k in skim_dict.usage if not isinstance(k, tuple)}
-            print("\n### unused skim str keys", file=output_file)
-            for key in unused:
-                print(key, file=output_file)
-
-                unused = {k[0] for k in skim_dict.skim_info['omx_keys'] if isinstance(k, tuple)} - \
-                         {k[0] for k in skim_dict.usage if isinstance(k, tuple)} - \
-                         {k for k in skim_stack.usage}
-            print("\n### unused skim dim3 keys", file=output_file)
-            for key in unused:
-                print(key, file=output_file)
+        for key in unused:
+            print(key, file=output_file)
 
 
-def write_data_dictionary(output_dir):
+def previous_write_data_dictionary(output_dir):
     """
     Write table_name, number of rows, columns, and bytes for each checkpointed table
 
@@ -77,99 +54,135 @@ def write_data_dictionary(output_dir):
     output_dir: str
 
     """
-    pd.options.display.max_columns = 500
-    pd.options.display.max_rows = 100
 
-    output_tables = pipeline.checkpointed_tables()
+    model_settings = config.read_model_settings('write_data_dictionary')
+    txt_format = model_settings.get('txt_format', 'data_dict.txt')
+    csv_format = model_settings.get('csv_format', 'data_dict.csv')
 
-    # write data dictionary for all checkpointed_tables
+    if txt_format:
 
-    mode = 'wb' if sys.version_info < (3,) else 'w'
-    with open(config.output_file_path('data_dict.txt'), mode) as output_file:
-        for table_name in output_tables:
-            df = inject.get_table(table_name, None).to_frame()
+        output_file_path = config.output_file_path(txt_format)
 
-            print("\n### %s %s" % (table_name, df.shape), file=output_file)
-            print('index:', df.index.name, df.index.dtype, file=output_file)
-            print(df.dtypes, file=output_file)
+        pd.options.display.max_columns = 500
+        pd.options.display.max_rows = 100
+
+        output_tables = pipeline.checkpointed_tables()
+
+        # write data dictionary for all checkpointed_tables
+
+        with open(output_file_path, 'w') as output_file:
+            for table_name in output_tables:
+                df = inject.get_table(table_name, None).to_frame()
+
+                print("\n### %s %s" % (table_name, df.shape), file=output_file)
+                print('index:', df.index.name, df.index.dtype, file=output_file)
+                print(df.dtypes, file=output_file)
 
 
-# def xwrite_data_dictionary(output_dir):
-#     """
-#     Write table_name, number of rows, columns, and bytes for each checkpointed table
-#
-#     Parameters
-#     ----------
-#     output_dir: str
-#
-#     """
-#     pd.options.display.max_columns = 500
-#     pd.options.display.max_rows = 100
-#
-#     checkpoints = pipeline.get_checkpoints()
-#     tables = OrderedDict()
-#
-#     table_names = [c for c in checkpoints if c not in pipeline.NON_TABLE_COLUMNS]
-#
-#     with open(config.output_file_path('data_dict.txt'), 'wb') as file:
-#
-#         for index, row in checkpoints.iterrows():
-#
-#             checkpoint = row[pipeline.CHECKPOINT_NAME]
-#
-#             print("\n##########################################", file=file)
-#             print("# %s" % checkpoint, file=file)
-#             print("##########################################", file=file)
-#
-#             for table_name in table_names:
-#
-#                 if row[table_name] == '' and table_name in tables:
-#                     print("\n### %s dropped %s" % (checkpoint, table_name, ), file=file)
-#                     del tables[table_name]
-#
-#                 if row[table_name] == checkpoint:
-#                     df = pipeline.get_table(table_name, checkpoint)
-#                     info = tables.get(table_name, None)
-#                     if info is None:
-#
-#                         print("\n### %s created %s %s\n" %
-#                               (checkpoint, table_name, df.shape), file=file)
-#
-#                         print(df.dtypes, file=file)
-#                         print('index:', df.index.name, df.index.dtype, file=file)
-#
-#                     else:
-#                         new_cols = [c for c in df.columns.values if c not in info['columns']]
-#                         dropped_cols = [c for c in info['columns'] if c not in df.columns.values]
-#                         new_rows = df.shape[0] - info['num_rows']
-#                         if new_cols:
-#
-#                             print("\n### %s added %s columns to %s %s\n" %
-#                                   (checkpoint, len(new_cols), table_name, df.shape), file=file)
-#                             print(df[new_cols].dtypes, file=file)
-#
-#                         if dropped_cols:
-#                             print("\n### %s dropped %s columns from %s %s\n" %
-#                                   (checkpoint,  len(dropped_cols), table_name, df.shape),
-#                                   file=file)
-#                             print(dropped_cols, file=file)
-#
-#                         if new_rows > 0:
-#                             print("\n### %s added %s rows to %s %s" %
-#                                   (checkpoint, new_rows, table_name, df.shape), file=file)
-#                         elif new_rows < 0:
-#                             print("\n### %s dropped %s rows from %s %s" %
-#                                   (checkpoint, new_rows, table_name, df.shape), file=file)
-#                         else:
-#                             if not new_cols and not dropped_cols:
-#                                 print("\n### %s modified %s %s" %
-#                                       (checkpoint, table_name, df.shape), file=file)
-#
-#                     tables[table_name] = {
-#                         'checkpoint_name': checkpoint,
-#                         'columns': df.columns.values,
-#                         'num_rows': df.shape[0]
-#                     }
+def write_data_dictionary(output_dir):
+    """
+    Write table schema for all tables
+
+    model settings
+        txt_format: output text file name (default data_dict.txt) or empty to suppress txt output
+        csv_format: output csv file name (default data_dict.tcsvxt) or empty to suppress txt output
+
+        schema_tables: list of tables to include in output (defaults to all checkpointed tables)
+
+    for each table, write column names, dtype, and checkpoint added)
+
+    text format writes individual table schemas to a single text file
+    csv format writes all tables together with an additional table_name column
+
+    Parameters
+    ----------
+    output_dir: str
+
+    """
+
+    model_settings = config.read_model_settings('write_data_dictionary')
+    txt_format = model_settings.get('txt_format', 'data_dict.txt')
+    csv_format = model_settings.get('csv_format', 'data_dict.csv')
+
+    if not (csv_format or txt_format):
+        logger.warning(f"write_data_dictionary step invoked but neither 'txt_format' nor 'csv_format' specified")
+        return
+
+    table_names = pipeline.checkpointed_tables()
+
+    # use table_names list from model_settings, if provided
+    schema_tables = model_settings.get('tables', None)
+    if schema_tables:
+        table_names = [c for c in schema_tables if c in table_names]
+
+    # initialize schema as dict of dataframe[table_name, column_name, dtype, checkpoint]
+    schema = dict()
+    final_shapes = dict()
+    for table_name in table_names:
+        df = pipeline.get_table(table_name)
+
+        final_shapes[table_name] = df.shape
+
+        if df.index.name:
+            df = df.reset_index()
+        info = df.dtypes.astype(str).to_frame('dtype').reset_index().rename(columns={'index': 'column_name'})
+        info['checkpoint'] = ''
+
+        info.insert(loc=0, column='table_name', value=table_name)
+        schema[table_name] = info
+
+    # annotate schema.info with name of checkpoint columns were first seen
+    for _, row in pipeline.get_checkpoints().iterrows():
+
+        checkpoint_name = row[pipeline.CHECKPOINT_NAME]
+
+        for table_name in table_names:
+
+            # no change to table in this checkpoint
+            if row[table_name] != checkpoint_name:
+                continue
+
+            # get the checkpointed version of the table
+            df = pipeline.get_table(table_name, checkpoint_name)
+            if df.index.name:
+                df = df.reset_index()
+
+            info = schema.get(table_name, None)
+
+            # tag any new columns with checkpoint name
+            prev_columns = info[info.checkpoint != ''].column_name.values
+            new_cols = [c for c in df.columns.values if c not in prev_columns]
+            is_new_column_this_checkpoont = info.column_name.isin(new_cols)
+            info.checkpoint = np.where(is_new_column_this_checkpoont, checkpoint_name, info.checkpoint)
+
+            schema[table_name] = info
+
+    schema_df = pd.concat(schema.values())
+
+    if csv_format:
+        schema_df.to_csv(config.output_file_path(csv_format), header=True, index=False)
+
+    if txt_format:
+        with open(config.output_file_path(txt_format), 'w') as output_file:
+
+            # get max schema column widths from omnibus table
+            col_width = {c: schema_df[c].str.len().max() + 2 for c in schema_df}
+
+            for table_name in table_names:
+                info = schema.get(table_name, None)
+
+                columns_to_print = ['column_name', 'dtype', 'checkpoint']
+                info = info[columns_to_print]
+
+                # normalize schema columns widths across all table schemas for unified output formatting
+                for c in info:
+                    info[c] = info[c].str.pad(col_width[c], side='right')
+                info.columns = [c.ljust(col_width[c]) for c in info.columns]
+
+                info = info.to_string(index=False)
+
+                print(f"###\n### {table_name} {final_shapes[table_name]}\n###\n", file=output_file)
+                print(f"{info}\n", file=output_file)
 
 
 def write_tables(output_dir):
@@ -227,16 +240,16 @@ def write_tables(output_dir):
     tables = output_tables_settings.get('tables')
     prefix = output_tables_settings.get('prefix', 'final_')
     h5_store = output_tables_settings.get('h5_store', False)
-
-    if action not in ['include', 'skip']:
-        raise "expected %s action '%s' to be either 'include' or 'skip'" % \
-              (output_tables_settings_name, action)
+    sort = output_tables_settings.get('sort', False)
 
     checkpointed_tables = pipeline.checkpointed_tables()
     if action == 'include':
         output_tables_list = tables
     elif action == 'skip':
         output_tables_list = [t for t in checkpointed_tables if t not in tables]
+    else:
+        raise "expected %s action '%s' to be either 'include' or 'skip'" % \
+              (output_tables_settings_name, action)
 
     for table_name in output_tables_list:
 
@@ -247,6 +260,23 @@ def write_tables(output_dir):
                 logger.warning("Skipping '%s': Table not found." % table_name)
                 continue
             df = pipeline.get_table(table_name)
+
+            if sort:
+                traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+
+                if df.index.name in traceable_table_indexes:
+                    df = df.sort_index()
+                    logger.debug(f"write_tables sorting {table_name} on index {df.index.name}")
+                else:
+                    # find all registered columns we can use to sort this table
+                    # (they are ordered appropriately in traceable_table_indexes)
+                    sort_columns = [c for c in traceable_table_indexes if c in df.columns]
+                    if len(sort_columns) > 0:
+                        df = df.sort_values(by=sort_columns)
+                        logger.debug(f"write_tables sorting {table_name} on columns {sort_columns}")
+                    else:
+                        logger.debug(f"write_tables sorting {table_name} on unrecognized index {df.index.name}")
+                        df = df.sort_index()
 
         if h5_store:
             file_path = config.output_file_path('%soutput_tables.h5' % prefix)

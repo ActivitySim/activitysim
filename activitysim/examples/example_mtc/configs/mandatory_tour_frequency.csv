@@ -97,5 +97,5 @@ util_availability_retired,Unavailable: Retired,ptype == 5,,,,coef_unavailable,co
 util_availability_driving_age_child,Unavailable: Driving-age child,ptype == 6,coef_unavailable,coef_unavailable,,,
 util_availability_pre_driving_age_student,Unavailable: Pre-driving age child who is in school,ptype == 7,,coef_unavailable,,,coef_unavailable
 util_availability_pre_driving_age_not_in_school,Unavailable: Pre-driving age child who is not in school,ptype == 8,coef_unavailable,coef_unavailable,,coef_unavailable,coef_unavailable
-util_availability_work_tours_no_usual_work_location,Unavailable: Work tours for those with no usual work location,~(workplace_taz > -1),coef_unavailable,coef_unavailable,,,coef_unavailable
-util_availability_school_tours_no_usual_school_location,Unavailable: School tours for those with no usual school location,~(school_taz > -1),,,coef_unavailable,coef_unavailable,coef_unavailable
+util_availability_work_tours_no_usual_work_location,Unavailable: Work tours for those with no usual work location,~(workplace_zone_id > -1),coef_unavailable,coef_unavailable,,,coef_unavailable
+util_availability_school_tours_no_usual_school_location,Unavailable: School tours for those with no usual school location,~(school_zone_id > -1),,,coef_unavailable,coef_unavailable,coef_unavailable

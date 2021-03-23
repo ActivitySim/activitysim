@@ -19,11 +19,17 @@ DEFAULT_TICK_LEN = 30
 
 
 def force_garbage_collect():
+    was_disabled = not gc.isenabled()
+    if was_disabled:
+        gc.enable()
     gc.collect()
+    if was_disabled:
+        gc.disable()
 
 
 def GB(bytes):
-    return (bytes / (1024 * 1024 * 1024.0))
+    gb = (bytes / (1024 * 1024 * 1024.0))
+    return round(gb, 2)
 
 
 def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
@@ -38,7 +44,7 @@ def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
     logger.info("init_trace file_name %s" % file_name)
 
     # - check for optional process name prefix
-    MEM['prefix'] = inject.get_injectable('log_file_prefix', '')
+    MEM['prefix'] = inject.get_injectable('log_file_prefix', 'main')
 
     if write_header:
         with config.open_log_file(file_name, 'w') as log_file:
@@ -81,6 +87,8 @@ def trace_memory_info(event=''):
     if (t - last_tick < tick_len) and not event:
         return
 
+    force_garbage_collect()
+
     vmi = psutil.virtual_memory()
 
     MEM['tick'] = t
@@ -98,8 +106,8 @@ def trace_memory_info(event=''):
     trace_hwm('rss', GB(rss), timestamp, event)
     trace_hwm('used', GB(vmi.used), timestamp, event)
 
-    # logger.debug("memory_info: rss: %s available: %s percent: %s"
-    #              %  (GB(mi.rss), GB(vmi.available), GB(vmi.percent)))
+    if event:
+        logger.info(f"trace_memory_info {event} rss: {GB(rss)}GB used: {GB(vmi.used)} GB percent: {vmi.percent}%")
 
     with config.open_log_file(MEM['file_name'], 'a') as output_file:
 
@@ -113,7 +121,7 @@ def trace_memory_info(event=''):
                event), file=output_file)
 
 
-def get_memory_info():
+def get_rss():
 
     mi = psutil.Process().memory_info()
 

@@ -1,0 +1,18 @@
+inherit_settings: True
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: 1z_final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+trace_od: [5, 11]
+

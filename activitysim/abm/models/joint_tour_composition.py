@@ -9,8 +9,8 @@ from activitysim.core import tracing
 from activitysim.core import pipeline
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import expressions
 
-from .util import expressions
 from .util import estimation
 
 from .util.overlap import hh_time_window_overlap
@@ -85,7 +85,7 @@ def joint_tour_composition(
     if estimator:
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(joint_tours_merged)
 
     choices = simulate.simple_simulate(

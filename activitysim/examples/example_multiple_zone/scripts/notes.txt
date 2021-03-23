@@ -1,0 +1,14 @@
+
+# for the mtctm1 fudged examples, depending on where you are, run:
+
+# from top level activitysim repo:
+python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
+python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+
+# or from this directory:
+python two_zone_example_data.py
+python three_zone_example_data.py
+
+python simulation.py -c configs_local -c configs_1_zone -c configs -o output_1
+python simulation.py -c configs_local -c configs_2_zone -c configs -d data_2 -o output_2
+python simulation.py -c configs_local -c configs_3_zone -c configs -d data_3 -o output_3

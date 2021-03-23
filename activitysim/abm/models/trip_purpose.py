@@ -11,44 +11,52 @@ from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import chunk
 from activitysim.core import pipeline
+from activitysim.core import expressions
+from activitysim.core import simulate
 
-from .util import expressions
+from .util import estimation
 
 logger = logging.getLogger(__name__)
 
 
-def trip_purpose_probs():
-    f = config.config_file_path('trip_purpose_probs.csv')
-    df = pd.read_csv(f, comment='#')
-    return df
+PROBS_JOIN_COLUMNS = ['primary_purpose', 'outbound', 'person_type']
 
 
-def trip_purpose_rpc(chunk_size, choosers, spec, trace_label):
+def map_coefficients(spec, coefficients):
+    if isinstance(coefficients, pd.DataFrame):
+        assert ('value' in coefficients.columns)
+        coefficients = coefficients['value'].to_dict()
+
+    assert isinstance(coefficients, dict), \
+        "map_coefficients doesn't grok type of coefficients: %s" % (type(coefficients))
+
+    for c in spec.columns:
+        if c == simulate.SPEC_LABEL_NAME:
+            continue
+        spec[c] = spec[c].map(coefficients).astype(np.float32)
+
+    assert not spec.isnull().any()
+
+    return spec
+
+
+def trip_purpose_calc_row_size(choosers, spec, trace_label):
     """
     rows_per_chunk calculator for trip_purpose
     """
 
-    num_choosers = len(choosers.index)
-
-    # if not chunking, then return num_choosers
-    # if chunk_size == 0:
-    #     return num_choosers, 0
+    sizer = chunk.RowSizeEstimator(trace_label)
 
     chooser_row_size = len(choosers.columns)
+    spec_columns = spec.shape[1] - len(PROBS_JOIN_COLUMNS)
 
-    # extra columns from spec
-    extra_columns = spec.shape[1]
+    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
 
-    row_size = chooser_row_size + extra_columns
-
-    # logger.debug("%s #chunk_calc choosers %s", trace_label, choosers.shape)
-    # logger.debug("%s #chunk_calc spec %s", trace_label, spec.shape)
-    # logger.debug("%s #chunk_calc extra_columns %s", trace_label, extra_columns)
-
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+    row_size = sizer.get_hwm()
+    return row_size
 
 
-def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label):
+def choose_intermediate_trip_purpose(trips, probs_spec, estimator, trace_hh_id, trace_label):
     """
     chose purpose for intermediate trips based on probs_spec
     which assigns relative weights (summing to 1) to the possible purpose choices
@@ -58,21 +66,19 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
-    probs_join_cols = ['primary_purpose', 'outbound', 'person_type']
-    non_purpose_cols = probs_join_cols + ['depart_range_start', 'depart_range_end']
+    non_purpose_cols = PROBS_JOIN_COLUMNS + ['depart_range_start', 'depart_range_end']
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
 
     num_trips = len(trips.index)
     have_trace_targets = trace_hh_id and tracing.has_trace_targets(trips)
 
-    # probs shold sum to 1 across rows
+    # probs should sum to 1 across rows
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
     probs_spec.loc[:, purpose_cols] = probs_spec.loc[:, purpose_cols].div(sum_probs, axis=0)
 
     # left join trips to probs (there may be multiple rows per trip for multiple depart ranges)
-    choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
+    choosers = pd.merge(trips.reset_index(), probs_spec, on=PROBS_JOIN_COLUMNS,
                         how='left').set_index('trip_id')
-
     chunk.log_df(trace_label, 'choosers', choosers)
 
     # select the matching depart range (this should result on in exactly one chooser row per trip)
@@ -94,16 +100,21 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
 
         file_name = '%s.UNMATCHED_PROBS' % trace_label
         logger.error("%s %s of %s intermediate trips could not be matched to probs based on join columns  %s" %
-                     (trace_label, len(unmatched_choosers), len(choosers), probs_join_cols))
+                     (trace_label, len(unmatched_choosers), len(choosers), PROBS_JOIN_COLUMNS))
         logger.info("Writing %s unmatched choosers to %s" % (len(unmatched_choosers), file_name,))
         tracing.write_csv(unmatched_choosers, file_name=file_name, transpose=False)
-        raise RuntimeError("Some trips could not be matched to probs based on join columns %s." % probs_join_cols)
+        raise RuntimeError("Some trips could not be matched to probs based on join columns %s." % PROBS_JOIN_COLUMNS)
 
     # select the matching depart range (this should result on in exactly one chooser row per trip)
     choosers = choosers[chooser_probs]
 
     # choosers should now match trips row for row
     assert choosers.index.identical(trips.index)
+
+    if estimator:
+        probs_cols = list(probs_spec.columns)
+        print(choosers[probs_cols])
+        estimator.write_table(choosers[probs_cols], 'probs', append=True)
 
     choices, rands = logit.make_choices(
         choosers[purpose_cols],
@@ -119,6 +130,7 @@ def choose_intermediate_trip_purpose(trips, probs_spec, trace_hh_id, trace_label
 
 def run_trip_purpose(
         trips_df,
+        estimator,
         chunk_size,
         trace_hh_id,
         trace_label):
@@ -136,8 +148,20 @@ def run_trip_purpose(
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
-    model_settings = config.read_model_settings('trip_purpose.yaml')
-    probs_spec = trip_purpose_probs()
+    model_settings_file_name = 'trip_purpose.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
+
+    spec_file_name = model_settings.get('PROBS_SPEC', 'trip_purpose_probs.csv')
+    probs_spec = pd.read_csv(config.config_file_path(spec_file_name), comment='#')
+    # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
+    # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
+    # coefficients_df = simulate.read_model_coefficients(model_settings)
+    # probs_spec = map_coefficients(probs_spec, coefficients_df)
+
+    if estimator:
+        estimator.write_spec(model_settings, tag='PROBS_SPEC')
+        estimator.write_model_settings(model_settings, model_settings_file_name)
+        # estimator.write_coefficients(coefficients_df, model_settings)
 
     result_list = []
 
@@ -149,6 +173,7 @@ def run_trip_purpose(
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
     purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
+    # FIXME should be lower case for consistency?
     purpose = pd.Series(np.where(purpose == 'atwork', 'Work', 'Home'), index=purpose.index)
     result_list.append(purpose)
     logger.info("assign purpose to %s last inbound trips", purpose.shape[0])
@@ -166,25 +191,17 @@ def run_trip_purpose(
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    rows_per_chunk, effective_chunk_size = \
-        trip_purpose_rpc(chunk_size, trips_df, probs_spec, trace_label=trace_label)
+    row_size = chunk_size and trip_purpose_calc_row_size(trips_df, probs_spec, trace_label)
 
-    for i, num_chunks, trips_chunk in chunk.chunked_choosers(trips_df, rows_per_chunk):
-
-        logger.info("Running chunk %s of %s size %d", i, num_chunks, len(trips_chunk))
-
-        chunk_trace_label = tracing.extend_trace_label(trace_label, 'chunk_%s' % i) \
-            if num_chunks > 1 else trace_label
-
-        chunk.log_open(chunk_trace_label, chunk_size, effective_chunk_size)
+    for i, trips_chunk, chunk_trace_label in \
+            chunk.adaptive_chunked_choosers(trips_df, chunk_size, row_size, trace_label):
 
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,
+            estimator,
             trace_hh_id,
             trace_label=chunk_trace_label)
-
-        chunk.log_close(chunk_trace_label)
 
         result_list.append(choices)
 
@@ -209,12 +226,24 @@ def trip_purpose(
 
     trips_df = trips.to_frame()
 
+    estimator = estimation.manager.begin_estimation('trip_purpose')
+    if estimator:
+        chooser_cols_for_estimation = ['person_id',  'household_id',  'tour_id',  'trip_num']
+        estimator.write_choosers(trips_df[chooser_cols_for_estimation])
+
     choices = run_trip_purpose(
         trips_df,
+        estimator,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label
     )
+
+    if estimator:
+        estimator.write_choices(choices)
+        choices = estimator.get_survey_values(choices, 'trips', 'purpose')  # override choices
+        estimator.write_override_choices(choices)
+        estimator.end_estimation()
 
     trips_df['purpose'] = choices
 

@@ -1,0 +1,25 @@
+inherit_settings: True
+
+# treat warnings as errors
+strict: True
+
+# number of households to simulate
+households_sample_size:  10
+chunk_size: 0
+
+# - shadow pricing global switches
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+
+cleanup_pipeline_after_run: True
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  sort: True
+  tables:
+    - trips

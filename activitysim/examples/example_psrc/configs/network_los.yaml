@@ -1,0 +1,35 @@
+#inherit_settings: True
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: True
+
+zone_system: 2
+
+# glob 'skims*.omx' will match one or more files: skims.omx, skims1.omx, skims2.omx...
+taz_skims: skims*.omx
+
+
+maz: maz.csv
+
+maz_to_maz:
+  tables:
+    - maz_to_maz_walk.csv
+    - maz_to_maz_bike.csv
+
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  max_blend_distance:
+    DIST: 0
+    # blend distance of 0 means no blending
+    DISTBIKE: 0
+    DISTWALK: 0
+
+  # missing means use the skim value itself rather than DIST skim (e.g. DISTBIKE)
+  #blend_distance_skim_name: DIST
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 60
+    periods: [0, 6, 11, 16, 20, 24]
+    labels: ['EA', 'AM', 'MD', 'PM', 'EV']

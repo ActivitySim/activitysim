@@ -10,6 +10,7 @@ model :ref:`sub-model-spec-files` for more information.
 
 .. _initialize_landuse:
 .. _initialize_households:
+.. _initialize_tours:
 
 Initialize
 ----------
@@ -22,11 +23,34 @@ they are initially loaded in.
 
 The main interface to the initialize land use step is the :py:func:`~activitysim.abm.models.initialize.initialize_landuse` 
 function. The main interface to the initialize household step is the :py:func:`~activitysim.abm.models.initialize.initialize_households` 
+function.  The main interface to the initialize tours step is the :py:func:`~activitysim.abm.models.initialize_tours.initialize_tours` 
 function.  These functions are registered as orca steps in the example Pipeline.
 
 .. automodule:: activitysim.abm.models.initialize
    :members:
-   
+ 
+.. automodule:: activitysim.abm.models.initialize_tours
+   :members:
+
+.. _initialize_los:
+.. _initialize_tvpb:
+
+Initialize LOS
+--------------
+
+The initialize LOS model isn't really a model, but rather a series of data processing steps in the data pipeline.  
+The initialize LOS model does two things:
+
+  * Loads skims and cache for later if desired
+  * Loads network LOS inputs for transit virtual path building (see :ref:`transit_virtual_path_builder`), pre-computes tap-to-tap total utilities and cache for later if desired
+
+The main interface to the initialize LOS step is the :py:func:`~activitysim.abm.models.initialize_los.initialize_los` 
+function.  The main interface to the initialize TVPB step is the :py:func:`~activitysim.abm.models.initialize_los.initialize_tvpb` 
+function.  These functions are registered as orca steps in the example Pipeline.
+
+.. automodule:: activitysim.abm.models.initialize_los
+   :members:
+
 .. _accessibility:
 
 Accessibility
@@ -707,8 +731,8 @@ Core Table: ``trips`` | Result Field: ``purpose, destination`` | Skims Keys: ``o
 
 .. _trip_scheduling:
 
-Trip Scheduling
----------------
+Trip Scheduling (Probablistic)
+------------------------------
 
 For each trip, assign a departure hour based on an input lookup table of percents by tour purpose, 
 direction (inbound/outbound), tour hour, and trip index.
@@ -739,6 +763,48 @@ Core Table: ``trips`` | Result Field: ``depart`` | Skims Keys: NA
    
 .. _trip_mode_choice:
 
+
+Trip Scheduling Choice (Logit Choice)
+-------------------------------------
+
+This model uses a logit-based formulation to determine potential trip windows for the three
+main components of a tour.
+
+-  Outbound Leg: The time from leaving the origin location to the time second to last outbound stop.
+-  Main Leg: The time window from the last outbound stop through the main tour destination to the first inbound stop.
+-  Inbound Leg: The time window from the first inbound stop to the tour origin location.
+
+Core Table: ``tours`` | Result Field: ``outbound_duration``, ``main_leg_duration``, ``inbound_duration`` | Skims Keys: NA
+
+
+**Required YAML attributes:**
+
+- ``SPECIFICATION``
+    This file defines the logit specification for each chooser segment.
+- ``COEFFICIENTS``
+    Specification coefficients
+- ``PREPROCESSOR``:
+    Preprocessor definitions to run on the chooser dataframe (trips) before the model is run
+
+
+Trip Departure Choice (Logit Choice)
+-------------------------------------
+
+Used in conjuction with Trip Scheduling Choice (Logit Choice), this model chooses departure
+time periods consistent with the time windows for the appropriate leg of the trip.
+
+Core Table: ``trips`` | Result Field: ``depart`` | Skims Keys: NA
+
+**Required YAML attributes:**
+
+- ``SPECIFICATION``
+    This file defines the logit specification for each chooser segment.
+- ``COEFFICIENTS``
+    Specification coefficients
+- ``PREPROCESSOR``:
+    Preprocessor definitions to run on the chooser dataframe (trips) before the model is run
+
+
 Trip Mode Choice
 ----------------
 
@@ -765,6 +831,69 @@ Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims Keys: ``origin, dest
 .. automodule:: activitysim.abm.models.trip_mode_choice
    :members:
 
+.. _parking_location_choice:
+
+Parking Location Choice
+-----------------------
+
+The parking location choice model selects a parking location for specified trips. While the model does not
+require parking location be applied to any specific set of trips, it is usually applied for drive trips to
+specific zones (e.g., CBD) in the model.
+
+The model provides provides a filter for both the eligible choosers and eligible parking location zone. The
+trips dataframe is the chooser of this model. The zone selection filter is applied to the land use zones
+dataframe.
+
+If this model is specified in the pipeline, the `Write Trip Matrices`_ step will using the parking location
+choice results to build trip tables in lieu of the trip destination.
+
+The main interface to the trip mode choice model is the
+:py:func:`~activitysim.abm.models.parking_location_choice.parking_location_choice` function.  This function
+is registered as an orca step, and it is available from the pipeline.  See :ref:`writing_logsums` for how to write
+logsums for estimation.
+
+**Skims**
+
+- ``odt_skims``: Origin to Destination by Time of Day
+- ``dot_skims``: Destination to Origin by Time of Day
+- ``opt_skims``: Origin to Parking Zone by Time of Day
+- ``pdt_skims``: Parking Zone to Destination by Time of Day
+- ``od_skims``: Origin to Destination
+- ``do_skims``: Destination to Origin
+- ``op_skims``: Origin to Parking Zone
+- ``pd_skims``: Parking Zone to Destination
+
+Core Table: ``trips``
+
+**Required YAML attributes:**
+
+- ``SPECIFICATION``
+    This file defines the logit specification for each chooser segment.
+- ``COEFFICIENTS``
+    Specification coefficients
+- ``PREPROCESSOR``:
+    Preprocessor definitions to run on the chooser dataframe (trips) before the model is run
+- ``CHOOSER_FILTER_COLUMN_NAME``
+    Boolean field on the chooser table defining which choosers are eligible to parking location choice model. If no
+    filter is specified, all choosers (trips) are eligible for the model.
+- ``CHOOSER_SEGMENT_COLUMN_NAME``
+    Column on the chooser table defining the parking segment for the logit model
+- ``SEGMENTS``
+    List of eligible chooser segments in the logit specification
+- ``ALTERNATIVE_FILTER_COLUMN_NAME``
+    Boolean field used to filter land use zones as eligible parking location choices. If no filter is specified,
+    then all land use zones are considered as viable choices.
+- ``ALT_DEST_COL_NAME``
+    The column name to append with the parking location choice results. For choosers (trips) ineligible for this
+    model, a -1 value will be placed in column.
+- ``TRIP_ORIGIN``
+    Origin field on the chooser trip table
+- ``TRIP_DESTINATION``
+    Destination field on the chooser trip table
+
+.. automodule:: activitysim.abm.models.parking_location_choice
+   :members:
+
 .. _write_trip_matrices:
 
 Write Trip Matrices
@@ -776,6 +905,9 @@ household level expansion factor, which is the household sample rate by default,
 households are read in at the beginning of a model run.  The main interface to write trip
 matrices is the :py:func:`~activitysim.abm.models.trip_matrices.write_trip_matrices` function.  This function 
 is registered as an orca step in the example Pipeline.
+
+If the `Parking Location Choice`_ model is defined in the pipeline, the parking location zone will be used in
+lieu of the destination zone.
 
 Core Table: ``trips`` | Result: ``omx trip matrices`` | Skims Keys: ``origin, destination``
 
@@ -804,17 +936,6 @@ Estimation
 See :ref:`estimation` for more information.
 
 .. automodule:: activitysim.abm.models.util.estimation
-   :members:
-
-Expressions
-~~~~~~~~~~~
-
-The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate 
-a number of additional table fields, and join the fields to the target table.  An example table annotation expressions 
-file is found in the example configuration files for households for the CDAP model - 
-`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
-
-.. automodule:: activitysim.abm.models.util.expressions
    :members:
 
 Logsums

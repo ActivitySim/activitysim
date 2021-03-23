@@ -1,0 +1,7 @@
+Description,Target,Expression
+#,, annotate landuse table after import
+household_density,household_density,land_use.hshld / land_use.acres
+employment_density,employment_density,land_use.emp / land_use.acres
+density_index,density_index,(household_density *employment_density) / (household_density + employment_density).clip(lower=1)
+cbd,is_CBD,land_use.areatype == 1
+parking_zone,is_parking_zone,land_use.PARKING_ZONE == 1

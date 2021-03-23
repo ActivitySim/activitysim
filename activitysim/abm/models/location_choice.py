@@ -5,20 +5,24 @@ import logging
 # import multiprocessing
 
 import pandas as pd
+import numpy as np
 
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
-from activitysim.core.mem import force_garbage_collect
+from activitysim.core import mem
+from activitysim.core import expressions
+from activitysim.core import los
+from activitysim.core import logit
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
 
-from .util import expressions
 from .util import logsums as logsum
 from .util import estimation
+from .util import tour_destination
 
 from activitysim.abm.tables import shadow_pricing
 
@@ -73,6 +77,9 @@ With shadow pricing, and iterative treatment of each segment, the structure of t
 
 logger = logging.getLogger(__name__)
 
+# column name of logsum in df returned by run_location_logsums (here because used in more than one place)
+ALT_LOGSUM = 'mode_choice_logsum'
+
 
 def write_estimation_specs(estimator, model_settings, settings_file):
     """
@@ -87,19 +94,20 @@ def write_estimation_specs(estimator, model_settings, settings_file):
     estimator.write_model_settings(model_settings, settings_file)
     # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
     estimator.write_spec(model_settings, tag='SPEC')
-    estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
+    estimator.write_coefficients(model_settings=model_settings)
 
     estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
     estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
 
 
-def run_location_sample(
+def _location_sample(
         segment_name,
-        persons_merged,
-        skim_dict,
-        dest_size_terms,
+        choosers,
+        alternatives,
+        skims,
         estimator,
         model_settings,
+        alt_dest_col_name,
         chunk_size, trace_label):
     """
     select a sample of alternative locations.
@@ -111,35 +119,22 @@ def run_location_sample(
     which results in sample containing up to <sample_size> choices for each choose (e.g. person)
     and a pick_count indicating how many times that choice was selected for that chooser.)
 
-    person_id,  dest_TAZ, rand,            pick_count
-    23750,      14,       0.565502716034,  4
-    23750,      16,       0.711135838871,  6
+    person_id,  dest_zone_id, rand,            pick_count
+    23750,      14,           0.565502716034,  4
+    23750,      16,           0.711135838871,  6
     ...
-    23751,      12,       0.408038878552,  1
-    23751,      14,       0.972732479292,  2
+    23751,      12,           0.408038878552,  1
+    23751,      14,           0.972732479292,  2
     """
-    assert not persons_merged.empty
-
-    # FIXME - MEMORY HACK - only include columns actually used in spec
-    chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
-    choosers = persons_merged[chooser_columns]
-
-    alternatives = dest_size_terms
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    assert not choosers.empty
 
     logger.info("Running %s with %d persons" % (trace_label, len(choosers.index)))
 
     sample_size = model_settings["SAMPLE_SIZE"]
-    if estimator:
+    if config.setting('disable_destination_sampling', False) or (estimator and estimator.want_unsampled_alternatives):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
         logger.info("Estimation mode for %s using unsampled alternatives short_circuit_choices" % (trace_label,))
         sample_size = 0
-
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
-    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
-    # the skims will be available under the name "skims" for any @ expressions
-    skims = skim_dict.wrap('TAZ_chooser', 'TAZ')
 
     locals_d = {
         'skims': skims,
@@ -165,21 +160,238 @@ def run_location_sample(
     return choices
 
 
+def location_sample(
+        segment_name,
+        persons_merged,
+        network_los,
+        dest_size_terms,
+        estimator,
+        model_settings,
+        chunk_size, trace_label):
+
+    # FIXME - MEMORY HACK - only include columns actually used in spec
+    chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
+    choosers = persons_merged[chooser_columns]
+
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
+    # (logit.interaction_dataset suffixes duplicate chooser column with '_chooser')
+    # the skims will be available under the name "skims" for any @ expressions
+    skim_dict = network_los.get_default_skim_dict()
+    skims = skim_dict.wrap('home_zone_id', 'zone_id')
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+
+    choices = _location_sample(
+        segment_name,
+        choosers,
+        dest_size_terms,
+        skims,
+        estimator,
+        model_settings,
+        alt_dest_col_name,
+        chunk_size,
+        trace_label)
+
+    return choices
+
+
+DEST_TAZ = 'dest_TAZ'
+HOME_TAZ = 'TAZ'
+HOME_MAZ = 'home_zone_id'
+DEST_MAZ = 'dest_MAZ'
+
+
+def aggregate_size_terms(dest_size_terms, network_los):
+    #
+    # aggregate MAZ_size_terms to TAZ_size_terms
+    #
+
+    MAZ_size_terms = dest_size_terms.copy()
+
+    # add crosswalk DEST_TAZ column to MAZ_size_terms
+    maz_to_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').sort_values(by='TAZ').TAZ
+    MAZ_size_terms[DEST_TAZ] = MAZ_size_terms.index.map(maz_to_taz)
+
+    weighted_average_cols = ['shadow_price_size_term_adjustment', 'shadow_price_utility_adjustment']
+    for c in weighted_average_cols:
+        MAZ_size_terms[c] *= MAZ_size_terms['size_term']  # weighted average
+
+    TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg(
+        {'size_term': 'sum',
+         'shadow_price_size_term_adjustment': 'sum',
+         'shadow_price_utility_adjustment': 'sum'})
+
+    for c in weighted_average_cols:
+        TAZ_size_terms[c] /= TAZ_size_terms['size_term']  # weighted average
+
+    if TAZ_size_terms.isna().any(axis=None):
+        logger.warning(f"TAZ_size_terms with NAN values\n{TAZ_size_terms[TAZ_size_terms.isna().any(axis=1)]}")
+        assert not TAZ_size_terms.isna(axis=None).any()
+
+    # print(f"TAZ_size_terms\n{TAZ_size_terms}")
+    #           size_term  shadow_price_size_term_adjustment  shadow_price_utility_adjustment
+    # dest_TAZ
+    # 2             1.419                                1.0                                0
+    # 3            20.511                                1.0                                0
+    # 4            19.737                                1.0                                0
+
+    MAZ_size_terms = MAZ_size_terms[[DEST_TAZ, 'size_term']].reset_index(drop=False)
+    MAZ_size_terms = MAZ_size_terms.sort_values([DEST_TAZ, 'zone_id']).reset_index(drop=True)
+
+    # print(f"MAZ_size_terms\n{MAZ_size_terms}")
+    #       zone_id  dest_TAZ  size_term
+    # 0      106097         2      0.774
+    # 1      124251         2      0.258
+    # 2      124252         2      0.387
+    # 3      106165         3      5.031
+
+    return MAZ_size_terms, TAZ_size_terms
+
+
+def location_presample(
+        segment_name,
+        persons_merged,
+        network_los,
+        dest_size_terms,
+        estimator,
+        model_settings,
+        chunk_size, trace_label):
+
+    trace_label = tracing.extend_trace_label(trace_label, 'presample')
+
+    logger.info(f"{trace_label} location_presample")
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    assert DEST_TAZ != alt_dest_col_name
+
+    MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(dest_size_terms, network_los)
+
+    # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
+    # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
+    assert HOME_MAZ in persons_merged
+    assert HOME_TAZ in persons_merged  # 'TAZ' should already be in persons_merged from land_use
+
+    # FIXME - MEMORY HACK - only include columns actually used in spec
+    # FIXME we don't actually require that land_use provide a TAZ crosswalk
+    # FIXME maybe we should add it for multi-zone (from maz_taz) if missing?
+    chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
+    chooser_columns = [HOME_TAZ if c == HOME_MAZ else c for c in chooser_columns]
+    choosers = persons_merged[chooser_columns]
+
+    # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
+    # and a DEST_TAZ in the alternatives which get merged during interaction
+    # the skims will be available under the name "skims" for any @ expressions
+    skim_dict = network_los.get_skim_dict('taz')
+    skims = skim_dict.wrap(HOME_TAZ, DEST_TAZ)
+
+    taz_sample = _location_sample(
+        segment_name,
+        choosers,
+        TAZ_size_terms,
+        skims,
+        estimator,
+        model_settings,
+        DEST_TAZ,
+        chunk_size,
+        trace_label)
+
+    # print(f"taz_sample\n{taz_sample}")
+    #            dest_TAZ      prob  pick_count
+    # person_id
+    # 55227             7  0.009827           1
+    # 55227            10  0.000656           1
+    # 55227            18  0.014871           1
+    # 55227            20  0.035548           3
+
+    # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
+    maz_choices = tour_destination.choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
+
+    assert DEST_MAZ in maz_choices
+    maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
+
+    return maz_choices
+
+
+def run_location_sample(
+        segment_name,
+        persons_merged,
+        network_los,
+        dest_size_terms,
+        estimator,
+        model_settings,
+        chunk_size, trace_label):
+    """
+    select a sample of alternative locations.
+
+    Logsum calculations are expensive, so we build a table of persons * all zones
+    and then select a sample subset of potential locations
+
+    The sample subset is generated by making multiple choices (<sample_size> number of choices)
+    which results in sample containing up to <sample_size> choices for each choose (e.g. person)
+    and a pick_count indicating how many times that choice was selected for that chooser.)
+
+    person_id,  dest_zone_id, rand,            pick_count
+    23750,      14,           0.565502716034,  4
+    23750,      16,           0.711135838871,  6
+    ...
+    23751,      12,           0.408038878552,  1
+    23751,      14,           0.972732479292,  2
+    """
+
+    logger.debug(f"dropping {(~(dest_size_terms.size_term > 0)).sum()} "
+                 f"of {len(dest_size_terms)} rows where size_term is zero")
+    dest_size_terms = dest_size_terms[dest_size_terms.size_term > 0]
+
+    # by default, enable presampling for multizone systems, unless they disable it in settings file
+    pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
+    if pre_sample_taz and not config.setting('want_dest_choice_presampling', True):
+        pre_sample_taz = False
+        logger.info(f"Disabled destination zone presampling for {trace_label} "
+                    f"because 'want_dest_choice_presampling' setting is False")
+
+    if pre_sample_taz:
+
+        logger.info("Running %s location_presample with %d persons" % (trace_label, len(persons_merged)))
+
+        choices = location_presample(
+            segment_name,
+            persons_merged,
+            network_los,
+            dest_size_terms,
+            estimator,
+            model_settings,
+            chunk_size, trace_label)
+
+    else:
+
+        choices = location_sample(
+            segment_name,
+            persons_merged,
+            network_los,
+            dest_size_terms,
+            estimator,
+            model_settings,
+            chunk_size, trace_label)
+
+    return choices
+
+
 def run_location_logsums(
         segment_name,
         persons_merged_df,
-        skim_dict, skim_stack,
+        network_los,
         location_sample_df,
         model_settings,
         chunk_size, trace_hh_id, trace_label):
     """
     add logsum column to existing location_sample table
 
-    logsum is calculated by running the mode_choice model for each sample (person, dest_taz) pair
+    logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
     in location_sample, and computing the logsum of all the utilities
 
     +-----------+--------------+----------------+------------+----------------+
-    | PERID     | dest_TAZ     | rand           | pick_count | logsum (added) |
+    | PERID     | dest_zone_id | rand           | pick_count | logsum (added) |
     +===========+==============+================+============+================+
     | 23750     |  14          | 0.565502716034 | 4          |  1.85659498857 |
     +-----------+--------------+----------------+------------+----------------+
@@ -213,7 +425,7 @@ def run_location_logsums(
         choosers,
         tour_purpose,
         logsum_settings, model_settings,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_label)
 
@@ -221,7 +433,7 @@ def run_location_logsums(
     # when the index has duplicates, however, in the special case that the series index exactly
     # matches the table index, then the series value order is preserved
     # logsums now does, since workplace_location_sample was on left side of merge de-dup merge
-    location_sample_df['mode_choice_logsum'] = logsums
+    location_sample_df[ALT_LOGSUM] = logsums
 
     return location_sample_df
 
@@ -230,7 +442,7 @@ def run_location_simulate(
         segment_name,
         persons_merged,
         location_sample_df,
-        skim_dict,
+        network_los,
         dest_size_terms,
         want_logsums,
         estimator,
@@ -264,11 +476,11 @@ def run_location_simulate(
 
     logger.info("Running %s with %d persons" % (trace_label, len(choosers)))
 
-    # create wrapper with keys for this lookup - in this case there is a TAZ in the choosers
-    # and a TAZ in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
+    # and a zone_id in the alternatives which get merged during interaction
     # the skims will be available under the name "skims" for any @ expressions
-    orig_col_name = "TAZ_chooser"
-    skims = skim_dict.wrap(orig_col_name, alt_dest_col_name)
+    skim_dict = network_los.get_default_skim_dict()
+    skims = skim_dict.wrap('home_zone_id', alt_dest_col_name)
 
     locals_d = {
         'skims': skims,
@@ -311,7 +523,7 @@ def run_location_simulate(
 
 def run_location_choice(
         persons_merged_df,
-        skim_dict, skim_stack,
+        network_los,
         shadow_price_calculator,
         want_logsums,
         want_sample_table,
@@ -328,8 +540,7 @@ def run_location_choice(
     ----------
     persons_merged_df : pandas.DataFrame
         persons table merged with households and land_use
-    skim_dict : skim.SkimDict
-    skim_stack : skim.SkimStack
+    network_los : los.Network_LOS
     shadow_price_calculator : ShadowPriceCalculator
         to get size terms
     want_logsums : boolean
@@ -363,8 +574,11 @@ def run_location_choice(
         # size_term and shadow price adjustment - one row per zone
         dest_size_terms = shadow_price_calculator.dest_size_terms(segment_name)
 
+        assert dest_size_terms.index.is_monotonic_increasing, \
+            f"shadow_price_calculator.dest_size_terms({segment_name}) not monotonic_increasing"
+
         if choosers.shape[0] == 0:
-            logger.info("%s skipping segment %s: no choosers", trace_label, segment_name)
+            logger.info(f"{trace_label} skipping segment {segment_name}: no choosers")
             continue
 
         # - location_sample
@@ -372,7 +586,7 @@ def run_location_choice(
             run_location_sample(
                 segment_name,
                 choosers,
-                skim_dict,
+                network_los,
                 dest_size_terms,
                 estimator,
                 model_settings,
@@ -384,7 +598,7 @@ def run_location_choice(
             run_location_logsums(
                 segment_name,
                 choosers,
-                skim_dict, skim_stack,
+                network_los,
                 location_sample_df,
                 model_settings,
                 chunk_size,
@@ -397,7 +611,7 @@ def run_location_choice(
                 segment_name,
                 choosers,
                 location_sample_df,
-                skim_dict,
+                network_los,
                 dest_size_terms,
                 want_logsums,
                 estimator,
@@ -406,10 +620,43 @@ def run_location_choice(
                 tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
 
         if estimator:
+            if trace_hh_id:
+                estimation_trace_label = \
+                    tracing.extend_trace_label(trace_label, f'estimation.{segment_name}.modeled_choices')
+                tracing.trace_df(choices_df, label=estimation_trace_label)
+
             estimator.write_choices(choices_df.choice)
             choices_df.choice = estimator.get_survey_values(choices_df.choice, 'persons',
                                                             column_names=model_settings['DEST_CHOICE_COLUMN_NAME'])
             estimator.write_override_choices(choices_df.choice)
+
+            if want_logsums:
+                # if we override choices, we need to to replace choice logsum with ologsim for override location
+                # fortunately, as long as we aren't sampling dest alts, the logsum will be in location_sample_df
+
+                # if we start sampling dest alts, we will need code below to compute override location logsum
+                assert estimator.want_unsampled_alternatives
+
+                # merge mode_choice_logsum for the overridden location
+                # alt_logsums columns: ['person_id', 'choice', 'logsum']
+                alt_dest_col = model_settings['ALT_DEST_COL_NAME']
+                alt_logsums = \
+                    location_sample_df[[alt_dest_col, ALT_LOGSUM]]\
+                    .rename(columns={alt_dest_col: 'choice', ALT_LOGSUM: 'logsum'})\
+                    .reset_index()
+
+                # choices_df columns: ['person_id', 'choice']
+                choices_df = choices_df[['choice']].reset_index()
+
+                # choices_df columns: ['person_id', 'choice', 'logsum']
+                choices_df = pd.merge(choices_df, alt_logsums, how='left').set_index('person_id')
+
+                logger.debug(f"{trace_label} segment {segment_name} estimation: override logsums")
+
+            if trace_hh_id:
+                estimation_trace_label = \
+                    tracing.extend_trace_label(trace_label, f'estimation.{segment_name}.survey_choices')
+                tracing.trace_df(choices_df, estimation_trace_label)
 
         choices_list.append(choices_df)
 
@@ -421,7 +668,7 @@ def run_location_choice(
 
         # FIXME - want to do this here?
         del location_sample_df
-        force_garbage_collect()
+        mem.force_garbage_collect()
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)
@@ -442,7 +689,7 @@ def run_location_choice(
 def iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, locutor,
         trace_label):
@@ -457,8 +704,7 @@ def iterate_location_choice(
     model_settings : dict
     persons_merged : injected table
     persons : injected table
-    skim_dict : skim.SkimDict
-    skim_stack : skim.SkimStack
+    network_los : los.Network_LOS
     chunk_size : int
     trace_hh_id : int
     locutor : bool
@@ -471,9 +717,6 @@ def iterate_location_choice(
     adds logsum column model_settings['DEST_CHOICE_LOGSUM_COLUMN_NAME']- if provided
     adds annotations to persons table
     """
-
-    # column containing segment id
-    chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
 
     # boolean to filter out persons not needing location modeling (e.g. is_worker, is_student)
     chooser_filter_column = model_settings['CHOOSER_FILTER_COLUMN_NAME']
@@ -490,6 +733,12 @@ def iterate_location_choice(
 
     persons_merged_df.sort_index(inplace=True)  # interaction_sample expects chooser index to be monotonic increasing
 
+    # chooser segmentation allows different sets coefficients for e.g. different income_segments or tour_types
+    chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
+
+    assert chooser_segment_column in persons_merged_df, \
+        f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' not in persons_merged table."
+
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
     max_iterations = spc.max_iterations
     assert not (spc.use_shadow_pricing and estimator)
@@ -503,7 +752,7 @@ def iterate_location_choice(
 
         choices_df, save_sample_df = run_location_choice(
             persons_merged_df,
-            skim_dict, skim_stack,
+            network_los,
             shadow_price_calculator=spc,
             want_logsums=logsum_column_name is not None,
             want_sample_table=want_sample_table,
@@ -541,9 +790,9 @@ def iterate_location_choice(
     # We only chose school locations for the subset of persons who go to school
     # so we backfill the empty choices with -1 to code as no school location
     # names for location choice and (optional) logsums columns
-    NO_DEST_TAZ = -1
+    NO_DEST_ZONE = -1
     persons_df[dest_choice_column_name] = \
-        choices_df['choice'].reindex(persons_df.index).fillna(NO_DEST_TAZ).astype(int)
+        choices_df['choice'].reindex(persons_df.index).fillna(NO_DEST_ZONE).astype(int)
 
     # add the dest_choice_logsum column to persons dataframe
     if logsum_column_name:
@@ -596,7 +845,7 @@ def iterate_location_choice(
 @inject.step()
 def workplace_location(
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id, locutor):
     """
     workplace location choice model
@@ -619,7 +868,7 @@ def workplace_location(
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, locutor, trace_label
     )
@@ -631,7 +880,7 @@ def workplace_location(
 @inject.step()
 def school_location(
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size, trace_hh_id, locutor
         ):
     """
@@ -650,7 +899,7 @@ def school_location(
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
-        skim_dict, skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, locutor, trace_label
     )

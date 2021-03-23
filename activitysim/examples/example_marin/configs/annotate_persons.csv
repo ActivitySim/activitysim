@@ -1,0 +1,6 @@
+Description,Target,Expression
+#,, annotate persons table after import
+is_university,is_university,"type == ""University student"""
+is_male,is_male,"df.SEX == 1"
+#,,
+#home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"

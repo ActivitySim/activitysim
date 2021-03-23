@@ -1,0 +1,123 @@
+Description,Expression,0_tours,1_Shop,1_Main,1_Eat,1_Visit,1_Disc,2_SS,2_SM,2_SE,2_SV,2_SD,2_MM,2_ME,2_MV,2_MD,2_EE,2_EV,2_ED,2_VV,2_VD,2_DD
+Constant,1,,-4.763,-4.695,-5.277,-5.177,-4.075,-10.382,-10.94,-10.059,-10.798,-9.559,-10.259,-10.41,-10.158,-9.185,-12.525,-11.372,-10.116,-11.978,-10.04,-9.054
+HOME - Full time worker,cdap_home_full_max3,1.175,,,,,,,,,,,,,,,,,,,,
+HOME - Part time worker,cdap_home_part_max3,1.447,,,,,,,,,,,,,,,,,,,,
+HOME - Homemaker,cdap_home_nonwork_max3,1.514,,,,,,,,,,,,,,,,,,,,
+HOME - Retiree,cdap_home_retired_max3,0.6053,,,,,,,,,,,,,,,,,,,,
+HOME - University/driving student,cdap_home_univ_driving_max3,0.5685,,,,,,,,,,,,,,,,,,,,
+HOME - Pre-driving/pre-school,cdap_home_nondriving_child_max3,0.5308,,,,,,,,,,,,,,,,,,,,
+"SHOPPING - Full time worker, non-mandatory patterns",cdap_nonmand_full_max3,,0.2052,,,,,0.4104,0.2052,0.2052,0.2052,0.2052,,,,,,,,,,
+"SHOPPING - Part time worker, non-mandatory patterns",cdap_nonmand_part_max3,,0.1866,,,,,0.3732,0.1866,0.1866,0.1866,0.1866,,,,,,,,,,
+"SHOPPING - Homemaker, non-mandatory patterns",cdap_nonmand_nonwork_max3,,0.7078,,,,,1.4156,0.7078,0.7078,0.7078,0.7078,,,,,,,,,,
+"SHOPPING - Retiree, non-mandatory patterns",cdap_nonmand_retired_max3,,0.941,,,,,1.882,0.941,0.941,0.941,0.941,,,,,,,,,,
+"SHOPPING - University/driving student, non-mandatory patterns",cdap_nonmand_univ_driving_max3,,0.7648,,,,,1.5296,0.7648,0.7648,0.7648,0.7648,,,,,,,,,,
+"SHOPPING - Pre-driving/pre-school, non-mandatory patterns",cdap_nonmand_nondriving_child_max3,,0.5474,,,,,1.0948,0.5474,0.5474,0.5474,0.5474,,,,,,,,,,
+"SHOPPING - Full time worker, mandatory patterns",cdap_mand_full_max3,,-0.2424,,,,,-0.4848,-0.2424,-0.2424,-0.2424,-0.2424,,,,,,,,,,
+"#SHOPPING - Driving student, mandatory patterns",cdap_mand_univ_driving_max3,,,,,,,0,0,0,0,0,,,,,,,,,,
+"#SHOPPING - Pre-driving/pre-school, mandatory patterns",cdap_mand_nondriving_child_max3,,,,,,,0,0,0,0,0,,,,,,,,,,
+#SHOPPING - Maximum overlap across adults,time_window_overlap_adult,,,,,,,0,0,0,0,0,,,,,,,,,,
+#SHOPPING - Maximum overlap across adults and children,time_window_overlap_adult_child,,,,,,,0,0,0,0,0,,,,,,,,,,
+#SHOPPING - Maximum overlap across children,time_window_overlap_child,,,,,,,0,0,0,0,0,,,,,,,,,,
+SHOPPING - Log of maximum overlap across adults,log_time_window_overlap_adult,,0.5945,,,,,1.189,0.5945,0.5945,0.5945,0.5945,,,,,,,,,,
+SHOPPING - Log of maximum overlap across adults and children,log_time_window_overlap_adult_child,,0.1416,,,,,0.2832,0.1416,0.1416,0.1416,0.1416,,,,,,,,,,
+SHOPPING - Log of maximum overlap across children,log_time_window_overlap_child,,0.1086,,,,,0.2172,0.1086,0.1086,0.1086,0.1086,,,,,,,,,,
+#SHOPPING - Income $50-100k,income_between_50_and_100,,,,,,,0,0,0,0,0,,,,,,,,,,
+#SHOPPING - Income > $100k,income_greater_than_100,,,,,,,0,0,0,0,0,,,,,,,,,,
+#SHOPPING - Income missing (0 in the ARC CTRAMP specification - see row 28 in the spreadsheet),income_missing ,,,,,,,0,0,0,0,0,,,,,,,,,,
+#SHOPPING - No autos in hh,auto_ownership == 0,,,,,,,0,0,0,0,0,,,,,,,,,,
+"SHOPPING - HH has autos, but fewer cars than drivers",(auto_ownership > 0) & (auto_ownership < num_drivers),,0.2523,,,,,0.5046,0.2523,0.2523,0.2523,0.2523,,,,,,,,,,
+SHOPPING - HH has more autos than workers,auto_ownership > num_workers,,-0.3027,,,,,-0.6054,-0.3027,-0.3027,-0.3027,-0.3027,,,,,,,,,,
+#SHOPPING - Zonal walk accessibility to retail employment,non_motorized_retail_accessibility,,,,,,,0,0,0,0,0,,,,,,,,,,
+"MAINTENANCE - Full time worker, non-mandatory patterns",cdap_nonmand_full_max3,,,0.3173,,,,,0.3173,,,,0.6346,0.3173,0.3173,0.3173,,,,,,
+"MAINTENANCE - Part time worker, non-mandatory patterns",cdap_nonmand_part_max3,,,0.2452,,,,,0.2452,,,,0.4904,0.2452,0.2452,0.2452,,,,,,
+"MAINTENANCE - Homemaker, non-mandatory patterns",cdap_nonmand_nonwork_max3,,,0.4643,,,,,0.4643,,,,0.9286,0.4643,0.4643,0.4643,,,,,,
+"MAINTENANCE - Retiree, non-mandatory patterns",cdap_nonmand_retired_max3,,,0.905,,,,,0.905,,,,1.81,0.905,0.905,0.905,,,,,,
+"MAINTENANCE - University/driving student, non-mandatory patterns",cdap_nonmand_univ_driving_max3,,,0.2643,,,,,0.2643,,,,0.5286,0.2643,0.2643,0.2643,,,,,,
+"MAINTENANCE - Pre-driving/pre-school, non-mandatory patterns",cdap_nonmand_nondriving_child_max3,,,0.6482,,,,,0.6482,,,,1.2964,0.6482,0.6482,0.6482,,,,,,
+"MAINTENANCE - Full time worker, mandatory patterns",cdap_mand_full_max3,,,-0.3009,,,,,-0.3009,,,,-0.6018,-0.3009,-0.3009,-0.3009,,,,,,
+"MAINTENANCE - Driving student, mandatory patterns",cdap_mand_univ_driving_max3,,,-0.3237,,,,,-0.3237,,,,-0.6474,-0.3237,-0.3237,-0.3237,,,,,,
+"MAINTENANCE - Pre-driving/pre-school, mandatory patterns",cdap_mand_nondriving_child_max3,,,0.2299,,,,,0.2299,,,,0.4598,0.2299,0.2299,0.2299,,,,,,
+#MAINTENANCE - Maximum overlap across adults,time_window_overlap_adult,,,,,,,,0,,,,0,0,0,0,,,,,,
+#MAINTENANCE - Maximum overlap across adults and children,time_window_overlap_adult_child,,,,,,,,0,,,,0,0,0,0,,,,,,
+#MAINTENANCE - Maximum overlap across children,time_window_overlap_child,,,,,,,,0,,,,0,0,0,0,,,,,,
+MAINTENANCE - Log of maximum overlap across adults,log_time_window_overlap_adult,,,0.3714,,,,,0.3714,,,,0.7428,0.3714,0.3714,0.3714,,,,,,
+MAINTENANCE - Log of maximum overlap across adults and children,log_time_window_overlap_adult_child,,,0.176,,,,,0.176,,,,0.352,0.176,0.176,0.176,,,,,,
+MAINTENANCE - Log of maximum overlap across children,log_time_window_overlap_child,,,0.2443,,,,,0.2443,,,,0.4886,0.2443,0.2443,0.2443,,,,,,
+#MAINTENANCE - Income $50-100k,income_between_50_and_100,,,,,,,,0,,,,0,0,0,0,,,,,,
+#MAINTENANCE - Income > $100k,income_greater_than_100,,,,,,,,0,,,,0,0,0,0,,,,,,
+#MAINTENANCE - Income missing (0 in the ARC CTRAMP specification - see row 28 in the spreadsheet),income_missing (0 in the ARC CTRAMP specification),,,,,,,,0,,,,0,0,0,0,,,,,,
+#MAINTENANCE - No autos in hh,auto_ownership == 0,,,,,,,,0,,,,0,0,0,0,,,,,,
+"MAINTENANCE - HH has autos, but fewer cars than drivers",(auto_ownership > 0) & (auto_ownership < num_drivers),,,0.4611,,,,,0.4611,,,,0.9222,0.4611,0.4611,0.4611,,,,,,
+#MAINTENANCE - HH has more autos than workers,auto_ownership > num_workers,,,,,,,,0,,,,0,0,0,0,,,,,,
+#MAINTENANCE - Zonal walk accessibility to retail employment,non_motorized_retail_accessibility,,,,,,,,0,,,,0,0,0,0,,,,,,
+"EATING OUT - Full time worker, non-mandatory patterns",cdap_nonmand_full_max3,,,,0.2275,,,,,0.2275,,,,0.2275,,,0.455,0.2275,0.2275,,,
+"EATING OUT - Part time worker, non-mandatory patterns",cdap_nonmand_part_max3,,,,0.3765,,,,,0.3765,,,,0.3765,,,0.753,0.3765,0.3765,,,
+"EATING OUT - Homemaker, non-mandatory patterns",cdap_nonmand_nonwork_max3,,,,0.182,,,,,0.182,,,,0.182,,,0.364,0.182,0.182,,,
+"EATING OUT - Retiree, non-mandatory patterns",cdap_nonmand_retired_max3,,,,0.4264,,,,,0.4264,,,,0.4264,,,0.8528,0.4264,0.4264,,,
+"EATING OUT - University/driving student, non-mandatory patterns",cdap_nonmand_univ_driving_max3,,,,0.4097,,,,,0.4097,,,,0.4097,,,0.8194,0.4097,0.4097,,,
+"EATING OUT - Pre-driving/pre-school, non-mandatory patterns",cdap_nonmand_nondriving_child_max3,,,,0.3851,,,,,0.3851,,,,0.3851,,,0.7702,0.3851,0.3851,,,
+"#EATING OUT - Full time worker, mandatory patterns",cdap_mand_full_max3,,,,,,,,,0,,,,0,,,0,0,0,,,
+"#EATING OUT - Driving student, mandatory patterns",cdap_mand_univ_driving_max3,,,,,,,,,0,,,,0,,,0,0,0,,,
+"#EATING OUT - Pre-driving/pre-school, mandatory patterns",cdap_mand_nondriving_child_max3,,,,,,,,,0,,,,0,,,0,0,0,,,
+#EATING OUT - Maximum overlap across adults,time_window_overlap_adult,,,,,,,,,0,,,,0,,,0,0,0,,,
+#EATING OUT - Maximum overlap across adults and children,time_window_overlap_adult_child,,,,,,,,,0,,,,0,,,0,0,0,,,
+#EATING OUT - Maximum overlap across children,time_window_overlap_child,,,,,,,,,0,,,,0,,,0,0,0,,,
+EATING OUT - Log of maximum overlap across adults,log_time_window_overlap_adult,,,,0.4856,,,,,0.4856,,,,0.4856,,,0.9712,0.4856,0.4856,,,
+#EATING OUT - Log of maximum overlap across adults and children,log_time_window_overlap_adult_child,,,,,,,,,0,,,,0,,,0,0,0,,,
+EATING OUT - Log of maximum overlap across children,log_time_window_overlap_child,,,,0.0921,,,,,0.0921,,,,0.0921,,,0.1842,0.0921,0.0921,,,
+EATING OUT - Income $50-100k,income_between_50_and_100,,,,0.2977,,,,,0.2977,,,,0.2977,,,0.5954,0.2977,0.2977,,,
+EATING OUT - Income > $100k,income_greater_than_100,,,,0.4492,,,,,0.4492,,,,0.4492,,,0.8984,0.4492,0.4492,,,
+#EATING OUT - Income missing (0 in the ARC CTRAMP specification - see row 28 in the spreadsheet),,,,,0.278,,,,,0.278,,,,0.278,,,0.556,0.278,0.278,,,
+#EATING OUT - No autos in hh,auto_ownership == 0,,,,,,,,,0,,,,0,,,0,0,0,,,
+"#EATING OUT - HH has autos, but fewer cars than drivers",(auto_ownership > 0) & (auto_ownership < num_drivers),,,,,,,,,0,,,,0,,,0,0,0,,,
+EATING OUT - HH has more autos than workers,auto_ownership > num_workers,,,,0.3825,,,,,0.3825,,,,0.3825,,,0.765,0.3825,0.3825,,,
+EATING OUT - Zonal walk accessibility to retail employment,non_motorized_retail_accessibility,,,,0.0623,,,,,0.0623,,,,0.0623,,,0.1246,0.0623,0.0623,,,
+"VISITING - Full time worker, non-mandatory patterns",cdap_nonmand_full_max3,,,,,0.6445,,,,,0.6445,,,,0.6445,,,0.6445,,1.289,0.6445,
+"VISITING - Part time worker, non-mandatory patterns",cdap_nonmand_part_max3,,,,,0.1332,,,,,0.1332,,,,0.1332,,,0.1332,,0.2664,0.1332,
+"VISITING - Homemaker, non-mandatory patterns",cdap_nonmand_nonwork_max3,,,,,0.5475,,,,,0.5475,,,,0.5475,,,0.5475,,1.095,0.5475,
+"VISITING - Retiree, non-mandatory patterns",cdap_nonmand_retired_max3,,,,,0.5579,,,,,0.5579,,,,0.5579,,,0.5579,,1.1158,0.5579,
+"VISITING - University/driving student, non-mandatory patterns",cdap_nonmand_univ_driving_max3,,,,,0.2809,,,,,0.2809,,,,0.2809,,,0.2809,,0.5618,0.2809,
+"VISITING - Pre-driving/pre-school, non-mandatory patterns",cdap_nonmand_nondriving_child_max3,,,,,0.6008,,,,,0.6008,,,,0.6008,,,0.6008,,1.2016,0.6008,
+"#VISITING - Full time worker, mandatory patterns",cdap_mand_full_max3,,,,,,,,,,0,,,,0,,,0,,0,0,
+"#VISITING - Driving student, mandatory patterns",cdap_mand_univ_driving_max3,,,,,,,,,,0,,,,0,,,0,,0,0,
+"#VISITING - Pre-driving/pre-school, mandatory patterns",cdap_mand_nondriving_child_max3,,,,,,,,,,0,,,,0,,,0,,0,0,
+VISITING - Maximum overlap across adults,time_window_overlap_adult,,,,,0.0596,,,,,0.0596,,,,0.0596,,,0.0596,,0.1192,0.0596,
+VISITING - Maximum overlap across adults and children,time_window_overlap_adult_child,,,,,0.0092,,,,,0.0092,,,,0.0092,,,0.0092,,0.0184,0.0092,
+VISITING - Maximum overlap across children,time_window_overlap_child,,,,,0.02563,,,,,0.02563,,,,0.02563,,,0.02563,,0.05126,0.02563,
+#VISITING - Log of maximum overlap across adults,log_time_window_overlap_adult,,,,,,,,,,0,,,,0,,,0,,0,0,
+#VISITING - Log of maximum overlap across adults and children,log_time_window_overlap_adult_child,,,,,,,,,,0,,,,0,,,0,,0,0,
+#VISITING - Log of maximum overlap across children,log_time_window_overlap_child,,,,,,,,,,0,,,,0,,,0,,0,0,
+#VISITING - Income $50-100k,income_between_50_and_100,,,,,,,,,,0,,,,0,,,0,,0,0,
+#VISITING - Income > $100k,income_greater_than_100,,,,,,,,,,0,,,,0,,,0,,0,0,
+#VISITING - Income missing (0 in the ARC CTRAMP specification - see row 28 in the spreadsheet),,,,,,,,,,,0,,,,0,,,0,,0,0,
+VISITING - No autos in hh,auto_ownership == 0,,,,,-0.9802,,,,,-0.9802,,,,-0.9802,,,-0.9802,,-1.9604,-0.9802,
+"#VISITING - HH has autos, but fewer cars than drivers",(auto_ownership > 0) & (auto_ownership < num_drivers),,,,,,,,,,0,,,,0,,,0,,0,0,
+#VISITING - HH has more autos than workers,auto_ownership > num_workers,,,,,,,,,,0,,,,0,,,0,,0,0,
+#VISITING - Zonal walk accessibility to retail employment,non_motorized_retail_accessibility,,,,,,,,,,0,,,,0,,,0,,0,0,
+"DISCRETIONARY - Full time worker, non-mandatory patterns",cdap_nonmand_full_max3,,,,,,0.1275,,,,,0.1275,,,,0.1275,,,0.1275,,0.1275,0.255
+"DISCRETIONARY - Part time worker, non-mandatory patterns",cdap_nonmand_part_max3,,,,,,0.4979,,,,,0.4979,,,,0.4979,,,0.4979,,0.4979,0.9958
+"DISCRETIONARY - Homemaker, non-mandatory patterns",cdap_nonmand_nonwork_max3,,,,,,0.2871,,,,,0.2871,,,,0.2871,,,0.2871,,0.2871,0.5742
+"DISCRETIONARY - Retiree, non-mandatory patterns",cdap_nonmand_retired_max3,,,,,,0.6136,,,,,0.6136,,,,0.6136,,,0.6136,,0.6136,1.2272
+"DISCRETIONARY - University/driving student, non-mandatory patterns",cdap_nonmand_univ_driving_max3,,,,,,0.7546,,,,,0.7546,,,,0.7546,,,0.7546,,0.7546,1.5092
+"DISCRETIONARY - Pre-driving/pre-school, non-mandatory patterns",cdap_nonmand_nondriving_child_max3,,,,,,0.5331,,,,,0.5331,,,,0.5331,,,0.5331,,0.5331,1.0662
+"#DISCRETIONARY - Full time worker, mandatory patterns",cdap_mand_full_max3,,,,,,,,,,,0,,,,0,,,0,,0,0
+"DISCRETIONARY- Driving student, mandatory patterns",cdap_mand_univ_driving_max3,,,,,,0.1932,,,,,0.1932,,,,0.1932,,,0.1932,,0.1932,0.3864
+"DISCRETIONARY - Pre-driving/pre-school, mandatory patterns",cdap_mand_nondriving_child_max3,,,,,,0.3862,,,,,0.3862,,,,0.3862,,,0.3862,,0.3862,0.7724
+#DISCRETIONARY- Maximum overlap across adults,time_window_overlap_adult,,,,,,,,,,,0,,,,0,,,0,,0,0
+#DISCRETIONARY- Maximum overlap across adults and children,time_window_overlap_adult_child,,,,,,,,,,,0,,,,0,,,0,,0,0
+#DISCRETIONARY- Maximum overlap across children,time_window_overlap_child,,,,,,,,,,,0,,,,0,,,0,,0,0
+DISCRETIONARY- Log of maximum overlap across adults,log_time_window_overlap_adult,,,,,,0.3428,,,,,0.3428,,,,0.3428,,,0.3428,,0.3428,0.6856
+DISCRETIONARY - Log of maximum overlap across adults and children,log_time_window_overlap_adult_child,,,,,,0.1162,,,,,0.1162,,,,0.1162,,,0.1162,,0.1162,0.2324
+DISCRETIONARY - Log of maximum overlap across children,log_time_window_overlap_child,,,,,,0.2212,,,,,0.2212,,,,0.2212,,,0.2212,,0.2212,0.4424
+DISCRETIONARY- Income $50-100k,income_between_50_and_100,,,,,,0.3167,,,,,0.3167,,,,0.3167,,,0.3167,,0.3167,0.6334
+DISCRETIONARY- Income > $100k,income_greater_than_100,,,,,,0.486,,,,,0.486,,,,0.486,,,0.486,,0.486,0.972
+#DISCRETIONARY- Income missing (0 in the ARC CTRAMP specification - see row 28 in the spreadsheet),income_missing,,,,,,0.3723,,,,,0.3723,,,,0.3723,,,0.3723,,0.3723,0.7446
+DISCRETIONARY-  No autos in hh,auto_ownership == 0,,,,,,-0.9094,,,,,-0.9094,,,,-0.9094,,,-0.9094,,-0.9094,-1.8188
+"#DISCRETIONARY-  HH has autos, but fewer cars than drivers",(auto_ownership > 0) & (auto_ownership < num_drivers),,,,,,,,,,,0,,,,0,,,0,,0,0
+#DISCRETIONARY-  HH has more autos than workers,auto_ownership > num_workers,,,,,,,,,,,0,,,,0,,,0,,0,0
+#DISCRETIONARY-  Zonal walk accessibility to retail employment,non_motorized_retail_accessibility,,,,,,,,,,,0,,,,0,,,0,,0,0
+ Calibration constant,1,,-0.029961846,-0.080306897,-0.084692465,-1.719531398,-0.651221689,-0.429101079,0.244832285,-0.685385169,-1.631499926,-0.806984236,-0.197406345,-0.496559264,-3.058529718,-0.978595729,-0.311164003,-2.090194243,-0.538303617,-3.164196794,-2.532993327,-1.446493289
+ Calibration constant: HHSIZE3,"@np.where((df.hhsize==3), 1, 0)",0.002564472,-0.076311716,-0.076311716,-0.076311716,-0.076311716,-0.076311716,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612,0.020928612
+Calibration constant: HHSIZE4,"@np.where((df.hhsize==4), 1, 0)",0.075536565,-0.27241752,-0.27241752,-0.27241752,-0.27241752,-0.27241752,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102,-0.76019102
+Calibration constant: HHSIZE5,"@np.where((df.hhsize==5), 1, 0)",0.511380264,0.416830963,0.416830963,0.416830963,0.416830963,0.416830963,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159,-0.45310159
+Calibration constant: HHSIZE6,"@np.where((df.hhsize>5), 1, 0)",-1.344812259,-1.430209338,-1.430209338,-1.430209338,-1.430209338,-1.430209338,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861,-2.402735861

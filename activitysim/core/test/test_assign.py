@@ -8,9 +8,15 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from .. import config
 from .. import assign
 from .. import tracing
 from .. import inject
+
+
+def setup_function():
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    inject.add_injectable("configs_dir", configs_dir)
 
 
 def close_handlers():
@@ -34,11 +40,6 @@ def data_dir():
 
 
 @pytest.fixture(scope='module')
-def configs_dir():
-    return os.path.join(os.path.dirname(__file__), 'configs')
-
-
-@pytest.fixture(scope='module')
 def spec_name(data_dir):
     return os.path.join(data_dir, 'assignment_spec.csv')
 
@@ -53,18 +54,17 @@ def data(data_name):
     return pd.read_csv(data_name)
 
 
-def test_read_model_spec(spec_name):
-
-    spec = assign.read_assignment_spec(spec_name)
+def test_read_model_spec():
+    spec = assign.read_assignment_spec(config.config_file_path('assignment_spec.csv'))
 
     assert len(spec) == 8
 
     assert list(spec.columns) == ['description', 'target', 'expression']
 
 
-def test_assign_variables(capsys, spec_name, data):
+def test_assign_variables(capsys, data):
 
-    spec = assign.read_assignment_spec(spec_name)
+    spec = assign.read_assignment_spec(config.config_file_path('assignment_spec.csv'))
 
     locals_d = {'CONSTANT': 7, '_shadow': 99}
 
@@ -111,10 +111,7 @@ def test_assign_variables(capsys, spec_name, data):
 
 def test_assign_variables_aliased(capsys, data):
 
-    spec_name = \
-        os.path.join(os.path.dirname(__file__), 'data', 'assignment_spec_alias_df.csv')
-
-    spec = assign.read_assignment_spec(spec_name)
+    spec = assign.read_assignment_spec(config.config_file_path('assignment_spec_alias_df.csv'))
 
     locals_d = {'CONSTANT': 7, '_shadow': 99}
 
@@ -157,10 +154,7 @@ def test_assign_variables_failing(capsys, data):
 
     tracing.config_logger(basic=True)
 
-    spec_name = \
-        os.path.join(os.path.dirname(__file__), 'data', 'assignment_spec_failing.csv')
-
-    spec = assign.read_assignment_spec(spec_name)
+    spec = assign.read_assignment_spec(config.config_file_path('assignment_spec_failing.csv'))
 
     locals_d = {
         'CONSTANT': 7,

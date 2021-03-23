@@ -1,0 +1,421 @@
+Description,Expression,Coefficient
+"#Note: In CTRAMP, duration is from 1 to 48 but in ActivitySim, it is from 0 to 47 since duration was calculated as (end - start). Therefore, duration in ActivitySim expression = CTRAMP duration expresssion - 1 ",,
+#ESCORT,,
+ESCORT - Mode Choice Logsum,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort')), df.mode_choice_logsum, 0)",1.173173034
+ESCORT - Distance to destination - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration<1)), ((df.origin_to_destination_distance) * (np.where((df.duration<=1), np.minimum(1-df.duration, 0), 0))),0)",-0.335017673
+ESCORT - Distance to destination - Duration greater than 0.5 hours,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration>1)), ((df.origin_to_destination_distance) * (np.where((df.duration>1), np.minimum(df.duration-1,47), 0))), 0)",0.005298165
+ESCORT - Full-time worker - Departure after 8:00 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 1) & (df.start>10)), (np.where((df.start<=10), np.minimum(10-df.start,7), 0) + np.where((df.start>10), np.minimum(df.start-10,35), 0)),0)",-0.037980109
+ESCORT - Full-time worker - Departure after 3:00 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 1) & (df.start>24)), (np.where((df.start<=24), np.minimum(24-df.start,3), 0) + np.where((df.start>24), np.minimum(df.start-24,9), 0)), 0)",0.163254125
+ESCORT - Full-time worker - Duration < 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 1) & (df.duration<1)), (np.where((df.duration<=1), np.minimum(1-df.duration,0), 0)), 0)",-0.275077482
+ESCORT - Full-time worker - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 1) & (df.duration>1)), (np.where((df.duration>1), np.minimum(df.duration-1,47), 0)), 0)",0.051530545
+ESCORT - University student - Duration < 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 3) & (df.duration<1)), (np.where((df.duration<=1), np.minimum(1-df.duration,0), 0)), 0)",-0.426802718
+ESCORT - Non-driving age student - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & ((df.ptype == 7)|(df.ptype == 8)) & (df.duration>1)), (np.where((df.duration>1), np.minimum(df.duration-1,47), 0)), 0)",0.240582361
+ESCORT - Driving age student - Duration < 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 6) & (df.duration<1)), (np.where((df.duration<=1), np.minimum(1-df.duration,0), 0)), 0)",-0.554146191
+ESCORT - Driving age student - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 6) & (df.duration>1)), (np.where((df.duration>1), np.minimum(df.duration-1,47), 0)), 0)",0.299387708
+ESCORT - Pre-school kid - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.ptype == 8) & (df.duration<1)), (np.where((df.duration<=1), np.minimum(1-df.duration,0), 0)), 0)",0.195482563
+ESCORT - Med-high income (60k to 120k) - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.is_income_60K_to_120K) & (df.duration>1)), (np.where((df.duration>1), np.minimum(df.duration-1,47), 0)), 0)",-0.029281467
+"ESCORT - Households with no kids (Dummy- 1,0) - Departure before 7:30 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.start<10)), (np.where((df.start<=10), np.minimum(10-df.start,7), 0) + np.where((df.start>10), np.minimum(df.start-10,35), 0)), 0)",0.589083327
+"ESCORT - Households with no kids (Dummy- 1,0) - Departure after 8:00 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.start>10)), (np.where((df.start<=10), np.minimum(10-df.start,7), 0) + np.where((df.start>10), np.minimum(df.start-10,35), 0)), 0)",0.086690827
+"ESCORT - Households with no kids (Dummy- 1,0) - Departure before 2:30 PM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.start<24)), (np.where((df.start<=24), np.minimum(24-df.start,3), 0) + np.where((df.start>24), np.minimum(df.start-24,9), 0)), 0)",0.477582648
+"ESCORT - Households with no kids (Dummy- 1,0) - Departure after 3:00 PM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.start>24)), (np.where((df.start<=24), np.minimum(24-df.start,3), 0) + np.where ((df.start>24), np.minimum(df.start-24,9), 0)), 0)",-0.204065502
+"ESCORT - Households with no kids (Dummy- 1,0) - Arrival before 8:00 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.end<11)), (np.where((df.end<=11), np.minimum(11-df.end,7), 0) + np.where((df.end>11), np.minimum(df.end-11,35), 0)), 0)",-0.360039254
+"ESCORT - Households with no kids (Dummy- 1,0) - Arrival after 8:30 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.end>11)), (np.where((df.end<=11), np.minimum(11-df.end,7), 0) + np.where((df.end>11), np.minimum(df.end-11,35), 0)), 0)",0.091614107
+"ESCORT - Households with no kids (Dummy- 1,0) - Arrival before 3:00 PM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.end<25)), (np.where((df.end<=25), np.minimum(25-df.end,3), 0) + np.where((df.end>25), np.minimum(df.end-25,9), 0)), 0)",0.432854268
+"ESCORT - Households with no kids (Dummy- 1,0) - Arrival after 3:30 PM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.num_children == 0) & (df.end>25)), (np.where((df.end<=25), np.minimum(25-df.end,3), 0) + np.where((df.end>25), np.minimum(df.end-25,9), 0)), 0)",0.131037275
+"ESCORT - Pre-School Child in HH with Mandatory tour (Dummy- 1,0) - Departure after 8:00 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.has_pre_school_child_with_mandatory > 0) & (df.start >10)), (np.where((df.start>10), np.minimum(df.start-10,35), 0)), 0)",0.109700265
+"ESCORT - Pre-School Child in HH with Mandatory tour (Dummy- 1,0) - Departure after 3:00 PM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.has_pre_school_child_with_mandatory > 0) & (df.start>24)), (np.where((df.start>24), np.minimum(df.start-24,9), 0)), 0)",-0.224568648
+"ESCORT -Pre-School Child in HH with Mandatory tour (Dummy- 1,0) - Arrival before 8:00 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.has_pre_school_child_with_mandatory > 0) & (df.end<11)), (np.where((df.end<=11), np.minimum(11-df.end,7), 0)), 0)",-0.357416434
+"ESCORT - Pre-School Child in HH with Mandatory tour (Dummy- 1,0) - Arrival before 3:00 PM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.has_pre_school_child_with_mandatory > 0) & (df.end<25)), (np.where((df.end<=25), np.minimum(25-df.end,3), 0)), 0)",0.629285298
+"ESCORT - Driving age School Child in HH with Mandatory tour (Dummy- 1,0) - Departure after 8:00 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.has_driving_age_child_with_mandatory > 0) & (df.start>10)), (np.where ((df.start>10), np.minimum(df.start-10,35), 0)), 0)",0.039005148
+"ESCORT - Driving age School Child in HH with Mandatory tour (Dummy- 1,0) - Arrival after 8:30 AM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.has_driving_age_child_with_mandatory > 0) & (df.end>11)), (np.where((df.end>11), np.minimum(df.end-11,35), 0)), 0)",-0.06556611
+"ESCORT - Driving age School Child in HH with Mandatory tour (Dummy- 1,0) - Arrival after 3:30 PM","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.has_driving_age_child_with_mandatory > 0) &( df.end>25)), (np.where((df.end>25), np.minimum(df.end-25,9), 0)), 0)",0.117680977
+ESCORT - Number of autos greater than number of adults - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.auto_ownership > 0) & (df.auto_ownership > df.num_adults) & (df.duration>1)), (np.where((df.duration>1), np.minimum(df.duration-1,47), 0)), 0)",-0.057322708
+#FIXME - Number of non-escort tours is not known until the non-mandatory frequency model is run,,
+#ESCORT - Number of Individual Tours (excluding escorting) - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type != 'escort') & (df.num_non_escort_tours > 0) & (df.duration>1)), (np.where((df.duration>1), np.minimum(df.duration-1,47), 0)), 0)",-0.062899692
+ESCORT - Number of joint tours - Duration > 0.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration>1)), (np.where((df.duration<=1), np.minimum(1-df.duration,0), 0) + np.where((df.duration>1), np.minimum(df.duration-1,47), 0)) *(df.num_joint_tours), 0)",-0.048533895
+ESCORT - Departure Constant: Shift for every 30 minutes before 06:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start<8)), (np.where((df.start<8), np.minimum(8-df.start,4), 0) + np.where((df.start>13), np.minimum(df.start-13,28), 0)), 0)",-1.469240002
+ESCORT - Departure Constant: Before 07:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start<9)),-2.070292862
+ESCORT - Departure Constant: 07:00 AM - 07:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==9)),-0.642734296
+ESCORT - Departure Constant: 07:30 AM - 08:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==10)),0
+ESCORT - Departure Constant: 08:00 AM - 08:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==11)),-0.214617667
+ESCORT - Departure Constant: 08:30 AM - 09:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==12)),-0.147266606
+ESCORT - Departure Constant: After 09:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start>12)),-1.356686422
+ESCORT - Departure Constant: 01:30 PM - 02:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==22)),0.368092381
+ESCORT - Departure Constant: 02:00 PM - 02:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==23)),1.166803383
+ESCORT - Departure Constant: 02:30 PM - 03:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==24)),1.28466083
+ESCORT - Departure Constant: 03:00 PM - 03:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==25)),0.581891245
+ESCORT - Departure Constant: After 03:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start>25)),0.834510243
+ESCORT - Departure Constant: Shift for every 30 minutes after 9:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start>13)), (np.where((df.start<8), np.minimum(8-df.start,4), 0) + (np.where((df.start>13), np.minimum(df.start-13,28), 0))), 0)",0.175257649
+ESCORT - Departure Constant: Shift for every 30 minutes after 4:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start>26)), (np.where((df.start<0), np.minimum(0-df.start,48), 0) + np.where((df.start>26), np.minimum(df.start-26,15),0)), 0)",-0.019161202
+ESCORT - Arrival Constant: Shift for every 30 minutes before 6:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end<8)), (np.where((df.end<8), np.minimum(8-df.end,2), 0) + np.where((df.end>13), np.minimum(df.end-13,30), 0)), 0)",0.44978138
+ESCORT - Arrival Constant: Before 07:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end<9)),0.549584585
+ESCORT - Arrival Constant: 07:00 AM - 07:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==9)),0.488181278
+ESCORT - Arrival Constant: 07:30 AM - 08:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==10)),0.236447651
+ESCORT - Arrival Constant: 08:00 AM - 08:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==11)),0
+ESCORT - Arrival Constant: 08:30 AM - 09:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==12)),-0.683756801
+ESCORT - Arrival Constant: After 09:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end>12)),-1.428888485
+ESCORT - Arrival Constant: 02:30 PM - 03:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==24)),1.311480662
+ESCORT - Arrival Constant: 03:00 PM - 03:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==25)),1.316883154
+ESCORT - Arrival Constant: 03:30 PM - 04:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==26)),1.396838392
+ESCORT - Arrival Constant: 04:00 PM - 04:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end==27)),1.03146139
+ESCORT - Arrival Constant: After 04:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end>27)),0.907344583
+ESCORT - Arrival Constant: Shift for every 30 minutes after 9:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end>13)), (np.where((df.end<8), np.minimum(8-df.end,2), 0) + np.where((df.end>13), np.minimum(df.end-13,30), 0)), 0)",-0.148408887
+ESCORT - Arrival Constant: Shift for every 30 minutes after 5:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.end>28)), (np.where((df.end<0), np.minimum(0-df.end,48), 0) + np.where((df.start>28), np.minimum(df.end-28,15), 0)), 0)",-0.389082896
+ESCORT - Duration Constant: 0 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration==0)),-0.173757322
+ESCORT - Duration Constant: 0.5 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration==1)),0
+ESCORT - Duration Constant: 1 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration==2)),-0.431287743
+ESCORT - Duration Constant: 1.5hrs,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration==3)),-0.700473959
+ESCORT - Duration Constant: 2 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration==4)),-1.071871358
+ESCORT - Duration Constant: Longer than 2 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration>4)),-1.691098421
+ESCORT - Calibration Constant - Duration = 1,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.duration==0)),-0.047200214
+ESCORT - Calibration Constant - Duration = 2,@(((df.tour_category == 'joint') & (df.tour_type == 'escort') & df.duration==1)),0.035611332
+ESCORT - Calibration Constant - Departure = 9,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==9)),0.106814756
+ESCORT - Calibration Constant - Departure = 10,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==10)),0.215386864
+ESCORT - Calibration Constant - Departure = 23,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==23)),-0.255087318
+ESCORT - Calibration Constant - Departure = 24,@((df.tour_category == 'joint') & (df.tour_type == 'escort') & (df.start==24)),-0.296870428
+#SHOPPING,,
+SHOPPING - Joint Shopping tours dummy: Departure before 10:00 AM  - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start<15)), (np.where((df.start<=15), np.minimum(15-df.start,7), 0) + np.where((df.start>15), np.minimum(df.start-15,24), 0)), 0)",-0.190727375
+SHOPPING - Joint Shopping tours dummy: Departure after 10:30 AM - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start>15)), (np.where((df.start<=15), np.minimum(15-df.start,7), 0) + np.where((df.start>15), np.minimum(df.start-15,24), 0)), 0)",-0.029551313
+SHOPPING - Joint Tours Party Size > 2: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration<2) & (df.number_of_participants > 2)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)), 0)",-0.291965906
+SHOPPING - Joint Tours Party Size > 2: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration>2) & (df.number_of_participants > 2)), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0.045755784
+SHOPPING - Joint Tour with only adults: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration<2) & (df.composition=='adults')), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)), 0)",-0.571185116
+SHOPPING - Kids in Joint Tour: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration<2) & ((df.composition=='children')|(df.composition=='mixed'))), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)), 0)",-0.468815184
+SHOPPING - Kids in Joint Tour: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration>2) & ((df.composition=='children')|(df.composition=='mixed'))), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.047470039
+#The expressions below are for individual tours,,
+#SHOPPING - Driving age student: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>3) & (df.ptype == 6)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3), np.minimum(df.duration-3,27), 0)), 0)",0.122149101
+#SHOPPING - Full-time worker: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>3) & (df.ptype == 1)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",-0.037886459
+#SHOPPING - Non-driving Student: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>3) & (df.ptype == 7)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",0.10247157
+#SHOPPING - Pre-school Child: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration<3) & (df.ptype == 8)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",-1.882944033
+#SHOPPING - Part Time Worker: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration<3) & (df.ptype == 2)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",-0.197455071
+#SHOPPING - Part Time Worker: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>3) & (df.ptype == 2)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",-0.045152663
+#SHOPPING - Retired: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration<3) & (df.ptype == 5)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",-0.264728908
+#SHOPPING - Retired: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>3) & (df.ptype == 5)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",-0.042981757
+#SHOPPING - University Student: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>3) & (df.ptype == 3)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",0.045926523
+#SHOPPING - Female: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration<3) & (df.is_female)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3), np.minimum(df.duration-3,27), 0)), 0)",-0.417208254
+#SHOPPING - Female: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>3) & (df.is_female)), (np.where((df.duration<=3), np.minimum(3-df.duration,2), 0) + np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",0.045801918
+"SHOPPING - Low Income (<=$25,000): Duration > 1.5 hr","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.is_income_less25K) & (df.duration>3)), (np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",0.040776383
+"SHOPPING - Medium Income ($25,001 to $60,000): Duration < 1.5 hrs","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.is_income_25K_to_60K) & (df.duration<3)), (np.where((df.duration>3),np.minimum(df.duration-3,27), 0)), 0)",0.108462927
+"SHOPPING - Medium-High Income ($60,001 to $120,00): Duration > 1.5 hr","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.is_income_60K_to_120K) & (df.duration>3)), (np.where((df.duration>3), np.minimum(df.duration-3,27), 0)), 0)",-0.037893416
+SHOPPING - Distance: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)) * (df.origin_to_destination_distance), 0)",-0.214802537
+SHOPPING - Distance: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration>2)), ((np.where((df.duration>2),np.minimum(df.duration-2,26), 0)) * (df.origin_to_destination_distance)), 0)",0.007991656
+#The expressions below are for individual tours,,
+#SHOPPING - Time Pressure - Duration > 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration>2)), np.minimum(df.duration-2,26) *(np.log10 (30 *(tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",0.013503327
+#SHOPPING - Number of additional individual shop and maint. tours - Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') & (df.duration<2)), ((np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)) *(df.num_add_shop_maint_tours)), 0)",0.078844289
+#SHOPPING - Number of additional individual shop and maint. tours - Duration > 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'shopping') &(df.duration>2)),  (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)) *(df.num_add_shop_maint_tours), 0)",-0.115431492
+SHOPPING - Departure Constant: Shift for every 30 minutes before 08:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start<12)), (np.where((df.start<12), np.minimum(12-df.start,7), 0) + np.where((df.start>17), np.minimum(df.start-17,24), 0)), 0)",-0.959875456
+SHOPPING - Departure Constant: Shift for every 30 minutes before 08:30 am - Square root,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start<12)),1.112594898
+SHOPPING - Departure Constant: Before 09:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start<13)),-0.446394064
+SHOPPING - Departure Constant: 09:00 AM - 09:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start==13)),-0.021669265
+SHOPPING - Departure Constant: 09:30 AM - 10:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start==14)),-0.282978638
+SHOPPING - Departure Constant: 10:00 AM - 10:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start==15)),0
+SHOPPING - Departure Constant: 10:30 AM - 11:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start==16)),-0.309421311
+SHOPPING - Departure Constant: After 11:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start>16)),-0.541073357
+SHOPPING - Departure Constant: Shift for every 30 minutes after 11:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start>17)), (np.where((df.start<12), np.minimum(12-df.start,7),0) + np.where((df.start>17), np.minimum(df.start-17,24), 0)), 0)",-0.072013428
+SHOPPING - Departure Constant: Shift for every 30 minutes after 11:30 am - Squared,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.start>17)), ((np.where((df.start<12), np.minimum(12-df.start,7), 0) + np.where((df.start>17), np.minimum(df.start-17,24), 0)) ** 2), 0)",-0.000653398
+SHOPPING - Arrival Constant: Shift for every 30 minutes before 12:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end<19)), (np.where ((df.end<19), np.minimum(19-df.end,10), 0) + np.where((df.end>38), np.minimum(df.end-38,5), 0)), 0)",-0.18376635
+SHOPPING - Arrival Constant: Before 12:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end<20)),-0.716195343
+SHOPPING - Arrival Constant: 12:30 PM - 03:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & ( df.end>=20) & (df.end<=24)),-0.502714001
+SHOPPING - Arrival Constant: 03:00 PM - 03:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end==25)),-0.167868872
+SHOPPING - Arrival Constant: 03:30 PM - 04:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end==26)),-0.156786941
+SHOPPING - Arrival Constant: 04:00 PM - 04:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end==27)),0
+SHOPPING - Arrival Constant: 04:30 PM - 05:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end==28)),-0.057314044
+SHOPPING - Arrival Constant: 05:00 PM - 05:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end==29)),-0.580040851
+SHOPPING - Arrival Constant: 05:30 PM - 07:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end>=30) & (df.end<=32)),-0.32239566
+SHOPPING - Arrival Constant: 07:00 PM - 09:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end>=33) & (df.end<=37)),-0.347828147
+SHOPPING - Arrival Constant: After 09:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end>37)),-1.123574723
+SHOPPING - Arrival Constant: Shift for every 30 minutes after 10:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.end>38)), (np.where((df.end<19), np.minimum(19-df.end,10), 0) + np.where ((df.end>38), np.minimum(df.end-38,5), 0)), 0)",-0.499770654
+SHOPPING - Duration Constant: 0 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==0)),-0.131743185
+SHOPPING - Duration Constant: 0.5 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==1)),0.888857137
+SHOPPING - Duration Constant: 1 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==2)),0
+SHOPPING - Duration Constant: 1.5hrs,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==3)),-0.333413031
+SHOPPING - Duration Constant: 2 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==4)),-0.850897912
+SHOPPING - Duration Constant: Longer than 2 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration>4)),-1.203783479
+SHOPPING - Duration Constant: Duration > 2.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration>5)), (np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>5), np.minimum(df.duration-5,26), 0)), 0)",-0.293581223
+SHOPPING - Duration Constant: Duration > 2.5 hrs - Square root,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration>5)), ((np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>5), np.minimum(df.duration-5,26), 0)) ** 0.5), 0)",-0.215759138
+SHOPPING - Calibration Constant - Duration = 1,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==0)),-0.138450424
+SHOPPING - Calibration Constant - Duration = 2,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==1)),-0.092704403
+SHOPPING - Calibration Constant - Duration = 3,@((df.tour_category == 'joint') & (df.tour_type == 'shopping') & (df.duration==2)),-0.087738073
+#MAINTENANCE,,
+MAINTENANCE - Joint Maintenance tours dummy: Departure before 10:00 AM  - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start<15)), (np.where((df.start<=15), np.minimum(15-df.start,7), 0) + np.where((df.start>15), np.minimum(df.start-15,24), 0)), 0)",-0.139150288
+MAINTENANCE - Joint Maintenance tours dummy: Departure after 10:30 AM - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start>15)), (np.where((df.start<=15), np.minimum(15-df.start,7), 0) + np.where((df.start>15), np.minimum(df.start-15,24), 0)), 0)",-0.065786345
+MAINTENANCE - Joint Tours Party Size > 2: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration<2) & (df.number_of_participants > 2)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)), 0)",-0.291965906
+MAINTENANCE - Joint Tours Party Size > 2: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.number_of_participants > 2)), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0.045755784
+MAINTENANCE - Joint Tour with only adults: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration<2) & (df.composition=='adults')), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)), 0)",-0.571185116
+MAINTENANCE - Kids in Joint Tour: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration<2) & ((df.composition=='children')|(df.composition=='mixed'))), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)), 0)",-0.468815184
+MAINTENANCE - Kids in Joint Tour: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & ((df.composition=='children')|(df.composition=='mixed'))), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.047470039
+#The expressions below are for individual tours,,
+#MAINTENANCE - Driving age student: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.ptype == 6)), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0.122149101
+#MAINTENANCE - Full-time worker: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.ptype == 1)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.037886459
+#MAINTENANCE - Non-driving Student: Duration > 1.5 hr,"@np.where (((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.ptype == 7)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0.10247157
+#MAINTENANCE - Pre-school Child: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration<2) & (df.ptype == 8)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-1.882944033
+#MAINTENANCE - Part Time Worker: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration<2) & (df.ptype == 2)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.197455071
+#MAINTENANCE - Part Time Worker: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.ptype == 2)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.045152663
+#MAINTENANCE - Retired: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration<2) & (df.ptype == 1)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.264728908
+#MAINTENANCE - Retired: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.ptype == 5)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.042981757
+#MAINTENANCE - University Student: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.ptype == 3)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0.045926523
+#MAINTENANCE - Female: Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration<2) & (df.is_female)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",-0.417208254
+#MAINTENANCE - Female: Duration > 1.5 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>2) & (df.is_female)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0) + np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0.045801918
+"MAINTENANCE - Low Income (<=$25,000): Duration > 1.5 hr","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.is_income_less25K) & (df.duration>2)), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0.040776383
+"MAINTENANCE - Medium Income ($25,001 to $60,000): Duration < 1.5 hrs","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.is_income_25K_to_60K) & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)), 0)",0.108462927
+"MAINTENANCE - Medium Income ($25,001 to $60,000): Duration > 1.5 hr","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.is_income_25K_to_60K) & (df.duration>2)), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)), 0)",0
+"MAINTENANCE - Medium-High Income ($60,001 to $120,00): Duration > 1.5 hr","@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.is_income_60K_to_120K) & (df.duration>2)), (np.where((df.duration>2), np.minimum(df.duration-2,26), 0)), 0)",-0.037893416
+MAINTENANCE - Distance: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,1), 0)) *(df.origin_to_destination_distance), 0)",-0.214802537
+MAINTENANCE - Distance: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration>2)), (np.where((df.duration>2),np.minimum(df.duration-2,26), 0)) * (df.origin_to_destination_distance), 0)",0.007991656
+#The expressions below are for individual tours,,
+#MAINTENANCE - Time Pressure - Duration > 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>3)), np.minimum(df.duration-3,27) * (np.log10 (30 * (tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",0.013503327
+#MAINTENANCE - Number of additional individual shop and maint. tours - Duration < 1.5 hrs,"@np.where(((df.tour_category != 'joint')&(df.tour_type == 'othmaint')&(df.duration<3)), (np.minimum(3-df.duration,2)) *(df.num_add_shop_maint_tours), 0)",0.078844289
+#MAINTENANCE - Number of additional individual shop and maint. tours - Duration > 1.5 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othmaint') & (df.duration>3)), (np.where((df.duration>3),np.minimum(df.duration-3,27), 0)) * (df.num_add_shop_maint_tours), 0)",-0.115431492
+MAINTENANCE - Departure Constant: Shift for every 30 minutes before 07:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start<10)), (np.where((df.start<10), np.minimum(10-df.start,7), 0) + np.where((df.start>17), np.minimum(df.start-17,24), 0)), 0)",-0.864112609
+MAINTENANCE - Departure Constant: Shift for every 30 minutes before 07:30 am - Square Root,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start<10)), ((np.where((df.start<10), np.minimum(10-df.start,7), 0) + (np.where((df.start>17), np.minimum(df.start-17,24), 0)))** 0.5), 0)",0.504598473
+MAINTENANCE - Departure Constant: Before 08:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start<11)),-0.383711788
+MAINTENANCE - Departure Constant: 08:00 AM - 08:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start==11)),-0.076771517
+MAINTENANCE - Departure Constant: 08:30 AM - 09:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start==12)),-0.169259979
+MAINTENANCE - Departure Constant: 09:00 AM - 09:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start==13)),-0.051785379
+MAINTENANCE - Departure Constant: 09:30 AM - 10:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start==14)),-0.214942451
+MAINTENANCE - Departure Constant: 10:00 AM - 10:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start==15)),0
+MAINTENANCE - Departure Constant: 10:30 AM - 11:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start==16)),-0.427568963
+MAINTENANCE - Departure Constant: After 11:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start>16)),-0.520863411
+MAINTENANCE - Departure Constant: Shift for every 30 minutes after 11:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start>17)), np.where((df.start<10), np.minimum(10-df.start,7), 0) + np.where((df.start>17), np.minimum(df.start-17,24), 0), 0)",0.042879095
+MAINTENANCE - Departure Constant: Shift for every 30 minutes after 11:30 am - Squared,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.start>17)), ((np.where((df.start<10), np.minimum(10-df.start,7), 0) + np.where((df.start>17), np.minimum(df.start-17,24), 0)) ** 2), 0)",-0.003157293
+MAINTENANCE - Arrival Constant: Shift for every 30 minutes before 10:00 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end<15)), (np.where((df.end<15), np.minimum(15-df.end,9), 0) + np.where((df.end>28), np.minimum(df.end-28,16), 0)), 0)",-0.226803619
+MAINTENANCE - Arrival Constant: Before 10:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end<16)),-0.223212258
+MAINTENANCE - Arrival Constant: 10:30 AM - 11:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end==16)),0
+MAINTENANCE - Arrival Constant: 11:00 AM - 11:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end==17)),-0.128382637
+MAINTENANCE - Arrival Constant: 11:30 AM - 01:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end>=18) & (df.end<=21)),0.167977332
+MAINTENANCE - Arrival Constant: 01:30 PM - 02:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end>=22) & (df.end<=23)),-0.149495878
+MAINTENANCE - Arrival Constant: 02:30 PM - 04:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end>=24) & (df.end<=26)),0.087679934
+MAINTENANCE - Arrival Constant: 04:00 PM - 04:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end==27)),0.121707557
+MAINTENANCE - Arrival Constant: After 04:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end>27)),0.106745013
+MAINTENANCE - Arrival Constant: Shift for every 30 minutes after 5:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.end>28)), (np.where((df.end<15), np.minimum(15-df.end,9), 0) + np.where((df.end>28), np.minimum(df.end-28,16), 0)), 0)",-0.232610927
+MAINTENANCE - Duration Constant: 0 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration==0)),-0.483549396
+MAINTENANCE - Duration Constant: 0.5 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration==1)),0
+MAINTENANCE - Duration Constant: Longer than 0.5 hrs,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration>1)),-1.450618319
+MAINTENANCE - Duration Constant: Duration > 1 hrs  - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration>2)), (np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,26), 0)), 0)",-0.275082922
+MAINTENANCE - Duration Constant: Duration > 1  hrs  - Square Root,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration>2)), ((np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,26), 0))** 0.5), 0)",0.208434683
+MAINTENANCE - Calibration Constant - Duration = 1,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration==0)),-0.124602605
+MAINTENANCE - Calibration Constant - Duration = 2,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration==1)),-0.103637715
+MAINTENANCE - Calibration Constant - Duration = 3,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration==2)),-0.225442145
+MAINTENANCE - Calibration Constant - Duration = 4,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration==3)),-0.145273012
+MAINTENANCE - Calibration Constant - Duration = 5,@((df.tour_category == 'joint') & (df.tour_type == 'othmaint') & (df.duration==4)),-0.019241539
+#EAT-OUT,,
+EAT-OUT - Distance to destination - Duration < 1 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0)) * (df.origin_to_destination_distance), 0)",-0.134981987
+EAT-OUT - Distance to destination - Duration > 1 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration>2)), (np.where((df.duration>2), np.minimum(df.duration-2,14), 0)) *(df.origin_to_destination_distance), 0)",0.017860742
+EAT-OUT - Low income (<25000) - Duration < 1 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.is_income_less25K) & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0)), 0)",1.002485807
+EAT-OUT - Medium (25k to 60k) - Duration < 1 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.is_income_25K_to_60K) & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0)), 0)",0.499822018
+EAT-OUT - Zero auto HH - Duration > 1 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.auto_ownership == 0) & (df.duration>2)), (np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",0.259409942
+EAT-OUT - Kids in Joint tour  - Duration < 1 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration<2) & ((df.composition=='children')|(df.composition=='mixed'))), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0)), 0)",1.785123348
+EAT-OUT - Joint Tours Party Size greater than 2 - Duration < 1 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration<2) & (df.number_of_participants > 2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0)), 0)",-1.626003709
+#The expressions below are for individual tours,,
+#EAT-OUT - University student - Departure after 7:00 pm - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type== 'eatout') & (df.start>32) & (df.ptype == 3)), (np.where((df.start<=32), np.minimum(32-df.start,29), 0) + np.where((df.start>32), np.minimum(df.start-32,8), 0)), 0)",0.293827759
+#EAT-OUT - Female - Duration < 1 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.duration<2) & (df.is_female)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",-0.399414247
+#EAT-OUT - Female - Duration > 1 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.duration>2) & (df.is_female)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",0.064593482
+#EAT-OUT - Time Pressure - Departure before 6:30 pm,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start<32)), (np.minimum(32-df.start,29)) * (np.log10 (30 *(tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",0.083673557
+#EAT-OUT - Time Pressure - Duration < 1 hrs,"@np.where(((df.tour_category != 'joint') & (df.tour_type== 'eatout') & (df.duration<2)), np.minimum(2-df.duration,47) * (np.log10 (30 * (tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",1.69632588
+#EAT-OUT - Departure Constant: 07:30 AM - 09:00 AM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start>=10) & (df.start<=12)),1.222417262
+#EAT-OUT - Departure Constant: 10:30 AM - 11:00 AM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==16)),0.519559134
+#EAT-OUT - Departure Constant: 11:00 AM - 11:30 AM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==17)),1.191543552
+#EAT-OUT - Departure Constant: 11:30 AM - 12:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==18)),1.66870995
+#EAT-OUT - Departure Constant: 12:00 PM - 12:30 PM,@((df.tour_category != 'joint') & (df.tour_type== 'eatout') & (df.start==19)),1.164106986
+#EAT-OUT - Departure Constant: 12:30 PM - 01:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==20)),1.057346496
+#EAT-OUT - Departure Constant: 01:00 PM - 01:30 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==21)),0.728959087
+#EAT-OUT - Departure Constant: Shift for every 30 minutes before 05:30 pm - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start<31)), (np.where((df.start<30), np.minimum(30-df.start,27), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",-0.477439748
+#EAT-OUT - Departure Constant: Before 06:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start<31)),-1.21554671
+#EAT-OUT - Departure Constant: 06:00 PM - 06:30 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==31)),-0.425984037
+#EAT-OUT - Departure Constant: 06:30 PM - 07:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==32)),0
+#EAT-OUT - Departure Constant: 07:00 PM - 07:30 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start==33)),-0.227800647
+#EAT-OUT - Departure Constant: After 07:30 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start>33)),-0.293904097
+#EAT-OUT - Departure Constant: Shift for every 30 minutes after 08:00 pm - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.start>34)), (np.where((df.start<30), np.minimum(30-df.start,27), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",-0.55440861
+EAT-OUT - Departure Constant: 11:00 AM - 12:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start>=17) & (df.start<=18)),0.531539506
+EAT-OUT - Departure Constant: 12:00 PM - 12:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start==19),0.673838195
+EAT-OUT - Departure Constant: 12:30 PM to 01:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start==20),0.422292261
+EAT-OUT - Departure Constant: Shift for every 30 minutes before 05:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start<29)), (np.where((df.start<29), np.minimum(29-df.start,20), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",-0.033290717
+EAT-OUT - Departure Constant: Before 05:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start<30),-0.561079452
+EAT-OUT - Departure Constant: 05:30 PM - 06:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start==30),-0.178719161
+EAT-OUT - Departure Constant: 06:00 PM - 06:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start==31),0
+EAT-OUT - Departure Constant: 06:30 PM - 07:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start==32),-0.282095841
+EAT-OUT - Departure Constant: 07:00 PM - 07:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start==33),-0.299748613
+EAT-OUT - Departure Constant: After 07:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start>33),-0.845300559
+EAT-OUT - Departure Constant: Shift for every 30 minutes after 08:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start>34)), (np.where((df.start<29), np.minimum(29-df.start,20), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",-0.667843486
+#EAT-OUT - Arrival Constant: 9:30 AM to 11:00 AM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end>=14) & (df.end<=16)),0.486337344
+#EAT-OUT - Arrival Constant: 12:30 PM to 01:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end==20)),0.629299404
+#EAT-OUT - Arrival Constant: 01:00 PM to 01:30 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end==21)),0.938528731
+#EAT-OUT - Arrival Constant: 01:30 PM to 02:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end==22)),0.584420106
+#EAT-OUT - Arrival Constant: 02:00 PM to 02:30 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end==23)),0.842550215
+#EAT-OUT - Arrival Constant: 02:30 PM to 03:00 PM,@((df.tour_category != 'joint') & (df.tour_type== 'eatout') & (df.end==24)),0.298486505
+#EAT-OUT - Arrival Constant: Shift for every 30 minutes before 06:00 pm - Linear,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end<31)),0.125034982
+#EAT-OUT - Arrival Constant: Before 6:30 PM,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end<32)), (np.where((df.end<31), np.minimum(31-df.end,24), 0) + np.where((df.end>37), np.minimum(df.end-37,48), 0)), 0)",-0.029062996
+#EAT-OUT - Arrival Constant: 6:30 PM to 7:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end==32)),-0.509075598
+#EAT-OUT - Arrival Constant: 7:00 PM to 7:30 PM,@((df.tour_category != 'joint') & (df.tour_type== 'eatout') & (df.end==33)),-0.124885931
+#EAT-OUT - Arrival Constant: 7:30 PM to 8:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end==34)),-0.605455664
+#EAT-OUT - Arrival Constant: 8:00 PM to 8:30 PM,@((df.tour_category != 'joint') &(df.tour_type == 'eatout') & (df.end==35)),0
+#EAT-OUT - Arrival Constant: 8:30 PM to 9:00 PM,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end==36)),-0.657382835
+#EAT-OUT - Arrival Constant: After 9:00 PM,@((df.tour_category != 'joint')& (df.tour_type == 'eatout') & (df.end>36)),-0.813629712
+#EAT-OUT - Arrival Constant: Shift for every 30 minutes after 09:30 pm - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.end>37)), (np.where((df.end<31), np.minimum(31-df.end,24), 0) + np.where((df.end>37), np.minimum(df.end-37,48), 0)), 0)",-0.204722406
+EAT-OUT - Arrival Constant: 12:30 PM to 01:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end==20),2.002032369
+EAT-OUT - Arrival Constant: 01:00 PM to 01:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end==21),2.115334472
+EAT-OUT - Arrival Constant: 01:30 PM to 02:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end==22),1.647879687
+EAT-OUT - Arrival Constant: 02:00 PM to 02:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end==23),1.525310078
+EAT-OUT - Arrival Constant: Shift for every 30 minutes before 06:30 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end<32)), (np.where((df.end<32), np.minimum(32-df.end,21), 0) + np.where((df.end>37), np.minimum(df.end-37,48), 0)), 0)",-0.152980854
+EAT-OUT - Arrival Constant: Before 7:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end<33),-0.41165142
+EAT-OUT - Arrival Constant: 7:00 PM to 7:30 PM,@(df.tour_category == 'joint') & (df.tour_type== 'eatout') & (df.end==33),-0.384557379
+EAT-OUT - Arrival Constant: 7:30 PM to 8:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end==34),-0.044050359
+EAT-OUT - Arrival Constant: 8:00 PM to 8:30 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end==35),0
+EAT-OUT - Arrival Constant: 8:30 PM to 9:00 PM,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.end==36),-0.239939049
+EAT-OUT - Arrival Constant: After 09:00 PM,@(df.tour_category == 'joint') & (df.tour_type== 'eatout') & (df.end>36),-0.248639696
+EAT-OUT - Arrival Constant: Shift for every 30 minutes after 09:30 pm - Linear,"@np.where(((df.tour_type== 'eatout') & (df.end>37) & (df.tour_category == 'joint')), (np.where((df.end<32), np.minimum(32-df.end,21), 0) + np.where((df.end>37), np.minimum(df.end-37,48), 0)), 0)",-0.204771082
+#The expressions below are for individual tours,,
+#EAT-OUT - Duration Constant: 0 hours,@((df.tour_category != 'joint') & (df.tour_type== 'eatout') & (df.duration==0)),-11.72660422
+#EAT-OUT - Duration Constant: 0.5 hous,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.duration==1)),-5.08873115
+#EAT-OUT - Duration Constant: 1 hour,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.duration==2)),-0.125521065
+#EAT-OUT - Duration Constant: 1.5 hours,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.duration==3)),0
+#EAT-OUT - Duration Constant: 2 hours,@((df.tour_category != 'joint')& (df.tour_type == 'eatout') & (df.duration==4)),-0.124807752
+#EAT-OUT - Duration Constant: 2.5 hours or more,@((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.duration>5)),-0.156019835
+EAT-OUT - Duration Constant: Shift for every 30 minutes more than 3 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'eatout') & (df.duration>6)), (np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>6), np.minimum(df.duration-6,12), 0)), 0)",-0.3357414
+EAT-OUT - Duration Constant: 0 hours,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration==0)),-4.268996522
+EAT-OUT - Duration Constant: 0.5 hous,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration==1)),-1.323297693
+EAT-OUT - Duration Constant: 1 hour,@((df.tour_category == 'joint') & (df.tour_type== 'eatout') & (df.duration==2)),0
+EAT-OUT - Duration Constant: 1.5 hours,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration==3)),-0.195669185
+EAT-OUT - Duration Constant: 2 hours or more,@(df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration>4),-0.523723192
+EAT-OUT - Duration Constant: Shift for every 30 minutes more than 2.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration>5)), (np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>5), np.minimum(df.duration-5,13), 0)), 0)",-0.649331488
+EAT-OUT - Calibration Constant - Duration = 1,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration==0)),-0.333697861
+EAT-OUT - Calibration Constant - Duration = 2,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration==1)),-0.245716
+EAT-OUT - Calibration Constant - Duration = 3,@((df.tour_category == 'joint') & (df.tour_type== 'eatout') & (df.duration==2)),0.052708833
+EAT-OUT - Calibration Constant - Duration = 4,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.duration==3)),0.041571499
+EAT-OUT - Calibration Constant - Departure  = 1,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start == 1)),-10
+EAT-OUT - Calibration Constant - Departure  = 2,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start == 2)),-10
+EAT-OUT - Calibration Constant - Departure  = 3,@((df.tour_category == 'joint') & (df.tour_type== 'eatout') & (df.start == 3)),-10
+EAT-OUT - Calibration Constant - Departure  = 17,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start ==17)),0.706568704
+EAT-OUT - Calibration Constant - Departure  = 18,@((df.tour_category == 'joint') & (df.tour_type== 'eatout') & (df.start ==18)),0.634353544
+EAT-OUT - Calibration Constant - Departure  = 19,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start ==19)),0.584387268
+EAT-OUT - Calibration Constant - Departure  = 20,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start ==20)),0.469777884
+EAT-OUT - Calibration Constant - Departure  = 21,@((df.tour_category == 'joint') & (df.tour_type == 'eatout') & (df.start ==21)),0.39548931
+#SOCIAL,,
+#The expressions below are for individual tours,,
+#SOCIAL - Person< 18 years old: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration<3) & (df.age<18)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3),np.minimum(df.duration-3,47), 0)), 0)",-0.262839914
+#SOCIAL - Person< 18 years old: Duration > 1.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration>3) & (df.age<18)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3),np.minimum(df.duration-3,47), 0)), 0)",0.086919429
+#SOCIAL - Non-working senior/ retiree: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration<3) & (df.ptype == 5)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",0.468354376
+SOCIAL - Retiree/ Non-working senior only HH: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.retired_adults_only_hh) & (df.tour_type == 'social') & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3),np.minimum(df.duration-3,47), 0)), 0)",-0.312282762
+SOCIAL - Zero auto households: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.auto_ownership == 0) & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3),np.minimum(df.duration-3,47), 0)), 0)",-0.508439932
+SOCIAL - Zero auto households: Duration > 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.auto_ownership == 0) & (df.duration>3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3),np.minimum(df.duration-3,47), 0)), 0)",0.074190914
+SOCIAL - Number of auto more that number of adults: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint')&(df.tour_type == 'social') & (df.auto_ownership > 0) &(df.auto_ownership > df.num_adults) & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)), 0)",0.127185965
+SOCIAL - Number of auto more that number of adults: Duration > 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.auto_ownership > 0) & (df.auto_ownership > df.num_adults) & (df.duration>3)), (np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",0.048756122
+SOCIAL - Kids in Joint Tour: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration<3) & ((df.composition=='children')|(df.composition=='mixed'))), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)), 0)",-0.559947083
+SOCIAL - Kids in Joint Tour: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration>3) & ((df.composition=='children')|(df.composition=='mixed'))), (np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",-0.115347031
+SOCIAL - Joint Tours Party Size > 2: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration>3) & (df.number_of_participants > 2)), (np.where((df.duration>3),np.minimum(df.duration-3,47), 0)), 0)",0.104494637
+SOCIAL - Auto Distance: Duration < 1 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) * (df.origin_to_destination_distance)), 0) ",-0.162965435
+SOCIAL - Auto Distance: Duration > 1 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration>3)), (np.where((df.duration>3), np.minimum(df.duration-3,47), 0) * (df.origin_to_destination_distance)), 0)",0.006797399
+#The expressions below are for individual tours,,
+#SOCIAL - Time Pressure - Duration < 1 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration<3)), np.minimum(3-df.duration,47), 0)* (np.log10 (30 * (tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num))))",-0.229264474
+#SOCIAL - Time Pressure - Duration > 1 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration>3)), np.minimum(df.duration-3,47), 0) * (np.log10 (30 * (tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num))))",0.219325112
+#SOCIAL - Number of additional individual social and dicretionary tours - Duration < 1 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3),np.minimum(df.duration-3,47), 0)) * (df.num_add_soc_discr_tours), 0)",0.156250451
+SOCIAL - Departure Constant: Shift for every 30 minutes before 08:30 am - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start<12)), (np.where((df.start<48), np.minimum(12-df.start,48), 0) + np.where((df.start>48), np.minimum(df.start-48,48), 0)), 0)",-0.529943196
+SOCIAL - Departure Constant: Before 09:00 AM,@(df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start<13),-0.198438086
+SOCIAL - Departure Constant: 09:00 AM to 09:30 AM,@(df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start==13),0.137620628
+SOCIAL - Departure Constant: Shift for every 30 minutes before 05:00 pm - Linear,"@np.where((df.tour_category == 'joint') & (df.start<29), (np.where((df.start<29), np.minimum(29-df.start,8), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",-0.142078961
+SOCIAL - Departure Constant: Before 05:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start<30)),-0.390965052
+SOCIAL - Departure Constant: 05:30 PM - 06:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start==30)),-0.453580491
+SOCIAL - Departure Constant: 06:00 PM - 06:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start==31)),0
+SOCIAL - Departure Constant: 06:30 PM - 07:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start==32)),-0.088537991
+SOCIAL - Departure Constant: 07:00 PM - 07:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start==33)),0.052983115
+SOCIAL - Departure Constant: After 07:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.start>33)),-0.649629162
+SOCIAL - Departure Constant: Shift for every 30 minutes after 08:00 pm - Linear,"@np.where((df.tour_category == 'joint') & (df.start>34), (np.where((df.start<29), np.minimum(29-df.start,8), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",-0.09574499
+SOCIAL - Arrival Constant: 03:00 PM to 03:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end==25)),0.37674882
+SOCIAL - Arrival Constant: 03:30 PM to 04:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end==26)),0.583355461
+SOCIAL - Arrival Constant: 04:00 PM to 04:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end==27)),0.727855233
+SOCIAL - Arrival Constant: 05:00 PM to 06:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end>=29) & (df.end<=30)),0.249551955
+SOCIAL - Arrival Constant: Shift for every 30 minutes before 08:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end<35)), (np.where((df.end<35), np.minimum(35-df.end,48), 0) + np.where((df.end>40), np.minimum(df.end-40,48), 0)), 0)",0.053771388
+SOCIAL - Arrival Constant: Before 8:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end<36)),0.308763611
+SOCIAL - Arrival Constant: 8:30 PM to 9:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end==36)),-0.208797698
+SOCIAL - Arrival Constant: 9:00 PM to 9:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end==37)),-0.336319511
+SOCIAL - Arrival Constant: 9:30 PM to10:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end==38)),0
+SOCIAL - Arrival Constant: 10:00 PM to 10:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end==39)),-0.055707591
+SOCIAL - Arrival Constant: After 10:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end>39)),-0.612356296
+SOCIAL - Arrival Constant: Shift for every 30 minutes after 11:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.end>40)), (np.where((df.end<35), np.minimum(35-df.end,48), 0) +np.where((df.end>40),np.minimum(df.end-40,48),0)), 0)",-0.348479901
+SOCIAL - Duration Constant: Shift for every 30 minutes less than 1.5 hrs - Linear,"@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration<3)) * ((np.minimum(3-df.duration,47)*(df.duration<3)) + (np.minimum(df.duration-6,47)*(df.duration>6)))",0.619073863
+SOCIAL - Duration Constant: Less than 2 hours,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration<4)),-0.584024011
+SOCIAL - Duration Constant: 2 hours,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration==4)),-0.271552271
+SOCIAL - Duration Constant: 2.5 hours,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration==5)),0
+SOCIAL - Duration Constant: 3 hours or more,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration>5)),0.042083404
+SOCIAL - Duration Constant: Shift for every 30 minutes more than 3.5 hrs - Linear,"@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration>6)) * ((np.minimum(3-df.duration,47)*(df.duration<3)) + (np.minimum(df.duration-6,47)*(df.duration>6)))",-0.13049452
+#The expressions below are for individual tours,,
+#SOCIAL - Duration Constant: Shift for every 30 minutes less than 2.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration<5)), (np.where((df.duration<5), np.minimum(5-df.duration,47), 0) + np.where((df.duration>7), np.minimum(df.duration-7,47), 0)), 0)",0.614440191
+#SOCIAL - Duration Constant: Less than 3 hrs,@((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration<6)),0.353666691
+#SOCIAL - Duration Constant: 3 hours,@((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration==6)),0
+#SOCIAL - Duration Constant: 3.5 hours,@((df.tour_category != 'joint')& (df.tour_type == 'social') & (df.duration==7)),-0.691218836
+#SOCIAL - Duration Constant: 4 hours or more,@((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration>7)),-1.344375328
+#SOCIAL - Duration Constant: Shift for every 30 minutes more than 4.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'social') & (df.duration>9)), (np.where((df.duration<5), np.minimum(5-df.duration,47), 0) + np.where((df.duration>8), np.minimum(df.duration-8,47), 0)), 0)",-0.786970714
+SOCIAL - Calibration Constant - Duration = 1,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==0)),-1.346772472
+SOCIAL - Calibration Constant - Duration = 2,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration == 1)),0.377121689
+SOCIAL - Calibration Constant - Duration = 3,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==2)),0.179818928
+SOCIAL - Calibration Constant - Duration = 4,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==3)),-0.283418619
+SOCIAL - Calibration Constant - Duration = 5,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==4)),-0.103541313
+SOCIAL - Calibration Constant - Duration = 6,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==5)),-0.03704707
+SOCIAL - Calibration Constant - Duration = 7,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==6)),-0.062437167
+SOCIAL - Calibration Constant - Duration = 8,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==7)),0.047640282
+SOCIAL - Calibration Constant - Duration = 9,@((df.tour_category == 'joint') & (df.tour_type == 'social') & (df.duration ==8)),0.284369793
+#DISCRETIONARY,,
+#The expressions below are for individual tours,,
+#DISCRETIONARY - Person< 18 years old: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration<3) & (df.age<18)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",-0.262839914
+#DISCRETIONARY - Person< 18 years old: Duration > 1.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration>3) & (df.age<18)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",0.086919429
+#DISCRETIONARY - Non-working senior/ retiree: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration<3) & (df.ptype == 5)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",0.468354376
+DISCRETIONARY - Retiree/ Non-working senior only HH: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.retired_adults_only_hh) & (df.tour_type == 'othdiscr') & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)), 0)",-0.312282762
+DISCRETIONARY - Zero auto households: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.auto_ownership == 0) & (df.tour_type == 'othdiscr') & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)), 0)",-0.508439932
+DISCRETIONARY - Zero auto households: Duration > 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.auto_ownership == 0) & (df.tour_type == 'othdiscr') & (df.duration>3)), (np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",0.074190914
+DISCRETIONARY - Number of auto more that number of adults: Duration < 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.auto_ownership > 0) & (df.tour_type == 'othdiscr') & (df.auto_ownership > df.num_adults) & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)),0)",0.127185965
+DISCRETIONARY - Number of auto more that number of adults: Duration > 1.5 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.auto_ownership > 0) &(df.tour_type == 'othdiscr')&(df.auto_ownership > df.num_adults) & (df.duration>3)), (np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",0.048756122
+DISCRETIONARY - Kids in Joint Tour: Duration < 1.5 hrs,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration<3) & ((df.ptype == 6) | (df.ptype == 7) | (df.ptype == 8))), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)), 0)",-0.559947083
+DISCRETIONARY - Kids in Joint Tour: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration>3) & ((df.ptype == 6) | (df.ptype == 7) | (df.ptype == 8))), (np.where((df.duration>3), np.minimum(df.duration-3,47), 0)), 0)",-0.115347031
+DISCRETIONARY - Joint Tours Party Size > 2: Duration > 1.5 hr,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration>3) & (df.number_of_participants > 2)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)), 0)",0.104494637
+DISCRETIONARY - Auto Distance: Duration < 1 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration<3) & (df.origin_to_destination_distance)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0)), 0)",-0.162965435
+DISCRETIONARY - Auto Distance: Duration > 1 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration>3)), (np.where((df.duration>3), np.minimum(df.duration-3,47), 0)) * (df.origin_to_destination_distance), 0)",0.006797399
+#The expressions below are for individual tours,,
+#DISCRETIONARY - Time Pressure - Duration < 1 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration<3)), np.minimum(3-df.duration,47), 0) * (np.log10 (30 * (tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num))))",-0.229264474
+#DISCRETIONARY - Time Pressure - Duration > 1 hr,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration>3)), np.minimum(df.duration-3,47) * (np.log10 (30 * (tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",0.219325112
+#DISCRETIONARY - Number of additional individual social and dicretionary tours - Duration < 1 hr,"@np.where(((df.tour_category != 'joint')&(df.tour_type == 'othdiscr') & (df.duration<3)), (np.where((df.duration<=3), np.minimum(3-df.duration,47), 0) + np.where((df.duration>3), np.minimum(df.duration-3,47), 0))*(df.num_add_soc_discr_tours),0)",0.156250451
+DISCRETIONARY - Departure Constant: Shift for every 30 minutes before 07:30 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start<9)), (np.where((df.start<9), np.minimum(9-df.start,48), 0) + np.where((df.start>48), np.minimum(df.start-48,48),0)), 0)",-0.742176805
+DISCRETIONARY - Departure Constant: Before 7:30 AM ,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start<10)),-1.323901585
+DISCRETIONARY - Departure Constant: 7:30 AM to 8:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==10)),-0.695441631
+DISCRETIONARY - Departure Constant: 8:00 AM to 8:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==11)),-0.269903336
+DISCRETIONARY - Departure Constant: 8:30 AM to 9:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==12)),-0.093709211
+DISCRETIONARY - Departure Constant: 9:00 AM to 9:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==13)),0.265634082
+DISCRETIONARY - Departure Constant: 9:30 AM to 10:00 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==14)),0.287521134
+DISCRETIONARY - Departure Constant: 10:00 AM to 10:30 AM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==15)),0.396547817
+DISCRETIONARY - Departure Constant: Shift for every 30 minutes before 04:30 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start<28)), (np.where((df.start<28), np.minimum(28-df.start,8),0) + np.where((df.start>33), np.minimum(df.start-33,6), 0)), 0)",-0.245885745
+DISCRETIONARY - Departure Constant: Before 05:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start<29)),-1.344482349
+DISCRETIONARY - Departure Constant: 05:00 PM - 05:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==29)),-0.622632748
+DISCRETIONARY - Departure Constant: 05:30 PM - 06:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==30)),-0.456718676
+DISCRETIONARY - Departure Constant: 06:00 PM - 06:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==31)),-0.206896106
+DISCRETIONARY - Departure Constant: 06:30 PM - 07:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==32)),0
+DISCRETIONARY - Departure Constant: After 07:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start>32)),-0.46439343
+DISCRETIONARY - Departure Constant: Shift for every 30 minutes after 07:30 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start>33)), (np.where((df.start<28), np.minimum(28-df.start,8), 0) + np.where((df.start>33), np.minimum(df.start-33,6), 0)), 0)",-0.291998986
+DISCRETIONARY - Arrival Constant: Shift for every 30 minutes before 06:00 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end<31)), (np.where((df.end<31), np.minimum(31-df.end,48), 0) + np.where((df.end>37), np.minimum(df.end-37,48), 0)), 0)",0.148649188
+DISCRETIONARY - Arrival Constant: Before 6:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end<32)),0.668775963
+DISCRETIONARY - Arrival Constant: 6:30 PM to 7:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end==32)),-0.053520826
+DISCRETIONARY - Arrival Constant: 7:00 PM to 7:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end==33)),0.099726391
+DISCRETIONARY - Arrival Constant: 7:30 PM to 8:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end==34)),0.063414092
+DISCRETIONARY - Arrival Constant: 8:00 PM to 8:30 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end==35)),0
+DISCRETIONARY - Arrival Constant: 8:30 PM to 9:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end==36)),-0.18610847
+DISCRETIONARY - Arrival Constant: After 9:00 PM,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end>36)),-0.423207857
+DISCRETIONARY - Arrival Constant: Shift for every 30 minutes after 09:30 pm - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.end>37)), (np.where((df.end<31), np.minimum(31-df.end,48), 0) + np.where((df.end>37), np.minimum(df.end-37,48),0)), 0)",-0.525545923
+DISCRETIONARY - Duration Constant: 0 hours,@(df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration==0),-0.944257762
+DISCRETIONARY - Duration Constant: 0.5 hous,@(df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration==1),-0.117695955
+DISCRETIONARY - Duration Constant: 1 hour,@(df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration==2),0.438403665
+DISCRETIONARY - Duration Constant: 1.5 hours,@(df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration==3),-0.002500048
+DISCRETIONARY - Duration Constant: 2 hours,@(df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration==4),0
+DISCRETIONARY - Duration Constant: 2.5 hours or more,@(df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration>4),0.239192556
+DISCRETIONARY - Duration Constant: Shift for every 30 minutes more than 3 hrs - Linear,"@np.where(((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration>5)), (np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>5), np.minimum(df.duration-5,47), 0)), 0)",-0.108260689
+#The expressions below are for individual tours,,
+#DISCRETIONARY - Duration Constant: 0 hours,@((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration==0)),0.436988282
+#DISCRETIONARY -Duration Constant: 0.5 hous,@((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration==1)),1.35967577
+#DISCRETIONARY -Duration Constant: 1 hour,@((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration==2)),1.692672999
+#DISCRETIONARY -Duration Constant: 1.5 hours,@((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration==3)),1.118932964
+#DISCRETIONARY -Duration Constant: 2 hours,@((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration==4)),0.771255733
+#DISCRETIONARY -Duration Constant: 2.5 hours,@((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration==5)),0
+#DISCRETIONARY -Duration Constant: 3 hours or more,@((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration>5)),-0.631242175
+#DISCRETIONARY -Duration Constant: Shift for every 30 minutes more than 3 hrs - Linear,"@np.where(((df.tour_category != 'joint') & (df.tour_type == 'othdiscr') & (df.duration>5)), (np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>5), np.minimum(df.duration-5,47), 0)), 0)",-0.700935645
+DISCRETIONARY -Calibration Constant - Duration = 4,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration==3)),-0.132674257
+DISCRETIONARY -Calibration Constant - Duration = 5,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.duration==4)),-0.013371871
+DISCRETIONARY -Calibration Constant - Departure = 29,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==29)),0.232927977
+DISCRETIONARY -Calibration Constant - Departure = 30,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==30)),0.306104612
+DISCRETIONARY -Calibration Constant - Departure = 31,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==31)),0.285520678
+DISCRETIONARY -Calibration Constant - Departure = 32,@((df.tour_category == 'joint') & (df.tour_type == 'othdiscr') & (df.start==32)),0.115886631

@@ -26,9 +26,7 @@ def spec_name(data_dir):
 
 @pytest.fixture(scope='module')
 def spec(data_dir, spec_name):
-    return simulate.read_model_spec(
-        file_name=spec_name,
-        spec_dir=data_dir)
+    return simulate.read_model_spec(file_name=spec_name)
 
 
 @pytest.fixture(scope='module')
@@ -36,11 +34,17 @@ def data(data_dir):
     return pd.read_csv(os.path.join(data_dir, 'data.csv'))
 
 
-def test_read_model_spec(data_dir, spec_name):
+def setup_function():
+    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    inject.add_injectable("configs_dir", configs_dir)
 
-    spec = simulate.read_model_spec(
-        file_name=spec_name,
-        spec_dir=data_dir)
+    output_dir = os.path.join(os.path.dirname(__file__), f'output')
+    inject.add_injectable("output_dir", output_dir)
+
+
+def test_read_model_spec(spec_name):
+
+    spec = simulate.read_model_spec(file_name=spec_name)
 
     assert len(spec) == 4
     assert spec.index.name == 'Expression'

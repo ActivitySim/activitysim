@@ -17,6 +17,7 @@ from . import random
 from . import tracing
 from . import mem
 
+
 from . import util
 from .tracing import print_elapsed_time
 
@@ -64,6 +65,8 @@ class Pipeline(object):
 
         self.is_open = False
 
+        tracing.initialize_traceable_tables()
+
     def rng(self):
 
         return self._rng
@@ -72,17 +75,15 @@ class Pipeline(object):
 _PIPELINE = Pipeline()
 
 
-def be_open():
-
-    if not _PIPELINE.is_open:
-        raise RuntimeError("Pipeline is not open!")
+def is_open():
+    return _PIPELINE.is_open
 
 
 def pipeline_table_key(table_name, checkpoint_name):
     if checkpoint_name:
-        key = "%s/%s" % (table_name, checkpoint_name)
+        key = f"{table_name}/{checkpoint_name}"
     else:
-        key = table_name
+        key = f"/{table_name}"
     return key
 
 
@@ -124,7 +125,7 @@ def open_pipeline_store(overwrite=False):
 
     _PIPELINE.pipeline_store = pd.HDFStore(pipeline_file_path, mode='a')
 
-    logger.debug("opened pipeline_store")
+    logger.debug(f"opened pipeline_store {pipeline_file_path}")
 
 
 def get_pipeline_store():
@@ -389,6 +390,7 @@ def load_checkpoint(checkpoint_name):
 
     # register for tracing in order that tracing.register_traceable_table wants us to register them
     traceable_tables = inject.get_injectable('traceable_tables', [])
+
     for table_name in traceable_tables:
         if table_name in loaded_tables:
             tracing.register_traceable_table(table_name, loaded_tables[table_name])
@@ -433,7 +435,7 @@ def run_model(model_name):
         model_name is assumed to be the name of a registered orca step
     """
 
-    if not _PIPELINE.is_open:
+    if not is_open():
         raise RuntimeError("Pipeline not initialized! Did you call open_pipeline?")
 
     # can't run same model more than once
@@ -462,15 +464,16 @@ def run_model(model_name):
     inject.set_step_args(args)
 
     t0 = print_elapsed_time()
+    logger.info(f"#run_model running step {step_name}")
     orca.run([step_name])
-    t0 = print_elapsed_time("run_model step '%s'" % model_name, t0, debug=True)
+
+    t0 = print_elapsed_time("#run_model completed step '%s'" % model_name, t0, debug=True)
 
     inject.set_step_args(None)
 
     _PIPELINE.rng().end_step(model_name)
     if checkpoint:
         add_checkpoint(model_name)
-        t0 = print_elapsed_time("run_model add_checkpoint '%s'" % model_name, t0, debug=True)
     else:
         logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
@@ -490,7 +493,7 @@ def open_pipeline(resume_after=None):
 
     logger.info("open_pipeline")
 
-    if _PIPELINE.is_open:
+    if is_open():
         raise RuntimeError("Pipeline is already open!")
 
     _PIPELINE.init_state()
@@ -525,7 +528,7 @@ def last_checkpoint():
         name of last checkpoint
     """
 
-    be_open()
+    assert is_open(), f"Pipeline is not open."
 
     return _PIPELINE.last_checkpoint[CHECKPOINT_NAME]
 
@@ -535,7 +538,7 @@ def close_pipeline():
     Close any known open files
     """
 
-    be_open()
+    assert is_open(), f"Pipeline is not open."
 
     close_open_files()
 
@@ -543,7 +546,7 @@ def close_pipeline():
 
     _PIPELINE.init_state()
 
-    logger.info("close_pipeline")
+    logger.debug("close_pipeline")
 
 
 def run(models, resume_after=None):
@@ -563,6 +566,9 @@ def run(models, resume_after=None):
         list of model_names
     resume_after : str or None
         model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
+
+    returns:
+        nothing, but with pipeline open
     """
 
     t0 = print_elapsed_time()
@@ -578,15 +584,24 @@ def run(models, resume_after=None):
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
 
+    mem.init_trace(config.setting('mem_tick'), write_header=True)
+    mem.trace_memory_info('#MEM pipeline.run before preload_injectables')
+
     # preload any bulky injectables (e.g. skims) not in pipeline
-    if orca.is_injectable('preload_injectables'):
-        orca.get_injectable('preload_injectables')
+    if inject.get_injectable('preload_injectables', None):
         t0 = print_elapsed_time('preload_injectables', t0)
+
+    mem.trace_memory_info('#MEM pipeline.run before run_models')
 
     t0 = print_elapsed_time()
     for model in models:
-
+        t1 = print_elapsed_time()
         run_model(model)
+        mem.trace_memory_info(f"pipeline.run after {model}")
+
+        tracing.log_runtime(model_name=model, start_time=t1)
+
+    mem.trace_memory_info('#MEM pipeline.run after run_models')
 
     t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 
@@ -613,7 +628,7 @@ def get_table(table_name, checkpoint_name=None):
     df : pandas.DataFrame
     """
 
-    be_open()
+    assert is_open(), f"Pipeline is not open."
 
     # orca table not in checkpoints (e.g. a merged table)
     if table_name not in _PIPELINE.last_checkpoint and orca.is_table(table_name):
@@ -702,7 +717,7 @@ def replace_table(table_name, df):
     df : pandas DataFrame
     """
 
-    be_open()
+    assert is_open(), f"Pipeline is not open."
 
     if df.columns.duplicated().any():
         logger.error("replace_table: dataframe '%s' has duplicate columns: %s" %
@@ -727,7 +742,7 @@ def extend_table(table_name, df, axis=0):
     df : pandas DataFrame
     """
 
-    be_open()
+    assert is_open(), f"Pipeline is not open."
 
     assert axis in [0, 1]
 
@@ -761,7 +776,7 @@ def extend_table(table_name, df, axis=0):
 
 def drop_table(table_name):
 
-    be_open()
+    assert is_open(), f"Pipeline is not open."
 
     if orca.is_table(table_name):
 
@@ -792,3 +807,52 @@ def drop_table(table_name):
 
 def is_table(table_name):
     return orca.is_table(table_name)
+
+
+def cleanup_pipeline():
+    """
+    Cleanup pipeline after successful run
+
+    Open main pipeline if not already open (will be closed if multiprocess)
+    Create a single-checkpoint pipeline file with latest version of all checkpointed tables,
+    Delete main pipeline and any subprocess pipelines
+
+    Returns
+    -------
+    nothing, but with changed state: pipeline file that was open on call is closed and deleted
+
+    """
+    # we don't expect to be called unless cleanup_pipeline_after_run setting is True
+    assert config.setting('cleanup_pipeline_after_run', False)
+
+    if not is_open():
+        open_pipeline('_')
+
+    assert is_open(), f"Pipeline is not open."
+
+    FINAL_PIPELINE_FILE_NAME = f"final_{inject.get_injectable('pipeline_file_name', 'pipeline')}"
+    FINAL_CHECKPOINT_NAME = 'final'
+
+    final_pipeline_file_path = config.build_output_file_path(FINAL_PIPELINE_FILE_NAME)
+
+    # keep only the last row of checkpoints and patch the last checkpoint name
+    checkpoints_df = get_checkpoints().tail(1).copy()
+    checkpoints_df['checkpoint_name'] = FINAL_CHECKPOINT_NAME
+
+    with pd.HDFStore(final_pipeline_file_path, mode='w') as final_pipeline_store:
+
+        for table_name in checkpointed_tables():
+            # patch last checkpoint name for all tables
+            checkpoints_df[table_name] = FINAL_CHECKPOINT_NAME
+
+            table_df = get_table(table_name)
+            logger.debug(f"cleanup_pipeline - adding table {table_name} {table_df.shape}")
+
+            final_pipeline_store[table_name] = table_df
+
+        final_pipeline_store[CHECKPOINT_TABLE_NAME] = checkpoints_df
+
+    close_pipeline()
+
+    logger.debug(f"deleting all pipeline files except {final_pipeline_file_path}")
+    tracing.delete_output_files('h5', ignore=[final_pipeline_file_path])

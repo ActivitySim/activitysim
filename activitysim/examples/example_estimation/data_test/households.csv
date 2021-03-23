@@ -1,4 +1,4 @@
-household_id,TAZ,income,hhsize,HHT,auto_ownership,num_workers
+household_id,home_zone_id,income,hhsize,HHT,auto_ownership,num_workers
 982875,16,30900,2,5,1,2
 1810015,16,99700,9,2,1,4
 1099626,20,58160,3,1,1,1

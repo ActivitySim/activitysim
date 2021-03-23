@@ -1,0 +1,162 @@
+# read trips table post preprocessor and run expressions to code
+# additional data fields, with one data fields for each matrix specified below
+
+preprocessor:
+  SPEC: write_trip_matrices_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+
+# divide trip counts by household expansion factor
+HH_EXPANSION_WEIGHT_COL: sample_rate  # added when households read in
+
+# save preprocessed trips table to pipeline if desired
+SAVE_TRIPS_TABLE: False
+
+MATRICES:
+  - file_name: trips_ea.omx
+    tables:
+      - name: DRIVEALONEFREE_EA
+        data_field: DRIVEALONEFREE_EA
+      - name: DRIVEALONEPAY_EA
+        data_field: DRIVEALONEPAY_EA
+      - name: SHARED2FREE_EA
+        data_field: SHARED2FREE_EA
+      - name: SHARED2PAY_EA
+        data_field: SHARED2PAY_EA
+      - name: SHARED3FREE_EA
+        data_field: SHARED3FREE_EA
+      - name: SHARED3PAY_EA
+        data_field: SHARED3PAY_EA
+      - name: WALK_EA
+        data_field: WALK_EA
+      - name: BIKE_EA
+        data_field: BIKE_EA
+  - file_name: trips_ea_tap.omx
+    is_tap: True
+    tables:                
+      - name: WALK_TRANSIT_EA
+        data_field: WALK_TRANSIT_EA
+      - name: DRIVE_TRANSIT_EA
+        data_field: DRIVE_TRANSIT_EA
+  - file_name: trips_am.omx
+    tables:
+      - name: DRIVEALONEFREE_AM
+        data_field: DRIVEALONEFREE_AM
+      - name: DRIVEALONEPAY_AM
+        data_field: DRIVEALONEPAY_AM
+      - name: SHARED2FREE_AM
+        data_field: SHARED2FREE_AM
+      - name: SHARED2PAY_AM
+        data_field: SHARED2PAY_AM
+      - name: SHARED3FREE_AM
+        data_field: SHARED3FREE_AM
+      - name: SHARED3PAY_AM
+        data_field: SHARED3PAY_AM
+      - name: WALK_AM
+        data_field: WALK_AM
+      - name: BIKE_AM
+        data_field: BIKE_AM
+  - file_name: trips_am_tap.omx
+    is_tap: True  
+    tables:                
+      - name: WALK_TRANSIT_AM
+        data_field: WALK_TRANSIT_AM
+      - name: DRIVE_TRANSIT_AM
+        data_field: DRIVE_TRANSIT_AM
+  - file_name: trips_md.omx
+    tables:
+      - name: DRIVEALONEFREE_MD
+        data_field: DRIVEALONEFREE_MD
+      - name: DRIVEALONEPAY_MD
+        data_field: DRIVEALONEPAY_MD
+      - name: SHARED2FREE_MD
+        data_field: SHARED2FREE_MD
+      - name: SHARED2PAY_MD
+        data_field: SHARED2PAY_MD
+      - name: SHARED3FREE_MD
+        data_field: SHARED3FREE_MD
+      - name: SHARED3PAY_MD
+        data_field: SHARED3PAY_MD
+      - name: WALK_MD
+        data_field: WALK_MD
+      - name: BIKE_MD
+        data_field: BIKE_MD
+  - file_name: trips_md_tap.omx
+    is_tap: True  
+    tables:        
+      - name: WALK_TRANSIT_MD
+        data_field: WALK_TRANSIT_MD
+      - name: DRIVE_TRANSIT_MD
+        data_field: DRIVE_TRANSIT_MD
+  - file_name: trips_pm.omx
+    tables:
+      - name: DRIVEALONEFREE_PM
+        data_field: DRIVEALONEFREE_PM
+      - name: DRIVEALONEPAY_PM
+        data_field: DRIVEALONEPAY_PM
+      - name: SHARED2FREE_PM
+        data_field: SHARED2FREE_PM
+      - name: SHARED2PAY_PM
+        data_field: SHARED2PAY_PM
+      - name: SHARED3FREE_PM
+        data_field: SHARED3FREE_PM
+      - name: SHARED3PAY_PM
+        data_field: SHARED3PAY_PM
+      - name: WALK_PM
+        data_field: WALK_PM
+      - name: BIKE_PM
+        data_field: BIKE_PM
+  - file_name: trips_pm_tap.omx
+    is_tap: True  
+    tables:
+      - name: WALK_TRANSIT_PM
+        data_field: WALK_TRANSIT_PM
+      - name: DRIVE_TRANSIT_PM
+        data_field: DRIVE_TRANSIT_PM
+  - file_name: trips_ev.omx
+    tables:
+      - name: DRIVEALONEFREE_EV
+        data_field: DRIVEALONEFREE_EV
+      - name: DRIVEALONEPAY_EV
+        data_field: DRIVEALONEPAY_EV
+      - name: SHARED2FREE_EV
+        data_field: SHARED2FREE_EV
+      - name: SHARED2PAY_EV
+        data_field: SHARED2PAY_EV
+      - name: SHARED3FREE_EV
+        data_field: SHARED3FREE_EV
+      - name: SHARED3PAY_EV
+        data_field: SHARED3PAY_EV
+      - name: WALK_EV
+        data_field: WALK_EV
+      - name: BIKE_EV
+        data_field: BIKE_EV
+  - file_name: trips_ev_tap.omx
+    is_tap: True  
+    tables:
+      - name: WALK_TRANSIT_EV
+        data_field: WALK_TRANSIT_EV
+      - name: DRIVE_TRANSIT_EV
+        data_field: DRIVE_TRANSIT_EV
+        
+CONSTANTS:
+  time_periods:
+    EA:
+      first_hour: 3
+      last_hour: 5
+    AM:
+      first_hour: 6
+      last_hour: 9
+    MD:
+      first_hour: 10
+      last_hour: 14
+    PM:
+      first_hour: 15
+      last_hour: 18
+    EV:
+      first_hour: 19
+      last_hour: 2
+  # SHARED2 and SHARED3 Occupancies
+  OCC_SHARED2: 2.0
+  OCC_SHARED3: 3.33

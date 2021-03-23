@@ -1,0 +1,173 @@
+#inherit_settings: True
+
+# activitysim run -c configs -d data -o output
+
+
+# number of households to simulate
+households_sample_size:  100
+# simulate all households
+# households_sample_size: 0
+
+chunk_size: 0
+
+# set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: False
+
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+
+# - tracing
+
+# trace household id; comment out or leave empty for no trace
+# households with all tour types
+trace_hh_id:
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+trace_od:
+
+
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      HHID: household_id
+      PERSONS: hhsize
+      workers: num_workers
+      VEHICL: auto_ownership
+      MAZ: home_zone_id
+    keep_columns:
+      - home_zone_id
+      - income
+      - hhsize
+      - HHT
+      - auto_ownership
+      - num_workers
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    rename_columns:
+      PERID: person_id
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+      - sex
+      - pemploy
+      - pstudent
+      - ptype
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      MAZ: zone_id
+      COUNTY: county_id
+    keep_columns:
+      - TAZ
+      - DISTRICT
+      - SD
+      - county_id
+      - TOTHH
+      - TOTPOP
+      - TOTACRE
+      - RESACRE
+      - CIACRE
+      - TOTEMP
+      - AGE0519
+      - RETEMPN
+      - FPSEMPN
+      - HEREMPN
+      - OTHEMPN
+      - AGREMPN
+      - MWTEMPN
+      - PRKCST
+      - OPRKCST
+      - area_type
+      - HSENROLL
+      - COLLFTE
+      - COLLPTE
+      - TOPOLOGY
+      - TERMINAL
+#      - access_dist_transit
+
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_scheduling
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - track_skim_usage
+  - write_trip_matrices
+  - write_tables
+
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  sort: True
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+    - joint_tour_participants
+
+# area_types less than this are considered urban
+urban_threshold: 4
+cbd_threshold: 2
+rural_threshold: 6
+
+
+# value_of_time = lognormal(np.log(median_value_of_time * mu), sigma).clip(min_vot, max_vot)
+
+min_value_of_time: 1
+max_value_of_time: 50
+distributed_vot_mu: 0.684
+distributed_vot_sigma: 0.85
+
+household_median_value_of_time:
+  1: 6.01
+  2: 8.81
+  3: 10.44
+  4: 12.86

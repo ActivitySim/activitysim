@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def non_mandatory_tour_destination(
         tours,
         persons_merged,
-        skim_dict, skim_stack,
+        network_los,
         chunk_size,
         trace_hh_id):
 
@@ -57,7 +57,7 @@ def non_mandatory_tour_destination(
 
     estimator = estimation.manager.begin_estimation('non_mandatory_tour_destination')
     if estimator:
-        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
+        estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
         estimator.write_spec(model_settings, tag='SPEC')
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
@@ -71,8 +71,7 @@ def non_mandatory_tour_destination(
         want_logsums,
         want_sample_table,
         model_settings,
-        skim_dict,
-        skim_stack,
+        network_los,
         estimator,
         chunk_size, trace_hh_id, trace_label)
 
@@ -94,6 +93,7 @@ def non_mandatory_tour_destination(
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
+        # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
         pipeline.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:

@@ -1,0 +1,20 @@
+Description,Expression,escort,escortkids,escortnokids,shopping,eatout,othmaint,social,othdiscr
+Mode choice logsum,mode_choice_logsum,1,1,1,coef_shopping_mode_logsum,coef_eatout_mode_logsum,coef_othmaint_mode_logsum,1,1
+Intrazonal,@(df['zone_id']==df['home_zone_id']),0,0,0,0,0,0,0,0
+CBD area type,@df['is_CBD'],0,0,0,coef_shopping_cbd,coef_eatout_cbd,coef_othmaint_cbd,coef_social_cbd,0
+Urban high area type,@df['is_urban'],0,0,0,coef_shopping_urban,coef_eatout_urban,coef_othmaint_urban,coef_social_urban,coef_othdiscr_urban
+"# CTRAMP expression has two 'Distance' coefficients. For example, 0.2553 and 0.0100 for Escort, so used their sum here",,,,,,,,,
+Distance,"@skims[('SOV_FREE_DISTANCE', 'MD')]",coef_escort_distance,coef_escortkids_distance,coef_escortnokids_distance,coef_shopping_distance,coef_eatout_distance,coef_othmaint_distance,coef_social_distance,coef_othdiscr_distance
+Distance squared,"@(skims[('SOV_FREE_DISTANCE', 'MD')] ** 2)",coef_escort_distance_squared,coef_escortkids_distance_squared,coef_escortnokids_distance_squared,coef_shopping_distance_squared,coef_eatout_distance_squared,coef_othmaint_distance_squared,coef_social_distance_squared,coef_othdiscr_distance_squared
+Distance cubed,"@(skims[('SOV_FREE_DISTANCE', 'MD')] ** 3)",coef_escort_distance_cubed,coef_escortkids_distance_cubed,coef_escortnokids_distance_cubed,coef_shopping_distance_cubed,coef_eatout_distance_cubed,coef_othmaint_distance_cubed,coef_social_distance_cubed,coef_othdiscr_distance_cubed
+Log of distance,"@np.log(skims[('SOV_FREE_DISTANCE', 'MD')])",coef_escort_log_distance,coef_escortkids_log_distance,coef_escortnokids_log_distance,coef_shopping_log_distance,coef_eatout_log_distance,coef_othmaint_log_distance,coef_social_log_distance,coef_othdiscr_log_distance
+Distance - high income,"@((df['income_in_thousands']>50) & skims[('SOV_FREE_DISTANCE', 'MD')])",0,0,0,0,coef_eatout_distance_high_income,0,0,0
+Distance - non-driving age student in hh,"@np.where(df['num_nondriving_age_children']>0, skims[('SOV_FREE_DISTANCE', 'MD')], 0)",coef_escort_distance_nondrive,coef_escortkids_distance_nondrive,coef_escortnokids_distance_nondrive,coef_shopping_distance_nondrive,0,0,coef_social_distance_nondrive,coef_othdiscr_distance_nondrive
+Distance bin 0 to 1,"@((skims[('SOV_FREE_DISTANCE', 'MD')]>=0) & (skims[('SOV_FREE_DISTANCE', 'MD')]<1))",0,0,0,coef_shopping_dist_0_1,coef_eatout_dist_0_1,coef_othmaint_dist_0_1,0,coef_othdiscr_dist_0_1
+Distance bin 1 to 2,"@((skims[('SOV_FREE_DISTANCE', 'MD')]>=1) & (skims[('SOV_FREE_DISTANCE', 'MD')]<2))",0,0,0,coef_shopping_dist_1_2,coef_eatout_dist_1_2,coef_othmaint_dist_1_2,0,coef_othdiscr_dist_1_2
+Distance bin 2 to 3,"@((skims[('SOV_FREE_DISTANCE', 'MD')]>=2) & (skims[('SOV_FREE_DISTANCE', 'MD')]<3))",0,0,0,coef_shopping_dist_2_3,coef_eatout_dist_2_3,coef_othmaint_dist_2_3,0,coef_othdiscr_dist_2_3
+Distance bin 3 to 4,"@((skims[('SOV_FREE_DISTANCE', 'MD')]>=3) & (skims[('SOV_FREE_DISTANCE', 'MD')]<4))",0,0,0,coef_shopping_dist_3_4,coef_eatout_dist_3_4,0,0,coef_othdiscr_dist_3_4
+Distance bin 4 to 5,"@((skims[('SOV_FREE_DISTANCE', 'MD')]>=4) & (skims[('SOV_FREE_DISTANCE', 'MD')]<5))",0,0,0,0,coef_eatout_dist_4_5,0,0,coef_othdiscr_dist_4_5
+Size variable ,@df['size_term'].apply(np.log1p),1,1,1,1,1,1,1,1
+No attractions,@df['size_term']==0,-999,-999,-999,-999,-999,-999,-999,-999
+Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1,1,1,1,1,1,1,1

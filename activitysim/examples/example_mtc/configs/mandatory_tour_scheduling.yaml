@@ -13,9 +13,9 @@ SIMULATE_CHOOSER_COLUMNS:
   - is_worker
   - is_student
   - is_university
-  - workplace_taz
-  - school_taz
-  - TAZ
+  - workplace_zone_id
+  - school_zone_id
+  - home_zone_id
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
@@ -29,14 +29,12 @@ TOUR_SPEC_SEGMENTS:
 SPEC_SEGMENTS:
   work:
     'SPEC': tour_scheduling_work.csv
-    'COEFFICIENTS': tour_scheduling_work_coeffs.csv
+    'COEFFICIENTS': tour_scheduling_work_coefficients.csv
   school:
     'SPEC': tour_scheduling_school.csv
-    'COEFFICIENTS': tour_scheduling_school_coeffs.csv
-
-#CHOOSER_ORIG_COL_NAME: TAZ
+    'COEFFICIENTS': tour_scheduling_school_coefficients.csv
 
 DESTINATION_FOR_TOUR_PURPOSE:
-  work: workplace_taz
-  school: school_taz
-  univ: school_taz
+  work: workplace_zone_id
+  school: school_zone_id
+  univ: school_zone_id

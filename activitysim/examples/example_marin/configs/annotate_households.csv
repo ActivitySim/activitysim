@@ -1,0 +1,2 @@
+Description,Target,Expression
+,num_persons,persons.groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)

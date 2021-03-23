@@ -1,0 +1,6 @@
+*.csv
+*.txt
+*.h5
+*.yaml
+*.omx
+*.mmap

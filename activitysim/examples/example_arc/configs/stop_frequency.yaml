@@ -1,0 +1,74 @@
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: stop_frequency_annotate_tours_preprocessor
+  DF: tours_merged
+  TABLES:
+    - persons
+    - land_use
+    - accessibility
+
+SEGMENT_COL: primary_purpose
+
+SPEC_SEGMENTS:
+  - primary_purpose: work
+    SPEC: stop_frequency_work.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: school
+    SPEC: stop_frequency_school.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: univ
+    SPEC: stop_frequency_univ.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: social
+    SPEC: stop_frequency_social.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: shopping
+    SPEC: stop_frequency_shopping.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: eatout
+    SPEC: stop_frequency_eatout.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: escort
+    SPEC: stop_frequency_escort.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: othmaint
+    SPEC: stop_frequency_othmaint.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: othdiscr
+    SPEC: stop_frequency_othdiscr.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+  - primary_purpose: atwork
+    SPEC: stop_frequency_atwork.csv
+    COEFFICIENTS: _dummy_coefficients.csv
+
+CONSTANTS:
+  TRANSIT_MODES:
+    - WALK_ALLTRN
+    - WALK_PRMTRN
+    - PNR_ALLTRN
+    - PNR_PRMTRN
+    - KNR_ALLTRN
+    - KNR_PRMTRN
+  DRIVE_TO_TRANSIT_MODES:
+    - PNR_ALLTRN
+    - PNR_PRMTRN
+    - KNR_ALLTRN
+    - KNR_PRMTRN
+  NONMOTORIZED_MODES:
+    - WALK
+    - BIKE
+  SCHOOL_BUS:
+    - SCHOOL_BUS    
+  SHOP_TOUR: shopping
+  MAINT_TOUR: othmaint
+  SCHOOL_TOUR: school
+  EATOUT_TOUR: eatout
+  SOCIAL_TOUR: social
+  num_atwork_subtours_map:
+    no_subtours: 0
+    eat: 1
+    business1: 1
+    maint: 1
+    business2: 2
+    eat_business: 2

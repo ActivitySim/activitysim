@@ -13,10 +13,10 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import simulate
 from activitysim.core import logit
+from activitysim.core import expressions
 
 from activitysim.core.mem import force_garbage_collect
 
-from .util import expressions
 from .util import estimation
 
 from .util.overlap import person_max_window
@@ -109,7 +109,7 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
         ).set_index(maxed_tour_count_idx)
         assert choosers.index.name == tour_counts.index.name
 
-        # - random choice of extension magnituce based on relative probs
+        # - random choice of extension magnitude based on relative probs
         choices, rands = logit.make_choices(
             choosers[PROBABILITY_COLUMNS],
             trace_label=tour_type_trace_label,
@@ -195,20 +195,21 @@ def non_mandatory_tour_frequency(persons, persons_merged,
             continue
 
         estimator = \
-            estimation.manager.begin_estimation(model_name='non_mandatory_tour_frequency_%s' % segment_name,
-                                                bundle_name='non_mandatory_tour_frequency')
+            estimation.manager.begin_estimation(model_name=segment_name, bundle_name='non_mandatory_tour_frequency')
 
-        coefficients_df = simulate.read_model_coefficients(file_name=segment_settings['COEFFICIENTS'])
+        coefficients_df = simulate.read_model_coefficients(segment_settings)
         segment_spec = simulate.eval_coefficients(segment_spec, coefficients_df, estimator)
 
         if estimator:
-            estimator.write_spec(model_settings)
-            estimator.write_model_settings(model_settings, model_settings_file_name)
-            estimator.write_coefficients(coefficients_df)
+            estimator.write_spec(model_settings, bundle_directory=True)
+            estimator.write_model_settings(model_settings, model_settings_file_name, bundle_directory=True)
+            # preserving coefficients file name makes bringing back updated coefficients more straightforward
+            estimator.write_coefficients(coefficients_df, segment_settings)
             estimator.write_choosers(chooser_segment)
-            estimator.write_alternatives(alternatives)
+            estimator.write_alternatives(alternatives, bundle_directory=True)
 
-            # FIXME estimation_requires_chooser_id_in_df_column do it here or have interaction_simulate do it?
+            # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
+            #  shuold we do it here or have interaction_simulate do it?
             # chooser index must be duplicated in column or it will be omitted from interaction_dataset
             # estimation requires that chooser_id is either in index or a column of interaction_dataset
             # so it can be reformatted (melted) and indexed by chooser_id and alt_id
@@ -310,8 +311,14 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
 
     if estimator:
-        # make sure they created tours with the expected tour_ids
 
+        # make sure they created the right tours
+        survey_tours = estimation.manager.get_survey_table('tours').sort_index()
+        non_mandatory_survey_tours = survey_tours[survey_tours.tour_category == 'non_mandatory']
+        assert len(non_mandatory_survey_tours) == len(non_mandatory_tours)
+        assert non_mandatory_survey_tours.index.equals(non_mandatory_tours.sort_index().index)
+
+        # make sure they created tours with the expected tour_ids
         columns = ['person_id', 'household_id', 'tour_type', 'tour_category']
         survey_tours = \
             estimation.manager.get_survey_values(non_mandatory_tours,

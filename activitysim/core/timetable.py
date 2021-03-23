@@ -9,10 +9,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config
 from activitysim.core import pipeline
-from activitysim.core import tracing
-from activitysim.core import util
 
 logger = logging.getLogger(__name__)
 
@@ -629,3 +626,44 @@ class TimeTable(object):
         available = pd.Series(available, index=window_row_ids.index)
 
         return available
+
+    def max_time_block_available(self, window_row_ids):
+        """
+        determine the length of the maximum time block available in the persons day
+
+        Parameters
+        ----------
+        window_row_ids: pandas.Series
+
+        Returns
+        -------
+            pandas.Series with same index as window_row_ids, and integer max_run_length of
+        """
+
+        # FIXME consider dedupe/redupe window_row_ids for performance
+        # as this may be called for alts with lots of duplicates (e.g. trip scheduling time pressure calculations)
+
+        # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
+        available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
+
+        # np.set_printoptions(edgeitems=25, linewidth = 180)
+        # print(f"self.slice_windows_by_row_id(window_row_ids)\n{self.slice_windows_by_row_id(window_row_ids)}")
+
+        # padding periods not available
+        available[:, 0] = 0
+        available[:, -1] = 0
+
+        diffs = np.diff(available)  # 1 at start of run of availables, -1 at end, 0 everywhere else
+        start_row_index, starts = np.asarray(diffs > 0).nonzero()  # indices of run starts
+        end_row_index, ends = np.asarray(diffs < 0).nonzero()  # indices of run ends
+        assert (start_row_index == end_row_index).all()  # because bounded, expect same number of starts and ends
+
+        # run_lengths like availability but with run length at start of every run and zeros elsewhere
+        # (row_indices of starts and ends are aligned, so end - start is run_length)
+        run_lengths = np.zeros_like(available)
+        run_lengths[start_row_index, starts] = (ends - starts)
+
+        # we just want to know the the longest one for each window_row_id
+        max_run_lengths = run_lengths.max(axis=1)
+
+        return pd.Series(max_run_lengths, index=window_row_ids.index)

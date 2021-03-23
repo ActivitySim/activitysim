@@ -2,23 +2,23 @@ SAMPLE_SIZE: 30
 
 SIMULATE_CHOOSER_COLUMNS:
   - income_segment
-  - TAZ
+  - home_zone_id
 
 SAMPLE_SPEC: workplace_location_sample.csv
 SPEC: workplace_location.csv
-COEFFICIENTS: workplace_location_coeffs.csv
+COEFFICIENTS: workplace_location_coefficients.csv
 
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 LOGSUM_PREPROCESSOR: nontour_preprocessor
 LOGSUM_TOUR_PURPOSE: work
 
 # model-specific logsum-related settings
-CHOOSER_ORIG_COL_NAME: TAZ
+CHOOSER_ORIG_COL_NAME: home_zone_id
 ALT_DEST_COL_NAME: alt_dest
 IN_PERIOD: 17
 OUT_PERIOD: 8
 
-DEST_CHOICE_COLUMN_NAME: workplace_taz
+DEST_CHOICE_COLUMN_NAME: workplace_zone_id
 # comment out DEST_CHOICE_LOGSUM_COLUMN_NAME if not desired in persons table
 DEST_CHOICE_LOGSUM_COLUMN_NAME: workplace_location_logsum
 
@@ -56,10 +56,10 @@ CHOOSER_FILTER_COLUMN_NAME: is_worker
 # FIXME - these are assigned to persons in annotate_persons. we need a better way to manage this
 # FIXME - these are not needed for this model and should be re/factored out
 SEGMENT_IDS:
-  work_low: 1
-  work_med: 2
-  work_high: 3
-  work_veryhigh: 4
+  work_low: 1  # INCOME_SEGMENT_LOW
+  work_med: 2  # INCOME_SEGMENT_MED
+  work_high: 3  # INCOME_SEGMENT_HIGH
+  work_veryhigh: 4  # INCOME_SEGMENT_VERYHIGH
 
 CONSTANTS:
   WORK_HIGH_SEGMENT_ID: 3

@@ -1,0 +1,12 @@
+Description,Target,Expression
+#,,
+,tour_mode,"reindex(tours.tour_mode, df.tour_id)"
+,tour_mode_is_transit,(tour_mode == 'WALK_ALLTRN')|(tour_mode == 'WALK_PRMTRN')|(tour_mode == 'PNR_ALLTRN')|(tour_mode == 'PNR_PRMTRN')|(tour_mode == 'KNR_ALLTRN')|(tour_mode == 'KNR_PRMTRN') 
+,tour_mode_is_shared_ride,(tour_mode == 'SHARED2FREE')|(tour_mode == 'SHARED2PAY')|(tour_mode == 'SHARED3FREE')|(tour_mode == 'SHARED3PAY')
+,_tod,"np.where(df.outbound,reindex_i(tours.start, df.tour_id),reindex_i(tours.end, df.tour_id))"
+,trip_period,network_los.skim_time_period_label(_tod)
+,is_joint,"reindex(tours.tour_category, df.tour_id)=='joint'"
+#,is_CBD,"reindex(land_use.areatype, df.dest_zone_id) == 1"
+#,,not needed as school is not chosen as an intermediate trip destination
+#,_grade_school,"(df.primary_purpose == 'school') & reindex(persons.is_gradeschool, df.person_id)"
+#,size_segment,"df.primary_purpose.where(df.primary_purpose != 'school', np.where(_grade_school,'gradeschool', 'highschool'))"

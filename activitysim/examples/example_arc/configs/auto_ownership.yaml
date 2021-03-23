@@ -1,0 +1,24 @@
+LOGIT_TYPE: NL
+
+NESTS:
+  name: root
+  coefficient: 1.00
+  alternatives:
+      - name: LOW_CAR
+        coefficient: 1.0
+        alternatives:
+          - car0
+          - car1
+      - name: MORE_CAR
+        coefficient: 0.507
+        alternatives:
+          - car2
+          - car3plus
+
+SPEC: auto_ownership.csv
+COEFFICIENTS: auto_ownership_coeffs.csv
+
+LOGSUM_CHOOSER_COLUMNS:
+  - num_drivers
+  - num_workers
+  

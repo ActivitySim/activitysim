@@ -1,0 +1,150 @@
+Description,Expression,stage_one
+Alternative is Invalid if leg time is longer than total time,@(df['main_leg_duration']>df['duration']).astype(int),-999
+Discretionary tour-ASC for Legtime = 0,@(df['main_leg_duration'] == 0) & (df['tour_type']=='othdiscr'),-6.5884
+"Discretionary tour,ASC for Legtime = 1",@(df['main_leg_duration'] == 1) & (df['tour_type']=='othdiscr'),-5.0326
+"Discretionary tour,ASC for Legtime = 2",@(df['main_leg_duration'] == 2) & (df['tour_type']=='othdiscr'),-2.0526
+"Discretionary tour,ASC for Legtime = 3",@(df['main_leg_duration'] == 3) & (df['tour_type']=='othdiscr'),-1.0313
+"Discretionary tour,ASC for Legtime = 4",@(df['main_leg_duration'] == 4) & (df['tour_type']=='othdiscr'),-0.46489
+Discretionary tour - Main Leg time,"@np.where(df['tour_type']=='othdiscr', df['main_leg_duration'], 0)",0.060382
+Eatout tour - Shift,"@np.where(df['tour_type']=='eatout', np.where(df['main_leg_duration']> 4.5, (df['main_leg_duration'] - 4.5), (4.5 - df['main_leg_duration'])), 0)",-0.7508
+Eatout tour - Main leg time,"@np.where(df['tour_type']=='eatout', df['main_leg_duration'], 0)",0.53247
+"Maintenance tour,ASC for Legtime = 0",@(df['main_leg_duration'] == 0) & (df['tour_type']=='othmaint'),-3.6079
+"Maintenance tour,ASC for Legtime = 1",@(df['main_leg_duration'] == 1) & (df['tour_type']=='othmaint'),-1.9376
+"Maintenance tour,ASC for Legtime = 2",@(df['main_leg_duration'] == 2) & (df['tour_type']=='othmaint'),-0.99484
+"Maintenance tour,ASC for Legtime = 3",@(df['main_leg_duration'] == 3) & (df['tour_type']=='othmaint'),-0.29166
+"Maintenance tour,ASC for Legtime = 4",@(df['main_leg_duration'] == 4) & (df['tour_type']=='othmaint'),0.18669
+Maintenance tour - Main leg time,"@np.where(df['tour_type']=='othmaint', df['main_leg_duration'], 0)",-0.03572
+"School tour,ASC for Legtime = 14",@(df['main_leg_duration'] == 14) & (df['tour_type']=='school'),1.2449
+"School tour,ASC for Legtime = 15",@(df['main_leg_duration'] == 15) & (df['tour_type']=='school'),1.8492
+"School tour,ASC for Legtime = 16",@(df['main_leg_duration'] == 16) & (df['tour_type']=='school'),2.0672
+"School tour,ASC for Legtime = 17",@(df['main_leg_duration'] == 17) & (df['tour_type']=='school'),1.8571
+"School tour,ASC for Legtime = 18",@(df['main_leg_duration'] == 18) & (df['tour_type']=='school'),1.3826
+"School tour,ASC for Legtime = 19",@(df['main_leg_duration'] == 19) & (df['tour_type']=='school'),0.92034
+"School tour,ASC for Legtime = 20",@(df['main_leg_duration'] == 20) & (df['tour_type']=='school'),0.37001
+School tour - Main Leg time,"@np.where(df['tour_type']=='school', df['main_leg_duration'], 0)",1.7393
+School tour - Shift,"@np.where(df['tour_type']=='school', np.maximum((df['main_leg_duration']-3), 0), 0)",-1.5696
+School tour - Shift,"@np.where(df['tour_type']=='school', np.maximum((df['main_leg_duration']-23), 0), 0)",-0.43764
+"Escort tour,ASC for Legtime = 0",@(df['main_leg_duration'] == 0) & (df['tour_type']=='escort'),-1.2273
+"Escort tour,ASC for Legtime = 1",@(df['main_leg_duration'] == 1) & (df['tour_type']=='escort'),0.48815
+"Escort tour,ASC for Legtime = 2",@(df['main_leg_duration'] == 2) & (df['tour_type']=='escort'),0.37136
+"Escort tour,ASC for Legtime = 3",@(df['main_leg_duration'] == 3) & (df['tour_type']=='escort'),-0.29005
+Escort tour - Main Leg time,"@np.where(df['tour_type']=='escort', df['main_leg_duration'], 0)",-0.005499
+"Shopping tour,ASC for Legtime = 0",@(df['main_leg_duration'] == 0) & (df['tour_type']=='shopping'),-4.5136
+"Shopping tour,ASC for Legtime = 1",@(df['main_leg_duration'] == 1) & (df['tour_type']=='shopping'),-1.8461
+"Shopping tour,ASC for Legtime = 2",@(df['main_leg_duration'] == 2) & (df['tour_type']=='shopping'),-0.81101
+"Shopping tour,ASC for Legtime = 3",@(df['main_leg_duration'] == 3) & (df['tour_type']=='shopping'),-0.42265
+"Shopping tour,ASC for Legtime = 4",@(df['main_leg_duration'] == 4) & (df['tour_type']=='shopping'),-0.25089
+Shopping tour - Main Leg time,"@np.where(df['tour_type']=='shopping', df['main_leg_duration'], 0)",-0.30597
+Social tour - Main Leg time,"@np.where(df['tour_type']=='social', df['main_leg_duration'], 0)",1.1482
+Social tour - Shift,"@np.where(df['tour_type']=='social', np.maximum(df['main_leg_duration']-5, 0), 0)",-0.94185
+University tour - Main Leg time,"@np.where(df['tour_type']=='univ', df['main_leg_duration'], 0)",0.56244
+University tour - Shift,"@np.where(df['tour_type']=='univ', np.maximum(df['main_leg_duration']-8, 0), 0)",-0.55984
+University tour - Shift,"@np.where(df['tour_type']=='univ', np.maximum(df['main_leg_duration']-16, 0), 0)",-0.22445
+Work tour - Main Leg time,"@np.where(df['tour_type']=='work', df['main_leg_duration'], 0)",0.45055
+Work tour - Shift,"@np.where(df['tour_type']=='work', np.maximum(df['main_leg_duration']-9, 0), 0)",-0.27206
+Work tour - Shift,"@np.where(df['tour_type']=='work', np.maximum(df['main_leg_duration']-14, 0), 0)",0.009149
+"Work tour,ASC for Legtime = 17",@(df['main_leg_duration'] == 17) & (df['tour_type']=='work'),0.12954
+"Work tour,ASC for Legtime = 18",@(df['main_leg_duration'] == 18) & (df['tour_type']=='work'),0.54498
+"Work tour,ASC for Legtime = 19",@(df['main_leg_duration'] == 19) & (df['tour_type']=='work'),0.64445
+"Work tour,ASC for Legtime = 20",@(df['main_leg_duration'] == 20) & (df['tour_type']=='work'),0.56793
+"Work tour,ASC for Legtime = 21",@(df['main_leg_duration'] == 21) & (df['tour_type']=='work'),0.16153
+"Work tour,ASC for Legtime = 22",@(df['main_leg_duration'] == 22) & (df['tour_type']=='work'),-0.15183
+Work tour - Shift,"@np.where((df['tour_type']=='work'), np.maximum(df['main_leg_duration']-22,0), 0)",-0.57964
+Main leg time - Main leg free flow travel time,@(df['main_leg_duration'] * df['main_leg_fft']),0.00387
+Main leg time - SIN(2 pi*TourStartPeriod/48),@((df['main_leg_duration']) * np.sin(2 * np.pi * (df['start']/48))),-0.007568
+Main leg time - COS(2 pi*TourStartPeriod/48),@((df['main_leg_duration']) * np.cos(2 * np.pi * (df['start']/48))),0.11681
+Main leg time - SIN(4 pi*TourStartPeriod/48),@((df['main_leg_duration']) * np.sin(4 * np.pi * (df['start']/48))),0.019579
+Main leg time - COS(4 pi*TourStartPeriod/48),@((df['main_leg_duration']) * np.cos(4 * np.pi * (df['start']/48))),0.01919
+Main leg time - full time worker's work tour ,"@np.where(((df['ptype'] == 1) & (df['tour_type']=='work')), df['main_leg_duration'], 0)",0.037065
+Calibration,@(df['main_leg_duration'] == 19) & (df['tour_type']=='work'),0.5253
+Calibration,@(df['main_leg_duration'] == 20) & (df['tour_type']=='work'),0.7719
+Calibration,@(df['main_leg_duration'] == 21) & (df['tour_type']=='work'),1.0697
+Calibration,@(df['main_leg_duration'] == 22) & (df['tour_type']=='work'),1.2412
+Calibration,@(df['main_leg_duration'] == 23) & (df['tour_type']=='work'),1.1888
+Calibration,@(df['main_leg_duration'] == 16) & (df['tour_type']=='school'),0.3565
+Calibration,@(df['main_leg_duration'] == 17) & (df['tour_type']=='school'),0.5677
+Calibration,@(df['main_leg_duration'] == 18) & (df['tour_type']=='school'),0.8005
+Calibration,@(df['main_leg_duration'] == 19) & (df['tour_type']=='school'),0.7861
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='escort'),-2.8173
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='escort'),-0.359
+Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='escort'),1.2018
+Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='escort'),1.6866
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='othmaint'),-3.3465
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='othmaint'),-1.511
+Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='othmaint'),-0.4784
+Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='othmaint'),0.0637
+Calibration,@(df['main_leg_duration'] == 4) & (df['tour_type']=='othmaint'),0.4645
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='shopping'),-2.0645
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='shopping'),-1.0205
+Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='shopping'),-0.0582
+Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='shopping'),0.5533
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='eatout'),-100
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='eatout'),-100
+Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='eatout'),-6.8372
+Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='eatout'),-0.3319
+Calibration,@(df['main_leg_duration'] == 4) & (df['tour_type']=='eatout'),0.8709
+Calibration,@(df['main_leg_duration'] == 5) & (df['tour_type']=='eatout'),1.2215
+Calibration,@(df['main_leg_duration'] == 6) & (df['tour_type']=='eatout'),1.0655
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='social'),-5.9111
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='social'),-2.9703
+Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='social'),-1.5087
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='at_work'),-1.988
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='at_work'),0.1619
+Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='at_work'),0.335
+Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='at_work'),1.0155
+# OUTBOUND LEG COMPONENTS,,
+Alternative is invalid if leg time is longer than total tour time,@(df['outbound_duration']>df['duration']).astype(int),-999
+Alternative is invalid if leg time>0 yet there is no stop on the leg,@(df['num_outbound_stops']==0) & (df['outbound_duration']>0),-999
+Outbound leg time - outbound leg free flow travel time,"@(df['outbound_duration']*od_skims['SOV_FREE_TIME', 'MD'])",0.0058104
+Outbound leg time - SIN(2pi * TourStartPeriod/48),@((df['outbound_duration']) * np.sin(2 * np.pi * (df['start']/48))),-0.20702
+Outbound leg time - COS(2pi * TourStartPeriod/48),@((df['outbound_duration']) * np.cos(2 * np.pi * (df['start']/48))),0.18594
+Outbound leg time - SIN(4pi * TourStartPeriod/48),@((df['outbound_duration']) * np.sin(4 * np.pi * (df['start']/48))),-0.11703
+Outbound leg time - COS(4pi * TourStartPeriod/48),@((df['outbound_duration']) * np.cos(4 * np.pi * (df['start']/48))),-0.014628
+Average Stop Time,"@np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0)",-0.31564
+Average stop time multiplied by number of work activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_work_stops_ob']",0.34505
+Average stop time multiplied by number of school activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_school_stops_ob']",0.48727
+Average stop time multiplied by number of escort activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_escort_stops_ob']",-0.012751
+Average stop time multiplied by number of shopping activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_shopping_stops_ob']",0.74173
+Average stop time multiplied by number of other maintenance activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_maint_stops_ob']",0.16135
+Average stop time multiplied by number of eating out activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_eat_out_stops_ob']",1.274
+Average stop time multiplied by number of social\visiting activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_social_visit_stops_ob']",0.46026
+Average stop time multiplied by number of other discretionary activities on the tour leg,"@(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0))*df['num_discr_stops_ob']",1.5282
+Average stop time multiplied by number of eating out activities on the tour leg,"@np.maximum(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0)-2,0)*df['num_eat_out_stops_ob']",-1.2604
+Average stop time multiplied by number of shopping activities on the tour leg,"@np.maximum(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0)-2,0)*df['num_shopping_stops_ob']",-1.2137
+Average stop time multiplied by number of other discretionary activities on the tour leg,"@np.maximum(np.where(df['num_outbound_stops'] > 0,df['outbound_duration'] / df['num_outbound_stops'],0)-2,0)*df['num_discr_stops_ob']",-1.3133
+Calibration,@(df['num_outbound_stops']==1) & (df['outbound_duration'] ==0),-0.723010589
+Calibration,@(df['num_outbound_stops']==1) & (df['outbound_duration'] ==1),0.792121459
+Calibration,@(df['num_outbound_stops']==2) & (df['outbound_duration'] ==0),-4.854181844
+Calibration,@(df['num_outbound_stops']==2) & (df['outbound_duration'] ==1),-0.181033741
+Calibration,@(df['num_outbound_stops']==2) & (df['outbound_duration'] ==2),0.967315884
+Calibration,@(df['num_outbound_stops']==2) & (df['outbound_duration'] ==3),0.467052643
+Calibration,@(df['num_outbound_stops']==3) & (df['outbound_duration'] ==0),-15.05439781
+Calibration,@(df['num_outbound_stops']==3) & (df['outbound_duration'] ==1),-4.807075147
+Calibration,@(df['num_outbound_stops']==3) & (df['outbound_duration'] ==2),-0.127915425
+Calibration,@(df['num_outbound_stops']==3) & (df['outbound_duration'] ==3),0.30556271
+# INBOUND LEG COMPONENTS,,
+Alternative is invalid if leg time is longer than total tour time,@(df['inbound_duration']>df['duration']).astype(int),-999
+Alternative is invalid if leg time>0 yet there is no stop on the leg,@(df['num_inbound_stops']==0) & (df['inbound_duration']>0),-999
+Inbound leg time multiplied by inbound leg free flow travel time,"@(df['inbound_duration']*do_skims['SOV_FREE_TIME', 'MD'])",0.002936
+Average Stop Time,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)",-0.44644
+Average stop time multiplied by number of work activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_work_stops_ib']",0.34505
+Average stop time multiplied by number of school activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_school_stops_ib']",0.48727
+Average stop time multiplied by number of escort activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_escort_stops_ib']",-0.012751
+Average stop time multiplied by number of other maintenance activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_maint_stops_ib']",0.16135
+Average stop time multiplied by number of eating out activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_eat_out_stops_ib']",1.274
+Average stop time multiplied by number of shopping activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_shopping_stops_ib']",0.74173
+Average stop time multiplied by number of social\visiting activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_social_visit_stops_ib']",0.46026
+Average stop time multiplied by number of other discretionary activities on the tour leg,"@np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)*df['num_discr_stops_ib']",1.5282
+Average stop time multiplied by number of eating out activities on the tour leg,"@np.maximum(np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)-2,0)*df['num_eat_out_stops_ib']",-1.2604
+Average stop time multiplied by number of shopping activities on the tour leg,"@np.maximum(np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)-2,0)*df['num_shopping_stops_ib']",-1.2137
+Average stop time multiplied by number of other discretionary activities on the tour leg,"@np.maximum(np.where(df['num_inbound_stops'] > 0,df['inbound_duration'] / df['num_inbound_stops'],0)-2,0)*df['num_discr_stops_ob']",-1.3133
+Calibration,@(df['num_inbound_stops']==1) & (df['inbound_duration'] ==0),-1.92713
+Calibration,@(df['num_inbound_stops']==1) & (df['inbound_duration'] ==1),0.291882
+Calibration,@(df['num_inbound_stops']==2) & (df['inbound_duration'] ==0),-6.934284
+Calibration,@(df['num_inbound_stops']==2) & (df['inbound_duration'] ==1),-1.325881
+Calibration,@(df['num_inbound_stops']==2) & (df['inbound_duration'] ==2),0.479435
+Calibration,@(df['num_inbound_stops']==2) & (df['inbound_duration'] ==3),0.474259
+Calibration,@(df['num_inbound_stops']==3) & (df['inbound_duration'] ==0),-14.253409
+Calibration,@(df['num_inbound_stops']==3) & (df['inbound_duration'] ==1),-8.055671
+Calibration,@(df['num_inbound_stops']==3) & (df['inbound_duration'] ==2),-2.151257
+Calibration,@(df['num_inbound_stops']==3) & (df['inbound_duration'] ==3),0.378101

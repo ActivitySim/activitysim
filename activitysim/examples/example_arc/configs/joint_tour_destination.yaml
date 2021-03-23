@@ -1,0 +1,40 @@
+SAMPLE_SPEC: non_mandatory_tour_destination_sample.csv
+SPEC: non_mandatory_tour_destination.csv
+COEFFICIENTS: non_mandatory_tour_destination_coeffs.csv
+# COEFFICIENTS: joint_tour_destination_coeffs.csv
+
+# we can't use use household income_segment as this will also be set for non-workers
+CHOOSER_SEGMENT_COLUMN_NAME: tour_type
+
+# optional (comment out if not desired)
+DEST_CHOICE_LOGSUM_COLUMN_NAME: destination_logsum
+
+SEGMENTS:
+  - shopping
+  - othmaint
+  - othdiscr
+  - eatout
+  - social
+  - escort
+
+SAMPLE_SIZE: 30
+
+SIMULATE_CHOOSER_COLUMNS:
+  - tour_type
+  - home_zone_id
+# - household_id
+  - person_id
+  - income_in_thousands
+  - num_nondriving_age_children
+  - is_CBD
+  - is_urban
+
+LOGSUM_SETTINGS: tour_mode_choice.yaml
+
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: home_zone_id
+ALT_DEST_COL_NAME: alt_dest
+IN_PERIOD: 28
+OUT_PERIOD: 28
+
+SIZE_TERM_SELECTOR: non_mandatory

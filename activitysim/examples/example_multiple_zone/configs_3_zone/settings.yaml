@@ -1,0 +1,85 @@
+inherit_settings: True
+
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      HHID: household_id
+      PERSONS: hhsize
+      workers: num_workers
+      VEHICL: auto_ownership
+      MAZ: home_zone_id
+    keep_columns:
+      - home_zone_id
+      - income
+      - hhsize
+      - HHT
+      - auto_ownership
+      - num_workers
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    rename_columns:
+      PERID: person_id
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+      - sex
+      - pemploy
+      - pstudent
+      - ptype
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      MAZ: zone_id
+      COUNTY: county_id
+    keep_columns:
+      - TAZ
+      - DISTRICT
+      - SD
+      - county_id
+      - TOTHH
+      - TOTPOP
+      - TOTACRE
+      - RESACRE
+      - CIACRE
+      - TOTEMP
+      - AGE0519
+      - RETEMPN
+      - FPSEMPN
+      - HEREMPN
+      - OTHEMPN
+      - AGREMPN
+      - MWTEMPN
+      - PRKCST
+      - OPRKCST
+      - area_type
+      - HSENROLL
+      - COLLFTE
+      - COLLPTE
+      - TOPOLOGY
+      - TERMINAL
+      - access_dist_transit
+
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: 3z_final_
+  sort: True
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+#trace_od: [5000, 11000]

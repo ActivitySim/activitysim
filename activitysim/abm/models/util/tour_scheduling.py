@@ -86,33 +86,31 @@ def run_tour_scheduling(model_name, chooser_tours, persons_merged, tdd_alts, tou
         # default tour_segment_col to 'tour_type' if segmented spec and tour_segment_col not specified
         if tour_segment_col is None and tour_segments:
             tour_segment_col = 'tour_type'
-        #bug
 
     else:
-            # unsegmented
-            assert 'SPEC_SEGMENTS' not in model_settings
-            assert 'TOUR_SPEC_SEGMENTS' not in model_settings
-            assert tour_segment_col is None
+        # unsegmented spec
+        assert 'SPEC_SEGMENTS' not in model_settings
+        assert 'TOUR_SPEC_SEGMENTS' not in model_settings
+        assert tour_segment_col is None
 
-            estimator = estimation.manager.begin_estimation(model_name)
+        estimator = estimation.manager.begin_estimation(model_name)
 
-            spec_file_name = model_settings['SPEC']
-            model_spec = simulate.read_model_spec(file_name=spec_file_name)
-            coefficients_df = simulate.read_model_coefficients(model_settings)
-            model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+        spec_file_name = model_settings['SPEC']
+        model_spec = simulate.read_model_spec(file_name=spec_file_name)
+        coefficients_df = simulate.read_model_coefficients(model_settings)
+        model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
-            if estimator:
-                estimators[None] = estimator  # add to local list
-                estimator.write_model_settings(model_settings, model_settings_file_name)
-                estimator.write_spec(model_settings)
-                estimator.write_coefficients(coefficients_df, model_settings)
+        if estimator:
+            estimators[None] = estimator  # add to local list
+            estimator.write_model_settings(model_settings, model_settings_file_name)
+            estimator.write_spec(model_settings)
+            estimator.write_coefficients(coefficients_df, model_settings)
 
-            # - non_mandatory tour scheduling is not segmented by tour type
-            tour_segments = {
-                'spec': model_spec,
-                'estimator': estimator
-            }
-
+        # - non_mandatory tour scheduling is not segmented by tour type
+        tour_segments = {
+            'spec': model_spec,
+            'estimator': estimator
+        }
 
     if estimators:
         timetable.begin_transaction(list(estimators.values()))

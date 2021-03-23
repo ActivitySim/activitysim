@@ -172,7 +172,6 @@ def write_data_dictionary(output_dir):
                 info = schema.get(table_name, None)
 
                 columns_to_print = ['column_name', 'dtype', 'checkpoint']
-                #columns_to_print = ['column_name', 'dtype']
                 info = info[columns_to_print]
 
                 # normalize schema columns widths across all table schemas for unified output formatting

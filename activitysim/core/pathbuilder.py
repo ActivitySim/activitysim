@@ -213,7 +213,7 @@ class TransitVirtualPathBuilder(object):
                                   trace_label, trace):
         """
         create transit_df and compute utilities for all atap-btap pairs between omaz in access and dmaz in egress_df
-        compute the utilities using the tap_tap utilitiy expressions file specified in tap_tap_settings
+        compute the utilities using the tap_tap utility expressions file specified in tap_tap_settings
 
         transit_df contains all possible access omaz/btap to egress dmaz/atap transit path pairs for each chooser
 

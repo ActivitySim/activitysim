@@ -29,7 +29,7 @@ logger = logging.getLogger(__name__)
 TDD_CHOICE_COLUMN = 'tdd'
 USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS = False
 
-RUN_ALTS_PREPROCESSOR_BEFORE_MERGE = True
+RUN_ALTS_PREPROCESSOR_BEFORE_MERGE = True  # see FIXME below before changing this
 
 
 def skims_for_logsums(tour_purpose, model_settings, trace_label):
@@ -161,8 +161,6 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
 
         # tdd_alt_segments is optionally segmented by tour purpose
         if 'tour_purpose' in tdd_segments:
-
-            print(tdd_segments)  #bug
 
             is_tdd_for_tour_purpose = (tdd_segments.tour_purpose == tour_purpose)
             if not is_tdd_for_tour_purpose.any():
@@ -408,7 +406,7 @@ def run_alts_preprocessor(model_settings, alts, segment, locals_dict, trace_labe
     Returns
     -------
     alts: pandas.DataFrame
-        we modify the alts parameter (object passed by reference) so really only returned by courtesy
+        annotated copy of alts
     """
 
     preprocessor_settings = model_settings.get('ALTS_PREPROCESSOR', {})
@@ -426,8 +424,8 @@ def run_alts_preprocessor(model_settings, alts, segment, locals_dict, trace_labe
 
     if preprocessor_settings:
 
-        logger.debug(f"run_alts_preprocessor calling assign_columns for {segment} preprocessor_settings\n{preprocessor_settings}")
-        alts = alts.copy()   #bug
+        logger.debug(f"run_alts_preprocessor calling assign_columns for {segment} preprocessor_settings")
+        alts = alts.copy()
 
         expressions.assign_columns(
             df=alts,
@@ -540,13 +538,14 @@ def _schedule_tours(
         locals_d.update(constants)
 
     if not RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
-        # Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
+        # Note: Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
         # and he was using logsum_tour_purpose as selector, although logically it should be the spec_segment
         # It just happened to work for example_arc.mandatory_tour_scheduling because, in that model, (unlike semcog)
         # logsum_tour_purpose and spec_segments are aligned (both logsums and spec are segmented on work, school, univ)
-        # In any case, I don't see any benefit to doing it here - at lest not for any existing implementations
+        # In any case, I don't see any benefit to doing this here - at least not for any existing implementations
         # but if we do, it will require passing spec_segment to schedule_tours  and _schedule_tours
-        spec_segment = logsum_tour_purpose  #FIXME this is not always right - see note above
+        # or redundently segmenting alts (yuck!) to conform to more granular tour_segmentation (e.g. univ do school)
+        spec_segment = logsum_tour_purpose  # FIXME this is not always right - see note above
         alt_tdd = run_alts_preprocessor(model_settings, alt_tdd, spec_segment, locals_d, tour_trace_label)
         chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 

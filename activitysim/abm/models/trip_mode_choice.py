@@ -55,7 +55,8 @@ def trip_mode_choice(
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     tours_merged = tours_merged.to_frame()
-    tours_merged = tours_merged[model_settings['TOURS_MERGED_CHOOSER_COLUMNS']]
+    tours_cols = [col for col in model_settings['TOURS_MERGED_CHOOSER_COLUMNS'] if col not in trips_df.columns]
+    tours_merged = tours_merged[tours_cols]
 
     nest_spec = config.get_logit_model_settings(model_settings)
 

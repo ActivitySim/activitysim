@@ -1,0 +1,93 @@
+inherit_settings: True
+
+households_sample_size: 0
+
+chunk_size: 10000000000
+
+
+
+# household with mandatory, non mandatory, atwork_subtours, and joint tours
+#trace_hh_id: 187746
+
+
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: _
+
+#cleanup_trace_files_on_resume: True
+
+#trace_od: [5000, 11000]
+
+
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    num_processes: 47
+    slice:
+      tables:
+        - accessibility
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True
+  - name: mp_los
+    begin: initialize_los
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    num_processes: 20
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_models
+    begin: school_location
+    num_processes: 47
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  # --- STATIC cache prebuild steps
+  # single-process step to create attribute_combination list
+  - initialize_los
+  # multi-processable step to build STATIC cache
+  # (this step is a NOP if cache already exists and network_los.rebuild_tvpb_cache setting is False)
+  - initialize_tvpb
+  # ---
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - track_skim_usage
+  - write_trip_matrices
+  - write_tables
+
+

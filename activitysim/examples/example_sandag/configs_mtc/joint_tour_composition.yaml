@@ -1,0 +1,11 @@
+LOGIT_TYPE: MNL
+
+SPEC: joint_tour_composition.csv
+COEFFICIENTS: joint_tour_composition_coefficients.csv
+
+preprocessor:
+  SPEC: joint_tour_composition_annotate_households_preprocessor
+  DF: households
+#  TABLES:
+#    - persons
+#    - accessibility

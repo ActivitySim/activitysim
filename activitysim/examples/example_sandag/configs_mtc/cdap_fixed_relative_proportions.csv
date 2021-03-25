@@ -1,0 +1,9 @@
+Description,Expression,M,N,H
+Full-time worker,ptype == 1,0.79647,0.09368,0.10985
+Part-time worker,ptype == 2,0.61678,0.25757,0.12565
+University student,ptype == 3,0.69229,0.15641,0.1513
+Non-working adult,ptype == 4,0,0.67169,0.32831
+Retired,ptype == 5,0,0.54295,0.45705
+Driving-age child who is in school,ptype == 6,0.77609,0.06004,0.16387
+Pre-driving-age child who is in school,ptype == 7,0.68514,0.09144,0.22342
+Child who is too young for school,ptype == 8,0.14056,0.06512,0.79432

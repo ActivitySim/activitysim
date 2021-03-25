@@ -17,3 +17,19 @@ taz_skims: taz_skims*.omx
 # and can therefor share a single skim_dict without name collision
 # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
 tap_skims: tap_skims.omx
+
+
+tap_lines: tap_lines.csv
+
+maz_to_tap:
+  walk:
+    table: maz_to_tap_walk.csv
+    # if provided, this column will be used (together with tap_lines table) to trim the near tap set
+    # to only include the nearest tap to origin when more than oFne tap serves the same line
+    tap_line_distance_col: DISTWALK
+    max_dist: 1.2
+  drive:
+    table: maz_to_tap_drive.csv
+    # although maz_tap untility calculations use both DIST and drive_time,
+    # it looks like drive_time is a linera function of DIST so we can use either column to trim to nearest
+    tap_line_distance_col: DIST

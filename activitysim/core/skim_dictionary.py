@@ -644,6 +644,8 @@ class MazSkimDict(SkimDict):
         ----------
         orig : 1D array
         dest : 1D array
+        key : str
+            skim key
 
         Returns
         -------

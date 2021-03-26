@@ -1,6 +1,0 @@
-inherit_settings: settings_static.yaml
-
-households_sample_size: 0
-
-chunk_size: 0
-

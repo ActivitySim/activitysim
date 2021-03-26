@@ -1,0 +1,15 @@
+
+
+activitysim run -c configs_sandag -c configs_3_zone -c configs_mtc -d data_test -o output_test -s settings_sp.yaml
+
+# first time (building all caches) with 10 HH
+INFO - Time to execute all models : 1549.902 seconds (25.8 minutes)
+
+# second time (using caches) with all HH
+
+
+
+activitysim run -c configs_sandag -c configs_3_zone -c ../example_mtc/configs -d data_full -o output_full -s settings_mp.yaml
+
+
+activitysim run -c configs_sandag -c configs_3_zone -c ../example_mtc/configs -d data_full -o output_full -s settings_mp.yaml

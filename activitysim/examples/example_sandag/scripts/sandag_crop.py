@@ -84,8 +84,8 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
 
     offset_map = None
     for mapping_name in omx_in.listMappings():
-        _offset_map = np.asanyarray( omx_in.mapentries(mapping_name))
-        if offset_map is not  None or not (_offset_map == np.arange(1, len(_offset_map) + 1)).all():
+        _offset_map = np.asanyarray(omx_in.mapentries(mapping_name))
+        if offset_map is not None or not (_offset_map == np.arange(1, len(_offset_map) + 1)).all():
             assert offset_map is None or (offset_map == _offset_map).all()
             offset_map = _offset_map
 
@@ -124,8 +124,8 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
         omx_file.close()
 
 
-
 # non-standard input file names
+
 LAND_USE = "land_use.csv"
 HOUSEHOLDS = "households.csv"
 PERSONS = "persons.csv"
@@ -188,8 +188,7 @@ ur_land_use = land_use.copy()
 
 slicer = segments[segment_name]
 for slice_col, slice_values in slicer.items():
-   # print(f"slice {slice_col}: {slice_values}")
-
+    # print(f"slice {slice_col}: {slice_values}")
     land_use = land_use[land_use[slice_col].isin(slice_values)]
 
 print(f"land_use shape after slicing {land_use.shape}")

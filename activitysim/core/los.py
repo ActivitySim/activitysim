@@ -301,7 +301,8 @@ class Network_LOS(object):
                     # we don't need to remember which lines are served by which TAPs
                     df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP']).sort_values(['MAZ', 'TAP'])
 
-                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows")
+                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows "
+                                 f"based on tap_lines")
                     logger.debug(f"maz_to_tap table {file_name} max {distance_col} {df[distance_col].max()}")
 
                     max_dist = maz_to_tap_settings.get('max_dist', None)

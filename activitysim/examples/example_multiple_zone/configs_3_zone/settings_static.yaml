@@ -4,6 +4,7 @@ inherit_settings: settings.yaml
 models:
   - initialize_landuse
   - initialize_households
+  - # multi-processable step to build accessibility table
   - compute_accessibility
   # --- STATIC cache prebuild steps
   # single-process step to create attribute_combination list

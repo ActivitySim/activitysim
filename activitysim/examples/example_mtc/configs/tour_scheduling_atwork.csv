@@ -30,7 +30,7 @@ util_duration_of_6_to_7_hours,Duration of 6 to 7 hours,(duration >=6) and (durat
 util_duration_of_8_to_10_hours,Duration of 8 to 10 hours,(duration >=8) and (duration <=10),coef_duration_of_8_to_10_hours
 util_duration_of_11_to_13_hours,Duration of 11 to 13 hours,(duration >=11) and (duration <=13),coef_duration_of_11_to_13_hours
 util_duration_of_14_to_18_hours,Duration of 14 to 18 hours,(duration >=14) and (duration <=18),coef_duration_of_14_to_18_hours
-util_#,,,
+#,,,
 util_start_shift_for_outbound_auto_travel_time_off_peak,Start shift for outbound auto travel time for off-peak,"@df.start * np.minimum(df.sovtimemd, time_cap)",coef_start_shift_for_outbound_auto_travel_time_off_peak
 util_start_shift_for_inbound_auto_travel_time_off_peak,Start shift for inbound auto travel time for off-peak,"@df.start * np.minimum(df.sovtimemd_t, time_cap)",coef_start_shift_for_inbound_auto_travel_time_off_peak
 util_duration_shift_for_outbound_auto_travel_time_off_peak,Duration shift for outbound auto travel time for off-peak,"@df.duration * np.minimum(df.sovtimemd, time_cap)",coef_duration_shift_for_outbound_auto_travel_time_off_peak

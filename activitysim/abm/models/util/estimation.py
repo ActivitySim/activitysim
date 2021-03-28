@@ -147,7 +147,7 @@ class Estimator(object):
             else:
                 file_name = f"{self.bundle_name}_{table_name}"
 
-        if file_type and not os.path.splitext(file_name)[1] != f".{file_type}":
+        if file_type and os.path.splitext(file_name)[1] != f".{file_type}":
             file_name = f"{file_name}.{file_type}"
 
         return os.path.join(output_dir, file_name)

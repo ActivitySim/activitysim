@@ -70,7 +70,7 @@ def run_test(zone, multiprocess=False):
     elif zone == '3':
         run_args = run_args + ['-s', 'settings_static']
 
-    subprocess.run(['coverage', 'run', file_path] + run_args, check=True)
+    subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
 
     regress(zone)
 
@@ -84,6 +84,8 @@ def test_2_zone_mp(data):
 
 
 def test_3_zone(data):
+    # python simulation.py -c configs_3_zone -c ../configs_3_zone -c \
+    # ../../example_mtc/configs -d ../data_3 -o output -s settings_mp
     run_test(zone='3', multiprocess=False)
 
 

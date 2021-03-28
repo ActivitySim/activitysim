@@ -1,0 +1,60 @@
+Label,Description,Expression,Coefficient
+#EAT-OUT,#EAT-OUT,,#EAT-OUT
+util_eatout_distance_to_destination_duration_less_than_1_hr,EAT-OUT - Distance to destination - Duration < 1 hr,"@np.where(((df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)) * (df.origin_to_destination_distance), 0)",coef_eatout_distance_to_destination_duration_less_than_1_hr
+util_eatout_distance_to_destination_duration_greater_than_1_hr,EAT-OUT - Distance to destination - Duration > 1 hr,"@np.where(((df.duration>2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)) *(df.origin_to_destination_distance), 0)",coef_eatout_distance_to_destination_duration_greater_than_1_hr
+util_eatout_low_income_duration_less_than_1_hr,EAT-OUT - Low income (<25000) - Duration < 1 hr,"@np.where(((df.is_income_less25K) & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",coef_eatout_low_income_duration_less_than_1_hr
+util_eatout_medium_income_duration_less_than_1_hr,EAT-OUT - Medium (25k to 60k) - Duration < 1 hr,"@np.where(((df.is_income_25K_to_60K) & (df.duration<2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",coef_eatout_medium_income_duration_less_than_1_hr
+util_eatout_zeroauto_HH_duration_greater_than_1_hr,EAT-OUT - Zero auto HH - Duration > 1 hrs,"@np.where(((df.auto_ownership == 0) & (df.duration>2)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",coef_eatout_zeroauto_HH_duration_greater_than_1_hr
+util_eatout_university_student_departure_after_7_pm_linear,EAT-OUT - University student - Departure after 7:00 pm - Linear,"@np.where(((df.start>32) & (df.ptype == 3)), (np.where((df.start<=32), np.minimum(32-df.start,29), 0) + np.where((df.start>32), np.minimum(df.start-32,8), 0)), 0)",coef_eatout_university_student_departure_after_7_pm_linear
+util_eatout_female_duration_less_than_1_hr,EAT-OUT - Female - Duration < 1 hr,"@np.where(((df.duration<2) & (df.female)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",coef_eatout_female_duration_less_than_1_hr
+util_eatout_female_duration_greater_than_1_hr,EAT-OUT - Female - Duration > 1 hr,"@np.where(((df.duration>2) & (df.female)), (np.where((df.duration<=2), np.minimum(2-df.duration,47), 0) + np.where((df.duration>2), np.minimum(df.duration-2,14), 0)), 0)",coef_eatout_female_duration_greater_than_1_hr
+util_eatout_time_pressure_departure_before_6_30_pm,EAT-OUT - Time Pressure - Departure before 6:30 pm,"@np.where(((df.start<32)), (np.minimum(32-df.start,29)) * (np.log10 (30 *(tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",coef_eatout_time_pressure_departure_before_6_30_pm
+util_eatout_time_pressure_duration_less_than_1_hr,EAT-OUT - Time Pressure - Duration < 1 hrs,"@np.where(((df.duration<2)), np.minimum(2-df.duration,47) * (np.log10 (30 * (tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",coef_eatout_time_pressure_duration_less_than_1_hr
+util_eatout_departure_constant_7_30_am_to_9_am,EAT-OUT - Departure Constant: 07:30 AM - 09:00 AM,@((df.start>=10) & (df.start<=12)),coef_eatout_departure_constant_7_30_am_to_9_am
+util_eatout_departure_constant_10_30_am_to_11_am,EAT-OUT - Departure Constant: 10:30 AM - 11:00 AM,@((df.start==16)),coef_eatout_departure_constant_10_30_am_to_11_am
+util_eatout_departure_constant_11_am_to_11_30_am,EAT-OUT - Departure Constant: 11:00 AM - 11:30 AM,@((df.start==17)),coef_eatout_departure_constant_11_am_to_11_30_am
+util_eatout_departure_constant_11_30_am_to_12_pm,EAT-OUT - Departure Constant: 11:30 AM - 12:00 PM,@((df.start==18)),coef_eatout_departure_constant_11_30_am_to_12_pm
+util_eatout_departure_constant_12_pm_to_12_30_pm,EAT-OUT - Departure Constant: 12:00 PM - 12:30 PM,@((df.start==19)),coef_eatout_departure_constant_12_pm_to_12_30_pm
+util_eatout_departure_constant_12_30_pm_to_1_pm,EAT-OUT - Departure Constant: 12:30 PM - 01:00 PM,@((df.start==20)),coef_eatout_departure_constant_12_30_pm_to_1_pm
+util_eatout_departure_constant_1_pm_to_1_30_pm,EAT-OUT - Departure Constant: 01:00 PM - 01:30 PM,@((df.start==21)),coef_eatout_departure_constant_1_pm_to_1_30_pm
+util_eatout_departure_constant_shift_for_every_30_minutes_before_5_30_pm_linear,EAT-OUT - Departure Constant: Shift for every 30 minutes before 05:30 pm - Linear,"@np.where(((df.start<31)), (np.where((df.start<30), np.minimum(30-df.start,27), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",coef_eatout_departure_constant_shift_for_every_30_minutes_before_5_30_pm_linear
+util_eatout_departure_constant_before_6_pm,EAT-OUT - Departure Constant: Before 06:00 PM,@((df.start<31)),coef_eatout_departure_constant_before_6_pm
+util_eatout_departure_constant_6_pm_to_6_30_pm,EAT-OUT - Departure Constant: 06:00 PM - 06:30 PM,@((df.start==31)),coef_eatout_departure_constant_6_pm_to_6_30_pm
+util_eatout_departure_constant_6_30_pm_to_7_pm,EAT-OUT - Departure Constant: 06:30 PM - 07:00 PM,@((df.start==32)),coef_eatout_departure_constant_6_30_pm_to_7_pm
+util_eatout_departure_constant_7_pm_to_7_30_pm,EAT-OUT - Departure Constant: 07:00 PM - 07:30 PM,@((df.start==33)),coef_eatout_departure_constant_7_pm_to_7_30_pm
+util_eatout_departure_constant_after_7_30_pm,EAT-OUT - Departure Constant: After 07:30 PM,@((df.start>33)),coef_eatout_departure_constant_after_7_30_pm
+util_eatout_departure_constant_shift_for_every_30_minutes_after_8_pm_linear,EAT-OUT - Departure Constant: Shift for every 30 minutes after 08:00 pm - Linear,"@np.where(((df.start>34)), (np.where((df.start<30), np.minimum(30-df.start,27), 0) + np.where((df.start>34), np.minimum(df.start-34,6), 0)), 0)",coef_eatout_departure_constant_shift_for_every_30_minutes_after_8_pm_linear
+util_eatout_arrival_constant_9_30_am_to_11_am,EAT-OUT - Arrival Constant: 9:30 AM to 11:00 AM,@((df.end>=14) & (df.end<=16)),coef_eatout_arrival_constant_9_30_am_to_11_am
+util_eatout_arrival_constant_12_30_pm_to_1_pm,EAT-OUT - Arrival Constant: 12:30 PM to 01:00 PM,@((df.end==20)),coef_eatout_arrival_constant_12_30_pm_to_1_pm
+util_eatout_arrival_constant_1_pm_to_1_30_pm,EAT-OUT - Arrival Constant: 01:00 PM to 01:30 PM,@((df.end==21)),coef_eatout_arrival_constant_1_pm_to_1_30_pm
+util_eatout_arrival_constant_1_30_pm_to_2_pm,EAT-OUT - Arrival Constant: 01:30 PM to 02:00 PM,@((df.end==22)),coef_eatout_arrival_constant_1_30_pm_to_2_pm
+util_eatout_arrival_constant_2_pm_to_2_30_pm,EAT-OUT - Arrival Constant: 02:00 PM to 02:30 PM,@((df.end==23)),coef_eatout_arrival_constant_2_pm_to_2_30_pm
+util_eatout_arrival_constant_2_30_pm_to_3_pm,EAT-OUT - Arrival Constant: 02:30 PM to 03:00 PM,@((df.end==24)),coef_eatout_arrival_constant_2_30_pm_to_3_pm
+util_eatout_arrival_constant_shift_for_every_30_minutes_before_6_pm_linear,EAT-OUT - Arrival Constant: Shift for every 30 minutes before 06:00 pm - Linear,@((df.end<31)),coef_eatout_arrival_constant_shift_for_every_30_minutes_before_6_pm_linear
+util_eatout_arrival_constant_before_6_30_pm,EAT-OUT - Arrival Constant: Before 6:30 PM,"@np.where(((df.end<32)), (np.where((df.end<31), np.minimum(31-df.end,24), 0) + np.where((df.end>37), np.minimum(df.end-37,48), 0)), 0)",coef_eatout_arrival_constant_before_6_30_pm
+util_eatout_arrival_constant_6_30_pm_to_7_pm,EAT-OUT - Arrival Constant: 6:30 PM to 7:00 PM,@((df.end==32)),coef_eatout_arrival_constant_6_30_pm_to_7_pm
+util_eatout_arrival_constant_7_pm_to_7_30_pm,EAT-OUT - Arrival Constant: 7:00 PM to 7:30 PM,@((df.end==33)),coef_eatout_arrival_constant_7_pm_to_7_30_pm
+util_eatout_arrival_constant_7_30_pm_to_8_pm,EAT-OUT - Arrival Constant: 7:30 PM to 8:00 PM,@((df.end==34)),coef_eatout_arrival_constant_7_30_pm_to_8_pm
+util_eatout_arrival_constant_8_pm_to_8_30_pm,EAT-OUT - Arrival Constant: 8:00 PM to 8:30 PM,@((df.end==35)),coef_eatout_arrival_constant_8_pm_to_8_30_pm
+util_eatout_arrival_constant_8_30_pm_to_9_pm,EAT-OUT - Arrival Constant: 8:30 PM to 9:00 PM,@((df.end==36)),coef_eatout_arrival_constant_8_30_pm_to_9_pm
+util_eatout_arrival_constant_after_9_pm,EAT-OUT - Arrival Constant: After 9:00 PM,@((df.tour_category != 'joint')& (df.end>36)),coef_eatout_arrival_constant_after_9_pm
+util_eatout_arrival_constant_shift_for_every_30_minutes_after_9_30_pm_linear,EAT-OUT - Arrival Constant: Shift for every 30 minutes after 09:30 pm - Linear,"@np.where(((df.end>37)), (np.where((df.end<31), np.minimum(31-df.end,24), 0) + np.where((df.end>37), np.minimum(df.end-37,48), 0)), 0)",coef_eatout_arrival_constant_shift_for_every_30_minutes_after_9_30_pm_linear
+util_eatout_duration_constant_0_hour,EAT-OUT - Duration Constant: 0 hour,@((df.duration==0)),coef_eatout_duration_constant_0_hour
+util_eatout_duration_constant_30_minutes,EAT-OUT - Duration Constant: 0.5 hour,@((df.duration==1)),coef_eatout_duration_constant_30_minutes
+util_eatout_duration_constant_1_hour,EAT-OUT - Duration Constant: 1 hour,@((df.duration==2)),coef_eatout_duration_constant_1_hour
+util_eatout_duration_constant_1_hour_30_minutes,EAT-OUT - Duration Constant: 1.5 hours,@((df.duration==3)),coef_eatout_duration_constant_1_hour_30_minutes
+util_eatout_duration_constant_2_hours,EAT-OUT - Duration Constant: 2 hours,@((df.tour_category != 'joint')& (df.duration==4)),coef_eatout_duration_constant_2_hours
+util_eatout_duration_constant_2_hour_30_minutes_or_more,EAT-OUT - Duration Constant: 2.5 hours or more,@((df.duration>4)),coef_eatout_duration_constant_2_hour_30_minutes_or_more
+util_eatout_duration_constant_shift_for_every_30_minutes_more_than_3_hrs_linear,EAT-OUT - Duration Constant: Shift for every 30 minutes more than 3 hrs - Linear,"@np.where(((df.duration>5)), (np.where((df.duration<0), np.minimum(0-df.duration,47), 0) + np.where((df.duration>5), np.minimum(df.duration-5,11), 0)), 0)",coef_eatout_duration_constant_shift_for_every_30_minutes_more_than_3_hrs_linear
+util_eatout_calibration_constant_duration_1,EAT-OUT - Calibration Constant - Duration = 1,@((df.duration==0)),coef_eatout_calibration_constant_duration_1
+util_eatout_calibration_constant_duration_2,EAT-OUT - Calibration Constant - Duration = 2,@((df.duration==1)),coef_eatout_calibration_constant_duration_2
+util_eatout_calibration_constant_duration_3,EAT-OUT - Calibration Constant - Duration = 3,@((df.duration==2)),coef_eatout_calibration_constant_duration_3
+util_eatout_calibration_constant_duration_4,EAT-OUT - Calibration Constant - Duration = 4,@((df.duration==3)),coef_eatout_calibration_constant_duration_4
+util_eatout_calibration_constant_departure_1,EAT-OUT - Calibration Constant - Departure  = 1,@((df.start == 1)),coef_eatout_calibration_constant_departure_1
+util_eatout_calibration_constant_departure_2,EAT-OUT - Calibration Constant - Departure  = 2,@((df.start == 2)),coef_eatout_calibration_constant_departure_2
+util_eatout_calibration_constant_departure_3,EAT-OUT - Calibration Constant - Departure  = 3,@((df.start == 3)),coef_eatout_calibration_constant_departure_3
+util_eatout_calibration_constant_departure_17,EAT-OUT - Calibration Constant - Departure  = 17,@((df.start ==17)),coef_eatout_calibration_constant_departure_17
+util_eatout_calibration_constant_departure_18,EAT-OUT - Calibration Constant - Departure  = 18,@((df.start ==18)),coef_eatout_calibration_constant_departure_18
+util_eatout_calibration_constant_departure_19,EAT-OUT - Calibration Constant - Departure  = 19,@((df.start ==19)),coef_eatout_calibration_constant_departure_19
+util_eatout_calibration_constant_departure_20,EAT-OUT - Calibration Constant - Departure  = 20,@((df.start ==20)),coef_eatout_calibration_constant_departure_20
+util_eatout_calibration_constant_departure_21,EAT-OUT - Calibration Constant - Departure  = 21,@((df.start ==21)),coef_eatout_calibration_constant_departure_21

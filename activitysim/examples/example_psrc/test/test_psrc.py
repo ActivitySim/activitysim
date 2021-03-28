@@ -35,7 +35,7 @@ def test_psrc():
 
     file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
 
-    subprocess.run(['coverage', 'run', file_path,
+    subprocess.run(['coverage', 'run', '-a', file_path,
                     '-c', test_path('configs'), '-c', example_path('configs'),
                     '-d', example_path('data'),
                     '-o', test_path('output')], check=True)

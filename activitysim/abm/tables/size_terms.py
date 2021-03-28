@@ -81,6 +81,10 @@ def tour_destination_size_terms(land_use, size_terms, model_selector):
 
     land_use = land_use.to_frame()
 
+    # don't count on land_use being sorted by index
+    if not land_use.index.is_monotonic_increasing:
+        land_use = land_use.sort_index()
+
     size_terms = size_terms[size_terms.model_selector == model_selector].copy()
     del size_terms['model_selector']
 

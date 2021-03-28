@@ -42,7 +42,7 @@ def run_test_mtc(multiprocess=False):
         run_args = ['-c', test_path('configs'), '-c', example_path('configs'),
                     '-d', example_path('data'), '-o', test_path('output')]
 
-    subprocess.run(['coverage', 'run', file_path] + run_args, check=True)
+    subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
 
     regress()
 

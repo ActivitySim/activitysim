@@ -61,6 +61,24 @@ coef_hov_tourPur_Eat,coef_hov_tourPur_Eat_work,coef_hov_tourPur_Eat_univ,coef_ho
 atwork size_term variable ,@df['size_term'].apply(np.log1p),1
 No attractions,@df['size_term']==0,-999
 
+
+###
+##### mandatory_tour_scheduling.yaml
+##### mandatory_tour_schedulings_annotate_tours_preprocessor.csv
+###
+
+# rename file (and setting specification)
+# from mandatory_tour_schedulings_annotate_tours_preprocessor.csv
+# to mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+# name is misleading because we now also support tours_preprocessor
+
+ALTS_PREPROCESSOR:
+  work:
+#   SPEC: mandatory_tour_schedulings_annotate_tours_preprocessor.csv
+    SPEC: mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+    DF: alt_tdd
+
+
 ###
 ##### atwork_subtour_destination.csv
 ###

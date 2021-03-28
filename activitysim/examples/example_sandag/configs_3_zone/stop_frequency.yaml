@@ -1,0 +1,23 @@
+inherit_settings: True
+
+CONSTANTS:
+  TRANSIT_MODES:
+    - WALK_TRANSIT
+    - DRIVE_TRANSIT
+  DRIVE_TO_TRANSIT_MODES:
+    - DRIVE_TRANSIT
+  NONMOTORIZED_MODES:
+    - WALK
+    - BIKE
+  SHOP_TOUR: shopping
+  MAINT_TOUR: othmaint
+  SCHOOL_TOUR: school
+  EATOUT_TOUR: eatout
+  SOCIAL_TOUR: social
+  num_atwork_subtours_map:
+    no_subtours: 0
+    eat: 1
+    business1: 1
+    maint: 1
+    business2: 2
+    eat_business: 2

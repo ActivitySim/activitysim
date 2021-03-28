@@ -1,0 +1,4 @@
+Description,Target,Expression
+departure_shift,departureLinearShift1,"np.minimum(9-df.start,48)*(df.start<=9) + np.minimum(df.start-9,21)*(df.start>9)"
+arrival_shift,arrivalLinearShift1,"np.minimum(30-df.end,48)*(df.end<=30) + np.minimum(df.end-30,21)*(df.end>30)"
+duration_shift,durationShift,"(np.minimum(21-df.duration,47)*(df.duration<=20)) + (np.minimum(df.duration-21,20)*(df.duration>21))"

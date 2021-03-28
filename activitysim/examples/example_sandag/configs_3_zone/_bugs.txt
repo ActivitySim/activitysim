@@ -1,0 +1,14 @@
+annotate_persons_workplace.csv
+    work_auto_savings
+    work_auto_savings_ration
+
+annotate_households_workplace.csv
+    hh_work_auto_savings_ratio
+
+auto_ownership.csv
+    util_auto_time_saving_per_worker
+
+
+
+
+

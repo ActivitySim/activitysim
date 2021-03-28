@@ -1,0 +1,3 @@
+Label,Description,Expression,utility
+util_walk_available,walk available,@df.walk_time.isna() * C_UNAVAILABLE,1
+util_walk_time,walk time,"@np.where(df.demographic_segment==C_HIGH_INCOME_SEGMENT_ID, c_ivt_high_income, c_ivt_low_income) * c_walk * df.walk_time",1

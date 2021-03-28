@@ -3,6 +3,7 @@
 import logging
 import sys
 import pandas as pd
+import numpy as np
 
 from activitysim.core import pipeline
 from activitysim.core import inject
@@ -44,7 +45,7 @@ def track_skim_usage(output_dir):
             print(key, file=output_file)
 
 
-def write_data_dictionary(output_dir):
+def previous_write_data_dictionary(output_dir):
     """
     Write table_name, number of rows, columns, and bytes for each checkpointed table
 
@@ -53,21 +54,135 @@ def write_data_dictionary(output_dir):
     output_dir: str
 
     """
-    pd.options.display.max_columns = 500
-    pd.options.display.max_rows = 100
 
-    output_tables = pipeline.checkpointed_tables()
+    model_settings = config.read_model_settings('write_data_dictionary')
+    txt_format = model_settings.get('txt_format', 'data_dict.txt')
+    csv_format = model_settings.get('csv_format', 'data_dict.csv')
 
-    # write data dictionary for all checkpointed_tables
+    if txt_format:
 
-    mode = 'wb' if sys.version_info < (3,) else 'w'
-    with open(config.output_file_path('data_dict.txt'), mode) as output_file:
-        for table_name in output_tables:
-            df = inject.get_table(table_name, None).to_frame()
+        output_file_path = config.output_file_path(txt_format)
 
-            print("\n### %s %s" % (table_name, df.shape), file=output_file)
-            print('index:', df.index.name, df.index.dtype, file=output_file)
-            print(df.dtypes, file=output_file)
+        pd.options.display.max_columns = 500
+        pd.options.display.max_rows = 100
+
+        output_tables = pipeline.checkpointed_tables()
+
+        # write data dictionary for all checkpointed_tables
+
+        with open(output_file_path, 'w') as output_file:
+            for table_name in output_tables:
+                df = inject.get_table(table_name, None).to_frame()
+
+                print("\n### %s %s" % (table_name, df.shape), file=output_file)
+                print('index:', df.index.name, df.index.dtype, file=output_file)
+                print(df.dtypes, file=output_file)
+
+
+def write_data_dictionary(output_dir):
+    """
+    Write table schema for all tables
+
+    model settings
+        txt_format: output text file name (default data_dict.txt) or empty to suppress txt output
+        csv_format: output csv file name (default data_dict.tcsvxt) or empty to suppress txt output
+
+        schema_tables: list of tables to include in output (defaults to all checkpointed tables)
+
+    for each table, write column names, dtype, and checkpoint added)
+
+    text format writes individual table schemas to a single text file
+    csv format writes all tables together with an additional table_name column
+
+    Parameters
+    ----------
+    output_dir: str
+
+    """
+
+    model_settings = config.read_model_settings('write_data_dictionary')
+    txt_format = model_settings.get('txt_format', 'data_dict.txt')
+    csv_format = model_settings.get('csv_format', 'data_dict.csv')
+
+    if not (csv_format or txt_format):
+        logger.warning(f"write_data_dictionary step invoked but neither 'txt_format' nor 'csv_format' specified")
+        return
+
+    table_names = pipeline.checkpointed_tables()
+
+    # use table_names list from model_settings, if provided
+    schema_tables = model_settings.get('tables', None)
+    if schema_tables:
+        table_names = [c for c in schema_tables if c in table_names]
+
+    # initialize schema as dict of dataframe[table_name, column_name, dtype, checkpoint]
+    schema = dict()
+    final_shapes = dict()
+    for table_name in table_names:
+        df = pipeline.get_table(table_name)
+
+        final_shapes[table_name] = df.shape
+
+        if df.index.name:
+            df = df.reset_index()
+        info = df.dtypes.astype(str).to_frame('dtype').reset_index().rename(columns={'index': 'column_name'})
+        info['checkpoint'] = ''
+
+        info.insert(loc=0, column='table_name', value=table_name)
+        schema[table_name] = info
+
+    # annotate schema.info with name of checkpoint columns were first seen
+    for _, row in pipeline.get_checkpoints().iterrows():
+
+        checkpoint_name = row[pipeline.CHECKPOINT_NAME]
+
+        for table_name in table_names:
+
+            # no change to table in this checkpoint
+            if row[table_name] != checkpoint_name:
+                continue
+
+            # get the checkpointed version of the table
+            df = pipeline.get_table(table_name, checkpoint_name)
+            if df.index.name:
+                df = df.reset_index()
+
+            info = schema.get(table_name, None)
+
+            # tag any new columns with checkpoint name
+            prev_columns = info[info.checkpoint != ''].column_name.values
+            new_cols = [c for c in df.columns.values if c not in prev_columns]
+            is_new_column_this_checkpoont = info.column_name.isin(new_cols)
+            info.checkpoint = np.where(is_new_column_this_checkpoont, checkpoint_name, info.checkpoint)
+
+            schema[table_name] = info
+
+    schema_df = pd.concat(schema.values())
+
+    if csv_format:
+        schema_df.to_csv(config.output_file_path(csv_format), header=True, index=False)
+
+    if txt_format:
+        with open(config.output_file_path(txt_format), 'w') as output_file:
+
+            # get max schema column widths from omnibus table
+            col_width = {c: schema_df[c].str.len().max() + 2 for c in schema_df}
+
+            for table_name in table_names:
+                info = schema.get(table_name, None)
+
+                columns_to_print = ['column_name', 'dtype', 'checkpoint']
+                info = info[columns_to_print]
+
+                # normalize schema columns widths across all table schemas for unified output formatting
+                for c in info:
+                    info[c] = info[c].str.pad(col_width[c], side='right')
+                info.columns = [c.ljust(col_width[c]) for c in info.columns]
+
+                info = info.to_string(index=False)
+
+                print(f"###\n### {table_name} {final_shapes[table_name]}\n###\n", file=output_file)
+                print(f"{info}\n", file=output_file)
 
 
 def write_tables(output_dir):

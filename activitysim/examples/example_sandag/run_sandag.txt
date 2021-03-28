@@ -1,0 +1,1 @@
+activitysim run -c configs_local -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml

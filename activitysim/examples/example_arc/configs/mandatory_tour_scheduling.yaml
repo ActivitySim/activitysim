@@ -29,7 +29,7 @@ TOUR_SPEC_SEGMENTS:
 
 ALTS_PREPROCESSOR:
   work:
-    SPEC: mandatory_tour_schedulings_annotate_tours_preprocessor.csv
+    SPEC: mandatory_tour_scheduling_annotate_alts_preprocessor.csv
     DF: alt_tdd
 
 SPEC_SEGMENTS:

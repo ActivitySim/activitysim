@@ -120,6 +120,8 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     ("non_mandatory_tour_scheduling", "SLSQP"),
     ("joint_tour_scheduling", "SLSQP"),
     ("atwork_subtour_scheduling", "SLSQP"),
+    ("mandatory_tour_scheduling_work", "SLSQP"),
+    ("mandatory_tour_scheduling_school", "SLSQP"),
 ])
 def test_scheduling_model(est_data, num_regression, dataframe_regression, name, method):
     from activitysim.estimation.larch import component_model, update_size_spec

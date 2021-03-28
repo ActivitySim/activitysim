@@ -17,7 +17,7 @@ from larch.log import logger_name
 _logger = logging.getLogger(logger_name)
 
 
-def cv_to_ca(alt_values, dtype="float64"):
+def cv_to_ca(alt_values, dtype="float64", required_labels=None):
     """
     Convert a choosers-variables DataFrame to an idca DataFrame.
 
@@ -31,6 +31,9 @@ def cv_to_ca(alt_values, dtype="float64"):
     dtype : dtype
         Convert the incoming data to this type.  Set to None to
         skip data conversion.
+    required_labels : Collection, optional
+        If given, any columns in the output that are not required
+        will be pre-emptively dropped.
 
     Returns
     -------
@@ -62,14 +65,23 @@ def cv_to_ca(alt_values, dtype="float64"):
         x_ca_tall[x_ca_tall == "False"] = 0
         x_ca_tall[x_ca_tall == "True"] = 1
 
-        # Convert data to float64 to optimize computation speed in larch
-        x_ca_tall = x_ca_tall.astype(dtype)
+        if required_labels is None:
+            # Convert data to float64 to optimize computation speed in larch
+            x_ca_tall = x_ca_tall.astype(dtype)
 
     # Unstack the variables dimension
     x_ca = x_ca_tall.unstack(1)
 
     # Code above added a dummy top level to columns, remove it here.
     x_ca.columns = x_ca.columns.droplevel(0)
+
+    if required_labels is not None:
+        reqrd = set(required_labels.to_numpy())
+        drop_cols = [c for c in x_ca.columns if c not in reqrd]
+        _logger.critical(f"dropping f{drop_cols}")
+        _logger.critical(f"keeping f{[c for c in x_ca.columns if c in reqrd]}")
+        _logger.critical(f"required_labels f{reqrd}")
+        x_ca = x_ca.drop(drop_cols, axis=1).astype(dtype)
 
     return x_ca
 

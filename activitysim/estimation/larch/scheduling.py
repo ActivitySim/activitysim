@@ -59,6 +59,10 @@ def schedule_choice_model(
     alt_values = _read_csv(alt_values_file)
     chooser_data = _read_csv(chooser_file)
 
+    # remove temp rows from spec, ASim uses them to calculate the other values written
+    # to the EDB, but they are not actually part of the utility function themselves.
+    spec = spec.loc[~spec.Expression.str.startswith("_")].copy()
+
     include_settings = settings.get("include_settings")
     if include_settings:
         with open(os.path.join(edb_directory, include_settings), "r") as yf:
@@ -107,7 +111,10 @@ def schedule_choice_model(
     chooser_index_name = chooser_data.columns[0]
     x_co = chooser_data.set_index(chooser_index_name)
     alt_values.fillna(0, inplace=True)
-    x_ca = cv_to_ca(alt_values.set_index([chooser_index_name, alt_values.columns[1]]))
+    x_ca = cv_to_ca(
+        alt_values.set_index([chooser_index_name, alt_values.columns[1]]),
+        required_labels=spec[label_column_name],
+    )
 
     # if CHOOSER_SEGMENT_COLUMN_NAME is not None:
     #     # label segments with names
@@ -186,10 +193,18 @@ def construct_availability_ca(model, chooser_data, alt_codes_to_names):
     return avail
 
 
-def mandatory_tour_scheduling_model(return_data=False):
+def mandatory_tour_scheduling_work_model(return_data=False):
     return schedule_choice_model(
-        name="mandatory_tour_scheduling",
+        name="mandatory_tour_scheduling_work",
         return_data=return_data,
+        coefficients_file="tour_scheduling_work_coefficients.csv",
+    )
+
+def mandatory_tour_scheduling_school_model(return_data=False):
+    return schedule_choice_model(
+        name="mandatory_tour_scheduling_school",
+        return_data=return_data,
+        coefficients_file="tour_scheduling_school_coefficients.csv",
     )
 
 

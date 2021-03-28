@@ -10,7 +10,8 @@ import numpy as np
 MAZ_OFFSET = 100000
 
 segments = {
-    'test': {'MAZ': np.arange(MAZ_OFFSET, MAZ_OFFSET + 1080)},  # includes univ
+    'mini': {'MAZ': np.arange(MAZ_OFFSET + 500, MAZ_OFFSET + 1080)},  # includes univ
+    'test': {'MAZ': np.arange(MAZ_OFFSET, MAZ_OFFSET + 1080)},
     'full': {},
 }
 

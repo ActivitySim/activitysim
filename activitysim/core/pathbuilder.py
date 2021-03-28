@@ -398,7 +398,7 @@ class TransitVirtualPathBuilder(object):
 
         return transit_df
 
-    def compute_tap_tap_time(self, recipe, access_df, egress_df, chooser_attributes, trace_label, trace):
+    def compute_tap_tap_time(self, recipe, access_df, egress_df, chooser_attributes, path_info, trace_label, trace):
 
         trace_label = tracing.extend_trace_label(trace_label, 'compute_tap_tap_time')
 
@@ -410,32 +410,45 @@ class TransitVirtualPathBuilder(object):
             # note: transit_df index is arbitrary
             chunk.log_df(trace_label, "transit_df", transit_df)
 
-        locals_d = {'los': self.network_los}
-        locals_d.update(model_constants)
+        # some expressions may want to know access mode -
+        locals_dict = path_info.copy()
+        locals_dict['los'] = self.network_los
+        locals_dict.update(model_constants)
 
         assignment_spec = assign.read_assignment_spec(file_name=config.config_file_path(tap_tap_settings['SPEC']))
 
         DEDUPE = True
         if DEDUPE:
+
+            # assign uid for reduping
+            max_atap = transit_df.atap.max() + 1
+            transit_df['uid'] = transit_df.btap * max_atap + transit_df.atap
+
             # dedupe
-            dedupe_columns = ['btap', 'atap', 'tod']
-            unique_transit_df = transit_df[dedupe_columns].drop_duplicates()
-            logger.info(f"#TVPB CACHE deduped transit_df from {len(transit_df)} to {len(unique_transit_df)}")
+            chooser_attribute_columns = list(chooser_attributes.columns)
+            unique_transit_df = \
+                transit_df.loc[~transit_df.uid.duplicated(), ['btap', 'atap', 'uid'] + chooser_attribute_columns]
+            unique_transit_df.set_index('uid', inplace=True)
+            chunk.log_df(trace_label, "unique_transit_df", unique_transit_df)
+
+            logger.debug(f"#TVPB CACHE deduped transit_df from {len(transit_df)} to {len(unique_transit_df)}")
 
             # assign_variables
-            results, _, _ = assign.assign_variables(assignment_spec, unique_transit_df, locals_d)
+            results, _, _ = assign.assign_variables(assignment_spec, unique_transit_df, locals_dict)
             assert len(results.columns == 1)
             unique_transit_df['transit'] = results
 
-            # redupe
-            transit_df = pd.merge(
-                transit_df,
-                unique_transit_df,
-                on=dedupe_columns,
-                how='left'
-            )
+            # redupe results back into transit_df
+            with memo("#TVPB compute_tap_tap_time redupe transit_df"):
+                transit_df['transit'] = reindex(unique_transit_df.transit, transit_df.uid)
+
+            del transit_df['uid']
+            del unique_transit_df
+            chunk.log_df(trace_label, "transit_df", transit_df)
+            chunk.log_df(trace_label, "unique_transit_df", None)
+
         else:
-            results, _, _ = assign.assign_variables(assignment_spec, transit_df, locals_d)
+            results, _, _ = assign.assign_variables(assignment_spec, transit_df, locals_dict)
             assert len(results.columns == 1)
             transit_df['transit'] = results
 
@@ -472,8 +485,10 @@ class TransitVirtualPathBuilder(object):
             return result
         else:
             assert self.units_for_recipe(recipe) == 'time'
-            result = self.compute_tap_tap_time(recipe, access_df, egress_df, chooser_attributes, trace_label, trace)
 
+            with memo("#TVPB compute_tap_tap_time"):
+                result = self.compute_tap_tap_time(recipe, access_df, egress_df, chooser_attributes,
+                                                   path_info, trace_label, trace)
         return result
 
     def best_paths(self, recipe, path_type, maz_od_df, access_df, egress_df, transit_df, trace_label, trace=False):
@@ -573,6 +588,10 @@ class TransitVirtualPathBuilder(object):
         access_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.access')
         egress_mode = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}.egress')
         path_types_settings = self.network_los.setting(f'TVPB_SETTINGS.{recipe}.path_types.{path_type}')
+        attributes_as_columns = \
+            self.network_los.setting(f'TVPB_SETTINGS.{recipe}.tap_tap_settings.attributes_as_columns', [])
+
+        path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
 
         # maz od pairs requested
         with memo("#TVPB build_virtual_path maz_od_df"):
@@ -590,7 +609,12 @@ class TransitVirtualPathBuilder(object):
         # knowing this allows us to eliminate redundant computations (e.g. utilities of maz_tap pairs)
         duplicated = orig.index.duplicated(keep='first')
         chooser_attributes = pd.DataFrame(index=orig.index[~duplicated])
-        chooser_attributes['tod'] = tod if isinstance(tod, str) else tod.loc[~duplicated]
+        if not isinstance(tod, str):
+            chooser_attributes['tod'] = tod.loc[~duplicated]
+        elif 'tod' in attributes_as_columns:
+            chooser_attributes['tod'] = tod
+        else:
+            path_info['tod'] = tod
         if demographic_segment is not None:
             chooser_attributes['demographic_segment'] = demographic_segment.loc[~duplicated]
 
@@ -619,7 +643,6 @@ class TransitVirtualPathBuilder(object):
         # path_info for use by expressions (e.g. penalty for drive access if no parking at access tap)
         with memo("#TVPB build_virtual_path compute_tap_tap"):
             with chunk.chunk_log(f'#TVPB.compute_tap_tap'):
-                path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
                 transit_df = self.compute_tap_tap(
                     recipe,
                     maz_od_df,

@@ -30,6 +30,6 @@ maz_to_tap:
     max_dist: 1.2
   drive:
     table: maz_to_tap_drive.csv
-    # although maz_tap untility calculations use both DIST and drive_time,
-    # it looks like drive_time is a linera function of DIST so we can use either column to trim to nearest
+    # although maz_tap utility calculations use both DIST and drive_time,
+    # it looks like drive_time is a linear function of DIST so we can use either column to trim to nearest
     tap_line_distance_col: DIST

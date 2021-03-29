@@ -526,7 +526,10 @@ def clean_values(
 
 
 def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
-    coefficients = data.coefficients.copy()
+    if isinstance(data, pd.DataFrame):
+        coefficients = data.copy()
+    else:
+        coefficients = data.coefficients.copy()
     est_names = [j for j in coefficients.index if j in model.pf.index]
     coefficients.loc[est_names, "value"] = model.pf.loc[est_names, "value"]
     if output_file is not None:

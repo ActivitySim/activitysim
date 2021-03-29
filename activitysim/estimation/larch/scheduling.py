@@ -28,10 +28,10 @@ def schedule_choice_model(
     settings_file="{name}_model_settings.yaml",
     return_data=False,
 ):
-    model_selector = name.replace("_location","")
-    model_selector = model_selector.replace("_destination","")
-    model_selector = model_selector.replace("_subtour","")
-    model_selector = model_selector.replace("_tour","")
+    model_selector = name.replace("_location", "")
+    model_selector = model_selector.replace("_destination", "")
+    model_selector = model_selector.replace("_subtour", "")
+    model_selector = model_selector.replace("_tour", "")
     edb_directory = edb_directory.format(name=name)
 
     def _read_csv(filename, optional=False, **kwargs):
@@ -74,8 +74,7 @@ def schedule_choice_model(
     if SEGMENT_IDS is None:
         SEGMENTS = settings.get("SEGMENTS")
         if SEGMENTS is not None:
-            SEGMENT_IDS = {i:i for i in SEGMENTS}
-
+            SEGMENT_IDS = {i: i for i in SEGMENTS}
 
     if 'Label' in spec.columns:
         label_column_name = 'Label'
@@ -85,7 +84,11 @@ def schedule_choice_model(
         raise ValueError("cannot find Label or Expression in spec file")
 
     m = Model()
-    if len(spec.columns) == 4 and ([c.lower() for c in spec.columns] == ['label', 'description', 'expression', 'coefficient']):
+    if len(spec.columns) == 4 and (
+            [c.lower() for c in spec.columns] == [
+                'label', 'description', 'expression', 'coefficient'
+            ]
+    ):
         m.utility_ca = linear_utility_from_spec(
             spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
         )
@@ -104,7 +107,6 @@ def schedule_choice_model(
             ignore_x=("local_dist",),
             segment_id=CHOOSER_SEGMENT_COLUMN_NAME,
         )
-
 
     apply_coefficients(coefficients, m, minimum=-25, maximum=25)
 
@@ -159,6 +161,7 @@ def schedule_choice_model(
 
     return m
 
+
 def construct_availability_ca(model, chooser_data, alt_codes_to_names):
     """
     Construct an availability dataframe based on -999 parameters.
@@ -199,6 +202,7 @@ def mandatory_tour_scheduling_work_model(return_data=False):
         return_data=return_data,
         coefficients_file="tour_scheduling_work_coefficients.csv",
     )
+
 
 def mandatory_tour_scheduling_school_model(return_data=False):
     return schedule_choice_model(

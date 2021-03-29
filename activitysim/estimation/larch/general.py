@@ -156,11 +156,7 @@ def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
                 _x = None
             else:
                 raise
-        try:
-            _p = spec.loc[i, p_col]
-        except:
-            print("i",i,"p_col",p_col)
-            raise
+        _p = spec.loc[i, p_col]
 
         if _x is not None and (_x not in ignore_x) and not pd.isna(_p):
             # process coefficients when they are multiples instead of raw names

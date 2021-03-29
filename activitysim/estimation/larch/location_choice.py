@@ -44,10 +44,10 @@ def location_choice_model(
     landuse_file="{name}_landuse.csv",
     return_data=False,
 ):
-    model_selector = name.replace("_location","")
-    model_selector = model_selector.replace("_destination","")
-    model_selector = model_selector.replace("_subtour","")
-    model_selector = model_selector.replace("_tour","")
+    model_selector = name.replace("_location", "")
+    model_selector = model_selector.replace("_destination", "")
+    model_selector = model_selector.replace("_subtour", "")
+    model_selector = model_selector.replace("_tour", "")
     if model_selector == 'joint':
         model_selector = 'non_mandatory'
     edb_directory = edb_directory.format(name=name)
@@ -85,7 +85,7 @@ def location_choice_model(
     if SEGMENT_IDS is None:
         SEGMENTS = settings.get("SEGMENTS")
         if SEGMENTS is not None:
-            SEGMENT_IDS = {i:i for i in SEGMENTS}
+            SEGMENT_IDS = {i: i for i in SEGMENTS}
 
     SIZE_TERM_SELECTOR = settings.get('SIZE_TERM_SELECTOR', model_selector)
 
@@ -100,10 +100,10 @@ def location_choice_model(
     size_coef = size_coefficients_from_spec(size_spec)
 
     indexes_to_drop = [
-        "util_size_variable",               # pre-computed size (will be re-estimated)
-        "util_size_variable_atwork",        # pre-computed size (will be re-estimated)
-        "util_utility_adjustment",          # shadow pricing (ignored in estimation)
-        "@df['size_term'].apply(np.log1p)", # pre-computed size (will be re-estimated)
+        "util_size_variable",                 # pre-computed size (will be re-estimated)
+        "util_size_variable_atwork",          # pre-computed size (will be re-estimated)
+        "util_utility_adjustment",            # shadow pricing (ignored in estimation)
+        "@df['size_term'].apply(np.log1p)",   # pre-computed size (will be re-estimated)
     ]
     if 'Label' in spec.columns:
         indexes_to_drop = [i for i in indexes_to_drop if i in spec.Label.to_numpy()]
@@ -136,7 +136,7 @@ def location_choice_model(
     if name == 'trip_destination':
         CHOOSER_SEGMENT_COLUMN_NAME = 'primary_purpose'
         primary_purposes = spec.columns[3:]
-        SEGMENT_IDS = {pp:pp for pp in primary_purposes}
+        SEGMENT_IDS = {pp: pp for pp in primary_purposes}
 
     chooser_index_name = chooser_data.columns[0]
     x_co = chooser_data.set_index(chooser_index_name)

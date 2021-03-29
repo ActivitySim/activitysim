@@ -48,8 +48,6 @@ def construct_availability(model, chooser_data, alt_codes_to_names):
     return avail
 
 
-
-
 def simple_simulate_data(
     name="tour_mode_choice",
     edb_directory="output/estimation_data_bundle/{name}/",
@@ -93,7 +91,7 @@ def simple_simulate_data(
 
         chooser_data = _read_csv(chooser_data_file, index_col=values_index_col,)
 
-    except:
+    except Exception:
         # when an error happens in reading anything other than settings, print settings
         from pprint import pprint
         pprint(settings)
@@ -111,7 +109,6 @@ def simple_simulate_data(
         alt_names_to_codes=alt_names_to_codes,
         alt_codes_to_names=alt_codes_to_names,
     )
-
 
 
 def simple_simulate_model(
@@ -189,8 +186,8 @@ def auto_ownership_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
-        choices={i:i+1 for i in range(5)},  # choices are coded in data as integers,
-                                            # not 'cars0' etc as appears in the spec
+        choices={i: i+1 for i in range(5)},  # choices are coded in data as integers,
+                                             # not 'cars0' etc as appears in the spec
     )
 
 
@@ -271,7 +268,5 @@ def joint_tour_participation_model(
             False: 2,
             0: 1,
             1: 2,
-        }, # True means participate, which is the 1st alternative
+        },   # True means participate, which is the 1st alternative
     )
-
-

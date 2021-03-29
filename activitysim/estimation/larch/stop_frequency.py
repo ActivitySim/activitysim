@@ -21,11 +21,11 @@ def stop_frequency_data(
         values_index_col="tour_id",
 ):
     name = 'stop_frequency'
-    edb_directory = Path(edb_directory.format(name=name))
+    edb_directory = edb_directory.format(name=name)
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader, )
+        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
 
     seg_coefficients = []
     seg_spec = []
@@ -37,16 +37,13 @@ def stop_frequency_data(
 
     for seg in settings["SPEC_SEGMENTS"]:
         seg_purpose = seg['primary_purpose']
-        seg_subdir = edb_directory / seg_purpose
-        coefs = pd.read_csv(
-            seg_subdir / seg['COEFFICIENTS'],
-            index_col="coefficient_name",
-        )
-        if "constrain" not in coefs.columns:
-            coefs["constrain"] = "F"
-        seg_coefficients.append(coefs[["value", "constrain"]])
-        spec = pd.read_csv(seg_subdir / "stop_frequency_SPEC.csv")
+        seg_subdir = Path(os.path.join(edb_directory, seg_purpose))
+        coeffs_ = pd.read_csv(seg_subdir/seg['COEFFICIENTS'], index_col="coefficient_name")
+        coeffs_.index = pd.Index([f"{i}_{seg_purpose}" for i in coeffs_.index], name="coefficient_name")
+        seg_coefficients.append(coeffs_)
+        spec = pd.read_csv(seg_subdir/"stop_frequency_SPEC.csv")
         spec = remove_apostrophes(spec, ["Label"])
+        spec.iloc[:, 3:] = spec.iloc[:, 3:].applymap(lambda x: f"{x}_{seg_purpose}" if not pd.isna(x) else x)
         seg_spec.append(spec)
 
         alt_names = list(spec.columns[3:])
@@ -60,13 +57,13 @@ def stop_frequency_data(
         seg_alt_codes_to_names.append(alt_codes_to_names)
 
         chooser_data = pd.read_csv(
-            seg_subdir / chooser_data_file.format(name=name),
+            seg_subdir/chooser_data_file.format(name=name),
             index_col=values_index_col,
         )
         seg_chooser_data.append(chooser_data)
 
     return Dict(
-        edb_directory=edb_directory,
+        edb_directory=Path(edb_directory),
         settings=settings,
         chooser_data=seg_chooser_data,
         coefficients=seg_coefficients,
@@ -76,6 +73,70 @@ def stop_frequency_data(
         alt_names_to_codes=seg_alt_names_to_codes,
         alt_codes_to_names=seg_alt_codes_to_names,
     )
+#
+#
+# def stop_frequency_data(
+#         edb_directory="output/estimation_data_bundle/{name}/",
+#         settings_file="{name}_model_settings.yaml",
+#         chooser_data_file="{name}_values_combined.csv",
+#         values_index_col="tour_id",
+# ):
+#     name = 'stop_frequency'
+#     edb_directory = Path(edb_directory.format(name=name))
+#
+#     settings_file = settings_file.format(name=name)
+#     with open(os.path.join(edb_directory, settings_file), "r") as yf:
+#         settings = yaml.load(yf, Loader=yaml.SafeLoader, )
+#
+#     seg_coefficients = []
+#     seg_spec = []
+#     seg_alt_names = []
+#     seg_alt_codes = []
+#     seg_alt_names_to_codes = []
+#     seg_alt_codes_to_names = []
+#     seg_chooser_data = []
+#
+#     for seg in settings["SPEC_SEGMENTS"]:
+#         seg_purpose = seg['primary_purpose']
+#         seg_subdir = edb_directory / seg_purpose
+#         coefs = pd.read_csv(
+#             seg_subdir / seg['COEFFICIENTS'],
+#             index_col="coefficient_name",
+#         )
+#         if "constrain" not in coefs.columns:
+#             coefs["constrain"] = "F"
+#         seg_coefficients.append(coefs[["value", "constrain"]])
+#         spec = pd.read_csv(seg_subdir / "stop_frequency_SPEC.csv")
+#         spec = remove_apostrophes(spec, ["Label"])
+#         seg_spec.append(spec)
+#
+#         alt_names = list(spec.columns[3:])
+#         alt_codes = np.arange(1, len(alt_names) + 1)
+#         alt_names_to_codes = dict(zip(alt_names, alt_codes))
+#         alt_codes_to_names = dict(zip(alt_codes, alt_names))
+#
+#         seg_alt_names.append(alt_names)
+#         seg_alt_codes.append(alt_codes)
+#         seg_alt_names_to_codes.append(alt_names_to_codes)
+#         seg_alt_codes_to_names.append(alt_codes_to_names)
+#
+#         chooser_data = pd.read_csv(
+#             seg_subdir / chooser_data_file.format(name=name),
+#             index_col=values_index_col,
+#         )
+#         seg_chooser_data.append(chooser_data)
+#
+#     return Dict(
+#         edb_directory=edb_directory,
+#         settings=settings,
+#         chooser_data=seg_chooser_data,
+#         coefficients=seg_coefficients,
+#         spec=seg_spec,
+#         alt_names=seg_alt_names,
+#         alt_codes=seg_alt_codes,
+#         alt_names_to_codes=seg_alt_names_to_codes,
+#         alt_codes_to_names=seg_alt_codes_to_names,
+#     )
 
 
 def stop_frequency_model(

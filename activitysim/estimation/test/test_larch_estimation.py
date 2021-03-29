@@ -138,6 +138,21 @@ def test_scheduling_model(est_data, num_regression, dataframe_regression, name, 
     _regression_check(dataframe_regression, m.pf)
 
 
+def test_stop_freq_model(est_data, num_regression, dataframe_regression):
+    from activitysim.estimation.larch import component_model
+
+    name = "stop_frequency"
+    m, data = component_model(name, return_data=True)
+    m.load_data()
+    loglike_prior = m.loglike()
+    r = m.maximize_loglike()
+    num_regression.check(
+        {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
+        basename=f"test_{name}_loglike",
+    )
+    _regression_check(dataframe_regression, m.pf)
+
+
 def test_workplace_location(est_data, num_regression, dataframe_regression):
     from activitysim.estimation.larch import component_model, update_size_spec
 

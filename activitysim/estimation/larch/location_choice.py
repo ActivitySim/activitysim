@@ -57,11 +57,16 @@ def location_choice_model(
         return pd.read_csv(os.path.join(edb_directory, filename), **kwargs)
 
     coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
-    spec = _read_csv(spec_file)
+    spec = _read_csv(spec_file, comment="#")
     alt_values = _read_csv(alt_values_file)
     chooser_data = _read_csv(chooser_file)
     landuse = _read_csv(landuse_file, index_col="zone_id")
     master_size_spec = _read_csv(size_spec_file)
+
+    # remove temp rows from spec, ASim uses them to calculate the other values written
+    # to the EDB, but they are not actually part of the utility function themselves.
+    spec = spec.loc[~spec.Expression.isna()]
+    spec = spec.loc[~spec.Expression.str.startswith("_")].copy()
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
@@ -69,7 +74,9 @@ def location_choice_model(
 
     include_settings = settings.get("include_settings")
     if include_settings:
-        with open(os.path.join(edb_directory, include_settings), "r") as yf:
+        include_settings = os.path.join(edb_directory, include_settings)
+    if include_settings and os.path.exists(include_settings):
+        with open(include_settings, "r") as yf:
             more_settings = yaml.load(yf, Loader=yaml.SafeLoader, )
         settings.update(more_settings)
 

@@ -80,6 +80,12 @@ def simple_simulate_data(
 
         spec = _read_csv(spec_file, comment="#")
         spec = remove_apostrophes(spec, ["Label"])
+
+        # remove temp rows from spec, ASim uses them to calculate the other values written
+        # to the EDB, but they are not actually part of the utility function themselves.
+        spec = spec.loc[~spec.Expression.isna()]
+        spec = spec.loc[~spec.Expression.str.startswith("_")].copy()
+
         alt_names = list(spec.columns[3:])
         alt_codes = np.arange(1, len(alt_names) + 1)
         alt_names_to_codes = dict(zip(alt_names, alt_codes))
@@ -106,65 +112,6 @@ def simple_simulate_data(
         alt_codes_to_names=alt_codes_to_names,
     )
 
-
-def stop_frequency_data(
-        edb_directory="output/estimation_data_bundle/{name}/",
-        settings_file="{name}_model_settings.yaml",
-        chooser_data_file="{name}_values_combined.csv",
-        values_index_col="tour_id",
-):
-    name = 'stop_frequency'
-    edb_directory = edb_directory.format(name=name)
-
-    settings_file = settings_file.format(name=name)
-    with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
-
-    seg_coefficients = []
-    seg_spec = []
-    seg_alt_names = []
-    seg_alt_codes = []
-    seg_alt_names_to_codes = []
-    seg_alt_codes_to_names = []
-    seg_chooser_data = []
-
-    for seg in settings["SPEC_SEGMENTS"]:
-        seg_purpose = seg['primary_purpose']
-        seg_subdir = edb_directory/seg_purpose
-        seg_coefficients.append(
-            pd.read_csv(seg_subdir/seg['COEFFICIENTS'], index_col="coefficient_name")
-        )
-        spec = pd.read_csv(seg_subdir/seg['SPEC'])
-        spec = remove_apostrophes(spec, ["Label"])
-        seg_spec.append(spec)
-
-        alt_names = list(spec.columns[3:])
-        alt_codes = np.arange(1, len(alt_names) + 1)
-        alt_names_to_codes = dict(zip(alt_names, alt_codes))
-        alt_codes_to_names = dict(zip(alt_codes, alt_names))
-
-        seg_alt_names.append(alt_names)
-        seg_alt_codes.append(alt_codes)
-        seg_alt_names_to_codes.append(alt_names_to_codes)
-        seg_alt_codes_to_names.append(alt_codes_to_names)
-
-        chooser_data = pd.read_csv(
-            seg_subdir/chooser_data_file.format(name=name),
-            index_col=values_index_col,
-        )
-        seg_chooser_data.append(chooser_data)
-
-    return Dict(
-        edb_directory=Path(edb_directory),
-        settings=settings,
-        chooser_data=seg_chooser_data,
-        coefficients=seg_coefficients,
-        spec=seg_spec,
-        alt_names=seg_alt_names,
-        alt_codes=seg_alt_codes,
-        alt_names_to_codes=seg_alt_names_to_codes,
-        alt_codes_to_names=seg_alt_codes_to_names,
-    )
 
 
 def simple_simulate_model(
@@ -318,6 +265,7 @@ def joint_tour_participation_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
+        values_index_col="participant_id",
         choices={True: 1, False: 2, }, # True means participate, which is the 1st alternative
                                        # leading to this counterintuitive coding
     )

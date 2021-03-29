@@ -322,7 +322,11 @@ def apply_coefficients(coefficients, model, minimum=None, maximum=None):
             apply_coefficients(coefficients, m)
     else:
         assert isinstance(coefficients, pd.DataFrame)
-        assert all(coefficients.columns == ["value", "constrain"])
+        assert "value" in coefficients.columns
+        if "constrain" not in coefficients.columns:
+            import warnings
+            warnings.warn("coefficient dataframe missing 'constrain' column, setting all to 'F'")
+            coefficients["constrain"] = "F"
         assert coefficients.index.name == "coefficient_name"
         assert isinstance(model, AbstractChoiceModel)
         explicit_value_parameters(model)

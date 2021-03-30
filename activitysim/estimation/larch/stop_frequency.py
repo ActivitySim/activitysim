@@ -14,21 +14,6 @@ from .general import (
 )
 
 
-def stop_frequency_data_revision(
-        edb_directory="output/estimation_data_bundle/{name}/",
-        settings_file="{name}_model_settings.yaml",
-):
-    name = 'stop_frequency'
-    edb_directory = edb_directory.format(name=name)
-
-    settings_file = settings_file.format(name=name)
-    with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
-
-
-
-    
-
 def stop_frequency_data(
         edb_directory="output/estimation_data_bundle/{name}/",
         settings_file="{name}_model_settings.yaml",
@@ -46,13 +31,16 @@ def stop_frequency_data(
 
     master_coef = {}
     prior_segs = []
-    coef_map = {seg:{} for seg in segments}
+    coef_map = {seg: {} for seg in segments}
 
     segment_coef = {}
     for seg_ in settings["SPEC_SEGMENTS"]:
         seg_purpose = seg_['primary_purpose']
         seg_subdir = Path(os.path.join(edb_directory, seg_purpose))
-        segment_coef[seg_['primary_purpose']] = pd.read_csv(seg_subdir/seg_['COEFFICIENTS'], index_col="coefficient_name")
+        segment_coef[seg_['primary_purpose']] = pd.read_csv(
+            seg_subdir/seg_['COEFFICIENTS'],
+            index_col="coefficient_name",
+        )
 
     for seg in segments:
         for cname, value in segment_coef[seg].value.items():
@@ -134,7 +122,6 @@ def stop_frequency_data(
         coefficient_map=coef_map,
         segment_coefficients=segment_coef,
     )
-
 
 
 def stop_frequency_model(

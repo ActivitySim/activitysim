@@ -475,56 +475,6 @@ def clean_values(
     return values
 
 
-# def simple_simulate_data(
-#     name="tour_mode_choice",
-#     edb_directory="output/estimation_data_bundle/{name}/",
-#     coefficients_file="{name}_coefficients.csv",
-#     coefficients_template="{name}_coefficients_template.csv",
-#     spec_file="{name}_SPEC.csv",
-#     settings_file="{name}_model_settings.yaml",
-#     chooser_data_file="{name}_values_combined.csv",
-#     values_index_col="tour_id",
-# ):
-#     edb_directory = edb_directory.format(name=name)
-#
-#     def _read_csv(filename, **kwargs):
-#         filename = filename.format(name=name)
-#         return pd.read_csv(os.path.join(edb_directory, filename), **kwargs)
-#
-#     coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
-#
-#     try:
-#         coef_template = _read_csv(coefficients_template, index_col="coefficient_name",)
-#     except FileNotFoundError:
-#         coef_template = None
-#
-#     spec = _read_csv(spec_file,)
-#     spec = remove_apostrophes(spec, ["Label"])
-#     alt_names = list(spec.columns[3:])
-#     alt_codes = np.arange(1, len(alt_names) + 1)
-#     alt_names_to_codes = dict(zip(alt_names, alt_codes))
-#     alt_codes_to_names = dict(zip(alt_codes, alt_names))
-#
-#     chooser_data = _read_csv(chooser_data_file, index_col=values_index_col,)
-#
-#     settings_file = settings_file.format(name=name)
-#     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-#         settings = yaml.load(yf, Loader=yaml.SafeLoader,)
-#
-#     return Dict(
-#         edb_directory=Path(edb_directory),
-#         settings=settings,
-#         chooser_data=chooser_data,
-#         coefficients=coefficients,
-#         coef_template=coef_template,
-#         spec=spec,
-#         alt_names=alt_names,
-#         alt_codes=alt_codes,
-#         alt_names_to_codes=alt_names_to_codes,
-#         alt_codes_to_names=alt_codes_to_names,
-#     )
-
-
 def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
     if isinstance(data, pd.DataFrame):
         coefficients = data.copy()

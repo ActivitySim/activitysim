@@ -10,12 +10,12 @@ logging:
   # Configuring the default (root) logger is highly recommended
   root:
     level: NOTSET
-    handlers: [console, logfile]
+    handlers: [console]
 
   loggers:
 
     activitysim:
-      level: DEBUG
+      level: INFO
       handlers: [console, logfile]
       propagate: false
 

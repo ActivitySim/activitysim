@@ -5,7 +5,7 @@ Getting Started
 This page describes how to get started with ActivitySim.
 
 .. note::
-   ActivitySim is under development
+   ActivitySim is under active development
 
 
 .. index:: installation
@@ -28,7 +28,7 @@ Installation
 
 ::
 
-  conda create -n asimtest python=3.7
+  conda create -n asimtest python=3.8
 
   #Windows
   activate asimtest
@@ -46,14 +46,11 @@ Installation
   pip install openmatrix zbox requests
 
   # optional required packages for testing and building documentation
-  conda install pytest pytest-cov coveralls pycodestyle
+  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions
   conda install sphinx numpydoc sphinx_rtd_theme
   
   # optional required packages for example notebooks and estimation integration
-  conda install jupyterlab          # for notebooks
-  conda install matplotlib          # for charts
-  conda install geopandas descartes # for maps
-  conda install larch               # for estimation
+  conda install jupyterlab matplotlib geopandas descartes larch
 
 5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.
 
@@ -105,8 +102,8 @@ For `pip` for example:
   For more information on Anaconda, see Anaconda's `getting started
   <https://docs.anaconda.com/anaconda/user-guide/getting-started>`__ guide.
 
-Run the Example
----------------
+Run the Primary Example
+-----------------------
 
 ActivitySim includes a :ref:`cli` for creating examples and running the model.
 

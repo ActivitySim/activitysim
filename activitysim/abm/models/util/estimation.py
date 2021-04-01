@@ -147,7 +147,7 @@ class Estimator(object):
             else:
                 file_name = f"{self.bundle_name}_{table_name}"
 
-        if file_type:
+        if file_type and os.path.splitext(file_name)[1] != f".{file_type}":
             file_name = f"{file_name}.{file_type}"
 
         return os.path.join(output_dir, file_name)
@@ -300,7 +300,13 @@ class Estimator(object):
 
     def write_model_settings(self, model_settings, settings_file_name, bundle_directory=False):
 
-        self.copy_model_settings(settings_file_name, bundle_directory=bundle_directory)
+        if 'include_settings' in model_settings:
+            file_path = self.output_file_path('model_settings', 'yaml', bundle_directory)
+            assert not os.path.isfile(file_path)
+            with open(file_path, 'w') as f:
+                yaml.dump(model_settings, f)
+        else:
+            self.copy_model_settings(settings_file_name, bundle_directory=bundle_directory)
         if 'inherit_settings' in model_settings:
             self.write_dict(model_settings, 'inherited_model_settings', bundle_directory)
 

@@ -17,7 +17,7 @@ from larch.log import logger_name
 _logger = logging.getLogger(logger_name)
 
 
-def cv_to_ca(alt_values, dtype="float64"):
+def cv_to_ca(alt_values, dtype="float64", required_labels=None):
     """
     Convert a choosers-variables DataFrame to an idca DataFrame.
 
@@ -31,6 +31,9 @@ def cv_to_ca(alt_values, dtype="float64"):
     dtype : dtype
         Convert the incoming data to this type.  Set to None to
         skip data conversion.
+    required_labels : Collection, optional
+        If given, any columns in the output that are not required
+        will be pre-emptively dropped.
 
     Returns
     -------
@@ -62,14 +65,20 @@ def cv_to_ca(alt_values, dtype="float64"):
         x_ca_tall[x_ca_tall == "False"] = 0
         x_ca_tall[x_ca_tall == "True"] = 1
 
-        # Convert data to float64 to optimize computation speed in larch
-        x_ca_tall = x_ca_tall.astype(dtype)
+        if required_labels is None:
+            # Convert data to float64 to optimize computation speed in larch
+            x_ca_tall = x_ca_tall.astype(dtype)
 
     # Unstack the variables dimension
     x_ca = x_ca_tall.unstack(1)
 
     # Code above added a dummy top level to columns, remove it here.
     x_ca.columns = x_ca.columns.droplevel(0)
+
+    if required_labels is not None:
+        reqrd = set(required_labels.to_numpy())
+        drop_cols = [c for c in x_ca.columns if c not in reqrd]
+        x_ca = x_ca.drop(drop_cols, axis=1).astype(dtype)
 
     return x_ca
 
@@ -90,6 +99,12 @@ def prevent_overlapping_column_names(x_ca, x_co):
     renaming = {i: f"{i}_ca" for i in x_ca.columns if i in x_co.columns}
     x_ca.rename(columns=renaming, inplace=True)
     return x_ca, x_co
+
+
+def str_repr(x):
+    if isinstance(x, str):
+        return repr(x)
+    return x
 
 
 def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
@@ -129,13 +144,54 @@ def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
         for seg_p_col, segval in p_col.items():
             partial_utility[seg_p_col] = linear_utility_from_spec(
                 spec, x_col, seg_p_col, ignore_x,
-            ) * X(f"{segment_id}=={segval}")
+            ) * X(f"{segment_id}=={str_repr(segval)}")
         return sum(partial_utility.values())
-    return sum(
-        P(getattr(i, p_col)) * X(getattr(i, x_col))
-        for i in spec.itertuples()
-        if (getattr(i, x_col) not in ignore_x) and not pd.isna(getattr(i, p_col))
-    )
+    parts = []
+    for i in spec.index:
+        _x = spec.loc[i, x_col]
+        try:
+            _x = _x.strip()
+        except AttributeError:
+            if np.isnan(_x):
+                _x = None
+            else:
+                raise
+        _p = spec.loc[i, p_col]
+
+        if _x is not None and (_x not in ignore_x) and not pd.isna(_p):
+            # process coefficients when they are multiples instead of raw names
+            if isinstance(_p, str) and "*" in _p:
+                _p_star = [i.strip() for i in _p.split("*")]
+                if len(_p_star) == 2:
+                    try:
+                        _p0 = float(_p_star[0])
+                    except ValueError:
+                        # first term not a number, maybe the second is
+                        try:
+                            _p1 = float(_p_star[1])
+                        except ValueError:
+                            # second term also not a number, it's just a star in a name
+                            _P = P(_p)
+                        else:
+                            # second term is a number, use the multiplier
+                            _P = P(_p_star[0]) * _p1
+                    else:
+                        # first term is a number, ensure the second is not
+                        try:
+                            _p1 = float(_p_star[1])
+                        except ValueError:
+                            # second term is not a number, use the multiplier
+                            _P = P(_p_star[1]) * _p0
+                        else:
+                            # both terms are numbers, not allowed
+                            raise ValueError(f"parameter is just {_p}, I need a name")
+                else:
+                    # not handling triple-multiple terms (or worse)
+                    _P = P(_p)
+            else:
+                _P = P(_p)
+            parts.append(_P * X(_x))
+    return sum(parts)
 
 
 def dict_of_linear_utility_from_spec(spec, x_col, p_col, ignore_x=()):
@@ -259,7 +315,11 @@ def apply_coefficients(coefficients, model, minimum=None, maximum=None):
             apply_coefficients(coefficients, m)
     else:
         assert isinstance(coefficients, pd.DataFrame)
-        assert all(coefficients.columns == ["value", "constrain"])
+        assert "value" in coefficients.columns
+        if "constrain" not in coefficients.columns:
+            import warnings
+            warnings.warn("coefficient dataframe missing 'constrain' column, setting all to 'F'")
+            coefficients["constrain"] = "F"
         assert coefficients.index.name == "coefficient_name"
         assert isinstance(model, AbstractChoiceModel)
         explicit_value_parameters(model)
@@ -268,6 +328,7 @@ def apply_coefficients(coefficients, model, minimum=None, maximum=None):
                 model.set_value(
                     i.Index,
                     value=i.value,
+                    initvalue=i.value,
                     holdfast=(i.constrain == "T"),
                     minimum=minimum,
                     maximum=maximum,
@@ -355,6 +416,8 @@ def remove_apostrophes(df, from_columns=None):
     """
     Remove apostrophes from columns names and from data in given columns.
 
+    Also strips leading and trailing whitespace.
+
     This function operates in-place on DataFrames.
 
     Parameters
@@ -367,6 +430,7 @@ def remove_apostrophes(df, from_columns=None):
     pandas.DataFrame
     """
     df.columns = df.columns.str.replace("'", "")
+    df.columns = df.columns.str.strip()
     if from_columns:
         for c in from_columns:
             df[c] = df[c].str.replace("'", "")
@@ -375,7 +439,6 @@ def remove_apostrophes(df, from_columns=None):
 
 def clean_values(
     values,
-    alt_names,
     choice_col="override_choice",
     alt_names_to_codes=None,
     choice_code="override_choice_code",
@@ -403,67 +466,20 @@ def clean_values(
     values = remove_apostrophes(values)
     values.fillna(0, inplace=True)
     # Retain only choosers with valid observed choice
-    values = values[values[choice_col].isin(alt_names)]
+    values = values[values[choice_col].isin(list(alt_names_to_codes.keys()))]
     # Convert choices to code numbers
     if alt_names_to_codes is not None:
-        values[choice_code] = values[choice_col].map(alt_names_to_codes)
+        values[choice_code] = values[choice_col].map(dict(alt_names_to_codes))
     else:
         values[choice_code] = values[choice_col]
     return values
 
 
-def simple_simulate_data(
-    name="tour_mode_choice",
-    edb_directory="output/estimation_data_bundle/{name}/",
-    coefficients_file="{name}_coefficients.csv",
-    coefficients_template="{name}_coefficients_template.csv",
-    spec_file="{name}_SPEC.csv",
-    settings_file="{name}_model_settings.yaml",
-    chooser_data_file="{name}_values_combined.csv",
-    values_index_col="tour_id",
-):
-    edb_directory = edb_directory.format(name=name)
-
-    def _read_csv(filename, **kwargs):
-        filename = filename.format(name=name)
-        return pd.read_csv(os.path.join(edb_directory, filename), **kwargs)
-
-    coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
-
-    try:
-        coef_template = _read_csv(coefficients_template, index_col="coefficient_name",)
-    except FileNotFoundError:
-        coef_template = None
-
-    spec = _read_csv(spec_file,)
-    spec = remove_apostrophes(spec, ["Label"])
-    alt_names = list(spec.columns[3:])
-    alt_codes = np.arange(1, len(alt_names) + 1)
-    alt_names_to_codes = dict(zip(alt_names, alt_codes))
-    alt_codes_to_names = dict(zip(alt_codes, alt_names))
-
-    chooser_data = _read_csv(chooser_data_file, index_col=values_index_col,)
-
-    settings_file = settings_file.format(name=name)
-    with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
-
-    return Dict(
-        edb_directory=Path(edb_directory),
-        settings=settings,
-        chooser_data=chooser_data,
-        coefficients=coefficients,
-        coef_template=coef_template,
-        spec=spec,
-        alt_names=alt_names,
-        alt_codes=alt_codes,
-        alt_names_to_codes=alt_names_to_codes,
-        alt_codes_to_names=alt_codes_to_names,
-    )
-
-
 def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
-    coefficients = data.coefficients.copy()
+    if isinstance(data, pd.DataFrame):
+        coefficients = data.copy()
+    else:
+        coefficients = data.coefficients.copy()
     est_names = [j for j in coefficients.index if j in model.pf.index]
     coefficients.loc[est_names, "value"] = model.pf.loc[est_names, "value"]
     if output_file is not None:

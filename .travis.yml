@@ -11,6 +11,7 @@ env:
   - TEST_SUITE=activitysim/abm/test
   - TEST_SUITE=activitysim/cli
   - TEST_SUITE=activitysim/core
+  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_DEPENDS="larch -c conda-forge"
   - TEST_SUITE=activitysim/examples/example_mtc/test
   - TEST_SUITE=activitysim/examples/example_multiple_zone/test
   - TEST_SUITE=activitysim/examples/example_marin/test
@@ -33,7 +34,7 @@ install:
 - conda info -a
 - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
 - conda activate test-environment
-- conda install pytest pytest-cov coveralls pycodestyle
+- conda install pytest pytest-cov coveralls pycodestyle $TEST_DEPENDS
 - pip install pytest-regressions
 - pip install .
 - pip freeze

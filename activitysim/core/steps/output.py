@@ -123,7 +123,7 @@ def write_data_dictionary(output_dir):
 
         final_shapes[table_name] = df.shape
 
-        if df.index.name:
+        if df.index.name and df.index.name not in df.columns:
             df = df.reset_index()
         info = df.dtypes.astype(str).to_frame('dtype').reset_index().rename(columns={'index': 'column_name'})
         info['checkpoint'] = ''
@@ -144,7 +144,8 @@ def write_data_dictionary(output_dir):
 
             # get the checkpointed version of the table
             df = pipeline.get_table(table_name, checkpoint_name)
-            if df.index.name:
+
+            if df.index.name and df.index.name not in df.columns:
                 df = df.reset_index()
 
             info = schema.get(table_name, None)
@@ -172,7 +173,7 @@ def write_data_dictionary(output_dir):
                 info = schema.get(table_name, None)
 
                 columns_to_print = ['column_name', 'dtype', 'checkpoint']
-                info = info[columns_to_print]
+                info = info[columns_to_print].copy()
 
                 # normalize schema columns widths across all table schemas for unified output formatting
                 for c in info:

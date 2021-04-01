@@ -84,8 +84,9 @@ def log_runtime(model_name, start_time=None, timing=None):
     if config.setting('multiprocess', False) and not inject.get_injectable('locutor', False):
         return
 
-    with config.open_log_file('timing_log.csv', 'a') as log_file:
-        print(f"{process_name}, {model_name}, {seconds} seconds, {minutes} minutes", file=log_file)
+    header = "process_name,model_name,seconds,minutes"
+    with config.open_log_file('timing_log.csv', 'a', header) as log_file:
+        print(f"{process_name},{model_name},{seconds},{minutes}", file=log_file)
 
 
 def delete_output_files(file_type, ignore=None, subdir=None):

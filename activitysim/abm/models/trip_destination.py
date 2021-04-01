@@ -563,10 +563,6 @@ def compute_logsums(
     # coefficients can appear in expressions
     locals_dict.update(coefficients)
 
-    if network_los.zone_system == los.THREE_ZONE:
-        # TVPB constants can appear in expressions
-        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
-
     skims = skim_hotel.logsum_skims()
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions

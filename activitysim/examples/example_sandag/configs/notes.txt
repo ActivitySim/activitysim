@@ -1,15 +1,10 @@
 
+# test
+# activitysim run -c configs_local -c configs -c configs_3_zone -c ../example_mtc/configs -o output_test -d data_test
+# activitysim run -c configs_local -c configs -c configs_3_zone -c ../example_mtc/configs -o output_test -d data_test -s settings_mp.yaml
 
-activitysim run -c configs_sandag -c configs_3_zone -c configs_mtc -d data_test -o output_test -s settings_sp.yaml
+# full dataset single-process 100K HH skip_accessibility
+# activitysim run -c configs_local -c configs_skip_accessibility -c configs -c configs_3_zone -c ../example_mtc/configs -o output_full -d data_full
 
-# first time (building all caches) with 10 HH
-INFO - Time to execute all models : 1549.902 seconds (25.8 minutes)
-
-# second time (using caches) with all HH
-
-
-
-activitysim run -c configs_sandag -c configs_3_zone -c ../example_mtc/configs -d data_full -o output_full -s settings_mp.yaml
-
-
-activitysim run -c configs_sandag -c configs_3_zone -c ../example_mtc/configs -d data_full -o output_full -s settings_mp.yaml
+# full run multiprocess
+# activitysim run  -c configs -c configs_3_zone -c ../example_mtc/configs -o output_full -d data_full -s settings_mp.yaml

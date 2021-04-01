@@ -17,6 +17,7 @@ env:
   - TEST_SUITE=activitysim/examples/example_arc/test
   - TEST_SUITE=activitysim/examples/example_semcog/test
   - TEST_SUITE=activitysim/examples/example_psrc/test
+  - TEST_SUITE=activitysim/examples/example_sandag/test
 
 python:
   - '3.7'

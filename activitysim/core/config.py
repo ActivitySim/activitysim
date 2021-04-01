@@ -318,7 +318,7 @@ def log_file_path(file_name):
     return file_path
 
 
-def open_log_file(file_name, mode):
+def open_log_file(file_name, mode, header=None):
 
     output_dir = inject.get_injectable('output_dir')
     # - check for optional log subfolder
@@ -326,8 +326,15 @@ def open_log_file(file_name, mode):
         output_dir = os.path.join(output_dir, 'log')
     file_path = os.path.join(output_dir, file_name)
 
-    mode = mode + 'b' if sys.version_info < (3,) else mode
-    return open(file_path, mode)
+    want_header = header and not os.path.exists(file_path)
+
+    f = open(file_path, mode)
+
+    if want_header:
+        assert mode in ['a', 'w'], f"open_log_file: header requested but mode was {mode}"
+        print(header, file=f)
+
+    return f
 
 
 def pipeline_file_path(file_name):

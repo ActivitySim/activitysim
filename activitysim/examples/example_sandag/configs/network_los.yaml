@@ -18,7 +18,7 @@ rebuild_tvpb_cache: True
 # (n.b. csv file could be quite large if cache is STATIC!)
 trace_tvpb_cache_as_csv: False
 
-taz_skims: taz_skims.omx
+taz_skims: taz_skims*.omx
 
 # we require that skims for all tap_tap sets have unique names
 # and can therefor share a single skim_dict without name collision
@@ -28,6 +28,8 @@ tap_skims: tap_skims.omx
 maz: maz.csv
 
 tap: tap.csv
+
+tap_lines: tap_lines.csv
 
 maz_to_maz:
   tables:
@@ -47,8 +49,15 @@ maz_to_maz:
 maz_to_tap:
   walk:
     table: maz_to_tap_walk.csv
+    # if provided, this column will be used (together with tap_lines table) to trim the near tap set
+    # to only include the nearest tap to origin when more than oFne tap serves the same line
+    tap_line_distance_col: DISTWALK
+    max_dist: 1.2
   drive:
     table: maz_to_tap_drive.csv
+    # although maz_tap untility calculations use both DIST and drive_time,
+    # it looks like drive_time is a linera function of DIST so we can use either column to trim to nearest
+    tap_line_distance_col: DIST
 
 skim_time_periods:
     time_window: 1440

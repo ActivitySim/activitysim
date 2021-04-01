@@ -11,7 +11,7 @@ env:
   - TEST_SUITE=activitysim/abm/test
   - TEST_SUITE=activitysim/cli
   - TEST_SUITE=activitysim/core
-  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_DEPENDS="larch -c conda-forge"
+  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_DEPENDS="larch>=5.5.2 -c conda-forge"
   - TEST_SUITE=activitysim/examples/example_mtc/test
   - TEST_SUITE=activitysim/examples/example_multiple_zone/test
   - TEST_SUITE=activitysim/examples/example_marin/test

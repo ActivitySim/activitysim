@@ -56,8 +56,8 @@ def cv_to_ca(alt_values, dtype="float64", required_labels=None):
     # it to columns first.  If this ends up being a performance issue
     # we can look at optimizing this in the future.
     x_ca_tall = x_ca_tall.reset_index()
-    x_ca_tall[c_] = x_ca_tall[c_].astype(int)
-    x_ca_tall[a_] = x_ca_tall[a_].astype(int)
+    x_ca_tall[c_] = x_ca_tall[c_].astype(np.int64)
+    x_ca_tall[a_] = x_ca_tall[a_].astype(np.int64)
     x_ca_tall = x_ca_tall.set_index([c_, v_, a_])
 
     if dtype is not None:

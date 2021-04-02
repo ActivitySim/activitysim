@@ -110,7 +110,7 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     dataframe_regression.check(
         size_spec,
         basename=f"test_loc_{name}_size_spec",
-        default_tolerance=dict(atol=1e-6, rtol=1e-3)
+        default_tolerance=dict(atol=1e-6, rtol=1e-2)
         # set a little loose, as there is sometimes a little variance in these
         # results when switching backend implementations.
     )

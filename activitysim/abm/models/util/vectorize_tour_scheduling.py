@@ -31,7 +31,6 @@ USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS = False
 
 RUN_ALTS_PREPROCESSOR_BEFORE_MERGE = True  # see FIXME below before changing this
 
-
 def skims_for_logsums(tour_purpose, model_settings, trace_label):
 
     assert 'LOGSUM_SETTINGS' in model_settings
@@ -99,6 +98,7 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
     choosers = alt_tdd.join(tours_merged, how='left', rsuffix='_chooser')
+
     logger.info(f"{trace_label} compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts")
 
     # - locals_dict
@@ -512,7 +512,9 @@ def _schedule_tours(
     choice_column = TDD_CHOICE_COLUMN
     alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
                                       tour_trace_label)
+
     # print(f"tours {tours.shape} alts {alts.shape}")
+
     chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     # - add logsums
@@ -636,6 +638,7 @@ def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, sp
             # which cuts the number of alts by roughly 50% (44% for 100 hh mtctm1 test dataset)
             # grep the log for USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS to check actual % savings
             duplicate_sample_reduction = 0.5
+
             sizer.add_elements(logsum_columns * sample_size * LOGSUM_DUPLICATE_REDUCTION_FACTOR, 'logsum_columns')
 
     row_size = sizer.get_hwm()
@@ -686,6 +689,7 @@ def schedule_tours(
 
     row_size = chunk_size and \
         tour_scheduling_calc_row_size(tours, persons_merged, alts, skims, spec, model_settings,  tour_trace_label)
+
 
     result_list = []
     for i, chooser_chunk, chunk_trace_label \

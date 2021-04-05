@@ -67,7 +67,6 @@ def num_uninitialized(data, lock=None):
         result = num_nans(data)
     return result
 
-
 @inject.step()
 def initialize_los(network_los):
     """
@@ -153,7 +152,7 @@ def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):
     return row_size
 
 
-def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
+def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
 
     # scalar_attributes is a dict of attribute name/value pairs for this combination
     # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
@@ -206,7 +205,6 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
 
     logger.debug(f"{trace_label} updated utilities")
 
-
 @inject.step()
 def initialize_tvpb(network_los, attribute_combinations, chunk_size):
     """
@@ -219,7 +217,11 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
 
     if we are multiprocessing, then the attribute_combinations will have been sliced and we compute only a subset
     of the tuples (and the other processes will compute the rest). All process wait until the cache is fully
+<<<<<<< HEAD
     populated before returning, and the locutor process writes the results.
+=======
+    populated before returning, and the spokesman/locutor process writes the results.
+>>>>>>> xborder
 
 
     FIXME - if we did not close this, we could avoid having to reload it from mmap when single-process?
@@ -262,10 +264,11 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
         offset = network_los.tvpb.uid_calculator.get_skim_offset(scalar_attributes)
         tuple_trace_label = tracing.extend_trace_label(trace_label, f'offset{offset}')
 
-        compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
+        compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
 
         # make sure we populated the entire offset
         assert not any_uninitialized(data.reshape(uid_calculator.skim_shape)[offset], lock)
+
 
     if multiprocess and not inject.get_injectable('locutor', False):
         return
@@ -278,6 +281,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
             # (the other processes don't have to wait, since we were sliced by attribute combination
             # and they must wait to coalesce at the end of the multiprocessing_step)
             # FIXME testing entire array is costly in terms of RAM)
+
             while any_uninitialized(data, lock):
                 logger.debug(f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
                              f" to populate {num_uninitialized(data, lock)} uninitialized data values")

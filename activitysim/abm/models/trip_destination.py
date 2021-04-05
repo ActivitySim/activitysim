@@ -563,14 +563,16 @@ def compute_logsums(
     # coefficients can appear in expressions
     locals_dict.update(coefficients)
 
-    if network_los.zone_system == los.THREE_ZONE:
-        # TVPB constants can appear in expressions
-        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+    constants = config.get_model_constants(logsum_settings)
+    constants.update({'PERIODS_PER_HOUR': 60 / network_los.skim_time_periods['period_minutes']})  # required for trip mode choice logsums
+    locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
+    locals_dict.update(constants)
 
     skims = skim_hotel.logsum_skims()
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions
         locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+    
 
     # - od_logsums
     od_skims = {
@@ -784,7 +786,6 @@ class SkimHotel(object):
 
         self.model_settings = model_settings
         self.trace_label = tracing.extend_trace_label(trace_label, 'skim_hotel')
-
         self.network_los = network_los
         self.zone_system = network_los.zone_system
 
@@ -899,7 +900,6 @@ def run_trip_destination(
     land_use = inject.get_table('land_use')
     size_terms = inject.get_injectable('size_terms')
     network_los = inject.get_injectable('network_los')
-
     trips = trips.sort_index()
     trips['next_trip_id'] = np.roll(trips.index, -1)
     trips.next_trip_id = trips.next_trip_id.where(trips.trip_num < trips.trip_count, 0)

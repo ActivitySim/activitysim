@@ -1,0 +1,35 @@
+Description,Target,Expression
+#,, annotate households table after import
+,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
+#,,FIXME households.income can be negative  - so we clip?
+income_in_thousands,income_in_thousands,(households.income / 1000).clip(lower=0)
+income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[INCOME_SEGMENT_LOW, INCOME_SEGMENT_MED, INCOME_SEGMENT_HIGH, INCOME_SEGMENT_VERYHIGH]).astype(int)"
+#,,
+,_MIN_VOT,setting('min_value_of_time')
+,_MAX_VOT,setting('max_value_of_time')
+,_MU,setting('distributed_vot_mu')
+,_SIGMA,setting('distributed_vot_sigma')
+median_value_of_time,median_value_of_time,"income_segment.map({k: v for k, v in setting('household_median_value_of_time').items()})"
+hh_value_of_time,hh_value_of_time,"rng.lognormal_for_df(df, mu=np.log(median_value_of_time * _MU), sigma=_SIGMA).clip(_MIN_VOT, _MAX_VOT)"
+#,,
+#num_workers was renamed in import,,
+#,num_workers,households.workers
+number of non_workers,num_non_workers,households.hhsize - households.num_workers
+#,,
+#,,we assume that everyone 16 and older is a potential driver
+number of drivers,num_drivers,"_PERSON_COUNT('16 <= age', persons, households)"
+num_adults,num_adults,"_PERSON_COUNT('adult', persons, households)"
+num_children,num_children,"_PERSON_COUNT('~adult', persons, households)"
+num_young_children,num_young_children,"_PERSON_COUNT('age <= 5', persons, households)"
+num_children_5_to_15,num_children_5_to_15,"_PERSON_COUNT('5 <= age <= 15', persons, households)"
+num_children_16_to_17,num_children_16_to_17,"_PERSON_COUNT('16 <= age <= 17', persons, households)"
+num_college_age,num_college_age,"_PERSON_COUNT('18 <= age <= 24', persons, households)"
+num_young_adults,num_young_adults,"_PERSON_COUNT('25 <= age <= 34', persons, households)"
+non_family,non_family,households.HHT.isin(HHT_NONFAMILY)
+family,family,households.HHT.isin(HHT_FAMILY)
+home_is_urban,home_is_urban,"reindex(land_use.area_type, households.home_zone_id) < setting('urban_threshold')"
+home_is_rural,home_is_rural,"reindex(land_use.area_type, households.home_zone_id) > setting('rural_threshold')"
+
+
+
+

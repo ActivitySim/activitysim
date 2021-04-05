@@ -94,16 +94,17 @@ def run_tour_mode_choice_simulate(
 
     spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients = simulate.get_segment_coefficients(model_settings, tour_purpose)
+
     spec = simulate.eval_coefficients(spec, coefficients, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
-    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
+    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
 
     locals_dict = {}
     locals_dict.update(constants)
     locals_dict.update(skims)
 
-    # constrained coefficients can appear in expressions
+    # coefficients can appear in expressions
     locals_dict.update(coefficients)
 
     assert ('in_period' not in choosers) and ('out_period' not in choosers)

@@ -1,6 +1,6 @@
 
 SPEC: joint_tour_participation.csv
-COEFFICIENTS: joint_tour_participation_coeffs.csv
+COEFFICIENTS: joint_tour_participation_coefficients.csv
 
 LOGIT_TYPE: MNL
 

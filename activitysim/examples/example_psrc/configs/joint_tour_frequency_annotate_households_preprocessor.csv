@@ -1,0 +1,32 @@
+Description,Target,Expression
+,_PTYPE_CDAP_PATTERN_COUNT,"lambda ptype, activity, households, persons: persons.query('ptype == %s and cdap_activity==\'%s\'' % (ptype, activity)).groupby('household_id').size().reindex(households.index).fillna(0)"
+,_PEMPLOY_CDAP_PATTERN_COUNT,"lambda pemploy, activity, households, persons: persons.query('pemploy == %s and cdap_activity==\'%s\'' % (pemploy, activity)).groupby('household_id').size().reindex(households.index).fillna(0)"
+,_2_PTYPE_CDAP_PATTERN_COUNT,"lambda ptype1, ptype2, activity, households, persons: persons.query('(ptype == %s or ptype == %s) and cdap_activity==\'%s\'' % (ptype1, ptype2, activity)).groupby('household_id').size().reindex(households.index).fillna(0)"
+#,,
+,_HH_OVERLAPS,"hh_time_window_overlap(households, persons)"
+,time_window_overlap_adult,_HH_OVERLAPS['aa']
+,time_window_overlap_child,_HH_OVERLAPS['cc']
+,time_window_overlap_adult_child,_HH_OVERLAPS['ac']
+#,,
+,cdap_home_full_max3,"_PEMPLOY_CDAP_PATTERN_COUNT(PEMPLOY_FULL, 'H', households, persons).clip(0,3)"
+,cdap_home_part_max3,"_PEMPLOY_CDAP_PATTERN_COUNT(PEMPLOY_PART, 'H', households, persons).clip(0,3)"
+,cdap_home_nonwork_max3,"_PTYPE_CDAP_PATTERN_COUNT(4, 'H', households, persons).clip(0,3)"
+,cdap_home_retired_max3,"_PTYPE_CDAP_PATTERN_COUNT(5, 'H', households, persons).clip(0,3)"
+,cdap_home_univ_driving_max3,"_2_PTYPE_CDAP_PATTERN_COUNT(3, 6, 'H', households, persons).clip(0,3)"
+,cdap_home_nondriving_child_max3,"_2_PTYPE_CDAP_PATTERN_COUNT(7, 8, 'H', households, persons).clip(0,3)"
+,cdap_nonmand_full_max3,"_PEMPLOY_CDAP_PATTERN_COUNT(PEMPLOY_FULL, 'N', households, persons).clip(0,3)"
+,cdap_nonmand_part_max3,"_PEMPLOY_CDAP_PATTERN_COUNT(PEMPLOY_PART, 'N', households, persons).clip(0,3)"
+,cdap_nonmand_nonwork_max3,"_PTYPE_CDAP_PATTERN_COUNT(4, 'N', households, persons).clip(0,3)"
+,cdap_nonmand_retired_max3,"_PTYPE_CDAP_PATTERN_COUNT(5, 'N', households, persons).clip(0,3)"
+,cdap_nonmand_univ_driving_max3,"_2_PTYPE_CDAP_PATTERN_COUNT(3, 6, 'N', households, persons).clip(0,3)"
+,cdap_nonmand_nondriving_child_max3,"_2_PTYPE_CDAP_PATTERN_COUNT(7, 8, 'N', households, persons).clip(0,3)"
+,cdap_mand_full_max3,"_PEMPLOY_CDAP_PATTERN_COUNT(PEMPLOY_FULL, 'M', households, persons).clip(0,3)"
+,cdap_mand_univ_driving_max3,"_2_PTYPE_CDAP_PATTERN_COUNT(3, 6, 'M', households, persons).clip(0,3)"
+,cdap_mand_nondriving_child_max3,"_2_PTYPE_CDAP_PATTERN_COUNT(7, 8, 'M', households, persons).clip(0,3)"
+,income_between_50_and_100,(households.income > 50000) & (households.income <= 100000)
+,income_greater_than_100,households.income > 100000
+,income_missing,0
+logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(time_window_overlap_adult)
+logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(time_window_overlap_child)
+logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time_window_overlap_adult_child)
+nmRetail,non_motorized_retail_accessibility,"reindex(accessibility.nmRetail, households.home_zone_id)"

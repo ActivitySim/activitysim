@@ -3,7 +3,7 @@ Description,Target,Expression
 ,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
 #,,FIXME households.income can be negative  - so we clip?
 income_in_thousands,income_in_thousands,(households.income / 1000).clip(lower=0)
-income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"
+income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[INCOME_SEGMENT_LOW, INCOME_SEGMENT_MED, INCOME_SEGMENT_HIGH, INCOME_SEGMENT_VERYHIGH]).astype(int)"
 #,,
 ,_MIN_VOT,setting('min_value_of_time')
 ,_MAX_VOT,setting('max_value_of_time')
@@ -29,5 +29,3 @@ non_family,non_family,households.HHT.isin(HHT_NONFAMILY)
 family,family,households.HHT.isin(HHT_FAMILY)
 home_is_urban,home_is_urban,"reindex(land_use.area_type, households.home_zone_id) < setting('urban_threshold')"
 home_is_rural,home_is_rural,"reindex(land_use.area_type, households.home_zone_id) > setting('rural_threshold')"
-
-

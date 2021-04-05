@@ -20,6 +20,9 @@ from .util import estimation
 from activitysim.core.util import reindex
 from .util.overlap import person_time_window_overlap
 
+from activitysim.abm.models.util.canonical_ids import MAX_PARTICIPANT_PNUM
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -52,12 +55,12 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     candidates = candidates[eligible]
 
     # - stable (predictable) index
-    MAX_PNUM = 100
-    if candidates.PNUM.max() > MAX_PNUM:
-        # if this happens, channel random seeds will overlap at MAX_PNUM (not probably a big deal)
-        logger.warning("max persons.PNUM (%s) > MAX_PNUM (%s)", candidates.PNUM.max(), MAX_PNUM)
-
-    candidates['participant_id'] = (candidates[joint_tours.index.name] * MAX_PNUM) + candidates.PNUM
+    # if this happens, participant_id may not be unique
+    # channel random seeds will overlap at MAX_PARTICIPANT_PNUM (not probably a big deal)
+    # and estimation infer will fail
+    assert candidates.PNUM.max() < MAX_PARTICIPANT_PNUM, \
+        f"max persons.PNUM ({candidates.PNUM.max()}) > MAX_PARTICIPANT_PNUM ({MAX_PARTICIPANT_PNUM})"
+    candidates['participant_id'] = (candidates[joint_tours.index.name] * MAX_PARTICIPANT_PNUM) + candidates.PNUM
     candidates.set_index('participant_id', drop=True, inplace=True, verify_integrity=True)
 
     return candidates
@@ -75,19 +78,29 @@ def get_tour_satisfaction(candidates, participate):
         assert not ((candidates.composition == 'adults') & ~candidates.adult).any()
         assert not ((candidates.composition == 'children') & candidates.adult).any()
 
-        cols = ['tour_id', 'composition', 'adult']
+        # FIXME tour satisfaction - hack
+        # annotate_households_cdap.csv says there has to be at least one non-preschooler in household
+        # so presumably there also has to be at least one non-preschooler in joint tour
+        # participates_in_jtf_model,(num_travel_active > 1) & (num_travel_active_non_preschoolers > 0)
+        cols = ['tour_id', 'composition', 'adult', 'person_is_preschool']
 
-        # tour satisfaction
-        x = candidates[cols].groupby(['tour_id', 'composition']).adult.agg(['size', 'sum']).\
-            reset_index('composition').rename(columns={'size': 'participants', 'sum': 'adults'})
+        x = candidates[cols].groupby(['tour_id', 'composition'])\
+            .agg(participants=('adult', 'size'), adults=('adult', 'sum'), preschoolers=('person_is_preschool', 'sum'))\
+            .reset_index('composition')
 
-        satisfaction = (x.composition != 'mixed') & (x.participants > 1) | \
-                       (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
+        # satisfaction = \
+        #     (x.composition == 'adults') & (x.participants > 1) | \
+        #     (x.composition == 'children') & (x.participants > 1) & (x.preschoolers < x.participants) | \
+        #     (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
+
+        satisfaction = \
+            (x.composition != 'mixed') & (x.participants > 1) | \
+            (x.composition == 'mixed') & (x.adults > 0) & (x.participants > x.adults)
 
         satisfaction = satisfaction.reindex(tour_ids).fillna(False).astype(bool)
 
     else:
-        satisfaction = pd.Series([])
+        satisfaction = pd.Series(dtype=bool)
 
     # ensure we return a result for every joint tour, even if no participants
     satisfaction = satisfaction.reindex(tour_ids).fillna(False).astype(bool)
@@ -283,7 +296,7 @@ def joint_tour_participation(
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(candidates)
 
     # add tour-based chunk_id so we can chunk all trips in tour together
@@ -315,19 +328,14 @@ def joint_tour_participation(
         estimator.write_choices(choices)
 
         # we override the 'participate' boolean series, instead of raw alternative index in 'choices' series
-        # its value is determined by whether or not the candidate's person_id is found
-        # as a participant row in the joint_tour_participant table rows for that tour
-        df = estimator.join_survey_values(df=candidates[['tour_id', 'person_id']],
-                                          table_name='joint_tour_participants')
-        participate = ~df.isnull().any(axis=1)
-
-        print("model_spec.columns", model_spec.columns)
-        # PARTICIPATE_CHOICE is presumably either 0 or 1, and so NOT_PARTICIPATE is necessarily the other
-        assert len(model_spec.columns == 2)
+        # its value depends on whether the candidate's 'participant_id' is in the joint_tour_participant index
+        survey_participants_df = estimator.get_survey_table('joint_tour_participants')
+        participate = pd.Series(choices.index.isin(survey_participants_df.index.values), index=choices.index)
 
         # but estimation software wants to know the choices value (alternative index)
         choices = participate.replace({True: PARTICIPATE_CHOICE, False: 1-PARTICIPATE_CHOICE})
-        estimator.write_override_choices(choices)
+        # estimator.write_override_choices(participate)  # write choices as boolean participate
+        estimator.write_override_choices(choices)  # write choices as int alt indexes
 
         estimator.end_estimation()
 

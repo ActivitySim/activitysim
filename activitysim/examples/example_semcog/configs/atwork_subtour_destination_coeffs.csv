@@ -1,0 +1,9 @@
+coefficient_name,value,constrain
+coef_dist_atwork,-0.021259921,F
+coef_dist_squared_atwork,-0.017765289,F
+coef_dist_cubed_atwork,0.000703328,F
+coef_dist_logged_atwork,-0.844157837,F
+coef_size_variable_atwork,1,T
+coef_no_attractions_atwork_size_variable_is_0,-999,T
+coef_mode_choice_logsum_atwork,0.79,F
+coef_sample_of_alternatives_correction_factor,1,T

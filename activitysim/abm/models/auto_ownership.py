@@ -43,7 +43,7 @@ def auto_ownership_simulate(households,
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(

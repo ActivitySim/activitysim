@@ -1,0 +1,120 @@
+Description,Target,Expression
+# add additional fields,,
+,tour_participants,trips.tour_id.map(tours.number_of_participants)
+,distance,od_skims['DIST']
+# code time periods,,
+,is_ea,"trips.depart.between(time_periods['EA']['first_hour'], time_periods['EA']['last_hour'])"
+,is_am,"trips.depart.between(time_periods['AM']['first_hour'], time_periods['AM']['last_hour'])"
+,is_md,"trips.depart.between(time_periods['MD']['first_hour'], time_periods['MD']['last_hour'])"
+,is_pm,"trips.depart.between(time_periods['PM']['first_hour'], time_periods['PM']['last_hour'])"
+,is_ev,"trips.depart.between(time_periods['EV']['first_hour'], time_periods['EV']['last_hour'])"
+# ea trips,,
+,DRIVEALONE_EA,((trips.trip_mode == 'DRIVEALONE') & is_ea) * tour_participants
+,SHARED2_EA,((trips.trip_mode == 'SHARED2') & is_ea) * tour_participants / OCC_SHARED2
+,SHARED3_EA,((trips.trip_mode == 'SHARED3') & is_ea) * tour_participants / OCC_SHARED3
+,WALK_EA,((trips.trip_mode == 'WALK') & is_ea) * tour_participants
+,BIKE_EA,((trips.trip_mode == 'BIKE') & is_ea) * tour_participants
+,WALK_LOC_EA,((trips.trip_mode == 'WALK_LOC') & is_ea) * tour_participants
+,WALK_PRM_EA,((trips.trip_mode == 'WALK_PRM') & is_ea) * tour_participants
+,WALK_MIX_EA,((trips.trip_mode == 'WALK_MIX') & is_ea) * tour_participants
+,PNR_LOC_EA,((trips.trip_mode == 'PNR_LOC') & is_ea & trips.outbound) * tour_participants
+,PNR_PRM_EA,((trips.trip_mode == 'PNR_PRM') & is_ea & trips.outbound) * tour_participants
+,PNR_MIX_EA,((trips.trip_mode == 'PNR_MIX') & is_ea & trips.outbound) * tour_participants
+,KNR_LOC_EA,((trips.trip_mode == 'KNR_LOC') & is_ea & trips.outbound) * tour_participants
+,KNR_PRM_EA,((trips.trip_mode == 'KNR_PRM') & is_ea & trips.outbound) * tour_participants
+,KNR_MIX_EA,((trips.trip_mode == 'KNR_MIX') & is_ea & trips.outbound) * tour_participants
+,PNRE_LOC_EA,((trips.trip_mode == 'PNR_LOC') & is_ea & ~trips.outbound) * tour_participants
+,PNRE_PRM_EA,((trips.trip_mode == 'PNR_PRM') & is_ea & ~trips.outbound) * tour_participants
+,PNRE_MIX_EA,((trips.trip_mode == 'PNR_MIX') & is_ea & ~trips.outbound) * tour_participants
+,KNRE_LOC_EA,((trips.trip_mode == 'KNR_LOC') & is_ea & ~trips.outbound) * tour_participants
+,KNRE_PRM_EA,((trips.trip_mode == 'KNR_PRM') & is_ea & ~trips.outbound) * tour_participants
+,KNRE_MIX_EA,((trips.trip_mode == 'KNR_MIX') & is_ea & ~trips.outbound) * tour_participants
+,SCHOOLBUS_EA,((trips.trip_mode == 'SCHOOLBUS') & is_ea) * tour_participants
+# am trips,,
+,DRIVEALONE_AM,((trips.trip_mode == 'DRIVEALONE') & is_am) * tour_participants
+,SHARED2_AM,((trips.trip_mode == 'SHARED2') & is_am) * tour_participants / OCC_SHARED2
+,SHARED3_AM,((trips.trip_mode == 'SHARED3') & is_am) * tour_participants / OCC_SHARED3
+,WALK_AM,((trips.trip_mode == 'WALK') & is_am) * tour_participants
+,BIKE_AM,((trips.trip_mode == 'BIKE') & is_am) * tour_participants
+,WALK_LOC_AM,((trips.trip_mode == 'WALK_LOC') & is_am) * tour_participants
+,WALK_PRM_AM,((trips.trip_mode == 'WALK_PRM') & is_am) * tour_participants
+,WALK_MIX_AM,((trips.trip_mode == 'WALK_MIX') & is_am) * tour_participants
+,PNR_LOC_AM,((trips.trip_mode == 'PNR_LOC') & is_am & trips.outbound) * tour_participants
+,PNR_PRM_AM,((trips.trip_mode == 'PNR_PRM') & is_am & trips.outbound) * tour_participants
+,PNR_MIX_AM,((trips.trip_mode == 'PNR_MIX') & is_am & trips.outbound) * tour_participants
+,KNR_LOC_AM,((trips.trip_mode == 'KNR_LOC') & is_am & trips.outbound) * tour_participants
+,KNR_PRM_AM,((trips.trip_mode == 'KNR_PRM') & is_am & trips.outbound) * tour_participants
+,KNR_MIX_AM,((trips.trip_mode == 'KNR_MIX') & is_am & trips.outbound) * tour_participants
+,PNRE_LOC_AM,((trips.trip_mode == 'PNR_LOC') & is_am & ~trips.outbound) * tour_participants
+,PNRE_PRM_AM,((trips.trip_mode == 'PNR_PRM') & is_am & ~trips.outbound) * tour_participants
+,PNRE_MIX_AM,((trips.trip_mode == 'PNR_MIX') & is_am & ~trips.outbound) * tour_participants
+,KNRE_LOC_AM,((trips.trip_mode == 'KNR_LOC') & is_am & ~trips.outbound) * tour_participants
+,KNRE_PRM_AM,((trips.trip_mode == 'KNR_PRM') & is_am & ~trips.outbound) * tour_participants
+,KNRE_MIX_AM,((trips.trip_mode == 'KNR_MIX') & is_am & ~trips.outbound) * tour_participants
+,SCHOOLBUS_AM,((trips.trip_mode == 'SCHOOLBUS') & is_am) * tour_participants
+# md trips,,
+,DRIVEALONE_MD,((trips.trip_mode == 'DRIVEALONE') & is_md) * tour_participants
+,SHARED2_MD,((trips.trip_mode == 'SHARED2') & is_md) * tour_participants / OCC_SHARED2
+,SHARED3_MD,((trips.trip_mode == 'SHARED3') & is_md) * tour_participants / OCC_SHARED3
+,WALK_MD,((trips.trip_mode == 'WALK') & is_md) * tour_participants
+,BIKE_MD,((trips.trip_mode == 'BIKE') & is_md) * tour_participants
+,WALK_LOC_MD,((trips.trip_mode == 'WALK_LOC') & is_md) * tour_participants
+,WALK_PRM_MD,((trips.trip_mode == 'WALK_PRM') & is_md) * tour_participants
+,WALK_MIX_MD,((trips.trip_mode == 'WALK_MIX') & is_md) * tour_participants
+,PNR_LOC_MD,((trips.trip_mode == 'PNR_LOC') & is_md & trips.outbound) * tour_participants
+,PNR_PRM_MD,((trips.trip_mode == 'PNR_PRM') & is_md & trips.outbound) * tour_participants
+,PNR_MIX_MD,((trips.trip_mode == 'PNR_MIX') & is_md & trips.outbound) * tour_participants
+,KNR_LOC_MD,((trips.trip_mode == 'KNR_LOC') & is_md & trips.outbound) * tour_participants
+,KNR_PRM_MD,((trips.trip_mode == 'KNR_PRM') & is_md & trips.outbound) * tour_participants
+,KNR_MIX_MD,((trips.trip_mode == 'KNR_MIX') & is_md & trips.outbound) * tour_participants
+,PNRE_LOC_MD,((trips.trip_mode == 'PNR_LOC') & is_md & ~trips.outbound) * tour_participants
+,PNRE_PRM_MD,((trips.trip_mode == 'PNR_PRM') & is_md & ~trips.outbound) * tour_participants
+,PNRE_MIX_MD,((trips.trip_mode == 'PNR_MIX') & is_md & ~trips.outbound) * tour_participants
+,KNRE_LOC_MD,((trips.trip_mode == 'KNR_LOC') & is_md & ~trips.outbound) * tour_participants
+,KNRE_PRM_MD,((trips.trip_mode == 'KNR_PRM') & is_md & ~trips.outbound) * tour_participants
+,KNRE_MIX_MD,((trips.trip_mode == 'KNR_MIX') & is_md & ~trips.outbound) * tour_participants
+,SCHOOLBUS_MD,((trips.trip_mode == 'SCHOOLBUS') & is_md) * tour_participants
+# pm trips,,
+,DRIVEALONE_PM,((trips.trip_mode == 'DRIVEALONE') & is_pm) * tour_participants
+,SHARED2_PM,((trips.trip_mode == 'SHARED2') & is_pm) * tour_participants / OCC_SHARED2
+,SHARED3_PM,((trips.trip_mode == 'SHARED3') & is_pm) * tour_participants / OCC_SHARED3
+,WALK_PM,((trips.trip_mode == 'WALK') & is_pm) * tour_participants
+,BIKE_PM,((trips.trip_mode == 'BIKE') & is_pm) * tour_participants
+,WALK_LOC_PM,((trips.trip_mode == 'WALK_LOC') & is_pm) * tour_participants
+,WALK_PRM_PM,((trips.trip_mode == 'WALK_PRM') & is_pm) * tour_participants
+,WALK_MIX_PM,((trips.trip_mode == 'WALK_MIX') & is_pm) * tour_participants
+,PNR_LOC_PM,((trips.trip_mode == 'PNR_LOC') & is_pm & trips.outbound) * tour_participants
+,PNR_PRM_PM,((trips.trip_mode == 'PNR_PRM') & is_pm & trips.outbound) * tour_participants
+,PNR_MIX_PM,((trips.trip_mode == 'PNR_MIX') & is_pm & trips.outbound) * tour_participants
+,KNR_LOC_PM,((trips.trip_mode == 'KNR_LOC') & is_pm & trips.outbound) * tour_participants
+,KNR_PRM_PM,((trips.trip_mode == 'KNR_PRM') & is_pm & trips.outbound) * tour_participants
+,KNR_MIX_PM,((trips.trip_mode == 'KNR_MIX') & is_pm & trips.outbound) * tour_participants
+,PNRE_LOC_PM,((trips.trip_mode == 'PNR_LOC') & is_pm & ~trips.outbound) * tour_participants
+,PNRE_PRM_PM,((trips.trip_mode == 'PNR_PRM') & is_pm & ~trips.outbound) * tour_participants
+,PNRE_MIX_PM,((trips.trip_mode == 'PNR_MIX') & is_pm & ~trips.outbound) * tour_participants
+,KNRE_LOC_PM,((trips.trip_mode == 'KNR_LOC') & is_pm & ~trips.outbound) * tour_participants
+,KNRE_PRM_PM,((trips.trip_mode == 'KNR_PRM') & is_pm & ~trips.outbound) * tour_participants
+,KNRE_MIX_PM,((trips.trip_mode == 'KNR_MIX') & is_pm & ~trips.outbound) * tour_participants
+,SCHOOLBUS_PM,((trips.trip_mode == 'SCHOOLBUS') & is_pm) * tour_participants
+# ev trips,,
+,DRIVEALONE_EV,((trips.trip_mode == 'DRIVEALONE') & is_ev) * tour_participants
+,SHARED2_EV,((trips.trip_mode == 'SHARED2') & is_ev) * tour_participants / OCC_SHARED2
+,SHARED3_EV,((trips.trip_mode == 'SHARED3') & is_ev) * tour_participants / OCC_SHARED3
+,WALK_EV,((trips.trip_mode == 'WALK') & is_ev) * tour_participants
+,BIKE_EV,((trips.trip_mode == 'BIKE') & is_ev) * tour_participants
+,WALK_LOC_EV,((trips.trip_mode == 'WALK_LOC') & is_ev) * tour_participants
+,WALK_PRM_EV,((trips.trip_mode == 'WALK_PRM') & is_ev) * tour_participants
+,WALK_MIX_EV,((trips.trip_mode == 'WALK_MIX') & is_ev) * tour_participants
+,PNR_LOC_EV,((trips.trip_mode == 'PNR_LOC') & is_ev & trips.outbound) * tour_participants
+,PNR_PRM_EV,((trips.trip_mode == 'PNR_PRM') & is_ev & trips.outbound) * tour_participants
+,PNR_MIX_EV,((trips.trip_mode == 'PNR_MIX') & is_ev & trips.outbound) * tour_participants
+,KNR_LOC_EV,((trips.trip_mode == 'KNR_LOC') & is_ev & trips.outbound) * tour_participants
+,KNR_PRM_EV,((trips.trip_mode == 'KNR_PRM') & is_ev & trips.outbound) * tour_participants
+,KNR_MIX_EV,((trips.trip_mode == 'KNR_MIX') & is_ev & trips.outbound) * tour_participants
+,PNRE_LOC_EV,((trips.trip_mode == 'PNR_LOC') & is_ev & ~trips.outbound) * tour_participants
+,PNRE_PRM_EV,((trips.trip_mode == 'PNR_PRM') & is_ev & ~trips.outbound) * tour_participants
+,PNRE_MIX_EV,((trips.trip_mode == 'PNR_MIX') & is_ev & ~trips.outbound) * tour_participants
+,KNRE_LOC_EV,((trips.trip_mode == 'KNR_LOC') & is_ev & ~trips.outbound) * tour_participants
+,KNRE_PRM_EV,((trips.trip_mode == 'KNR_PRM') & is_ev & ~trips.outbound) * tour_participants
+,KNRE_MIX_EV,((trips.trip_mode == 'KNR_MIX') & is_ev & ~trips.outbound) * tour_participants
+,SCHOOLBUS_EV,((trips.trip_mode == 'SCHOOLBUS') & is_ev) * tour_participants

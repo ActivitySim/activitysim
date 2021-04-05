@@ -1,0 +1,6 @@
+Description,Expression,atwork
+offpeak period sov distance,"@skims[('SOV_FREE_DISTANCE', 'MD')]",-0.2
+#Size variable ,@df['atwork'].apply(np.log1p),1
+#No attractions,@df['atwork']==0,-999
+atwork size_term variable ,@df['size_term'].apply(np.log1p),1
+No attractions,@df['size_term']==0,-999

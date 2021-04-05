@@ -1,0 +1,200 @@
+###
+##### extensions
+##### simulation.py
+###
+
+# added extensions folder
+# changed relative imports of estimation to absolute in model extension steps
+
+#from .util import estimation
+from activitysim.abm.models.util import estimation
+
+# added line to simulation.py to load it:"
+
+import extensions
+
+
+###
+##### cdap.yaml
+###
+COEFFICIENTS: _dummy_coefficients.csv
+INTERACTION_COEFFICIENTS: cdap_interaction_coefficients.csv
+
+
+###
+##### _dummy_coefficients.csv
+###
+
+# dummy file to allow coefficients hard coded into
+# cdap.yaml INDIV_AND_HHSIZE1_SPEC and INTERACTION_COEFFICIENTS
+
+###
+##### tour_mode_choice_coeffs_template.csv
+###
+
+# comment out unused coefficients
+
+# walk_light_rail_ASC,walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_light_rail_ASC_school_univ,walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_light_rail_ASC_school_univ,walk_light_rail_ASC_work,walk_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork
+# drive_light_rail_ASC,drive_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_light_rail_ASC_school_univ,drive_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_light_rail_ASC_school_univ,drive_light_rail_ASC_work,drive_light_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork
+# walk_ferry_ASC,walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_ferry_ASC_school_univ,walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,walk_ferry_ASC_school_univ,walk_ferry_ASC_work,walk_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork
+# drive_ferry_ASC,drive_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_ferry_ASC_school_univ,drive_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,drive_ferry_ASC_school_univ,drive_ferry_ASC_work,drive_ferry_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork
+# express_bus_ASC,express_bus_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,express_bus_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,express_bus_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,express_bus_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,express_bus_ASC_school_univ,express_bus_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,express_bus_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,express_bus_ASC_school_univ,express_bus_ASC_work,express_bus_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork
+# heavy_rail_ASC,heavy_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,heavy_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,heavy_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,heavy_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,heavy_rail_ASC_school_univ,heavy_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,heavy_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,heavy_rail_ASC_school_univ,heavy_rail_ASC_work,heavy_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork
+# commuter_rail_ASC,commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,commuter_rail_ASC_school_univ,commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork,commuter_rail_ASC_school_univ,commuter_rail_ASC_work,commuter_rail_ASC_eatout_escort_othdiscr_othmaint_shopping_social_atwork
+
+
+###
+##### tour_scheduling_joint_coeffs.csv
+###
+
+WARNING - duplicate coefficients in configs/tour_scheduling_joint_coeffs.csv
+                                                        value constrain
+coefficient_name
+coef_eatout_Departure_Constant_12_00_PM_12_30_PM     1.164107         F
+coef_eatout_Departure_Constant_06_00_PM_06_30_PM    -0.425984         F
+coef_eatout_Departure_Constant_06_30_PM_07_00_PM     0.000000         T
+coef_eatout_Departure_Constant_07_00_PM_07_30_PM    -0.227801         F
+coef_eatout_Departure_Constant_After_07_30_PM       -0.293904         F
+coef_eatout_Departure_Constant_Shift_for_every_...  -0.554409         F
+coef_eatout_Departure_Constant_12_00_PM_12_30_PM     0.673838         F
+coef_eatout_Departure_Constant_06_00_PM_06_30_PM     0.000000         T
+coef_eatout_Departure_Constant_06_30_PM_07_00_PM    -0.282096         F
+coef_eatout_Departure_Constant_07_00_PM_07_30_PM    -0.299749         F
+coef_eatout_Departure_Constant_After_07_30_PM       -0.845301         F
+coef_eatout_Departure_Constant_Shift_for_every_...  -0.667843         F
+coef_eatout_Arrival_Constant_12_30_PM_to_01_00_PM    0.629299         F
+coef_eatout_Arrival_Constant_01_00_PM_to_01_30_PM    0.938529         F
+coef_eatout_Arrival_Constant_01_30_PM_to_02_00_PM    0.584420         F
+coef_eatout_Arrival_Constant_02_00_PM_to_02_30_PM    0.842550         F
+coef_eatout_Arrival_Constant_7_00_PM_to_7_30_PM     -0.124886         F
+coef_eatout_Arrival_Constant_7_30_PM_to_8_00_PM     -0.605456         F
+coef_eatout_Arrival_Constant_8_00_PM_to_8_30_PM      0.000000         T
+coef_eatout_Arrival_Constant_8_30_PM_to_9_00_PM     -0.657383         F
+coef_eatout_Arrival_Constant_Shift_for_every_30...  -0.204722         F
+coef_eatout_Arrival_Constant_12_30_PM_to_01_00_PM    2.002032         F
+coef_eatout_Arrival_Constant_01_00_PM_to_01_30_PM    2.115334         F
+coef_eatout_Arrival_Constant_01_30_PM_to_02_00_PM    1.647880         F
+coef_eatout_Arrival_Constant_02_00_PM_to_02_30_PM    1.525310         F
+coef_eatout_Arrival_Constant_7_00_PM_to_7_30_PM     -0.384557         F
+coef_eatout_Arrival_Constant_7_30_PM_to_8_00_PM     -0.044050         F
+coef_eatout_Arrival_Constant_8_00_PM_to_8_30_PM      0.000000         T
+coef_eatout_Arrival_Constant_8_30_PM_to_9_00_PM     -0.239939         F
+coef_eatout_Arrival_Constant_Shift_for_every_30...  -0.204771         F
+coef_eatout_Duration_Constant_0_hours              -11.726604         F
+coef_eatout_Duration_Constant_0p5_hous              -5.088731         F
+coef_eatout_Duration_Constant_1_hour                -0.125521         F
+coef_eatout_Duration_Constant_1p5_hours              0.000000         T
+coef_eatout_Duration_Constant_0_hours               -4.268997         F
+coef_eatout_Duration_Constant_0p5_hous              -1.323298         F
+coef_eatout_Duration_Constant_1_hour                 0.000000         T
+coef_eatout_Duration_Constant_1p5_hours             -0.195669         F
+coef_disc_Duration_Constant_0_hours                 -0.944258         F
+coef_disc_Duration_Constant_0p5_hous                -0.117696         F
+coef_disc_Duration_Constant_1_hour                   0.438404         F
+coef_disc_Duration_Constant_1p5_hours               -0.002500         F
+coef_disc_Duration_Constant_2_hours                  0.000000         T
+coef_disc_Duration_Constant_Shift_for_every_30_...  -0.108261         F
+coef_disc_Duration_Constant_0_hours                  0.436988         F
+coef_disc_Duration_Constant_0p5_hous                 1.359676         F
+coef_disc_Duration_Constant_1_hour                   1.692673         F
+coef_disc_Duration_Constant_1p5_hours                1.118933         F
+coef_disc_Duration_Constant_2_hours                  0.771256         F
+coef_disc_Duration_Constant_Shift_for_every_30_...  -0.700936         F
+
+
+###
+##### trip_destination.yaml
+###
+
+# will need coefficients file to run estimation...
+#COEFFICIENTS: trip_destination_coefficients.csv
+COEFFICIENTS: _dummy_coefficients.csv
+
+
+###
+##### trip_mode_choice.yaml
+###
+
+#COEFFICIENTS: trip_mode_choice_coeffs.csv
+LEGACY_COEFFICIENTS: trip_mode_choice_coeffs.csv
+
+###
+##### trip_mode_choice_coeffs.csv
+###
+
+# change Expression column name to coefficient_name
+#Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+coefficient_name,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+
+###
+##### atwork_subtour_destination.csv
+##### atwork_subtour_destination_sample.csv
+###
+
+# util_size_variable_atwork,Size variable atwork,@df['atwork'].apply(np.log1p),coef_size_variable_atwork
+# util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",atwork==0,coef_no_attractions_atwork_size_variable_is_0
+util_size_variable_atwork,Size variable atwork,@df['size_term'].apply(np.log1p),coef_size_variable_atwork
+util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",size_term==0,coef_no_attractions_atwork_size_variable_is_0
+
+###
+##### tour_scheduling_non_mandatory.csv
+###
+
+# change remaining_periods_available() call to max_time_block_available()
+# tt.remaining_periods_available(df.person_id, df.start, df.end)
+tt.max_time_block_available(df.person_id)
+
+#util_shopping_time_pressure_duration_greater_than_1_hour_30_minutes,SHOPPING - Time Pressure - Duration > 1.5 hrs,"@np.where(((df.tour_type == 'shopping') & (df.duration>2)), np.minimum(df.duration-2,26) *(np.log10 (30 *(tt.remaining_periods_available(df.person_id, df.start, df.end)/(1.0 + df.tour_count - df.tour_num)))), 0)",coef_shopping_time_pressure_duration_greater_than_1_hour_30_minutes
+util_shopping_time_pressure_duration_greater_than_1_hour_30_minutes,SHOPPING - Time Pressure - Duration > 1.5 hrs,"@np.where(((df.tour_type == 'shopping') & (df.duration>2)), np.minimum(df.duration-2,26) *(np.log10 (30 *(tt.max_time_block_available(df.person_id)/(1.0 + df.tour_count - df.tour_num)))), 0)",coef_shopping_time_pressure_duration_greater_than_1_hour_30_minutes
+
+# and similar changes in 8 other lines where the same substitution
+
+###
+##### tour_scheduling_atwork_coeffs.csv
+###
+
+# remove duplicate coefficients
+
+#coef_1200_AM_1230_PM,0,T
+#coef_1230_PM_0100_PM,-0.084950396,F
+coef_1200_AM_1230_PM,-0.045281832,F
+coef_1230_PM_0100_PM,0.214070736,F
+
+###
+##### work_from_home.py
+###
+
+    # E211 whitespace before '('
+    # print (dest_choice_column_name)
+    print(dest_choice_column_name)
+
+    # E712 comparison to True should be 'if cond is True:' or 'if cond:'
+    # persons[dest_choice_column_name] = np.where(persons.work_from_home == True, -1, persons[dest_choice_column_name])
+    persons[dest_choice_column_name] = np.where(persons.work_from_home is True, -1, persons[dest_choice_column_name])
+
+
+###
+##### tour_departure_and_duration_segments.csv
+###
+
+# new file - contents of which I just guessed at - you should check
+
+tour_purpose,time_period,start,end
+work,EA,3,5
+work,AM,8,11
+work,MD,14,22
+work,PM,26,30
+work,EV,33,44
+#,,,
+school,EA,3,5
+school,AM,8,11
+school,MD,14,22
+school,PM,26,30
+school,EV,33,44
+#,,,
+univ,EA,3,5
+univ,AM,8,11
+univ,MD,14,22
+univ,PM,26,30
+univ,EV,33,44
+

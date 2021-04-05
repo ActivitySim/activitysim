@@ -1,0 +1,36 @@
+COEFFICIENTS: _dummy_coefficients.csv
+INTERACTION_COEFFICIENTS: cdap_interaction_coefficients.csv
+INDIV_AND_HHSIZE1_SPEC: cdap_indiv_and_hhsize1.csv
+
+FIXED_RELATIVE_PROPORTIONS_SPEC: cdap_fixed_relative_proportions.csv
+
+
+CONSTANTS:
+  FULL: 1
+  PART: 2
+  UNIVERSITY: 3
+  NONWORK: 4
+  RETIRED: 5
+  DRIVING: 6
+  SCHOOL: 7
+  PRESCHOOL: 8
+
+PERSON_TYPE_MAP:
+  WORKER:
+    - 1
+    - 2
+  CHILD:
+    - 6
+    - 7
+    - 8
+
+annotate_persons:
+  SPEC: annotate_persons_cdap
+  DF: persons
+
+
+annotate_households:
+  SPEC: annotate_households_cdap
+  DF: households
+  TABLES:
+    - persons

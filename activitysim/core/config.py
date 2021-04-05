@@ -2,8 +2,10 @@
 # See full license in LICENSE.txt.
 import argparse
 import os
+import glob
 import yaml
 import sys
+import warnings
 
 import logging
 from activitysim.core import inject
@@ -110,10 +112,37 @@ def read_model_settings(file_name, mandatory=False):
 
     """
 
-    if not file_name.lower().endswith('.yaml'):
-        file_name = '%s.yaml' % (file_name, )
-
     model_settings = read_settings_file(file_name, mandatory=mandatory)
+
+    return model_settings
+
+
+def future_model_settings(model_name, model_settings, future_settings):
+    """
+    Warn users of new required model settings, and substitute default values
+
+    Parameters
+    ----------
+    model_name: str
+        name of model
+    model_settings: dict
+        model_settings from settigns file
+    future_settings: dict
+        default values for new required settings
+
+    Returns
+    -------
+        dict
+            model_settings with any missing future_settings added
+
+    """
+    model_settings = model_settings.copy()
+    for key, setting in future_settings.items():
+        if key not in model_settings.keys():
+            warnings.warn(f"Setting '{key}' not found in {model_name} model settings."
+                          f"Replacing with default value: {setting}."
+                          f"This setting will be required in future versions", FutureWarning)
+            model_settings[key] = setting
 
     return model_settings
 
@@ -173,7 +202,7 @@ def build_output_file_path(file_name, use_prefix=None):
     return file_path
 
 
-def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=True):
+def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=True, allow_glob=False):
 
     dir_paths = inject.get_injectable(dir_list_injectable_name)
     dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
@@ -185,6 +214,10 @@ def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=Tru
             file_path = p
             break
 
+        if allow_glob and len(glob.glob(p)) > 0:
+            file_path = p
+            break
+
     if mandatory and not file_path:
         raise RuntimeError("file_path %s: file '%s' not in %s" %
                            (dir_list_injectable_name, file_name, dir_paths))
@@ -192,9 +225,54 @@ def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=Tru
     return file_path
 
 
-def data_file_path(file_name, mandatory=True):
+def data_file_path(file_name, mandatory=True, allow_glob=False):
 
-    return cascading_input_file_path(file_name, 'data_dir', mandatory)
+    return cascading_input_file_path(file_name, 'data_dir', mandatory=mandatory, allow_glob=allow_glob)
+
+
+def expand_input_file_list(input_files):
+    """
+    expand list by unglobbing globs globs
+    """
+
+    # be nice and accept a string as well as a list of strings
+    if isinstance(input_files, str):
+        input_files = [input_files]
+
+    expanded_files = []
+    ungroked_files = 0
+
+    for file_name in input_files:
+
+        file_name = data_file_path(file_name, allow_glob=True)
+
+        if os.path.isfile(file_name):
+            expanded_files.append(file_name)
+            continue
+
+        if os.path.isdir(file_name):
+            logger.warning("WARNING: expand_input_file_list skipping directory: "
+                           "(use glob instead): %s", file_name)
+            ungroked_files += 1
+            continue
+
+        # - glob
+        logger.debug(f"expand_input_file_list trying {file_name} as glob")
+        globbed_files = glob.glob(file_name)
+        for globbed_file in globbed_files:
+            if os.path.isfile(globbed_file):
+                expanded_files.append(globbed_file)
+            else:
+                logger.warning("WARNING: expand_input_file_list skipping: "
+                               "(does not grok) %s", file_name)
+                ungroked_files += 1
+
+        if len(globbed_files) == 0:
+            logger.warning("WARNING: expand_input_file_list file/glob not found: %s", file_name)
+
+    assert ungroked_files == 0, f"{ungroked_files} ungroked file names"
+
+    return sorted(expanded_files)
 
 
 def config_file_path(file_name, mandatory=True):
@@ -307,6 +385,9 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
         assert len(configs_dir_list) == len(set(configs_dir_list)), \
             f"repeating file names not allowed in config_dir list: {configs_dir_list}"
 
+    if not file_name.lower().endswith('.yaml'):
+        file_name = '%s.yaml' % (file_name,)
+
     inheriting = False
     settings = {}
     source_file_paths = include_stack.copy()
@@ -361,15 +442,12 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
 
             # if inheriting, continue and backfill settings from the next existing settings file configs_dir_list
 
-            #BUG should we truncate configs_dir list to our current position?
             inherit_settings = s.get('inherit_settings')
             if isinstance(inherit_settings, str):
                 inherit_file_name = inherit_settings
                 assert os.path.join(dir, inherit_file_name) not in source_file_paths, \
                     f"circular inheritance of {inherit_file_name}: {source_file_paths}: "
                 # make a recursive call to switch inheritance chain to specified file
-                #FIXME start at current position in configs_dir_list as loopbacks would be confusing and inconsistent
-                #configs_dir_list = configs_dir_list[configs_dir_list.index(dir):]
                 configs_dir_list = None
 
                 logger.debug("inheriting additional settings for %s from %s" % (file_name, inherit_file_name))
@@ -398,8 +476,6 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
 
 def base_settings_file_path(file_name):
     """
-
-    FIXME - should be in configs
 
     Parameters
     ----------
@@ -430,17 +506,25 @@ def filter_warnings():
     """
 
     if setting('strict', False):  # noqa: E402
-        import warnings
         warnings.filterwarnings('error', category=Warning)
         warnings.filterwarnings('default', category=PendingDeprecationWarning, module='future')
         warnings.filterwarnings('default', category=FutureWarning, module='pandas')
         warnings.filterwarnings('default', category=RuntimeWarning, module='numpy')
 
+    # pandas pytables.py __getitem__ (e.g. df = store['any_string'])
+    # indirectly raises tables DeprecationWarning: tostring() is deprecated. Use tobytes() instead.
+    warnings.filterwarnings('ignore', category=DeprecationWarning, module='tables', message='tostring')
+
+    #   File "tables/hdf5extension.pyx", line 1450, in tables.hdf5extension.Array._open_array
+    # DeprecationWarning: `np.object` is a deprecated alias for the builtin `object`.
+    # Deprecated in NumPy 1.20;
+    warnings.filterwarnings('ignore', category=DeprecationWarning, module='tables',
+                            message='`np.object` is a deprecated alias')
+
 
 def handle_standard_args(parser=None):
 
     from activitysim.cli import run
-    import warnings
 
     warnings.warn('config.handle_standard_args() has been moved to the command line '
                   'module and will be removed in future versions.',

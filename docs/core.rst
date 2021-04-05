@@ -4,10 +4,10 @@ Core Components
 
 ActivitySim's core components include features for multiprocessing, data management, 
 utility expressions, choice models, person time window management, and helper 
-functions.  These core components include the multiprocessor, skim matrix manager, the 
+functions.  These core components include the multiprocessor, network LOS (skim) manager, the 
 data pipeline manager, the random number manager, the tracer, sampling 
 methods, simulation methods, model specification readers and expression 
-evaluators, choice models, timetable, and helper functions.
+evaluators, choice models, timetable, transit virtual path builder, and helper functions.
 
 .. _multiprocessing_in_detail:
 
@@ -37,17 +37,31 @@ API
 .. automodule:: activitysim.core.input
    :members:
 
-.. _skims_in_detail:
+.. _los_in_detail:
 
-Skim
-~~~~
+LOS
+~~~
 
-Skim matrix data access
+Network Level of Service (LOS) data access
 
 API
 ^^^
 
-.. automodule:: activitysim.core.skim
+.. automodule:: activitysim.core.los
+   :members:
+
+Skims
+~~~~~
+
+Skims data access
+
+API
+^^^
+
+.. automodule:: activitysim.core.skim_dict_factory
+   :members:
+
+.. automodule:: activitysim.core.skim_dictionary
    :members:
 
 .. _pipeline_in_detail:
@@ -150,7 +164,7 @@ There are a few conventions for writing expressions in ActivitySim:
 * global constants are specified in the settings file
 * comments are specified with ``#``
 * you can refer to the current table being operated on as ``df``
-* often an object called ``skims``, ``skims_od``, or similar is available and is used to lookup the relevant skim information.  See :ref:`skims_in_detail` for more information.
+* often an object called ``skims``, ``skims_od``, or similar is available and is used to lookup the relevant skim information.  See :ref:`los_in_detail` for more information.
 * when editing the CSV files in Excel, use single quote ' or space at the start of a cell to get Excel to accept the expression
 
 Example Expressions File
@@ -201,6 +215,17 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 * Simple :ref:`simulate` choice model - select from a fixed set of choices defined in the specification file, such as the example above.
 * :ref:`simulate_with_interaction` choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The :ref:`non_mandatory_tour_destination_choice` model implements this approach.
 * Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The :ref:`cdap` model implements this approach.
+
+Expressions
+~~~~~~~~~~~
+
+The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate 
+a number of additional table fields, and join the fields to the target table.  An example table annotation expressions 
+file is found in the example configuration files for households for the CDAP model - 
+`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
+
+.. automodule:: activitysim.core.expressions
+   :members:
 
 Sampling with Interaction
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -339,7 +364,52 @@ API
 
 .. automodule:: activitysim.core.timetable
    :members:
+
+.. _transit_virtual_path_builder:
+
+Transit Virtual Path Builder
+----------------------------
+
+Transit virtual path builder (TVPB) for three zone system (see :ref:`multiple_zone_systems`) transit path utility calculations.
+TAP to TAP skims and walk access and egress times between MAZs and TAPs are input to the 
+demand model.  ActivitySim then assembles the total transit path utility based on the user specified TVPB 
+expression files for the respective components:
+
+* from MAZ to first boarding TAP + 
+* from first boarding to final alighting TAP + 
+* from alighting TAP to destination MAZ
+
+This assembling is done via the TVPB, which considers all the possible combinations of nearby boarding and alighting TAPs for each origin 
+destination MAZ pair and selects the user defined N best paths to represent the transit mode.  After selecting N best paths, the logsum across
+N best paths is calculated and exposed to the mode choice models and a random number is drawn and a path is chosen. The boarding TAP, 
+alighting TAP, and TAP to TAP skim set for the chosen path is saved to the chooser table.  
+
+The initialize TVPB submodel (see :ref:`initialize_los`) pre-computes TAP to TAP total utilities for the user defined attribute_segments, 
+which are typically demographic segment (for example household income bin), time-of-day, and access/egress mode.  This submodel can be
+run in both single process and multiprocess mode, with single process excellent for development/debugging and multiprocess excellent
+for application.  ActivitySim saves the pre-calculated TAP to TAP total utilities to a memory mapped cache file for reuse by downstream models 
+such as tour mode choice.  In tour mode choice, the pre-computed TAP to TAP total utilities for the attribute_segment, along with the 
+access and egress impedances, are used to evaluate the best N TAP pairs for each origin MAZ destination MAZ pair being evaluated.  
+Assembling the total transit path impedance and then picking the best N is quick since it is done in a de-duplicated manner within 
+each chunk of multiprocessed choosers.
+
+A model with TVPB can take considerably longer to run than a traditional TAZ based model since it does an order of magnitude more 
+calculations.  Thus, it is important to be mindful of your approach to your network model as well, especially the number of TAPs 
+accessible to each MAZ, which is the key determinant of runtime.  
+
+API
+~~~
+
+.. automodule:: activitysim.core.pathbuilder
+   :members:
    
+
+Cache API
+~~~~~~~~~
+
+.. automodule:: activitysim.core.pathbuilder_cache
+   :members:
+
 Helpers
 -------
 
@@ -401,7 +471,7 @@ API
 
 .. automodule:: activitysim.core.mem
    :members:
-      
+
 Output
 ~~~~~~
 
@@ -412,7 +482,6 @@ API
 
 .. automodule:: activitysim.core.steps.output
    :members:
-   
 
 Tests
 ~~~~~

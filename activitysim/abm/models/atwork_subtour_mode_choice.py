@@ -3,6 +3,7 @@
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.core import tracing
 from activitysim.core import config
@@ -113,8 +114,8 @@ def atwork_subtour_mode_choice(
 
     estimator = estimation.manager.begin_estimation('atwork_subtour_mode_choice')
     if estimator:
-        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
-        estimator.write_coefficients_template(simulate.read_model_coefficient_template(model_settings))
+        estimator.write_coefficients(model_settings=model_settings)
+        estimator.write_coefficients_template(model_settings=model_settings)
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
         # FIXME run_tour_mode_choice_simulate writes choosers post-annotation
@@ -150,7 +151,8 @@ def atwork_subtour_mode_choice(
                     dest_col = f'{direction}_{c}'
 
                     if dest_col not in choices_df:
-                        choices_df[dest_col] = 0 if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
+                        choices_df[dest_col] = np.nan if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
+                    
                     choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
 
     if estimator:

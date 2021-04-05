@@ -1,0 +1,8 @@
+Description,Target,Expression
+#,, annotate persons table after school_location model has run
+Chose school location,chose_school_location,persons.school_zone_id>0
+No usual school location,noUsualSchoolLocation,"np.where(persons.school_zone_id < 0, 1, 0)"
+Distance to school,distance_to_school,"np.where(persons.school_zone_id>=0, skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('SOV_FREE_DISTANCE', 'MD')),np.nan)"
+Auto time to school,auto_time_home_to_school,"skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('SOV_FREE_TIME', 'MD'))"
+Auto time from school,auto_time_school_to_home,"skim_dict.lookup(persons.school_zone_id, persons.home_zone_id, ('SOV_FREE_TIME', 'MD'))"
+Roundtrip auto time,roundtrip_auto_time_to_school,"np.where(persons.school_zone_id>=0,(auto_time_home_to_school + auto_time_school_to_home),0)"

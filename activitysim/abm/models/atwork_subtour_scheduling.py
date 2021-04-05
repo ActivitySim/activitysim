@@ -61,10 +61,8 @@ def atwork_subtour_scheduling(
     # preprocessor
     constants = config.get_model_constants(model_settings)
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
-    do_skim_wrapper = skim_dict.wrap('destination', 'origin')  #FIXME - don't need this - use od_skims.reverse
     skims = {
         "od_skims": od_skim_wrapper,
-        "do_skims": do_skim_wrapper,
     }
     expressions.annotate_preprocessors(
         subtours, constants, skims,
@@ -78,7 +76,7 @@ def atwork_subtour_scheduling(
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         # we don't need to update timetable because subtours are scheduled inside work trip windows
 
     choices = vectorize_subtour_scheduling(

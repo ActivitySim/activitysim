@@ -4,8 +4,6 @@ import logging
 import warnings
 import os
 import pandas as pd
-import numpy as np
-from collections import OrderedDict
 
 from activitysim.core import config
 from activitysim.core import inject
@@ -101,7 +99,6 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
         pass
     else:
         tours = patch_tour_ids(tours)
-
     assert tours.index.name == 'tour_id'
 
     # replace table function with dataframe

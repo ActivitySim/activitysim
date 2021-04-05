@@ -103,8 +103,10 @@ def _interaction_sample_simulate(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims is not None:
-        alternatives[alternatives.index.name] = alternatives.index
+    # if skims is not None and alternatives.index.name not in alternatives:
+    #    #FIXME - not needed ?
+    #    alternatives = alternatives.copy()
+    #    alternatives[alternatives.index.name] = alternatives.index
 
     # - join choosers and alts
     # in vanilla interaction_simulate interaction_df is cross join of choosers and alternatives
@@ -176,6 +178,7 @@ def _interaction_sample_simulate(
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
+    chunk.log_df(trace_label, 'padded_utilities', padded_utilities)
     del inserts
 
     del interaction_utilities
@@ -183,7 +186,6 @@ def _interaction_sample_simulate(
 
     # reshape to array with one row per chooser, one column per alternative
     padded_utilities = padded_utilities.reshape(-1, max_sample_count)
-    chunk.log_df(trace_label, 'padded_utilities', padded_utilities)
 
     # convert to a dataframe with one row per chooser and one column per alternative
     utilities_df = pd.DataFrame(
@@ -278,8 +280,8 @@ def interaction_sample_simulate_calc_row_size(choosers, alt_sample, spec, trace_
     num_choosers = len(choosers.index)
     chooser_row_size = len(choosers.columns)
 
-    # one column per alternative plus skims and interaction_utilities
-    alt_row_size = alt_sample.shape[1] + 2
+    # one column per alternative plus skims, interaction_utilities, probs
+    alt_row_size = alt_sample.shape[1] + 3
     # average sample size
     sample_size = alt_sample.shape[0] / float(num_choosers)
 

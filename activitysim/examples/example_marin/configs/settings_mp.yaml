@@ -1,0 +1,89 @@
+inherit_settings: settings.yaml
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+
+# - ------------------------- dev config
+multiprocess: True
+strict: False
+mem_tick: 30
+use_shadow_pricing: False
+
+households_sample_size: 0
+#chunk_size: 6000000000
+num_processes: 32
+
+# - -------------------------
+
+# not recommended or supported for multiprocessing
+want_dest_choice_sample_tables: False
+
+#read_skim_cache: True
+#write_skim_cache: True
+
+# - tracing
+trace_hh_id:
+trace_od:
+
+# to resume after last successful checkpoint, specify resume_after: _
+resume_after:
+
+models:
+  #
+  # -- multiprocess_step mp_initialize
+  #
+  - initialize_landuse
+  - initialize_households
+  - initialize_tours
+  # initialize_los is a single-process step to create attribute_combination list for initialize_tvpb
+  - initialize_los
+  #
+  # - multiprocess_step initialize_tvpb
+  #
+  # multi-processable step to build STATIC cache
+  # (this step is a NOP if cache already exists and network_los.rebuild_tvpb_cache setting is False)
+  - initialize_tvpb
+  #
+  # --- multiprocess_step mp_mode_choice
+  #
+  - tour_mode_choice_simulate
+  - write_data_dictionary
+  - track_skim_usage
+  - write_tables
+  - write_summaries
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    num_processes: 20
+    chunk_size: 2376277344 # num_taps * num_taps * rowsize / desired_num_chunks = 2376277344
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_mode_choice
+    begin: tour_mode_choice_simulate
+    num_processes: 32
+    #chunk_size: 0
+    slice:
+      tables:
+        - households
+        - persons
+        - tours
+  - name: mp_summarize
+    begin: write_data_dictionary
+
+
+output_tables:
+  action: include
+  prefix: final_
+  # FIXME sort is an undocumented feature - sorts table by best index or ref_col according to traceable_table_indexes
+  sort: True
+  tables:
+    - checkpoints
+    - households
+    - persons
+    - tours
+    - attribute_combinations

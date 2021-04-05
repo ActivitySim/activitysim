@@ -1,0 +1,37 @@
+
+inherit_settings: True
+
+shadow_pricing_models:
+  school: school_location
+  workplace: workplace_location
+
+# global switch to enable/disable loading of saved shadow prices
+# (ignored if global use_shadow_pricing switch is False)
+LOAD_SAVED_SHADOW_PRICES: False
+
+# number of shadow price iterations for cold start
+MAX_ITERATIONS: 10
+
+# number of shadow price iterations for warm start (after loading saved shadow_prices)
+MAX_ITERATIONS_SAVED: 1
+
+# ignore criteria for zones smaller than size_threshold
+SIZE_THRESHOLD: 10
+
+# zone passes if modeled is within percent_tolerance of  predicted_size
+PERCENT_TOLERANCE: 5
+
+# max percentage of zones allowed to fail
+FAIL_THRESHOLD: 1
+
+# CTRAMP or daysim
+SHADOW_PRICE_METHOD: ctramp
+#SHADOW_PRICE_METHOD: daysim
+
+# ctramp-style shadow_pricing_method parameters
+DAMPING_FACTOR: 1
+
+# daysim-style shadow_pricing_method parameters
+# FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?
+DAYSIM_ABSOLUTE_TOLERANCE: 50
+DAYSIM_PERCENT_TOLERANCE: 10

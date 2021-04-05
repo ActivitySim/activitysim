@@ -1,0 +1,65 @@
+Description,Target,Expression
+# add additional fields,,
+,tour_participants,trips.tour_id.map(tours.number_of_participants)
+,distance,od_skims['DIST']
+# code time periods,,
+,is_ea,"trips.depart.between(time_periods['EA']['first_hour'], time_periods['EA']['last_hour'])"
+,is_am,"trips.depart.between(time_periods['AM']['first_hour'], time_periods['AM']['last_hour'])"
+,is_md,"trips.depart.between(time_periods['MD']['first_hour'], time_periods['MD']['last_hour'])"
+,is_pm,"trips.depart.between(time_periods['PM']['first_hour'], time_periods['PM']['last_hour'])"
+,is_ev,(trips.depart >= time_periods['EV']['first_hour']) | (trips.depart <=  time_periods['EV']['last_hour'])
+# ea trips,,
+,DRIVEALONEFREE_EA,((trips.trip_mode == 'DRIVEALONEFREE') & is_ea) * tour_participants
+,DRIVEALONEPAY_EA,((trips.trip_mode == 'DRIVEALONEPAY') & is_ea) * tour_participants
+,SHARED2FREE_EA,((trips.trip_mode == 'SHARED2FREE') & is_ea) * tour_participants  / OCC_SHARED2
+,SHARED2PAY_EA,((trips.trip_mode == 'SHARED2PAY') & is_ea) * tour_participants / OCC_SHARED2
+,SHARED3FREE_EA,((trips.trip_mode == 'SHARED3FREE') & is_ea) * tour_participants / OCC_SHARED3
+,SHARED3PAY_EA,((trips.trip_mode == 'SHARED3PAY') & is_ea) * tour_participants / OCC_SHARED3
+,WALK_EA,((trips.trip_mode == 'WALK') & is_ea) * tour_participants
+,BIKE_EA,((trips.trip_mode == 'BIKE') & is_ea) * tour_participants
+,WALK_TRANSIT_EA,((trips.trip_mode == 'WALK_TRANSIT') & is_ea) * tour_participants
+,DRIVE_TRANSIT_EA,((trips.trip_mode == 'DRIVE_TRANSIT') & is_ea & ~trips.outbound) * tour_participants
+# am trips,,
+,DRIVEALONEFREE_AM,((trips.trip_mode == 'DRIVEALONEFREE') & is_am) * tour_participants
+,DRIVEALONEPAY_AM,((trips.trip_mode == 'DRIVEALONEPAY') & is_am) * tour_participants
+,SHARED2FREE_AM,((trips.trip_mode == 'SHARED2FREE') & is_am) * tour_participants / OCC_SHARED2
+,SHARED2PAY_AM,((trips.trip_mode == 'SHARED2PAY') & is_am) * tour_participants / OCC_SHARED2
+,SHARED3FREE_AM,((trips.trip_mode == 'SHARED3FREE') & is_am) * tour_participants / OCC_SHARED3
+,SHARED3PAY_AM,((trips.trip_mode == 'SHARED3PAY') & is_am) * tour_participants / OCC_SHARED3
+,WALK_AM,((trips.trip_mode == 'WALK') & is_am) * tour_participants
+,BIKE_AM,((trips.trip_mode == 'BIKE') & is_am) * tour_participants
+,WALK_TRANSIT_AM,((trips.trip_mode == 'WALK_TRANSIT') & is_am) * tour_participants
+,DRIVE_TRANSIT_AM,((trips.trip_mode == 'DRIVE_TRANSIT') & is_am & ~trips.outbound) * tour_participants
+# md trips,,
+,DRIVEALONEFREE_MD,((trips.trip_mode == 'DRIVEALONEFREE') & is_md) * tour_participants
+,DRIVEALONEPAY_MD,((trips.trip_mode == 'DRIVEALONEPAY') & is_md) * tour_participants
+,SHARED2FREE_MD,((trips.trip_mode == 'SHARED2FREE') & is_md) * tour_participants / OCC_SHARED2
+,SHARED2PAY_MD,((trips.trip_mode == 'SHARED2PAY') & is_md) * tour_participants / OCC_SHARED2
+,SHARED3FREE_MD,((trips.trip_mode == 'SHARED3FREE') & is_md) * tour_participants / OCC_SHARED3
+,SHARED3PAY_MD,((trips.trip_mode == 'SHARED3PAY') & is_md) * tour_participants / OCC_SHARED3
+,WALK_MD,((trips.trip_mode == 'WALK') & is_md) * tour_participants
+,BIKE_MD,((trips.trip_mode == 'BIKE') & is_md) * tour_participants
+,WALK_TRANSIT_MD,((trips.trip_mode == 'WALK_TRANSIT') & is_md) * tour_participants
+,DRIVE_TRANSIT_MD,((trips.trip_mode == 'DRIVE_TRANSIT') & is_md & ~trips.outbound) * tour_participants
+# pm trips,,
+,DRIVEALONEFREE_PM,((trips.trip_mode == 'DRIVEALONEFREE') & is_pm) * tour_participants
+,DRIVEALONEPAY_PM,((trips.trip_mode == 'DRIVEALONEPAY') & is_pm) * tour_participants
+,SHARED2FREE_PM,((trips.trip_mode == 'SHARED2FREE') & is_pm) * tour_participants / OCC_SHARED2
+,SHARED2PAY_PM,((trips.trip_mode == 'SHARED2PAY') & is_pm) * tour_participants / OCC_SHARED2
+,SHARED3FREE_PM,((trips.trip_mode == 'SHARED3FREE') & is_pm) * tour_participants / OCC_SHARED3
+,SHARED3PAY_PM,((trips.trip_mode == 'SHARED3PAY') & is_pm) * tour_participants / OCC_SHARED3
+,WALK_PM,((trips.trip_mode == 'WALK') & is_pm) * tour_participants
+,BIKE_PM,((trips.trip_mode == 'BIKE') & is_pm) * tour_participants
+,WALK_TRANSIT_PM,((trips.trip_mode == 'WALK_TRANSIT') & is_pm) * tour_participants
+,DRIVE_TRANSIT_PM,((trips.trip_mode == 'DRIVE_TRANSIT') & is_pm & ~trips.outbound) * tour_participants
+# ev trips,,
+,DRIVEALONEFREE_EV,((trips.trip_mode == 'DRIVEALONEFREE') & is_ev) * tour_participants
+,DRIVEALONEPAY_EV,((trips.trip_mode == 'DRIVEALONEPAY') & is_ev) * tour_participants
+,SHARED2FREE_EV,((trips.trip_mode == 'SHARED2FREE') & is_ev) * tour_participants / OCC_SHARED2
+,SHARED2PAY_EV,((trips.trip_mode == 'SHARED2PAY') & is_ev) * tour_participants / OCC_SHARED2
+,SHARED3FREE_EV,((trips.trip_mode == 'SHARED3FREE') & is_ev) * tour_participants / OCC_SHARED3
+,SHARED3PAY_EV,((trips.trip_mode == 'SHARED3PAY') & is_ev) * tour_participants / OCC_SHARED3
+,WALK_EV,((trips.trip_mode == 'WALK') & is_ev) * tour_participants
+,BIKE_EV,((trips.trip_mode == 'BIKE') & is_ev) * tour_participants
+,WALK_TRANSIT_EV,((trips.trip_mode == 'WALK_TRANSIT') & is_ev) * tour_participants
+,DRIVE_TRANSIT_EV,((trips.trip_mode == 'DRIVE_TRANSIT') & is_ev & ~trips.outbound) * tour_participants

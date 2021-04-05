@@ -1,0 +1,16 @@
+Label,Description,Expression,coefficient
+local_dist,,_DIST@skims['DIST'],1
+util_dist,Distance,@_DIST,coef_dist
+util_dist_squared,"Distance squared, capped at 20 miles","@(_DIST).clip(0,20)**2",coef_dist_squared
+util_dist_cubed,"Distance cubed, capped at 20 miles","@(_DIST).clip(0,20)**3",coef_dist_cubed
+util_dist_logged,Distance logged,@(_DIST).apply(np.log1p),coef_dist_logged
+util_dist_low,"Distance,low income",@(df['income_segment']==WORK_LOW_SEGMENT_ID) * _DIST,coef_dist_low_inc
+util_dist_med,"Distance,med income",@(df['income_segment']==WORK_MED_SEGMENT_ID) * _DIST,coef_dist_med_inc
+util_dist_high,"Distance,high income",@(df['income_segment']==WORK_HIGH_SEGMENT_ID) * _DIST,coef_dist_high_inc
+util_dist_part_time,"Distance,part_time",@(df['pemploy']==2) * _DIST,coef_dist_part_time
+util_dist_student,"Distance,student",@(df['is_student']==True) * _DIST,coef_dist_student
+util_size_variable,Size variable,@(df['size_term'] * df['shadow_price_size_term_adjustment']).apply(np.log1p),1
+util_utility_adjustment,utility adjustment,@df['shadow_price_utility_adjustment'],1
+util_no_attractions,No attractions,@df['size_term']==0,-999
+util_mode_logsum,Mode choice logsum,mode_choice_logsum,coef_mode_logsum
+util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1

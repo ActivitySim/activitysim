@@ -254,21 +254,19 @@ util_DRIVE_COM_Topology,DRIVE_COM - Topology,@coef_topology_trn_multiplier * df.
 util_DRIVE_COM_Person_is_less_than_10_years_old,DRIVE_COM - Person is less than 10 years old,@(df.age < 10),,,,,,,,,,,,,,,,,,coef_age010_trn_multiplier,,,
 #,Taxi,,,,,,,,,,,,,,,,,,,,,,
 util_Taxi_In_vehicle_time,Taxi - In-vehicle time,@(odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME']),,,,,,,,,,,,,,,,,,,coef_ivt,,
-#, FIXME magic constant 1.5,,,,,,,,,,,,,,,,,,,,,,
-util_Taxi_Wait_time,Taxi - Wait time,@1.5 * df.totalWaitTaxi,,,,,,,,,,,,,,,,,,,coef_ivt,,
+ util_Taxi_Wait_time,Taxi - Wait time,@ridehail_wait_time_multiplier * df.totalWaitTaxi,,,,,,,,,,,,,,,,,,,coef_ivt,,
 util_Taxi_Tolls,Taxi - Tolls,@ivt_cost_multiplier * df.ivot * (odt_skims['HOV2TOLL_VTOLL'] + dot_skims['HOV2TOLL_VTOLL']),,,,,,,,,,,,,,,,,,,coef_ivt,,
 util_Taxi_Bridge_toll,Taxi - Bridge toll,@ivt_cost_multiplier * df.ivot * (odt_skims['HOV2TOLL_BTOLL'] + dot_skims['HOV2TOLL_BTOLL']),,,,,,,,,,,,,,,,,,,coef_ivt,,
 util_Taxi_Fare,Taxi - Fare,@ivt_cost_multiplier * df.ivot * (Taxi_baseFare * 2 + (odt_skims['HOV2TOLL_DIST'] + dot_skims['HOV2TOLL_DIST']) * Taxi_costPerMile +(odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME']) * Taxi_costPerMinute)*100,,,,,,,,,,,,,,,,,,,coef_ivt,,
 #,TNC Single,,,,,,,,,,,,,,,,,,,,,,
 util_TNC_Single_In_vehicle_time,TNC Single - In-vehicle time,@(odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME']),,,,,,,,,,,,,,,,,,,,coef_ivt,
-util_TNC_Single_Wait_time,TNC Single - Wait time,@1.5 * df.totalWaitSingleTNC,,,,,,,,,,,,,,,,,,,,coef_ivt,
+util_TNC_Single_Wait_time,TNC Single - Wait time,@ridehail_wait_time_multiplier * df.totalWaitSingleTNC,,,,,,,,,,,,,,,,,,,,coef_ivt,
 util_TNC_Single_Tolls,TNC Single - Tolls,@ivt_cost_multiplier * df.ivot * (odt_skims['HOV2TOLL_VTOLL'] + dot_skims['HOV2TOLL_VTOLL']),,,,,,,,,,,,,,,,,,,,coef_ivt,
 util_TNC_Single_Bridge_toll,TNC Single - Bridge toll,@ivt_cost_multiplier * df.ivot * (odt_skims['HOV2TOLL_BTOLL'] + odr_skims['HOV2TOLL_BTOLL'] + dot_skims['HOV2TOLL_BTOLL'] + dor_skims['HOV2TOLL_BTOLL']),,,,,,,,,,,,,,,,,,,,coef_ivt,
 util_TNC_Single_Cost,TNC Single - Cost,"@ivt_cost_multiplier * df.ivot * np.maximum(TNC_single_baseFare * 2 + (odt_skims['HOV2TOLL_DIST'] + dot_skims['HOV2TOLL_DIST']) * TNC_single_costPerMile + (odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME']) * TNC_single_costPerMinute, TNC_single_costMinimum) * 100",,,,,,,,,,,,,,,,,,,,coef_ivt,
 #,TNC Shared,,,,,,,,,,,,,,,,,,,,,,
 util_TNC_Shared_In_vehicle_time,TNC Shared - In-vehicle time,@(odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME']) * TNC_shared_IVTFactor,,,,,,,,,,,,,,,,,,,,,coef_ivt
-#, FIXME magic constant 1.5,,,,,,,,,,,,,,,,,,,,,,
-util_TNC_Shared_Wait_time,TNC Shared - Wait time,@1.5 * df.totalWaitSharedTNC,,,,,,,,,,,,,,,,,,,,,coef_ivt
+util_TNC_Shared_Wait_time,TNC Shared - Wait time,@ridehail_wait_time_multiplier * df.totalWaitSharedTNC,,,,,,,,,,,,,,,,,,,,,coef_ivt
 util_TNC_Shared_Tolls,TNC Shared - Tolls,@ivt_cost_multiplier * df.ivot * (odt_skims['HOV2TOLL_VTOLL'] + dot_skims['HOV2TOLL_VTOLL']),,,,,,,,,,,,,,,,,,,,,coef_ivt
 util_TNC_Shared_Bridge_toll,TNC Shared - Bridge toll,@ivt_cost_multiplier * df.ivot * (odt_skims['HOV2TOLL_BTOLL'] + odr_skims['HOV2TOLL_BTOLL'] + dot_skims['HOV2TOLL_BTOLL'] + dor_skims['HOV2TOLL_BTOLL']),,,,,,,,,,,,,,,,,,,,,coef_ivt
 util_TNC_Shared_Cost,TNC Shared - Cost,"@ivt_cost_multiplier * df.ivot * np.maximum(TNC_shared_baseFare * 2 + (odt_skims['HOV2TOLL_DIST'] + dot_skims['HOV2TOLL_DIST']) * TNC_shared_costPerMile + (odt_skims['HOV2TOLL_TIME'] + dot_skims['HOV2TOLL_TIME']) * TNC_shared_costPerMinute, TNC_shared_costMinimum) * 100",,,,,,,,,,,,,,,,,,,,,coef_ivt

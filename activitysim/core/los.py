@@ -16,7 +16,7 @@ from activitysim.core import pathbuilder
 from activitysim.core import mem
 from activitysim.core import tracing
 
-#
+from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
 from activitysim.core.skim_dict_factory import NumpyArraySkimFactory
 from activitysim.core.skim_dict_factory import MemMapSkimFactory
 
@@ -39,6 +39,7 @@ DEFAULT_SETTINGS = {
     'skim_dict_factory': 'NumpyArraySkimFactory'
 }
 
+TRACE_TRIMMED_MAZ_TO_TAP_TABLES = True
 
 class Network_LOS(object):
     """
@@ -207,6 +208,7 @@ class Network_LOS(object):
 
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
+            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True)).sort_values('TAP')
             self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
             self.tvpb = pathbuilder.TransitVirtualPathBuilder(self)  # dependent on self.tap_df
 
@@ -301,20 +303,16 @@ class Network_LOS(object):
 
                     logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows")
                     logger.debug(f"maz_to_tap table {file_name} max {distance_col} {df[distance_col].max()}")
-                    #for dist in [3,2,1]:
-                    #    logger.debug(f"{(df[distance_col] < dist).sum()} taps less than {dist}")
-                    #print(df[df[distance_col] > 3])
 
-                    max_dist_setting = 'max_dist'
-                    if max_dist_setting in maz_to_tap_settings:
+                    max_dist = maz_to_tap_settings.get('max_dist', None)
+                    if max_dist:
                         old_len = len(df)
-                        max_dist = maz_to_tap_settings.get(max_dist_setting)
                         df = df[df[distance_col] <= max_dist]
                         logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows "
                                      f"based on max_dist {max_dist}")
 
-                    tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
-                    #bug
+                    if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
+                        tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
 
                 df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
                 logger.debug(f"loaded maz_to_tap table {file_name} with {len(df)} rows")
@@ -327,24 +325,28 @@ class Network_LOS(object):
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
-        # make sure skim has all tap_ids
+
+        # make sure skim has all taz_ids
         # FIXME - weird that there is no list of tazs?
 
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
             # create MazSkimDict facade skim_dict
-            # (need to have already loaded both taz skim and maz tables)
+            # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
             assert 'maz' not in self.skim_dicts
-            self.skim_dicts['maz'] = self.create_skim_dict('maz')
+            maz_skim_dict = self.create_skim_dict('maz')
+            self.skim_dicts['maz'] = maz_skim_dict
+
             # make sure skim has all maz_ids
-            assert set(self.maz_taz_df['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
+            assert not (maz_skim_dict.offset_mapper.map(self.maz_taz_df['MAZ'].values) == NOT_IN_SKIM_ZONE_ID).any()
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
             assert 'tap' not in self.skim_dicts
-            self.skim_dicts['tap'] = self.create_skim_dict('tap')
+            tap_skim_dict = self.create_skim_dict('tap')
+            self.skim_dicts['tap'] = tap_skim_dict
             # make sure skim has all tap_ids
-            assert set(self.tap_df['TAP'].values).issubset(set(self.skim_dicts['tap'].zone_ids))
+            assert not (tap_skim_dict.offset_mapper.map(self.tap_df['TAP'].values) == NOT_IN_SKIM_ZONE_ID).any()
 
         mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
@@ -363,8 +365,13 @@ class Network_LOS(object):
         assert skim_tag not in self.skim_dicts  # avoid inadvertently creating multiple copies
 
         if skim_tag == 'maz':
-            #bug should pass in tap skim dict so MazSkimDict can share skim data rather than creating 2nd copy
-            skim_dict = skim_dictionary.MazSkimDict('maz', self)
+            # MazSkimDict gets a reference to self here, because it has dependencies on self.load_data
+            # (e.g. maz_to_maz_df, maz_taz_df...) We pass in taz_skim_dict as a parameter
+            # to hilight the fact that we do not want two copies of its (very large) data array in memory
+            assert 'taz' in self.skim_dicts, \
+                f"create_skim_dict 'maz': backing taz skim_dict not in skim_dicts"
+            taz_skim_dict = self.skim_dicts['taz']
+            skim_dict = skim_dictionary.MazSkimDict('maz', self, taz_skim_dict)
         else:
             skim_info = self.skims_info[skim_tag]
             skim_data = self.skim_dict_factory.get_skim_data(skim_tag, skim_info)
@@ -415,6 +422,7 @@ class Network_LOS(object):
     def multiprocess(self):
         """
         return True if this is a multiprocessing run (even if it is a main or single-process subprocess)
+
         Returns
         -------
             bool
@@ -432,12 +440,13 @@ class Network_LOS(object):
         shared_data_buffers: dict of multiprocessing.RawArray keyed by skim_tag
         """
 
-        assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
         assert self.multiprocess()
+        # assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
 
-        for skim_tag in self.skims_info.keys():
-            assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
-            self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
+        if self.skim_dict_factory.supports_shared_data_for_multiprocessing:
+            for skim_tag in self.skims_info.keys():
+                assert skim_tag in shared_data_buffers, f"load_shared_data expected allocated shared_data_buffers"
+                self.skim_dict_factory.load_skims_to_buffer(self.skims_info[skim_tag], shared_data_buffers[skim_tag])
 
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
@@ -469,11 +478,10 @@ class Network_LOS(object):
 
         skim_buffers = {}
 
-        assert self.skim_dict_factory.supports_shared_data_for_multiprocessing
-
-        for skim_tag in self.skims_info.keys():
-            skim_buffers[skim_tag] = \
-                self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
+        if self.skim_dict_factory.supports_shared_data_for_multiprocessing:
+            for skim_tag in self.skims_info.keys():
+                skim_buffers[skim_tag] = \
+                    self.skim_dict_factory.allocate_skim_buffer(self.skims_info[skim_tag], shared=True)
 
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
@@ -491,6 +499,8 @@ class Network_LOS(object):
         SkimDict or subclass (e.g. MazSkimDict)
         """
 
+        assert skim_tag in self.skim_dicts, \
+            f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
         return self.skim_dicts[skim_tag]
 
     def get_default_skim_dict(self):
@@ -584,14 +594,28 @@ class Network_LOS(object):
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
 
-        # FIXME - eventually test and use np version always?
-        # if np.isscalar(time_period):
-        #     bin = np.digitize([time_period % total_periods],
-        #                       self.skim_time_periods['periods'], right=True)[0] - 1
-        #     return self.skim_time_periods['labels'][bin]
-
-        # return pd.cut(time_period, self.skim_time_periods['periods'],
-                      # labels=self.skim_time_periods['labels'], right=True).astype(str)
-
         bins = np.digitize([time_period % total_periods], self.skim_time_periods['periods'], right=True)[0] - 1
         return np.array(self.skim_time_periods['labels'])[bins]
+
+    def get_tazs(self):
+        # FIXME - should compute on init?
+        if self.zone_system == ONE_ZONE:
+            tazs = inject.get_table('land_use').index.values
+        else:
+            tazs = self.maz_taz_df.TAZ.unique()
+        assert isinstance(tazs, np.ndarray)
+        return tazs
+
+    def get_mazs(self):
+        # FIXME - should compute on init?
+        assert self.zone_system in [TWO_ZONE, THREE_ZONE]
+        mazs = self.maz_taz_df.MAZ.values
+        assert isinstance(mazs, np.ndarray)
+        return mazs
+
+    def get_taps(self):
+        # FIXME - should compute on init?
+        assert self.zone_system == THREE_ZONE
+        taps = self.tap_df.TAP.values
+        assert isinstance(taps, np.ndarray)
+        return taps

@@ -1,0 +1,184 @@
+
+###
+##### settings.yaml
+###
+
+# remove cruft:
+
+#input data store and skims
+#input_store: arc_asim.h5
+#skims_file: skims.omx
+
+###
+##### school_location.csv
+###
+#Intrazonal (origin == dest),@(df['home_zone_id']==df['zone_id']),-0.1518,-0.5708,-0.5708
+Intrazonal (origin == dest),@(df['home_zone_id']==df['alt_dest']),-0.1518,-0.5708,-0.5708
+
+###
+##### workplace_location.csv
+###
+# Intrazonal (origin == dest),@(df['zone_id']==df['home_zone_id']),0.9833,0.9833,0.9833,0.9833,0.9833
+Intrazonal (origin == dest),@(df['alt_dest']==df['home_zone_id']),0.9833,0.9833,0.9833,0.9833,0.9833
+
+###
+##### cdap.yaml
+###
+COEFFICIENTS: _dummy_coefficients.csv
+INTERACTION_COEFFICIENTS: cdap_interaction_coefficients.csv
+
+###
+##### _dummy_coefficients.csv
+###
+
+# dummy file to allow coefficients hard coded into
+# cdap.yaml INDIV_AND_HHSIZE1_SPEC and INTERACTION_COEFFICIENTS
+# stop_frequency.yaml SPEC_SEGMENTS.COEFFICIENTS
+
+
+coefficient_name,value,constrain
+coef_one,1,T
+
+
+###
+##### tour_mode_choice_coeffs_template.csv
+###
+
+# WARNING - duplicate coefficient names in tour_mode_choice_coeffs_template.csv:
+
+coef_hov_tourPur_Esc,coef_hov_tourPur_Esc_work,coef_hov_tourPur_Esc_univ,coef_hov_tourPur_Esc_school,coef_hov_tourPur_Esc_nonmandatory,coef_hov_tourPur_Esc_nonmandatory,coef_hov_tourPur_Esc_nonmandatory,coef_hov_tourPur_Esc_nonmandatory,coef_hov_tourPur_Esc_nonmandatory,coef_hov_tourPur_Esc_nonmandatory,coef_hov_tourPur_Esc_atwork
+coef_hov_tourPur_Eat,coef_hov_tourPur_Eat_work,coef_hov_tourPur_Eat_univ,coef_hov_tourPur_Eat_school,coef_hov_tourPur_Eat_nonmandatory,coef_hov_tourPur_Eat_nonmandatory,coef_hov_tourPur_Eat_nonmandatory,coef_hov_tourPur_Eat_nonmandatory,coef_hov_tourPur_Eat_nonmandatory,coef_hov_tourPur_Eat_nonmandatory,coef_hov_tourPur_Eat_atwork
+
+###
+##### atwork_subtour_destination_sample.csv
+###
+
+# size term column renamed from 'atwork' to 'size_term'
+
+#Size variable ,@df['atwork'].apply(np.log1p),1
+#No attractions,@df['atwork']==0,-999
+
+atwork size_term variable ,@df['size_term'].apply(np.log1p),1
+No attractions,@df['size_term']==0,-999
+
+
+###
+##### mandatory_tour_scheduling.yaml
+##### mandatory_tour_schedulings_annotate_tours_preprocessor.csv
+###
+
+# rename file (and setting specification)
+# from mandatory_tour_schedulings_annotate_tours_preprocessor.csv
+# to mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+# name is misleading because we now also support tours_preprocessor
+
+ALTS_PREPROCESSOR:
+  work:
+#   SPEC: mandatory_tour_schedulings_annotate_tours_preprocessor.csv
+    SPEC: mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+    DF: alt_tdd
+
+
+###
+##### atwork_subtour_destination.csv
+###
+
+# size term column renamed from 'atwork' to 'size_term'
+
+# Size variable applied for work purposes,"@np.where((df.tour_type == 'business'), df['atwork'].apply(np.log1p), 0)",0.461
+# Size variable applied for eating out purposes,"@np.where((df.tour_type == 'eat'), df['atwork'].apply(np.log1p), 0)",0.6904
+# Size variable applied for other purposes,"@np.where((df.tour_type == 'maint'), df['atwork'].apply(np.log1p), 0)",0.6166
+# Not SOV on mandatory tour & short walk,"@(~df.tour_mode.isin(['DRIVEALONEFREE','DRIVEALONEPAY']))",2.485
+# No Eat subtour Attractions,"@np.where(((df.tour_type == 'eat') & (df['atwork'].apply(np.log1p) == 0)), 1, 0)",-999
+# No Business subtour Attractions,"@np.where(((df.tour_type == 'business') & (df['atwork'].apply(np.log1p) == 0)), 1, 0)",-999
+# No Maint subtour Attractions,"@np.where(((df.tour_type == 'maint') & (df['atwork'].apply(np.log1p) == 0)), 1, 0)",-999
+
+Size variable applied for work purposes,"@np.where((df.tour_type == 'business'), df['size_term'].apply(np.log1p), 0)",0.461
+Size variable applied for eating out purposes,"@np.where((df.tour_type == 'eat'), df['size_term'].apply(np.log1p), 0)",0.6904
+Size variable applied for other purposes,"@np.where((df.tour_type == 'maint'), df['size_term'].apply(np.log1p), 0)",0.6166
+Not SOV on mandatory tour & short walk,"@(~df.tour_mode.isin(['DRIVEALONEFREE','DRIVEALONEPAY']))",2.485
+No Eat subtour Attractions,"@np.where(((df.tour_type == 'eat') & (df['size_term'].apply(np.log1p) == 0)), 1, 0)",-999
+No Business subtour Attractions,"@np.where(((df.tour_type == 'business') & (df['size_term'].apply(np.log1p) == 0)), 1, 0)",-999
+No Maint subtour Attractions,"@np.where(((df.tour_type == 'maint') & (df['size_term'].apply(np.log1p) == 0)), 1, 0)",-999
+
+###
+##### stop_frequency.yaml
+###
+
+SEGMENT_COL: primary_purpose
+
+SPEC_SEGMENTS:
+  - primary_purpose: work
+    SPEC: stop_frequency_work.csv
+    COEFFICIENTS: stop_frequency_coefficients_work.csv
+  - primary_purpose: school
+    SPEC: stop_frequency_school.csv
+    COEFFICIENTS: stop_frequency_coefficients_school.csv
+  - primary_purpose: univ
+    SPEC: stop_frequency_univ.csv
+    COEFFICIENTS: stop_frequency_coefficients_univ.csv
+  - primary_purpose: social
+    SPEC: stop_frequency_social.csv
+    COEFFICIENTS: stop_frequency_coefficients_social.csv
+  - primary_purpose: shopping
+    SPEC: stop_frequency_shopping.csv
+    COEFFICIENTS: stop_frequency_coefficients_shopping.csv
+  - primary_purpose: eatout
+    SPEC: stop_frequency_eatout.csv
+    COEFFICIENTS: stop_frequency_coefficients_eatout.csv
+  - primary_purpose: escort
+    SPEC: stop_frequency_escort.csv
+    COEFFICIENTS: stop_frequency_coefficients_escort.csv
+  - primary_purpose: othmaint
+    SPEC: stop_frequency_othmaint.csv
+    COEFFICIENTS: stop_frequency_coefficients_othmaint.csv
+  - primary_purpose: othdiscr
+    SPEC: stop_frequency_othdiscr.csv
+    COEFFICIENTS: stop_frequency_coefficients_othdiscr.csv
+  - primary_purpose: atwork
+    SPEC: stop_frequency_atwork.csv
+    COEFFICIENTS: stop_frequency_coefficients_atwork.csv
+
+
+###
+##### trip_destination.yaml
+###
+
+# list tours columns already in trips table, so they won't be duplicated (and renamed) when merged with tours
+REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
+  - tour_mode
+#  - number_of_participants
+
+###
+##### trip_mode_choice.yaml
+###
+
+# coefficients are hard coded, so use LEGACY_COEFFICIENTS settings
+SPEC: trip_mode_choice.csv
+LEGACY_COEFFICIENTS: trip_mode_choice_coeffs.csv
+
+###
+##### trip_mode_choice_coeffs.csv
+###
+
+#rename first column from 'Expression' to 'coefficient_name'
+
+#Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+coefficient_name,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+
+
+###
+##### initialize_households.yaml
+###
+
+# FutureWarning: initialize_households - annotate_tables option 'column_map' renamed 'rename_columns'
+
+annotate_tables:
+  - tablename: persons
+#   column_map:
+    rename_columns:
+...
+  - tablename: households
+#   column_map:
+    rename_columns:
+

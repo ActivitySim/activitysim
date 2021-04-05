@@ -3,7 +3,7 @@
 
 from builtins import range
 
-import os
+import warnings
 import logging
 from collections import OrderedDict
 
@@ -138,9 +138,24 @@ def read_model_coefficients(model_settings=None, file_name=None):
         assert 'COEFFICIENTS' in model_settings, \
             "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get('source_file_paths')
         file_name = model_settings['COEFFICIENTS']
+        logger.debug(f"read_model_coefficients file_name {file_name}")
 
     file_path = config.config_file_path(file_name)
-    coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    try:
+        coefficients = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient File Invalid: %s" % str(file_path))
+        raise
+
+    if coefficients.index.duplicated().any():
+        logger.warning(f"duplicate coefficients in {file_path}\n"
+                       f"{coefficients[coefficients.index.duplicated(keep=False)]}")
+        raise RuntimeError(f"duplicate coefficients in {file_path}")
+
+    if coefficients.value.isnull().any():
+        logger.warning(
+            f"null coefficients in {file_path}\n{coefficients[coefficients.value.isnull()]}")
+        raise RuntimeError(f"null coefficients in {file_path}")
 
     return coefficients
 
@@ -162,15 +177,28 @@ def spec_for_segment(model_settings, spec_id, segment_name, estimator):
         canonical spec file with expressions in index and single column with utility coefficients
     """
 
-    spec = read_model_spec(file_name=model_settings[spec_id])
-    coefficients = read_model_coefficients(model_settings)
+    spec_file_name = model_settings[spec_id]
+    spec = read_model_spec(file_name=spec_file_name)
 
     if len(spec.columns) > 1:
         # if spec is segmented
         spec = spec[[segment_name]]
     else:
         # otherwise we expect a single coefficient column
-        assert spec.columns[0] == 'coefficient'
+        # doesn't really matter what it is called, but this may catch errors
+        assert spec.columns[0] in ['coefficient', segment_name]
+
+    if 'COEFFICIENTS' not in model_settings:
+        logger.warning(f"no coefficient file specified in model_settings for {spec_file_name}")
+        try:
+            assert (spec.astype(float) == spec).all(axis=None)
+        except (ValueError, AssertionError):
+            raise RuntimeError(f"No coefficient file specified for {spec_file_name} "
+                               f"but not all spec column values are numeric")
+
+        return spec
+
+    coefficients = read_model_coefficients(model_settings)
 
     spec = eval_coefficients(spec, coefficients, estimator)
 
@@ -185,10 +213,14 @@ def read_model_coefficient_template(model_settings):
     assert 'COEFFICIENT_TEMPLATE' in model_settings, \
         "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get('source_file_paths')
 
-    coeffs_file_name = model_settings['COEFFICIENT_TEMPLATE']
+    coefficients_file_name = model_settings['COEFFICIENT_TEMPLATE']
 
-    file_path = config.config_file_path(coeffs_file_name)
-    template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    file_path = config.config_file_path(coefficients_file_name)
+    try:
+        template = pd.read_csv(file_path, comment='#', index_col='coefficient_name')
+    except ValueError:
+        logger.exception("Coefficient Template File Invalid: %s" % str(file_path))
+        raise
 
     # by convention, an empty cell in the template indicates that
     # the coefficient name should be propogated to across all segments
@@ -197,7 +229,34 @@ def read_model_coefficient_template(model_settings):
     # replace missing cell values with coefficient_name from index
     template = template.where(~template.isnull(), template.index)
 
+    if template.index.duplicated().any():
+        dupes = template[template.index.duplicated(keep=False)].sort_index()
+        logger.warning(f"duplicate coefficient names in {coefficients_file_name}:\n{dupes}")
+        assert not template.index.duplicated().any()
+
     return template
+
+
+def dump_mapped_coefficients(model_settings):
+    """
+    dump template_df with coefficient values
+    """
+
+    coefficients_df = read_model_coefficients(model_settings)
+    template_df = read_model_coefficient_template(model_settings)
+
+    for c in template_df.columns:
+        template_df[c] = template_df[c].map(coefficients_df.value)
+
+    coefficients_template_file_name = model_settings['COEFFICIENT_TEMPLATE']
+    file_path = config.output_file_path(coefficients_template_file_name)
+    template_df.to_csv(file_path, index=True)
+    logger.info(f"wrote mapped coefficient template to {file_path}")
+
+    coefficients_file_name = model_settings['COEFFICIENTS']
+    file_path = config.output_file_path(coefficients_file_name)
+    coefficients_df.to_csv(file_path, index=True)
+    logger.info(f"wrote raw coefficients to {file_path}")
 
 
 def get_segment_coefficients(model_settings, segment_name):
@@ -232,14 +291,41 @@ def get_segment_coefficients(model_settings, segment_name):
 
     """
 
-    coefficients_df = read_model_coefficients(model_settings)
-    template_df = read_model_coefficient_template(model_settings)
-    coefficients_col = template_df[segment_name].map(coefficients_df.value)
+    if 'COEFFICIENTS' in model_settings and 'COEFFICIENT_TEMPLATE' in model_settings:
+        legacy = False
+    elif 'COEFFICIENTS' in model_settings:
+        legacy = 'COEFFICIENTS'
+        warnings.warn("Support for COEFFICIENTS without COEFFICIENT_TEMPLATE in model settings file will be removed."
+                      "Use COEFFICIENT and COEFFICIENT_TEMPLATE to support estimation.", FutureWarning)
+    elif 'LEGACY_COEFFICIENTS' in model_settings:
+        legacy = 'LEGACY_COEFFICIENTS'
+        warnings.warn("Support for 'LEGACY_COEFFICIENTS' setting in model settings file will be removed."
+                      "Use COEFFICIENT and COEFFICIENT_TEMPLATE to support estimation.", FutureWarning)
+    else:
+        raise RuntimeError(f"No COEFFICIENTS setting in model_settings")
 
-    return coefficients_col.to_dict()
+    if legacy:
+        constants = config.get_model_constants(model_settings)
+        legacy_coeffs_file_path = config.config_file_path(model_settings['LEGACY_COEFFICIENTS'])
+        omnibus_coefficients = pd.read_csv(legacy_coeffs_file_path, comment='#', index_col='coefficient_name')
+        coefficients_dict = assign.evaluate_constants(omnibus_coefficients[segment_name], constants=constants)
+    else:
+        coefficients_df = read_model_coefficients(model_settings)
+        template_df = read_model_coefficient_template(model_settings)
+        coefficients_col = template_df[segment_name].map(coefficients_df.value).astype(float)
+
+        if coefficients_col.isnull().any():
+            # show them the offending lines from interaction_coefficients_file
+            logger.warning(f"bad coefficients in COEFFICIENTS {model_settings['COEFFICIENTS']}\n"
+                           f"{coefficients_col[coefficients_col.isnull()]}")
+            assert not coefficients_col.isnull().any()
+
+        coefficients_dict = coefficients_col.to_dict()
+
+    return coefficients_dict
 
 
-def eval_nest_coefficients(nest_spec, coefficients):
+def eval_nest_coefficients(nest_spec, coefficients, trace_label):
 
     def replace_coefficients(nest):
         if isinstance(nest, dict):
@@ -260,6 +346,8 @@ def eval_nest_coefficients(nest_spec, coefficients):
         coefficients = coefficients['value'].to_dict()
 
     replace_coefficients(nest_spec)
+
+    logit.validate_nest_spec(nest_spec, trace_label)
 
     return nest_spec
 
@@ -323,7 +411,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     # fixme - restore tracing and _check_for_variability
 
-    trace_label = tracing.extend_trace_label(trace_label, 'eval_utilities')
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_utils')
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
     locals_dict = assign.local_utilities()
@@ -335,7 +423,6 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     locals_dict['df'] = choosers
 
     # - eval spec expressions
-
     if isinstance(spec.index, pd.MultiIndex):
         # spec MultiIndex with expression and label
         exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
@@ -347,11 +434,17 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     for i, expr in enumerate(exprs):
         try:
-            # logger.debug(f"{trace_label} expr {expr}")
-            if expr.startswith('@'):
-                expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
-            else:
-                expression_values[i] = choosers.eval(expr)
+            with warnings.catch_warnings(record=True) as w:
+                # Cause all warnings to always be triggered.
+                warnings.simplefilter("always")
+                if expr.startswith('@'):
+                    expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
+                else:
+                    expression_values[i] = choosers.eval(expr)
+
+                if len(w) > 0:
+                    for wrn in w:
+                        logger.warning(f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}")
 
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
@@ -387,10 +480,8 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         # data.shape = (len(spec), len(offsets))
         data = expression_values[:, offsets]
 
-        # index is utility expressions
-        index = spec.index.get_level_values(SPEC_LABEL_NAME) if isinstance(spec.index, pd.MultiIndex) else spec.index
-
-        expression_values_df = pd.DataFrame(data=data, index=index)
+        # index is utility expressions (and optional label if MultiIndex)
+        expression_values_df = pd.DataFrame(data=data, index=spec.index)
 
         if trace_column_names is not None:
             if isinstance(trace_column_names, str):
@@ -1034,8 +1125,8 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
     # if there are skims, and zone_system is THREE_ZONE, and there are any
     # then we want to estimate the per-row overhead tvpb skims
     # (do this first to facilitate tracing of rowsize estimation below)
-    #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
+        # DISABLE_TVPB_OVERHEAD
         logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
 
@@ -1273,9 +1364,8 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
     # if there are skims, and zone_system is THREE_ZONE, and there are any
     # then we want to estimate the per-row overhead tvpb skims
     # (do this first to facilitate tracing of rowsize estimation below)
-    #DISABLE_TVPB_OVERHEAD
     if tvpb_skims(skims):
-        # skim_oh, skim_tag = estimate_tvpb_skims_overhead(choosers, skims, trace_label)
+        # DISABLE_TVPB_OVERHEAD
         logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
         return 0
 

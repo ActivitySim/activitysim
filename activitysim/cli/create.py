@@ -110,6 +110,7 @@ def get_example(example_name, destination):
         dest_path = destination
 
     example = EXAMPLES[example_name]
+
     for item in example.get('include', []):
 
         # split include string into source/destination paths
@@ -128,8 +129,13 @@ def get_example(example_name, destination):
                 copy_asset(asset_path, target_path)
 
     print(f'copied! new project files are in {os.path.abspath(dest_path)}')
-    print(f'the copied example can be run with\n')
-    print(f'  activitysim run -w {dest_path}')
+
+    instructions = example.get('instructions')
+    if instructions:
+        print(instructions)
+    else:
+        print(f'the copied example can be run with\n'
+              f'   activitysim run -w {dest_path}')
 
 
 def copy_asset(asset_path, target_path):

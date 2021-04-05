@@ -79,7 +79,10 @@ class OffsetMapper(object):
         ----------
         offset_list : list of int
         """
-        assert isinstance(offset_list, list)
+        assert isinstance(offset_list, list) or isinstance(offset_list, np.ndarray)
+
+        if isinstance(offset_list, np.ndarray):
+            offset_list = list(offset_list)
 
         # - for performance, check if this is a simple range that can ber represented by an int offset
         first_offset = offset_list[0]
@@ -110,7 +113,7 @@ class OffsetMapper(object):
 
         Parameters
         ----------
-        zone_ids
+        zone_ids : list-like (numpy.ndarray, pandas.Int64Index, or pandas.Series)
 
         Returns
         -------
@@ -125,7 +128,8 @@ class OffsetMapper(object):
 
         elif self.offset_int:
             assert (self.offset_series is None)
-            offsets = zone_ids + self.offset_int
+            # apply integer offset, but map NOT_IN_SKIM_ZONE_ID to self
+            offsets = np.where(zone_ids == NOT_IN_SKIM_ZONE_ID, NOT_IN_SKIM_ZONE_ID, zone_ids + self.offset_int)
         else:
             offsets = zone_ids
 
@@ -243,6 +247,11 @@ class SkimDict(object):
         # FIXME - should return nan if not in skim (negative indices wrap around)
         in_skim = (mapped_orig >= 0) & (mapped_orig < self.omx_shape[0]) & \
                   (mapped_dest >= 0) & (mapped_dest < self.omx_shape[1])
+
+        # if not ((in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all()):
+        #     print(f"orig\n{orig}")
+        #     print(f"dest\n{dest}")
+        #     print(f"in_skim\n{in_skim}")
 
         # check for bad indexes (other than NOT_IN_SKIM_ZONE_ID)
         assert (in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all(), \
@@ -397,8 +406,8 @@ class SkimWrapper(object):
         -------
         self (to facilitiate chaining)
         """
-        assert self.orig_key in df
-        assert self.dest_key in df
+        assert self.orig_key in df, f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
+        assert self.dest_key in df, f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
         self.df = df
         return self
 
@@ -519,9 +528,9 @@ class Skim3dWrapper(object):
         -------
         self (to facilitiate chaining)
         """
-        assert self.orig_key in df
-        assert self.dest_key in df
-        assert self.dim3_key in df
+        assert self.orig_key in df, f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
+        assert self.dest_key in df, f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
+        assert self.dim3_key in df, f"dim3_key '{self.dim3_key}' not in df columns: {list(df.columns)}"
         self.df = df
         return self
 
@@ -554,16 +563,33 @@ class MazSkimDict(SkimDict):
     MazSkimDict provides a facade that allows skim-like lookup by maz orig,dest zone_id
     when there are often too many maz zones to create maz skims.
 
+    Dependencies: network_los.load_data must have already loaded: taz skim_dict, maz_to_maz_df, and maz_taz_df
+
     It performs lookups from a sparse list of maz-maz od pairs on selected attributes (e.g. WALKDIST)
     where accuracy for nearby od pairs is critical. And is backed by a fallback taz skim dict
     to return values of for more distant pairs (or for skims that are not attributes in the maz-maz table.)
     """
 
-    def __init__(self, skim_tag, network_los):
+    def __init__(self, skim_tag, network_los, taz_skim_dict):
+        """
+        we need network_los because we have dependencies on network_los.load_data (e.g. maz_to_maz_df, maz_taz_df,
+        and the fallback taz skim_dict)
+
+        We require taz_skim_dict as an explicit parameter to emphasize that we are piggybacking on taz_skim_dict's
+        preexisting skim_data and skim_info, rather than instantiating duplicate copies thereof.
+
+        Note, however, that we override _offset_mapper (called by super.__init__) to create our own
+        custom self.offset_mapper that maps directly from MAZ zone_ids to TAZ skim array indexes
+
+        Parameters
+        ----------
+        skim_tag: str
+        network_los: Network_LOS
+        taz_skim_dict: SkimDict
+        """
 
         self.network_los = network_los
 
-        taz_skim_dict = network_los.get_skim_dict('taz')
         super().__init__(skim_tag, taz_skim_dict.skim_info, taz_skim_dict.skim_data)
         assert self.offset_mapper is not None  # should have been set with _init_offset_mapper
 
@@ -577,6 +603,8 @@ class MazSkimDict(SkimDict):
         return an OffsetMapper to map maz zone_ids to taz skim indexes
         Specifically, an offset_series with MAZ zone_id index and TAZ skim array offset values
 
+        This is called by super().__init__ AFTER
+
         Returns
         -------
         OffsetMapper
@@ -589,7 +617,19 @@ class MazSkimDict(SkimDict):
         taz_offset_mapper = super()._offset_mapper()
         maz_to_skim_offset = taz_offset_mapper.map(maz_to_taz)
 
-        offset_mapper = OffsetMapper(offset_series=maz_to_skim_offset)
+        if isinstance(maz_to_skim_offset, np.ndarray):
+            maz_to_skim_offset = pd.Series(maz_to_skim_offset, maz_to_taz.index)  # bug
+
+        # MAZ
+        # 19062    330 <- The TAZ would be, say, 331, and the offset is 330
+        # 8429     330
+        # 9859     331
+
+        assert isinstance(maz_to_skim_offset, np.ndarray) or isinstance(maz_to_skim_offset, pd.Series)
+        if isinstance(maz_to_skim_offset, pd.Series):
+            offset_mapper = OffsetMapper(offset_series=maz_to_skim_offset)
+        elif isinstance(maz_to_skim_offset, np.ndarray):
+            offset_mapper = OffsetMapper(offset_list=maz_to_skim_offset)
 
         return offset_mapper
 
@@ -749,6 +789,14 @@ class DataFrameMatrix(object):
         col_indexes = np.vectorize(self.cols_to_indexes.get)(col_ids)
 
         row_indexes = self.offset_mapper.map(np.asanyarray(row_ids))
+
+        not_in_skim = (row_indexes == NOT_IN_SKIM_ZONE_ID)
+        if not_in_skim.any():
+            logger.warning(f"DataFrameMatrix: {not_in_skim.sum()} row_ids of {len(row_ids)} not in skim.")
+            not_in_skim = not_in_skim.values
+            logger.warning(f"row_ids: {row_ids[not_in_skim]}")
+            logger.warning(f"col_ids: {col_ids[not_in_skim]}")
+            raise RuntimeError(f"DataFrameMatrix: {not_in_skim.sum()} row_ids of {len(row_ids)} not in skim.")
 
         assert (row_indexes >= 0).all(), f"{row_indexes}"
 

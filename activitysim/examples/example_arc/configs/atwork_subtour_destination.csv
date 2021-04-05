@@ -1,0 +1,40 @@
+Description,Expression,atwork
+sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1
+Distance_wrk_ftwrk,"@np.where(((df.tour_type == 'business') & (df.ptype == 1)), np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20), 0)",-0.03445
+Distance_wrk_oth,"@np.where(((df.tour_type == 'business') & (df.ptype != 1)), np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20), 0)",-0.1864
+Distance_eat_ftwrk,"@np.where(((df.tour_type == 'eat') & (df.ptype == 1)), np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20), 0)",-0.2266
+Distance_eat_oth,"@np.where(((df.tour_type == 'eat') & (df.ptype != 1)), np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20), 0)",-0.3905
+Distance_oth_ftwrk,"@np.where(((df.tour_type == 'maint') & (df.ptype == 1)), np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20), 0)",-0.1468
+Distance_oth_oth,"@np.where(((df.tour_type == 'maint') & (df.ptype != 1)), np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20), 0)",-0.3176
+Distance_square_wrk,"@np.where((df.tour_type == 'business'), ((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)) ** 2), 0)",0
+Distance_square_eat,"@np.where((df.tour_type == 'eat'), ((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)) ** 2), 0)",0
+Distance_square_oth,"@np.where((df.tour_type == 'maint'), ((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)) ** 2), 0)",0
+OPOP logsum for work purpose,"@np.where((df.tour_type == 'business'), (df.mode_choice_logsum), 0)",1
+OPOP logsum for eating out purpose,"@np.where((df.tour_type == 'eat'), (df.mode_choice_logsum), 0)",1
+OPOP logsum for other purpose,"@np.where((df.tour_type == 'maint'), (df.mode_choice_logsum), 0)",1
+# Size variable applied for work purposes,"@np.where((df.tour_type == 'business'), df['atwork'].apply(np.log1p), 0)",0.461
+# Size variable applied for eating out purposes,"@np.where((df.tour_type == 'eat'), df['atwork'].apply(np.log1p), 0)",0.6904
+# Size variable applied for other purposes,"@np.where((df.tour_type == 'maint'), df['atwork'].apply(np.log1p), 0)",0.6166
+# # shortWalkOrig == 1 for all purposes,,
+# Not SOV on mandatory tour & short walk,"@(~df.tour_mode.isin(['DRIVEALONEFREE','DRIVEALONEPAY']))",2.485
+# No Eat subtour Attractions,"@np.where(((df.tour_type == 'eat') & (df['atwork'].apply(np.log1p) == 0)), 1, 0)",-999
+# No Business subtour Attractions,"@np.where(((df.tour_type == 'business') & (df['atwork'].apply(np.log1p) == 0)), 1, 0)",-999
+# No Maint subtour Attractions,"@np.where(((df.tour_type == 'maint') & (df['atwork'].apply(np.log1p) == 0)), 1, 0)",-999
+Size variable applied for work purposes,"@np.where((df.tour_type == 'business'), df['size_term'].apply(np.log1p), 0)",0.461
+Size variable applied for eating out purposes,"@np.where((df.tour_type == 'eat'), df['size_term'].apply(np.log1p), 0)",0.6904
+Size variable applied for other purposes,"@np.where((df.tour_type == 'maint'), df['size_term'].apply(np.log1p), 0)",0.6166
+# shortWalkOrig == 1 for all purposes,,
+Not SOV on mandatory tour & short walk,"@(~df.tour_mode.isin(['DRIVEALONEFREE','DRIVEALONEPAY']))",2.485
+No Eat subtour Attractions,"@np.where(((df.tour_type == 'eat') & (df['size_term'].apply(np.log1p) == 0)), 1, 0)",-999
+No Business subtour Attractions,"@np.where(((df.tour_type == 'business') & (df['size_term'].apply(np.log1p) == 0)), 1, 0)",-999
+No Maint subtour Attractions,"@np.where(((df.tour_type == 'maint') & (df['size_term'].apply(np.log1p) == 0)), 1, 0)",-999
+Distance,"@(np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20))",0.135698
+Distance squared,"@((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)) ** 2)",-0.0123613
+Distance cubed,"@((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)) ** 3)",0.0001337
+Log of distance,"@np.log(np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20))",-2.0841846
+Distance bin 0 to 1,"@np.where(((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)>=0) & (np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)<1)), 1, 0)",-0.266162371
+Distance bin 1 to 2,"@np.where(((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)>=1) & (np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)<2)), 1, 0)",0.74301575
+Distance bin 2 to 3,"@np.where(((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)>=2) & (np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)<3)), 1, 0)",0.665152441
+Distance bin 3 to 4,"@np.where(((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)>=3) & (np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)<4)), 1, 0)",0.630118975
+Distance bin 4 to 5,"@np.where(((np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)>=4) & (np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20)<5)), 1, 0)",0.226398117
+Distance,"@(np.minimum(skims[('SOV_FREE_DISTANCE', 'MD')], 20))",0.015

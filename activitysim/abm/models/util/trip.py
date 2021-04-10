@@ -210,7 +210,7 @@ def initialize_from_tours(tours, use_tour_ods=False):
 
     trips.set_index('trip_id', inplace=True, verify_integrity=True)
 
-    # copied from trip_destination.py L503-507
+    # copied from trip_destination.py
     tour_destination = reindex(tours.destination, trips.tour_id).astype(np.int64)
     tour_origin = reindex(tours.origin, trips.tour_id).astype(np.int64)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)

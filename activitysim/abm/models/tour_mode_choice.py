@@ -150,7 +150,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         # actual coeffs dont matter here, just need them to load the nest structure
         coefficients = simulate.get_segment_coefficients(
             model_settings, primary_tours_merged.iloc[0]['tour_purpose'])
-        nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients)
+        nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
         tour_mode_alts = []
         for nest in logit.each_nest(nest_spec):
             if nest.is_leaf:

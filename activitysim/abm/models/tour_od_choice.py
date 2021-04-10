@@ -78,9 +78,10 @@ def tour_od_choice(
     households = households.to_frame()
     persons = persons.to_frame()
     households[origin_col_name] = tours.set_index('household_id')[origin_col_name].reindex(households.index)
-    persons[origin_col_name] = households[origin_col_name].reindex(persons.household_id)
+    persons[origin_col_name] = households[origin_col_name].reindex(persons.household_id).values
 
-    # these columns seem necessary
+    # downstream steps require 'home_zone_id' column, but for the xborder
+    # model this field is inherited from the tour origin which is only set now
     households['home_zone_id'] = households[origin_col_name]
     persons['home_zone_id'] = persons[origin_col_name]
 

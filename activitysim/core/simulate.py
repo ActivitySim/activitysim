@@ -306,7 +306,7 @@ def get_segment_coefficients(model_settings, segment_name):
 
     if legacy:
         constants = config.get_model_constants(model_settings)
-        legacy_coeffs_file_path = config.config_file_path(model_settings['LEGACY_COEFFICIENTS'])
+        legacy_coeffs_file_path = config.config_file_path(model_settings[legacy])
         omnibus_coefficients = pd.read_csv(legacy_coeffs_file_path, comment='#', index_col='coefficient_name')
         coefficients_dict = assign.evaluate_constants(omnibus_coefficients[segment_name], constants=constants)
     else:

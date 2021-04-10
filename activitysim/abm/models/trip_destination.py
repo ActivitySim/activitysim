@@ -563,11 +563,6 @@ def compute_logsums(
     # coefficients can appear in expressions
     locals_dict.update(coefficients)
 
-    constants = config.get_model_constants(logsum_settings)
-    constants.update({'PERIODS_PER_HOUR': 60 / network_los.skim_time_periods['period_minutes']})  # required for trip mode choice logsums
-    locals_dict = assign.evaluate_constants(coefficient_spec, constants=constants)
-    locals_dict.update(constants)
-
     skims = skim_hotel.logsum_skims()
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions

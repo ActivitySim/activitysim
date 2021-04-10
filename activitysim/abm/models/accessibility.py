@@ -11,10 +11,7 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-<<<<<<< HEAD
 from activitysim.core import chunk
-=======
->>>>>>> xborder
 from activitysim.core import mem
 
 from activitysim.core import los

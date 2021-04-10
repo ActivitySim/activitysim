@@ -80,7 +80,7 @@ def choose_intermediate_trip_purpose(
     probs_spec.loc[:, purpose_cols] = probs_spec.loc[:, purpose_cols].div(sum_probs, axis=0)
 
     # left join trips to probs (there may be multiple rows per trip for multiple depart ranges)
-    choosers = pd.merge(trips.reset_index(), probs_spec, on=PROBS_JOIN_COLUMNS,
+    choosers = pd.merge(trips.reset_index(), probs_spec, on=probs_join_cols,
                         how='left').set_index('trip_id')
     chunk.log_df(trace_label, 'choosers', choosers)
 
@@ -159,7 +159,7 @@ def run_trip_purpose(
     model_settings_file_name = 'trip_purpose.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    default_join_cols = ['primary_purpose', 'outbound', 'person_type']
+    default_join_cols = PROBS_JOIN_COLUMNS
     probs_join_cols = model_settings.get('probs_join_cols', default_join_cols)
 
     spec_file_name = model_settings.get('PROBS_SPEC', 'trip_purpose_probs.csv')

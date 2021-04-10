@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def stop_frequency(
         tours, tours_merged,
-        stop_frequency_alts,
         network_los,
         chunk_size,
         trace_hh_id):

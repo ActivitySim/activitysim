@@ -259,6 +259,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
 
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
+
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
         target, expression = e
 

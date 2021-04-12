@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 def run_tour_scheduling_probabilistic(
         tours_df, scheduling_probs, probs_join_cols, depart_alt_base, chunk_size,
         trace_label, trace_hh_id):
+    tours_df['chunk_id'] = list(tours_df.index.values)
     row_size = chunk_size and ps.calc_row_size(
             tours_df, scheduling_probs, probs_join_cols, trace_label, 'tour')
-    tours_df['chunk_id'] = list(tours_df.index.values)
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
         in chunk.adaptive_chunked_choosers(tours_df, chunk_size, row_size, trace_label):

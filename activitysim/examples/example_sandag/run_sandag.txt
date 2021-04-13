@@ -1,1 +1,5 @@
-activitysim run -c configs_local -c configs -c configs_3_zone -c ../example_mtc/configs -d data -o output -s settings_mp.yaml
+# university sample
+activitysim run -c configs -c configs_3_zone -c ../example_mtc/configs -d data -o output -s settings_mp.yaml
+
+# full scale
+activitysim run -c configs -c configs_3_zone -c ../example_mtc/configs -d data_full -o output -s settings_mp.yaml

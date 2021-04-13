@@ -199,7 +199,7 @@ def calc_row_size(choosers, spec, probs_join_cols, trace_label, chooser_type):
     # NOTE we chunk chunk_id
     # scale row_size by average number of chooser rows per chunk_id
 
-    if chunk_id not in choosers.columns:
+    if 'chunk_id' not in choosers.columns:
         choosers['chunk_id'] = list(choosers.index.values)
     num_choosers = choosers['chunk_id'].max() + 1
     rows_per_chunk_id = len(choosers) / num_choosers

@@ -26,7 +26,7 @@ def run_tour_scheduling_probabilistic(
         trace_label, trace_hh_id):
     
     row_size = chunk_size and ps.calc_row_size(
-            tours_df, scheduling_probs, probs_join_cols, trace_label, 'tour')
+            tours_df, scheduling_probs, trace_label, 'tour', probs_join_cols)
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
         in chunk.adaptive_chunked_choosers(tours_df, chunk_size, row_size, trace_label):

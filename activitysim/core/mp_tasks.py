@@ -1231,10 +1231,8 @@ def run_multiprocess(run_list, injectables):
     """
     run the steps in run_list, possibly resuming after checkpoint specified by resume_after
 
-    we never open the pipeline since that is all done within multi-processing steps
-        mp_apportion_pipeline
-        run_sub_simulations
-        mp_coalesce_pipelines
+    we never open the pipeline since that is all done within multi-processing steps -
+    mp_apportion_pipeline, run_sub_simulations, mp_coalesce_pipelines -
     each of which opens the pipeline/s and closes it/them within the sub-process
     This 'feature' makes the pipeline state a bit opaque to us, for better or worse...
 

@@ -2,15 +2,14 @@
 How the System Works
 ====================
 
-This page describes how the software works, how multiprocessing works, and the primary example model data schema.
+This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.  
 
 .. _how_the_system_works:
 
 Execution Flow
 --------------
 
-The example model run starts by running ``activitysim run --working_dir my_test_example``
-after following the steps in :ref:`example_run`.
+The example model run starts by running the steps in :ref:`example_run`.
 
 Initialization
 ~~~~~~~~~~~~~~

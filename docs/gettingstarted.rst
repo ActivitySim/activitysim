@@ -107,7 +107,7 @@ Run the Primary Example
 
 ActivitySim includes a :ref:`cli` for creating examples and running the model.
 
-To setup and run the primary :ref:`example`, do the following:
+To setup and run the primary example (see :ref:`examples`), do the following:
 
 * Open a command prompt
 * Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)
@@ -119,9 +119,9 @@ To setup and run the primary :ref:`example`, do the following:
 .. note::
    Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
 
-More complete examples, including the full scale MTC regional demand model, estimation integration examples, and multiple zone system examples, 
-are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
-the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.
+Additional examples, including the full scale MTC regional demand model, estimation integration examples, multiple zone system examples, 
+and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
+the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.  See :ref:`examples` for more information.
 
 Try the Notebooks
 -----------------
@@ -131,7 +131,7 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 * Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
-* Navigate to the examples notebooks folder and select a notebook to learn more:
+* Navigate to the ``examples/example_mtc/notebooks`` folder and select a notebook to learn more:
 
   * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/getting_started.ipynb/>`__
   * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/>`__
@@ -150,7 +150,7 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 * The desired runtimes
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
-access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
+data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.
 

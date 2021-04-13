@@ -44,35 +44,36 @@ TRACE_TRIMMED_MAZ_TO_TAP_TABLES = True
 
 class Network_LOS(object):
     """
-    singleton object to manage skims and skim-related tables
+    ::
 
-    los_settings_file_name: str         # e.g. 'network_los.yaml'
-    skim_dtype_name:str                 # e.g. 'float32'
+      singleton object to manage skims and skim-related tables
 
-    dict_factory_name: str              # e.g. 'NumpyArraySkimFactory'
-    zone_system: str                    # str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)
-    skim_time_periods = None            # list of str e.g. ['AM', 'MD', 'PM''
+      los_settings_file_name: str         # e.g. 'network_los.yaml'
+      skim_dtype_name:str                 # e.g. 'float32'
 
-    skims_info: dict                    # dict of SkimInfo keyed by skim_tag
-    skim_buffers: dict                  # when multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag
-    skim_dicts: dice                    # dict of SkimDict keyed by skim_tag
+      dict_factory_name: str              # e.g. 'NumpyArraySkimFactory'
+      zone_system: str                    # str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)
+      skim_time_periods = None            # list of str e.g. ['AM', 'MD', 'PM''
 
-    # TWO_ZONE and THREE_ZONE
-    maz_taz_df: pandas.DataFrame        # DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ
-    maz_to_maz_df: pandas.DataFrame     # maz_to_maz attributes for MazSkimDict sparse skims
-                                        # indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)
-    maz_ceiling: int                    # max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)
-    max_blend_distance: dict            # dict of int maz_to_maz max_blend_distance values keyed by skim_tag
+      skims_info: dict                    # dict of SkimInfo keyed by skim_tag
+      skim_buffers: dict                  # if multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag
+      skim_dicts: dice                    # dict of SkimDict keyed by skim_tag
 
-    # THREE_ZONE only
-    tap_df: pandas.DataFrame
-    tap_lines_df: pandas.DataFrame      # if specified in settings, list of transit lines served, indexed by TAP
-                                        # used to prune maz_to_tap_dfs to drop more distant TAPS with redundant service
-                                        # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
-    maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
-                                        # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
-    tap_tap_uid: TapTapUidCalculator
+      # TWO_ZONE and THREE_ZONE
+      maz_taz_df: pandas.DataFrame        # DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ
+      maz_to_maz_df: pandas.DataFrame     # maz_to_maz attributes for MazSkimDict sparse skims
+                                          # indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)
+      maz_ceiling: int                    # max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)
+      max_blend_distance: dict            # dict of int maz_to_maz max_blend_distance values keyed by skim_tag
 
+      # THREE_ZONE only
+      tap_df: pandas.DataFrame
+      tap_lines_df: pandas.DataFrame      # if specified in settings, list of transit lines served, indexed by TAP
+                                          # use to prune maz_to_tap_dfs to drop more distant TAPS with redundant service
+                                          # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
+      maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
+                                          # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
+      tap_tap_uid: TapTapUidCalculator
     """
 
     def __init__(self, los_settings_file_name=LOS_SETTINGS_FILE_NAME):

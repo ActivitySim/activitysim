@@ -21,13 +21,11 @@ def work_from_home(
         persons_merged, persons,
         chunk_size, trace_hh_id):
     """
-    This model predicts the whether a person (worker) works from home. The output
+    This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).
     The workplace location choice is overridden for workers who work from home
     and set to -1.
 
-    The main interface to the work from home model is the work_from_home() function.
-    This function is registered as an orca step in the example Pipeline.
     """
 
     trace_label = 'work_from_home'

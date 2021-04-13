@@ -6,7 +6,7 @@ Models
 ======
 
 The currently implemented example ActivitySim AB models are described below.  See the example 
-model :ref:`sub-model-spec-files` for more information.
+model :ref:`sub-model-spec-files`, :ref:`arc-sub-model-spec-files`, and :ref:`semcog-sub-model-spec-files` for more information.
 
 .. _initialize_landuse:
 .. _initialize_households:
@@ -203,6 +203,71 @@ Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: N
 .. automodule:: activitysim.abm.models.free_parking
    :members:
 
+.. _work_from_home:
+
+Work From Home
+--------------
+
+Telecommuting is defined as workers who work from home instead of going to work. It only applies to
+workers with a regular workplace outside of home. The telecommute model consists of two 
+submodels - this work from home model and a person :ref:`telecommute_frequency` model.  
+
+The work from 
+home model is typically run after usual work location choice and before the coordinated daily 
+activity pattern (CDAP) model. It predicts for all workers whether they usually work from home. 
+If work from home is chosen, then the work from home model overrides the previously 
+calculated usual work location field since it is no longer valid.
+
+The main interface to the work from home model is the 
+:py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
+function is registered as an orca step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.work_from_home
+   :members:
+
+.. _telecommute_frequency:
+
+Telecommute Frequency
+---------------------
+
+Telecommuting is defined as workers who work from home instead of going to work. It only applies to
+workers with a regular workplace outside of home. The telecommute model consists of two 
+submodels - a person :ref:`work_from_home` model and this person telecommute frequency model.
+
+For all workers that work out of the home, the telecommute models predicts the 
+level of telecommuting. The model alternatives are the frequency of telecommuting in 
+days per week (0 days, 1 day, 2 to 3 days, 4+ days).
+
+The main interface to the work from home model is the 
+:py:func:`~activitysim.examples.example_semcog.extensions.telecommute_frequency` function.  This 
+function is registered as an orca step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
+   :members:
+
+
+.. _transit_pass_ownership:
+
+Transit Pass Ownership
+----------------------
+
+(**In development**) Transit pass ownership is defined as persons who purchase or are provided transit 
+passes or subsidies.  The transit pass ownership model includes the following 
+alternatives: fully subsidized, partially subsidized, yes but not subsidized, and no pass.
+
+The main interface to the work from home model is the 
+:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This 
+function is registered as an orca step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
+   :members:
+
 
 .. _cdap:
 
@@ -260,6 +325,7 @@ Core Table: ``persons`` | Result Fields: ``mandatory_tour_frequency`` | Skims Ke
    :members:
 
 .. _mandatory_tour_scheduling:
+.. _representative_logsums:
 
 Mandatory Tour Scheduling
 -------------------------
@@ -269,6 +335,15 @@ start and end period as well) for each mandatory tour.   The primary drivers in 
 accessibility-based parameters such as the mode choice logsum for the departure/arrival hour
 combination, demographics, and time pattern characteristics such as the time windows available 
 from previously scheduled tours. This model uses person :ref:`time_windows`.
+
+If ``tour_departure_and_duration_segments.csv`` is included in the configs, then the model
+will use these representative start and end time periods when calculating mode choice logsums
+instead of the specific start and end combinations for each alternative to reduce runtime.  This
+feature, know as ``representative logsums``, takes advantage of the fact that the mode choice logsum, 
+say, from 6 am to 2 pm is very similar to the logsum from 6 am to 3 pm, and 6 am to 4 pm, and so using
+just 6 am to 3 pm (with the idea that 3 pm is the "representative time period") for these alternatives is 
+sufficient for tour scheduling.  By reusing the 6 am to 3 pm mode choice logsum, ActivitySim saves 
+significant runtime.  
 
 The main interface to the mandatory tour purpose scheduling model is the 
 :py:func:`~activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling` 
@@ -460,8 +535,8 @@ Non-Mandatory Tour Scheduling
 -----------------------------
 
 The non-mandatory tour scheduling model selects a tour departure and duration period (and therefore a start and end 
-period as well) for each non-mandatory tour.  This model uses person :ref:`time_windows`.  
-The non-mandatory tour scheduling model does not use mode choice logsums. 
+period as well) for each non-mandatory tour.  This model uses person :ref:`time_windows`.  Includes support 
+for :ref:`representative_logsums`.
 
 The main interface to the non-mandatory tour purpose scheduling model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling` 
@@ -761,8 +836,8 @@ Core Table: ``trips`` | Result Field: ``depart`` | Skims Keys: NA
 .. automodule:: activitysim.abm.models.trip_scheduling
    :members:
    
-.. _trip_mode_choice:
 
+.. _trip_scheduling_choice:
 
 Trip Scheduling Choice (Logit Choice)
 -------------------------------------
@@ -786,6 +861,7 @@ Core Table: ``tours`` | Result Field: ``outbound_duration``, ``main_leg_duration
 - ``PREPROCESSOR``:
     Preprocessor definitions to run on the chooser dataframe (trips) before the model is run
 
+.. _trip_departure_choice:
 
 Trip Departure Choice (Logit Choice)
 -------------------------------------
@@ -804,6 +880,7 @@ Core Table: ``trips`` | Result Field: ``depart`` | Skims Keys: NA
 - ``PREPROCESSOR``:
     Preprocessor definitions to run on the chooser dataframe (trips) before the model is run
 
+.. _trip_mode_choice:
 
 Trip Mode Choice
 ----------------

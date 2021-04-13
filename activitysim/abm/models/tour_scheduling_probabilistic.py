@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 def run_tour_scheduling_probabilistic(
         tours_df, scheduling_probs, probs_join_cols, depart_alt_base, chunk_size,
         trace_label, trace_hh_id):
-    tours_df['chunk_id'] = list(tours_df.index.values)
+    
     row_size = chunk_size and ps.calc_row_size(
             tours_df, scheduling_probs, probs_join_cols, trace_label, 'tour')
     result_list = []

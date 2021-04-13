@@ -192,7 +192,10 @@ def _postprocess_scheduling_choices(
 
 
 
-def calc_row_size(choosers, spec, probs_join_cols, trace_label, chooser_type):
+def calc_row_size(choosers, spec, trace_label, chooser_type, probs_join_cols=None):
+
+    if probs_join_cols is None:
+        probs_join_cols = []
 
     sizer = chunk.RowSizeEstimator(trace_label)
 

@@ -321,7 +321,7 @@ def run_trip_scheduling(
     set_stop_num(trips)
 
     row_size = chunk_size and ps.calc_row_size(
-            trips, prob_spec, probs_join_cols, trace_label, 'trip')
+            trips, probs_spec, probs_join_cols, trace_label, 'trip')
 
     # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
     # is_outbound_chooser = (trips.trip_num > 1) & trips.outbound & (trips.primary_purpose != 'atwork')

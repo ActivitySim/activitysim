@@ -4,6 +4,7 @@ import logging
 
 import pandas as pd
 import numpy as np
+import os
 
 from activitysim.core import assign
 from activitysim.core import tracing
@@ -195,6 +196,8 @@ def compute_accessibility(land_use, accessibility, network_los, chunk_size, trac
     accessibility_df = pd.concat(accessibilities_list)
 
     logger.info(f"{trace_label} computed accessibilities {accessibility_df.shape}")
+
+    logger.info("{trace_label} added {len(results.columns} columns")
 
     # - write table to pipeline
     pipeline.replace_table("accessibility", accessibility_df)

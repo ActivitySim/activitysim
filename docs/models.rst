@@ -121,6 +121,8 @@ The school location model is made up of four steps:
   
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`. 
 
+School location choice for :ref:`multiple_zone_systems` models uses :ref:`presampling` by default.
+
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.school_location` function.  
 This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
 
@@ -144,6 +146,8 @@ The work location model is made up of four steps:
   * shadow prices - compare modeled zonal destinations to target zonal size terms and calculate updated shadow prices.
 
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`.
+
+Work location choice for :ref:`multiple_zone_systems` models uses :ref:`presampling` by default.
 
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.workplace_location` function.  
 This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
@@ -208,15 +212,31 @@ Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: N
 Work From Home
 --------------
 
-Telecommuting is defined as workers who work from home instead of going to work. It only applies to
-workers with a regular workplace outside of home. The telecommute model consists of two 
-submodels - this work from home model and a person :ref:`telecommute_frequency` model.  
+(**In development**)  Telecommuting is defined as workers who work from home instead of going 
+to work. It only applies to workers with a regular workplace outside of home. The telecommute 
+model consists of two submodels - this work from home model and a 
+person :ref:`telecommute_frequency` model.  
 
-The work from 
-home model is typically run after usual work location choice and before the coordinated daily 
-activity pattern (CDAP) model. It predicts for all workers whether they usually work from home. 
-If work from home is chosen, then the work from home model overrides the previously 
-calculated usual work location field since it is no longer valid.
+The work from home model is typically run after usual work location choice and before the 
+coordinated daily activity pattern (CDAP) model. It predicts for all workers whether they 
+usually work from home. If work from home is chosen, then the work from home model 
+overrides the previously calculated usual work location field since it is no longer valid.
+
+The work from home model includes the ability to adjust the work from home alternative
+constant to attempt to realize a work from home percent for what-if type analysis.  
+This iterative procedure takes as input a target work from home percent, a tolerance
+percent for convergence, and the name of the coefficient to adjust to attempt to 
+match the target work from home percent.  An example setup is below.
+
+::
+
+  # iterative what-if analysis example
+  # omit these settings to not iterate
+  WORK_FROM_HOME_ITERATIONS: 10
+  WORK_FROM_HOME_TARGET_PERCENT: 0.25
+  WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: 0.01
+  WORK_FROM_HOME_COEFFICIENT_CONSTANT: coef_work_from_home_constant
+
 
 The main interface to the work from home model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
@@ -256,8 +276,7 @@ Transit Pass Ownership
 ----------------------
 
 (**In development**) Transit pass ownership is defined as persons who purchase or are provided transit 
-passes or subsidies.  The transit pass ownership model includes the following 
-alternatives: fully subsidized, partially subsidized, yes but not subsidized, and no pass.
+passes or subsidies.
 
 The main interface to the work from home model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This 
@@ -453,6 +472,8 @@ The joint tour destination choice model is made up of three model steps:
   * logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.
   * simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
 
+Joint tour location choice for :ref:`multiple_zone_systems` models uses :ref:`presampling` by default.
+
 The main interface to the model is the :py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination`
 function.  This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how 
 to write logsums for estimation. 
@@ -516,6 +537,8 @@ Non-Mandatory Tour Destination Choice
 The non-mandatory tour destination choice model chooses a destination zone for
 non-mandatory tours.  The three step (sample, logsums, final choice) process also used for 
 mandatory tour destination choice is used for non-mandatory tour destination choice.
+
+Non-mandatory tour location choice for :ref:`multiple_zone_systems` models uses :ref:`presampling` by default.
 
 The main interface to the non-mandatory tour destination choice model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination` 
@@ -628,6 +651,8 @@ The at-work subtours destination choice model is made up of three model steps:
   * sample - selects a sample of alternative locations for the next model step. This selects X locations from the full set of model zones using a simple utility.
   * logsums - starts with the table created above and calculates and adds the mode choice logsum expression for each alternative location.
   * simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
+
+At-work subtour location choice for :ref:`multiple_zone_systems` models uses :ref:`presampling` by default.
 
 Core Table: ``tours`` | Result Table: ``destination`` | Skims Keys: ``workplace_taz, alt_dest, MD time period``
 
@@ -771,6 +796,8 @@ impedance between the previous stop and the tour primary destination. Stops on r
 similarly, except that the location of the first stop is a function of the additional impedance between the
 tour primary destination and the tour origin. The next stop location is based on the additional
 impedance between the first stop on the return leg and the tour origin, and so on. 
+
+Trip location choice for :ref:`multiple_zone_systems` models uses :ref:`presampling` by default.
 
 The main interface to the trip destination choice model is the 
 :py:func:`~activitysim.abm.models.trip_destination.trip_destination` function.  

@@ -1,4 +1,5 @@
 # create bat file to run all examples from the examples folder
+# copies commented out lines to a bat file for running
 # python create_run_all_examples.py > run_all_examples.bat
 # ben.stabler@rsginc.com 04/05/21
 

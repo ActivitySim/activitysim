@@ -93,25 +93,25 @@ roles within a household.
 The person types shown below are used for the example model. The person types are mutually exclusive
 with respect to age, work status, and school status.
 
-+-----------------------------------------------------------+---------+------------------+---------------+
-| Person Type                                               | Age     | Work Status      | School Status |
-+===========================================================+=========+==================+===============+
-| Full-time worker (30+ hours a week)                       | 18+     | Full-time        | None          |
-+-----------------------------------------------------------+---------+------------------+---------------+
-| Part-time worker (<30 hours but works on a regular basis) | 18+     | Part-time        | None          |
-+-----------------------------------------------------------+---------+------------------+---------------+
-| Non-working adult                                         | 18 - 64 | Unemployed       | None          |
-+-----------------------------------------------------------+---------+------------------+---------------+
-| Retired person                                            | 65+     | Unemployed       | None          |
-+-----------------------------------------------------------+---------+------------------+---------------+
-| College student                                           | 18+     | Any              | College       |
-+-----------------------------------------------------------+---------+------------------+---------------+
-| Driving age student                                       | 16 - 17 | Any              | Pre-college   |
-+-----------------------------------------------------------+---------+------------------+---------------+
-| Non-driving student                                       | 6 - 16  | None             | Pre-college   |
-+-----------------------------------------------------------+---------+------------------+---------------+
-| Pre-school child                                          | 0 - 5   | None             | Preschool     |
-+-----------------------------------------------------------+---------+------------------+---------------+
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| Person Type Code | Person Type                                               | Age     | Work Status      | School Status |
++==================+===========================================================+=========+==================+===============+
+| 1                | Full-time worker (30+ hours a week)                       | 18+     | Full-time        | None          |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| 2                | Part-time worker (<30 hours but works on a regular basis) | 18+     | Part-time        | None          |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| 3                | College student                                           | 18+     | Any              | College       |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| 4                | Non-working adult                                         | 18 - 64 | Unemployed       | None          |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| 5                | Retired person                                            | 65+     | Unemployed       | None          |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| 6                | Driving age student                                       | 16 - 17 | Any              | Pre-college   |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| 7                | Non-driving student                                       | 6 - 16  | None             | Pre-college   |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
+| 8                | Pre-school child                                          | 0 - 5   | None             | Preschool     |
++------------------+-----------------------------------------------------------+---------+------------------+---------------+
 
 Household type segments are useful for pre-defining certain data items (such as destination
 choice size terms) so that these data items can be pre-calculated for each segment. Precalculation
@@ -293,7 +293,7 @@ Inputs
 ^^^^^^
 In order to run example_mtc, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file and the ``configs\network_los.yaml`` file:
 
-* input_table_list: the input CSV tables from MTC travel model one:
+* input_table_list: the input CSV tables from MTC travel model one (see below for column definitions):
 
     * households - Synthetic population household records for a subset of zones.
     * persons - Synthetic population person records for a subset of zones.
@@ -303,6 +303,165 @@ In order to run example_mtc, you first need the input files in the ``data`` fold
 
 These files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  The full set
 of MTC TM1 households, persons, and OMX skims are on the ActivitySim `resources repository <https://github.com/rsginc/activitysim_resources>`__.
+
+Additional details on these files is available in the original `Travel Model 1 repository <https://github.com/BayAreaMetro/modeling-website/wiki/DataDictionary>`_,
+although many of the files described there are not used in ActivitySim.
+
+Households
+^^^^^^^^^^
+The households table contains the following synthetic population columns:
+
+* household_id: numeric ID of this household, used in persons table to join with household characteristics
+* TAZ: zone where this household lives
+* income: Annual household income, in 2000 dollars
+* hhsize: Household size
+* HHT: Household type (see below)
+* auto_ownership: number of cars owned by this household (0-6)
+* num_workers: number of workers in the household
+* sample_rate
+
+Household types
+"""""""""""""""
+
+These are household types defined by the Census Bureau and used in `ACS table B11001 <https://censusreporter.org/tables/B11001/>`_.
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 0    | None                                     |
++------+------------------------------------------+
+| 1    | Married-couple family                    |
++------+------------------------------------------+
+| 2    | Male householder, no spouse present      |
++------+------------------------------------------+
+| 3    | Female householder, no spouse present    |
++------+------------------------------------------+
+| 4    | Nonfamily household, male alone          |
++------+------------------------------------------+
+| 5    | Nonfamily household, male not alone      |
++------+------------------------------------------+
+| 6    | Nonfamily household, female alone        |
++------+------------------------------------------+
+| 7    | Nonfamily household, female not alone    |
++------+------------------------------------------+
+
+
+Persons
+^^^^^^^
+
+This table describes attributes of the persons that constitute each household. This file contains the following columns:
+
+* person_id: Unique integer identifier for each person. This value is globally unique, i.e.
+  no two individuals have the same person ID, even if they are in different households.
+* household_id: Household identifier for this person, foreign key to households table
+* age: Age in years
+* PNUM: Person number in household, starting from 1.
+* sex: Sex, 1 = Male, 2 = Female
+* pemploy: Employment status (see below)
+* pstudent: Student status (see below)
+* ptype: Person type (see person type segmentation above)
+
+Employment status
+"""""""""""""""""
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 1    | Full-time worker                         |
++------+------------------------------------------+
+| 2    | Part-time worker                         |
++------+------------------------------------------+
+| 3    | Not in labor force                       |
++------+------------------------------------------+
+| 4    | Student under 16                         |
++------+------------------------------------------+
+
+Student status
+""""""""""""""
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 1    | Preschool through Grade 12 student       |
++------+------------------------------------------+
+| 2    | University/professional school student   |
++------+------------------------------------------+
+| 3    | Not a student                            |
++------+------------------------------------------+
+
+Land use
+^^^^^^^^
+
+All values are raw numbers and not proportions of the total.
+
+* TAZ: Zone which this row describes
+* DISTRICT: Superdistrict where this TAZ is (34 superdistricts in the Bay Area)
+* SD: Duplicate of DISTRICT
+* COUNTY: County within the Bay Area (see below)
+* TOTHH: Total households in TAZ
+* TOTPOP: Total population in TAZ
+* TOTACRE: Area of TAZ, acres
+* RESACRE: Residential area of TAZ, acres
+* CIACRE: Commercial/industrial area of TAZ, acres
+* TOTEMP: Total employment
+* AGE0519: Persons age 5 to 19 (inclusive)
+* RETEMPN: NAICS-based total retail employment
+* FPSEMPN: NAICS-based financial and professional services employment
+* HEREMPN: NAICS-based health, education, and recreational service employment
+* AGREMPN: NAICS-based agricultural and natural resources employment
+* MWTEMPN: NAICS-based manufacturing and wholesale trade employment
+* OTHEMP: NAICS-based other employment
+* PRKCST: Hourly cost paid by long-term (8+ hours) parkers, year 2000 cents
+* OPRKCST: Hourly cost paid by short term parkers, year 2000 cents
+* area_type: Area type designation (see below)
+* HSENROLL: High school students enrolled at schools in this TAZ
+* COLLFTE: College students enrolled full-time at colleges in this TAZ
+* COLLPTE: College students enrolled part-time at colleges in this TAZ
+* TERMINAL: Average time to travel from automobile storage location to origin/destination (floating-point minutes)
+
+Counties
+""""""""
+
++------+------------------------------------------+
+| Code | Name                                     |
++======+==========================================+
+| 1    | San Francisco                            |
++------+------------------------------------------+
+| 2    | San Mateo                                |
++------+------------------------------------------+
+| 3    | Santa Clara                              |
++------+------------------------------------------+
+| 4    | Alameda                                  |
++------+------------------------------------------+
+| 5    | Contra Costa                             |
++------+------------------------------------------+
+| 6    | Solano                                   |
++------+------------------------------------------+
+| 7    | Napa                                     |
++------+------------------------------------------+
+| 8    | Sonoma                                   |
++------+------------------------------------------+
+| 9    | Marin                                    |
++------+------------------------------------------+
+
+Area types
+""""""""""
+
++------+------------------------------------------+
+| Code | Description                              |
++======+==========================================+
+| 0    | Regional core                            |
++------+------------------------------------------+
+| 1    | Central business district                |
++------+------------------------------------------+
+| 2    | Urban business                           |
++------+------------------------------------------+
+| 3    | Urban                                    |
++------+------------------------------------------+
+| 4    | Suburban                                 |
++------+------------------------------------------+
+| 5    | Rural                                    |
++------+------------------------------------------+
 
 .. note::
   
@@ -318,6 +477,7 @@ of MTC TM1 households, persons, and OMX skims are on the ActivitySim `resources 
   The example_mtc inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
   skim inputs for a subset of user-defined zones.
 
+.. index:: configuration
 .. _configuration:
 
 Configuration
@@ -348,6 +508,7 @@ is the main settings file for the model run.  This file includes:
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
 * ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models
+* ``cleanup_pipeline_after_run`` - if true, cleans up pipeline after successful run by creating a single-checkpoint pipeline file and deletes any subprocess pipelines
 * global variables that can be used in expressions tables and Python code such as:
 
     * ``urban_threshold`` - urban threshold area type max value
@@ -703,7 +864,7 @@ Multiprocessing
 
 The model system is parallelized via :ref:`multiprocessing`.  To setup and run the :ref:`example` using
 multiprocessing, follow the same steps as the above :ref:`example_run`, but add an additional ``-c`` flag to
-include the multiprocessing configuration settings as well:
+include the multiprocessing configuration settings via settings file inheritance (see :ref:`cli`) as well:
 
 ::
 
@@ -887,6 +1048,7 @@ such as `larch <https://larch.newman.me/>`__.  In order to do so, ActivitySim ad
 data bundle (EDB), which is a collection of the necessary data to re-estimate a submodel.  See :ref:`estimation`
 for examples that illustrate running ActivitySim in estimation mode and using larch to re-restimate submodels.
 
+.. index:: multiple_zone_systems
 .. _multiple_zone_systems :
 .. _example_multiple_zones :
 
@@ -944,19 +1106,26 @@ To run the two zone and three zone system examples, do the following:
   # simple two zone example
   activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
 
-  # simple three zone example, single process and multiprocess
+  # simple three zone example, single process and multiprocess (and makes use of settings file inheritance for running)
   activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_static.yaml
   activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml
 
 Settings
 ~~~~~~~~
 
-Additional settings for running ActivitySim with two or three zone systems are specified in the ``network_los.yaml`` file.  The settings are:
+Additional settings for running ActivitySim with two or three zone systems are specified in the ``settings.yaml`` and 
+``network_los.yaml`` files.  The settings are:
 
 Two Zone
 ^^^^^^^^
 
-In ``network_los.yaml``, the additional two zone system settings and inputs are described and illustrated below.  No additional utility expression files or expression revisions are required beyond the one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is available using the existing skim expressions.  Users can specify mode utilities using MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.
+In ``settings.yaml``:
+
+* ``want_dest_choice_presampling`` - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone's share of TAZ size term.
+
+In ``network_los.yaml``:
+
+The additional two zone system settings and inputs are described and illustrated below.  No additional utility expression files or expression revisions are required beyond the one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is available using the existing skim expressions.  Users can specify mode utilities using MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.
 
 * ``zone_system`` - set to 2 for two zone system
 * ``maz`` -  MAZ data file, with MAZ ID, TAZ, and land use and other MAZ attributes
@@ -987,9 +1156,10 @@ Three Zone
 
 In addition to the extra two zone system settings and inputs above, the following additional settings and inputs are required for a three zone system model.  Examples values are illustrated below.
 
-In ``settings.yaml``
+In ``settings.yaml``:
 
 * ``models`` - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See :ref:`initialize_los`.
+* ``want_dest_choice_presampling`` - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone's share of TAZ size term.
 
 ::
 
@@ -1004,7 +1174,7 @@ In ``settings.yaml``
     - school_location
     - workplace_location
 
-In ``network_los.yaml``
+In ``network_los.yaml``:
 
 * ``zone_system`` - set to 3 for three zone system
 * ``rebuild_tvpb_cache`` - rebuild and overwrite existing pre-computed TAP to TAP utilities cache
@@ -1132,6 +1302,17 @@ chosen mode is transit.  Logging and tracing also work for two and three zone mo
 including tracing of the TVPB calculations. The :ref:`write_trip_matrices` step writes
 both TAZ and TAP level matrices depending on the configured number of zone systems.
 
+.. _presampling :
+
+Presampling
+~~~~~~~~~~~
+
+In multiple zone systems models, destination choice presampling is activated by default.  Destination 
+choice presampling first aggregates microzone size terms to the TAZ level and then runs destination 
+choice sampling at the TAZ level using the destination choice sampling models.  After sampling X 
+number of TAZs based on impedance and size, the model selects a microzone for each TAZ based 
+on the microzone share of TAZ size.  Presampling significantly reduces runtime while producing
+similar results.
 
 .. _example_marin :
 
@@ -1236,7 +1417,7 @@ SEMCOG Sub-Model Specification Files
 +================================================+====================================================================+
 |  :ref:`work_from_home`                         |  - work_from_home.yaml                                             |
 |                                                |  - work_from_home.csv                                              |
-|                                                |  - work_from_home_coeffs.csv                                       |
+|  (**In development**)                          |  - work_from_home_coeffs.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`telecommute_frequency`                  |  - telecommute_frequency.yaml                                      |
 |                                                |  - telecommute_frequency.csv                                       |

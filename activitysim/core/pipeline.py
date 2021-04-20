@@ -817,6 +817,8 @@ def cleanup_pipeline():
     Create a single-checkpoint pipeline file with latest version of all checkpointed tables,
     Delete main pipeline and any subprocess pipelines
 
+    Called if cleanup_pipeline_after_run setting is True
+
     Returns
     -------
     nothing, but with changed state: pipeline file that was open on call is closed and deleted

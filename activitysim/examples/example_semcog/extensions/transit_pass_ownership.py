@@ -21,16 +21,13 @@ def transit_pass_ownership(
         persons_merged, persons,
         chunk_size, trace_hh_id):
     """
-    The transit pass ownership model selects one of the following
-    alternatives: fully subsidized, partially subsidized, yes but not
-    subsidized, and no pass.
+    Transit pass ownership model.
     """
 
     trace_label = 'transit_pass_ownership'
     model_settings_file_name = 'transit_pass_ownership.yaml'
 
     choosers = persons_merged.to_frame()
-    choosers = choosers[choosers.workplace_zone_id > -1]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_settings = config.read_model_settings(model_settings_file_name)

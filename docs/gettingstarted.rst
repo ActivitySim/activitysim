@@ -117,7 +117,8 @@ To setup and run the primary example (see :ref:`examples`), do the following:
 * Review the outputs in the output directory
 
 .. note::
-   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
+   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.  
+   ActivitySim model runs can be configured with settings file inheritance to avoid duplicating settings across model configurations.  See :ref:`cli` for more information.
 
 Additional examples, including the full scale MTC regional demand model, estimation integration examples, multiple zone system examples, 
 and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 

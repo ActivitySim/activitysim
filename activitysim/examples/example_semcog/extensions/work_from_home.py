@@ -94,6 +94,8 @@ def work_from_home(
             current_percent = ((choices == work_from_home_alt).sum() / len(choices))
             logger.info("Iteration %i current percent %f target percent %f",
                         iteration, current_percent, iterations_target_percent)
+            print("Iteration %i current percent %f target percent %f" %
+                  (iteration, current_percent, iterations_target_percent))
 
             if current_percent <= (iterations_target_percent +
                                    iterations_target_percent_tolerance
@@ -104,9 +106,11 @@ def work_from_home(
 
             else:
                 new_value = np.log(iterations_target_percent /
-                                   current_percent) + coefficients_df.value[iterations_coefficient_constant]
+                                   np.maximum(current_percent, 0.0001)
+                                   ) + coefficients_df.value[iterations_coefficient_constant]
                 coefficients_df.value[iterations_coefficient_constant] = new_value
                 logger.info("Iteration %i new coeff for next iteration %f", iteration, new_value)
+                print("Iteration %i new coeff for next iteration %f" % (iteration, new_value))
                 iteration = iteration + 1
 
     choices = (choices == work_from_home_alt)

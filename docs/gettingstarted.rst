@@ -159,3 +159,11 @@ on the amount of RAM and number of processors allocated.
    ActivitySim has been run in the cloud, on both Windows and Linux using
    `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations, 
    scripts, and runtimes are in the ``other_resources\example_azure`` folder.
+
+.. note::
+   Anaconda Python depends on the `Intel Math Kernel Library <https://en.wikipedia.org/wiki/Math_Kernel_Library>`__
+   which multithreads some low level numpy and C/C++ functions used by ActivitySim.  This low level threading
+   can compete with ActivitySim's multiprocessing and so it is recommended to turn off MKL threading 
+   when running multiprocessed with the intent to use all the available CPUs.  To do so, set the
+   MKL_NUM_THREADS environment variable at runtime to one.  On Windows, this means running ``set MKL_NUM_THREADS=1``
+   before running the ActivitySim Python process.

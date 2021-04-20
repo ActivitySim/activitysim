@@ -1417,11 +1417,15 @@ SEMCOG Sub-Model Specification Files
 +================================================+====================================================================+
 |  :ref:`work_from_home`                         |  - work_from_home.yaml                                             |
 |                                                |  - work_from_home.csv                                              |
-|  (**In development**)                          |  - work_from_home_coeffs.csv                                       |
+|                                                |  - work_from_home_coeffs.csv                                       |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`telecommute_frequency`                  |  - telecommute_frequency.yaml                                      |
 |                                                |  - telecommute_frequency.csv                                       |
 |                                                |  - telecommute_frequency_coeffs.csv                                |
++------------------------------------------------+--------------------------------------------------------------------+
+|  :ref:`transit_pass_subsidy`                   |  - transit_pass_subsidy.yaml                                       |
+|                                                |  - transit_pass_subsidy.csv                                        |
+|  (**In development**)                          |  - transit_pass_subsidy_coeffs.csv                                 |
 +------------------------------------------------+--------------------------------------------------------------------+
 |  :ref:`transit_pass_ownership`                 |  - transit_pass_ownership.yaml                                     |
 |                                                |  - transit_pass_ownership.csv                                      |

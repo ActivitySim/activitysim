@@ -354,9 +354,9 @@ The test plan for test examples versus agency examples is different:
 * Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run by the TravisCI system and is a central feature of the software development process.  
 * Agency examples test a complete run of the cropped version to ensure it runs and the results are as expected.  This is done via a simple run model test that runs the cropped version and compares the output trip list to the expected trip list.  This is what is known as a regression test.  This test is also run by TravisCI.
 
-Both types of examples are stored in GitHub repositories for version control and collaborative maintenance.  There are two storage locations:
+Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.  There are two storage locations:
 
-* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples>`_, which stores the test and agency example setup files, cropped data and cropping script, regression test script, expected results, and a change log to track any revisions to the example to get it working for testing.  These resources are the resources automatically tested by the TravisCI test system with each revision to the software.  
+* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples>`_, which stores the test and agency example setup files, cropped data and cropping script, regression test script, expected results, and a change log to track any revisions to the example to get it working for testing.  These resources are the resources automatically tested by the TravisCI test system with each revision to the software.
 * The `activitysim_resources repository <https://github.com/activitysim/activitysim_resources>`_, which stores just the full scale example data inputs using `Git LFS <https://git-lfs.github.com>`_.  This repository has a monthly cost and takes time to upload/download and so the contents of it are separate from the main software repository.  These resources are the resources periodically and manually tested (for now).
 
 This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for creating and running examples makes uses the `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ to maintain the dictionary of the examples and how to get and run them.
@@ -364,7 +364,14 @@ This two-part solution allows for the main activitysim repo to remain relatively
 Running the Test System
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The automatic TravisCI test system runs the test examples and the cropped agency examples.  For the time being, running the full scale examples is done manually since it involves getting and running several large examples that take many hours to run.  The entire system could be fully automated, and either run in the cloud or on a local server.
+The automatic TravisCI test system runs the test examples and the cropped agency examples.  Examples of the testing 
+resources for each agency example that need to be up-to-date are:
+
+* `scripts folder (including crop script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/example_semcog/scripts>`_
+* `test folder (including test script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/example_semcog/test>`_
+* `regress folder (including expected outputs) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/example_semcog/test/regress>`_
+
+For the time being, running the full scale examples is done manually since it involves getting and running several large examples that take many hours to run.  The entire system could be fully automated, and either run in the cloud or on a local server.
 
 Update Use Cases
 ~~~~~~~~~~~~~~~~

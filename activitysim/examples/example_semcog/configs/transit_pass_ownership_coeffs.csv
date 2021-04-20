@@ -1,32 +1,20 @@
 coefficient_name,coefficient_name,value,constrain
-coef_ft_sub,Full-time worker,0.4579,F
-coef_pt_sub,Part-time worker,0.0000,F
-coef_un_sub,University/College,0.0000,F
-coef_nw_sub,Non-working adult,-2.1714,F
-coef_rt_sub,Retired,-3.2569,F
-coef_inc1_s,0-$9k,0.0000,F
-coef_inc2_s,$10-$24k,-0.6558,F
-coef_inc3_s,$25-$34k,-0.7431,F
-coef_inc4_s,$35-$49k,0.0000,F
-coef_inc10_s,$250k+,0.0000,F
-coef_workamt_s,Auto minus transit time (work),0.0000,F
-coef_publ_s,NAICS 90 (Public admin),0.7629,F
-coef_sub_asc,subsidized,-1.7573,F
-coef_ft_pass,Full-time worker,2.0198,F
-coef_pt_pass,Part-time worker,1.9361,F
-coef_un_pass,University/College,2.4534,F
-coef_nw_pass,Non-working adult,1.6061,F
-coef_rt_pass,Retired,2.0541,F
-coef_inc1_pass,0-$9k,0.5989,F
-coef_inc2_pass,$10-$24k,0.4482,F
-coef_inc3_pass,$25-$34k,0.2207,F
-coef_inc4_pass,$35-$49k,0.1166,F
-coef_inc10_pass,$250k+,-0.1402,F
-coef_wrkamt_pas,Auto minus transit time (work),0.0016,F
-coef_incRF_pass,Refused,0.0000,F
-coef_na30_pas,NAICS 30 (manufacturing),-0.3768,F
-coef_na50_pas,NAICS 50 (Info/Fin/insur/real estate/prof/sci/tech/manage/admin),0.3742,F
-coef_na70_pas,NAICS 70 (Entertain/accom),0.2130,F
-coef_na80_pas,NAICS 80 (Other services),-0.5490,F
-coef_publ_pas,NAICS 90 (Public admin),0.3682,F
-coef_pass_asc,pass,-4.0261,F
+coef_ft_pass,Full-time worker,2.034739841,F
+coef_pt_pass,Part-time worker,1.934451611,F
+coef_un_pass,University/College,2.38777737,F
+coef_nw_pass,Non-working adult,1.520740664,F
+coef_rt_pass,Retired,1.963879497,F
+coef_inc1_pass,0-$9k,0.609753946,F
+coef_inc2_pass,$10-$24k,0.421989203,F
+coef_inc3_pass,$25-$34k,0.2119704,F
+coef_inc4_pass,$35-$49k,0.139201682,F
+coef_inc10_pass,$250k+,-0.169998314,F
+coef_wrkamt_pas,Auto minus transit time (work),0.001934995,F
+coef_na20_pas,NAICS 20  (mining/utilities/construct),-0.324742563,F
+coef_na30_pas,NAICS 30 (manufacturing),-0.473249951,F
+coef_na50_pas,NAICS 50 (Info/Fin/insur/real estate/prof/sci/tech/manage/admin),0.2731,F
+coef_na70_pas,NAICS 70 (Entertain/accom),0.219432837,F
+coef_na80_pas,NAICS 80 (Other services),-0.585251651,F
+coef_publ_pas,NAICS 90 (Public admin),0.30410587,F
+coef_subs_pas,Subsidy offered,1.967569275,F
+coef_pass_asc,Constant,-3.932862618,F

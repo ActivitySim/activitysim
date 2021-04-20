@@ -212,10 +212,10 @@ Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: N
 Work From Home
 --------------
 
-(**In development**)  Telecommuting is defined as workers who work from home instead of going 
-to work. It only applies to workers with a regular workplace outside of home. The telecommute 
-model consists of two submodels - this work from home model and a 
-person :ref:`telecommute_frequency` model.  
+Telecommuting is defined as workers who work from home instead of going 
+to work. It only applies to workers with a regular workplace outside of home. 
+The telecommute model consists of two submodels - this work from home model and a 
+person :ref:`telecommute_frequency` model.
 
 The work from home model is typically run after usual work location choice and before the 
 coordinated daily activity pattern (CDAP) model. It predicts for all workers whether they 
@@ -224,16 +224,17 @@ overrides the previously calculated usual work location field since it is no lon
 
 The work from home model includes the ability to adjust the work from home alternative
 constant to attempt to realize a work from home percent for what-if type analysis.  
-This iterative procedure takes as input a target work from home percent, a tolerance
-percent for convergence, and the name of the coefficient to adjust to attempt to 
-match the target work from home percent.  An example setup is below.
+This iterative procedure takes as input a number of iterations, a target work from home 
+percent, a tolerance percent for convergence, and the name of the coefficient to adjust.  
+An example setup is below and the coefficient adjustment at each iteration is: 
+``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
 
 ::
 
   # iterative what-if analysis example
   # omit these settings to not iterate
-  WORK_FROM_HOME_ITERATIONS: 10
-  WORK_FROM_HOME_TARGET_PERCENT: 0.25
+  WORK_FROM_HOME_ITERATIONS: 3
+  WORK_FROM_HOME_TARGET_PERCENT: 0.1
   WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: 0.01
   WORK_FROM_HOME_COEFFICIENT_CONSTANT: coef_work_from_home_constant
 
@@ -269,16 +270,35 @@ Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: 
 .. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
    :members:
 
+.. _transit_pass_subsidy:
+
+Transit Pass Subsidy
+--------------------
+
+(**In development**) The transit pass model is defined as persons who purchase or are 
+provided a transit pass.  The transit pass model consists of two submodels - this 
+transit pass subsidy model and a person :ref:`transit_pass_ownership` model.  Person
+transit pass subsidy status is a variable in the person transit pass ownership model.
+
+The main interface to the work from home model is the 
+:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_subsidy` function.  This 
+function is registered as an orca step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_subsidy
+   :members:
 
 .. _transit_pass_ownership:
 
 Transit Pass Ownership
 ----------------------
 
-(**In development**) Transit pass ownership is defined as persons who purchase or are provided transit 
-passes or subsidies.
+(**In development**) The transit pass model is defined as persons who purchase or are 
+provided a transit pass.  The transit pass model consists of two submodels - this 
+transit pass ownership model and a person :ref:`transit_pass_subsidy` model.
 
-The main interface to the work from home model is the 
+The main interface to the transit pass ownership model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This 
 function is registered as an orca step in the example Pipeline.
 
@@ -286,7 +306,6 @@ Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys:
 
 .. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
    :members:
-
 
 .. _cdap:
 

@@ -13,7 +13,7 @@ from activitysim.core import expressions
 
 from activitysim.abm.models.util import estimation
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("activitysim")
 
 
 @inject.step()
@@ -92,16 +92,15 @@ def work_from_home(
 
         if iterations_target_percent is not None:
             current_percent = ((choices == work_from_home_alt).sum() / len(choices))
-            logger.info("Iteration %i current percent %f target percent %f",
-                        iteration, current_percent, iterations_target_percent)
-            print("Iteration %i current percent %f target percent %f" %
-                  (iteration, current_percent, iterations_target_percent))
+            logger.info("Running %s iteration %i current percent %f target percent %f",
+                        trace_label, iteration, current_percent, iterations_target_percent)
 
             if current_percent <= (iterations_target_percent +
                                    iterations_target_percent_tolerance
                                    ) and current_percent >= (iterations_target_percent -
                                                              iterations_target_percent_tolerance):
-                logger.info("Iteration %i converged", iteration)
+                logger.info("Running %s iteration %i converged with coefficient %f", trace_label, iteration,
+                            coefficients_df.value[iterations_coefficient_constant])
                 break
 
             else:
@@ -109,8 +108,8 @@ def work_from_home(
                                    np.maximum(current_percent, 0.0001)
                                    ) + coefficients_df.value[iterations_coefficient_constant]
                 coefficients_df.value[iterations_coefficient_constant] = new_value
-                logger.info("Iteration %i new coeff for next iteration %f", iteration, new_value)
-                print("Iteration %i new coeff for next iteration %f" % (iteration, new_value))
+                logger.info("Running %s iteration %i new coefficient for next iteration %f",
+                            trace_label, iteration, new_value)
                 iteration = iteration + 1
 
     choices = (choices == work_from_home_alt)

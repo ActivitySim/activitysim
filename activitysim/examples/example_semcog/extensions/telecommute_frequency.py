@@ -13,7 +13,7 @@ from activitysim.core import expressions
 
 from activitysim.abm.models.util import estimation
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("activitysim")
 
 
 @inject.step()

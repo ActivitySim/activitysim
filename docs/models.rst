@@ -270,42 +270,6 @@ Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: 
 .. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
    :members:
 
-.. _transit_pass_subsidy:
-
-Transit Pass Subsidy
---------------------
-
-(**In development**) The transit pass model is defined as persons who purchase or are 
-provided a transit pass.  The transit pass model consists of two submodels - this 
-transit pass subsidy model and a person :ref:`transit_pass_ownership` model.  Person
-transit pass subsidy status is a variable in the person transit pass ownership model.
-
-The main interface to the work from home model is the 
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_subsidy` function.  This 
-function is registered as an orca step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: NA
-
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_subsidy
-   :members:
-
-.. _transit_pass_ownership:
-
-Transit Pass Ownership
-----------------------
-
-(**In development**) The transit pass model is defined as persons who purchase or are 
-provided a transit pass.  The transit pass model consists of two submodels - this 
-transit pass ownership model and a person :ref:`transit_pass_subsidy` model.
-
-The main interface to the transit pass ownership model is the 
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This 
-function is registered as an orca step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
-
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
-   :members:
 
 .. _cdap:
 

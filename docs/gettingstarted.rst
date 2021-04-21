@@ -46,7 +46,8 @@ Installation
   pip install openmatrix zbox requests
 
   # optional required packages for testing and building documentation
-  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions
+  conda install pytest pytest-cov coveralls pycodestyle
+  pip install pytest-regressions
   conda install sphinx numpydoc sphinx_rtd_theme
   
   # optional required packages for example notebooks and estimation integration

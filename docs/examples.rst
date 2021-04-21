@@ -1372,8 +1372,8 @@ submodel :ref:`sub-model-spec-files`.
 
 .. _arc-sub-model-spec-files:
 
-ARC Sub-Model Specification Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example ARC Sub-Model Specification Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -1409,8 +1409,8 @@ submodel :ref:`sub-model-spec-files`.
 
 .. _semcog-sub-model-spec-files:
 
-SEMCOG Sub-Model Specification Files
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example SEMCOG Sub-Model Specification Files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |

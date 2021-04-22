@@ -138,7 +138,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         # O/D, purpose, and departure times are inherited from tour.
         primary_tours_merged['stop_frequency'] = '0out_0in'  # no intermediate stops
         primary_tours_merged['primary_purpose'] = primary_tours_merged['tour_purpose']
-        trips = trip.initialize_from_tours(primary_tours_merged, use_tour_ods=True)
+        trips = trip.initialize_from_tours(primary_tours_merged)
         trips['stop_frequency'] = '0out_0in'
         outbound = trips['outbound']
         trips['depart'] = reindex(primary_tours_merged.start, trips.tour_id)

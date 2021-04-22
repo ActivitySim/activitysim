@@ -9,6 +9,8 @@ from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
+from activitysim.core import logit
+from activitysim.core import orca
 
 from activitysim.core.util import reindex
 
@@ -17,8 +19,8 @@ from activitysim.core.interaction_sample import interaction_sample
 
 from activitysim.core.mem import force_garbage_collect
 
+from . import trip, logsums as logsum
 
-from . import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
 logger = logging.getLogger(__name__)
@@ -117,7 +119,7 @@ def run_od_sample(
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
 
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    alt_od_col_name = model_settings['ALT_OD_COL_NAME']
 
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
@@ -149,7 +151,7 @@ def run_od_sample(
         choosers,
         alternatives=od_size_terms,
         sample_size=sample_size,
-        alt_col_name=alt_dest_col_name,
+        alt_col_name=alt_od_col_name,
         spec=model_spec,
         skims=skims,
         locals_d=locals_d,
@@ -163,42 +165,123 @@ def run_od_sample(
     return choices
 
 
-# def run_od_logsums(
-#         tour_purpose,
-#         destination_sample,
-#         model_settings,
-#         network_los,
-#         chunk_size,
-#         trace_hh_id,
-#         trace_label):
-#     """
-#     add logsum column to existing tour_destination_sample table
+def run_od_logsums(
+        spec_segment_name,
+        tours_merged_df,
+        od_sample,
+        model_settings,
+        network_los,
+        chunk_size,
+        trace_hh_id,
+        trace_label):
+    """
+    add logsum column to existing tour_destination_sample table
 
-#     logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
-#     in destination_sample, and computing the logsum of all the utilities
-#     """
+    logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
+    in destination_sample, and computing the logsum of all the utilities
+    """
 
-#     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
+    logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
-#     # merge persons into tours
-#     choosers = destination_sample
+    # FIXME - MEMORY HACK - only include columns actually used in spec
+    tours_merged_df = \
+        logsum.filter_chooser_columns(tours_merged_df, logsum_settings, model_settings)
 
-#     logger.info("Running %s with %s rows", trace_label, len(choosers))
+    # merge ods into choosers table
+    choosers = od_sample.join(tours_merged_df, how='left')
 
-#     tracing.dump_df(DUMP, persons_merged, trace_label, 'persons_merged')
-#     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
+    logger.info("Running %s with %s rows", trace_label, len(choosers))
 
-#     logsums = logsum.compute_logsums(
-#         choosers,
-#         tour_purpose,
-#         logsum_settings, model_settings,
-#         network_los,
-#         chunk_size,
-#         trace_label)
+    tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
 
-#     destination_sample['mode_choice_logsum'] = logsums
+    # run trip mode choice to computer tour mode choice logsums
+    if logsum_settings.get('COMPUTE_TRIP_MODE_CHOICE_LOGSUMS', False):
 
-#     return destination_sample
+        trip_mode_choice_settings = config.read_model_settings('trip_mode_choice')
+
+        # tours_merged table doesn't yet have all the cols it needs to be called (e.g. 
+        # home_zone_id), so in order to compute tour mode choice/trip mode choice logsums
+        # in this step we have to pass all tour-level attributes in with the main trips
+        # table. see trip_mode_choice.py L56-61 for more details.
+        tour_cols_needed = trip_mode_choice_settings.get('TOURS_MERGED_CHOOSER_COLUMNS', [])
+
+        # from tour_mode_choice.py
+        not_university = (choosers.tour_type != 'school') | ~choosers.is_university
+        choosers['tour_purpose'] = \
+            choosers.tour_type.where(not_university, 'univ')
+
+        choosers['stop_frequency'] = '0out_0in'
+        choosers['primary_purpose'] = choosers['tour_purpose']
+        choosers_og_index = choosers.index.name
+        choosers.reset_index(inplace=True)
+        choosers.index.name = 'unique_id'
+        trips = trip.initialize_from_tours(choosers, ['tour_od_id', 'unique_id'])
+        outbound = trips['outbound']
+        trips['depart'] = reindex(choosers.start, trips.unique_id)
+        trips.loc[~outbound, 'depart'] = reindex(choosers.end, trips.loc[~outbound, 'unique_id'])
+        
+
+        logsum_trips = pd.DataFrame()
+        nest_spec = config.get_logit_model_settings(logsum_settings)
+
+        # actual coeffs dont matter here, just need them to load the nest structure
+        coefficients = simulate.get_segment_coefficients(
+            logsum_settings, choosers.iloc[0]['tour_purpose'])
+        nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
+        tour_mode_alts = []
+        for nest in logit.each_nest(nest_spec):
+            if nest.is_leaf:
+                tour_mode_alts.append(nest.name)
+
+        # repeat rows from the trips table iterating over tour mode
+        for tour_mode in tour_mode_alts:
+            trips['tour_mode'] = tour_mode
+            logsum_trips = pd.concat((logsum_trips, trips), ignore_index=True)
+        assert len(logsum_trips) == len(trips) * len(tour_mode_alts)
+        logsum_trips.index.name = 'trip_id'
+
+        for col in tour_cols_needed:
+            if col not in trips:
+                logsum_trips[col] = reindex(choosers[col], logsum_trips.unique_id)
+
+        pipeline.replace_table('trips', logsum_trips)
+        tracing.register_traceable_table('trips', logsum_trips)
+        pipeline.get_rn_generator().add_channel('trips', logsum_trips)
+
+        choosers.set_index(choosers_og_index, drop=True, inplace=True)
+
+        # run trip mode choice on pseudo-trips. use orca instead of pipeline to
+        # execute the step because pipeline can only handle one open step at a time
+        orca.run(['trip_mode_choice'])
+
+        # grab trip mode choice logsums and pivot by tour mode and direction, index
+        # on tour_id to enable merge back to choosers table
+        trips = inject.get_table('trips').to_frame()
+        trip_dir_mode_logsums = trips.pivot(
+            index=['tour_id', 'tour_od_id'], columns=['tour_mode', 'outbound'], values='trip_mode_choice_logsum')
+        new_cols = [
+            '_'.join(['logsum', mode, 'outbound' if outbound else 'inbound'])
+            for mode, outbound in trip_dir_mode_logsums.columns]
+        trip_dir_mode_logsums.columns = new_cols
+        choosers.reset_index(inplace=True)
+        choosers.set_index(['tour_id', 'tour_od_id'], inplace=True)
+        choosers = pd.merge(choosers, trip_dir_mode_logsums, left_index=True, right_index=True)
+        choosers.reset_index(inplace=True)
+        choosers.set_index(choosers_og_index, inplace=True)
+        pipeline.get_rn_generator().drop_channel('trips')
+
+    logsums = logsum.compute_logsums(
+        choosers,
+        spec_segment_name,
+        logsum_settings,
+        model_settings,
+        network_los,
+        chunk_size,
+        trace_label, 'start', 'end', 'duration')
+
+    od_sample['tour_mode_choice_logsum'] = logsums
+
+    return od_sample
 
 
 def run_od_simulate(
@@ -221,13 +304,14 @@ def run_od_simulate(
 
     # merge persons into tours
     choosers = tours
+
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
     if estimator:
         estimator.write_choosers(choosers)
 
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    alt_od_col_name = model_settings['ALT_OD_COL_NAME']
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
 
@@ -236,7 +320,16 @@ def run_od_simulate(
     if od_size_terms.index.name in od_size_terms.columns:
         del od_size_terms[od_size_terms.index.name]
     od_sample = od_sample.merge(
-        od_size_terms, how='left', left_on='tour_od_id', right_index=True)
+        od_size_terms, how='left', left_on='tour_od_id', right_index=True, suffixes=('','_st'))
+    if origin_col_name + '_st' in od_sample.columns:
+        if all(od_sample[origin_col_name + '_st'] == od_sample[origin_col_name]):
+            del od_sample[origin_col_name + '_st']
+        else:
+            logger.error('origin column values od_sample df need reconciling')
+        if all(od_sample[dest_col_name + '_st'] == od_sample[dest_col_name]):
+            del od_sample[dest_col_name + '_st']
+        else:
+            logger.error('destination column values in od_sample df need reconciling')
 
     tracing.dump_df(DUMP, od_sample, trace_label, 'alternatives')
 
@@ -262,7 +355,7 @@ def run_od_simulate(
         choosers,
         od_sample,
         spec=model_spec,
-        choice_column=alt_dest_col_name,
+        choice_column=alt_od_col_name,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
@@ -275,8 +368,17 @@ def run_od_simulate(
     return choices
 
 
+def get_od_cols_from_od_id(choices_df, reference_df, orig_col_name, dest_col_name, choice_col='choice'):
+    
+    choices_df[orig_col_name] = reference_df.reindex(choices_df[choice_col])[orig_col_name].values
+    choices_df[dest_col_name] = reference_df.reindex(choices_df[choice_col])[dest_col_name].values
+
+    return choices_df
+
+
 def run_tour_od(
         tours,
+        persons,
         want_sample_table,
         model_settings,
         network_los,
@@ -284,7 +386,7 @@ def run_tour_od(
         chunk_size, trace_hh_id, trace_label):
 
     size_term_calculator = SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
-    size_term_index_name = model_settings['ALT_DEST_COL_NAME']
+    size_term_index_name = model_settings['ALT_OD_COL_NAME']
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
     
@@ -305,6 +407,10 @@ def run_tour_od(
     for segment_name in segments:
 
         choosers = tours[tours[chooser_segment_column] == segment_name]
+
+        choosers = pd.merge(
+            choosers, persons.to_frame(columns=['is_university', 'demographic_segment']),
+            left_on='person_id', right_index=True)
 
         # size_term segment is segment_name
         origin_attr_cols = model_settings['ORIGIN_ATTR_COLS_TO_USE']
@@ -328,21 +434,22 @@ def run_tour_od(
                 estimator,
                 chunk_size=chunk_size,
                 trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+        od_sample_df = get_od_cols_from_od_id(
+            od_sample_df, segment_od_size_terms, origin_col_name, dest_col_name, 'tour_od_id')
 
-        # # - destination_logsums
-        # tour_purpose = segment_name  # tour_purpose is segment_name
-        # location_sample_df = \
-        #     run_od_logsums(
-        #         tour_purpose,
-        #         location_sample_df,
-        #         model_settings,
-        #         network_los,
-        #         chunk_size=chunk_size,
-        #         trace_hh_id=trace_hh_id,
-        #         trace_label=tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
+        # - destination_logsums
+        od_sample_df = \
+            run_od_logsums(
+                spec_segment_name,
+                choosers,
+                od_sample_df,
+                model_settings,
+                network_los,
+                chunk_size=chunk_size,
+                trace_hh_id=trace_hh_id,
+                trace_label=tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
 
         # - od_simulate
-        spec_segment_name = segment_name  # spec_segment_name is segment_name
         choices = \
             run_od_simulate(
                 spec_segment_name,

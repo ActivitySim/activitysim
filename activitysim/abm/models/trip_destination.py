@@ -901,6 +901,7 @@ def run_trip_destination(
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
+    # this is now probably redundant with stop_frequency.py L174
     tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(np.int64)
     tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(np.int64)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)

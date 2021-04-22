@@ -35,7 +35,8 @@ def compute_logsums(choosers,
                     tour_purpose,
                     logsum_settings, model_settings,
                     network_los,
-                    chunk_size, trace_label):
+                    chunk_size, trace_label,
+                    in_period_col=None, out_period_col=None, duration_col=None):
     """
 
     Parameters
@@ -63,12 +64,22 @@ def compute_logsums(choosers,
     dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     # FIXME - are we ok with altering choosers (so caller doesn't have to set these)?
-    assert ('in_period' not in choosers) and ('out_period' not in choosers)
-    choosers['in_period'] = network_los.skim_time_period_label(model_settings['IN_PERIOD'])
-    choosers['out_period'] = network_los.skim_time_period_label(model_settings['OUT_PERIOD'])
+    if (in_period_col is not None) and (out_period_col is not None):
+        choosers['in_period'] = network_los.skim_time_period_label(choosers[in_period_col])
+        choosers['out_period'] = network_los.skim_time_period_label(choosers[out_period_col])
+    elif ('in_period' not in choosers.columns) and ('out_period' not in choosers.columns):
+        choosers['in_period'] = network_los.skim_time_period_label(model_settings['IN_PERIOD'])
+        choosers['out_period'] = network_los.skim_time_period_label(model_settings['OUT_PERIOD'])
+    else:
+        logger.error("Choosers table already has columns 'in_period' and 'out_period'.")
 
-    assert ('duration' not in choosers)
-    choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
+    if duration_col is not None:
+        choosers['duration'] = choosers[duration_col]
+    elif 'duration' not in choosers.columns:
+        choosers['duration'] = choosers['in_period'] - choosers['out_period']
+    else:
+        logger.error("Choosers table already has column 'duration'.")
+
 
     logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
     coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)

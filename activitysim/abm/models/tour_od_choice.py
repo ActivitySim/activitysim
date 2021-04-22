@@ -60,6 +60,7 @@ def tour_od_choice(
 
     choices_df, save_sample_df = tour_od.run_tour_od(
         tours,
+        persons,
         want_sample_table,
         model_settings,
         network_los,

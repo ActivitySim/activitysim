@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How the System Works &mdash; ActivitySim 0.9.7 documentation</title>
+  <title>How the System Works &mdash; ActivitySim 0.9.9 documentation</title>
   
 
   
@@ -39,8 +39,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Core Components" href="core.html" />
-    <link rel="prev" title="Models" href="models.html" /> 
+    <link rel="next" title="Software Development" href="development.html" />
+    <link rel="prev" title="Estimation" href="estimation.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.9.7
+                0.9.9
               </div>
             
           
@@ -91,8 +91,11 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="estimation.html">Estimation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">How the System Works</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#execution-flow">Execution Flow</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#initialization">Initialization</a></li>
@@ -121,8 +124,6 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
@@ -193,11 +194,10 @@
             
   <div class="section" id="how-the-system-works">
 <h1>How the System Works<a class="headerlink" href="#how-the-system-works" title="Permalink to this headline">¶</a></h1>
-<p>This page describes how the software works, how multiprocessing works, and the primary example model data schema.</p>
+<p>This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.</p>
 <div class="section" id="execution-flow">
 <span id="id1"></span><h2>Execution Flow<a class="headerlink" href="#execution-flow" title="Permalink to this headline">¶</a></h2>
-<p>The example model run starts by running <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">--working_dir</span> <span class="pre">my_test_example</span></code>
-after following the steps in <a class="reference internal" href="abmexample.html#example-run"><span class="std std-ref">Running the MTC Example</span></a>.</p>
+<p>The example model run starts by running the steps in <a class="reference internal" href="examples.html#example-run"><span class="std std-ref">Running the example</span></a>.</p>
 <div class="section" id="initialization">
 <h3>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h3>
 <p>The first significant step of the <code class="docutils literal notranslate"><span class="pre">run</span></code> command is:</p>
@@ -5343,8 +5343,8 @@ The skims are float64 matrix.</p>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="core.html" class="btn btn-neutral float-right" title="Core Components" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="development.html" class="btn btn-neutral float-right" title="Software Development" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="estimation.html" class="btn btn-neutral float-left" title="Estimation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

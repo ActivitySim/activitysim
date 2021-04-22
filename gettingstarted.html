@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Getting Started &mdash; ActivitySim 0.9.7 documentation</title>
+  <title>Getting Started &mdash; ActivitySim 0.9.9 documentation</title>
   
 
   
@@ -39,7 +39,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Example" href="abmexample.html" />
+    <link rel="next" title="Examples" href="examples.html" />
     <link rel="prev" title="ActivitySim" href="index.html" /> 
 </head>
 
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.9.7
+                0.9.9
               </div>
             
           
@@ -92,16 +92,17 @@
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#run-the-example">Run the Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#run-the-primary-example">Run the Primary Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#try-the-notebooks">Try the Notebooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hardware">Hardware</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="abmexample.html">Example</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">Models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cli.html">Command Line Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="estimation.html">Estimation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
@@ -175,7 +176,7 @@
 <p>This page describes how to get started with ActivitySim.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>ActivitySim is under development</p>
+<p>ActivitySim is under active development</p>
 </div>
 <div class="section" id="installation">
 <span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
@@ -192,7 +193,7 @@
 <ol class="arabic simple" start="3">
 <li><p>Create and activate an Anaconda environment (basically a Python install just for this project) using Anaconda Prompt or the terminal.</p></li>
 </ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.7</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.8</span>
 
 <span class="c1">#Windows</span>
 <span class="n">activate</span> <span class="n">asimtest</span>
@@ -211,13 +212,11 @@
 
 <span class="c1"># optional required packages for testing and building documentation</span>
 <span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span>
 <span class="n">conda</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
 
 <span class="c1"># optional required packages for example notebooks and estimation integration</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span>          <span class="c1"># for notebooks</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">matplotlib</span>          <span class="c1"># for charts</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="c1"># for maps</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">larch</span>               <span class="c1"># for estimation</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span> <span class="n">matplotlib</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="n">larch</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="5">
@@ -263,10 +262,10 @@ check the current active environment with <code class="docutils literal notransl
 <p>For more information on Anaconda, see Anaconda’s <a class="reference external" href="https://docs.anaconda.com/anaconda/user-guide/getting-started">getting started</a> guide.</p>
 </div>
 </div>
-<div class="section" id="run-the-example">
-<h2>Run the Example<a class="headerlink" href="#run-the-example" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="run-the-primary-example">
+<h2>Run the Primary Example<a class="headerlink" href="#run-the-primary-example" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim includes a <a class="reference internal" href="cli.html#cli"><span class="std std-ref">Command Line Interface</span></a> for creating examples and running the model.</p>
-<p>To setup and run the primary <a class="reference internal" href="abmexample.html#example"><span class="std std-ref">Example</span></a>, do the following:</p>
+<p>To setup and run the primary example (see <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>), do the following:</p>
 <ul class="simple">
 <li><p>Open a command prompt</p></li>
 <li><p>Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)</p></li>
@@ -277,11 +276,12 @@ check the current active environment with <code class="docutils literal notransl
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Common configuration settings can be overridden at runtime.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-h</span></code> and <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-h</span></code>.</p>
+<p>Common configuration settings can be overridden at runtime.  See <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">-h</span></code>, <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-h</span></code> and <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-h</span></code>.
+ActivitySim model runs can be configured with settings file inheritance to avoid duplicating settings across model configurations.  See <a class="reference internal" href="cli.html#cli"><span class="std std-ref">Command Line Interface</span></a> for more information.</p>
 </div>
-<p>More complete examples, including the full scale MTC regional demand model, estimation integration examples, and multiple zone system examples,
-are available for creation by typing <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-l</span></code>.  To create these examples, ActivitySim downloads the (large) input files from
-the <a class="reference external" href="https://github.com/rsginc/activitysim_resources">ActivitySim resources</a> repository.</p>
+<p>Additional examples, including the full scale MTC regional demand model, estimation integration examples, multiple zone system examples,
+and examples for agency partners are available for creation by typing <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-l</span></code>.  To create these examples, ActivitySim downloads the (large) input files from
+the <a class="reference external" href="https://github.com/rsginc/activitysim_resources">ActivitySim resources</a> repository.  See <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a> for more information.</p>
 </div>
 <div class="section" id="try-the-notebooks">
 <h2>Try the Notebooks<a class="headerlink" href="#try-the-notebooks" title="Permalink to this headline">¶</a></h2>
@@ -290,7 +290,7 @@ the <a class="reference external" href="https://github.com/rsginc/activitysim_re
 <li><p>Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed</p></li>
 <li><p>If needed, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code> so you can run jupyter notebooks</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> to launch the web-based notebook manager</p></li>
-<li><p>Navigate to the examples notebooks folder and select a notebook to learn more:</p>
+<li><p>Navigate to the <code class="docutils literal notranslate"><span class="pre">examples/example_mtc/notebooks</span></code> folder and select a notebook to learn more:</p>
 <ul>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/getting_started.ipynb/">Getting started</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/">Summarizing results</a></p></li>
@@ -307,11 +307,11 @@ the <a class="reference external" href="https://github.com/rsginc/activitysim_re
 <li><p>The number of households to be simulated for disaggregate model steps</p></li>
 <li><p>The number of model zones (for each zone system) for aggregate model steps</p></li>
 <li><p>The number and size of network skims by mode and time-of-day</p></li>
-<li><p>The number of zone systems, see <a class="reference internal" href="abmexample.html#multiple-zone-systems"><span class="std std-ref">Multiple Zone Systems</span></a></p></li>
+<li><p>The number of zone systems, see <a class="reference internal" href="examples.html#multiple-zone-systems"><span class="std std-ref">example_multiple_zones</span></a></p></li>
 <li><p>The desired runtimes</p></li>
 </ul>
 <p>ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
-access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
+data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.</p>
 <div class="admonition note">
@@ -319,6 +319,15 @@ on the amount of RAM and number of processors allocated.</p>
 <p>ActivitySim has been run in the cloud, on both Windows and Linux using
 <a class="reference external" href="https://azure.microsoft.com/en-us/">Microsoft Azure</a>.  Example configurations,
 scripts, and runtimes are in the <code class="docutils literal notranslate"><span class="pre">other_resources\example_azure</span></code> folder.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Anaconda Python depends on the <a class="reference external" href="https://en.wikipedia.org/wiki/Math_Kernel_Library">Intel Math Kernel Library</a>
+which multithreads some low level numpy and C/C++ functions used by ActivitySim.  This low level threading
+can compete with ActivitySim’s multiprocessing and so it is recommended to turn off MKL threading
+when running multiprocessed with the intent to use all the available CPUs.  To do so, set the
+MKL_NUM_THREADS environment variable at runtime to one.  On Windows, this means running <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">MKL_NUM_THREADS=1</span></code>
+before running the ActivitySim Python process.</p>
 </div>
 </div>
 </div>
@@ -329,7 +338,7 @@ scripts, and runtimes are in the <code class="docutils literal notranslate"><spa
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="abmexample.html" class="btn btn-neutral float-right" title="Example" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="index.html" class="btn btn-neutral float-left" title="ActivitySim" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

@@ -1,0 +1,15 @@
+Description,Target,Expression
+#,,
+departure_shift_shopping,departureLinearShift1_shopping,"(alt_tdd.start<=10) * np.minimum(10-alt_tdd.start,7) + (alt_tdd.start>10) * np.minimum(alt_tdd.start-10,35)"
+arrival_shift_shopping,arrivalLinearShift1_shopping,"(alt_tdd.end<=11) * np.minimum(11-alt_tdd.end,7) + (alt_tdd.end>11) * np.minimum(alt_tdd.end-11,35)"
+departure_shift2_shopping,departureLinearShift2_shopping,"(alt_tdd.start<=24) * np.minimum(24-alt_tdd.start,3) + (alt_tdd.start>24) * np.minimum(alt_tdd.start-24,9)"
+arrival_shift2_shopping,arrivalLinearShift2_shopping,"(alt_tdd.end<=25) * np.minimum(25-alt_tdd.end,3) + (alt_tdd.end>25) * np.minimum(alt_tdd.end-25,9)"
+duration_shift_shopping,durationShift_shopping,"(alt_tdd.duration<=1) * np.minimum(1-alt_tdd.duration, 0) + (alt_tdd.duration>1) * np.minimum(alt_tdd.duration-1,47)"
+#,,
+depConstShift1_shopping,depConstShift1_shopping,"(alt_tdd.start<8) * np.minimum(8-alt_tdd.start,4) + (alt_tdd.start>13) * np.minimum(alt_tdd.start-13,28)"
+depConstShift2_shopping,depConstShift2_shopping,"(alt_tdd.start<0) * np.minimum(0-alt_tdd.start,48) + (alt_tdd.start>26) * np.minimum(alt_tdd.start-26,15)"
+arrConstShift1_shopping,arrConstShift1_shopping,"(alt_tdd.end<8) * np.minimum(8-alt_tdd.end,2) + (alt_tdd.end>13) * np.minimum(alt_tdd.end-13,30)"
+arrConstShift2_shopping,arrConstShift2_shopping,"(alt_tdd.end<0) * np.minimum(0-alt_tdd.end,48) + (alt_tdd.start>28) * np.minimum(alt_tdd.end-28,15)"
+#,,
+,origin_to_destination_distance,1
+,num_person_joint_tours,1

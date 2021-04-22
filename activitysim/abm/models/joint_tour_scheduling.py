@@ -88,7 +88,7 @@ def joint_tour_scheduling(
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         timetable.begin_transaction(estimator)
 
     choices = vectorize_joint_tour_scheduling(

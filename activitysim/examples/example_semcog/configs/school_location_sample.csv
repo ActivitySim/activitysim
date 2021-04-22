@@ -1,0 +1,17 @@
+Label,Description,Expression,university,highschool,gradeschool
+local_dist,,_DIST@skims['DIST'],1,1,1
+util_dist_0_1,"Distance, piecewise linear from 0 to 1 miles","@_DIST.clip(0,1)",coef_univ_dist_0_1,0,0
+util_dist_1_2,"Distance, piecewise linear from 1 to 2 miles","@(_DIST-1).clip(0,1)",coef_univ_dist_1_2,0,0
+util_dist_2_5,"Distance, piecewise linear from 2 to 5 miles","@(_DIST-2).clip(0,3)",coef_univ_dist_2_5,0,0
+util_dist_5_15,"Distance, piecewise linear from 5 to 15 miles","@(_DIST-5).clip(0,10)",coef_univ_dist_5_15,0,0
+util_dist_15_up,"Distance, piecewise linear for 15+ miles",@(_DIST-15.0).clip(0),coef_univ_dist_15_up,0,0
+util_size_variable,Size variable,@(df['size_term'] * df['shadow_price_size_term_adjustment']).apply(np.log1p),1,1,1
+util_utility_adjustment,utility adjustment,@df['shadow_price_utility_adjustment'],1,1,1
+util_no_attractions,No attractions,@df['size_term']==0,-999,-999,-999
+util_dist,Distance,@_DIST,0,coef_dist,coef_dist
+util_dist_squared,"Distance squared, capped at 20 miles","@(_DIST).clip(0,20)**2",0,coef_dist_squared,coef_dist_squared
+util_dist_cubed,"Distance cubed, capped at 20 miles","@(_DIST).clip(0,20)**3",0,coef_dist_cubed,coef_dist_cubed
+util_dist_logged,Distance logged,@(_DIST).apply(np.log1p),0,coef_dist_logged,coef_dist_logged
+util_dist_part_time,"Distance,part time",@(df['pemploy']==2) * _DIST,0,coef_dist_part_time,coef_dist_part_time
+util_dist_child_0_5,"Distance,child 0  to 5",@(df['age_0_to_5']==True) * _DIST,0,coef_dist_child_0_5,coef_dist_child_0_5
+util_dist_child_6_12,"Distance,child 6 to 12",@(df['age_6_to_12']==True) * _DIST,0,coef_dist_child_6_12,coef_dist_child_6_12

@@ -1,0 +1,19 @@
+
+# borrowed from free parking model
+
+SPEC: work_from_home.csv
+COEFFICIENTS: work_from_home_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+
+WORK_FROM_HOME_ALT: 0
+
+DEST_CHOICE_COLUMN_NAME: workplace_zone_id
+
+# iterative what-if analysis example
+# omit these settings to not iterate
+WORK_FROM_HOME_ITERATIONS: 3
+WORK_FROM_HOME_TARGET_PERCENT: 0.1
+WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: 0.01
+WORK_FROM_HOME_COEFFICIENT_CONSTANT: coef_work_from_home_constant

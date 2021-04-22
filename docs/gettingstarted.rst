@@ -5,7 +5,7 @@ Getting Started
 This page describes how to get started with ActivitySim.
 
 .. note::
-   ActivitySim is under development
+   ActivitySim is under active development
 
 
 .. index:: installation
@@ -28,7 +28,7 @@ Installation
 
 ::
 
-  conda create -n asimtest python=3.7
+  conda create -n asimtest python=3.8
 
   #Windows
   activate asimtest
@@ -47,13 +47,11 @@ Installation
 
   # optional required packages for testing and building documentation
   conda install pytest pytest-cov coveralls pycodestyle
+  pip install pytest-regressions
   conda install sphinx numpydoc sphinx_rtd_theme
   
   # optional required packages for example notebooks and estimation integration
-  conda install jupyterlab          # for notebooks
-  conda install matplotlib          # for charts
-  conda install geopandas descartes # for maps
-  conda install larch               # for estimation
+  conda install jupyterlab matplotlib geopandas descartes larch
 
 5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.
 
@@ -105,12 +103,12 @@ For `pip` for example:
   For more information on Anaconda, see Anaconda's `getting started
   <https://docs.anaconda.com/anaconda/user-guide/getting-started>`__ guide.
 
-Run the Example
----------------
+Run the Primary Example
+-----------------------
 
 ActivitySim includes a :ref:`cli` for creating examples and running the model.
 
-To setup and run the primary :ref:`example`, do the following:
+To setup and run the primary example (see :ref:`examples`), do the following:
 
 * Open a command prompt
 * Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)
@@ -120,11 +118,12 @@ To setup and run the primary :ref:`example`, do the following:
 * Review the outputs in the output directory
 
 .. note::
-   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
+   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.  
+   ActivitySim model runs can be configured with settings file inheritance to avoid duplicating settings across model configurations.  See :ref:`cli` for more information.
 
-More complete examples, including the full scale MTC regional demand model, estimation integration examples, and multiple zone system examples, 
-are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
-the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.
+Additional examples, including the full scale MTC regional demand model, estimation integration examples, multiple zone system examples, 
+and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
+the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.  See :ref:`examples` for more information.
 
 Try the Notebooks
 -----------------
@@ -134,7 +133,7 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 * Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
-* Navigate to the examples notebooks folder and select a notebook to learn more:
+* Navigate to the ``examples/example_mtc/notebooks`` folder and select a notebook to learn more:
 
   * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/getting_started.ipynb/>`__
   * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/>`__
@@ -153,7 +152,7 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 * The desired runtimes
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
-access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
+data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.
 
@@ -161,3 +160,11 @@ on the amount of RAM and number of processors allocated.
    ActivitySim has been run in the cloud, on both Windows and Linux using
    `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations, 
    scripts, and runtimes are in the ``other_resources\example_azure`` folder.
+
+.. note::
+   Anaconda Python depends on the `Intel Math Kernel Library <https://en.wikipedia.org/wiki/Math_Kernel_Library>`__
+   which multithreads some low level numpy and C/C++ functions used by ActivitySim.  This low level threading
+   can compete with ActivitySim's multiprocessing and so it is recommended to turn off MKL threading 
+   when running multiprocessed with the intent to use all the available CPUs.  To do so, set the
+   MKL_NUM_THREADS environment variable at runtime to one.  On Windows, this means running ``set MKL_NUM_THREADS=1``
+   before running the ActivitySim Python process.

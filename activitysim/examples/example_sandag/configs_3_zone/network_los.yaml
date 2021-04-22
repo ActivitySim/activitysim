@@ -1,0 +1,156 @@
+inherit_settings: True
+
+zone_system: 3
+
+skim_dict_factory: NumpyArraySkimFactory
+#skim_dict_factory: MemMapSkimFactory
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: True
+
+# rebuild and overwrite existing tap_tap_utilities cache
+rebuild_tvpb_cache: True
+
+# write a csv version of tvpb cache for tracing when checkpointing cache.
+# (writes csv file when writing/checkpointing cache i.e. when cached changed)
+# (n.b. csv file could be quite large if cache is STATIC!)
+trace_tvpb_cache_as_csv: False
+
+taz_skims: taz_skims.omx
+
+# we require that skims for all tap_tap sets have unique names
+# and can therefor share a single skim_dict without name collision
+# e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
+tap_skims: tap_skims.omx
+
+maz: maz.csv
+
+tap: tap.csv
+
+maz_to_maz:
+  tables:
+    - maz_to_maz_walk.csv
+    - maz_to_maz_bike.csv
+
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  max_blend_distance:
+    DIST: 5
+    # blend distance of 0 means no blending
+    DISTBIKE: 0
+    DISTWALK: 1
+
+  # missing means use the skim value itself rather than DIST skim (e.g. DISTBIKE)
+  blend_distance_skim_name: DIST
+
+maz_to_tap:
+  walk:
+    table: maz_to_tap_walk.csv
+  drive:
+    table: maz_to_tap_drive.csv
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 60
+    periods: [0, 6, 11, 16, 20, 24]
+    labels: &skim_time_period_labels ['EA', 'AM', 'MD', 'PM', 'EV']
+
+demographic_segments: &demographic_segments
+  - &low_income_segment_id 0
+  - &high_income_segment_id 1
+
+# transit virtual path builder settings
+TVPB_SETTINGS:
+
+  tour_mode_choice:
+    units: utility
+    path_types:
+      WTW:
+        access: walk
+        egress: walk
+        max_paths_across_tap_sets: 3
+        max_paths_per_tap_set: 1
+      DTW:
+        access: drive
+        egress: walk
+        max_paths_across_tap_sets: 3
+        max_paths_per_tap_set: 1
+      WTD:
+        access: walk
+        egress: drive
+        max_paths_across_tap_sets: 3
+        max_paths_per_tap_set: 1
+    tap_tap_settings:
+      SPEC: tvpb_utility_tap_tap.csv
+      PREPROCESSOR:
+        SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
+        DF: df
+      # FIXME this has to be explicitly specified, since e.g. attribute columns are assigned in expression files
+      attribute_segments:
+        demographic_segment: *demographic_segments
+        tod: *skim_time_period_labels
+        access_mode: ['drive', 'walk']
+      attributes_as_columns:
+        - demographic_segment
+        - tod
+    maz_tap_settings:
+      walk:
+        SPEC: tvpb_utility_walk_maz_tap.csv
+        CHOOSER_COLUMNS:
+          #- demographic_segment
+          - walk_time
+      drive:
+        SPEC: tvpb_utility_drive_maz_tap.csv
+        CHOOSER_COLUMNS:
+          #- demographic_segment
+          - drive_time
+          - DIST
+    CONSTANTS:
+      C_LOW_INCOME_SEGMENT_ID: *low_income_segment_id
+      C_HIGH_INCOME_SEGMENT_ID: *high_income_segment_id
+      TVPB_demographic_segments_by_income_segment:
+        1: *low_income_segment_id
+        2: *low_income_segment_id
+        3: *high_income_segment_id
+        4: *high_income_segment_id
+      c_ivt_high_income: -0.028
+      c_ivt_low_income: -0.0175
+      c_cost_high_income: -0.00112
+      c_cost_low_income: -0.00112
+      c_wait: 1.5
+      c_walk: 1.7
+      c_drive: 1.5
+      c_auto_operating_cost_per_mile: 18.29
+      C_UNAVAILABLE: -999
+      C_FASTEST_IVT_MULTIPLIER: 2
+      C_FASTEST_COST_MULTIPLIER: 1
+      C_CHEAPEST_IVT_MULTIPLIER: 1
+      C_CHEAPEST_COST_MULTIPLIER: 500
+      C_SHORTEST_IVT_MULTIPLIER: 1
+      C_SHORTEST_COST_MULTIPLIER: 1
+      C_SHORTEST_DIST_MULTIPLIER: 1
+      # illustrate using access mode in tat-tap expressions files
+      C_DRIVE_TRANSFER_PENALTY: -1
+
+  accessibility:
+    units: time
+    path_types:
+      WTW:
+        access: walk
+        egress: walk
+        max_paths_across_tap_sets: 1
+        max_paths_per_tap_set: 1
+    tap_tap_settings:
+      SPEC: tvpb_accessibility_tap_tap_.csv
+#      sets:
+#        - transit
+    maz_tap_settings:
+        walk:
+          SPEC: tvpb_accessibility_walk_maz_tap.csv
+          CHOOSER_COLUMNS:
+            - walk_time
+    CONSTANTS:
+        out_of_vehicle_walk_time_weight: 1.5
+        out_of_vehicle_wait_time_weight: 2.0
+

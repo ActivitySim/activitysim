@@ -1,0 +1,85 @@
+Description,Target,Expression
+#,,
+local,_DF_IS_TOUR,'tour_type' in df.columns
+,number_of_participants,df.number_of_participants if _DF_IS_TOUR else 1
+,is_joint,(df.tour_category=='joint') if _DF_IS_TOUR else False
+#,,
+ local,_HAVE_PARENT_TOURS,'parent_tour_id' in df.columns
+,_parent_tour_mode,"reindex(tours.tour_mode, df.parent_tour_id) if _HAVE_PARENT_TOURS else ''"
+,work_tour_is_drive,_parent_tour_mode.isin(['DRIVEALONE'])
+,work_tour_is_bike,_parent_tour_mode=='BIKE'
+,work_tour_is_SOV,_parent_tour_mode.isin(['DRIVEALONE'])
+#,,
+,is_mandatory,(df.tour_category=='mandatory') if 'tour_category' in df.columns else False
+,is_joint,(df.tour_category=='joint') if 'tour_category' in df.columns else False
+,is_indiv,~is_joint
+,is_atwork_subtour,(df.tour_category=='atwork') if 'tour_category' in df.columns else False
+,is_escort,(df.tour_type == 'escort') if _DF_IS_TOUR else False
+,is_school,(df.tour_type=='school') & (df.is_university==False)  if _DF_IS_TOUR else False
+#,,
+#,c_cost,(0.60 * c_ivt) / df.value_of_time
+#,,
+,ivot,1.0/df.value_of_time
+,dest_topology,"reindex(land_use.TOPOLOGY, df[dest_col_name])"
+,terminal_time,"reindex(land_use.TERMINAL, df[dest_col_name])"
+,dest_density_index,"reindex(land_use.density_index, df[dest_col_name])"
+# FIXME no transit subzones so all zones short walk to transit,,
+,_walk_transit_origin,True
+,_walk_transit_destination,True
+,walk_transit_available,_walk_transit_origin & _walk_transit_destination
+,pnr_transit_available,_walk_transit_destination & (df.auto_ownership > 0)
+,knr_transit_available,_walk_transit_origin & _walk_transit_destination
+,origin_walk_time,shortWalk*60/walkSpeed
+,destination_walk_time,shortWalk*60/walkSpeed
+# RIDEHAIL,,
+,origin_density_measure,"(reindex(land_use.tot_pop, df[orig_col_name]) + reindex(land_use.tot_emp, df[orig_col_name])) / (reindex(land_use.tot_acres, df[orig_col_name]) / 640)"
+,dest_density_measure,"(reindex(land_use.tot_pop, df[dest_col_name]) + reindex(land_use.tot_emp, df[dest_col_name])) / (reindex(land_use.tot_acres, df[dest_col_name]) / 640)"
+,origin_density,"pd.cut(origin_density_measure, bins=[-np.inf, 500, 2000, 5000, 15000, np.inf], labels=[5, 4, 3, 2, 1]).astype(int)"
+,dest_density,"pd.cut(dest_density_measure, bins=[-np.inf, 500, 2000, 5000, 15000, np.inf], labels=[5, 4, 3, 2, 1]).astype(int)"
+,origin_zone_taxi_wait_time_mean,"origin_density.map({k: v for k, v in Taxi_waitTime_mean.items()})"
+,origin_zone_taxi_wait_time_sd,"origin_density.map({k: v for k, v in Taxi_waitTime_sd.items()})"
+,dest_zone_taxi_wait_time_mean,"dest_density.map({k: v for k, v in Taxi_waitTime_mean.items()})"
+,dest_zone_taxi_wait_time_sd,"dest_density.map({k: v for k, v in Taxi_waitTime_sd.items()})"
+# ,, Note that the mean and standard deviation are not the values for the distribution itself  but of the underlying normal distribution it is derived from
+,origTaxiWaitTime,"rng.lognormal_for_df(df, mu=origin_zone_taxi_wait_time_mean, sigma=origin_zone_taxi_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,destTaxiWaitTime,"rng.lognormal_for_df(df, mu=dest_zone_taxi_wait_time_mean, sigma=dest_zone_taxi_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,origin_zone_singleTNC_wait_time_mean,"origin_density.map({k: v for k, v in TNC_single_waitTime_mean.items()})"
+,origin_zone_singleTNC_wait_time_sd,"origin_density.map({k: v for k, v in TNC_single_waitTime_sd.items()})"
+,dest_zone_singleTNC_wait_time_mean,"dest_density.map({k: v for k, v in TNC_single_waitTime_mean.items()})"
+,dest_zone_singleTNC_wait_time_sd,"dest_density.map({k: v for k, v in TNC_single_waitTime_sd.items()})"
+,origSingleTNCWaitTime,"rng.lognormal_for_df(df, mu=origin_zone_singleTNC_wait_time_mean, sigma=origin_zone_singleTNC_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,destSingleTNCWaitTime,"rng.lognormal_for_df(df, mu=dest_zone_singleTNC_wait_time_mean, sigma=dest_zone_singleTNC_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,origin_zone_sharedTNC_wait_time_mean,"origin_density.map({k: v for k, v in TNC_shared_waitTime_mean.items()})"
+,origin_zone_sharedTNC_wait_time_sd,"origin_density.map({k: v for k, v in TNC_shared_waitTime_sd.items()})"
+,dest_zone_sharedTNC_wait_time_mean,"dest_density.map({k: v for k, v in TNC_shared_waitTime_mean.items()})"
+,dest_zone_sharedTNC_wait_time_sd,"dest_density.map({k: v for k, v in TNC_shared_waitTime_sd.items()})"
+,origSharedTNCWaitTime,"rng.lognormal_for_df(df, mu=origin_zone_sharedTNC_wait_time_mean, sigma=origin_zone_sharedTNC_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,destSharedTNCWaitTime,"rng.lognormal_for_df(df, mu=dest_zone_sharedTNC_wait_time_mean, sigma=dest_zone_sharedTNC_wait_time_sd, broadcast=True, scale=True).clip(min_waitTime, max_waitTime)"
+,totalWaitTaxi,origTaxiWaitTime + destTaxiWaitTime
+,totalWaitSingleTNC,origSingleTNCWaitTime + destSingleTNCWaitTime
+,totalWaitSharedTNC,origSharedTNCWaitTime + destSharedTNCWaitTime
+#,,
+,_free_parking_available,(df.tour_type == 'work') & df.free_parking_at_work if _DF_IS_TOUR else False
+,_dest_hourly_peak_parking_cost,"reindex(land_use.PRKCST, df[dest_col_name])"
+,_dest_hourly_offpeak_parking_cost,"reindex(land_use.OPRKCST, df[dest_col_name])"
+,_hourly_peak_parking_cost,"np.where(_free_parking_available, 0, _dest_hourly_peak_parking_cost)"
+,_hourly_offpeak_parking_cost,"np.where(_free_parking_available, 0, _dest_hourly_offpeak_parking_cost)"
+,daily_parking_cost,"np.where(is_mandatory, _hourly_peak_parking_cost * df.duration/2, _hourly_offpeak_parking_cost * df.duration/2)"
+#,,
+,distance,od_skims['DIST']
+,sov_available,(odt_skims['SOV_TIME']>0) & (dot_skims['SOV_TIME']>0)
+,hov2_available,(odt_skims['HOV2_TIME'] + dot_skims['HOV2_TIME'])>0
+,hov3_available,(odt_skims['HOV3_TIME']>0) & (dot_skims['HOV3_TIME']>0)
+,walk_local_available,walk_transit_available & (odt_skims['WLK_LOC_IVT']>0) & (dot_skims['WLK_LOC_IVT']>0)
+,walk_premium_available,walk_transit_available & (odt_skims['WLK_PRM_IVT']>0) & (dot_skims['WLK_PRM_IVT']>0)
+,walk_mix_available,walk_transit_available & (odt_skims['WLK_MIX_IVT']>0) & (dot_skims['WLK_MIX_IVT']>0)
+,pnr_local_available,pnr_transit_available & (odt_skims['PNR_LOC_IVT']>0) & (dot_skims['PNRE_LOC_IVT']>0)
+,pnr_premium_available,pnr_transit_available & (odt_skims['PNR_PRM_IVT']>0) & (dot_skims['PNRE_PRM_IVT']>0)
+,pnr_mix_available,pnr_transit_available & (odt_skims['PNR_MIX_IVT']>0) & (dot_skims['PNRE_MIX_IVT']>0)
+,knr_local_available,knr_transit_available & (odt_skims['KNR_LOC_IVT']>0) & (dot_skims['KNRE_LOC_IVT']>0)
+,knr_premium_available,knr_transit_available & (odt_skims['KNR_PRM_IVT']>0) & (dot_skims['KNRE_PRM_IVT']>0)
+,knr_mix_available,knr_transit_available & (odt_skims['KNR_MIX_IVT']>0) & (dot_skims['KNRE_MIX_IVT']>0)
+#,,
+destination in central business district,destination_in_cbd,"(reindex(land_use.AreaType, df[dest_col_name]) < setting('cbd_threshold')) * 1"
+#,,FIXME diagnostic
+#,sov_dist_rt,(odt_skims['SOV_DIST'] + dot_skims['SOV_DIST'])

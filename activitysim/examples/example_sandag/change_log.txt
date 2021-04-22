@@ -1,0 +1,93 @@
+
+### tap.csv
+
+# note that TAP 145 is missing from tap.csv and maz_to_tap files but is in tap_lines.csv
+
+
+###
+### settings.yaml
+###
+
+# multiprocess_steps setting
+# change mp_accessibility.slice.except to True
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    num_processes: 47
+    slice:
+      tables:
+        - accessibility
+      # except:
+      #   - land_use
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True
+
+
+# global switch to turn on or off presampling of destination alternatives at TAZ level (multizone models only)
+want_dest_choice_presampling: True
+
+###
+### tap_lines.csv
+###
+
+# you want to create a version of this file - it greatly reduces the number of TVPB tap-tap pairs
+
+
+##########################
+
+
+maz_to_maz:
+  tables:
+    - maz_to_maz_walk.csv
+    - maz_to_maz_bike.csv
+
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  max_blend_distance:
+    DIST: 5
+    # blend distance of 0 means no blending
+    DISTBIKE: 0
+    DISTWALK: 1
+
+  # missing means use the skim value itself rather than DIST skim (e.g. DISTBIKE)
+  blend_distance_skim_name: DIST
+
+maz_to_tap:
+  walk:
+    table: maz_to_tap_walk.csv
+  drive:
+
+# marin version:
+
+# tap_lines: tap_lines.csv
+#
+# maz_to_maz:
+#   tables:
+#     - maz_maz_walk.csv
+#     - maz_maz_bike.csv
+#
+#   # maz_to_maz blending distance (missing or 0 means no blending)
+#   max_blend_distance:
+#     # blend distance of 0 means no blending
+#     WALK_DIST: 0
+#     BIKE_DIST: 0
+#
+#
+# maz_to_tap:
+#   walk:
+#     table: maz_tap_walk.csv
+#     # if provided, this column will be used (together with tap_lines table) to trim the near tap set
+#     # to only include the nearest tap to origin when more than one tap serves the same line
+#     tap_line_distance_col: WALK_TRANSIT_DIST
+#     max_dist: 1.2
+#   drive:
+#     table: maz_taz_tap_drive.csv
+#     # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost
+#     # though some sort of trimming appears to have been done as there are not so many of these in marin data
+#     #tap_line_distance_col: DDIST
+
+
+
+

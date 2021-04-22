@@ -1,0 +1,13 @@
+
+
+txt_format: data_dict.txt
+csv_format: data_dict.csv
+
+tables:
+  - land_use
+  - accessibility
+  - households
+  - persons
+  - tours
+  - trips
+  - joint_tour_participants

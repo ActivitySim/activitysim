@@ -1,0 +1,6 @@
+Label,Description,Expression,free,pay
+util_income_very_high,Very high income household dummy,@df.income>=100000,coef_income_very_high,0
+util_income_high,High income housheold dummy,@(df.income>=60000) & (df.income<100000),coef_income_high,0
+util_hh_size_4_up,Household size is greater than 3 dummy,@df.hhsize>3,coef_hh_size_4_up,0
+util_more_autos_than_workers,More automobiles than workers dummy,@df.auto_ownership>df.num_workers,coef_more_autos_than_workers,0
+util_fewer_autos_than_workers,Fewer automobiles than workers dummy,@df.auto_ownership<df.num_workers,coef_fewer_autos_than_workers,0

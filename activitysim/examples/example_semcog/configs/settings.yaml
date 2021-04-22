@@ -1,0 +1,150 @@
+# input tables
+#
+# activitysim uses "well-known" index and foreign key names for imported tables (e.g. households, persons, land_use)
+# as well as for created tables (tours, joint_tour_participants, trips)
+# e.g. the households table must have an index column 'household_id' and the foreign key to households in the
+# persons table is also household_id. This naming convention allows activitysim to intuit the relationship
+# between tables - for instance, to ensure that multiprocess slicing includes all the persons, tours, and trips
+# in the same subprocess pipeline. The same strategy is also when chunking choosers, and to support tracing by
+# household_id.
+#
+# the input_table_list index_col directive instructs activitysim to set the imported table index to zone_id
+# you cannot change the well-known name of the index by modifying this directive. However, if your input file
+# has a different id column name, you can rename it to the required index name with the rename_columns directive.
+# In the settings below, the 'TAZ' column in the imported table is renamed 'zone_id' in the rename_columns settings.
+#
+# input tables
+input_table_list:
+  #
+  # households (table index 'household_id')
+  #
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      persons: hhsize
+      cars: auto_ownership
+      zone_id: home_zone_id
+  #
+  # persons (table index 'person_id')
+  #
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+  #
+  # land_use (table index 'zone_id')
+  #
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      ZONE: zone_id
+
+# convert input CSVs to HDF5 format and save to outputs directory
+# create_input_store: True
+
+# number of households to simulate
+households_sample_size:  100
+# simulate all households
+#households_sample_size: 0
+
+#hh_ids: override_hh_ids.csv
+
+chunk_size: 0
+
+# set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: False
+
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+
+# - tracing
+
+# trace household id; comment out or leave empty for no trace
+# households with all tour types
+#  [ 728370 1234067 1402924 1594625 1595333 1747572 1896849 1931818 2222690 2344951 2677154]
+trace_hh_id: 1165549
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+# trace_od: [5, 11]
+trace_od:
+
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  - school_location
+  - workplace_location
+  - work_from_home
+  - auto_ownership_simulate
+  - free_parking
+  - telecommute_frequency
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - track_skim_usage
+  - write_tables
+  - write_trip_matrices
+
+# to resume after last successful checkpoint, specify resume_after: _
+resume_after: 
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+    - joint_tour_participants
+
+# area_types less than this are considered urban
+urban_threshold: 4
+cbd_threshold: 2
+rural_threshold: 6
+
+# - value of time
+
+# value_of_time = lognormal(np.log(median_value_of_time * mu), sigma).clip(min_vot, max_vot)
+
+min_value_of_time: 1
+max_value_of_time: 50
+distributed_vot_mu: 0.684
+distributed_vot_sigma: 0.85
+
+household_median_value_of_time:
+  1: 6.01
+  2: 8.81
+  3: 10.44
+  4: 12.86

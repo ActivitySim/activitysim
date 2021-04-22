@@ -1,0 +1,6 @@
+Description,Target,Expression
+#,,
+number of person joint tours,num_person_joint_tours,"reindex_i(joint_tour_participants.groupby('person_id').size(), non_mandatory_tours.person_id)"
+#,,
+,origin_to_destination_distance,"skim_dict.lookup(non_mandatory_tours.origin, non_mandatory_tours.destination, ('SOV_FREE_DISTANCE', 'MD'))"
+#,,

@@ -5,7 +5,7 @@ import logging
 
 from activitysim.core import los
 from activitysim.core import inject
-
+from activitysim.core import config
 
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
@@ -39,3 +39,16 @@ def network_los(network_los_preload):
 @inject.injectable(cache=True)
 def skim_dict(network_los):
     return network_los.get_default_skim_dict()
+
+
+@inject.injectable()
+def log_settings():
+
+    # abm settings to log on startup
+    return [
+        'households_sample_size',
+        'chunk_size',
+        'multiprocess',
+        'num_processes',
+        'resume_after',
+    ]

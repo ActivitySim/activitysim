@@ -2,15 +2,14 @@
 How the System Works
 ====================
 
-This page describes how the software works, how multiprocessing works, and the primary example model data schema.
+This page describes how the software works, how multiprocessing works, and the primary example model data schema.  The code snippets below may not exactly match the latest version of the software, but they are close enough to illustrate how the system works.  
 
 .. _how_the_system_works:
 
 Execution Flow
 --------------
 
-The example model run starts by running ``activitysim run --working_dir my_test_example``
-after following the steps in :ref:`example_run`.
+The example model run starts by running the steps in :ref:`example_run`.
 
 Initialization
 ~~~~~~~~~~~~~~
@@ -270,7 +269,7 @@ calculation settings, time periods for skim lookups, shadow pricing settings, et
         chunk_size, trace_hh_id, locutor, trace_label
 
 
-Deep inside the method calls, the skim matrix lookups required for this model are configured via ``network_los``. The following 
+Deep inside the method calls, the skim matrix lookups required for this model are configured via ``network_los``. The following
 code sets the keys for looking up the skim values for this model. In this case there is a ``TAZ`` column
 in the households table that is renamed to `TAZ_chooser`` and a ``TAZ`` in the alternatives generation code.
 The skims are lazy loaded under the name "skims" and are available in the expressions using the ``@skims`` expression.

@@ -1,0 +1,93 @@
+SPEC: tour_scheduling_nonmandatory.csv
+COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
+
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: non_mandatory_tour_scheduling_annotate_tours_preprocessor
+  DF: non_mandatory_tours
+  TABLES:
+    - land_use
+    - joint_tour_participants
+
+SIMULATE_CHOOSER_COLUMNS:
+
+  - age
+  - female
+  - adult
+  - ptype
+  - has_pre_school_child_with_mandatory
+  - has_driving_age_child_with_mandatory
+  - retired_adults_only_hh
+  - is_income_less25K
+  - is_income_25K_to_60K
+  - is_income_60K_to_120K
+  - auto_ownership
+  - num_children
+  - num_adults
+  - num_mand
+  - num_joint_tours
+  - num_escort_tours
+  - num_non_escort_tours
+  - num_add_shop_maint_tours
+  - num_add_soc_discr_tours
+
+#LOGSUM_SETTINGS: tour_mode_choice.yaml
+
+# map : <tour_segment>: <spec_segment>
+# segmentation of tours for processing may differ from segmentation of spec
+# vectorize_tour_scheduling iterates over <tour_segment>
+#   using <spec_segment> to choose spec for scheduling alt chice
+#   using <tour_segment> for logsums (if enabled)
+# tour_mode_choice segmentation for logsums is: eatout,escort,othdiscr,othmaint,shopping,social,school,univ,work,atwork
+TOUR_SPEC_SEGMENTS:
+  escort: escort
+  shopping: shopping
+  eatout: eatout
+  othdiscr: othdiscr
+  othmaint: othmaint
+  social: social
+
+# spec keyed by <spec_segment>
+SPEC_SEGMENTS:
+  escort:
+    'SPEC': tour_scheduling_nonmandatory_escort.csv
+    'COEFFICIENTS': tour_scheduling_nonmandatory_escort_coefficients.csv
+  shopping:
+    'SPEC': tour_scheduling_nonmandatory_shopping.csv
+    'COEFFICIENTS': tour_scheduling_nonmandatory_shopping_coefficients.csv
+  eatout:
+    'SPEC': tour_scheduling_nonmandatory_eatout.csv
+    'COEFFICIENTS': tour_scheduling_nonmandatory_eatout_coefficients.csv
+  othdiscr:
+    'SPEC': tour_scheduling_nonmandatory_othdiscr.csv
+    'COEFFICIENTS': tour_scheduling_nonmandatory_othdiscr_coefficients.csv
+  othmaint:
+    'SPEC': tour_scheduling_nonmandatory_othmaint.csv
+    'COEFFICIENTS': tour_scheduling_nonmandatory_othmaint_coefficients.csv
+  social:
+    'SPEC': tour_scheduling_nonmandatory_social.csv
+    'COEFFICIENTS': tour_scheduling_nonmandatory_social_coefficients.csv
+
+## alts preprocessor keyed by <spec_segment>
+#ALTS_PREPROCESSOR:
+#  escort:
+#    SPEC: non_mandatory_tour_scheduling_escort_annotate_alts_preprocessor.csv
+#    DF: alt_tdd
+#  shopping:
+#    SPEC: non_mandatory_tour_scheduling_shopping_annotate_alts_preprocessor.csv
+#    DF: alt_tdd
+#  eatout:
+#    SPEC: non_mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+#    DF: alt_tdd
+#  othdiscr:
+#    SPEC: non_mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+#    DF: alt_tdd
+#  othmaint:
+#    SPEC: non_mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+#    DF: alt_tdd
+#  social:
+#    SPEC: non_mandatory_tour_scheduling_annotate_alts_preprocessor.csv
+#    DF: alt_tdd
+#
+#DESTINATION_FOR_TOUR_PURPOSE: destination

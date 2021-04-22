@@ -69,6 +69,7 @@ def cleanup_failed_trips(trips):
         # recompute fields dependent on trip_num sequence
         grouped = patch_trips.groupby(['tour_id', 'outbound'])
         patch_trips['trip_num'] = grouped.cumcount() + 1
+        # FIXME - 'clever' hack to avoid regroup - implementation dependent optimization that could change
         patch_trips['trip_count'] = patch_trips['trip_num'] + grouped.cumcount(ascending=False)
 
         assign_in_place(trips, patch_trips[['trip_num', 'trip_count']])

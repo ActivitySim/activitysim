@@ -199,7 +199,8 @@ def _interaction_sample(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims is not None:
+    if skims is not None and alternatives.index.name not in alternatives:
+        alternatives = alternatives.copy()
         alternatives[alternatives.index.name] = alternatives.index
 
     # - cross join choosers and alternatives (cartesian product)
@@ -446,6 +447,7 @@ def interaction_sample(
     assert alt_col_name is not None
     assert choosers.index.is_monotonic_increasing
 
+    # FIXME - legacy logic - not sure this is needed or even correct?
     sample_size = min(sample_size, len(alternatives.index))
 
     row_size = chunk_size and interaction_sample_calc_row_size(choosers, alternatives, trace_label)

@@ -1,0 +1,23 @@
+inherit_settings: True
+
+num_processes: 2
+
+
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    chunk_size: 0
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_models
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary

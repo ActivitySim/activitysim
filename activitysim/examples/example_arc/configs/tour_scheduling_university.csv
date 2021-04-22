@@ -1,0 +1,42 @@
+Description,Expression,Coefficient
+UNIVERSITY - Mode Choice Logsum,mode_choice_logsum,0.384091138
+UNIVERSITY - Low income (<25000) - Departure before 8:00 am  - Linear,"@((df.is_income_less25K) & (df.start<11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))",0.246389489
+UNIVERSITY - Low income (<25000) - Duration < 4hrs,"@((df.is_income_less25K) & (df.duration<8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.262288853
+UNIVERSITY - Medium high income (60k to 120k) - Departure after 8:30 am - Linear,"@((df.is_income_60K_to_120K) & (df.start>11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))",-0.039079271
+UNIVERSITY - Medium high income (60k to 120k) - Duration > 4hrs,"@((df.is_income_60K_to_120K) & (df.duration>8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.041536976
+UNIVERSITY - High income (120k+) - Departure after 8:30 am - Linear,"@((df.is_income_greater120K) & (df.start>11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))",-0.039306518
+UNIVERSITY - Age 41+ - Departure after 8:30 am - Linear,"@((df.age >= 41)  & (df.start>11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))",0.055344625
+UNIVERSITY - Age 41+ - Duration< 4 hrs -Linear,"@((df.age >= 41) & (df.duration<8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.152498075
+UNIVERSITY - Distance to destination - Departure before 8:00 am  - Linear,"@((df.start<11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))*(df.distance_to_school)",0.006869786
+UNIVERSITY - Distance to destination - Departure after 8:30 am - Linear,"@((df.start>11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))*(df.distance_to_school)",0.003686402
+UNIVERSITY - Distance to destination - Duration< 4 hrs -Linear,"@((df.duration<8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))*(df.distance_to_school)",-0.04027172
+UNIVERSITY - Distance to destination - Duration> 4 hrs- Linear,"@((df.duration>8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))*(df.distance_to_school)",0.003803244
+UNIVERSITY - Distance to destination - Duration< 4 hrs -  Square Root,"@((df.duration<8))*(abs(((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))) ** 0.5)*(df.distance_to_school)",0.041070113
+UNIVERSITY - Subsequent tour is work tour: Departure after 8:30 am,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'work')) & (df.start>11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))",-0.29166292
+UNIVERSITY - Subsequent tour is work tour: Duration < 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'work')) & (df.duration<8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.482292817
+UNIVERSITY - Subsequent tour is work tour: Duration > 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'work')) & (df.duration>8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.364624965
+UNIVERSITY - Subsequent tour is school tour: Departure after 8:30 am,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'school')) & (df.start>11))*((np.minimum(11-df.start,8)*(df.start<=11)) + (np.minimum(df.start-11,22)*(df.start>11)))",-0.286206955
+UNIVERSITY - Subsequent tour is school tour: Duration < 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'school')) & (df.duration<8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",0.30341795
+UNIVERSITY - Subsequent tour is school tour: Duration > 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1) & (df.tour_type == 'school')) & (df.duration>8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.247436221
+UNIVERSITY - Second tour of two mandatory tours: Duration < 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.duration<8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.211059285
+UNIVERSITY - Second tour of two mandatory tours: Duration > 4 hours,"@(((df.tour_count>1) & (df.tour_num > 1)) & (df.duration>8))*((np.minimum(8-df.duration,6)*(df.duration<=8)) + (np.minimum(df.duration-8,28)*(df.duration>8)))",-0.35316727
+UNIVERSITY - Departure Constant: Shift for every 30 minutes before 07:00 am - Linear,"@((df.start<9))*((np.minimum(9-df.start,6)*(df.start<9)) + (np.minimum(df.start-13,20)*(df.start>13)))",-0.947594485
+UNIVERSITY - Departure Constant: Before 07:30 AM,@(df.start<10),-0.296228472
+UNIVERSITY - Departure Constant: 07:30 AM - 08:00 AM,@(df.start==10),-0.650538708
+UNIVERSITY - Departure Constant: 08:00 AM - 08:30 AM,@(df.start==11),0
+UNIVERSITY - Departure Constant: 08:30 AM - 09:00 AM,@(df.start==12),-0.525569176
+UNIVERSITY - Departure Constant: After 09:00 AM,@(df.start>12),-0.536008149
+UNIVERSITY - Departure Constant: Shift for every 30 minutes after 09:30 am - Square Root,"@((df.start>13))*(((np.minimum(9-df.start,6)*(df.start<9)) + (np.minimum(df.start-13,20)*(df.start>13))) ** 0.5)",-0.500045988
+UNIVERSITY - Arrival Constant: Shift for every 30 minutes before 02:30 pm - Linear,"@((df.end<24)) * ((np.minimum(24-df.end,12) * (df.end<24)) + (np.minimum(df.end-28,19) * (df.end>28)))",-0.209375282
+UNIVERSITY - Arrival Constant: Before 03:00 PM,@((df.end<25)),-0.962572172
+UNIVERSITY - Arrival Constant: 03:00 PM - 03:30 PM,@(df.end==25),-0.627901132
+UNIVERSITY - Arrival Constant: 03:30 PM - 04:00 PM,@(df.end==26),0
+UNIVERSITY - Arrival Constant: 04:00 PM - 04:30 PM,@(df.end==27),-0.190818088
+UNIVERSITY - Arrival Constant: After 04:30 PM,@(df.end>27),-0.66545038
+UNIVERSITY - Arrival Constant: Shift for every 30 minutes after 05:00 pm - Linear,"@((df.end>28))*((np.minimum(24-df.end,12)*(df.end<24)) + (np.minimum(df.end-28,19)*(df.end>28)))",-0.209562151
+UNIVERSITY - Arrival Constant: Shift for every 30 minutes after 05:00 pm - Square Root,"@((df.end>28)) *(((np.minimum(24-df.end,12)*(df.end<24)) + (np.minimum(df.end-28,19)*(df.end>28))) ** 0.5)",0.503497689
+UNIVERSITY - Duration Constant: Shift for every 30 minutes less than 4.5 hrs - Square Root,"@((df.duration<9))*((np.minimum(9-df.duration,7)*(df.duration<9)) + (np.minimum(df.duration-11,25)*(df.duration>11)))",0.225706446
+UNIVERSITY - Duration Constant: 4.5 hours or less,@(df.duration<10),0.03106769
+DUNIVERSITY - Duration Constant: 5 hours,@(df.duration==10),0
+UNIVERSITY - Duration Constant: 5.5 hours or more,@(df.duration>10),0.343447232
+UNIVERSITY - Duration Constant: Shift for every 30 minutes more than 5.5 hrs - Linear,"@((df.duration>11))*(((np.minimum(9-df.duration,7)*(df.duration<9)) + (np.minimum(df.duration-11,25)*(df.duration>11))) ** 0.5)",-0.115312573

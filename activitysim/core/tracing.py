@@ -4,6 +4,7 @@
 from builtins import next
 from builtins import range
 
+import multiprocessing  # for process name
 import os
 import logging
 import logging.config
@@ -69,6 +70,25 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
+def log_runtime(model_name, start_time=None, timing=None):
+
+    assert (start_time or timing) and not (start_time and timing)
+
+    timing = timing if timing else time.time() - start_time
+    seconds = round(timing, 1)
+    minutes = round(timing / 60, 1)
+
+    process_name = multiprocessing.current_process().name
+
+    # only log runtime for locutor
+    if config.setting('multiprocess', False) and not inject.get_injectable('locutor', False):
+        return
+
+    header = "process_name,model_name,seconds,minutes"
+    with config.open_log_file('timing_log.csv', 'a', header) as log_file:
+        print(f"{process_name},{model_name},{seconds},{minutes}", file=log_file)
+
+
 def delete_output_files(file_type, ignore=None, subdir=None):
     """
     Delete files in output directory of specified type
@@ -105,11 +125,11 @@ def delete_output_files(file_type, ignore=None, subdir=None):
                 file_path = os.path.join(dir, the_file)
 
                 if ignore and os.path.realpath(file_path) in ignore:
-                    logger.debug("delete_output_files ignoring %s" % file_path)
                     continue
 
                 try:
                     if os.path.isfile(file_path):
+                        logger.debug("delete_output_files deleting %s" % file_path)
                         os.unlink(file_path)
                 except Exception as e:
                     print(e)
@@ -126,6 +146,7 @@ def delete_trace_files():
     delete_output_files(CSV_FILE_TYPE, subdir='trace')
 
     active_log_files = [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
+
     delete_output_files('log', ignore=active_log_files)
 
 
@@ -165,18 +186,6 @@ def config_logger(basic=False):
     else:
         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
-    # if log_config_file:
-    #     with open(log_config_file) as f:
-    #         #bug
-    #         print("############################################# opening", log_config_file)
-    #         # FIXME need alternative to yaml.UnsafeLoader?
-    #         config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
-    #         config_dict = config_dict['logging']
-    #         config_dict.setdefault('version', 1)
-    #         logging.config.dictConfig(config_dict)
-    # else:
-    #     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-
     logger = logging.getLogger(ASIM_LOGGER)
 
     if log_config_file:
@@ -215,6 +224,14 @@ def print_summary(label, df, describe=False, value_counts=False):
 
     if describe:
         logger.info("%s summary:\n%s" % (label, df.describe()))
+
+
+def initialize_traceable_tables():
+
+    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    if len(traceable_table_ids) > 0:
+        logger.debug(f"initialize_traceable_tables resetting table_ids for {list(traceable_table_ids.keys())}")
+    inject.add_injectable('traceable_table_ids', {})
 
 
 def register_traceable_table(table_name, df):
@@ -394,7 +411,9 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     if os.name == 'nt':
         abs_path = os.path.abspath(file_path)
-        assert len(abs_path) <= 255, f"Path length ({len(abs_path)}) exceeds maximum length for windows: {abs_path}"
+        if len(abs_path) > 255:
+            msg = f"path length ({len(abs_path)}) may exceed Windows maximum length unless LongPathsEnabled: {abs_path}"
+            logger.warning(msg)
 
     if os.path.isfile(file_path):
         logger.debug("write_csv file exists %s %s" % (type(df).__name__, file_name))

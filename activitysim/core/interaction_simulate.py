@@ -136,7 +136,8 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                 if trace_eval_results is not None:
                     trace_eval_results[expr] = v[trace_rows]
 
-                # mem.trace_memory_info("eval_interaction_utilities TEMP: %s" % expr)
+                # don't add temps to utility sums
+                # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
                 continue
 
             if expr.startswith('@'):
@@ -274,7 +275,7 @@ def _interaction_simulate(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for the skims dereference below
-    if skims is not None:
+    if skims is not None and alternatives.index.name not in alternatives:
         alternatives = alternatives.copy()
         alternatives[alternatives.index.name] = alternatives.index
 
@@ -307,8 +308,8 @@ def _interaction_simulate(
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
-    print(f"interaction_df {interaction_df.shape}")
-    print(f"interaction_utilities {interaction_utilities.shape}")
+    # print(f"interaction_df {interaction_df.shape}")
+    # print(f"interaction_utilities {interaction_utilities.shape}")
 
     del interaction_df
     chunk.log_df(trace_label, 'interaction_df', None)

@@ -1,0 +1,58 @@
+Description,Expression,car0,car1,car2,car3plus
+Alternative specific constant: 1 driver,@df['num_drivers'] == 1,-4.86,0,-0.959,-3.9
+Alternative specific constant: 2 driver,@df['num_drivers'] == 2,-4.47,-2.01,0,-1.54
+Alternative specific constant: 3+ driver,@df['num_drivers'] >= 3,-4.05,-2.16,-1.88,0
+Household income [0-10k): 1 driver household,@((df['num_drivers']==1) & (df['income_segment']==1)),5.3,0,-1.45,-1.45
+Household income [0-10k): 2 driver household,@((df['num_drivers']==2) & (df['income_segment']==1)),5.3,3.31,0,-1.45
+Household income [0-10k): 3+ driver household,@((df['num_drivers']>=3) & (df['income_segment']==1)),5.3,3.31,3.31,0
+Household income [10k-30k): 1 driver household,@((df['num_drivers']==1) & (df['income_segment']==2)),4.31,0,-0.89,-0.89
+Household income [10k-30k): 2 driver household,@((df['num_drivers']==2) & (df['income_segment']==2)),4.31,2.86,0,-0.89
+Household income [10k-30k): 3+ driver household,@((df['num_drivers']>=3) & (df['income_segment']==2)),4.31,2.86,2.86,0
+Household income [30k-60k): 1 driver household,@((df['num_drivers']==1) & (df['income_segment']==3)),2.39,0,-0.532,-0.532
+Household income [30k-60k): 2 driver household,@((df['num_drivers']==2) & (df['income_segment']==3)),2.39,1.84,0,-0.532
+Household income [30k-60k): 3+ driver household,@((df['num_drivers']>=3) & (df['income_segment']==3)),2.39,1.84,1.84,0
+Household income [60k-100k): 1 driver household,@((df['num_drivers']==1) & (df['income_segment']==4)),0.858,0,-0.399,-0.399
+Household income [60k-100k): 2 driver household,@((df['num_drivers']==2) & (df['income_segment']==4)),0.858,0.824,0,-0.399
+Household income [60k-100k): 3+ driver household,@((df['num_drivers']>=3) & (df['income_segment']==4)),0.858,0.824,0.824,0
+Household income [100k-+Inf): 1 driver household,@((df['num_drivers']==1) & (df['income_segment']==5)),0,0,0,0
+Household income [100k-+Inf): 2 driver household,@((df['num_drivers']==2) & (df['income_segment']==5)),0,0,0,0
+Household income [100k-+Inf): 3+ driver household,@((df['num_drivers']>=3) & (df['income_segment']==5)),0,0,0,0
+Workers to drivers ratio: 1 driver household,"@((df['num_drivers']==1) * np.where(((df['num_workers']>0) & (df['num_drivers']>0)), (df['num_workers'] / df['num_drivers']),0))",-1,0,0,0
+Workers to drivers ratio: 2 driver household,"@((df['num_drivers']==2) * np.where(((df['num_workers']>0) & (df['num_drivers']>0)), (df['num_workers'] / df['num_drivers']),0))",-1,-0.495,0,0
+Workers to drivers ratio: 3+ driver household,"@((df['num_drivers']==3) * np.where(((df['num_workers']>0) & (df['num_drivers']>0)), (df['num_workers'] / df['num_drivers']),0))",-1,-0.495,-0.495,0
+Young adults to drivers ratio: 1 driver household,"@((df['num_drivers']==1) * np.where(((df['num_young_adults']>0) & (df['num_drivers']>0)), (df['num_young_adults'] / df['num_drivers']),0))",0,0,-0.946,-0.946
+Young adults to drivers ratio: 2 driver household,"@((df['num_drivers']==2) * np.where(((df['num_young_adults']>0) & (df['num_drivers']>0)), (df['num_young_adults'] / df['num_drivers']),0))",0,-0.504,0,-0.946
+Young adults to drivers ratio: 3+ driver household,"@((df['num_drivers']==3) * np.where(((df['num_young_adults']>0) & (df['num_drivers']>0)), (df['num_young_adults'] / df['num_drivers']),0))",0,-0.504,-0.504,0
+School children to drivers ratio: 1 driver household,"@((df['num_drivers']==1) * np.where(((df['num_school_children']>0) & (df['num_drivers']>0)), (df['num_school_children'] / df['num_drivers']),0))",0,0,-0.122,-0.122
+School children to drivers ratio: 2 driver household,"@((df['num_drivers']==2) * np.where(((df['num_school_children']>0) & (df['num_drivers']>0)), (df['num_school_children'] / df['num_drivers']),0))",0,0,0,-0.122
+School children to drivers ratio: 3+ driver household,"@((df['num_drivers']==3) * np.where(((df['num_school_children']>0) & (df['num_drivers']>0)), (df['num_school_children'] / df['num_drivers']),0))",0,0,0,0
+Old retirees to drivers ratio: 1 driver household,"@((df['num_drivers']==1) * np.where(((df['num_old_retirees']>0) & (df['num_drivers']>0)), (df['num_old_retirees'] / df['num_drivers']),0))",0.739,0,0,0
+Old retirees to drivers ratio: 2 driver household,"@((df['num_drivers']==2) * np.where(((df['num_old_retirees']>0) & (df['num_drivers']>0)), (df['num_old_retirees'] / df['num_drivers']),0))",0.739,1.23,0,0
+Old retirees to drivers ratio: 3+ driver household,"@((df['num_drivers']==3) * np.where(((df['num_old_retirees']>0) & (df['num_drivers']>0)), (df['num_old_retirees'] / df['num_drivers']),0))",0.739,1.23,1.23,0
+Worker mandatory tour rail mode portion: 1 driver,@((df['num_drivers']==1) * (df.worker_rail_proportion)),1.5,0,-0.892,-0.892
+Worker mandatory tour rail mode portion: 2 driver,@((df['num_drivers']==2) *(df.worker_rail_proportion)),1.5,0.467,0,-0.892
+Worker mandatory tour rail mode portion: 3+ driver,@((df['num_drivers']>=3) * (df.worker_rail_proportion)),1.5,0.467,0.467,0
+Student mandatory tour rail mode portion: 1 driver,@((df['num_drivers']==1) * (df.student_rail_proportion)),1.5,0,0,0
+Student mandatory tour rail mode portion: 2 driver,@((df['num_drivers']==2) * (df.student_rail_proportion)),1.5,0.465,0,0
+Student mandatory tour rail mode portion: 3+ driver,@((df['num_drivers']>=3) * (df.student_rail_proportion)),1.5,0.465,0.465,0
+Auto - Transit zonal accessibility: 1 driver household,@((df['num_drivers']==1) * ((df['auOpTotal'] - df['trOpTotal'])/10)),0,0,0,0
+Auto - Transit zonal accessibility: 2 driver household,@((df['num_drivers']==2) * ((df['auOpTotal'] - df['trOpTotal'])/10)),0,0,0,0
+Auto - Transit zonal accessibility: 3+ driver household,@((df['num_drivers']>=3) * ((df['auOpTotal'] - df['trOpTotal'])/10)),0,0,0,0
+Premium rail accessible retail employment: 1 driver,@((df['num_drivers']==1) * (df['RetailEmp30']/10000)),0,0,0,0
+Premium rail accessible retail employment: 2 driver,@((df['num_drivers']==2) * (df['RetailEmp30']/10000)),0,0,0,0
+Premium rail accessible retail employment: 3+ driver,@((df['num_drivers']>=3) * (df['RetailEmp30'] / 10000)),0,0,0,0
+Worker mandatory tour auto dependancy: 1 driver,"@((df['num_drivers']==1) * (np.where(df.num_workers > 0, df.hh_work_auto_savings_ratio, 0)))",-0.5,0,0.0505,0.0505
+Worker mandatory tour auto dependancy: 2 driver,"@((df['num_drivers']==2) * (np.where(df.num_workers > 0, df.hh_work_auto_savings_ratio, 0)))",-0.5,-0.238,0,0.0505
+Worker mandatory tour auto dependancy: 3+ driver,"@((df['num_drivers']>=3) * (np.where(df.num_workers > 0, df.hh_work_auto_savings_ratio,0)))",-0.5,-0.238,-0.238,0
+Calibration constant,1,-0.73,0.002295512,0,1.014943467
+Calibration constant: One Worker HH,@df['num_workers']==1,0.70232794,0,0,-0.440726136
+Calibration constant: Two Worker HH,@df['num_workers']==2,1.255296373,0,0,-0.875347621
+Calibration constant: Three Plus Worker HH,@df['num_workers']>=3,1.484529639,0,0,-2.63063667
+"Calibration constant: Income	HH",@df['income_segment']==1,-0.43,-0.14,0,0.2
+Calibration constant: Income,@(((df['hincp']/1.03154279)>=10000)&((df['hincp']/1.03154279)<20000)),0.13,-0.14,0,0.2
+Calibration constant: Income,@(((df['hincp']/1.03154279)>=20000)&((df['hincp']/1.03154279)<30000)),-0.92,-0.14,0,0.2
+Calibration constant: Income,@(((df['hincp']/1.03154279)>=30000)&((df['hincp']/1.03154279)<50000)),-0.22,-0.14,0,0.2
+Calibration constant: Income,@(((df['hincp']/1.03154279)>=50000)&((df['hincp']/1.03154279)<100000)),-0.6,-0.14,0,0.2
+Calibration constant: Income,@df['income_segment']==5,0.18,-0.14,0,0.2
+Calibration constant: One Worker HH,@df['num_workers']==0,0.28,0,0,0
+Calibration constant: Three Plus Worker HH,@df['num_workers']>=3,-0.31,-0.8,0,0

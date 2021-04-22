@@ -1,0 +1,23 @@
+inherit_settings: True
+
+# activitysim run -c configs_skip_accessibility -c configs_sandag -c configs_3_zone -c ../example_mtc/configs -o output -d data -s settings_mp.yaml
+
+multiprocess: True
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    num_processes: 20
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_models
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary

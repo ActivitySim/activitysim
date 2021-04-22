@@ -16,6 +16,7 @@ from activitysim.core import pathbuilder
 from activitysim.core import mem
 from activitysim.core import tracing
 
+from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
 from activitysim.core.skim_dict_factory import NumpyArraySkimFactory
 from activitysim.core.skim_dict_factory import MemMapSkimFactory
 
@@ -43,34 +44,36 @@ TRACE_TRIMMED_MAZ_TO_TAP_TABLES = True
 
 class Network_LOS(object):
     """
-    singleton object to manage skims and skim-related tables
+    ::
 
-    | los_settings_file_name: str        # e.g. 'network_los.yaml'
-    | skim_dtype_name:str                # e.g. 'float32'
-    |
-    | dict_factory_name: str             # e.g. 'NumpyArraySkimFactory'
-    | zone_system: str                   # str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)
-    | skim_time_periods = None           # list of str e.g. ['AM', 'MD', 'PM']
-    |
-    | skims_info: dict                   # dict of SkimInfo keyed by skim_tag
-    | skim_buffers: dict                 # when multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag
-    | skim_dicts: dice                   # dict of SkimDict keyed by skim_tag
-    |
-    | # TWO_ZONE and THREE_ZONE
-    | maz_taz_df: pandas.DataFrame       # DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ
-    | maz_to_maz_df: pandas.DataFrame    # maz_to_maz attributes for MazSkimDict sparse skims
-    |                                    # indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)
-    | maz_ceiling: int                   # max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)
-    | max_blend_distance: dict           # dict of int maz_to_maz max_blend_distance values keyed by skim_tag
-    |
-    | # THREE_ZONE only
-    | tap_df: pandas.DataFrame           # taps data frame
-    | tap_lines_df: pandas.DataFrame     # if specified in settings, list of transit lines served, indexed by TAP
-    |                                    # used to prune maz_to_tap_dfs to drop more distant TAPS with redundant service
-    |                                    # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
-    | maz_to_tap_dfs: dict               # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
-    |                                    # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
-    | tap_tap_uid: TapTapUidCalculator
+      singleton object to manage skims and skim-related tables
+
+      los_settings_file_name: str         # e.g. 'network_los.yaml'
+      skim_dtype_name:str                 # e.g. 'float32'
+
+      dict_factory_name: str              # e.g. 'NumpyArraySkimFactory'
+      zone_system: str                    # str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)
+      skim_time_periods = None            # list of str e.g. ['AM', 'MD', 'PM''
+
+      skims_info: dict                    # dict of SkimInfo keyed by skim_tag
+      skim_buffers: dict                  # if multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag
+      skim_dicts: dice                    # dict of SkimDict keyed by skim_tag
+
+      # TWO_ZONE and THREE_ZONE
+      maz_taz_df: pandas.DataFrame        # DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ
+      maz_to_maz_df: pandas.DataFrame     # maz_to_maz attributes for MazSkimDict sparse skims
+                                          # indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)
+      maz_ceiling: int                    # max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)
+      max_blend_distance: dict            # dict of int maz_to_maz max_blend_distance values keyed by skim_tag
+
+      # THREE_ZONE only
+      tap_df: pandas.DataFrame
+      tap_lines_df: pandas.DataFrame      # if specified in settings, list of transit lines served, indexed by TAP
+                                          # use to prune maz_to_tap_dfs to drop more distant TAPS with redundant service
+                                          # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
+      maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
+                                          # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
+      tap_tap_uid: TapTapUidCalculator
     """
 
     def __init__(self, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
@@ -207,7 +210,7 @@ class Network_LOS(object):
 
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
-            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True)).sort_values('TAP')
             self.tvpb = pathbuilder.TransitVirtualPathBuilder(self)  # dependent on self.tap_df
 
     def load_data(self):
@@ -299,7 +302,8 @@ class Network_LOS(object):
                     # we don't need to remember which lines are served by which TAPs
                     df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP']).sort_values(['MAZ', 'TAP'])
 
-                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows")
+                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows "
+                                 f"based on tap_lines")
                     logger.debug(f"maz_to_tap table {file_name} max {distance_col} {df[distance_col].max()}")
 
                     max_dist = maz_to_tap_settings.get('max_dist', None)
@@ -323,7 +327,7 @@ class Network_LOS(object):
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
-        # make sure skim has all tap_ids
+        # make sure skim has all taz_ids
         # FIXME - weird that there is no list of tazs?
 
         # create MazSkimDict facade
@@ -331,16 +335,19 @@ class Network_LOS(object):
             # create MazSkimDict facade skim_dict
             # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
             assert 'maz' not in self.skim_dicts
-            self.skim_dicts['maz'] = self.create_skim_dict('maz')
+            maz_skim_dict = self.create_skim_dict('maz')
+            self.skim_dicts['maz'] = maz_skim_dict
+
             # make sure skim has all maz_ids
-            assert set(self.maz_taz_df['MAZ'].values).issubset(set(self.skim_dicts['maz'].zone_ids))
+            assert not (maz_skim_dict.offset_mapper.map(self.maz_taz_df['MAZ'].values) == NOT_IN_SKIM_ZONE_ID).any()
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
             assert 'tap' not in self.skim_dicts
-            self.skim_dicts['tap'] = self.create_skim_dict('tap')
+            tap_skim_dict = self.create_skim_dict('tap')
+            self.skim_dicts['tap'] = tap_skim_dict
             # make sure skim has all tap_ids
-            assert set(self.tap_df['TAP'].values).issubset(set(self.skim_dicts['tap'].zone_ids))
+            assert not (tap_skim_dict.offset_mapper.map(self.tap_df['TAP'].values) == NOT_IN_SKIM_ZONE_ID).any()
 
         mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
@@ -597,3 +604,26 @@ class Network_LOS(object):
 
         return pd.cut(time_period, self.skim_time_periods['periods'],
                       labels=self.skim_time_periods['labels'], ordered=False).astype(str)
+
+    def get_tazs(self):
+        # FIXME - should compute on init?
+        if self.zone_system == ONE_ZONE:
+            tazs = inject.get_table('land_use').index.values
+        else:
+            tazs = self.maz_taz_df.TAZ.unique()
+        assert isinstance(tazs, np.ndarray)
+        return tazs
+
+    def get_mazs(self):
+        # FIXME - should compute on init?
+        assert self.zone_system in [TWO_ZONE, THREE_ZONE]
+        mazs = self.maz_taz_df.MAZ.values
+        assert isinstance(mazs, np.ndarray)
+        return mazs
+
+    def get_taps(self):
+        # FIXME - should compute on init?
+        assert self.zone_system == THREE_ZONE
+        taps = self.tap_df.TAP.values
+        assert isinstance(taps, np.ndarray)
+        return taps

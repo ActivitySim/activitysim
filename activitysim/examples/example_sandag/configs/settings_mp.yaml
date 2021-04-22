@@ -1,0 +1,48 @@
+inherit_settings: settings.yaml
+
+# activitysim run -c configs_sandag -c configs_3_zone -c ../example_mtc/configs -o output -d data -s settings_mp.yaml
+
+multiprocess: True
+
+households_sample_size: 0
+
+chunk_size: 10000000000
+
+# raise error if any sub-process fails without waiting for others to complete
+# (Shadow pricing requires fail_fast setting in multiprocessing mode)
+fail_fast: True
+
+# 32 processor RSG modelling server with 64 logical processors
+# set MKL_NUM_THREADS=1
+# echo %MKL_NUM_THREADS%
+num_processes: 28
+
+# 28 processors and chunksize of 10000000000 uses 190 GB of RAM for accessibility
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    slice:
+      tables:
+        - accessibility
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True
+  - name: mp_los
+    begin: initialize_los
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    num_processes: 20
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_models
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary
+

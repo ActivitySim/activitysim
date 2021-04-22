@@ -1,0 +1,24 @@
+inherit_settings: settings.yaml
+
+# set MKL_NUM_THREADS=1
+# activitysim run -c configs_skip_accessibility -c configs -o output -d data -s settings_mp.yaml
+
+chunk_size:  80000000000
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+multiprocess: True
+num_processes: 32
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_households
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary

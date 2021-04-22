@@ -1,5 +1,7 @@
 
 INDIV_AND_HHSIZE1_SPEC: cdap_indiv_and_hhsize1.csv
+COEFFICIENTS: cdap_coefficients.csv
+INTERACTION_COEFFICIENTS: cdap_interaction_coefficients.csv
 
 FIXED_RELATIVE_PROPORTIONS_SPEC: cdap_fixed_relative_proportions.csv
 

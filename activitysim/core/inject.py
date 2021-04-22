@@ -113,9 +113,14 @@ def get_table(name, default=_NO_DEFAULT):
         return default
 
 
+def is_injectable(name):
+
+    return orca.is_injectable(name)
+
+
 def get_injectable(name, default=_NO_DEFAULT):
 
-    if orca.is_injectable(name) or default == _NO_DEFAULT:
+    if is_injectable(name) or default == _NO_DEFAULT:
         return orca.get_injectable(name)
     else:
         return default

@@ -125,6 +125,9 @@ class ShadowPriceCalculator(object):
         # - destination_size_table (desired_size)
         self.desired_size = inject.get_table(size_table_name(self.model_selector)).to_frame()
 
+        assert self.desired_size.index.is_monotonic_increasing, \
+            f"{size_table_name(self.model_selector)} not is_monotonic_increasing"
+
         # - shared_data
         if shared_data is not None:
             assert shared_data.shape[0] == self.desired_size.shape[0]
@@ -509,11 +512,15 @@ class ShadowPriceCalculator(object):
             else:
                 raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
-        return pd.DataFrame({
+        size_terms = pd.DataFrame({
             'size_term': self.desired_size[segment],
             'shadow_price_size_term_adjustment': size_term_adjustment,
             'shadow_price_utility_adjustment': utility_adjustment},
             index=self.desired_size.index)
+
+        assert size_terms.index.is_monotonic_increasing
+
+        return size_terms
 
     def write_trace_files(self, iteration):
         """
@@ -564,50 +571,6 @@ def block_name(model_selector):
         canonical block name
     """
     return model_selector
-
-
-def get_shadow_pricing_info():
-    """
-    return dict with info about dtype and shapes of desired and modeled size tables
-
-    block shape is (num_zones, num_segments + 1)
-
-
-    Returns
-    -------
-    shadow_pricing_info: dict
-        dtype: <sp_dtype>,
-        block_shapes: dict {<model_selector>: <block_shape>}
-    """
-
-    land_use = inject.get_table('land_use')
-    size_terms = inject.get_injectable('size_terms')
-
-    shadow_settings = config.read_model_settings('shadow_pricing.yaml')
-
-    # shadow_pricing_models is dict of {<model_selector>: <model_name>}
-    shadow_pricing_models = shadow_settings.get('shadow_pricing_models', {})
-
-    blocks = OrderedDict()
-    for model_selector in shadow_pricing_models:
-
-        sp_rows = len(land_use)
-        sp_cols = len(size_terms[size_terms.model_selector == model_selector])
-
-        # extra tally column for TALLY_CHECKIN and TALLY_CHECKOUT semaphores
-        blocks[block_name(model_selector)] = (sp_rows, sp_cols + 1)
-
-    sp_dtype = np.int64
-
-    shadow_pricing_info = {
-        'dtype': sp_dtype,
-        'block_shapes': blocks,
-    }
-
-    for k in shadow_pricing_info:
-        logger.debug("shadow_pricing_info %s: %s" % (k, shadow_pricing_info.get(k)))
-
-    return shadow_pricing_info
 
 
 def buffers_for_shadow_pricing(shadow_pricing_info):
@@ -730,9 +693,7 @@ def load_shadow_price_calculator(model_settings):
 
         # - shadow_pricing_info
         shadow_pricing_info = inject.get_injectable('shadow_pricing_info', None)
-        if shadow_pricing_info is None:
-            shadow_pricing_info = get_shadow_pricing_info()
-            inject.add_injectable('shadow_pricing_info', shadow_pricing_info)
+        assert shadow_pricing_info is not None
 
         # - extract data buffer and reshape as numpy array
         data, lock = \
@@ -792,6 +753,7 @@ def add_size_tables():
 
         assert model_selector == model_settings['MODEL_SELECTOR']
 
+        assert 'SEGMENT_IDS' in model_settings, f"missing SEGMENT_IDS setting in {model_name} model_settings"
         segment_ids = model_settings['SEGMENT_IDS']
         chooser_table_name = model_settings['CHOOSER_TABLE_NAME']
         chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
@@ -808,8 +770,6 @@ def add_size_tables():
         assert set(raw_size.columns) == set(segment_ids.keys())
 
         if use_shadow_pricing or scale_size_table:
-
-            inject.add_table('raw_' + size_table_name(model_selector), raw_size)
 
             # - scale size_table counts to sample population
             # scaled_size = zone_size * (total_segment_modeled / total_segment_desired)
@@ -839,4 +799,63 @@ def add_size_tables():
         else:
             scaled_size = raw_size
 
+        logger.debug(f"add_size_table {size_table_name(model_selector)} ({scaled_size.shape}) for {model_selector}")
+
+        assert scaled_size.index.is_monotonic_increasing, \
+            f"size table {size_table_name(model_selector)} not is_monotonic_increasing"
+
         inject.add_table(size_table_name(model_selector), scaled_size)
+
+
+def get_shadow_pricing_info():
+    """
+    return dict with info about dtype and shapes of desired and modeled size tables
+
+    block shape is (num_zones, num_segments + 1)
+
+
+    Returns
+    -------
+    shadow_pricing_info: dict
+        dtype: <sp_dtype>,
+        block_shapes: dict {<model_selector>: <block_shape>}
+    """
+
+    land_use = inject.get_table('land_use')
+    size_terms = inject.get_injectable('size_terms')
+
+    shadow_settings = config.read_model_settings('shadow_pricing.yaml')
+
+    # shadow_pricing_models is dict of {<model_selector>: <model_name>}
+    shadow_pricing_models = shadow_settings.get('shadow_pricing_models', {})
+
+    blocks = OrderedDict()
+    for model_selector in shadow_pricing_models:
+
+        sp_rows = len(land_use)
+        sp_cols = len(size_terms[size_terms.model_selector == model_selector])
+
+        # extra tally column for TALLY_CHECKIN and TALLY_CHECKOUT semaphores
+        blocks[block_name(model_selector)] = (sp_rows, sp_cols + 1)
+
+    sp_dtype = np.int64
+
+    shadow_pricing_info = {
+        'dtype': sp_dtype,
+        'block_shapes': blocks,
+    }
+
+    for k in shadow_pricing_info:
+        logger.debug("shadow_pricing_info %s: %s" % (k, shadow_pricing_info.get(k)))
+
+    return shadow_pricing_info
+
+
+@inject.injectable(cache=True)
+def shadow_pricing_info():
+
+    # when multiprocessing with shared data mp_tasks has to call network_los methods
+    # get_shadow_pricing_info() and buffers_for_shadow_pricing()
+    logger.debug("loading shadow_pricing_info injectable")
+
+    return get_shadow_pricing_info()

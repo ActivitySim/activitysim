@@ -1,0 +1,19 @@
+Description,Expression,mandatory_free,mandatory_pay,nonmandatory
+Distance origin (of trip) to parking zone,"@op_skims['SOV_FREE_DISTANCE','MD']",-0.4048,,-0.2572
+Distance-Parking Zone to Destination,"@pd_skims['SOV_FREE_DISTANCE','MD']",-4.12,-4.366,-3.181
+,"@df['destination'] == df['parking_zone_id']",5,5,5
+75% free parking,"@np.where(df['PROPFREE'] > 0.749, 1, 0)",0.4225,,
+Free parking,@df['PROPFREE'],,-0.6498,-1.025
+Log long-term parking,@np.log(df['PARKLNG'] +1),0.1246,0.164,0.1441
+Parking Cost,"@np.where(df['tour_type']=='work', 7.9*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='school', 7.9*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='univ', 6.2*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='eatout', 2.2*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='othmaint', 2.8*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='shopping', 1.7*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='social', 3.0*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='othdiscr', 2.7*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='escort', 1.1*df['PARKRATE'], 0)",,-1.232,-2.291
+Parking Cost,"@np.where(df['tour_type']=='atwork', 0.6*df['PARKRATE'], 0)",,-1.232,-2.291
+Model only applied if dest is in cbd; bonus if parktaz also in cbd,@df['is_CBD'],0.6619,0.1673,0.4377
+Require parking zone to be less than 1/2 mile from dest,"@np.where(pd_skims['SOV_FREE_DISTANCE','MD'] > 0.5, 1, 0) * (df['destination'] != df['parking_zone_id'])",-9999,-9999,-9999

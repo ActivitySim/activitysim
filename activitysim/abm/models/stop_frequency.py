@@ -16,7 +16,6 @@ from activitysim.core.util import assign_in_place
 from activitysim.core.util import reindex
 
 from .util import estimation, trip
-from .util import trip
 
 logger = logging.getLogger(__name__)
 

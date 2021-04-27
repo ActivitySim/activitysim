@@ -101,13 +101,11 @@ def make_sample_choices(
 
         # position of first occurrence of positive value
         positions = np.argmax(cum_probs_array > r, axis=1)
-        #chunk.log_df(trace_label, 'positions', positions)
 
         # FIXME - leave positions as numpy array, not pandas series?
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
         positions = pd.Series(positions, index=probs.index)
-        #chunk.log_df(trace_label, 'positions', positions)
 
         # need to get from an integer offset into the alternative sample to the alternative index
         # that is, we want the index value of the row that is offset by <position> rows into the
@@ -115,16 +113,13 @@ def make_sample_choices(
 
         # offsets is the offset into model_design df of first row of chooser alternatives
         offsets = np.arange(len(positions)) * alternative_count
-        #chunk.log_df(trace_label, 'offsets', offsets)
 
         # choices and choice_probs have one element per chooser and is in same order as choosers
         choices_array[i] = np.take(alts, positions + offsets)
         choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
 
         del positions
-        #chunk.log_df(trace_label, 'positions', None)
         del offsets
-        #chunk.log_df(trace_label, 'offsets', None)
 
     chunk.log_df(trace_label, 'choices_array', choices_array)
     chunk.log_df(trace_label, 'choice_probs_array', choice_probs_array)
@@ -144,6 +139,8 @@ def make_sample_choices(
          choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
          })
 
+    chunk.log_df(trace_label, 'choices_df', choices_df)
+
     del choices_array
     chunk.log_df(trace_label, 'choices_array', None)
     del rands
@@ -151,8 +148,8 @@ def make_sample_choices(
     del choice_probs_array
     chunk.log_df(trace_label, 'choice_probs_array', None)
 
-    # caller logs this
-    #chunk.log_df(trace_label, 'choices_df', choices_df)
+    # handing this off to caller
+    chunk.log_df(trace_label, 'choices_df', None)
 
     return choices_df
 
@@ -232,10 +229,9 @@ def _interaction_sample(
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for set_skim_wrapper_targets
-    assert skims is None or alternatives.index.name in alternatives
-    # if skims is not None and alternatives.index.name not in alternatives:
-    #     alternatives = alternatives.copy()
-    #     alternatives[alternatives.index.name] = alternatives.index
+    if skims is not None and alternatives.index.name not in alternatives:
+        alternatives = alternatives.copy()
+        alternatives[alternatives.index.name] = alternatives.index
 
     # - cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative

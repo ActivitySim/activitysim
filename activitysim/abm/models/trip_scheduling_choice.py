@@ -13,8 +13,6 @@ from activitysim.core import tracing
 
 from activitysim.abm.models.util.trip import generate_alternative_sizes, get_time_windows
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
-from activitysim.core.mem import force_garbage_collect
-
 
 logger = logging.getLogger(__name__)
 
@@ -287,8 +285,6 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
             choices = schedules[schedules[SCHEDULE_ID].isin(choices)]
 
             result_list.append(choices)
-
-            #force_garbage_collect()
 
         # FIXME: this will require 2X RAM
         # if necessary, could append to hdf5 store on disk:

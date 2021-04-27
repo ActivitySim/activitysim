@@ -17,9 +17,6 @@ from activitysim.core.util import reindex
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
 
-from activitysim.core.mem import force_garbage_collect
-
-
 from . import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
@@ -58,9 +55,6 @@ class SizeTermCalculator(object):
         logger.debug(f"SizeTermCalculator dropping {(~(size_terms.size_term > 0)).sum()} "
                      f"of {len(size_terms)} rows where size_term is zero for {segment_name}")
         size_terms = size_terms[size_terms.size_term > 0]
-
-        # add zone_id as column so it can be used to set skim_wrapper targets
-        size_terms[size_terms.index.name] = size_terms.index
 
         if len(size_terms) == 0:
             logger.warning(f"SizeTermCalculator: no zones with non-zero size terms for {segment_name} in {trace_label}")
@@ -180,6 +174,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
     # aggregate to TAZ
     TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg({'size_term': 'sum'})
+    TAZ_size_terms[DEST_TAZ] = TAZ_size_terms.index
     assert not TAZ_size_terms['size_term'].isna().any()
 
     #           size_term
@@ -718,10 +713,9 @@ def run_tour_destination(
             # FIXME - sample_table
             location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
             sample_list.append(location_sample_df)
-
-        # FIXME - want to do this here?
-        del location_sample_df
-        #force_garbage_collect()
+        else:
+            # del this so we dont hold active reference to it while run_location_sample is creating its replacement
+            del location_sample_df
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)

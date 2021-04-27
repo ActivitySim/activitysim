@@ -322,9 +322,9 @@ def register_traceable_table(table_name, df):
         inject.add_injectable('traceable_table_ids', traceable_table_ids)
 
     logger.debug("register %s: added %s new ids to %s existing trace ids" %
-                (table_name, len(new_traced_ids), len(prior_traced_ids)))
+                 (table_name, len(new_traced_ids), len(prior_traced_ids)))
     logger.debug("register %s: tracing new ids %s in %s" %
-                (table_name, new_traced_ids, table_name))
+                 (table_name, new_traced_ids, table_name))
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):

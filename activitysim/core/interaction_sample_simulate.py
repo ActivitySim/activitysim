@@ -372,7 +372,6 @@ def interaction_sample_simulate(
 
         result_list.append(choices)
 
-
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2

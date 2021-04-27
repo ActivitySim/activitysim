@@ -28,6 +28,19 @@ def GB(bytes):
     return fmt % (bytes, s)
 
 
+def INT_STR(x):
+    # format int as camel case (e.g. 1000000 vecomes '1_000_000')
+    negative = x < 0
+    x = abs(int(x))
+    result = ''
+    while x >= 1000:
+        x, r = divmod(x, 1000)
+        result = "_%03d%s" % (r, result)
+    result = "%d%s" % (x, result)
+
+    return f"{'-' if negative else ''}{result}"
+
+
 def df_size(df):
     bytes = 0 if df.empty else df.memory_usage(index=True).sum()
     return "%s %s" % (df.shape, GB(bytes))

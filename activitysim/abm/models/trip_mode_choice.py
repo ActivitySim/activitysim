@@ -13,8 +13,6 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import expressions
 
-from activitysim.core.mem import force_garbage_collect
-
 from activitysim.core import assign
 from activitysim.core import los
 
@@ -181,8 +179,6 @@ def trip_mode_choice(
                              warn_if_empty=True)
 
         choices_list.append(choices)
-
-        #force_garbage_collect()
 
     choices_df = pd.concat(choices_list)
 

@@ -518,10 +518,6 @@ class ShadowPriceCalculator(object):
             'shadow_price_utility_adjustment': utility_adjustment},
             index=self.desired_size.index)
 
-        #BUG
-        # add zone_id as column so it can be used to set skim_wrapper targets
-        size_terms[size_terms.index.name] = size_terms.index
-
         assert size_terms.index.is_monotonic_increasing
 
         return size_terms

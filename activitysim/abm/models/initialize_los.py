@@ -175,19 +175,24 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
     # get od skim_offset dataframe with uid index corresponding to scalar_attributes
     choosers_df = uid_calculator.get_od_dataframe(scalar_attributes)
 
+    # choosers_df is pretty big and was custom made for compute_utilities but we don't need to chunk_log it
+    # since it is created outside of adaptive_chunked_choosers and so will show up in baseline
+    assert not chunk.chunk_logging()  # otherwise we should chunk_log this
+
     row_size = chunk_size and initialize_tvpb_calc_row_size(choosers_df, network_los, trace_label)
     for i, chooser_chunk, chunk_trace_label \
             in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, row_size, trace_label):
 
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
-        # (call log_df from inside yield loop so it is visible to adaptive_chunked_choosers chunk_log)
-        chunk.log_df(trace_label, 'choosers_df', choosers_df)
+        assert chooser_chunk._is_view  # otherwise copying it is wasteful
+        chooser_chunk = chooser_chunk.copy()
+        chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
 
         # add any attribute columns specified as column attributes in settings (the rest will be scalars in locals_dict)
         for attribute_name in attributes_as_columns:
             chooser_chunk[attribute_name] = scalar_attributes[attribute_name]
 
-        #chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
+        chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
 
         utilities_df = \
             pathbuilder.compute_utilities(network_los,
@@ -203,6 +208,9 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
         assert not any_uninitialized(utilities_df.values)
 
         data[chooser_chunk.index.values, :] = utilities_df.values
+
+        del chooser_chunk
+        chunk.log_df(trace_label, 'chooser_chunk', None)
 
     logger.debug(f"{trace_label} updated utilities")
 

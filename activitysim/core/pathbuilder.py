@@ -171,7 +171,8 @@ class TransitVirtualPathBuilder(object):
 
             else:
 
-                assignment_spec = assign.read_assignment_spec(file_name=config.config_file_path(maz_tap_settings['SPEC']))
+                assignment_spec = \
+                    assign.read_assignment_spec(file_name=config.config_file_path(maz_tap_settings['SPEC']))
 
                 results, _, _ = assign.assign_variables(assignment_spec, utilities_df, model_constants)
                 assert len(results.columns == 1)

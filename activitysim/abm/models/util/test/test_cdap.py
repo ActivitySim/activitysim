@@ -136,7 +136,7 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
     vars = simulate.eval_variables(spec.index, choosers)
     assert (spec.index.values == vars.columns.values).all()
 
-    #spec = spec.astype(np.float64)
+    # spec = spec.astype(np.float64)
 
     utils = vars.dot(spec)
 

@@ -170,4 +170,3 @@ def atwork_subtour_mode_choice(
                          label=tracing.extend_trace_label(trace_label, mode_column_name),
                          slicer='tour_id',
                          index_label='tour_id')
-

@@ -1398,8 +1398,6 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    #trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
-
     assert len(choosers) > 0
 
     row_size = chunk_size and simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trace_label)

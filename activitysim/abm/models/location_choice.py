@@ -665,10 +665,9 @@ def run_location_choice(
             location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
                                          append=True, inplace=True)
             sample_list.append(location_sample_df)
-
-        # FIXME - want to do this here?
-        del location_sample_df
-        #mem.force_garbage_collect()
+        else:
+            # del this so we dont hold active reference to it while run_location_sample is creating its replacement
+            del location_sample_df
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)

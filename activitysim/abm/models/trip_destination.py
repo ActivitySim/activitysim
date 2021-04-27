@@ -954,10 +954,9 @@ def run_trip_destination(
     # returns a series of size_terms for each chooser's dest_zone_id and purpose with chooser index
     size_term_matrix = DataFrameMatrix(alternatives)
 
-    # alternatives df needs only zone_id as index and column (so it can be used to set skim_wrapper targets)
-    alternatives.drop(alternatives.columns, axis=1, inplace=True)
+    # don't need size terms in alternatives, just zone_id index
+    alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = model_settings['ALT_DEST_COL_NAME']
-    alternatives[alternatives.index.name] = alternatives.index
 
     sample_list = []
 

@@ -81,7 +81,6 @@ def trace_od(settings):
 def chunk_size(settings):
     _chunk_size = int(settings.get('chunk_size', 0) or 0)
 
-
     return _chunk_size
 
 

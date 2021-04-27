@@ -87,9 +87,6 @@ def trace_memory_info(event=''):
     if (t - last_tick < tick_len) and not event:
         return
 
-    #bug
-    #force_garbage_collect()
-
     vmi = psutil.virtual_memory()
 
     MEM['tick'] = t
@@ -120,4 +117,3 @@ def trace_memory_info(event=''):
                GB(vmi.available),
                vmi.percent,
                event), file=output_file)
-

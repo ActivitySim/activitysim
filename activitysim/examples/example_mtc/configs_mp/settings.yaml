@@ -39,7 +39,7 @@ want_dest_choice_sample_tables: False
 trace_od:
 
 # to resume after last successful checkpoint, specify resume_after: _
-resume_after: trip_purpose_and_destination
+#resume_after: trip_purpose_and_destination
 
 models:
   ### mp_initialize step

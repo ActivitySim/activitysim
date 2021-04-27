@@ -70,7 +70,6 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
         locals_d = locals_d.copy() if locals_d is not None else {}
 
-        #locals_d.update(locals())  #bug why do we need this? - tt.adjacent_window_after(df.person_id, df.end) ????)
         # add df for startswith('@') eval expressions
         locals_d['df'] = df
 
@@ -151,7 +150,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                 else:
                     v = df.eval(expr)
 
-                chunk.log_df(trace_label, 'v', v)
+                # chunk.log_df(trace_label, 'v', v)
 
                 if check_for_variability and v.std() == 0:
                     logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
@@ -182,7 +181,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                     trace_eval_results[k] = v[trace_rows] * coefficient
 
                 del v
-                chunk.log_df(trace_label, 'v', None)
+                # chunk.log_df(trace_label, 'v', None)
 
             except Exception as err:
                 logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
@@ -216,7 +215,6 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         chunk.log_df(trace_label, 'eval.trace_eval_results', None)
 
     return utilities, trace_eval_results
-
 
 
 def _interaction_simulate(

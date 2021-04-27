@@ -15,8 +15,6 @@ from activitysim.core import simulate
 from activitysim.core import logit
 from activitysim.core import expressions
 
-from activitysim.core.mem import force_garbage_collect
-
 from .util import estimation
 
 from .util.overlap import person_max_window
@@ -239,9 +237,6 @@ def non_mandatory_tour_frequency(persons, persons_merged,
             estimator.end_estimation()
 
         choices_list.append(choices)
-
-        # FIXME - force garbage collection?
-        #force_garbage_collect()
 
     del alternatives['tot_tours']  # del tot_tours column we added above
 

@@ -59,6 +59,9 @@ class SizeTermCalculator(object):
                      f"of {len(size_terms)} rows where size_term is zero for {segment_name}")
         size_terms = size_terms[size_terms.size_term > 0]
 
+        # add zone_id as column so it can be used to set skim_wrapper targets
+        size_terms[size_terms.index.name] = size_terms.index
+
         if len(size_terms) == 0:
             logger.warning(f"SizeTermCalculator: no zones with non-zero size terms for {segment_name} in {trace_label}")
 
@@ -718,7 +721,7 @@ def run_tour_destination(
 
         # FIXME - want to do this here?
         del location_sample_df
-        force_garbage_collect()
+        #force_garbage_collect()
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)

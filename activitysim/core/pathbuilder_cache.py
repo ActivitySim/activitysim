@@ -89,12 +89,12 @@ class TVPBCache(object):
     @property
     def cache_path(self):
         file_type = 'mmap'
-        return os.path.join(self.network_los.get_cache_dir(), f'{self.cache_tag}.{file_type}')
+        return os.path.join(config.get_cache_dir(), f'{self.cache_tag}.{file_type}')
 
     @property
     def csv_trace_path(self):
         file_type = 'csv'
-        return os.path.join(self.network_los.get_cache_dir(), f'{self.cache_tag}.{file_type}')
+        return os.path.join(config.get_cache_dir(), f'{self.cache_tag}.{file_type}')
 
     def cleanup(self):
         """

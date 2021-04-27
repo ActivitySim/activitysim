@@ -79,7 +79,10 @@ def trace_od(settings):
 
 @inject.injectable(cache=True)
 def chunk_size(settings):
-    return int(settings.get('chunk_size', 0) or 0)
+    _chunk_size = int(settings.get('chunk_size', 0) or 0)
+
+
+    return _chunk_size
 
 
 @inject.injectable(cache=True)

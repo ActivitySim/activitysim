@@ -491,8 +491,6 @@ def open_pipeline(resume_after=None):
         name of checkpoint to load from pipeline store
     """
 
-    logger.info("open_pipeline")
-
     if is_open():
         raise RuntimeError("Pipeline is already open!")
 

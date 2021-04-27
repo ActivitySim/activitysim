@@ -110,9 +110,6 @@ def accessibility_calc_row_size(accessibility_df, land_use_df, assignment_spec, 
 
     sizer = chunk.RowSizeEstimator(trace_label)
 
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead tvpb skims
-    # (do this first to facilitate tracing of rowsize estimation below)
     if network_los.zone_system == los.THREE_ZONE:
         # DISABLE_TVPB_OVERHEAD
         logger.debug("disable calc_row_size for THREE_ZONE with tap skims")

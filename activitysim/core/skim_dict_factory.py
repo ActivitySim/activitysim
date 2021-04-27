@@ -251,7 +251,7 @@ class AbstractSkimFactory(ABC):
         assert False, "Not supported"
 
     def _memmap_skim_data_path(self, skim_tag):
-        return os.path.join(self.network_los.get_cache_dir(), f"cached_{skim_tag}.mmap")
+        return os.path.join(config.get_cache_dir(), f"cached_{skim_tag}.mmap")
 
     def load_skim_info(self, skim_tag):
         return SkimInfo(skim_tag, self.network_los)

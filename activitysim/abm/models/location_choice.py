@@ -668,7 +668,7 @@ def run_location_choice(
 
         # FIXME - want to do this here?
         del location_sample_df
-        mem.force_garbage_collect()
+        #mem.force_garbage_collect()
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)

@@ -129,9 +129,16 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
 
     spec = cdap.build_cdap_spec(interaction_coefficients, hhsize=hhsize, cache=False)
 
-    vars = simulate.eval_variables(spec.index, choosers)
+    # pandas.dot depends on column names of expression_values matching spec index values
+    # expressions should have been uniquified when spec was read
+    assert spec.index.is_unique
 
-    utils = simulate.compute_utilities(vars, spec)
+    vars = simulate.eval_variables(spec.index, choosers)
+    assert (spec.index.values == vars.columns.values).all()
+
+    #spec = spec.astype(np.float64)
+
+    utils = vars.dot(spec)
 
     expected = pd.DataFrame([
         [0, 3, 0, 3, 7, 3, 0, 3, 0],  # household 3

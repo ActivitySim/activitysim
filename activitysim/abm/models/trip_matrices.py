@@ -238,7 +238,7 @@ def write_matrices(aggregate_trips, zone_index, orig_index, dest_index, model_se
 
                 data = np.zeros((len(zone_index), len(zone_index)))
                 data[orig_index, dest_index] = aggregate_trips[col]
-                logger.info('writing %s sum %0.2f' % (table_name, aggregate_trips[col].sum()))
+                logger.debug('writing %s sum %0.2f' % (table_name, aggregate_trips[col].sum()))
                 file[table_name] = data  # write to file
 
             # include the index-to-zone map in the file

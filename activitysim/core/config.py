@@ -76,6 +76,29 @@ def settings(settings_file_name):
     return settings_dict
 
 
+def get_cache_dir():
+    """
+    return path of cache directory in output_dir (creating it, if need be)
+
+    cache directory is used to store
+        skim memmaps created by skim+dict_factories
+        tvpb tap_tap table cache
+
+    Returns
+    -------
+    str path
+    """
+    cache_dir = setting('cache_dir', default=None)
+    if cache_dir is None:
+        cache_dir = setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
+
+    if not os.path.isdir(cache_dir):
+        os.mkdir(cache_dir)
+    assert os.path.isdir(cache_dir)
+
+    return cache_dir
+
+
 def setting(key, default=None):
     return inject.get_injectable('settings').get(key, default)
 

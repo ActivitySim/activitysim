@@ -41,7 +41,7 @@ def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
     else:
         MEM['tick_len'] = tick_len
 
-    logger.info("init_trace file_name %s" % file_name)
+    logger.debug("init_trace file_name %s" % file_name)
 
     # - check for optional process name prefix
     MEM['prefix'] = inject.get_injectable('log_file_prefix', 'main')
@@ -87,7 +87,8 @@ def trace_memory_info(event=''):
     if (t - last_tick < tick_len) and not event:
         return
 
-    force_garbage_collect()
+    #bug
+    #force_garbage_collect()
 
     vmi = psutil.virtual_memory()
 
@@ -107,7 +108,7 @@ def trace_memory_info(event=''):
     trace_hwm('used', GB(vmi.used), timestamp, event)
 
     if event:
-        logger.info(f"trace_memory_info {event} rss: {GB(rss)}GB used: {GB(vmi.used)} GB percent: {vmi.percent}%")
+        logger.debug(f"trace_memory_info {event} rss: {GB(rss)}GB percent: {vmi.percent}%")
 
     with config.open_log_file(MEM['file_name'], 'a') as output_file:
 
@@ -120,12 +121,3 @@ def trace_memory_info(event=''):
                vmi.percent,
                event), file=output_file)
 
-
-def get_rss():
-
-    mi = psutil.Process().memory_info()
-
-    # cur_mem = mi.vms
-    cur_mem = mi.rss
-
-    return cur_mem

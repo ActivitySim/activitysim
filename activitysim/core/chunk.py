@@ -4,7 +4,11 @@ from builtins import input
 
 import math
 import logging
-from collections import OrderedDict
+import psutil
+import threading
+import _thread
+import os
+
 from contextlib import contextmanager
 
 import numpy as np
@@ -13,49 +17,240 @@ import pandas as pd
 from . import util
 from . import mem
 from . import tracing
+from . import config
+from . import inject
+
+from .util import GB
 
 logger = logging.getLogger(__name__)
 
-# dict of table_dicts keyed by trace_label
-# table_dicts are dicts tuples of {table_name: (elements, bytes, mem), ...}
-CHUNK_LOG = OrderedDict()
+CHUNK_LEDGERS = []
+CHUNK_SIZERS = []
 
-# array of chunk_size active CHUNK_LOG
-CHUNK_SIZE = []
-
-HWM = [{}]
-
-INITIAL_ROWS_PER_CHUNK = 10
 MAX_ROWSIZE_ERROR = 0.5  # estimated_row_size percentage error warning threshold
 INTERACTIVE_TRACE_CHUNKING = False
 INTERACTIVE_TRACE_CHUNK_WARNING = False
 
-CHUNK_RSS = False
 BYTES_PER_ELEMENT = 8
 
-# chunk size being a bit opaque, it may be helpful to know the chunk size of a small sample run to titrate chunk_size
-CHUNK_HISTORY = True  # always log chunk history even if chunk_size == 0
+FORCE_EXPORATORY_CHUNKING = True
+MEM_MONITOR_TICK = 1  # in seconds
+ENABLE_MEMORY_MONITOR = True
+COPY_CHUNKS = False
+
+CACHE_HISTORY = True
 
 
-def GB(bytes):
-    # symbols = ('', 'K', 'M', 'G', 'T')
-    symbols = ('', ' KB', ' MB', ' GB', ' TB')
-    fmt = "%.1f%s"
-    for i, s in enumerate(symbols):
-        units = 1 << i * 10
-        if bytes < units * 1024:
-            return fmt % (bytes / units, s)
+HWM = {}
+
+ledger_lock = threading.Lock()
+
+C_CHUNK_TAG = 'tag'
+C_DEPTH = 'depth'
+C_OVERHEAD = 'cum_overhead'
+C_OVERHEAD_RSS = 'cum_overhead_rss'
+C_OVERHEAD_BYTES = 'cum_overhead_bytes'
+C_NUM_ROWS = 'rows_processed'
+
+C_NUM_CHUNKS = C_CHUNK = 'chunk'  # chunk num becomes num_chunks when we drop all but last
+C_CHUNK_SIZE = 'chunk_size'
+CHUNK_HISTORY_COLUMNS = [C_CHUNK_TAG, C_DEPTH, C_OVERHEAD, C_OVERHEAD_RSS, C_OVERHEAD_BYTES,
+                        'observed_row_size', 'observed_row_size_rss', 'observed_row_size_bytes',
+                         'initial_rss', 'final_rss',
+                         C_NUM_ROWS, C_CHUNK_SIZE, C_NUM_CHUNKS]
+
+
+class ChunkHistorian(object):
+    """
+    Utility for estimating row_size
+    """
+    def __init__(self):
+
+        self.chunk_log_path = None
+
+        self.have_cached_history = None
+        self.cached_history_df = None
+
+        self.DEFAULT_INITIAL_ROWS_PER_CHUNK = 10
+        self.CACHE_FILE_NAME = 'chunk_log.csv'
+        self.LOG_FILE_NAME = 'chunk_log.csv'
+
+    def load_cached_history(self):
+
+        chunk_cache_path = os.path.join(config.get_cache_dir(), self.CACHE_FILE_NAME)
+
+        logger.debug(f"ChunkHistorian load_cached_history chunk_cache_path {chunk_cache_path}")
+
+        if CACHE_HISTORY and os.path.exists(chunk_cache_path):
+            logger.debug(f"ChunkHistorian load_cached_history reading cached chunk history from {self.CACHE_FILE_NAME}")
+            df = pd.read_csv(chunk_cache_path, comment='#')
+
+            missing_columns = [c for c in CHUNK_HISTORY_COLUMNS if c not in df]
+            if missing_columns:
+                logger.error(f"cached chunk log is missing columns: {missing_columns}")
+
+            df = df[df[C_DEPTH] == 1]
+
+            # cached_row_size method handles duplicates
+            # if df[C_CHUNK_TAG].duplicated().any():
+            #     logger.warning(f"ChunkHistorian load_cached_history found duplicate {C_CHUNK_TAG} rows in cache")
+            #     df = df[~df[C_CHUNK_TAG].duplicated(keep='last')]
+
+            self.cached_history_df = df
+            self.have_cached_history = True
+        else:
+            self.have_cached_history = False
+
+
+    def cached_row_size(self, chunk_tag):
+
+        if self.have_cached_history is None:
+            self.load_cached_history()
+
+        row_size = 0  # this is out fallback
+
+        if self.have_cached_history:
+
+            try:
+                df = self.cached_history_df[self.cached_history_df[C_CHUNK_TAG] == chunk_tag]
+                if len(df) > 0:
+
+                    if len(df) > 1:
+                        logger.info(f"ChunkHistorian aggregating {len(df)} multiple rows for {chunk_tag}")
+
+                    overhead = df[C_OVERHEAD].sum()
+                    num_rows = df[C_NUM_ROWS].sum()
+                    if num_rows > 0:
+                        row_size = overhead / num_rows
+
+            except Exception as e:
+                logger.warning(f"ChunkHistorian Error calculating row_size for {chunk_tag}")
+                raise e
+
+        return row_size
+
+    def write_history(self, history_df, chunk_tag):
+
+
+        # just want the last, most up to date row
+        history_df = history_df.tail(1)
+
+        history_df[C_CHUNK_TAG] = chunk_tag
+
+        missing_columns = [c for c in CHUNK_HISTORY_COLUMNS if c not in history_df]
+        if missing_columns:
+            logger.error(f"ChunkHistorian.write_history: history_df is missing columns: {missing_columns}")
+        history_df = history_df[CHUNK_HISTORY_COLUMNS]
+
+        if self.chunk_log_path is None:
+            self.chunk_log_path = config.log_file_path(self.LOG_FILE_NAME)
+
+        tracing.write_df_csv(history_df, self.chunk_log_path, index_label=None, columns=None, column_labels=None, transpose=False)
+
+
+_HISTORIAN = ChunkHistorian()
+
+
+def log_write_hwm():
+
+    for tag, hwm in HWM.items():
+        hwm = HWM[tag]
+        logger.debug("high_water_mark %s: %s (%s) in %s" %
+                     (tag, GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
+
+    print(f"\n")
+    for tag, hwm in HWM.items():
+        hwm = HWM[tag]
+        print(f"chunk_hwm high_water_mark {tag}: {GB(hwm['mark'])} in {hwm['trace_label']}")
+
+
+def check_global_hwm(tag, value, info, trace_label):
+
+    if value:
+        hwm = HWM.setdefault(tag, {})
+
+        if value > hwm.get('mark', 0):
+
+            hwm['mark'] = value
+            hwm['info'] = info
+            hwm['trace_label'] = trace_label
+        elif value > hwm.get('mark', 0):
+
+            logger.info(f"\n\n### NEW LOWER RSS {tag} {trace_label} value {value} prev hwm {hwm.get('mark', 0)}\n")
+            bug
 
 
 def commas(x):
-    x = int(x)
-    if x < 10000:
-        return str(x)
+    negative = x < 0
+    x = abs(int(x))
+    # if x < 10000:
+    #     return str(x000
     result = ''
     while x >= 1000:
         x, r = divmod(x, 1000)
-        result = ",%03d%s" % (r, result)
-    return "%d%s" % (x, result)
+        result = "_%03d%s" % (r, result)
+    result =  "%d%s" % (x, result)
+
+    return f"{'-' if negative else ''}{result}"
+
+
+def get_rss(force_garbage_collect=False):
+
+    if force_garbage_collect:
+        mem.force_garbage_collect()
+
+    return psutil.Process().memory_info().rss
+
+
+BREAK_ACTIONS = {}
+IGNORE = 'x'
+EXIT = '.'
+
+def break_or_ignore(tag, msg):
+
+    if BREAK_ACTIONS.get(tag) == IGNORE:
+        return IGNORE
+
+    print(f"\nBREAK: {msg}")
+    BREAK_ACTIONS[tag] = input(f"type '{IGNORE}' to disable, '{EXIT}' to exit, any other key to continue: ")
+    if BREAK_ACTIONS[tag] == EXIT:
+        #os._exit(0)
+        _thread.interrupt_main()
+
+    return BREAK_ACTIONS[tag]
+
+
+
+def get_base_chunk_size():
+    assert len(CHUNK_SIZERS) > 0
+    return CHUNK_SIZERS[0].chunk_size
+
+
+def out_of_chunk_memory(msg):
+
+    prev_rss = get_rss()
+    cur_rss = get_rss(force_garbage_collect=True)
+
+    # if things are that dire...
+    base_chunk_size = get_base_chunk_size()
+    if cur_rss < base_chunk_size:
+        logger.warning(f"out_of_chunk_memory FALSE_ALARM "
+                       f"prev_rss: {prev_rss} cur_rss: {cur_rss } base_chunk_size: {base_chunk_size}")
+        return
+
+    logger.error(f"out_of_chunk_memory: cur_rss: {cur_rss} {msg}")
+    #if break_or_ignore('OOM', f"out_of_chunk_memory: cur_rss: {cur_rss} {msg}") == IGNORE:
+    #    return
+
+    for s in CHUNK_SIZERS[::-1]:
+        logger.error(f"CHUNK_SIZER {s.trace_label}")
+        #logger.error(f"--- chunk_size {s.chunk_size}")
+
+    for s in CHUNK_LEDGERS[::-1]:
+        logger.error(f"CHUNK_LOGGER {s.trace_label}")
+        #logger.error(f"--- chunk_size {commas(s.chunk_size)}")
+        logger.error(f"--- hwm_bytes {commas(s.hwm_bytes['value'])} {s.hwm_bytes['info']}")
+        logger.error(f"--- hwm_rss {commas(s.hwm_rss['value'])} {s.hwm_rss['info']}")
 
 
 class RowSizeEstimator(object):
@@ -64,17 +259,18 @@ class RowSizeEstimator(object):
     """
     def __init__(self, trace_label):
         self.row_size = 0
-        self.hwm = 0  # element count at high water mark
+        self.hwm = 0  # element byte at high water mark
         self.hwm_tag = None  # tag that drove hwm (with ref count)
         self.trace_label = trace_label
-        self.elements = {}
+        self.bytes = {}
         self.tag_count = {}
 
     def add_elements(self, elements, tag):
-        self.elements[tag] = elements
+        bytes = elements * BYTES_PER_ELEMENT
+        self.bytes[tag] = bytes
         self.tag_count[tag] = self.tag_count.setdefault(tag, 0) + 1  # number of times tag has been seen
-        self.row_size += elements
-        logger.debug(f"{self.trace_label} #chunk_calc {tag} {elements} ({self.row_size})")
+        self.row_size += bytes
+        logger.debug(f"{self.trace_label} #rowsize {tag} {bytes} ({self.row_size})")
         input("add_elements>") if INTERACTIVE_TRACE_CHUNKING else None
 
         if self.row_size > self.hwm:
@@ -83,64 +279,163 @@ class RowSizeEstimator(object):
             self.hwm_tag = f'{tag}_{self.tag_count[tag]}' if self.tag_count[tag] > 1 else tag
 
     def drop_elements(self, tag):
-        self.row_size -= self.elements[tag]
-        self.elements[tag] = 0
-        logger.debug(f"{self.trace_label} #chunk_calc {tag} <drop> ({self.row_size})")
+        self.row_size -= self.bytes[tag]
+        self.bytes[tag] = 0
+        logger.debug(f"{self.trace_label} #rowsize {tag} <drop> ({self.row_size})")
 
     def get_hwm(self):
-        logger.debug(f"{self.trace_label} #chunk_calc hwm {self.hwm} after {self.hwm_tag}")
+        logger.debug(f"{self.trace_label} #rowsize hwm {self.hwm} after {self.hwm_tag}")
         input("get_hwm>") if INTERACTIVE_TRACE_CHUNKING else None
-        return self.hwm
+        hwm = self.hwm
+        return hwm
 
 
-def get_high_water_mark(tag='elements'):
+class ChunkLedger(object):
+    """
+    ::
+    """
+    def __init__(self, trace_label, chunk_size, baseline_rss):
+        self.trace_label = trace_label
+        self.chunk_size = chunk_size
 
-    # should always have at least the base chunker
-    assert len(HWM) > 0
+        self.last_rss = baseline_rss
 
-    hwm = HWM[-1]
+        self.tables = {}
+        self.hwm_bytes = {'value': 0, 'info': f'{trace_label}.init'}
+        self.hwm_rss = {'value': baseline_rss, 'info': f'{trace_label}.init'}
+        self.last_op = None
+        self.total_bytes = 0
 
-    # hwm might be empty if there were no calls to log_df
-    mark = hwm.get(tag).get('mark') if hwm else 0
+    def close(self):
+        #print(f"ChunkLedger {self.trace_label} chunk_size {self.chunk_size}")
 
-    return mark
+        logger.debug(f"ChunkLedger.close hwm_bytes: {self.hwm_bytes.get('value', 0)} {self.hwm_bytes['info']}")
+        logger.debug(f"ChunkLedger.close hwm_rss {self.hwm_rss['value']} {self.hwm_rss['info']}")
 
+    def log_df(self, trace_label, table_name, df):
 
-@contextmanager
-def chunk_log(trace_label, chunk_size=0):
-    log_open(trace_label, chunk_size)
-    try:
-        yield
-    finally:
-        log_close(trace_label)
+        def size_it(df):
+            if isinstance(df, pd.Series):
+                elements = util.iprod(df.shape)
+                bytes = 0 if not elements else df.memory_usage(index=True)
+            elif isinstance(df, pd.DataFrame):
+                elements = util.iprod(df.shape)
+                bytes = 0 if not elements else df.memory_usage(index=True).sum()
+            elif isinstance(df, np.ndarray):
+                elements = util.iprod(df.shape)
+                bytes = df.nbytes
+            elif isinstance(df, dict):
+                # dict of series, dataframe, or ndarray (e.g. assign assign_variables target and temp dicts)
+                elements = 0
+                bytes = 0
+                for k, v in df.items():
+                    e, b = size_it(v)
+                    elements += e
+                    bytes += b
+            else:
+                logger.error(f"size_it unknown type: {type(df)}")
+                assert False
+            return elements, bytes
 
+        if df is None:
+            elements, bytes = (0, 0)
+            delta_bytes = bytes - self.tables.get(table_name, 0)
+            self.tables[table_name] = bytes
+        else:
+            elements, bytes = size_it(df)
+            delta_bytes = bytes - self.tables.get(table_name, 0)
+            self.tables[table_name] = bytes
 
-def log_open(trace_label, chunk_size=0):
+        # shape is informational and only used for logging
+        if df is None:
+            shape = (0, 0)
+        elif isinstance(df, dict):
+            # ordinarily all elements are same length in assign_variables, unless expresssion file is being clever
+            n = len(df.keys())
+            shape = (n, elements / n if n else 0)
+        else:
+            shape = df.shape
 
-    # nested chunkers should be unchunked
-    if len(CHUNK_LOG) > 0:
-        assert chunk_size == 0
-        assert trace_label not in CHUNK_LOG
+        cur_rss = get_rss()
+        delta_rss = cur_rss - self.last_rss
+        self.last_rss = cur_rss
 
-    CHUNK_LOG[trace_label] = OrderedDict()
-    CHUNK_SIZE.append(chunk_size)
+        def f(n):
+            return commas(n).rjust(12)
 
-    HWM.append({})
+        #bug
+        logger.debug(f"log_df delta_bytes: {f(delta_bytes)} delta_rss: {f(delta_rss)} {table_name} {shape}")
 
+        self.total_bytes = sum(self.tables.values())
+        #logger.debug(f"log_df bytes: {commas(bytes)} total_bytes {commas(self.total_bytes)} {table_name}")
 
-def log_close(trace_label):
+    def check_hwm(self, hwm_trace_label, cur_rss, total_bytes=None):
+        """
 
-    # they should be closing the last log opened (LIFO)
-    assert CHUNK_LOG and next(reversed(CHUNK_LOG)) == trace_label
+        Parameters
 
-    # if we are closing base level chunker
-    if len(CHUNK_LOG) == 1:
-        log_write_hwm()
+        ----------
+        hwm_trace_label: str
+        cur_rss: int
+            current absolute rss (easier to deal with this as absolute than as delta)
+        total_bytes: int
+            total current bytes summed for all active ChunkLedgers
 
-    label, _ = CHUNK_LOG.popitem(last=True)
-    assert label == trace_label
-    CHUNK_SIZE.pop()
-    HWM.pop()
+        Returns
+        -------
+
+        """
+
+        from_rss_monitor = total_bytes is None
+        base_chunk_size = get_base_chunk_size()
+
+        info = f"rss: {GB(cur_rss)} " \
+               f"base_chunk_size: {GB(base_chunk_size)} " \
+               f"op: {hwm_trace_label}"
+
+        if total_bytes:
+            info = f"bytes: {GB(total_bytes)} " + info
+
+            if total_bytes > self.hwm_bytes['value']:
+                self.hwm_bytes['value'] = total_bytes
+                self.hwm_bytes['info'] = info
+
+                # if this is a high water mark, check whether we are exceeding base_chunk_size
+                if base_chunk_size > 0 and total_bytes > base_chunk_size:
+                    out_of_chunk_memory(hwm_trace_label)
+
+            self.last_op = hwm_trace_label
+
+        if cur_rss > self.hwm_rss['value']:
+
+            #bug if we were called by mem_monitor
+            # if total_bytes is None:
+            #     prev_rss = self.hwm_rss['value']
+                #logger.warning(f"\n\n### NEW HWM {hwm_trace_label} cur_rss {commas(cur_rss)} prev hwm {commas(prev_rss)}\n")
+
+            self.hwm_rss['value'] = cur_rss
+            self.hwm_rss['info'] = info
+
+            # if this is a high water mark, check whether we are exceeding base_chunk_size
+            if base_chunk_size > 0 and cur_rss > base_chunk_size:
+                if not from_rss_monitor:
+                    out_of_chunk_memory(hwm_trace_label)
+
+        check_global_hwm('rss', cur_rss, info, hwm_trace_label)
+        check_global_hwm('bytes', total_bytes, info, hwm_trace_label)
+
+    def get_hwm_gross_rss(self):
+        with ledger_lock:
+            net_rss = self.hwm_rss['value']
+        return net_rss
+
+    def get_hwm_rss(self):
+        with ledger_lock:
+            net_rss = self.hwm_rss['value']
+        return net_rss
+
+    def get_hwm_bytes(self):
+        return self.hwm_bytes['value']
 
 
 def log_df(trace_label, table_name, df):
@@ -155,286 +450,368 @@ def log_df(trace_label, table_name, df):
         table to log (or None if df was deleted)
     """
 
-    def size_it(df):
-        if isinstance(df, pd.Series):
-            elements = util.iprod(df.shape)
-            bytes = 0 if not elements else df.memory_usage(index=True)
-        elif isinstance(df, pd.DataFrame):
-            elements = util.iprod(df.shape)
-            bytes = 0 if not elements else df.memory_usage(index=True).sum()
-        elif isinstance(df, np.ndarray):
-            elements = util.iprod(df.shape)
-            bytes = df.nbytes
-        else:
-            logger.error(f"size_it unknown type: {type(df)}")
-            assert False
-        return elements, bytes
-
-    if df is None:
-        # FIXME force_garbage_collect on delete?
-        mem.force_garbage_collect()
-
-    try:
-        cur_chunker = next(reversed(CHUNK_LOG))
-    except StopIteration:
+    if len(CHUNK_LEDGERS) == 0:
         logger.warning(f"log_df called without current chunker. Did you forget to call log_open?")
         return
 
-    if df is None:
-        # remove table from log
-        CHUNK_LOG.get(cur_chunker).pop(table_name)
-        op = 'del'
-        logger.debug(f"log_df {table_name} "
-                     f"elements: {0} : {trace_label}")
-    else:
+    cur_chunker = CHUNK_LEDGERS[-1]
 
-        op = 'add'
+    op = 'del' if df is None else 'add'
+    hwm_trace_label = f"{trace_label}.{op}.{table_name}"
 
-        if isinstance(df, (pd.Series, pd.DataFrame, np.ndarray)):
-            elements, bytes = size_it(df)
-            shape = df.shape
-        elif isinstance(df, dict):
-            # dict of series, dataframe, or ndarray (e.g. assign assign_variables target and temp dicts)
-            elements = 0
-            bytes = 0
-            for k, s in df.items():
-                e, b = size_it(s)
-                elements += e
-                bytes += b
-            n = len(df.keys())
-            # shape is informational and only used for logging so no big deal if all elements are not same length
-            # though they ordinarily will be for in assign_variables, unless expresssion file is being awfully clever
-            shape = (n, elements/n if n else 0)
-        else:
-            logger.error("log_df %s unknown type: %s" % (table_name, type(df)))
-            assert False
+    # easier to deal with rss as an absolute than a delta
+    cur_rss = get_rss()
 
-        CHUNK_LOG.get(cur_chunker)[table_name] = (elements, bytes)
+    cur_chunker.log_df(hwm_trace_label, table_name, df)
 
-        # log this df
-        logger.debug(f"log_df {table_name} "
-                     f"elements: {commas(elements)} "
-                     f"bytes: {GB(bytes)} "
-                     f"shape: {shape} : {trace_label}")
-
-    hwm_trace_label = "%s.%s.%s" % (trace_label, op, table_name)
     mem.trace_memory_info(hwm_trace_label)
 
-    total_elements, total_bytes = _chunk_totals()  # new chunk totals
-    cur_rss = mem.get_rss()
+    total_bytes = sum([c.total_bytes for c in CHUNK_LEDGERS])
 
-    # - check high_water_marks
-    info = f"elements: {commas(total_elements)} " \
-           f"bytes: {GB(total_bytes)} " \
-           f"rss: {GB(cur_rss)} " \
-           f"chunk_size: {commas(CHUNK_SIZE[0])}"
-
-    if INTERACTIVE_TRACE_CHUNKING:
-        print(f"table_name {table_name} {df.shape if df is not None else 0}")
-        print(f"table_name {table_name} {info}")
-        input("log_df>")
-
-    check_for_hwm('elements', total_elements, info, hwm_trace_label)
-    check_for_hwm('bytes', total_bytes, info, hwm_trace_label)
-    check_for_hwm('rss', cur_rss, info, hwm_trace_label)
+    with ledger_lock:
+        for c in CHUNK_LEDGERS:
+            c.check_hwm(hwm_trace_label, cur_rss, total_bytes)
 
 
-def _chunk_totals():
+def log_rss(trace_label):
 
-    total_elements = 0
-    total_bytes = 0
-    for label in CHUNK_LOG:
-        tables = CHUNK_LOG[label]
-        for table_name in tables:
-            elements, bytes = tables[table_name]
-            total_elements += elements
-            total_bytes += bytes
+    #fixme
+    log_df(trace_label, 'rss_monitor', None)
+    return
 
-    return total_elements, total_bytes
+    if len(CHUNK_LEDGERS) == 0:
+        logger.warning(f"log_df called without current chunker. Did you forget to call log_open?")
+        return
 
+    hwm_trace_label = f"{trace_label}.log_rss"
 
-def check_for_hwm(tag, value, info, trace_label):
+    # easier to deal with rss as an absolute than a delta
+    cur_rss = get_rss()
 
-    for d in HWM:
-
-        hwm = d.setdefault(tag, {})
-
-        if value > hwm.get('mark', 0):
-            hwm['mark'] = value
-            hwm['info'] = info
-            hwm['trace_label'] = trace_label
+    with ledger_lock:
+        for c in CHUNK_LEDGERS:
+            c.check_hwm(hwm_trace_label, cur_rss)
 
 
-def log_write_hwm():
+class MemMonitor(threading.Thread):
 
-    d = HWM[0]
-    for tag in d:
-        hwm = d[tag]
-        logger.debug("#chunk_hwm high_water_mark %s: %s (%s) in %s" %
-                     (tag, hwm['mark'], hwm['info'], hwm['trace_label']), )
+    def __init__(self, trace_label, stop_snooping):
+        self.trace_label = trace_label
+        self.stop_snooping = stop_snooping
+        threading.Thread.__init__(self)
 
-    # - elements shouldn't exceed chunk_size of base chunker
-    def check_chunk_size(hwm, chunk_size, label, max_leeway):
-        elements = hwm['mark']
-        if chunk_size and max_leeway and elements > chunk_size * max_leeway:  # too high
-            # FIXME check for #warning in log - there is nothing the user can do about this
-            logger.debug("#chunk_hwm #warning total_elements (%s) > %s (%s) %s : %s " %
-                         (commas(elements), label, commas(chunk_size),
-                          hwm['info'], hwm['trace_label']))
+    def run(self):
+        i = 1
 
-    # if we are in a chunker
-    if len(HWM) > 1 and HWM[1]:
-        assert 'elements' in HWM[1]  # expect an 'elements' hwm dict for base chunker
-        hwm = HWM[1].get('elements')
-        check_chunk_size(hwm, CHUNK_SIZE[0], 'chunk_size', max_leeway=1)
+        log_rss(f"{self.trace_label}.tick_{i}")
+        while not self.stop_snooping.wait(timeout=MEM_MONITOR_TICK):
+            log_rss(f"{self.trace_label}.{i}")
+            i += 1
 
 
-def write_history(caller, history, trace_label):
+class ChunkSizer(object):
+    """
+    ::
+    """
+    def __init__(self, chunk_tag, trace_label, num_choosers=0, chunk_size=0):
 
-    observed_size = history.observed_chunk_size.sum()
-    number_of_rows = history.rows_per_chunk.sum()
-    observed_row_size = math.ceil(observed_size / number_of_rows)  # FIXME
+        self.depth = len(CHUNK_SIZERS) + 1
+        self.cur_rss = get_rss(force_garbage_collect=True)
 
-    num_chunks = len(history)
+        if self.depth > 1:
+            # nested chunkers should be unchunked
+            assert chunk_size == 0
 
-    logger.info(f"#chunk_history {caller} {trace_label} "
-                f"number_of_rows: {number_of_rows} "
-                f"observed_row_size: {observed_row_size} "
-                f"num_chunks: {num_chunks}")
+            # if we are in a nested call, then we must be in the scope of active Ledger
+            # so any rss accumulated so far should be attributed to the parent active ledger
+            assert len(CHUNK_SIZERS) == len(CHUNK_LEDGERS)
+            parent = CHUNK_SIZERS[-1]
+            assert parent.chunk_ledger is not None
 
-    logger.debug(f"#chunk_history {caller} {trace_label}\n{history}")
+            log_rss(trace_label)
 
-    initial_row_size = history.row_size.values[0]
-    if initial_row_size > 0:
+        self.chunk_tag = chunk_tag
+        self.trace_label = trace_label
 
-        # if they provided an initial estimated row size, then report error
+        self.num_choosers = num_choosers
 
-        error = (initial_row_size - observed_row_size) / observed_row_size
-        percent_error = round(error * 100, 1)
+        self.history = {}
+        self.chunk_ledger = None
+        self.chunk_size = chunk_size
 
-        logger.info(f"#chunk_history {caller} {trace_label} "
-                    f"initial_row_size: {initial_row_size} "
-                    f"observed_row_size: {observed_row_size} "
-                    f"percent_error: {percent_error}%")
+        CHUNK_SIZERS.append(self)
 
-        if abs(error) > MAX_ROWSIZE_ERROR:
+        self.base_chunk_size = CHUNK_SIZERS[0].chunk_size
 
-            logger.warning(f"#chunk_history MAX_ROWSIZE_ERROR "
-                           f"initial_row_size {initial_row_size} "
-                           f"observed_row_size {observed_row_size} "
-                           f"percent_error: {percent_error}% in {trace_label}")
+        if self.base_chunk_size > 0 and self.cur_rss >= self.base_chunk_size:
+            out_of_chunk_memory(f"{self.trace_label}.set_base_rss")
 
-            if INTERACTIVE_TRACE_CHUNK_WARNING:
-                # for debugging adaptive chunking internals
-                print(history)
-                input(f"{trace_label} type any key to continue")
+        logger.debug(f"#chunk_calc chunk: ChunkSizer.init "
+                     f"base_chunk_size: {self.base_chunk_size} cur_rss: {self.cur_rss} "
+                     f"headroom: {self.base_chunk_size - self.cur_rss}")
+
+    def close(self):
+
+        if self.history:
+
+            history_df = pd.DataFrame.from_dict(self.history)
+            print(f"ChunkSizer {self.trace_label}\n{history_df.transpose()}")
+
+            # no need to write history for unchunked nested chunk_sizers? (hwms still get tracked by base chunkers)
+            #if self.depth == 1:
+
+            _HISTORIAN.write_history(history_df, self.chunk_tag)
+
+        _chunk_sizer = CHUNK_SIZERS.pop()
+        assert _chunk_sizer == self
+        #bug
+
+    def initial_rows_per_chunk(self):
+
+        # initialize values only needed if actually chunking
+
+        self.cum_overhead_rss = 0
+        self.cum_overhead_bytes = 0
+        self.cum_overhead = 0  # hybrid based on greater of rss and bytes on each iteration
+        self.rows_processed = 0
+
+        self.initial_row_size = _HISTORIAN.cached_row_size(self.chunk_tag) if self.chunk_size > 0 else 0
+
+        #########
+
+        if self.chunk_size == 0:
+            assert self.initial_row_size == 0  # we ignore this but make sure caller realizes that
+            rows_per_chunk = self.num_choosers
+            estimated_number_of_chunks = 1
+        else:
+
+            assert len(CHUNK_LEDGERS) == 0, f"len(CHUNK_LEDGERS): {len(CHUNK_LEDGERS)}"
+            if self.initial_row_size == 0:
+                rows_per_chunk = min(self.num_choosers, _HISTORIAN.DEFAULT_INITIAL_ROWS_PER_CHUNK)
+                estimated_number_of_chunks = None
+            else:
+                available_chunk_size = self.base_chunk_size - self.cur_rss
+
+                max_rows_per_chunk = np.maximum(int(available_chunk_size / self.initial_row_size), 1)
+                logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rows_per_chunk} "
+                             f"based on initial_row_size {self.initial_row_size}")
+
+                rows_per_chunk = np.clip(max_rows_per_chunk, 1, self.num_choosers)
+                estimated_number_of_chunks = math.ceil(self.num_choosers / rows_per_chunk)
+
+            logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk}")
+
+        # cum_rows_per_chunk is out of phase with cum_chunk_size
+        # since we won't know observed_chunk_size until AFTER yielding the chunk
+        self.rows_per_chunk = rows_per_chunk
+        self.rows_processed = rows_per_chunk
+
+        return rows_per_chunk, estimated_number_of_chunks
+
+    def adaptive_rows_per_chunk(self, i):
+        # rows_processed is out of phase with cum_overhead
+        # observed_overhead is the overhead for processing chooser chunk with prev_rows_per_chunk rows
+
+        #log_df(self.trace_label, 'last_gasp_rss', None)
+
+        prev_rows_per_chunk = self.rows_per_chunk
+        prev_rows_processed = self.rows_processed
+
+        initial_rss = self.cur_rss
+        final_rss = get_rss(force_garbage_collect=True)
+
+        RESET_BASE_CHUNK = True  #FIXME should we update this every chunk? Or does it make available_chunk_size too jittery?
+        if RESET_BASE_CHUNK:
+            new_cur_rss = final_rss
+        else:
+            new_cur_rss = initial_rss
+
+        rows_remaining = self.num_choosers - prev_rows_processed
+
+        # use chunk_ledger to revise predicted row_size based on observed_overhead
+        observed_overhead_rss = self.chunk_ledger.get_hwm_rss() - initial_rss
+        self.cum_overhead_rss += observed_overhead_rss
+        observed_row_size_rss = math.ceil(self.cum_overhead_rss / prev_rows_processed)
+
+        observed_overhead_bytes = self.chunk_ledger.get_hwm_bytes()
+        self.cum_overhead_bytes += observed_overhead_bytes
+        observed_row_size_bytes = math.ceil(self.cum_overhead_bytes / prev_rows_processed)
+
+        observed_overhead = max(observed_overhead_rss, observed_overhead_bytes)
+        self.cum_overhead += observed_overhead  # could be hybrid of rss and bytes
+        observed_row_size = math.ceil(self.cum_overhead / prev_rows_processed)
+
+        # rows_per_chunk is closest number of chooser rows to achieve chunk_size without exceeding it
+        available_chunk_size = self.base_chunk_size - new_cur_rss
+        if observed_row_size > 0:
+            self.rows_per_chunk = int(available_chunk_size / observed_row_size)
+        else:
+            # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
+            self.rows_per_chunk = 10 * prev_rows_per_chunk
+            logger.warning(f"{self.trace_label} adaptive_rows_per_chunk_{i} observed_row_size == 0")
+
+        self.rows_per_chunk = np.clip(self.rows_per_chunk, 1, rows_remaining)
+        self.rows_processed = prev_rows_processed + self.rows_per_chunk
+        estimated_number_of_chunks = i + math.ceil(rows_remaining / self.rows_per_chunk) if rows_remaining else i
+
+        self.history.setdefault(C_DEPTH, []).append(self.depth)
+        self.history.setdefault(C_OVERHEAD, []).append(self.cum_overhead)
+        self.history.setdefault(C_OVERHEAD_RSS, []).append(self.cum_overhead_rss)
+        self.history.setdefault(C_OVERHEAD_BYTES, []).append(self.cum_overhead_bytes)
+        self.history.setdefault(C_NUM_ROWS, []).append(prev_rows_processed)
+        self.history.setdefault(C_CHUNK, []).append(i)
+        self.history.setdefault(C_CHUNK_SIZE, []).append(self.chunk_size)
+
+        # for legibility
+        self.history.setdefault('observed_row_size', []).append(observed_row_size)
+        self.history.setdefault('observed_row_size_rss', []).append(observed_row_size_rss)
+        self.history.setdefault('observed_row_size_bytes', []).append(observed_row_size_bytes)
+
+        self.history.setdefault('initial_rss', []).append(initial_rss)
+        self.history.setdefault('final_rss', []).append(final_rss)
+
+        # diagnostics not required by ChunkHistorian
+        self.history.setdefault('available_chunk_size', []).append(available_chunk_size)
+        self.history.setdefault('prev_rows_per_chunk', []).append(prev_rows_per_chunk)
+        self.history.setdefault('observed_overhead', []).append(observed_overhead)
+        self.history.setdefault('observed_overhead_rss', []).append(observed_overhead_rss)
+        self.history.setdefault('observed_overhead_bytes', []).append(observed_overhead_bytes)
+        self.history.setdefault('new_rows_per_chunk', []).append(self.rows_per_chunk)
+        self.history.setdefault('estimated_num_chunks', []).append(estimated_number_of_chunks)
+
+        self.cur_rss = new_cur_rss
+
+        logger.debug(f"#chunk_calc chunk: ChunkSizer.adaptive_rows_per_chunk "
+                     f"base_chunk_size: {self.base_chunk_size} cur_rss: {self.cur_rss} "
+                     f"prev headroom: {self.base_chunk_size - self.cur_rss}"
+                     f"new headroom: {self.base_chunk_size - self.cur_rss}")
+
+        return self.rows_per_chunk, estimated_number_of_chunks
 
 
-def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+    @contextmanager
+    def ledger(self):
+
+        mem_monitor = None
+
+        # nested chunkers should be unchunked
+        if len(CHUNK_LEDGERS) > 0:
+            assert self.chunk_size == 0
+
+        with ledger_lock:
+            self.chunk_ledger = ChunkLedger(self.trace_label, self.chunk_size, self.cur_rss)
+            CHUNK_LEDGERS.append(self.chunk_ledger)
+
+        # reality check - there should be one ledger per sizer
+        assert len(CHUNK_LEDGERS) == len(CHUNK_SIZERS)
+
+        try:
+            # all calls to log_df within this block will be directed to top level chunk_ledger
+            # and passed on down the stack to the base to support hwm tallies
+
+            # if this is a base chunk_sizer (and ledger) then start a thread to monitor rss usage
+            if (len(CHUNK_LEDGERS) == 1) and ENABLE_MEMORY_MONITOR:
+                stop_snooping = threading.Event()
+                mem_monitor = MemMonitor(self.trace_label, stop_snooping)
+                mem_monitor.start()
+
+            yield
+
+        finally:
+
+            if mem_monitor is not None:
+
+                if not mem_monitor.is_alive():
+                    logger.error(f"mem_monitor for {self.trace_label} died!")
+                    bug  # bug
+
+                stop_snooping.set()
+                while mem_monitor.is_alive():
+                    logger.debug(f"{self.trace_label} waiting for mem_monitor thread to terminate")
+                    mem_monitor.join(timeout=MEM_MONITOR_TICK)
+
+            with ledger_lock:
+                self.chunk_ledger.close()
+                CHUNK_LEDGERS.pop()
+                self.chunk_ledger = None
+
+
+@contextmanager
+def chunk_log(trace_label, chunk_tag=None):
+    """
+    context manager to provide chunk logging for unchunked choosers
+    without the overhead of a adaptive_chunked_choosers generator
+    """
+
+    chunk_tag = chunk_tag or trace_label
+    #bug
+
+    chunk_sizer = ChunkSizer(chunk_tag, trace_label)
+    with chunk_sizer.ledger():
+
+        yield
+
+    chunk_sizer.close()
+    #bug
+
+
+def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label, chunk_tag=None):
 
     # generator to iterate over choosers
+
+    chunk_tag = chunk_tag or trace_label
 
     num_choosers = len(choosers.index)
     assert num_choosers > 0
     assert chunk_size >= 0
     assert row_size >= 0
 
-    logger.info(f"Running adaptive_chunked_choosers with chunk_size {chunk_size} and {num_choosers} choosers")
+    logger.info(f"{trace_label} Running adaptive_chunked_choosers with chunk_size {chunk_size} and {num_choosers} choosers")
 
-    # FIXME do we care if it is an int?
-    row_size = math.ceil(row_size)
+    chunk_sizer = ChunkSizer(chunk_tag, trace_label, num_choosers, chunk_size)
 
-    # #CHUNK_RSS
-    mem.force_garbage_collect()
-    initial_rss = mem.get_rss()
-    logger.debug(f"#CHUNK_RSS initial_rss: {initial_rss}")
+    rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
 
-    if chunk_size == 0:
-        assert row_size == 0  # we ignore this but make sure caller realizes that
-        rows_per_chunk = num_choosers
-        estimated_number_of_chunks = 1
-    else:
-        assert len(HWM) == 1, f"len(HWM): {len(HWM)}"
-        if row_size == 0:
-            rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
-            estimated_number_of_chunks = None
-        else:
-            max_rows_per_chunk = np.maximum(int(chunk_size / row_size), 1)
-            logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rows_per_chunk} based on row_size {row_size}")
-
-            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
-            estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
-
-        logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
-
-    history = {}
     i = offset = 0
     while offset < num_choosers:
 
+        i += 1
         assert offset + rows_per_chunk <= num_choosers
 
-        chunk_trace_label = \
-            tracing.extend_trace_label(trace_label, f'chunk_{i + 1}') if chunk_size > 0 else trace_label
+        chunk_trace_label = tracing.extend_trace_label(trace_label, f'chunk_{i}') if chunk_size > 0 else trace_label
+        chunk_trace_label = trace_label #bug - do we want this?
 
-        # grab the next chunk based on current rows_per_chunk
-        chooser_chunk = choosers.iloc[offset: offset + rows_per_chunk]
+        with chunk_sizer.ledger():
 
-        logger.info(f"Running chunk {i+1} of {estimated_number_of_chunks or '?'} "
-                    f"with {len(chooser_chunk)} of {num_choosers} choosers")
+            # grab the next chunk based on current rows_per_chunk
+            #chooser_chunk = choosers.iloc[offset: offset + rows_per_chunk]
+            chooser_chunk = choosers[offset: offset + rows_per_chunk]
 
-        with chunk_log(trace_label, chunk_size):
+            if COPY_CHUNKS:
+                chooser_chunk = chooser_chunk.copy()
+            chooser_chunk_is_view = chooser_chunk._is_view
+            if not chooser_chunk_is_view:
+                log_df(trace_label, 'chooser_chunk', chooser_chunk)
 
-            yield i+1, chooser_chunk, chunk_trace_label
+            logger.info(f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
+                        f"with {len(chooser_chunk)} of {num_choosers} choosers")
 
-            # get number of elements allocated during this chunk from the high water mark dict
-            observed_chunk_size = get_high_water_mark()
+            yield i, chooser_chunk, chunk_trace_label
 
-            # #CHUNK_RSS
-            observed_rss_size = (get_high_water_mark('rss') - initial_rss)
-            observed_rss_size = math.ceil(observed_rss_size / BYTES_PER_ELEMENT)
-            logger.debug(f"#CHUNK_RSS chunk {i+1} observed_chunk_size: {observed_chunk_size} "
-                         f"observed_rss_size {observed_rss_size}")
-            observed_rss_size = max(observed_rss_size, 0)
-            if CHUNK_RSS:
-                observed_chunk_size = observed_rss_size
+            assert chooser_chunk._is_view == chooser_chunk_is_view
+            if not chooser_chunk_is_view:
+                del chooser_chunk
+                log_df(trace_label, 'chooser_chunk', None)
 
-        i += 1
-        offset += rows_per_chunk
-        rows_remaining = num_choosers - offset
+            offset += rows_per_chunk
 
-        if CHUNK_HISTORY or chunk_size > 0:
+            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
-            history.setdefault('chunk', []).append(i)
-            history.setdefault('row_size', []).append(row_size)
-            history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
-            history.setdefault('observed_chunk_size', []).append(observed_chunk_size)
-
-            # revise predicted row_size based on observed_chunk_size
-            row_size = math.ceil(observed_chunk_size / rows_per_chunk)
-
-            # closest number of chooser rows to achieve chunk_size without exceeding it
-            if row_size == 0:
-                # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
-                if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100:
-                    rows_per_chunk = rows_remaining
-                else:
-                    rows_per_chunk = 10 * rows_per_chunk
-            else:
-                rows_per_chunk = int(chunk_size / row_size)
-            rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
-
-            estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
-
-            history.setdefault('new_row_size', []).append(row_size)
-            history.setdefault('new_rows_per_chunk', []).append(rows_per_chunk)
-            history.setdefault('estimated_number_of_chunks', []).append(estimated_number_of_chunks)
-
-    if history:
-        history = pd.DataFrame.from_dict(history)
-        write_history('adaptive_chunked_choosers', history, trace_label)
+    chunk_sizer.close()
+    #bug
 
 
-def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_size, trace_label):
+def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_size, trace_label, chunk_tag=None):
     """
     generator to iterate over choosers and alternatives in chunk_size chunks
 
@@ -468,13 +845,10 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
         chunk of alternatives for chooser chunk
     """
 
-    # if not choosers.index.is_monotonic_increasing:
-    #     logger.warning('sorting choosers because not monotonic increasing')
-    #     choosers = choosers.sort_index()
+    chunk_tag = chunk_tag or trace_label
 
     num_choosers = len(choosers.index)
     num_alternatives = len(alternatives.index)
-
     assert num_choosers > 0
 
     # alternatives index should match choosers (except with duplicate repeating alt rows)
@@ -486,35 +860,11 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
     assert 'pick_count' in alternatives.columns or choosers.index.name == alternatives.index.name
     assert choosers.index.name == alternatives.index.name
 
-    logger.info(f"Running adaptive_chunked_choosers_and_alts with chunk_size {chunk_size} "
+    logger.info(f"{trace_label} Running adaptive_chunked_choosers_and_alts with chunk_size {chunk_size} "
                 f"and {num_choosers} choosers and {num_alternatives} alternatives")
 
-    # FIXME do we care if it is an int?
-    row_size = math.ceil(row_size)
-
-    # #CHUNK_RSS
-    mem.force_garbage_collect()
-    initial_rss = mem.get_rss()
-    logger.debug(f"#CHUNK_RSS initial_rss: {initial_rss}")
-
-    if chunk_size == 0:
-        assert row_size == 0  # we ignore this but make sure caller realizes that
-        rows_per_chunk = num_choosers
-        estimated_number_of_chunks = 1
-        row_size = 0
-    else:
-        assert len(HWM) == 1
-        if row_size == 0:
-            rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
-            estimated_number_of_chunks = None
-        else:
-            max_rows_per_chunk = np.maximum(int(chunk_size / row_size), 1)
-            logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rows_per_chunk} based on row_size {row_size}")
-
-            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
-            estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
-        logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
-
+    chunk_sizer = ChunkSizer(chunk_tag, trace_label, num_choosers, chunk_size)
+    rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
     assert (rows_per_chunk > 0) and (rows_per_chunk <= num_choosers)
 
     # alt chunks boundaries are where index changes
@@ -523,178 +873,110 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
     alt_chunk_ends = np.append([0], alt_chunk_ends)  # including the first to simplify indexing
     alt_chunk_ends = np.append(alt_chunk_ends, [len(alternatives.index)])  # end of final chunk
 
-    history = {}
     i = offset = alt_offset = 0
     while offset < num_choosers:
-        assert offset + rows_per_chunk <= num_choosers
-
-        chunk_trace_label = tracing.extend_trace_label(trace_label, f'chunk_{i + 1}') if chunk_size > 0 else trace_label
-
-        chooser_chunk = choosers[offset: offset + rows_per_chunk]
-
-        alt_end = alt_chunk_ends[offset + rows_per_chunk]
-        alternative_chunk = alternatives[alt_offset: alt_end]
-
-        assert len(chooser_chunk.index) == len(np.unique(alternative_chunk.index.values))
-        assert (chooser_chunk.index == np.unique(alternative_chunk.index.values)).all()
-
-        logger.info(f"Running chunk {i+1} of {estimated_number_of_chunks or '?'} "
-                    f"with {len(chooser_chunk)} of {num_choosers} choosers")
-
-        with chunk_log(trace_label, chunk_size):
-
-            yield i+1, chooser_chunk, alternative_chunk, chunk_trace_label
-
-            # get number of elements allocated during this chunk from the high water mark dict
-            observed_chunk_size = get_high_water_mark()
-
-            # #CHUNK_RSS
-            observed_rss_size = (get_high_water_mark('rss') - initial_rss)
-            observed_rss_size = math.ceil(observed_rss_size / BYTES_PER_ELEMENT)
-            logger.debug(f"#CHUNK_RSS observed_chunk_size: {observed_chunk_size} observed_rss_size {observed_rss_size}")
-            observed_rss_size = max(observed_rss_size, 0)
-            if CHUNK_RSS:
-                observed_chunk_size = observed_rss_size
-
-        alt_offset = alt_end
-
         i += 1
-        offset += rows_per_chunk
-        rows_remaining = num_choosers - offset
 
-        if CHUNK_HISTORY or chunk_size > 0:
+        assert offset + rows_per_chunk <= num_choosers, \
+            f"i {i} offset {offset} rows_per_chunk {rows_per_chunk} num_choosers {num_choosers}"
 
-            history.setdefault('chunk', []).append(i)
-            history.setdefault('row_size', []).append(row_size)
-            history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
-            history.setdefault('observed_chunk_size', []).append(observed_chunk_size)
+        chunk_trace_label = tracing.extend_trace_label(trace_label, f'chunk_{i}') if chunk_size > 0 else trace_label
+        chunk_trace_label = trace_label #bug - do we want this?
 
-            # revise predicted row_size based on observed_chunk_size
-            row_size = math.ceil(observed_chunk_size / rows_per_chunk)
+        with chunk_sizer.ledger():
 
-            # closest number of chooser rows to achieve chunk_size without exceeding it
-            if row_size == 0:
-                # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
-                if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100:
-                    rows_per_chunk = rows_remaining
-                else:
-                    rows_per_chunk = 10 * rows_per_chunk
-            else:
-                rows_per_chunk = int(chunk_size / row_size)
-            rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
+            chooser_chunk = choosers[offset: offset + rows_per_chunk]
+            if COPY_CHUNKS:
+                chooser_chunk = chooser_chunk.copy()
+            chooser_chunk_is_view = chooser_chunk._is_view
+            if not chooser_chunk_is_view:
+                log_df(trace_label, 'chooser_chunk', chooser_chunk)
 
-            estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
+            alt_end = alt_chunk_ends[offset + rows_per_chunk]
+            alternative_chunk = alternatives[alt_offset: alt_end]
+            if COPY_CHUNKS:
+                alternative_chunk = alternative_chunk.copy()
+            alternative_chunk_is_view = alternative_chunk._is_view
+            if not alternative_chunk_is_view:
+                log_df(trace_label, 'alternative_chunk', alternative_chunk)
 
-            history.setdefault('new_row_size', []).append(row_size)
-            history.setdefault('new_rows_per_chunk', []).append(rows_per_chunk)
-            history.setdefault('estimated_number_of_chunks', []).append(estimated_number_of_chunks)
+            assert len(chooser_chunk.index) == len(np.unique(alternative_chunk.index.values))
+            assert (chooser_chunk.index == np.unique(alternative_chunk.index.values)).all()
 
-    if history:
-        history = pd.DataFrame.from_dict(history)
-        write_history('adaptive_chunked_choosers_and_alts', history, trace_label)
+            logger.info(f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
+                        f"with {len(chooser_chunk)} of {num_choosers} choosers")
+
+            yield i, chooser_chunk, alternative_chunk, chunk_trace_label
+
+            assert alternative_chunk._is_view == alternative_chunk_is_view
+            if not alternative_chunk_is_view:
+                del alternative_chunk
+                log_df(trace_label, 'alternative_chunk', None)
+
+            assert chooser_chunk._is_view == chooser_chunk_is_view
+            if not chooser_chunk_is_view:
+                del chooser_chunk
+                log_df(trace_label, 'chooser_chunk', None)
+
+            offset += rows_per_chunk
+            alt_offset = alt_end
+
+            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
+
+    chunk_sizer.close()
+    #bug
 
 
-def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label):
+def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label, chunk_tag=None):
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
     # (the presumption is that choosers has multiple rows with the same chunk_id that
     # all have to be included in the same chunk)
     # FIXME - we pathologically know name of chunk_id col in households table
 
+    chunk_tag = chunk_tag or trace_label
+
     num_choosers = choosers['chunk_id'].max() + 1
     assert num_choosers > 0
 
-    # FIXME do we care if it is an int?
-    row_size = math.ceil(row_size)
+    chunk_sizer = ChunkSizer(chunk_tag, trace_label, num_choosers, chunk_size)
 
-    # #CHUNK_RSS
-    mem.force_garbage_collect()
-    initial_rss = mem.get_rss()
-    logger.debug(f"#CHUNK_RSS initial_rss: {initial_rss}")
+    rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
 
-    if chunk_size == 0:
-        assert row_size == 0  # we ignore this but make sure caller realizes that
-        rows_per_chunk = num_choosers
-        estimated_number_of_chunks = 1
-    else:
-        assert len(HWM) == 1
-
-        if row_size == 0:
-            rows_per_chunk = min(num_choosers, INITIAL_ROWS_PER_CHUNK)  # FIXME parameterize
-            estimated_number_of_chunks = None
-            logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} "
-                         f"based on INITIAL_ROWS_PER_CHUNK {INITIAL_ROWS_PER_CHUNK}")
-
-        else:
-            max_rpc = np.maximum(int(chunk_size / row_size), 1)
-            logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rpc} based on row_size {row_size}")
-
-            rows_per_chunk = np.clip(int(chunk_size / row_size), 1, num_choosers)
-            estimated_number_of_chunks = math.ceil(num_choosers / rows_per_chunk)
-
-            logger.debug(f"#chunk_calc chunk: initial rows_per_chunk {rows_per_chunk} based on row_size {row_size}")
-
-    history = {}
     i = offset = 0
     while offset < num_choosers:
+
+        i += 1
 
         assert offset + rows_per_chunk <= num_choosers
 
         chunk_trace_label = \
-            tracing.extend_trace_label(trace_label, f'chunk_{i + 1}') if chunk_size > 0 else trace_label
+            tracing.extend_trace_label(trace_label, f'chunk_{i}') if chunk_size > 0 else trace_label
+        chunk_trace_label = trace_label #bug - do we want this?
 
-        chooser_chunk = choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
+        with chunk_sizer.ledger():
 
-        logger.info(f"Running chunk {i+1} of {estimated_number_of_chunks or '?'} "
-                    f"with {rows_per_chunk} of {num_choosers} choosers")
+            chooser_chunk = choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
 
-        with chunk_log(trace_label, chunk_size):
+            if COPY_CHUNKS:
+                chooser_chunk = chooser_chunk.copy()
+            chooser_chunk_is_view = chooser_chunk._is_view
+            if not chooser_chunk_is_view:
+                log_df(trace_label, 'chooser_chunk', chooser_chunk)
 
-            yield i+1, chooser_chunk, chunk_trace_label
+            logger.info(f"{trace_label} Running chunk {i} of {estimated_number_of_chunks or '?'} "
+                        f"with {rows_per_chunk} of {num_choosers} choosers")
 
-            # get number of elements allocated during this chunk from the high water mark dict
-            observed_chunk_size = get_high_water_mark()
+            yield i, chooser_chunk, chunk_trace_label
 
-            # #CHUNK_RSS
-            observed_rss_size = (get_high_water_mark('rss') - initial_rss)
-            observed_rss_size = math.ceil(observed_rss_size / BYTES_PER_ELEMENT)
-            logger.debug(f"#CHUNK_RSS observed_chunk_size: {observed_chunk_size} observed_rss_size {observed_rss_size}")
-            observed_rss_size = max(observed_rss_size, 0)
-            if CHUNK_RSS:
-                observed_chunk_size = observed_rss_size
+            assert chooser_chunk._is_view == chooser_chunk_is_view
+            if not chooser_chunk_is_view:
+                del chooser_chunk
+                log_df(trace_label, 'chooser_chunk', None)
 
-        i += 1
-        offset += rows_per_chunk
-        rows_remaining = num_choosers - offset
+            offset += rows_per_chunk
 
-        if CHUNK_HISTORY or chunk_size > 0:
+            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
-            history.setdefault('chunk', []).append(i)
-            history.setdefault('row_size', []).append(row_size)
-            history.setdefault('rows_per_chunk', []).append(rows_per_chunk)
-            history.setdefault('observed_chunk_size', []).append(observed_chunk_size)
-
-            # revise predicted row_size based on observed_chunk_size
-            row_size = math.ceil(observed_chunk_size / rows_per_chunk)
-
-            if row_size > 0:
-                # closest number of chooser rows to achieve chunk_size without exceeding it
-                rows_per_chunk = int(chunk_size / row_size)
-            if row_size == 0:
-                # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
-                if rows_per_chunk > INITIAL_ROWS_PER_CHUNK * 100:
-                    rows_per_chunk = rows_remaining
-                else:
-                    rows_per_chunk = 10 * rows_per_chunk
-
-            rows_per_chunk = np.clip(rows_per_chunk, 1, rows_remaining)
-
-            estimated_number_of_chunks = i + math.ceil(rows_remaining / rows_per_chunk) if rows_remaining else i
-
-            history.setdefault('new_row_size', []).append(row_size)
-            history.setdefault('new_rows_per_chunk', []).append(rows_per_chunk)
-            history.setdefault('estimated_number_of_chunks', []).append(estimated_number_of_chunks)
-
-    if history:
-        history = pd.DataFrame.from_dict(history)
-        write_history('adaptive_chunked_choosers_by_chunk_id', history, trace_label)
+    chunk_sizer.close()
+    #bug

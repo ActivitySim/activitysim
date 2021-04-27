@@ -160,7 +160,7 @@ def trip_mode_choice(
             chunk_size=chunk_size,
             mode_column_name=mode_column_name,
             logsum_column_name=logsum_column_name,
-            trace_label=trace_label,
+            trace_label=segment_trace_label,
             trace_choice_name='trip_mode_choice',
             estimator=estimator)
 
@@ -182,8 +182,7 @@ def trip_mode_choice(
 
         choices_list.append(choices)
 
-        # FIXME - force garbage collection
-        force_garbage_collect()
+        #force_garbage_collect()
 
     choices_df = pd.concat(choices_list)
 

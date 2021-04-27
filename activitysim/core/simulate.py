@@ -591,28 +591,29 @@ def eval_variables(exprs, df, locals_d=None):
     return values
 
 
-def compute_utilities(expression_values, spec):
-
-    # matrix product of spec expression_values with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-    # pandas.dot depends on column names of expression_values matching spec index values
-
-    # FIXME - for performance, it is essential that spec and expression_values
-    # FIXME - not contain booleans when dotted with spec values
-    # FIXME - or the arrays will be converted to dtype=object within dot()
-
-    spec = spec.astype(np.float64)
-
-    # pandas.dot depends on column names of expression_values matching spec index values
-    # expressions should have been uniquified when spec was read
-    # we could do it here if need be, and then set spec.index and expression_values.columns equal
-    assert spec.index.is_unique
-    assert (spec.index.values == expression_values.columns.values).all()
-
-    utilities = expression_values.dot(spec)
-
-    return utilities
+# no longer used because eval_utilities aggregates expression_values as they are computed to save space
+# def compute_utilities(expression_values, spec):
+#
+#     # matrix product of spec expression_values with utility coefficients of alternatives
+#     # sums the partial utilities (represented by each spec row) of the alternatives
+#     # resulting in a dataframe with one row per chooser and one column per alternative
+#     # pandas.dot depends on column names of expression_values matching spec index values
+#
+#     # FIXME - for performance, it is essential that spec and expression_values
+#     # FIXME - not contain booleans when dotted with spec values
+#     # FIXME - or the arrays will be converted to dtype=object within dot()
+#
+#     spec = spec.astype(np.float64)
+#
+#     # pandas.dot depends on column names of expression_values matching spec index values
+#     # expressions should have been uniquified when spec was read
+#     # we could do it here if need be, and then set spec.index and expression_values.columns equal
+#     assert spec.index.is_unique
+#     assert (spec.index.values == expression_values.columns.values).all()
+#
+#     utilities = expression_values.dot(spec)
+#
+#     return utilities
 
 
 def set_skim_wrapper_targets(df, skims):
@@ -1122,9 +1123,6 @@ def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_l
 
     sizer = chunk.RowSizeEstimator(trace_label)
 
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead tvpb skims
-    # (do this first to facilitate tracing of rowsize estimation below)
     if tvpb_skims(skims):
         # DISABLE_TVPB_OVERHEAD
         logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
@@ -1361,9 +1359,6 @@ def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trac
     calculate rows_per_chunk for simple_simulate_logsums
     """
 
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead tvpb skims
-    # (do this first to facilitate tracing of rowsize estimation below)
     if tvpb_skims(skims):
         # DISABLE_TVPB_OVERHEAD
         logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
@@ -1403,7 +1398,7 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
+    #trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
 
     assert len(choosers) > 0
 

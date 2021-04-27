@@ -192,7 +192,7 @@ def write_tables(output_dir):
     in settings file.
 
     'output_tables' can specify either a list of output tables to include or to skip
-    if no output_tables list is specified, then no checkpointed tables will be written
+    if no output_tables list is specified, then all checkpointed tables will be written
 
     To write all output tables EXCEPT the households and persons tables:
 
@@ -245,7 +245,8 @@ def write_tables(output_dir):
 
     checkpointed_tables = pipeline.checkpointed_tables()
     if action == 'include':
-        output_tables_list = tables
+        # interpret empty or missing tables setting to mean include all tables
+        output_tables_list = tables if tables is not None else checkpointed_tables
     elif action == 'skip':
         output_tables_list = [t for t in checkpointed_tables if t not in tables]
     else:

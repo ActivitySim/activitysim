@@ -253,7 +253,7 @@ def get_cached_spec(hhsize):
 
     spec = inject.get_injectable(spec_name, None)
     if spec is not None:
-        logger.info("build_cdap_spec returning cached injectable spec %s", spec_name)
+        logger.debug("build_cdap_spec returning cached injectable spec %s", spec_name)
         return spec
 
     # this is problematic for multiprocessing and since we delete csv files in output_dir

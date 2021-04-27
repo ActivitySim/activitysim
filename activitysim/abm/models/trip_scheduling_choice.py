@@ -288,7 +288,7 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
 
             result_list.append(choices)
 
-            force_garbage_collect()
+            #force_garbage_collect()
 
         # FIXME: this will require 2X RAM
         # if necessary, could append to hdf5 store on disk:

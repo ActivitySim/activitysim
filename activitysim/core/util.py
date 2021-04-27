@@ -15,13 +15,17 @@ logger = logging.getLogger(__name__)
 
 
 def GB(bytes):
-    # symbols = ('', 'K', 'M', 'G', 'T')
     symbols = ('', ' KB', ' MB', ' GB', ' TB')
     fmt = "%.1f%s"
+    # for i, s in enumerate(symbols):
+    #     units = 1 << i * 10
+    #     if bytes < units * 1024:
+    #         return fmt % (bytes / units, s)
     for i, s in enumerate(symbols):
-        units = 1 << i * 10
-        if bytes < units * 1024:
-            return fmt % (bytes / units, s)
+        if bytes < (i + 1) * 1000:
+            return fmt % (bytes, s)
+        bytes = bytes / 1000
+    return fmt % (bytes, s)
 
 
 def df_size(df):

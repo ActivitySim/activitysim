@@ -241,7 +241,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
         choices_list.append(choices)
 
         # FIXME - force garbage collection?
-        force_garbage_collect()
+        #force_garbage_collect()
 
     del alternatives['tot_tours']  # del tot_tours column we added above
 

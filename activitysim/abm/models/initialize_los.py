@@ -187,7 +187,7 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
         for attribute_name in attributes_as_columns:
             chooser_chunk[attribute_name] = scalar_attributes[attribute_name]
 
-        chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
+        #chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
 
         utilities_df = \
             pathbuilder.compute_utilities(network_los,

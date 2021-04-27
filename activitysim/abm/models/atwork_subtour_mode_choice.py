@@ -17,7 +17,6 @@ from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from .util.mode import run_tour_mode_choice_simulate
 from .util import estimation
 
-from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -172,4 +171,3 @@ def atwork_subtour_mode_choice(
                          slicer='tour_id',
                          index_label='tour_id')
 
-    force_garbage_collect()

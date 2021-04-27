@@ -10,7 +10,6 @@ from . import tracing
 from . import chunk
 from .simulate import set_skim_wrapper_targets
 
-from activitysim.core.mem import force_garbage_collect
 from .interaction_simulate import eval_interaction_utilities
 
 logger = logging.getLogger(__name__)
@@ -373,7 +372,6 @@ def interaction_sample_simulate(
 
         result_list.append(choices)
 
-        force_garbage_collect()
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

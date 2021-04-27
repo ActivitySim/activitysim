@@ -321,9 +321,9 @@ def register_traceable_table(table_name, df):
         traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
         inject.add_injectable('traceable_table_ids', traceable_table_ids)
 
-    logger.info("register %s: added %s new ids to %s existing trace ids" %
+    logger.debug("register %s: added %s new ids to %s existing trace ids" %
                 (table_name, len(new_traced_ids), len(prior_traced_ids)))
-    logger.info("register %s: tracing new ids %s in %s" %
+    logger.debug("register %s: tracing new ids %s in %s" %
                 (table_name, new_traced_ids, table_name))
 
 

@@ -382,28 +382,6 @@ class Network_LOS(object):
 
         return skim_dict
 
-    def get_cache_dir(self):
-        """
-        return path of cache directory in output_dir (creating it, if need be)
-
-        cache directory is used to store
-            skim memmaps created by skim+dict_factories
-            tvpb tap_tap table cache
-
-        Returns
-        -------
-        str path
-        """
-        cache_dir = self.setting('cache_dir', default=None)
-        if cache_dir is None:
-            cache_dir = self.setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
-
-        if not os.path.isdir(cache_dir):
-            os.mkdir(cache_dir)
-        assert os.path.isdir(cache_dir)
-
-        return cache_dir
-
     def omx_file_names(self, skim_tag):
         """
         Return list of omx file names from network_los settings file for the specified skim_tag (e.g. 'taz')

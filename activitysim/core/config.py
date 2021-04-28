@@ -323,7 +323,7 @@ def trace_file_path(file_name):
     return file_path
 
 
-def log_file_path(file_name):
+def log_file_path(file_name, prefix=True):
 
     output_dir = inject.get_injectable('output_dir')
 
@@ -332,7 +332,7 @@ def log_file_path(file_name):
         output_dir = os.path.join(output_dir, 'log')
 
     # - check for optional process name prefix
-    prefix = inject.get_injectable('log_file_prefix', None)
+    prefix = prefix and inject.get_injectable('log_file_prefix', None)
     if prefix:
         file_name = "%s-%s" % (prefix, file_name)
 
@@ -341,13 +341,9 @@ def log_file_path(file_name):
     return file_path
 
 
-def open_log_file(file_name, mode, header=None):
+def open_log_file(file_name, mode, header=None, prefix=False):
 
-    output_dir = inject.get_injectable('output_dir')
-    # - check for optional log subfolder
-    if os.path.exists(os.path.join(output_dir, 'log')):
-        output_dir = os.path.join(output_dir, 'log')
-    file_path = os.path.join(output_dir, file_name)
+    file_path = log_file_path(file_name, prefix)
 
     want_header = header and not os.path.exists(file_path)
 

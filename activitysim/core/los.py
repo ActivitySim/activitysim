@@ -322,8 +322,6 @@ class Network_LOS(object):
                 assert mode not in self.maz_to_tap_dfs
                 self.maz_to_tap_dfs[mode] = df
 
-        mem.trace_memory_info('#MEM network_los.load_data before create_skim_dicts')
-
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
@@ -348,8 +346,6 @@ class Network_LOS(object):
             self.skim_dicts['tap'] = tap_skim_dict
             # make sure skim has all tap_ids
             assert not (tap_skim_dict.offset_mapper.map(self.tap_df['TAP'].values) == NOT_IN_SKIM_ZONE_ID).any()
-
-        mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
     def create_skim_dict(self, skim_tag):
         """

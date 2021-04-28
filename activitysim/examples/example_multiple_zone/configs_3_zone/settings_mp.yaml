@@ -7,7 +7,6 @@ fail_fast: True
 # - ------------------------- dev config
 multiprocess: True
 strict: False
-mem_tick: 30
 use_shadow_pricing: False
 
 num_processes: 2

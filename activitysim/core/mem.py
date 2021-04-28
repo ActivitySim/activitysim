@@ -6,49 +6,27 @@ import datetime
 import psutil
 import logging
 import gc
-
+import multiprocessing
+import numpy as np
 
 from activitysim.core import config
 from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 
-MEM = {}
+
 HWM = {}
-DEFAULT_TICK_LEN = 30
 
+MEM_TICK_LEN = 30
+LAST_MEM_TICK = 0
 
-def force_garbage_collect():
-    was_disabled = not gc.isenabled()
-    if was_disabled:
-        gc.enable()
-    gc.collect()
-    if was_disabled:
-        gc.disable()
+MEM_LOG_FILE_NAME = "mem.csv"
+MEM_LOG_HEADER = "process,time,rss,uss,children,percent,event,proc"
 
 
 def GB(bytes):
     gb = (bytes / (1024 * 1024 * 1024.0))
     return round(gb, 2)
-
-
-def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
-    MEM['tick'] = 0
-    if file_name is not None:
-        MEM['file_name'] = file_name
-    if tick_len is None:
-        MEM['tick_len'] = DEFAULT_TICK_LEN
-    else:
-        MEM['tick_len'] = tick_len
-
-    logger.debug("init_trace file_name %s" % file_name)
-
-    # - check for optional process name prefix
-    MEM['prefix'] = inject.get_injectable('log_file_prefix', 'main')
-
-    if write_header:
-        with config.open_log_file(file_name, 'w') as log_file:
-            print("process,time,rss,used,available,percent,event", file=log_file)
 
 
 def trace_hwm(tag, value, timestamp, label):
@@ -68,52 +46,81 @@ def log_hwm():
         logger.info("high water mark %s: %.2f timestamp: %s label: %s" %
                     (tag, hwm['mark'], hwm['timestamp'], hwm['label']))
 
-    with config.open_log_file(MEM['file_name'], 'a') as log_file:
-        for tag in HWM:
-            hwm = HWM[tag]
-            print("%s high water mark %s: %.2f timestamp: %s label: %s" %
-                  (MEM['prefix'], tag, hwm['mark'], hwm['timestamp'], hwm['label']), file=log_file)
-
 
 def trace_memory_info(event=''):
 
-    if not MEM:
-        return
-
-    last_tick = MEM['tick']
-    tick_len = MEM['tick_len'] or float('inf')
+    global LAST_MEM_TICK
 
     t = time.time()
-    if (t - last_tick < tick_len) and not event:
+    if (t - LAST_MEM_TICK < MEM_TICK_LEN) and not event:
         return
 
-    vmi = psutil.virtual_memory()
+    LAST_MEM_TICK = t
 
-    MEM['tick'] = t
+    process_name = multiprocessing.current_process().name
+
+    percent = psutil.virtual_memory().percent
 
     current_process = psutil.Process()
-    rss = current_process.memory_info().rss
-    for child in current_process.children(recursive=True):
-        try:
-            rss += child.memory_info().rss
-        except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-            pass
+    info = current_process.memory_full_info()
+    rss = info.rss
+    uss = info.uss
 
     timestamp = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-    trace_hwm('rss', GB(rss), timestamp, event)
-    trace_hwm('used', GB(vmi.used), timestamp, event)
+    trace_hwm('rss', rss, timestamp, event)
+    trace_hwm('uss', uss, timestamp, event)
 
     if event:
-        logger.debug(f"trace_memory_info {event} rss: {GB(rss)}GB percent: {vmi.percent}%")
+        logger.debug(f"trace_memory_info {event} rss: {GB(rss)}GB uss: {GB(uss)}GB percent: {percent}%")
 
-    with config.open_log_file(MEM['file_name'], 'a') as output_file:
+    with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
 
-        print("%s, %s, %.2f, %.2f, %.2f, %s%%, %s" %
-              (MEM['prefix'],
+        print("%s, %s, %.2f, %.2f, %s%%, %s" %
+              (process_name,
                timestamp,
                GB(rss),
-               GB(vmi.used),
-               GB(vmi.available),
-               vmi.percent,
-               event), file=output_file)
+               GB(uss),
+               percent,
+               event), file=log_file)
+
+
+def get_rss(force_garbage_collect=False):
+
+    if force_garbage_collect:
+        was_disabled = not gc.isenabled()
+        if was_disabled:
+            gc.enable()
+        gc.collect()
+        if was_disabled:
+            gc.disable()
+
+    # info = psutil.Process().memory_full_info().uss
+
+    rss = psutil.Process().memory_info().rss
+
+    return rss
+
+
+def shared_memory_size():
+    """
+    multiprocessing shared memory appears in teh
+    Returns
+    -------
+
+    """
+
+    shared_size = 0
+
+    data_buffers = inject.get_injectable('data_buffers', {})
+    for k, data_buffer in data_buffers.items():
+        try:
+            obj = data_buffer.get_obj()
+        except:
+            obj = data_buffer
+        data = np.ctypeslib.as_array(obj)
+        data_size = data.nbytes
+
+        shared_size += data_size
+
+    return shared_size

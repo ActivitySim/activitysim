@@ -8,6 +8,7 @@ import psutil
 import threading
 import _thread
 import os
+import platform
 
 from contextlib import contextmanager
 
@@ -46,10 +47,15 @@ RESET_RSS_BASELINE_FOR_EACH_CHUNK = True
 # FIXME should we add chunk number to trace_label when chunking
 TRACE_LABEL_CHOOSER_CHUNK_NUM = False
 
+# might be os-dependent, but in windows shared memory shows up in rss of every subprocess
+DEDUCT_SHARED_MEMORY_FROM_RSS = True
+
+
 CACHE_HISTORY = True
 
 
 HWM = {}
+_SHARED_MEM_SIZE = None
 
 ledger_lock = threading.Lock()
 
@@ -68,16 +74,55 @@ CHUNK_HISTORY_COLUMNS = [C_CHUNK_TAG, C_DEPTH, C_OVERHEAD, C_OVERHEAD_RSS, C_OVE
                          C_NUM_ROWS, C_CHUNK_SIZE, C_NUM_CHUNKS]
 
 
+def shared_memory_in_child_rss():
+
+    # Linux: Linux
+    # Mac: Darwin
+    # Windows: Windows
+
+    os_name = platform.system()
+    if os_name in ['Darwin']:
+        return False
+    elif os_name in ['Windows']:
+        return True
+    else:
+        bug
+
+
 def chunk_logging():
     return len(CHUNK_LEDGERS) > 0
 
 
+def shared_memory_size(touch=False):
+    """
+    multiprocessing shared memory appears in the rss of all subprocesses
+    """
+    global _SHARED_MEM_SIZE
+    if _SHARED_MEM_SIZE is None:
+        _SHARED_MEM_SIZE = mem.shared_memory_size(touch)
+    return _SHARED_MEM_SIZE
+
+
 def get_rss(force_garbage_collect=False):
 
-    if force_garbage_collect:
-        mem.force_garbage_collect()
+    rss = mem.get_rss(force_garbage_collect)
 
-    return psutil.Process().memory_info().rss
+    if shared_memory_in_child_rss():
+        shared = shared_memory_size()
+        print(f"get_rss #0 rss {rss} shared {shared} net_rss {rss-shared}")
+        rss = rss - shared
+        assert rss > 0
+
+    return rss
+
+
+def adjust_chunk_size_for_shared_memory(chunk_size):
+
+    # SHARED_MEMORY_APPEARS_IN_RSS
+    if chunk_size > 0:
+        chunk_size = chunk_size + shared_memory_size()
+
+    return chunk_size
 
 
 def trace_label_for_chunk(trace_label, chunk_size, i):
@@ -496,7 +541,9 @@ class ChunkSizer(object):
 
         self.history = {}
         self.chunk_ledger = None
-        self.chunk_size = chunk_size
+
+        self.chunk_size = adjust_chunk_size_for_shared_memory(chunk_size)
+
 
         CHUNK_SIZERS.append(self)
 
@@ -565,7 +612,7 @@ class ChunkSizer(object):
 
     def adaptive_rows_per_chunk(self, i):
         # rows_processed is out of phase with cum_overhead
-        # observed_overhead is the overhead for processing chooser chunk with prev_rows_per_chunk rows
+        # observed_overhead is the actual bytes/rss used top process chooser chunk with prev_rows_per_chunk rows
 
         prev_rows_per_chunk = self.rows_per_chunk
         prev_rows_processed = self.rows_processed

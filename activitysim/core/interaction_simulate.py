@@ -187,8 +187,6 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                 logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
                 raise err
 
-            # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
-
         if estimator:
             estimator.log("eval_interaction_utilities write_interaction_expression_values %s" % trace_label)
             estimator.write_interaction_expression_values(expression_values_df)

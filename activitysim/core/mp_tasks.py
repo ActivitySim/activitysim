@@ -828,8 +828,9 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
 
     debug(f"mp_run_simulation {step_info['name']} locutor={inject.get_injectable('locutor', False)} ")
 
+    #debug(f"mp_run_simulation {step_info['name']} rss: {chunk.get_rss()} shared_memory_size: {}")
+
     try:
-        mem.init_trace(setting('mem_tick'))
 
         if step_info['num_processes'] > 1:
             pipeline_prefix = multiprocessing.current_process().name
@@ -1257,7 +1258,6 @@ def run_multiprocess(run_list, injectables):
         dict of values to inject in sub-processes
     """
 
-    mem.init_trace(setting('mem_tick'), write_header=True)
     mem.trace_memory_info("run_multiprocess.start")
 
     if not run_list['multiprocess']:

@@ -828,8 +828,6 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
 
     debug(f"mp_run_simulation {step_info['name']} locutor={inject.get_injectable('locutor', False)} ")
 
-    #debug(f"mp_run_simulation {step_info['name']} rss: {chunk.get_rss()} shared_memory_size: {}")
-
     try:
 
         if step_info['num_processes'] > 1:
@@ -840,8 +838,7 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
         shared_data_buffer = kwargs
         run_simulation(queue, step_info, resume_after, shared_data_buffer)
 
-        chunk.log_write_hwm()
-        mem.log_hwm()
+        mem.log_hwm()  # subprocess
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_run_simulation: {str(e)}")
@@ -1020,8 +1017,9 @@ def run_sub_simulations(
         for process, queue in zip(procs, queues):
             while not queue.empty():
                 msg = queue.get(block=False)
-                info(f"{process.name} {msg['model']} : {tracing.format_elapsed_time(msg['time'])}")
-                mem.trace_memory_info("%s.%s.completed" % (process.name, msg['model']))
+                model_name = msg['model']
+                info(f"{process.name} {model_name} : {tracing.format_elapsed_time(msg['time'])}")
+                mem.trace_memory_info(f"{process.name}.{model_name}.completed")
 
     def check_proc_status():
         # we want to drop 'completed' breadcrumb when it happens, lest we terminate
@@ -1035,13 +1033,13 @@ def run_sub_simulations(
                     info(f"process {p.name} completed")
                     completed.add(p.name)
                     drop_breadcrumb(step_name, 'completed', list(completed))
-                    mem.trace_memory_info("%s.completed" % p.name)
+                    mem.trace_memory_info(f"{p.name}.completed")
             else:
                 # process failed
                 if p.name not in failed:
                     warning(f"process {p.name} failed with exitcode {p.exitcode}")
                     failed.add(p.name)
-                    mem.trace_memory_info("%s.failed" % p.name)
+                    mem.trace_memory_info(f"{p.name}.failed")
                     if fail_fast:
                         warning(f"fail_fast terminating remaining running processes")
                         for op in procs:
@@ -1057,14 +1055,14 @@ def run_sub_simulations(
         # idle for specified number of seconds, monitoring message queue and sub process status
         log_queued_messages()
         check_proc_status()
-        mem.trace_memory_info()
+        mem.trace_memory_info("run_sub_simulations.idle")
         for _ in range(seconds):
             time.sleep(1)
             # log queued messages as they are received
             log_queued_messages()
             # monitor sub process status and drop breadcrumbs or fail_fast as they terminate
             check_proc_status()
-            mem.trace_memory_info()
+            mem.trace_memory_info("run_sub_simulations.idle")
 
     step_name = step_info['name']
 
@@ -1144,7 +1142,7 @@ def run_sub_simulations(
         if sys.platform == 'win32':
             time.sleep(1)
 
-        mem.trace_memory_info("%s.start" % p.name)
+        mem.trace_memory_info(f"{p.name}.start")
 
     # - idle logging queued messages and proc completion
     while multiprocessing.active_children():
@@ -1179,13 +1177,13 @@ def run_sub_task(p):
     """
     info(f"#run_model running sub_process {p.name}")
 
-    mem.trace_memory_info("%s.start" % p.name)
+    mem.trace_memory_info(f"{p.name}.start")
 
     t0 = tracing.print_elapsed_time()
     p.start()
 
     while multiprocessing.active_children():
-        mem.trace_memory_info()
+        mem.trace_memory_info("run_sub_task.idle")
         time.sleep(1)
 
     # no need to join explicitly since multiprocessing.active_children joins completed procs
@@ -1194,7 +1192,7 @@ def run_sub_task(p):
     t0 = tracing.print_elapsed_time('#run_model sub_process %s' % p.name, t0)
     # info(f'{p.name}.exitcode = {p.exitcode}')
 
-    mem.trace_memory_info(f"#run_model {p.name} completed")
+    mem.trace_memory_info(f"run_model {p.name} completed")
 
     if p.exitcode:
         error(f"Process {p.name} returned exitcode {p.exitcode}")
@@ -1282,6 +1280,8 @@ def run_multiprocess(run_list, injectables):
     # - allocate shared data
     shared_data_buffers = {}
 
+    mem.trace_memory_info("allocate_shared_skim_buffer.before")
+
     t0 = tracing.print_elapsed_time()
     shared_data_buffers.update(allocate_shared_skim_buffers())
     t0 = tracing.print_elapsed_time('allocate shared skim buffer', t0)
@@ -1301,6 +1301,7 @@ def run_multiprocess(run_list, injectables):
                 kwargs=shared_data_buffers)
         )
         t0 = tracing.print_elapsed_time('setup shared_data_buffers', t0)
+        mem.trace_memory_info("mp_setup_skims.completed")
 
     # - for each step in run list
     for step_info in run_list['multiprocess_steps']:
@@ -1350,7 +1351,7 @@ def run_multiprocess(run_list, injectables):
             )
         drop_breadcrumb(step_name, 'coalesce')
 
-    mem.log_hwm()
+    mem.log_hwm()  # parent process
 
 
 def get_breadcrumbs(run_list):

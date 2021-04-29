@@ -42,7 +42,7 @@ def run(run_list, injectables=None):
         logger.info("run single process simulation")
         pipeline.run(models=run_list['models'], resume_after=run_list['resume_after'])
         pipeline.close_pipeline()
-        chunk.log_write_hwm()
+        mem.log_hwm()
 
 
 def log_settings(injectables):

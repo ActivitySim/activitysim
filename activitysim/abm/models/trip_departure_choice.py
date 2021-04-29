@@ -133,7 +133,7 @@ def build_patterns(trips, time_windows):
     patterns = patterns[~patterns[STOP_TIME_DURATION].isnull()].copy()
 
     patterns[TRIP_NUM] = patterns[TRIP_NUM] + 1
-    patterns[STOP_TIME_DURATION] = patterns[STOP_TIME_DURATION].astype(np.int)
+    patterns[STOP_TIME_DURATION] = patterns[STOP_TIME_DURATION].astype(int)
 
     patterns = pd.merge(patterns, trips.reset_index()[[TOUR_ID, TRIP_ID, TRIP_NUM, OUTBOUND]],
                         on=[TOUR_ID, TRIP_NUM])

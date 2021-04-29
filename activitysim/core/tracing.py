@@ -28,24 +28,6 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
 logger = logging.getLogger(__name__)
 
-#       nano micro milli    kilo mega giga tera peta exa  zeta yotta
-tiers = ['n', 'µ', 'm', '', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-
-
-def si_units(x, kind='B', f="{}{:.3g} {}{}"):
-    tier = 3
-    shift = 1024 if kind == 'B' else 1000
-    sign = '-' if x < 0 else ''
-    x = abs(x)
-    if x > 0:
-        while x > shift and tier < len(tiers):
-            x /= shift
-            tier += 1
-        while x < 1 and tier >= 0:
-            x *= shift
-            tier -= 1
-    return f.format(sign, x, tiers[tier], kind)
-
 
 def extend_trace_label(trace_label, extension):
     if trace_label:
@@ -144,6 +126,7 @@ def delete_trace_files():
     Nothing
     """
     delete_output_files(CSV_FILE_TYPE, subdir='trace')
+    delete_output_files(CSV_FILE_TYPE, subdir='log')
 
     active_log_files = [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
 

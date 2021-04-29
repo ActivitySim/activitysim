@@ -10,6 +10,7 @@ from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
+from activitysim.core import mem
 from activitysim.core import chunk
 
 logger = logging.getLogger(__name__)
@@ -222,7 +223,10 @@ def run(args):
         else:
             pipeline.close_pipeline()
 
-        chunk.log_write_hwm()
+        mem.log_hwm()  # main process
+
+    chunk.consolidate_logs()
+    mem.consolidate_logs()
 
     tracing.print_elapsed_time('all models', t0)
 

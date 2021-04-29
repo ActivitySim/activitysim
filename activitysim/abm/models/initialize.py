@@ -10,7 +10,7 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import expressions
-from activitysim.core import mem
+from activitysim.core import chunk
 
 from activitysim.core.steps.output import write_data_dictionary
 from activitysim.core.steps.output import write_tables
@@ -39,6 +39,10 @@ logger = logging.getLogger(__name__)
 
 def annotate_tables(model_settings, trace_label):
 
+    trace_label = tracing.extend_trace_label(trace_label, 'annotate_tables')
+
+    chunk.log_rss(trace_label)
+
     annotate_tables = model_settings.get('annotate_tables', [])
 
     if not annotate_tables:
@@ -53,7 +57,10 @@ def annotate_tables(model_settings, trace_label):
 
         tablename = table_info['tablename']
 
+        chunk.log_rss(f"{trace_label}.pre-get_table.{tablename}")
+
         df = inject.get_table(tablename).to_frame()
+        chunk.log_df(trace_label, tablename, df)
 
         # - rename columns
         column_map = table_info.get('column_map', None)
@@ -75,10 +82,13 @@ def annotate_tables(model_settings, trace_label):
                 model_settings=annotate,
                 trace_label=trace_label)
 
-        # fixme - narrow?
+        chunk.log_df(trace_label, tablename, df)
 
         # - write table to pipeline
         pipeline.replace_table(tablename, df)
+
+        del df
+        chunk.log_df(trace_label, tablename, None)
 
 
 @inject.step()
@@ -86,12 +96,15 @@ def initialize_landuse():
 
     trace_label = 'initialize_landuse'
 
-    model_settings = config.read_model_settings('initialize_landuse.yaml', mandatory=True)
+    with chunk.chunk_log(trace_label):
 
-    annotate_tables(model_settings, trace_label)
+        model_settings = config.read_model_settings('initialize_landuse.yaml', mandatory=True)
 
-    # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
-    accessibility = pipeline.get_table('accessibility')
+        annotate_tables(model_settings, trace_label)
+
+        # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
+        accessibility = pipeline.get_table('accessibility')
+        chunk.log_df(trace_label, "accessibility", accessibility)
 
 
 @inject.step()
@@ -99,17 +112,32 @@ def initialize_households():
 
     trace_label = 'initialize_households'
 
-    model_settings = config.read_model_settings('initialize_households.yaml', mandatory=True)
-    annotate_tables(model_settings, trace_label)
+    with chunk.chunk_log(trace_label):
 
-    # - initialize shadow_pricing size tables after annotating household and person tables
-    # since these are scaled to model size, they have to be created while single-process
-    shadow_pricing.add_size_tables()
+        chunk.log_rss(f"{trace_label}.inside-yield")
 
-    # - preload person_windows
-    t0 = tracing.print_elapsed_time()
-    inject.get_table('person_windows').to_frame()
-    t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)
+        households = inject.get_table('households').to_frame()
+        assert not households._is_view
+        chunk.log_df(trace_label, "households", households)
+        del households
+        chunk.log_df(trace_label, "households", None)
+
+        persons = inject.get_table('persons').to_frame()
+        assert not persons._is_view
+        chunk.log_df(trace_label, "persons", persons)
+        del persons
+        chunk.log_df(trace_label, "persons", None)
+
+        model_settings = config.read_model_settings('initialize_households.yaml', mandatory=True)
+        annotate_tables(model_settings, trace_label)
+
+        # - initialize shadow_pricing size tables after annotating household and person tables
+        # since these are scaled to model size, they have to be created while single-process
+        shadow_pricing.add_size_tables()
+
+        # - preload person_windows
+        person_windows = inject.get_table('person_windows').to_frame()
+        chunk.log_df(trace_label, "person_windows", person_windows)
 
 
 @inject.injectable(cache=True)

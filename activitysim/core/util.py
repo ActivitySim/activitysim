@@ -3,6 +3,7 @@
 
 from builtins import zip
 import logging
+import os
 
 from operator import itemgetter
 
@@ -14,21 +15,33 @@ from zbox import toolz as tz
 logger = logging.getLogger(__name__)
 
 
+def si_units(x, kind='B', digits=3, shift=1000):
+
+    #       nano micro milli    kilo mega giga tera peta exa  zeta yotta
+    tiers = ['n', 'µ', 'm', '', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+
+    tier = 3
+    sign = '-' if x < 0 else ''
+    x = abs(x)
+    if x > 0:
+        while x > shift and tier < len(tiers):
+            x /= shift
+            tier += 1
+        while x < 1 and tier >= 0:
+            x *= shift
+            tier -= 1
+    return f"{sign}{round(x,digits)} {tiers[tier]}{kind}"
+
+
 def GB(bytes):
-    symbols = ('', ' KB', ' MB', ' GB', ' TB')
-    fmt = "%.1f%s"
-    # for i, s in enumerate(symbols):
-    #     units = 1 << i * 10
-    #     if bytes < units * 1024:
-    #         return fmt % (bytes / units, s)
-    for i, s in enumerate(symbols):
-        if bytes < (i + 1) * 1000:
-            return fmt % (bytes, s)
-        bytes = bytes / 1000
-    return fmt % (bytes, s)
+    return si_units(bytes, kind='B', digits=1)
 
 
-def INT_STR(x):
+def SEC(seconds):
+    return si_units(seconds, kind='s', digits=2)
+
+
+def INT(x):
     # format int as camel case (e.g. 1000000 vecomes '1_000_000')
     negative = x < 0
     x = abs(int(x))
@@ -39,6 +52,19 @@ def INT_STR(x):
     result = "%d%s" % (x, result)
 
     return f"{'-' if negative else ''}{result}"
+
+
+def delete_files(file_list, trace_label):
+    # delete files in file_list
+
+    file_list = [file_list] if isinstance(file_list, str) else file_list
+    for file_path in file_list:
+        try:
+            if os.path.isfile(file_path):
+                logger.debug(f"{trace_label} deleting {file_path}")
+                os.unlink(file_path)
+        except Exception as e:
+            logger.warning(f"{trace_label} exception (e) trying to delete {file_path}")
 
 
 def df_size(df):

@@ -2,13 +2,14 @@
 # See full license in LICENSE.txt.
 from builtins import input
 
-import math
+import datetime
+import glob
 import logging
-import psutil
-import threading
-import _thread
+import math
+import multiprocessing
 import os
 import platform
+import threading
 
 from contextlib import contextmanager
 
@@ -19,10 +20,9 @@ from . import util
 from . import mem
 from . import tracing
 from . import config
-from . import inject
+from . import util
 
 from .util import GB
-from .util import INT_STR
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,9 @@ DEDUCT_SHARED_MEMORY_FROM_RSS = True
 
 
 CACHE_HISTORY = True
-
+CACHE_FILE_NAME = 'chunk_log.csv'
+LOG_FILE_NAME = 'chunk_log.csv'
+OMNIBUS_LOG_FILE_NAME = f"omnibus_{LOG_FILE_NAME}"
 
 HWM = {}
 _SHARED_MEM_SIZE = None
@@ -68,10 +70,50 @@ C_NUM_ROWS = 'rows_processed'
 
 C_NUM_CHUNKS = C_CHUNK = 'chunk'  # chunk num becomes num_chunks when we drop all but last
 C_CHUNK_SIZE = 'chunk_size'
-CHUNK_HISTORY_COLUMNS = [C_CHUNK_TAG, C_DEPTH, C_OVERHEAD, C_OVERHEAD_RSS, C_OVERHEAD_BYTES,
+CHUNK_HISTORY_COLUMNS = ['time', C_CHUNK_TAG, C_DEPTH, C_OVERHEAD, C_OVERHEAD_RSS, C_OVERHEAD_BYTES,
                          'observed_row_size', 'observed_row_size_rss', 'observed_row_size_bytes',
                          'initial_rss', 'final_rss',
-                         C_NUM_ROWS, C_CHUNK_SIZE, C_NUM_CHUNKS]
+                         C_NUM_ROWS, C_CHUNK_SIZE, C_NUM_CHUNKS, 'process']
+
+
+def consolidate_logs():
+
+    # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
+    delete_originals = (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME)
+
+    glob_file_name = config.log_file_path(f"*{LOG_FILE_NAME}", prefix=False)
+    glob_files = glob.glob(glob_file_name)
+
+    logger.debug(f"chunk.consolidate_logs reading glob {glob_file_name}")
+
+    omnibus_df = pd.concat((pd.read_csv(f, comment='#') for f in glob_files))
+    omnibus_df = omnibus_df.sort_values(by='time')
+
+    if delete_originals:
+        util.delete_files(glob_files, 'chunk.consolidate_logs')
+
+    log_output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
+    logger.debug(f"chunk.consolidate_logs writing omnibus log to {log_output_path}")
+    omnibus_df.to_csv(log_output_path, mode='w', index=False)
+
+    # shouldn't have different depths for the same chunk_tag
+    assert not omnibus_df[[C_CHUNK_TAG, C_DEPTH]]\
+        .groupby([C_CHUNK_TAG, C_DEPTH]).size()\
+        .reset_index(level=1).index.duplicated().any()
+
+    # aggregate by chunk_tag
+    omnibus_df = \
+        omnibus_df[[C_CHUNK_TAG,  C_OVERHEAD, C_OVERHEAD_RSS, C_OVERHEAD_BYTES, C_NUM_ROWS, C_DEPTH]]\
+        .groupby(C_CHUNK_TAG)\
+        .agg({C_OVERHEAD: 'sum', C_OVERHEAD_RSS: 'sum', C_OVERHEAD_BYTES: 'sum', C_NUM_ROWS: 'sum', C_DEPTH: 'mean'})\
+        .reset_index(drop=False)
+
+    # compute row_size where num_rows > 0
+    row_size = np.ceil(omnibus_df[C_OVERHEAD] / omnibus_df[C_NUM_ROWS])
+    omnibus_df['row_size'] = np.where(omnibus_df[C_NUM_ROWS] > 0, row_size, 0).astype(int)
+
+    cache_output_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
+    omnibus_df.to_csv(cache_output_path, mode='w', index=False)
 
 
 def shared_memory_in_child_rss():
@@ -84,7 +126,9 @@ def shared_memory_in_child_rss():
     if os_name in ['Darwin']:
         return False
     elif os_name in ['Windows']:
-        return True
+        return False
+    elif os_name in ['Linux']:
+        return True  # ???
     else:
         bug
 
@@ -93,13 +137,13 @@ def chunk_logging():
     return len(CHUNK_LEDGERS) > 0
 
 
-def shared_memory_size(touch=False):
+def shared_memory_size():
     """
     multiprocessing shared memory appears in the rss of all subprocesses
     """
     global _SHARED_MEM_SIZE
     if _SHARED_MEM_SIZE is None:
-        _SHARED_MEM_SIZE = mem.shared_memory_size(touch)
+        _SHARED_MEM_SIZE = mem.shared_memory_size()
     return _SHARED_MEM_SIZE
 
 
@@ -107,19 +151,18 @@ def get_rss(force_garbage_collect=False):
 
     rss = mem.get_rss(force_garbage_collect)
 
-    if shared_memory_in_child_rss():
-        shared = shared_memory_size()
-        print(f"get_rss #0 rss {rss} shared {shared} net_rss {rss-shared}")
-        rss = rss - shared
-        assert rss > 0
+    # if shared_memory_in_child_rss():
+    #     shared = shared_memory_size()
+    #     print(f"get_rss #0 rss {rss} shared {shared} net_rss {rss-shared}")
+    #     rss = rss - shared
+    #     assert rss > 0
 
     return rss
 
 
 def adjust_chunk_size_for_shared_memory(chunk_size):
 
-    # SHARED_MEMORY_APPEARS_IN_RSS
-    if chunk_size > 0:
+    if chunk_size > 0 and shared_memory_in_child_rss():
         chunk_size = chunk_size + shared_memory_size()
 
     return chunk_size
@@ -135,30 +178,6 @@ def trace_label_for_chunk(trace_label, chunk_size, i):
 def get_base_chunk_size():
     assert len(CHUNK_SIZERS) > 0
     return CHUNK_SIZERS[0].chunk_size
-
-
-def log_write_hwm():
-
-    for tag, hwm in HWM.items():
-        hwm = HWM[tag]
-        logger.debug("high_water_mark %s: %s (%s) in %s" %
-                     (tag, GB(hwm['mark']), hwm['info'], hwm['trace_label']), )
-
-    print(f"\n")
-    for tag, hwm in HWM.items():
-        hwm = HWM[tag]
-        print(f"chunk_hwm high_water_mark {tag}: {GB(hwm['mark'])} in {hwm['trace_label']}")
-
-
-def check_global_hwm(tag, value, info, trace_label):
-
-    if value:
-        hwm = HWM.setdefault(tag, {})
-
-        if value > hwm.get('mark', 0):
-            hwm['mark'] = value
-            hwm['info'] = info
-            hwm['trace_label'] = trace_label
 
 
 def out_of_chunk_memory(msg, bytes=None, rss=None, from_rss_monitor=False):
@@ -188,8 +207,8 @@ def out_of_chunk_memory(msg, bytes=None, rss=None, from_rss_monitor=False):
             #
             # for s in CHUNK_LEDGERS[::-1]:
             #     logger.error(f"CHUNK_LOGGER {s.trace_label}")
-            #     logger.error(f"--- hwm_bytes {INT_STR(s.hwm_bytes['value'])} {s.hwm_bytes['info']}")
-            #     logger.error(f"--- hwm_rss {INT_STR(s.hwm_rss['value'])} {s.hwm_rss['info']}")
+            #     logger.error(f"--- hwm_bytes {INT(s.hwm_bytes['value'])} {s.hwm_bytes['info']}")
+            #     logger.error(f"--- hwm_rss {INT(s.hwm_rss['value'])} {s.hwm_rss['info']}")
 
 
 class ChunkHistorian(object):
@@ -204,29 +223,18 @@ class ChunkHistorian(object):
         self.cached_history_df = None
 
         self.DEFAULT_INITIAL_ROWS_PER_CHUNK = 10
-        self.CACHE_FILE_NAME = 'chunk_log.csv'
-        self.LOG_FILE_NAME = 'chunk_log.csv'
 
     def load_cached_history(self):
 
-        chunk_cache_path = os.path.join(config.get_cache_dir(), self.CACHE_FILE_NAME)
+        chunk_cache_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
 
         logger.debug(f"ChunkHistorian load_cached_history chunk_cache_path {chunk_cache_path}")
 
         if CACHE_HISTORY and os.path.exists(chunk_cache_path):
-            logger.debug(f"ChunkHistorian load_cached_history reading cached chunk history from {self.CACHE_FILE_NAME}")
+            logger.debug(f"ChunkHistorian load_cached_history reading cached chunk history from {CACHE_FILE_NAME}")
             df = pd.read_csv(chunk_cache_path, comment='#')
 
-            missing_columns = [c for c in CHUNK_HISTORY_COLUMNS if c not in df]
-            if missing_columns:
-                logger.error(f"cached chunk log is missing columns: {missing_columns}")
-
             df = df[df[C_DEPTH] == 1]
-
-            # cached_row_size method handles duplicates
-            # if df[C_CHUNK_TAG].duplicated().any():
-            #     logger.warning(f"ChunkHistorian load_cached_history found duplicate {C_CHUNK_TAG} rows in cache")
-            #     df = df[~df[C_CHUNK_TAG].duplicated(keep='last')]
 
             self.cached_history_df = df
             self.have_cached_history = True
@@ -247,7 +255,8 @@ class ChunkHistorian(object):
                 if len(df) > 0:
 
                     if len(df) > 1:
-                        logger.info(f"ChunkHistorian aggregating {len(df)} multiple rows for {chunk_tag}")
+                        # don't expect this, but not fatal
+                        logger.warning(f"ChunkHistorian aggregating {len(df)} multiple rows for {chunk_tag}")
 
                     overhead = df[C_OVERHEAD].sum()
                     num_rows = df[C_NUM_ROWS].sum()
@@ -266,6 +275,7 @@ class ChunkHistorian(object):
         history_df = history_df.tail(1)
 
         history_df[C_CHUNK_TAG] = chunk_tag
+        history_df['process'] = multiprocessing.current_process().name
 
         missing_columns = [c for c in CHUNK_HISTORY_COLUMNS if c not in history_df]
         if missing_columns:
@@ -273,7 +283,7 @@ class ChunkHistorian(object):
         history_df = history_df[CHUNK_HISTORY_COLUMNS]
 
         if self.chunk_log_path is None:
-            self.chunk_log_path = config.log_file_path(self.LOG_FILE_NAME)
+            self.chunk_log_path = config.log_file_path(LOG_FILE_NAME)
 
         tracing.write_df_csv(history_df, self.chunk_log_path, index_label=None,
                              columns=None, column_labels=None, transpose=False)
@@ -330,14 +340,13 @@ class ChunkLedger(object):
         self.tables = {}
         self.hwm_bytes = {'value': 0, 'info': f'{trace_label}.init'}
         self.hwm_rss = {'value': baseline_rss, 'info': f'{trace_label}.init'}
-        self.last_op = None
         self.total_bytes = 0
 
     def close(self):
         logger.debug(f"ChunkLedger.close hwm_bytes: {self.hwm_bytes.get('value', 0)} {self.hwm_bytes['info']}")
         logger.debug(f"ChunkLedger.close hwm_rss {self.hwm_rss['value']} {self.hwm_rss['info']}")
 
-    def log_df(self, trace_label, table_name, df):
+    def log_df(self, table_name, df):
 
         def size_it(df):
             if isinstance(df, pd.Series):
@@ -386,12 +395,12 @@ class ChunkLedger(object):
         self.last_rss = cur_rss
 
         def f(n):
-            return INT_STR(n).rjust(12)
+            return util.INT(n).rjust(12)
 
         logger.debug(f"log_df delta_bytes: {f(delta_bytes)} delta_rss: {f(delta_rss)} {table_name} {shape}")
 
         self.total_bytes = sum(self.tables.values())
-        # logger.debug(f"log_df bytes: {INT_STR(bytes)} total_bytes {INT_STR(self.total_bytes)} {table_name}")
+        # logger.debug(f"log_df bytes: {util.INT(bytes)} total_bytes {util.INT(self.total_bytes)} {table_name}")
 
     def check_hwm(self, hwm_trace_label, cur_rss, total_bytes=None):
         """
@@ -428,8 +437,6 @@ class ChunkLedger(object):
                 if base_chunk_size > 0 and total_bytes > base_chunk_size:
                     out_of_chunk_memory(hwm_trace_label, rss=cur_rss, bytes=total_bytes)
 
-            self.last_op = hwm_trace_label
-
         if cur_rss > self.hwm_rss['value']:
 
             self.hwm_rss['value'] = cur_rss
@@ -439,13 +446,8 @@ class ChunkLedger(object):
             if base_chunk_size > 0 and cur_rss > base_chunk_size:
                 out_of_chunk_memory(hwm_trace_label, rss=cur_rss, bytes=total_bytes, from_rss_monitor=from_rss_monitor)
 
-        check_global_hwm('rss', cur_rss, info, hwm_trace_label)
-        check_global_hwm('bytes', total_bytes, info, hwm_trace_label)
-
-    def get_hwm_gross_rss(self):
-        with ledger_lock:
-            net_rss = self.hwm_rss['value']
-        return net_rss
+        mem.check_global_hwm('rss', cur_rss, hwm_trace_label)
+        mem.check_global_hwm('bytes', total_bytes, hwm_trace_label)
 
     def get_hwm_rss(self):
         with ledger_lock:
@@ -476,7 +478,8 @@ def _log_memory(trace_label, op_tag, table_name=None, df=None):
 
     hwm_trace_label = f"{trace_label}.{op_tag}"
 
-    cur_chunker.log_df(hwm_trace_label, table_name, df)
+    if table_name is not None:
+        cur_chunker.log_df(table_name, df)
 
     mem.trace_memory_info(hwm_trace_label)
 
@@ -489,12 +492,14 @@ def _log_memory(trace_label, op_tag, table_name=None, df=None):
 
 
 def log_rss(trace_label):
-    _log_memory(trace_label, 'log_rss')
+    op_tag = 'log_rss'
+    _log_memory(trace_label, op_tag)
 
 
 def log_df(trace_label, table_name, df):
     op = 'del' if df is None else 'add'
-    _log_memory(trace_label, f"{op}.{table_name}", table_name, df)
+    op_tag = f"{op}.{table_name}"
+    _log_memory(trace_label, op_tag, table_name, df)
 
 
 class MemMonitor(threading.Thread):
@@ -505,12 +510,9 @@ class MemMonitor(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        i = 1
-
-        log_rss(f"{self.trace_label}.tick_{i}")
-        while not self.stop_snooping.wait(timeout=MEM_MONITOR_TICK):
-            log_rss(f"{self.trace_label}.{i}")
-            i += 1
+        log_rss(self.trace_label)
+        while not self.stop_snooping.wait(timeout=mem.MEM_TICK_LEN):
+            log_rss(self.trace_label)
 
 
 class ChunkSizer(object):
@@ -543,7 +545,6 @@ class ChunkSizer(object):
         self.chunk_ledger = None
 
         self.chunk_size = adjust_chunk_size_for_shared_memory(chunk_size)
-
 
         CHUNK_SIZERS.append(self)
 
@@ -675,6 +676,8 @@ class ChunkSizer(object):
         self.history.setdefault('new_rows_per_chunk', []).append(self.rows_per_chunk)
         self.history.setdefault('estimated_num_chunks', []).append(estimated_number_of_chunks)
 
+        self.history.setdefault('time', []).append(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f"))
+
         self.cur_rss = new_cur_rss
 
         logger.debug(f"#chunk_calc chunk: ChunkSizer.adaptive_rows_per_chunk "
@@ -710,7 +713,9 @@ class ChunkSizer(object):
                 mem_monitor = MemMonitor(self.trace_label, stop_snooping)
                 mem_monitor.start()
 
+            log_rss(f"{self.trace_label}.ledger.pre-yield")
             yield
+            log_rss(f"{self.trace_label}.ledger.post-yield")
 
         finally:
 

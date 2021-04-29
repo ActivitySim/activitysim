@@ -463,11 +463,15 @@ def run_model(model_name):
 
     inject.set_step_args(args)
 
+    mem.trace_memory_info(f"pipeline.run_model {model_name} start")
+
     t0 = print_elapsed_time()
     logger.info(f"#run_model running step {step_name}")
+
     orca.run([step_name])
 
     t0 = print_elapsed_time("#run_model completed step '%s'" % model_name, t0, debug=True)
+    mem.trace_memory_info(f"pipeline.run_model {model_name} finished")
 
     inject.set_step_args(None)
 
@@ -582,13 +586,13 @@ def run(models, resume_after=None):
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
 
-    mem.trace_memory_info('#MEM pipeline.run before preload_injectables')
+    mem.trace_memory_info('pipeline.run before preload_injectables')
 
     # preload any bulky injectables (e.g. skims) not in pipeline
     if inject.get_injectable('preload_injectables', None):
         t0 = print_elapsed_time('preload_injectables', t0)
 
-    mem.trace_memory_info('#MEM pipeline.run before run_models')
+    mem.trace_memory_info('pipeline.run after preload_injectables')
 
     t0 = print_elapsed_time()
     for model in models:
@@ -598,7 +602,7 @@ def run(models, resume_after=None):
 
         tracing.log_runtime(model_name=model, start_time=t1)
 
-    mem.trace_memory_info('#MEM pipeline.run after run_models')
+    mem.trace_memory_info('pipeline.run after run_models')
 
     t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 

@@ -157,6 +157,8 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
 
     if tdd_segments is not None:
 
+        logger.info(f"tdd_alt_segments specified for representative logsums")
+
         dedupe_columns = ['out_period', 'in_period']
 
         # tdd_alt_segments is optionally segmented by tour purpose
@@ -212,7 +214,8 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
         # for MTC only duration is used (to calculate all_day parking cost)
         dedupe_columns = ['out_period', 'in_period', 'duration']
 
-        logger.warning(f"No tdd_alt_segments so fallback to deduping tdd_alts by time_period and duration")
+        logger.warning(f"No tdd_alt_segments for representative logsums so fallback to "
+                       f"deduping tdd_alts by time_period and duration")
 
         # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
         # we can cut the number of alts roughly in half (for mtctm1) by conflating duplicates

@@ -92,24 +92,18 @@ def trace_memory_info(event=''):
     current_process = psutil.Process()
     info = current_process.memory_full_info()
 
-    children = 0
-    base_rss = rss = info.rss
-    base_uss = uss = info.uss
+    num_children = 0
+    base_rss = full_rss = info.rss
     for child in current_process.children(recursive=True):
         try:
-            info = child.memory_full_info()
-            children += 1
-            rss += info.rss
-            uss += info.uss
-            # rss += child.memory_info().rss
+            full_rss += child.memory_info().rss
+            num_children += 1
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
+            # print(f"'n###'n{e}")
             pass
 
     noteworthy = not event.endswith('.idle')
-
-    noteworthy = check_global_hwm('rss', rss, event) or noteworthy
-    noteworthy = check_global_hwm('uss', uss, event) or noteworthy
-    noteworthy = children or noteworthy
+    noteworthy = check_global_hwm('rss', full_rss, event) or noteworthy
 
     t = time.time()
     if (t - LAST_MEM_TICK > MEM_TICK_LEN):
@@ -117,13 +111,19 @@ def trace_memory_info(event=''):
         LAST_MEM_TICK = t
 
     if noteworthy:
-        logger.debug(f"trace_memory_info {event} rss: {GB(rss)}GB uss: {GB(uss)}GB percent: {percent}%")
+        logger.debug(f"trace_memory_info {event} base_rss: {GB(base_rss)} full_rss: {GB(full_rss)} percent: {percent}%")
 
         timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
 
-        MEM_LOG_HEADER = "process,rss,uss,percent,event,children,time"
+        MEM_LOG_HEADER = "process,base_rss,full_rss,percent,event,children,time"
         with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
-            print(f"{process_name},{GB(rss)},{GB(uss)},{round(percent,2)}%,{event},{children},{timestamp}",
+            print(f"{process_name},"
+                  f"{GB(base_rss)},"
+                  f"{GB(full_rss)},"
+                  f"{round(percent,2)}%,"
+                  f"{event},"
+                  f"{num_children},"
+                  f"{timestamp}",
                   file=log_file)
 
 
@@ -136,8 +136,6 @@ def get_rss(force_garbage_collect=False):
         gc.collect()
         if was_disabled:
             gc.disable()
-
-    # info = psutil.Process().memory_full_info().uss
 
     rss = psutil.Process().memory_info().rss
 

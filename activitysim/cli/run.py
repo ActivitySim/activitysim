@@ -204,9 +204,8 @@ def run(args):
         logger.info('run multiprocess simulation')
 
         from activitysim.core import mp_tasks
-        run_list = mp_tasks.get_run_list()
         injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-        mp_tasks.run_multiprocess(run_list, injectables)
+        mp_tasks.run_multiprocess(injectables)
 
         assert not pipeline.is_open()
 

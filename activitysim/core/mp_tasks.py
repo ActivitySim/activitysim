@@ -13,13 +13,13 @@ import yaml
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import pipeline
 from activitysim.core import config
-
-from activitysim.core import chunk
+from activitysim.core import inject
 from activitysim.core import mem
+from activitysim.core import pipeline
+from activitysim.core import tracing
+from activitysim.core import util
+
 
 from activitysim.core.config import setting
 
@@ -738,6 +738,43 @@ def setup_injectables_and_logging(injectables, locutor=True):
         raise e
 
 
+def adjust_chunk_size_for_shared_memory(chunk_size, data_buffers, num_processes):
+
+    # even if there is only one subprocess,
+    # we are separate from parent who allocated the shared memory
+    # so we still need to compensate for it
+
+    if chunk_size == 0:
+        return chunk_size
+
+    shared_memory_size = mem.shared_memory_size(data_buffers)
+
+    if shared_memory_size == 0:
+        return chunk_size
+
+    shared_memory_in_child_rss = mem.shared_memory_in_child_rss()
+    fair_share_of_shared_memory = int(shared_memory_size / num_processes)
+
+    if shared_memory_in_child_rss:
+        adjusted_chunk_size = chunk_size + shared_memory_size - fair_share_of_shared_memory
+    else:
+        adjusted_chunk_size = chunk_size - fair_share_of_shared_memory
+
+    logger.info(f"adjust_chunk_size_for_shared_memory "
+                f"adjusted_chunk_size {util.INT(adjusted_chunk_size)} "
+                f"shared_memory_in_child_rss {shared_memory_in_child_rss} "
+                f"chunk_size {util.INT(chunk_size)} "
+                f"shared_memory_size {util.INT(shared_memory_size)} "
+                f"num_processes {num_processes} "
+                f"fair_share_of_shared_memory {util.INT(fair_share_of_shared_memory)} ")
+
+    if adjusted_chunk_size <= 0:
+        raise RuntimeError(f"adjust_chunk_size_for_shared_memory: chunk_size too small for shared memory.  "
+                           f"adjusted_chunk_size: {adjusted_chunk_size}")
+
+    return adjusted_chunk_size
+
+
 def run_simulation(queue, step_info, resume_after, shared_data_buffer):
     """
     run step models as subtask
@@ -757,10 +794,13 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
         dict of shared data (e.g. skims and shadow_pricing)
     """
 
+    # step_label = step_info['name']
+
     models = step_info['models']
     chunk_size = step_info['chunk_size']
-    # step_label = step_info['name']
     num_processes = step_info['num_processes']
+
+    chunk_size = adjust_chunk_size_for_shared_memory(chunk_size, shared_data_buffer, num_processes)
 
     inject.add_injectable('data_buffers', shared_data_buffer)
     inject.add_injectable("chunk_size", chunk_size)
@@ -1226,7 +1266,7 @@ def drop_breadcrumb(step_name, crumb, value=True):
     write_breadcrumbs(breadcrumbs)
 
 
-def run_multiprocess(run_list, injectables):
+def run_multiprocess(injectables):
     """
     run the steps in run_list, possibly resuming after checkpoint specified by resume_after
 
@@ -1257,6 +1297,8 @@ def run_multiprocess(run_list, injectables):
     """
 
     mem.trace_memory_info("run_multiprocess.start")
+
+    run_list = get_run_list()
 
     if not run_list['multiprocess']:
         raise RuntimeError("run_multiprocess called but multiprocess flag is %s" %

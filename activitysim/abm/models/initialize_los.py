@@ -186,13 +186,13 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         assert chooser_chunk._is_view  # otherwise copying it is wasteful
         chooser_chunk = chooser_chunk.copy()
-        chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
 
         # add any attribute columns specified as column attributes in settings (the rest will be scalars in locals_dict)
         for attribute_name in attributes_as_columns:
             chooser_chunk[attribute_name] = scalar_attributes[attribute_name]
 
-        chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
 
         utilities_df = \
             pathbuilder.compute_utilities(network_los,
@@ -210,7 +210,7 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
         data[chooser_chunk.index.values, :] = utilities_df.values
 
         del chooser_chunk
-        chunk.log_df(trace_label, 'chooser_chunk', None)
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', None)
 
     logger.debug(f"{trace_label} updated utilities")
 

@@ -8,7 +8,6 @@ import logging
 import math
 import multiprocessing
 import os
-import platform
 import threading
 
 from contextlib import contextmanager
@@ -16,7 +15,6 @@ from contextlib import contextmanager
 import numpy as np
 import pandas as pd
 
-from . import util
 from . import mem
 from . import tracing
 from . import config
@@ -29,17 +27,14 @@ logger = logging.getLogger(__name__)
 CHUNK_LEDGERS = []
 CHUNK_SIZERS = []
 
-MAX_ROWSIZE_ERROR = 0.5  # estimated_row_size percentage error warning threshold
-
 BYTES_PER_ELEMENT = 8
 
+DEFAULT_INITIAL_ROWS_PER_CHUNK = 10  # fallback for setting
 
 MEM_MONITOR_TICK = 1  # in seconds
 ENABLE_MEMORY_MONITOR = True
 
-# FIXME should we copy chooser chunk after slicing
-# presumably not needed as long as we check if chooser_chunk_is_view before and after yield
-COPY_CHOOSER_CHUNKS = False
+NO_TRACING_IF_UNCHUNKED = False
 
 # FIXME should we update this every chunk? Or does it make available_chunk_size too jittery?
 RESET_RSS_BASELINE_FOR_EACH_CHUNK = True
@@ -50,10 +45,15 @@ TRACE_LABEL_CHOOSER_CHUNK_NUM = False
 # might be os-dependent, but in windows shared memory shows up in rss of every subprocess
 DEDUCT_SHARED_MEMORY_FROM_RSS = True
 
+# CHUNK_METRIC rss is too unstable to use all by itself
+# CHUNK_METRIC bytes (recorded by log_df calls) fails to capture transient usage by pandas and numpy
+# hybrid metric uses worst case of rss and bytes (might be overly pessimistic)
+CHUNK_METRIC = 'bytes'
+#CHUNK_METRIC = 'hybrid'
 
 CACHE_HISTORY = True
 CACHE_FILE_NAME = 'chunk_log.csv'
-LOG_FILE_NAME = 'chunk_log.csv'
+LOG_FILE_NAME = 'chunk_history.csv'
 OMNIBUS_LOG_FILE_NAME = f"omnibus_{LOG_FILE_NAME}"
 
 HWM = {}
@@ -64,37 +64,47 @@ ledger_lock = threading.Lock()
 C_CHUNK_TAG = 'tag'
 C_DEPTH = 'depth'
 C_OVERHEAD = 'cum_overhead'
-C_OVERHEAD_RSS = 'cum_overhead_rss'
 C_OVERHEAD_BYTES = 'cum_overhead_bytes'
 C_NUM_ROWS = 'rows_processed'
+C_FINAL = 'final'
+C_TIME = 'time'
 
-C_NUM_CHUNKS = C_CHUNK = 'chunk'  # chunk num becomes num_chunks when we drop all but last
-C_CHUNK_SIZE = 'chunk_size'
-CHUNK_HISTORY_COLUMNS = ['time', C_CHUNK_TAG, C_DEPTH, C_OVERHEAD, C_OVERHEAD_RSS, C_OVERHEAD_BYTES,
-                         'observed_row_size', 'observed_row_size_rss', 'observed_row_size_bytes',
-                         'initial_rss', 'final_rss',
-                         C_NUM_ROWS, C_CHUNK_SIZE, C_NUM_CHUNKS, 'process']
+# columns to write to LOG_FILE
+CHUNK_HISTORY_COLUMNS = [C_TIME, C_CHUNK_TAG, C_OVERHEAD, C_OVERHEAD_BYTES, C_NUM_ROWS,
+                         'observed_row_size', 'chunk_size', C_DEPTH, 'process', 'chunk', C_FINAL]
 
 
 def consolidate_logs():
 
-    # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
-    delete_originals = (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME)
-
     glob_file_name = config.log_file_path(f"*{LOG_FILE_NAME}", prefix=False)
     glob_files = glob.glob(glob_file_name)
 
+    if not glob_files:
+        return
+
+    #
+    # OMNIBUS_LOG_FILE
+    #
+
     logger.debug(f"chunk.consolidate_logs reading glob {glob_file_name}")
-
     omnibus_df = pd.concat((pd.read_csv(f, comment='#') for f in glob_files))
-    omnibus_df = omnibus_df.sort_values(by='time')
 
-    if delete_originals:
+    omnibus_df = omnibus_df.sort_values(by=C_TIME)
+
+    # only want C_FINAL rows in omnibus_df
+    omnibus_df = omnibus_df[omnibus_df[C_FINAL]]
+
+    # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
+    if (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME):
         util.delete_files(glob_files, 'chunk.consolidate_logs')
 
     log_output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
     logger.debug(f"chunk.consolidate_logs writing omnibus log to {log_output_path}")
     omnibus_df.to_csv(log_output_path, mode='w', index=False)
+
+    #
+    # CACHE_FILE
+    #
 
     # shouldn't have different depths for the same chunk_tag
     assert not omnibus_df[[C_CHUNK_TAG, C_DEPTH]]\
@@ -103,9 +113,9 @@ def consolidate_logs():
 
     # aggregate by chunk_tag
     omnibus_df = \
-        omnibus_df[[C_CHUNK_TAG,  C_OVERHEAD, C_OVERHEAD_RSS, C_OVERHEAD_BYTES, C_NUM_ROWS, C_DEPTH]]\
+        omnibus_df[[C_CHUNK_TAG,  C_OVERHEAD, C_OVERHEAD_BYTES, C_NUM_ROWS, C_DEPTH]]\
         .groupby(C_CHUNK_TAG)\
-        .agg({C_OVERHEAD: 'sum', C_OVERHEAD_RSS: 'sum', C_OVERHEAD_BYTES: 'sum', C_NUM_ROWS: 'sum', C_DEPTH: 'mean'})\
+        .agg({C_OVERHEAD: 'sum', C_OVERHEAD_BYTES: 'sum', C_NUM_ROWS: 'sum', C_DEPTH: 'mean'})\
         .reset_index(drop=False)
 
     # compute row_size where num_rows > 0
@@ -113,59 +123,19 @@ def consolidate_logs():
     omnibus_df['row_size'] = np.where(omnibus_df[C_NUM_ROWS] > 0, row_size, 0).astype(int)
 
     cache_output_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
+    logger.debug(f"chunk.consolidate_logs writing omnibus chunk cache to {cache_output_path}")
     omnibus_df.to_csv(cache_output_path, mode='w', index=False)
-
-
-def shared_memory_in_child_rss():
-
-    # Linux: Linux
-    # Mac: Darwin
-    # Windows: Windows
-
-    os_name = platform.system()
-    if os_name in ['Darwin']:
-        return False
-    elif os_name in ['Windows']:
-        return False
-    elif os_name in ['Linux']:
-        return True  # ???
-    else:
-        bug
 
 
 def chunk_logging():
     return len(CHUNK_LEDGERS) > 0
 
 
-def shared_memory_size():
-    """
-    multiprocessing shared memory appears in the rss of all subprocesses
-    """
-    global _SHARED_MEM_SIZE
-    if _SHARED_MEM_SIZE is None:
-        _SHARED_MEM_SIZE = mem.shared_memory_size()
-    return _SHARED_MEM_SIZE
-
-
 def get_rss(force_garbage_collect=False):
 
     rss = mem.get_rss(force_garbage_collect)
 
-    # if shared_memory_in_child_rss():
-    #     shared = shared_memory_size()
-    #     print(f"get_rss #0 rss {rss} shared {shared} net_rss {rss-shared}")
-    #     rss = rss - shared
-    #     assert rss > 0
-
     return rss
-
-
-def adjust_chunk_size_for_shared_memory(chunk_size):
-
-    if chunk_size > 0 and shared_memory_in_child_rss():
-        chunk_size = chunk_size + shared_memory_size()
-
-    return chunk_size
 
 
 def trace_label_for_chunk(trace_label, chunk_size, i):
@@ -222,8 +192,6 @@ class ChunkHistorian(object):
         self.have_cached_history = None
         self.cached_history_df = None
 
-        self.DEFAULT_INITIAL_ROWS_PER_CHUNK = 10
-
     def load_cached_history(self):
 
         chunk_cache_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
@@ -240,6 +208,9 @@ class ChunkHistorian(object):
             self.have_cached_history = True
         else:
             self.have_cached_history = False
+
+    def default_initial_rows_per_chunk(self):
+        return config.setting('default_initial_rows_per_chunk', DEFAULT_INITIAL_ROWS_PER_CHUNK)
 
     def cached_row_size(self, chunk_tag):
 
@@ -269,17 +240,19 @@ class ChunkHistorian(object):
 
         return row_size
 
-    def write_history(self, history_df, chunk_tag):
+    def write_history(self, history, chunk_tag):
+
+        history_df = pd.DataFrame.from_dict(history)
+        logger.debug(f"ChunkSizer {chunk_tag}\n{history_df.transpose()}")
 
         # just want the last, most up to date row
-        history_df = history_df.tail(1)
+        # history_df = history_df.tail(1)
+
+        history_df[C_FINAL] = history_df.index == len(history_df) - 1
 
         history_df[C_CHUNK_TAG] = chunk_tag
         history_df['process'] = multiprocessing.current_process().name
 
-        missing_columns = [c for c in CHUNK_HISTORY_COLUMNS if c not in history_df]
-        if missing_columns:
-            logger.error(f"ChunkHistorian.write_history: history_df is missing columns: {missing_columns}")
         history_df = history_df[CHUNK_HISTORY_COLUMNS]
 
         if self.chunk_log_path is None:
@@ -497,6 +470,10 @@ def log_rss(trace_label):
 
 
 def log_df(trace_label, table_name, df):
+
+    if NO_TRACING_IF_UNCHUNKED and not get_base_chunk_size():
+        return
+
     op = 'del' if df is None else 'add'
     op_tag = f"{op}.{table_name}"
     _log_memory(trace_label, op_tag, table_name, df)
@@ -543,8 +520,9 @@ class ChunkSizer(object):
 
         self.history = {}
         self.chunk_ledger = None
+        self.chunk_size = chunk_size
 
-        self.chunk_size = adjust_chunk_size_for_shared_memory(chunk_size)
+        self.min_chunk_size = chunk_size * config.setting('min_available_chunk_ratio', 0)
 
         CHUNK_SIZERS.append(self)
 
@@ -561,43 +539,54 @@ class ChunkSizer(object):
 
         if self.history:
 
-            history_df = pd.DataFrame.from_dict(self.history)
-            logger.debug(f"ChunkSizer {self.trace_label}\n{history_df.transpose()}")
-
-            _HISTORIAN.write_history(history_df, self.chunk_tag)
+            _HISTORIAN.write_history(self.history, self.chunk_tag)
 
         _chunk_sizer = CHUNK_SIZERS.pop()
         assert _chunk_sizer == self
+
+    def available_chunk_size(self, rss):
+
+        available_chunk_size = self.base_chunk_size - rss
+
+        # adjust deficient available_chunk_size to min_chunk_size
+        if available_chunk_size < self.min_chunk_size:
+
+            if self.base_chunk_size > 0:
+                logger.warning(f"Not enough memory for minimum chunk_size without exceeding specified chunk_size."
+                               f"available_chunk_size: {util.INT(available_chunk_size)} "
+                               f"min_chunk_size: {util.INT(self.min_chunk_size)} "
+                               f"base_chunk_size: {util.INT(self.base_chunk_size)}")
+
+            available_chunk_size = self.min_chunk_size
+
+        return available_chunk_size
 
     def initial_rows_per_chunk(self):
 
         # initialize values only needed if actually chunking
 
-        self.cum_overhead_rss = 0
         self.cum_overhead_bytes = 0
         self.cum_overhead = 0  # hybrid based on greater of rss and bytes on each iteration
         self.rows_processed = 0
 
-        self.initial_row_size = _HISTORIAN.cached_row_size(self.chunk_tag) if self.chunk_size > 0 else 0
-
-        #########
-
         if self.chunk_size == 0:
-            assert self.initial_row_size == 0  # we ignore this but make sure caller realizes that
             rows_per_chunk = self.num_choosers
             estimated_number_of_chunks = 1
         else:
 
+            initial_row_size = _HISTORIAN.cached_row_size(self.chunk_tag)
+
             assert len(CHUNK_LEDGERS) == 0, f"len(CHUNK_LEDGERS): {len(CHUNK_LEDGERS)}"
-            if self.initial_row_size == 0:
-                rows_per_chunk = min(self.num_choosers, _HISTORIAN.DEFAULT_INITIAL_ROWS_PER_CHUNK)
+            if initial_row_size == 0:
+                rows_per_chunk = min(self.num_choosers, _HISTORIAN.default_initial_rows_per_chunk())
                 estimated_number_of_chunks = None
             else:
-                available_chunk_size = self.base_chunk_size - self.cur_rss
 
-                max_rows_per_chunk = np.maximum(int(available_chunk_size / self.initial_row_size), 1)
+                available_chunk_size = self.available_chunk_size(self.cur_rss)
+
+                max_rows_per_chunk = np.maximum(int(available_chunk_size / initial_row_size), 1)
                 logger.debug(f"#chunk_calc chunk: max rows_per_chunk {max_rows_per_chunk} "
-                             f"based on initial_row_size {self.initial_row_size}")
+                             f"based on initial_row_size {initial_row_size}")
 
                 rows_per_chunk = np.clip(max_rows_per_chunk, 1, self.num_choosers)
                 estimated_number_of_chunks = math.ceil(self.num_choosers / rows_per_chunk)
@@ -615,6 +604,9 @@ class ChunkSizer(object):
         # rows_processed is out of phase with cum_overhead
         # observed_overhead is the actual bytes/rss used top process chooser chunk with prev_rows_per_chunk rows
 
+        if NO_TRACING_IF_UNCHUNKED and not self.base_chunk_size:
+            return 0, 1
+
         prev_rows_per_chunk = self.rows_per_chunk
         prev_rows_processed = self.rows_processed
 
@@ -627,56 +619,52 @@ class ChunkSizer(object):
 
         # use chunk_ledger to revise predicted row_size based on observed_overhead
         observed_overhead_rss = self.chunk_ledger.get_hwm_rss() - initial_rss
-        self.cum_overhead_rss += observed_overhead_rss
-        observed_row_size_rss = math.ceil(self.cum_overhead_rss / prev_rows_processed)
-
         observed_overhead_bytes = self.chunk_ledger.get_hwm_bytes()
-        self.cum_overhead_bytes += observed_overhead_bytes
-        observed_row_size_bytes = math.ceil(self.cum_overhead_bytes / prev_rows_processed)
 
-        observed_overhead = max(observed_overhead_rss, observed_overhead_bytes)
-        self.cum_overhead += observed_overhead  # could be hybrid of rss and bytes
+        if CHUNK_METRIC == 'hybrid':
+            observed_overhead = max(observed_overhead_rss, observed_overhead_bytes)
+        elif CHUNK_METRIC == 'bytes':
+            observed_overhead = observed_overhead_bytes
+        else:
+            raise RuntimeError(f"Unrecognized CHUNK_METRIC: {CHUNK_METRIC}")
+
+        # for greater stability, calculate row_size based on cumulative overhead and rows_processed values
+        self.cum_overhead += observed_overhead
         observed_row_size = math.ceil(self.cum_overhead / prev_rows_processed)
 
+        # retain in history for debugging even if metric is hybrid
+        self.cum_overhead_bytes += observed_overhead_bytes
+
         # rows_per_chunk is closest number of chooser rows to achieve chunk_size without exceeding it
-        available_chunk_size = self.base_chunk_size - new_cur_rss
+        available_chunk_size = self.available_chunk_size(new_cur_rss)
         if observed_row_size > 0:
             self.rows_per_chunk = int(available_chunk_size / observed_row_size)
         else:
             # they don't appear to have used any memory; increase cautiously in case small sample size was to blame
-            self.rows_per_chunk = 10 * prev_rows_per_chunk
+            self.rows_per_chunk = 2 * prev_rows_per_chunk
             logger.warning(f"{self.trace_label} adaptive_rows_per_chunk_{i} observed_row_size == 0")
 
         self.rows_per_chunk = np.clip(self.rows_per_chunk, 1, rows_remaining)
         self.rows_processed = prev_rows_processed + self.rows_per_chunk
         estimated_number_of_chunks = i + math.ceil(rows_remaining / self.rows_per_chunk) if rows_remaining else i
 
+        self.history.setdefault(C_TIME, []).append(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f"))
         self.history.setdefault(C_DEPTH, []).append(self.depth)
         self.history.setdefault(C_OVERHEAD, []).append(self.cum_overhead)
-        self.history.setdefault(C_OVERHEAD_RSS, []).append(self.cum_overhead_rss)
         self.history.setdefault(C_OVERHEAD_BYTES, []).append(self.cum_overhead_bytes)
         self.history.setdefault(C_NUM_ROWS, []).append(prev_rows_processed)
-        self.history.setdefault(C_CHUNK, []).append(i)
-        self.history.setdefault(C_CHUNK_SIZE, []).append(self.chunk_size)
-
-        # for legibility
+        self.history.setdefault('chunk', []).append(i)
+        self.history.setdefault('chunk_size', []).append(self.chunk_size)
         self.history.setdefault('observed_row_size', []).append(observed_row_size)
-        self.history.setdefault('observed_row_size_rss', []).append(observed_row_size_rss)
-        self.history.setdefault('observed_row_size_bytes', []).append(observed_row_size_bytes)
 
-        self.history.setdefault('initial_rss', []).append(initial_rss)
-        self.history.setdefault('final_rss', []).append(final_rss)
+        self.history.setdefault('initial_rss', []).append(observed_row_size)
+        self.history.setdefault('final_rss', []).append(observed_row_size)
 
         # diagnostics not required by ChunkHistorian
-        self.history.setdefault('available_chunk_size', []).append(available_chunk_size)
-        self.history.setdefault('prev_rows_per_chunk', []).append(prev_rows_per_chunk)
-        self.history.setdefault('observed_overhead', []).append(observed_overhead)
-        self.history.setdefault('observed_overhead_rss', []).append(observed_overhead_rss)
-        self.history.setdefault('observed_overhead_bytes', []).append(observed_overhead_bytes)
-        self.history.setdefault('new_rows_per_chunk', []).append(self.rows_per_chunk)
-        self.history.setdefault('estimated_num_chunks', []).append(estimated_number_of_chunks)
-
-        self.history.setdefault('time', []).append(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f"))
+        # self.history.setdefault('available_chunk_size', []).append(available_chunk_size)
+        # self.history.setdefault('observed_overhead', []).append(observed_overhead)
+        # self.history.setdefault('new_rows_per_chunk', []).append(self.rows_per_chunk)
+        # self.history.setdefault('estimated_num_chunks', []).append(estimated_number_of_chunks)
 
         self.cur_rss = new_cur_rss
 
@@ -783,21 +771,10 @@ def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label, chunk
             # grab the next chunk based on current rows_per_chunk
             chooser_chunk = choosers[offset: offset + rows_per_chunk]
 
-            if COPY_CHOOSER_CHUNKS:
-                chooser_chunk = chooser_chunk.copy()
-            chooser_chunk_is_view = chooser_chunk._is_view
-            if not chooser_chunk_is_view:
-                log_df(trace_label, 'chooser_chunk', chooser_chunk)
-
             logger.info(f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
                         f"with {len(chooser_chunk)} of {num_choosers} choosers")
 
             yield i, chooser_chunk, chunk_trace_label
-
-            assert chooser_chunk._is_view == chooser_chunk_is_view
-            if not chooser_chunk_is_view:
-                del chooser_chunk
-                log_df(trace_label, 'chooser_chunk', None)
 
             offset += rows_per_chunk
 
@@ -880,19 +857,9 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
         with chunk_sizer.ledger():
 
             chooser_chunk = choosers[offset: offset + rows_per_chunk]
-            if COPY_CHOOSER_CHUNKS:
-                chooser_chunk = chooser_chunk.copy()
-            chooser_chunk_is_view = chooser_chunk._is_view
-            if not chooser_chunk_is_view:
-                log_df(trace_label, 'chooser_chunk', chooser_chunk)
 
             alt_end = alt_chunk_ends[offset + rows_per_chunk]
             alternative_chunk = alternatives[alt_offset: alt_end]
-            if COPY_CHOOSER_CHUNKS:
-                alternative_chunk = alternative_chunk.copy()
-            alternative_chunk_is_view = alternative_chunk._is_view
-            if not alternative_chunk_is_view:
-                log_df(trace_label, 'alternative_chunk', alternative_chunk)
 
             assert len(chooser_chunk.index) == len(np.unique(alternative_chunk.index.values))
             assert (chooser_chunk.index == np.unique(alternative_chunk.index.values)).all()
@@ -901,16 +868,6 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
                         f"with {len(chooser_chunk)} of {num_choosers} choosers")
 
             yield i, chooser_chunk, alternative_chunk, chunk_trace_label
-
-            assert alternative_chunk._is_view == alternative_chunk_is_view
-            if not alternative_chunk_is_view:
-                del alternative_chunk
-                log_df(trace_label, 'alternative_chunk', None)
-
-            assert chooser_chunk._is_view == chooser_chunk_is_view
-            if not chooser_chunk_is_view:
-                del chooser_chunk
-                log_df(trace_label, 'chooser_chunk', None)
 
             offset += rows_per_chunk
             alt_offset = alt_end
@@ -937,7 +894,6 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
 
     i = offset = 0
-    chunk_trace_label = trace_label
     while offset < num_choosers:
 
         i += 1
@@ -949,21 +905,10 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_
 
             chooser_chunk = choosers[choosers['chunk_id'].between(offset, offset + rows_per_chunk - 1)]
 
-            if COPY_CHOOSER_CHUNKS:
-                chooser_chunk = chooser_chunk.copy()
-            chooser_chunk_is_view = chooser_chunk._is_view
-            if not chooser_chunk_is_view:
-                log_df(trace_label, 'chooser_chunk', chooser_chunk)
-
             logger.info(f"{trace_label} Running chunk {i} of {estimated_number_of_chunks or '?'} "
                         f"with {rows_per_chunk} of {num_choosers} choosers")
 
             yield i, chooser_chunk, chunk_trace_label
-
-            assert chooser_chunk._is_view == chooser_chunk_is_view
-            if not chooser_chunk_is_view:
-                del chooser_chunk
-                log_df(trace_label, 'chooser_chunk', None)
 
             offset += rows_per_chunk
 

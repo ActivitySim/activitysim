@@ -24,6 +24,12 @@ from .util import GB
 
 logger = logging.getLogger(__name__)
 
+
+CHUNK_METHOD_BYTES = 'bytes'
+CHUNK_METHOD_RSS = 'rss'
+CHUNK_METHOD_HYBRID = 'hybrid'
+DEFAULT_CHUNK_METHOD = CHUNK_METHOD_HYBRID
+
 CHUNK_LEDGERS = []
 CHUNK_SIZERS = []
 
@@ -42,17 +48,8 @@ RESET_RSS_BASELINE_FOR_EACH_CHUNK = True
 # FIXME should we add chunk number to trace_label when chunking
 TRACE_LABEL_CHOOSER_CHUNK_NUM = False
 
-# might be os-dependent, but in windows shared memory shows up in rss of every subprocess
-DEDUCT_SHARED_MEMORY_FROM_RSS = True
-
-# CHUNK_METRIC rss is too unstable to use all by itself
-# CHUNK_METRIC bytes (recorded by log_df calls) fails to capture transient usage by pandas and numpy
-# hybrid metric uses worst case of rss and bytes (might be overly pessimistic)
-CHUNK_METRIC = 'bytes'
-#CHUNK_METRIC = 'hybrid'
-
 CACHE_HISTORY = True
-CACHE_FILE_NAME = 'chunk_log.csv'
+CACHE_FILE_NAME = 'cached_chunk_log.csv'
 LOG_FILE_NAME = 'chunk_history.csv'
 OMNIBUS_LOG_FILE_NAME = f"omnibus_{LOG_FILE_NAME}"
 
@@ -74,61 +71,16 @@ CHUNK_HISTORY_COLUMNS = [C_TIME, C_CHUNK_TAG, C_OVERHEAD, C_OVERHEAD_BYTES, C_NU
                          'observed_row_size', 'chunk_size', C_DEPTH, 'process', 'chunk', C_FINAL]
 
 
-def consolidate_logs():
-
-    glob_file_name = config.log_file_path(f"*{LOG_FILE_NAME}", prefix=False)
-    glob_files = glob.glob(glob_file_name)
-
-    if not glob_files:
-        return
-
-    #
-    # OMNIBUS_LOG_FILE
-    #
-
-    logger.debug(f"chunk.consolidate_logs reading glob {glob_file_name}")
-    omnibus_df = pd.concat((pd.read_csv(f, comment='#') for f in glob_files))
-
-    omnibus_df = omnibus_df.sort_values(by=C_TIME)
-
-    # only want C_FINAL rows in omnibus_df
-    omnibus_df = omnibus_df[omnibus_df[C_FINAL]]
-
-    # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
-    if (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME):
-        util.delete_files(glob_files, 'chunk.consolidate_logs')
-
-    log_output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
-    logger.debug(f"chunk.consolidate_logs writing omnibus log to {log_output_path}")
-    omnibus_df.to_csv(log_output_path, mode='w', index=False)
-
-    #
-    # CACHE_FILE
-    #
-
-    # shouldn't have different depths for the same chunk_tag
-    assert not omnibus_df[[C_CHUNK_TAG, C_DEPTH]]\
-        .groupby([C_CHUNK_TAG, C_DEPTH]).size()\
-        .reset_index(level=1).index.duplicated().any()
-
-    # aggregate by chunk_tag
-    omnibus_df = \
-        omnibus_df[[C_CHUNK_TAG,  C_OVERHEAD, C_OVERHEAD_BYTES, C_NUM_ROWS, C_DEPTH]]\
-        .groupby(C_CHUNK_TAG)\
-        .agg({C_OVERHEAD: 'sum', C_OVERHEAD_BYTES: 'sum', C_NUM_ROWS: 'sum', C_DEPTH: 'mean'})\
-        .reset_index(drop=False)
-
-    # compute row_size where num_rows > 0
-    row_size = np.ceil(omnibus_df[C_OVERHEAD] / omnibus_df[C_NUM_ROWS])
-    omnibus_df['row_size'] = np.where(omnibus_df[C_NUM_ROWS] > 0, row_size, 0).astype(int)
-
-    cache_output_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
-    logger.debug(f"chunk.consolidate_logs writing omnibus chunk cache to {cache_output_path}")
-    omnibus_df.to_csv(cache_output_path, mode='w', index=False)
+def update_cached_chunk_log():
+    return config.setting('update_cached_chunk_log', True)
 
 
 def chunk_logging():
     return len(CHUNK_LEDGERS) > 0
+
+
+def get_default_initial_rows_per_chunk():
+    return config.setting('default_initial_rows_per_chunk', DEFAULT_INITIAL_ROWS_PER_CHUNK)
 
 
 def get_rss(force_garbage_collect=False):
@@ -181,6 +133,61 @@ def out_of_chunk_memory(msg, bytes=None, rss=None, from_rss_monitor=False):
             #     logger.error(f"--- hwm_rss {INT(s.hwm_rss['value'])} {s.hwm_rss['info']}")
 
 
+def consolidate_logs():
+
+    glob_file_name = config.log_file_path(f"*{LOG_FILE_NAME}", prefix=False)
+    glob_files = glob.glob(glob_file_name)
+
+    if not glob_files:
+        return
+
+    #
+    # OMNIBUS_LOG_FILE
+    #
+
+    logger.debug(f"chunk.consolidate_logs reading glob {glob_file_name}")
+    omnibus_df = pd.concat((pd.read_csv(f, comment='#') for f in glob_files))
+
+    omnibus_df = omnibus_df.sort_values(by=C_TIME)
+
+    # only want C_FINAL rows in omnibus_df
+    omnibus_df = omnibus_df[omnibus_df[C_FINAL]]
+
+    # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
+    if (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME):
+        util.delete_files(glob_files, 'chunk.consolidate_logs')
+
+    log_output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
+    logger.debug(f"chunk.consolidate_logs writing omnibus log to {log_output_path}")
+    omnibus_df.to_csv(log_output_path, mode='w', index=False)
+
+    #
+    # CACHE_FILE
+    #
+
+    if update_cached_chunk_log():
+
+        # shouldn't have different depths for the same chunk_tag
+        assert not omnibus_df[[C_CHUNK_TAG, C_DEPTH]]\
+            .groupby([C_CHUNK_TAG, C_DEPTH]).size()\
+            .reset_index(level=1).index.duplicated().any()
+
+        # aggregate by chunk_tag
+        omnibus_df = \
+            omnibus_df[[C_CHUNK_TAG,  C_OVERHEAD, C_OVERHEAD_BYTES, C_NUM_ROWS, C_DEPTH]]\
+            .groupby(C_CHUNK_TAG)\
+            .agg({C_OVERHEAD: 'sum', C_OVERHEAD_BYTES: 'sum', C_NUM_ROWS: 'sum', C_DEPTH: 'mean'})\
+            .reset_index(drop=False)
+
+        # compute row_size where num_rows > 0
+        row_size = np.ceil(omnibus_df[C_OVERHEAD] / omnibus_df[C_NUM_ROWS])
+        omnibus_df['row_size'] = np.where(omnibus_df[C_NUM_ROWS] > 0, row_size, 0).astype(int)
+
+        cache_output_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
+        logger.debug(f"chunk.consolidate_logs writing omnibus chunk cache to {cache_output_path}")
+        omnibus_df.to_csv(cache_output_path, mode='w', index=False)
+
+
 class ChunkHistorian(object):
     """
     Utility for estimating row_size
@@ -208,9 +215,6 @@ class ChunkHistorian(object):
             self.have_cached_history = True
         else:
             self.have_cached_history = False
-
-    def default_initial_rows_per_chunk(self):
-        return config.setting('default_initial_rows_per_chunk', DEFAULT_INITIAL_ROWS_PER_CHUNK)
 
     def cached_row_size(self, chunk_tag):
 
@@ -515,15 +519,23 @@ class ChunkSizer(object):
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label
-
         self.num_choosers = num_choosers
+        self.chunk_size = chunk_size
+
+        self.chunk_method = config.setting('chunk_method', DEFAULT_CHUNK_METHOD)
+        assert self.chunk_method in (CHUNK_METHOD_HYBRID, CHUNK_METHOD_BYTES, CHUNK_METHOD_BYTES), \
+            f"chunk_method setting '{self.chunk_method}' not recognized. " \
+            f"Should be one of: {(CHUNK_METHOD_HYBRID, CHUNK_METHOD_BYTES, CHUNK_METHOD_BYTES)}"
+
+        min_available_chunk_ratio = config.setting('min_available_chunk_ratio', 0)
+        assert 0 <= min_available_chunk_ratio <= 1, \
+            f"min_available_chunk_ratio setting {min_available_chunk_ratio} is not in range [0..1]"
+        self.min_chunk_size = chunk_size * min_available_chunk_ratio
 
         self.history = {}
         self.chunk_ledger = None
-        self.chunk_size = chunk_size
 
-        self.min_chunk_size = chunk_size * config.setting('min_available_chunk_ratio', 0)
-
+        # add self to CHUNK_SIZERS list before setting base_chunk_size (since we might be base chunker)
         CHUNK_SIZERS.append(self)
 
         self.base_chunk_size = CHUNK_SIZERS[0].chunk_size
@@ -578,7 +590,7 @@ class ChunkSizer(object):
 
             assert len(CHUNK_LEDGERS) == 0, f"len(CHUNK_LEDGERS): {len(CHUNK_LEDGERS)}"
             if initial_row_size == 0:
-                rows_per_chunk = min(self.num_choosers, _HISTORIAN.default_initial_rows_per_chunk())
+                rows_per_chunk = min(self.num_choosers, get_default_initial_rows_per_chunk())
                 estimated_number_of_chunks = None
             else:
 
@@ -621,18 +633,21 @@ class ChunkSizer(object):
         observed_overhead_rss = self.chunk_ledger.get_hwm_rss() - initial_rss
         observed_overhead_bytes = self.chunk_ledger.get_hwm_bytes()
 
-        if CHUNK_METRIC == 'hybrid':
+        assert self.chunk_method in (CHUNK_METHOD_HYBRID, CHUNK_METHOD_BYTES, CHUNK_METHOD_RSS)
+        if self.chunk_method == CHUNK_METHOD_HYBRID:
             observed_overhead = max(observed_overhead_rss, observed_overhead_bytes)
-        elif CHUNK_METRIC == 'bytes':
+        elif self.chunk_method == CHUNK_METHOD_BYTES:
             observed_overhead = observed_overhead_bytes
+        elif self.chunk_method == CHUNK_METHOD_RSS:
+            observed_overhead = observed_overhead_rss
         else:
-            raise RuntimeError(f"Unrecognized CHUNK_METRIC: {CHUNK_METRIC}")
+            raise RuntimeError(f"unknown chunk_method: {self.chunk_method}")
 
         # for greater stability, calculate row_size based on cumulative overhead and rows_processed values
         self.cum_overhead += observed_overhead
         observed_row_size = math.ceil(self.cum_overhead / prev_rows_processed)
 
-        # retain in history for debugging even if metric is hybrid
+        # retain in history for debugging even if not the specified chunk_method
         self.cum_overhead_bytes += observed_overhead_bytes
 
         # rows_per_chunk is closest number of chooser rows to achieve chunk_size without exceeding it
@@ -663,6 +678,8 @@ class ChunkSizer(object):
         # diagnostics not required by ChunkHistorian
         # self.history.setdefault('available_chunk_size', []).append(available_chunk_size)
         # self.history.setdefault('observed_overhead', []).append(observed_overhead)
+        # self.history.setdefault('observed_overhead_rss', []).append(observed_overhead_rss)
+        # self.history.setdefault('observed_overhead_bytes', []).append(observed_overhead_bytes)
         # self.history.setdefault('new_rows_per_chunk', []).append(self.rows_per_chunk)
         # self.history.setdefault('estimated_num_chunks', []).append(estimated_number_of_chunks)
 

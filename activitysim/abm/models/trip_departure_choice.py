@@ -47,19 +47,18 @@ def get_tour_legs(trips):
     tour_legs = tour_legs.set_index(TOUR_LEG_ID)
     return tour_legs
 
-
-def trip_departure_rpc(chunk_size, choosers, trace_label):
-
-    # NOTE we chunk chunk_id
-    num_choosers = choosers['chunk_id'].max() + 1
-
-    chooser_row_size = choosers.shape[1] + 1
-
-    # scale row_size by average number of chooser rows per chunk_id
-    rows_per_chunk_id = choosers.shape[0] / num_choosers
-    row_size = (rows_per_chunk_id * chooser_row_size)
-
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+# def trip_departure_rpc(chunk_size, choosers, trace_label):
+#
+#     # NOTE we chunk chunk_id
+#     num_choosers = choosers['chunk_id'].max() + 1
+#
+#     chooser_row_size = choosers.shape[1] + 1
+#
+#     # scale row_size by average number of chooser rows per chunk_id
+#     rows_per_chunk_id = choosers.shape[0] / num_choosers
+#     row_size = (rows_per_chunk_id * chooser_row_size)
+#
+#     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def generate_alternatives(trips, alternative_col_name):

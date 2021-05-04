@@ -469,8 +469,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
             trace_targets = pd.Series(True, index=choosers.index)
         else:
             trace_targets = tracing.trace_targets(choosers)
-
-        assert trace_targets.any()  # since they claimed to have targets...
+            assert trace_targets.any()  # since they claimed to have targets...
 
         # get int offsets of the trace_targets (offsets of bool=True values)
         offsets = np.nonzero(list(trace_targets))[0]

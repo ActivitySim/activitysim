@@ -15,7 +15,7 @@ logging:
   loggers:
 
     activitysim:
-      level: INFO
+      level: DEBUG
       handlers: [console, logfile]
       propagate: false
 
@@ -37,7 +37,7 @@ logging:
       class: logging.StreamHandler
       stream: ext://sys.stdout
       formatter: simpleFormatter
-      level: NOTSET
+      level: INFO
 
   formatters:
 

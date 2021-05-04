@@ -8,6 +8,7 @@ import gc
 import glob
 import logging
 import multiprocessing
+import os
 import platform
 import psutil
 import time
@@ -23,6 +24,7 @@ from activitysim.core.util import GB
 
 logger = logging.getLogger(__name__)
 
+USS = True
 
 HWM = {}
 
@@ -84,10 +86,12 @@ def check_global_hwm(tag, value, label):
 
 def log_hwm():
 
+    process_name = multiprocessing.current_process().name
+
     for tag in HWM:
         hwm = HWM[tag]
         value = hwm.get('mark', 0)
-        logger.info(f"high water mark {tag}: {util.INT(value)} ({util.GB(value)}) "
+        logger.info(f"{process_name} high water mark {tag}: {util.INT(value)} ({util.GB(value)}) "
                     f"timestamp: {hwm.get('timestamp', '<none>')} label:{hwm.get('label', '<none>')}")
 
 
@@ -96,24 +100,38 @@ def trace_memory_info(event=''):
     global LAST_MEM_TICK
 
     process_name = multiprocessing.current_process().name
+    pid = os.getpid()
 
     percent = psutil.virtual_memory().percent
 
     current_process = psutil.Process()
-    info = current_process.memory_full_info()
+
+    if USS:
+        info = current_process.memory_full_info()
+        uss = info.uss
+    else:
+        info = current_process.memory_info()
+        uss = 0
+
+    child_rss = full_rss = 0
+    rss = info.rss
 
     num_children = 0
-    base_rss = full_rss = info.rss
     for child in current_process.children(recursive=True):
         try:
-            full_rss += child.memory_info().rss
+            child_info = child.memory_info()
+            child_rss += child_info.rss
             num_children += 1
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-            # print(f"'n###'n{e}")
             pass
 
-    noteworthy = not event.endswith('.idle')
+    noteworthy = False
+    if num_children:
+        full_rss = rss + child_rss
+        noteworthy = True
+
     noteworthy = check_global_hwm('rss', full_rss, event) or noteworthy
+    noteworthy = check_global_hwm('uss', uss, event) or noteworthy
 
     t = time.time()
     if (t - LAST_MEM_TICK > MEM_TICK_LEN):
@@ -121,7 +139,11 @@ def trace_memory_info(event=''):
         LAST_MEM_TICK = t
 
     if noteworthy:
-        logger.debug(f"trace_memory_info {event} base_rss: {GB(base_rss)} full_rss: {GB(full_rss)} percent: {percent}%")
+        logger.debug(f"trace_memory_info {event} "
+                     f"rss: {GB(rss)} "
+                     f"child_rss: {GB(child_rss)} "
+                     f"uss: {GB(rss)} "
+                     f"percent: {percent}%")
 
     if not WRITE_LOG_FILE:
         return
@@ -129,11 +151,14 @@ def trace_memory_info(event=''):
     if noteworthy:
         timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
 
-        MEM_LOG_HEADER = "process,base_rss,full_rss,percent,event,children,time"
+        MEM_LOG_HEADER = "process,pid,rss,child_rss,full_rss,uss,percent,event,children,time"
         with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
             print(f"{process_name},"
-                  f"{GB(base_rss)},"
-                  f"{GB(full_rss)},"
+                  f"{pid},"
+                  f"{util.INT(rss)},"  # want these as ints so we can plot them...
+                  f"{util.INT(child_rss)},"
+                  f"{util.INT(full_rss)},"
+                  f"{util.INT(uss)},"
                   f"{round(percent,2)}%,"
                   f"{event},"
                   f"{num_children},"
@@ -141,7 +166,7 @@ def trace_memory_info(event=''):
                   file=log_file)
 
 
-def get_rss(force_garbage_collect=False):
+def get_rss(force_garbage_collect=False, uss=False):
 
     if force_garbage_collect:
         was_disabled = not gc.isenabled()
@@ -151,19 +176,12 @@ def get_rss(force_garbage_collect=False):
         if was_disabled:
             gc.disable()
 
-    rss = psutil.Process().memory_info().rss
-
-    # not actually needed since only called by subprocesses
-
-    # rss = info.rss
-    # for child in current_process.children(recursive=True):
-    #     try:
-    #         rss += child.memory_info().rss
-    #     except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
-    #         # print(f"'n###'n{e}")
-    #         pass
-
-    return rss
+    if uss:
+        info = psutil.Process().memory_full_info()
+        return info.rss, info.uss
+    else:
+        info = psutil.Process().memory_info()
+        return info.rss, 0
 
 
 def shared_memory_size(data_buffers=None):

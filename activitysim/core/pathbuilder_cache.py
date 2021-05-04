@@ -46,13 +46,13 @@ def memo(tag, console=False, disable_gc=True):
         if disable_gc:
             _gc.disable()
 
-    previous_mem = psutil.Process(os.getpid()).memory_info().rss
+    previous_mem = psutil.Process().memory_info().rss
     try:
         yield
     finally:
         elapsed_time = time.time() - t0
 
-        current_mem = (psutil.Process(os.getpid()).memory_info().rss)
+        current_mem = (psutil.Process().memory_info().rss)
         marginal_mem = current_mem - previous_mem
         mem_str = f"net {util.GB(marginal_mem)} ({util.INT(marginal_mem)}) total {util.GB(current_mem)}"
 
@@ -148,6 +148,14 @@ class TVPBCache(object):
         elif os.path.isfile(self.cache_path):
             # single process ought have created a precomputed fully_populated STATIC file
             data = np.memmap(self.cache_path, dtype=DTYPE_NAME, mode='r')
+
+            # FIXME - why leave memmap open - maybe should copy since it will be read into memory when accessed anyway
+            # mm_data = np.memmap(self.cache_path, dtype=DTYPE_NAME, mode='r')
+            # data = np.empty_like(mm_data)
+            # np.copyto(data, mm_data)
+            # mm_data._mmap.close()
+            # del mm_data
+
             logger.info(f"TVBPCache.open {self.cache_tag} read fully_populated data array from mmap file")
         else:
             raise RuntimeError(f"Pathbuilder cache not found. Did you forget to run initialize tvpb?"

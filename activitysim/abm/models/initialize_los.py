@@ -179,9 +179,11 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
     # since it is created outside of adaptive_chunked_choosers and so will show up in baseline
     assert not chunk.chunk_logging()  # otherwise we should chunk_log this
 
+    chunk_tag = 'initialize_tvpb'  # all attribute_combinations can use same cached data for row_size calc
+
     row_size = chunk_size and initialize_tvpb_calc_row_size(choosers_df, network_los, trace_label)
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, row_size, trace_label, chunk_tag=chunk_tag):
 
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         assert chooser_chunk._is_view  # otherwise copying it is wasteful

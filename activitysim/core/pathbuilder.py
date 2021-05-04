@@ -873,8 +873,6 @@ class TransitVirtualPathLogsumWrapper(object):
         self.trace_label = self.base_trace_label
         self.tag = tag
 
-        self.chunk_overhead = None
-
         assert isinstance(orig_key, str)
         assert isinstance(dest_key, str)
         assert isinstance(tod_key, str)

@@ -51,4 +51,5 @@ def log_settings():
         'multiprocess',
         'num_processes',
         'resume_after',
+        'trace_hh_id',
     ]

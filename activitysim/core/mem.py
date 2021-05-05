@@ -130,7 +130,7 @@ def trace_memory_info(event=''):
         full_rss = rss + child_rss
         noteworthy = True
 
-    noteworthy = check_global_hwm('rss', full_rss, event) or noteworthy
+    noteworthy = check_global_hwm('rss', full_rss or rss, event) or noteworthy
     noteworthy = check_global_hwm('uss', uss, event) or noteworthy
 
     t = time.time()

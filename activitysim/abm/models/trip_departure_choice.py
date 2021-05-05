@@ -154,22 +154,6 @@ def get_spec_for_segment(omnibus_spec, segment):
     return spec
 
 
-def trip_departure_calc_row_size(choosers, trace_label):
-    """
-    rows_per_chunk calculator for trip_scheduler
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    chooser_row_size = len(choosers.columns)
-    spec_columns = 3
-
-    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
-
-    row_size = sizer.get_hwm()
-    return row_size
-
-
 def choose_tour_leg_pattern(trip_segment,
                             patterns, spec,
                             trace_label='trace_label'):
@@ -369,12 +353,10 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
     # Get the potential time windows
     time_windows = get_time_windows(side_trips[TRIP_DURATION].max(), side_trips[TRIP_COUNT].max() - 1)
 
-    row_size = chunk_size and trip_departure_calc_row_size(trips, trace_label)
-
     trip_list = []
 
     for i, chooser_chunk, chunk_trace_label in \
-            chunk.adaptive_chunked_choosers_by_chunk_id(side_trips, chunk_size, row_size, trace_label):
+            chunk.adaptive_chunked_choosers_by_chunk_id(side_trips, chunk_size, trace_label):
 
         for is_outbound, trip_segment in chooser_chunk.groupby(OUTBOUND):
             direction = OUTBOUND if is_outbound else 'inbound'

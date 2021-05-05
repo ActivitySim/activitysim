@@ -143,22 +143,6 @@ def stop_two_way_only_patterns(tours, travel_duration_col=TOUR_DURATION_COLUMN):
     return patterns
 
 
-def trip_schedule_calc_row_size(choosers, trace_label):
-    """
-    rows_per_chunk calculator for trip_scheduler
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    chooser_row_size = len(choosers.columns)
-    spec_columns = 3
-
-    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
-
-    row_size = sizer.get_hwm()
-    return row_size
-
-
 def get_pattern_index_and_arrays(tour_indexes, durations, one_way=True):
     """
     A helper method to quickly calculate all of the potential time windows
@@ -251,11 +235,10 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
 
     if len(indirect_tours) > 0:
 
-        row_size = chunk_size and trip_schedule_calc_row_size(indirect_tours, trace_label)
         # Iterate through the chunks
         result_list = []
         for i, choosers, chunk_trace_label in \
-                chunk.adaptive_chunked_choosers(indirect_tours, chunk_size, row_size, trace_label):
+                chunk.adaptive_chunked_choosers(indirect_tours, chunk_size, trace_label):
 
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()

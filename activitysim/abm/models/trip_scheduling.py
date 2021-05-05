@@ -376,47 +376,6 @@ def schedule_trips_in_leg(
     return choices
 
 
-def trip_scheduling_calc_row_size(trips, spec, trace_label):
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    # NOTE we chunk chunk_id
-    # scale row_size by average number of chooser rows per chunk_id
-    num_choosers = trips['chunk_id'].max() + 1
-    rows_per_chunk_id = len(trips) / num_choosers
-
-    # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
-    outbound_chooser = (trips.trip_num == 2) & trips.outbound & (trips.primary_purpose != 'atwork')
-    inbound_chooser = (trips.trip_num == trips.trip_count-1) & ~trips.outbound & (trips.primary_purpose != 'atwork')
-
-    # furthermore, inbound and outbound are scheduled independently
-    if outbound_chooser.sum() > inbound_chooser.sum():
-        is_chooser = outbound_chooser
-        logger.debug(f"{trace_label} {is_chooser.sum()} outbound_choosers of {len(trips)} require scheduling")
-    else:
-        is_chooser = inbound_chooser
-        logger.debug(f"{trace_label} {is_chooser.sum()} inbound_choosers of {len(trips)} require scheduling")
-
-    chooser_fraction = is_chooser.sum()/len(trips)
-    logger.debug(f"{trace_label} chooser_fraction {chooser_fraction *100}%")
-
-    chooser_row_size = len(trips.columns) + len(spec.columns) - len(PROBS_JOIN_COLUMNS)
-    sizer.add_elements(chooser_fraction * chooser_row_size, 'choosers')
-
-    # might be clipped to fewer but this is worst case
-    chooser_probs_row_size = len(spec.columns) - len(PROBS_JOIN_COLUMNS)
-    sizer.add_elements(chooser_fraction * chooser_probs_row_size, 'chooser_probs')
-
-    sizer.add_elements(chooser_fraction, 'choices')
-    sizer.add_elements(chooser_fraction, 'rands')
-    sizer.add_elements(chooser_fraction, 'failed')
-
-    row_size = sizer.get_hwm()
-    row_size = row_size * rows_per_chunk_id
-
-    return row_size
-
-
 def run_trip_scheduling(
         trips,
         tours,
@@ -429,8 +388,6 @@ def run_trip_scheduling(
         trace_hh_id,
         trace_label):
 
-    row_size = chunk_size and trip_scheduling_calc_row_size(trips, probs_spec, trace_label)
-
     # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
     # is_outbound_chooser = (trips.trip_num > 1) & trips.outbound & (trips.primary_purpose != 'atwork')
     # is_inbound_chooser = (trips.trip_num < trips.trip_count) & ~trips.outbound & (trips.primary_purpose != 'atwork')
@@ -438,7 +395,7 @@ def run_trip_scheduling(
 
     result_list = []
     for i, trips_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers_by_chunk_id(trips, chunk_size, row_size, trace_label, chunk_tag):
+            in chunk.adaptive_chunked_choosers_by_chunk_id(trips, chunk_size, trace_label, chunk_tag):
 
         if trips_chunk.outbound.any():
             leg_chunk = trips_chunk[trips_chunk.outbound]

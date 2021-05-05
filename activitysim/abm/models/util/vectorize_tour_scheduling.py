@@ -577,77 +577,6 @@ def _schedule_tours(
     return choices
 
 
-def tour_scheduling_calc_row_size(tours, persons_merged, alternatives, skims, spec, model_settings, trace_label):
-
-    # this will not be consistent across mandatory tours (highest), non_mandatory tours, and atwork subtours (lowest)
-    TIMETABLE_AVAILABILITY_REDUCTION_FACTOR = 1
-    # this appears to be more stable
-    LOGSUM_DUPLICATE_REDUCTION_FACTOR = 0.5
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    # chooser is tours merged with persons_merged
-    chooser_row_size = len(tours.columns) + len(persons_merged.columns)
-
-    # e.g. start, end, duration, <chooser_column>
-    alt_row_size = alternatives.shape[1] + 1
-
-    # non-available alternatives will be sliced out so this is a over-estimate
-    # for atwork subtours this may be a gross over-estimate, but that is presumably ok since we are adaptive
-    sample_size = len(alternatives) * TIMETABLE_AVAILABILITY_REDUCTION_FACTOR
-
-    sizer.add_elements(chooser_row_size, 'tours')  # tours_merged with persons
-
-    # alt_tdd tdd_interaction_dataset is cross join of choosers with alternatives
-    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
-
-    # eval_interaction_utilities is parsimonious and doesn't create a separate column for each partial utility
-    sizer.add_elements(sample_size, 'interaction_utilities')   # <- this is probably always the HWM
-    sizer.drop_elements('interaction_df')
-
-    sizer.drop_elements('interaction_utilities')
-
-    sizer.add_elements(alt_row_size, 'utilities_df')
-    sizer.add_elements(alt_row_size, 'probs')
-
-    if 'LOGSUM_SETTINGS' in model_settings:
-
-        logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
-        logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
-        logsum_nest_spec = config.get_logit_model_settings(logsum_settings)
-
-        if logsum_nest_spec is None:
-            # expression_values for each spec row
-            # utilities and probs for each alt
-            logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1])
-        else:
-            # expression_values for each spec row
-            # raw_utilities and base_probabilities) for each alt
-            # nested_exp_utilities, nested_probabilities for each nest
-            # less 1 as nested_probabilities lacks root
-            nest_count = logit.count_nests(logsum_nest_spec)
-            logsum_columns = logsum_spec.shape[0] + (2 * logsum_spec.shape[1]) + (2 * nest_count) - 1
-
-        if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS:
-            sizer.add_elements(logsum_columns * sample_size, 'logsum_columns')
-        else:
-            # if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS is false compute_logsums prunes alt_tdd
-            # to only compute logsums for unique (tour_id, out_period, in_period, duration) in alt_tdd
-            # which cuts the number of alts by roughly 50% (44% for 100 hh mtctm1 test dataset)
-            # grep the log for USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS to check actual % savings
-            duplicate_sample_reduction = 0.5
-            sizer.add_elements(logsum_columns * sample_size * LOGSUM_DUPLICATE_REDUCTION_FACTOR, 'logsum_columns')
-
-    row_size = sizer.get_hwm()
-
-    if simulate.tvpb_skims(skims):
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    return row_size
-
-
 def schedule_tours(
         tours, persons_merged, alts,
         spec, logsum_tour_purpose,
@@ -684,12 +613,9 @@ def schedule_tours(
     else:
         skims = None
 
-    row_size = chunk_size and \
-        tour_scheduling_calc_row_size(tours, persons_merged, alts, skims, spec, model_settings,  tour_trace_label)
-
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(tours, chunk_size, row_size, tour_trace_label):
+            in chunk.adaptive_chunked_choosers(tours, chunk_size, tour_trace_label):
 
         choices = _schedule_tours(chooser_chunk, persons_merged,
                                   alts, spec, logsum_tour_purpose,

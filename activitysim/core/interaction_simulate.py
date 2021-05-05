@@ -389,42 +389,6 @@ def _interaction_simulate(
     return choices
 
 
-def interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skims, trace_label):
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    sample_size = sample_size or len(alternatives)
-    chooser_row_size = len(choosers.columns)
-    # alternative columns plus join column and (possibly) skim destination
-    alt_row_size = alternatives.shape[1] + 1 + int(skims is not None)
-    if skims is not None:
-        alt_row_size += 1
-
-    logger.debug(f"{trace_label} #chunk_calc chooser_row_size {chooser_row_size}")
-    logger.debug(f"{trace_label} #chunk_calc alt_row_size {alt_row_size}")
-    logger.debug(f"{trace_label} #chunk_calc sample_size {sample_size}")
-
-    # interaction_df
-    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
-
-    # interaction_df is almost certainly the HWM - if so, no need to worry about the crumbs...
-
-    # interaction_utilities utilities probs
-    sizer.add_elements(0, 'interaction_utilities')
-    sizer.add_elements(0, 'utilities')
-    sizer.add_elements(0, 'probs')
-
-    sizer.drop_elements('utilities')
-
-    sizer.add_elements(0, 'positions')
-    sizer.add_elements(0, 'rands')
-    sizer.add_elements(0, 'choices')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def interaction_simulate(
         choosers, alternatives, spec,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
@@ -484,12 +448,9 @@ def interaction_simulate(
 
     assert len(choosers) > 0
 
-    row_size = chunk_size and \
-        interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skims, trace_label)
-
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
                                         skims, locals_d, sample_size,

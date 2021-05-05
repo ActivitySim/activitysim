@@ -269,28 +269,6 @@ def _interaction_sample_simulate(
     return choices
 
 
-def interaction_sample_simulate_calc_row_size(choosers, alt_sample, spec, trace_label):
-
-    # It is hard to estimate the size of the utilities_df since it conflates duplicate picks.
-    # Currently we ignore it, but maybe we should chunk based on worst case?
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    num_choosers = len(choosers.index)
-    chooser_row_size = len(choosers.columns)
-
-    # one column per alternative plus skims, interaction_utilities, probs
-    alt_row_size = alt_sample.shape[1] + 3
-    # average sample size
-    sample_size = alt_sample.shape[0] / float(num_choosers)
-
-    # interaction_df
-    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
-
-    row_size = sizer.get_hwm()
-    return row_size
-
-
 def interaction_sample_simulate(
         choosers, alternatives, spec, choice_column,
         allow_zero_probs=False, zero_prob_choice_val=None,
@@ -356,12 +334,9 @@ def interaction_sample_simulate(
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
 
-    row_size = chunk_size and interaction_sample_simulate_calc_row_size(choosers, alternatives, spec, trace_label)
-
     result_list = []
     for i, chooser_chunk, alternative_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers_and_alts(choosers, alternatives,
-                                                        chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, trace_label):
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,

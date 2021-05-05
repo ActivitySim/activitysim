@@ -378,36 +378,6 @@ def _interaction_sample(
 
     return choices_df
 
-
-def interaction_sample_calc_row_size(choosers, alternatives, trace_label):
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    # all columns from choosers
-    chooser_row_size = len(choosers.columns)
-    sample_size = len(alternatives)
-
-    # interaction_df has one column per alternative plus a skim column
-    alt_row_size = len(alternatives.columns) + 1
-    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
-
-    # interaction_utilities
-    sizer.add_elements(sample_size, 'interaction_utilities')
-    sizer.drop_elements('interaction_df')
-
-    # show is over once we delete interaction_df
-
-    sizer.add_elements(chooser_row_size, 'utilities')
-    sizer.drop_elements('interaction_utilities')
-
-    sizer.add_elements(chooser_row_size, 'probs')
-    sizer.drop_elements('utilities')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def interaction_sample(
         choosers, alternatives, spec, sample_size,
         alt_col_name, allow_zero_probs=False,
@@ -480,11 +450,9 @@ def interaction_sample(
     # FIXME - legacy logic - not sure this is needed or even correct?
     sample_size = min(sample_size, len(alternatives.index))
 
-    row_size = chunk_size and interaction_sample_calc_row_size(choosers, alternatives, trace_label)
-
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         choices = _interaction_sample(chooser_chunk, alternatives,
                                       spec, sample_size, alt_col_name, allow_zero_probs,

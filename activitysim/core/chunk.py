@@ -296,41 +296,6 @@ class ChunkHistorian(object):
 _HISTORIAN = ChunkHistorian()
 
 
-class RowSizeEstimator(object):
-    """
-    Utility for estimating row_size
-    """
-    def __init__(self, trace_label):
-        self.row_size = 0
-        self.hwm = 0  # element byte at high water mark
-        self.hwm_tag = None  # tag that drove hwm (with ref count)
-        self.trace_label = trace_label
-        self.bytes = {}
-        self.tag_count = {}
-
-    def add_elements(self, elements, tag):
-        bytes = elements * BYTES_PER_ELEMENT
-        self.bytes[tag] = bytes
-        self.tag_count[tag] = self.tag_count.setdefault(tag, 0) + 1  # number of times tag has been seen
-        self.row_size += bytes
-        logger.debug(f"{self.trace_label} #rowsize {tag} {bytes} ({self.row_size})")
-
-        if self.row_size > self.hwm:
-            self.hwm = self.row_size
-            # tag that drove hwm (with ref count)
-            self.hwm_tag = f'{tag}_{self.tag_count[tag]}' if self.tag_count[tag] > 1 else tag
-
-    def drop_elements(self, tag):
-        self.row_size -= self.bytes[tag]
-        self.bytes[tag] = 0
-        logger.debug(f"{self.trace_label} #rowsize {tag} <drop> ({self.row_size})")
-
-    def get_hwm(self):
-        logger.debug(f"{self.trace_label} #rowsize hwm {self.hwm} after {self.hwm_tag}")
-        hwm = self.hwm
-        return hwm
-
-
 class ChunkLedger(object):
     """
     ::
@@ -361,19 +326,19 @@ class ChunkLedger(object):
         bytes_panic_threshold = self.headroom + (self.base_chunk_size * MAX_OVERDRAFT)
 
         if bytes > bytes_panic_threshold:
-            logger.warning(f"out_of_chunk_memory: bytes exceed headroom: "
+            logger.warning(f"out_of_chunk_memory: "
                            f"bytes: {bytes} headroom: {self.headroom} chunk_size: {self.base_chunk_size} {msg}")
 
         if chunk_metric() == 'rss' and rss > mem_panic_threshold:
             rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
             if rss > mem_panic_threshold:
-                logger.warning(f"out_of_chunk_memory: rss exceeds chunk_size: "
+                logger.warning(f"out_of_chunk_memory: "
                                f"rss: {rss} chunk_size: {self.base_chunk_size} {msg}")
 
         if chunk_metric() == 'uss' and uss > mem_panic_threshold:
             _, uss = mem.get_rss(force_garbage_collect=True, uss=True)
             if uss > mem_panic_threshold:
-                logger.warning(f"out_of_chunk_memory: uss exceeds chunk_size: "
+                logger.warning(f"out_of_chunk_memory: "
                                f"uss: {uss} chunk_size: {self.base_chunk_size} {msg}")
 
     def close(self):
@@ -808,7 +773,7 @@ def chunk_log(trace_label, chunk_tag=None):
     chunk_sizer.close()
 
 
-def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label, chunk_tag=None):
+def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None):
 
     # generator to iterate over choosers
 
@@ -817,7 +782,6 @@ def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label, chunk
     num_choosers = len(choosers.index)
     assert num_choosers > 0
     assert chunk_size >= 0
-    assert row_size >= 0
 
     logger.info(f"{trace_label} Running adaptive_chunked_choosers with {num_choosers} choosers")
 
@@ -850,7 +814,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label, chunk
     chunk_sizer.close()
 
 
-def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_size, trace_label, chunk_tag=None):
+def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, trace_label, chunk_tag=None):
     """
     generator to iterate over choosers and alternatives in chunk_size chunks
 
@@ -944,7 +908,7 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, row_s
     chunk_sizer.close()
 
 
-def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label, chunk_tag=None):
+def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, trace_label, chunk_tag=None):
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
     # (the presumption is that choosers has multiple rows with the same chunk_id that

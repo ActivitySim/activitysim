@@ -1113,44 +1113,7 @@ def tvpb_skims(skims):
     return [skim for skim in list_of_skims(skims) if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)]
 
 
-def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):
-    """
-    rows_per_chunk calculator for simple_simulate
-    """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_calc_row_size')
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    if tvpb_skims(skims):
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    # raw utilities and probs for each alt
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    # del expression_values when done with them
-    sizer.drop_elements('expression_values')
-
-    #  probs for each alt
-    sizer.add_elements(spec.shape[1], 'probs')
-
-    if nest_spec is not None:
-        nest_size = logit.count_nests(nest_spec)
-        # nested_exp_utilities for each nest
-        sizer.add_elements(nest_size, 'nested_exp_utilities')
-        # nested_probabilities less 1 since it lacks root
-        sizer.add_elements(nest_size - 1, 'nested_probabilities')
-
-    logger.debug(f"{trace_label} #chunk_calc row_size hwm after {sizer.hwm_tag} {sizer.hwm}")
-
-    row_size = sizer.get_hwm()
-
-    return row_size
 
 
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
@@ -1168,12 +1131,10 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     assert len(choosers) > 0
 
-    row_size = chunk_size and simple_simulate_calc_row_size(choosers, spec, nest_spec, skims, trace_label)
-
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
@@ -1206,16 +1167,10 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
     """
     chunk_by_chunk_id wrapper for simple_simulate
     """
-    row_size = chunk_size and simple_simulate_calc_row_size(choosers, spec, nest_spec, trace_label=trace_label)
-
-    # NOTE we chunk chunk_id so we have to scale row_size by average number of chooser rows per chunk_id
-    num_choosers = choosers['chunk_id'].max() + 1
-    rows_per_chunk_id = len(choosers) / num_choosers
-    row_size = row_size * rows_per_chunk_id
 
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, trace_label):
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
@@ -1353,37 +1308,6 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
     return logsums
 
 
-def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trace_label):
-    """
-    calculate rows_per_chunk for simple_simulate_logsums
-    """
-
-    if tvpb_skims(skims):
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    # del expression_values when done with them
-    sizer.drop_elements('expression_values')
-
-    if nest_spec is None:
-        logger.warning("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
-                       " so chunk sizing might be a bit off")
-    else:
-        sizer.add_elements(logit.count_nests(nest_spec), 'nested_exp_utilities')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
 
 def simple_simulate_logsums(choosers, spec, nest_spec,
                             skims=None, locals_d=None, chunk_size=0,
@@ -1399,12 +1323,10 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
 
     assert len(choosers) > 0
 
-    row_size = chunk_size and simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trace_label)
-
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,

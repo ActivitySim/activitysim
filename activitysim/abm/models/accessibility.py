@@ -103,40 +103,6 @@ def compute_accessibilities_for_zones(
     return(accessibility_df)
 
 
-def accessibility_calc_row_size(accessibility_df, land_use_df, assignment_spec, network_los, trace_label):
-    """
-    rows_per_chunk calculator for accessibility
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    if network_los.zone_system == los.THREE_ZONE:
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    land_use_rows = len(land_use_df.index)
-    land_use_columns = len(land_use_df.columns)
-    od_columns = 2
-
-    # assignment spec has one row per value to assign
-    # count number of unique persistent assign_variables targets simultaneously resident during spec eval
-    # (since dict overwrites recurring targets, only count unique targets)
-    def is_persistent(target):
-        return not (assign.is_throwaway(target) or assign.is_temp_scalar(target))
-    num_spec_values = len([target for target in assignment_spec.target.unique() if is_persistent(target)])
-
-    sizer.add_elements(land_use_rows * od_columns, 'od_df')
-
-    # each od_df joins to all land_use zones
-    sizer.add_elements(land_use_rows * land_use_columns, 'land_use_choosers')
-
-    # and then we assign_variables to joined land_use from assignment_spec
-    sizer.add_elements(land_use_rows * num_spec_values, 'spec_values')
-
-    row_size = sizer.get_hwm()
-    return row_size
-
 
 @inject.step()
 def compute_accessibility(land_use, accessibility, network_los, chunk_size, trace_od):
@@ -175,14 +141,10 @@ def compute_accessibility(land_use, accessibility, network_los, chunk_size, trac
 
     logger.info(f"Running {trace_label} with {len(accessibility_df.index)} orig zones {len(land_use_df)} dest zones")
 
-    row_size = \
-        chunk_size and accessibility_calc_row_size(accessibility_df, land_use_df,
-                                                   assignment_spec, network_los, trace_label)
-
     accessibilities_list = []
 
     for i, chooser_chunk, chunk_trace_label in \
-            chunk.adaptive_chunked_choosers(accessibility_df, chunk_size, row_size, trace_label):
+            chunk.adaptive_chunked_choosers(accessibility_df, chunk_size, trace_label):
 
         accessibilities = \
             compute_accessibilities_for_zones(chooser_chunk, land_use_df, assignment_spec,

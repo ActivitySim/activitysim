@@ -404,7 +404,6 @@ def run_trip_scheduling(
         if trips_chunk.outbound.any():
             leg_chunk = trips_chunk[trips_chunk.outbound]
             leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'outbound')
-            #with chunk.chunk_log(leg_trace_label, chunk_tag=chunk_trace_label):
             choices = \
                 schedule_trips_in_leg(
                     outbound=True,
@@ -421,7 +420,6 @@ def run_trip_scheduling(
         if (~trips_chunk.outbound).any():
             leg_chunk = trips_chunk[~trips_chunk.outbound]
             leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
-            #with chunk.chunk_log(leg_trace_label, chunk_tag=chunk_trace_label):
             choices = \
                 schedule_trips_in_leg(
                     outbound=False,

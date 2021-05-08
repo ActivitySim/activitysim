@@ -264,7 +264,8 @@ def compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, skims, 
 
         if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS:
             # compute logsums for all the tour alt_tdds (inefficient)
-            logsums = _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, network_los, skims, trace_label)
+            logsums = _compute_logsums(alt_tdd, tours_merged, tour_purpose,
+                                       model_settings, network_los, skims, trace_label)
             return logsums
 
         index_name = alt_tdd.index.name

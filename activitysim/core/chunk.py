@@ -24,6 +24,10 @@ from .util import GB
 
 logger = logging.getLogger(__name__)
 
+#
+# CHUNK_METHODS and METRICS
+#
+
 RSS = 'rss'
 USS = 'uss'
 BYTES = 'bytes'
@@ -33,43 +37,40 @@ HYBRID_USS = 'hybrid_uss'
 METRICS = [RSS, USS, BYTES]
 CHUNK_METHODS = [RSS, USS, BYTES, HYBRID_RSS, HYBRID_USS]
 
-USS_CHUNK_METHODS = [USS, HYBRID_USS, BYTES]  #bug - BYTES?
+USS_CHUNK_METHODS = [USS, HYBRID_USS, BYTES]
 DEFAULT_CHUNK_METHOD = HYBRID_USS
 
-CACHE_READ = 'read'
-CACHE_WRITE = 'write'
-CACHE_UPDATE = 'append'
-CACHE_ACCESS_MODES = [CACHE_READ, CACHE_WRITE, CACHE_UPDATE]
+#
+# TRAINING_MODE
+#
 
-CHUNK_LEDGERS = []
-CHUNK_SIZERS = []
+MODE_RETRAIN = 'training'
+MODE_PRODUCTION = 'production'
+TRAINING_MODES = [MODE_RETRAIN, MODE_PRODUCTION]
 
-BYTES_PER_ELEMENT = 8
-
-DEFAULT_INITIAL_ROWS_PER_CHUNK = 10  # fallback for setting
-
-MEM_MONITOR_TICK = 1  # in seconds
+#
+# low level
+#
 ENABLE_MEMORY_MONITOR = True
+MEM_MONITOR_TICK = 1  # in seconds
 
-LOG_SUBCHUNKS = True
+WRITE_SUBCHUNK_HISTORY = True  # only useful for debugging
 
-# FIXME should we update this every chunk? Or does it make available_headroom too jittery?
-RESET_RSS_BASELINE_FOR_EACH_CHUNK = True
+DEFAULT_INITIAL_ROWS_PER_CHUNK = 100  # fallback for default_initial_rows_per_chunk setting
 
-CACHE_HISTORY = True
-CACHE_FILE_NAME = 'cached_chunk_log.csv'
+
+#
+# cache and history files
+#
+
+CACHE_FILE_NAME = 'chunk_cache.csv'
 LOG_FILE_NAME = 'chunk_history.csv'
 OMNIBUS_LOG_FILE_NAME = f"omnibus_{LOG_FILE_NAME}"
 
-_SHARED_MEM_SIZE = None
-
-ledger_lock = threading.Lock()
-
 C_CHUNK_TAG = 'tag'
 C_DEPTH = 'depth'
-C_NUM_ROWS = 'rows_processed'
+C_NUM_ROWS = 'num_rows'
 C_TIME = 'time'
-
 
 # columns to write to LOG_FILE
 CUM_OVERHEAD_COLUMNS = [f'cum_overhead_{m}' for m in METRICS]
@@ -78,7 +79,15 @@ CHUNK_HISTORY_COLUMNS = [C_TIME, C_CHUNK_TAG] + CUM_OVERHEAD_COLUMNS + \
 
 CHUNK_CACHE_COLUMNS = [C_CHUNK_TAG, C_NUM_ROWS] + METRICS
 
+#
+# globals
+#
+
 SETTINGS = {}
+CHUNK_LEDGERS = []
+CHUNK_SIZERS = []
+
+ledger_lock = threading.Lock()
 
 
 def chunk_method():
@@ -94,17 +103,15 @@ def chunk_metric():
     return SETTINGS.setdefault('chunk_metric', USS if chunk_method() in USS_CHUNK_METHODS else 'rss')
 
 
-def chunk_cache_access_mode():
-    access_mode = \
-        SETTINGS.setdefault('chunk_cache_access_mode', config.setting('chunk_cache_access_mode', CACHE_UPDATE))
-    assert access_mode in CACHE_ACCESS_MODES, f"chunk_cache_access_mode '{access_mode} not one of: {CACHE_ACCESS_MODES}"
-    return access_mode
+def chunk_training_mode():
+    training_mode = \
+        SETTINGS.setdefault('chunk_training_mode', config.setting('chunk_training_mode', MODE_PRODUCTION))
+    assert training_mode in TRAINING_MODES, f"chunk_training_mode '{training_mode} not one of: {TRAINING_MODES}"
+    return training_mode
 
 
-def chunk_training():
-    # return SETTINGS.setdefault('chunk_training', config.setting('chunk_training', True))
-    #return True
-    return chunk_cache_access_mode() in [CACHE_WRITE, CACHE_UPDATE]
+def retrain():
+    return chunk_training_mode() == MODE_RETRAIN
 
 
 def chunk_logging():
@@ -115,11 +122,12 @@ def default_initial_rows_per_chunk():
     return SETTINGS.setdefault('default_initial_rows_per_chunk',
                                config.setting('default_initial_rows_per_chunk', DEFAULT_INITIAL_ROWS_PER_CHUNK))
 
+
 def keep_chunk_logs():
     # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
-    overwriting_log = (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME)
+    default = (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME)
 
-    return SETTINGS.setdefault('keep_chunk_logs', config.setting('keep_chunk_logs', overwriting_log))
+    return SETTINGS.setdefault('keep_chunk_logs', config.setting('keep_chunk_logs', default))
 
 
 def trace_label_for_chunk(trace_label, chunk_size, i):
@@ -139,7 +147,7 @@ def overhead_for_chunk_method(overhead):
 
     return appropriate overhead for row_size calculation based on current chunk_method
 
-    * by ChunkSizer.adaptive_rows_per_chunk to determine observed_row_size based on cum_overhead and prev_rows_processed
+    * by ChunkSizer.adaptive_rows_per_chunk to determine observed_row_size based on cum_overhead and cum_rows
     * by ChunkSizer.initial_rows_per_chunk to determine initial row_size using cached_history and current chunk_method
     * by consolidate_logs to add informational row_size column to cache file based on chunk_method for training run
 
@@ -154,8 +162,8 @@ def overhead_for_chunk_method(overhead):
 
     def hybrid(xss, bytes):
 
-        # this avoids pessimistic underchunking on second chunk when training with chunk_size and without pre-existing cache
-        # but it tends to overshoot on a trained runs, especially when not retraining (chunk_training is turned off)
+        # this avoids pessimistic underchunking on second chunk without pre-existing cache
+        # but it tends to overshoot on a trained runs
         # hybrid_overhead =  np.maximum(bytes, (xss + bytes) / 2)
 
         # this approach avoids problems with pure uss, especially with small chunk sizes (e.g. initial training chunks)
@@ -201,7 +209,6 @@ def consolidate_logs():
     assert len(multi_depth_chunk_tag) == 0,\
         f"consolidate_logs multi_depth_chunk_tags \n{multi_depth_chunk_tag.values}"
 
-
     if not keep_chunk_logs():
         util.delete_files(glob_files, 'chunk.consolidate_logs')
 
@@ -212,9 +219,6 @@ def consolidate_logs():
     #
     # CACHE_FILE
     #
-
-    if chunk_cache_access_mode() not in [CACHE_WRITE, CACHE_UPDATE]:
-        return
 
     # write cached chunk_history file for use on subsequent runs, optimized for use by ChunkHistorian
     # Essentially a pandas DataFrame keyed by chunk_tag with columns num_rows, rss, uss, bytes
@@ -239,13 +243,19 @@ def consolidate_logs():
 
     omnibus_df = omnibus_df.sort_values(by=C_CHUNK_TAG)
 
-    if chunk_cache_access_mode() in [CACHE_WRITE, CACHE_UPDATE]:
-        cache_output_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
-    else:
-        cache_output_path = config.log_file_path(CACHE_FILE_NAME, prefix=False)
+    log_dir_output_path = config.log_file_path(CACHE_FILE_NAME, prefix=False)
+    logger.debug(f"chunk.consolidate_logs writing omnibus chunk cache to {log_dir_output_path}")
+    omnibus_df.to_csv(log_dir_output_path, mode='w', index=False)
 
-    logger.debug(f"chunk.consolidate_logs writing omnibus chunk cache to {cache_output_path}")
-    omnibus_df.to_csv(cache_output_path, mode='w', index=False)
+    if retrain() or not _HISTORIAN.have_cached_history:
+
+        if config.setting('resume_after'):
+            #bug
+            logger.warning(f"Not updating chunk_log cache directory because resume_after")
+        else:
+            cache_dir_output_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
+            logger.debug(f"chunk.consolidate_logs writing chunk cache to {cache_dir_output_path}")
+            omnibus_df.to_csv(cache_dir_output_path, mode='w', index=False)
 
 
 class ChunkHistorian(object):
@@ -259,6 +269,10 @@ class ChunkHistorian(object):
         self.cached_history_df = None
 
     def load_cached_history(self):
+
+        if retrain():
+            # don't lead cached history if retraining
+            return
 
         if self.have_cached_history is not None:
             # already loaded, nothing to do
@@ -280,10 +294,6 @@ class ChunkHistorian(object):
             self.have_cached_history = True
         else:
             self.have_cached_history = False
-
-        if not (self.have_cached_history or chunk_training()):
-            # if there is no cache and we are not training, then we have no way to size chunks
-            raise RuntimeError(f"setting chunk_training is False but no cache found: {chunk_cache_path}")
 
     def cached_history_for_chunk_tag(self, chunk_tag):
 
@@ -322,9 +332,6 @@ class ChunkHistorian(object):
             # initial_row_size based on cum_overhead and rows_processed from chunk_cache
             row_size = math.ceil(overhead_for_chunk_method(cum_overhead) / num_rows)
 
-        if (row_size == 0) and not chunk_training():
-            raise RuntimeError(f"setting chunk_training is False but no tag in cache for: {chunk_tag}")
-
         return row_size
 
     def write_history(self, history, chunk_tag):
@@ -337,8 +344,7 @@ class ChunkHistorian(object):
         history_df[C_CHUNK_TAG] = chunk_tag
         history_df['process'] = multiprocessing.current_process().name
 
-        if chunk_training():
-            history_df = history_df[CHUNK_HISTORY_COLUMNS]
+        history_df = history_df[CHUNK_HISTORY_COLUMNS]
 
         if self.chunk_log_path is None:
             self.chunk_log_path = config.log_file_path(LOG_FILE_NAME)
@@ -516,9 +522,6 @@ def log_rss(trace_label):
 
     rss, uss = mem.trace_memory_info(hwm_trace_label)
 
-    if not chunk_training():
-        return
-
     # check local hwm for all ledgers
     with ledger_lock:
         for c in CHUNK_LEDGERS:
@@ -533,9 +536,6 @@ def log_df(trace_label, table_name, df):
     hwm_trace_label = f"{trace_label}.{op}.{table_name}"
 
     rss, uss = mem.trace_memory_info(hwm_trace_label)
-
-    if not chunk_training():
-        return
 
     cur_chunker = CHUNK_LEDGERS[-1]
 
@@ -586,20 +586,34 @@ class ChunkSizer(object):
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label
-        self.num_choosers = num_choosers
         self.chunk_size = chunk_size
+
+        self.num_choosers = num_choosers
+        self.rows_processed = 0
 
         min_available_chunk_ratio = config.setting('min_available_chunk_ratio', 0)
         assert 0 <= min_available_chunk_ratio <= 1, \
             f"min_available_chunk_ratio setting {min_available_chunk_ratio} is not in range [0..1]"
         self.min_chunk_size = chunk_size * min_available_chunk_ratio
 
+        self.initial_row_size = 0
         self.rows_per_chunk = 0
         self.chunk_ledger = None
         self.history = {}
 
-        self.rows_processed = 0
+        self.cum_rows = 0
         self.cum_overhead = {m: 0 for m in METRICS}
+
+        # if production mode, to reduce valatility, initialize cum_overhead and cum_rows from cache
+        if chunk_training_mode() == MODE_PRODUCTION:
+            cached_history = _HISTORIAN.cached_history_for_chunk_tag(self.chunk_tag)
+            if cached_history:
+                self.cum_overhead = {m: cached_history[m] for m in METRICS}
+                self.cum_rows = cached_history[C_NUM_ROWS]
+
+                logger.debug(f"{self.trace_label}.ChunkSizer - cached history"
+                             f"cum_rows: {self.cum_rows} "
+                             f"cum_overhead: {self.cum_overhead} ")
 
         # add self to CHUNK_SIZERS list before setting base_chunk_size (since we might be base chunker)
         CHUNK_SIZERS.append(self)
@@ -611,7 +625,7 @@ class ChunkSizer(object):
 
     def close(self):
 
-        if (self.depth == 1) or LOG_SUBCHUNKS:
+        if (self.depth == 1) or WRITE_SUBCHUNK_HISTORY:
             _HISTORIAN.write_history(self.history, self.chunk_tag)
 
         _chunk_sizer = CHUNK_SIZERS.pop()
@@ -653,21 +667,37 @@ class ChunkSizer(object):
             # we should be a base chunker
             assert len(CHUNK_LEDGERS) == 0, f"len(CHUNK_LEDGERS): {len(CHUNK_LEDGERS)}"
 
+            # if self.cum_rows:
+            #     # if mode is MODE_PRODUCTION and there was a cache to load (otherwise we will just have to retrain)
+            #     # initial_row_size based on cum_overhead and num_rows from chunk_cache
+            #     assert chunk_training_mode() == MODE_PRODUCTION
+            #     self.initial_row_size = math.ceil(overhead_for_chunk_method(self.cum_overhead) / self.cum_rows)
+
+            # whatever the TRAINING_MODE, use cache to determine initial_row_size
+            # (presumably preferable to default_initial_rows_per_chunk)
             self.initial_row_size = _HISTORIAN.cached_row_size(self.chunk_tag)
 
-            if self.initial_row_size == 0:
-                # if no initial_row_size from cache, fall back to default_initial_rows_per_chunk
-                rows_per_chunk = min(self.num_choosers, default_initial_rows_per_chunk())
-                estimated_number_of_chunks = None
-            else:
+            if self.initial_row_size > 0:
                 max_rows_per_chunk = np.maximum(int(self.headroom / self.initial_row_size), 1)
                 rows_per_chunk = np.clip(max_rows_per_chunk, 1, self.num_choosers)
                 estimated_number_of_chunks = math.ceil(self.num_choosers / rows_per_chunk)
 
-        # cum_rows_per_chunk is out of phase with cum_chunk_size
+                logger.debug(f"{self.trace_label}.initial_rows_per_chunk - initial_row_size: {self.initial_row_size}")
+            else:
+                # if no initial_row_size from cache, fall back to default_initial_rows_per_chunk
+                self.initial_row_size = 0
+                rows_per_chunk = min(self.num_choosers, default_initial_rows_per_chunk())
+                estimated_number_of_chunks = None
+
+        # cum_rows is out of phase with cum_overhead
         # since we won't know observed_chunk_size until AFTER yielding the chunk
         self.rows_per_chunk = rows_per_chunk
         self.rows_processed += rows_per_chunk
+        self.cum_rows += rows_per_chunk
+
+        logger.debug(f"{self.trace_label}.initial_rows_per_chunk - "
+                     f"rows_per_chunk: {self.rows_per_chunk} "
+                     f"initial_row_size: {self.initial_row_size} ")
 
         return rows_per_chunk, estimated_number_of_chunks
 
@@ -677,6 +707,7 @@ class ChunkSizer(object):
 
         prev_rows_per_chunk = self.rows_per_chunk
         prev_rows_processed = self.rows_processed
+        prev_cum_rows = self.cum_rows
         prev_headroom = self.headroom
 
         prev_rss = self.rss
@@ -687,20 +718,17 @@ class ChunkSizer(object):
 
         rows_remaining = self.num_choosers - prev_rows_processed
 
-        if not chunk_training():
-            observed_row_size = self.initial_row_size
-        else:
-            # calculate overhead for this chunk iteration
-            overhead = {}
-            overhead[BYTES] = self.chunk_ledger.get_hwm_bytes()
-            overhead[RSS] = self.chunk_ledger.get_hwm_rss() - prev_rss
-            overhead[USS] = self.chunk_ledger.get_hwm_uss() - prev_uss
+        # calculate overhead for this chunk iteration
+        overhead = {}
+        overhead[BYTES] = self.chunk_ledger.get_hwm_bytes()
+        overhead[RSS] = self.chunk_ledger.get_hwm_rss() - prev_rss
+        overhead[USS] = self.chunk_ledger.get_hwm_uss() - prev_uss
 
-            for m in METRICS:
-                self.cum_overhead[m] += overhead[m]
+        for m in METRICS:
+            self.cum_overhead[m] += overhead[m]
 
-            observed_row_size = \
-                prev_rows_processed and math.ceil(overhead_for_chunk_method(self.cum_overhead) / prev_rows_processed)
+        observed_row_size = \
+            prev_cum_rows and math.ceil(overhead_for_chunk_method(self.cum_overhead) / prev_cum_rows)
 
         # rows_per_chunk is closest number of chooser rows to achieve chunk_size without exceeding it
         if observed_row_size > 0:
@@ -710,15 +738,15 @@ class ChunkSizer(object):
             self.rows_per_chunk = 2 * prev_rows_per_chunk
 
         self.rows_per_chunk = np.clip(self.rows_per_chunk, 1, rows_remaining)
-        self.rows_processed = prev_rows_processed + self.rows_per_chunk
+        self.rows_processed += self.rows_per_chunk
+        self.cum_rows += self.rows_per_chunk
         estimated_number_of_chunks = i + math.ceil(rows_remaining / self.rows_per_chunk) if rows_remaining else i
 
         self.history.setdefault(C_TIME, []).append(datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S.%f"))
         self.history.setdefault(C_DEPTH, []).append(self.depth)
-        if chunk_training():
-            for m in METRICS:
-                self.history.setdefault(f'cum_overhead_{m}', []).append(self.cum_overhead[m])
-        self.history.setdefault(C_NUM_ROWS, []).append(prev_rows_processed)
+        for m in METRICS:
+            self.history.setdefault(f'cum_overhead_{m}', []).append(self.cum_overhead[m])
+        self.history.setdefault(C_NUM_ROWS, []).append(prev_cum_rows)
         self.history.setdefault('chunk', []).append(i)
         self.history.setdefault('chunk_size', []).append(self.chunk_size)
         self.history.setdefault('row_size', []).append(observed_row_size)
@@ -735,10 +763,10 @@ class ChunkSizer(object):
         self.history.setdefault('prev_headroom', []).append(prev_headroom)
         self.history.setdefault('cur_headroom', []).append(self.headroom)
 
-        if chunk_training():
-            for m in METRICS:
-                self.history.setdefault(f'overhead_{m}', []).append(overhead[m])
+        for m in METRICS:
+            self.history.setdefault(f'overhead_{m}', []).append(overhead[m])
 
+        self.history.setdefault('new_rows_processed', []).append(self.rows_processed)
         self.history.setdefault('new_rows_per_chunk', []).append(self.rows_per_chunk)
         self.history.setdefault('estimated_num_chunks', []).append(estimated_number_of_chunks)
 

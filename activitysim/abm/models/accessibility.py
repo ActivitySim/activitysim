@@ -103,7 +103,6 @@ def compute_accessibilities_for_zones(
     return(accessibility_df)
 
 
-
 @inject.step()
 def compute_accessibility(land_use, accessibility, network_los, chunk_size, trace_od):
 

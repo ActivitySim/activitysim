@@ -360,7 +360,7 @@ def _each_nest(spec, parent_nest, post_order):
     """
     Iterate over each nest or leaf node in the tree (of subtree)
 
-    This internal routine is called by each_nest, which presents a slightly higer level interface
+    This internal routine is called by each_nest, which presents a slightly higher level interface
 
     Parameters
     ----------

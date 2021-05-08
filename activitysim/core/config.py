@@ -76,6 +76,12 @@ def settings(settings_file_name):
     return settings_dict
 
 
+# def testing():
+#
+#     assert ("pytest" in sys.modules) == ("PYTEST_CURRENT_TEST" in os.environ)
+#     return "PYTEST_CURRENT_TEST" in os.environ
+
+
 def get_cache_dir():
     """
     return path of cache directory in output_dir (creating it, if need be)

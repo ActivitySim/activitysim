@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import pipeline
+from activitysim.core import chunk
 
 logger = logging.getLogger(__name__)
 
@@ -444,35 +445,44 @@ class TimeTable(object):
         """
         assert len(window_row_ids) == len(periods)
 
-        time_col_ixs = periods.map(self.time_ix).values
+        trace_label = 'tt.adjacent_window_run_length'
+        with chunk.chunk_log(trace_label):
 
-        # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
-        available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
+            time_col_ixs = periods.map(self.time_ix).values
+            chunk.log_df(trace_label, 'time_col_ixs', time_col_ixs)
 
-        # padding periods not available
-        available[:, 0] = 0
-        available[:, -1] = 0
+            # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
+            available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
+            chunk.log_df(trace_label, 'available', available)
 
-        # column idxs of windows
-        num_rows, num_cols = available.shape
-        time_col_ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
-        # 0 1 2 3 4 5...
-        # 0 1 2 3 4 5...
-        # 0 1 2 3 4 5...
+            # padding periods not available
+            available[:, 0] = 0
+            available[:, -1] = 0
 
-        if before:
-            # ones after specified time, zeroes before
-            before_mask = (time_col_ix_map < time_col_ixs.reshape(num_rows, 1)) * 1
-            # index of first unavailable window after time
-            first_unavailable = np.where((1-available)*before_mask, time_col_ix_map, 0).max(axis=1)
-            available_run_length = time_col_ixs - first_unavailable - 1
-        else:
-            # ones after specified time, zeroes before
-            after_mask = (time_col_ix_map > time_col_ixs.reshape(num_rows, 1)) * 1
-            # index of first unavailable window after time
-            first_unavailable = \
-                np.where((1 - available) * after_mask, time_col_ix_map, num_cols).min(axis=1)
-            available_run_length = first_unavailable - time_col_ixs - 1
+            # column idxs of windows
+            num_rows, num_cols = available.shape
+            time_col_ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
+            # 0 1 2 3 4 5...
+            # 0 1 2 3 4 5...
+            # 0 1 2 3 4 5...
+            chunk.log_df(trace_label, 'time_col_ix_map', time_col_ix_map)
+
+            if before:
+                # ones after specified time, zeroes before
+                mask = (time_col_ix_map < time_col_ixs.reshape(num_rows, 1)) * 1
+                # index of first unavailable window after time
+                first_unavailable = np.where((1-available)*mask, time_col_ix_map, 0).max(axis=1)
+                available_run_length = time_col_ixs - first_unavailable - 1
+            else:
+                # ones after specified time, zeroes before
+                mask = (time_col_ix_map > time_col_ixs.reshape(num_rows, 1)) * 1
+                # index of first unavailable window after time
+                first_unavailable = np.where((1 - available) * mask, time_col_ix_map, num_cols).min(axis=1)
+                available_run_length = first_unavailable - time_col_ixs - 1
+
+            chunk.log_df(trace_label, 'mask', mask)
+            chunk.log_df(trace_label, 'first_unavailable', first_unavailable)
+            chunk.log_df(trace_label, 'available_run_length', available_run_length)
 
         return pd.Series(available_run_length, index=window_row_ids.index)
 

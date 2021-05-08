@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 USS = True
 
-HWM = {}
+GLOBAL_HWM = {}  # to avoid confusion with chunk local hwm
 
 MEM_TICK_LEN = 30
 LAST_MEM_TICK = 0
@@ -71,7 +71,7 @@ def check_global_hwm(tag, value, label):
 
     assert value is not None
 
-    hwm = HWM.setdefault(tag, {})
+    hwm = GLOBAL_HWM.setdefault(tag, {})
 
     is_new_hwm = value > hwm.get('mark', 0) or not hwm
     if is_new_hwm:
@@ -84,12 +84,12 @@ def check_global_hwm(tag, value, label):
     return is_new_hwm
 
 
-def log_hwm():
+def log_global_hwm():
 
     process_name = multiprocessing.current_process().name
 
-    for tag in HWM:
-        hwm = HWM[tag]
+    for tag in GLOBAL_HWM:
+        hwm = GLOBAL_HWM[tag]
         value = hwm.get('mark', 0)
         logger.info(f"{process_name} high water mark {tag}: {util.INT(value)} ({util.GB(value)}) "
                     f"timestamp: {hwm.get('timestamp', '<none>')} label:{hwm.get('label', '<none>')}")
@@ -145,25 +145,25 @@ def trace_memory_info(event=''):
                      f"uss: {GB(rss)} "
                      f"percent: {percent}%")
 
-    if not WRITE_LOG_FILE:
-        return
+        if WRITE_LOG_FILE:
+            timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
 
-    if noteworthy:
-        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
+            MEM_LOG_HEADER = "process,pid,rss,child_rss,full_rss,uss,percent,event,children,time"
+            with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
+                print(f"{process_name},"
+                      f"{pid},"
+                      f"{util.INT(rss)},"  # want these as ints so we can plot them...
+                      f"{util.INT(child_rss)},"
+                      f"{util.INT(full_rss)},"
+                      f"{util.INT(uss)},"
+                      f"{round(percent,2)}%,"
+                      f"{event},"
+                      f"{num_children},"
+                      f"{timestamp}",
+                      file=log_file)
 
-        MEM_LOG_HEADER = "process,pid,rss,child_rss,full_rss,uss,percent,event,children,time"
-        with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
-            print(f"{process_name},"
-                  f"{pid},"
-                  f"{util.INT(rss)},"  # want these as ints so we can plot them...
-                  f"{util.INT(child_rss)},"
-                  f"{util.INT(full_rss)},"
-                  f"{util.INT(uss)},"
-                  f"{round(percent,2)}%,"
-                  f"{event},"
-                  f"{num_children},"
-                  f"{timestamp}",
-                  file=log_file)
+    # return rss and uss for optional use by interested callers
+    return full_rss or rss, uss
 
 
 def get_rss(force_garbage_collect=False, uss=False):

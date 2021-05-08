@@ -378,6 +378,7 @@ def _interaction_sample(
 
     return choices_df
 
+
 def interaction_sample(
         choosers, alternatives, spec, sample_size,
         alt_col_name, allow_zero_probs=False,
@@ -462,6 +463,8 @@ def interaction_sample(
         if choices.shape[0] > 0:
             # might not be any if allow_zero_probs
             result_list.append(choices)
+
+            chunk.log_df(trace_label, f'result_list', result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

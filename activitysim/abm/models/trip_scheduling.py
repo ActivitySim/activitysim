@@ -319,56 +319,60 @@ def schedule_trips_in_leg(
     result_list.append(choices)
     trips = trips[~no_scheduling]
 
-    # add next_trip_id temp column (temp as trips is now a copy, as result of slicing)
-    trips = trips.sort_index()
-    trips['next_trip_id'] = np.roll(trips.index, -1 if outbound else 1)
-    is_final = (trips.trip_num == trips.trip_count) if outbound else (trips.trip_num == 1)
-    trips.next_trip_id = trips.next_trip_id.where(~is_final, NO_TRIP_ID)
+    with chunk.chunk_log(trace_label):
 
-    # iterate over outbound trips in ascending trip_num order, skipping the initial trip
-    # iterate over inbound trips in descending trip_num order, skipping the finial trip
-    first_trip_in_leg = True
-    for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
+        # add next_trip_id temp column (temp as trips is now a copy, as result of slicing)
+        trips = trips.sort_index()
+        trips['next_trip_id'] = np.roll(trips.index, -1 if outbound else 1)
+        is_final = (trips.trip_num == trips.trip_count) if outbound else (trips.trip_num == 1)
+        trips.next_trip_id = trips.next_trip_id.where(~is_final, NO_TRIP_ID)
 
-        if outbound:
-            nth_trips = trips[trips.trip_num == i]
-        else:
-            nth_trips = trips[trips.trip_num == trips.trip_count - i]
+        # iterate over outbound trips in ascending trip_num order, skipping the initial trip
+        # iterate over inbound trips in descending trip_num order, skipping the finial trip
+        first_trip_in_leg = True
+        for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
 
-        nth_trace_label = tracing.extend_trace_label(trace_label, 'num_%s' % i)
+            if outbound:
+                nth_trips = trips[trips.trip_num == i]
+            else:
+                nth_trips = trips[trips.trip_num == trips.trip_count - i]
 
-        with chunk.chunk_log(nth_trace_label, chunk_tag=trace_label):
-            choices = schedule_nth_trips(
-                nth_trips,
-                probs_spec,
-                model_settings,
-                first_trip_in_leg=first_trip_in_leg,
-                report_failed_trips=is_last_iteration,
-                trace_hh_id=trace_hh_id,
-                trace_label=nth_trace_label)
+            nth_trace_label = tracing.extend_trace_label(trace_label, 'num_%s' % i)
 
-        # if outbound, this trip's depart constrains next trip's earliest depart option
-        # if inbound, we are handling in reverse order, so it constrains latest depart instead
-        ADJUST_NEXT_DEPART_COL = 'earliest' if outbound else 'latest'
+            with chunk.chunk_log(nth_trace_label, chunk_tag=trace_label):
+                choices = schedule_nth_trips(
+                    nth_trips,
+                    probs_spec,
+                    model_settings,
+                    first_trip_in_leg=first_trip_in_leg,
+                    report_failed_trips=is_last_iteration,
+                    trace_hh_id=trace_hh_id,
+                    trace_label=nth_trace_label)
 
-        # most initial departure (when no choice was made because all probs were zero)
-        if is_last_iteration and (failfix == FAILFIX_CHOOSE_MOST_INITIAL):
-            choices = choices.reindex(nth_trips.index)
-            logger.warning("%s coercing %s depart choices to most initial" %
-                           (nth_trace_label, choices.isna().sum()))
-            choices = choices.fillna(trips[ADJUST_NEXT_DEPART_COL])
+            # if outbound, this trip's depart constrains next trip's earliest depart option
+            # if inbound, we are handling in reverse order, so it constrains latest depart instead
+            ADJUST_NEXT_DEPART_COL = 'earliest' if outbound else 'latest'
 
-        # adjust allowed depart range of next trip
-        has_next_trip = (nth_trips.next_trip_id != NO_TRIP_ID)
-        if has_next_trip.any():
-            next_trip_ids = nth_trips.next_trip_id[has_next_trip]
-            # patch choice any trips with next_trips that weren't scheduled
-            trips.loc[next_trip_ids, ADJUST_NEXT_DEPART_COL] = \
-                choices.reindex(next_trip_ids.index).fillna(trips[ADJUST_NEXT_DEPART_COL]).values
+            # most initial departure (when no choice was made because all probs were zero)
+            if is_last_iteration and (failfix == FAILFIX_CHOOSE_MOST_INITIAL):
+                choices = choices.reindex(nth_trips.index)
+                logger.warning("%s coercing %s depart choices to most initial" %
+                               (nth_trace_label, choices.isna().sum()))
+                choices = choices.fillna(trips[ADJUST_NEXT_DEPART_COL])
 
-        result_list.append(choices)
+            # adjust allowed depart range of next trip
+            has_next_trip = (nth_trips.next_trip_id != NO_TRIP_ID)
+            if has_next_trip.any():
+                next_trip_ids = nth_trips.next_trip_id[has_next_trip]
+                # patch choice any trips with next_trips that weren't scheduled
+                trips.loc[next_trip_ids, ADJUST_NEXT_DEPART_COL] = \
+                    choices.reindex(next_trip_ids.index).fillna(trips[ADJUST_NEXT_DEPART_COL]).values
 
-        first_trip_in_leg = False
+            result_list.append(choices)
+
+            chunk.log_df(trace_label, f'result_list', result_list)
+
+            first_trip_in_leg = False
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -400,32 +404,36 @@ def run_trip_scheduling(
         if trips_chunk.outbound.any():
             leg_chunk = trips_chunk[trips_chunk.outbound]
             leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'outbound')
-            with chunk.chunk_log(leg_trace_label, chunk_tag=chunk_trace_label):
-                choices = \
-                    schedule_trips_in_leg(
-                        outbound=True,
-                        trips=leg_chunk,
-                        probs_spec=probs_spec,
-                        model_settings=model_settings,
-                        is_last_iteration=is_last_iteration,
-                        trace_hh_id=trace_hh_id,
-                        trace_label=leg_trace_label)
-                result_list.append(choices)
+            #with chunk.chunk_log(leg_trace_label, chunk_tag=chunk_trace_label):
+            choices = \
+                schedule_trips_in_leg(
+                    outbound=True,
+                    trips=leg_chunk,
+                    probs_spec=probs_spec,
+                    model_settings=model_settings,
+                    is_last_iteration=is_last_iteration,
+                    trace_hh_id=trace_hh_id,
+                    trace_label=leg_trace_label)
+            result_list.append(choices)
+
+            chunk.log_df(trace_label, f'result_list', result_list)
 
         if (~trips_chunk.outbound).any():
             leg_chunk = trips_chunk[~trips_chunk.outbound]
             leg_trace_label = tracing.extend_trace_label(chunk_trace_label, 'inbound')
-            with chunk.chunk_log(leg_trace_label, chunk_tag=chunk_trace_label):
-                choices = \
-                    schedule_trips_in_leg(
-                        outbound=False,
-                        trips=leg_chunk,
-                        probs_spec=probs_spec,
-                        model_settings=model_settings,
-                        is_last_iteration=is_last_iteration,
-                        trace_hh_id=trace_hh_id,
-                        trace_label=leg_trace_label)
-                result_list.append(choices)
+            #with chunk.chunk_log(leg_trace_label, chunk_tag=chunk_trace_label):
+            choices = \
+                schedule_trips_in_leg(
+                    outbound=False,
+                    trips=leg_chunk,
+                    probs_spec=probs_spec,
+                    model_settings=model_settings,
+                    is_last_iteration=is_last_iteration,
+                    trace_hh_id=trace_hh_id,
+                    trace_label=leg_trace_label)
+            result_list.append(choices)
+
+            chunk.log_df(trace_label, f'result_list', result_list)
 
     choices = pd.concat(result_list)
 

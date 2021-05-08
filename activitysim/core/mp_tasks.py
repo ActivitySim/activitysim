@@ -878,7 +878,7 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
         shared_data_buffer = kwargs
         run_simulation(queue, step_info, resume_after, shared_data_buffer)
 
-        mem.log_hwm()  # subprocess
+        mem.log_global_hwm()  # subprocess
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_run_simulation: {str(e)}")
@@ -1393,7 +1393,7 @@ def run_multiprocess(injectables):
             )
         drop_breadcrumb(step_name, 'coalesce')
 
-    mem.log_hwm()  # parent process
+    mem.log_global_hwm()  # main process
 
 
 def get_breadcrumbs(run_list):

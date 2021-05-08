@@ -187,6 +187,8 @@ def run_trip_purpose(
 
         result_list.append(choices)
 
+        chunk.log_df(trace_label, f'result_list', result_list)
+
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 

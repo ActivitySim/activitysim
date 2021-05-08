@@ -96,7 +96,7 @@ def initialize_landuse():
 
     trace_label = 'initialize_landuse'
 
-    with chunk.chunk_log(trace_label):
+    with chunk.chunk_log(trace_label, base=True):
 
         model_settings = config.read_model_settings('initialize_landuse.yaml', mandatory=True)
 
@@ -112,7 +112,7 @@ def initialize_households():
 
     trace_label = 'initialize_households'
 
-    with chunk.chunk_log(trace_label):
+    with chunk.chunk_log(trace_label, base=True):
 
         chunk.log_rss(f"{trace_label}.inside-yield")
 

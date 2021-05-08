@@ -1113,9 +1113,6 @@ def tvpb_skims(skims):
     return [skim for skim in list_of_skims(skims) if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)]
 
 
-
-
-
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     chunk_size=0, custom_chooser=None,
                     want_logsums=False,
@@ -1148,6 +1145,8 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
             trace_column_names=trace_column_names)
 
         result_list.append(choices)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1184,7 +1183,10 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
 
         result_list.append(choices)
 
-    choices = pd.concat(result_list)
+        chunk.log_df(trace_label, f'result_list', result_list)
+
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
 
     return choices
 
@@ -1308,7 +1310,6 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
     return logsums
 
 
-
 def simple_simulate_logsums(choosers, spec, nest_spec,
                             skims=None, locals_d=None, chunk_size=0,
                             trace_label=None):
@@ -1334,6 +1335,8 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
             chunk_trace_label)
 
         result_list.append(logsums)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         logsums = pd.concat(result_list)

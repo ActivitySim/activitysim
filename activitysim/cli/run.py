@@ -222,7 +222,7 @@ def run(args):
         else:
             pipeline.close_pipeline()
 
-        mem.log_hwm()  # main process
+        mem.log_global_hwm()  # main process
 
     chunk.consolidate_logs()
     mem.consolidate_logs()

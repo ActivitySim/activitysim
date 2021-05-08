@@ -460,6 +460,8 @@ def interaction_simulate(
 
         result_list.append(choices)
 
+        chunk.log_df(trace_label, f'result_list', result_list)
+
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
     # http://pandas.pydata.org/pandas-docs/stable/io.html#id2

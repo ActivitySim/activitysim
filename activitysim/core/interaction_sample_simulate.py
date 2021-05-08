@@ -266,6 +266,11 @@ def _interaction_sample_simulate(
         choices = choices.to_frame('choice')
         choices['logsum'] = logsums
 
+    chunk.log_df(trace_label, 'choices', choices)
+
+    # handing this off to our caller
+    chunk.log_df(trace_label, 'choices', None)
+
     return choices
 
 
@@ -346,6 +351,8 @@ def interaction_sample_simulate(
             estimator)
 
         result_list.append(choices)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

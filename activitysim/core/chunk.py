@@ -250,7 +250,7 @@ def consolidate_logs():
     if retrain() or not _HISTORIAN.have_cached_history:
 
         if config.setting('resume_after'):
-            #bug
+            # FIXME
             logger.warning(f"Not updating chunk_log cache directory because resume_after")
         else:
             cache_dir_output_path = os.path.join(config.get_cache_dir(), CACHE_FILE_NAME)
@@ -375,9 +375,6 @@ class ChunkLedger(object):
     def audit(self, msg, bytes=0, rss=0, uss=0, from_rss_monitor=False):
 
         MAX_OVERDRAFT = 0.2
-
-        #if from_rss_monitor:
-        #    return
 
         if not self.base_chunk_size:
             return

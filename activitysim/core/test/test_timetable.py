@@ -10,6 +10,7 @@ import pytest
 from .. import timetable as tt
 from .. import chunk
 
+
 @pytest.fixture
 def persons():
 

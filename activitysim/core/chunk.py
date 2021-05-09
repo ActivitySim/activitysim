@@ -239,8 +239,9 @@ def consolidate_logs():
     omnibus_df = omnibus_df[omnibus_df[C_DEPTH] == 1]
     zero_rows = omnibus_df[C_NUM_ROWS] <= 0
     if zero_rows.any():
-        logger.warning(f"consolidate_logs dropping {zero_rows.sum()} rows where {C_NUM_ROWS} == 0")
-        logger.warning(f"consolidate_logs zero_rows:\n{omnibus_df[zero_rows]}")
+        # this should only happen when chunk_log() instantiates the base ChunkSizer.
+        # Since chunk_log is not chunked (chunk_size is always 0) there is no need for its history record in the cache
+        logger.debug(f"consolidate_logs dropping {zero_rows.sum()} rows where {C_NUM_ROWS} == 0")
         omnibus_df = omnibus_df[omnibus_df[C_NUM_ROWS] > 0]
 
     omnibus_df = omnibus_df[[C_CHUNK_TAG, C_NUM_ROWS] + CUM_OVERHEAD_COLUMNS]
@@ -540,10 +541,11 @@ def log_rss(trace_label):
 
     assert len(CHUNK_LEDGERS) > 0, f"log_rss called without current chunker."
 
-    if chunk_training_mode() == MODE_PRODUCTION:
-        return
-
     hwm_trace_label = f"{trace_label}.log_rss"
+
+    if chunk_training_mode() == MODE_PRODUCTION:
+        mem.trace_memory_info(hwm_trace_label, idle=True)
+        return
 
     rss, uss = mem.trace_memory_info(hwm_trace_label)
 
@@ -587,7 +589,7 @@ class MemMonitor(threading.Thread):
 
     def run(self):
         log_rss(self.trace_label)
-        while not self.stop_snooping.wait(timeout=mem.MEM_TICK_LEN):
+        while not self.stop_snooping.wait(timeout=mem.MEM_SNOOP_TICK_LEN):
             log_rss(self.trace_label)
 
 
@@ -830,9 +832,9 @@ class ChunkSizer(object):
                 mem_monitor = MemMonitor(self.trace_label, stop_snooping)
                 mem_monitor.start()
 
-            log_rss(f"{self.trace_label}.ledger.pre-yield")
+            log_rss(self.trace_label)
             yield
-            log_rss(f"{self.trace_label}.ledger.post-yield")
+            log_rss(self.trace_label)
 
         finally:
 

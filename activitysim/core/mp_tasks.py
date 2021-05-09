@@ -970,23 +970,6 @@ def mp_coalesce_pipelines(injectables, sub_proc_names, slice_info):
 """
 
 
-@contextmanager
-def wait_for_children(trace_label, mem_trace_ticks=None):
-    tick = 0
-    while True:
-        yield
-
-        if not multiprocessing.active_children():
-            break
-
-        time.sleep(1)
-
-        if mem_trace_ticks:
-            tick = (tick + 1) % mem_trace_ticks
-            if tick == 0:
-                mem.trace_memory_info(trace_label)
-
-
 def allocate_shared_skim_buffers():
     """
     This is called by the main process to allocate shared memory buffer to share with subprocs
@@ -1190,11 +1173,18 @@ def run_sub_simulations(
 
         mem.trace_memory_info(f"{p.name}.start")
 
-    with wait_for_children("run_sub_simulations.idle", mem_trace_ticks=MEM_TRACE_TICKS):
+    while multiprocessing.active_children():
         # log queued messages as they are received
         log_queued_messages()
         # monitor sub process status and drop breadcrumbs or fail_fast as they terminate
         check_proc_status()
+        # monitor memory usage
+        mem.trace_memory_info("run_sub_simulations.idle", idle=True)
+        time.sleep(1)
+
+    # clean up any messages or breadcrumbs that occurred while we slept
+    log_queued_messages()
+    check_proc_status()
 
     # no need to join() explicitly since multiprocessing.active_children joins completed procs
 
@@ -1229,8 +1219,9 @@ def run_sub_task(p):
     t0 = tracing.print_elapsed_time()
     p.start()
 
-    with wait_for_children("run_sub_task.idle", mem_trace_ticks=MEM_TRACE_TICKS):
-        pass
+    while multiprocessing.active_children():
+        mem.trace_memory_info("run_sub_simulations.idle", idle=True)
+        time.sleep(1)
 
     # no need to join explicitly since multiprocessing.active_children joins completed procs
     # p.join()

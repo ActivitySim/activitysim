@@ -28,8 +28,9 @@ USS = True
 
 GLOBAL_HWM = {}  # to avoid confusion with chunk local hwm
 
-MEM_TICK_LEN = 30
-LAST_MEM_TICK = 0
+MEM_TRACE_TICK_LEN = 5
+MEM_SNOOP_TICK_LEN = 5
+MEM_TICK = 0
 
 MEM_LOG_FILE_NAME = "mem.csv"
 OMNIBUS_LOG_FILE_NAME = f"omnibus_mem.csv"  # overwrite when consolidating
@@ -95,14 +96,17 @@ def log_global_hwm():
                     f"timestamp: {hwm.get('timestamp', '<none>')} label:{hwm.get('label', '<none>')}")
 
 
-def trace_memory_info(event=''):
+def trace_memory_info(event, idle=False):
 
-    global LAST_MEM_TICK
+    global MEM_TICK
+
+    tick = time.time()
+    if idle and (tick - MEM_TICK < MEM_TRACE_TICK_LEN):
+        return
+    MEM_TICK = tick
 
     process_name = multiprocessing.current_process().name
     pid = os.getpid()
-
-    percent = psutil.virtual_memory().percent
 
     current_process = psutil.Process()
 
@@ -113,50 +117,38 @@ def trace_memory_info(event=''):
         info = current_process.memory_info()
         uss = 0
 
-    child_rss = full_rss = 0
-    rss = info.rss
+    full_rss = rss = info.rss
 
     num_children = 0
     for child in current_process.children(recursive=True):
         try:
             child_info = child.memory_info()
-            child_rss += child_info.rss
+            full_rss += child_info.rss
             num_children += 1
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
             pass
 
-    noteworthy = False
-    if num_children:
-        full_rss = rss + child_rss
-        noteworthy = True
-
+    noteworthy = False  # any reason not to always log this if we are filtering idle ticks?
+    noteworthy = (num_children > 0) or noteworthy
     noteworthy = check_global_hwm('rss', full_rss or rss, event) or noteworthy
     noteworthy = check_global_hwm('uss', uss, event) or noteworthy
 
-    t = time.time()
-    if (t - LAST_MEM_TICK > MEM_TICK_LEN):
-        noteworthy = True
-        LAST_MEM_TICK = t
-
     if noteworthy:
+
         logger.debug(f"trace_memory_info {event} "
-                     f"rss: {GB(rss)} "
-                     f"child_rss: {GB(child_rss)} "
-                     f"uss: {GB(rss)} "
-                     f"percent: {percent}%")
+                     f"rss: {GB(full_rss) if num_children else GB(rss)} "
+                     f"uss: {GB(rss)} ")
 
         if WRITE_LOG_FILE:
             timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
 
-            MEM_LOG_HEADER = "process,pid,rss,child_rss,full_rss,uss,percent,event,children,time"
+            MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
             with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
                 print(f"{process_name},"
                       f"{pid},"
                       f"{util.INT(rss)},"  # want these as ints so we can plot them...
-                      f"{util.INT(child_rss)},"
                       f"{util.INT(full_rss)},"
                       f"{util.INT(uss)},"
-                      f"{round(percent,2)}%,"
                       f"{event},"
                       f"{num_children},"
                       f"{timestamp}",

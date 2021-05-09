@@ -615,7 +615,7 @@ def schedule_tours(
         timetable, timetable_window_id_col,
         previous_tour, tour_owner_id_col,
         estimator,
-        chunk_size, tour_trace_label):
+        chunk_size, tour_trace_label, tour_chunk_tag):
     """
     chunking wrapper for _schedule_tours
 
@@ -646,7 +646,7 @@ def schedule_tours(
 
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(tours, chunk_size, tour_trace_label):
+            in chunk.adaptive_chunked_choosers(tours, chunk_size, tour_trace_label, tour_chunk_tag):
 
         choices = _schedule_tours(chooser_chunk, persons_merged,
                                   alts, spec, logsum_tour_purpose,
@@ -743,13 +743,15 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, timetable,
 
     for tour_num, nth_tours in tours.groupby('tour_num', sort=True):
 
-        tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
+        tour_trace_label = tracing.extend_trace_label(trace_label, f'tour_{tour_num}')
+        tour_chunk_tag = tracing.extend_trace_label(trace_label, f"tour_{1 if tour_num == 1 else 'n'}")
 
         if tour_segment_col is not None:
 
             for tour_segment_name, tour_segment_info in tour_segments.items():
 
                 segment_trace_label = tracing.extend_trace_label(tour_trace_label, tour_segment_name)
+                segment_chunk_tag = tracing.extend_trace_label(tour_chunk_tag, tour_segment_name)
 
                 # assume segmentation of spec and coefficients are aligned
                 spec_segment_name = tour_segment_info.get('spec_segment_name')
@@ -776,7 +778,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, timetable,
                                    tour_owner_id_col=tour_owner_id_col,
                                    estimator=tour_segment_info.get('estimator'),
                                    chunk_size=chunk_size,
-                                   tour_trace_label=segment_trace_label)
+                                   tour_trace_label=segment_trace_label, tour_chunk_tag=segment_chunk_tag)
 
                 choice_list.append(choices)
 
@@ -799,7 +801,7 @@ def vectorize_tour_scheduling(tours, persons_merged, alts, timetable,
                                tour_owner_id_col=tour_owner_id_col,
                                estimator=tour_segments.get('estimator'),
                                chunk_size=chunk_size,
-                               tour_trace_label=tour_trace_label)
+                               tour_trace_label=tour_trace_label, tour_chunk_tag=tour_chunk_tag)
 
             choice_list.append(choices)
 
@@ -884,7 +886,8 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
 
     for tour_num, nth_tours in subtours.groupby('tour_num', sort=True):
 
-        tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
+        tour_trace_label = tracing.extend_trace_label(trace_label, f'tour_{tour_num}')
+        tour_chunk_tag = tracing.extend_trace_label(trace_label, f"tour_{1 if tour_num == 1 else 'n'}")
 
         # no more than one tour per timetable window per call to schedule_tours
         assert not nth_tours.parent_tour_id.duplicated().any()
@@ -897,7 +900,7 @@ def vectorize_subtour_scheduling(parent_tours, subtours, persons_merged, alts, s
                            timetable, timetable_window_id_col,
                            previous_tour_by_parent_tour_id, tour_owner_id_col,
                            estimator,
-                           chunk_size, tour_trace_label)
+                           chunk_size, tour_trace_label, tour_chunk_tag)
 
         choice_list.append(choices)
 
@@ -996,7 +999,8 @@ def vectorize_joint_tour_scheduling(
 
     for tour_num, nth_tours in joint_tours.groupby('tour_num', sort=True):
 
-        tour_trace_label = tracing.extend_trace_label(trace_label, 'tour_%s' % (tour_num,))
+        tour_trace_label = tracing.extend_trace_label(trace_label, f'tour_{tour_num}')
+        tour_chunk_tag = tracing.extend_trace_label(trace_label, f"tour_{1 if tour_num == 1 else 'n'}")
 
         # no more than one tour per household per call to schedule_tours
         assert not nth_tours.household_id.duplicated().any()
@@ -1017,7 +1021,7 @@ def vectorize_joint_tour_scheduling(
                            timetable, timetable_window_id_col,
                            previous_tour_by_householdid, tour_owner_id_col,
                            estimator,
-                           chunk_size, tour_trace_label)
+                           chunk_size, tour_trace_label, tour_chunk_tag)
 
         # - update timetables of all joint tour participants
         persons_timetable.assign(

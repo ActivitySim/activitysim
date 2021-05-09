@@ -240,6 +240,7 @@ def consolidate_logs():
     zero_rows = omnibus_df[C_NUM_ROWS] <= 0
     if zero_rows.any():
         logger.warning(f"consolidate_logs dropping {zero_rows.sum()} rows where {C_NUM_ROWS} == 0")
+        logger.warning(f"consolidate_logs zero_rows:\n{omnibus_df[zero_rows]}")
         omnibus_df = omnibus_df[omnibus_df[C_NUM_ROWS] > 0]
 
     omnibus_df = omnibus_df[[C_CHUNK_TAG, C_NUM_ROWS] + CUM_OVERHEAD_COLUMNS]

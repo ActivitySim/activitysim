@@ -8,6 +8,7 @@ import multiprocessing
 import traceback
 
 from collections import OrderedDict
+from contextlib import contextmanager
 
 import yaml
 import numpy as np
@@ -27,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 LAST_CHECKPOINT = '_'
 
+MEM_TRACE_TICKS = 5
 
 """
 mp_tasks - activitysim multiprocessing overview
@@ -968,6 +970,23 @@ def mp_coalesce_pipelines(injectables, sub_proc_names, slice_info):
 """
 
 
+@contextmanager
+def wait_for_children(trace_label, mem_trace_ticks=None):
+    tick = 0
+    while True:
+        yield
+
+        if not multiprocessing.active_children():
+            break
+
+        time.sleep(1)
+
+        if mem_trace_ticks:
+            tick = (tick + 1) % mem_trace_ticks
+            if tick == 0:
+                mem.trace_memory_info(trace_label)
+
+
 def allocate_shared_skim_buffers():
     """
     This is called by the main process to allocate shared memory buffer to share with subprocs
@@ -1091,19 +1110,6 @@ def run_sub_simulations(
                                     info(f"error terminating process {op.name}: {e}")
                         raise RuntimeError("Process %s failed" % (p.name,))
 
-    def idle(seconds):
-        # idle for specified number of seconds, monitoring message queue and sub process status
-        log_queued_messages()
-        check_proc_status()
-        mem.trace_memory_info("run_sub_simulations.idle")
-        for _ in range(seconds):
-            time.sleep(1)
-            # log queued messages as they are received
-            log_queued_messages()
-            # monitor sub process status and drop breadcrumbs or fail_fast as they terminate
-            check_proc_status()
-            mem.trace_memory_info("run_sub_simulations.idle")
-
     step_name = step_info['name']
 
     t0 = tracing.print_elapsed_time()
@@ -1184,10 +1190,11 @@ def run_sub_simulations(
 
         mem.trace_memory_info(f"{p.name}.start")
 
-    # - idle logging queued messages and proc completion
-    while multiprocessing.active_children():
-        idle(seconds=1)
-    idle(seconds=0)
+    with wait_for_children("run_sub_simulations.idle", mem_trace_ticks=MEM_TRACE_TICKS):
+        # log queued messages as they are received
+        log_queued_messages()
+        # monitor sub process status and drop breadcrumbs or fail_fast as they terminate
+        check_proc_status()
 
     # no need to join() explicitly since multiprocessing.active_children joins completed procs
 
@@ -1222,9 +1229,8 @@ def run_sub_task(p):
     t0 = tracing.print_elapsed_time()
     p.start()
 
-    while multiprocessing.active_children():
-        mem.trace_memory_info("run_sub_task.idle")
-        time.sleep(1)
+    with wait_for_children("run_sub_task.idle", mem_trace_ticks=MEM_TRACE_TICKS):
+        pass
 
     # no need to join explicitly since multiprocessing.active_children joins completed procs
     # p.join()

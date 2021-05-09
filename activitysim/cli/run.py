@@ -6,6 +6,8 @@ import logging
 import argparse
 import warnings
 
+import numpy as np
+
 from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import config
@@ -197,6 +199,32 @@ def run(args):
     log_settings = inject.get_injectable('log_settings', {})
     for k in log_settings:
         logger.info('SETTING %s: %s' % (k, config.setting(k)))
+
+    # OMP_NUM_THREADS: openmp
+    # OPENBLAS_NUM_THREADS: openblas
+    # MKL_NUM_THREADS: mkl
+    for env in ['MKL_NUM_THREADS', 'OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS']:
+        logger.info(f"ENV {env}: {os.getenv(env)}")
+
+    np_info_keys = [
+        'atlas_blas_info',
+        'atlas_blas_threads_info',
+        'atlas_info',
+        'atlas_threads_info',
+        'blas_info',
+        'blas_mkl_info',
+        'blas_opt_info',
+        'lapack_info',
+        'lapack_mkl_info',
+        'lapack_opt_info',
+        'mkl_info']
+
+    for cfg_key in np_info_keys:
+        info = np.__config__.get_info(cfg_key)
+        if info:
+            for info_key in ['libraries']:
+                if info_key in info:
+                    logger.info(f"NUMPY {cfg_key} {info_key}: {info[info_key]}")
 
     t0 = tracing.print_elapsed_time()
 

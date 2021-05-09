@@ -8,7 +8,6 @@ import multiprocessing
 import traceback
 
 from collections import OrderedDict
-from contextlib import contextmanager
 
 import yaml
 import numpy as np

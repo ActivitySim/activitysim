@@ -133,6 +133,11 @@ def default_initial_rows_per_chunk():
                                config.setting('default_initial_rows_per_chunk', DEFAULT_INITIAL_ROWS_PER_CHUNK))
 
 
+def min_available_chunk_ratio():
+    return SETTINGS.setdefault('min_available_chunk_ratio',
+                               config.setting('min_available_chunk_ratio', 0))
+
+
 def keep_chunk_logs():
     # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
     default = (LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME)
@@ -537,14 +542,15 @@ class ChunkLedger(object):
         return self.hwm_bytes['value']
 
 
-def log_rss(trace_label):
+def log_rss(trace_label, force=False):
 
     assert len(CHUNK_LEDGERS) > 0, f"log_rss called without current chunker."
 
     hwm_trace_label = f"{trace_label}.log_rss"
 
     if chunk_training_mode() == MODE_PRODUCTION:
-        mem.trace_memory_info(hwm_trace_label, idle=True)
+        trace_ticks = 0 if force else mem.MEM_TRACE_TICK_LEN
+        mem.trace_memory_info(hwm_trace_label, trace_ticks=trace_ticks)
         return
 
     rss, uss = mem.trace_memory_info(hwm_trace_label)
@@ -612,7 +618,7 @@ class ChunkSizer(object):
             parent = CHUNK_SIZERS[-1]
             assert parent.chunk_ledger is not None
 
-            log_rss(trace_label)  # make sure we get at least one reading
+            log_rss(trace_label)  # give parent a complementary log_rss reading entering sub context
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label
@@ -621,10 +627,10 @@ class ChunkSizer(object):
         self.num_choosers = num_choosers
         self.rows_processed = 0
 
-        min_available_chunk_ratio = config.setting('min_available_chunk_ratio', 0)
-        assert 0 <= min_available_chunk_ratio <= 1, \
-            f"min_available_chunk_ratio setting {min_available_chunk_ratio} is not in range [0..1]"
-        self.min_chunk_size = chunk_size * min_available_chunk_ratio
+        min_chunk_ratio = min_available_chunk_ratio()
+        assert 0 <= min_chunk_ratio <= 1, \
+            f"min_chunk_ratio setting {min_chunk_ratio} is not in range [0..1]"
+        self.min_chunk_size = chunk_size * min_chunk_ratio
 
         self.initial_row_size = 0
         self.rows_per_chunk = 0
@@ -669,7 +675,7 @@ class ChunkSizer(object):
         if headroom < self.min_chunk_size:
 
             if self.base_chunk_size > 0:
-                logger.warning(f"Not enough memory for minimum chunk_size without exceeding specified chunk_size."
+                logger.warning(f"Not enough memory for minimum chunk_size without exceeding specified chunk_size. "
                                f"available_headroom: {util.INT(headroom)} "
                                f"min_chunk_size: {util.INT(self.min_chunk_size)} "
                                f"base_chunk_size: {util.INT(self.base_chunk_size)}")
@@ -715,6 +721,7 @@ class ChunkSizer(object):
 
         logger.debug(f"{self.trace_label}.initial_rows_per_chunk - "
                      f"rows_per_chunk: {self.rows_per_chunk} "
+                     f"headroom: {self.headroom} "
                      f"initial_row_size: {self.initial_row_size} ")
 
         return rows_per_chunk, estimated_number_of_chunks
@@ -832,9 +839,9 @@ class ChunkSizer(object):
                 mem_monitor = MemMonitor(self.trace_label, stop_snooping)
                 mem_monitor.start()
 
-            log_rss(self.trace_label)
+            log_rss(self.trace_label, force=True)  # make sure we get at least one reading
             yield
-            log_rss(self.trace_label)
+            log_rss(self.trace_label, force=True)  # make sure we get at least one reading
 
         finally:
 

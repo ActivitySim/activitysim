@@ -1178,7 +1178,7 @@ def run_sub_simulations(
         # monitor sub process status and drop breadcrumbs or fail_fast as they terminate
         check_proc_status()
         # monitor memory usage
-        mem.trace_memory_info("run_sub_simulations.idle", idle=True)
+        mem.trace_memory_info("run_sub_simulations.idle", trace_ticks=mem.MEM_PARENT_TRACE_TICK_LEN)
         time.sleep(1)
 
     # clean up any messages or breadcrumbs that occurred while we slept
@@ -1219,7 +1219,7 @@ def run_sub_task(p):
     p.start()
 
     while multiprocessing.active_children():
-        mem.trace_memory_info("run_sub_simulations.idle", idle=True)
+        mem.trace_memory_info("run_sub_simulations.idle", trace_ticks=mem.MEM_PARENT_TRACE_TICK_LEN)
         time.sleep(1)
 
     # no need to join explicitly since multiprocessing.active_children joins completed procs

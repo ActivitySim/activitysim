@@ -29,43 +29,101 @@ USS = True
 GLOBAL_HWM = {}  # to avoid confusion with chunk local hwm
 
 MEM_TRACE_TICK_LEN = 5
+MEM_PARENT_TRACE_TICK_LEN = 15
 MEM_SNOOP_TICK_LEN = 5
 MEM_TICK = 0
 
 MEM_LOG_FILE_NAME = "mem.csv"
-OMNIBUS_LOG_FILE_NAME = f"omnibus_mem.csv"  # overwrite when consolidating
+OMNIBUS_LOG_FILE_NAME = f"omnibus_mem.csv"
 
-WRITE_LOG_FILE = True
-TRACE_MEMORY_USAGE = True
+
+def time_bin(timestamps):
+    bins_size_in_seconds = 3
+    epoch = pd.Timestamp("1970-01-01")
+    seconds_since_epoch = (timestamps - epoch) // pd.Timedelta("1s")
+    bin = seconds_since_epoch - (seconds_since_epoch % bins_size_in_seconds)
+
+    return pd.to_datetime(bin, unit='s', origin='unix')
 
 
 def consolidate_logs():
+    """
+    Consolidate and aggregate subprocess mem logs
+    """
 
-    if not WRITE_LOG_FILE:
+    if not config.setting('multiprocess', False):
         return
 
-    glob_file_name = config.log_file_path(f"*{MEM_LOG_FILE_NAME}", prefix=False)
-    logger.debug(f"chunk.consolidate_logs reading glob {glob_file_name}")
-    glob_files = glob.glob(glob_file_name)
+    delete_originals = not config.setting('keep_mem_logs', False)
+    omnibus_df = []
 
-    if not glob_files:
-        return
+    # for each multiprocess step
+    multiprocess_steps = config.setting('multiprocess_steps', [])
+    for step in multiprocess_steps:
+        step_name = step.get('name', None)
 
-    # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
-    delete_originals = (MEM_LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME)
+        logger.debug(f"mem.consolidate_logs for step {step_name}")
 
-    if len(glob_files) > 1 or delete_originals:
+        glob_file_name = config.log_file_path(f"{step_name}*{MEM_LOG_FILE_NAME}", prefix=False)
+        glob_files = glob.glob(glob_file_name)
 
-        omnibus_df = pd.concat((pd.read_csv(f, comment='#') for f in glob_files))
-        omnibus_df = omnibus_df.sort_values(by='time')
+        if not glob_files:
+            continue
 
-        output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
+        logger.debug(f"mem.consolidate_logs consolidating {len(glob_files)} logs for {step_name}")
+
+        # for each individual log
+        step_summary_df = []
+        for f in glob_files:
+            df = pd.read_csv(f, comment='#')
+
+            df = df[['rss', 'uss', 'event', 'time']]
+
+            df.rss = df.rss.astype(np.int64)
+            df.uss = df.uss.astype(np.int64)
+
+            df['time'] = time_bin(pd.to_datetime(df.time, errors='coerce', format='%Y/%m/%d %H:%M:%S'))
+
+            # consolidate events (duplicate rows should be idle steps (e.g. log_rss)
+            df = df.groupby('time')\
+                .agg(rss=('rss', 'max'), uss=('uss', 'max'),)\
+                .reset_index(drop=False)
+
+            step_summary_df.append(df)  # add step_df to step summary
+
+        # aggregate the individual the logs into a single step log
+        step_summary_df = pd.concat(step_summary_df)
+        step_summary_df = step_summary_df.groupby('time') \
+            .agg(rss=('rss', 'sum'), uss=('uss', 'sum'), num_files=('rss', 'size')) \
+            .reset_index(drop=False)
+        step_summary_df = step_summary_df.sort_values('time')
+
+        step_summary_df['step'] = step_name
+
+        # scale missing values (might be missing idle steps for some chunk_tags)
+        scale = 1 + (len(glob_files) - step_summary_df.num_files) / step_summary_df.num_files
+        for c in ['rss', 'uss']:
+            step_summary_df[c] = (step_summary_df[c] * scale).astype(np.int64)
+
+        del step_summary_df['num_files']  # do we want to keep track of scale factor?
 
         if delete_originals:
-            util.delete_files(glob_files, 'mem.consolidate_logs')
+            util.delete_files(glob_files, f'mem.consolidate_logs.{step_name}')
 
-        logger.debug(f"chunk.consolidate_logs writing omnibus log to {output_path}")
-        omnibus_df.to_csv(output_path, mode='w', index=False)
+        # write aggregate step log
+        output_path = config.log_file_path(f'mem_{step_name}.csv', prefix=False)
+        logger.debug(f"chunk.consolidate_logs writing step summary log for step {step_name} to {output_path}")
+        step_summary_df.to_csv(output_path, mode='w', index=False)
+
+        omnibus_df.append(step_summary_df)  # add step summary to omnibus
+
+    # aggregate the step logs into a single omnibus log ordered by timestamp
+    omnibus_df = pd.concat(omnibus_df)
+    omnibus_df = omnibus_df.sort_values('time')
+
+    output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
+    logger.debug(f"chunk.consolidate_logs writing omnibus log to {output_path}")
+    omnibus_df.to_csv(output_path, mode='w', index=False)
 
 
 def check_global_hwm(tag, value, label):
@@ -96,12 +154,12 @@ def log_global_hwm():
                     f"timestamp: {hwm.get('timestamp', '<none>')} label:{hwm.get('label', '<none>')}")
 
 
-def trace_memory_info(event, idle=False):
+def trace_memory_info(event, trace_ticks=0):
 
     global MEM_TICK
 
     tick = time.time()
-    if idle and (tick - MEM_TICK < MEM_TRACE_TICK_LEN):
+    if trace_ticks and (tick - MEM_TICK < trace_ticks):
         return
     MEM_TICK = tick
 
@@ -128,31 +186,31 @@ def trace_memory_info(event, idle=False):
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
             pass
 
-    noteworthy = False  # any reason not to always log this if we are filtering idle ticks?
+    noteworthy = True  # any reason not to always log this if we are filtering idle ticks?
+
     noteworthy = (num_children > 0) or noteworthy
     noteworthy = check_global_hwm('rss', full_rss or rss, event) or noteworthy
     noteworthy = check_global_hwm('uss', uss, event) or noteworthy
 
     if noteworthy:
 
-        logger.debug(f"trace_memory_info {event} "
-                     f"rss: {GB(full_rss) if num_children else GB(rss)} "
-                     f"uss: {GB(rss)} ")
+        # logger.debug(f"trace_memory_info {event} "
+        #              f"rss: {GB(full_rss) if num_children else GB(rss)} "
+        #              f"uss: {GB(rss)} ")
 
-        if WRITE_LOG_FILE:
-            timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
 
-            MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
-            with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
-                print(f"{process_name},"
-                      f"{pid},"
-                      f"{util.INT(rss)},"  # want these as ints so we can plot them...
-                      f"{util.INT(full_rss)},"
-                      f"{util.INT(uss)},"
-                      f"{event},"
-                      f"{num_children},"
-                      f"{timestamp}",
-                      file=log_file)
+        MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
+        with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
+            print(f"{process_name},"
+                  f"{pid},"
+                  f"{util.INT(rss)},"  # want these as ints so we can plot them...
+                  f"{util.INT(full_rss)},"
+                  f"{util.INT(uss)},"
+                  f"{event},"
+                  f"{num_children},"
+                  f"{timestamp}",
+                  file=log_file)
 
     # return rss and uss for optional use by interested callers
     return full_rss or rss, uss

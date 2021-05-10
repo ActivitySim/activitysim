@@ -105,6 +105,7 @@ def consolidate_logs():
         for c in ['rss', 'uss']:
             step_summary_df[c] = (step_summary_df[c] * scale).astype(np.int64)
 
+        step_summary_df['scale'] = scale
         del step_summary_df['num_files']  # do we want to keep track of scale factor?
 
         if delete_originals:

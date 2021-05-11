@@ -11,6 +11,7 @@ import multiprocessing
 import os
 import platform
 import psutil
+import threading
 import time
 
 import numpy as np
@@ -19,8 +20,6 @@ import pandas as pd
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import util
-
-from activitysim.core.util import GB
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +35,13 @@ MEM_TICK = 0
 MEM_LOG_FILE_NAME = "mem.csv"
 OMNIBUS_LOG_FILE_NAME = f"omnibus_mem.csv"
 
+SUMMARY_BIN_SIZE_IN_SECONDS = 15
+
+mem_log_lock = threading.Lock()
+
 
 def time_bin(timestamps):
-    bins_size_in_seconds = 3
+    bins_size_in_seconds = SUMMARY_BIN_SIZE_IN_SECONDS
     epoch = pd.Timestamp("1970-01-01")
     seconds_since_epoch = (timestamps - epoch) // pd.Timedelta("1s")
     bin = seconds_since_epoch - (seconds_since_epoch % bins_size_in_seconds)
@@ -201,17 +204,18 @@ def trace_memory_info(event, trace_ticks=0):
 
         timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
 
-        MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
-        with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
-            print(f"{process_name},"
-                  f"{pid},"
-                  f"{util.INT(rss)},"  # want these as ints so we can plot them...
-                  f"{util.INT(full_rss)},"
-                  f"{util.INT(uss)},"
-                  f"{event},"
-                  f"{num_children},"
-                  f"{timestamp}",
-                  file=log_file)
+        with mem_log_lock:
+            MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
+            with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
+                print(f"{process_name},"
+                      f"{pid},"
+                      f"{util.INT(rss)},"  # want these as ints so we can plot them...
+                      f"{util.INT(full_rss)},"
+                      f"{util.INT(uss)},"
+                      f"{event},"
+                      f"{num_children},"
+                      f"{timestamp}",
+                      file=log_file)
 
     # return rss and uss for optional use by interested callers
     return full_rss or rss, uss

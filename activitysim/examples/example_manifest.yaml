@@ -549,13 +549,13 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/taz.csv
       data/taz.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/maz_to_maz_bike.csv
-      data/maz_maz_bike.csv
+      data/maz_to_maz_bike.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/maz_to_maz_walk.csv
-      data/maz_maz_walk.csv
+      data/maz_to_maz_walk.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/maz_to_tap_walk.csv
-      data/maz_tap_walk.csv
+      data/maz_to_tap_walk.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/maz_to_tap_drive.csv
-      data/maz_tap_drive.csv
+      data/maz_to_tap_drive.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/tap.csv
       data/tap.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/tap_lines.csv

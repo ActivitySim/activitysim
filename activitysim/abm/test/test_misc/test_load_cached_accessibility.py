@@ -37,8 +37,8 @@ SKIP_FULL_RUN = False
 
 
 def example_path(dirname):
-    resource = os.path.join('examples', 'example_mtc', dirname)
-    return pkg_resources.resource_filename('activitysim', resource)
+    resource = os.path.join("examples", "example_mtc", dirname)
+    return pkg_resources.resource_filename("activitysim", resource)
 
 
 def teardown_function(func):
@@ -60,7 +60,7 @@ def test_load_cached_accessibility():
     inject.clear_cache()
     inject.reinject_decorated_tables()
 
-    data_dir = [os.path.join(os.path.dirname(__file__), 'data'), example_path('data')]
+    data_dir = [os.path.join(os.path.dirname(__file__), "data"), example_path("data")]
     setup_dirs(data_dir=data_dir)
 
     #
@@ -68,28 +68,30 @@ def test_load_cached_accessibility():
     # activitysim.abm.tables.land_use.accessibility() will load this table if listed here
     # presumably independently calculated outside activitysim or a cached copy created during a previous run
     #
-    settings = config.read_settings_file('settings.yaml', mandatory=True)
-    input_table_list = settings.get('input_table_list')
-    input_table_list.append({
-        'tablename': 'accessibility',
-        'filename': 'cached_accessibility.csv',
-        'index_col': 'zone_id'
-    })
-    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                    input_table_list=input_table_list
-                    )
+    settings = config.read_settings_file("settings.yaml", mandatory=True)
+    input_table_list = settings.get("input_table_list")
+    input_table_list.append(
+        {
+            "tablename": "accessibility",
+            "filename": "cached_accessibility.csv",
+            "index_col": "zone_id",
+        }
+    )
+    inject_settings(
+        households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, input_table_list=input_table_list
+    )
 
     _MODELS = [
-        'initialize_landuse',
+        "initialize_landuse",
         # 'compute_accessibility',  # we load accessibility table ordinarily created by compute_accessibility
-        'initialize_households',
+        "initialize_households",
     ]
 
     pipeline.run(models=_MODELS, resume_after=None)
 
     accessibility_df = pipeline.get_table("accessibility")
 
-    assert 'auPkRetail' in accessibility_df
+    assert "auPkRetail" in accessibility_df
 
     pipeline.close_pipeline()
     inject.clear_cache()

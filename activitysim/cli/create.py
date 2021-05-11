@@ -6,9 +6,9 @@ import glob
 import pkg_resources
 import yaml
 
-PACKAGE = 'activitysim'
-EXAMPLES_DIR = 'examples'
-MANIFEST = 'example_manifest.yaml'
+PACKAGE = "activitysim"
+EXAMPLES_DIR = "examples"
+MANIFEST = "example_manifest.yaml"
 
 
 def _example_path(resource):
@@ -19,33 +19,37 @@ def _example_path(resource):
 
 
 def _load_manifest():
-    with open(_example_path(MANIFEST), 'r') as f:
+    with open(_example_path(MANIFEST), "r") as f:
         manifest = yaml.safe_load(f.read())
 
-    assert manifest, f'error: could not load {MANIFEST}'
-    return {example['name']: example for example in manifest}
+    assert manifest, f"error: could not load {MANIFEST}"
+    return {example["name"]: example for example in manifest}
 
 
 EXAMPLES = _load_manifest()
 
 
 def add_create_args(parser):
-    """Create command args
-    """
+    """Create command args"""
     create_group = parser.add_mutually_exclusive_group(required=True)
-    create_group.add_argument('-l', '--list',
-                              action='store_true',
-                              help='list available example directories and exit')
-    create_group.add_argument('-e', '--example',
-                              type=str,
-                              metavar='PATH',
-                              help='example directory to copy')
+    create_group.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        help="list available example directories and exit",
+    )
+    create_group.add_argument(
+        "-e", "--example", type=str, metavar="PATH", help="example directory to copy"
+    )
 
-    parser.add_argument('-d', '--destination',
-                        type=str,
-                        metavar='PATH',
-                        default=os.getcwd(),
-                        help="path to new project directory (default: %(default)s)")
+    parser.add_argument(
+        "-d",
+        "--destination",
+        type=str,
+        metavar="PATH",
+        default=os.getcwd(),
+        help="path to new project directory (default: %(default)s)",
+    )
 
 
 def create(args):
@@ -69,11 +73,11 @@ def create(args):
 
 
 def list_examples():
-    print('*** Available examples ***\n')
+    print("*** Available examples ***\n")
 
     ret = []
     for example in list(EXAMPLES.values()):
-        del example['include']
+        del example["include"]
         ret.append(example)
         print(yaml.dump(example))
 
@@ -111,7 +115,7 @@ def get_example(example_name, destination):
 
     example = EXAMPLES[example_name]
 
-    for item in example.get('include', []):
+    for item in example.get("include", []):
 
         # split include string into source/destination paths
         items = item.split()
@@ -121,23 +125,23 @@ def get_example(example_name, destination):
         else:
             target_path = dest_path
 
-        if assets.startswith('http'):
+        if assets.startswith("http"):
             download_asset(assets, target_path)
 
         else:
             for asset_path in glob.glob(_example_path(assets)):
                 copy_asset(asset_path, target_path)
 
-    print(f'copied! new project files are in {os.path.abspath(dest_path)}')
+    print(f"copied! new project files are in {os.path.abspath(dest_path)}")
 
-    instructions = example.get('instructions')
+    instructions = example.get("instructions")
     if instructions:
         print(instructions)
 
 
 def copy_asset(asset_path, target_path):
 
-    print(f'copying {os.path.basename(asset_path)} ...')
+    print(f"copying {os.path.basename(asset_path)} ...")
     if os.path.isdir(asset_path):
         target_path = os.path.join(target_path, os.path.basename(asset_path))
         shutil.copytree(asset_path, target_path)
@@ -148,9 +152,9 @@ def copy_asset(asset_path, target_path):
 
 def download_asset(url, target_path):
 
-    print(f'downloading {os.path.basename(target_path)} ...')
+    print(f"downloading {os.path.basename(target_path)} ...")
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
-        with open(target_path, 'wb') as f:
+        with open(target_path, "wb") as f:
             for chunk in r.iter_content(chunk_size=None):
                 f.write(chunk)

@@ -23,15 +23,13 @@ from activitysim.abm.tables import shadow_pricing
 # with previous versions of ActivitySim in which only 'input_store'
 # is given in the settings file.
 DEFAULT_TABLE_LIST = [
-    {'tablename': 'households',
-     'h5_tablename': 'households',
-     'index_col': 'household_id'},
-    {'tablename': 'persons',
-     'h5_tablename': 'persons',
-     'index_col': 'person_id'},
-    {'tablename': 'land_use',
-     'h5_tablename': 'land_use_taz',
-     'index_col': 'TAZ'}
+    {
+        "tablename": "households",
+        "h5_tablename": "households",
+        "index_col": "household_id",
+    },
+    {"tablename": "persons", "h5_tablename": "persons", "index_col": "person_id"},
+    {"tablename": "land_use", "h5_tablename": "land_use_taz", "index_col": "TAZ"},
 ]
 
 logger = logging.getLogger(__name__)
@@ -39,41 +37,47 @@ logger = logging.getLogger(__name__)
 
 def annotate_tables(model_settings, trace_label):
 
-    annotate_tables = model_settings.get('annotate_tables', [])
+    annotate_tables = model_settings.get("annotate_tables", [])
 
     if not annotate_tables:
-        logger.warning(f"{trace_label} - annotate_tables setting is empty - nothing to do!")
+        logger.warning(
+            f"{trace_label} - annotate_tables setting is empty - nothing to do!"
+        )
 
-    assert isinstance(annotate_tables, list), \
-        f"annotate_tables settings should be a list but is {type(annotate_tables)}"
+    assert isinstance(
+        annotate_tables, list
+    ), f"annotate_tables settings should be a list but is {type(annotate_tables)}"
 
     t0 = tracing.print_elapsed_time()
 
     for table_info in annotate_tables:
 
-        tablename = table_info['tablename']
+        tablename = table_info["tablename"]
 
         df = inject.get_table(tablename).to_frame()
 
         # - rename columns
-        column_map = table_info.get('column_map', None)
+        column_map = table_info.get("column_map", None)
         if column_map:
 
-            warnings.warn(f"Setting 'column_map' has been changed to 'rename_columns'. "
-                          f"Support for 'column_map' in annotate_tables  will be removed in future versions.",
-                          FutureWarning)
+            warnings.warn(
+                f"Setting 'column_map' has been changed to 'rename_columns'. "
+                f"Support for 'column_map' in annotate_tables  will be removed in future versions.",
+                FutureWarning,
+            )
 
             logger.info(f"{trace_label} - renaming {tablename} columns {column_map}")
             df.rename(columns=column_map, inplace=True)
 
         # - annotate
-        annotate = table_info.get('annotate', None)
+        annotate = table_info.get("annotate", None)
         if annotate:
-            logger.info(f"{trace_label} - annotating {tablename} SPEC {annotate['SPEC']}")
+            logger.info(
+                f"{trace_label} - annotating {tablename} SPEC {annotate['SPEC']}"
+            )
             expressions.assign_columns(
-                df=df,
-                model_settings=annotate,
-                trace_label=trace_label)
+                df=df, model_settings=annotate, trace_label=trace_label
+            )
 
         # fixme - narrow?
 
@@ -84,22 +88,26 @@ def annotate_tables(model_settings, trace_label):
 @inject.step()
 def initialize_landuse():
 
-    trace_label = 'initialize_landuse'
+    trace_label = "initialize_landuse"
 
-    model_settings = config.read_model_settings('initialize_landuse.yaml', mandatory=True)
+    model_settings = config.read_model_settings(
+        "initialize_landuse.yaml", mandatory=True
+    )
 
     annotate_tables(model_settings, trace_label)
 
     # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
-    accessibility = pipeline.get_table('accessibility')
+    accessibility = pipeline.get_table("accessibility")
 
 
 @inject.step()
 def initialize_households():
 
-    trace_label = 'initialize_households'
+    trace_label = "initialize_households"
 
-    model_settings = config.read_model_settings('initialize_households.yaml', mandatory=True)
+    model_settings = config.read_model_settings(
+        "initialize_households.yaml", mandatory=True
+    )
     annotate_tables(model_settings, trace_label)
 
     # - initialize shadow_pricing size tables after annotating household and person tables
@@ -109,7 +117,7 @@ def initialize_households():
 
     # - preload person_windows
     t0 = tracing.print_elapsed_time()
-    inject.get_table('person_windows').to_frame()
+    inject.get_table("person_windows").to_frame()
     t0 = tracing.print_elapsed_time("preload person_windows", t0, debug=True)
 
 
@@ -121,34 +129,35 @@ def preload_injectables():
 
     logger.info("preload_injectables")
 
-    inject.add_step('track_skim_usage', track_skim_usage)
-    inject.add_step('write_data_dictionary', write_data_dictionary)
-    inject.add_step('write_tables', write_tables)
+    inject.add_step("track_skim_usage", track_skim_usage)
+    inject.add_step("write_data_dictionary", write_data_dictionary)
+    inject.add_step("write_tables", write_tables)
 
-    table_list = config.setting('input_table_list')
+    table_list = config.setting("input_table_list")
 
     # default ActivitySim table names and indices
     if table_list is None:
         logger.warning(
             "No 'input_table_list' found in settings. This will be a "
-            "required setting in upcoming versions of ActivitySim.")
+            "required setting in upcoming versions of ActivitySim."
+        )
 
-        new_settings = inject.get_injectable('settings')
-        new_settings['input_table_list'] = DEFAULT_TABLE_LIST
-        inject.add_injectable('settings', new_settings)
+        new_settings = inject.get_injectable("settings")
+        new_settings["input_table_list"] = DEFAULT_TABLE_LIST
+        inject.add_injectable("settings", new_settings)
 
     # FIXME undocumented feature
-    if config.setting('write_raw_tables'):
+    if config.setting("write_raw_tables"):
 
         # write raw input tables as csv (before annotation)
-        csv_dir = config.output_file_path('raw_tables')
+        csv_dir = config.output_file_path("raw_tables")
         if not os.path.exists(csv_dir):
             os.makedirs(csv_dir)  # make directory if needed
 
-        table_names = [t['tablename'] for t in table_list]
+        table_names = [t["tablename"] for t in table_list]
         for t in table_names:
             df = inject.get_table(t).to_frame()
-            df.to_csv(os.path.join(csv_dir, '%s.csv' % t), index=True)
+            df.to_csv(os.path.join(csv_dir, "%s.csv" % t), index=True)
 
     t0 = tracing.print_elapsed_time()
 

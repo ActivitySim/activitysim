@@ -7,6 +7,7 @@ except ImportError:
 import logging
 import warnings
 from collections import namedtuple
+
 try:
     from collections.abc import Callable
 except ImportError:
@@ -21,9 +22,9 @@ import tlz as tz
 
 from collections import namedtuple
 
-warnings.filterwarnings('ignore', category=tables.NaturalNameWarning)
+warnings.filterwarnings("ignore", category=tables.NaturalNameWarning)
 # logger = logging.getLogger(__name__)
-logger = logging.getLogger('orca')
+logger = logging.getLogger("orca")
 
 _TABLES = {}
 _COLUMNS = {}
@@ -37,11 +38,11 @@ _COLUMN_CACHE = {}
 _INJECTABLE_CACHE = {}
 _MEMOIZED = {}
 
-_CS_FOREVER = 'forever'
-_CS_ITER = 'iteration'
-_CS_STEP = 'step'
+_CS_FOREVER = "forever"
+_CS_ITER = "iteration"
+_CS_STEP = "step"
 
-CacheItem = namedtuple('CacheItem', ['name', 'value', 'scope'])
+CacheItem = namedtuple("CacheItem", ["name", "value", "scope"])
 
 
 @contextmanager
@@ -106,7 +107,7 @@ def clear_all():
     for m in _MEMOIZED.values():
         m.value.clear_cached()
     _MEMOIZED.clear()
-    logger.debug('pipeline state cleared')
+    logger.debug("pipeline state cleared")
 
 
 def clear_cache(scope=None):
@@ -126,7 +127,7 @@ def clear_cache(scope=None):
         _INJECTABLE_CACHE.clear()
         for m in _MEMOIZED.values():
             m.value.clear_cached()
-        logger.debug('pipeline cache cleared')
+        logger.debug("pipeline cache cleared")
     else:
         for d in (_TABLE_CACHE, _COLUMN_CACHE, _INJECTABLE_CACHE):
             items = tz.valfilter(lambda x: x.scope == scope, d)
@@ -134,7 +135,7 @@ def clear_cache(scope=None):
                 del d[k]
         for m in tz.filter(lambda x: x.scope == scope, _MEMOIZED.values()):
             m.value.clear_cached()
-        logger.debug('cleared cached values with scope {!r}'.format(scope))
+        logger.debug("cleared cached values with scope {!r}".format(scope))
 
 
 def enable_cache():
@@ -209,6 +210,7 @@ class DataFrameWrapper(object):
         The wrapped DataFrame.
 
     """
+
     def __init__(self, name, frame, copy_col=True):
         self.name = name
         self.local = frame
@@ -269,14 +271,14 @@ class DataFrameWrapper(object):
             df = self.local.copy()
 
         with log_start_finish(
-                'computing {!r} columns for table {!r}'.format(
-                    len(extra_cols), self.name),
-                logger):
+            "computing {!r} columns for table {!r}".format(len(extra_cols), self.name),
+            logger,
+        ):
             for name, col in extra_cols.items():
                 with log_start_finish(
-                        'computing column {!r} for table {!r}'.format(
-                            name, self.name),
-                        logger):
+                    "computing column {!r} for table {!r}".format(name, self.name),
+                    logger,
+                ):
                     df[name] = col()
 
         return df
@@ -293,8 +295,9 @@ class DataFrameWrapper(object):
             Column data.
 
         """
-        logger.debug('updating column {!r} in table {!r}'.format(
-            column_name, self.name))
+        logger.debug(
+            "updating column {!r} in table {!r}".format(column_name, self.name)
+        )
         self.local[column_name] = series
 
     def __setitem__(self, key, value):
@@ -314,15 +317,17 @@ class DataFrameWrapper(object):
 
         """
         with log_start_finish(
-                'getting single column {!r} from table {!r}'.format(
-                    column_name, self.name),
-                logger):
+            "getting single column {!r} from table {!r}".format(column_name, self.name),
+            logger,
+        ):
             extra_cols = _columns_for_table(self.name)
             if column_name in extra_cols:
                 with log_start_finish(
-                        'computing column {!r} for table {!r}'.format(
-                            column_name, self.name),
-                        logger):
+                    "computing column {!r} for table {!r}".format(
+                        column_name, self.name
+                    ),
+                    logger,
+                ):
                     column = extra_cols[column_name]()
             else:
                 column = self.local[column_name]
@@ -360,14 +365,14 @@ class DataFrameWrapper(object):
             col = _COLUMNS[(self.name, column_name)]
 
             if isinstance(col, _SeriesWrapper):
-                return 'series'
+                return "series"
             elif isinstance(col, _ColumnFuncWrapper):
-                return 'function'
+                return "function"
 
         elif column_name in self.local_columns:
-            return 'local'
+            return "local"
 
-        raise KeyError('column {!r} not found'.format(column_name))
+        raise KeyError("column {!r} not found".format(column_name))
 
     def update_col_from_series(self, column_name, series, cast=False):
         """
@@ -381,8 +386,9 @@ class DataFrameWrapper(object):
         series : panas.Series
         cast: bool, optional, default False
         """
-        logger.debug('updating column {!r} in table {!r}'.format(
-            column_name, self.name))
+        logger.debug(
+            "updating column {!r} in table {!r}".format(column_name, self.name)
+        )
 
         col_dtype = self.local[column_name].dtype
         if series.dtype != col_dtype:
@@ -406,7 +412,7 @@ class DataFrameWrapper(object):
         _TABLE_CACHE.pop(self.name, None)
         for col in _columns_for_table(self.name).values():
             col.clear_cached()
-        logger.debug('cleared cached columns for table {!r}'.format(self.name))
+        logger.debug("cleared cached columns for table {!r}".format(self.name))
 
 
 class TableFuncWrapper(object):
@@ -439,9 +445,8 @@ class TableFuncWrapper(object):
         Whether to return copies when evaluating columns.
 
     """
-    def __init__(
-            self, name, func, cache=False, cache_scope=_CS_FOREVER,
-            copy_col=True):
+
+    def __init__(self, name, func, cache=False, cache_scope=_CS_FOREVER, copy_col=True):
         self.name = name
         self._func = func
         self._argspec = getargspec(func)
@@ -491,15 +496,15 @@ class TableFuncWrapper(object):
 
         """
         if _CACHING and self.cache and self.name in _TABLE_CACHE:
-            logger.debug('returning table {!r} from cache'.format(self.name))
+            logger.debug("returning table {!r} from cache".format(self.name))
             return _TABLE_CACHE[self.name].value
 
         with log_start_finish(
-                'call function to get frame for table {!r}'.format(
-                    self.name),
-                logger):
-            kwargs = _collect_variables(names=self._argspec.args,
-                                        expressions=self._argspec.defaults)
+            "call function to get frame for table {!r}".format(self.name), logger
+        ):
+            kwargs = _collect_variables(
+                names=self._argspec.args, expressions=self._argspec.defaults
+            )
             frame = self._func(**kwargs)
 
         self._columns = list(frame.columns)
@@ -509,8 +514,7 @@ class TableFuncWrapper(object):
         wrapped = DataFrameWrapper(self.name, frame, copy_col=self.copy_col)
 
         if self.cache:
-            _TABLE_CACHE[self.name] = CacheItem(
-                self.name, wrapped, self.cache_scope)
+            _TABLE_CACHE[self.name] = CacheItem(self.name, wrapped, self.cache_scope)
 
         return wrapped
 
@@ -550,8 +554,9 @@ class TableFuncWrapper(object):
 
         """
         frame = self._call_func()
-        return DataFrameWrapper(self.name, frame,
-                                copy_col=self.copy_col).get_column(column_name)
+        return DataFrameWrapper(self.name, frame, copy_col=self.copy_col).get_column(
+            column_name
+        )
 
     def __getitem__(self, key):
         return self.get_column(key)
@@ -585,14 +590,14 @@ class TableFuncWrapper(object):
             col = _COLUMNS[(self.name, column_name)]
 
             if isinstance(col, _SeriesWrapper):
-                return 'series'
+                return "series"
             elif isinstance(col, _ColumnFuncWrapper):
-                return 'function'
+                return "function"
 
         elif column_name in self.local_columns:
-            return 'local'
+            return "local"
 
-        raise KeyError('column {!r} not found'.format(column_name))
+        raise KeyError("column {!r} not found".format(column_name))
 
     def clear_cached(self):
         """
@@ -603,8 +608,8 @@ class TableFuncWrapper(object):
         for col in _columns_for_table(self.name).values():
             col.clear_cached()
         logger.debug(
-            'cleared cached result and cached columns for table {!r}'.format(
-                self.name))
+            "cleared cached result and cached columns for table {!r}".format(self.name)
+        )
 
     def func_source_data(self):
         """
@@ -653,9 +658,10 @@ class _ColumnFuncWrapper(object):
         Whether caching is enabled for this column.
 
     """
+
     def __init__(
-            self, table_name, column_name, func, cache=False,
-            cache_scope=_CS_FOREVER):
+        self, table_name, column_name, func, cache=False, cache_scope=_CS_FOREVER
+    ):
         self.table_name = table_name
         self.name = column_name
         self._func = func
@@ -668,24 +674,29 @@ class _ColumnFuncWrapper(object):
         Evaluate the wrapped function and return the result.
 
         """
-        if (_CACHING and
-                self.cache and
-                (self.table_name, self.name) in _COLUMN_CACHE):
+        if _CACHING and self.cache and (self.table_name, self.name) in _COLUMN_CACHE:
             logger.debug(
-                'returning column {!r} for table {!r} from cache'.format(
-                    self.name, self.table_name))
+                "returning column {!r} for table {!r} from cache".format(
+                    self.name, self.table_name
+                )
+            )
             return _COLUMN_CACHE[(self.table_name, self.name)].value
 
         with log_start_finish(
-                ('call function to provide column {!r} for table {!r}'
-                 ).format(self.name, self.table_name), logger):
-            kwargs = _collect_variables(names=self._argspec.args,
-                                        expressions=self._argspec.defaults)
+            ("call function to provide column {!r} for table {!r}").format(
+                self.name, self.table_name
+            ),
+            logger,
+        ):
+            kwargs = _collect_variables(
+                names=self._argspec.args, expressions=self._argspec.defaults
+            )
             col = self._func(**kwargs)
 
         if self.cache:
             _COLUMN_CACHE[(self.table_name, self.name)] = CacheItem(
-                (self.table_name, self.name), col, self.cache_scope)
+                (self.table_name, self.name), col, self.cache_scope
+            )
 
         return col
 
@@ -697,8 +708,10 @@ class _ColumnFuncWrapper(object):
         x = _COLUMN_CACHE.pop((self.table_name, self.name), None)
         if x is not None:
             logger.debug(
-                'cleared cached value for column {!r} in table {!r}'.format(
-                    self.name, self.table_name))
+                "cleared cached value for column {!r} in table {!r}".format(
+                    self.name, self.table_name
+                )
+            )
 
     def func_source_data(self):
         """
@@ -738,6 +751,7 @@ class _SeriesWrapper(object):
         Name of table this column is associated with.
 
     """
+
     def __init__(self, table_name, column_name, series):
         self.table_name = table_name
         self.name = column_name
@@ -778,6 +792,7 @@ class _InjectableFuncWrapper(object):
         Whether caching is enabled for this injectable function.
 
     """
+
     def __init__(self, name, func, cache=False, cache_scope=_CS_FOREVER):
         self.name = name
         self._func = func
@@ -787,20 +802,21 @@ class _InjectableFuncWrapper(object):
 
     def __call__(self):
         if _CACHING and self.cache and self.name in _INJECTABLE_CACHE:
-            logger.debug(
-                'returning injectable {!r} from cache'.format(self.name))
+            logger.debug("returning injectable {!r} from cache".format(self.name))
             return _INJECTABLE_CACHE[self.name].value
 
         with log_start_finish(
-                'call function to provide injectable {!r}'.format(self.name),
-                logger):
-            kwargs = _collect_variables(names=self._argspec.args,
-                                        expressions=self._argspec.defaults)
+            "call function to provide injectable {!r}".format(self.name), logger
+        ):
+            kwargs = _collect_variables(
+                names=self._argspec.args, expressions=self._argspec.defaults
+            )
             result = self._func(**kwargs)
 
         if self.cache:
             _INJECTABLE_CACHE[self.name] = CacheItem(
-                self.name, result, self.cache_scope)
+                self.name, result, self.cache_scope
+            )
 
         return result
 
@@ -811,8 +827,7 @@ class _InjectableFuncWrapper(object):
         """
         x = _INJECTABLE_CACHE.pop(self.name, None)
         if x:
-            logger.debug(
-                'injectable {!r} removed from cache'.format(self.name))
+            logger.debug("injectable {!r} removed from cache".format(self.name))
 
 
 class _StepFuncWrapper(object):
@@ -830,15 +845,17 @@ class _StepFuncWrapper(object):
         Name of step.
 
     """
+
     def __init__(self, step_name, func):
         self.name = step_name
         self._func = func
         self._argspec = getargspec(func)
 
     def __call__(self):
-        with log_start_finish('calling step {!r}'.format(self.name), logger):
-            kwargs = _collect_variables(names=self._argspec.args,
-                                        expressions=self._argspec.defaults)
+        with log_start_finish("calling step {!r}".format(self.name), logger):
+            kwargs = _collect_variables(
+                names=self._argspec.args, expressions=self._argspec.defaults
+            )
             return self._func(**kwargs)
 
     def _tables_used(self):
@@ -856,10 +873,10 @@ class _StepFuncWrapper(object):
         else:
             default_args = []
         # Combine names from argument names and argument default values.
-        names = args[:len(args) - len(default_args)] + default_args
+        names = args[: len(args) - len(default_args)] + default_args
         tables = set()
         for name in names:
-            parent_name = name.split('.')[0]
+            parent_name = name.split(".")[0]
             if is_table(parent_name):
                 tables.add(parent_name)
         return tables
@@ -942,7 +959,7 @@ def is_expression(name):
     is_expr : bool
 
     """
-    return '.' in name
+    return "." in name
 
 
 def _collect_variables(names, expressions=None):
@@ -981,9 +998,11 @@ def _collect_variables(names, expressions=None):
     if not expressions:
         expressions = []
     offset = len(names) - len(expressions)
-    labels_map = dict(tz.concatv(
-        zip(names[:offset], names[:offset]),
-        zip(names[offset:], expressions)))
+    labels_map = dict(
+        tz.concatv(
+            zip(names[:offset], names[:offset]), zip(names[offset:], expressions)
+        )
+    )
 
     all_variables = tz.merge(_INJECTABLES, _TABLES)
     variables = {}
@@ -991,9 +1010,9 @@ def _collect_variables(names, expressions=None):
         # In the future, more registered variable expressions could be
         # supported. Currently supports names of registered variables
         # and references to table columns.
-        if '.' in expression:
+        if "." in expression:
             # Registered variable expression refers to column.
-            table_name, column_name = expression.split('.')
+            table_name, column_name = expression.split(".")
             table = get_table(table_name)
             variables[label] = table.get_column(column_name)
         else:
@@ -1007,9 +1026,7 @@ def _collect_variables(names, expressions=None):
     return variables
 
 
-def add_table(
-        table_name, table, cache=False, cache_scope=_CS_FOREVER,
-        copy_col=True):
+def add_table(table_name, table, cache=False, cache_scope=_CS_FOREVER, copy_col=True):
     """
     Register a table with Orca.
 
@@ -1039,22 +1056,22 @@ def add_table(
 
     """
     if isinstance(table, Callable):
-        table = TableFuncWrapper(table_name, table, cache=cache,
-                                 cache_scope=cache_scope, copy_col=copy_col)
+        table = TableFuncWrapper(
+            table_name, table, cache=cache, cache_scope=cache_scope, copy_col=copy_col
+        )
     else:
         table = DataFrameWrapper(table_name, table, copy_col=copy_col)
 
     # clear any cached data from a previously registered table
     table.clear_cached()
 
-    logger.debug('registering table {!r}'.format(table_name))
+    logger.debug("registering table {!r}".format(table_name))
     _TABLES[table_name] = table
 
     return table
 
 
-def table(
-        table_name=None, cache=False, cache_scope=_CS_FOREVER, copy_col=True):
+def table(table_name=None, cache=False, cache_scope=_CS_FOREVER, copy_col=True):
     """
     Decorates functions that return DataFrames.
 
@@ -1068,15 +1085,15 @@ def table(
     iteration variable injected.
 
     """
+
     def decorator(func):
         if table_name:
             name = table_name
         else:
             name = func.__name__
-        add_table(
-            name, func, cache=cache, cache_scope=cache_scope,
-            copy_col=copy_col)
+        add_table(name, func, cache=cache, cache_scope=cache_scope, copy_col=copy_col)
         return func
+
     return decorator
 
 
@@ -1096,7 +1113,7 @@ def get_raw_table(table_name):
     if is_table(table_name):
         return _TABLES[table_name]
     else:
-        raise KeyError('table not found: {}'.format(table_name))
+        raise KeyError("table not found: {}".format(table_name))
 
 
 def get_table(table_name):
@@ -1138,13 +1155,12 @@ def table_type(table_name):
     table = get_raw_table(table_name)
 
     if isinstance(table, DataFrameWrapper):
-        return 'dataframe'
+        return "dataframe"
     elif isinstance(table, TableFuncWrapper):
-        return 'function'
+        return "function"
 
 
-def add_column(
-        table_name, column_name, column, cache=False, cache_scope=_CS_FOREVER):
+def add_column(table_name, column_name, column, cache=False, cache_scope=_CS_FOREVER):
     """
     Add a new column to a table from a Series or callable.
 
@@ -1171,18 +1187,18 @@ def add_column(
 
     """
     if isinstance(column, Callable):
-        column = \
-            _ColumnFuncWrapper(
-                table_name, column_name, column,
-                cache=cache, cache_scope=cache_scope)
+        column = _ColumnFuncWrapper(
+            table_name, column_name, column, cache=cache, cache_scope=cache_scope
+        )
     else:
         column = _SeriesWrapper(table_name, column_name, column)
 
     # clear any cached data from a previously registered column
     column.clear_cached()
 
-    logger.debug('registering column {!r} on table {!r}'.format(
-        column_name, table_name))
+    logger.debug(
+        "registering column {!r} on table {!r}".format(column_name, table_name)
+    )
     _COLUMNS[(table_name, column_name)] = column
 
     return column
@@ -1203,14 +1219,15 @@ def column(table_name, column_name=None, cache=False, cache_scope=_CS_FOREVER):
     The index of the returned Series must match the named table.
 
     """
+
     def decorator(func):
         if column_name:
             name = column_name
         else:
             name = func.__name__
-        add_column(
-            table_name, name, func, cache=cache, cache_scope=cache_scope)
+        add_column(table_name, name, func, cache=cache, cache_scope=cache_scope)
         return func
+
     return decorator
 
 
@@ -1244,9 +1261,9 @@ def _columns_for_table(table_name):
         Keys will be column names.
 
     """
-    return {cname: col
-            for (tname, cname), col in _COLUMNS.items()
-            if tname == table_name}
+    return {
+        cname: col for (tname, cname), col in _COLUMNS.items() if tname == table_name
+    }
 
 
 def column_map(tables, columns):
@@ -1271,13 +1288,13 @@ def column_map(tables, columns):
         return {t.name: None for t in tables}
 
     columns = set(columns)
-    colmap = {
-        t.name: list(set(t.columns).intersection(columns)) for t in tables}
-    foundcols = tz.reduce(
-        lambda x, y: x.union(y), (set(v) for v in colmap.values()))
+    colmap = {t.name: list(set(t.columns).intersection(columns)) for t in tables}
+    foundcols = tz.reduce(lambda x, y: x.union(y), (set(v) for v in colmap.values()))
     if foundcols != columns:
-        raise RuntimeError('Not all required columns were found. '
-                           'Missing: {}'.format(list(columns - foundcols)))
+        raise RuntimeError(
+            "Not all required columns were found. "
+            "Missing: {}".format(list(columns - foundcols))
+        )
     return colmap
 
 
@@ -1301,8 +1318,9 @@ def get_raw_column(table_name, column_name):
     try:
         return _COLUMNS[(table_name, column_name)]
     except KeyError:
-        raise KeyError('column {!r} not found for table {!r}'.format(
-            column_name, table_name))
+        raise KeyError(
+            "column {!r} not found for table {!r}".format(column_name, table_name)
+        )
 
 
 def _memoize_function(f, name, cache_scope=_CS_FOREVER):
@@ -1327,12 +1345,10 @@ def _memoize_function(f, name, cache_scope=_CS_FOREVER):
     @wraps(f)
     def wrapper(*args, **kwargs):
         try:
-            cache_key = (
-                args or None, frozenset(kwargs.items()) if kwargs else None)
+            cache_key = (args or None, frozenset(kwargs.items()) if kwargs else None)
             in_cache = cache_key in cache
         except TypeError:
-            raise TypeError(
-                'function arguments must be hashable for memoization')
+            raise TypeError("function arguments must be hashable for memoization")
 
         if _CACHING and in_cache:
             return cache[cache_key]
@@ -1350,8 +1366,8 @@ def _memoize_function(f, name, cache_scope=_CS_FOREVER):
 
 
 def add_injectable(
-        name, value, autocall=True, cache=False, cache_scope=_CS_FOREVER,
-        memoize=False):
+    name, value, autocall=True, cache=False, cache_scope=_CS_FOREVER, memoize=False
+):
     """
     Add a value that will be injected into other functions.
 
@@ -1388,19 +1404,20 @@ def add_injectable(
     if isinstance(value, Callable):
         if autocall:
             value = _InjectableFuncWrapper(
-                name, value, cache=cache, cache_scope=cache_scope)
+                name, value, cache=cache, cache_scope=cache_scope
+            )
             # clear any cached data from a previously registered value
             value.clear_cached()
         elif not autocall and memoize:
             value = _memoize_function(value, name, cache_scope=cache_scope)
 
-    logger.debug('registering injectable {!r}'.format(name))
+    logger.debug("registering injectable {!r}".format(name))
     _INJECTABLES[name] = value
 
 
 def injectable(
-        name=None, autocall=True, cache=False, cache_scope=_CS_FOREVER,
-        memoize=False):
+    name=None, autocall=True, cache=False, cache_scope=_CS_FOREVER, memoize=False
+):
     """
     Decorates functions that will be injected into other functions.
 
@@ -1414,15 +1431,22 @@ def injectable(
     iteration variable injected.
 
     """
+
     def decorator(func):
         if name:
             n = name
         else:
             n = func.__name__
         add_injectable(
-            n, func, autocall=autocall, cache=cache, cache_scope=cache_scope,
-            memoize=memoize)
+            n,
+            func,
+            autocall=autocall,
+            cache=cache,
+            cache_scope=cache_scope,
+            memoize=memoize,
+        )
         return func
+
     return decorator
 
 
@@ -1450,7 +1474,7 @@ def get_raw_injectable(name):
     if is_injectable(name):
         return _INJECTABLES[name]
     else:
-        raise KeyError('injectable not found: {!r}'.format(name))
+        raise KeyError("injectable not found: {!r}".format(name))
 
 
 def injectable_type(name):
@@ -1471,9 +1495,9 @@ def injectable_type(name):
     """
     inj = get_raw_injectable(name)
     if isinstance(inj, (_InjectableFuncWrapper, Callable)):
-        return 'function'
+        return "function"
     else:
-        return 'variable'
+        return "variable"
 
 
 def get_injectable(name):
@@ -1511,14 +1535,14 @@ def get_injectable_func_source_data(name):
     source : str
 
     """
-    if injectable_type(name) != 'function':
-        raise ValueError('injectable {!r} is not a function'.format(name))
+    if injectable_type(name) != "function":
+        raise ValueError("injectable {!r} is not a function".format(name))
 
     inj = get_raw_injectable(name)
 
     if isinstance(inj, _InjectableFuncWrapper):
         return _func_source_data(inj._func)
-    elif hasattr(inj, '__wrapped__'):
+    elif hasattr(inj, "__wrapped__"):
         return _func_source_data(inj.__wrapped__)
     else:
         return _func_source_data(inj)
@@ -1541,10 +1565,10 @@ def add_step(step_name, func):
 
     """
     if isinstance(func, Callable):
-        logger.debug('registering step {!r}'.format(step_name))
+        logger.debug("registering step {!r}".format(step_name))
         _STEPS[step_name] = _StepFuncWrapper(step_name, func)
     else:
-        raise TypeError('func must be a callable')
+        raise TypeError("func must be a callable")
 
 
 def step(step_name=None):
@@ -1561,6 +1585,7 @@ def step(step_name=None):
     iteration variable injected.
 
     """
+
     def decorator(func):
         if step_name:
             name = step_name
@@ -1568,6 +1593,7 @@ def step(step_name=None):
             name = func.__name__
         add_step(name, func)
         return func
+
     return decorator
 
 
@@ -1590,16 +1616,17 @@ def get_step(step_name):
     if is_step(step_name):
         return _STEPS[step_name]
     else:
-        raise KeyError('no step named {}'.format(step_name))
+        raise KeyError("no step named {}".format(step_name))
 
 
 Broadcast = namedtuple(
-    'Broadcast',
-    ['cast', 'onto', 'cast_on', 'onto_on', 'cast_index', 'onto_index'])
+    "Broadcast", ["cast", "onto", "cast_on", "onto_on", "cast_index", "onto_index"]
+)
 
 
-def broadcast(cast, onto, cast_on=None, onto_on=None,
-              cast_index=False, onto_index=False):
+def broadcast(
+    cast, onto, cast_on=None, onto_on=None, cast_index=False, onto_index=False
+):
     """
     Register a rule for merging two tables by broadcasting one onto
     the other.
@@ -1616,10 +1643,10 @@ def broadcast(cast, onto, cast_on=None, onto_on=None,
         ``left_index``/``right_index`` parameters of pandas.merge.
 
     """
-    logger.debug(
-        'registering broadcast of table {!r} onto {!r}'.format(cast, onto))
-    _BROADCASTS[(cast, onto)] = \
-        Broadcast(cast, onto, cast_on, onto_on, cast_index, onto_index)
+    logger.debug("registering broadcast of table {!r} onto {!r}".format(cast, onto))
+    _BROADCASTS[(cast, onto)] = Broadcast(
+        cast, onto, cast_on, onto_on, cast_index, onto_index
+    )
 
 
 def _get_broadcasts(tables):
@@ -1638,10 +1665,9 @@ def _get_broadcasts(tables):
 
     """
     tables = set(tables)
-    casts = tz.keyfilter(
-        lambda x: x[0] in tables and x[1] in tables, _BROADCASTS)
+    casts = tz.keyfilter(lambda x: x[0] in tables and x[1] in tables, _BROADCASTS)
     if tables - set(tz.concat(casts.keys())):
-        raise ValueError('Not enough links to merge all tables.')
+        raise ValueError("Not enough links to merge all tables.")
     return casts
 
 
@@ -1686,8 +1712,8 @@ def get_broadcast(cast_name, onto_name):
         return _BROADCASTS[(cast_name, onto_name)]
     else:
         raise KeyError(
-            'no rule found for broadcasting {!r} onto {!r}'.format(
-                cast_name, onto_name))
+            "no rule found for broadcasting {!r} onto {!r}".format(cast_name, onto_name)
+        )
 
 
 # utilities for merge_tables
@@ -1715,7 +1741,7 @@ def _recursive_getitem(d, key):
         for v in d.values():
             return _recursive_getitem(v, key)
         else:
-            raise KeyError('Key not found: {}'.format(key))
+            raise KeyError("Key not found: {}".format(key))
 
 
 def _dict_value_to_pairs(d):
@@ -1753,7 +1779,7 @@ def _next_merge(merge_node):
         for d in tz.remove(_is_leaf_node, _dict_value_to_pairs(merge_node)):
             return _next_merge(d)
         else:
-            raise OrcaError('No node found for next merge.')
+            raise OrcaError("No node found for next merge.")
 
 
 def merge_tables(target, tables, columns=None, drop_intersection=True):
@@ -1789,16 +1815,17 @@ def merge_tables(target, tables, columns=None, drop_intersection=True):
         target = target.name
 
     # allow tables to be strings or table wrappers
-    tables = [get_table(t)
-              if not isinstance(t, (DataFrameWrapper, TableFuncWrapper)) else t
-              for t in tables]
+    tables = [
+        get_table(t) if not isinstance(t, (DataFrameWrapper, TableFuncWrapper)) else t
+        for t in tables
+    ]
 
     merges = {t.name: {} for t in tables}
     tables = {t.name: t for t in tables}
     casts = _get_broadcasts(tables.keys())
     logger.debug(
-        'attempting to merge tables {} to target table {}'.format(
-            tables.keys(), target))
+        "attempting to merge tables {} to target table {}".format(tables.keys(), target)
+    )
 
     # relate all the tables by registered broadcasts
     for table, onto in casts:
@@ -1810,8 +1837,10 @@ def merge_tables(target, tables, columns=None, drop_intersection=True):
 
     if all_tables != set(tables.keys()):
         raise RuntimeError(
-            ('Not all tables can be merged to target "{}". Unlinked tables: {}'
-             ).format(target, list(set(tables.keys()) - all_tables)))
+            ('Not all tables can be merged to target "{}". Unlinked tables: {}').format(
+                target, list(set(tables.keys()) - all_tables)
+            )
+        )
 
     # add any columns necessary for indexing into other tables
     # during merges
@@ -1827,8 +1856,7 @@ def merge_tables(target, tables, columns=None, drop_intersection=True):
     colmap = column_map(tables.values(), columns)
 
     # get frames
-    frames = {name: t.to_frame(columns=colmap[name])
-              for name, t in tables.items()}
+    frames = {name: t.to_frame(columns=colmap[name]) for name, t in tables.items()}
 
     past_intersections = set()
 
@@ -1844,11 +1872,9 @@ def merge_tables(target, tables, columns=None, drop_intersection=True):
             cast_table = frames[cast]
             bc = casts[(cast, onto)]
 
-            with log_start_finish(
-                    'merge tables {} and {}'.format(onto, cast), logger):
+            with log_start_finish("merge tables {} and {}".format(onto, cast), logger):
 
-                intersection = set(onto_table.columns).\
-                    intersection(cast_table.columns)
+                intersection = set(onto_table.columns).intersection(cast_table.columns)
                 # intersection is ok if it's the join key
                 intersection.discard(bc.onto_on)
                 intersection.discard(bc.cast_on)
@@ -1858,10 +1884,12 @@ def merge_tables(target, tables, columns=None, drop_intersection=True):
                 else:
                     # add suffix to past intersections which wouldn't get
                     # picked up by the merge - these we have to rename by hand
-                    renames = dict(zip(
-                        past_intersections,
-                        [c+'_'+onto for c in past_intersections]
-                    ))
+                    renames = dict(
+                        zip(
+                            past_intersections,
+                            [c + "_" + onto for c in past_intersections],
+                        )
+                    )
                     onto_table = onto_table.rename(columns=renames)
 
                 # keep track of past intersections in case there's an odd
@@ -1869,10 +1897,14 @@ def merge_tables(target, tables, columns=None, drop_intersection=True):
                 past_intersections = past_intersections.union(intersection)
 
                 onto_table = pd.merge(
-                    onto_table, cast_table,
-                    suffixes=['_'+onto, '_'+cast],
-                    left_on=bc.onto_on, right_on=bc.cast_on,
-                    left_index=bc.onto_index, right_index=bc.cast_index)
+                    onto_table,
+                    cast_table,
+                    suffixes=["_" + onto, "_" + cast],
+                    left_on=bc.onto_on,
+                    right_on=bc.cast_on,
+                    left_index=bc.onto_index,
+                    right_index=bc.cast_index,
+                )
 
         # replace the existing table with the merged one
         frames[onto] = onto_table
@@ -1884,7 +1916,7 @@ def merge_tables(target, tables, columns=None, drop_intersection=True):
         # onto it.
         _recursive_getitem(merges, onto)[onto] = {}
 
-    logger.debug('finished merge')
+    logger.debug("finished merge")
     return frames[target]
 
 
@@ -1932,13 +1964,13 @@ def write_tables(fname, table_names=None, prefix=None, compress=False, local=Fal
         table_names = list_tables()
 
     tables = (get_table(t) for t in table_names)
-    key_template = '{}/{{}}'.format(prefix) if prefix is not None else '{}'
+    key_template = "{}/{{}}".format(prefix) if prefix is not None else "{}"
 
     # set compression options to zlib level-1 if compress arg is True
-    complib = compress and 'zlib' or None
+    complib = compress and "zlib" or None
     complevel = compress and 1 or 0
 
-    with pd.HDFStore(fname, mode='a', complib=complib, complevel=complevel) as store:
+    with pd.HDFStore(fname, mode="a", complib=complib, complevel=complevel) as store:
         for t in tables:
             # if local arg is True, store only local columns
             columns = None
@@ -1947,12 +1979,20 @@ def write_tables(fname, table_names=None, prefix=None, compress=False, local=Fal
             store[key_template.format(t.name)] = t.to_frame(columns=columns)
 
 
-iter_step = namedtuple('iter_step', 'step_num,step_name')
+iter_step = namedtuple("iter_step", "step_num,step_name")
 
 
-def run(steps, iter_vars=None, data_out=None, out_interval=1,
-        out_base_tables=None, out_run_tables=None, compress=False,
-        out_base_local=True, out_run_local=True):
+def run(
+    steps,
+    iter_vars=None,
+    data_out=None,
+    out_interval=1,
+    out_base_tables=None,
+    out_run_tables=None,
+    compress=False,
+    out_base_local=True,
+    out_run_local=True,
+):
     """
     Run steps in series, optionally repeatedly over some sequence.
     The current iteration variable is set as a global injectable
@@ -2011,24 +2051,29 @@ def run(steps, iter_vars=None, data_out=None, out_interval=1,
 
     # write out the base (inputs)
     if data_out:
-        add_injectable('iter_var', iter_vars[0])
-        write_tables(data_out, out_base_tables,
-                     prefix='base', compress=compress, local=out_base_local)
+        add_injectable("iter_var", iter_vars[0])
+        write_tables(
+            data_out,
+            out_base_tables,
+            prefix="base",
+            compress=compress,
+            local=out_base_local,
+        )
 
     # run the steps
     for i, var in enumerate(iter_vars, start=1):
-        add_injectable('iter_var', var)
+        add_injectable("iter_var", var)
 
         if var is not None:
             logger.debug(
-                'running iteration {} with iteration value {!r}'.format(
-                    i, var))
+                "running iteration {} with iteration value {!r}".format(i, var)
+            )
 
         for j, step_name in enumerate(steps):
-            add_injectable('iter_step', iter_step(j, step_name))
+            add_injectable("iter_step", iter_step(j, step_name))
             with log_start_finish(
-                    'run step {!r}'.format(step_name), logger,
-                    logging.INFO):
+                "run step {!r}".format(step_name), logger, logging.INFO
+            ):
                 step = get_step(step_name)
                 step()
             clear_cache(scope=_CS_STEP)
@@ -2036,8 +2081,13 @@ def run(steps, iter_vars=None, data_out=None, out_interval=1,
         # write out the results for the current iteration
         if data_out:
             if (i - 1) % out_interval == 0 or i == max_i:
-                write_tables(data_out, out_run_tables,
-                             prefix=var, compress=compress, local=out_run_local)
+                write_tables(
+                    data_out,
+                    out_run_tables,
+                    prefix=var,
+                    compress=compress,
+                    local=out_run_local,
+                )
 
         clear_cache(scope=_CS_ITER)
 
@@ -2076,7 +2126,7 @@ def temporary_tables(**kwargs):
 
     for k, v in kwargs.items():
         if not isinstance(v, pd.DataFrame):
-            raise ValueError('tables only accepts DataFrames')
+            raise ValueError("tables only accepts DataFrames")
         add_table(k, v)
 
     yield

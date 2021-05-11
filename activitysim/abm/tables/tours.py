@@ -12,4 +12,4 @@ def tours_merged(tours, persons_merged):
     return inject.merge_tables(tours.name, tables=[tours, persons_merged])
 
 
-inject.broadcast('persons_merged', 'tours', cast_index=True, onto_on='person_id')
+inject.broadcast("persons_merged", "tours", cast_index=True, onto_on="person_id")

@@ -18,7 +18,7 @@ def read_raw_persons(households):
 
     df = read_input_table("persons")
 
-    if inject.get_injectable('households_sliced', False):
+    if inject.get_injectable("households_sliced", False):
         # keep only persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 
@@ -33,11 +33,11 @@ def persons(households, trace_hh_id):
     logger.info("loaded persons %s" % (df.shape,))
 
     # replace table function with dataframe
-    inject.add_table('persons', df)
+    inject.add_table("persons", df)
 
-    pipeline.get_rn_generator().add_channel('persons', df)
+    pipeline.get_rn_generator().add_channel("persons", df)
 
-    tracing.register_traceable_table('persons', df)
+    tracing.register_traceable_table("persons", df)
     if trace_hh_id:
         tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
@@ -48,15 +48,25 @@ def persons(households, trace_hh_id):
 
     persons_without_households = ~df.household_id.isin(households.index)
     if persons_without_households.any():
-        logger.error(f"{persons_without_households.sum()} persons out of {len(persons)} without households\n"
-                     f"{pd.Series({'person_id': persons_without_households.index.values})}")
-        raise RuntimeError(f"{persons_without_households.sum()} persons with bad household_id")
+        logger.error(
+            f"{persons_without_households.sum()} persons out of {len(persons)} without households\n"
+            f"{pd.Series({'person_id': persons_without_households.index.values})}"
+        )
+        raise RuntimeError(
+            f"{persons_without_households.sum()} persons with bad household_id"
+        )
 
-    households_without_persons = df.groupby('household_id').size().reindex(households.index).isnull()
+    households_without_persons = (
+        df.groupby("household_id").size().reindex(households.index).isnull()
+    )
     if households_without_persons.any():
-        logger.error(f"{households_without_persons.sum()} households out of {len(households.index)} without  persons\n"
-                     f"{pd.Series({'household_id': households_without_persons.index.values})}")
-        raise RuntimeError(f"{households_without_persons.sum()} households with no persons")
+        logger.error(
+            f"{households_without_persons.sum()} households out of {len(households.index)} without  persons\n"
+            f"{pd.Series({'household_id': households_without_persons.index.values})}"
+        )
+        raise RuntimeError(
+            f"{households_without_persons.sum()} households with no persons"
+        )
 
     return df
 
@@ -65,4 +75,6 @@ def persons(households, trace_hh_id):
 @inject.table()
 def persons_merged(persons, households, land_use, accessibility):
 
-    return inject.merge_tables(persons.name, tables=[persons, households, land_use, accessibility])
+    return inject.merge_tables(
+        persons.name, tables=[persons, households, land_use, accessibility]
+    )

@@ -13,4 +13,4 @@ def trips_merged(trips, tours):
     return inject.merge_tables(trips.name, tables=[trips, tours])
 
 
-inject.broadcast('tours', 'trips', cast_index=True, onto_on='tour_id')
+inject.broadcast("tours", "trips", cast_index=True, onto_on="tour_id")

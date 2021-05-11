@@ -46,9 +46,9 @@ def log_settings():
 
     # abm settings to log on startup
     return [
-        'households_sample_size',
-        'chunk_size',
-        'multiprocess',
-        'num_processes',
-        'resume_after',
+        "households_sample_size",
+        "chunk_size",
+        "multiprocess",
+        "num_processes",
+        "resume_after",
     ]

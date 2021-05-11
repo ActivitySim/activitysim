@@ -142,9 +142,15 @@ def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
             raise ValueError("segment_id must be given if p_col is a dict")
         partial_utility = {}
         for seg_p_col, segval in p_col.items():
-            partial_utility[seg_p_col] = linear_utility_from_spec(
-                spec, x_col, seg_p_col, ignore_x,
-            ) * X(f"{segment_id}=={str_repr(segval)}")
+            partial_utility[seg_p_col] = (
+                linear_utility_from_spec(
+                    spec,
+                    x_col,
+                    seg_p_col,
+                    ignore_x,
+                )
+                * X(f"{segment_id}=={str_repr(segval)}")
+            )
         return sum(partial_utility.values())
     parts = []
     for i in spec.index:
@@ -263,7 +269,9 @@ def explicit_value_parameters_from_spec(spec, p_col, model):
                 pass
             else:
                 model.set_value(
-                    getattr(i, p_col), value=j, holdfast=True,
+                    getattr(i, p_col),
+                    value=j,
+                    holdfast=True,
                 )
 
 
@@ -318,7 +326,10 @@ def apply_coefficients(coefficients, model, minimum=None, maximum=None):
         assert "value" in coefficients.columns
         if "constrain" not in coefficients.columns:
             import warnings
-            warnings.warn("coefficient dataframe missing 'constrain' column, setting all to 'F'")
+
+            warnings.warn(
+                "coefficient dataframe missing 'constrain' column, setting all to 'F'"
+            )
             coefficients["constrain"] = "F"
         assert coefficients.index.name == "coefficient_name"
         assert isinstance(model, AbstractChoiceModel)
@@ -475,7 +486,7 @@ def clean_values(
     return values
 
 
-def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
+def update_coefficients(model, data, result_dir=Path("."), output_file=None):
     if isinstance(data, pd.DataFrame):
         coefficients = data.copy()
     else:
@@ -485,7 +496,7 @@ def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
     if output_file is not None:
         os.makedirs(result_dir, exist_ok=True)
         coefficients.reset_index().to_csv(
-            result_dir/output_file,
+            result_dir / output_file,
             index=False,
         )
     return coefficients

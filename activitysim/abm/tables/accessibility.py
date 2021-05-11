@@ -27,13 +27,16 @@ def accessibility(land_use):
 
     if accessibility_df is None:
         accessibility_df = pd.DataFrame(index=land_use.index)
-        logger.info("created placeholder accessibility table %s" % (accessibility_df.shape,))
+        logger.info(
+            "created placeholder accessibility table %s" % (accessibility_df.shape,)
+        )
     else:
-        assert accessibility_df.sort_index().index.equals(land_use.to_frame().sort_index().index), \
-            f"loaded accessibility table index does not match index of land_use table"
+        assert accessibility_df.sort_index().index.equals(
+            land_use.to_frame().sort_index().index
+        ), f"loaded accessibility table index does not match index of land_use table"
         logger.info("loaded land_use %s" % (accessibility_df.shape,))
 
     # replace table function with dataframe
-    inject.add_table('accessibility', accessibility_df)
+    inject.add_table("accessibility", accessibility_df)
 
     return accessibility_df

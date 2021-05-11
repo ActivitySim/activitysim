@@ -21,16 +21,16 @@ def setup_function():
 
     inject.reinject_decorated_tables()
 
-    inject.remove_injectable('skim_dict')
-    inject.remove_injectable('skim_stack')
+    inject.remove_injectable("skim_dict")
+    inject.remove_injectable("skim_stack")
 
-    configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
+    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
     inject.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
     inject.add_injectable("output_dir", output_dir)
 
-    data_dir = os.path.join(os.path.dirname(__file__), 'data')
+    data_dir = os.path.join(os.path.dirname(__file__), "data")
     inject.add_injectable("data_dir", data_dir)
 
     inject.clear_cache()
@@ -56,17 +56,17 @@ def close_handlers():
 # @pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
 def test_pipeline_run():
 
-    inject.add_step('step1', steps.step1)
-    inject.add_step('step2', steps.step2)
-    inject.add_step('step3', steps.step3)
-    inject.add_step('step_add_col', steps.step_add_col)
+    inject.add_step("step1", steps.step1)
+    inject.add_step("step2", steps.step2)
+    inject.add_step("step3", steps.step3)
+    inject.add_step("step_add_col", steps.step_add_col)
     inject.dump_state()
 
     _MODELS = [
-        'step1',
-        'step2',
-        'step3',
-        'step_add_col.table_name=table2;column_name=c2'
+        "step1",
+        "step2",
+        "step3",
+        "step_add_col.table_name=table2;column_name=c2",
     ]
 
     pipeline.run(models=_MODELS, resume_after=None)
@@ -101,19 +101,19 @@ def test_pipeline_run():
 
 def test_pipeline_checkpoint_drop():
 
-    inject.add_step('step1', steps.step1)
-    inject.add_step('step2', steps.step2)
-    inject.add_step('step3', steps.step3)
-    inject.add_step('step_add_col', steps.step_add_col)
-    inject.add_step('step_forget_tab', steps.step_forget_tab)
+    inject.add_step("step1", steps.step1)
+    inject.add_step("step2", steps.step2)
+    inject.add_step("step3", steps.step3)
+    inject.add_step("step_add_col", steps.step_add_col)
+    inject.add_step("step_forget_tab", steps.step_forget_tab)
 
     _MODELS = [
-        'step1',
-        '_step2',
-        '_step_add_col.table_name=table2;column_name=c2',
-        '_step_forget_tab.table_name=table2',
-        'step3',
-        'step_forget_tab.table_name=table3',
+        "step1",
+        "_step2",
+        "_step_add_col.table_name=table2;column_name=c2",
+        "_step_forget_tab.table_name=table2",
+        "step3",
+        "step_forget_tab.table_name=table3",
     ]
     pipeline.run(models=_MODELS, resume_after=None)
 
@@ -136,6 +136,7 @@ def test_pipeline_checkpoint_drop():
 
     pipeline.close_pipeline()
     close_handlers()
+
 
 # if __name__ == "__main__":
 #

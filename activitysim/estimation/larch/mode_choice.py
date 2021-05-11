@@ -19,10 +19,10 @@ from larch import Model, DataFrames, P, X
 
 
 def mode_choice_model(
-        name,
-        edb_directory="output/estimation_data_bundle/{name}/",
-        return_data=False,
-        override_filenames=None,
+    name,
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+    override_filenames=None,
 ):
     if override_filenames is None:
         override_filenames = {}
@@ -47,16 +47,19 @@ def mode_choice_model(
 
     purposes = list(coef_template.columns)
     if "atwork" in name:
-        purposes = ['atwork']
-    elif 'atwork' in purposes:
-        purposes.remove('atwork')
+        purposes = ["atwork"]
+    elif "atwork" in purposes:
+        purposes.remove("atwork")
 
     # Setup purpose specific models
     m = {purpose: Model(graph=tree, title=purpose) for purpose in purposes}
     for alt_code, alt_name in tree.elemental_names().items():
         # Read in base utility function for this alt_name
         u = linear_utility_from_spec(
-            spec, x_col="Label", p_col=alt_name, ignore_x=("#",),
+            spec,
+            x_col="Label",
+            p_col=alt_name,
+            ignore_x=("#",),
         )
         for purpose in purposes:
             # Modify utility function based on template for purpose
@@ -70,13 +73,18 @@ def mode_choice_model(
         explicit_value_parameters(model)
     apply_coefficients(coefficients, m)
 
-    avail = construct_availability(m[purposes[0]], chooser_data, data.alt_codes_to_names)
-
-    d = DataFrames(
-        co=chooser_data, av=avail, alt_codes=data.alt_codes, alt_names=data.alt_names,
+    avail = construct_availability(
+        m[purposes[0]], chooser_data, data.alt_codes_to_names
     )
 
-    if 'atwork' not in name:
+    d = DataFrames(
+        co=chooser_data,
+        av=avail,
+        alt_codes=data.alt_codes,
+        alt_names=data.alt_names,
+    )
+
+    if "atwork" not in name:
         for purpose, model in m.items():
             model.dataservice = d.selector_co(f"tour_type=='{purpose}'")
             model.choice_co_code = "override_choice_code"
@@ -141,5 +149,5 @@ def atwork_subtour_mode_choice_model(
         return_data=return_data,
         override_filenames=dict(
             coefficients_file="tour_mode_choice_coefficients.csv",
-        )
+        ),
     )

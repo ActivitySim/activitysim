@@ -13,12 +13,14 @@ logger = logging.getLogger(__name__)
 def failed_trip_cohorts(trips, failed):
 
     # outbound trips in a tour with a failed outbound trip
-    bad_outbound_trips = \
-        trips.outbound & (trips.tour_id.isin(trips.tour_id[failed & trips.outbound]))
+    bad_outbound_trips = trips.outbound & (
+        trips.tour_id.isin(trips.tour_id[failed & trips.outbound])
+    )
 
     # inbound trips in a tour with a failed inbound trip
-    bad_inbound_trips = \
-        ~trips.outbound & (trips.tour_id.isin(trips.tour_id[failed & ~trips.outbound]))
+    bad_inbound_trips = ~trips.outbound & (
+        trips.tour_id.isin(trips.tour_id[failed & ~trips.outbound])
+    )
 
     bad_trips = bad_outbound_trips | bad_inbound_trips
 
@@ -30,7 +32,9 @@ def flag_failed_trip_leg_mates(trips_df, col_name):
     set boolean flag column of specified name to identify failed trip leg_mates in place
     """
 
-    failed_trip_leg_mates = failed_trip_cohorts(trips_df, trips_df.failed) & ~trips_df.failed
+    failed_trip_leg_mates = (
+        failed_trip_cohorts(trips_df, trips_df.failed) & ~trips_df.failed
+    )
     trips_df.loc[failed_trip_leg_mates, col_name] = True
 
     # handle outbound and inbound legs independently
@@ -55,10 +59,12 @@ def cleanup_failed_trips(trips):
     """
 
     if trips.failed.any():
-        logger.warning("cleanup_failed_trips dropping %s failed trips" % trips.failed.sum())
+        logger.warning(
+            "cleanup_failed_trips dropping %s failed trips" % trips.failed.sum()
+        )
 
-        trips['patch'] = False
-        flag_failed_trip_leg_mates(trips, 'patch')
+        trips["patch"] = False
+        flag_failed_trip_leg_mates(trips, "patch")
 
         # drop the original failures
         trips = trips[~trips.failed]
@@ -67,16 +73,18 @@ def cleanup_failed_trips(trips):
         patch_trips = trips[trips.patch].sort_index()
 
         # recompute fields dependent on trip_num sequence
-        grouped = patch_trips.groupby(['tour_id', 'outbound'])
-        patch_trips['trip_num'] = grouped.cumcount() + 1
+        grouped = patch_trips.groupby(["tour_id", "outbound"])
+        patch_trips["trip_num"] = grouped.cumcount() + 1
         # FIXME - 'clever' hack to avoid regroup - implementation dependent optimization that could change
-        patch_trips['trip_count'] = patch_trips['trip_num'] + grouped.cumcount(ascending=False)
+        patch_trips["trip_count"] = patch_trips["trip_num"] + grouped.cumcount(
+            ascending=False
+        )
 
-        assign_in_place(trips, patch_trips[['trip_num', 'trip_count']])
+        assign_in_place(trips, patch_trips[["trip_num", "trip_count"]])
 
-        del trips['patch']
+        del trips["patch"]
 
-    del trips['failed']
+    del trips["failed"]
 
     return trips
 
@@ -90,20 +98,27 @@ def generate_alternative_sizes(max_duration, max_trips):
     :param max_trips:
     :return:
     """
+
     def np_shift(xs, n, fill_zero=True):
         if n >= 0:
             shift_array = np.concatenate((np.full(n, np.nan), xs[:-n]))
         else:
             shift_array = np.concatenate((xs[-n:], np.full(-n, np.nan)))
-        return np.nan_to_num(shift_array, np.nan).astype(np.int) if fill_zero else shift_array
+        return (
+            np.nan_to_num(shift_array, np.nan).astype(np.int)
+            if fill_zero
+            else shift_array
+        )
 
     levels = np.empty([max_trips, max_duration + max_trips])
     levels[0] = np.arange(1, max_duration + max_trips + 1)
 
     for level in np.arange(1, max_trips):
-        levels[level] = np_shift(np.cumsum(np_shift(levels[level - 1], 1)), -1, fill_zero=False)
+        levels[level] = np_shift(
+            np.cumsum(np_shift(levels[level - 1], 1)), -1, fill_zero=False
+        )
 
-    return levels[:, :max_duration+1].astype(int)
+    return levels[:, : max_duration + 1].astype(int)
 
 
 def get_time_windows(residual, level):

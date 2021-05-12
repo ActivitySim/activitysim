@@ -13,3 +13,4 @@ coef_age_45_to_55,0.21438,F
 coef_age_55_to_65,0.451657,F
 coef_age_65_plus,0.583518,F
 coef_calibration,-0.0162,T
+coef_calibration_p2,-0.6284,T

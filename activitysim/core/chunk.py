@@ -1,6 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import input
 
 import datetime
 import glob
@@ -9,17 +8,15 @@ import math
 import multiprocessing
 import os
 import threading
-
 from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
 
+from . import config
 from . import mem
 from . import tracing
-from . import config
 from . import util
-
 from .util import GB
 
 logger = logging.getLogger(__name__)
@@ -157,7 +154,7 @@ def get_base_chunk_size():
     return CHUNK_SIZERS[0].chunk_size
 
 
-def overhead_for_chunk_method(overhead):
+def overhead_for_chunk_method(overhead, method=None):
     """
 
     return appropriate overhead for row_size calculation based on current chunk_method
@@ -187,7 +184,7 @@ def overhead_for_chunk_method(overhead):
 
         return hybrid_overhead
 
-    method = chunk_method()
+    method = method or chunk_method()
 
     if method == HYBRID_RSS:
         oh = hybrid(overhead[RSS], overhead[BYTES])
@@ -259,7 +256,8 @@ def consolidate_logs():
 
     # compute row_size
     num_rows = omnibus_df[C_NUM_ROWS]
-    omnibus_df['row_size'] = np.ceil(overhead_for_chunk_method(omnibus_df) / num_rows).astype(int)
+    for m in USS_CHUNK_METHODS:
+        omnibus_df[f'{m}_row_size'] = np.ceil(overhead_for_chunk_method(omnibus_df, m) / num_rows).astype(int)
 
     omnibus_df = omnibus_df.sort_values(by=C_CHUNK_TAG)
 

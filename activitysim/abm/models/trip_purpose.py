@@ -132,6 +132,9 @@ def run_trip_purpose(
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
+    # uniform across trip_purpose
+    chunk_tag = 'trip_purpose'
+
     model_settings_file_name = 'trip_purpose.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -176,7 +179,7 @@ def run_trip_purpose(
             trace_label=trace_label)
 
     for i, trips_chunk, chunk_trace_label in \
-            chunk.adaptive_chunked_choosers(trips_df, chunk_size, trace_label):
+            chunk.adaptive_chunked_choosers(trips_df, chunk_size, chunk_tag, trace_label):
 
         choices = choose_intermediate_trip_purpose(
             trips_chunk,

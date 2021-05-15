@@ -35,7 +35,9 @@ def compute_logsums(choosers,
                     tour_purpose,
                     logsum_settings, model_settings,
                     network_los,
-                    chunk_size, trace_label):
+                    chunk_size,
+                    chunk_tag,
+                    trace_label):
     """
 
     Parameters
@@ -150,6 +152,7 @@ def compute_logsums(choosers,
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
+        chunk_tag=chunk_tag,
         trace_label=trace_label)
 
     return logsums

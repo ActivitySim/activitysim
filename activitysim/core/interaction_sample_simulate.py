@@ -278,7 +278,7 @@ def interaction_sample_simulate(
         choosers, alternatives, spec, choice_column,
         allow_zero_probs=False, zero_prob_choice_val=None,
         want_logsums=False,
-        skims=None, locals_d=None, chunk_size=0,
+        skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
         trace_label=None, trace_choice_name=None,
         estimator=None):
 
@@ -338,10 +338,11 @@ def interaction_sample_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
+    chunk_tag = chunk_tag or trace_label
 
     result_list = []
     for i, chooser_chunk, alternative_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, trace_label):
+            in chunk.adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, trace_label, chunk_tag):
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,

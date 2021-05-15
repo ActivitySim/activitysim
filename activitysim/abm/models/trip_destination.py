@@ -56,6 +56,7 @@ def _destination_sample(
         alt_dest_col_name,
         estimator,
         chunk_size,
+        chunk_tag,
         trace_label):
     """
 
@@ -103,8 +104,9 @@ def _destination_sample(
         spec=spec,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
-        trace_label=trace_label)
+        chunk_size=chunk_size, chunk_tag=chunk_tag,
+        trace_label=trace_label
+        )
 
     return choices
 
@@ -120,6 +122,8 @@ def destination_sample(
         chunk_size,
         trace_label):
 
+    chunk_tag = 'trip_destination.sample'
+
     skims = skim_hotel.sample_skims(presample=False)
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
@@ -133,7 +137,8 @@ def destination_sample(
         alt_dest_col_name,
         estimator,
         chunk_size,
-        trace_label)
+        chunk_tag=chunk_tag,
+        trace_label=trace_label)
 
     return choices
 
@@ -356,8 +361,7 @@ def destination_presample(
         trace_label):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
-
-    logger.info(f"{trace_label} destination_presample")
+    chunk_tag = 'trip_destination.presample'  # distinguish from trip_destination.sample
 
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
     maz_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').TAZ
@@ -387,7 +391,8 @@ def destination_presample(
         alt_dest_col_name,
         estimator,
         chunk_size,
-        trace_label)
+        chunk_tag=chunk_tag,
+        trace_label=trace_label)
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_sample = choose_MAZ_for_TAZ(taz_sample, size_term_matrix, trips, network_los, alt_dest_col_name, trace_label)
@@ -423,7 +428,7 @@ def trip_destination_sample(
         pick_count : int
             number of duplicate picks for chooser, alt
     """
-    trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_sample')
+    trace_label = tracing.extend_trace_label(trace_label, 'sample')
 
     assert len(trips) > 0
     assert len(alternatives) > 0
@@ -474,7 +479,8 @@ def compute_ood_logsums(
         od_skims,
         locals_dict,
         chunk_size,
-        trace_label):
+        trace_label,
+        chunk_tag):
     """
     Compute one (of two) out-of-direction logsums for destination alternatives
 
@@ -495,7 +501,8 @@ def compute_ood_logsums(
         skims=od_skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        chunk_tag=chunk_tag)
 
     assert logsums.index.equals(choosers.index)
 
@@ -525,6 +532,9 @@ def compute_logsums(
     """
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
+
+    # chunk usage is uniform so better to combine
+    chunk_tag = 'trip_destination.compute_logsums'
 
     # FIXME should pass this in?
     network_los = inject.get_injectable('network_los')
@@ -588,7 +598,8 @@ def compute_logsums(
         od_skims,
         locals_dict,
         chunk_size,
-        trace_label=tracing.extend_trace_label(trace_label, 'od'))
+        trace_label=tracing.extend_trace_label(trace_label, 'od'),
+        chunk_tag=chunk_tag)
 
     # - dp_logsums
     dp_skims = {
@@ -611,7 +622,8 @@ def compute_logsums(
         dp_skims,
         locals_dict,
         chunk_size,
-        trace_label=tracing.extend_trace_label(trace_label, 'dp'))
+        trace_label=tracing.extend_trace_label(trace_label, 'dp'),
+        chunk_tag=chunk_tag)
 
     return destination_sample
 
@@ -637,6 +649,7 @@ def trip_destination_simulate(
         destination alt chosen
     """
     trace_label = tracing.extend_trace_label(trace_label, 'trip_dest_simulate')
+    chunk_tag = 'trip_destination.simulate'
 
     spec = simulate.spec_for_segment(model_settings, spec_id='DESTINATION_SPEC',
                                      segment_name=primary_purpose, estimator=estimator)
@@ -665,7 +678,7 @@ def trip_destination_simulate(
         allow_zero_probs=True, zero_prob_choice_val=NO_DESTINATION,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
+        chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name='trip_dest',
         estimator=estimator)

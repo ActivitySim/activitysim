@@ -382,7 +382,7 @@ def _interaction_sample(
 def interaction_sample(
         choosers, alternatives, spec, sample_size,
         alt_col_name, allow_zero_probs=False,
-        skims=None, locals_d=None, chunk_size=0,
+        skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
         trace_label=None):
 
     """
@@ -442,6 +442,7 @@ def interaction_sample(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample')
+    chunk_tag = chunk_tag or trace_label
 
     # we return alternatives ordered in (index, alt_col_name)
     # if choosers index is not ordered, it is probably a mistake, since the alts wont line up
@@ -453,7 +454,7 @@ def interaction_sample(
 
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag):
 
         choices = _interaction_sample(chooser_chunk, alternatives,
                                       spec, sample_size, alt_col_name, allow_zero_probs,

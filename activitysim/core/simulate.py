@@ -1312,7 +1312,7 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
 
 def simple_simulate_logsums(choosers, spec, nest_spec,
                             skims=None, locals_d=None, chunk_size=0,
-                            trace_label=None):
+                            trace_label=None, chunk_tag=None):
     """
     like simple_simulate except return logsums instead of making choices
 
@@ -1323,11 +1323,12 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
     """
 
     assert len(choosers) > 0
+    chunk_tag = chunk_tag or trace_label
 
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag):
 
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,

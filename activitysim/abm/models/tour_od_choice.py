@@ -12,11 +12,6 @@ from activitysim.core import simulate
 
 from activitysim.core.util import assign_in_place
 
-from IPython import get_ipython
-ipython = get_ipython()
-ipython.magic('load_ext autoreload')
-ipython.magic('autoreload 2')
-
 from .util import tour_od
 from .util import estimation
 

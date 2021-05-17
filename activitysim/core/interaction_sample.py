@@ -79,7 +79,9 @@ def make_sample_choices(
     rands = rands.T.reshape(sample_size, -1, 1)
 
     # the alternative value chosen
-    choices_array = np.empty([sample_size, len(choosers)]).astype(int)
+    # WHY SHOULD CHOICES COL HAVE TO BE TYPE INT???
+    # choices_array = np.empty([sample_size, len(choosers)]).astype(int)
+    choices_array = np.empty([sample_size, len(choosers)]).astype(alternatives.index.dtype)
 
     # the probability of the chosen alternative
     choice_probs_array = np.empty([sample_size, len(choosers)])

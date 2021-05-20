@@ -538,6 +538,7 @@ def od_presample(
     # the skims will be available under the name "skims" for any @ expressions
     skim_dict = network_los.get_skim_dict('taz')
     skims = skim_dict.wrap(ORIG_TAZ, DEST_TAZ)
+
     orig_MAZ_dest_TAZ_sample = _od_sample(
         spec_segment_name,
         choosers,
@@ -554,12 +555,37 @@ def od_presample(
 
     orig_MAZ_dest_TAZ_sample[ORIG_MAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[0].astype(int)
     orig_MAZ_dest_TAZ_sample[DEST_TAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[1].astype(int)
+
+    sample_df = orig_MAZ_dest_TAZ_sample.copy().reset_index()
+    lu = inject.get_table('land_use').to_frame(columns=['TAZ', 'pseudomsa'])
+    sample_df = pd.merge(sample_df, lu, left_on='dest_TAZ', right_on='TAZ')
+    num_alts = len(sample_df)
+    num_alts_in_pmsa_4 = len(sample_df[sample_df['pseudomsa'] == 4])
+    pct_pmsa_4 = np.round(num_alts_in_pmsa_4 / num_alts * 100, 1)
+    logger.warning("{0}% of sampled alts are in pseudo-MSA 4".format(pct_pmsa_4))
+
+    sample_df['pmsa4'] = sample_df['pseudomsa'] == 4
+    max_pmsa4_probs = sample_df.groupby(['tour_id', 'pmsa4'])['prob'].max().reset_index()
+    avg_pmsa4_max_probs = max_pmsa4_probs.groupby('pmsa4')['prob'].mean()
+    pmsa_4_avg_max = np.round(avg_pmsa4_max_probs.loc[True] * 100, 1)
+    other_avg_max = np.round(avg_pmsa4_max_probs.loc[False] * 100, 1)
+    logger.warning("presampled TAZ avg max probs -- pmsa 4: {0}%; the rest: {1}%".format(pmsa_4_avg_max, other_avg_max))
+
     # choose a MAZ for each DEST_TAZ choice, choice probability based on
     # MAZ size_term fraction of TAZ total
     
     maz_choices = choose_MAZ_for_TAZ(
         orig_MAZ_dest_TAZ_sample, MAZ_size_terms, trace_label,
         addtl_col_for_unique_key=ORIG_MAZ)
+
+    maz_sample_df = maz_choices.copy().reset_index()
+    maz_sample_df = pd.merge(maz_sample_df, lu, left_on=DEST_MAZ, right_index=True)
+    maz_sample_df['pmsa4'] = maz_sample_df['pseudomsa'] == 4
+    max_pmsa4_probs = maz_sample_df.groupby(['tour_id', 'pmsa4'])['prob'].max().reset_index()
+    avg_pmsa4_max_probs = max_pmsa4_probs.groupby('pmsa4')['prob'].mean()
+    pmsa_4_avg_max = np.round(avg_pmsa4_max_probs.loc[True] * 100, 1)
+    other_avg_max = np.round(avg_pmsa4_max_probs.loc[False] * 100, 1)
+    logger.warning("presampled MAZ avg max probs -- pmsa 4: {0}%; the rest: {1}%".format(pmsa_4_avg_max, other_avg_max))
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(

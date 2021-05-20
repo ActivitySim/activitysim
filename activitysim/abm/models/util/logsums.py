@@ -135,7 +135,8 @@ def compute_logsums(choosers,
         })
 
         # TVPB constants can appear in expressions
-        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+        if logsum_settings.get('use_TVPB_constants', True):
+            locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     locals_dict.update(skims)
 

@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import pandas as pd
+import logging
 
 from activitysim.core import simulate
 from activitysim.core import config
@@ -13,6 +14,7 @@ spec, which is more complicated than the other specs, into something that
 looks like the other specs.
 """
 
+logger = logging.getLogger(__name__)
 
 def mode_choice_simulate(
         choosers, spec, nest_spec, skims, locals_d,
@@ -105,6 +107,9 @@ def run_tour_mode_choice_simulate(
     locals_dict.update(skims)
 
     # coefficients can appear in expressions
+    locals_keys = locals_dict.keys()
+    if any([coeff in locals_keys for coeff in coefficients.keys()]):
+        logger.warning("coefficients are obscuring locals_dict values")
     locals_dict.update(coefficients)
 
     assert ('in_period' not in choosers) and ('out_period' not in choosers)

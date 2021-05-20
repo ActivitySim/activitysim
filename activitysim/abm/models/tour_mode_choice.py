@@ -113,7 +113,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
         })
 
         # TVPB constants can appear in expressions
-        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+        if model_settings.get('use_TVPB_constants', True):
+            constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     estimator = estimation.manager.begin_estimation('tour_mode_choice')
     if estimator:

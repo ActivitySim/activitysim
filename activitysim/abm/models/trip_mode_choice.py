@@ -116,8 +116,8 @@ def trip_mode_choice(
             'tvpb_logsum_odt': tvpb_logsum_odt,
         })
 
-        # TVPB constants can appear in expressions
-        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+        if model_settings.get('use_TVPB_constants', True):
+            constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     estimator = estimation.manager.begin_estimation('trip_mode_choice')
     if estimator:
@@ -147,9 +147,11 @@ def trip_mode_choice(
         coefficients = simulate.get_segment_coefficients(model_settings, primary_purpose)
 
         locals_dict = {}
-        
-        # TVPB TOUR CONSTANTS OVERWRITE TRIP MODE CHOICE CONSTANTS HERE (e.g. c_ivt, c_cost)
         locals_dict.update(constants)
+
+        constants_keys = constants.keys()
+        if any([coeff in constants_keys for coeff in coefficients.keys()]):
+            logger.warning("coefficients are obscuring constants in locals_dict")
         locals_dict.update(coefficients)
 
         expressions.annotate_preprocessors(

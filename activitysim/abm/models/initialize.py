@@ -104,8 +104,11 @@ def initialize_households():
 
     # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
-    shadow_pricing.add_size_tables()
-    mem.trace_memory_info(f"initialize_households after shadow_pricing.add_size_tables")
+    # this can now be called as a stand alone model step instead, add_size_tables
+    add_size_tables = model_settings.get('add_size_tables', True)
+    if add_size_tables:
+        shadow_pricing.add_size_tables()
+        mem.trace_memory_info(f"initialize_households after shadow_pricing.add_size_tables")
 
     # - preload person_windows
     t0 = tracing.print_elapsed_time()

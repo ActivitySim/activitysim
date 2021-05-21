@@ -841,7 +841,7 @@ To run the example, do the following:
 ::
 
   cd my_test_example
-  activitysim -c configs -d data -o output
+  activitysim run -c configs -d data -o output
 
 
 * ActivitySim should log some information and write outputs to the output folder.

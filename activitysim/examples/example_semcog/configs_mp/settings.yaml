@@ -11,9 +11,9 @@ use_shadow_pricing: True
 
 
 ## - example sample
-households_sample_size: 0
-chunk_size: 1000000000
-num_processes: 24
+households_sample_size: 500
+chunk_size: 0
+num_processes: 2
 
 # - tracing
 trace_hh_id: 
@@ -29,11 +29,14 @@ models:
   - initialize_landuse
   - initialize_households
   - compute_accessibility
+  - work_from_home
+  - add_size_tables
   ### mp_households step
   - school_location
   - workplace_location
   - auto_ownership_simulate
   - free_parking
+  - telecommute_frequency
   - cdap_simulate
   - mandatory_tour_frequency
   - mandatory_tour_scheduling

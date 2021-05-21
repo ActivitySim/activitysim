@@ -212,21 +212,18 @@ Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: N
 Work From Home
 --------------
 
-Telecommuting is defined as workers who work from home instead of going 
+(**In development**) Telecommuting is defined as workers who work from home instead of going 
 to work. It only applies to workers with a regular workplace outside of home. 
 The telecommute model consists of two submodels - this work from home model and a 
-person :ref:`telecommute_frequency` model.
+person :ref:`telecommute_frequency` model. This model predicts for all workers whether they 
+usually work from home.
 
-The work from home model is typically run after usual work location choice and before the 
-coordinated daily activity pattern (CDAP) model. It predicts for all workers whether they 
-usually work from home. If work from home is chosen, then the work from home model 
-overrides the previously calculated usual work location field since it is no longer valid.
-
-The work from home model includes the ability to adjust the work from home alternative
+The work from home model includes the ability to adjust a work from home alternative
 constant to attempt to realize a work from home percent for what-if type analysis.  
-This iterative procedure takes as input a number of iterations, a target work from home 
-percent, a tolerance percent for convergence, and the name of the coefficient to adjust.  
-An example setup is below and the coefficient adjustment at each iteration is: 
+This iterative single process procedure takes as input a number of iterations, a filter on 
+the choosers to use for the calculation, a target work from home percent, a tolerance percent 
+for convergence, and the name of the coefficient to adjust.  An example setup is below and 
+the coefficient adjustment at each iteration is: 
 ``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
 
 ::
@@ -234,6 +231,7 @@ An example setup is below and the coefficient adjustment at each iteration is:
   # iterative what-if analysis example
   # omit these settings to not iterate
   WORK_FROM_HOME_ITERATIONS: 3
+  WORK_FROM_HOME_CHOOSER_FILTER: is_worker
   WORK_FROM_HOME_TARGET_PERCENT: 0.1
   WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: 0.01
   WORK_FROM_HOME_COEFFICIENT_CONSTANT: coef_work_from_home_constant
@@ -253,7 +251,7 @@ Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
 Telecommute Frequency
 ---------------------
 
-Telecommuting is defined as workers who work from home instead of going to work. It only applies to
+(**In development**) Telecommuting is defined as workers who work from home instead of going to work. It only applies to
 workers with a regular workplace outside of home. The telecommute model consists of two 
 submodels - a person :ref:`work_from_home` model and this person telecommute frequency model.
 

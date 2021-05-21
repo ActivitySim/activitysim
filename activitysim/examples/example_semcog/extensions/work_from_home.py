@@ -23,19 +23,17 @@ def work_from_home(
     """
     This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).
-    The workplace location choice is overridden for workers who work from home
-    and set to -1.
-
     """
 
     trace_label = 'work_from_home'
     model_settings_file_name = 'work_from_home.yaml'
 
     choosers = persons_merged.to_frame()
-    choosers = choosers[choosers.workplace_zone_id > -1]
+    model_settings = config.read_model_settings(model_settings_file_name)
+    chooser_filter_column_name = model_settings.get('CHOOSER_FILTER_COLUMN_NAME')
+    choosers = choosers[choosers[chooser_filter_column_name]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = config.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation('work_from_home')
 
     constants = config.get_model_constants(model_settings)
@@ -66,8 +64,9 @@ def work_from_home(
         estimator.write_coefficients(coefficients_df)
         estimator.write_choosers(choosers)
 
-    # - iterative what-if if specified
+    # - iterative single process what-if adjustment if specified
     iterations = model_settings.get('WORK_FROM_HOME_ITERATIONS', 1)
+    iterations_chooser_filter = model_settings.get('WORK_FROM_HOME_CHOOSER_FILTER', None)
     iterations_coefficient_constant = model_settings.get('WORK_FROM_HOME_COEFFICIENT_CONSTANT', None)
     iterations_target_percent = model_settings.get('WORK_FROM_HOME_TARGET_PERCENT', None)
     iterations_target_percent_tolerance = model_settings.get('WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE', None)
@@ -91,9 +90,11 @@ def work_from_home(
             estimator=estimator)
 
         if iterations_target_percent is not None:
-            current_percent = ((choices == work_from_home_alt).sum() / len(choices))
-            logger.info("Running %s iteration %i current percent %f target percent %f",
-                        trace_label, iteration, current_percent, iterations_target_percent)
+            choices_for_filter = choices[choosers[iterations_chooser_filter]]
+
+            current_percent = ((choices_for_filter == work_from_home_alt).sum() / len(choices_for_filter))
+            logger.info("Running %s iteration %i choosers %i current percent %f target percent %f",
+                        trace_label, iteration, len(choices_for_filter), current_percent, iterations_target_percent)
 
             if current_percent <= (iterations_target_percent +
                                    iterations_target_percent_tolerance
@@ -114,8 +115,6 @@ def work_from_home(
 
     choices = (choices == work_from_home_alt)
 
-    dest_choice_column_name = model_settings['DEST_CHOICE_COLUMN_NAME']
-
     if estimator:
         estimator.write_choices(choices)
         choices = estimator.get_survey_values(choices, 'persons', 'work_from_home')
@@ -124,7 +123,7 @@ def work_from_home(
 
     persons = persons.to_frame()
     persons['work_from_home'] = choices.reindex(persons.index).fillna(0).astype(bool)
-    persons[dest_choice_column_name] = np.where(persons.work_from_home is True, -1, persons[dest_choice_column_name])
+    persons['is_out_of_home_worker'] = persons[chooser_filter_column_name] & ~persons['work_from_home']
 
     pipeline.replace_table("persons", persons)
 

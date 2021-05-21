@@ -79,9 +79,10 @@ models:
   - initialize_landuse
   - initialize_households
   - compute_accessibility
+  - work_from_home
+  - add_size_tables
   - school_location
   - workplace_location
-  - work_from_home
   - auto_ownership_simulate
   - free_parking
   - telecommute_frequency

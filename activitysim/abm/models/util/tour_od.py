@@ -1045,7 +1045,7 @@ def run_tour_od(
             # FIXME - sample_table
             od_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
                                          append=True, inplace=True)
-            sample_list.append(location_sample_df)
+            sample_list.append(od_sample_df)
 
         # FIXME - want to do this here?
         del od_sample_df

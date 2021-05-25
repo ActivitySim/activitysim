@@ -616,6 +616,10 @@ class TransitVirtualPathBuilder(object):
                     trace_label=trace_label, trace=trace)
         chunk.log_df(trace_label, "egress_df", egress_df)
 
+        # L200 will drop all rows if all trips are intra-tap.
+        if np.array_equal(access_df['btap'].values, egress_df['atap'].values):
+            trace = False
+
         # path_info for use by expressions (e.g. penalty for drive access if no parking at access tap)
         with memo("#TVPB build_virtual_path compute_tap_tap"):
             with chunk.chunk_log(f'#TVPB.compute_tap_tap'):
@@ -629,6 +633,9 @@ class TransitVirtualPathBuilder(object):
                     path_info=path_info,
                     trace_label=trace_label, trace=trace)
         chunk.log_df(trace_label, "transit_df", transit_df)
+
+        if len(transit_df) == 0:
+            want_choices = False
 
         with memo("#TVPB build_virtual_path best_paths"):
             with chunk.chunk_log(f'#TVPB.best_paths'):
@@ -779,6 +786,9 @@ class TransitVirtualPathBuilder(object):
                                         want_choices=want_choices, trace_label=trace_label)
 
             trace_hh_id = inject.get_injectable("trace_hh_id", None)
+            if all(logsum_df['logsum'] == UNAVAILABLE):
+               trace_hh_id = False
+
             if trace_hh_id:
                 filter_targets = tracing.trace_targets(orig)
                 # choices from preceding run (because random numbers)
@@ -908,7 +918,7 @@ class TransitVirtualPathLogsumWrapper(object):
                                       want_choices=self.cache_choices,
                                       trace_label=self.trace_label)
 
-        if self.cache_choices:
+        if (self.cache_choices) and (not all(logsum_df['logsum'] == UNAVAILABLE)):
 
             # not tested on duplicate index because not currently needed
             # caching strategy does not require unique indexes but care would need to be taken to maintain alignment

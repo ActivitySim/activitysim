@@ -23,6 +23,7 @@ from . import non_mandatory_destination
 from . import non_mandatory_scheduling
 from . import non_mandatory_tour_frequency
 from . import parking_location_choice
+from . import reassign_tour_purpose
 from . import stop_frequency
 from . import tour_mode_choice
 from . import tour_od_choice

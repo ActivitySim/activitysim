@@ -289,7 +289,7 @@ class ChunkHistorian(object):
     def load_cached_history(self):
 
         if chunk_training_mode() == MODE_RETRAIN:
-            # don't lead cached history if retraining
+            # don't need cached history if retraining
             return
 
         if self.have_cached_history is not None:
@@ -314,7 +314,11 @@ class ChunkHistorian(object):
             self.have_cached_history = False
 
             if chunk_training_mode() == MODE_PRODUCTION:
-                raise RuntimeError(f"chunk_training_mode is {MODE_PRODUCTION} but no chunk_cache: {chunk_cache_path}")
+                # raise RuntimeError(f"chunk_training_mode is {MODE_PRODUCTION} but no chunk_cache: {chunk_cache_path}")
+
+                SETTINGS['chunk_training_mode'] = MODE_RETRAIN
+                logger.warning(f"chunk_training_mode is {MODE_PRODUCTION} but no chunk_cache: {chunk_cache_path}")
+                logger.warning(f"chunk_training_mode falling back to {chunk_training_mode()}")
 
     def cached_history_for_chunk_tag(self, chunk_tag):
 

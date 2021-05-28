@@ -962,6 +962,7 @@ def run_tour_od(
         chunk_size, trace_hh_id, trace_label):
 
     size_term_calculator = SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
+    preprocessor_settings = model_settings.get('preprocessor', None)
     # size_term_index_name = model_settings['ALT_OD_COL_NAME']
     # origin_col_name = model_settings['ORIG_COL_NAME']
     # dest_col_name = model_settings['DEST_COL_NAME']
@@ -987,6 +988,14 @@ def run_tour_od(
         choosers = pd.merge(
             choosers, persons.to_frame(columns=['is_university', 'demographic_segment']),
             left_on='person_id', right_index=True)
+
+        # - annotate choosers
+        if preprocessor_settings:
+            expressions.assign_columns(
+                df=choosers,
+                model_settings=preprocessor_settings,
+                locals_dict=locals_dict,
+                trace_label=trace_label)
 
         # size_term segment is segment_name
         # origin_attr_cols = model_settings['ORIGIN_ATTR_COLS_TO_USE']

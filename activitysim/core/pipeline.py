@@ -33,8 +33,9 @@ NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP]
 # name used for storing the checkpoints dataframe to the pipeline store
 CHECKPOINT_TABLE_NAME = 'checkpoints'
 
-# name of the first step/checkpoint created when teh pipeline is started
+# name of the first step/checkpoint created when the pipeline is started
 INITIAL_CHECKPOINT_NAME = 'init'
+FINAL_CHECKPOINT_NAME = 'final'
 
 # special value for resume_after meaning last checkpoint
 LAST_CHECKPOINT = '_'
@@ -273,7 +274,7 @@ def add_checkpoint(checkpoint_name):
 
     logger.debug("add_checkpoint %s timestamp %s" % (checkpoint_name, timestamp))
 
-    for table_name in orca_dataframe_tables():
+    for table_name in registered_tables():
 
         # if we have not already checkpointed it or it has changed
         # FIXME - this won't detect if the orca table was modified
@@ -301,7 +302,6 @@ def add_checkpoint(checkpoint_name):
     _PIPELINE.checkpoints.append(_PIPELINE.last_checkpoint.copy())
 
     # create a pandas dataframe of the checkpoint history, one row per checkpoint
-
     checkpoints = pd.DataFrame(_PIPELINE.checkpoints)
 
     # convert empty values to str so PyTables doesn't pickle object types
@@ -312,9 +312,9 @@ def add_checkpoint(checkpoint_name):
     write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
 
-def orca_dataframe_tables():
+def registered_tables():
     """
-    Return a list of the neames of all currently registered dataframe tables
+    Return a list of the names of all currently registered dataframe tables
     """
     return [name for name in orca.list_tables() if orca.table_type(name) == 'dataframe']
 
@@ -352,6 +352,10 @@ def load_checkpoint(checkpoint_name):
         # truncate rows after target checkpoint
         i = checkpoints[checkpoints[CHECKPOINT_NAME] == checkpoint_name].index[0]
         checkpoints = checkpoints.loc[:i]
+
+        # write it to the store to ensure so any subsequent checkpoints are forgotten
+        write_df(checkpoints, CHECKPOINT_TABLE_NAME)
+
     except IndexError:
         msg = "Couldn't find checkpoint '%s' in checkpoints" % (checkpoint_name,)
         print(checkpoints[CHECKPOINT_NAME])
@@ -459,7 +463,7 @@ def run_model(model_name):
         step_name = step_name[1:]
         checkpoint = False
     else:
-        checkpoint = True
+        checkpoint = intermediate_checkpoint(model_name)
 
     inject.set_step_args(args)
 
@@ -551,6 +555,18 @@ def close_pipeline():
     logger.debug("close_pipeline")
 
 
+def intermediate_checkpoint(checkpoint_name=None):
+
+    checkpoints = config.setting('checkpoints', True)
+
+    if checkpoints is True or checkpoints is False:
+        return checkpoints
+
+    assert isinstance(checkpoints, list), f"setting 'checkpoints'' should be True or False or a list"
+
+    return checkpoint_name in checkpoints
+
+
 def run(models, resume_after=None):
     """
     run the specified list of models, optionally loading checkpoint and resuming after specified
@@ -601,6 +617,10 @@ def run(models, resume_after=None):
         mem.trace_memory_info(f"pipeline.run after {model}")
 
         tracing.log_runtime(model_name=model, start_time=t1)
+
+    # add checkpoint with final tables even if not intermediate checkpointing
+    if not intermediate_checkpoint():
+        add_checkpoint(FINAL_CHECKPOINT_NAME)
 
     mem.trace_memory_info('pipeline.run after run_models')
 

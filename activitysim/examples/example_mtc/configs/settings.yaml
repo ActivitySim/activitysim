@@ -188,8 +188,22 @@ trace_hh_id: 982875
 # trace_od: [5, 11]
 trace_od:
 
+
+
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: trip_scheduling
+#resume_after: trip_destination
+resume_after:
+
+checkpoints: True
+# if checkpoints is False, no intermediate checkpoints will be written before the end of run
+# (or if multiprocessing, at the end of each multiprocess_step)
+#checkpoints: False
+# explicit list of models to checkpoint
+#checkpoints:
+#  - mandatory_tour_scheduling
+#  - non_mandatory_tour_scheduling
+#  - trip_mode_choice
+
 
 models:
   - initialize_landuse

@@ -356,7 +356,7 @@ class SkimDict(object):
 class SkimWrapper(object):
 
     """
-    A SkimWrapper object is an access wrapper around a SkimDict of multiple skim objects,
+    A   ltiple skim objects,
     where each object is identified by a key.
 
     This is just a way to simplify expression files by hiding the and orig, dest arguments
@@ -699,6 +699,9 @@ class MazSkimDict(SkimDict):
                 values = np.where(is_nan, backstop_values, values)
             else:
                 # FIXME - if no backstop skim, then return 0 (which conventionally means "not available")
+                logger.warning(
+                    "No backstop skims found for {0}, so setting Nulls to 0. Make sure "
+                    "mode availability flags are set to > 0")
                 values = np.where(is_nan, 0, values)
 
         # want to return same type as backstop skim

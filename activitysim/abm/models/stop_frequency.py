@@ -165,7 +165,7 @@ def stop_frequency(
     # FIXME should have added this when tours created?
     assert 'primary_purpose' not in tours
     if 'primary_purpose' not in tours.columns:
-        # if not already there, then it will have been added by annotate tours preprocessor
+        # if not already there, then it will have been added by stop_freq_annotate_tours_preprocessor
         assign_in_place(tours, tours_merged[['primary_purpose']])
 
     pipeline.replace_table("tours", tours)

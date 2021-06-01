@@ -42,7 +42,6 @@ def reassign_tour_purpose_by_poe(
         purpose_cum_probs = purpose_probs.values.cumsum()
         purpose_scaled_probs = np.subtract(purpose_cum_probs, np.random.rand(num_tours, 1))
         purpose = np.argmax((purpose_scaled_probs + 1.0).astype('i4'), axis=1)
-        breakpoint()
         tours_df.loc[group.index, 'purpose_id'] = purpose
     tours_df['new_tour_type'] = tours_df['purpose_id'].map(tour_types)    
         

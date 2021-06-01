@@ -248,6 +248,7 @@ class TransitVirtualPathBuilder(object):
         with memo("#TVPB CACHE compute_tap_tap_utilities all_transit_paths"):
             transit_df = self.all_transit_paths(access_df, egress_df, chooser_attributes, trace_label, trace)
             # note: transit_df index is arbitrary
+
         chunk.log_df(trace_label, "transit_df", transit_df)
 
         # FIXME some expressions may want to know access mode -
@@ -634,6 +635,7 @@ class TransitVirtualPathBuilder(object):
                     trace_label=trace_label, trace=trace)
         chunk.log_df(trace_label, "transit_df", transit_df)
 
+        # Cannot trace if df is empty. Prob happened at L200
         if len(transit_df) == 0:
             want_choices = False
 
@@ -689,7 +691,6 @@ class TransitVirtualPathBuilder(object):
                         if DUMP:
                             zero_utilities_df = utilities_df[np.nansum(np.exp(utilities_df.values), axis=1) == 0]
                             zero_utilities_df.to_csv(config.output_file_path('warning_utilities_df.csv'), index=True)
-                            bug
 
             if want_choices:
 
@@ -787,7 +788,7 @@ class TransitVirtualPathBuilder(object):
 
             trace_hh_id = inject.get_injectable("trace_hh_id", None)
             if all(logsum_df['logsum'] == UNAVAILABLE):
-               trace_hh_id = False
+                trace_hh_id = False
 
             if trace_hh_id:
                 filter_targets = tracing.trace_targets(orig)

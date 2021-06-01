@@ -5,16 +5,9 @@ import logging
 import pandas as pd
 import numpy as np
 
-from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-from activitysim.core import simulate
-
-from activitysim.core.util import assign_in_place
-
-from .util import tour_od
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +15,6 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def reassign_tour_purpose_by_poe(
         tours,
-        persons,
-        households,
-        network_los,
         chunk_size,
         trace_hh_id):
 
@@ -61,4 +51,3 @@ def reassign_tour_purpose_by_poe(
     pipeline.replace_table("tours", tours)
 
     return
-    

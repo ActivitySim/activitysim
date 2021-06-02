@@ -36,7 +36,7 @@ Installation
   #Mac
   source activate asimtest
 
-4. Get and install other required libraries on the activated conda Python environment using `pip <https://pypi.org/project/pip>`__:
+4. Get and install other required libraries on the activated conda Python environment using `pip <https://pypi.org/project/pip>`__ or `conda <https://docs.conda.io/>`__.  Conda is preferred but some packages are only on pip.
 
 ::
 
@@ -48,9 +48,12 @@ Installation
   # optional required packages for testing and building documentation
   conda install pytest pytest-cov coveralls pycodestyle pytest-regressions
   conda install sphinx numpydoc sphinx_rtd_theme
-  
-  # optional required packages for example notebooks and estimation integration
-  conda install jupyterlab matplotlib geopandas descartes larch
+
+  # optional required packages for estimation integration
+  conda install larch -c conda-forge
+
+  # optional required packages for example notebooks
+  conda install jupyterlab matplotlib geopandas descartes
 
 5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.
 
@@ -78,6 +81,9 @@ For `pip` for example:
 
   #update to a new release
   pip install -U activitysim
+  
+  #install a specific (older) version
+  pip install activitysim==0.9.5.2
 
 .. note::
 
@@ -137,6 +143,7 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
   * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/>`__
   * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
   * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/adding_tncs.ipynb/>`__
+  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/memory_usage.ipynb/>`__
 
 Hardware
 --------
@@ -152,7 +159,7 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
 data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
-on the amount of RAM and number of processors allocated.
+on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
 
 .. note::
    ActivitySim has been run in the cloud, on both Windows and Linux using

@@ -343,7 +343,7 @@ is the main settings file for the model run.  This file includes:
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`.
+* ``chunk_size`` - approximate amount of RAM for the chooser chunk size in gigabytes for batch processing choosers, see :ref:`chunk_size`.
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
@@ -568,17 +568,12 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 Chunk size
 ^^^^^^^^^^
 
-The ``chunk_size`` is the number of doubles (64-bit numbers) in a chunk of a choosers table.  It is approximately the number
-of rows times the number of columns.  If set to zero, no chunking will be performed.  If there is a chunk size setting,
-dynamic chunking will start out using the estimated number of rows per chunk calculation performed by the various
-submodels but will adjust the number of chooser rows per chunk in light of how much memory is actually
-used by the chunk iteration.  
-
-Dynamic chunking will do its best to adjust chunks to hit the specified chunk size, not the available memory. 
-So if the chunk size setting is too high, it will do its best to adjust the number of rows per chunk to 
-achieve that mark, even if there is not enough RAM to accommodate it.  Therefore, the user needs to set a guestimated 
-chunk_size and adjust it upwards or downwards according to the observed memory footprint activitysim leaves
-relative to the available resources.
+The ``chunk_size`` is the approximate amount of RAM for the chooser chunk size in gigabytes for batch 
+processing choosers across all processes.  It is specified in bytes, for example ``chunk_size: 500_000_000_000`` is 500 GB.
+If set to ``0`` then no chunking will be performed and ActivitySim will attempt to solve all the
+choosers at once across all the processes.  Chunking is required when all the chooser data required
+to process all the choosers cannot fit within the available RAM and so ActivitySim must split the set of choosers into
+batches and then process the batches in sequence.  More information on chunking is at :ref:`chunk_in_detail`.
 
 Logging
 ^^^^^^^
@@ -712,13 +707,17 @@ include the multiprocessing configuration settings as well:
 The multiprocessing example also writes outputs to the output folder.
 
 The default multiprocessed example is configured to run with two processors: ``num_processes: 2``.  Additional more performant configurations are
-included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server
-machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See :ref:`multiprocessing` for more information.
+included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run without chunking 
+on a Windows Server machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See :ref:`multiprocessing` and 
+:ref:`chunk_size` for more information.
 
 ::
 
-  households_sample_size:  0
+  households_sample_size: 0
   num_processes: 24
+  chunk_size: 0
+
+.. _mkl_settings :
 
 .. note::
    Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for
@@ -728,7 +727,7 @@ machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See
    processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
    override the MKL number of threads setting via a system environment variable that is set before running the model.
    In practice, this means before running the model, first set the MKL number of threads variable via the command
-   line as follows: SET MKL_NUM_THREADS=1
+   line as follows: ``SET MKL_NUM_THREADS=1``
 
 
 Outputs

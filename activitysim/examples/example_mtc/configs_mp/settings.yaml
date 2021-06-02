@@ -11,7 +11,7 @@ fail_fast: True
 
 # - full sample - 2875192 households on 64 processor 432 GiB RAM
 #households_sample_size:  0
-#chunk_size:  80000000000
+#chunk_size:  400_000_000_000
 #num_processes: 60
 
 

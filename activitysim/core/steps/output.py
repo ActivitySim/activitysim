@@ -108,7 +108,7 @@ def write_data_dictionary(output_dir):
         logger.warning(f"write_data_dictionary step invoked but neither 'txt_format' nor 'csv_format' specified")
         return
 
-    table_names = pipeline.checkpointed_tables()
+    table_names = pipeline.registered_tables()
 
     # use table_names list from model_settings, if provided
     schema_tables = model_settings.get('tables', None)
@@ -139,7 +139,7 @@ def write_data_dictionary(output_dir):
         for table_name in table_names:
 
             # no change to table in this checkpoint
-            if row[table_name] != checkpoint_name:
+            if row.get(table_name, None) != checkpoint_name:
                 continue
 
             # get the checkpointed version of the table
@@ -243,12 +243,12 @@ def write_tables(output_dir):
     h5_store = output_tables_settings.get('h5_store', False)
     sort = output_tables_settings.get('sort', False)
 
-    checkpointed_tables = pipeline.checkpointed_tables()
+    registered_tables = pipeline.registered_tables()
     if action == 'include':
-        # interpret empty or missing tables setting to mean include all tables
-        output_tables_list = tables if tables is not None else checkpointed_tables
+        # interpret empty or missing tables setting to mean include all registered tables
+        output_tables_list = tables if tables is not None else registered_tables
     elif action == 'skip':
-        output_tables_list = [t for t in checkpointed_tables if t not in tables]
+        output_tables_list = [t for t in registered_tables if t not in tables]
     else:
         raise "expected %s action '%s' to be either 'include' or 'skip'" % \
               (output_tables_settings_name, action)
@@ -258,7 +258,7 @@ def write_tables(output_dir):
         if table_name == 'checkpoints':
             df = pipeline.get_checkpoints()
         else:
-            if table_name not in checkpointed_tables:
+            if table_name not in registered_tables:
                 logger.warning("Skipping '%s': Table not found." % table_name)
                 continue
             df = pipeline.get_table(table_name)

@@ -482,18 +482,10 @@ def apportion_pipeline(sub_proc_names, step_info):
 
     pipeline_file_name = inject.get_injectable('pipeline_file_name')
 
-    # get last checkpoint from first job pipeline
-    pipeline_path = config.build_output_file_path(pipeline_file_name)
-
     # ensure that if we are resuming, we don't apportion any tables from future model steps
-    last_model_in_previous_multiprocess_step = step_info.get('last_model_in_previous_multiprocess_step', None)
-    assert last_model_in_previous_multiprocess_step is not None
-    pipeline.open_pipeline(resume_after=last_model_in_previous_multiprocess_step)
-
-    # adds a checkpoint named multiprocess_step_name with no tables modified
-    # (most importantly, truncates pipeline to last_model_in_previous_multiprocess_step if resuming)
-    checkpoint_name = multiprocess_step_name
-    pipeline.add_checkpoint(checkpoint_name)
+    last_checkpoint_in_previous_multiprocess_step = step_info.get('last_checkpoint_in_previous_multiprocess_step', None)
+    assert last_checkpoint_in_previous_multiprocess_step is not None
+    pipeline.open_pipeline(resume_after=last_checkpoint_in_previous_multiprocess_step)
 
     # ensure all tables are in the pipeline
     checkpointed_tables = pipeline.checkpointed_tables()
@@ -507,6 +499,7 @@ def apportion_pipeline(sub_proc_names, step_info):
     checkpoints_df = checkpoints_df.tail(1).copy()
 
     # load all tables from pipeline
+    checkpoint_name = multiprocess_step_name
     tables = {}
     for table_name in checkpointed_tables:
         # patch last checkpoint name for all tables
@@ -841,6 +834,10 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
         queue.put({'model': model, 'time': time.time()-t1})
 
     tracing.print_elapsed_time("run (%s models)" % len(models), t0)
+
+    # add checkpoint with final tables even if not intermediate checkpointing
+    checkpoint_name = step_info['name']
+    pipeline.add_checkpoint(checkpoint_name)
 
     pipeline.close_pipeline()
 
@@ -1389,6 +1386,12 @@ def run_multiprocess(injectables):
             )
         drop_breadcrumb(step_name, 'coalesce')
 
+    # add checkpoint with final tables even if not intermediate checkpointing
+    if not pipeline.intermediate_checkpoint():
+        pipeline.open_pipeline('_')
+        pipeline.add_checkpoint(pipeline.FINAL_CHECKPOINT_NAME)
+        pipeline.close_pipeline()
+
     mem.log_global_hwm()  # main process
 
 
@@ -1563,6 +1566,9 @@ def get_run_list():
             if name in step_names:
                 raise RuntimeError("duplicate step name %s"
                                    " in multiprocess_steps" % name)
+            if name in models:
+                raise RuntimeError(f"multiprocess_steps step name '{name}' cannot also be a model name")
+
             step_names.add(name)
 
             # - validate num_processes and assign default
@@ -1634,9 +1640,9 @@ def get_run_list():
                                    " falls before that of prior step in models list" %
                                    (start_tag, start, name, istep))
 
-            # remember last_model_in_previous_multiprocess_step for apportion_pipeline
-            multiprocess_steps[istep]['last_model_in_previous_multiprocess_step'] = \
-                models[models.index(start) - 1] if models.index(start) > 0 else None
+            # remember there should always be a final checkpoint with same name as multiprocess_step name
+            multiprocess_steps[istep]['last_checkpoint_in_previous_multiprocess_step'] = \
+                multiprocess_steps[istep - 1].get('name') if istep > 0 else None
 
         # - build individual step model lists based on starts
         starts.append(len(models))  # so last step gets remaining models in list

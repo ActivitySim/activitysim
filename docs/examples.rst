@@ -696,13 +696,23 @@ The multiprocessing example also writes outputs to the output folder.
 The default multiprocessed example is configured to run with two processors and no chunking: ``num_processes: 2`` and a ``chunk_size: 0``.  Additional more performant configurations are
 included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run without chunking 
 on a Windows Server machine with 28 cores and 224GB RAM with the configuration below.  See :ref:`multiprocessing` and 
-:ref:`chunk_size` for more information.  If the machine does not have enough RAM to solve all the choosers at once then chunking needs to be enabled by first training the chunking and then running it in production mode.
+:ref:`chunk_size` for more information.  If the machine does not have enough RAM to solve all the choosers at once then chunking needs to 
+be configured, as discussed below.
 
 ::
 
   households_sample_size: 0
   num_processes: 24
   chunk_size: 0
+
+Configuring chunking
+^^^^^^^^^^^^^^^^^^^^
+
+As described in :ref:`chunk_size`, to configure reasonable chunking behavior, ActivitySim must first be trained with the 
+model setup and machine.  The steps to configure a reasonable chunk size are:
+
+* Run the full scale model with about 1/num_processors households and ``chunk_training_mode: training``.  This will create the ``chunk_cache.csv`` file for reuse.
+* Run the full scale model with ``chunk_training_mode: production`` and the desired ``num_processors`` and ``chunksize``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
 
 Outputs
 ~~~~~~~

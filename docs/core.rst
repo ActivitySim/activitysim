@@ -469,8 +469,8 @@ parameters above, but experimentation with the ActivitySim examples suggests tha
 To configure reasonable chunking behavior, ActivitySim must first be trained with the model setup and machine.  To do so, first
 run the model with ``chunk_training_mode: training``.  This tracks the amount of memory used by each table by submodel and writes the results
 to a cache file that is then re-used for production runs.  This training mode is slower than production mode since it does
-significantly more memory inspection.  For a training mode run, run about ``1/num_processors`` amount of households.  After creating
-the ``chunk_cache.csv`` file, the model can be run with ``chunk_training_mode: production`` and the desired ``num_processors`` and ``chunksize``.
+significantly more memory inspection.  For a training mode run, run about 1/num_processors amount of households.  After creating
+the ``chunk_cache.csv`` file, the model can be run with ``chunk_training_mode: production`` and the desired ``num_processors`` and ``chunk_size``.
 The software trains on the size of problem so the cache file can be re-used and only needs to be updated due to significant revisions in population, 
 expression, or skims/network LOS.  If run in production mode and no cache file is found then ActivitySim falls back to training mode.  Finally, a third
 ``chunk_training_mode`` is adaptive, which if a cache file exists, runs the model with the starting cache settings but also updates the cache settings based 

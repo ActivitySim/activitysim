@@ -41,19 +41,20 @@ Installation
 ::
 
   # required packages for running ActivitySim
-  conda install cytoolz numpy pandas psutil pyarrow numba
-  conda install -c anaconda pytables pyyaml
+  conda install cytoolz numpy pandas psutil pyarrow numba -c conda-forge
+  conda install pytables pyyaml -c conda-forge
   pip install openmatrix zbox requests
 
   # optional required packages for testing and building documentation
-  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions
-  conda install sphinx numpydoc sphinx_rtd_theme
+  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge
+  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge
 
   # optional required packages for estimation integration
   conda install larch -c conda-forge
 
   # optional required packages for example notebooks
-  conda install jupyterlab matplotlib geopandas descartes
+  conda install jupyterlab matplotlib -c conda-forge
+  conda install geopandas descartes -c conda-forge
 
 5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.
 
@@ -165,3 +166,17 @@ on the amount of RAM and number of processors allocated.  See :ref:`multiprocess
    ActivitySim has been run in the cloud, on both Windows and Linux using
    `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations, 
    scripts, and runtimes are in the ``other_resources\example_azure`` folder.
+
+.. _mkl_settings :
+
+MKL Settings
+~~~~~~~~~~~~
+
+Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for
+many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
+in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
+parallel since they are largely independent of one another, it can be advantageous to override threading within
+processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
+override the MKL number of threads setting via a system environment variable that is set before running the model.
+In practice, this means before running the model, first set the MKL number of threads variable via the command
+line as follows: ``SET MKL_NUM_THREADS=1``

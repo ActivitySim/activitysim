@@ -413,24 +413,26 @@ Cache API
 Helpers
 -------
 
+.. index:: chunk_size
+.. _chunk_size:
 .. _chunk_in_detail:
 
 Chunk
 ~~~~~
 
-The ``chunk_size`` is the approximate amount of RAM for the chooser chunk size in gigabytes for batch 
-processing choosers across all processes.  It is specified in bytes, for example ``chunk_size: 500_000_000_000`` is 500 GB.
-If set to ``0`` then no chunking will be performed and ActivitySim will attempt to solve all the
-choosers at once across all the processes.  Chunking is required when all the chooser data required
-to process all the choosers cannot fit within the available RAM and so ActivitySim must split the set of choosers into
-batches and then process the batches in sequence.  
-
+Chunking management.
 
 .. note::
    The definition of chunk_size has changed from previous versions of ActivitySim.  The revised definition 
    of chunk_size simplifies model setup since it is the approximate amount of RAM available to
    ActivitySim as opposed to the obscure number of doubles (64-bit numbers) in a chunk of a choosers table.
 
+The ``chunk_size`` is the approximate amount of RAM in gigabytes to allocate to ActivitySim for batch 
+processing choosers across all processes.  It is specified in bytes, for example ``chunk_size: 500_000_000_000`` is 500 GB.
+If set to 0 then no chunking will be performed and ActivitySim will attempt to solve all the
+choosers at once across all the processes.  Chunking is required when all the chooser data required
+to process all the choosers cannot fit within the available RAM and so ActivitySim must split the set of choosers into
+batches and then process the batches in sequence.  
 
 Configuration of the ``chunk_size`` depends on several parameters:
 
@@ -440,7 +442,7 @@ Configuration of the ``chunk_size`` depends on several parameters:
 * The amount of headroom required for shared data across processes, such as the skims/network LOS data
 * The desired runtimes
 
-A simple example helps illustrate configuration of the ``chunk_size``.  If the example model has 1 million households and the
+An example helps illustrate configuration of the ``chunk_size``.  If the example model has 1 million households and the
 current submodel is auto ownership, then there are 1 million choosers since every household participates in the auto
 ownership model.  In single process mode, ActivitySim would create one chooser table with 1 million rows, assuming this table
 and the additional extra data such as the skims can fit within the available memory (RAM).  If the 1 million row table cannot fit
@@ -484,7 +486,7 @@ The following ``chunk_methods`` are supported to calculate memory overhead when 
 Target is based on USS (Unique Set Size) as reported by psutil.memory_full_info.  USS is the memory which is private to 
 a process and which would be freed if the process were terminated.  This is the metric that most closely matches the rather 
 vague notion of memory "in use" (the meaning of which is difficult to pin down in operating systems with virtual memory 
-where memory can (but sometimes can't) be swapped or mapped to disk.  ``hybrid_uss`` appears to perform best and is therefore the default.
+where memory can (but sometimes can't) be swapped or mapped to disk.  ``hybrid_uss`` perform best and is therefore the default.
 
 Additional chunking settings:
 

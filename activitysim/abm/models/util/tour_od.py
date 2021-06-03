@@ -13,6 +13,7 @@ from activitysim.core import inject
 from activitysim.core import logit
 from activitysim.core import orca
 from activitysim.core import los
+from activitysim.core import expressions
 
 from activitysim.core.util import reindex
 
@@ -994,7 +995,6 @@ def run_tour_od(
             expressions.assign_columns(
                 df=choosers,
                 model_settings=preprocessor_settings,
-                locals_dict=locals_dict,
                 trace_label=trace_label)
 
         # size_term segment is segment_name

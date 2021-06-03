@@ -694,6 +694,7 @@ class MazSkimDict(SkimDict):
             # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
 
             if key in self.base_keys:
+
                 # replace nan values using simple backstop without blending
                 backstop_values = super().lookup(orig, dest, key)
                 values = np.where(is_nan, backstop_values, values)

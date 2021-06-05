@@ -98,7 +98,7 @@ typically does the following:
   * gets the relevant input data tables from ORCA
   * gets all required settings, config files, etc.
   * runs a data preprocessor on each input table that needs additional fields for the calculation
-  * solves the model in chunks of data table rows
+  * solves the model in chunks of data table rows if needed
   * runs a data postprocessor on the output table data that needs additional fields for later models
   * writes the resulting table data to the pipeline
 

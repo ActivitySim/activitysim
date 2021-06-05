@@ -301,7 +301,7 @@ In order to run example_mtc, you first need the input files in the ``data`` fold
 
 * taz_skims: skims.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).
 
-These files are used in the tests as well and are in the ``activitysim\abm\test\data`` folder.  The full set
+These files are used in the tests as well.  The full set
 of MTC TM1 households, persons, and OMX skims are on the ActivitySim `resources repository <https://github.com/rsginc/activitysim_resources>`__.
 
 .. note::
@@ -339,11 +339,13 @@ is the main settings file for the model run.  This file includes:
     * ``keep_columns`` - columns to keep once read in to memory to save on memory needs and file I/O
     * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
 
-* ``create_input_store`` - write new 'input_data.h5' file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
+* ``create_input_store`` - write new `input_data.h5` file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_size`` - batch size for processing choosers, see :ref:`chunk_size`.
+* ``chunk_size`` - approximate amount of RAM in gigabytes to allocate to ActivitySim for batch processing choosers, see :ref:`chunk_size`.
+* ``chunk_training_mode`` - training or production, see :ref:`chunk_size`.
+* ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
@@ -378,7 +380,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the example_mtc are below.  The
-:ref:`example_arc` example added some additional submodels and files as well.
+:ref:`example_arc` example and :ref:`example_semcog` example added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -562,33 +564,16 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 |                                                |  - write_trip_matrices_annotate_trips_preprocessor.csv             |
 +------------------------------------------------+--------------------------------------------------------------------+
 
-.. index:: chunk_size
-.. _chunk_size:
-
-Chunk size
-^^^^^^^^^^
-
-The ``chunk_size`` is the number of doubles (64-bit numbers) in a chunk of a choosers table.  It is approximately the number
-of rows times the number of columns.  If set to zero, no chunking will be performed.  If there is a chunk size setting,
-dynamic chunking will start out using the estimated number of rows per chunk calculation performed by the various
-submodels but will adjust the number of chooser rows per chunk in light of how much memory is actually
-used by the chunk iteration.  
-
-Dynamic chunking will do its best to adjust chunks to hit the specified chunk size, not the available memory. 
-So if the chunk size setting is too high, it will do its best to adjust the number of rows per chunk to 
-achieve that mark, even if there is not enough RAM to accommodate it.  Therefore, the user needs to set a guestimated 
-chunk_size and adjust it upwards or downwards according to the observed memory footprint activitysim leaves
-relative to the available resources.
-
 Logging
 ^^^^^^^
 
 Included in the ``configs`` folder is the ``logging.yaml``, which configures Python logging
-library and defines two key log files:
+library.  The following key log files are created with a model run:
 
 * ``activitysim.log`` - overall system log file
 * ``hhtrace.log`` - household trace log file if tracing active
 * ``timing_log.txt`` - submodel step runtimes
+* ``omnibus_mem.csv`` - submodel memory usage
 
 Refer to the :ref:`tracing` section for more detail on tracing.
 
@@ -651,9 +636,6 @@ The model is run by calling the :func:`activitysim.core.pipeline.run` method.
 
   pipeline.run(models=_MODELS, resume_after=resume_after)
 
-.. note::
-   Users can skip persisting tables to the pipeline data store on disk by adding an underscore prefix to the models in the 
-   models list in the settings file: _school_location instead of school_location.  This will cut down on the disk writes.
 
 .. _example_run :
 
@@ -711,25 +693,26 @@ include the multiprocessing configuration settings as well:
 
 The multiprocessing example also writes outputs to the output folder.
 
-The default multiprocessed example is configured to run with two processors: ``num_processes: 2``.  Additional more performant configurations are
-included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server
-machine with 28 cores @ 2.56GHz and 224GB RAM with the configuration below.  See :ref:`multiprocessing` for more information.
+The default multiprocessed example is configured to run with two processors and no chunking: ``num_processes: 2`` and a ``chunk_size: 0``.  Additional more performant configurations are
+included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run without chunking 
+on a Windows Server machine with 28 cores and 224GB RAM with the configuration below.  See :ref:`multiprocessing` and 
+:ref:`chunk_size` for more information.  If the machine does not have enough RAM to solve all the choosers at once then chunking needs to 
+be configured, as discussed below.
 
 ::
 
-  households_sample_size:  0
+  households_sample_size: 0
   num_processes: 24
+  chunk_size: 0
 
-.. note::
-   Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for
-   many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
-   in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
-   parallel since they are largely independent of one another, it can be advantageous to override threading within
-   processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
-   override the MKL number of threads setting via a system environment variable that is set before running the model.
-   In practice, this means before running the model, first set the MKL number of threads variable via the command
-   line as follows: SET MKL_NUM_THREADS=1
+Configuring chunking
+^^^^^^^^^^^^^^^^^^^^
 
+As described in :ref:`chunk_size`, to configure reasonable chunking behavior, ActivitySim must first be trained with the 
+model setup and machine.  The steps to configure a reasonable chunk size are:
+
+* Run the full scale model with about 1/num_processors households and ``chunk_training_mode: training``.  This will create the ``chunk_cache.csv`` file for reuse.
+* Run the full scale model with ``chunk_training_mode: production`` and the desired ``num_processors`` and ``chunksize``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
 
 Outputs
 ~~~~~~~

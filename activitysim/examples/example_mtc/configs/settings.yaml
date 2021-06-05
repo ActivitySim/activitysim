@@ -122,13 +122,6 @@ log_alt_losers: True
 
 # chooser chunk size in gigabytes
 # target top memory usage during activitysim run (including shared memory, loaded tables, and transient memory usage)
-# target is based on USS (Unique Set Size) as reported by psutil.memory_full_info
-# USS is the memory which is private to a process and which would be freed if the process were terminated
-# This is the metric that most closely matches the rather vague notion of memory "in use" (the meaning of which
-# is difficult to pin down in operating systems with virtual memory where memory can (but sometimes can't) be swapped
-# or mapped to disk.
-#
-# (might want to rename this - see development note below)
 #chunk_size: 12_000_000_000
 chunk_size: 0
 
@@ -137,47 +130,22 @@ min_available_chunk_ratio: 0.05
 
 # initial number of chooser rows for first chunk in training mode
 # when there is no pre-existing chunk_cache to set initial value
-# ordinarily bigger is better as long as it is not so big it causes emory issues (e.g. accessibility with lots of zones)
+# ordinarily bigger is better as long as it is not so big it causes memory issues (e.g. accessibility with lots of zones)
 default_initial_rows_per_chunk: 500
 
 # method to calculate memory overhead when chunking is enabled (chunk_size > 0)
 chunk_method: hybrid_uss
-# The following chunk_methods are supported
-#
-# bytes
-#   expected rowsize based on actual size (as reported by numpy and pandas) of explicitly allocated data
-#   this can underestimate overhead due to transient data requirements of operations (e.g. merge, sort, transpose)
-#
-#   uss
-# expected rowsize based on change in uss both as a result of explicit data allocation, and
-# readings by MemMonitor sniffer thread that measures transient uss during time-consuming numpy and pandas operations
-#
-#   hybrid_uss
-# hybrid_uss avoids problems with pure uss, especially with small chunk sizes (e.g. initial training chunks)
-# as numpy may recycle cached blocks and show no increase in uss even though data was allocated and logged
-#
-# note: there are two others implemented (rss and hybrid_rss) but they are deprecated due to potential volatility
-# (but they are not very well explored, possibly misunderstood, and might be tamed with kindness and compassion)
 
-# training - force training
+# chunk training mode
+# training to determine the chunking settings written to a cache file that is re-used for production runs
+# training
 # production
-# default is adaptive if cache exists
-# NOTE: chunk_cache not overwritten in cache directory if resume_after (because incomplete)
 chunk_training_mode: training
 
 # whether to preserve or delete subprocess chunk and mem logs when they are consolidated at end of multiprocess run
 keep_chunk_logs: True
 keep_mem_logs: True
 
-# development issues:
-#
-# not sure we need to expose any method other than hybrid_uss (the default)
-#
-# not sure we need to expose keep_chunk_logs of keep_mem_logs (but not sure what the default should be)
-#
-# maybe we should rename chunk_size to something more accurate
-# and detect deprecate, and perhaps convert legacy chunk_size settings to the new method
-#
 ##############
 
 # - tracing

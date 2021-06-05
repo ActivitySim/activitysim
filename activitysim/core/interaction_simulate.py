@@ -20,13 +20,16 @@ logger = logging.getLogger(__name__)
 
 DUMP = False
 
+ALT_CHOOSER_ID = '_chooser_id'
+ALT_LOSER_UTIL = -900
 
-def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, estimator=None):
+
+def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, estimator=None, log_alt_losers=False):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
 
     We could compute the utilities for interaction datasets just as we do for simple_simulate
-    specs with multiple alternative columns byt calling eval_variables and then computing the
+    specs with multiple alternative columns by calling eval_variables and then computing the
     utilities by matrix-multiplication of eval results with the utility coefficients in the
     spec alternative columns.
 
@@ -110,6 +113,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
             # estimation requires that chooser_id is either in index or a column of interaction_dataset
             # so it can be reformatted (melted) and indexed by chooser_id and alt_id
             # we assume caller has this under control if index is named
+            #bug - location choice has df index_name zone_id but should be person_id????
             if df.index.name is None:
                 chooser_id = estimator.get_chooser_id()
                 assert chooser_id in df.columns, \
@@ -150,8 +154,6 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                 else:
                     v = df.eval(expr)
 
-                # chunk.log_df(trace_label, 'v', v)
-
                 if check_for_variability and v.std() == 0:
                     logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
                     no_variability += 1
@@ -167,7 +169,27 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                     expression_values_df.insert(loc=len(expression_values_df.columns), column=label,
                                                 value=v.values if isinstance(v, pd.Series) else v)
 
-                utilities.utility += (v * coefficient).astype('float')
+                utility = (v * coefficient).astype('float')
+
+                if log_alt_losers:
+
+                    assert ALT_CHOOSER_ID in df
+                    max_utils_by_chooser = utility.groupby(df[ALT_CHOOSER_ID]).max()
+
+                    if (max_utils_by_chooser < ALT_LOSER_UTIL).any():
+
+                        losers = max_utils_by_chooser[max_utils_by_chooser < ALT_LOSER_UTIL]
+                        logger.warning(f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
+                                       f"with prohibitive utilities for all alternatives for expression: {expr}")
+
+                        # loser_df = df[df[ALT_CHOOSER_ID].isin(losers.index)]
+                        # print(f"\nloser_df\n{loser_df}\n")
+                        # print(f"\nloser_max_utils_by_chooser\n{losers}\n")
+                        # bug
+
+                    del max_utils_by_chooser
+
+                utilities.utility += utility
 
                 if trace_eval_results is not None:
 
@@ -219,6 +241,7 @@ def _interaction_simulate(
         choosers, alternatives, spec,
         skims=None, locals_d=None, sample_size=None,
         trace_label=None, trace_choice_name=None,
+        log_alt_losers=False,
         estimator=None):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -296,7 +319,10 @@ def _interaction_simulate(
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     alt_index_id = estimator.get_alt_id() if estimator else None
-    interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size, alt_index_id)
+    chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
+
+    interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size,
+                                               alt_index_id=alt_index_id, chooser_index_id=chooser_index_id)
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if skims is not None:
@@ -318,7 +344,9 @@ def _interaction_simulate(
         trace_rows = trace_ids = None
 
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
+        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
+                                     estimator=estimator,
+                                     log_alt_losers=log_alt_losers)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
     # print(f"interaction_df {interaction_df.shape}")
@@ -391,6 +419,7 @@ def _interaction_simulate(
 
 def interaction_simulate(
         choosers, alternatives, spec,
+        log_alt_losers=False,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None,
         estimator=None):
@@ -453,10 +482,13 @@ def interaction_simulate(
             in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
-                                        skims, locals_d, sample_size,
-                                        chunk_trace_label,
-                                        trace_choice_name,
-                                        estimator)
+                                        skims=skims,
+                                        locals_d=locals_d,
+                                        sample_size=sample_size,
+                                        trace_label=chunk_trace_label,
+                                        trace_choice_name=trace_choice_name,
+                                        log_alt_losers=log_alt_losers,
+                                        estimator=estimator)
 
         result_list.append(choices)
 

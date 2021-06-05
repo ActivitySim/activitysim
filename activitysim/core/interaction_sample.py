@@ -14,7 +14,7 @@ from . import chunk
 from .simulate import set_skim_wrapper_targets
 
 
-from .interaction_simulate import eval_interaction_utilities
+from . import interaction_simulate
 from . import pipeline
 
 logger = logging.getLogger(__name__)
@@ -156,8 +156,11 @@ def make_sample_choices(
 
 def _interaction_sample(
         choosers, alternatives,
-        spec, sample_size, alt_col_name, allow_zero_probs,
-        skims=None, locals_d=None,
+        spec, sample_size, alt_col_name,
+        allow_zero_probs=False,
+        log_alt_losers=False,
+        skims=None,
+        locals_d=None,
         trace_label=None):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -233,12 +236,15 @@ def _interaction_sample(
         alternatives = alternatives.copy()
         alternatives[alternatives.index.name] = alternatives.index
 
+    chooser_index_id = interaction_simulate.ALT_CHOOSER_ID if log_alt_losers else None
+
     # - cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     alternative_count = alternatives.shape[0]
     interaction_df = \
-        logit.interaction_dataset(choosers, alternatives, sample_size=alternative_count)
+        logit.interaction_dataset(choosers, alternatives, sample_size=alternative_count,
+                                  chooser_index_id=chooser_index_id)
 
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
@@ -264,10 +270,12 @@ def _interaction_sample(
 
     # interaction_utilities is a df with one utility column and one row per interaction_df row
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows)
+        = interaction_simulate.eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
+                                                          estimator=None,
+                                                          log_alt_losers=log_alt_losers)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
-    # ########### HWM ############
+    # ########### HWM - high water mark (point of max observed memory usage)
 
     del interaction_df
     chunk.log_df(trace_label, 'interaction_df', None)
@@ -381,7 +389,9 @@ def _interaction_sample(
 
 def interaction_sample(
         choosers, alternatives, spec, sample_size,
-        alt_col_name, allow_zero_probs=False,
+        alt_col_name,
+        allow_zero_probs=False,
+        log_alt_losers=False,
         skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
         trace_label=None):
 
@@ -457,9 +467,14 @@ def interaction_sample(
             in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag):
 
         choices = _interaction_sample(chooser_chunk, alternatives,
-                                      spec, sample_size, alt_col_name, allow_zero_probs,
-                                      skims, locals_d,
-                                      chunk_trace_label)
+                                      spec=spec,
+                                      sample_size=sample_size,
+                                      alt_col_name=alt_col_name,
+                                      allow_zero_probs=allow_zero_probs,
+                                      log_alt_losers=log_alt_losers,
+                                      skims=skims,
+                                      locals_d=locals_d,
+                                      trace_label=chunk_trace_label)
 
         if choices.shape[0] > 0:
             # might not be any if allow_zero_probs

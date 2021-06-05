@@ -13,7 +13,7 @@ from activitysim.core import simulate
 from activitysim.core import tracing
 
 from activitysim.abm.models.util.trip import get_time_windows
-from activitysim.core.interaction_sample_simulate import eval_interaction_utilities
+from activitysim.core import interaction_simulate
 from activitysim.core.simulate import set_skim_wrapper_targets
 from activitysim.core.util import reindex
 
@@ -190,7 +190,8 @@ def choose_tour_leg_pattern(trip_segment,
         trace_rows = trace_ids = None
 
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, None, trace_label, trace_rows, None)
+        = interaction_simulate.eval_interaction_utilities(spec, interaction_df, None, trace_label, trace_rows,
+                                                          estimator=None)
 
     interaction_utilities = pd.concat([interaction_df[STOP_TIME_DURATION], interaction_utilities], axis=1)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)

@@ -10,7 +10,7 @@ from . import tracing
 from . import chunk
 from .simulate import set_skim_wrapper_targets
 
-from .interaction_simulate import eval_interaction_utilities
+from . import interaction_simulate
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def _interaction_sample_simulate(
         choosers, alternatives, spec,
         choice_column,
-        allow_zero_probs, zero_prob_choice_val,
+        allow_zero_probs, zero_prob_choice_val, log_alt_losers,
         want_logsums,
         skims, locals_d,
         trace_label, trace_choice_name,
@@ -117,6 +117,11 @@ def _interaction_sample_simulate(
 
     interaction_df = alternatives.join(choosers, how='left', rsuffix='_chooser')
 
+    if log_alt_losers:
+        # logit.interaction_dataset adds ALT_CHOOSER_ID column if log_alt_losers is True
+        # to enable detection of zero_prob-driving utils (e.g. -999 for all alts in a chooser)
+        interaction_df[interaction_simulate.ALT_CHOOSER_ID] = interaction_df.index.values
+
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if have_trace_targets:
@@ -137,7 +142,8 @@ def _interaction_sample_simulate(
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in alternative
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
+        = interaction_simulate.eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
+                                                          estimator=estimator, log_alt_losers=log_alt_losers)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
     del interaction_df
@@ -206,7 +212,7 @@ def _interaction_sample_simulate(
     chunk.log_df(trace_label, 'probs', probs)
 
     if want_logsums:
-        logsums = logit.utils_to_logsums(utilities_df)
+        logsums = logit.utils_to_logsums(utilities_df, allow_zero_probs=allow_zero_probs)
         chunk.log_df(trace_label, 'logsums', logsums)
 
     del utilities_df
@@ -277,6 +283,7 @@ def _interaction_sample_simulate(
 def interaction_sample_simulate(
         choosers, alternatives, spec, choice_column,
         allow_zero_probs=False, zero_prob_choice_val=None,
+        log_alt_losers=False,
         want_logsums=False,
         skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
         trace_label=None, trace_choice_name=None,
@@ -346,7 +353,8 @@ def interaction_sample_simulate(
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
-            allow_zero_probs, zero_prob_choice_val, want_logsums,
+            allow_zero_probs, zero_prob_choice_val, log_alt_losers,
+            want_logsums,
             skims, locals_d,
             chunk_trace_label, trace_choice_name,
             estimator)

@@ -24,7 +24,7 @@ they are initially loaded in.
 The main interface to the initialize land use step is the :py:func:`~activitysim.abm.models.initialize.initialize_landuse` 
 function. The main interface to the initialize household step is the :py:func:`~activitysim.abm.models.initialize.initialize_households` 
 function.  The main interface to the initialize tours step is the :py:func:`~activitysim.abm.models.initialize_tours.initialize_tours` 
-function.  These functions are registered as orca steps in the example Pipeline.
+function.  These functions are registered as Inject steps in the example Pipeline.
 
 .. automodule:: activitysim.abm.models.initialize
    :members:
@@ -46,7 +46,7 @@ The initialize LOS model does two things:
 
 The main interface to the initialize LOS step is the :py:func:`~activitysim.abm.models.initialize_los.initialize_los` 
 function.  The main interface to the initialize TVPB step is the :py:func:`~activitysim.abm.models.initialize_los.initialize_tvpb` 
-function.  These functions are registered as orca steps in the example Pipeline.
+function.  These functions are registered as Inject steps in the example Pipeline.
 
 .. automodule:: activitysim.abm.models.initialize_los
    :members:
@@ -90,7 +90,7 @@ midday period (10 am to 3 pm), and the PM peak period (3 pm to 7 pm).
 
 The main interface to the accessibility model is the 
 :py:func:`~activitysim.abm.models.accessibility.compute_accessibility` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O``
 
@@ -122,7 +122,7 @@ The school location model is made up of four steps:
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`. 
 
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.school_location` function.  
-This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
+This function is registered as an Inject step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
 
 Core Table: ``persons`` | Result Field: ``school_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, MD time period``
 
@@ -146,7 +146,7 @@ The work location model is made up of four steps:
 These steps are repeated until shadow pricing convergence criteria are satisfied or a max number of iterations is reached.  See :ref:`shadow_pricing`.
 
 The main interfaces to the model is the :py:func:`~activitysim.abm.models.location_choice.workplace_location` function.  
-This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
+This function is registered as an Inject step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation.  
 
 Core Table: ``persons`` | Result Field: ``workplace_taz`` | Skims Keys: ``TAZ, alt_dest, AM time period, PM time period``
 
@@ -176,7 +176,7 @@ The primary model components are household demographics, zonal density, and acce
 
 The main interface to the auto ownership model is the 
 :py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
 
@@ -196,7 +196,7 @@ reflect the cost of driving to work in subsequent models, particularly in mode c
 
 The main interface to the free parking eligibility model is the 
 :py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered 
-as an orca step in the example Pipeline.
+as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
 
@@ -220,7 +220,7 @@ calculated usual work location field since it is no longer valid.
 
 The main interface to the work from home model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
-function is registered as an orca step in the example Pipeline.
+function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
 
@@ -242,7 +242,7 @@ days per week (0 days, 1 day, 2 to 3 days, 4+ days).
 
 The main interface to the work from home model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.telecommute_frequency` function.  This 
-function is registered as an orca step in the example Pipeline.
+function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: NA
 
@@ -261,7 +261,7 @@ alternatives: fully subsidized, partially subsidized, yes but not subsidized, an
 
 The main interface to the work from home model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This 
-function is registered as an orca step in the example Pipeline.
+function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
 
@@ -291,9 +291,9 @@ The CDAP model is a sequence of vectorized table operations:
 * repeat for households size 2, 3, 4, and 5. Each model is independent of one another.
 
 The main interface to the CDAP model is the :py:func:`~activitysim.abm.models.util.cdap.run_cdap` 
-function.  This function is called by the orca step ``cdap_simulate`` which is 
-registered as an orca step in the example Pipeline.  There are two cdap class definitions in
-ActivitySim.  The first is at :py:func:`~activitysim.abm.models.cdap` and contains the orca 
+function.  This function is called by the Inject step ``cdap_simulate`` which is 
+registered as an Inject step in the example Pipeline.  There are two cdap class definitions in
+ActivitySim.  The first is at :py:func:`~activitysim.abm.models.cdap` and contains the Inject 
 wrapper for running it as part of the model pipeline.  The second is 
 at :py:func:`~activitysim.abm.models.util.cdap` and contains CDAP model logic.
 
@@ -316,7 +316,7 @@ automobile ownership.  It also creates mandatory tours in the data pipeline.
 
 The main interface to the mandatory tour purpose frequency model is the 
 :py:func:`~activitysim.abm.models.mandatory_tour_frequency.mandatory_tour_frequency` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Fields: ``mandatory_tour_frequency`` | Skims Keys: NA
 
@@ -347,7 +347,7 @@ significant runtime.
 
 The main interface to the mandatory tour purpose scheduling model is the 
 :py:func:`~activitysim.abm.models.mandatory_scheduling.mandatory_tour_scheduling` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``TAZ, workplace_taz, school_taz, start, end``
 
@@ -368,7 +368,7 @@ travel tours.  It also creates joints tours in the data pipeline.
 
 The main interface to the joint tour purpose frequency model is the 
 :py:func:`~activitysim.abm.models.joint_tour_frequency.joint_tour_frequency` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``households`` | Result Fields: ``num_hh_joint_tours`` | Skims Keys: NA
 
@@ -390,7 +390,7 @@ for each purpose while permitting simplicity in the subsequent person participat
 
 The main interface to the joint tour composition model is the 
 :py:func:`~activitysim.abm.models.joint_tour_composition.joint_tour_composition` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Fields: ``composition`` | Skims Keys: NA
 
@@ -418,7 +418,7 @@ person ids for each person on the tour.
 
 The main interface to the joint tour participation model is the 
 :py:func:`~activitysim.abm.models.joint_tour_participation.joint_tour_participation` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Fields: ``number_of_participants, person_id (for the point person)`` | Skims Keys: NA
 
@@ -454,7 +454,7 @@ The joint tour destination choice model is made up of three model steps:
   * simulate - starts with the table created above and chooses a final location, this time with the mode choice logsum included.
 
 The main interface to the model is the :py:func:`~activitysim.abm.models.joint_tour_destination.joint_tour_destination`
-function.  This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how 
+function.  This function is registered as an Inject step in the example Pipeline.  See :ref:`writing_logsums` for how 
 to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Fields: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period``
@@ -477,7 +477,7 @@ The joint tour scheduling model does not use mode choice logsums.
 
 The main interface to the joint tour purpose scheduling model is the 
 :py:func:`~activitysim.abm.models.joint_tour_scheduling.joint_tour_scheduling` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: `` TAZ, destination, MD time period, MD time period``
 
@@ -500,7 +500,7 @@ operates in two stages:
 
 The main interface to the non-mandatory tour purpose frequency model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_tour_frequency.non_mandatory_tour_frequency` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Fields: ``non_mandatory_tour_frequency`` | Skims Keys: NA
 
@@ -519,7 +519,7 @@ mandatory tour destination choice is used for non-mandatory tour destination cho
 
 The main interface to the non-mandatory tour destination choice model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_destination.non_mandatory_tour_destination` 
-function.  This function is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` 
+function.  This function is registered as an Inject step in the example Pipeline.  See :ref:`writing_logsums` 
 for how to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Field: ``destination`` | Skims Keys: ``TAZ, alt_dest, MD time period, MD time period``
@@ -540,7 +540,7 @@ for :ref:`representative_logsums`.
 
 The main interface to the non-mandatory tour purpose scheduling model is the 
 :py:func:`~activitysim.abm.models.non_mandatory_scheduling.non_mandatory_tour_scheduling` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``TAZ, destination, MD time period, MD time period``
 
@@ -582,7 +582,7 @@ ownership.
 
 The main interface to the mandatory, non-mandatory, and joint tour mode model is the 
 :py:func:`~activitysim.abm.models.tour_mode_choice.tour_mode_choice_simulate` function.  This function is 
-called in the orca step ``tour_mode_choice_simulate`` and is registered as an orca step in the example Pipeline.
+called in the Inject step ``tour_mode_choice_simulate`` and is registered as an Inject step in the example Pipeline.
 See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``tours`` | Result Field: ``mode`` | Skims Keys: ``TAZ, destination, start, end``
@@ -610,7 +610,7 @@ Outputs: work tour subtour frequency choice, at-work tours table (with only tour
 
 The main interface to the at-work subtours frequency model is the 
 :py:func:`~activitysim.abm.models.atwork_subtour_frequency.atwork_subtour_frequency` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``atwork_subtour_frequency`` | Skims Keys: NA
 
@@ -633,7 +633,7 @@ Core Table: ``tours`` | Result Table: ``destination`` | Skims Keys: ``workplace_
 
 The main interface to the at-work subtour destination model is the 
 :py:func:`~activitysim.abm.models.atwork_subtour_destination.atwork_subtour_destination` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 .. automodule:: activitysim.abm.models.atwork_subtour_destination
@@ -659,7 +659,7 @@ Outputs: at-work tour departure time and arrival back at origin time, updated pe
 
 The main interface to the at-work subtours scheduling model is the 
 :py:func:`~activitysim.abm.models.atwork_subtour_scheduling.atwork_subtour_scheduling` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``workplace_taz, alt_dest, MD time period, MD time period``
 
@@ -676,8 +676,8 @@ The at-work subtour mode choice model assigns a travel mode to each at-work subt
 
 The main interface to the at-work subtour mode choice model is the 
 :py:func:`~activitysim.abm.models.atwork_subtour_mode_choice.atwork_subtour_mode_choice`
-function.  This function is called in the orca step ``atwork_subtour_mode_choice`` and
-is registered as an orca step in the example Pipeline.  
+function.  This function is called in the Inject step ``atwork_subtour_mode_choice`` and
+is registered as an Inject step in the example Pipeline.  
 See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``tour`` | Result Field: ``tour_mode`` | Skims Keys: ``workplace_taz, destination, start, end``
@@ -710,7 +710,7 @@ This model also creates a trips table in the pipeline for later models.
 
 The main interface to the intermediate stop frequency model is the 
 :py:func:`~activitysim.abm.models.stop_frequency.stop_frequency` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``stop_frequency`` | Skims Keys: NA
 
@@ -730,7 +730,7 @@ direction and person type. Work tours are also segmented by departure or arrival
 
 The main interface to the trip purpose model is the 
 :py:func:`~activitysim.abm.models.trip_purpose.trip_purpose` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``trips`` | Result Field: ``purpose`` | Skims Keys: NA
 
@@ -774,7 +774,7 @@ impedance between the first stop on the return leg and the tour origin, and so o
 
 The main interface to the trip destination choice model is the 
 :py:func:`~activitysim.abm.models.trip_destination.trip_destination` function.  
-This function is registered as an orca step in the example Pipeline.
+This function is registered as an Inject step in the example Pipeline.
 See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``trips`` | Result Field: ``(trip) destination`` | Skims Keys: ``origin, (tour primary) destination, dest_taz, trip_period``
@@ -796,7 +796,7 @@ the remaining failed trips (i.e. trips that cannot be assigned a destination).  
 
 The main interface to the trip purpose model is the 
 :py:func:`~activitysim.abm.models.trip_purpose_and_destination.trip_purpose_and_destination` 
-function.  This function is registered as an orca step in the example Pipeline.
+function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``trips`` | Result Field: ``purpose, destination`` | Skims Keys: ``origin, (tour primary) destination, dest_taz, trip_period``
 
@@ -829,7 +829,7 @@ work tours, the available time periods is constrained by the at-work subtour sta
 
 The main interface to the trip scheduling model is the 
 :py:func:`~activitysim.abm.models.trip_scheduling.trip_scheduling` function.  
-This function is registered as an orca step in the example Pipeline.
+This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``trips`` | Result Field: ``depart`` | Skims Keys: NA
 
@@ -901,7 +901,7 @@ variables, and alternative-specific constants segmented by tour mode.
 
 The main interface to the trip mode choice model is the 
 :py:func:`~activitysim.abm.models.trip_mode_choice.trip_mode_choice` function.  This function 
-is registered as an orca step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation. 
+is registered as an Inject step in the example Pipeline.  See :ref:`writing_logsums` for how to write logsums for estimation. 
 
 Core Table: ``trips`` | Result Field: ``trip_mode`` | Skims Keys: ``origin, destination, trip_period``
 
@@ -926,7 +926,7 @@ choice results to build trip tables in lieu of the trip destination.
 
 The main interface to the trip mode choice model is the
 :py:func:`~activitysim.abm.models.parking_location_choice.parking_location_choice` function.  This function
-is registered as an orca step, and it is available from the pipeline.  See :ref:`writing_logsums` for how to write
+is registered as an Inject step, and it is available from the pipeline.  See :ref:`writing_logsums` for how to write
 logsums for estimation.
 
 **Skims**
@@ -981,7 +981,7 @@ to code additional data fields, with one data fields for each matrix specified. 
 household level expansion factor, which is the household sample rate by default, which is calculated when
 households are read in at the beginning of a model run.  The main interface to write trip
 matrices is the :py:func:`~activitysim.abm.models.trip_matrices.write_trip_matrices` function.  This function 
-is registered as an orca step in the example Pipeline.
+is registered as an Inject step in the example Pipeline.
 
 If the `Parking Location Choice`_ model is defined in the pipeline, the parking location zone will be used in
 lieu of the destination zone.

@@ -69,7 +69,7 @@ API
 Pipeline
 ~~~~~~~~
 
-Data pipeline manager, which manages the list of model steps, runs them via orca, reads 
+Data pipeline manager, which manages the list of model steps, runs them, reads 
 and writes data tables from/to the pipeline datastore, and supports restarting of the pipeline
 at any model step.
 
@@ -529,7 +529,7 @@ API
 Inject
 ~~~~~~
 
-Wrap ORCA class to make it easier to track and manage interaction with the data pipeline.
+Model orchestration and data pipeline interaction.
 
 API
 ^^^

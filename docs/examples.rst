@@ -621,7 +621,7 @@ The ``models`` setting contains the specification of the data pipeline model ste
     - write_trip_matrices
     - write_tables
 
-These model steps must be registered orca steps, as noted below.  If you provide a ``resume_after``
+These model steps must be registered Inject steps, as noted below.  If you provide a ``resume_after``
 argument to :func:`activitysim.core.pipeline.run` the pipeliner will load checkpointed tables from the checkpoint store
 and resume pipeline processing on the next model step after the specified checkpoint.
 
@@ -1148,6 +1148,8 @@ To run example_marin, do the following:
   # Marin TM2 work tour mode choice for the MTC region
   activitysim run -c configs -d data -o output -s settings_mp.yaml
 
+* For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+
 
 Settings
 ~~~~~~~~
@@ -1198,7 +1200,7 @@ Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_arc.
+for running example_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _example_semcog :
 
@@ -1234,7 +1236,7 @@ Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_semcog.
+for running example_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
 .. _example_psrc :
@@ -1249,7 +1251,7 @@ Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_psrc.
+for running example_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _example_sandag :
 
@@ -1263,4 +1265,4 @@ Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_sandag.
+for running example_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

@@ -347,6 +347,7 @@ is the main settings file for the model run.  This file includes:
 * ``chunk_training_mode`` - training or production, see :ref:`chunk_size`.
 * ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
+* ``log_alt_losers`` - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
 * ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models

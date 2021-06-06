@@ -48,7 +48,7 @@ def canonical_tours():
 
     # FIXME we pathalogically know what the possible tour_types and their max tour_nums are
     # FIXME instead, should get flavors from alts tables (but we would have to know their names...)
-    # alts = orca.get_table('non_mandatory_tour_frequency_alts').local
+    # alts = pipeline.get_table('non_mandatory_tour_frequency_alts')
     # non_mandatory_tour_flavors = {c : alts[c].max() for c in alts.columns}
 
     # - non_mandatory_channels

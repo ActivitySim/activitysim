@@ -10,7 +10,9 @@ import datetime as dt
 
 import pandas as pd
 
-from . import orca
+import orca
+import orca.orca as _ORCA
+
 from . import inject
 from . import config
 from . import random
@@ -190,7 +192,7 @@ def write_df(df, table_name, checkpoint_name=None):
     df : pandas.DataFrame
         dataframe to store
     table_name : str
-        also conventionally the orca table name
+        also conventionally the injected table name
     checkpoint_name : str
         the checkpoint at which the table was created/modified
     """
@@ -246,10 +248,10 @@ def rewrap(table_name, df=None):
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
             # fixme
-            orca._COLUMNS.pop((table_name, column_name), None)
+            _ORCA._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca._TABLES.pop(table_name, None)
+        _ORCA._TABLES.pop(table_name, None)
 
     assert df is not None
 
@@ -809,10 +811,10 @@ def drop_table(table_name):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
-            orca._COLUMNS.pop((table_name, column_name), None)
+            _ORCA._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca._TABLES.pop(table_name, None)
+        _ORCA._TABLES.pop(table_name, None)
 
     if table_name in _PIPELINE.replaced_tables:
 

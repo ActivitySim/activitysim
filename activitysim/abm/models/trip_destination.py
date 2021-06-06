@@ -95,11 +95,14 @@ def _destination_sample(
     })
     locals_dict.update(skims)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample(
         choosers=trips,
         alternatives=alternatives,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         allow_zero_probs=True,
         spec=spec,
         skims=skims,
@@ -669,11 +672,14 @@ def trip_destination_simulate(
     })
     locals_dict.update(skims)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     destinations = interaction_sample_simulate(
         choosers=trips,
         alternatives=destination_sample,
         spec=spec,
         choice_column=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         want_logsums=want_logsums,
         allow_zero_probs=True, zero_prob_choice_val=NO_DESTINATION,
         skims=skims,

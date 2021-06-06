@@ -585,11 +585,14 @@ def _schedule_tours(
         estimator.set_alt_id(choice_column)
         estimator.write_interaction_sample_alternatives(alt_tdd)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample_simulate(
         tours,
         alt_tdd,
         spec,
         choice_column=choice_column,
+        log_alt_losers=log_alt_losers,
         locals_d=locals_d,
         chunk_size=0,
         trace_label=tour_trace_label,

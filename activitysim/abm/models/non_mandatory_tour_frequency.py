@@ -220,10 +220,13 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
             estimator.set_chooser_id(chooser_segment.index.name)
 
+        log_alt_losers = config.setting('log_alt_losers', False)
+
         choices = interaction_simulate(
             chooser_segment,
             alternatives,
             spec=segment_spec,
+            log_alt_losers=log_alt_losers,
             locals_d=constants,
             chunk_size=chunk_size,
             trace_label='non_mandatory_tour_frequency.%s' % segment_name,

@@ -9,7 +9,6 @@ import numpy.testing as npt
 import pandas.testing as pdt
 import pytest
 
-from activitysim.core import orca
 
 from .. import inject
 from .. import los

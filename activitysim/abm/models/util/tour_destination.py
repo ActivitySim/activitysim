@@ -97,11 +97,14 @@ def _destination_sample(
     if constants is not None:
         locals_d.update(constants)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample(
         choosers,
         alternatives=destination_size_terms,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         spec=model_spec,
         skims=skims,
         locals_d=locals_d,
@@ -615,11 +618,14 @@ def run_destination_simulate(
 
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample_simulate(
         choosers,
         destination_sample,
         spec=model_spec,
         choice_column=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,

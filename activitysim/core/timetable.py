@@ -127,7 +127,7 @@ def create_timetable_windows(rows, tdd_alts):
 
     Parameters
     ----------
-    rows - pd.DataFrame or Series or orca.DataFrameWrapper
+    rows - pd.DataFrame or Series
         all we care about is the index
     tdd_alts - pd.DataFrame
         We expect a start and end column, and create a timetable to accomodate all alts

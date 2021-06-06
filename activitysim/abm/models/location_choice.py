@@ -147,12 +147,16 @@ def _location_sample(
     spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
                                      segment_name=segment_name, estimator=estimator)
 
+    # here since presumably we want this when called for either sample or presample
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample(
         choosers,
         alternatives,
+        spec=spec,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
-        spec=spec,
+        log_alt_losers=log_alt_losers,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
@@ -510,11 +514,14 @@ def run_location_simulate(
 
     spec = simulate.spec_for_segment(model_settings, spec_id='SPEC', segment_name=segment_name, estimator=estimator)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample_simulate(
         choosers,
         alternatives,
         spec=spec,
         choice_column=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,

@@ -212,7 +212,7 @@ Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: N
 Work From Home
 --------------
 
-(**In development**) Telecommuting is defined as workers who work from home instead of going 
+Telecommuting is defined as workers who work from home instead of going 
 to work. It only applies to workers with a regular workplace outside of home. 
 The telecommute model consists of two submodels - this work from home model and a 
 person :ref:`telecommute_frequency` model. This model predicts for all workers whether they 
@@ -222,24 +222,13 @@ The work from home model includes the ability to adjust a work from home alterna
 constant to attempt to realize a work from home percent for what-if type analysis.  
 This iterative single process procedure takes as input a number of iterations, a filter on 
 the choosers to use for the calculation, a target work from home percent, a tolerance percent 
-for convergence, and the name of the coefficient to adjust.  An example setup is below and 
+for convergence, and the name of the coefficient to adjust.  An example setup is provided and 
 the coefficient adjustment at each iteration is: 
 ``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
 
-::
-
-  # iterative what-if analysis example
-  # omit these settings to not iterate
-  WORK_FROM_HOME_ITERATIONS: 3
-  WORK_FROM_HOME_CHOOSER_FILTER: is_worker
-  WORK_FROM_HOME_TARGET_PERCENT: 0.1
-  WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: 0.01
-  WORK_FROM_HOME_COEFFICIENT_CONSTANT: coef_work_from_home_constant
-
-
 The main interface to the work from home model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
-function is registered as an orca step in the example Pipeline.
+function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
 
@@ -251,7 +240,7 @@ Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
 Telecommute Frequency
 ---------------------
 
-(**In development**) Telecommuting is defined as workers who work from home instead of going to work. It only applies to
+Telecommuting is defined as workers who work from home instead of going to work. It only applies to
 workers with a regular workplace outside of home. The telecommute model consists of two 
 submodels - a person :ref:`work_from_home` model and this person telecommute frequency model.
 
@@ -261,7 +250,7 @@ days per week (0 days, 1 day, 2 to 3 days, 4+ days).
 
 The main interface to the work from home model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.telecommute_frequency` function.  This 
-function is registered as an orca step in the example Pipeline.
+function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: NA
 

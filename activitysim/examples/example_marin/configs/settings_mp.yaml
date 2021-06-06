@@ -10,8 +10,7 @@ strict: False
 use_shadow_pricing: False
 
 households_sample_size: 0
-#chunk_size: 6000000000
-num_processes: 32
+num_processes: 28
 
 # - -------------------------
 
@@ -57,15 +56,11 @@ multiprocess_steps:
     begin: initialize_landuse
   - name: mp_tvpb
     begin: initialize_tvpb
-    num_processes: 20
-    chunk_size: 2376277344 # num_taps * num_taps * rowsize / desired_num_chunks = 2376277344
     slice:
       tables:
         - attribute_combinations
   - name: mp_mode_choice
     begin: tour_mode_choice_simulate
-    num_processes: 32
-    #chunk_size: 0
     slice:
       tables:
         - households

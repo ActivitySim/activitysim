@@ -335,13 +335,11 @@
   description: 3444-TAZ 43589-MAZ example for the PSRC region
   # activitysim create -e example_psrc_full -d test_example_psrc_full
   # cd test_example_psrc_full
-  # rm data/skims.omx
-  # activitysim run -c configs -o output -d data
+  # activitysim run -c configs -o output -d data -s settings_mp.yaml
   # cd ..
   # activitysim create -e example_psrc_full -d test_example_psrc_full_skip_access
   # cd test_example_psrc_full_skip_access
-  # rm data/skims.omx
-  # activitysim run -c configs_skip_accessibility -c configs -o output -d data
+  # activitysim run -c configs_skip_accessibility -c configs -o output -d data -s settings_mp.yaml
   # cd ..
   include:
     - example_psrc/configs
@@ -350,8 +348,8 @@
     - example_psrc/data
     - example_psrc/output
     - example_psrc/README.MD
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims1.omx
-      data/skims1.omx
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims.omx
+      data/skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims2.omx
       data/skims2.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims3.omx
@@ -417,8 +415,7 @@
   description: 2899 zone full size example for the SEMCOG region
   # activitysim create -e example_semcog_full -d test_example_semcog_full
   # cd test_example_semcog_full
-  # rm data/skims.omx
-  # python simulation.py -c configs -o output -d data
+  # python simulation.py -c configs_mp -c configs -o output -d data
   # cd ..
   include:
     - example_semcog/extensions
@@ -428,8 +425,8 @@
     - example_semcog/output
     - example_semcog/README.MD
     - example_semcog/simulation.py
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims1.omx
-      data/skims1.omx
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims.omx
+      data/skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims2.omx
       data/skims2.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/households.csv
@@ -475,16 +472,15 @@
   description: 5922 zone full example for the ARC region
   # activitysim create -e example_arc_full -d test_example_arc_full
   # cd test_example_arc_full
-  # rm data/skims.omx
-  # activitysim run -c configs -o output -d data
+  # activitysim run -c configs -o output -d data -s settings_mp.yaml
   # cd ..
   include:
     - example_arc/data
     - example_arc/configs
     - example_arc/output
     - example_arc/README.MD
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims1.omx
-      data/skims1.omx
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims.omx
+      data/skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims2.omx
       data/skims2.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims3.omx
@@ -517,7 +513,6 @@
   description: full example for the SANDAG region
   # activitysim create -e example_sandag_full -d test_example_sandag_full
   # cd test_example_sandag_full
-  # rm data/taz_skims.omx
   # activitysim run -c configs -c configs_3_zone -c example_mtc/configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
@@ -528,8 +523,8 @@
     - example_sandag/configs_3_zone
     - example_sandag/configs_skip_accessibility
     - example_sandag/output
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/taz_skims1.omx
-      data/taz_skims1.omx
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/taz_skims.omx
+      data/taz_skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/taz_skims2.omx
       data/taz_skims2.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_data_full/taz_skims3.omx

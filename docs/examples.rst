@@ -1403,8 +1403,8 @@ for running example_arc.
 example_semcog
 --------------
 
-(**In development**) The example_semcog added a :ref:`work_from_home` and :ref:`telecommute_frequency`
-submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
+(**In development**) The example_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
+and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
 submodel :ref:`sub-model-spec-files`.
 
 .. _semcog-sub-model-spec-files:
@@ -1422,6 +1422,14 @@ Example SEMCOG Sub-Model Specification Files
 |  :ref:`telecommute_frequency`                  |  - telecommute_frequency.yaml                                      |
 |                                                |  - telecommute_frequency.csv                                       |
 |                                                |  - telecommute_frequency_coeffs.csv                                |
++------------------------------------------------+--------------------------------------------------------------------+
+|  :ref:`transit_pass_subsidy`                   |  - transit_pass_subsidy.yaml                                       |
+|                                                |  - transit_pass_subsidy.csv                                        |
+|                                                |  - transit_pass_subsidy_coeffs.csv                                 |
++------------------------------------------------+--------------------------------------------------------------------+
+|  :ref:`transit_pass_ownership`                 |  - transit_pass_ownership.yaml                                     |
+|                                                |  - transit_pass_ownership.csv                                      |
+|                                                |  - transit_pass_ownership_coeffs.csv                               |
 +------------------------------------------------+--------------------------------------------------------------------+
 
 Example

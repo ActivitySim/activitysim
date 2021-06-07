@@ -26,6 +26,8 @@ SPEC_DESCRIPTION_NAME = 'Description'
 SPEC_EXPRESSION_NAME = 'Expression'
 SPEC_LABEL_NAME = 'Label'
 
+ALT_LOSER_UTIL = -900
+
 
 def random_rows(df, n):
 
@@ -383,7 +385,7 @@ def eval_coefficients(spec, coefficients, estimator):
 
 def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                    have_trace_targets=False, trace_all_rows=False,
-                   estimator=None, trace_column_names=None):
+                   estimator=None, trace_column_names=None, log_alt_losers=False):
     """
 
     Parameters
@@ -432,15 +434,17 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     expression_values = np.empty((spec.shape[0], choosers.shape[0]))
     chunk.log_df(trace_label, "expression_values", expression_values)
 
-    for i, expr in enumerate(exprs):
+    i = 0
+    for expr, coefficients in zip(exprs, spec.values):
+
         try:
             with warnings.catch_warnings(record=True) as w:
                 # Cause all warnings to always be triggered.
                 warnings.simplefilter("always")
                 if expr.startswith('@'):
-                    expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
+                    expression_value = eval(expr[1:], globals_dict, locals_dict)
                 else:
-                    expression_values[i] = choosers.eval(expr)
+                    expression_value = choosers.eval(expr)
 
                 if len(w) > 0:
                     for wrn in w:
@@ -449,6 +453,21 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
             raise err
+
+        if log_alt_losers:
+            # utils for each alt for this expression
+            # FIXME if we always did tis, we cold uem these and skip np.dot below
+            utils = np.outer(expression_value, coefficients)
+            losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
+
+            if losers.any():
+                logger.warning(f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
+                               f"with prohibitive utilities for all alternatives for expression: {expr}")
+
+        expression_values[i] = expression_value
+        i += 1
+
+    chunk.log_df(trace_label, "expression_values", expression_values)
 
     if estimator:
         df = pd.DataFrame(
@@ -461,6 +480,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     # - compute_utilities
     utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
+
     chunk.log_df(trace_label, "utilities", utilities)
 
     if trace_all_rows or have_trace_targets:
@@ -805,6 +825,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 
 
 def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
+             log_alt_losers=False,
              want_logsums=False, trace_label=None,
              trace_choice_name=None, trace_column_names=None):
     """
@@ -859,6 +880,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
     utilities = eval_utilities(spec, choosers, locals_d,
+                               log_alt_losers=log_alt_losers,
                                trace_label=trace_label, have_trace_targets=have_trace_targets,
                                estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "utilities", utilities)
@@ -897,6 +919,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 
 
 def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
+            log_alt_losers=False,
             want_logsums=False, trace_label=None,
             trace_choice_name=None, trace_column_names=None):
     """
@@ -946,6 +969,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
     raw_utilities = eval_utilities(spec, choosers, locals_d,
+                                   log_alt_losers=log_alt_losers,
                                    trace_label=trace_label, have_trace_targets=have_trace_targets,
                                    estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
@@ -1033,6 +1057,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
 
 def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                      custom_chooser=None,
+                     log_alt_losers=False,
                      want_logsums=False,
                      estimator=None,
                      trace_label=None, trace_choice_name=None, trace_column_names=None,
@@ -1087,12 +1112,14 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     if nest_spec is None:
         choices = eval_mnl(choosers, spec, locals_d, custom_chooser,
+                           log_alt_losers=log_alt_losers,
                            want_logsums=want_logsums,
                            estimator=estimator,
                            trace_label=trace_label,
                            trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
     else:
         choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
+                          log_alt_losers=log_alt_losers,
                           want_logsums=want_logsums,
                           estimator=estimator,
                           trace_label=trace_label,
@@ -1113,8 +1140,10 @@ def tvpb_skims(skims):
     return [skim for skim in list_of_skims(skims) if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)]
 
 
-def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
+def simple_simulate(choosers, spec, nest_spec,
+                    skims=None, locals_d=None,
                     chunk_size=0, custom_chooser=None,
+                    log_alt_losers=False,
                     want_logsums=False,
                     estimator=None,
                     trace_label=None, trace_choice_name=None, trace_column_names=None):
@@ -1138,6 +1167,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
             skims=skims,
             locals_d=locals_d,
             custom_chooser=custom_chooser,
+            log_alt_losers=log_alt_losers,
             want_logsums=want_logsums,
             estimator=estimator,
             trace_label=chunk_trace_label,
@@ -1159,6 +1189,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
                                 skims=None, locals_d=None,
                                 chunk_size=0, custom_chooser=None,
+                                log_alt_losers=False,
                                 want_logsums=False,
                                 estimator=None,
                                 trace_label=None,
@@ -1176,6 +1207,7 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
             skims=skims,
             locals_d=locals_d,
             custom_chooser=custom_chooser,
+            log_alt_losers=log_alt_losers,
             want_logsums=want_logsums,
             estimator=estimator,
             trace_label=chunk_trace_label,

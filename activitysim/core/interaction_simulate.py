@@ -11,7 +11,7 @@ from collections import OrderedDict
 from . import logit
 from . import tracing
 from . import config
-from .simulate import set_skim_wrapper_targets
+from . import simulate
 from . import chunk
 
 from . import simulate
@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 ALT_CHOOSER_ID = '_chooser_id'
-ALT_LOSER_UTIL = -900
 
 
 def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, estimator=None, log_alt_losers=False):
@@ -176,9 +175,9 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                     assert ALT_CHOOSER_ID in df
                     max_utils_by_chooser = utility.groupby(df[ALT_CHOOSER_ID]).max()
 
-                    if (max_utils_by_chooser < ALT_LOSER_UTIL).any():
+                    if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
 
-                        losers = max_utils_by_chooser[max_utils_by_chooser < ALT_LOSER_UTIL]
+                        losers = max_utils_by_chooser[max_utils_by_chooser < simulate.ALT_LOSER_UTIL]
                         logger.warning(f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
                                        f"with prohibitive utilities for all alternatives for expression: {expr}")
 
@@ -326,7 +325,7 @@ def _interaction_simulate(
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if skims is not None:
-        set_skim_wrapper_targets(interaction_df, skims)
+        simulate.set_skim_wrapper_targets(interaction_df, skims)
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient

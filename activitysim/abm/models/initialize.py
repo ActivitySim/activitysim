@@ -11,6 +11,7 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import expressions
 from activitysim.core import chunk
+from activitysim.core import mem
 
 from activitysim.core.steps.output import write_data_dictionary
 from activitysim.core.steps.output import write_tables

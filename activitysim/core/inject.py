@@ -2,8 +2,14 @@
 # See full license in LICENSE.txt.
 import logging
 
-import orca
-import orca.orca as _ORCA
+try:
+    # use orca module if installed
+    import orca
+    import orca.orca as _ORCA
+except ModuleNotFoundError:
+    # otherwise use local copy
+    from . import orca
+    from . import orca as _ORCA
 
 _DECORATED_STEPS = {}
 _DECORATED_TABLES = {}

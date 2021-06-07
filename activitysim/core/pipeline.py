@@ -10,8 +10,14 @@ import datetime as dt
 
 import pandas as pd
 
-import orca
-import orca.orca as _ORCA
+try:
+    # use orca module if installed
+    import orca
+    import orca.orca as _ORCA
+except ModuleNotFoundError:
+    # otherwise use local copy
+    from . import orca
+    from . import orca as _ORCA
 
 from . import inject
 from . import config

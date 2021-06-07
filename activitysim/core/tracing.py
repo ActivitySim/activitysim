@@ -28,24 +28,6 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
 logger = logging.getLogger(__name__)
 
-#       nano micro milli    kilo mega giga tera peta exa  zeta yotta
-tiers = ['n', 'µ', 'm', '', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-
-
-def si_units(x, kind='B', f="{}{:.3g} {}{}"):
-    tier = 3
-    shift = 1024 if kind == 'B' else 1000
-    sign = '-' if x < 0 else ''
-    x = abs(x)
-    if x > 0:
-        while x > shift and tier < len(tiers):
-            x /= shift
-            tier += 1
-        while x < 1 and tier >= 0:
-            x *= shift
-            tier -= 1
-    return f.format(sign, x, tiers[tier], kind)
-
 
 def extend_trace_label(trace_label, extension):
     if trace_label:
@@ -144,6 +126,7 @@ def delete_trace_files():
     Nothing
     """
     delete_output_files(CSV_FILE_TYPE, subdir='trace')
+    delete_output_files(CSV_FILE_TYPE, subdir='log')
 
     active_log_files = [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
 
@@ -321,10 +304,10 @@ def register_traceable_table(table_name, df):
         traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
         inject.add_injectable('traceable_table_ids', traceable_table_ids)
 
-    logger.info("register %s: added %s new ids to %s existing trace ids" %
-                (table_name, len(new_traced_ids), len(prior_traced_ids)))
-    logger.info("register %s: tracing new ids %s in %s" %
-                (table_name, new_traced_ids, table_name))
+    logger.debug("register %s: added %s new ids to %s existing trace ids" %
+                 (table_name, len(new_traced_ids), len(prior_traced_ids)))
+    logger.debug("register %s: tracing new ids %s in %s" %
+                 (table_name, new_traced_ids, table_name))
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):

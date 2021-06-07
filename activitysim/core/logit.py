@@ -9,6 +9,7 @@ import pandas as pd
 
 from . import tracing
 from . import pipeline
+from . import config
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
         raise RuntimeError(msg_with_count)
 
 
-def utils_to_logsums(utils, exponentiated=False):
+def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
     """
     Convert a table of utilities to logsum series.
 
@@ -98,7 +99,9 @@ def utils_to_logsums(utils, exponentiated=False):
 
     utils_arr = np.where(utils_arr == EXP_UTIL_MIN, 0.0, utils_arr)
 
-    logsums = np.log(utils_arr.sum(axis=1))
+    with np.errstate(divide='ignore' if allow_zero_probs else 'warn'):
+        logsums = np.log(utils_arr.sum(axis=1))
+
     logsums = pd.Series(logsums, index=utils.index)
 
     return logsums
@@ -238,7 +241,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
     return choices, rands
 
 
-def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=None):
+def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=None, chooser_index_id=None):
     """
     Combine choosers and alternatives into one table for the purposes
     of creating interaction variables and/or sampling alternatives.
@@ -297,6 +300,11 @@ def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=N
     for c in choosers.columns:
         c_chooser = (c + '_chooser') if c in alts_sample.columns else c
         alts_sample[c_chooser] = np.repeat(choosers[c].values, sample_size)
+
+    # caller may want this to detect utils that make all alts for a chooser unavailable (e.g. -999)
+    if chooser_index_id:
+        assert chooser_index_id not in alts_sample
+        alts_sample[chooser_index_id] = np.repeat(choosers.index.values, sample_size)
 
     logger.debug("interaction_dataset merged alts_sample %s" % (alts_sample.shape, ))
 
@@ -360,7 +368,7 @@ def _each_nest(spec, parent_nest, post_order):
     """
     Iterate over each nest or leaf node in the tree (of subtree)
 
-    This internal routine is called by each_nest, which presents a slightly higer level interface
+    This internal routine is called by each_nest, which presents a slightly higher level interface
 
     Parameters
     ----------

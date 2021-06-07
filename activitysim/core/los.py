@@ -322,8 +322,6 @@ class Network_LOS(object):
                 assert mode not in self.maz_to_tap_dfs
                 self.maz_to_tap_dfs[mode] = df
 
-        mem.trace_memory_info('#MEM network_los.load_data before create_skim_dicts')
-
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
@@ -348,8 +346,6 @@ class Network_LOS(object):
             self.skim_dicts['tap'] = tap_skim_dict
             # make sure skim has all tap_ids
             assert not (tap_skim_dict.offset_mapper.map(self.tap_df['TAP'].values) == NOT_IN_SKIM_ZONE_ID).any()
-
-        mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
     def create_skim_dict(self, skim_tag):
         """
@@ -381,28 +377,6 @@ class Network_LOS(object):
         logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_dict.omx_shape}")
 
         return skim_dict
-
-    def get_cache_dir(self):
-        """
-        return path of cache directory in output_dir (creating it, if need be)
-
-        cache directory is used to store
-            skim memmaps created by skim+dict_factories
-            tvpb tap_tap table cache
-
-        Returns
-        -------
-        str path
-        """
-        cache_dir = self.setting('cache_dir', default=None)
-        if cache_dir is None:
-            cache_dir = self.setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
-
-        if not os.path.isdir(cache_dir):
-            os.mkdir(cache_dir)
-        assert os.path.isdir(cache_dir)
-
-        return cache_dir
 
     def omx_file_names(self, skim_tag):
         """

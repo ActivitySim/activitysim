@@ -40,22 +40,6 @@ def map_coefficients(spec, coefficients):
     return spec
 
 
-def trip_purpose_calc_row_size(choosers, spec, trace_label):
-    """
-    rows_per_chunk calculator for trip_purpose
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    chooser_row_size = len(choosers.columns)
-    spec_columns = spec.shape[1] - len(PROBS_JOIN_COLUMNS)
-
-    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
-
-    row_size = sizer.get_hwm()
-    return row_size
-
-
 def choose_intermediate_trip_purpose(trips, probs_spec, estimator, trace_hh_id, trace_label):
     """
     chose purpose for intermediate trips based on probs_spec
@@ -148,6 +132,9 @@ def run_trip_purpose(
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
+    # uniform across trip_purpose
+    chunk_tag = 'trip_purpose'
+
     model_settings_file_name = 'trip_purpose.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -191,10 +178,8 @@ def run_trip_purpose(
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-    row_size = chunk_size and trip_purpose_calc_row_size(trips_df, probs_spec, trace_label)
-
     for i, trips_chunk, chunk_trace_label in \
-            chunk.adaptive_chunked_choosers(trips_df, chunk_size, row_size, trace_label):
+            chunk.adaptive_chunked_choosers(trips_df, chunk_size, chunk_tag, trace_label):
 
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
@@ -204,6 +189,8 @@ def run_trip_purpose(
             trace_label=chunk_trace_label)
 
         result_list.append(choices)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)

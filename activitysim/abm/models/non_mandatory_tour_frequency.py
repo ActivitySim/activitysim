@@ -15,8 +15,6 @@ from activitysim.core import simulate
 from activitysim.core import logit
 from activitysim.core import expressions
 
-from activitysim.core.mem import force_garbage_collect
-
 from .util import estimation
 
 from .util.overlap import person_max_window
@@ -222,10 +220,13 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
             estimator.set_chooser_id(chooser_segment.index.name)
 
+        log_alt_losers = config.setting('log_alt_losers', False)
+
         choices = interaction_simulate(
             chooser_segment,
             alternatives,
             spec=segment_spec,
+            log_alt_losers=log_alt_losers,
             locals_d=constants,
             chunk_size=chunk_size,
             trace_label='non_mandatory_tour_frequency.%s' % segment_name,
@@ -239,9 +240,6 @@ def non_mandatory_tour_frequency(persons, persons_merged,
             estimator.end_estimation()
 
         choices_list.append(choices)
-
-        # FIXME - force garbage collection?
-        force_garbage_collect()
 
     del alternatives['tot_tours']  # del tot_tours column we added above
 

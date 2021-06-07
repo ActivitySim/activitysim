@@ -35,10 +35,10 @@ which then loads the misc, tables, and models class definitions.  Loading :mod:`
    from activitysim.core import config
    from activitysim.core import inject
 
-which loads the config and inject classes.  These define `ORCA <https://github.com/udst/orca>`__ inspired injectables (functions) and
+which loads the config and inject classes.  These define Inject injectables (functions) and
 helper functions for running models.  For example, the Python decorator ``@inject.injectable`` overrides the function definition ``settings`` to
 execute this function whenever the ``settings`` object is called by the system.  The :mod:`activitysim.core.inject` manages the data
-pipeline.  The inject class does everything ORCA did in previous versions of ActivitySim and so ORCA is no longer a dependency.
+pipeline.
 
 ::
 
@@ -1341,7 +1341,7 @@ uses the information stored in the pipeline file to create the table below for a
 Skims
 ~~~~~
 
-The skims class defines orca injectables to access the skim matrices.  The skims class reads the
+The skims class defines Inject injectables to access the skim matrices.  The skims class reads the
 skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
 The skims are float64 matrix.
 

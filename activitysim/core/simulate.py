@@ -469,8 +469,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
             trace_targets = pd.Series(True, index=choosers.index)
         else:
             trace_targets = tracing.trace_targets(choosers)
-
-        assert trace_targets.any()  # since they claimed to have targets...
+            assert trace_targets.any()  # since they claimed to have targets...
 
         # get int offsets of the trace_targets (offsets of bool=True values)
         offsets = np.nonzero(list(trace_targets))[0]
@@ -591,28 +590,29 @@ def eval_variables(exprs, df, locals_d=None):
     return values
 
 
-def compute_utilities(expression_values, spec):
-
-    # matrix product of spec expression_values with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-    # pandas.dot depends on column names of expression_values matching spec index values
-
-    # FIXME - for performance, it is essential that spec and expression_values
-    # FIXME - not contain booleans when dotted with spec values
-    # FIXME - or the arrays will be converted to dtype=object within dot()
-
-    spec = spec.astype(np.float64)
-
-    # pandas.dot depends on column names of expression_values matching spec index values
-    # expressions should have been uniquified when spec was read
-    # we could do it here if need be, and then set spec.index and expression_values.columns equal
-    assert spec.index.is_unique
-    assert (spec.index.values == expression_values.columns.values).all()
-
-    utilities = expression_values.dot(spec)
-
-    return utilities
+# no longer used because eval_utilities aggregates expression_values as they are computed to save space
+# def compute_utilities(expression_values, spec):
+#
+#     # matrix product of spec expression_values with utility coefficients of alternatives
+#     # sums the partial utilities (represented by each spec row) of the alternatives
+#     # resulting in a dataframe with one row per chooser and one column per alternative
+#     # pandas.dot depends on column names of expression_values matching spec index values
+#
+#     # FIXME - for performance, it is essential that spec and expression_values
+#     # FIXME - not contain booleans when dotted with spec values
+#     # FIXME - or the arrays will be converted to dtype=object within dot()
+#
+#     spec = spec.astype(np.float64)
+#
+#     # pandas.dot depends on column names of expression_values matching spec index values
+#     # expressions should have been uniquified when spec was read
+#     # we could do it here if need be, and then set spec.index and expression_values.columns equal
+#     assert spec.index.is_unique
+#     assert (spec.index.values == expression_values.columns.values).all()
+#
+#     utilities = expression_values.dot(spec)
+#
+#     return utilities
 
 
 def set_skim_wrapper_targets(df, skims):
@@ -1113,49 +1113,6 @@ def tvpb_skims(skims):
     return [skim for skim in list_of_skims(skims) if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)]
 
 
-def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):
-    """
-    rows_per_chunk calculator for simple_simulate
-    """
-
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_calc_row_size')
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead tvpb skims
-    # (do this first to facilitate tracing of rowsize estimation below)
-    if tvpb_skims(skims):
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    # raw utilities and probs for each alt
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    # del expression_values when done with them
-    sizer.drop_elements('expression_values')
-
-    #  probs for each alt
-    sizer.add_elements(spec.shape[1], 'probs')
-
-    if nest_spec is not None:
-        nest_size = logit.count_nests(nest_spec)
-        # nested_exp_utilities for each nest
-        sizer.add_elements(nest_size, 'nested_exp_utilities')
-        # nested_probabilities less 1 since it lacks root
-        sizer.add_elements(nest_size - 1, 'nested_probabilities')
-
-    logger.debug(f"{trace_label} #chunk_calc row_size hwm after {sizer.hwm_tag} {sizer.hwm}")
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                     chunk_size=0, custom_chooser=None,
                     want_logsums=False,
@@ -1171,12 +1128,10 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     assert len(choosers) > 0
 
-    row_size = chunk_size and simple_simulate_calc_row_size(choosers, spec, nest_spec, skims, trace_label)
-
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
@@ -1190,6 +1145,8 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
             trace_column_names=trace_column_names)
 
         result_list.append(choices)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1209,16 +1166,10 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
     """
     chunk_by_chunk_id wrapper for simple_simulate
     """
-    row_size = chunk_size and simple_simulate_calc_row_size(choosers, spec, nest_spec, trace_label=trace_label)
-
-    # NOTE we chunk chunk_id so we have to scale row_size by average number of chooser rows per chunk_id
-    num_choosers = choosers['chunk_id'].max() + 1
-    rows_per_chunk_id = len(choosers) / num_choosers
-    row_size = row_size * rows_per_chunk_id
 
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, trace_label):
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
@@ -1232,7 +1183,10 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
 
         result_list.append(choices)
 
-    choices = pd.concat(result_list)
+        chunk.log_df(trace_label, f'result_list', result_list)
+
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
 
     return choices
 
@@ -1356,44 +1310,9 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
     return logsums
 
 
-def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trace_label):
-    """
-    calculate rows_per_chunk for simple_simulate_logsums
-    """
-
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead tvpb skims
-    # (do this first to facilitate tracing of rowsize estimation below)
-    if tvpb_skims(skims):
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    # del expression_values when done with them
-    sizer.drop_elements('expression_values')
-
-    if nest_spec is None:
-        logger.warning("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
-                       " so chunk sizing might be a bit off")
-    else:
-        sizer.add_elements(logit.count_nests(nest_spec), 'nested_exp_utilities')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def simple_simulate_logsums(choosers, spec, nest_spec,
                             skims=None, locals_d=None, chunk_size=0,
-                            trace_label=None):
+                            trace_label=None, chunk_tag=None):
     """
     like simple_simulate except return logsums instead of making choices
 
@@ -1403,16 +1322,13 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
-
     assert len(choosers) > 0
-
-    row_size = chunk_size and simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trace_label)
+    chunk_tag = chunk_tag or trace_label
 
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag):
 
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,
@@ -1420,6 +1336,8 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
             chunk_trace_label)
 
         result_list.append(logsums)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         logsums = pd.concat(result_list)

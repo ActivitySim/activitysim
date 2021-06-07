@@ -104,8 +104,8 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
 
     tracing.register_traceable_table('tours', tours)
 
-    print(f"{len(tours.household_id.unique())} unique household_ids in tours")
-    print(f"{len(households.index.unique())} unique household_ids in households")
+    logger.debug(f"{len(tours.household_id.unique())} unique household_ids in tours")
+    logger.debug(f"{len(households.index.unique())} unique household_ids in households")
     assert not tours.index.duplicated().any()
 
     tours_without_persons = ~tours.person_id.isin(persons.index)

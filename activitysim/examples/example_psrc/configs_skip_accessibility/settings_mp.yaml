@@ -3,7 +3,7 @@ inherit_settings: settings.yaml
 # set MKL_NUM_THREADS=1
 # activitysim run -c configs_skip_accessibility -c configs -o output -d data -s settings_mp.yaml
 
-chunk_size:  80000000000
+chunk_size: 80_000_000_000
 
 # raise error if any sub-process fails without waiting for others to complete
 fail_fast: True

@@ -95,7 +95,7 @@ def generate_alternative_sizes(max_duration, max_trips):
             shift_array = np.concatenate((np.full(n, np.nan), xs[:-n]))
         else:
             shift_array = np.concatenate((xs[-n:], np.full(-n, np.nan)))
-        return np.nan_to_num(shift_array, np.nan).astype(np.int) if fill_zero else shift_array
+        return np.nan_to_num(shift_array, np.nan).astype(int) if fill_zero else shift_array
 
     levels = np.empty([max_trips, max_duration + max_trips])
     levels[0] = np.arange(1, max_duration + max_trips + 1)

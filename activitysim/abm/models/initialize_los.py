@@ -112,47 +112,6 @@ def initialize_los(network_los):
                     np.copyto(data, np.nan)
 
 
-def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):
-    """
-    rows_per_chunk calculator for trip_purpose
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    model_settings = \
-        network_los.setting(f'TVPB_SETTINGS.tour_mode_choice.tap_tap_settings')
-    attributes_as_columns = \
-        network_los.setting('TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attributes_as_columns', [])
-
-    #  expression_values for each spec row
-    sizer.add_elements(len(choosers.columns), 'choosers')
-
-    #  expression_values for each spec row
-    sizer.add_elements(len(attributes_as_columns), 'attributes_as_columns')
-
-    preprocessor_settings = model_settings.get('PREPROCESSOR')
-    if preprocessor_settings:
-
-        preprocessor_spec_name = preprocessor_settings.get('SPEC', None)
-
-        if not preprocessor_spec_name.endswith(".csv"):
-            preprocessor_spec_name = f'{preprocessor_spec_name}.csv'
-        expressions_spec = assign.read_assignment_spec(config.config_file_path(preprocessor_spec_name))
-
-        sizer.add_elements(expressions_spec.shape[0], 'preprocessor')
-
-    #  expression_values for each spec row
-    spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
 
     # scalar_attributes is a dict of attribute name/value pairs for this combination
@@ -175,19 +134,25 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
     # get od skim_offset dataframe with uid index corresponding to scalar_attributes
     choosers_df = uid_calculator.get_od_dataframe(scalar_attributes)
 
-    row_size = chunk_size and initialize_tvpb_calc_row_size(choosers_df, network_los, trace_label)
+    # choosers_df is pretty big and was custom made for compute_utilities but we don't need to chunk_log it
+    # since it is created outside of adaptive_chunked_choosers and so will show up in baseline
+    assert not chunk.chunk_logging()  # otherwise we should chunk_log this
+
+    chunk_tag = 'initialize_tvpb'  # all attribute_combinations can use same cached data for row_size calc
+
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag):
 
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
-        # (call log_df from inside yield loop so it is visible to adaptive_chunked_choosers chunk_log)
-        chunk.log_df(trace_label, 'choosers_df', choosers_df)
+        assert chooser_chunk._is_view  # otherwise copying it is wasteful
+        chooser_chunk = chooser_chunk.copy()
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
 
         # add any attribute columns specified as column attributes in settings (the rest will be scalars in locals_dict)
         for attribute_name in attributes_as_columns:
             chooser_chunk[attribute_name] = scalar_attributes[attribute_name]
 
-        chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
 
         utilities_df = \
             pathbuilder.compute_utilities(network_los,
@@ -203,6 +168,9 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
         assert not any_uninitialized(utilities_df.values)
 
         data[chooser_chunk.index.values, :] = utilities_df.values
+
+        del chooser_chunk
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', None)
 
     logger.debug(f"{trace_label} updated utilities")
 

@@ -17,9 +17,6 @@ from activitysim.core.util import reindex
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
 
-from activitysim.core.mem import force_garbage_collect
-
-
 from . import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 
@@ -79,6 +76,7 @@ def _destination_sample(
         model_settings,
         alt_dest_col_name,
         chunk_size,
+        chunk_tag,
         trace_label):
 
     model_spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
@@ -99,15 +97,19 @@ def _destination_sample(
     if constants is not None:
         locals_d.update(constants)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample(
         choosers,
         alternatives=destination_size_terms,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         spec=model_spec,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
+        chunk_tag=chunk_tag,
         trace_label=trace_label)
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
@@ -125,6 +127,8 @@ def destination_sample(
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
+
+    chunk_tag = 'tour_destination.sample'
 
     # create wrapper with keys for this lookup
     # the skims will be available under the name "skims" for any @ expressions
@@ -148,8 +152,8 @@ def destination_sample(
         estimator,
         model_settings,
         alt_dest_col_name,
-        chunk_size,
-        trace_label)
+        chunk_size, chunk_tag=chunk_tag,
+        trace_label=trace_label)
 
     return choices
 
@@ -177,6 +181,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
     # aggregate to TAZ
     TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg({'size_term': 'sum'})
+    TAZ_size_terms[DEST_TAZ] = TAZ_size_terms.index
     assert not TAZ_size_terms['size_term'].isna().any()
 
     #           size_term
@@ -391,6 +396,7 @@ def destination_presample(
         chunk_size, trace_label):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
+    chunk_tag = 'tour_destination.presample'
 
     logger.info(f"{trace_label} location_presample")
 
@@ -418,8 +424,8 @@ def destination_presample(
         estimator,
         model_settings,
         DEST_TAZ,
-        chunk_size,
-        trace_label)
+        chunk_size, chunk_tag=chunk_tag,
+        trace_label=trace_label)
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
@@ -519,6 +525,8 @@ def run_destination_logsums(
 
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
 
+    chunk_tag = 'tour_destination.logsums'
+
     # FIXME - MEMORY HACK - only include columns actually used in spec
     persons_merged = logsum.filter_chooser_columns(persons_merged, logsum_settings, model_settings)
 
@@ -540,6 +548,7 @@ def run_destination_logsums(
         logsum_settings, model_settings,
         network_los,
         chunk_size,
+        chunk_tag,
         trace_label)
 
     destination_sample['mode_choice_logsum'] = logsums
@@ -562,6 +571,7 @@ def run_destination_simulate(
     run destination_simulate on tour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
     """
+    chunk_tag = 'tour_destination.simulate'
 
     model_spec = simulate.spec_for_segment(model_settings, spec_id='SPEC',
                                            segment_name=spec_segment_name, estimator=estimator)
@@ -608,15 +618,18 @@ def run_destination_simulate(
 
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample_simulate(
         choosers,
         destination_sample,
         spec=model_spec,
         choice_column=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,
-        chunk_size=chunk_size,
+        chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name='destination',
         estimator=estimator)
@@ -715,10 +728,9 @@ def run_tour_destination(
             # FIXME - sample_table
             location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
             sample_list.append(location_sample_df)
-
-        # FIXME - want to do this here?
-        del location_sample_df
-        force_garbage_collect()
+        else:
+            # del this so we dont hold active reference to it while run_location_sample is creating its replacement
+            del location_sample_df
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)

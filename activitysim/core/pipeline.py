@@ -10,7 +10,9 @@ import datetime as dt
 
 import pandas as pd
 
-from . import orca
+import orca
+import orca.orca as _ORCA
+
 from . import inject
 from . import config
 from . import random
@@ -33,8 +35,9 @@ NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP]
 # name used for storing the checkpoints dataframe to the pipeline store
 CHECKPOINT_TABLE_NAME = 'checkpoints'
 
-# name of the first step/checkpoint created when teh pipeline is started
+# name of the first step/checkpoint created when the pipeline is started
 INITIAL_CHECKPOINT_NAME = 'init'
+FINAL_CHECKPOINT_NAME = 'final'
 
 # special value for resume_after meaning last checkpoint
 LAST_CHECKPOINT = '_'
@@ -189,7 +192,7 @@ def write_df(df, table_name, checkpoint_name=None):
     df : pandas.DataFrame
         dataframe to store
     table_name : str
-        also conventionally the orca table name
+        also conventionally the injected table name
     checkpoint_name : str
         the checkpoint at which the table was created/modified
     """
@@ -245,10 +248,10 @@ def rewrap(table_name, df=None):
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
             # fixme
-            orca._COLUMNS.pop((table_name, column_name), None)
+            _ORCA._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca._TABLES.pop(table_name, None)
+        _ORCA._TABLES.pop(table_name, None)
 
     assert df is not None
 
@@ -273,7 +276,7 @@ def add_checkpoint(checkpoint_name):
 
     logger.debug("add_checkpoint %s timestamp %s" % (checkpoint_name, timestamp))
 
-    for table_name in orca_dataframe_tables():
+    for table_name in registered_tables():
 
         # if we have not already checkpointed it or it has changed
         # FIXME - this won't detect if the orca table was modified
@@ -301,7 +304,6 @@ def add_checkpoint(checkpoint_name):
     _PIPELINE.checkpoints.append(_PIPELINE.last_checkpoint.copy())
 
     # create a pandas dataframe of the checkpoint history, one row per checkpoint
-
     checkpoints = pd.DataFrame(_PIPELINE.checkpoints)
 
     # convert empty values to str so PyTables doesn't pickle object types
@@ -312,9 +314,9 @@ def add_checkpoint(checkpoint_name):
     write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
 
-def orca_dataframe_tables():
+def registered_tables():
     """
-    Return a list of the neames of all currently registered dataframe tables
+    Return a list of the names of all currently registered dataframe tables
     """
     return [name for name in orca.list_tables() if orca.table_type(name) == 'dataframe']
 
@@ -352,6 +354,10 @@ def load_checkpoint(checkpoint_name):
         # truncate rows after target checkpoint
         i = checkpoints[checkpoints[CHECKPOINT_NAME] == checkpoint_name].index[0]
         checkpoints = checkpoints.loc[:i]
+
+        # write it to the store to ensure so any subsequent checkpoints are forgotten
+        write_df(checkpoints, CHECKPOINT_TABLE_NAME)
+
     except IndexError:
         msg = "Couldn't find checkpoint '%s' in checkpoints" % (checkpoint_name,)
         print(checkpoints[CHECKPOINT_NAME])
@@ -459,15 +465,19 @@ def run_model(model_name):
         step_name = step_name[1:]
         checkpoint = False
     else:
-        checkpoint = True
+        checkpoint = intermediate_checkpoint(model_name)
 
     inject.set_step_args(args)
 
+    mem.trace_memory_info(f"pipeline.run_model {model_name} start")
+
     t0 = print_elapsed_time()
     logger.info(f"#run_model running step {step_name}")
+
     orca.run([step_name])
 
     t0 = print_elapsed_time("#run_model completed step '%s'" % model_name, t0, debug=True)
+    mem.trace_memory_info(f"pipeline.run_model {model_name} finished")
 
     inject.set_step_args(None)
 
@@ -490,8 +500,6 @@ def open_pipeline(resume_after=None):
     resume_after : str or None
         name of checkpoint to load from pipeline store
     """
-
-    logger.info("open_pipeline")
 
     if is_open():
         raise RuntimeError("Pipeline is already open!")
@@ -549,6 +557,18 @@ def close_pipeline():
     logger.debug("close_pipeline")
 
 
+def intermediate_checkpoint(checkpoint_name=None):
+
+    checkpoints = config.setting('checkpoints', True)
+
+    if checkpoints is True or checkpoints is False:
+        return checkpoints
+
+    assert isinstance(checkpoints, list), f"setting 'checkpoints'' should be True or False or a list"
+
+    return checkpoint_name in checkpoints
+
+
 def run(models, resume_after=None):
     """
     run the specified list of models, optionally loading checkpoint and resuming after specified
@@ -584,14 +604,13 @@ def run(models, resume_after=None):
         if resume_after in models:
             models = models[models.index(resume_after) + 1:]
 
-    mem.init_trace(config.setting('mem_tick'), write_header=True)
-    mem.trace_memory_info('#MEM pipeline.run before preload_injectables')
+    mem.trace_memory_info('pipeline.run before preload_injectables')
 
     # preload any bulky injectables (e.g. skims) not in pipeline
     if inject.get_injectable('preload_injectables', None):
         t0 = print_elapsed_time('preload_injectables', t0)
 
-    mem.trace_memory_info('#MEM pipeline.run before run_models')
+    mem.trace_memory_info('pipeline.run after preload_injectables')
 
     t0 = print_elapsed_time()
     for model in models:
@@ -601,7 +620,11 @@ def run(models, resume_after=None):
 
         tracing.log_runtime(model_name=model, start_time=t1)
 
-    mem.trace_memory_info('#MEM pipeline.run after run_models')
+    # add checkpoint with final tables even if not intermediate checkpointing
+    if not intermediate_checkpoint():
+        add_checkpoint(FINAL_CHECKPOINT_NAME)
+
+    mem.trace_memory_info('pipeline.run after run_models')
 
     t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 
@@ -788,10 +811,10 @@ def drop_table(table_name):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
-            orca._COLUMNS.pop((table_name, column_name), None)
+            _ORCA._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        orca._TABLES.pop(table_name, None)
+        _ORCA._TABLES.pop(table_name, None)
 
     if table_name in _PIPELINE.replaced_tables:
 

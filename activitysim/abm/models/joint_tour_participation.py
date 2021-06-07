@@ -195,8 +195,8 @@ def participants_chooser(probs, choosers, spec, trace_label):
             probs = probs[~satisfied]
             candidates = candidates[~satisfied]
 
-        logger.info('%s iteration %s : %s joint tours satisfied %s remaining' %
-                    (trace_label, iter, num_tours_satisfied_this_iter, num_tours_remaining,))
+        logger.debug(f"{trace_label} iteration {iter} : "
+                     f"{num_tours_satisfied_this_iter} joint tours satisfied {num_tours_remaining} remaining")
 
     choices = pd.concat(choices_list)
     rands = pd.concat(rands_list).reindex(choosers.index)

@@ -137,7 +137,7 @@ def initialize_households():
         # this can now be called as a stand alone model step instead, add_size_tables
         add_size_tables = model_settings.get('add_size_tables', True)
         if add_size_tables:
-            # warnings.warn(f"Calling add_size_tables from initialize will be removed in future versions.", FutureWarning)
+            # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
             shadow_pricing.add_size_tables()
 
         # - preload person_windows

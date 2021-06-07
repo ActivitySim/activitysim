@@ -275,14 +275,16 @@ Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: 
 Transit Pass Subsidy
 --------------------
 
-(**In development**) The transit pass model is defined as persons who purchase or are 
-provided a transit pass.  The transit pass model consists of two submodels - this 
-transit pass subsidy model and a person :ref:`transit_pass_ownership` model.  Person
-transit pass subsidy status is a variable in the person transit pass ownership model.
+The transit fare discount model is defined as persons who purchase or are 
+provided a transit pass.  The transit fare discount consists of two submodels - this 
+transit pass subsidy model and a person :ref:`transit_pass_ownership` model.  The 
+result of this model can be used to condition downstream models such as the 
+person :ref:`transit_pass_ownership` model and the tour and trip mode choice models
+via fare discount adjustments.  
 
-The main interface to the work from home model is the 
+The main interface to the transit pass subsidy model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_subsidy` function.  This 
-function is registered as an orca step in the example Pipeline.
+function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: NA
 
@@ -294,13 +296,15 @@ Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: N
 Transit Pass Ownership
 ----------------------
 
-(**In development**) The transit pass model is defined as persons who purchase or are 
-provided a transit pass.  The transit pass model consists of two submodels - this 
-transit pass ownership model and a person :ref:`transit_pass_subsidy` model.
+The transit fare discount is defined as persons who purchase or are 
+provided a transit pass.  The transit fare discount consists of two submodels - this 
+transit pass ownership model and a person :ref:`transit_pass_subsidy` model. The 
+result of this model can be used to condition downstream models such as the tour and trip 
+mode choice models via fare discount adjustments.  
 
 The main interface to the transit pass ownership model is the 
 :py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This 
-function is registered as an orca step in the example Pipeline.
+function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
 

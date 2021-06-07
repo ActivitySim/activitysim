@@ -1,6 +1,4 @@
 
-# borrowed from free parking model
-
 SPEC: transit_pass_subsidy.csv
 COEFFICIENTS: transit_pass_subsidy_coeffs.csv
 

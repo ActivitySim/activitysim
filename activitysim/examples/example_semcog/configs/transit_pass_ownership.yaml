@@ -1,6 +1,4 @@
 
-# borrowed from free parking model
-
 SPEC: transit_pass_ownership.csv
 COEFFICIENTS: transit_pass_ownership_coeffs.csv
 

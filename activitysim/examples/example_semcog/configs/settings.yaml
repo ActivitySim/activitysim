@@ -81,10 +81,10 @@ models:
   - compute_accessibility
   - work_from_home
   - add_size_tables
-  - transit_pass_subsidy
-  - transit_pass_ownership
   - school_location
   - workplace_location
+  - transit_pass_subsidy
+  - transit_pass_ownership
   - auto_ownership_simulate
   - free_parking
   - telecommute_frequency

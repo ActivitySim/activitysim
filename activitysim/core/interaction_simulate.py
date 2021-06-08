@@ -164,7 +164,6 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
                 if estimator:
                     # in case we modified expression_values_df index
-                    v = v.values if isinstance(v, pd.Series) else v
                     expression_values_df.insert(loc=len(expression_values_df.columns), column=label,
                                                 value=v.values if isinstance(v, pd.Series) else v)
 

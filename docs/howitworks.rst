@@ -1345,18 +1345,57 @@ The skims class defines Inject injectables to access the skim matrices.  The ski
 skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
 The skims are float64 matrix.
 
-Skims are named <PATHTYPE>_<MEASURE>__<TIME PERIOD>:
+Skims are named <PATH TYPE>_<MEASURE>__<TIME PERIOD>:
 
-* Highway paths are SOV, HOV2, HOV3, SOVTOLL, HOV2TOLL, HOV3TOLL
-* Transit paths are:
+* Highway paths:
+
+  * SOV - SOV free
+  * HOV2 - HOV2 free
+  * HOV3 - HOV3 free
+  * SOVTOLL - SOV toll
+  * HOV2TOLL - HOV2 toll
+  * HOV3TOLL - HOV3 toll
+  
+* Transit paths:
 
   * Walk access and walk egress - WLK_COM_WLK, WLK_EXP_WLK, WLK_HVY_WLK, WLK_LOC_WLK, WLK_LRF_WLK
   * Walk access and drive egress - WLK_COM_DRV, WLK_EXP_DRV, WLK_HVY_DRV, WLK_LOC_DRV, WLK_LRF_DRV
   * Drive access and walk egress - DRV_COM_WLK, DRV_EXP_WLK, DRV_HVY_WLK, DRV_LOC_WLK, DRV_LRF_WLK
   * COM = commuter rail, EXP = express bus, HVY = heavy rail, LOC = local bus, LRF = light rail ferry
 
-* Non-motorized paths are WALK, BIKE
-* Time periods are EA, AM, MD, PM, EV
+* Non-motorized paths:
+
+  * WALK
+  * BIKE
+
+* Measures:
+
+  * TIME - Time (minutes)
+  * DIST - Distance (miles)
+  * BTOLL - Bridge toll (cents)
+  * VTOLL - Value toll (cents)
+
+  * IVT - In-vehicle time, time (minutes x 100)
+  * IWAIT - Initial wait time, time (minutes x 100)
+  * XWAIT - Transfer wait time, time (minutes x 100)
+  * WACC - Walk access time, time (minutes x 100)
+  * WAUX - Auxiliary walk time, time (minutes x 100)
+  * WEGR - Walk egress time, time (minutes x 100)
+  * DTIM - Drive access and/or egress time, time (minutes x 100)
+  * DDIST - Drive access and/or egress distance, distance (miles x 100)
+  * FAR - Fare, cents
+  * BOARDS - Boardings, number
+  * TOTIVT - Total in-vehicle time, time (minutes x 100)
+  * KEYIVT - Transit submode in-vehicle time, time (minutes x 100)
+  * FERRYIVT - Ferry in-vehicle time, time (minutes x 100)
+
+* Time periods:
+
+  * EA
+  * AM
+  * MD
+  * PM
+  * EV
 
 +------------------------------+-----------------+
 |                        Field |            Type |
@@ -1571,11 +1610,11 @@ Skims are named <PATHTYPE>_<MEASURE>__<TIME PERIOD>:
 +------------------------------+-----------------+
 |           HOV3TOLL_VTOLL__PM |  float64 matrix |
 +------------------------------+-----------------+
-|                    \DIST__\  |  float64 matrix |
+|                    \DIST\    |  float64 matrix |
 +------------------------------+-----------------+
-|                \DISTWALK__\  |  float64 matrix |
+|                \DISTWALK\    |  float64 matrix |
 +------------------------------+-----------------+
-|                \DISTBIKE__\  |  float64 matrix |
+|                \DISTBIKE\    |  float64 matrix |
 +------------------------------+-----------------+
 |         DRV_COM_WLK_WAIT__AM |  float64 matrix |
 +------------------------------+-----------------+

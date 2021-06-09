@@ -20,7 +20,7 @@ multiprocess: True
 strict: False
 use_shadow_pricing: False
 
-# households_sample_size:  2000
+households_sample_size: 0
 chunk_size: 0
 num_processes: 2
 

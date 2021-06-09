@@ -240,7 +240,7 @@ Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
 Telecommute Frequency
 ---------------------
 
-(**In development**) Telecommuting is defined as workers who work from home instead of going to work. It only applies to
+Telecommuting is defined as workers who work from home instead of going to work. It only applies to
 workers with a regular workplace outside of home. The telecommute model consists of two 
 submodels - a person :ref:`work_from_home` model and this person telecommute frequency model.
 

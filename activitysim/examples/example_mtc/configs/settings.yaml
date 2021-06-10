@@ -109,7 +109,7 @@ use_shadow_pricing: False
 want_dest_choice_sample_tables: False
 
 # log interaction simulate/sample expressions that return prohibitive utility values that exclude all alternatives
-log_alt_losers: True
+log_alt_losers: False
 
 # alternate dir to read/write cache (defaults to output_dir)
 # used for skim cache, tvpb, and chunk_log caches

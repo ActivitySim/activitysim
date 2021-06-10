@@ -507,7 +507,7 @@ is the main settings file for the model run.  This file includes:
 * ``chunk_training_mode`` - training or production, see :ref:`chunk_size`.
 * ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
-* ``log_alt_losers`` - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives
+* ``log_alt_losers`` - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives.  This feature slows down the model run and so it is recommended for debugging purposes only.
 * ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
 * ``output_tables`` - list of output tables to write to CSV or HDF5
 * ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models
@@ -842,9 +842,9 @@ include the multiprocessing configuration settings via settings file inheritance
 
 The multiprocessing example also writes outputs to the output folder.
 
-The default multiprocessed example is configured to run with two processors and no chunking: ``num_processes: 2`` and ``chunk_size: 0``.  Additional more performant configurations are
-included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run without chunking 
-on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  See :ref:`multiprocessing` and 
+The default multiprocessed example is configured to run with two processors and no chunking: ``num_processes: 2`` and ``chunk_size: 0``.  Additional more performant 
+configurations are included and commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example - ``example_mtc_full`` - 
+was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  See :ref:`multiprocessing` and 
 :ref:`chunk_size` for more information.  If the machine does not have enough RAM to solve all the choosers at once then chunking needs to 
 be configured, as discussed below.
 
@@ -853,16 +853,19 @@ be configured, as discussed below.
   households_sample_size: 0
   num_processes: 24
   chunk_size: 0
+  chunk_training_mode: production
 
+
+.. _configuring_chunking :
 
 Configuring chunking
 ^^^^^^^^^^^^^^^^^^^^
 
 As described in :ref:`chunk_size`, to configure reasonable chunking behavior, ActivitySim must first be trained with the 
-model setup and machine.  The steps to configure a reasonable chunk size are:
+model setup and machine.  The steps to configure chunking behavior are:
 
-* Run the full scale model with about 1/num_processors households and ``chunk_training_mode: training``.  This will create the ``chunk_cache.csv`` file for reuse.
-* Run the full scale model with ``chunk_training_mode: production`` and the desired ``num_processors`` and ``chunksize``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
+* Run the full scale model with ``chunk_training_mode: training``.  Set ``num_processors`` to about 80% of the avaiable logical processors and ``chunk_size`` to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file for reuse.
+* Run the full scale model with ``chunk_training_mode: production``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
 
 Outputs
 ~~~~~~~

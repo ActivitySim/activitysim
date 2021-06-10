@@ -82,7 +82,6 @@ multiprocess_steps:
     begin: initialize_landuse
   - name: mp_accessibility
     begin: compute_accessibility
-    num_processes: 2
     slice:
       tables:
         - accessibility

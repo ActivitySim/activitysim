@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Estimation &mdash; ActivitySim 0.9.9.1 documentation</title>
+  <title>Estimation &mdash; ActivitySim 1.0 documentation</title>
   
 
   
@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -64,7 +65,7 @@
             
             
               <div class="version">
-                0.9.9.1
+                1.0
               </div>
             
           
@@ -224,7 +225,7 @@ combination of functionality means:</p>
 <li><p>Run the example</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">test_example_estimation_sf</span>
-<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_estimation</span><span class="o">/</span><span class="n">configs</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_test</span>
+<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs_estimation</span><span class="o">/</span><span class="n">configs</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">d</span> <span class="n">data_sf</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -238,7 +239,7 @@ combination of functionality means:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">enable</span></code> - enable estimation, either True or False</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bundles</span></code> - the list of submodels for which to write EDBs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">survey_tables</span></code> - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the <code class="docutils literal notranslate"><span class="pre">scripts\infer.py</span></code> script that pre-processes the ActivitySim format household travel survey files</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">survey_tables</span></code> - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the <code class="docutils literal notranslate"><span class="pre">scripts\infer.py</span></code> script that pre-processes the ActivitySim format household travel survey files for the example data and submodels</p></li>
 </ul>
 </div>
 <div class="section" id="estimation-notebooks">

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Examples &mdash; ActivitySim 0.9.9.1 documentation</title>
+  <title>Examples &mdash; ActivitySim 1.0 documentation</title>
   
 
   
@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -64,7 +65,7 @@
             
             
               <div class="version">
-                0.9.9.1
+                1.0
               </div>
             
           
@@ -110,16 +111,17 @@
 <li class="toctree-l4"><a class="reference internal" href="#land-use">Land use</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#configuration">Configuration</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sub-model-specification-files">Sub-Model Specification Files</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#chunk-size">Chunk size</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#logging">Logging</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pipeline">Pipeline</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#running-the-example">Running the example</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#multiprocessing">Multiprocessing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#configuring-chunking">Configuring chunking</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#outputs">Outputs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#logging">Logging</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#trip-matrices">Trip Matrices</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#tracing">Tracing</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#writing-logsums">Writing Logsums</a></li>
 </ul>
@@ -241,48 +243,58 @@
 <p>This page describes the example models included with ActivitySim.  The current examples are:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 36%" />
-<col style="width: 49%" />
-<col style="width: 15%" />
+<col style="width: 26%" />
+<col style="width: 46%" />
+<col style="width: 11%" />
+<col style="width: 17%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Example</p></th>
 <th class="head"><p>Purpose</p></th>
 <th class="head"><p>Zone Systems</p></th>
+<th class="head"><p>Status</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference internal" href="#example-mtc"><span class="std std-ref">example_mtc</span></a></p></td>
-<td><p>Primary example; MTC travel model one</p></td>
+<td><p>Primary MTC travel model one example</p></td>
 <td><p>1</p></td>
+<td><p>Mature</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#example-estimation"><span class="std std-ref">example_estimation</span></a></p></td>
 <td><p>Estimation example with example_mtc</p></td>
 <td><p>1</p></td>
+<td><p>Mature</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#example-multiple-zones"><span class="std std-ref">example_multiple_zones</span></a></p></td>
-<td><p>Simple test of 2 or 3 zone system models</p></td>
+<td><p>2 or 3 zone system example using example_mtc data</p></td>
 <td><p>2 or 3</p></td>
+<td><p>Simple test example</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#example-marin"><span class="std std-ref">example_marin</span></a></p></td>
-<td><p>3 zone system tour mode choice only example</p></td>
+<td><p>3 zone system example using Marin tour mode choice model</p></td>
 <td><p>3</p></td>
+<td><p>Mature</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#example-arc"><span class="std std-ref">example_arc</span></a></p></td>
-<td><p>ARC example under development</p></td>
+<td><p>ARC agency example</p></td>
 <td><p>1</p></td>
+<td><p>In development</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#example-semcog"><span class="std std-ref">example_semcog</span></a></p></td>
-<td><p>SEMCOG example under development</p></td>
+<td><p>SEMCOG agency example</p></td>
 <td><p>1</p></td>
+<td><p>In development</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#example-psrc"><span class="std std-ref">example_psrc</span></a></p></td>
-<td><p>PSRC example under development</p></td>
+<td><p>PSRC agency example</p></td>
 <td><p>2</p></td>
+<td><p>In development</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#example-sandag"><span class="std std-ref">example_sandag</span></a></p></td>
-<td><p>SANDAG example under development</p></td>
+<td><p>SANDAG agency example</p></td>
 <td><p>3</p></td>
+<td><p>In development</p></td>
 </tr>
 </tbody>
 </table>
@@ -684,7 +696,7 @@ can be aggregated into travel demand matrices for network loading.</p>
 </li>
 <li><p>taz_skims: skims.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).</p></li>
 </ul>
-<p>These files are used in the tests as well and are in the <code class="docutils literal notranslate"><span class="pre">activitysim\abm\test\data</span></code> folder.  The full set
+<p>These files are used in the tests as well.  The full set
 of MTC TM1 households, persons, and OMX skims are on the ActivitySim <a class="reference external" href="https://github.com/rsginc/activitysim_resources">resources repository</a>.</p>
 <p>Additional details on these files is available in the original <a class="reference external" href="https://github.com/BayAreaMetro/modeling-website/wiki/DataDictionary">Travel Model 1 repository</a>,
 although many of the files described there are not used in ActivitySim.</p>
@@ -951,12 +963,15 @@ is the main settings file for the model run.  This file includes:</p>
 </ul>
 </div></blockquote>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">create_input_store</span></code> - write new ‘input_data.h5’ file to outputs folder using CSVs from <cite>input_table_list</cite> to use for subsequent model runs</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">create_input_store</span></code> - write new <cite>input_data.h5</cite> file to outputs folder using CSVs from <cite>input_table_list</cite> to use for subsequent model runs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - batch size for processing choosers, see <a class="reference internal" href="#chunk-size"><span class="std std-ref">Chunk size</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - approximate amount of RAM in gigabytes to allocate to ActivitySim for batch processing choosers, see <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_training_mode</span></code> - training or production, see <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log_alt_losers</span></code> - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives.  This feature slows down the model run and so it is recommended for debugging purposes only.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> - turn shadow_pricing on and off for work and school location</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">output_tables</span></code> - list of output tables to write to CSV or HDF5</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_sample_tables</span></code> - turn writing of sample_tables on and off for all models</p></li>
@@ -997,7 +1012,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the <code class="docutils literal notranslate"><span class="pre">non_mandatory_tour_frequency_alternatives.csv</span></code> file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the example_mtc are below.  The
-<a class="reference internal" href="#example-arc"><span class="std std-ref">example_arc</span></a> example added some additional submodels and files as well.</p>
+<a class="reference internal" href="#example-arc"><span class="std std-ref">example_arc</span></a> example and <a class="reference internal" href="#example-semcog"><span class="std std-ref">example_semcog</span></a> example added additional submodels.</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 41%" />
@@ -1310,30 +1325,6 @@ columns indicates the number of non-mandatory tours by purpose.  The  set of fil
 </tbody>
 </table>
 </div>
-<div class="section" id="chunk-size">
-<span id="index-3"></span><span id="id4"></span><h4>Chunk size<a class="headerlink" href="#chunk-size" title="Permalink to this headline">¶</a></h4>
-<p>The <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> is the number of doubles (64-bit numbers) in a chunk of a choosers table.  It is approximately the number
-of rows times the number of columns.  If set to zero, no chunking will be performed.  If there is a chunk size setting,
-dynamic chunking will start out using the estimated number of rows per chunk calculation performed by the various
-submodels but will adjust the number of chooser rows per chunk in light of how much memory is actually
-used by the chunk iteration.</p>
-<p>Dynamic chunking will do its best to adjust chunks to hit the specified chunk size, not the available memory.
-So if the chunk size setting is too high, it will do its best to adjust the number of rows per chunk to
-achieve that mark, even if there is not enough RAM to accommodate it.  Therefore, the user needs to set a guestimated
-chunk_size and adjust it upwards or downwards according to the observed memory footprint activitysim leaves
-relative to the available resources.</p>
-</div>
-<div class="section" id="logging">
-<h4>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h4>
-<p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
-library and defines two key log files:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.log</span></code> - overall system log file</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file if tracing active</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">timing_log.txt</span></code> - submodel step runtimes</p></li>
-</ul>
-<p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
-</div>
 <div class="section" id="pipeline">
 <span id="model-steps"></span><h4>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">models</span></code> setting contains the specification of the data pipeline model steps, as shown below:</p>
@@ -1373,7 +1364,7 @@ library and defines two key log files:</p>
    <span class="o">-</span> <span class="n">write_tables</span>
 </pre></div>
 </div>
-<p>These model steps must be registered orca steps, as noted below.  If you provide a <code class="docutils literal notranslate"><span class="pre">resume_after</span></code>
+<p>These model steps must be registered Inject steps, as noted below.  If you provide a <code class="docutils literal notranslate"><span class="pre">resume_after</span></code>
 argument to <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> the pipeliner will load checkpointed tables from the checkpoint store
 and resume pipeline processing on the next model step after the specified checkpoint.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">resume_after</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1383,11 +1374,6 @@ and resume pipeline processing on the next model step after the specified checkp
 <p>The model is run by calling the <a class="reference internal" href="core.html#activitysim.core.pipeline.run" title="activitysim.core.pipeline.run"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.run()</span></code></a> method.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pipeline</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">_MODELS</span><span class="p">,</span> <span class="n">resume_after</span><span class="o">=</span><span class="n">resume_after</span><span class="p">)</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Users can skip persisting tables to the pipeline data store on disk by adding an underscore prefix to the models in the
-models list in the settings file: _school_location instead of school_location.  This will cut down on the disk writes.</p>
 </div>
 </div>
 </div>
@@ -1411,18 +1397,18 @@ models list in the settings file: _school_location instead of school_location.  
 <li><p>Run the example</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">my_test_example</span>
-<span class="n">activitysim</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span>
+<span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>ActivitySim should log some information and write outputs to the output folder.</p></li>
+<li><p>ActivitySim will log progress and write outputs to the output folder.</p></li>
 </ul>
-<p>The example should complete within a couple minutes since it is running a small sample of households.</p>
+<p>The example should run in a few minutes since it runs a small sample of households.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>A customizable run script for power users can be found in the <a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/master/scripts">Github repo</a>.
+<p>A customizable run script for power users can be found in the <a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/master/other_resources/scripts">Github repo</a>.
 This script takes many of the same arguments as the <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span></code> command, including paths to
-<code class="docutils literal notranslate"><span class="pre">--config</span></code>, <code class="docutils literal notranslate"><span class="pre">--data</span></code>, and <code class="docutils literal notranslate"><span class="pre">--output</span></code> directories. It looks for these folders in the current
+<code class="docutils literal notranslate"><span class="pre">--config</span></code>, <code class="docutils literal notranslate"><span class="pre">--data</span></code>, and <code class="docutils literal notranslate"><span class="pre">--output</span></code> directories. The script looks for these folders in the current
 working directory by default.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">simulation</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
@@ -1437,32 +1423,50 @@ include the multiprocessing configuration settings via settings file inheritance
 </pre></div>
 </div>
 <p>The multiprocessing example also writes outputs to the output folder.</p>
-<p>The default multiprocessed example is configured to run with two processors: <code class="docutils literal notranslate"><span class="pre">num_processes:</span> <span class="pre">2</span></code>.  Additional more performant configurations are
-included and commented out in the example settings file.  For example, the 100 percent sample multiprocessing example was run on a Windows Server
-machine with 28 cores &#64; 2.56GHz and 224GB RAM with the configuration below.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> for more information.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">households_sample_size</span><span class="p">:</span>  <span class="mi">0</span>
+<p>The default multiprocessed example is configured to run with two processors and no chunking: <code class="docutils literal notranslate"><span class="pre">num_processes:</span> <span class="pre">2</span></code> and <code class="docutils literal notranslate"><span class="pre">chunk_size:</span> <span class="pre">0</span></code>.  Additional more performant
+configurations are included and commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example - <code class="docutils literal notranslate"><span class="pre">example_mtc_full</span></code> -
+was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> and
+<a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.  If the machine does not have enough RAM to solve all the choosers at once then chunking needs to
+be configured, as discussed below.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">households_sample_size</span><span class="p">:</span> <span class="mi">0</span>
 <span class="n">num_processes</span><span class="p">:</span> <span class="mi">24</span>
+<span class="n">chunk_size</span><span class="p">:</span> <span class="mi">0</span>
+<span class="n">chunk_training_mode</span><span class="p">:</span> <span class="n">production</span>
 </pre></div>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Anaconda Python on Windows uses the <a class="reference external" href="https://software.intel.com/en-us/mkl">Intel Math Kernel Library</a> for
-many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
-in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
-parallel since they are largely independent of one another, it can be advantageous to override threading within
-processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
-override the MKL number of threads setting via a system environment variable that is set before running the model.
-In practice, this means before running the model, first set the MKL number of threads variable via the command
-line as follows: SET MKL_NUM_THREADS=1</p>
 </div>
+<div class="section" id="configuring-chunking">
+<span id="id4"></span><h4>Configuring chunking<a class="headerlink" href="#configuring-chunking" title="Permalink to this headline">¶</a></h4>
+<p>As described in <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>, to configure reasonable chunking behavior, ActivitySim must first be trained with the
+model setup and machine.  The steps to configure chunking behavior are:</p>
+<ul class="simple">
+<li><p>Run the full scale model with <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">training</span></code>.  Set <code class="docutils literal notranslate"><span class="pre">num_processors</span></code> to about 80% of the avaiable logical processors and <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> to about 80% of the available RAM.  This will run the model and create the <code class="docutils literal notranslate"><span class="pre">chunk_cache.csv</span></code> file for reuse.</p></li>
+<li><p>Run the full scale model with <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">production</span></code>.  Experiment with different <code class="docutils literal notranslate"><span class="pre">num_processors</span></code> and <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> settings depending on desired runtimes and machine resources.</p></li>
+</ul>
 </div>
 </div>
 <div class="section" id="outputs">
 <h3>Outputs<a class="headerlink" href="#outputs" title="Permalink to this headline">¶</a></h3>
-<p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal notranslate"><span class="pre">outputs\pipeline.h5</span></code>.  This file contains a copy
-of each key data table after each model step in which the table was modified.  The example also writes the final tables to
-CSV files by using the <a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> method via the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.
-This method returns a pandas DataFrame, which is then written to a CSV file by the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.</p>
+<p>The key output of ActivitySim is the HDF5 data pipeline file <code class="docutils literal notranslate"><span class="pre">outputs\pipeline.h5</span></code>.  By default, this datastore file
+contains a copy of each data table after each model step in which the table was modified.</p>
+<p>The example also writes the final tables to CSV files by using the <code class="docutils literal notranslate"><span class="pre">write_tables</span></code> step.  This step calls
+<a class="reference internal" href="core.html#activitysim.core.pipeline.get_table" title="activitysim.core.pipeline.get_table"><code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.core.pipeline.get_table()</span></code></a> to get a pandas DataFrame and write a CSV file for each table
+specified in <code class="docutils literal notranslate"><span class="pre">output_tables</span></code> in the settings.yaml file.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">output_tables</span><span class="p">:</span>
+  <span class="n">h5_store</span><span class="p">:</span> <span class="kc">False</span>
+  <span class="n">action</span><span class="p">:</span> <span class="n">include</span>
+  <span class="n">prefix</span><span class="p">:</span> <span class="n">final_</span>
+  <span class="n">tables</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">checkpoints</span>
+    <span class="o">-</span> <span class="n">accessibility</span>
+    <span class="o">-</span> <span class="n">land_use</span>
+    <span class="o">-</span> <span class="n">households</span>
+    <span class="o">-</span> <span class="n">persons</span>
+    <span class="o">-</span> <span class="n">tours</span>
+    <span class="o">-</span> <span class="n">trips</span>
+    <span class="o">-</span> <span class="n">joint_tour_participants</span>
+</pre></div>
+</div>
 <p>The <code class="docutils literal notranslate"><span class="pre">other_resources\scripts\make_pipeline_output.py</span></code> script uses the information stored in the pipeline file to create
 the table below for a small sample of households.  The table shows that for each table in the pipeline, the number of rows
 and/or columns changes as a result of the relevant model step.  A <code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> table is also stored in the
@@ -1640,20 +1644,30 @@ restarting the pipeline at any step.</p>
 </tr>
 </tbody>
 </table>
+<div class="section" id="logging">
+<span id="logs"></span><span id="index-3"></span><h4>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h4>
+<p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
+library.  The following key log files are created with a model run:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">activitysim.log</span></code> - overall system log file</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timing_log.csv</span></code> - submodel step runtimes</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">omnibus_mem.csv</span></code> - multiprocessed submodel memory usage</p></li>
+</ul>
+<p>Refer to the <a class="reference internal" href="#tracing"><span class="std std-ref">Tracing</span></a> section for more detail on tracing.</p>
+</div>
+<div class="section" id="trip-matrices">
+<h4>Trip Matrices<a class="headerlink" href="#trip-matrices" title="Permalink to this headline">¶</a></h4>
 <p>The <code class="docutils literal notranslate"><span class="pre">write_trip_matrices</span></code> step processes the trips table to create open matrix (OMX) trip matrices for
 assignment.  The matrices are configured and coded according to the expressions in the model step
 trip annotation file.  See <a class="reference internal" href="models.html#write-trip-matrices"><span class="std std-ref">Write Trip Matrices</span></a> for more information.</p>
-<p>ActivitySim also writes log and trace files to the <code class="docutils literal notranslate"><span class="pre">outputs</span></code> folder.  The activitysim.log file,
-which is the overall log file is always produced.  If tracing is specified, then trace files are
-output as well.</p>
+</div>
 <div class="section" id="tracing">
 <span id="id5"></span><h4>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h4>
 <p>There are two types of tracing in ActivtiySim: household and origin-destination (OD) pair.  If a household trace ID
 is specified, then ActivitySim will output a comprehensive set (i.e. hundreds) of trace files for all
 calculations for all household members:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">hhtrace.log</span></code> - household trace log file, which specifies the CSV files traced. The order of output files is consistent with the model sequence.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">various</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - every input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for every sub-model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Several</span> <span class="pre">CSV</span> <span class="pre">files</span></code> - each input, intermediate, and output data table - chooser, expressions/utilities, probabilities, choices, etc. - for the trace household for each sub-model</p></li>
 </ul>
 <p>If an OD pair trace is specified, then ActivitySim will output the acessibility calculations trace
 file:</p>
@@ -1736,16 +1750,16 @@ system for non-motorized travel, and optionally a transit access points (TAPs) z
 </div></blockquote>
 <p>Regions that have an interest in more precise transit forecasts may wish to adopt the three-zone approach, while other regions may adopt the one or two-zone approach.  The microzone version requires coding households and land use at the microzone level.  Typically an all-streets network is used for representation of non-motorized impedances. This requires a routable all-streets network, with centroids and connectors for microzones.  If the three-zone system is adopted, procedures need to be developed to code TAPs from transit stops and populate the all-street network with TAP centroids and centroid connectors.  A model with transit virtual path building takes longer to run than a traditional
 TAZ only model, but it provides a much richer framework for transit modeling.</p>
-<p>Example configurations and inputs for two and three-zone system models are described below.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The two and three zone system test examples are dummy examples developed from the TM1 example.  To develop the two zone system
+<p>The two and three zone system test examples are simple test examples developed from the TM1 example.  To develop the two zone system
 example, TM1 TAZs were labeled MAZs, each MAZ was assigned a TAZ, and MAZ to MAZ impedance files were created from the
 TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed
 so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for
 initial development, these examples were insufficient for validation and performance testing of the new software. As a result,
 the <a class="reference internal" href="#example-marin"><span class="std std-ref">example_marin</span></a> example was created.</p>
 </div>
+<p>Example simple test configurations and inputs for two and three-zone system models are described below.</p>
 <div class="section" id="id9">
 <h3>Examples<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
 <p>To run the two zone and three zone system examples, do the following:</p>
@@ -1781,7 +1795,7 @@ the <a class="reference internal" href="#example-marin"><span class="std std-ref
 <h4>Two Zone<a class="headerlink" href="#two-zone" title="Permalink to this headline">¶</a></h4>
 <p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone’s share of TAZ size term.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.</p></li>
 </ul>
 <p>In <code class="docutils literal notranslate"><span class="pre">network_los.yaml</span></code>:</p>
 <p>The additional two zone system settings and inputs are described and illustrated below.  No additional utility expression files or expression revisions are required beyond the one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is available using the existing skim expressions.  Users can specify mode utilities using MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.</p>
@@ -1789,7 +1803,12 @@ the <a class="reference internal" href="#example-marin"><span class="std std-ref
 <li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - set to 2 for two zone system</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">maz</span></code> -  MAZ data file, with MAZ ID, TAZ, and land use and other MAZ attributes</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:tables</span></code> - list of MAZ to MAZ impedance tables.  These tables are read as pandas DataFrames and the columns are exposed to expressions.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:max_blend_distance</span></code> - in order to avoid cliff effects, the lookup of MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and origin TAZ to destination TAZ impedance up to a max distance.  The calculated value is the (MAZ to MAZ distance) * (distance / max distance) * (TAZ to TAZ distance) * (1 - (distance / max distance)).  This requires specifying a distance TAZ skim and distance columns from the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the same so the blending can happen on-the-fly.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:max_blend_distance</span></code> - in order to avoid cliff effects, the lookup of MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and origin TAZ to destination TAZ impedance up to a max distance.  The blending formula is below.  This requires specifying a distance TAZ skim and distance columns from the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the same so the blending can happen on-the-fly or else a value of 0 is returned.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">MAZ</span> <span class="n">to</span> <span class="n">MAZ</span> <span class="n">distance</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="nb">max</span> <span class="n">distance</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">TAZ</span> <span class="n">to</span> <span class="n">TAZ</span> <span class="n">distance</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">distance</span> <span class="o">/</span> <span class="nb">max</span> <span class="n">distance</span><span class="p">))</span>
+</pre></div>
+</div>
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">maz_to_maz:blend_distance_skim_name</span></code> - Identify the distance skim for the blending calculation if different than the blend skim.</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">zone_system</span><span class="p">:</span> <span class="mi">2</span>
@@ -1815,7 +1834,7 @@ the <a class="reference internal" href="#example-marin"><span class="std std-ref
 <p>In <code class="docutils literal notranslate"><span class="pre">settings.yaml</span></code>:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">models</span></code> - add initialize_los and initialize_tvpb to load network LOS inputs / skims and pre-compute TAP to TAP utilities for TVPB.  See <a class="reference internal" href="models.html#initialize-los"><span class="std std-ref">Initialize LOS</span></a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone’s share of TAZ size term.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span></code> - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.</p></li>
 </ul>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">models</span><span class="p">:</span>
   <span class="o">-</span> <span class="n">initialize_landuse</span>
@@ -1834,7 +1853,7 @@ the <a class="reference internal" href="#example-marin"><span class="std std-ref
 <li><p><code class="docutils literal notranslate"><span class="pre">zone_system</span></code> - set to 3 for three zone system</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">rebuild_tvpb_cache</span></code> - rebuild and overwrite existing pre-computed TAP to TAP utilities cache</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_tvpb_cache_as_csv</span></code> - write a CSV version of TVPB cache for tracing</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tap_skims</span></code> - TAP to TAP skims OMX file name. The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tap_skims</span></code> - TAP to TAP skims OMX file name. The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tap</span></code> - TAPs table</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">tap_lines</span></code> - table of transit line names served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are further away and serve new service are included in the TAP set for consideration.  It is a very important file to include as it can considerably reduce runtimes.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">maz_to_tap</span></code> - list of MAZ to TAP access/egress impedance files by user defined mode.  Examples include walk and drive.  The file also includes MAZ to TAP impedances.</p></li>
@@ -1993,6 +2012,9 @@ has essentially the same configuration as the simpler three zone example above.<
 <span class="n">activitysim</span> <span class="n">run</span> <span class="o">-</span><span class="n">c</span> <span class="n">configs</span> <span class="o">-</span><span class="n">d</span> <span class="n">data</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span> <span class="o">-</span><span class="n">s</span> <span class="n">settings_mp</span><span class="o">.</span><span class="n">yaml</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li><p>For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p></li>
+</ul>
 </div>
 <div class="section" id="id14">
 <h3>Settings<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
@@ -2008,7 +2030,11 @@ file to include as it can considerably reduce runtimes.</p>
 </div>
 <div class="section" id="example-arc">
 <span id="id15"></span><h2>example_arc<a class="headerlink" href="#example-arc" title="Permalink to this headline">¶</a></h2>
-<p>(<strong>In development</strong>) The example_arc added a <a class="reference internal" href="models.html#trip-scheduling-choice"><span class="std std-ref">Trip Scheduling Choice (Logit Choice)</span></a>, <a class="reference internal" href="models.html#trip-departure-choice"><span class="std std-ref">Trip Departure Choice (Logit Choice)</span></a>, and <a class="reference internal" href="models.html#parking-location-choice"><span class="std std-ref">Parking Location Choice</span></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This example is in development</p>
+</div>
+<p>The example_arc added a <a class="reference internal" href="models.html#trip-scheduling-choice"><span class="std std-ref">Trip Scheduling Choice (Logit Choice)</span></a>, <a class="reference internal" href="models.html#trip-departure-choice"><span class="std std-ref">Trip Departure Choice (Logit Choice)</span></a>, and <a class="reference internal" href="models.html#parking-location-choice"><span class="std std-ref">Parking Location Choice</span></a>
 submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="#example-mtc"><span class="std std-ref">example_mtc</span></a>
 submodel <a class="reference internal" href="#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.</p>
 <div class="section" id="example-arc-sub-model-specification-files">
@@ -2055,13 +2081,17 @@ submodel <a class="reference internal" href="#sub-model-spec-files"><span class=
 <div class="section" id="id16">
 <h3>Example<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
-for running example_arc.</p>
+for running example_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </div>
 </div>
 <div class="section" id="example-semcog">
 <span id="id18"></span><h2>example_semcog<a class="headerlink" href="#example-semcog" title="Permalink to this headline">¶</a></h2>
-<p>(<strong>In development</strong>) The example_semcog added a <a class="reference internal" href="models.html#work-from-home"><span class="std std-ref">Work From Home</span></a> and <a class="reference internal" href="models.html#telecommute-frequency"><span class="std std-ref">Telecommute Frequency</span></a>
-submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="#example-mtc"><span class="std std-ref">example_mtc</span></a>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This example is in development</p>
+</div>
+<p>The example_semcog added a <a class="reference internal" href="models.html#work-from-home"><span class="std std-ref">Work From Home</span></a>, <a class="reference internal" href="models.html#telecommute-frequency"><span class="std std-ref">Telecommute Frequency</span></a>, <a class="reference internal" href="models.html#transit-pass-subsidy"><span class="std std-ref">Transit Pass Subsidy</span></a>
+and <a class="reference internal" href="models.html#transit-pass-ownership"><span class="std std-ref">Transit Pass Ownership</span></a> submodel.  These submodel specification files are below, and are in addition to the <a class="reference internal" href="#example-mtc"><span class="std std-ref">example_mtc</span></a>
 submodel <a class="reference internal" href="#sub-model-spec-files"><span class="std std-ref">Sub-Model Specification Files</span></a>.</p>
 <div class="section" id="example-semcog-sub-model-specification-files">
 <span id="semcog-sub-model-spec-files"></span><h3>Example SEMCOG Sub-Model Specification Files<a class="headerlink" href="#example-semcog-sub-model-specification-files" title="Permalink to this headline">¶</a></h3>
@@ -2092,33 +2122,57 @@ submodel <a class="reference internal" href="#sub-model-spec-files"><span class=
 </ul>
 </td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="models.html#transit-pass-subsidy"><span class="std std-ref">Transit Pass Subsidy</span></a></p></td>
+<td><ul class="simple">
+<li><p>transit_pass_subsidy.yaml</p></li>
+<li><p>transit_pass_subsidy.csv</p></li>
+<li><p>transit_pass_subsidy_coeffs.csv</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="models.html#transit-pass-ownership"><span class="std std-ref">Transit Pass Ownership</span></a></p></td>
+<td><ul class="simple">
+<li><p>transit_pass_ownership.yaml</p></li>
+<li><p>transit_pass_ownership.csv</p></li>
+<li><p>transit_pass_ownership_coeffs.csv</p></li>
+</ul>
+</td>
+</tr>
 </tbody>
 </table>
 </div>
 <div class="section" id="id19">
 <h3>Example<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
-for running example_semcog.</p>
+for running example_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </div>
 </div>
 <div class="section" id="example-psrc">
 <span id="id21"></span><h2>example_psrc<a class="headerlink" href="#example-psrc" title="Permalink to this headline">¶</a></h2>
-<p>(<strong>In development</strong>) The example_psrc is a two zone system (MAZs and TAZs) implementation of the
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This example is in development</p>
+</div>
+<p>The example_psrc is a two zone system (MAZs and TAZs) implementation of the
 example_mtc model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).</p>
 <div class="section" id="id22">
 <h3>Example<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
-for running example_psrc.</p>
+for running example_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </div>
 </div>
 <div class="section" id="example-sandag">
 <span id="id24"></span><h2>example_sandag<a class="headerlink" href="#example-sandag" title="Permalink to this headline">¶</a></h2>
-<p>(<strong>In development</strong>) The example_sandag is a three zone system (MAZs, TAZs, and TAPs) implementation of the
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This example is in development</p>
+</div>
+<p>The example_sandag is a three zone system (MAZs, TAZs, and TAPs) implementation of the
 example_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).</p>
 <div class="section" id="id25">
 <h3>Example<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h3>
 <p>See example commands in <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
-for running example_sandag.</p>
+for running example_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.</p>
 </div>
 </div>
 </div>

@@ -36,22 +36,25 @@ Installation
   #Mac
   source activate asimtest
 
-4. Get and install other required libraries on the activated conda Python environment using `pip <https://pypi.org/project/pip>`__:
+4. Get and install other required libraries on the activated conda Python environment using `pip <https://pypi.org/project/pip>`__ or `conda <https://docs.conda.io/>`__.  Conda is preferred but some packages are only on pip.
 
 ::
 
   # required packages for running ActivitySim
-  conda install cytoolz numpy pandas psutil pyarrow numba
-  conda install -c anaconda pytables pyyaml
+  conda install cytoolz numpy pandas psutil pyarrow numba -c conda-forge
+  conda install pytables pyyaml -c conda-forge
   pip install openmatrix zbox requests
 
   # optional required packages for testing and building documentation
-  conda install pytest pytest-cov coveralls pycodestyle
-  pip install pytest-regressions
-  conda install sphinx numpydoc sphinx_rtd_theme
+  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge
+  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge
   
-  # optional required packages for example notebooks and estimation integration
-  conda install jupyterlab matplotlib geopandas descartes larch
+  # optional required packages for estimation integration
+  conda install larch -c conda-forge
+
+  # optional required packages for example notebooks
+  conda install jupyterlab matplotlib -c conda-forge
+  conda install geopandas descartes -c conda-forge
 
 5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.
 
@@ -79,6 +82,9 @@ For `pip` for example:
 
   #update to a new release
   pip install -U activitysim
+  
+  #install a specific (older) version
+  pip install activitysim==0.9.5.2
 
 .. note::
 
@@ -139,6 +145,7 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
   * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/>`__
   * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
   * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/adding_tncs.ipynb/>`__
+  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/memory_usage.ipynb/>`__
 
 Hardware
 --------
@@ -154,17 +161,23 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
 data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
-on the amount of RAM and number of processors allocated.
+on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
 
 .. note::
    ActivitySim has been run in the cloud, on both Windows and Linux using
    `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations, 
    scripts, and runtimes are in the ``other_resources\example_azure`` folder.
 
-.. note::
-   Anaconda Python depends on the `Intel Math Kernel Library <https://en.wikipedia.org/wiki/Math_Kernel_Library>`__
-   which multithreads some low level numpy and C/C++ functions used by ActivitySim.  This low level threading
-   can compete with ActivitySim's multiprocessing and so it is recommended to turn off MKL threading 
-   when running multiprocessed with the intent to use all the available CPUs.  To do so, set the
-   MKL_NUM_THREADS environment variable at runtime to one.  On Windows, this means running ``set MKL_NUM_THREADS=1``
-   before running the ActivitySim Python process.
+.. _mkl_settings :
+
+MKL Settings
+~~~~~~~~~~~~
+
+Anaconda Python on Windows uses the `Intel Math Kernel Library <https://software.intel.com/en-us/mkl>`__ for
+many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
+in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
+parallel since they are largely independent of one another, it can be advantageous to override threading within
+processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
+override the MKL number of threads setting via a system environment variable that is set before running the model.
+In practice, this means before running the model, first set the MKL number of threads variable via the command
+line as follows: ``SET MKL_NUM_THREADS=1``

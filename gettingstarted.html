@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Getting Started &mdash; ActivitySim 0.9.9.1 documentation</title>
+  <title>Getting Started &mdash; ActivitySim 1.0 documentation</title>
   
 
   
@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -64,7 +65,7 @@
             
             
               <div class="version">
-                0.9.9.1
+                1.0
               </div>
             
           
@@ -94,7 +95,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#run-the-primary-example">Run the Primary Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#try-the-notebooks">Try the Notebooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#hardware">Hardware</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hardware">Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mkl-settings">MKL Settings</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
@@ -203,20 +207,23 @@
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p>Get and install other required libraries on the activated conda Python environment using <a class="reference external" href="https://pypi.org/project/pip">pip</a>:</p></li>
+<li><p>Get and install other required libraries on the activated conda Python environment using <a class="reference external" href="https://pypi.org/project/pip">pip</a> or <a class="reference external" href="https://docs.conda.io/">conda</a>.  Conda is preferred but some packages are only on pip.</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># required packages for running ActivitySim</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span> <span class="n">pyarrow</span> <span class="n">numba</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">anaconda</span> <span class="n">pytables</span> <span class="n">pyyaml</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span> <span class="n">pyarrow</span> <span class="n">numba</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">pytables</span> <span class="n">pyyaml</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">openmatrix</span> <span class="n">zbox</span> <span class="n">requests</span>
 
 <span class="c1"># optional required packages for testing and building documentation</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
 
-<span class="c1"># optional required packages for example notebooks and estimation integration</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span> <span class="n">matplotlib</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="n">larch</span>
+<span class="c1"># optional required packages for estimation integration</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+
+<span class="c1"># optional required packages for example notebooks</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span> <span class="n">matplotlib</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="5">
@@ -241,6 +248,9 @@
 
 <span class="c1">#update to a new release</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">activitysim</span>
+
+<span class="c1">#install a specific (older) version</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span><span class="o">==</span><span class="mf">0.9.5.2</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -296,6 +306,7 @@ the <a class="reference external" href="https://github.com/rsginc/activitysim_re
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/">Summarizing results</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/change_in_auto_ownership.ipynb/">Testing a change in auto ownership</a></p></li>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/adding_tncs.ipynb/">Adding TNCs</a></p></li>
+<li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/memory_usage.ipynb/">Memory usage</a></p></li>
 </ul>
 </li>
 </ul>
@@ -313,21 +324,23 @@ the <a class="reference external" href="https://github.com/rsginc/activitysim_re
 <p>ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
 data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
-on the amount of RAM and number of processors allocated.</p>
+on the amount of RAM and number of processors allocated.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> and <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim has been run in the cloud, on both Windows and Linux using
 <a class="reference external" href="https://azure.microsoft.com/en-us/">Microsoft Azure</a>.  Example configurations,
 scripts, and runtimes are in the <code class="docutils literal notranslate"><span class="pre">other_resources\example_azure</span></code> folder.</p>
 </div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Anaconda Python depends on the <a class="reference external" href="https://en.wikipedia.org/wiki/Math_Kernel_Library">Intel Math Kernel Library</a>
-which multithreads some low level numpy and C/C++ functions used by ActivitySim.  This low level threading
-can compete with ActivitySim’s multiprocessing and so it is recommended to turn off MKL threading
-when running multiprocessed with the intent to use all the available CPUs.  To do so, set the
-MKL_NUM_THREADS environment variable at runtime to one.  On Windows, this means running <code class="docutils literal notranslate"><span class="pre">set</span> <span class="pre">MKL_NUM_THREADS=1</span></code>
-before running the ActivitySim Python process.</p>
+<div class="section" id="mkl-settings">
+<span id="id1"></span><h3>MKL Settings<a class="headerlink" href="#mkl-settings" title="Permalink to this headline">¶</a></h3>
+<p>Anaconda Python on Windows uses the <a class="reference external" href="https://software.intel.com/en-us/mkl">Intel Math Kernel Library</a> for
+many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
+in order to be performant out-of-the-box.  However, for ActivitySim multiprocessing, which processes households in
+parallel since they are largely independent of one another, it can be advantageous to override threading within
+processes and instead let ActivitySim run each process with one computing core or thread.  In order to do so,
+override the MKL number of threads setting via a system environment variable that is set before running the model.
+In practice, this means before running the model, first set the MKL number of threads variable via the command
+line as follows: <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">MKL_NUM_THREADS=1</span></code></p>
 </div>
 </div>
 </div>

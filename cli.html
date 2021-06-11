@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Command Line Interface &mdash; ActivitySim 0.9.9.1 documentation</title>
+  <title>Command Line Interface &mdash; ActivitySim 1.0 documentation</title>
   
 
   
@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -64,7 +65,7 @@
             
             
               <div class="version">
-                0.9.9.1
+                1.0
               </div>
             
           
@@ -195,14 +196,14 @@ the <a class="reference external" href="https://github.com/rsginc/activitysim_re
 <div class="section" id="module-activitysim.cli.create">
 <span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.cli.create" title="Permalink to this headline">¶</a></h3>
 <dl class="py function">
-<dt id="activitysim.cli.create.add_create_args">
-<code class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></code><code class="sig-name descname"><span class="pre">add_create_args</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.add_create_args" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="activitysim.cli.create.add_create_args">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">add_create_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.add_create_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create command args</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="activitysim.cli.create.create">
-<code class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></code><code class="sig-name descname"><span class="pre">create</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.create" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="activitysim.cli.create.create">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.create" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a new ActivitySim configuration from an existing template.</p>
 <p>Use the -l flag to view a list of example configurations, then
 copy to your own working directory. These new project files can
@@ -210,8 +211,8 @@ be run with the ‘run’ command.</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="activitysim.cli.create.get_example">
-<code class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></code><code class="sig-name descname"><span class="pre">get_example</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.get_example" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="activitysim.cli.create.get_example">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.create.</span></span><span class="sig-name descname"><span class="pre">get_example</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">example_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.create.get_example" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy project data to user-specified directory.</p>
 <p>Examples and their data are described in a manifest
 YAML file. Each example contains at least a <cite>name</cite> and
@@ -257,14 +258,14 @@ more information.</p>
 <div class="section" id="id2">
 <h3>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.cli.run"></span><dl class="py function">
-<dt id="activitysim.cli.run.add_run_args">
-<code class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></code><code class="sig-name descname"><span class="pre">add_run_args</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.add_run_args" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="activitysim.cli.run.add_run_args">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></span><span class="sig-name descname"><span class="pre">add_run_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiprocess</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.add_run_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run command args</p>
 </dd></dl>
 
 <dl class="py function">
-<dt id="activitysim.cli.run.run">
-<code class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></code><code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.run" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="activitysim.cli.run.run">
+<span class="sig-prename descclassname"><span class="pre">activitysim.cli.run.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.cli.run.run" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run the models. Specify a project folder using the ‘–working_dir’ option,
 or point to the config, data, and output folders directly with
 ‘–config’, ‘–data’, and ‘–output’. Both ‘–config’ and ‘–data’ can be

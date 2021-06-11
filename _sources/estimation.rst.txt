@@ -59,7 +59,7 @@ To run the estimation example, do the following:
 ::
 
   cd test_example_estimation_sf
-  activitysim run -c configs_estimation/configs -c configs -o output -d data_test
+  activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
 
 
 * ActivitySim should log some information and write outputs to the output folder, including EDBs for each submodel.  The estimation example runs for about 15 minutes and writes EDBs for 2000 households.
@@ -72,7 +72,7 @@ Additional settings for running ActivitySim in estimation mode are specified in 
 
 * ``enable`` - enable estimation, either True or False
 * ``bundles`` - the list of submodels for which to write EDBs
-* ``survey_tables`` - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the ``scripts\infer.py`` script that pre-processes the ActivitySim format household travel survey files
+* ``survey_tables`` - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the ``scripts\infer.py`` script that pre-processes the ActivitySim format household travel survey files for the example data and submodels
 
 
 .. _estimation_example_notebooks:

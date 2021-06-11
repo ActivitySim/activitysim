@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>How the System Works &mdash; ActivitySim 0.9.9.1 documentation</title>
+  <title>How the System Works &mdash; ActivitySim 1.0 documentation</title>
   
 
   
@@ -30,6 +30,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -64,7 +65,7 @@
             
             
               <div class="version">
-                0.9.9.1
+                1.0
               </div>
             
           
@@ -215,10 +216,10 @@
 <span class="kn">from</span> <span class="nn">activitysim.core</span> <span class="kn">import</span> <span class="n">inject</span>
 </pre></div>
 </div>
-<p>which loads the config and inject classes.  These define <a class="reference external" href="https://github.com/udst/orca">ORCA</a> inspired injectables (functions) and
+<p>which loads the config and inject classes.  These define Inject injectables (functions) and
 helper functions for running models.  For example, the Python decorator <code class="docutils literal notranslate"><span class="pre">&#64;inject.injectable</span></code> overrides the function definition <code class="docutils literal notranslate"><span class="pre">settings</span></code> to
 execute this function whenever the <code class="docutils literal notranslate"><span class="pre">settings</span></code> object is called by the system.  The <a class="reference internal" href="core.html#module-activitysim.core.inject" title="activitysim.core.inject"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.inject</span></code></a> manages the data
-pipeline.  The inject class does everything ORCA did in previous versions of ActivitySim and so ORCA is no longer a dependency.</p>
+pipeline.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@inject</span><span class="o">.</span><span class="n">injectable</span><span class="p">(</span><span class="n">cache</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">settings</span><span class="p">():</span>
     <span class="n">settings_dict</span> <span class="o">=</span> <span class="n">read_settings_file</span><span class="p">(</span><span class="s1">&#39;settings.yaml&#39;</span><span class="p">,</span> <span class="n">mandatory</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -2825,13 +2826,22 @@ uses the information stored in the pipeline file to create the table below for a
 <span class="target" id="index-13"></span><span class="target" id="index-14"></span></div>
 <div class="section" id="skims">
 <span id="index-15"></span><span id="id4"></span><h3>Skims<a class="headerlink" href="#skims" title="Permalink to this headline">¶</a></h3>
-<p>The skims class defines orca injectables to access the skim matrices.  The skims class reads the
+<p>The skims class defines Inject injectables to access the skim matrices.  The skims class reads the
 skims from the omx_file on disk.  The injectables and omx_file for the example are listed below.
 The skims are float64 matrix.</p>
-<p>Skims are named &lt;PATHTYPE&gt;_&lt;MEASURE&gt;__&lt;TIME PERIOD&gt;:</p>
+<p>Skims are named &lt;PATH TYPE&gt;_&lt;MEASURE&gt;__&lt;TIME PERIOD&gt;:</p>
 <ul class="simple">
-<li><p>Highway paths are SOV, HOV2, HOV3, SOVTOLL, HOV2TOLL, HOV3TOLL</p></li>
-<li><p>Transit paths are:</p>
+<li><p>Highway paths:</p>
+<ul>
+<li><p>SOV - SOV free</p></li>
+<li><p>HOV2 - HOV2 free</p></li>
+<li><p>HOV3 - HOV3 free</p></li>
+<li><p>SOVTOLL - SOV toll</p></li>
+<li><p>HOV2TOLL - HOV2 toll</p></li>
+<li><p>HOV3TOLL - HOV3 toll</p></li>
+</ul>
+</li>
+<li><p>Transit paths:</p>
 <ul>
 <li><p>Walk access and walk egress - WLK_COM_WLK, WLK_EXP_WLK, WLK_HVY_WLK, WLK_LOC_WLK, WLK_LRF_WLK</p></li>
 <li><p>Walk access and drive egress - WLK_COM_DRV, WLK_EXP_DRV, WLK_HVY_DRV, WLK_LOC_DRV, WLK_LRF_DRV</p></li>
@@ -2839,8 +2849,42 @@ The skims are float64 matrix.</p>
 <li><p>COM = commuter rail, EXP = express bus, HVY = heavy rail, LOC = local bus, LRF = light rail ferry</p></li>
 </ul>
 </li>
-<li><p>Non-motorized paths are WALK, BIKE</p></li>
-<li><p>Time periods are EA, AM, MD, PM, EV</p></li>
+<li><p>Non-motorized paths:</p>
+<ul>
+<li><p>WALK</p></li>
+<li><p>BIKE</p></li>
+</ul>
+</li>
+<li><p>Measures:</p>
+<ul>
+<li><p>TIME - Time (minutes)</p></li>
+<li><p>DIST - Distance (miles)</p></li>
+<li><p>BTOLL - Bridge toll (cents)</p></li>
+<li><p>VTOLL - Value toll (cents)</p></li>
+<li><p>IVT - In-vehicle time, time (minutes x 100)</p></li>
+<li><p>IWAIT - Initial wait time, time (minutes x 100)</p></li>
+<li><p>XWAIT - Transfer wait time, time (minutes x 100)</p></li>
+<li><p>WACC - Walk access time, time (minutes x 100)</p></li>
+<li><p>WAUX - Auxiliary walk time, time (minutes x 100)</p></li>
+<li><p>WEGR - Walk egress time, time (minutes x 100)</p></li>
+<li><p>DTIM - Drive access and/or egress time, time (minutes x 100)</p></li>
+<li><p>DDIST - Drive access and/or egress distance, distance (miles x 100)</p></li>
+<li><p>FAR - Fare, cents</p></li>
+<li><p>BOARDS - Boardings, number</p></li>
+<li><p>TOTIVT - Total in-vehicle time, time (minutes x 100)</p></li>
+<li><p>KEYIVT - Transit submode in-vehicle time, time (minutes x 100)</p></li>
+<li><p>FERRYIVT - Ferry in-vehicle time, time (minutes x 100)</p></li>
+</ul>
+</li>
+<li><p>Time periods:</p>
+<ul>
+<li><p>EA</p></li>
+<li><p>AM</p></li>
+<li><p>MD</p></li>
+<li><p>PM</p></li>
+<li><p>EV</p></li>
+</ul>
+</li>
 </ul>
 <table class="docutils align-default">
 <colgroup>
@@ -3168,13 +3212,13 @@ The skims are float64 matrix.</p>
 <tr class="row-even"><td><p>HOV3TOLL_VTOLL__PM</p></td>
 <td><p>float64 matrix</p></td>
 </tr>
-<tr class="row-odd"><td><p>DIST__</p></td>
+<tr class="row-odd"><td><p>DIST</p></td>
 <td><p>float64 matrix</p></td>
 </tr>
-<tr class="row-even"><td><p>DISTWALK__</p></td>
+<tr class="row-even"><td><p>DISTWALK</p></td>
 <td><p>float64 matrix</p></td>
 </tr>
-<tr class="row-odd"><td><p>DISTBIKE__</p></td>
+<tr class="row-odd"><td><p>DISTBIKE</p></td>
 <td><p>float64 matrix</p></td>
 </tr>
 <tr class="row-even"><td><p>DRV_COM_WLK_WAIT__AM</p></td>

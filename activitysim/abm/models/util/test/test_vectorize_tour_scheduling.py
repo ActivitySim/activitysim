@@ -14,6 +14,16 @@ from ..vectorize_tour_scheduling import get_previous_tour_by_tourid, \
     vectorize_tour_scheduling
 
 
+def teardown_function(func):
+    inject.clear_cache()
+    inject.reinject_decorated_tables()
+
+
+def setup_function():
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    inject.add_injectable("output_dir", output_dir)
+
+
 def test_vts():
 
     inject.add_injectable("settings", {})

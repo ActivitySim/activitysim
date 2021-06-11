@@ -13,6 +13,7 @@ from .. import cdap
 from activitysim.core import simulate
 from activitysim.core import inject
 from activitysim.core import config
+from activitysim.core import chunk
 
 
 @pytest.fixture(scope='module')
@@ -48,6 +49,8 @@ def configs_dir():
 def setup_function():
     configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
     inject.add_injectable("configs_dir", configs_dir)
+    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+    inject.add_injectable("output_dir", output_dir)
 
 
 def test_bad_coefficients():
@@ -66,7 +69,8 @@ def test_assign_cdap_rank(people, model_settings):
 
     person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
 
-    cdap.assign_cdap_rank(people, person_type_map)
+    with chunk.chunk_log('test_assign_cdap_rank', base=True):
+        cdap.assign_cdap_rank(people, person_type_map)
 
     expected = pd.Series(
         [1, 1, 1, 2, 2, 1, 3, 1, 2, 1, 3, 2, 1, 3, 2, 4, 1, 3, 4, 2],
@@ -81,8 +85,10 @@ def test_individual_utilities(people, model_settings):
     cdap_indiv_and_hhsize1 = simulate.read_model_spec(file_name='cdap_indiv_and_hhsize1.csv')
 
     person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
-    cdap.assign_cdap_rank(people, person_type_map)
-    individual_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
+
+    with chunk.chunk_log('test_individual_utilities', base=True):
+        cdap.assign_cdap_rank(people, person_type_map)
+        individual_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
     individual_utils = individual_utils[['M', 'N', 'H']]
 
@@ -122,16 +128,25 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
     interaction_coefficients = cdap.preprocess_interaction_coefficients(interaction_coefficients)
 
     person_type_map = model_settings.get('PERSON_TYPE_MAP', {})
-    cdap.assign_cdap_rank(people, person_type_map)
-    indiv_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
-    choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
+    with chunk.chunk_log('test_build_cdap_spec_hhsize2', base=True):
+        cdap.assign_cdap_rank(people, person_type_map)
+        indiv_utils = cdap.individual_utilities(people, cdap_indiv_and_hhsize1, locals_d=None)
 
-    spec = cdap.build_cdap_spec(interaction_coefficients, hhsize=hhsize, cache=False)
+        choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
 
-    vars = simulate.eval_variables(spec.index, choosers)
+        spec = cdap.build_cdap_spec(interaction_coefficients, hhsize=hhsize, cache=False)
 
-    utils = simulate.compute_utilities(vars, spec)
+        # pandas.dot depends on column names of expression_values matching spec index values
+        # expressions should have been uniquified when spec was read
+        assert spec.index.is_unique
+
+        vars = simulate.eval_variables(spec.index, choosers)
+        assert (spec.index.values == vars.columns.values).all()
+
+    # spec = spec.astype(np.float64)
+
+    utils = vars.dot(spec)
 
     expected = pd.DataFrame([
         [0, 3, 0, 3, 7, 3, 0, 3, 0],  # household 3

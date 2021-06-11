@@ -19,3 +19,6 @@ annotate_tables:
       DF: persons
       TABLES:
         - households
+
+# add the work and school location size tables for backwards compatibility if desired
+add_size_tables: False

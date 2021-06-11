@@ -26,6 +26,8 @@ SPEC_DESCRIPTION_NAME = 'Description'
 SPEC_EXPRESSION_NAME = 'Expression'
 SPEC_LABEL_NAME = 'Label'
 
+ALT_LOSER_UTIL = -900
+
 
 def random_rows(df, n):
 
@@ -383,7 +385,7 @@ def eval_coefficients(spec, coefficients, estimator):
 
 def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                    have_trace_targets=False, trace_all_rows=False,
-                   estimator=None, trace_column_names=None):
+                   estimator=None, trace_column_names=None, log_alt_losers=False):
     """
 
     Parameters
@@ -432,15 +434,17 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     expression_values = np.empty((spec.shape[0], choosers.shape[0]))
     chunk.log_df(trace_label, "expression_values", expression_values)
 
-    for i, expr in enumerate(exprs):
+    i = 0
+    for expr, coefficients in zip(exprs, spec.values):
+
         try:
             with warnings.catch_warnings(record=True) as w:
                 # Cause all warnings to always be triggered.
                 warnings.simplefilter("always")
                 if expr.startswith('@'):
-                    expression_values[i] = eval(expr[1:], globals_dict, locals_dict)
+                    expression_value = eval(expr[1:], globals_dict, locals_dict)
                 else:
-                    expression_values[i] = choosers.eval(expr)
+                    expression_value = choosers.eval(expr)
 
                 if len(w) > 0:
                     for wrn in w:
@@ -449,6 +453,21 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         except Exception as err:
             logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
             raise err
+
+        if log_alt_losers:
+            # utils for each alt for this expression
+            # FIXME if we always did tis, we cold uem these and skip np.dot below
+            utils = np.outer(expression_value, coefficients)
+            losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
+
+            if losers.any():
+                logger.warning(f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
+                               f"with prohibitive utilities for all alternatives for expression: {expr}")
+
+        expression_values[i] = expression_value
+        i += 1
+
+    chunk.log_df(trace_label, "expression_values", expression_values)
 
     if estimator:
         df = pd.DataFrame(
@@ -461,6 +480,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     # - compute_utilities
     utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
+
     chunk.log_df(trace_label, "utilities", utilities)
 
     if trace_all_rows or have_trace_targets:
@@ -469,8 +489,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
             trace_targets = pd.Series(True, index=choosers.index)
         else:
             trace_targets = tracing.trace_targets(choosers)
-
-        assert trace_targets.any()  # since they claimed to have targets...
+            assert trace_targets.any()  # since they claimed to have targets...
 
         # get int offsets of the trace_targets (offsets of bool=True values)
         offsets = np.nonzero(list(trace_targets))[0]
@@ -591,28 +610,29 @@ def eval_variables(exprs, df, locals_d=None):
     return values
 
 
-def compute_utilities(expression_values, spec):
-
-    # matrix product of spec expression_values with utility coefficients of alternatives
-    # sums the partial utilities (represented by each spec row) of the alternatives
-    # resulting in a dataframe with one row per chooser and one column per alternative
-    # pandas.dot depends on column names of expression_values matching spec index values
-
-    # FIXME - for performance, it is essential that spec and expression_values
-    # FIXME - not contain booleans when dotted with spec values
-    # FIXME - or the arrays will be converted to dtype=object within dot()
-
-    spec = spec.astype(np.float64)
-
-    # pandas.dot depends on column names of expression_values matching spec index values
-    # expressions should have been uniquified when spec was read
-    # we could do it here if need be, and then set spec.index and expression_values.columns equal
-    assert spec.index.is_unique
-    assert (spec.index.values == expression_values.columns.values).all()
-
-    utilities = expression_values.dot(spec)
-
-    return utilities
+# no longer used because eval_utilities aggregates expression_values as they are computed to save space
+# def compute_utilities(expression_values, spec):
+#
+#     # matrix product of spec expression_values with utility coefficients of alternatives
+#     # sums the partial utilities (represented by each spec row) of the alternatives
+#     # resulting in a dataframe with one row per chooser and one column per alternative
+#     # pandas.dot depends on column names of expression_values matching spec index values
+#
+#     # FIXME - for performance, it is essential that spec and expression_values
+#     # FIXME - not contain booleans when dotted with spec values
+#     # FIXME - or the arrays will be converted to dtype=object within dot()
+#
+#     spec = spec.astype(np.float64)
+#
+#     # pandas.dot depends on column names of expression_values matching spec index values
+#     # expressions should have been uniquified when spec was read
+#     # we could do it here if need be, and then set spec.index and expression_values.columns equal
+#     assert spec.index.is_unique
+#     assert (spec.index.values == expression_values.columns.values).all()
+#
+#     utilities = expression_values.dot(spec)
+#
+#     return utilities
 
 
 def set_skim_wrapper_targets(df, skims):
@@ -805,6 +825,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 
 
 def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
+             log_alt_losers=False,
              want_logsums=False, trace_label=None,
              trace_choice_name=None, trace_column_names=None):
     """
@@ -859,6 +880,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
     utilities = eval_utilities(spec, choosers, locals_d,
+                               log_alt_losers=log_alt_losers,
                                trace_label=trace_label, have_trace_targets=have_trace_targets,
                                estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "utilities", utilities)
@@ -897,6 +919,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 
 
 def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
+            log_alt_losers=False,
             want_logsums=False, trace_label=None,
             trace_choice_name=None, trace_column_names=None):
     """
@@ -946,6 +969,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
         tracing.trace_df(choosers, '%s.choosers' % trace_label)
 
     raw_utilities = eval_utilities(spec, choosers, locals_d,
+                                   log_alt_losers=log_alt_losers,
                                    trace_label=trace_label, have_trace_targets=have_trace_targets,
                                    estimator=estimator, trace_column_names=trace_column_names)
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
@@ -1033,6 +1057,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
 
 def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                      custom_chooser=None,
+                     log_alt_losers=False,
                      want_logsums=False,
                      estimator=None,
                      trace_label=None, trace_choice_name=None, trace_column_names=None,
@@ -1087,12 +1112,14 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     if nest_spec is None:
         choices = eval_mnl(choosers, spec, locals_d, custom_chooser,
+                           log_alt_losers=log_alt_losers,
                            want_logsums=want_logsums,
                            estimator=estimator,
                            trace_label=trace_label,
                            trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
     else:
         choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
+                          log_alt_losers=log_alt_losers,
                           want_logsums=want_logsums,
                           estimator=estimator,
                           trace_label=trace_label,
@@ -1113,51 +1140,10 @@ def tvpb_skims(skims):
     return [skim for skim in list_of_skims(skims) if isinstance(skim, pathbuilder.TransitVirtualPathLogsumWrapper)]
 
 
-def simple_simulate_calc_row_size(choosers, spec, nest_spec, skims=None, trace_label=None):
-    """
-    rows_per_chunk calculator for simple_simulate
-    """
-
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_calc_row_size')
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead tvpb skims
-    # (do this first to facilitate tracing of rowsize estimation below)
-    if tvpb_skims(skims):
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    # raw utilities and probs for each alt
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    # del expression_values when done with them
-    sizer.drop_elements('expression_values')
-
-    #  probs for each alt
-    sizer.add_elements(spec.shape[1], 'probs')
-
-    if nest_spec is not None:
-        nest_size = logit.count_nests(nest_spec)
-        # nested_exp_utilities for each nest
-        sizer.add_elements(nest_size, 'nested_exp_utilities')
-        # nested_probabilities less 1 since it lacks root
-        sizer.add_elements(nest_size - 1, 'nested_probabilities')
-
-    logger.debug(f"{trace_label} #chunk_calc row_size hwm after {sizer.hwm_tag} {sizer.hwm}")
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
-def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
+def simple_simulate(choosers, spec, nest_spec,
+                    skims=None, locals_d=None,
                     chunk_size=0, custom_chooser=None,
+                    log_alt_losers=False,
                     want_logsums=False,
                     estimator=None,
                     trace_label=None, trace_choice_name=None, trace_column_names=None):
@@ -1171,18 +1157,17 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 
     assert len(choosers) > 0
 
-    row_size = chunk_size and simple_simulate_calc_row_size(choosers, spec, nest_spec, skims, trace_label)
-
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
             skims=skims,
             locals_d=locals_d,
             custom_chooser=custom_chooser,
+            log_alt_losers=log_alt_losers,
             want_logsums=want_logsums,
             estimator=estimator,
             trace_label=chunk_trace_label,
@@ -1190,6 +1175,8 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
             trace_column_names=trace_column_names)
 
         result_list.append(choices)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1202,6 +1189,7 @@ def simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
 def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
                                 skims=None, locals_d=None,
                                 chunk_size=0, custom_chooser=None,
+                                log_alt_losers=False,
                                 want_logsums=False,
                                 estimator=None,
                                 trace_label=None,
@@ -1209,22 +1197,17 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
     """
     chunk_by_chunk_id wrapper for simple_simulate
     """
-    row_size = chunk_size and simple_simulate_calc_row_size(choosers, spec, nest_spec, trace_label=trace_label)
-
-    # NOTE we chunk chunk_id so we have to scale row_size by average number of chooser rows per chunk_id
-    num_choosers = choosers['chunk_id'].max() + 1
-    rows_per_chunk_id = len(choosers) / num_choosers
-    row_size = row_size * rows_per_chunk_id
 
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, trace_label):
 
         choices = _simple_simulate(
             chooser_chunk, spec, nest_spec,
             skims=skims,
             locals_d=locals_d,
             custom_chooser=custom_chooser,
+            log_alt_losers=log_alt_losers,
             want_logsums=want_logsums,
             estimator=estimator,
             trace_label=chunk_trace_label,
@@ -1232,7 +1215,10 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
 
         result_list.append(choices)
 
-    choices = pd.concat(result_list)
+        chunk.log_df(trace_label, f'result_list', result_list)
+
+    if len(result_list) > 1:
+        choices = pd.concat(result_list)
 
     return choices
 
@@ -1356,44 +1342,9 @@ def _simple_simulate_logsums(choosers, spec, nest_spec,
     return logsums
 
 
-def simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trace_label):
-    """
-    calculate rows_per_chunk for simple_simulate_logsums
-    """
-
-    # if there are skims, and zone_system is THREE_ZONE, and there are any
-    # then we want to estimate the per-row overhead tvpb skims
-    # (do this first to facilitate tracing of rowsize estimation below)
-    if tvpb_skims(skims):
-        # DISABLE_TVPB_OVERHEAD
-        logger.debug("disable calc_row_size for THREE_ZONE with tap skims")
-        return 0
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    # del expression_values when done with them
-    sizer.drop_elements('expression_values')
-
-    if nest_spec is None:
-        logger.warning("simple_simulate_logsums_rpc rows_per_chunk not validated for mnl"
-                       " so chunk sizing might be a bit off")
-    else:
-        sizer.add_elements(logit.count_nests(nest_spec), 'nested_exp_utilities')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def simple_simulate_logsums(choosers, spec, nest_spec,
                             skims=None, locals_d=None, chunk_size=0,
-                            trace_label=None):
+                            trace_label=None, chunk_tag=None):
     """
     like simple_simulate except return logsums instead of making choices
 
@@ -1403,16 +1354,13 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
         Index will be that of `choosers`, values will be nest logsum based on spec column values
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'simple_simulate_logsums')
-
     assert len(choosers) > 0
-
-    row_size = chunk_size and simple_simulate_logsums_calc_row_size(choosers, spec, nest_spec, skims, trace_label)
+    chunk_tag = chunk_tag or trace_label
 
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag):
 
         logsums = _simple_simulate_logsums(
             chooser_chunk, spec, nest_spec,
@@ -1420,6 +1368,8 @@ def simple_simulate_logsums(choosers, spec, nest_spec,
             chunk_trace_label)
 
         result_list.append(logsums)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         logsums = pd.concat(result_list)

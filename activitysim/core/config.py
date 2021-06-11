@@ -76,6 +76,35 @@ def settings(settings_file_name):
     return settings_dict
 
 
+# def testing():
+#
+#     assert ("pytest" in sys.modules) == ("PYTEST_CURRENT_TEST" in os.environ)
+#     return "PYTEST_CURRENT_TEST" in os.environ
+
+
+def get_cache_dir():
+    """
+    return path of cache directory in output_dir (creating it, if need be)
+
+    cache directory is used to store
+        skim memmaps created by skim+dict_factories
+        tvpb tap_tap table cache
+
+    Returns
+    -------
+    str path
+    """
+    cache_dir = setting('cache_dir', default=None)
+    if cache_dir is None:
+        cache_dir = setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
+
+    if not os.path.isdir(cache_dir):
+        os.mkdir(cache_dir)
+    assert os.path.isdir(cache_dir)
+
+    return cache_dir
+
+
 def setting(key, default=None):
     return inject.get_injectable('settings').get(key, default)
 
@@ -300,7 +329,7 @@ def trace_file_path(file_name):
     return file_path
 
 
-def log_file_path(file_name):
+def log_file_path(file_name, prefix=True):
 
     output_dir = inject.get_injectable('output_dir')
 
@@ -309,7 +338,7 @@ def log_file_path(file_name):
         output_dir = os.path.join(output_dir, 'log')
 
     # - check for optional process name prefix
-    prefix = inject.get_injectable('log_file_prefix', None)
+    prefix = prefix and inject.get_injectable('log_file_prefix', None)
     if prefix:
         file_name = "%s-%s" % (prefix, file_name)
 
@@ -318,13 +347,9 @@ def log_file_path(file_name):
     return file_path
 
 
-def open_log_file(file_name, mode, header=None):
+def open_log_file(file_name, mode, header=None, prefix=False):
 
-    output_dir = inject.get_injectable('output_dir')
-    # - check for optional log subfolder
-    if os.path.exists(os.path.join(output_dir, 'log')):
-        output_dir = os.path.join(output_dir, 'log')
-    file_path = os.path.join(output_dir, file_name)
+    file_path = log_file_path(file_name, prefix)
 
     want_header = header and not os.path.exists(file_path)
 

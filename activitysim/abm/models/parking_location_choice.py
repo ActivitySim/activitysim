@@ -10,10 +10,10 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import tracing
+from activitysim.core import logit
 
 from activitysim.core import expressions
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.logit import interaction_dataset
 from activitysim.core.util import assign_in_place
 from activitysim.core.tracing import print_elapsed_time
 
@@ -149,7 +149,7 @@ def choose_parking_location(
     t0 = print_elapsed_time()
 
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    destination_sample = interaction_dataset(trips, alternatives, alt_index_id=alt_dest_col_name)
+    destination_sample = logit.interaction_dataset(trips, alternatives, alt_index_id=alt_dest_col_name)
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
     destination_sample = destination_sample[[alt_dest_col_name]].copy()

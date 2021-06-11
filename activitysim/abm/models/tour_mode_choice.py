@@ -9,8 +9,7 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core.mem import force_garbage_collect
+
 from activitysim.core.util import assign_in_place
 
 from activitysim.core import los
@@ -154,9 +153,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
                               choices_df.tour_mode, value_counts=True)
 
         choices_list.append(choices_df)
-
-        # FIXME - force garbage collection
-        force_garbage_collect()
 
     choices_df = pd.concat(choices_list)
 

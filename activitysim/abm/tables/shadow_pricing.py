@@ -711,6 +711,7 @@ def load_shadow_price_calculator(model_settings):
     return spc
 
 
+@inject.step()
 def add_size_tables():
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)

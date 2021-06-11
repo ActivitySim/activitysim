@@ -48,7 +48,10 @@ def log_settings():
     return [
         'households_sample_size',
         'chunk_size',
+        'chunk_method',
+        'chunk_training_mode',
         'multiprocess',
         'num_processes',
         'resume_after',
+        'trace_hh_id',
     ]

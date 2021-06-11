@@ -11,25 +11,24 @@ from collections import OrderedDict
 from . import logit
 from . import tracing
 from . import config
-from .simulate import set_skim_wrapper_targets
+from . import simulate
 from . import chunk
 
 from . import simulate
-
-from activitysim.core.mem import force_garbage_collect
-
 
 logger = logging.getLogger(__name__)
 
 DUMP = False
 
+ALT_CHOOSER_ID = '_chooser_id'
 
-def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, estimator=None):
+
+def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, estimator=None, log_alt_losers=False):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
 
     We could compute the utilities for interaction datasets just as we do for simple_simulate
-    specs with multiple alternative columns byt calling eval_variables and then computing the
+    specs with multiple alternative columns by calling eval_variables and then computing the
     utilities by matrix-multiplication of eval results with the utility coefficients in the
     spec alternative columns.
 
@@ -66,138 +65,172 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
-    assert(len(spec.columns) == 1)
+    with chunk.chunk_log(trace_label):
 
-    # avoid altering caller's passed-in locals_d parameter (they may be looping)
-    locals_d = locals_d.copy() if locals_d is not None else {}
-    locals_d.update(locals())
+        assert(len(spec.columns) == 1)
 
-    def to_series(x):
-        if np.isscalar(x):
-            return pd.Series([x] * len(df), index=df.index)
-        if isinstance(x, np.ndarray):
-            return pd.Series(x, index=df.index)
-        return x
+        # avoid altering caller's passed-in locals_d parameter (they may be looping)
+        locals_d = locals_d.copy() if locals_d is not None else {}
 
-    if trace_rows is not None and trace_rows.any():
-        # # convert to numpy array so we can slice ndarrays as well as series
-        # trace_rows = np.asanyarray(trace_rows)
-        assert type(trace_rows) == np.ndarray
-        trace_eval_results = OrderedDict()
-    else:
-        trace_eval_results = None
+        # add df for startswith('@') eval expressions
+        locals_d['df'] = df
 
-    check_for_variability = config.setting('check_for_variability')
+        def to_series(x):
+            if np.isscalar(x):
+                return pd.Series([x] * len(df), index=df.index)
+            if isinstance(x, np.ndarray):
+                return pd.Series(x, index=df.index)
+            return x
 
-    # need to be able to identify which variables causes an error, which keeps
-    # this from being expressed more parsimoniously
+        if trace_rows is not None and trace_rows.any():
+            # # convert to numpy array so we can slice ndarrays as well as series
+            # trace_rows = np.asanyarray(trace_rows)
+            assert type(trace_rows) == np.ndarray
+            trace_eval_results = OrderedDict()
+        else:
+            trace_eval_results = None
 
-    utilities = pd.DataFrame({'utility': 0.0}, index=df.index)
-    no_variability = has_missing_vals = 0
+        check_for_variability = config.setting('check_for_variability')
 
-    if estimator:
-        # ensure alt_id from interaction_dataset is available in expression_values_df for
-        # estimator.write_interaction_expression_values and eventual omnibus table assembly
-        alt_id = estimator.get_alt_id()
-        assert alt_id in df.columns
-        expression_values_df = df[[alt_id]]
+        # need to be able to identify which variables causes an error, which keeps
+        # this from being expressed more parsimoniously
 
-        # FIXME estimation_requires_chooser_id_in_df_column
-        # estimation requires that chooser_id is either in index or a column of interaction_dataset
-        # so it can be reformatted (melted) and indexed by chooser_id and alt_id
-        # we assume caller has this under control if index is named
-        if df.index.name is None:
-            chooser_id = estimator.get_chooser_id()
-            assert chooser_id in df.columns, \
-                "Expected to find choose_id column '%s' in interaction dataset" % (chooser_id, )
-            assert df.index.name is None
-            expression_values_df[chooser_id] = df[chooser_id]
+        utilities = pd.DataFrame({'utility': 0.0}, index=df.index)
 
-    if isinstance(spec.index, pd.MultiIndex):
-        exprs = spec.index.get_level_values(simulate.SPEC_EXPRESSION_NAME)
-        labels = spec.index.get_level_values(simulate.SPEC_LABEL_NAME)
-    else:
-        exprs = spec.index
-        labels = spec.index
+        chunk.log_df(trace_label, 'eval.utilities', utilities)
 
-    for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
-        try:
+        no_variability = has_missing_vals = 0
 
-            # - allow temps of form _od_DIST@od_skim['DIST']
-            if expr.startswith('_'):
+        if estimator:
+            # ensure alt_id from interaction_dataset is available in expression_values_df for
+            # estimator.write_interaction_expression_values and eventual omnibus table assembly
+            alt_id = estimator.get_alt_id()
+            assert alt_id in df.columns
+            expression_values_df = df[[alt_id]]
 
-                target = expr[:expr.index('@')]
-                rhs = expr[expr.index('@') + 1:]
-                v = to_series(eval(rhs, globals(), locals_d))
+            # FIXME estimation_requires_chooser_id_in_df_column
+            # estimation requires that chooser_id is either in index or a column of interaction_dataset
+            # so it can be reformatted (melted) and indexed by chooser_id and alt_id
+            # we assume caller has this under control if index is named
+            # bug - location choice has df index_name zone_id but should be person_id????
+            if df.index.name is None:
+                chooser_id = estimator.get_chooser_id()
+                assert chooser_id in df.columns, \
+                    "Expected to find choose_id column '%s' in interaction dataset" % (chooser_id, )
+                assert df.index.name is None
+                expression_values_df[chooser_id] = df[chooser_id]
 
-                # update locals to allows us to ref previously assigned targets
-                locals_d[target] = v
+        if isinstance(spec.index, pd.MultiIndex):
+            exprs = spec.index.get_level_values(simulate.SPEC_EXPRESSION_NAME)
+            labels = spec.index.get_level_values(simulate.SPEC_LABEL_NAME)
+        else:
+            exprs = spec.index
+            labels = spec.index
+
+        for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
+            try:
+
+                # - allow temps of form _od_DIST@od_skim['DIST']
+                if expr.startswith('_'):
+
+                    target = expr[:expr.index('@')]
+                    rhs = expr[expr.index('@') + 1:]
+                    v = to_series(eval(rhs, globals(), locals_d))
+
+                    # update locals to allows us to ref previously assigned targets
+                    locals_d[target] = v
+                    chunk.log_df(trace_label, target, v)  # track temps stored in locals
+
+                    if trace_eval_results is not None:
+                        trace_eval_results[expr] = v[trace_rows]
+
+                    # don't add temps to utility sums
+                    # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
+                    continue
+
+                if expr.startswith('@'):
+                    v = to_series(eval(expr[1:], globals(), locals_d))
+                else:
+                    v = df.eval(expr)
+
+                if check_for_variability and v.std() == 0:
+                    logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
+                    no_variability += 1
+
+                # FIXME - how likely is this to happen? Not sure it is really a problem?
+                if check_for_variability and np.count_nonzero(v.isnull().values) > 0:
+                    logger.info("%s: missing values in: %s" % (trace_label, expr))
+                    has_missing_vals += 1
+
+                if estimator:
+                    # in case we modified expression_values_df index
+                    expression_values_df.insert(loc=len(expression_values_df.columns), column=label,
+                                                value=v.values if isinstance(v, pd.Series) else v)
+
+                utility = (v * coefficient).astype('float')
+
+                if log_alt_losers:
+
+                    assert ALT_CHOOSER_ID in df
+                    max_utils_by_chooser = utility.groupby(df[ALT_CHOOSER_ID]).max()
+
+                    if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
+
+                        losers = max_utils_by_chooser[max_utils_by_chooser < simulate.ALT_LOSER_UTIL]
+                        logger.warning(f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
+                                       f"with prohibitive utilities for all alternatives for expression: {expr}")
+
+                        # loser_df = df[df[ALT_CHOOSER_ID].isin(losers.index)]
+                        # print(f"\nloser_df\n{loser_df}\n")
+                        # print(f"\nloser_max_utils_by_chooser\n{losers}\n")
+                        # bug
+
+                    del max_utils_by_chooser
+
+                utilities.utility += utility
 
                 if trace_eval_results is not None:
+
+                    # expressions should have been uniquified when spec was read
+                    # (though we could do it here if need be...)
+                    # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
+                    assert expr not in trace_eval_results
+
                     trace_eval_results[expr] = v[trace_rows]
+                    k = 'partial utility (coefficient = %s) for %s' % (coefficient, expr)
+                    trace_eval_results[k] = v[trace_rows] * coefficient
 
-                # don't add temps to utility sums
-                # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
-                continue
+                del v
+                # chunk.log_df(trace_label, 'v', None)
 
-            if expr.startswith('@'):
-                v = to_series(eval(expr[1:], globals(), locals_d))
-            else:
-                v = df.eval(expr)
+            except Exception as err:
+                logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
+                raise err
 
-            if check_for_variability and v.std() == 0:
-                logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
-                no_variability += 1
+        if estimator:
+            estimator.log("eval_interaction_utilities write_interaction_expression_values %s" % trace_label)
+            estimator.write_interaction_expression_values(expression_values_df)
+            del expression_values_df
 
-            # FIXME - how likely is this to happen? Not sure it is really a problem?
-            if check_for_variability and np.count_nonzero(v.isnull().values) > 0:
-                logger.info("%s: missing values in: %s" % (trace_label, expr))
-                has_missing_vals += 1
+        if no_variability > 0:
+            logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
 
-            if estimator:
-                # in case we modified expression_values_df index
-                v = v.values if isinstance(v, pd.Series) else v
-                expression_values_df.insert(loc=len(expression_values_df.columns), column=label,
-                                            value=v.values if isinstance(v, pd.Series) else v)
+        if has_missing_vals > 0:
+            logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
 
-            utilities.utility += (v * coefficient).astype('float')
+        if trace_eval_results is not None:
+            trace_eval_results['total utility'] = utilities.utility[trace_rows]
 
-            if trace_eval_results is not None:
+            trace_eval_results = pd.DataFrame.from_dict(trace_eval_results)
+            trace_eval_results.index = df[trace_rows].index
 
-                # expressions should have been uniquified when spec was read
-                # (though we could do it here if need be...)
-                # expr = assign.uniquify_key(trace_eval_results, expr, template="{} # ({})")
-                assert expr not in trace_eval_results
+            # add df columns to trace_results
+            trace_eval_results = pd.concat([df[trace_rows], trace_eval_results], axis=1)
+            chunk.log_df(trace_label, 'eval.trace_eval_results', trace_eval_results)
 
-                trace_eval_results[expr] = v[trace_rows]
-                k = 'partial utility (coefficient = %s) for %s' % (coefficient, expr)
-                trace_eval_results[k] = v[trace_rows] * coefficient
-
-        except Exception as err:
-            logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise err
-
-        # mem.trace_memory_info("eval_interaction_utilities: %s" % expr)
-
-    if estimator:
-        estimator.log("eval_interaction_utilities write_interaction_expression_values %s" % trace_label)
-        estimator.write_interaction_expression_values(expression_values_df)
-        del expression_values_df
-
-    if no_variability > 0:
-        logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
-
-    if has_missing_vals > 0:
-        logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
-
-    if trace_eval_results is not None:
-        trace_eval_results['total utility'] = utilities.utility[trace_rows]
-
-        trace_eval_results = pd.DataFrame.from_dict(trace_eval_results)
-        trace_eval_results.index = df[trace_rows].index
-
-        # add df columns to trace_results
-        trace_eval_results = pd.concat([df[trace_rows], trace_eval_results], axis=1)
+        chunk.log_df(trace_label, 'v', None)
+        chunk.log_df(trace_label, 'eval.utilities', None)  # out of out hands...
+        chunk.log_df(trace_label, 'eval.trace_eval_results', None)
 
     return utilities, trace_eval_results
 
@@ -206,6 +239,7 @@ def _interaction_simulate(
         choosers, alternatives, spec,
         skims=None, locals_d=None, sample_size=None,
         trace_label=None, trace_choice_name=None,
+        log_alt_losers=False,
         estimator=None):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -283,11 +317,14 @@ def _interaction_simulate(
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     alt_index_id = estimator.get_alt_id() if estimator else None
-    interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size, alt_index_id)
+    chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
+
+    interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size,
+                                               alt_index_id=alt_index_id, chooser_index_id=chooser_index_id)
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if skims is not None:
-        set_skim_wrapper_targets(interaction_df, skims)
+        simulate.set_skim_wrapper_targets(interaction_df, skims)
 
     # evaluate expressions from the spec multiply by coefficients and sum
     # spec is df with one row per spec expression and one col with utility coefficient
@@ -305,7 +342,9 @@ def _interaction_simulate(
         trace_rows = trace_ids = None
 
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
+        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
+                                     estimator=estimator,
+                                     log_alt_losers=log_alt_losers)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
     # print(f"interaction_df {interaction_df.shape}")
@@ -376,44 +415,9 @@ def _interaction_simulate(
     return choices
 
 
-def interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skims, trace_label):
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    sample_size = sample_size or len(alternatives)
-    chooser_row_size = len(choosers.columns)
-    # alternative columns plus join column and (possibly) skim destination
-    alt_row_size = alternatives.shape[1] + 1 + int(skims is not None)
-    if skims is not None:
-        alt_row_size += 1
-
-    logger.debug(f"{trace_label} #chunk_calc chooser_row_size {chooser_row_size}")
-    logger.debug(f"{trace_label} #chunk_calc alt_row_size {alt_row_size}")
-    logger.debug(f"{trace_label} #chunk_calc sample_size {sample_size}")
-
-    # interaction_df
-    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
-
-    # interaction_df is almost certainly the HWM - if so, no need to worry about the crumbs...
-
-    # interaction_utilities utilities probs
-    sizer.add_elements(0, 'interaction_utilities')
-    sizer.add_elements(0, 'utilities')
-    sizer.add_elements(0, 'probs')
-
-    sizer.drop_elements('utilities')
-
-    sizer.add_elements(0, 'positions')
-    sizer.add_elements(0, 'rands')
-    sizer.add_elements(0, 'choices')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def interaction_simulate(
         choosers, alternatives, spec,
+        log_alt_losers=False,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None,
         estimator=None):
@@ -471,22 +475,22 @@ def interaction_simulate(
 
     assert len(choosers) > 0
 
-    row_size = chunk_size and \
-        interaction_simulate_calc_row_size(choosers, alternatives, sample_size, skims, trace_label)
-
     result_list = []
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
 
         choices = _interaction_simulate(chooser_chunk, alternatives, spec,
-                                        skims, locals_d, sample_size,
-                                        chunk_trace_label,
-                                        trace_choice_name,
-                                        estimator)
+                                        skims=skims,
+                                        locals_d=locals_d,
+                                        sample_size=sample_size,
+                                        trace_label=chunk_trace_label,
+                                        trace_choice_name=trace_choice_name,
+                                        log_alt_losers=log_alt_losers,
+                                        estimator=estimator)
 
         result_list.append(choices)
 
-        force_garbage_collect()
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

@@ -522,9 +522,9 @@ class Random(object):
 
         if seed is None:
             self.base_seed = np.random.RandomState().randint(_MAX_SEED)
-            logger.info("Set random seed randomly to %s" % self.base_seed)
+            logger.debug("Set random seed randomly to %s" % self.base_seed)
         else:
-            logger.info("Set random seed base to %s" % seed)
+            logger.debug("Set random seed base to %s" % seed)
             self.base_seed = seed
 
     def get_global_rng(self):

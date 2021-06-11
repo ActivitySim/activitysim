@@ -185,7 +185,7 @@ def read_from_table_info(table_info):
 
     logger.debug('%s table columns: %s' % (tablename, df.columns.values))
     logger.debug('%s table size: %s' % (tablename, util.df_size(df)))
-    logger.info('%s index name: %s' % (tablename, df.index.name))
+    logger.debug('%s index name: %s' % (tablename, df.index.name))
 
     return df
 

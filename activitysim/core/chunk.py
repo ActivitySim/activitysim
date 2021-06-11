@@ -37,17 +37,35 @@ CHUNK_METHODS = [RSS, USS, BYTES, HYBRID_RSS, HYBRID_USS]
 USS_CHUNK_METHODS = [USS, HYBRID_USS, BYTES]
 DEFAULT_CHUNK_METHOD = HYBRID_USS
 
-#
-# TRAINING_MODE
-#
-
 """
+
+The chunk_cache table is a record of the memory usage and observed row_size required for chunking the various models.
+The row size differs depending on whether memory usage is calculated by rss, uss, or explicitly allocated bytes.
+We record all three during training so the mode can be changed without necessitating retraining.
+
+tag,                               num_rows, rss,   uss,   bytes,    uss_row_size, hybrid_uss_row_size, bytes_row_size
+atwork_subtour_frequency.simple,   3498,     86016, 81920, 811536,   24,           232,                 232
+atwork_subtour_mode_choice.simple, 704,      20480, 20480, 1796608,  30,           2552,                2552
+atwork_subtour_scheduling.tour_1,  701,      24576, 24576, 45294082, 36,           64614,               64614
+atwork_subtour_scheduling.tour_n,  3,        20480, 20480, 97734,    6827,         32578,               32578
+auto_ownership_simulate.simulate,  5000,     77824, 24576, 1400000,  5,            280,                 280
+
 MODE_RETRAIN
+    rebuild chunk_cache table and save/replace in output/cache/chunk_cache.csv
+    preforms a complete rebuild of chunk_cache table by doing adaptive chunking starting with based on default initial
+    settings (DEFAULT_INITIAL_ROWS_PER_CHUNK) and observing rss, uss, and allocated bytes to compute rows_size.
+    This will run somewhat slower than the other modes because of overhead of small first chunk, and possible
+    instability in the second chunk due to inaccuracies caused by small initial chunk_size sample
 
 MODE_ADAPTIVE
+    Use the existing chunk_cache to determine the sizing for the first chunk for each model, but also use the
+    observed row_size to adjust the estimated row_size for subsequent chunks. At the end of hte run, writes the
+    updated chunk_cache to the output directory, but doesn't overwrite the 'official' cache file. If the user wishes
+    they can replace the chunk_cache with the updated versions but this is not done automatically as it is not clear
+    this would be the desired behavior. (Might become clearer over time as this is exercised further.)
 
 MODE_PRODUCTION
-    since overhead changes we don't necessarily want the same number of rows per chunk every time
+    Since overhead changes we don't necessarily want the same number of rows per chunk every time
     but we do use the row_size from cache which we trust is stable
     (the whole point of MODE_PRODUCTION is to avoid the cost of observing overhead)
     which is stored in self.initial_row_size because initial_rows_per_chunk used it for the first chunk

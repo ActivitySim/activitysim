@@ -20,6 +20,7 @@ Number of Adults (>= 16 years old),num_adult,"reindex_i(_HH_PERSON_COUNT('age >=
 ,tour_mode_is_transit,df.tour_mode.isin(TRANSIT_MODES)
 ,tour_mode_is_drive_transit,df.tour_mode.isin(DRIVE_TO_TRANSIT_MODES)
 ,tour_mode_is_non_motorized,df.tour_mode.isin(NONMOTORIZED_MODES)
+Major University Students as determined by univ location zone override model,is_major_univ_student,df.original_school_zone_id.notna()
 #,,
 #num_work_tours already defined,,
 school but not university,num_school_tours,"reindex_i(df[primary_purpose==SCHOOL_TOUR].groupby('person_id').size(), df.person_id)"

@@ -23,6 +23,7 @@ def tour_od_choice(
         tours,
         persons,
         households,
+        land_use,
         network_los,
         chunk_size,
         trace_hh_id):
@@ -74,6 +75,7 @@ def tour_od_choice(
 
     tours[origin_col_name] = choices_df[origin_col_name]
     tours[dest_col_name] = choices_df[dest_col_name]
+    tours['poe_id'] = tours[origin_col_name].map(land_use.to_frame(columns='poe_id').poe_id)
 
     households = households.to_frame()
     persons = persons.to_frame()

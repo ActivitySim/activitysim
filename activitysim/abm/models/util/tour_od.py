@@ -39,6 +39,7 @@ DEST_TAZ = 'dest_TAZ'
 # we assume we can use it opportunistically
 ORIG_TAZ = 'orig_TAZ'
 ORIG_MAZ = 'orig_MAZ'
+ORIG_TAZ_EXT = 'orig_TAZ_ext'
 
 
 def _format_od_id_field(origin_col, destination_col):
@@ -102,6 +103,7 @@ def _create_od_alts_from_dest_size_terms(
 
     return od_alts
 
+
 def _od_sample(
         spec_segment_name,
         choosers,
@@ -155,11 +157,14 @@ def _od_sample(
         origin_filter=origin_filter,
         origin_attr_cols=origin_attr_cols)
 
-    if skims.orig_key not in od_alts_df:
-        if skims.orig_key == ORIG_TAZ:
-            od_alts_df[ORIG_TAZ] = map_maz_to_taz(od_alts_df[origin_id_col], network_los)
-        else:
-            logger.error("Alts df is missing origin skim key column.")
+    if skims.orig_key == ORIG_TAZ:
+        od_alts_df[ORIG_TAZ] = map_maz_to_taz(od_alts_df[origin_id_col], network_los)
+
+    elif skims.orig_key == ORIG_TAZ_EXT:
+        od_alts_df[ORIG_TAZ_EXT] = map_maz_to_ext_taz(od_alts_df[origin_id_col])
+
+    elif skims.orig_key not in od_alts_df:
+        logger.error("Alts df is missing origin skim key column.")
 
     
     choices = interaction_sample(
@@ -188,15 +193,6 @@ def od_sample(
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-
-    # create wrapper with keys for this lookup
-    # the skims will be available under the name "skims" for any @ expressions
-    # skim_origin_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
-    # skim_dest_col_name = od_size_terms.index.name
-    # # (logit.interaction_dataset suffixes duplicate
-    # # chooser column with '_chooser')
-    # if (skim_origin_col_name == skim_dest_col_name):
-    #     skim_origin_col_name = f'{skim_origin_col_name}_chooser'
 
     skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap(origin_col_name, dest_col_name)
@@ -228,51 +224,24 @@ def map_maz_to_taz(s, network_los):
     return s.map(maz_to_taz)
 
 
-# def aggregate_size_terms(od_size_terms, network_los, dest_maz_id_col=None, taz_agg_col=DEST_TAZ):
-#     #
-#     # aggregate MAZ_size_terms to TAZ_size_terms
-#     #
+def map_maz_to_ext_taz(s):
+    land_use = inject.get_table('land_use').to_frame(columns=['external_TAZ']).external_TAZ
+    return s.map(land_use).astype(int)
 
-#     breakpoint()
-#     MAZ_size_terms = od_size_terms.copy()
 
-#     # add crosswalk DEST_TAZ column to MAZ_size_terms
-#     if dest_maz_id_col is not None:
-#         MAZ_size_terms.drop_duplicates(dest_maz_id_col, inplace=True)
-#         MAZ_size_terms.set_index(dest_maz_id_col, inplace=True)
-#     MAZ_size_terms[taz_agg_col] = map_maz_to_taz(MAZ_size_terms.index, network_los)
+def map_maz_to_ext_maz(s):
+    land_use = inject.get_table('land_use').to_frame(columns=['external_MAZ']).external_MAZ
+    return s.map(land_use).astype(int)
 
-#     # aggregate to TAZ
-#     TAZ_size_terms = MAZ_size_terms.groupby(taz_agg_col).agg({'size_term': 'sum'})
-#     assert not TAZ_size_terms['size_term'].isna().any()
 
-#     #           size_term
-#     # dest_TAZ
-#     # 2              45.0
-#     # 3              44.0
-#     # 4              59.0
+def map_ext_maz_to_maz(s):
+    land_use = inject.get_table('land_use').to_frame(columns=['original_MAZ']).original_MAZ
+    return s.map(land_use).astype(int)
 
-#     # add crosswalk DEST_TAZ column to MAZ_size_terms
-#     # MAZ_size_terms = MAZ_size_terms.sort_values([DEST_TAZ, 'size_term'])  # maybe helpful for debugging
-#     og_size_term_idx = MAZ_size_terms.index.name
-#     MAZ_size_terms = MAZ_size_terms[[DEST_TAZ, 'size_term']].reset_index(drop=False)
-#     MAZ_size_terms = MAZ_size_terms.sort_values([DEST_TAZ, og_size_term_idx]).reset_index(drop=True)
-
-#     #       zone_id  dest_TAZ  size_term
-#     # 0        6097         2       10.0
-#     # 1       16421         2       13.0
-#     # 2       24251         3       14.0
-
-#     # print(f"TAZ_size_terms ({TAZ_size_terms.shape})\n{TAZ_size_terms}")
-#     # print(f"MAZ_size_terms ({MAZ_size_terms.shape})\n{MAZ_size_terms}")
-
-#     return MAZ_size_terms, TAZ_size_terms
 
 def aggregate_size_terms(dest_size_terms, network_los):
-    #
-    # aggregate MAZ_size_terms to TAZ_size_terms
-    #
 
+    # aggregate MAZ_size_terms to TAZ_size_terms
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
@@ -515,28 +484,12 @@ def od_presample(
     logger.info(f"{trace_label} od_presample")
 
     alt_od_col_name = _format_od_id_field(ORIG_MAZ, DEST_TAZ)
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    chooser_orig_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
 
-    # MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
-    #     od_size_terms, network_los, dest_maz_id_col=alt_dest_col_name)
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(destination_size_terms, network_los)
 
-    # # merge agg_dest_size_terms with un-agged MAZ orig terms!!!
-    # TAZ_size_terms = TAZ_size_terms.reset_index()
-    # orig_attrs = od_size_terms.drop_duplicates(orig_maz)[
-    #     model_settings['ORIGIN_ATTR_COLS_TO_USE'] + [orig_maz, ORIG_TAZ]]
-
-    # n_repeat = len(orig_attrs)
-    # TAZ_size_terms = TAZ_size_terms.reindex(TAZ_size_terms.index.repeat(n_repeat))
-    # TAZ_size_terms[orig_maz] = orig_attrs[orig_maz].tolist() * TAZ_size_terms.index.nunique()
-
-    # orig_MAZ_dest_TAZ_size_terms = pd.merge(orig_attrs, TAZ_size_terms, on=orig_maz)
-    # orig_MAZ_dest_TAZ_size_terms.index.name = alt_od_col_name
-
-    # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
-    # and a DEST_TAZ in the alternatives which get merged during interaction
-    # the skims will be available under the name "skims" for any @ expressions
+    # create wrapper with keys for this lookup - in this case there is a ORIG_TAZ_EXT
+    # in the choosers and a DEST_TAZ in the alternatives which get merged during
+    # interaction the skims will be available under the name "skims" for any @ expressions
     skim_dict = network_los.get_skim_dict('taz')
     skims = skim_dict.wrap(ORIG_TAZ, DEST_TAZ)
 
@@ -557,6 +510,7 @@ def od_presample(
     orig_MAZ_dest_TAZ_sample[ORIG_MAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[0].astype(int)
     orig_MAZ_dest_TAZ_sample[DEST_TAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[1].astype(int)
 
+    # for debugging
     sample_df = orig_MAZ_dest_TAZ_sample.copy().reset_index()
     lu = inject.get_table('land_use').to_frame(columns=['TAZ', 'pseudomsa'])
     sample_df = pd.merge(sample_df, lu, left_on='dest_TAZ', right_on='TAZ')
@@ -579,6 +533,7 @@ def od_presample(
         orig_MAZ_dest_TAZ_sample, MAZ_size_terms, trace_label,
         addtl_col_for_unique_key=ORIG_MAZ)
 
+    # for debugging
     maz_sample_df = maz_choices.copy().reset_index()
     maz_sample_df = pd.merge(maz_sample_df, lu, left_on=DEST_MAZ, right_index=True)
     maz_sample_df['pmsa4'] = maz_sample_df['pseudomsa'] == 4
@@ -588,7 +543,11 @@ def od_presample(
     other_avg_max = np.round(avg_pmsa4_max_probs.loc[False] * 100, 1)
     logger.warning("presampled MAZ avg max probs -- pmsa 4: {0}%; the rest: {1}%".format(pmsa_4_avg_max, other_avg_max))
 
+    # outputs
     assert DEST_MAZ in maz_choices
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    chooser_orig_col_name = model_settings['CHOOSER_ORIG_COL_NAME']
     maz_choices = maz_choices.rename(
         columns={DEST_MAZ: alt_dest_col_name, ORIG_MAZ: chooser_orig_col_name})
 
@@ -632,45 +591,6 @@ class SizeTermCalculator(object):
             logger.warning(f"SizeTermCalculator: no zones with non-zero size terms for {segment_name} in {trace_label}")
 
         return size_terms
-
-    # def od_size_terms_df(
-    #         self, segment_name, trace_label, new_index_name=None, origin_id_col='origin',
-    #         dest_id_col='destination', origin_filter=None, origin_attr_cols=None):
-    #     # if sampling/simulating origins and destinations at the same time,
-    #     # size terms df must be the same shape as the full table of alternatives. by
-    #     # default this will be the n x n set of zone-to-zone pairs. optionally, the
-    #     # user can specify a filter to limit the number of origins or destinations
-    #     # such that the resulting data frame will be n x m elements long where m is 
-    #     # the number of zones left (i.e. the length of the land use table) after
-    #     # applying the filter
-    #     size_terms = self.dest_size_terms_df(segment_name, trace_label)
-    #     land_use = self.land_use.to_frame()
-        
-    #     if origin_filter:
-    #         origins = land_use.query(origin_filter)
-    #     else:
-    #         origins = land_use
-
-    #     n_repeat = len(origins)
-    #     size_terms = size_terms.reindex(size_terms.index.repeat(n_repeat))
-    #     size_terms[origin_id_col] = list(origins.index.values) * size_terms.index.nunique()
-    #     size_terms.index.name = dest_id_col
-    #     size_terms.reset_index(inplace=True)
-            
-    #     if new_index_name:
-    #         size_terms.index.name = new_index_name
-
-    #     # manually add origin attributes to output since these can't be generated by
-    #     # the destination-based size term calculator
-    #     if origin_attr_cols:
-    #         land_use.index.name = origin_id_col
-    #         land_use.reset_index(inplace=True)
-    #         size_terms.reset_index(inplace=True)
-    #         size_terms = pd.merge(
-    #             size_terms, land_use[origin_attr_cols + [origin_id_col]],
-    #             on=origin_id_col, how='left').set_index(new_index_name)
-
-    #     return size_terms
 
     def dest_size_terms_series(self, segment_name):
         # return size terms as as series
@@ -965,12 +885,8 @@ def run_tour_od(
     size_term_calculator = SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
     preprocessor_settings = model_settings.get('preprocessor', None)
     # size_term_index_name = model_settings['ALT_OD_COL_NAME']
-    # origin_col_name = model_settings['ORIG_COL_NAME']
+    origin_col_name = model_settings['ORIG_COL_NAME']
     # dest_col_name = model_settings['DEST_COL_NAME']
-    
-    # origin_filter = None
-    # if model_settings['ORIG_FILTER']:
-    #     origin_filter = model_settings['ORIG_FILTER']
 
     chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
 
@@ -998,11 +914,7 @@ def run_tour_od(
                 trace_label=trace_label)
 
         # size_term segment is segment_name
-        # origin_attr_cols = model_settings['ORIGIN_ATTR_COLS_TO_USE']
         segment_destination_size_terms = size_term_calculator.dest_size_terms_df(segment_name, trace_label)
-        # segment_od_size_terms = size_term_calculator.od_size_terms_df(
-        #     segment_name, trace_label, size_term_index_name, origin_col_name, dest_col_name,
-        #     origin_filter, origin_attr_cols)
 
         if choosers.shape[0] == 0:
             logger.info("%s skipping segment %s: no choosers", trace_label, segment_name)
@@ -1021,6 +933,8 @@ def run_tour_od(
                 estimator,
                 chunk_size=chunk_size,
                 trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+
+        od_sample_df[origin_col_name] = map_maz_to_ext_maz(od_sample_df[origin_col_name])
 
         # - destination_logsums
         od_sample_df = \
@@ -1042,11 +956,15 @@ def run_tour_od(
                 od_sample_df,
                 model_settings,
                 network_los,
-                # od_size_terms=segment_od_size_terms,
                 segment_destination_size_terms,
                 estimator=estimator,
                 chunk_size=chunk_size,
                 trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
+
+        # convert external MAZ IDs to internal MAZ IDs for later model steps
+        choices[origin_col_name] = map_ext_maz_to_maz(choices[origin_col_name])
+        choices['choice'] = choices[origin_col_name].astype(str) + '_' + \
+            choices['choice'].str.split('_').str[1]
 
         choices_list.append(choices)
 

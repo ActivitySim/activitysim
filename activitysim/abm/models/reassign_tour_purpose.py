@@ -32,11 +32,11 @@ def reassign_tour_purpose_by_poe(
     probs_df = pd.read_csv(config.config_file_path('tour_purpose_probs_by_poe.csv'))
     probs_df.columns = [col if col in ['Purpose', 'Description'] else int(col) for col in probs_df.columns]
 
-    tours_df = tours.to_frame(columns=['tour_type','origin'])
+    tours_df = tours.to_frame(columns=['tour_type','poe_id'])
     tour_types = probs_df[['Purpose','Description']].set_index('Purpose')['Description']
 
     tours_df['purpose_id'] = None
-    for poe, group in tours_df.groupby('origin'):
+    for poe, group in tours_df.groupby('poe_id'):
         num_tours = len(group)
         purpose_probs = probs_df[poe]
         purpose_cum_probs = purpose_probs.values.cumsum()
@@ -44,13 +44,6 @@ def reassign_tour_purpose_by_poe(
         purpose = np.argmax((purpose_scaled_probs + 1.0).astype('i4'), axis=1)
         tours_df.loc[group.index, 'purpose_id'] = purpose
     tours_df['new_tour_type'] = tours_df['purpose_id'].map(tour_types)    
-        
-    # # for debugging
-    
-    # purp_pcts = tours_df.groupby(['origin', 'new_tour_type']).count().reset_index(level='new_tour_type').merge(
-    #     tours_df.groupby('origin').count().rename(
-    #         columns={'purpose_id':'origin_total'})[['origin_total']], left_index=True, right_index=True)
-    # purp_pcts['pct'] = purp_pcts['purpose_id'] / purp_pcts['origin_total']
     
     tours = tours.to_frame()
     tours['tour_type'] = tours_df['new_tour_type'].reindex(tours.index)

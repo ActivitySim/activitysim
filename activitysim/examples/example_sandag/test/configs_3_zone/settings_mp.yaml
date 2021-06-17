@@ -1,15 +1,14 @@
-inherit_settings: True
+inherit_settings: settings.yaml
 
-# activitysim run -c configs_skip_accessibility -c configs_3_zone -c ../example_mtc/configs -o output_3 -d data_3 -s settings_mp.yaml
+num_processes: 2
 
-multiprocess: True
 
 multiprocess_steps:
   - name: mp_initialize
     begin: initialize_landuse
   - name: mp_tvpb
     begin: initialize_tvpb
-    num_processes: 20
+    chunk_size: 0
     slice:
       tables:
         - attribute_combinations

@@ -1,0 +1,3 @@
+inherit_settings: settings.yaml
+
+num_processes: 2

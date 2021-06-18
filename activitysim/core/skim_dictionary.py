@@ -690,7 +690,6 @@ class MazSkimDict(SkimDict):
                               backstop_fractions * backstop_values + (1 - backstop_fractions) * values)
 
         elif is_nan.any():
-
             # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
 
             if key in self.base_keys:

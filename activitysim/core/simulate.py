@@ -470,7 +470,9 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
     chunk.log_df(trace_label, "utilities", utilities)
 
-    if trace_all_rows or have_trace_targets:
+    # sometimes tvpb will drop rows on the fly and we wind up with an empty
+    # table of choosers. this will just bypass tracing in that case.
+    if (trace_all_rows or have_trace_targets) and (len(choosers) > 0):
 
         if trace_all_rows:
             trace_targets = pd.Series(True, index=choosers.index)

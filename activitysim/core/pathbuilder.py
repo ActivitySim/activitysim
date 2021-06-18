@@ -150,6 +150,9 @@ class TransitVirtualPathBuilder(object):
             maz_od_df[['idx', maz_col]].drop_duplicates(),
             utilities_df,
             on=maz_col, how='inner')
+
+        if len(utilities_df) == 0:
+            trace = False
         # add any supplemental chooser attributes (e.g. demographic_segment, tod)
         for c in attribute_columns:
             utilities_df[c] = reindex(chooser_attributes[c], utilities_df['idx'])
@@ -625,6 +628,8 @@ class TransitVirtualPathBuilder(object):
         with memo("#TVPB build_virtual_path compute_tap_tap"):
             with chunk.chunk_log(f'#TVPB.compute_tap_tap'):
                 path_info = {'path_type': path_type, 'access_mode': access_mode, 'egress_mode': egress_mode}
+                if len(access_df) * len(egress_df) == 0:
+                    trace = False
                 transit_df = self.compute_tap_tap(
                     recipe,
                     maz_od_df,
@@ -787,7 +792,7 @@ class TransitVirtualPathBuilder(object):
                                         want_choices=want_choices, trace_label=trace_label)
 
             trace_hh_id = inject.get_injectable("trace_hh_id", None)
-            if all(logsum_df['logsum'] == UNAVAILABLE):
+            if (all(logsum_df['logsum'] == UNAVAILABLE)) or (len(logsum_df) == 0) :
                 trace_hh_id = False
 
             if trace_hh_id:

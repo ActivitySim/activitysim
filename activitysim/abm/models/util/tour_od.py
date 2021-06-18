@@ -884,9 +884,7 @@ def run_tour_od(
 
     size_term_calculator = SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
     preprocessor_settings = model_settings.get('preprocessor', None)
-    # size_term_index_name = model_settings['ALT_OD_COL_NAME']
     origin_col_name = model_settings['ORIG_COL_NAME']
-    # dest_col_name = model_settings['DEST_COL_NAME']
 
     chooser_segment_column = model_settings['CHOOSER_SEGMENT_COLUMN_NAME']
 
@@ -960,11 +958,6 @@ def run_tour_od(
                 estimator=estimator,
                 chunk_size=chunk_size,
                 trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
-
-        # convert external MAZ IDs to internal MAZ IDs for later model steps
-        choices[origin_col_name] = map_ext_maz_to_maz(choices[origin_col_name])
-        choices['choice'] = choices[origin_col_name].astype(str) + '_' + \
-            choices['choice'].str.split('_').str[1]
 
         choices_list.append(choices)
 

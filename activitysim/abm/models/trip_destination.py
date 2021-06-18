@@ -40,10 +40,10 @@ logger = logging.getLogger(__name__)
 
 NO_DESTINATION = -1
 
-TRIP_ORIG_TAZ = 'TAZ'
+# TRIP_ORIG_TAZ = 'TAZ'
 ALT_DEST_TAZ = 'ALT_DEST_TAZ'
-PRIMARY_DEST_TAZ = 'PRIMARY_DEST_TAZ'
-DEST_MAZ = 'dest_maz'
+# PRIMARY_DEST_TAZ = 'PRIMARY_DEST_TAZ'
+# DEST_MAZ = 'dest_maz'
 
 
 def _destination_sample(
@@ -144,11 +144,11 @@ def aggregate_size_term_matrix(maz_size_term_matrix, maz_taz):
     assert ALT_DEST_TAZ not in df
 
     dest_taz = df.index.map(maz_taz)
-    maz_size_term_matrix = df.groupby(dest_taz).sum()
+    taz_size_term_matrix = df.groupby(dest_taz).sum()
 
-    maz_size_term_matrix = DataFrameMatrix(maz_size_term_matrix)
+    taz_size_term_matrix = DataFrameMatrix(taz_size_term_matrix)
 
-    return maz_size_term_matrix
+    return taz_size_term_matrix
 
 
 def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trips, network_los, alt_dest_col_name, trace_label):
@@ -366,20 +366,24 @@ def destination_presample(
 
     TRIP_ORIGIN = model_settings['TRIP_ORIGIN']
     PRIMARY_DEST = model_settings['PRIMARY_DEST']
-    trips = trips.copy()
+    trips_taz = trips.copy()
 
-    trips[TRIP_ORIGIN] = trips[TRIP_ORIGIN].map(maz_taz)
-    trips[PRIMARY_DEST] = trips[PRIMARY_DEST].map(maz_taz)
+    trips_taz[TRIP_ORIGIN] = trips_taz[TRIP_ORIGIN].map(maz_taz)
+    trips_taz[PRIMARY_DEST] = trips_taz[PRIMARY_DEST].map(maz_taz)
 
     # alternatives is just an empty dataframe indexed by maz with index name <alt_dest_col_name>
     # but logically, we are aggregating so lets do it, as there is no particular gain in being clever
-    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()
+    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()    
+
+    # # i did this but after changing alt_dest_col_name to 'trip_dest' it
+    # # shouldn't be needed anymore
+    # alternatives.index.name = ALT_DEST_TAZ
 
     skims = skim_hotel.sample_skims(presample=True)
 
     taz_sample = _destination_sample(
         primary_purpose,
-        trips,
+        trips_taz,
         alternatives,
         model_settings,
         TAZ_size_term_matrix,
@@ -430,7 +434,7 @@ def trip_destination_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     network_los = inject.get_injectable('network_los')
-    pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
+    pre_sample_taz = network_los.zone_system != los.ONE_ZONE
     if pre_sample_taz and not config.setting('want_dest_choice_presampling', True):
         pre_sample_taz = False
         logger.info(f"Disabled destination zone presampling for {trace_label} "
@@ -566,8 +570,8 @@ def compute_logsums(
     skims = skim_hotel.logsum_skims()
     if network_los.zone_system == los.THREE_ZONE:
         # TVPB constants can appear in expressions
-        locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
-    
+        if logsum_settings.get('use_TVPB_constants', True):
+            locals_dict.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     # - od_logsums
     od_skims = {
@@ -656,7 +660,6 @@ def trip_destination_simulate(
         'size_terms': size_term_matrix
     })
     locals_dict.update(skims)
-
     destinations = interaction_sample_simulate(
         choosers=trips,
         alternatives=destination_sample,
@@ -901,11 +904,15 @@ def run_trip_destination(
 
     # - initialize trip origin and destination to those of half-tour
     # (we will sequentially adjust intermediate trips origin and destination as we choose them)
+    # this is now probably redundant with stop_frequency.py L174
     tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(np.int64)
     tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(np.int64)
-    trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
-    trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
-    trips['failed'] = False
+
+    # # these values are now automatically created when trips are instantiated when
+    # # stop_frequency step calls trip.initialize_from_tours
+    # trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
+    # trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
+    # trips['failed'] = False
 
     if estimator:
         # need to check or override non-intermediate trip destination
@@ -940,6 +947,7 @@ def run_trip_destination(
     if redundant_cols:
         tours_merged_cols = [c for c in tours_merged_cols if c not in redundant_cols]
 
+    assert model_settings['PRIMARY_DEST'] not in tours_merged_cols
     tours_merged = tours_merged[tours_merged_cols]
 
     # - skims

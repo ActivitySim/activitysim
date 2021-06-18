@@ -594,7 +594,7 @@ class Network_LOS(object):
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
 
-        bins = np.digitize([time_period % total_periods], self.skim_time_periods['periods'], right=True)[0] - 1
+        bins = np.digitize([np.array(time_period) % total_periods], self.skim_time_periods['periods'], right=True)[0] - 1
         return np.array(self.skim_time_periods['labels'])[bins]
 
     def get_tazs(self):

@@ -127,7 +127,7 @@ def get_time_windows(residual, level):
     return np.concatenate(ranges, axis=1)
 
 
-def initialize_from_tours(tours, use_tour_ods=False):
+def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
 
     stop_frequency_alts = pd.read_csv(
         config.config_file_path('stop_frequency_alternatives.csv'), comment='#')
@@ -143,8 +143,11 @@ def initialize_from_tours(tours, use_tour_ods=False):
 
     trips = stop_frequency_alts.loc[tours.stop_frequency]
 
-    # assign tour ids to the index
-    trips.index = tours.index
+    # assign unique tour identifiers to trips. NOTE: shouldn't be
+    # necessary in most cases but there are some edge cases (e.g.
+    # tour mode choice logsums) where tour_id will not be unique
+    unique_tours = tours.copy().reset_index()
+    trips.index = unique_tours.index
 
     """
 
@@ -160,7 +163,7 @@ def initialize_from_tours(tours, use_tour_ods=False):
 
     # reformat with the columns given below
     trips = trips.stack().reset_index()
-    trips.columns = ['tour_id', 'direction', 'trip_count']
+    trips.columns = ['tour_temp_index', 'direction', 'trip_count']
 
     # tours legs have one more trip than stop
     trips.trip_count += 1
@@ -181,16 +184,21 @@ def initialize_from_tours(tours, use_tour_ods=False):
     trips = trips.take(np.repeat(trips.index.values, trips.trip_count.values))
     trips = trips.reset_index(drop=True)
 
-    grouped = trips.groupby(['tour_id', 'outbound'])
+    grouped = trips.groupby(['tour_temp_index', 'outbound'])
     trips['trip_num'] = grouped.cumcount() + 1
 
-    trips['person_id'] = reindex(tours.person_id, trips.tour_id)
-    trips['household_id'] = reindex(tours.household_id, trips.tour_id)
-    trips['primary_purpose'] = reindex(tours.primary_purpose, trips.tour_id)
+    trips['person_id'] = reindex(unique_tours.person_id, trips.tour_temp_index)
+    trips['household_id'] = reindex(unique_tours.household_id, trips.tour_temp_index)
+    trips['primary_purpose'] = reindex(unique_tours.primary_purpose, trips.tour_temp_index)
+
+    if addtl_tour_cols_to_preserve is None:
+        addtl_tour_cols_to_preserve = []
+    for col in addtl_tour_cols_to_preserve:
+        trips[col] = reindex(unique_tours[col], trips.tour_temp_index)
 
     # reorder columns and drop 'direction'
-    trips = trips[['person_id', 'household_id', 'tour_id', 'primary_purpose',
-                   'trip_num', 'outbound', 'trip_count']]
+    trips = trips[['person_id', 'household_id', 'tour_temp_index', 'primary_purpose',
+                   'trip_num', 'outbound', 'trip_count'] + addtl_tour_cols_to_preserve]
 
     """
       person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count
@@ -206,15 +214,19 @@ def initialize_from_tours(tours, use_tour_ods=False):
 
     # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
     canonical_trip_num = (~trips.outbound * MAX_TRIPS_PER_LEG) + trips.trip_num
-    trips['trip_id'] = trips.tour_id * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
+    trips['trip_id'] = trips.tour_temp_index * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
 
     trips.set_index('trip_id', inplace=True, verify_integrity=True)
 
     # copied from trip_destination.py
-    tour_destination = reindex(tours.destination, trips.tour_id).astype(np.int64)
-    tour_origin = reindex(tours.origin, trips.tour_id).astype(np.int64)
+    tour_destination = reindex(unique_tours.destination, trips.tour_temp_index).astype(np.int64)
+    tour_origin = reindex(unique_tours.origin, trips.tour_temp_index).astype(np.int64)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
     trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
     trips['failed'] = False
+
+    # replace temp tour identifier with tour_id
+    trips['tour_id'] = reindex(unique_tours.tour_id, trips.tour_temp_index)
+    del trips['tour_temp_index']
 
     return trips

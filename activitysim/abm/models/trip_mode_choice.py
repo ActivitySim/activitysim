@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def trip_mode_choice(
         trips,
-        tours_merged,
         network_los,
         chunk_size, trace_hh_id):
     """
@@ -52,12 +51,14 @@ def trip_mode_choice(
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
-    tours_merged = tours_merged.to_frame()
+    # give trip mode choice the option to run without calling tours_merged. Useful for xborder
+    # model where tour_od_choice needs trip mode choice logsums before some of the join keys 
+    # needed by tour_merged (e.g. home_zone_id) exist
     tours_cols = [col for col in model_settings['TOURS_MERGED_CHOOSER_COLUMNS'] if col not in trips_df.columns]
-    tours_merged = tours_merged[tours_cols]
-
-    tracing.print_summary('primary_purpose',
-                          trips_df.primary_purpose, value_counts=True)
+    if len(tours_cols) > 0:
+        tours_merged = inject.get_table('tours_merged').to_frame(columns=tours_cols)
+    else:
+        tours_merged = pd.DataFrame()
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
@@ -67,6 +68,9 @@ def trip_mode_choice(
         right_index=True,
         how="left")
     assert trips_merged.index.equals(trips.index)
+
+    tracing.print_summary('primary_purpose',
+                              trips_df.primary_purpose, value_counts=True)
 
     # setup skim keys
     assert ('trip_period' not in trips_merged)
@@ -112,8 +116,8 @@ def trip_mode_choice(
             'tvpb_logsum_odt': tvpb_logsum_odt,
         })
 
-        # TVPB constants can appear in expressions
-        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+        if model_settings.get('use_TVPB_constants', True):
+            constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     estimator = estimation.manager.begin_estimation('trip_mode_choice')
     if estimator:
@@ -143,9 +147,11 @@ def trip_mode_choice(
         coefficients = simulate.get_segment_coefficients(model_settings, primary_purpose)
 
         locals_dict = {}
-        
-        # TVPB TOUR CONSTANTS OVERWRITE TRIP MODE CHOICE CONSTANTS HERE (e.g. c_ivt, c_cost)
         locals_dict.update(constants)
+
+        constants_keys = constants.keys()
+        if any([coeff in constants_keys for coeff in coefficients.keys()]):
+            logger.warning("coefficients are obscuring constants in locals_dict")
         locals_dict.update(coefficients)
 
         expressions.annotate_preprocessors(

@@ -113,7 +113,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
         })
 
         # TVPB constants can appear in expressions
-        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+        if model_settings.get('use_TVPB_constants', True):
+            constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
     estimator = estimation.manager.begin_estimation('tour_mode_choice')
     if estimator:
@@ -138,7 +139,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         # O/D, purpose, and departure times are inherited from tour.
         primary_tours_merged['stop_frequency'] = '0out_0in'  # no intermediate stops
         primary_tours_merged['primary_purpose'] = primary_tours_merged['tour_purpose']
-        trips = trip.initialize_from_tours(primary_tours_merged, use_tour_ods=True)
+        trips = trip.initialize_from_tours(primary_tours_merged)
         trips['stop_frequency'] = '0out_0in'
         outbound = trips['outbound']
         trips['depart'] = reindex(primary_tours_merged.start, trips.tour_id)
@@ -183,6 +184,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         trip_dir_mode_logsums.reindex(primary_tours_merged.index)
         primary_tours_merged = pd.merge(primary_tours_merged, trip_dir_mode_logsums, left_index=True, right_index=True)
         pipeline.get_rn_generator().drop_channel('trips')
+        tracing.deregister_traceable_table('trips')
 
     choices_list = []
     for tour_purpose, tours_segment in primary_tours_merged.groupby('tour_purpose'):

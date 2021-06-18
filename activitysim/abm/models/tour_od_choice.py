@@ -15,7 +15,6 @@ from activitysim.core.util import assign_in_place
 from .util import tour_od
 from .util import estimation
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +23,7 @@ def tour_od_choice(
         tours,
         persons,
         households,
+        land_use,
         network_los,
         chunk_size,
         trace_hh_id):
@@ -60,6 +60,7 @@ def tour_od_choice(
 
     choices_df, save_sample_df = tour_od.run_tour_od(
         tours,
+        persons,
         want_sample_table,
         model_settings,
         network_los,
@@ -74,6 +75,7 @@ def tour_od_choice(
 
     tours[origin_col_name] = choices_df[origin_col_name]
     tours[dest_col_name] = choices_df[dest_col_name]
+    tours['poe_id'] = tours[origin_col_name].map(land_use.to_frame(columns='poe_id').poe_id)
 
     households = households.to_frame()
     persons = persons.to_frame()

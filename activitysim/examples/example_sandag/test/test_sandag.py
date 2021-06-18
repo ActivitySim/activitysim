@@ -4,7 +4,6 @@ import os
 import subprocess
 import pkg_resources
 
-import pytest
 import pandas as pd
 import pandas.testing as pdt
 
@@ -31,19 +30,7 @@ def psrc_example_path(dirname):
     return pkg_resources.resource_filename('activitysim', resource)
 
 
-def build_data():
-    # FIXME this irks travis
-    # subprocess.check_call(['coverage', 'run', example_path('scripts/two_zone_example_data.py')])
-    # subprocess.check_call(['coverage', 'run', example_path('scripts/three_zone_example_data.py')])
-    pass
-
-
-@pytest.fixture(scope='module')
-def data():
-    build_data()
-
-
-def run_test(zone, multiprocess=False):
+def test_sandag():
 
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
@@ -62,35 +49,32 @@ def run_test(zone, multiprocess=False):
         print(f"regress trips")
         pdt.assert_frame_equal(trips_df, regress_trips_df), "regress trips"
 
-    file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
+    # run tests with and without multi processing
+    zones = ['1', '2', '3']
+    test_combos = [(z, mp) for z in zones for mp in [False, True]]
+    for test_combo in test_combos:
+        zone, multiprocess = test_combo
 
-    if zone == '2':
-        base_configs = psrc_example_path(f'configs')
-    else:
-        base_configs = mtc_example_path(f'configs')
+        file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
 
-    run_args = ['-c', test_path(f'configs_{zone}_zone'),
-                '-c', example_path(f'configs_{zone}_zone'),
-                '-c', base_configs,
-                '-d', example_path(f'data_{zone}'),
-                '-o', test_path('output')]
+        if zone == '2':
+            base_configs = psrc_example_path(f'configs')
+        else:
+            base_configs = mtc_example_path(f'configs')
 
-    if multiprocess:
-        run_args = run_args + ['-s', 'settings_mp']
+        run_args = ['-c', test_path(f'configs_{zone}_zone'),
+                    '-c', example_path(f'configs_{zone}_zone'),
+                    '-c', base_configs,
+                    '-d', example_path(f'data_{zone}'),
+                    '-o', test_path('output')]
 
-    subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
+        if multiprocess:
+            run_args = run_args + ['-s', 'settings_mp']
 
-    regress(zone)
+        subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
+
+        regress(zone)
 
 
 if __name__ == '__main__':
-
-    build_data()
-    run_test(zone='1', multiprocess=False)
-    run_test(zone='1', multiprocess=True)
-
-    run_test(zone='2', multiprocess=False)
-    run_test(zone='2', multiprocess=True)
-
-    run_test(zone='3', multiprocess=False)
-    run_test(zone='3', multiprocess=True)
+    test_sandag()

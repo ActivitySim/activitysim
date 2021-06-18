@@ -18,7 +18,7 @@ rebuild_tvpb_cache: False
 # (n.b. csv file could be quite large if cache is STATIC!)
 trace_tvpb_cache_as_csv: False
 
-taz_skims: taz_skims.omx
+taz_skims: taz_skims*.omx
 
 # we require that skims for all tap_tap sets have unique names
 # and can therefor share a single skim_dict without name collision

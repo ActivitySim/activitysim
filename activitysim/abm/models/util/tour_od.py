@@ -47,7 +47,7 @@ def get_od_id_col(origin_col, destination_col):
     return colname
 
 
-def _create_od_id_col(df, origin_col, destination_col):
+def create_od_id_col(df, origin_col, destination_col):
     return df[origin_col].astype(str) + '_' + df[destination_col].astype(str)
 
 
@@ -800,7 +800,7 @@ def run_od_simulate(
     origin_attr_cols = model_settings['ORIGIN_ATTR_COLS_TO_USE']
 
     alt_od_col_name = get_od_id_col(origin_col_name, dest_col_name)
-    od_sample[alt_od_col_name] = _create_od_id_col(od_sample, origin_col_name, dest_col_name)
+    od_sample[alt_od_col_name] = create_od_id_col(od_sample, origin_col_name, dest_col_name)
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge size_terms column into alt sample list

@@ -67,12 +67,13 @@ def tour_od_choice(
         network_los,
         estimator,
         chunk_size, trace_hh_id, trace_label)
-    breakpoint()
 
     if estimator:
         estimator.write_choices(choices_df.choice)
-        choices_df.choice = estimator.get_survey_values(
+        survey_od = estimator.get_survey_values(
             choices_df.choice, 'tours', ['origin', 'destination'])
+        survey_od[alt_id_col] = tour_od.create_od_id_col(survey_od, origin_col_name, dest_col_name)
+        choices_df.choice = survey_od[alt_id_col]
         estimator.write_override_choices(choices_df.choice)
         estimator.end_estimation()
 

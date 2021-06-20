@@ -50,8 +50,8 @@ def tour_od_choice(
 
     estimator = estimation.manager.begin_estimation('tour_od_choice')
     if estimator:
-        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
-        # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
+        estimator.write_coefficients(model_settings=model_settings)
+        estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
         estimator.write_spec(model_settings, tag='SPEC')
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
         estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
@@ -66,10 +66,12 @@ def tour_od_choice(
         network_los,
         estimator,
         chunk_size, trace_hh_id, trace_label)
+    breakpoint()
 
     if estimator:
         estimator.write_choices(choices_df.choice)
-        choices_df.choice = estimator.get_survey_values(choices_df.choice, 'tours', 'destination')
+        choices_df.choice = estimator.get_survey_values(
+            choices_df.choice, 'tours', ['origin','destination'])
         estimator.write_override_choices(choices_df.choice)
         estimator.end_estimation()
 

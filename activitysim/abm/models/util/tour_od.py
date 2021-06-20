@@ -42,7 +42,7 @@ ORIG_MAZ = 'orig_MAZ'
 ORIG_TAZ_EXT = 'orig_TAZ_ext'
 
 
-def _format_od_id_field(origin_col, destination_col):
+def get_od_id_col(origin_col, destination_col):
     colname = '{0}_{1}'.format(origin_col, destination_col)
     return colname
 
@@ -85,7 +85,7 @@ def _create_od_alts_from_dest_size_terms(
         od_alts.rename(columns={land_use.index.name: dest_id_col}, inplace=True)
     
     if od_id_col is None:
-        new_index_name = _format_od_id_field(origin_id_col, dest_id_col)
+        new_index_name = get_od_id_col(origin_id_col, dest_id_col)
     else:
         new_index_name = od_id_col
     od_alts[new_index_name] = od_alts[origin_id_col].astype(str) + '_' + od_alts[dest_id_col].astype(str)
@@ -123,7 +123,7 @@ def _od_sample(
                                            segment_name=spec_segment_name,
                                            estimator=estimator)
     if alt_od_col_name is None:
-        alt_col_name = _format_od_id_field(origin_id_col, dest_id_col)
+        alt_col_name = get_od_id_col(origin_id_col, dest_id_col)
     else:
         alt_col_name = alt_od_col_name
 
@@ -198,7 +198,7 @@ def od_sample(
     skims = skim_dict.wrap(origin_col_name, dest_col_name)
 
     # the name of the od column to be returned in choices
-    alt_od_col_name = _format_od_id_field(origin_col_name, dest_col_name)
+    alt_od_col_name = get_od_id_col(origin_col_name, dest_col_name)
     choices = _od_sample(
         spec_segment_name,
         choosers,
@@ -483,7 +483,7 @@ def od_presample(
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
     logger.info(f"{trace_label} od_presample")
 
-    alt_od_col_name = _format_od_id_field(ORIG_MAZ, DEST_TAZ)
+    alt_od_col_name = get_od_id_col(ORIG_MAZ, DEST_TAZ)
 
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(destination_size_terms, network_los)
 
@@ -648,7 +648,7 @@ def run_od_logsums(
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
     origin_id_col = model_settings['ORIG_COL_NAME']
     dest_id_col = model_settings['DEST_COL_NAME']
-    tour_od_id_col = _format_od_id_field(origin_id_col, dest_id_col)
+    tour_od_id_col = get_od_id_col(origin_id_col, dest_id_col)
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     tours_merged_df = \
@@ -799,7 +799,7 @@ def run_od_simulate(
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
     origin_attr_cols = model_settings['ORIGIN_ATTR_COLS_TO_USE']
 
-    alt_od_col_name = _format_od_id_field(origin_col_name, dest_col_name)
+    alt_od_col_name = get_od_id_col(origin_col_name, dest_col_name)
     od_sample[alt_od_col_name] = _create_od_id_col(od_sample, origin_col_name, dest_col_name)
 
     # alternatives are pre-sampled and annotated with logsums and pick_count

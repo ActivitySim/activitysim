@@ -38,6 +38,6 @@ setup(
         'psutil >= 4.1',
         'requests >= 2.7',
         'numba >= 0.51.2',
-        # 'orca >= 1.6',
+        'orca >= 1.6',
     ]
 )

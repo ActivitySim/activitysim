@@ -27,8 +27,8 @@ python:
   - '3.8'
 
 install:
-- wget -O Miniforge.sh https://github.com/conda-forge/miniforge/releases/latest/download/Minimamba-$(uname)-$(uname -m).sh
-- bash Miniforge.sh -b -p $HOME/miniconda
+- wget -O Mambaforge.sh https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh
+- bash Mambaforge.sh -b -p $HOME/miniconda
 - source "$HOME/miniconda/etc/profile.d/conda.sh"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
@@ -39,7 +39,6 @@ install:
 # create test environment in one pass
 - mamba env create -n asimtest --file conda-env.yml
 - conda activate asimtest
-- pip install openmatrix # temporary until openmatrix in conda-forge
 - pip install .
 - pip freeze
 

@@ -35,7 +35,7 @@ install:
 - mamba update -q mamba
 - mamba info -a
 # write travis python version into selected test environment definition file
-- sed -e "s/\${TRAVIS_PYTHON_VERSION}/${TRAVIS_PYTHON_VERSION}/" conda-environments/activitysim-test${TEST_ENV}.yml > conda-env.yml
+- sed -e "s/\${TRAVIS_PYTHON_VERSION}/${TRAVIS_PYTHON_VERSION}/" conda-environments/${TEST_ENV}.yml > conda-env.yml
 # create test environment in one pass
 - mamba env create -n asimtest --file conda-env.yml
 - conda activate asimtest

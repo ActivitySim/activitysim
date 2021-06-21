@@ -5,13 +5,15 @@ env:
   global:
    # GH_TOKEN ActivitySim/activitysim public_repo token
   - secure: WZeCAmI08hBRgtVWUlerfizvSpOVlBxQDa/Z6HJiDUlIXdSAOIi7TAwnluOgs3lHbSqACegbLCU9CyIQa/ytwmmuwzltkSQN14EcnKea0bXyygd8DFdx4x8st8M3a4nh2svgp4BDM9PCu6T1XIZ1rYM46JsKzNk9X8GpWOVN498=
+  - TEST_ENV=activitysim-test.yml
   jobs:
    # Add new TEST_SUITE jobs as needed via Travis build matrix expansion
+   # define an alternative TEST_ENV to add special dependencies for particular tests
   - TEST_SUITE=activitysim/abm/models
   - TEST_SUITE=activitysim/abm/test
   - TEST_SUITE=activitysim/cli
   - TEST_SUITE=activitysim/core
-  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_DEPENDS="larch>=5.5.3"
+  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_ENV="activitysim-test-larch.yml"
   - TEST_SUITE=activitysim/examples/example_mtc/test
   - TEST_SUITE=activitysim/examples/example_multiple_zone/test
   - TEST_SUITE=activitysim/examples/example_marin/test
@@ -25,15 +27,19 @@ python:
   - '3.8'
 
 install:
-- wget -O Miniforge3.sh https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh
-- bash Miniforge3.sh -b -p $HOME/miniconda
+- wget -O Miniforge.sh https://github.com/conda-forge/miniforge/releases/latest/download/Minimamba-$(uname)-$(uname -m).sh
+- bash Miniforge.sh -b -p $HOME/miniconda
 - source "$HOME/miniconda/etc/profile.d/conda.sh"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
-- conda update -q conda
-- conda info -a
-- conda create -n asimtest --file conda-environments/activitysim-test.yml python=$TRAVIS_PYTHON_VERSION $TEST_DEPENDS
+- mamba update -q mamba
+- mamba info -a
+# write travis python version into selected test environment definition file
+- sed -e "s/\${TRAVIS_PYTHON_VERSION}/${TRAVIS_PYTHON_VERSION}/" conda-environments/activitysim-test${TEST_ENV}.yml > conda-env.yml
+# create test environment in one pass
+- mamba env create -n asimtest --file conda-env.yml
 - conda activate asimtest
+- pip install openmatrix # temporary until openmatrix in conda-forge
 - pip install .
 - pip freeze
 
@@ -51,7 +57,7 @@ script:
 after_success:
 - coveralls
 # Build docs
-- conda install sphinx numpydoc sphinx_rtd_theme
+- mamba install sphinx numpydoc sphinx_rtd_theme
 - cd docs
 - make clean
 - make html

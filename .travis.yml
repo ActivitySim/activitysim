@@ -11,7 +11,7 @@ env:
   - TEST_SUITE=activitysim/abm/test
   - TEST_SUITE=activitysim/cli
   - TEST_SUITE=activitysim/core
-  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_DEPENDS="larch>=5.5.3 -c conda-forge"
+  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_DEPENDS="larch>=5.5.3"
   - TEST_SUITE=activitysim/examples/example_mtc/test
   - TEST_SUITE=activitysim/examples/example_multiple_zone/test
   - TEST_SUITE=activitysim/examples/example_marin/test
@@ -25,17 +25,15 @@ python:
   - '3.8'
 
 install:
-- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-- bash miniconda.sh -b -p $HOME/miniconda
+- wget -O Miniforge3.sh https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh
+- bash Miniforge3.sh -b -p $HOME/miniconda
 - source "$HOME/miniconda/etc/profile.d/conda.sh"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
 - conda update -q conda
 - conda info -a
-- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-- conda activate test-environment
-- conda install pytest pytest-cov coveralls pycodestyle $TEST_DEPENDS
-- pip install pytest-regressions
+- conda create -n asimtest --file conda-environments/activitysim-test.yml python=$TRAVIS_PYTHON_VERSION $TEST_DEPENDS
+- conda activate asimtest
 - pip install .
 - pip freeze
 
@@ -43,8 +41,8 @@ script:
 # build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
 - python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
 - python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
-- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
 # pycodestyle
 - pycodestyle activitysim
 # run specific TEST_SUITE job on travis to avoid job max time
@@ -53,7 +51,7 @@ script:
 after_success:
 - coveralls
 # Build docs
-- pip install sphinx numpydoc sphinx_rtd_theme
+- conda install sphinx numpydoc sphinx_rtd_theme
 - cd docs
 - make clean
 - make html

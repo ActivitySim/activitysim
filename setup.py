@@ -34,7 +34,6 @@ setup(
         'pyyaml >= 5.1',
         'tables >= 3.5.1',
         'toolz >= 0.8.1',
-        'zbox >= 1.2',
         'psutil >= 4.1',
         'requests >= 2.7',
         'numba >= 0.51.2',

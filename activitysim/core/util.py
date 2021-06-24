@@ -258,11 +258,7 @@ def quick_loc_df(loc_list, target_df, attribute=None):
     if attribute:
         target_df = target_df[[attribute]]
 
-    df = pd.merge(left_df,
-                  target_df,
-                  left_on=left_on,
-                  right_index=True,
-                  how="left").set_index(left_on)
+    df = target_df.reindex(loc_list)
 
     df.index.name = target_df.index.name
 

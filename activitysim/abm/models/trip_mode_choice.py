@@ -119,7 +119,12 @@ def trip_mode_choice(
         if model_settings.get('use_TVPB_constants', True):
             constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
-    estimator = estimation.manager.begin_estimation('trip_mode_choice')
+    # don't create estimation data bundle if trip mode choice is being called
+    # from another model step (i.e. tour mode choice logsum creation)
+    if pipeline._PIPELINE.rng().step_name != 'trip_mode_choice':
+        estimator = None
+    else:
+        estimator = estimation.manager.begin_estimation('trip_mode_choice')
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)

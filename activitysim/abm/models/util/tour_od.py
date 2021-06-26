@@ -635,6 +635,7 @@ def run_od_logsums(
         od_sample,
         model_settings,
         network_los,
+        estimator,
         chunk_size,
         trace_hh_id,
         trace_label):
@@ -918,6 +919,7 @@ def run_tour_od(
                 od_sample_df,
                 model_settings,
                 network_los,
+                estimator,
                 chunk_size=chunk_size,
                 trace_hh_id=trace_hh_id,
                 trace_label=tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
@@ -936,6 +938,8 @@ def run_tour_od(
                 trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
 
         choices_list.append(choices)
+        if estimator:
+            assert estimator.want_unsampled_alternatives
 
         if want_sample_table:
             # FIXME - sample_table

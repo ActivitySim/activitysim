@@ -69,9 +69,12 @@ def tour_od_choice(
         chunk_size, trace_hh_id, trace_label)
 
     if estimator:
+        assert estimator.want_unsampled_alternatives
         estimator.write_choices(choices_df.choice)
         survey_od = estimator.get_survey_values(
-            choices_df.choice, 'tours', ['origin', 'destination'])
+            choices_df.choice, 'tours', [origin_col_name, dest_col_name])
+        choices_df[origin_col_name] = survey_od[origin_col_name]
+        choices_df[dest_col_name] = survey_od[dest_col_name]
         survey_od[alt_id_col] = tour_od.create_od_id_col(survey_od, origin_col_name, dest_col_name)
         choices_df.choice = survey_od[alt_id_col]
         estimator.write_override_choices(choices_df.choice)

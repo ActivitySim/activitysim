@@ -4,6 +4,7 @@ import logging
 import time
 from datetime import timedelta
 from activitysim.benchmarking.componentwise import run_component, add_run_args, prep_component, after_component
+from activitysim.cli.create import get_example
 
 logger = logging.getLogger("activitysim.benchmarking")
 
@@ -65,15 +66,11 @@ class BenchSuite_MTC:
         "workplace_location",
     ]
 
-    def pull_files(self):
-        # replicate function of `activitysim create -e example_mtc_full`
-        from activitysim.cli.create import get_example
+    def setup_cache(self):
         get_example(
             example_name=self.example_name,
-            destination=self.example_name,
+            destination='.',
         )
-
-    def setup_cache(self):
         last_component_to_benchmark = 0
         for component_name in self.params:
             last_component_to_benchmark = max(
@@ -140,7 +137,6 @@ if __name__ == '__main__':
     component_name = "workplace_location"
     suite = BenchSuite_MTC()
 
-    #pull_mtc()
     suite.setup_cache()
     t1 = time.time()
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")

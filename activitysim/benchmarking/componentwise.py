@@ -59,7 +59,7 @@ def reload_settings(**kwargs):
     return settings
 
 
-def run_component(args, component_name):
+def prep_component(args, component_name):
     """
     Run the models. Specify a project folder using the '--working_dir' option,
     or point to the config, data, and output folders directly with
@@ -137,6 +137,10 @@ def run_component(args, component_name):
                 if info_key in info:
                     logger.info(f"NUMPY {cfg_key} {info_key}: {info[info_key]}")
 
+    return resume_after
+
+def run_component(component_name, resume_after):
+
     t0 = tracing.print_elapsed_time()
 
     if config.setting('multiprocess', False):
@@ -155,7 +159,7 @@ def run_component(args, component_name):
         logger.info('run single process simulation')
 
         #pipeline.run(models=config.setting('models'), resume_after=resume_after)
-        benchmark_component(config.setting('benchmarking'), resume_after=resume_after)
+        benchmark_component(component_name, resume_after=resume_after)
         # pipeline.run(
         #     models=[resume_after, config.setting('benchmarking')],
         #     resume_after=resume_after,
@@ -165,11 +169,6 @@ def run_component(args, component_name):
             pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
         else:
             pipeline.close_pipeline()
-
-        mem.log_global_hwm()  # main process
-
-    chunk.consolidate_logs()
-    mem.consolidate_logs()
 
     tracing.print_elapsed_time('all models', t0)
 

@@ -1,6 +1,9 @@
 import argparse
 import os
 import logging
+import time
+from datetime import timedelta
+from activitysim.benchmarking.componentwise import run_component, add_run_args, prep_component
 
 logger = logging.getLogger("activitysim.benchmarking")
 
@@ -50,9 +53,17 @@ model_list_mtc = [
 
 class BenchSuite_MTC:
 
-    def __init__(self, component_name="workplace_location"):
-        self.example_name = "example_mtc_full"
-        self.component_name = component_name
+    example_name = "example_mtc_full"
+
+    # any settings to override in the example's usual settings file
+    benchmark_settings = {
+        'households_sample_size': 1_000,
+    }
+
+    # the component names to be benchmarked
+    params = [
+        "workplace_location",
+    ]
 
     def pull_files(self):
         # replicate function of `activitysim create -e example_mtc_full`
@@ -63,12 +74,18 @@ class BenchSuite_MTC:
         )
 
     def setup_cache(self):
-        pre_run_model_list = model_list_mtc[:model_list_mtc.index(self.component_name)]
+        last_component_to_benchmark = 0
+        for component_name in self.params:
+            last_component_to_benchmark = max(
+                model_list_mtc.index(component_name),
+                last_component_to_benchmark
+            )
+        pre_run_model_list = model_list_mtc[:last_component_to_benchmark]
         modify_yaml(
             os.path.join("example_mtc_full", "configs", "settings.yaml"),
-            **benchmarking_settings_mtc,
+            **self.benchmark_settings,
             models=pre_run_model_list,
-            checkpoints=pre_run_model_list[-1:],
+            checkpoints=True,
         )
         modify_yaml(
             os.path.join("example_mtc_full", "configs", "network_los.yaml"),
@@ -86,8 +103,8 @@ class BenchSuite_MTC:
         return run(args)
 
 
-    def time_component(self):
-        this_run_model_list = model_list_mtc[:model_list_mtc.index(self.component_name)+1]
+    def setup_component(self, component_name):
+        this_run_model_list = model_list_mtc[:model_list_mtc.index(component_name)+1]
         modify_yaml(
             os.path.join("example_mtc_full", "configs", "settings.yaml"),
             **benchmarking_settings_mtc,
@@ -96,7 +113,6 @@ class BenchSuite_MTC:
             #models=this_run_model_list,
             resume_after=this_run_model_list[-2],
         )
-        from activitysim.benchmarking.componentwise import run_component, add_run_args
         cmd_line_args = [
             '--config', os.path.join("example_mtc_full", "configs"),
             '--data', os.path.join("example_mtc_full", "data"),
@@ -105,7 +121,10 @@ class BenchSuite_MTC:
         parser = argparse.ArgumentParser()
         add_run_args(parser)
         args = parser.parse_args(cmd_line_args)
-        return run_component(args, self.component_name)
+        self.resume_after = prep_component(args, component_name)
+
+    def time_component(self, component_name):
+        return run_component(component_name, self.resume_after)
 
 
 
@@ -113,19 +132,35 @@ class BenchSuite_MTC:
 
 if __name__ == '__main__':
 
+    t0 = time.time()
     os.chdir(benchmarking_data_directory)
 
     component_name = "workplace_location"
-    suite = BenchSuite_MTC(component_name)
+    suite = BenchSuite_MTC()
 
     #pull_mtc()
     suite.setup_cache()
+    t1 = time.time()
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     logger.warning("$ 0 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    suite.time_component()
+    suite.setup_component(component_name)
+    t2a = time.time()
+    suite.time_component(component_name)
+    t2b = time.time()
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     logger.warning("$ 1 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    suite.time_component()
+    suite.setup_component(component_name)
+    t3a = time.time()
+    suite.time_component(component_name)
+    t3b = time.time()
+
+    logger.warning(f"Time Base Setup: {timedelta(seconds=t1-t0)}")
+
+    logger.warning(f"Time Setup 1: {timedelta(seconds=t2a-t1)}")
+    logger.warning(f"Time Setup 2: {timedelta(seconds=t3a-t2b)}")
+
+    logger.warning(f"Time Run 1: {timedelta(seconds=t2b-t2a)}")
+    logger.warning(f"Time Run 2: {timedelta(seconds=t3b-t3a)}")
 

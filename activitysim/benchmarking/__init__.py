@@ -1,1 +1,2 @@
-from .componentwise import benchmark_component, run_component
+from .config_editing import modify_yaml
+from . import componentwise

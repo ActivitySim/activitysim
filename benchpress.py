@@ -5,12 +5,11 @@ import logging
 logger = logging.getLogger("activitysim.benchmarking")
 
 
-from activitysim.benchmarking.config_editing import modify_settings
+from activitysim.benchmarking.config_editing import modify_yaml
 
 benchmarking_data_directory = "/tmp/asim-bench"
 benchmarking_settings_mtc = dict(
-    households_sample_size=20_000,
-    benchmarking='workplace_location',
+    households_sample_size=1_000,
 )
 
 model_list_mtc = [
@@ -49,64 +48,84 @@ model_list_mtc = [
     'write_tables',
 ]
 
-def pull_mtc():
-    # replicate function of `activitysim create -e example_mtc_full`
-    from activitysim.cli.create import get_example
-    get_example(
-        "example_mtc_full",
-        os.path.join(benchmarking_data_directory, "example_mtc_full")
-    )
+class BenchSuite_MTC:
 
-def setup_mtc_component(component_name):
-    pre_run_model_list = model_list_mtc[:model_list_mtc.index(component_name)]
-    modify_settings(
-        os.path.join(benchmarking_data_directory, "example_mtc_full", "configs", "settings.yaml"),
-        **benchmarking_settings_mtc,
-        models=pre_run_model_list,
-        checkpoints=pre_run_model_list[-1:],
-    )
-    from activitysim.cli.run import run, add_run_args
-    cmd_line_args = [
-        '--config', os.path.join(benchmarking_data_directory, "example_mtc_full", "configs"),
-        '--data', os.path.join(benchmarking_data_directory, "example_mtc_full", "data"),
-        '--output', os.path.join(benchmarking_data_directory, "example_mtc_full", "output"),
-    ]
-    parser = argparse.ArgumentParser()
-    add_run_args(parser)
-    args = parser.parse_args(cmd_line_args)
-    return run(args)
+    def __init__(self, component_name="workplace_location"):
+        self.example_name = "example_mtc_full"
+        self.component_name = component_name
+
+    def pull_files(self):
+        # replicate function of `activitysim create -e example_mtc_full`
+        from activitysim.cli.create import get_example
+        get_example(
+            example_name=self.example_name,
+            destination=self.example_name,
+        )
+
+    def setup_cache(self):
+        pre_run_model_list = model_list_mtc[:model_list_mtc.index(self.component_name)]
+        modify_yaml(
+            os.path.join("example_mtc_full", "configs", "settings.yaml"),
+            **benchmarking_settings_mtc,
+            models=pre_run_model_list,
+            checkpoints=pre_run_model_list[-1:],
+        )
+        modify_yaml(
+            os.path.join("example_mtc_full", "configs", "network_los.yaml"),
+            read_skim_cache=True,
+        )
+        from activitysim.cli.run import run, add_run_args
+        cmd_line_args = [
+            '--config', os.path.join("example_mtc_full", "configs"),
+            '--data', os.path.join("example_mtc_full", "data"),
+            '--output', os.path.join("example_mtc_full", "output"),
+        ]
+        parser = argparse.ArgumentParser()
+        add_run_args(parser)
+        args = parser.parse_args(cmd_line_args)
+        return run(args)
 
 
-def run_mtc_component(component_name):
-    this_run_model_list = model_list_mtc[:model_list_mtc.index(component_name)+1]
-    modify_settings(
-        os.path.join(benchmarking_data_directory, "example_mtc_full", "configs", "settings.yaml"),
-        **benchmarking_settings_mtc,
-        checkpoints=False,
-        models=this_run_model_list,
-        resume_after=this_run_model_list[-2],
-    )
-    from activitysim.benchmarking.componentwise import run_component, add_run_args
-    cmd_line_args = [
-        '--config', os.path.join(benchmarking_data_directory, "example_mtc_full", "configs"),
-        '--data', os.path.join(benchmarking_data_directory, "example_mtc_full", "data"),
-        '--output', os.path.join(benchmarking_data_directory, "example_mtc_full", "output"),
-    ]
-    parser = argparse.ArgumentParser()
-    add_run_args(parser)
-    args = parser.parse_args(cmd_line_args)
-    return run_component(args)
+    def time_component(self):
+        this_run_model_list = model_list_mtc[:model_list_mtc.index(self.component_name)+1]
+        modify_yaml(
+            os.path.join("example_mtc_full", "configs", "settings.yaml"),
+            **benchmarking_settings_mtc,
+            benchmarking='workplace_location',
+            checkpoints=False,
+            #models=this_run_model_list,
+            resume_after=this_run_model_list[-2],
+        )
+        from activitysim.benchmarking.componentwise import run_component, add_run_args
+        cmd_line_args = [
+            '--config', os.path.join("example_mtc_full", "configs"),
+            '--data', os.path.join("example_mtc_full", "data"),
+            '--output', os.path.join("example_mtc_full", "output"),
+        ]
+        parser = argparse.ArgumentParser()
+        add_run_args(parser)
+        args = parser.parse_args(cmd_line_args)
+        return run_component(args, self.component_name)
 
 
 
 
 
 if __name__ == '__main__':
+
+    os.chdir(benchmarking_data_directory)
+
+    component_name = "workplace_location"
+    suite = BenchSuite_MTC(component_name)
+
     #pull_mtc()
-    #setup_mtc_component("workplace_location")
-    run_mtc_component("workplace_location")
+    suite.setup_cache()
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    logger.warning("$ 0 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    suite.time_component()
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
-    run_mtc_component("workplace_location")
+    logger.warning("$ 1 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+    suite.time_component()
 

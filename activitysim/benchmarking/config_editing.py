@@ -26,7 +26,7 @@ def copy_to_original(filename):
         shutil.copyfile(basefilename, originalfilename)
     return basefilename, originalfilename
 
-def modify_settings(filename, changes=None, **kwargs):
+def modify_yaml(filename, changes=None, **kwargs):
     """
     Modify the settings in a yaml file.
 

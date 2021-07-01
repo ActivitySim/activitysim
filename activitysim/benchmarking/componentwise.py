@@ -3,6 +3,7 @@ import logging
 import numpy as np
 from ..core.pipeline import print_elapsed_time, open_pipeline, mem, run_model
 from ..core import inject, tracing
+from ..cli.run import handle_standard_args, config, warnings, cleanup_output_files, pipeline, INJECTABLES, chunk, add_run_args
 
 logger = logging.getLogger(__name__)
 
@@ -48,9 +49,17 @@ def benchmark_component(model, resume_after=None):
     t0 = print_elapsed_time("benchmark_component (%s)" % model, t0)
 
 
-from ..cli.run import handle_standard_args, config, warnings, cleanup_output_files, pipeline, INJECTABLES, chunk, add_run_args
 
-def run_component(args):
+
+def reload_settings(**kwargs):
+    settings = config.read_settings_file('settings.yaml', mandatory=True)
+    for k in kwargs:
+        settings[k] = kwargs[k]
+    inject.add_injectable("settings", settings)
+    return settings
+
+
+def run_component(args, component_name):
     """
     Run the models. Specify a project folder using the '--working_dir' option,
     or point to the config, data, and output folders directly with
@@ -60,6 +69,9 @@ def run_component(args):
     returns:
         int: sys.exit exit code
     """
+    reload_settings(
+        benchmarking=component_name,
+    )
 
     # register abm steps and other abm-specific injectables
     # by default, assume we are running activitysim.abm
@@ -74,7 +86,12 @@ def run_component(args):
     # If you provide a resume_after argument to pipeline.run
     # the pipeline manager will attempt to load checkpointed tables from the checkpoint store
     # and resume pipeline processing on the next submodel step after the specified checkpoint
-    resume_after = config.setting('resume_after', None)
+    models = config.setting('models')
+    component_index = models.index(component_name)
+    if component_index:
+        resume_after = models[models.index(component_name) - 1]
+    else:
+        resume_after = None
 
     # cleanup if not resuming
     if not resume_after:
@@ -139,6 +156,10 @@ def run_component(args):
 
         #pipeline.run(models=config.setting('models'), resume_after=resume_after)
         benchmark_component(config.setting('benchmarking'), resume_after=resume_after)
+        # pipeline.run(
+        #     models=[resume_after, config.setting('benchmarking')],
+        #     resume_after=resume_after,
+        # )
 
         if config.setting('cleanup_pipeline_after_run', False):
             pipeline.cleanup_pipeline()  # has side effect of closing open pipeline

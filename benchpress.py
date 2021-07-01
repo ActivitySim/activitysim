@@ -3,7 +3,7 @@ import os
 import logging
 import time
 from datetime import timedelta
-from activitysim.benchmarking.componentwise import run_component, add_run_args, prep_component
+from activitysim.benchmarking.componentwise import run_component, add_run_args, prep_component, after_component
 
 logger = logging.getLogger("activitysim.benchmarking")
 
@@ -121,11 +121,13 @@ class BenchSuite_MTC:
         parser = argparse.ArgumentParser()
         add_run_args(parser)
         args = parser.parse_args(cmd_line_args)
-        self.resume_after = prep_component(args, component_name)
+        prep_component(args, component_name)
 
     def time_component(self, component_name):
-        return run_component(component_name, self.resume_after)
+        return run_component(component_name)
 
+    def teardown_component(self, component_name):
+        after_component()
 
 
 
@@ -148,6 +150,7 @@ if __name__ == '__main__':
     t2a = time.time()
     suite.time_component(component_name)
     t2b = time.time()
+    suite.teardown_component(component_name)
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     logger.warning("$ 1 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
     logger.warning("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
@@ -155,6 +158,7 @@ if __name__ == '__main__':
     t3a = time.time()
     suite.time_component(component_name)
     t3b = time.time()
+    suite.teardown_component(component_name)
 
     logger.warning(f"Time Base Setup: {timedelta(seconds=t1-t0)}")
 

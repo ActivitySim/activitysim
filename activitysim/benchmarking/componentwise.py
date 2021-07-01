@@ -21,32 +21,12 @@ def benchmark_component(model, resume_after=None):
     returns:
         nothing, but with pipeline open
     """
+    if config.setting('multiprocess', False):
+        raise NotImplementedError("multiprocess benchmarking is not yet implemented")
 
-    t0 = print_elapsed_time()
-
-    open_pipeline(resume_after)
-    t0 = print_elapsed_time('open_pipeline', t0)
-
-    if resume_after:
-        logger.info("resume_after %s" % resume_after)
-
-    mem.trace_memory_info('pipeline.run before preload_injectables')
-
-    # preload any bulky injectables (e.g. skims) not in pipeline
-    if inject.get_injectable('preload_injectables', None):
-        t0 = print_elapsed_time('preload_injectables', t0)
-
-    mem.trace_memory_info('pipeline.run after preload_injectables')
-
-    t1 = print_elapsed_time()
-    run_model(model)
-    mem.trace_memory_info(f"pipeline.run after {model}")
-
-    tracing.log_runtime(model_name=model, start_time=t1)
-
-    mem.trace_memory_info('pipeline.run after run_models')
-
-    t0 = print_elapsed_time("benchmark_component (%s)" % model, t0)
+    else: # single process benchmarking
+        open_pipeline(resume_after)
+        run_model(model)
 
 
 
@@ -137,39 +117,34 @@ def prep_component(args, component_name):
                 if info_key in info:
                     logger.info(f"NUMPY {cfg_key} {info_key}: {info[info_key]}")
 
-    return resume_after
-
-def run_component(component_name, resume_after):
-
-    t0 = tracing.print_elapsed_time()
-
     if config.setting('multiprocess', False):
-        logger.info('run multiprocess simulation')
-
-        from activitysim.core import mp_tasks
-        injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-        mp_tasks.run_multiprocess(injectables)
-
-        assert not pipeline.is_open()
-
-        if config.setting('cleanup_pipeline_after_run', False):
-            pipeline.cleanup_pipeline()
-
+        raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
-        logger.info('run single process simulation')
+        open_pipeline(resume_after)
 
-        #pipeline.run(models=config.setting('models'), resume_after=resume_after)
-        benchmark_component(component_name, resume_after=resume_after)
-        # pipeline.run(
-        #     models=[resume_after, config.setting('benchmarking')],
-        #     resume_after=resume_after,
-        # )
+def run_component(component_name):
+    if config.setting('multiprocess', False):
+        raise NotImplementedError("multiprocess benchmarking is not yet implemented")
+        # logger.info('run multiprocess simulation')
+        #
+        # from activitysim.core import mp_tasks
+        # injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+        # mp_tasks.run_multiprocess(injectables)
+        #
+        # assert not pipeline.is_open()
+        #
+        # if config.setting('cleanup_pipeline_after_run', False):
+        #     pipeline.cleanup_pipeline()
+    else:
+        run_model(component_name)
+    return 0
 
+def after_component():
+    if config.setting('multiprocess', False):
+        raise NotImplementedError("multiprocess benchmarking is not yet implemented")
+    else:
         if config.setting('cleanup_pipeline_after_run', False):
             pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
         else:
             pipeline.close_pipeline()
-
-    tracing.print_elapsed_time('all models', t0)
-
     return 0

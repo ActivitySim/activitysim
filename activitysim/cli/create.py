@@ -5,6 +5,7 @@ import shutil
 import glob
 import pkg_resources
 import yaml
+import hashlib
 
 PACKAGE = 'activitysim'
 EXAMPLES_DIR = 'examples'
@@ -116,17 +117,22 @@ def get_example(example_name, destination):
         # split include string into source/destination paths
         items = item.split()
         assets = items[0]
-        if len(items) == 2:
+        if len(items) == 3:
+            target_path = os.path.join(dest_path, items[1])
+            sha256 = items[-1]
+        elif len(items) == 2:
             target_path = os.path.join(dest_path, items[-1])
+            sha256 = None
         else:
             target_path = dest_path
+            sha256 = None
 
         if assets.startswith('http'):
-            download_asset(assets, target_path)
+            download_asset(assets, target_path, sha256)
 
         else:
             for asset_path in glob.glob(_example_path(assets)):
-                copy_asset(asset_path, target_path)
+                copy_asset(asset_path, target_path, dirs_exist_ok=True)
 
     print(f'copied! new project files are in {os.path.abspath(dest_path)}')
 
@@ -135,22 +141,46 @@ def get_example(example_name, destination):
         print(instructions)
 
 
-def copy_asset(asset_path, target_path):
+def copy_asset(asset_path, target_path, dirs_exist_ok=False):
 
     print(f'copying {os.path.basename(asset_path)} ...')
     if os.path.isdir(asset_path):
         target_path = os.path.join(target_path, os.path.basename(asset_path))
-        shutil.copytree(asset_path, target_path)
+        shutil.copytree(asset_path, target_path, dirs_exist_ok=dirs_exist_ok)
 
     else:
         shutil.copy(asset_path, target_path)
 
 
-def download_asset(url, target_path):
+def download_asset(url, target_path, sha256=None):
 
-    print(f'downloading {os.path.basename(target_path)} ...')
+    if sha256 and os.path.isfile(target_path):
+        computed_sha256 = sha256_checksum(target_path)
+        if sha256 == computed_sha256:
+            print(f'not re-downloading existing {os.path.basename(target_path)} ...')
+            return
+        else:
+            print(f're-downloading existing {os.path.basename(target_path)} ...')
+            print(f'   expected checksum {sha256}')
+            print(f'   computed checksum {computed_sha256}')
+    else:
+        print(f'downloading {os.path.basename(target_path)} ...')
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
         with open(target_path, 'wb') as f:
             for chunk in r.iter_content(chunk_size=None):
                 f.write(chunk)
+    computed_sha256 = sha256_checksum(target_path)
+    if sha256 and sha256 != computed_sha256:
+        raise ValueError(
+            f"downloaded {os.path.basename(target_path)} has incorrect checksum\n"
+            f"   expected checksum {sha256}\n"
+            f"   computed checksum {computed_sha256}"
+        )
+
+def sha256_checksum(filename, block_size=65536):
+    sha256 = hashlib.sha256()
+    with open(filename, 'rb') as f:
+        for block in iter(lambda: f.read(block_size), b''):
+            sha256.update(block)
+    return sha256.hexdigest()

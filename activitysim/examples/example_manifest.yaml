@@ -32,16 +32,20 @@
   include:
     - example_mtc/configs
     - example_mtc/configs_mp
-    - example_mtc/data
+    # example_mtc/data
     - example_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
+      04bddb2dd6b829a2ce25a27369d3276143fa9a354989ebd30ed9bba92f8e9bfb
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/households.csv
       data/households.csv
+      77bb2870677ebb430f3d7a813528445b1aea6d66096b9c03ace7201b901a527c
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/persons.csv
       data/persons.csv
+      9b7e1c9972d5f16e06cf5baf8d552935cb4c9745c4da1d5743f8a76a8f5f5655
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/land_use.csv
       data/land_use.csv
+      fac71207925a34c32b956632fe375814e42860624a99f88401c42317af0fc203
 
 - name: example_mtc_sf
   description: San Francisco MTC dataset with 190 zones, 400k households and 900k persons

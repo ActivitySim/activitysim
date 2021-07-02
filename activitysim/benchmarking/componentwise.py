@@ -103,21 +103,25 @@ def setup_component(component_name, working_dir='.', preload_injectables=()):
 
 def run_component(component_name):
     logger.info("run_component: %s", component_name)
-    if config.setting('multiprocess', False):
-        raise NotImplementedError("multiprocess benchmarking is not yet implemented")
-        # logger.info('run multiprocess simulation')
-        #
-        # from activitysim.core import mp_tasks
-        # injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-        # mp_tasks.run_multiprocess(injectables)
-        #
-        # assert not pipeline.is_open()
-        #
-        # if config.setting('cleanup_pipeline_after_run', False):
-        #     pipeline.cleanup_pipeline()
+    try:
+        if config.setting('multiprocess', False):
+            raise NotImplementedError("multiprocess benchmarking is not yet implemented")
+            # logger.info('run multiprocess simulation')
+            #
+            # from activitysim.core import mp_tasks
+            # injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+            # mp_tasks.run_multiprocess(injectables)
+            #
+            # assert not pipeline.is_open()
+            #
+            # if config.setting('cleanup_pipeline_after_run', False):
+            #     pipeline.cleanup_pipeline()
+        else:
+            run_model(component_name)
+    except Exception as err:
+        logger.exception("run_component exception: %s", component_name)
     else:
-        run_model(component_name)
-    logger.info("run_component completed: %s", component_name)
+        logger.info("run_component completed: %s", component_name)
     return 0
 
 
@@ -127,8 +131,11 @@ def teardown_component(component_name):
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
         pipeline.close_pipeline()
-    logger.info("teardown_component completed: %s", component_name)
-    logger.critical("\n\n"+("~"*88)+"\n\n")
+    logger.critical(
+        "teardown_component completed: %s\n\n%s\n\n",
+        component_name,
+        "~" * 88
+    )
     return 0
 
 

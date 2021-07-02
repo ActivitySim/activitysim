@@ -921,6 +921,10 @@ def school_location(
     if estimator:
         write_estimation_specs(estimator, model_settings, 'school_location.yaml')
 
+    # disable locutor for benchmarking
+    if config.setting('benchmarking', False):
+        locutor = False
+
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,

@@ -74,7 +74,8 @@ MODE_PRODUCTION
 MODE_RETRAIN = 'training'
 MODE_ADAPTIVE = 'adaptive'
 MODE_PRODUCTION = 'production'
-TRAINING_MODES = [MODE_RETRAIN, MODE_ADAPTIVE, MODE_PRODUCTION]
+MODE_CHUNKLESS = 'disabled'
+TRAINING_MODES = [MODE_RETRAIN, MODE_ADAPTIVE, MODE_PRODUCTION, MODE_CHUNKLESS]
 
 #
 # low level
@@ -135,7 +136,9 @@ def chunk_metric():
 def chunk_training_mode():
     training_mode = \
         SETTINGS.setdefault('chunk_training_mode', config.setting('chunk_training_mode', MODE_ADAPTIVE))
-    assert training_mode in TRAINING_MODES, f"chunk_training_mode '{training_mode} not one of: {TRAINING_MODES}"
+    if not training_mode:
+        training_mode = MODE_CHUNKLESS
+    assert training_mode in TRAINING_MODES, f"chunk_training_mode '{training_mode}' not one of: {TRAINING_MODES}"
     return training_mode
 
 
@@ -223,8 +226,9 @@ def consolidate_logs():
     if not glob_files:
         return
 
-    assert chunk_training_mode() != MODE_PRODUCTION, \
-        f"shouldn't be any chunk log files when chunk_training_mode is {MODE_PRODUCTION}"
+    assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS), \
+        f"shouldn't be any chunk log files when chunk_training_mode" \
+        f" is {MODE_PRODUCTION} or {MODE_CHUNKLESS}"
 
     #
     # OMNIBUS_LOG_FILE
@@ -331,6 +335,9 @@ class ChunkHistorian(object):
         else:
             self.have_cached_history = False
 
+            if chunk_training_mode() == MODE_CHUNKLESS:
+                return
+
             if chunk_training_mode() == MODE_PRODUCTION:
                 # raise RuntimeError(f"chunk_training_mode is {MODE_PRODUCTION} but no chunk_cache: {chunk_cache_path}")
 
@@ -379,7 +386,7 @@ class ChunkHistorian(object):
 
     def write_history(self, history, chunk_tag):
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         history_df = pd.DataFrame.from_dict(history)
 
@@ -418,7 +425,7 @@ class ChunkLedger(object):
 
     def audit(self, msg, bytes=0, rss=0, uss=0, from_rss_monitor=False):
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         MAX_OVERDRAFT = 0.2
 
@@ -483,7 +490,7 @@ class ChunkLedger(object):
                 assert False
             return elements, bytes
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         if df is None:
             elements, bytes = (0, 0)
@@ -511,7 +518,7 @@ class ChunkLedger(object):
 
     def check_local_hwm(self, hwm_trace_label, rss, uss, total_bytes):
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         from_rss_monitor = total_bytes is None
 
@@ -563,6 +570,10 @@ class ChunkLedger(object):
 
 def log_rss(trace_label, force=False):
 
+    if chunk_training_mode() == MODE_CHUNKLESS:
+        # no memory tracing at all in chunkless mode
+        return
+
     assert len(CHUNK_LEDGERS) > 0, f"log_rss called without current chunker."
 
     hwm_trace_label = f"{trace_label}.log_rss"
@@ -584,7 +595,7 @@ def log_df(trace_label, table_name, df):
 
     assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
 
-    if chunk_training_mode() == MODE_PRODUCTION:
+    if chunk_training_mode() in (MODE_PRODUCTION, MODE_CHUNKLESS):
         return
 
     op = 'del' if df is None else 'add'
@@ -679,7 +690,8 @@ class ChunkSizer(object):
 
     def close(self):
 
-        if ((self.depth == 1) or WRITE_SUBCHUNK_HISTORY) and (chunk_training_mode() != MODE_PRODUCTION):
+        if ((self.depth == 1) or WRITE_SUBCHUNK_HISTORY) and \
+                (chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)):
             _HISTORIAN.write_history(self.history, self.chunk_tag)
 
         _chunk_sizer = CHUNK_SIZERS.pop()
@@ -826,7 +838,7 @@ class ChunkSizer(object):
 
         # input()
 
-        if chunk_training_mode() != MODE_PRODUCTION:
+        if chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS):
             self.cum_rows += self.rows_per_chunk
 
         return self.rows_per_chunk, estimated_number_of_chunks

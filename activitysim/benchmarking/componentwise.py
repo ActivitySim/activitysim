@@ -1,5 +1,6 @@
 import os
 import logging
+import logging.handlers
 import numpy as np
 from ..core.pipeline import print_elapsed_time, open_pipeline, mem, run_model
 from ..core import inject, tracing
@@ -17,21 +18,27 @@ def reload_settings(**kwargs):
 
 
 def component_logging(component_name):
-    tracing.config_logger(basic=True)
-    import logging.handlers
+    root_logger = logging.getLogger()
+
+    CLOG_FMT = '%(asctime)s %(levelname)7s - %(name)s: %(message)s'
+
     logfilename = config.log_file_path(f"asv-{component_name}.log")
-    if os.path.exists(logfilename):
-        do_roll = True
-    else:
-        do_roll = False
+
+    # avoid creation of multiple file handlers for logging components
+    # as we will re-enter this function for every component run
+    for entry in root_logger.handlers:
+        if (isinstance(entry, logging.handlers.RotatingFileHandler)) and \
+                (entry.formatter._fmt == CLOG_FMT):
+            entry.doRollover()
+            return
+
+    tracing.config_logger(basic=True)
     file_handler = logging.handlers.RotatingFileHandler(
         filename=logfilename,
         mode='a', maxBytes=50_000_000, backupCount=10,
     )
-    if do_roll:
-        file_handler.doRollover()
     formatter = logging.Formatter(
-        fmt='%(asctime)s %(levelname)7s - %(name)s: %(message)s',
+        fmt=CLOG_FMT,
         datefmt='%Y-%m-%d %H:%M:%S',
     )
     file_handler.setFormatter(formatter)

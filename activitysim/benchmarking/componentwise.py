@@ -16,7 +16,29 @@ def reload_settings(**kwargs):
     return settings
 
 
-def setup_component(component_name):
+def component_logging(component_name):
+    tracing.config_logger(basic=True)
+    import logging.handlers
+    logfilename = config.log_file_path(f"asv-{component_name}.log")
+    if os.path.exists(logfilename):
+        do_roll = True
+    else:
+        do_roll = False
+    file_handler = logging.handlers.RotatingFileHandler(
+        filename=logfilename,
+        mode='a', maxBytes=50_000_000, backupCount=10,
+    )
+    if do_roll:
+        file_handler.doRollover()
+    formatter = logging.Formatter(
+        fmt='%(asctime)s %(levelname)7s - %(name)s: %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+    )
+    file_handler.setFormatter(formatter)
+    logging.getLogger().addHandler(file_handler)
+
+
+def setup_component(component_name, working_dir='.', preload_injectables=()):
     """
     Prepare to benchmark a model component.
 
@@ -25,14 +47,26 @@ def setup_component(component_name):
     All this happens here, before the model component itself
     is actually executed inside the timed portion of the loop.
     """
+    inject.add_injectable('configs_dir', os.path.join(working_dir, 'configs'))
+    inject.add_injectable('data_dir', os.path.join(working_dir, 'data'))
+    inject.add_injectable('output_dir', os.path.join(working_dir, 'output'))
+
     reload_settings(
         benchmarking=component_name,
     )
 
+    component_logging(component_name)
+    logger.info("connected to component logger")
+    config.filter_warnings()
+    logging.captureWarnings(capture=True)
+
     # register abm steps and other abm-specific injectables outside of
     # benchmark timing loop
     if not inject.is_injectable('preload_injectables'):
+        logger.info("preload_injectables yes import")
         from activitysim import abm
+    else:
+        logger.info("preload_injectables no import")
 
     # Extract the resume_after argument based on the model immediately
     # prior to the component being benchmarked.
@@ -53,8 +87,15 @@ def setup_component(component_name):
     else:
         open_pipeline(resume_after)
 
+    for k in preload_injectables:
+        if inject.get_injectable(k, None) is not None:
+            logger.info("pre-loaded %s", k)
+
+    logger.info("setup_component completed: %s", component_name)
+
 
 def run_component(component_name):
+    logger.info("run_component: %s", component_name)
     if config.setting('multiprocess', False):
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
         # logger.info('run multiprocess simulation')
@@ -69,14 +110,17 @@ def run_component(component_name):
         #     pipeline.cleanup_pipeline()
     else:
         run_model(component_name)
+    logger.info("run_component completed: %s", component_name)
     return 0
 
 
-def teardown_component():
+def teardown_component(component_name):
+    logger.info("teardown_component: %s", component_name)
     if config.setting('multiprocess', False):
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
         pipeline.close_pipeline()
+    logger.info("teardown_component completed: %s", component_name)
     return 0
 
 

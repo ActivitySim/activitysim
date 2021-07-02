@@ -29,13 +29,12 @@ def component_logging(component_name):
     for entry in root_logger.handlers:
         if (isinstance(entry, logging.handlers.RotatingFileHandler)) and \
                 (entry.formatter._fmt == CLOG_FMT):
-            entry.doRollover()
             return
 
     tracing.config_logger(basic=True)
     file_handler = logging.handlers.RotatingFileHandler(
         filename=logfilename,
-        mode='a', maxBytes=50_000_000, backupCount=10,
+        mode='a', maxBytes=50_000_000, backupCount=5,
     )
     formatter = logging.Formatter(
         fmt=CLOG_FMT,
@@ -129,6 +128,7 @@ def teardown_component(component_name):
     else:
         pipeline.close_pipeline()
     logger.info("teardown_component completed: %s", component_name)
+    logger.critical("\n\n"+("~"*88)+"\n\n")
     return 0
 
 

@@ -150,7 +150,7 @@ def pre_run(model_working_dir):
     # cleanup
     cleanup_output_files()
 
-    tracing.config_logger(basic=True)
+    tracing.config_logger(basic=False)
     config.filter_warnings()
     logging.captureWarnings(capture=True)
 

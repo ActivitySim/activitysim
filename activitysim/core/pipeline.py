@@ -365,8 +365,11 @@ def load_checkpoint(checkpoint_name):
         i = checkpoints[checkpoints[CHECKPOINT_NAME] == checkpoint_name].index[0]
         checkpoints = checkpoints.loc[:i]
 
+        # if the store is not open in read-only mode,
         # write it to the store to ensure so any subsequent checkpoints are forgotten
-        write_df(checkpoints, CHECKPOINT_TABLE_NAME)
+        store = get_pipeline_store()
+        if store and store._mode != 'r':
+            write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
     except IndexError:
         msg = "Couldn't find checkpoint '%s' in checkpoints" % (checkpoint_name,)

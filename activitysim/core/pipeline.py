@@ -101,7 +101,7 @@ def close_open_files():
     _PIPELINE.open_files.clear()
 
 
-def open_pipeline_store(overwrite=False):
+def open_pipeline_store(overwrite=False, mode='a'):
     """
     Open the pipeline checkpoint store
 
@@ -109,6 +109,17 @@ def open_pipeline_store(overwrite=False):
     ----------
     overwrite : bool
         delete file before opening (unless resuming)
+    mode : {'a', 'w', 'r', 'r+'}, default 'a'
+        ``'r'``
+            Read-only; no data can be modified.
+        ``'w'``
+            Write; a new file is created (an existing file with the same
+            name would be deleted).
+        ``'a'``
+            Append; an existing file is opened for reading and writing,
+            and if the file does not exist it is created.
+        ``'r+'``
+            It is similar to ``'a'``, but the file must already exist.
     """
 
     if _PIPELINE.pipeline_store is not None:
@@ -125,7 +136,7 @@ def open_pipeline_store(overwrite=False):
             print(e)
             logger.warning("Error removing %s: %s" % (pipeline_file_path, e))
 
-    _PIPELINE.pipeline_store = pd.HDFStore(pipeline_file_path, mode='a')
+    _PIPELINE.pipeline_store = pd.HDFStore(pipeline_file_path, mode=mode)
 
     logger.debug(f"opened pipeline_store {pipeline_file_path}")
 
@@ -487,7 +498,7 @@ def run_model(model_name):
         logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
 
-def open_pipeline(resume_after=None):
+def open_pipeline(resume_after=None, mode='a'):
     """
     Start pipeline, either for a new run or, if resume_after, loading checkpoint from pipeline.
 
@@ -498,6 +509,9 @@ def open_pipeline(resume_after=None):
     ----------
     resume_after : str or None
         name of checkpoint to load from pipeline store
+    mode : {'a', 'w', 'r', 'r+'}, default 'a'
+        same as for typical opening of H5Store.  Ignored unless resume_after
+        is not None.  This is here to allow read-only pipeline for benchmarking.
     """
 
     if is_open():
@@ -511,7 +525,7 @@ def open_pipeline(resume_after=None):
     if resume_after:
         # open existing pipeline
         logger.debug("open_pipeline - open existing pipeline")
-        open_pipeline_store(overwrite=False)
+        open_pipeline_store(overwrite=False, mode=mode)
         load_checkpoint(resume_after)
     else:
         # open new, empty pipeline

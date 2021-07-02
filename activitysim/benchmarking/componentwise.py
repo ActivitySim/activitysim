@@ -60,6 +60,7 @@ def setup_component(component_name, working_dir='.', preload_injectables=()):
 
     reload_settings(
         benchmarking=component_name,
+        checkpoints=False,
     )
 
     component_logging(component_name)
@@ -92,7 +93,7 @@ def setup_component(component_name, working_dir='.', preload_injectables=()):
     if config.setting('multiprocess', False):
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
-        open_pipeline(resume_after)
+        open_pipeline(resume_after, mode='r')
 
     for k in preload_injectables:
         if inject.get_injectable(k, None) is not None:

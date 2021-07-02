@@ -83,3 +83,4 @@ local,_DF_IS_TOUR,'tour_type' in df.columns
 destination in central business district,destination_in_cbd,"(reindex(land_use.AreaType, df[dest_col_name]) < setting('cbd_threshold')) * 1"
 #,,FIXME diagnostic
 #,sov_dist_rt,(odt_skims['SOV_DIST'] + dot_skims['SOV_DIST'])
+,umich_affiliate,"df.get('umich_worker', default=False) | df.get('umich_student', default=False)"

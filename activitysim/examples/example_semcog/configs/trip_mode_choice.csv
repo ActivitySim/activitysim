@@ -374,3 +374,6 @@ util_School_Bus_tour_mode_ASC_shared_ride_3+,School Bus tour mode ASC -- shared 
 util_School_Bus_tour_mode_ASC_walk,School Bus tour mode ASC -- walk,@df.i_tour_mode.isin(I_SCHOOLBUS_MODE),,,,schoolbus_ASC_walk,,,,,,,,,,,,,,
 util_Origin_density_index,Origin density index,@(origin_density_applied*df.origin_density_index).clip(origin_density_index_max) if origin_density_applied else 0,,,,,,,coef_ivt,coef_ivt,coef_ivt,coef_ivt,coef_ivt,coef_ivt,coef_ivt,,,,coef_ivt,coef_ivt
 util_TNC_shared_adjustment,TNC shared adjustment,@adjust_tnc_shared,,,,,,,,,,,,,,,,,,coef_ivt
+util_umt_unavailable_wlk,UMT unavailable for non affiliates WALK,@((odt_skims['WLK_LOC_IVTT_UMT'] + dot_skims['WLK_LOC_IVTT_UMT'])>0) & (df.umich_affiliate_trip==False),,,,,,coef_unavailable,,,,,,,,,,,,
+util_umt_unavailable_pnr,UMT unavailable for non affiliates PNR,@((odt_skims['PNR_LOC_IVTT_UMT'] + dot_skims['PNRE_LOC_IVTT_UMT'])>0) & (df.umich_affiliate_trip==False),,,,,,,,,coef_unavailable,,,,,,,,,
+util_umt_unavailable_knr,UMT unavailable for non affiliates KNR,@((odt_skims['KNR_LOC_IVTT_UMT'] + dot_skims['KNRE_LOC_IVTT_UMT'])>0) & (df.umich_affiliate_trip==False),,,,,,,,,,,,coef_unavailable,,,,,,

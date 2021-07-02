@@ -178,5 +178,6 @@ LOGSUM_CHOOSER_COLUMNS:
   - num_workers
   - value_of_time
   - free_parking_at_work
+  - umich_affiliate
 
 MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

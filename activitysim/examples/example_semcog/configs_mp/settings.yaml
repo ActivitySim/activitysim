@@ -6,28 +6,31 @@ fail_fast: True
 multiprocess: True
 strict: False
 mem_tick: 30
-use_shadow_pricing: True
+use_shadow_pricing: False
 ## - example sample
-households_sample_size: 0
-chunk_size: 1000000000
-num_processes: 24
+households_sample_size: 1000
+chunk_size: 0
+num_processes: 12
 # - tracing
-trace_hh_id: 
+trace_hh_id: 1069965
 trace_od:
 #trace_hh_id: 1482966
 #trace_od: [5, 11]
 # to resume after last successful checkpoint, specify resume_after: _
-resume_after:
+resume_after: 
 models:
   ### mp_initialize step
   - initialize_landuse
-  - compute_accessibility
   - initialize_households
+  - compute_accessibility
+  - work_from_home
+  - add_size_tables
   ### mp_households step
   - school_location
   - university_location_zone_override
   - workplace_location
-  - work_from_home
+  - transit_pass_subsidy
+  - transit_pass_ownership
   - auto_ownership_simulate
   - free_parking
   - telecommute_frequency

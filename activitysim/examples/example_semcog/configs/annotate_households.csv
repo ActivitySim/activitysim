@@ -2,7 +2,7 @@ Description,Target,Expression
 #,, annotate households table after import
 ,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
 #,,FIXME households.income can be negative  - so we clip?
-income,income,households.HINCP.fillna(0)
+income,income,households.hincp.fillna(0)
 income_in_thousands,income_in_thousands,(income / 1000).clip(lower=0)
 income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"
 #,,
@@ -14,7 +14,7 @@ median_value_of_time,median_value_of_time,"income_segment.map({k: v for k, v in 
 hh_value_of_time,hh_value_of_time,"rng.lognormal_for_df(df, mu=np.log(median_value_of_time * _MU), sigma=_SIGMA).clip(_MIN_VOT, _MAX_VOT)"
 #,,
 #num_workers was renamed in import,,
-,num_workers,"_PERSON_COUNT('(ESR==1)|(ESR==2)|(ESR==4)|(ESR==5)', persons, households)"
+,num_workers,"_PERSON_COUNT('(esr==1)|(esr==2)|(esr==4)|(esr==5)', persons, households)"
 number of non_workers,num_non_workers,households.hhsize - num_workers
 #,,
 #,,we assume that everyone 16 and older is a potential driver
@@ -27,10 +27,11 @@ num_children_6_to_12,num_children_6_to_12,"_PERSON_COUNT('6 <= age <= 12', perso
 num_children_16_to_17,num_children_16_to_17,"_PERSON_COUNT('16 <= age <= 17', persons, households)"
 num_college_age,num_college_age,"_PERSON_COUNT('18 <= age <= 24', persons, households)"
 num_young_adults,num_young_adults,"_PERSON_COUNT('25 <= age <= 34', persons, households)"
-non_family,non_family,households.HHT.isin(HHT_NONFAMILY)
-family,family,households.HHT.isin(HHT_FAMILY)
+non_family,non_family,households.hht.isin(HHT_NONFAMILY)
+family,family,households.hht.isin(HHT_FAMILY)
 home_is_urban,home_is_urban,"reindex(land_use.AreaType, households.home_zone_id) < setting('urban_threshold')"
 home_is_rural,home_is_rural,"reindex(land_use.AreaType, households.home_zone_id) > setting('rural_threshold')"
+home_in_detroit,home_in_detroit,"reindex(land_use.COUNTY, households.home_zone_id) == 1"
 #,, default for work and school location logsums before auto_ownership model is run
 ,auto_ownership,households.auto_ownership
 TAZ column to match settings file,TAZ,households.home_zone_id

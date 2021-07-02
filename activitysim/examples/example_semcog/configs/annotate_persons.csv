@@ -7,11 +7,11 @@ age_16_p,age_16_p,persons.age >= 16
 adult,adult,persons.age >= 18
 male,male,persons.sex == 1
 female,female,persons.sex == 2
-,esr,persons.ESR.fillna(0)
-,wkhp,persons.WKHP.fillna(0)
-,wkw,persons.WKW.fillna(0)
-,schg,persons.SCHG.fillna(0)
-,mil,persons.MIL.fillna(0)
+,esr,persons.esr.fillna(0)
+,wkhp,persons.wkhp.fillna(0)
+,wkw,persons.wkw.fillna(0)
+,schg,persons.schg.fillna(0)
+,mil,persons.mil.fillna(0)
 employment status type,pemploy,np.zeros(len(persons))
 ,pemploy,"np.where(persons.age < 16, PEMPLOY_CHILD, PEMPLOY_PART)"
 ,pemploy,"np.where((persons['age'] >= 16) & ((esr == 3) | (esr == 6)), PEMPLOY_NOT, pemploy)"
@@ -60,8 +60,10 @@ is_worker,is_worker,"np.where((pemploy == PEMPLOY_FULL) |( pemploy == PEMPLOY_PA
 home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"
 hh_child,hh_child,"reindex(households.children, persons.household_id)"
 person number,PNUM,persons.member_id
-income,income,"reindex(households.HINCP, persons.household_id)"
+income,income,"reindex(households.hincp, persons.household_id)"
 income_in_thousands,income_in_thousands,(income / 1000).clip(lower=0)
 income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"
 is_fulltime_worker,is_fulltime_worker,"((age_16_p) & (wkhp >=35) & (wkw>=1) & (wkw<=4) & (~esr.isin([3,6])))"
 is_parttime_worker,is_parttime_worker,"((age_16_p) & (~esr.isin([3,6])) & (is_fulltime_worker == False))"
+recoding existing as legacy,naicsp_recode,"persons['naicsp'].replace('-9', '0000')"
+coding industry according to pums,industry_naics,naicsp_recode.str[0].astype(int)*10

@@ -30,3 +30,6 @@ work_zone_area_type,work_zone_area_type,"reindex(land_use.AreaType, persons.work
 ,work_auto_savings,"np.where(persons.is_worker, _min_work_walk_transit - roundtrip_auto_time_to_work, 0)"
 #,,auto savings over walk or transit capped at 120 and normalized to unity
 ,work_auto_savings_ratio,"(work_auto_savings / 120.0).clip(-1.0, 1.0)"
+,umich_student,df.school_zone_id.isin(land_use[land_use.University_Name=='University of Michigan'].index.values)
+,umich_worker,df.workplace_zone_id.isin(land_use[land_use.University_Name=='University of Michigan'].index.values)
+#,umich_affiliate,"df.get(umich_worker, default=False) | df.get(umich_student, default=False)"

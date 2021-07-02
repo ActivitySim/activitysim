@@ -178,6 +178,7 @@ preprocessor:
   TABLES:
     - land_use
     - tours
+    - persons
 
 #  - SPEC: trip_mode_choice_annotate_trips_preprocessor2
 #    DF: df

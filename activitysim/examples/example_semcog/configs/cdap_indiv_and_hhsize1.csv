@@ -49,6 +49,13 @@ University student interaction with off-peak accessibility to retail,(ptype == 3
 Driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 6) * auOpRetail,,0.08233,
 Pre-driving-age child who is in school interaction with off-peak accessibility to retail,(ptype == 7) * auOpRetail,,0.08233,
 Pre-driving-age child who is too young for school interaction with off-peak accessibility to retail,(ptype == 8) * auOpRetail,,0.08233,
+# University Student CDAP calibration,,,,
+working university student in non-family housing,(ptype == 3) & (is_worker) & (hht >= 4),0.0959892286938419,-0.5653157666171066,
+working university student in family housing,(ptype == 3) & (is_worker) & (hht < 4) & (type != 3),0.16088350372344598,-0.9394837517087071,
+working university student in GQ housing,(ptype == 3) & (is_worker) & (hht < 4) & (type == 3),0.273268828618079,-1.2556696279944286,
+non-working university student in non-family housing,(ptype == 3) & (~is_worker) & (hht >= 4),0.16573332752946932,-1.2223963004171414,
+non-working university student in family housing,(ptype == 3) & (~is_worker) & (hht < 4) & (type != 3),0.058646779881048675,-0.22458840819910103,
+non-working university student in GQ housing,(ptype == 3) & (~is_worker) & (hht < 4) & (type == 3),0.2231239703501062,-1.1839396062896261,
 # commented out because not used in mtctm1,,,,
 # Full-time worker interaction with usual work location is home,(ptype == 1) * usualWorkLocationIsHome,-1.758,,0.1813
 # Part-time worker interaction with usual work location is home,(ptype == 2) * usualWorkLocationIsHome,-1.758,,0.1813

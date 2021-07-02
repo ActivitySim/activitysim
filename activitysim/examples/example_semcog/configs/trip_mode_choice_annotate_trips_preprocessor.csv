@@ -90,3 +90,4 @@ dest terminal time not counted at home,_dest_terminal_time,"np.where(inbound & l
 #,max_dist_walk,od_skims.max('DISTWALK')
 #,dist_bike,od_skims['DISTBIKE']
 #,dist_only,od_skims['DIST']
+,umich_affiliate_trip,"reindex(persons.umich_worker, df.person_id) | reindex(persons.umich_student, df.person_id)"

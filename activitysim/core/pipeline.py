@@ -81,6 +81,14 @@ def is_open():
     return _PIPELINE.is_open
 
 
+def is_readonly():
+    if is_open():
+        store = get_pipeline_store()
+        if store and store._mode == 'r':
+            return True
+    return False
+
+
 def pipeline_table_key(table_name, checkpoint_name):
     if checkpoint_name:
         key = f"{table_name}/{checkpoint_name}"
@@ -367,8 +375,7 @@ def load_checkpoint(checkpoint_name):
 
         # if the store is not open in read-only mode,
         # write it to the store to ensure so any subsequent checkpoints are forgotten
-        store = get_pipeline_store()
-        if store and store._mode != 'r':
+        if not is_readonly():
             write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
     except IndexError:

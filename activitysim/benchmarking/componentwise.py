@@ -135,7 +135,15 @@ def teardown_component(component_name):
 
     # any new orca tables that were created need to be dropped so the
     # next benchmark run has a clean slate
-    for table_name in TABLE_CLEANING.get(component_name, []):
+    # for table_name in TABLE_CLEANING.get(component_name, []):
+    #     logger.info("dropping table %s", table_name)
+    #     pipeline.drop_table(table_name)
+
+    # use the pipeline module to clear out all the orca tables, so
+    # the next benchmark run has a clean slate.
+    # anything needed should be reloaded from the pipeline checkpoint file
+    pipeline_tables = pipeline.registered_tables()
+    for table_name in pipeline_tables:
         logger.info("dropping table %s", table_name)
         pipeline.drop_table(table_name)
 

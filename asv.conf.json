@@ -75,7 +75,7 @@
         "pyarrow": [],
         "numpy": [],
         "openmatrix": [],
-        "pandas": [],
+        "pandas": ["1.2"],
         "pyyaml": [],
         "pytables": [],
         "toolz": [],

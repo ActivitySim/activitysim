@@ -6,7 +6,10 @@ import yaml
 from datetime import timedelta
 from activitysim.benchmarking import componentwise, modify_yaml
 from activitysim.cli.create import get_example
-from .workspace import workspace
+try:
+    from .workspace import workspace
+except ImportError:
+    from workspace import workspace
 
 logger = logging.getLogger("activitysim.benchmarking")
 
@@ -115,3 +118,38 @@ class BenchSuite_MTC:
     def working_dir(self):
         return os.path.join(self.local_dir, self.example_name)
 
+if __name__ == '__main__':
+
+    benchmarking_data_directory = workspace.directory or os.getcwd()
+    os.chdir(benchmarking_data_directory)
+
+    t0a = time.time()
+    suite = BenchSuite_MTC()
+    suite.setup_cache()
+    t0b = time.time()
+
+    timings = {}
+    for component_name in suite.params:
+
+        logger.warning(f"$$$$$$$$ {component_name} #1 $$$$$$$$")
+        suite.setup(component_name)
+        t1a = time.time()
+        suite.time_component(component_name)
+        t1b = time.time()
+        suite.teardown(component_name)
+
+        logger.warning(f"$$$$$$$$ {component_name} #2 $$$$$$$$")
+        suite.setup(component_name)
+        t2a = time.time()
+        suite.time_component(component_name)
+        t2b = time.time()
+        suite.teardown(component_name)
+
+        timings[component_name] = (
+            str(timedelta(seconds=t1b-t1a)),
+            str(timedelta(seconds=t2b-t2a)),
+        )
+
+    logger.warning(f"Time Base Setup: {timedelta(seconds=t0b-t0a)}")
+    for component_name in suite.params:
+        logger.warning(f"Time {component_name}: {timings[component_name]}")

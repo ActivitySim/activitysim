@@ -1,11 +1,15 @@
-
+import os
 import re
 import sys
+from pathlib import Path
 
 def benchmark(args):
     """
     Compute the airspeed velocity of an unladen activitysim.
     """
+
+    repo_dir = Path(__file__).parents[2]
+    os.chdir(repo_dir)
     # for now we simply complete a handoff to the asv tool.
     # TODO: setup workspace if not defined.
     from asv.main import main
@@ -15,6 +19,9 @@ def benchmark(args):
 
 def add_benchmark_args(parser):
     from asv.commands import common_args
+    parser.add_argument(
+        'asv_command', nargs='?', default='run',
+    )
     parser.add_argument(
         'range', nargs='?', default=None,
         help="""Range of commits to benchmark.  For a git
@@ -87,5 +94,6 @@ def add_benchmark_args(parser):
     parser.add_argument(
         "--no-pull", action="store_true",
         help="Do not pull the repository")
+    common_args.add_global_arguments(parser, suppress_defaults=True)
     return parser
 

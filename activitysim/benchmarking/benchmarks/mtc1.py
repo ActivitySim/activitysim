@@ -68,6 +68,11 @@ class BenchSuite_MTC:
     )
 
     def setup_cache(self):
+        if workspace.get_dir() is None:
+            from asv.console import log
+            for k,v in os.environ.items():
+                log.error(f" env {k}: {v}")
+            raise RuntimeError("workspace unavailable")
         get_example(
             example_name=self.example_name,
             destination=os.path.join(self.local_dir, "models"),

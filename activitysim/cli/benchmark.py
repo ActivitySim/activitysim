@@ -147,6 +147,7 @@ def benchmark(args):
         raise NotADirectoryError(args.workspace)
     log.info(f" workspace: {args.workspace}")
     os.chdir(args.workspace)
+    os.environ["ASIM_ASV_WORKSPACE"] = str(args.workspace)
 
     from ..benchmarking import workspace
     workspace.set_dir(args.workspace)

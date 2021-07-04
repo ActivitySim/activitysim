@@ -75,7 +75,7 @@ class BenchSuite_MTC:
             raise RuntimeError("workspace unavailable")
         get_example(
             example_name=self.example_name,
-            destination=os.path.join(self.local_dir, "models"),
+            destination=self.model_dir,
         )
         settings_filename = os.path.join(self.model_dir, "configs", "settings.yaml")
         with open(settings_filename, 'rt') as f:

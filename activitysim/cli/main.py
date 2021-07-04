@@ -1,14 +1,25 @@
 import sys
-
-from activitysim.cli import CLI
-from activitysim.cli import run
-from activitysim.cli import create
-from activitysim.cli import benchmark
-
-from activitysim import __version__, __doc__
+import os
 
 
 def main():
+
+    # set all these before we import numpy or any other math library
+    if len(sys.argv) > 1 and sys.argv[1] == "benchmark":
+        os.environ['MKL_NUM_THREADS'] = '1'
+        os.environ['OMP_NUM_THREADS'] = '1'
+        os.environ['OPENBLAS_NUM_THREADS'] = '1'
+        os.environ['NUMBA_NUM_THREADS'] = '1'
+        os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+        os.environ['NUMEXPR_NUM_THREADS'] = '1'
+
+    from activitysim.cli import CLI
+    from activitysim.cli import run
+    from activitysim.cli import create
+    from activitysim.cli import benchmark
+
+    from activitysim import __version__, __doc__
+
     asim = CLI(version=__version__,
                description=__doc__)
     asim.add_subcommand(name='run',

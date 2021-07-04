@@ -61,15 +61,15 @@ ASV_CONFIG = {
 
     # The directory (relative to the current directory) to cache the Python
     # environments in.  If not provided, defaults to "env"
-    "env_dir": "../activitysim-asv/env",
+    # "env_dir": "../activitysim-asv/env",
 
     # The directory (relative to the current directory) that raw benchmark
     # results are stored in.  If not provided, defaults to "results".
-    "results_dir": "../activitysim-asv/results",
+    # "results_dir": "../activitysim-asv/results",
 
     # The directory (relative to the current directory) that the html tree
     # should be written to.  If not provided, defaults to "html".
-    "html_dir": "../activitysim-asv/html",
+    # "html_dir": "../activitysim-asv/html",
 }
 
 def make_asv_argparser(parser):
@@ -165,8 +165,11 @@ def benchmark(args):
 
     asv_config = ASV_CONFIG.copy()
     if local_git:
-        asv_config["repo"] = os.path.relpath(args.workspace, repo_dir)
+        repo_dir_rel = os.path.relpath(repo_dir, args.workspace)
+        log.info(f" local git repo: {repo_dir_rel}")
+        asv_config["repo"] = repo_dir_rel
     else:
+        log.info(f" local git repo available: {local_git}")
         asv_config["repo"] = "https://github.com/ActivitySim/activitysim.git"
 
     # copy the benchmarks to the workspace

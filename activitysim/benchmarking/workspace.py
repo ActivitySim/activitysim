@@ -1,8 +1,10 @@
 import os
-_directory = os.getcwd()
+_directory = None
 
 def get_dir():
     global _directory
+    if _directory is None and "ASV_CONF_DIR" in os.environ:
+        _directory = os.environ.get("ASV_CONF_DIR", None)
     return _directory
 
 def set_dir(directory):
@@ -10,5 +12,4 @@ def set_dir(directory):
     if directory:
         _directory = directory
     else:
-        _directory = os.getcwd()
-
+        _directory = os.environ.get("ASV_CONF_DIR", None)

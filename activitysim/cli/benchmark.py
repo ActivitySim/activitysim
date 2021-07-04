@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import shutil
 
 ASV_CONFIG = {
     # The version of the config file format.  Do not change, unless
@@ -168,6 +169,16 @@ def benchmark(args):
     else:
         asv_config["repo"] = "https://github.com/ActivitySim/activitysim.git"
 
+    # copy the benchmarks to the workspace
+    import activitysim.benchmarking.benchmarks
+    benchmarks_dir = os.path.dirname(activitysim.benchmarking.benchmarks.__file__)
+    shutil.copytree(
+        benchmarks_dir,
+        os.path.join(args.workspace, "benchmarks"),
+        dirs_exist_ok=True,
+    )
+
+    # write the asv config to the workspace
     conf_file = os.path.normpath(
         os.path.join(args.workspace, "asv.conf.json")
     )

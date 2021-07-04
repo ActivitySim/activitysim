@@ -70,9 +70,9 @@ class BenchSuite_MTC:
     def setup_cache(self):
         get_example(
             example_name=self.example_name,
-            destination=self.local_dir,
+            destination=os.path.join(self.local_dir, "models"),
         )
-        settings_filename = os.path.join(self.working_dir, "configs", "settings.yaml")
+        settings_filename = os.path.join(self.model_dir, "configs", "settings.yaml")
         with open(settings_filename, 'rt') as f:
             self.models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
 
@@ -84,7 +84,7 @@ class BenchSuite_MTC:
             )
         pre_run_model_list = self.models[:last_component_to_benchmark]
         modify_yaml(
-            os.path.join(self.working_dir, "configs", "settings.yaml"),
+            os.path.join(self.model_dir, "configs", "settings.yaml"),
             **self.benchmark_settings,
             models=pre_run_model_list,
             checkpoints=True,
@@ -92,15 +92,15 @@ class BenchSuite_MTC:
             chunk_training_mode='off',
         )
         modify_yaml(
-            os.path.join(self.working_dir, "configs", "network_los.yaml"),
+            os.path.join(self.model_dir, "configs", "network_los.yaml"),
             read_skim_cache=True,
         )
-        componentwise.pre_run(self.working_dir)
+        componentwise.pre_run(self.model_dir)
 
     def setup(self, component_name):
         componentwise.setup_component(
             component_name,
-            self.working_dir,
+            self.model_dir,
             self.preload_injectables,
         )
 
@@ -117,8 +117,8 @@ class BenchSuite_MTC:
         return os.getcwd()
 
     @property
-    def working_dir(self):
-        return os.path.join(self.local_dir, self.example_name)
+    def model_dir(self):
+        return os.path.join(self.local_dir, "models", self.example_name)
 
 if __name__ == '__main__':
 

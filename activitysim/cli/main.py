@@ -20,7 +20,7 @@ def main():
                         exec_func=create.create,
                         description=create.create.__doc__)
     asim.add_subcommand(name='benchmark',
-                        args_func=benchmark.add_benchmark_args,
+                        args_func=benchmark.make_asv_argparser,
                         exec_func=benchmark.benchmark,
                         description=benchmark.benchmark.__doc__)
     sys.exit(asim.execute())

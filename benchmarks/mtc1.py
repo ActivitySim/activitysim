@@ -4,19 +4,15 @@ import logging
 import time
 import yaml
 from datetime import timedelta
-from activitysim.benchmarking import componentwise, modify_yaml
+from activitysim.benchmarking import componentwise, modify_yaml, workspace
 from activitysim.cli.create import get_example
-try:
-    from .workspace import workspace
-except ImportError:
-    from workspace import workspace
 
 logger = logging.getLogger("activitysim.benchmarking")
 
 
 class BenchSuite_MTC:
 
-    benchmarking_directory = workspace.directory
+    benchmarking_directory = workspace.get_dir()
 
     # name of example to load from activitysim_resources
     example_name = "example_mtc_full"
@@ -60,6 +56,12 @@ class BenchSuite_MTC:
     param_names = ['component_name']
 
     timeout = 36000.0 # ten hours
+    repeat = (
+        2,    # min_repeat
+        10,   # max_repeat
+        20.0, # max_time in seconds
+    )
+    number = 1
 
     preload_injectables = (
         'skim_dict',
@@ -120,7 +122,7 @@ class BenchSuite_MTC:
 
 if __name__ == '__main__':
 
-    benchmarking_data_directory = workspace.directory or os.getcwd()
+    benchmarking_data_directory = workspace.get_dir()
     os.chdir(benchmarking_data_directory)
 
     t0a = time.time()

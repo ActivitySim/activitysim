@@ -135,10 +135,20 @@ def benchmark(args):
 
     # workspace
     args.workspace = os.path.abspath(args.workspace)
+
+    if os.path.abspath(os.path.expanduser("~")) == args.workspace:
+        log.error("don't run benchmarks in the user's home directory \n"
+                  "try changing directories before calling `activitysim benchmark` "
+                  "or use the --workspace option \n")
+        sys.exit(1)
+
     if not os.path.isdir(args.workspace):
         raise NotADirectoryError(args.workspace)
     log.info(f" workspace: {args.workspace}")
     os.chdir(args.workspace)
+
+    from ..benchmarking import workspace
+    workspace.set_dir(args.workspace)
 
     from .. import __path__ as pkg_path
     log.info(f" activitysim installation: {pkg_path[0]}")

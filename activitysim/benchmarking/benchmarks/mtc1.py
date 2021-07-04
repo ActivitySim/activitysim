@@ -73,9 +73,10 @@ class BenchSuite_MTC:
             for k,v in os.environ.items():
                 log.error(f" env {k}: {v}")
             raise RuntimeError("workspace unavailable")
+        os.makedirs(os.path.join(self.local_dir, "models"), exist_ok=True)
         get_example(
             example_name=self.example_name,
-            destination=self.model_dir,
+            destination=os.path.join(self.local_dir, "models"),
         )
         settings_filename = os.path.join(self.model_dir, "configs", "settings.yaml")
         with open(settings_filename, 'rt') as f:

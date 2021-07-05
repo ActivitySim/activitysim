@@ -127,7 +127,8 @@ def model_dir():
 
 
 for component_name in component_names:
-    f = partial(_time_component, component_name)
+    f = lambda: partial(_time_component, component_name)
+    # benchmark discovery fails on partial, so we wrap in a lambda
     f.__name__ = f"time_{component_name}"
     f.setup = partial(_setup_component, component_name)
     f.teardown = partial(_teardown_component, component_name)

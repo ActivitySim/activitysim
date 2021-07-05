@@ -115,8 +115,8 @@ def model_dir():
 
 
 for component_name in component_names:
-    f = lambda: partial(componentwise.run_component, component_name)
-    # benchmark discovery fails on partial, so we wrap in a lambda
+    p = partial(componentwise.run_component, component_name)
+    f = lambda: p() # benchmark discovery fails on partial, so we wrap in a lambda
     f.__name__ = f"time_{component_name}"
     f.setup = partial(
         componentwise.setup_component,

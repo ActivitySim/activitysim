@@ -103,17 +103,17 @@ def setup_cache():
     )
     componentwise.pre_run(model_dir())
 
-def _setup_component(self, component_name):
+def _setup_component(component_name):
     componentwise.setup_component(
         component_name,
         model_dir(),
-        self.preload_injectables,
+        preload_injectables,
     )
 
-def _time_component(self, component_name):
+def _time_component(component_name):
     return componentwise.run_component(component_name)
 
-def _teardown_component(self, component_name):
+def _teardown_component(component_name):
     componentwise.teardown_component(component_name)
 
 def local_dir():

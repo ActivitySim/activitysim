@@ -88,10 +88,10 @@ def handle_standard_args(args, multiprocess=True):
         assert name in INJECTABLES
         inject.add_injectable(name, value)
 
-    if args.model_dir:
+    if args.working_dir:
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
-        os.chdir(args.model_dir)
+        os.chdir(args.working_dir)
 
     if args.settings_file:
         inject_arg('settings_file_name', args.settings_file)

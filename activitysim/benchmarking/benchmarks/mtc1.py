@@ -5,6 +5,7 @@ import logging
 import time
 import yaml
 from datetime import timedelta
+from functools import partial
 from activitysim.benchmarking import componentwise, modify_yaml, workspace
 from activitysim.cli.create import get_example
 
@@ -126,11 +127,10 @@ def model_dir():
 
 
 for component_name in component_names:
-    f = lambda: _time_component(component_name)
+    f = partial(_time_component, component_name)
     f.__name__ = f"time_{component_name}"
-    f.setup = lambda: _setup_component(component_name)
-    f.teardown = lambda: _teardown_component(component_name)
-    #sys._getframe(0).f_globals[f.__name__] = f
+    f.setup = partial(_setup_component, component_name)
+    f.teardown = partial(_teardown_component, component_name)
     globals()[f.__name__] = f
 
 
@@ -140,26 +140,26 @@ if __name__ == '__main__':
     os.chdir(benchmarking_data_directory)
 
     t0a = time.time()
-    suite = BenchSuite_MTC()
-    suite.setup_cache()
+    setup_cache()
     t0b = time.time()
 
     timings = {}
-    for component_name in suite.params:
+    for component_name in component_names:
 
         logger.warning(f"$$$$$$$$ {component_name} #1 $$$$$$$$")
-        suite.setup(component_name)
+        f = globals()[f"time_{component_name}"]
+        f.setup(component_name)
         t1a = time.time()
-        suite.time_component(component_name)
+        f(component_name)
         t1b = time.time()
-        suite.teardown(component_name)
+        f.teardown(component_name)
 
         logger.warning(f"$$$$$$$$ {component_name} #2 $$$$$$$$")
-        suite.setup(component_name)
+        f.setup(component_name)
         t2a = time.time()
-        suite.time_component(component_name)
+        f(component_name)
         t2b = time.time()
-        suite.teardown(component_name)
+        f.teardown(component_name)
 
         timings[component_name] = (
             str(timedelta(seconds=t1b-t1a)),
@@ -167,5 +167,5 @@ if __name__ == '__main__':
         )
 
     logger.warning(f"Time Base Setup: {timedelta(seconds=t0b-t0a)}")
-    for component_name in suite.params:
+    for component_name in component_names:
         logger.warning(f"Time {component_name}: {timings[component_name]}")

@@ -78,7 +78,11 @@ def make_asv_argparser(parser):
 
     Most of this work is handed off to the airspeed velocity library.
     """
-    from asv.commands import common_args, Command, util, command_order
+    try:
+        from asv.commands import common_args, Command, util, command_order
+    except ImportError:
+        return
+
 
     def help(args):
         parser.print_help()
@@ -127,6 +131,12 @@ def make_asv_argparser(parser):
 
 
 def benchmark(args):
+    try:
+        import asv
+    except ModuleNotFoundError:
+        print("airspeed velocity is not installed")
+        print("try `conda install asv -c conda-forge` if you want to run benchmarks")
+        sys.exit(1)
     from asv.console import log
     from asv import util
 

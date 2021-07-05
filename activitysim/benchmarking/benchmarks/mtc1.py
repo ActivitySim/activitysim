@@ -27,9 +27,9 @@ component_names = [
     # "compute_accessibility",
     "school_location",
     "workplace_location",
-    # "auto_ownership_simulate",
-    # "free_parking",
-    # "cdap_simulate",
+    "auto_ownership_simulate",
+    "free_parking",
+    "cdap_simulate",
     # "mandatory_tour_frequency",
     # "mandatory_tour_scheduling",
     # "joint_tour_frequency",
@@ -53,8 +53,6 @@ component_names = [
     # "trip_mode_choice",
 ]
 
-#param_names = ['component_name']
-
 timeout = 36000.0 # ten hours
 repeat = (
     2,    # min_repeat
@@ -66,6 +64,7 @@ number = 1
 preload_injectables = (
     'skim_dict',
 )
+
 
 def setup_cache():
 
@@ -104,34 +103,29 @@ def setup_cache():
     )
     componentwise.pre_run(model_dir())
 
-def _setup_component(component_name):
-    componentwise.setup_component(
-        component_name,
-        model_dir(),
-        preload_injectables,
-    )
-
-def _time_component(component_name):
-    return componentwise.run_component(component_name)
-
-def _teardown_component(component_name):
-    componentwise.teardown_component(component_name)
 
 def local_dir():
     if benchmarking_directory is not None:
         return benchmarking_directory
     return os.getcwd()
 
+
 def model_dir():
     return os.path.join(local_dir(), "models", example_name)
 
 
 for component_name in component_names:
-    f = lambda: partial(_time_component, component_name)
+    f = lambda: partial(componentwise.run_component, component_name)
     # benchmark discovery fails on partial, so we wrap in a lambda
     f.__name__ = f"time_{component_name}"
-    f.setup = partial(_setup_component, component_name)
-    f.teardown = partial(_teardown_component, component_name)
+    f.setup = partial(
+        componentwise.setup_component,
+        component_name, model_dir(), preload_injectables,
+    )
+    f.teardown = partial(componentwise.teardown_component, component_name)
+    f.repeat = repeat
+    f.number = number
+    f.timeout = timeout
     globals()[f.__name__] = f
 
 

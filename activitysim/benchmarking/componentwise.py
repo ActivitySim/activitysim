@@ -125,6 +125,7 @@ def run_component(component_name):
             run_model(component_name)
     except Exception as err:
         logger.exception("run_component exception: %s", component_name)
+        raise
     else:
         logger.info("run_component completed: %s", component_name)
     return 0

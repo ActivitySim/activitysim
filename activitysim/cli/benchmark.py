@@ -70,6 +70,10 @@ ASV_CONFIG = {
     # The directory (relative to the current directory) that the html tree
     # should be written to.  If not provided, defaults to "html".
     # "html_dir": "../activitysim-asv/html",
+
+    # List of branches to benchmark. If not provided, defaults to "master"
+    # (for git) or "default" (for mercurial).
+    "branches": ["master", "performance1"]
 }
 
 def make_asv_argparser(parser):

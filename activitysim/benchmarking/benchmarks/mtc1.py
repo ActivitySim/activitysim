@@ -127,7 +127,7 @@ def generate_component_timings(component_name):
             componentwise.teardown_component(self.component_name)
         def time_component(self):
             componentwise.run_component(self.component_name)
-        time_component.benchmark_name = f"{__name__}.time_component.{component_name}"
+        #time_component.benchmark_name = f"{__name__}.time_component.{component_name}"
         time_component.pretty_name = f"{EXAMPLE_NAME}:{component_name}"
 
     ComponentTiming.__name__ = f"time_{component_name}"

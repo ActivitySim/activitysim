@@ -121,6 +121,8 @@ def generate_component_timings(component_name):
         repeat = REPEAT
         number = NUMBER
         timeout = TIMEOUT
+        benchmark_name = f"{__name__}.time_component.{component_name}"
+        pretty_name = f"{EXAMPLE_NAME}:{component_name}"
         def setup(self):
             componentwise.setup_component(self.component_name, model_dir(), PRELOAD_INJECTABLES)
         def teardown(self):

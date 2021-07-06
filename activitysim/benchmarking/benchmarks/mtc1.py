@@ -39,7 +39,7 @@ COMPONENT_NAMES = [
     "non_mandatory_tour_destination",
     "non_mandatory_tour_scheduling",
     "tour_mode_choice_simulate",
-    # "atwork_subtour_frequency",
+    "atwork_subtour_frequency",
     # "atwork_subtour_destination",
     # "atwork_subtour_scheduling",
     # "atwork_subtour_mode_choice",
@@ -121,14 +121,14 @@ def generate_component_timings(component_name):
         repeat = REPEAT
         number = NUMBER
         timeout = TIMEOUT
-        benchmark_name = f"{__name__}.time_component.{component_name}"
-        pretty_name = f"{EXAMPLE_NAME}:{component_name}"
         def setup(self):
             componentwise.setup_component(self.component_name, model_dir(), PRELOAD_INJECTABLES)
         def teardown(self):
             componentwise.teardown_component(self.component_name)
         def time_component(self):
             componentwise.run_component(self.component_name)
+        time_component.benchmark_name = f"{__name__}.time_component.{component_name}"
+        time_component.pretty_name = f"{EXAMPLE_NAME}:{component_name}"
 
     ComponentTiming.__name__ = f"time_{component_name}"
 

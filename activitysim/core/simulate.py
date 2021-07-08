@@ -231,7 +231,7 @@ def read_model_coefficient_template(model_settings):
     # replace missing cell values with coefficient_name from index
     template = template.where(
         ~template.isnull(),
-        np.broadcast_to(template.index.values[:,None], template.shape),
+        np.broadcast_to(template.index.values[:, None], template.shape),
     )
 
     if template.index.duplicated().any():

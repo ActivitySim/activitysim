@@ -8,11 +8,6 @@ from ..cli.run import handle_standard_args, config, warnings, cleanup_output_fil
 
 logger = logging.getLogger(__name__)
 
-TABLE_CLEANING = dict(
-    mandatory_tour_frequency=['tours'],
-
-)
-
 
 def reload_settings(**kwargs):
     settings = config.read_settings_file('settings.yaml', mandatory=True)
@@ -134,12 +129,6 @@ def run_component(component_name):
 def teardown_component(component_name):
     logger.info("teardown_component: %s", component_name)
 
-    # any new orca tables that were created need to be dropped so the
-    # next benchmark run has a clean slate
-    # for table_name in TABLE_CLEANING.get(component_name, []):
-    #     logger.info("dropping table %s", table_name)
-    #     pipeline.drop_table(table_name)
-
     # use the pipeline module to clear out all the orca tables, so
     # the next benchmark run has a clean slate.
     # anything needed should be reloaded from the pipeline checkpoint file
@@ -176,7 +165,7 @@ def pre_run(model_working_dir):
     config.override_setting('resume_after', None)
 
     # cleanup
-    cleanup_output_files()
+    #cleanup_output_files()
 
     tracing.config_logger(basic=False)
     config.filter_warnings()

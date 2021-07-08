@@ -14,8 +14,17 @@ This page describes how to get started with ActivitySim.
 Installation
 ------------
 
-1. Install `Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__.  It is best to use Anaconda as noted below with ActivitySim.
-2. If you access the internet from behind a firewall, then you need to configure your proxy server. To do so, create a .condarc file in your Anaconda installation folder, such as:
+1. It is recommented that you install and use a *conda* package manager
+for your system. One easy way to do so is by using `Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
+although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
+for this product and ensure you qualify (as of summer 2021, businesses and
+governments with over 200 employees do not qualify for free usage).  If you prefer
+a completely free open source *conda* tool, you can download and install the
+appropriate version of `Miniforge <https://github.com/conda-forge/miniforge#miniforge3>`__.
+
+2. If you access the internet from behind a firewall, then you may need to
+configure your proxy server. To do so, create a `.condarc` file in your
+home installation folder, such as:
 
 ::
 
@@ -24,67 +33,50 @@ Installation
     https: https://myproxy.org:8080
   ssl_verify: false
 
-3. Create and activate an Anaconda environment (basically a Python install just for this project) using Anaconda Prompt or the terminal.
+3. Create a conda environment (basically a Python install just for this project)
+using Anaconda Prompt (on Windows) or the terminal (macOS or Linux)::
 
-::
+  conda create -n asim python=3.8 activitysim -c conda-forge
 
-  conda create -n asimtest python=3.8
+This command will create the environment and install all the dependencies
+required for running ActivitySim.  It is only necessary to create the environment
+once per machine, you do not need to (re)create the environment for each session.
+If you would also like to install other tools or optional dependencies, it is
+possible to do so by adding additional libraries to this command.  For example::
 
-  #Windows
-  activate asimtest
+  conda create -n asim python=3.8 activitysim jupyterlab larch -c conda-forge
 
-  #Mac
-  source activate asimtest
+This example installs a specific version of Python, version 3.8.  A similar
+approach can be used to install specific versions of other libraries as well,
+including ActivitySi, itself. For example::
 
-4. Get and install other required libraries on the activated conda Python environment using `pip <https://pypi.org/project/pip>`__ or `conda <https://docs.conda.io/>`__.  Conda is preferred but some packages are only on pip.
+  conda create -n asim python=3.8 activitysim=1.0.2 -c conda-forge
 
-::
+Additional libraries can also be installed later.  You may want to consider these
+tools for certain development tasks::
 
-  # required packages for running ActivitySim
-  conda install cytoolz numpy pandas psutil pyarrow numba -c conda-forge
-  conda install pytables pyyaml -c conda-forge
-  pip install openmatrix zbox requests
+  # packages for testing
+  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge -n asim
 
-  # optional required packages for testing and building documentation
-  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge
-  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge
-  
-  # optional required packages for estimation integration
-  conda install larch -c conda-forge
+  # packages for building documentation
+  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge -n asim
 
-  # optional required packages for example notebooks
-  conda install jupyterlab matplotlib -c conda-forge
-  conda install geopandas descartes -c conda-forge
+  # packages for estimation integration
+  conda install larch -c conda-forge -n asim
 
-5. If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.
+  # packages for example notebooks
+  conda install jupyterlab matplotlib geopandas descartes -c conda-forge -n asim
 
-For `conda` for example, create a `.condarc` file in your Anaconda installation folder with the following:
 
-::
+4. To use the **asim** environment, you need to activate it::
 
-  proxy_servers:
-    http: http://myproxy.org:8080
-    https: https://myproxy.org:8080
-  ssl_verify: false
+  conda activate asim
 
-For `pip` for example:
+The activation of the correct environment needs to be done every time you
+start a new session (e.g. opening a new Anaconda Prompt window).
 
-::
 
-  pip install --trusted-host pypi.python.org --proxy=myproxy.org:8080  openmatrix
 
-6. Get and install the ActivitySim package on the activated conda Python environment:
-
-::
-
-  #new install
-  pip install activitysim
-
-  #update to a new release
-  pip install -U activitysim
-  
-  #install a specific (older) version
-  pip install activitysim==0.9.5.2
 
 .. note::
 
@@ -103,7 +95,7 @@ For `pip` for example:
   environments keeps multiple Python setups from conflicting with one another.
 
   You need to activate the activitysim environment each time you start a new command
-  session.  You can remove an environment with ``conda remove -n asimtest --all`` and
+  session.  You can remove an environment with ``conda remove -n asim --all`` and
   check the current active environment with ``conda info -e``.
 
   For more information on Anaconda, see Anaconda's `getting started
@@ -117,7 +109,7 @@ ActivitySim includes a :ref:`cli` for creating examples and running the model.
 To setup and run the primary example (see :ref:`examples`), do the following:
 
 * Open a command prompt
-* Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)
+* Activate the conda environment with ActivitySim installed (i.e. ``conda activate asim``)
 * Type ``activitysim create -e example_mtc -d test_example_mtc`` to copy the very small MTC example to a new test_example_mtc directory
 * Change to the test_example_mtc directory
 * Type ``activitysim run -c configs -o output -d data`` to run the example

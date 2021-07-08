@@ -14,7 +14,7 @@ This page describes how to get started with ActivitySim.
 Installation
 ------------
 
-1. It is recommented that you install and use a *conda* package manager
+1. It is recommended that you install and use a *conda* package manager
 for your system. One easy way to do so is by using `Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
 although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
 for this product and ensure you qualify (as of summer 2021, businesses and
@@ -36,7 +36,12 @@ home installation folder, such as:
 3. Create a conda environment (basically a Python install just for this project)
 using Anaconda Prompt (on Windows) or the terminal (macOS or Linux)::
 
-  conda create -n asim python=3.8 activitysim -c conda-forge
+  conda create -n asim python=3.8 activitysim -c conda-forge --override-channels
+
+.. note::
+   If this command fails in July 2021, it may be because ActivitySim
+   has not yet been fully integrated into the conda-forge repository.
+   See "Alternative Installation Methods" below for a workaround using pip.
 
 This command will create the environment and install all the dependencies
 required for running ActivitySim.  It is only necessary to create the environment
@@ -44,28 +49,28 @@ once per machine, you do not need to (re)create the environment for each session
 If you would also like to install other tools or optional dependencies, it is
 possible to do so by adding additional libraries to this command.  For example::
 
-  conda create -n asim python=3.8 activitysim jupyterlab larch -c conda-forge
+  conda create -n asim python=3.8 activitysim jupyterlab larch -c conda-forge --override-channels
 
 This example installs a specific version of Python, version 3.8.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySi, itself. For example::
 
-  conda create -n asim python=3.8 activitysim=1.0.2 -c conda-forge
+  conda create -n asim python=3.8 activitysim=1.0.2 -c conda-forge --override-channels
 
 Additional libraries can also be installed later.  You may want to consider these
 tools for certain development tasks::
 
   # packages for testing
-  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge -n asim
+  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge --override-channels -n asim
 
   # packages for building documentation
-  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge -n asim
+  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge --override-channels -n asim
 
   # packages for estimation integration
-  conda install larch -c conda-forge -n asim
+  conda install larch -c conda-forge --override-channels -n asim
 
   # packages for example notebooks
-  conda install jupyterlab matplotlib geopandas descartes -c conda-forge -n asim
+  conda install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
 
 4. To use the **asim** environment, you need to activate it::
@@ -75,8 +80,35 @@ tools for certain development tasks::
 The activation of the correct environment needs to be done every time you
 start a new session (e.g. opening a new Anaconda Prompt window).
 
+Alternative Installation Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+If you prefer to install ActivitySim without conda, it is possible to
+do so with pip, although you may find it more difficult to get all of the
+required dependencies installed correctly.  If you can use conda for
+the dependencies, you can get most of the libraries you need from there::
 
+  # required packages for running ActivitySim
+  conda install cytoolz numpy pandas psutil pyarrow numba pytables pyyaml openmatrix requests -c conda-forge
+
+  # required for ActivitySim version 1.0.1 and earlier
+  pip install zbox
+
+And then simply install just activitysim with pip.
+
+::
+
+  pip install activitysim
+
+If you are using a firewall you may need to add ``--trusted-host pypi.python.org --proxy=myproxy.org:8080`` to this command.
+
+For development work, can also install ActivitySim directly from source. Clone
+the ActivitySim repository, and then from within that directory run::
+
+  pip install . -e
+
+The "-e" will install in editable mode, so any changes you make to the ActivitySim
+code will also be reflected in your installation.
 
 .. note::
 

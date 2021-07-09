@@ -50,7 +50,9 @@ def est_data():
 
 def _regression_check(dataframe_regression, df, basename=None):
     dataframe_regression.check(
-        df.select_dtypes("number").clip(-9e9, 9e9),
+        df.select_dtypes("number").drop(columns=["holdfast"], errors='ignore').clip(-9e9, 9e9),
+        # pandas 1.3 handles int8 dtypes as actual numbers, so holdfast needs to be dropped manually
+        # we're dropping it not adding to the regression check so older pandas will also work.
         basename=basename,
         default_tolerance=dict(atol=1e-6, rtol=1e-2)
         # set a little loose, as there is sometimes a little variance in these

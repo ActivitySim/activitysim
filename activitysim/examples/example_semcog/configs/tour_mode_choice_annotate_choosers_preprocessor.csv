@@ -83,16 +83,4 @@ local,_DF_IS_TOUR,'tour_type' in df.columns
 destination in central business district,destination_in_cbd,"(reindex(land_use.AreaType, df[dest_col_name]) < setting('cbd_threshold')) * 1"
 #,,FIXME diagnostic
 #,sov_dist_rt,(odt_skims['SOV_DIST'] + dot_skims['SOV_DIST'])
-#,,fare discounts (no discount for use in logsums)
-,ptype,df.ptype if _DF_IS_TOUR else 1
-,transit_pass_ownership,df.transit_pass_ownership if _DF_IS_TOUR else 0
-,transit_pass_subsidy,df.transit_pass_subsidy if _DF_IS_TOUR else 0
-,tour_type,df.tour_type if _DF_IS_TOUR else 'other'
-,fare_nopass_discount_percent,"ptype.map({k: v for k, v in transit_nopass_fare_discount_percent.items()})"
-,fare_pass_discount_percent,"ptype.map({k: v for k, v in transit_pass_fare_discount_percent.items()})"
-,fare_subsidy_discount_percent,"np.where(tour_type=='work', transit_subsidy_fare_discount_percent_worktour, 1)"
-,fare_discount_percent_ff,"np.where((transit_pass_ownership == False) & (transit_pass_subsidy == False), fare_nopass_discount_percent, 1)"
-,fare_discount_percent_tf,"np.where((transit_pass_ownership == True) & (transit_pass_subsidy == False), fare_pass_discount_percent, 1)"
-,fare_discount_percent_ft,"np.where((transit_pass_ownership == False) & (transit_pass_subsidy == True), fare_nopass_discount_percent * (1-fare_subsidy_discount_percent), 1)"
-,fare_discount_percent_tt,"np.where((transit_pass_ownership == True ) & (transit_pass_subsidy == True), fare_pass_discount_percent * (1-fare_subsidy_discount_percent), 1)"
-,fare_discount_percent,fare_discount_percent_ff * fare_discount_percent_tf * fare_discount_percent_ft * fare_discount_percent_tt
+,umich_affiliate,"df.get('umich_worker', default=False) | df.get('umich_student', default=False)"

@@ -1,8 +1,11 @@
+SAMPLE_SPEC: trip_destination_sample.csv
+SPEC: trip_destination.csv
+COEFFICIENTS: trip_destination_coefficients.csv
+
 SAMPLE_SIZE: 30
 
 DESTINATION_SAMPLE_SPEC: trip_destination_sample.csv
 DESTINATION_SPEC: trip_destination.csv
-COEFFICIENTS: _dummy_coefficients.csv
 
 LOGSUM_SETTINGS: trip_mode_choice.yaml
 
@@ -17,6 +20,8 @@ TRIP_ORIGIN: origin
 ALT_DEST_COL_NAME: dest_taz
 PRIMARY_DEST: destination
 
+# tour_mode is already in trips table, so we don't need it from tours
+# (it is assigned in trip_destination_annotate_trips_preprocessor )
 REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS:
   - tour_mode
 
@@ -34,3 +39,6 @@ preprocessor:
 # drop failed trips and cleanup failed trip leg_mates for consistency
 # (i.e. adjust trip_count, trip_num, first for missing failed trips)
 CLEANUP: False
+
+# this setting is used by testing code to force failed trip_destination
+# fail_some_trips_for_testing: False

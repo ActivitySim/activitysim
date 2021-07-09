@@ -20,8 +20,6 @@ SIMULATE_CHOOSER_COLUMNS:
   - school_zone_id
   - home_zone_id
   - TAZ
-  - transit_pass_ownership
-  - transit_pass_subsidy
   
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 

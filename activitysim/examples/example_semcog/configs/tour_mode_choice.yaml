@@ -145,27 +145,6 @@ CONSTANTS:
     drvtrn_distpen_0_multiplier: 270
     drvtrn_distpen_max: 15
     density_index_multiplier: -0.2
-
-    transit_nopass_fare_discount_percent:
-      1: 1.0
-      2: 1.0
-      3: 0.62
-      4: 1.0
-      5: 0.54
-      6: 0.62
-      7: 0.62
-      8: 1.0
-    transit_pass_fare_discount_percent:
-      1: 0.32
-      2: 0.49
-      3: 0.03
-      4: 0.54
-      5: 0.17
-      6: 0.37
-      7: 0.36
-      8: 1.0
-    transit_subsidy_fare_discount_percent_worktour: 0.9
-
 #    joint_sr2_ASC_no_auto: 0
 #    joint_sr2_ASC_auto_deficient: 0
 #    joint_sr2_ASC_auto_sufficient: 0
@@ -199,6 +178,6 @@ LOGSUM_CHOOSER_COLUMNS:
   - num_workers
   - value_of_time
   - free_parking_at_work
-  - transit_pass_ownership
-  - transit_pass_subsidy
+  - umich_affiliate
+
 MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

@@ -72,7 +72,7 @@ SPEC_SEGMENTS:
 ## alts preprocessor keyed by <spec_segment>
 #ALTS_PREPROCESSOR:
 #  escort:
-#    SPEC: non_mandatory_tour_scheduling_escort_annotate_alts_preprocessor.csv
+#    SPEC: tour_scheduling_nonmandatory_escort_annotate_alts_preprocessor.csv
 #    DF: alt_tdd
 #  shopping:
 #    SPEC: non_mandatory_tour_scheduling_shopping_annotate_alts_preprocessor.csv

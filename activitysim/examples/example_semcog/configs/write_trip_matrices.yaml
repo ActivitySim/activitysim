@@ -11,7 +11,7 @@ preprocessor:
 HH_EXPANSION_WEIGHT_COL: sample_rate  # added when households read in
 
 # save preprocessed trips table to pipeline if desired
-SAVE_TRIPS_TABLE: False
+SAVE_TRIPS_TABLE: True
 
 MATRICES:
   - file_name: trips_ea.omx
@@ -58,6 +58,12 @@ MATRICES:
         data_field: KNRE_MIX_EA
       - name: SCHOOLBUS
         data_field: SCHOOLBUS_EA
+      - name: TAXI
+        data_field: TAXI_EA
+      - name: TNC_SINGLE
+        data_field: TNC_SINGLE_EA
+      - name: TNC_SHARED
+        data_field: TNC_SHARED_EA
   - file_name: trips_am.omx
     tables:
       - name: DRIVEALONE
@@ -102,6 +108,12 @@ MATRICES:
         data_field: KNRE_MIX_AM
       - name: SCHOOLBUS
         data_field: SCHOOLBUS_AM
+      - name: TAXI
+        data_field: TAXI_AM
+      - name: TNC_SINGLE
+        data_field: TNC_SINGLE_AM
+      - name: TNC_SHARED
+        data_field: TNC_SHARED_AM
   - file_name: trips_md.omx
     tables:
       - name: DRIVEALONE
@@ -146,6 +158,12 @@ MATRICES:
         data_field: KNRE_MIX_MD
       - name: SCHOOLBUS
         data_field: SCHOOLBUS_MD
+      - name: TAXI
+        data_field: TAXI_MD
+      - name: TNC_SINGLE
+        data_field: TNC_SINGLE_MD
+      - name: TNC_SHARED
+        data_field: TNC_SHARED_MD
   - file_name: trips_pm.omx
     tables:
       - name: DRIVEALONE
@@ -190,6 +208,12 @@ MATRICES:
         data_field: KNRE_MIX_PM
       - name: SCHOOLBUS
         data_field: SCHOOLBUS_PM
+      - name: TAXI
+        data_field: TAXI_PM
+      - name: TNC_SINGLE
+        data_field: TNC_SINGLE_PM
+      - name: TNC_SHARED
+        data_field: TNC_SHARED_PM
   - file_name: trips_ev.omx
     tables:
       - name: DRIVEALONE
@@ -234,6 +258,12 @@ MATRICES:
         data_field: KNRE_MIX_EV
       - name: SCHOOLBUS
         data_field: SCHOOLBUS_EV
+      - name: TAXI
+        data_field: TAXI_EV
+      - name: TNC_SINGLE
+        data_field: TNC_SINGLE_EV
+      - name: TNC_SHARED
+        data_field: TNC_SHARED_EV
 
 CONSTANTS:
   time_periods:

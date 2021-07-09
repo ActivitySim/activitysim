@@ -1,6 +1,8 @@
+# trip_mode_choice.yaml
+
 SPEC: trip_mode_choice.csv
-#COEFFICIENTS: trip_mode_choice_coeffs.csv
-LEGACY_COEFFICIENTS: trip_mode_choice_coeffs.csv
+COEFFICIENTS: trip_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: trip_mode_choice_coefficients_template.csv
 
 LOGIT_TYPE: NL
 
@@ -152,6 +154,22 @@ CONSTANTS:
     5: 0
   min_waitTime: 0
   max_waitTime: 50
+  ivt_cost_multiplier: 0.6
+  topology_bike_multiplier: 20
+  topology_trn_multiplier: 2.20
+  topology_walk_multiplier: 15
+  ridehail_wait_time_multiplier: 1.5
+  walktimelong_multiplier: 5
+  biketimelong_multiplier: 5
+  xfers_wlk_multiplier: 5
+  xfers_drv_multiplier: 15
+  dacc_ratio_multiplier: 0
+  density_index_multiplier: -5
+  origin_density_index_multiplier: -15
+  origin_density_index_max: -15
+  ivt_com_multiplier: 0.80
+  ivt_exp_multiplier: -0.0175
+  ivt_hvy_multiplier: 0.80
 
 # so far, we can use the same spec as for non-joint tours
 preprocessor:
@@ -160,6 +178,7 @@ preprocessor:
   TABLES:
     - land_use
     - tours
+    - persons
 
 #  - SPEC: trip_mode_choice_annotate_trips_preprocessor2
 #    DF: df

@@ -173,6 +173,7 @@ def test_workplace_location(est_data, num_regression, dataframe_regression):
     dataframe_regression.check(
         size_spec,
         basename="test_workplace_location_size_spec",
+        default_tolerance=dict(atol=1e-6, rtol=1e-2),
     )
 
 
@@ -194,6 +195,7 @@ def test_school_location(est_data, num_regression, dataframe_regression):
     dataframe_regression.check(
         size_spec,
         basename="test_school_location_size_spec",
+        default_tolerance=dict(atol=1e-6, rtol=1e-2),
     )
 
 

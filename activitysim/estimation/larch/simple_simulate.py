@@ -264,7 +264,7 @@ def joint_tour_participation_model(
         return_data=return_data,
         values_index_col="participant_id",
         choices={
-            0: 1, # 0 means participate, alternative 1
-            1: 2, # 1 means not participate, alternative 2
+            0: 1,  # 0 means participate, alternative 1
+            1: 2,  # 1 means not participate, alternative 2
         },
     )

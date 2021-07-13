@@ -6,21 +6,68 @@ env:
    # GH_TOKEN ActivitySim/activitysim public_repo token
   - secure: WZeCAmI08hBRgtVWUlerfizvSpOVlBxQDa/Z6HJiDUlIXdSAOIi7TAwnluOgs3lHbSqACegbLCU9CyIQa/ytwmmuwzltkSQN14EcnKea0bXyygd8DFdx4x8st8M3a4nh2svgp4BDM9PCu6T1XIZ1rYM46JsKzNk9X8GpWOVN498=
   - TEST_ENV=activitysim-test
-  jobs:
-   # Add new TEST_SUITE jobs as needed via Travis build matrix expansion
-   # define an alternative TEST_ENV to add special dependencies for particular tests
-  - TEST_SUITE=activitysim/abm/models
-  - TEST_SUITE=activitysim/abm/test
-  - TEST_SUITE=activitysim/cli
-  - TEST_SUITE=activitysim/core
-  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_ENV="activitysim-test-larch"
-  - TEST_SUITE=activitysim/examples/example_mtc/test
-  - TEST_SUITE=activitysim/examples/example_multiple_zone/test
-  - TEST_SUITE=activitysim/examples/example_marin/test
-  - TEST_SUITE=activitysim/examples/example_arc/test
-  - TEST_SUITE=activitysim/examples/example_semcog/test
-  - TEST_SUITE=activitysim/examples/example_psrc/test
-  - TEST_SUITE=activitysim/examples/example_sandag/test
+
+jobs:
+  include:
+    # Add new TEST_SUITE jobs as needed via Travis build matrix expansion
+    # define an alternative TEST_ENV to add special dependencies for particular tests
+    # Test suites are arranged in groups; all tests in a group must pass before
+    # the next stage group can begin.
+
+    - stage: Core Functionality
+      env: TEST_SUITE=activitysim/abm/models
+    - env: TEST_SUITE=activitysim/abm/test
+    - env: TEST_SUITE=activitysim/cli
+    - env: TEST_SUITE=activitysim/core
+
+    - stage: Examples
+      name: "MTC Example"
+      env: TEST_SUITE=activitysim/examples/example_mtc/test
+    - name: "Multizone Example"
+      env: TEST_SUITE=activitysim/examples/example_multiple_zone/test
+    - name: "Marin Example"
+      env: TEST_SUITE=activitysim/examples/example_marin/test
+    - name: "ARC Example"
+      env: TEST_SUITE=activitysim/examples/example_arc/test
+    - name: "SEMCOG Example"
+      env: TEST_SUITE=activitysim/examples/example_semcog/test
+    - name: "PSRC Example"
+      env: TEST_SUITE=activitysim/examples/example_psrc/test
+    - name: "SANDAG Example"
+      env: TEST_SUITE=activitysim/examples/example_sandag/test
+
+    - stage: Estimation Mode
+      name: "Larch Test"
+      env: TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_ENV="activitysim-test-larch"
+
+    - stage: Deployment
+      name: Documentation
+      script:
+        - coveralls
+        # Build docs
+        - mamba install sphinx numpydoc sphinx_rtd_theme
+        - cd docs
+        - make clean
+        - make html
+        - touch _build/html/.nojekyll
+      deploy:
+        - provider: pages
+          local_dir: docs/_build/html
+          skip_cleanup: true
+          github_token: $GH_TOKEN
+          keep_history: true
+          on:
+            branch: master
+    - name: "PyPI Test Deployment"
+      deploy:
+        - provider: pypi
+          local_dir: ..  # back to pkg root after possibly building docs
+          username: "__token__"
+          password: "$PYPITEST_AUTH_TOKEN"
+          server: https://test.pypi.org/legacy/
+          on:
+            branch: [ master, condaforge-dev ]
+
 
 python:
   - '3.9'
@@ -61,21 +108,6 @@ after_success:
 - make html
 - touch _build/html/.nojekyll
 
-deploy:
-- provider: pages
-  local_dir: docs/_build/html
-  skip_cleanup: true
-  github_token: $GH_TOKEN
-  keep_history: true
-  on:
-    branch: master
-- provider: pypi
-  local_dir: ..  # back to pkg root after possibly building docs
-  username: "__token__"
-  password: "$PYPITEST_AUTH_TOKEN"
-  server: https://test.pypi.org/legacy/
-  on:
-    branch: [master, condaforge-dev]
 
 notifications:
   slack:

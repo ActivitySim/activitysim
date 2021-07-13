@@ -14,6 +14,17 @@ jobs:
     # Test suites are arranged in groups; all tests in a group must pass before
     # the next stage group can begin.
 
+    - stage: PreDeployment
+      name: "PyPI Test Deployment"
+      deploy:
+        - provider: pypi
+          local_dir: ..  # back to pkg root after possibly building docs
+          username: "__token__"
+          password: "$PYPITEST_AUTH_TOKEN"
+          server: https://test.pypi.org/legacy/
+          on:
+            branch: [ master, condaforge-dev ]
+
     - stage: Core Functionality
       env: TEST_SUITE=activitysim/abm/models
     - env: TEST_SUITE=activitysim/abm/test
@@ -89,6 +100,7 @@ install:
 - pip freeze
 
 script:
+# This is the "default" script used for each test suite, unless overridden with a "script" in the jobs above.
 # build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
 - python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
 - python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py

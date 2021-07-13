@@ -16,6 +16,8 @@ jobs:
 
     - stage: PreDeployment
       name: "PyPI Test Deployment"
+      script:
+        - pycodestyle activitysim
       deploy:
         - provider: pypi
           local_dir: ..  # back to pkg root after possibly building docs

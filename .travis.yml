@@ -70,9 +70,10 @@ deploy:
   on:
     branch: master
 - provider: pypi
+  local_dir: ..  # back to pkg root after possibly building docs
   username: "__token__"
   password: "$PYPITEST_AUTH_TOKEN"
-  server: https://test.pypi.org
+  server: https://test.pypi.org/legacy/
   on:
     branch: [master, condaforge-dev]
 

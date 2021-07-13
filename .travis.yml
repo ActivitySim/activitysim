@@ -23,8 +23,7 @@ env:
   - TEST_SUITE=activitysim/examples/example_sandag/test
 
 python:
-  - '3.7'
-  - '3.8'
+  - '3.9'
 
 install:
 - wget -O Mambaforge.sh https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh
@@ -63,13 +62,19 @@ after_success:
 - touch _build/html/.nojekyll
 
 deploy:
-  provider: pages
+- provider: pages
   local_dir: docs/_build/html
   skip_cleanup: true
   github_token: $GH_TOKEN
   keep_history: true
   on:
     branch: master
+- provider: pypi
+  username: "__token__"
+  password: "$PYPITEST_AUTH_TOKEN"
+  server: https://test.pypi.org
+  on:
+    branch: [master, condaforge-dev]
 
 notifications:
   slack:

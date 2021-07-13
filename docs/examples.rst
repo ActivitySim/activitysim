@@ -505,6 +505,7 @@ is the main settings file for the model run.  This file includes:
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
 * ``chunk_size`` - approximate amount of RAM in gigabytes to allocate to ActivitySim for batch processing choosers, see :ref:`chunk_size`.
 * ``chunk_training_mode`` - training or production, see :ref:`chunk_size`.
+* ``chunk_method`` - memory use measure such as hybrid_uss or hybrid_rss, see :ref:`chunk_size`.
 * ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``log_alt_losers`` - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives.  This feature slows down the model run and so it is recommended for debugging purposes only.

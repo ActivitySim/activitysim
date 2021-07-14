@@ -61,6 +61,12 @@ def add_run_args(parser, multiprocess=True):
                             action='store_true',
                             help='run multiprocess. Adds configs_mp settings'
                             ' by default.')
+        parser.add_argument('--num_processes',
+                            type=int,
+                            metavar='N',
+                            help='Number of processes, overrides settings file.'
+                                 ' Setting this value automatically runs'
+                                 ' multiprocessing.')
 
 
 def validate_injectable(name):
@@ -105,7 +111,7 @@ def handle_standard_args(args, multiprocess=True):
     if args.output:
         inject_arg('output_dir', args.output)
 
-    if multiprocess and args.multiprocess:
+    if multiprocess and (args.multiprocess or args.num_processes):
         config_paths = validate_injectable('configs_dir')
 
         if not os.path.exists('configs_mp'):
@@ -116,6 +122,9 @@ def handle_standard_args(args, multiprocess=True):
             inject_arg('configs_dir', config_paths)
 
         config.override_setting('multiprocess', args.multiprocess)
+
+    if args.num_processes:
+        config.override_setting('num_processes', args.num_processes)
 
     for injectable in ['configs_dir', 'data_dir', 'output_dir']:
         validate_injectable(injectable)

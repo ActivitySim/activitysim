@@ -65,6 +65,7 @@ def add_run_args(parser, multiprocess=True):
                             const=-1,
                             metavar='(N)',
                             nargs='?',
+                            type=int,
                             help='run multiprocess. Adds configs_mp settings'
                                  ' by default. Optionally give a number of processes,'
                                  ' which will override the settings file.')

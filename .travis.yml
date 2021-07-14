@@ -14,19 +14,6 @@ jobs:
     # Test suites are arranged in groups; all tests in a group must pass before
     # the next stage group can begin.
 
-    - stage: PreDeployment
-      name: "PyPI Test Deployment"
-      script:
-        - pycodestyle activitysim
-      deploy:
-        - provider: pypi
-          local_dir: ..  # back to pkg root after possibly building docs
-          username: "__token__"
-          password: "$PYPITEST_AUTH_TOKEN"
-          server: https://test.pypi.org/legacy/
-          on:
-            branch: [ master, condaforge-dev ]
-
     - stage: Core Functionality
       env: TEST_SUITE=activitysim/abm/models
     - env: TEST_SUITE=activitysim/abm/test
@@ -78,6 +65,7 @@ jobs:
           username: "__token__"
           password: "$PYPITEST_AUTH_TOKEN"
           server: https://test.pypi.org/legacy/
+          skip_existing: true
           on:
             branch: [ master, condaforge-dev ]
 

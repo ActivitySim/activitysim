@@ -54,6 +54,10 @@ def add_run_args(parser, multiprocess=True):
                         type=str,
                         metavar='FILE',
                         help='settings file name')
+    parser.add_argument('-g', '--chunk_size',
+                        type=int,
+                        metavar='GB',
+                        help='chunk size in gigabytes.')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
@@ -122,6 +126,9 @@ def handle_standard_args(args, multiprocess=True):
             inject_arg('configs_dir', config_paths)
 
         config.override_setting('multiprocess', args.multiprocess)
+
+    if args.chunk_size:
+        config.override_setting('chunk_size', int(args.chunk_size * 1_000_000_000))
 
     if args.num_processes:
         config.override_setting('num_processes', args.num_processes)

@@ -72,9 +72,9 @@ jobs:
           on:
             branch: master
     - name: "PyPI Test Deployment"
+      script: skip     # do not want to rerun any tests
       deploy:
         - provider: pypi
-          local_dir: ..  # back to pkg root after possibly building docs
           username: "__token__"
           password: "$PYPITEST_AUTH_TOKEN"
           server: https://test.pypi.org/legacy/
@@ -112,6 +112,7 @@ script:
 - pycodestyle activitysim
 # run specific TEST_SUITE job on travis to avoid job max time
 - travis_wait 50 py.test $TEST_SUITE --cov activitysim --cov-report term-missing --durations=0
+- coveralls
 
 
 

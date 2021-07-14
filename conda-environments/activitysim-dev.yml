@@ -1,6 +1,5 @@
-# Environment for testing
-# usage: $ conda env create --file=activitysim-dev.yml
-name: ASIM-TESTER
+# Environment for development
+# usage: $ conda env create --file=activitysim-dev.yml -n ASIM-DEV-TMP
 channels:
 - conda-forge
 dependencies:
@@ -26,3 +25,8 @@ dependencies:
 - coveralls
 - pycodestyle
 - pytest-regressions
+- git
+- gh
+
+- pip:
+  - -e ..

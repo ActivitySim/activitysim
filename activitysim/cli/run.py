@@ -265,7 +265,8 @@ def run(args):
                 pipeline.close_pipeline()
 
             mem.log_global_hwm()  # main process
-    except:
+    except Exception:
+        # log time until error and the error traceback
         tracing.print_elapsed_time('all models until this error', t0)
         logger.exception('activitysim run encountered an unrecoverable error')
         raise

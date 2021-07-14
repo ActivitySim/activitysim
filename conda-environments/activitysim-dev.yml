@@ -27,6 +27,7 @@ dependencies:
 - pytest-regressions
 - git
 - gh
+- bump2version
 
 - pip:
   - -e ..

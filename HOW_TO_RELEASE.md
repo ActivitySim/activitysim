@@ -151,6 +151,7 @@
     branch:
     ```sh
     gh release create v1.2.3.dev0 \
+        --prerelease \
         --target develop \
         --notes "this pre-release is for a cool new feature" \
         --title "Development Pre-Release"

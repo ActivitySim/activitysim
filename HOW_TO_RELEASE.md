@@ -2,8 +2,10 @@
 
 > **WARNING: These instructions are incomplete.**
 
+01. Check that the branch you intend to release is passing tests on Travis.
+    If it's not passing there you should not release it.
 
-01. (optional but recommended) Start from a completely clean conda environment 
+00. (optional but recommended) Start from a completely clean conda environment 
     and git repository.  Assuming you have `conda` installed, you can do so 
     by starting where ActivitySim is not yet cloned (e.g. in an empty 
     directory) and running:
@@ -15,8 +17,10 @@
     cd activitysim
     ```
 
-00. If you are testing on a branch, make sure it is synced to the 
-    published version on GitHub:
+00. Per project policy, code on the master branch should have been released,
+    but if you are *preparing* a release then the code will be on some other
+    branch.  Switch to that branch now, and make sure it is synced to the 
+    version on GitHub:
     ```sh
     git switch <branchname>
     git pull
@@ -35,10 +39,36 @@
     the environments in `conda-environments`, which are used for testing 
     and development.  If they are not updated, these environments will end 
     up with dependencies loaded from *pip* instead of *conda-forge*.
+
+00. (optional) Run pycodestyle to ensure that the codebase passes all style checks.
+    This check should only take a few seconds.  These checks are also done on
+    Travis and are platform independent, so they should not be necessary to
+    replicate locally, but are listed here for completeness.
+    ```sh
+    pycodestyle .
+    ```
+
+00. (optional for development pre-releases, required for final releases)
+    Run the regular test suite on Windows. Travis tests are done on Linux,
+    but most users are on Windows, and the test suite should also be run
+    on Windows to ensure that it works on that platform as well.  If you
+    are not preparing this release on Windows, you should be sure to run
+    at least through this step on a Windows machine before finalizing a 
+    release.  
     
+    A few of the tests require pre-created data that is not included in the 
+    repository directly, but rather recreated on the fly before testing. The 
+    regular test suite takes some time to run, between about half an hour and 
+    two hours depending on the specs of your machine.
+    ```sh
+    python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
+    python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+    pytest .
+    ```
+ 
 00. Test the full-scale regional examples. These examples are big, too
-    large to run on Travis, and will take some time. Be sure to set the 
-    number of processors and the available working RAM using the -m and -g
+    large to run on Travis, and will take a lot of time (hours). Be sure to set  
+    the number of processors and the available working RAM using the -m and -g
     arguments to the `activitysim run` command when testing 
     multiprocessing.
     
@@ -68,22 +98,22 @@
 
 00. Use bump2version to tag the release commit and update the 
     version number.  The following code will generate a "patch" release,
-    incrementing the third value in the version number.  Alternatively,
-    make a "minor" or "major" release. The `--list` command will generate
-    output to your console to confirm that the old and new version numbers
-    are what you expect, before you push the commit (with the changed 
-    version in the code) and tags to GitHub.
+    incrementing the third value in the version number (i.e. "1.2.3" 
+    becomes "1.2.4").  Alternatively, make a "minor" or "major" release. 
+    The `--list` command will generate output to your console to confirm 
+    that the old and new version numbers are what you expect, before you 
+    push the commit (with the changed version in the code) and tags to 
+    GitHub.
     ```sh
     bump2version patch --list
-    git push --tags
     ```
     
     It is also possible to make a development pre-release. To do so, 
-    explicitly set the version number to the next patch plus a ".dev" 
+    explicitly set the version number to the next patch plus a ".devN" 
     suffix:  
     
     ```sh
-    bump2version patch --new-version 1.2.3.dev --list
+    bump2version patch --new-version 1.2.3.dev0 --list
     ```
     
     Then, when ready to make a "final" release, set the version by 
@@ -91,12 +121,40 @@
     ```sh
     bump2version patch --new-version 1.2.3 --list
     ```
+
+00. Push the tagged commit to GitHub.
+    ```sh
+    git push --tags
+    ```
+
+00. For non-development releases, open a pull request to merge the proposed 
+    release into master. The following command will open a web browser for 
+    you to create the pull request.
+    ```sh
+    gh pr create --web
+    ```
+    After creating the PR, confirm with the ActivitySim PMC that the release
+    is ready before actually merging it.
+    
+    Once final approval is granted, merge the PR into master.  The presence
+    of the git tags added earlier will trigger automated build steps to
+    prepare and deploy the release to pypi and conda-forge.
     
 00. Create a "release" on GitHub.
     ```sh
     gh release create v1.2.3
     ```
-    For a development pre-release, include the `--prerelease` argument.  
+    For a development pre-release, include the `--prerelease` argument.
+    As the project's policy is that only formally released code is merged
+    to the master branch, any pre-release should also be built against a 
+    non-default branch.  For example, to pre-release from the `develop`
+    branch:
+    ```sh
+    gh release create v1.2.3.dev0 \
+        --target develop \
+        --notes "this pre-release is for a cool new feature" \
+        --title "Development Pre-Release"
+    ```
     
 00. Clean up your workspace, including removing the Conda environment used for 
     testing (which will prevent you from accidentally using an old 

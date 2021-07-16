@@ -67,34 +67,25 @@
     ```
  
 00. Test the full-scale regional examples. These examples are big, too
-    large to run on Travis, and will take a lot of time (hours). Be sure to set  
-    the number of processors and the available working RAM using the -m and -g
-    arguments to the `activitysim run` command when testing 
-    multiprocessing.
-    
-    - Creating a testing data directory first will ensure the examples 
-      models are well organized.
-      ```sh
-      mkdir tmp-asim-testing
-      ```
-    
-    - **MTC**
-      ```sh
-      activitysim create -e example_mtc_full -d tmp-asim-testing
-      activitysim run -w tmp-asim-testing/example_mtc_full
-      activitysim run -w tmp-asim-testing/example_mtc_full -m 20 -g 40
-      ```
-    
-    - **PSRC**
-      ```sh
-      activitysim create -e example_psrc_full -d tmp-asim-testing
-      activitysim run -w tmp-asim-testing/example_psrc_full
-      activitysim run -w tmp-asim-testing/example_psrc_full -m 20 -g 40
-      ```
-      
-    - TODO: Others
+    large to run on Travis, and will take a lot of time (many hours).
+    ```sh
+    mkdir tmp-asim
+    cd activitysim/examples
+    python create_run_all_examples.py > ../../tmp-asim/run_all_examples.bat
+    cd ../../tmp-asim
+    call run_all_examples.bat
+    ```
+    These tests will run through the gamut even if some of them crash, so
+    if you don't sit and watch them go (please don't do this) you'll need 
+    to scan through the results to make sure there are no errors after the
+    fact.
+    ```sh
+    python ../activitysim/examples/scan_examples_for_errors.py .
+    ```
 
-00. Test the notebooks.
+00. Test the notebooks in `activitysim/examples/example_mtc/notebooks`.
+    There are also demo notebooks for estimation, but their functionality  
+    is completely tested in the unit tests run previously.
 
 00. Use bump2version to tag the release commit and update the 
     version number.  The following code will generate a "patch" release,

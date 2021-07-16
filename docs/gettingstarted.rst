@@ -36,7 +36,7 @@ home installation folder, such as:
 3. Create a conda environment (basically a Python install just for this project)
 using Anaconda Prompt (on Windows) or the terminal (macOS or Linux)::
 
-  conda create -n asim python=3.8 activitysim -c conda-forge --override-channels
+  conda create -n asim python=3.9 activitysim -c conda-forge --override-channels
 
 .. note::
    If this command fails in July 2021, it may be because ActivitySim
@@ -49,13 +49,13 @@ once per machine, you do not need to (re)create the environment for each session
 If you would also like to install other tools or optional dependencies, it is
 possible to do so by adding additional libraries to this command.  For example::
 
-  conda create -n asim python=3.8 activitysim jupyterlab larch -c conda-forge --override-channels
+  conda create -n asim python=3.9 activitysim jupyterlab larch -c conda-forge --override-channels
 
 This example installs a specific version of Python, version 3.8.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySi, itself. For example::
 
-  conda create -n asim python=3.8 activitysim=1.0.2 -c conda-forge --override-channels
+  conda create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
 
 Additional libraries can also be installed later.  You may want to consider these
 tools for certain development tasks::

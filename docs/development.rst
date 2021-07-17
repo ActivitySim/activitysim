@@ -165,14 +165,26 @@ our GitHub workflow are:
 Versioning
 ~~~~~~~~~~
 
-ActivitySim uses the following `versioning convention <http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html>`__
+ActivitySim uses the following `versioning convention <http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html>`__:
 
 ::
 
-  MAJOR.MINOR
+  MAJOR.MINOR.PATCH[.devN]
 
-* where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs (Application Program Interface) or ABIs (Application Binary Interface).
-* MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.
+* where MAJOR designates a major revision number for the software, like 2 or 3 for Python.
+  Usually, raising a major revision number means that you are adding a lot of features,
+  breaking backward-compatibility or drastically changing the APIs (Application Program
+  Interface) or ABIs (Application Binary Interface).
+* MINOR usually groups moderate changes to the software like bug fixes or minor improvements.
+  Most of the time, end users can upgrade with no risks their software to a new minor release.
+  In case an API changes, the end users will be notified with deprecation warnings. In other
+  words, API and ABI stability is usually a promise between two minor releases.
+* PATCH releases are made principally to address bugs or update non-core parts of the
+  ActivitySim codebase (e.g. dependency requirements, distribution channels). End users
+  should expect no changes at all in how the software works between two patch releases.
+* DEVELOPMENT pre-releases are used to test and prepare integration with other external
+  services that require a "release". End users should not typically install or use a development
+  release other than for a specific well-defined purpose.
 
 Testing
 ~~~~~~~

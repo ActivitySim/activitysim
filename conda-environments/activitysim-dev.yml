@@ -28,6 +28,8 @@ dependencies:
 - git
 - gh
 - bump2version
+- asv
+- ruamel.yaml
 
 - pip:
   - -e ..

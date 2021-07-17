@@ -17,7 +17,7 @@ EXAMPLE_NAME = "example_mtc_full"
 
 # any settings to override in the example's usual settings file
 BENCHMARK_SETTINGS = {
-    'households_sample_size': 1_000,
+    'households_sample_size': 20_000,
 }
 
 # the component names to be benchmarked
@@ -40,15 +40,15 @@ COMPONENT_NAMES = [
     "non_mandatory_tour_scheduling",
     "tour_mode_choice_simulate",
     "atwork_subtour_frequency",
-    # "atwork_subtour_destination",
-    # "atwork_subtour_scheduling",
-    # "atwork_subtour_mode_choice",
-    # "stop_frequency",
-    # "trip_purpose",
-    # "trip_destination",
-    # "trip_purpose_and_destination",
-    # "trip_scheduling",
-    # "trip_mode_choice",
+    "atwork_subtour_destination",
+    "atwork_subtour_scheduling",
+    "atwork_subtour_mode_choice",
+    "stop_frequency",
+    "trip_purpose",
+    "trip_destination",
+    "trip_purpose_and_destination",
+    "trip_scheduling",
+    "trip_mode_choice",
 ]
 
 # benchmarking configuration

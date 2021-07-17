@@ -73,7 +73,7 @@ ASV_CONFIG = {
 
     # List of branches to benchmark. If not provided, defaults to "master"
     # (for git) or "default" (for mercurial).
-    "branches": ["master", "performance1"]
+    # "branches": ["master", "performance1"]
 }
 
 def make_asv_argparser(parser):

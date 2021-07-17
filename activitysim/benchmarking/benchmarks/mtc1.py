@@ -17,7 +17,7 @@ EXAMPLE_NAME = "example_mtc_full"
 
 # any settings to override in the example's usual settings file
 BENCHMARK_SETTINGS = {
-    'households_sample_size': 20_000,
+    'households_sample_size': 100_000,
 }
 
 # the component names to be benchmarked

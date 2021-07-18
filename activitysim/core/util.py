@@ -243,27 +243,12 @@ def quick_loc_df(loc_list, target_df, attribute=None):
     -------
         pandas.DataFrame or, if attribbute specified, pandas.Series
     """
-
-    left_on = "left"
-
-    if isinstance(loc_list, pd.Int64Index):
-        left_df = pd.DataFrame({left_on: loc_list.values})
-    elif isinstance(loc_list, pd.Series):
-        left_df = loc_list.to_frame(name=left_on)
-    elif isinstance(loc_list, np.ndarray):
-        left_df = pd.DataFrame({left_on: loc_list})
-    else:
-        raise RuntimeError("quick_loc_df loc_list of unexpected type %s" % type(loc_list))
-
     if attribute:
         target_df = target_df[[attribute]]
 
     df = target_df.reindex(loc_list)
 
     df.index.name = target_df.index.name
-
-    # regression test
-    # assert df.equals(target_df.loc[loc_list])
 
     if attribute:
         # return series

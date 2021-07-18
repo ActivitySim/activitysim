@@ -464,7 +464,7 @@ means faster runtimes and more RAM means faster runtimes, but the relationship o
 go so fast and because there is more to runtime than processors and RAM, including cache speed, disk speed, etc.  Also, the amount of RAM
 to use is approximate and ActivitySim often pushes a bit above the user specified amount due to pandas/numpy memory spikes for 
 memory intensive operations and so it is recommended to leave some RAM unallocated.  The exact amount to leave unallocated depends on the 
-parameters above, but experimentation with the ActivitySim examples suggests that more processors 
+parameters above, but experimentation with the ActivitySim examples suggests that more processors.
 
 To configure reasonable chunking behavior, ActivitySim must first be trained with the model setup and machine.  To do so, first
 run the model with ``chunk_training_mode: training``.  This tracks the amount of memory used by each table by submodel and writes the results
@@ -481,13 +481,15 @@ then the chunk cache file is not overwritten in cache directory since the list o
 The following ``chunk_methods`` are supported to calculate memory overhead when chunking is enabled:
 
 * bytes - expected rowsize based on actual size (as reported by numpy and pandas) of explicitly allocated data this can underestimate overhead due to transient data requirements of operations (e.g. merge, sort, transpose)
-* uss - expected rowsize based on change in uss both as a result of explicit data allocation, and readings by MemMonitor sniffer thread that measures transient uss during time-consuming numpy and pandas operations
+* uss - expected rowsize based on change in (unique set size) (uss) both as a result of explicit data allocation, and readings by MemMonitor sniffer thread that measures transient uss during time-consuming numpy and pandas operations
 * hybrid_uss - hybrid_uss avoids problems with pure uss, especially with small chunk sizes (e.g. initial training chunks) as numpy may recycle cached blocks and show no increase in uss even though data was allocated and logged
+* rss - like uss, but for resident set size (rss), which is the portion of memory occupied by a process that is held in RAM
+* hybrid_rss - like hybrid_uss, but for rss
 
-Target is based on USS (Unique Set Size) as reported by psutil.memory_full_info.  USS is the memory which is private to 
+RSS is reported by psutil.memory_info and USS is reported by psutil.memory_full_info.  USS is the memory which is private to 
 a process and which would be freed if the process were terminated.  This is the metric that most closely matches the rather 
 vague notion of memory "in use" (the meaning of which is difficult to pin down in operating systems with virtual memory 
-where memory can (but sometimes can't) be swapped or mapped to disk.  ``hybrid_uss`` perform best and is therefore the default.
+where memory can (but sometimes can't) be swapped or mapped to disk.  ``hybrid_uss`` performs best and is therefore the default.
 
 Additional chunking settings:
 

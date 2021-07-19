@@ -42,7 +42,7 @@ yo can change that to "x86_64", which is the same thing by a different name.
 
 To run benchmarks on only the most recent commit in the main ActivitySim repo::
 
-    activitysim benchmark run "HEAD^!" --verbose
+    activitysim benchmark run "HEAD^!" --verbose --append-samples
 
 
 Threading Limits

@@ -594,10 +594,10 @@ def log_rss(trace_label, force=False):
 
 def log_df(trace_label, table_name, df):
 
-    assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
-
     if chunk_training_mode() in (MODE_PRODUCTION, MODE_CHUNKLESS):
         return
+
+    assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
 
     op = 'del' if df is None else 'add'
     hwm_trace_label = f"{trace_label}.{op}.{table_name}"
@@ -637,23 +637,26 @@ class ChunkSizer(object):
 
         self.depth = len(CHUNK_SIZERS) + 1
 
-        if chunk_metric() == USS:
-            self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+        if chunk_training_mode() != MODE_CHUNKLESS:
+            if chunk_metric() == USS:
+                self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+            else:
+                self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
+                self.uss = 0
+
+            if self.depth > 1:
+                # nested chunkers should be unchunked
+                assert chunk_size == 0
+
+                # if we are in a nested call, then we must be in the scope of active Ledger
+                # so any rss accumulated so far should be attributed to the parent active ledger
+                assert len(CHUNK_SIZERS) == len(CHUNK_LEDGERS)
+                parent = CHUNK_SIZERS[-1]
+                assert parent.chunk_ledger is not None
+
+                log_rss(trace_label)  # give parent a complementary log_rss reading entering sub context
         else:
-            self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
-            self.uss = 0
-
-        if self.depth > 1:
-            # nested chunkers should be unchunked
-            assert chunk_size == 0
-
-            # if we are in a nested call, then we must be in the scope of active Ledger
-            # so any rss accumulated so far should be attributed to the parent active ledger
-            assert len(CHUNK_SIZERS) == len(CHUNK_LEDGERS)
-            parent = CHUNK_SIZERS[-1]
-            assert parent.chunk_ledger is not None
-
-            log_rss(trace_label)  # give parent a complementary log_rss reading entering sub context
+            self.rss, self.uss = 0, 0
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label
@@ -857,6 +860,11 @@ class ChunkSizer(object):
     @contextmanager
     def ledger(self):
 
+        # don't do anything in chunkless mode
+        if chunk_training_mode() == MODE_CHUNKLESS:
+            yield
+            return
+
         mem_monitor = None
 
         # nested chunkers should be unchunked
@@ -922,7 +930,8 @@ def chunk_log(trace_label, chunk_tag=None, base=False):
 
         yield
 
-        chunk_sizer.adaptive_rows_per_chunk(1)
+        if chunk_training_mode() != MODE_CHUNKLESS:
+            chunk_sizer.adaptive_rows_per_chunk(1)
 
     chunk_sizer.close()
 
@@ -963,7 +972,8 @@ def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None)
 
             offset += rows_per_chunk
 
-            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
+            if chunk_training_mode() != MODE_CHUNKLESS:
+                rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
     chunk_sizer.close()
 
@@ -1057,7 +1067,8 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, trace
             offset += rows_per_chunk
             alt_offset = alt_end
 
-            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
+            if chunk_training_mode() != MODE_CHUNKLESS:
+                rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
     chunk_sizer.close()
 
@@ -1097,6 +1108,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, trace_label, chu
 
             offset += rows_per_chunk
 
-            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
+            if chunk_training_mode() != MODE_CHUNKLESS:
+                rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
     chunk_sizer.close()

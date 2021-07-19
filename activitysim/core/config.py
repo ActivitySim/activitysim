@@ -333,6 +333,12 @@ def log_file_path(file_name, prefix=True):
 
     output_dir = inject.get_injectable('output_dir')
 
+    # - check if running asv and if so, log to commit-specific subfolder
+    asv_commit = os.environ.get('ASV_COMMIT', None)
+    if asv_commit:
+        output_dir = os.path.join(output_dir, f'log-{asv_commit}')
+        os.makedirs(output_dir, exist_ok=True)
+
     # - check for optional log subfolder
     if os.path.exists(os.path.join(output_dir, 'log')):
         output_dir = os.path.join(output_dir, 'log')

@@ -553,6 +553,12 @@ def filter_warnings():
     warnings.filterwarnings('ignore', category=DeprecationWarning, module='tables',
                             message='`np.object` is a deprecated alias')
 
+    # beginning pandas version 1.3, various places emit a PerformanceWarning that is
+    # caught in the "strict" filter above, but which are currently unavoidable for complex models.
+    # These warning are left as warnings as an invitation for future enhancement.
+    from pandas.errors import PerformanceWarning
+    warnings.filterwarnings('default', category=PerformanceWarning)
+
 
 def handle_standard_args(parser=None):
 

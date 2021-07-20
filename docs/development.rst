@@ -165,9 +165,9 @@ our GitHub workflow are:
   and barring any objection raised by a consortium member, PR's can be merged into the
   ``develop`` branch.
 * If tests pass for the ``develop`` branch, new features are suitably documented, and on approval of
-  [a lazy majority of the PMC](https://github.com/ActivitySim/activitysim/wiki/Governance#actions),
+  `a lazy majority of the PMC <https://github.com/ActivitySim/activitysim/wiki/Governance#actions>`__,
   a repository administrator can approve a manual pull request to merge ``develop`` into ``master``,
-  and otherwise make a [product release](https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md).
+  and otherwise make a `product release <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__.
 
 
 Versioning

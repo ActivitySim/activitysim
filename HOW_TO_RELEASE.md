@@ -5,7 +5,7 @@
 01. Check that the branch you intend to release is passing tests on Travis.
     If it's not passing there you should not release it.
 
-00. (optional but recommended) Start from a completely clean conda environment 
+00. Start from a completely clean conda environment 
     and git repository.  Assuming you have `conda` installed, you can do so 
     by starting where ActivitySim is not yet cloned (e.g. in an empty 
     directory) and running:
@@ -18,11 +18,11 @@
     ```
 
 00. Per project policy, code on the master branch should have been released,
-    but if you are *preparing* a release then the code will be on some other
+    but if you are *preparing* a release then the code should be on the `develop`
     branch.  Switch to that branch now, and make sure it is synced to the 
     version on GitHub:
     ```sh
-    git switch <branchname>
+    git switch develop
     git pull
     ```
 
@@ -40,7 +40,7 @@
     and development.  If they are not updated, these environments will end 
     up with dependencies loaded from *pip* instead of *conda-forge*.
 
-00. (optional) Run pycodestyle to ensure that the codebase passes all style checks.
+00. Run pycodestyle to ensure that the codebase passes all style checks.
     This check should only take a few seconds.  These checks are also done on
     Travis and are platform independent, so they should not be necessary to
     replicate locally, but are listed here for completeness.
@@ -48,8 +48,7 @@
     pycodestyle .
     ```
 
-00. (optional for development pre-releases, required for final releases)
-    Run the regular test suite on Windows. Travis tests are done on Linux,
+00. Run the regular test suite on Windows. Travis tests are done on Linux,
     but most users are on Windows, and the test suite should also be run
     on Windows to ensure that it works on that platform as well.  If you
     are not preparing this release on Windows, you should be sure to run

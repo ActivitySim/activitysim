@@ -51,7 +51,7 @@ possible to do so by adding additional libraries to this command.  For example::
 
   conda create -n asim python=3.9 activitysim jupyterlab larch -c conda-forge --override-channels
 
-This example installs a specific version of Python, version 3.8.  A similar
+This example installs a specific version of Python, version 3.9.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySi, itself. For example::
 

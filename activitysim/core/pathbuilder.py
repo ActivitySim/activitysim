@@ -70,10 +70,6 @@ def compute_utilities(network_los, model_settings, choosers, model_constants,
                     locals_dict=locals_dict,
                     trace_label=trace_label)
 
-                # for debug only, get rid of before PR
-                trace_label = tracing.extend_trace_label(trace_label, 'tap_tap_w_preprocessor_expr_vals')
-                tracing.trace_df(choosers, trace_label, slicer='NONE', transpose=False)
-
             utilities = simulate.eval_utilities(
                 spec,
                 choosers,

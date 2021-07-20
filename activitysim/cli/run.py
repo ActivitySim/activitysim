@@ -56,8 +56,8 @@ def add_run_args(parser, multiprocess=True):
                         help='settings file name')
     parser.add_argument('-g', '--chunk_size',
                         type=int,
-                        metavar='GB',
-                        help='chunk size in gigabytes.')
+                        metavar='BYTES',
+                        help='chunk size')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
@@ -128,7 +128,7 @@ def handle_standard_args(args, multiprocess=True):
             config.override_setting('num_processes', args.multiprocess)
 
     if args.chunk_size:
-        config.override_setting('chunk_size', int(args.chunk_size * 1_000_000_000))
+        config.override_setting('chunk_size', int(args.chunk_size))
 
     for injectable in ['configs_dir', 'data_dir', 'output_dir']:
         validate_injectable(injectable)

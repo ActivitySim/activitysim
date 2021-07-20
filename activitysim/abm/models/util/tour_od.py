@@ -831,7 +831,6 @@ def run_od_simulate(
         locals_d.update(constants)
 
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
-
     choices = interaction_sample_simulate(
         choosers,
         od_sample,

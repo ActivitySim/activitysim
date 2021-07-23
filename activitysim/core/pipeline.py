@@ -10,14 +10,7 @@ import datetime as dt
 
 import pandas as pd
 
-try:
-    # use orca module if installed
-    import orca
-    import orca.orca as _ORCA
-except ModuleNotFoundError:
-    # otherwise use local copy
-    from . import orca
-    from . import orca as _ORCA
+from orca import orca
 
 from . import inject
 from . import config
@@ -254,10 +247,10 @@ def rewrap(table_name, df=None):
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
             # fixme
-            _ORCA._COLUMNS.pop((table_name, column_name), None)
+            orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        _ORCA._TABLES.pop(table_name, None)
+        orca._TABLES.pop(table_name, None)
 
     assert df is not None
 
@@ -817,10 +810,10 @@ def drop_table(table_name):
 
         for column_name in orca.list_columns_for_table(table_name):
             # logger.debug("pop %s.%s: %s" % (table_name, column_name, t.column_type(column_name)))
-            _ORCA._COLUMNS.pop((table_name, column_name), None)
+            orca._COLUMNS.pop((table_name, column_name), None)
 
         # remove from orca's table list
-        _ORCA._TABLES.pop(table_name, None)
+        orca._TABLES.pop(table_name, None)
 
     if table_name in _PIPELINE.replaced_tables:
 

@@ -10,7 +10,8 @@ from operator import itemgetter
 import numpy as np
 import pandas as pd
 
-from zbox import toolz as tz
+import cytoolz as tz
+import cytoolz.curried
 
 logger = logging.getLogger(__name__)
 

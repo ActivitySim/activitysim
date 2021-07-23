@@ -58,17 +58,16 @@ jobs:
           keep_history: true
           on:
             branch: master
-    - name: "PyPI Test Deployment"
+    - name: "PyPI Deployment"
       script: skip     # do not want to rerun any tests
       deploy:
         - provider: pypi
           username: "__token__"
-          password: "$PYPITEST_AUTH_TOKEN"
-          server: https://test.pypi.org/legacy/
+          password:
+            secure: QeiYRslhBPyDRofmQQDU/7eWEt6OGCbG32HV5c+gxPV41zJY5g3zuIRD5xclyrrFcnSgbHkMSIq3bmhB6oCdA+zemK8TK5GZvCbfs+EtK6/lUbBTXGrRVim7lo2BBFB8p0MwN4HyLMkVdBVm4GVOZug3Coy2yAUTpSy0tREbGJg=
           skip_existing: true
           on:
-            branch: [ master, condaforge-dev ]
-
+            branch: [ master ]
 
 python:
   - '3.9'

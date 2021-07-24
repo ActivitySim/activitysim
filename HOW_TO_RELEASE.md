@@ -66,7 +66,8 @@
     ```
  
 00. Test the full-scale regional examples. These examples are big, too
-    large to run on Travis, and will take a lot of time (many hours).
+    large to run on Travis, and will take a lot of time (many hours) to 
+    download and run.
     ```sh
     mkdir tmp-asim
     cd activitysim/examples

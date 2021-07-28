@@ -54,13 +54,21 @@ def add_run_args(parser, multiprocess=True):
                         type=str,
                         metavar='FILE',
                         help='settings file name')
+    parser.add_argument('-g', '--chunk_size',
+                        type=int,
+                        metavar='BYTES',
+                        help='chunk size')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
                             default=False,
-                            action='store_true',
+                            const=-1,
+                            metavar='(N)',
+                            nargs='?',
+                            type=int,
                             help='run multiprocess. Adds configs_mp settings'
-                            ' by default.')
+                                 ' by default. Optionally give a number of processes,'
+                                 ' which will override the settings file.')
 
 
 def validate_injectable(name):
@@ -115,7 +123,12 @@ def handle_standard_args(args, multiprocess=True):
             config_paths.insert(0, 'configs_mp')
             inject_arg('configs_dir', config_paths)
 
-        config.override_setting('multiprocess', args.multiprocess)
+        config.override_setting('multiprocess', True)
+        if args.multiprocess > 0:
+            config.override_setting('num_processes', args.multiprocess)
+
+    if args.chunk_size:
+        config.override_setting('chunk_size', int(args.chunk_size))
 
     for injectable in ['configs_dir', 'data_dir', 'output_dir']:
         validate_injectable(injectable)
@@ -228,29 +241,35 @@ def run(args):
 
     t0 = tracing.print_elapsed_time()
 
-    if config.setting('multiprocess', False):
-        logger.info('run multiprocess simulation')
+    try:
+        if config.setting('multiprocess', False):
+            logger.info('run multiprocess simulation')
 
-        from activitysim.core import mp_tasks
-        injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-        mp_tasks.run_multiprocess(injectables)
+            from activitysim.core import mp_tasks
+            injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+            mp_tasks.run_multiprocess(injectables)
 
-        assert not pipeline.is_open()
+            assert not pipeline.is_open()
 
-        if config.setting('cleanup_pipeline_after_run', False):
-            pipeline.cleanup_pipeline()
+            if config.setting('cleanup_pipeline_after_run', False):
+                pipeline.cleanup_pipeline()
 
-    else:
-        logger.info('run single process simulation')
-
-        pipeline.run(models=config.setting('models'), resume_after=resume_after)
-
-        if config.setting('cleanup_pipeline_after_run', False):
-            pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
         else:
-            pipeline.close_pipeline()
+            logger.info('run single process simulation')
 
-        mem.log_global_hwm()  # main process
+            pipeline.run(models=config.setting('models'), resume_after=resume_after)
+
+            if config.setting('cleanup_pipeline_after_run', False):
+                pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
+            else:
+                pipeline.close_pipeline()
+
+            mem.log_global_hwm()  # main process
+    except Exception:
+        # log time until error and the error traceback
+        tracing.print_elapsed_time('all models until this error', t0)
+        logger.exception('activitysim run encountered an unrecoverable error')
+        raise
 
     chunk.consolidate_logs()
     mem.consolidate_logs()

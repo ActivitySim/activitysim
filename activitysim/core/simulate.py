@@ -229,7 +229,10 @@ def read_model_coefficient_template(model_settings):
     # this makes for a more legible template than repeating the identical coefficient name in each column
 
     # replace missing cell values with coefficient_name from index
-    template = template.where(~template.isnull(), template.index)
+    template = template.where(
+        ~template.isnull(),
+        np.broadcast_to(template.index.values[:, None], template.shape),
+    )
 
     if template.index.duplicated().any():
         dupes = template[template.index.duplicated(keep=False)].sort_index()

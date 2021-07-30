@@ -755,7 +755,7 @@ def run_od_logsums(
         model_settings,
         network_los,
         chunk_size,
-        trace_label, 'start', 'end', 'duration')
+        trace_label, 'end', 'start', 'duration')
 
     od_sample['tour_mode_choice_logsum'] = logsums
 

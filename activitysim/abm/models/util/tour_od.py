@@ -160,6 +160,8 @@ def _od_sample(
     if skims.orig_key == ORIG_TAZ:
         od_alts_df[ORIG_TAZ] = map_maz_to_taz(od_alts_df[origin_id_col], network_los)
 
+    # not sure this is ever getting triggered anymore. using external tazs for
+    # skim dists to is now handled via the ORIG_FILTER setting.
     elif skims.orig_key == ORIG_TAZ_EXT:
         od_alts_df[ORIG_TAZ_EXT] = map_maz_to_ext_taz(od_alts_df[origin_id_col])
 
@@ -906,9 +908,20 @@ def run_tour_od(
                 segment_destination_size_terms,
                 estimator,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+                trace_label=tracing.extend_trace_label(
+                    trace_label, 'sample.%s' % segment_name))
 
-        od_sample_df[origin_col_name] = map_maz_to_ext_maz(od_sample_df[origin_col_name])
+        if model_settings['ORIG_FILTER'] == 'original_MAZ > 0':
+            pass
+        elif model_settings['ORIG_FILTER'] == 'external_TAZ > 0':
+            # sampled alts using internal mazs (the ctramp bug), so now we
+            # have to convert to using the external tazs
+            od_sample_df[origin_col_name] = map_maz_to_ext_maz(
+                od_sample_df[origin_col_name])
+        else:
+            raise ValueError(
+                'Not sure how you identified tour origins but you probably need '
+                'to choose a different ORIG_FILTER setting')
 
         # - destination_logsums
         od_sample_df = \

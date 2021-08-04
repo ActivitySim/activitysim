@@ -568,8 +568,9 @@ def log_rss(trace_label, force=False):
     hwm_trace_label = f"{trace_label}.log_rss"
 
     if chunk_training_mode() == MODE_PRODUCTION:
-        trace_ticks = 0 if force else mem.MEM_TRACE_TICK_LEN
-        mem.trace_memory_info(hwm_trace_label, trace_ticks=trace_ticks)
+        # FIXME - this trace_memory_info call slows things down a lot so it is turned off for now
+        # trace_ticks = 0 if force else mem.MEM_TRACE_TICK_LEN
+        # mem.trace_memory_info(hwm_trace_label, trace_ticks=trace_ticks)
         return
 
     rss, uss = mem.trace_memory_info(hwm_trace_label)
@@ -624,7 +625,12 @@ class ChunkSizer(object):
     def __init__(self, chunk_tag, trace_label, num_choosers=0, chunk_size=0):
 
         self.depth = len(CHUNK_SIZERS) + 1
-        self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+
+        if chunk_metric() == USS:
+            self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+        else:
+            self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
+            self.uss = 0
 
         if self.depth > 1:
             # nested chunkers should be unchunked
@@ -755,7 +761,14 @@ class ChunkSizer(object):
 
         prev_rss = self.rss
         prev_uss = self.uss
-        self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+
+        if chunk_training_mode() != MODE_PRODUCTION:
+
+            if chunk_metric() == USS:
+                self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+            else:
+                self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
+                self.uss = 0
 
         self.headroom = self.available_headroom(self.uss if chunk_metric() == USS else self.rss)
 
@@ -902,6 +915,14 @@ def chunk_log(trace_label, chunk_tag=None, base=False):
         chunk_sizer.adaptive_rows_per_chunk(1)
 
     chunk_sizer.close()
+
+
+@contextmanager
+def chunk_log_skip():
+
+    yield
+
+    None
 
 
 def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None):

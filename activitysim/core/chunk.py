@@ -69,6 +69,10 @@ MODE_PRODUCTION
     but we do use the row_size from cache which we trust is stable
     (the whole point of MODE_PRODUCTION is to avoid the cost of observing overhead)
     which is stored in self.initial_row_size because initial_rows_per_chunk used it for the first chunk
+    
+MODE_CHUNKLESS
+    Do not do chunking, and also do not check or log memory usage, so ActivitySim can focus on performance 
+    assuming there is abundant RAM.
 """
 
 MODE_RETRAIN = 'training'
@@ -777,11 +781,13 @@ class ChunkSizer(object):
         prev_rss = self.rss
         prev_uss = self.uss
 
-        if chunk_metric() == USS:
-            self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
-        else:
-            self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
-            self.uss = 0
+        if chunk_training_mode() != MODE_PRODUCTION:
+
+            if chunk_metric() == USS:
+                self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+            else:
+                self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
+                self.uss = 0
 
         self.headroom = self.available_headroom(self.uss if chunk_metric() == USS else self.rss)
 
@@ -934,6 +940,14 @@ def chunk_log(trace_label, chunk_tag=None, base=False):
             chunk_sizer.adaptive_rows_per_chunk(1)
 
     chunk_sizer.close()
+
+
+@contextmanager
+def chunk_log_skip():
+
+    yield
+
+    None
 
 
 def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None):

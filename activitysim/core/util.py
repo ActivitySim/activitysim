@@ -10,7 +10,8 @@ from operator import itemgetter
 import numpy as np
 import pandas as pd
 
-from zbox import toolz as tz
+import cytoolz as tz
+import cytoolz.curried
 
 logger = logging.getLogger(__name__)
 
@@ -242,31 +243,12 @@ def quick_loc_df(loc_list, target_df, attribute=None):
     -------
         pandas.DataFrame or, if attribbute specified, pandas.Series
     """
-
-    left_on = "left"
-
-    if isinstance(loc_list, pd.Int64Index):
-        left_df = pd.DataFrame({left_on: loc_list.values})
-    elif isinstance(loc_list, pd.Series):
-        left_df = loc_list.to_frame(name=left_on)
-    elif isinstance(loc_list, np.ndarray):
-        left_df = pd.DataFrame({left_on: loc_list})
-    else:
-        raise RuntimeError("quick_loc_df loc_list of unexpected type %s" % type(loc_list))
-
     if attribute:
         target_df = target_df[[attribute]]
 
-    df = pd.merge(left_df,
-                  target_df,
-                  left_on=left_on,
-                  right_index=True,
-                  how="left").set_index(left_on)
+    df = target_df.reindex(loc_list)
 
     df.index.name = target_df.index.name
-
-    # regression test
-    # assert df.equals(target_df.loc[loc_list])
 
     if attribute:
         # return series

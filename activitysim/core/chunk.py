@@ -69,9 +69,9 @@ MODE_PRODUCTION
     but we do use the row_size from cache which we trust is stable
     (the whole point of MODE_PRODUCTION is to avoid the cost of observing overhead)
     which is stored in self.initial_row_size because initial_rows_per_chunk used it for the first chunk
-    
+
 MODE_CHUNKLESS
-    Do not do chunking, and also do not check or log memory usage, so ActivitySim can focus on performance 
+    Do not do chunking, and also do not check or log memory usage, so ActivitySim can focus on performance
     assuming there is abundant RAM.
 """
 

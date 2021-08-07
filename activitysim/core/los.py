@@ -316,6 +316,10 @@ class Network_LOS(object):
                     if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
                         tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
 
+                else:
+                    logger.warning(f"tap_line_distance_col not provided in {LOS_SETTINGS_FILE_NAME} so maz_to_tap "
+                                   f"pairs will not be trimmed which may result in high memory use and long runtimes")
+
                 df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
                 logger.debug(f"loaded maz_to_tap table {file_name} with {len(df)} rows")
 

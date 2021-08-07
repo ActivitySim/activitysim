@@ -15,7 +15,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def run_test_mtc(multiprocess=False):
+def run_test_mtc(multiprocess=False, chunkless=False):
 
     def example_path(dirname):
         resource = os.path.join('examples', 'example_mtc', dirname)
@@ -38,6 +38,9 @@ def run_test_mtc(multiprocess=False):
     if multiprocess:
         run_args = ['-c', test_path('configs_mp'), '-c', example_path('configs_mp'), '-c', example_path('configs'),
                     '-d', example_path('data'), '-o', test_path('output')]
+    elif chunkless:
+        run_args = ['-c', test_path('configs_chunkless'), '-c', example_path('configs'),
+                    '-d', example_path('data'), '-o', test_path('output')]
     else:
         run_args = ['-c', test_path('configs'), '-c', example_path('configs'),
                     '-d', example_path('data'), '-o', test_path('output')]
@@ -51,6 +54,10 @@ def test_mtc():
     run_test_mtc(multiprocess=False)
 
 
+def test_mtc_chunkless():
+    run_test_mtc(multiprocess=False, chunkless=True)
+
+
 def test_mtc_mp():
     run_test_mtc(multiprocess=True)
 
@@ -59,3 +66,4 @@ if __name__ == '__main__':
 
     run_test_mtc(multiprocess=False)
     run_test_mtc(multiprocess=True)
+    run_test_mtc(multiprocess=False, chunkless=True)

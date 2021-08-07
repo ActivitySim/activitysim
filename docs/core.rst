@@ -429,10 +429,9 @@ Chunking management.
 
 The ``chunk_size`` is the approximate amount of RAM in GBs to allocate to ActivitySim for batch 
 processing choosers across all processes.  It is specified in bytes, for example ``chunk_size: 500_000_000_000`` is 500 GBs.
-If set to 0 then no chunking will be performed and ActivitySim will attempt to solve all the
-choosers at once across all the processes.  However, a chunking cache file is still required as noted below.  Chunking is 
-required when all the chooser data required to process all the choosers cannot fit within the available RAM and so 
-ActivitySim must split the choosers into batches and then process the batches in sequence.
+If set ``chunk_training_mode: disabled`` then no chunking will be performed and ActivitySim will attempt to solve all the
+choosers at once across all the processes.  Chunking is required when all the chooser data required to process all the 
+choosers cannot fit within the available RAM and so ActivitySim must split the choosers into batches and then process the batches in sequence.
 
 Configuration of the ``chunk_size`` depends on several parameters:
 
@@ -468,7 +467,7 @@ parameters above.
 
 To configure chunking behavior, ActivitySim must first be trained with the model setup and machine.  To do so, first
 run the model with ``chunk_training_mode: training``.  This tracks the amount of memory used by each table by submodel and writes the results
-to a cache file that is then re-used for production runs.  This training mode is significanlty slower than production mode since it does
+to a cache file that is then re-used for production runs.  This training mode is significantly slower than production mode since it does
 significantly more memory inspection.  For a training mode run, set ``num_processors`` to about 80% of the avaiable logical processors and ``chunk_size`` 
 to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file in output\cache for reuse.  After creating
 the chunk cache file, the model can be run with ``chunk_training_mode: production`` and the desired ``num_processors`` and ``chunk_size``.  The
@@ -478,7 +477,8 @@ expression, skims/network LOS, or changes in machine specs.  If run in productio
 back to training mode.  A third ``chunk_training_mode`` is adaptive, which if a cache file exists, runs the model with the starting cache 
 settings but also updates the cache settings based on additional memory inspection.  This may additionally improve the cache setttings to 
 reduce runtimes when run in production mode.  If ``resume_after`` is set, then the chunk cache file is not overwritten in cache directory 
-since the list of submodels would be incomplete.
+since the list of submodels would be incomplete.  A foruth ``chunk_training_mode`` is disabled, which assumes the model can be run without
+chunking due to an abundance of RAM.  
 
 The following ``chunk_methods`` are supported to calculate memory overhead when chunking is enabled:
 

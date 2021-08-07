@@ -14,6 +14,8 @@ fail_fast: True
 #chunk_size:  400_000_000_000
 #num_processes: 60
 
+# - ------------------------- no chunking due to sufficient RAM
+# chunk_training_mode: disabled
 
 # - ------------------------- dev config
 multiprocess: True

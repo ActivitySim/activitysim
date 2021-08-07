@@ -503,8 +503,8 @@ is the main settings file for the model run.  This file includes:
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
+* ``chunk_training_mode`` - disabled, training, production, or adaptive, see :ref:`chunk_size`.
 * ``chunk_size`` - approximate amount of RAM in GBs to allocate to ActivitySim for batch processing choosers, see :ref:`chunk_size`.
-* ``chunk_training_mode`` - training or production, see :ref:`chunk_size`.
 * ``chunk_method`` - memory use measure such as hybrid_uss, see :ref:`chunk_size`.
 * ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
@@ -843,12 +843,13 @@ include the multiprocessing configuration settings via settings file inheritance
 
 The multiprocessing example also writes outputs to the output folder.
 
-The default multiprocessed example is configured to run with two processors and no chunking: ``num_processes: 2`` and
-``chunk_size: 0``.  Additional more performant configurations are included and commented out in the example settings
-file.  For example, the 100 percent sample full scale multiprocessing example - ``example_mtc_full`` - was run on a 
-Windows Server machine with 28 cores and 256GB RAM with the configuration below.  The default setup runs with 
-``chunk_training_mode: training`` since no chunk cache file is present. To run in the much faster ``chunk_training_mode: production``,
-and if the machine does not have enough RAM to solve all the choosers at once, then chunking needs to be configured, as 
+The default multiprocessed example is configured to run with two processors and chunking training: ``num_processes: 2``,
+``chunk_size: 0``, and ``chunk_training_mode: training``.  Additional more performant configurations are included and 
+commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example 
+- ``example_mtc_full`` - was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  
+The default setup runs with ``chunk_training_mode: training`` since no chunk cache file is present. To run the example 
+significantly faster, try ``chunk_training_mode: disabled`` if the machine has sufficient RAM, or try 
+``chunk_training_mode: production``.  To configure ``chunk_training_mode: production``, first configure chunking as 
 discussed below. See :ref:`multiprocessing` and :ref:`chunk_size` for more information.  
 
 ::
@@ -864,12 +865,14 @@ discussed below. See :ref:`multiprocessing` and :ref:`chunk_size` for more infor
 Configuring chunking
 ^^^^^^^^^^^^^^^^^^^^
 
-As described in :ref:`chunk_size`, ActivitySim must first be trained to determine reasonable chunking settings given the 
+To configure chunking, ActivitySim must first be trained to determine reasonable chunking settings given the 
 model setup and machine.  The steps to configure chunking are:
 
-* Run the full scale model with ``chunk_training_mode: training``.  Set ``num_processors`` to about 80% of the avaiable logical processors and ``chunk_size`` to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file in the output\cache directory for reuse.
+* Run the full scale model with ``chunk_training_mode: training``.  Set ``num_processors`` to about 80% of the available physical processors and ``chunk_size`` to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file in the output\cache directory for reuse.
 * The ``households_sample_size`` for training chunking should be at least 1 / num_processors to provide sufficient data for training and the ``chunk_method: hybrid_uss`` typically performs best.
 * Run the full scale model with ``chunk_training_mode: production``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
+
+See :ref:`chunk_size` for more information.  Users can run ``chunk_training_mode: disabled`` if the machine has an abundance of RAM for the model setup.
 
 Outputs
 ~~~~~~~

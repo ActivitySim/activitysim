@@ -26,6 +26,7 @@ def mode_choice_model(
 ):
     if override_filenames is None:
         override_filenames = {}
+    edb_directory = edb_directory.format(name=name)
     data = simple_simulate_data(
         name=name,
         edb_directory=edb_directory,

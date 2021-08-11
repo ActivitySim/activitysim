@@ -63,8 +63,7 @@ jobs:
       deploy:
         - provider: pypi
           username: "__token__"
-          password:
-            secure: QeiYRslhBPyDRofmQQDU/7eWEt6OGCbG32HV5c+gxPV41zJY5g3zuIRD5xclyrrFcnSgbHkMSIq3bmhB6oCdA+zemK8TK5GZvCbfs+EtK6/lUbBTXGrRVim7lo2BBFB8p0MwN4HyLMkVdBVm4GVOZug3Coy2yAUTpSy0tREbGJg=
+          password: "$PYPI_AUTH_TOKEN"
           skip_existing: true
           on:
             branch: [ master ]

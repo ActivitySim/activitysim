@@ -123,8 +123,13 @@ class OffsetMapper(object):
         if self.offset_series is not None:
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
-            # FIXME - faster to use series.map if zone_ids is a series?
-            offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
+
+            # FIXME - turns out it is faster to use series.map if zone_ids is a series
+            # offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
+
+            if isinstance(zone_ids, np.ndarray):
+                zone_ids = pd.Series(zone_ids)
+            offsets = zone_ids.map(self.offset_series, na_action='ignore').fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
 
         elif self.offset_int:
             assert (self.offset_series is None)

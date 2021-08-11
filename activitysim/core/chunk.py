@@ -69,12 +69,17 @@ MODE_PRODUCTION
     but we do use the row_size from cache which we trust is stable
     (the whole point of MODE_PRODUCTION is to avoid the cost of observing overhead)
     which is stored in self.initial_row_size because initial_rows_per_chunk used it for the first chunk
+
+MODE_CHUNKLESS
+    Do not do chunking, and also do not check or log memory usage, so ActivitySim can focus on performance
+    assuming there is abundant RAM.
 """
 
 MODE_RETRAIN = 'training'
 MODE_ADAPTIVE = 'adaptive'
 MODE_PRODUCTION = 'production'
-TRAINING_MODES = [MODE_RETRAIN, MODE_ADAPTIVE, MODE_PRODUCTION]
+MODE_CHUNKLESS = 'disabled'
+TRAINING_MODES = [MODE_RETRAIN, MODE_ADAPTIVE, MODE_PRODUCTION, MODE_CHUNKLESS]
 
 #
 # low level
@@ -135,7 +140,9 @@ def chunk_metric():
 def chunk_training_mode():
     training_mode = \
         SETTINGS.setdefault('chunk_training_mode', config.setting('chunk_training_mode', MODE_ADAPTIVE))
-    assert training_mode in TRAINING_MODES, f"chunk_training_mode '{training_mode} not one of: {TRAINING_MODES}"
+    if not training_mode:
+        training_mode = MODE_CHUNKLESS
+    assert training_mode in TRAINING_MODES, f"chunk_training_mode '{training_mode}' not one of: {TRAINING_MODES}"
     return training_mode
 
 
@@ -223,8 +230,9 @@ def consolidate_logs():
     if not glob_files:
         return
 
-    assert chunk_training_mode() != MODE_PRODUCTION, \
-        f"shouldn't be any chunk log files when chunk_training_mode is {MODE_PRODUCTION}"
+    assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS), \
+        f"shouldn't be any chunk log files when chunk_training_mode" \
+        f" is {MODE_PRODUCTION} or {MODE_CHUNKLESS}"
 
     #
     # OMNIBUS_LOG_FILE
@@ -331,6 +339,9 @@ class ChunkHistorian(object):
         else:
             self.have_cached_history = False
 
+            if chunk_training_mode() == MODE_CHUNKLESS:
+                return
+
             if chunk_training_mode() == MODE_PRODUCTION:
                 # raise RuntimeError(f"chunk_training_mode is {MODE_PRODUCTION} but no chunk_cache: {chunk_cache_path}")
 
@@ -379,7 +390,7 @@ class ChunkHistorian(object):
 
     def write_history(self, history, chunk_tag):
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         history_df = pd.DataFrame.from_dict(history)
 
@@ -418,7 +429,7 @@ class ChunkLedger(object):
 
     def audit(self, msg, bytes=0, rss=0, uss=0, from_rss_monitor=False):
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         MAX_OVERDRAFT = 0.2
 
@@ -483,7 +494,7 @@ class ChunkLedger(object):
                 assert False
             return elements, bytes
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         if df is None:
             elements, bytes = (0, 0)
@@ -511,7 +522,7 @@ class ChunkLedger(object):
 
     def check_local_hwm(self, hwm_trace_label, rss, uss, total_bytes):
 
-        assert chunk_training_mode() != MODE_PRODUCTION
+        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         from_rss_monitor = total_bytes is None
 
@@ -563,13 +574,18 @@ class ChunkLedger(object):
 
 def log_rss(trace_label, force=False):
 
+    if chunk_training_mode() == MODE_CHUNKLESS:
+        # no memory tracing at all in chunkless mode
+        return
+
     assert len(CHUNK_LEDGERS) > 0, f"log_rss called without current chunker."
 
     hwm_trace_label = f"{trace_label}.log_rss"
 
     if chunk_training_mode() == MODE_PRODUCTION:
-        trace_ticks = 0 if force else mem.MEM_TRACE_TICK_LEN
-        mem.trace_memory_info(hwm_trace_label, trace_ticks=trace_ticks)
+        # FIXME - this trace_memory_info call slows things down a lot so it is turned off for now
+        # trace_ticks = 0 if force else mem.MEM_TRACE_TICK_LEN
+        # mem.trace_memory_info(hwm_trace_label, trace_ticks=trace_ticks)
         return
 
     rss, uss = mem.trace_memory_info(hwm_trace_label)
@@ -582,10 +598,10 @@ def log_rss(trace_label, force=False):
 
 def log_df(trace_label, table_name, df):
 
-    assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
-
-    if chunk_training_mode() == MODE_PRODUCTION:
+    if chunk_training_mode() in (MODE_PRODUCTION, MODE_CHUNKLESS):
         return
+
+    assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
 
     op = 'del' if df is None else 'add'
     hwm_trace_label = f"{trace_label}.{op}.{table_name}"
@@ -624,19 +640,27 @@ class ChunkSizer(object):
     def __init__(self, chunk_tag, trace_label, num_choosers=0, chunk_size=0):
 
         self.depth = len(CHUNK_SIZERS) + 1
-        self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
 
-        if self.depth > 1:
-            # nested chunkers should be unchunked
-            assert chunk_size == 0
+        if chunk_training_mode() != MODE_CHUNKLESS:
+            if chunk_metric() == USS:
+                self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+            else:
+                self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
+                self.uss = 0
 
-            # if we are in a nested call, then we must be in the scope of active Ledger
-            # so any rss accumulated so far should be attributed to the parent active ledger
-            assert len(CHUNK_SIZERS) == len(CHUNK_LEDGERS)
-            parent = CHUNK_SIZERS[-1]
-            assert parent.chunk_ledger is not None
+            if self.depth > 1:
+                # nested chunkers should be unchunked
+                assert chunk_size == 0
 
-            log_rss(trace_label)  # give parent a complementary log_rss reading entering sub context
+                # if we are in a nested call, then we must be in the scope of active Ledger
+                # so any rss accumulated so far should be attributed to the parent active ledger
+                assert len(CHUNK_SIZERS) == len(CHUNK_LEDGERS)
+                parent = CHUNK_SIZERS[-1]
+                assert parent.chunk_ledger is not None
+
+                log_rss(trace_label)  # give parent a complementary log_rss reading entering sub context
+        else:
+            self.rss, self.uss = 0, 0
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label
@@ -679,7 +703,8 @@ class ChunkSizer(object):
 
     def close(self):
 
-        if ((self.depth == 1) or WRITE_SUBCHUNK_HISTORY) and (chunk_training_mode() != MODE_PRODUCTION):
+        if ((self.depth == 1) or WRITE_SUBCHUNK_HISTORY) and \
+                (chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)):
             _HISTORIAN.write_history(self.history, self.chunk_tag)
 
         _chunk_sizer = CHUNK_SIZERS.pop()
@@ -755,7 +780,14 @@ class ChunkSizer(object):
 
         prev_rss = self.rss
         prev_uss = self.uss
-        self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+
+        if chunk_training_mode() != MODE_PRODUCTION:
+
+            if chunk_metric() == USS:
+                self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
+            else:
+                self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
+                self.uss = 0
 
         self.headroom = self.available_headroom(self.uss if chunk_metric() == USS else self.rss)
 
@@ -826,13 +858,18 @@ class ChunkSizer(object):
 
         # input()
 
-        if chunk_training_mode() != MODE_PRODUCTION:
+        if chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS):
             self.cum_rows += self.rows_per_chunk
 
         return self.rows_per_chunk, estimated_number_of_chunks
 
     @contextmanager
     def ledger(self):
+
+        # don't do anything in chunkless mode
+        if chunk_training_mode() == MODE_CHUNKLESS:
+            yield
+            return
 
         mem_monitor = None
 
@@ -899,9 +936,18 @@ def chunk_log(trace_label, chunk_tag=None, base=False):
 
         yield
 
-        chunk_sizer.adaptive_rows_per_chunk(1)
+        if chunk_training_mode() != MODE_CHUNKLESS:
+            chunk_sizer.adaptive_rows_per_chunk(1)
 
     chunk_sizer.close()
+
+
+@contextmanager
+def chunk_log_skip():
+
+    yield
+
+    None
 
 
 def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None):
@@ -940,7 +986,8 @@ def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None)
 
             offset += rows_per_chunk
 
-            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
+            if chunk_training_mode() != MODE_CHUNKLESS:
+                rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
     chunk_sizer.close()
 
@@ -1034,7 +1081,8 @@ def adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, trace
             offset += rows_per_chunk
             alt_offset = alt_end
 
-            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
+            if chunk_training_mode() != MODE_CHUNKLESS:
+                rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
     chunk_sizer.close()
 
@@ -1074,6 +1122,7 @@ def adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, trace_label, chu
 
             offset += rows_per_chunk
 
-            rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
+            if chunk_training_mode() != MODE_CHUNKLESS:
+                rows_per_chunk, estimated_number_of_chunks = chunk_sizer.adaptive_rows_per_chunk(i)
 
     chunk_sizer.close()

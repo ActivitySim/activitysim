@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Software Development &mdash; ActivitySim 1.0.1 documentation</title>
+  <title>Software Development &mdash; ActivitySim 1.0.2 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                1.0.1
+                1.0.2
               </div>
             
           
@@ -299,14 +299,14 @@ typically does the following:</p>
 <p>The development version of ActivitySim can be installed as follows:</p>
 <ul class="simple">
 <li><p>Clone or fork the source from the <a class="reference external" href="https://github.com/activitysim/activitysim">GitHub repository</a></p></li>
-<li><p>Activate the correct conda environment if needed</p></li>
 <li><p>Navigate to your local activitysim git directory</p></li>
-<li><p>Run the command <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></p></li>
+<li><p>Create a development environment by running
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">env</span> <span class="pre">create</span> <span class="pre">--file=conda-environments/activitysim-dev.yml</span> <span class="pre">--name</span> <span class="pre">ASIM_DEV</span></code>.
+This will create a new conda environment named “ASIM_DEV” (change the name in
+the command if desired). ActivitySim will be installed in “editable” mode, so
+any changes you make in the code in your git directory will be reflected.</p></li>
+<li><p>Activate the new conda environment <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">ASIM_DEV</span></code></p></li>
 </ul>
-<p>The <code class="docutils literal notranslate"><span class="pre">develop</span></code> command is required in order to make changes to the
-source and see the results without reinstalling.  You may need to first uninstall the
-the pip installed version before installing the development version from source.  This is
-done with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">uninstall</span> <span class="pre">activitysim</span></code>.</p>
 </div>
 <div class="section" id="development-guidelines">
 <h2>Development Guidelines<a class="headerlink" href="#development-guidelines" title="Permalink to this headline">¶</a></h2>
@@ -337,23 +337,44 @@ done with <code class="docutils literal notranslate"><span class="pre">pip</span
 <p>We use <a class="reference external" href="https://guides.github.com/introduction/flow">GitHub Flow</a>.  The key points to
 our GitHub workflow are:</p>
 <ul class="simple">
-<li><p>The master branch contains the latest working/release version of the ActivitySim resources</p></li>
-<li><p>The master branch is protected and therefore can only be written to by the <a class="reference external" href="https://travis-ci.org/">Travis</a> CI system</p></li>
-<li><p>Work is done in an issue/feature branch (or a fork) and then pushed to a new branch</p></li>
-<li><p>The test system automatically runs the tests on the new branch</p></li>
-<li><p>If the tests pass, then a manual pull request can be approved to merge into master</p></li>
-<li><p>The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  See <a class="reference internal" href="#release-steps"><span class="std std-ref">Releases</span></a> for more information.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">master</span></code> branch contains the latest release version of the ActivitySim resources</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch contains new features or revisions planned for the next release.
+Generally, developers should not work directly in the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch.</p></li>
+<li><p>Work to implement new features or other revisions is done in an issue/feature branch
+(or a fork) and developers can open a pull request (PR) to merge their work into <code class="docutils literal notranslate"><span class="pre">develop</span></code>.</p></li>
+<li><p>The test system automatically runs the tests on PR’s.  PR’s do not necessarily need to pass
+all tests to be merged into <code class="docutils literal notranslate"><span class="pre">develop</span></code>, but any failures should be cause by known existing
+problems – PR’s should strive to not break anything beyond what was broken previously.</p></li>
+<li><p>Upon review and agreement by a consortium member or committer other than the author,
+and barring any objection raised by a consortium member, PR’s can be merged into the
+<code class="docutils literal notranslate"><span class="pre">develop</span></code> branch.</p></li>
+<li><p>If tests pass for the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch, new features are suitably documented, and on approval of
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/wiki/Governance#actions">a lazy majority of the PMC</a>,
+a repository administrator can approve a manual pull request to merge <code class="docutils literal notranslate"><span class="pre">develop</span></code> into <code class="docutils literal notranslate"><span class="pre">master</span></code>,
+and otherwise make a <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md">product release</a>.</p></li>
 </ul>
 </div>
 <div class="section" id="versioning">
 <h3>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h3>
-<p>ActivitySim uses the following <a class="reference external" href="http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html">versioning convention</a></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MAJOR</span><span class="o">.</span><span class="n">MINOR</span>
+<p>ActivitySim uses the following <a class="reference external" href="http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html">versioning convention</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MAJOR</span><span class="o">.</span><span class="n">MINOR</span><span class="o">.</span><span class="n">PATCH</span><span class="p">[</span><span class="o">.</span><span class="n">devN</span><span class="p">]</span>
 </pre></div>
 </div>
 <ul class="simple">
-<li><p>where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs (Application Program Interface) or ABIs (Application Binary Interface).</p></li>
-<li><p>MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.</p></li>
+<li><p>where MAJOR designates a major revision number for the software, like 2 or 3 for Python.
+Usually, raising a major revision number means that you are adding a lot of features,
+breaking backward-compatibility or drastically changing the APIs (Application Program
+Interface) or ABIs (Application Binary Interface).</p></li>
+<li><p>MINOR usually groups moderate changes to the software like bug fixes or minor improvements.
+Most of the time, end users can upgrade with no risks their software to a new minor release.
+In case an API changes, the end users will be notified with deprecation warnings. In other
+words, API and ABI stability is usually a promise between two minor releases.</p></li>
+<li><p>PATCH releases are made principally to address bugs or update non-core parts of the
+ActivitySim codebase (e.g. dependency requirements, distribution channels). End users
+should expect no changes at all in how the software works between two patch releases.</p></li>
+<li><p>DEVELOPMENT pre-releases are used to test and prepare integration with other external
+services that require a “release”. End users should not typically install or use a development
+release other than for a specific well-defined purpose.</p></li>
 </ul>
 </div>
 <div class="section" id="testing">
@@ -420,21 +441,9 @@ The script does the following:</p>
 </div>
 <div class="section" id="releases">
 <span id="release-steps"></span><h3>Releases<a class="headerlink" href="#releases" title="Permalink to this headline">¶</a></h3>
-<p>Before releasing a new version of ActivitySim, the following release checklist should be consulted:</p>
-<ul class="simple">
-<li><p>Create the required Anaconda environment</p></li>
-<li><p>Run all the examples, including the full scale examples</p></li>
-<li><p>Test the tutorial notebooks</p></li>
-<li><p>Build the package</p></li>
-<li><p>Install and run the package in a new Anaconda environment</p></li>
-<li><p>Build the documentation</p></li>
-<li><p>Run the tests</p></li>
-<li><p>Run pycodestyle</p></li>
-<li><p>Increment the package version number</p></li>
-<li><p>Update any necessary web links, such as switching from the develop branch to the master branch</p></li>
-</ul>
-<p>ActivitySim releases are manually uploaded to the <a class="reference external" href="https://pypi.python.org/pypi/activitysim">Python Package Index</a>
-(pypi) and also tagged as GitHub <a class="reference external" href="https://github.com/ActivitySim/activitysim/releases">releases</a>.</p>
+<p>With the agreement of the PMC, a project administrator will handle making releases, following the detailed
+steps outlined in the [HOW_TO_RELEASE](<a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md">https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md</a>)
+document.</p>
 </div>
 <div class="section" id="issues-and-support">
 <h3>Issues and Support<a class="headerlink" href="#issues-and-support" title="Permalink to this headline">¶</a></h3>

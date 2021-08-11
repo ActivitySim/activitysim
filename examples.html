@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Examples &mdash; ActivitySim 1.0.1 documentation</title>
+  <title>Examples &mdash; ActivitySim 1.0.2 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0.1
+                1.0.2
               </div>
             
           
@@ -967,8 +967,9 @@ is the main settings file for the model run.  This file includes:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code> - number of households to sample and simulate; comment out to simulate all households</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_hh_id</span></code> - trace household id; comment out for no trace</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">trace_od</span></code> - trace origin, destination pair in accessibility calculation; comment out for no trace</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - approximate amount of RAM in gigabytes to allocate to ActivitySim for batch processing choosers, see <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">chunk_training_mode</span></code> - training or production, see <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_training_mode</span></code> - disabled, training, production, or adaptive, see <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> - approximate amount of RAM in GBs to allocate to ActivitySim for batch processing choosers, see <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">chunk_method</span></code> - memory use measure such as hybrid_uss, see <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">checkpoints</span></code> - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">check_for_variability</span></code> - disable check for variability in an expression result debugging feature in order to speed-up runtime</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">log_alt_losers</span></code> - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives.  This feature slows down the model run and so it is recommended for debugging purposes only.</p></li>
@@ -1002,7 +1003,7 @@ is the main settings file for the model run.  This file includes:</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">read_skim_cache</span></code> - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">write_skim_cache</span></code> - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">cache_dir</span></code> - alternate dir to read/write skim cache (defaults to output_dir)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cache_dir</span></code> - alternate dir to read/write cache files (defaults to output_dir)</p></li>
 </ul>
 </div>
 <div class="section" id="sub-model-specification-files">
@@ -1423,11 +1424,14 @@ include the multiprocessing configuration settings via settings file inheritance
 </pre></div>
 </div>
 <p>The multiprocessing example also writes outputs to the output folder.</p>
-<p>The default multiprocessed example is configured to run with two processors and no chunking: <code class="docutils literal notranslate"><span class="pre">num_processes:</span> <span class="pre">2</span></code> and <code class="docutils literal notranslate"><span class="pre">chunk_size:</span> <span class="pre">0</span></code>.  Additional more performant
-configurations are included and commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example - <code class="docutils literal notranslate"><span class="pre">example_mtc_full</span></code> -
-was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> and
-<a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.  If the machine does not have enough RAM to solve all the choosers at once then chunking needs to
-be configured, as discussed below.</p>
+<p>The default multiprocessed example is configured to run with two processors and chunking training: <code class="docutils literal notranslate"><span class="pre">num_processes:</span> <span class="pre">2</span></code>,
+<code class="docutils literal notranslate"><span class="pre">chunk_size:</span> <span class="pre">0</span></code>, and <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">training</span></code>.  Additional more performant configurations are included and
+commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example
+- <code class="docutils literal notranslate"><span class="pre">example_mtc_full</span></code> - was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.
+The default setup runs with <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">training</span></code> since no chunk cache file is present. To run the example
+significantly faster, try <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">disabled</span></code> if the machine has sufficient RAM, or try
+<code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">production</span></code>.  To configure <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">production</span></code>, first configure chunking as
+discussed below. See <a class="reference internal" href="howitworks.html#multiprocessing"><span class="std std-ref">Multiprocessing</span></a> and <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">households_sample_size</span><span class="p">:</span> <span class="mi">0</span>
 <span class="n">num_processes</span><span class="p">:</span> <span class="mi">24</span>
 <span class="n">chunk_size</span><span class="p">:</span> <span class="mi">0</span>
@@ -1437,12 +1441,14 @@ be configured, as discussed below.</p>
 </div>
 <div class="section" id="configuring-chunking">
 <span id="id4"></span><h4>Configuring chunking<a class="headerlink" href="#configuring-chunking" title="Permalink to this headline">¶</a></h4>
-<p>As described in <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a>, to configure reasonable chunking behavior, ActivitySim must first be trained with the
-model setup and machine.  The steps to configure chunking behavior are:</p>
+<p>To configure chunking, ActivitySim must first be trained to determine reasonable chunking settings given the
+model setup and machine.  The steps to configure chunking are:</p>
 <ul class="simple">
-<li><p>Run the full scale model with <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">training</span></code>.  Set <code class="docutils literal notranslate"><span class="pre">num_processors</span></code> to about 80% of the avaiable logical processors and <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> to about 80% of the available RAM.  This will run the model and create the <code class="docutils literal notranslate"><span class="pre">chunk_cache.csv</span></code> file for reuse.</p></li>
+<li><p>Run the full scale model with <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">training</span></code>.  Set <code class="docutils literal notranslate"><span class="pre">num_processors</span></code> to about 80% of the available physical processors and <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> to about 80% of the available RAM.  This will run the model and create the <code class="docutils literal notranslate"><span class="pre">chunk_cache.csv</span></code> file in the outputcache directory for reuse.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">households_sample_size</span></code> for training chunking should be at least 1 / num_processors to provide sufficient data for training and the <code class="docutils literal notranslate"><span class="pre">chunk_method:</span> <span class="pre">hybrid_uss</span></code> typically performs best.</p></li>
 <li><p>Run the full scale model with <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">production</span></code>.  Experiment with different <code class="docutils literal notranslate"><span class="pre">num_processors</span></code> and <code class="docutils literal notranslate"><span class="pre">chunk_size</span></code> settings depending on desired runtimes and machine resources.</p></li>
 </ul>
+<p>See <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.  Users can run <code class="docutils literal notranslate"><span class="pre">chunk_training_mode:</span> <span class="pre">disabled</span></code> if the machine has an abundance of RAM for the model setup.</p>
 </div>
 </div>
 <div class="section" id="outputs">

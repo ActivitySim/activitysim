@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Getting Started &mdash; ActivitySim 1.0.1 documentation</title>
+  <title>Getting Started &mdash; ActivitySim 1.0.2 documentation</title>
   
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                1.0.1
+                1.0.2
               </div>
             
           
@@ -92,7 +92,10 @@
             
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#alternative-installation-methods">Alternative Installation Methods</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#run-the-primary-example">Run the Primary Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#try-the-notebooks">Try the Notebooks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hardware">Hardware</a><ul>
@@ -184,75 +187,95 @@
 </div>
 <div class="section" id="installation">
 <span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<ol class="arabic simple">
-<li><p>Install <a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda 64bit Python 3</a>.  It is best to use Anaconda as noted below with ActivitySim.</p></li>
-<li><p>If you access the internet from behind a firewall, then you need to configure your proxy server. To do so, create a .condarc file in your Anaconda installation folder, such as:</p></li>
-</ol>
+<p>1. It is recommended that you install and use a <em>conda</em> package manager
+for your system. One easy way to do so is by using <a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda 64bit Python 3</a>,
+although you should consult the <a class="reference external" href="https://www.anaconda.com/terms-of-service">terms of service</a>
+for this product and ensure you qualify (as of summer 2021, businesses and
+governments with over 200 employees do not qualify for free usage).  If you prefer
+a completely free open source <em>conda</em> tool, you can download and install the
+appropriate version of <a class="reference external" href="https://github.com/conda-forge/miniforge#miniforge3">Miniforge</a>.</p>
+<p>2. If you access the internet from behind a firewall, then you may need to
+configure your proxy server. To do so, create a <cite>.condarc</cite> file in your
+home installation folder, such as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
   <span class="n">http</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
   <span class="n">https</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
 <span class="n">ssl_verify</span><span class="p">:</span> <span class="n">false</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="3">
-<li><p>Create and activate an Anaconda environment (basically a Python install just for this project) using Anaconda Prompt or the terminal.</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asimtest</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.8</span>
+<p>3. Create a conda environment (basically a Python install just for this project)
+using Anaconda Prompt (on Windows) or the terminal (macOS or Linux):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If this command fails in July 2021, it may be because ActivitySim
+has not yet been fully integrated into the conda-forge repository.
+See “Alternative Installation Methods” below for a workaround using pip.</p>
+</div>
+<p>This command will create the environment and install all the dependencies
+required for running ActivitySim.  It is only necessary to create the environment
+once per machine, you do not need to (re)create the environment for each session.
+If you would also like to install other tools or optional dependencies, it is
+possible to do so by adding additional libraries to this command.  For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span> <span class="n">jupyterlab</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+</pre></div>
+</div>
+<p>This example installs a specific version of Python, version 3.9.  A similar
+approach can be used to install specific versions of other libraries as well,
+including ActivitySi, itself. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span><span class="o">=</span><span class="mf">1.0.2</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
+</pre></div>
+</div>
+<p>Additional libraries can also be installed later.  You may want to consider these
+tools for certain development tasks:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># packages for testing</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
 
-<span class="c1">#Windows</span>
-<span class="n">activate</span> <span class="n">asimtest</span>
+<span class="c1"># packages for building documentation</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
 
-<span class="c1">#Mac</span>
-<span class="n">source</span> <span class="n">activate</span> <span class="n">asimtest</span>
+<span class="c1"># packages for estimation integration</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
+
+<span class="c1"># packages for example notebooks</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span> <span class="n">matplotlib</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
 </pre></div>
 </div>
 <ol class="arabic simple" start="4">
-<li><p>Get and install other required libraries on the activated conda Python environment using <a class="reference external" href="https://pypi.org/project/pip">pip</a> or <a class="reference external" href="https://docs.conda.io/">conda</a>.  Conda is preferred but some packages are only on pip.</p></li>
+<li><p>To use the <strong>asim</strong> environment, you need to activate it:</p></li>
 </ol>
+<blockquote>
+<div><p>conda activate asim</p>
+</div></blockquote>
+<p>The activation of the correct environment needs to be done every time you
+start a new session (e.g. opening a new Anaconda Prompt window).</p>
+<div class="section" id="alternative-installation-methods">
+<h3>Alternative Installation Methods<a class="headerlink" href="#alternative-installation-methods" title="Permalink to this headline">¶</a></h3>
+<p>If you prefer to install ActivitySim without conda, it is possible to
+do so with pip, although you may find it more difficult to get all of the
+required dependencies installed correctly.  If you can use conda for
+the dependencies, you can get most of the libraries you need from there:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># required packages for running ActivitySim</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span> <span class="n">pyarrow</span> <span class="n">numba</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">pytables</span> <span class="n">pyyaml</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">openmatrix</span> <span class="n">zbox</span> <span class="n">requests</span>
+<span class="n">conda</span> <span class="n">install</span> <span class="n">cytoolz</span> <span class="n">numpy</span> <span class="n">pandas</span> <span class="n">psutil</span> <span class="n">pyarrow</span> <span class="n">numba</span> <span class="n">pytables</span> <span class="n">pyyaml</span> <span class="n">openmatrix</span> <span class="n">requests</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
 
-<span class="c1"># optional required packages for testing and building documentation</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-
-<span class="c1"># optional required packages for estimation integration</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">larch</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-
-<span class="c1"># optional required packages for example notebooks</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span> <span class="n">matplotlib</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span>
+<span class="c1"># required for ActivitySim version 1.0.1 and earlier</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">zbox</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="5">
-<li><p>If you access the internet from behind a firewall, then you need to configure your proxy server when downloading packages.</p></li>
-</ol>
-<p>For <cite>conda</cite> for example, create a <cite>.condarc</cite> file in your Anaconda installation folder with the following:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">proxy_servers</span><span class="p">:</span>
-  <span class="n">http</span><span class="p">:</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
-  <span class="n">https</span><span class="p">:</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>
-<span class="n">ssl_verify</span><span class="p">:</span> <span class="n">false</span>
+<p>And then simply install just activitysim with pip.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
 </pre></div>
 </div>
-<p>For <cite>pip</cite> for example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">trusted</span><span class="o">-</span><span class="n">host</span> <span class="n">pypi</span><span class="o">.</span><span class="n">python</span><span class="o">.</span><span class="n">org</span> <span class="o">--</span><span class="n">proxy</span><span class="o">=</span><span class="n">myproxy</span><span class="o">.</span><span class="n">org</span><span class="p">:</span><span class="mi">8080</span>  <span class="n">openmatrix</span>
+<p>If you are using a firewall you may need to add <code class="docutils literal notranslate"><span class="pre">--trusted-host</span> <span class="pre">pypi.python.org</span> <span class="pre">--proxy=myproxy.org:8080</span></code> to this command.</p>
+<p>For development work, can also install ActivitySim directly from source. Clone
+the ActivitySim repository, and then from within that directory run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span> <span class="o">-</span><span class="n">e</span>
 </pre></div>
 </div>
-<ol class="arabic simple" start="6">
-<li><p>Get and install the ActivitySim package on the activated conda Python environment:</p></li>
-</ol>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#new install</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span>
-
-<span class="c1">#update to a new release</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">U</span> <span class="n">activitysim</span>
-
-<span class="c1">#install a specific (older) version</span>
-<span class="n">pip</span> <span class="n">install</span> <span class="n">activitysim</span><span class="o">==</span><span class="mf">0.9.5.2</span>
-</pre></div>
-</div>
+<p>The “-e” will install in editable mode, so any changes you make to the ActivitySim
+code will also be reflected in your installation.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim is a 64bit Python 3 library that uses a number of packages from the
@@ -267,9 +290,10 @@ things, including creating <a class="reference external" href="http://conda.pyda
 way to work with multiple versions of Python on one machine.  Using conda
 environments keeps multiple Python setups from conflicting with one another.</p>
 <p>You need to activate the activitysim environment each time you start a new command
-session.  You can remove an environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asimtest</span> <span class="pre">--all</span></code> and
+session.  You can remove an environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">-n</span> <span class="pre">asim</span> <span class="pre">--all</span></code> and
 check the current active environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
 <p>For more information on Anaconda, see Anaconda’s <a class="reference external" href="https://docs.anaconda.com/anaconda/user-guide/getting-started">getting started</a> guide.</p>
+</div>
 </div>
 </div>
 <div class="section" id="run-the-primary-example">
@@ -278,7 +302,7 @@ check the current active environment with <code class="docutils literal notransl
 <p>To setup and run the primary example (see <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>), do the following:</p>
 <ul class="simple">
 <li><p>Open a command prompt</p></li>
-<li><p>Activate the Anaconda environment with ActivitySim installed (i.e. asimtest)</p></li>
+<li><p>Activate the conda environment with ActivitySim installed (i.e. <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">asim</span></code>)</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-e</span> <span class="pre">example_mtc</span> <span class="pre">-d</span> <span class="pre">test_example_mtc</span></code> to copy the very small MTC example to a new test_example_mtc directory</p></li>
 <li><p>Change to the test_example_mtc directory</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-c</span> <span class="pre">configs</span> <span class="pre">-o</span> <span class="pre">output</span> <span class="pre">-d</span> <span class="pre">data</span></code> to run the example</p></li>

@@ -6,7 +6,6 @@ import os
 
 import numpy as np
 import pandas as pd
-from zbox import toolz as tz, gen
 
 from activitysim.core import simulate
 from activitysim.core import pipeline

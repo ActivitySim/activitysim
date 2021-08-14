@@ -112,14 +112,13 @@ Development Install
 The development version of ActivitySim can be installed as follows:
 
 * Clone or fork the source from the `GitHub repository <https://github.com/activitysim/activitysim>`__
-* Activate the correct conda environment if needed
 * Navigate to your local activitysim git directory
-* Run the command ``python setup.py develop``
-
-The ``develop`` command is required in order to make changes to the 
-source and see the results without reinstalling.  You may need to first uninstall the
-the pip installed version before installing the development version from source.  This is 
-done with ``pip uninstall activitysim``.
+* Create a development environment by running
+  ``conda env create --file=conda-environments/activitysim-dev.yml --name ASIM_DEV``.
+  This will create a new conda environment named "ASIM_DEV" (change the name in
+  the command if desired). ActivitySim will be installed in "editable" mode, so
+  any changes you make in the code in your git directory will be reflected.
+* Activate the new conda environment ``conda activate ASIM_DEV``
 
 
 Development Guidelines
@@ -154,25 +153,46 @@ Working Together in the Repository
 We use `GitHub Flow <https://guides.github.com/introduction/flow>`__.  The key points to 
 our GitHub workflow are:
 
-* The master branch contains the latest working/release version of the ActivitySim resources
-* The master branch is protected and therefore can only be written to by the `Travis <https://travis-ci.org/>`__ CI system
-* Work is done in an issue/feature branch (or a fork) and then pushed to a new branch
-* The test system automatically runs the tests on the new branch
-* If the tests pass, then a manual pull request can be approved to merge into master
-* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  See :ref:`release_steps` for more information.
+* The ``master`` branch contains the latest release version of the ActivitySim resources
+* The ``develop`` branch contains new features or revisions planned for the next release.
+  Generally, developers should not work directly in the ``develop`` branch.
+* Work to implement new features or other revisions is done in an issue/feature branch
+  (or a fork) and developers can open a pull request (PR) to merge their work into ``develop``.
+* The test system automatically runs the tests on PR's.  PR's do not necessarily need to pass
+  all tests to be merged into ``develop``, but any failures should be cause by known existing
+  problems -- PR's should strive to not break anything beyond what was broken previously.
+* Upon review and agreement by a consortium member or committer other than the author,
+  and barring any objection raised by a consortium member, PR's can be merged into the
+  ``develop`` branch.
+* If tests pass for the ``develop`` branch, new features are suitably documented, and on approval of
+  `a lazy majority of the PMC <https://github.com/ActivitySim/activitysim/wiki/Governance#actions>`__,
+  a repository administrator can approve a manual pull request to merge ``develop`` into ``master``,
+  and otherwise make a `product release <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__.
 
 
 Versioning
 ~~~~~~~~~~
 
-ActivitySim uses the following `versioning convention <http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html>`__
+ActivitySim uses the following `versioning convention <http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html>`__:
 
 ::
 
-  MAJOR.MINOR
+  MAJOR.MINOR.PATCH[.devN]
 
-* where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs (Application Program Interface) or ABIs (Application Binary Interface).
-* MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.
+* where MAJOR designates a major revision number for the software, like 2 or 3 for Python.
+  Usually, raising a major revision number means that you are adding a lot of features,
+  breaking backward-compatibility or drastically changing the APIs (Application Program
+  Interface) or ABIs (Application Binary Interface).
+* MINOR usually groups moderate changes to the software like bug fixes or minor improvements.
+  Most of the time, end users can upgrade with no risks their software to a new minor release.
+  In case an API changes, the end users will be notified with deprecation warnings. In other
+  words, API and ABI stability is usually a promise between two minor releases.
+* PATCH releases are made principally to address bugs or update non-core parts of the
+  ActivitySim codebase (e.g. dependency requirements, distribution channels). End users
+  should expect no changes at all in how the software works between two patch releases.
+* DEVELOPMENT pre-releases are used to test and prepare integration with other external
+  services that require a "release". End users should not typically install or use a development
+  release other than for a specific well-defined purpose.
 
 Testing
 ~~~~~~~
@@ -258,21 +278,10 @@ GitHub automatically publishes the gh-pages branch at https://activitysim.github
 Releases
 ~~~~~~~~
 
-Before releasing a new version of ActivitySim, the following release checklist should be consulted:
+With the agreement of the PMC, a project administrator will handle making releases, following the detailed
+steps outlined in the [HOW_TO_RELEASE](https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md)
+document.
 
-* Create the required Anaconda environment
-* Run all the examples, including the full scale examples
-* Test the tutorial notebooks
-* Build the package
-* Install and run the package in a new Anaconda environment
-* Build the documentation
-* Run the tests
-* Run pycodestyle
-* Increment the package version number
-* Update any necessary web links, such as switching from the develop branch to the master branch
-
-ActivitySim releases are manually uploaded to the `Python Package Index <https://pypi.python.org/pypi/activitysim>`__  
-(pypi) and also tagged as GitHub `releases <https://github.com/ActivitySim/activitysim/releases>`__.
 
 Issues and Support
 ~~~~~~~~~~~~~~~~~~

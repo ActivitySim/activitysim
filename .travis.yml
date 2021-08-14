@@ -5,68 +5,102 @@ env:
   global:
    # GH_TOKEN ActivitySim/activitysim public_repo token
   - secure: WZeCAmI08hBRgtVWUlerfizvSpOVlBxQDa/Z6HJiDUlIXdSAOIi7TAwnluOgs3lHbSqACegbLCU9CyIQa/ytwmmuwzltkSQN14EcnKea0bXyygd8DFdx4x8st8M3a4nh2svgp4BDM9PCu6T1XIZ1rYM46JsKzNk9X8GpWOVN498=
-  jobs:
-   # Add new TEST_SUITE jobs as needed via Travis build matrix expansion
-  - TEST_SUITE=activitysim/abm/models
-  - TEST_SUITE=activitysim/abm/test
-  - TEST_SUITE=activitysim/cli
-  - TEST_SUITE=activitysim/core
-  - TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_DEPENDS="larch>=5.5.3 -c conda-forge"
-  - TEST_SUITE=activitysim/examples/example_mtc/test
-  - TEST_SUITE=activitysim/examples/example_multiple_zone/test
-  - TEST_SUITE=activitysim/examples/example_marin/test
-  - TEST_SUITE=activitysim/examples/example_arc/test
-  - TEST_SUITE=activitysim/examples/example_semcog/test
-  - TEST_SUITE=activitysim/examples/example_psrc/test
-  - TEST_SUITE=activitysim/examples/example_sandag/test
+  - TEST_ENV=activitysim-test
+
+jobs:
+  include:
+    # Add new TEST_SUITE jobs as needed via Travis build matrix expansion
+    # define an alternative TEST_ENV to add special dependencies for particular tests
+    # Test suites are arranged in groups; all tests in a group must pass before
+    # the next stage group can begin.
+
+    - stage: Core Functionality
+      env: TEST_SUITE=activitysim/abm/models
+    - env: TEST_SUITE=activitysim/abm/test
+    - env: TEST_SUITE=activitysim/cli
+    - env: TEST_SUITE=activitysim/core
+
+    - stage: Examples
+      name: "MTC Example"
+      env: TEST_SUITE=activitysim/examples/example_mtc/test
+    - name: "Multizone Example"
+      env: TEST_SUITE=activitysim/examples/example_multiple_zone/test
+    - name: "Marin Example"
+      env: TEST_SUITE=activitysim/examples/example_marin/test
+    - name: "ARC Example"
+      env: TEST_SUITE=activitysim/examples/example_arc/test
+    - name: "SEMCOG Example"
+      env: TEST_SUITE=activitysim/examples/example_semcog/test
+    - name: "PSRC Example"
+      env: TEST_SUITE=activitysim/examples/example_psrc/test
+    - name: "SANDAG Example"
+      env: TEST_SUITE=activitysim/examples/example_sandag/test
+
+    - stage: Estimation Mode
+      name: "Larch Test"
+      env: TEST_SUITE=activitysim/estimation/test/test_larch_estimation.py TEST_ENV="activitysim-test-larch"
+
+    - stage: Deployment
+      name: Documentation
+      script:
+        - coveralls
+        # Build docs
+        - mamba install sphinx numpydoc sphinx_rtd_theme
+        - cd docs
+        - make clean
+        - make html
+        - touch _build/html/.nojekyll
+      deploy:
+        - provider: pages
+          local_dir: docs/_build/html
+          skip_cleanup: true
+          github_token: $GH_TOKEN
+          keep_history: true
+          on:
+            branch: master
+    - name: "PyPI Deployment"
+      script: skip     # do not want to rerun any tests
+      deploy:
+        - provider: pypi
+          username: "__token__"
+          password: "$PYPI_AUTH_TOKEN"
+          skip_existing: true
+          on:
+            branch: [ master ]
 
 python:
-  - '3.7'
-  - '3.8'
+  - '3.9'
 
 install:
-- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-- bash miniconda.sh -b -p $HOME/miniconda
+- wget -O Mambaforge.sh https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh
+- bash Mambaforge.sh -b -p $HOME/miniconda
 - source "$HOME/miniconda/etc/profile.d/conda.sh"
 - hash -r
 - conda config --set always_yes yes --set changeps1 no
-- conda update -q conda
-- conda info -a
-- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
-- conda activate test-environment
-- conda install pytest pytest-cov coveralls pycodestyle $TEST_DEPENDS
-- pip install pytest-regressions
+- mamba update -q mamba
+- mamba info -a
+# write travis python version into selected test environment definition file
+- sed -e "s/\${TRAVIS_PYTHON_VERSION}/${TRAVIS_PYTHON_VERSION}/" conda-environments/${TEST_ENV}.yml > conda-env.yml
+# create test environment in one pass
+- mamba env create -n asimtest --file conda-env.yml
+- conda activate asimtest
 - pip install .
 - pip freeze
 
 script:
+# This is the "default" script used for each test suite, unless overridden with a "script" in the jobs above.
 # build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
 - python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
 - python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
-- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-- python /home/travis/miniconda/envs/test-environment/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
 # pycodestyle
 - pycodestyle activitysim
 # run specific TEST_SUITE job on travis to avoid job max time
 - travis_wait 50 py.test $TEST_SUITE --cov activitysim --cov-report term-missing --durations=0
-
-after_success:
 - coveralls
-# Build docs
-- pip install sphinx numpydoc sphinx_rtd_theme
-- cd docs
-- make clean
-- make html
-- touch _build/html/.nojekyll
 
-deploy:
-  provider: pages
-  local_dir: docs/_build/html
-  skip_cleanup: true
-  github_token: $GH_TOKEN
-  keep_history: true
-  on:
-    branch: master
+
 
 notifications:
   slack:

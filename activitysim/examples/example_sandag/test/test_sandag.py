@@ -41,7 +41,7 @@ def test_sandag():
         regress_tours_df = pd.read_csv(test_path(f'regress/final_{zone}_zone_tours.csv'))
         tours_df = pd.read_csv(test_path(f'output/final_{zone}_zone_tours.csv'))
         print(f"regress tours")
-        pdt.assert_frame_equal(tours_df, regress_tours_df)
+        pdt.assert_frame_equal(tours_df, regress_tours_df), "regress tours"
 
         # ## regress trips
         regress_trips_df = pd.read_csv(test_path(f'regress/final_{zone}_zone_trips.csv'))

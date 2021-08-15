@@ -4,8 +4,6 @@ multiprocess: True
 
 households_sample_size: 0
 
-chunk_size: 11000000000
-
 # raise error if any sub-process fails without waiting for others to complete
 # (Shadow pricing requires fail_fast setting in multiprocessing mode)
 fail_fast: True

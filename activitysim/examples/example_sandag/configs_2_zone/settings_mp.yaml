@@ -10,7 +10,6 @@ use_shadow_pricing: False
 
 # - full sample - 1605264 households
 households_sample_size:  0
-chunk_size:  20000000000
 
 # raise error if any sub-process fails without waiting for others to complete
 fail_fast: True

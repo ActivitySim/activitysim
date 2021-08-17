@@ -1,10 +1,10 @@
 inherit_settings: True
 
 # treat warnings as errors
-strict: True
+strict: False
 
 # number of households to simulate
-households_sample_size: 50
+households_sample_size: 30
 chunk_size: 0
 
 # - shadow pricing global switches
@@ -17,7 +17,7 @@ want_dest_choice_sample_tables: False
 # global switch to turn on or off presampling of destination alternatives at TAZ level (multizone models only)
 want_dest_choice_presampling: True
 
-#cleanup_pipeline_after_run: True
+cleanup_pipeline_after_run: True
 
 output_tables:
   h5_store: False

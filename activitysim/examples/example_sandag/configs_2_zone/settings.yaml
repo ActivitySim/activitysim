@@ -1,13 +1,8 @@
-#inherit_settings: True
-
-# activitysim run -c configs -d data -o output
-
+inherit_settings: True
 
 # number of households to simulate
 # simulate all households
 households_sample_size: 0
-
-chunk_size: 20000000000
 
 # set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False
@@ -100,9 +95,6 @@ input_table_list:
       - TOPOLOGY
       - TERMINAL
 #      - access_dist_transit
-
-# to resume after last successful checkpoint, specify resume_after: _
-#resume_after: trip_scheduling
 
 models:
   - initialize_landuse

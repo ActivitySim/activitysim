@@ -1,19 +1,12 @@
 inherit_settings: settings.yaml
 
 multiprocess: True
-
 households_sample_size: 0
+num_processes: 28
 
 # raise error if any sub-process fails without waiting for others to complete
 # (Shadow pricing requires fail_fast setting in multiprocessing mode)
 fail_fast: True
-
-# 32 processor RSG modelling server with 64 logical processors
-# set MKL_NUM_THREADS=1
-# echo %MKL_NUM_THREADS%
-num_processes: 28
-#resume_after: trip_purpose
-# 28 processors and chunksize of 10000000000 uses 190 GB of RAM for accessibility
 
 multiprocess_steps:
   - name: mp_initialize
@@ -23,8 +16,6 @@ multiprocess_steps:
     slice:
       tables:
         - accessibility
-      # don't slice any tables not explicitly listed above in slice.tables
-      except: True
   - name: mp_los
     begin: initialize_los
   - name: mp_tvpb

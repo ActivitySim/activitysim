@@ -1,7 +1,5 @@
 inherit_settings: True
 
-trace_hh_id:
-
 # input tables
 input_table_list:
   - tablename: households

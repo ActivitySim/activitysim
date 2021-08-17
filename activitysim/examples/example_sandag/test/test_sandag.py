@@ -69,7 +69,7 @@ def test_sandag():
                     '-o', test_path('output')]
 
         if multiprocess:
-            run_args = run_args + ['-s', 'settings_mp']
+            run_args = run_args + ['-s', 'settings_mp.yaml']
 
         subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
 

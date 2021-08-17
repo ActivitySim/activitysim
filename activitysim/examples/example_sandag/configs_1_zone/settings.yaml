@@ -1,3 +1,5 @@
+inherit_settings: True
+
 # input tables
 #
 # activitysim uses "well-known" index and foreign key names for imported tables (e.g. households, persons, land_use)
@@ -117,11 +119,7 @@ want_dest_choice_sample_tables: False
 trace_hh_id:
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
-# trace_od: [5, 11]
 trace_od:
-
-# to resume after last successful checkpoint, specify resume_after: _
-#resume_after: trip_scheduling
 
 models:
   - initialize_landuse

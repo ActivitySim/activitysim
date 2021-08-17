@@ -11,7 +11,7 @@ read_skim_cache: False
 write_skim_cache: False
 
 # rebuild and overwrite existing tap_tap_utilities cache
-rebuild_tvpb_cache: False
+rebuild_tvpb_cache: True
 
 # write a csv version of tvpb cache for tracing when checkpointing cache.
 # (writes csv file when writing/checkpointing cache i.e. when cached changed)

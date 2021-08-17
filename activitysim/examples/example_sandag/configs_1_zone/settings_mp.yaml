@@ -16,15 +16,7 @@ num_processes: 28
 # not recommended or supported for multiprocessing
 want_dest_choice_sample_tables: False
 
-#read_skim_cache: True
 write_skim_cache: False
-
-# - tracing
-#trace_hh_id: 1681
-trace_od:
-
-# to resume after last successful checkpoint, specify resume_after: _
-#resume_after: cdap_simulate
 
 models:
   ### mp_initialize step

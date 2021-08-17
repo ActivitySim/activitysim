@@ -1,24 +1,19 @@
 inherit_settings: settings.yaml
 
-# set MKL_NUM_THREADS=1
-# activitysim run -c configs_local -c configs -s settings_mp.yaml -o output_mp_local
-
 # turn shadow_pricing on and off for all models (e.g. school and work)
 # shadow pricing is deprecated for less than full samples
 # see shadow_pricing.yaml for additional settings
 use_shadow_pricing: False
 
-# - full sample - 1605264 households
-households_sample_size:  0
+households_sample_size: 0
+multiprocess: True
+num_processes: 28
 
 # raise error if any sub-process fails without waiting for others to complete
 fail_fast: True
 
 # presampling
 want_dest_choice_presampling: True
-
-multiprocess: True
-num_processes: 28
 
 multiprocess_steps:
   - name: mp_initialize
@@ -28,10 +23,6 @@ multiprocess_steps:
     slice:
       tables:
         - accessibility
-      # don't slice any tables not explicitly listed above in slice.tables
-      except: True
-    num_processes: 10
-    chunk_size: 2500000000
   - name: mp_households
     begin: school_location
     slice:

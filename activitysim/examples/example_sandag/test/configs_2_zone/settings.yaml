@@ -4,7 +4,7 @@ inherit_settings: True
 strict: True
 
 # number of households to simulate
-households_sample_size:  30
+households_sample_size: 30
 chunk_size: 0
 
 # - shadow pricing global switches

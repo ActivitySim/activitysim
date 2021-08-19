@@ -86,18 +86,12 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
     offset_map = None
     for mapping_name in omx_in.listMappings():
         _offset_map = np.asanyarray(omx_in.mapentries(mapping_name))
-        if offset_map is not None or not (_offset_map == np.arange(1, len(_offset_map) + 1)).all():
-            assert offset_map is None or (offset_map == _offset_map).all()
-            offset_map = _offset_map
+        offset_map = _offset_map
 
-    if offset_map is not None:
+    om = pd.Series(offset_map)
+    om = om[om.isin(zones.values)]
+    indexes = om.index.values
 
-        om = pd.Series(offset_map)
-        om = om[om.isin(zones.values)]
-        indexes = om.index.values
-
-    else:
-        indexes = zones.index.tolist()  # index of TAZ in skim (zero-based, no mapping)
     labels = zones.values  # TAZ zone_ids in omx index order
 
     # create
@@ -260,4 +254,4 @@ to_csv(persons, "persons.csv")
 # skims
 
 crop_omx('taz_skims', taz.TAZ, num_outfiles=(4 if segment_name == 'full' else 1))
-crop_omx('tap_skims', taps.TAP, num_outfiles=1)
+crop_omx('tap_skims', taps.TAP, num_outfiles=(4 if segment_name == 'full' else 1))

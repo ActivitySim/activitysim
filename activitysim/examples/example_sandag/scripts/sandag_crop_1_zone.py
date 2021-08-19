@@ -7,7 +7,7 @@ import argparse
 
 segments = {
     'test': (2185, 2240),  # arbitrary
-    'full': (0, 5000),
+    'full': (0, 100000),
 }
 
 parser = argparse.ArgumentParser(description='crop SANDAG 1 zone raw_data')
@@ -126,7 +126,6 @@ omx_in = omx.open_file(input_path(omx_infile_name))
 print(f"omx_in shape {omx_in.shape()}")
 
 
-# assert not omx_in.listMappings()
 zone = land_use.sort_values('TAZ')[['TAZ']]
 zone.index = zone.TAZ - 1
 zone_indexes = zone.index.tolist()  # index of TAZ in skim (zero-based, no mapping)
@@ -134,7 +133,7 @@ zone_labels = zone.TAZ.tolist()  # TAZ in omx index order
 
 
 # create
-num_outfiles = 4 if segment_name == 'full' else 1
+num_outfiles = 6 if segment_name == 'full' else 1
 if num_outfiles == 1:
     omx_out = [omx.open_file(output_path(f"skims.omx"), 'w')]
 else:

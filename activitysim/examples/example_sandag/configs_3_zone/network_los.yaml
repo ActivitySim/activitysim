@@ -23,7 +23,7 @@ taz_skims: taz_skims*.omx
 # we require that skims for all tap_tap sets have unique names
 # and can therefor share a single skim_dict without name collision
 # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
-tap_skims: tap_skims.omx
+tap_skims: tap_skims*.omx
 
 maz: maz.csv
 

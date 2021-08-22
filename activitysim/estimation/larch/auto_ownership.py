@@ -5,10 +5,11 @@ import yaml
 from typing import Collection
 from larch.util import Dict
 
+from .simple_simulate import simple_simulate_data
+
 from .general import (
     remove_apostrophes,
     apply_coefficients,
-    simple_simulate_data,
     dict_of_linear_utility_from_spec,
 )
 from larch import Model, DataFrames, P, X

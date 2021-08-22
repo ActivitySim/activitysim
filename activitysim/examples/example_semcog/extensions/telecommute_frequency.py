@@ -13,7 +13,7 @@ from activitysim.core import expressions
 
 from activitysim.abm.models.util import estimation
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("activitysim")
 
 
 @inject.step()
@@ -26,9 +26,6 @@ def telecommute_frequency(
     '1 day per week', '2 to 3 days per week' and '4 days per week'. This model
     reflects the choices of people who prefer a combination of working from home and
     office during a week.
-
-    The main interface to the telecommute frequency model is the telecommute_frequency() function.
-    This function is registered as an orca step in the example Pipeline.
     """
 
     trace_label = 'telecommute_frequency'

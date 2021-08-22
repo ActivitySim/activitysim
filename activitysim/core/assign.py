@@ -11,7 +11,6 @@ import pandas as pd
 
 from activitysim.core import util
 from activitysim.core import config
-from activitysim.core import expressions
 from activitysim.core import pipeline
 from activitysim.core import chunk
 from activitysim.core import inject

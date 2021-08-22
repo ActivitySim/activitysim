@@ -46,15 +46,15 @@ def memo(tag, console=False, disable_gc=True):
         if disable_gc:
             _gc.disable()
 
-    previous_mem = psutil.Process(os.getpid()).memory_info().rss
+    previous_mem = psutil.Process().memory_info().rss
     try:
         yield
     finally:
         elapsed_time = time.time() - t0
 
-        current_mem = (psutil.Process(os.getpid()).memory_info().rss)
+        current_mem = (psutil.Process().memory_info().rss)
         marginal_mem = current_mem - previous_mem
-        mem_str = f"net {tracing.si_units(marginal_mem)} ({str(marginal_mem)}) total {tracing.si_units(current_mem)}"
+        mem_str = f"net {util.GB(marginal_mem)} ({util.INT(marginal_mem)}) total {util.GB(current_mem)}"
 
         if gc_was_enabled and disable_gc:
             _gc.enable()
@@ -62,9 +62,9 @@ def memo(tag, console=False, disable_gc=True):
             _gc.collect()
 
         if console:
-            print(f"MEMO {tag} Time: {tracing.si_units(elapsed_time, kind='s')} Memory: {mem_str} ")
+            print(f"MEMO {tag} Time: {util.SEC(elapsed_time)} Memory: {mem_str} ")
         else:
-            logger.debug(f"MEM  {tag} {mem_str} in {tracing.si_units(elapsed_time, kind='s')}")
+            logger.debug(f"MEM  {tag} {mem_str} in {util.SEC(elapsed_time)}")
 
         MEMO_STACK.pop()
 
@@ -89,12 +89,12 @@ class TVPBCache(object):
     @property
     def cache_path(self):
         file_type = 'mmap'
-        return os.path.join(self.network_los.get_cache_dir(), f'{self.cache_tag}.{file_type}')
+        return os.path.join(config.get_cache_dir(), f'{self.cache_tag}.{file_type}')
 
     @property
     def csv_trace_path(self):
         file_type = 'csv'
-        return os.path.join(self.network_los.get_cache_dir(), f'{self.cache_tag}.{file_type}')
+        return os.path.join(config.get_cache_dir(), f'{self.cache_tag}.{file_type}')
 
     def cleanup(self):
         """
@@ -148,6 +148,14 @@ class TVPBCache(object):
         elif os.path.isfile(self.cache_path):
             # single process ought have created a precomputed fully_populated STATIC file
             data = np.memmap(self.cache_path, dtype=DTYPE_NAME, mode='r')
+
+            # FIXME - why leave memmap open - maybe should copy since it will be read into memory when accessed anyway
+            # mm_data = np.memmap(self.cache_path, dtype=DTYPE_NAME, mode='r')
+            # data = np.empty_like(mm_data)
+            # np.copyto(data, mm_data)
+            # mm_data._mmap.close()
+            # del mm_data
+
             logger.info(f"TVBPCache.open {self.cache_tag} read fully_populated data array from mmap file")
         else:
             raise RuntimeError(f"Pathbuilder cache not found. Did you forget to run initialize tvpb?"
@@ -212,7 +220,7 @@ class TVPBCache(object):
 
         csz = buffer_size * dtype.itemsize
         logger.info(f"TVPBCache.allocate_data_buffer allocating data buffer "
-                    f"shape {shape} buffer_size {buffer_size} total size: {csz} ({tracing.si_units(csz)})")
+                    f"shape {shape} buffer_size {util.INT(buffer_size)} total size: {util.INT(csz)} ({util.GB(csz)})")
 
         if shared:
             if dtype_name == 'float64':
@@ -269,7 +277,7 @@ class TVPBCache(object):
         return shared data buffer previously allocated by allocate_data_buffer and injected mp_tasks.run_simulation
         Returns
         -------
-            either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
+        either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
         """
         data_buffers = inject.get_injectable('data_buffers', None)
         assert self.cache_tag in data_buffers  # internal error

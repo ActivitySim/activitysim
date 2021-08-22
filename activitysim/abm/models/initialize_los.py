@@ -110,7 +110,6 @@ def initialize_los(network_los):
                 with lock_data(lock):
                     np.copyto(data, np.nan)
 
-
 def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):
     """
     rows_per_chunk calculator for trip_purpose
@@ -174,19 +173,25 @@ def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, 
     # get od skim_offset dataframe with uid index corresponding to scalar_attributes
     choosers_df = uid_calculator.get_od_dataframe(scalar_attributes)
 
-    row_size = chunk_size and initialize_tvpb_calc_row_size(choosers_df, network_los, trace_label)
+    # choosers_df is pretty big and was custom made for compute_utilities but we don't need to chunk_log it
+    # since it is created outside of adaptive_chunked_choosers and so will show up in baseline
+    assert not chunk.chunk_logging()  # otherwise we should chunk_log this
+
+    chunk_tag = 'initialize_tvpb'  # all attribute_combinations can use same cached data for row_size calc
+
     for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag):
 
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
-        # (call log_df from inside yield loop so it is visible to adaptive_chunked_choosers chunk_log)
-        chunk.log_df(trace_label, 'choosers_df', choosers_df)
+        assert chooser_chunk._is_view  # otherwise copying it is wasteful
+        chooser_chunk = chooser_chunk.copy()
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
 
         # add any attribute columns specified as column attributes in settings (the rest will be scalars in locals_dict)
         for attribute_name in attributes_as_columns:
             chooser_chunk[attribute_name] = scalar_attributes[attribute_name]
 
-        chunk.log_df(trace_label, 'chooser_chunk', chooser_chunk)
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
 
         utilities_df = \
             pathbuilder.compute_utilities(network_los,
@@ -203,6 +208,9 @@ def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, 
 
         data[chooser_chunk.index.values, :] = utilities_df.values
 
+        del chooser_chunk
+        chunk.log_df(trace_label, 'attribute_chooser_chunk', None)
+
     logger.debug(f"{trace_label} updated utilities")
 
 @inject.step()
@@ -217,11 +225,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
 
     if we are multiprocessing, then the attribute_combinations will have been sliced and we compute only a subset
     of the tuples (and the other processes will compute the rest). All process wait until the cache is fully
-<<<<<<< HEAD
     populated before returning, and the locutor process writes the results.
-=======
-    populated before returning, and the spokesman/locutor process writes the results.
->>>>>>> xborder
 
 
     FIXME - if we did not close this, we could avoid having to reload it from mmap when single-process?

@@ -156,6 +156,9 @@ def run_trip_purpose(
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
+    # uniform across trip_purpose
+    chunk_tag = 'trip_purpose'
+
     model_settings_file_name = 'trip_purpose.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -203,14 +206,12 @@ def run_trip_purpose(
             locals_dict=locals_dict,
             trace_label=trace_label)
 
-
     use_depart_time = model_settings.get('use_depart_time', True)
     row_size = chunk_size and trip_purpose_calc_row_size(
         trips_df, probs_spec, probs_join_cols, trace_label=trace_label)
 
     for i, trips_chunk, chunk_trace_label in \
             chunk.adaptive_chunked_choosers(trips_df, chunk_size, row_size, trace_label):
-        
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,
@@ -221,6 +222,8 @@ def run_trip_purpose(
             trace_label=chunk_trace_label)
 
         result_list.append(choices)
+
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)

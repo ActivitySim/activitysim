@@ -69,7 +69,7 @@ API
 Pipeline
 ~~~~~~~~
 
-Data pipeline manager, which manages the list of model steps, runs them via orca, reads 
+Data pipeline manager, which manages the list of model steps, runs them, reads 
 and writes data tables from/to the pipeline datastore, and supports restarting of the pipeline
 at any model step.
 
@@ -413,12 +413,94 @@ Cache API
 Helpers
 -------
 
+.. index:: chunk_size
+.. _chunk_size:
 .. _chunk_in_detail:
 
 Chunk
 ~~~~~
 
-Chunking management
+Chunking management.
+
+.. note::
+   The definition of chunk_size has changed from previous versions of ActivitySim.  The revised definition 
+   of chunk_size simplifies model setup since it is the approximate amount of RAM available to
+   ActivitySim as opposed to the obscure number of doubles (64-bit numbers) in a chunk of a choosers table.
+
+The ``chunk_size`` is the approximate amount of RAM in GBs to allocate to ActivitySim for batch 
+processing choosers across all processes.  It is specified in bytes, for example ``chunk_size: 500_000_000_000`` is 500 GBs.
+If set ``chunk_training_mode: disabled`` then no chunking will be performed and ActivitySim will attempt to solve all the
+choosers at once across all the processes.  Chunking is required when all the chooser data required to process all the 
+choosers cannot fit within the available RAM and so ActivitySim must split the choosers into batches and then process the batches in sequence.
+
+Configuration of the ``chunk_size`` depends on several parameters:
+
+* The amount of machine RAM
+* The number of machine processors (CPUs/cores)
+* The number of households (and number of zones for aggregate models)
+* The amount of headroom required for shared data across processes, such as the skims/network LOS data
+* The desired runtimes
+
+An example helps illustrate configuration of the ``chunk_size``.  If the example model has 1 million households and the
+current submodel is auto ownership, then there are 1 million choosers since every household participates in the auto
+ownership model.  In single process mode, ActivitySim would create one chooser table with 1 million rows, assuming this table
+and the additional extra data such as the skims can fit within the available memory (RAM).  If the 1 million row table cannot fit
+within memory then chunking needs to be setup to split the choosers table into batches that are processed in sequence and small
+enough to fit within the available memory.  For example, the choosers table is split into 2 chunks of 500,000 choosers each and then
+processed in sequence.  In multi process mode, for example with 10 processes, ActivitySim splits the 1 million households into 10
+mini processes each with 100,000 households.  Then for the auto ownership submodel, the chooser table within each process is the
+100,000 choosers and there must be enough RAM to simultaneously solve all 10 processes with each 100,000 choosers at once.  If not,
+then chunking can be setup so each mini process table of choosers is split into chunks for sequential processing, for example from 
+10 tables of 100,000 choosers to 20 tables of 50,000 choosers.  
+
+If the user desires the fastest runtimes possible given their hardware, model inputs, and model configuration, then ActivitySim 
+should be configured to use most of the CPUs/cores (physical, not virtual), most of the RAM, and with the :ref:`mkl_settings`. For
+example, if the machine has 12 cores and 256 GB of RAM, then try configuring the model with ``num_processes: 10`` and 
+``chunk_size: 0`` to start and seeing if the model can fit the problem into the available RAM.  If not, then try setting ``chunk_size``
+to something like 225 GB, ``chunk_size: 225_000_000_000``.  Experimentation of the desired configuration of the CPUs and RAM should be done
+for each new machine and model setup (with respect to the number of households, skims, and model configuration).  In general, more processors
+means faster runtimes and more RAM means faster runtimes, but the relationship of processors to RAM is not linear as processors can only
+go so fast and because there is more to runtime than processors and RAM, including cache speed, disk speed, etc.  Also, the amount of RAM
+to use is approximate and ActivitySim often pushes a bit above the user specified amount due to pandas/numpy memory spikes for 
+memory intensive operations and so it is recommended to leave some RAM unallocated.  The exact amount to leave unallocated depends on the 
+parameters above.
+
+To configure chunking behavior, ActivitySim must first be trained with the model setup and machine.  To do so, first
+run the model with ``chunk_training_mode: training``.  This tracks the amount of memory used by each table by submodel and writes the results
+to a cache file that is then re-used for production runs.  This training mode is significantly slower than production mode since it does
+significantly more memory inspection.  For a training mode run, set ``num_processors`` to about 80% of the avaiable logical processors and ``chunk_size`` 
+to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file in output\cache for reuse.  After creating
+the chunk cache file, the model can be run with ``chunk_training_mode: production`` and the desired ``num_processors`` and ``chunk_size``.  The
+model will read the chunk cache file from the output\cache folder, similar to how it reads cached skims if specified.
+The software trains on the size of problem so the cache file can be re-used and only needs to be updated due to significant revisions in population, 
+expression, skims/network LOS, or changes in machine specs.  If run in production mode and no cache file is found then ActivitySim falls 
+back to training mode.  A third ``chunk_training_mode`` is adaptive, which if a cache file exists, runs the model with the starting cache 
+settings but also updates the cache settings based on additional memory inspection.  This may additionally improve the cache setttings to 
+reduce runtimes when run in production mode.  If ``resume_after`` is set, then the chunk cache file is not overwritten in cache directory 
+since the list of submodels would be incomplete.  A foruth ``chunk_training_mode`` is disabled, which assumes the model can be run without
+chunking due to an abundance of RAM.  
+
+The following ``chunk_methods`` are supported to calculate memory overhead when chunking is enabled:
+
+* bytes - expected rowsize based on actual size (as reported by numpy and pandas) of explicitly allocated data this can underestimate overhead due to transient data requirements of operations (e.g. merge, sort, transpose)
+* uss - expected rowsize based on change in (unique set size) (uss) both as a result of explicit data allocation, and readings by MemMonitor sniffer thread that measures transient uss during time-consuming numpy and pandas operations
+* hybrid_uss - hybrid_uss avoids problems with pure uss, especially with small chunk sizes (e.g. initial training chunks) as numpy may recycle cached blocks and show no increase in uss even though data was allocated and logged
+* rss - like uss, but for resident set size (rss), which is the portion of memory occupied by a process that is held in RAM
+* hybrid_rss - like hybrid_uss, but for rss
+
+RSS is reported by psutil.memory_info and USS is reported by psutil.memory_full_info.  USS is the memory which is private to 
+a process and which would be freed if the process were terminated.  This is the metric that most closely matches the rather 
+vague notion of memory "in use" (the meaning of which is difficult to pin down in operating systems with virtual memory 
+where memory can (but sometimes can't) be swapped or mapped to disk.  ``hybrid_uss`` performs best and is most reliable and 
+is therefore the default.
+
+Additional chunking settings:
+
+* min_available_chunk_ratio: 0.05 - minimum fraction of total chunk_size to reserve for adaptive chunking
+* default_initial_rows_per_chunk: 500 - initial number of chooser rows for first chunk in training mode, when there is no pre-existing chunk_cache to set initial value, ordinarily bigger is better as long as it is not so big it causes memory issues (e.g. accessibility with lots of zones)
+* keep_chunk_logs: True - whether to preserve or delete subprocess chunk logs when they are consolidated at end of multiprocess run
+* keep_mem_logs: True - whether to preserve or delete subprocess mem logs when they are consolidated at end of multiprocess run
+
 
 API
 ^^^
@@ -453,7 +535,7 @@ API
 Inject
 ~~~~~~
 
-Wrap ORCA class to make it easier to track and manage interaction with the data pipeline.
+Model orchestration and data pipeline interaction.
 
 API
 ^^^

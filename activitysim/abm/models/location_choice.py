@@ -108,7 +108,8 @@ def _location_sample(
         estimator,
         model_settings,
         alt_dest_col_name,
-        chunk_size, trace_label):
+        chunk_size, chunk_tag,
+        trace_label):
     """
     select a sample of alternative locations.
 
@@ -146,15 +147,20 @@ def _location_sample(
     spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
                                      segment_name=segment_name, estimator=estimator)
 
+    # here since presumably we want this when called for either sample or presample
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample(
         choosers,
         alternatives,
+        spec=spec,
         sample_size=sample_size,
         alt_col_name=alt_dest_col_name,
-        spec=spec,
+        log_alt_losers=log_alt_losers,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
+        chunk_tag=chunk_tag,
         trace_label=trace_label)
 
     return choices
@@ -167,7 +173,8 @@ def location_sample(
         dest_size_terms,
         estimator,
         model_settings,
-        chunk_size, trace_label):
+        chunk_size, chunk_tag,
+        trace_label):
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -190,7 +197,7 @@ def location_sample(
         estimator,
         model_settings,
         alt_dest_col_name,
-        chunk_size,
+        chunk_size, chunk_tag,
         trace_label)
 
     return choices
@@ -256,7 +263,8 @@ def location_presample(
         dest_size_terms,
         estimator,
         model_settings,
-        chunk_size, trace_label):
+        chunk_size, chunk_tag,
+        trace_label):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
 
@@ -293,7 +301,7 @@ def location_presample(
         estimator,
         model_settings,
         DEST_TAZ,
-        chunk_size,
+        chunk_size,  chunk_tag,
         trace_label)
 
     # print(f"taz_sample\n{taz_sample}")
@@ -320,7 +328,8 @@ def run_location_sample(
         dest_size_terms,
         estimator,
         model_settings,
-        chunk_size, trace_label):
+        chunk_size, chunk_tag,
+        trace_label):
     """
     select a sample of alternative locations.
 
@@ -361,7 +370,9 @@ def run_location_sample(
             dest_size_terms,
             estimator,
             model_settings,
-            chunk_size, trace_label)
+            chunk_size,
+            chunk_tag=f'{chunk_tag}.presample',
+            trace_label=trace_label)
 
     else:
 
@@ -372,7 +383,9 @@ def run_location_sample(
             dest_size_terms,
             estimator,
             model_settings,
-            chunk_size, trace_label)
+            chunk_size,
+            chunk_tag=f'{chunk_tag}.sample',
+            trace_label=trace_label)
 
     return choices
 
@@ -383,7 +396,8 @@ def run_location_logsums(
         network_los,
         location_sample_df,
         model_settings,
-        chunk_size, trace_hh_id, trace_label):
+        chunk_size, chunk_tag,
+        trace_label):
     """
     add logsum column to existing location_sample table
 
@@ -427,6 +441,7 @@ def run_location_logsums(
         logsum_settings, model_settings,
         network_los,
         chunk_size,
+        chunk_tag,
         trace_label)
 
     # "add_column series should have an index matching the table to which it is being added"
@@ -447,7 +462,8 @@ def run_location_simulate(
         want_logsums,
         estimator,
         model_settings,
-        chunk_size, trace_label):
+        chunk_size, chunk_tag,
+        trace_label):
     """
     run location model on location_sample annotated with mode_choice logsum
     to select a dest zone from sample alternatives
@@ -498,15 +514,18 @@ def run_location_simulate(
 
     spec = simulate.spec_for_segment(model_settings, spec_id='SPEC', segment_name=segment_name, estimator=estimator)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = interaction_sample_simulate(
         choosers,
         alternatives,
         spec=spec,
         choice_column=alt_dest_col_name,
+        log_alt_losers=log_alt_losers,
         want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,
-        chunk_size=chunk_size,
+        chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name=model_settings['DEST_CHOICE_COLUMN_NAME'],
         estimator=estimator)
@@ -529,7 +548,8 @@ def run_location_choice(
         want_sample_table,
         estimator,
         model_settings,
-        chunk_size, trace_hh_id, trace_label
+        chunk_size, chunk_tag,
+        trace_hh_id, trace_label
         ):
     """
     Run the three-part location choice algorithm to generate a location choice for each chooser
@@ -591,7 +611,8 @@ def run_location_choice(
                 estimator,
                 model_settings,
                 chunk_size,
-                tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+                chunk_tag,  # run_location_sample will add appropriate suffix for sample or presample
+                trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
 
         # - location_logsums
         location_sample_df = \
@@ -601,9 +622,8 @@ def run_location_choice(
                 network_los,
                 location_sample_df,
                 model_settings,
-                chunk_size,
-                trace_hh_id,
-                tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
+                chunk_size, chunk_tag=f'{chunk_tag}.logsums',
+                trace_label=tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
 
         # - location_simulate
         choices_df = \
@@ -616,8 +636,8 @@ def run_location_choice(
                 want_logsums,
                 estimator,
                 model_settings,
-                chunk_size,
-                tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
+                chunk_size, chunk_tag=f'{chunk_tag}.simulate',
+                trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
 
         if estimator:
             if trace_hh_id:
@@ -665,10 +685,9 @@ def run_location_choice(
             location_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
                                          append=True, inplace=True)
             sample_list.append(location_sample_df)
-
-        # FIXME - want to do this here?
-        del location_sample_df
-        mem.force_garbage_collect()
+        else:
+            # del this so we dont hold active reference to it while run_location_sample is creating its replacement
+            del location_sample_df
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)
@@ -718,6 +737,8 @@ def iterate_location_choice(
     adds annotations to persons table
     """
 
+    chunk_tag = trace_label
+
     # boolean to filter out persons not needing location modeling (e.g. is_worker, is_student)
     chooser_filter_column = model_settings['CHOOSER_FILTER_COLUMN_NAME']
 
@@ -758,7 +779,7 @@ def iterate_location_choice(
             want_sample_table=want_sample_table,
             estimator=estimator,
             model_settings=model_settings,
-            chunk_size=chunk_size,
+            chunk_size=chunk_size, chunk_tag=chunk_tag,
             trace_hh_id=trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
 

@@ -13,7 +13,7 @@ from activitysim.core import simulate
 from activitysim.core import tracing
 
 from activitysim.abm.models.util.trip import get_time_windows
-from activitysim.core.interaction_sample_simulate import eval_interaction_utilities
+from activitysim.core import interaction_simulate
 from activitysim.core.simulate import set_skim_wrapper_targets
 from activitysim.core.util import reindex
 
@@ -47,19 +47,18 @@ def get_tour_legs(trips):
     tour_legs = tour_legs.set_index(TOUR_LEG_ID)
     return tour_legs
 
-
-def trip_departure_rpc(chunk_size, choosers, trace_label):
-
-    # NOTE we chunk chunk_id
-    num_choosers = choosers['chunk_id'].max() + 1
-
-    chooser_row_size = choosers.shape[1] + 1
-
-    # scale row_size by average number of chooser rows per chunk_id
-    rows_per_chunk_id = choosers.shape[0] / num_choosers
-    row_size = (rows_per_chunk_id * chooser_row_size)
-
-    return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
+# def trip_departure_rpc(chunk_size, choosers, trace_label):
+#
+#     # NOTE we chunk chunk_id
+#     num_choosers = choosers['chunk_id'].max() + 1
+#
+#     chooser_row_size = choosers.shape[1] + 1
+#
+#     # scale row_size by average number of chooser rows per chunk_id
+#     rows_per_chunk_id = choosers.shape[0] / num_choosers
+#     row_size = (rows_per_chunk_id * chooser_row_size)
+#
+#     return chunk.rows_per_chunk(chunk_size, row_size, num_choosers, trace_label)
 
 
 def generate_alternatives(trips, alternative_col_name):
@@ -133,7 +132,7 @@ def build_patterns(trips, time_windows):
     patterns = patterns[~patterns[STOP_TIME_DURATION].isnull()].copy()
 
     patterns[TRIP_NUM] = patterns[TRIP_NUM] + 1
-    patterns[STOP_TIME_DURATION] = patterns[STOP_TIME_DURATION].astype(np.int)
+    patterns[STOP_TIME_DURATION] = patterns[STOP_TIME_DURATION].astype(int)
 
     patterns = pd.merge(patterns, trips.reset_index()[[TOUR_ID, TRIP_ID, TRIP_NUM, OUTBOUND]],
                         on=[TOUR_ID, TRIP_NUM])
@@ -153,22 +152,6 @@ def get_spec_for_segment(omnibus_spec, segment):
     assert spec.shape[0] > 0
 
     return spec
-
-
-def trip_departure_calc_row_size(choosers, trace_label):
-    """
-    rows_per_chunk calculator for trip_scheduler
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    chooser_row_size = len(choosers.columns)
-    spec_columns = 3
-
-    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
-
-    row_size = sizer.get_hwm()
-    return row_size
 
 
 def choose_tour_leg_pattern(trip_segment,
@@ -207,7 +190,8 @@ def choose_tour_leg_pattern(trip_segment,
         trace_rows = trace_ids = None
 
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, None, trace_label, trace_rows, None)
+        = interaction_simulate.eval_interaction_utilities(spec, interaction_df, None, trace_label, trace_rows,
+                                                          estimator=None)
 
     interaction_utilities = pd.concat([interaction_df[STOP_TIME_DURATION], interaction_utilities], axis=1)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
@@ -370,12 +354,10 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
     # Get the potential time windows
     time_windows = get_time_windows(side_trips[TRIP_DURATION].max(), side_trips[TRIP_COUNT].max() - 1)
 
-    row_size = chunk_size and trip_departure_calc_row_size(trips, trace_label)
-
     trip_list = []
 
     for i, chooser_chunk, chunk_trace_label in \
-            chunk.adaptive_chunked_choosers_by_chunk_id(side_trips, chunk_size, row_size, trace_label):
+            chunk.adaptive_chunked_choosers_by_chunk_id(side_trips, chunk_size, trace_label):
 
         for is_outbound, trip_segment in chooser_chunk.groupby(OUTBOUND):
             direction = OUTBOUND if is_outbound else 'inbound'

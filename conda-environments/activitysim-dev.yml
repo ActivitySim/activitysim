@@ -1,0 +1,33 @@
+# Environment for development
+# usage: $ conda env create --file=activitysim-dev.yml -n ASIM-DEV-TMP
+channels:
+- conda-forge
+dependencies:
+- python=3.9
+- pip
+- numpy >= 1.16.1
+- pandas >= 1.1.0
+- pyarrow >= 2.0
+- openmatrix >= 0.3.4.1
+- pyyaml >= 5.1
+- pytables >= 3.5.1
+- cytoolz >= 0.8.1
+- psutil >= 4.1
+- requests >= 2.7
+- numba >= 0.51.2
+- orca >= 1.6
+- geopandas
+- jupyterlab
+- matplotlib
+- descartes
+- pytest
+- pytest-cov
+- coveralls
+- pycodestyle
+- pytest-regressions
+- git
+- gh
+- bump2version
+
+- pip:
+  - -e ..

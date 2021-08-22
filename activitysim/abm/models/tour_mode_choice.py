@@ -217,9 +217,6 @@ def tour_mode_choice_simulate(tours, persons_merged,
 
         choices_list.append(choices_df)
 
-        # FIXME - force garbage collection
-        force_garbage_collect()
-
     choices_df = pd.concat(choices_list)
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types

@@ -46,6 +46,8 @@ def auto_ownership_simulate(households,
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
+    log_alt_losers = config.setting('log_alt_losers', False)
+
     choices = simulate.simple_simulate(
         choosers=choosers,
         spec=model_spec,
@@ -54,6 +56,7 @@ def auto_ownership_simulate(households,
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='auto_ownership',
+        log_alt_losers=log_alt_losers,
         estimator=estimator)
 
     if estimator:

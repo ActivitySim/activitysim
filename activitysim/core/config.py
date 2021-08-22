@@ -76,6 +76,35 @@ def settings(settings_file_name):
     return settings_dict
 
 
+# def testing():
+#
+#     assert ("pytest" in sys.modules) == ("PYTEST_CURRENT_TEST" in os.environ)
+#     return "PYTEST_CURRENT_TEST" in os.environ
+
+
+def get_cache_dir():
+    """
+    return path of cache directory in output_dir (creating it, if need be)
+
+    cache directory is used to store
+        skim memmaps created by skim+dict_factories
+        tvpb tap_tap table cache
+
+    Returns
+    -------
+    str path
+    """
+    cache_dir = setting('cache_dir', default=None)
+    if cache_dir is None:
+        cache_dir = setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
+
+    if not os.path.isdir(cache_dir):
+        os.mkdir(cache_dir)
+    assert os.path.isdir(cache_dir)
+
+    return cache_dir
+
+
 def setting(key, default=None):
     return inject.get_injectable('settings').get(key, default)
 
@@ -300,7 +329,7 @@ def trace_file_path(file_name):
     return file_path
 
 
-def log_file_path(file_name):
+def log_file_path(file_name, prefix=True):
 
     output_dir = inject.get_injectable('output_dir')
 
@@ -309,7 +338,7 @@ def log_file_path(file_name):
         output_dir = os.path.join(output_dir, 'log')
 
     # - check for optional process name prefix
-    prefix = inject.get_injectable('log_file_prefix', None)
+    prefix = prefix and inject.get_injectable('log_file_prefix', None)
     if prefix:
         file_name = "%s-%s" % (prefix, file_name)
 
@@ -318,16 +347,19 @@ def log_file_path(file_name):
     return file_path
 
 
-def open_log_file(file_name, mode):
+def open_log_file(file_name, mode, header=None, prefix=False):
 
-    output_dir = inject.get_injectable('output_dir')
-    # - check for optional log subfolder
-    if os.path.exists(os.path.join(output_dir, 'log')):
-        output_dir = os.path.join(output_dir, 'log')
-    file_path = os.path.join(output_dir, file_name)
+    file_path = log_file_path(file_name, prefix)
 
-    mode = mode + 'b' if sys.version_info < (3,) else mode
-    return open(file_path, mode)
+    want_header = header and not os.path.exists(file_path)
+
+    f = open(file_path, mode)
+
+    if want_header:
+        assert mode in ['a', 'w'], f"open_log_file: header requested but mode was {mode}"
+        print(header, file=f)
+
+    return f
 
 
 def pipeline_file_path(file_name):
@@ -520,6 +552,12 @@ def filter_warnings():
     # Deprecated in NumPy 1.20;
     warnings.filterwarnings('ignore', category=DeprecationWarning, module='tables',
                             message='`np.object` is a deprecated alias')
+
+    # beginning pandas version 1.3, various places emit a PerformanceWarning that is
+    # caught in the "strict" filter above, but which are currently unavoidable for complex models.
+    # These warning are left as warnings as an invitation for future enhancement.
+    from pandas.errors import PerformanceWarning
+    warnings.filterwarnings('default', category=PerformanceWarning)
 
 
 def handle_standard_args(parser=None):

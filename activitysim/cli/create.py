@@ -133,9 +133,6 @@ def get_example(example_name, destination):
     instructions = example.get('instructions')
     if instructions:
         print(instructions)
-    else:
-        print(f'the copied example can be run with\n'
-              f'   activitysim run -w {dest_path}')
 
 
 def copy_asset(asset_path, target_path):

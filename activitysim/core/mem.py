@@ -1,131 +1,283 @@
 
 # ActivitySim
 # See full license in LICENSE.txt.
-import time
-import datetime
-import psutil
-import logging
-import gc
 
+import datetime
+
+import gc
+import glob
+import logging
+import multiprocessing
+import os
+import platform
+import psutil
+import threading
+import time
+
+import numpy as np
+import pandas as pd
 
 from activitysim.core import config
 from activitysim.core import inject
+from activitysim.core import util
 
 logger = logging.getLogger(__name__)
 
-MEM = {}
-HWM = {}
-DEFAULT_TICK_LEN = 30
+USS = True
+
+GLOBAL_HWM = {}  # to avoid confusion with chunk local hwm
+
+MEM_TRACE_TICK_LEN = 5
+MEM_PARENT_TRACE_TICK_LEN = 15
+MEM_SNOOP_TICK_LEN = 5
+MEM_TICK = 0
+
+MEM_LOG_FILE_NAME = "mem.csv"
+OMNIBUS_LOG_FILE_NAME = f"omnibus_mem.csv"
+
+SUMMARY_BIN_SIZE_IN_SECONDS = 15
+
+mem_log_lock = threading.Lock()
 
 
-def force_garbage_collect():
-    was_disabled = not gc.isenabled()
-    if was_disabled:
-        gc.enable()
-    gc.collect()
-    if was_disabled:
-        gc.disable()
+def time_bin(timestamps):
+    bins_size_in_seconds = SUMMARY_BIN_SIZE_IN_SECONDS
+    epoch = pd.Timestamp("1970-01-01")
+    seconds_since_epoch = (timestamps - epoch) // pd.Timedelta("1s")
+    bin = seconds_since_epoch - (seconds_since_epoch % bins_size_in_seconds)
+
+    return pd.to_datetime(bin, unit='s', origin='unix')
 
 
-def GB(bytes):
-    gb = (bytes / (1024 * 1024 * 1024.0))
-    return round(gb, 2)
+def consolidate_logs():
+    """
+    Consolidate and aggregate subprocess mem logs
+    """
+
+    if not config.setting('multiprocess', False):
+        return
+
+    delete_originals = not config.setting('keep_mem_logs', False)
+    omnibus_df = []
+
+    # for each multiprocess step
+    multiprocess_steps = config.setting('multiprocess_steps', [])
+    for step in multiprocess_steps:
+        step_name = step.get('name', None)
+
+        logger.debug(f"mem.consolidate_logs for step {step_name}")
+
+        glob_file_name = config.log_file_path(f"{step_name}*{MEM_LOG_FILE_NAME}", prefix=False)
+        glob_files = glob.glob(glob_file_name)
+
+        if not glob_files:
+            continue
+
+        logger.debug(f"mem.consolidate_logs consolidating {len(glob_files)} logs for {step_name}")
+
+        # for each individual log
+        step_summary_df = []
+        for f in glob_files:
+            df = pd.read_csv(f, comment='#')
+
+            df = df[['rss', 'uss', 'event', 'time']]
+
+            df.rss = df.rss.astype(np.int64)
+            df.uss = df.uss.astype(np.int64)
+
+            df['time'] = time_bin(pd.to_datetime(df.time, errors='coerce', format='%Y/%m/%d %H:%M:%S'))
+
+            # consolidate events (duplicate rows should be idle steps (e.g. log_rss)
+            df = df.groupby('time')\
+                .agg(rss=('rss', 'max'), uss=('uss', 'max'),)\
+                .reset_index(drop=False)
+
+            step_summary_df.append(df)  # add step_df to step summary
+
+        # aggregate the individual the logs into a single step log
+        step_summary_df = pd.concat(step_summary_df)
+        step_summary_df = step_summary_df.groupby('time') \
+            .agg(rss=('rss', 'sum'), uss=('uss', 'sum'), num_files=('rss', 'size')) \
+            .reset_index(drop=False)
+        step_summary_df = step_summary_df.sort_values('time')
+
+        step_summary_df['step'] = step_name
+
+        # scale missing values (might be missing idle steps for some chunk_tags)
+        scale = 1 + (len(glob_files) - step_summary_df.num_files) / step_summary_df.num_files
+        for c in ['rss', 'uss']:
+            step_summary_df[c] = (step_summary_df[c] * scale).astype(np.int64)
+
+        step_summary_df['scale'] = scale
+        del step_summary_df['num_files']  # do we want to keep track of scale factor?
+
+        if delete_originals:
+            util.delete_files(glob_files, f'mem.consolidate_logs.{step_name}')
+
+        # write aggregate step log
+        output_path = config.log_file_path(f'mem_{step_name}.csv', prefix=False)
+        logger.debug(f"chunk.consolidate_logs writing step summary log for step {step_name} to {output_path}")
+        step_summary_df.to_csv(output_path, mode='w', index=False)
+
+        omnibus_df.append(step_summary_df)  # add step summary to omnibus
+
+    # aggregate the step logs into a single omnibus log ordered by timestamp
+    omnibus_df = pd.concat(omnibus_df)
+    omnibus_df = omnibus_df.sort_values('time')
+
+    output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
+    logger.debug(f"chunk.consolidate_logs writing omnibus log to {output_path}")
+    omnibus_df.to_csv(output_path, mode='w', index=False)
 
 
-def init_trace(tick_len=None, file_name="mem.csv", write_header=False):
-    MEM['tick'] = 0
-    if file_name is not None:
-        MEM['file_name'] = file_name
-    if tick_len is None:
-        MEM['tick_len'] = DEFAULT_TICK_LEN
-    else:
-        MEM['tick_len'] = tick_len
+def check_global_hwm(tag, value, label):
 
-    logger.info("init_trace file_name %s" % file_name)
+    assert value is not None
 
-    # - check for optional process name prefix
-    MEM['prefix'] = inject.get_injectable('log_file_prefix', 'main')
+    hwm = GLOBAL_HWM.setdefault(tag, {})
 
-    if write_header:
-        with config.open_log_file(file_name, 'w') as log_file:
-            print("process,time,rss,used,available,percent,event", file=log_file)
+    is_new_hwm = value > hwm.get('mark', 0) or not hwm
+    if is_new_hwm:
+        timestamp = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
 
-
-def trace_hwm(tag, value, timestamp, label):
-
-    hwm = HWM.setdefault(tag, {})
-
-    if value > hwm.get('mark', 0):
         hwm['mark'] = value
         hwm['timestamp'] = timestamp
         hwm['label'] = label
 
-
-def log_hwm():
-
-    for tag in HWM:
-        hwm = HWM[tag]
-        logger.info("high water mark %s: %.2f timestamp: %s label: %s" %
-                    (tag, hwm['mark'], hwm['timestamp'], hwm['label']))
-
-    with config.open_log_file(MEM['file_name'], 'a') as log_file:
-        for tag in HWM:
-            hwm = HWM[tag]
-            print("%s high water mark %s: %.2f timestamp: %s label: %s" %
-                  (MEM['prefix'], tag, hwm['mark'], hwm['timestamp'], hwm['label']), file=log_file)
+    return is_new_hwm
 
 
-def trace_memory_info(event=''):
+def log_global_hwm():
 
-    if not MEM:
+    process_name = multiprocessing.current_process().name
+
+    for tag in GLOBAL_HWM:
+        hwm = GLOBAL_HWM[tag]
+        value = hwm.get('mark', 0)
+        logger.info(f"{process_name} high water mark {tag}: {util.INT(value)} ({util.GB(value)}) "
+                    f"timestamp: {hwm.get('timestamp', '<none>')} label:{hwm.get('label', '<none>')}")
+
+
+def trace_memory_info(event, trace_ticks=0):
+
+    global MEM_TICK
+
+    tick = time.time()
+    if trace_ticks and (tick - MEM_TICK < trace_ticks):
         return
+    MEM_TICK = tick
 
-    last_tick = MEM['tick']
-    tick_len = MEM['tick_len'] or float('inf')
-
-    t = time.time()
-    if (t - last_tick < tick_len) and not event:
-        return
-
-    force_garbage_collect()
-
-    vmi = psutil.virtual_memory()
-
-    MEM['tick'] = t
+    process_name = multiprocessing.current_process().name
+    pid = os.getpid()
 
     current_process = psutil.Process()
-    rss = current_process.memory_info().rss
+
+    if USS:
+        info = current_process.memory_full_info()
+        uss = info.uss
+    else:
+        info = current_process.memory_info()
+        uss = 0
+
+    full_rss = rss = info.rss
+
+    num_children = 0
     for child in current_process.children(recursive=True):
         try:
-            rss += child.memory_info().rss
+            child_info = child.memory_info()
+            full_rss += child_info.rss
+            num_children += 1
         except (psutil.NoSuchProcess, psutil.AccessDenied) as e:
             pass
 
-    timestamp = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    noteworthy = True  # any reason not to always log this if we are filtering idle ticks?
 
-    trace_hwm('rss', GB(rss), timestamp, event)
-    trace_hwm('used', GB(vmi.used), timestamp, event)
+    noteworthy = (num_children > 0) or noteworthy
+    noteworthy = check_global_hwm('rss', full_rss or rss, event) or noteworthy
+    noteworthy = check_global_hwm('uss', uss, event) or noteworthy
 
-    if event:
-        logger.info(f"trace_memory_info {event} rss: {GB(rss)}GB used: {GB(vmi.used)} GB percent: {vmi.percent}%")
+    if noteworthy:
 
-    with config.open_log_file(MEM['file_name'], 'a') as output_file:
+        # logger.debug(f"trace_memory_info {event} "
+        #              f"rss: {GB(full_rss) if num_children else GB(rss)} "
+        #              f"uss: {GB(rss)} ")
 
-        print("%s, %s, %.2f, %.2f, %.2f, %s%%, %s" %
-              (MEM['prefix'],
-               timestamp,
-               GB(rss),
-               GB(vmi.used),
-               GB(vmi.available),
-               vmi.percent,
-               event), file=output_file)
+        timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
+
+        with mem_log_lock:
+            MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
+            with config.open_log_file(MEM_LOG_FILE_NAME, 'a', header=MEM_LOG_HEADER, prefix=True) as log_file:
+                print(f"{process_name},"
+                      f"{pid},"
+                      f"{util.INT(rss)},"  # want these as ints so we can plot them...
+                      f"{util.INT(full_rss)},"
+                      f"{util.INT(uss)},"
+                      f"{event},"
+                      f"{num_children},"
+                      f"{timestamp}",
+                      file=log_file)
+
+    # return rss and uss for optional use by interested callers
+    return full_rss or rss, uss
 
 
-def get_rss():
+def get_rss(force_garbage_collect=False, uss=False):
 
-    mi = psutil.Process().memory_info()
+    if force_garbage_collect:
+        was_disabled = not gc.isenabled()
+        if was_disabled:
+            gc.enable()
+        gc.collect()
+        if was_disabled:
+            gc.disable()
 
-    # cur_mem = mi.vms
-    cur_mem = mi.rss
+    if uss:
+        info = psutil.Process().memory_full_info()
+        return info.rss, info.uss
+    else:
+        info = psutil.Process().memory_info()
+        return info.rss, 0
 
-    return cur_mem
+
+def shared_memory_size(data_buffers=None):
+    """
+    return total size of the multiprocessing shared memory block in data_buffers
+
+    Returns
+    -------
+
+    """
+
+    shared_size = 0
+
+    if data_buffers is None:
+        data_buffers = inject.get_injectable('data_buffers', {})
+
+    for k, data_buffer in data_buffers.items():
+        try:
+            obj = data_buffer.get_obj()
+        except Exception:
+            obj = data_buffer
+        data = np.ctypeslib.as_array(obj)
+        data_size = data.nbytes
+
+        shared_size += data_size
+
+    return shared_size
+
+
+def shared_memory_in_child_rss():
+
+    # Linux: Linux
+    # Mac: Darwin
+    # Windows: Windows
+
+    os_name = platform.system()
+    if os_name in ['Darwin']:
+        return False
+    elif os_name in ['Windows']:
+        return False
+    elif os_name in ['Linux']:
+        return True  # ???
+    else:
+        bug

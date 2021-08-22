@@ -43,35 +43,36 @@ TRACE_TRIMMED_MAZ_TO_TAP_TABLES = True
 
 class Network_LOS(object):
     """
-    singleton object to manage skims and skim-related tables
+    ::
 
-    los_settings_file_name: str         # e.g. 'network_los.yaml'
-    skim_dtype_name:str                 # e.g. 'float32'
+      singleton object to manage skims and skim-related tables
 
-    dict_factory_name: str              # e.g. 'NumpyArraySkimFactory'
-    zone_system: str                    # str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)
-    skim_time_periods = None            # list of str e.g. ['AM', 'MD', 'PM''
+      los_settings_file_name: str         # e.g. 'network_los.yaml'
+      skim_dtype_name:str                 # e.g. 'float32'
 
-    skims_info: dict                    # dict of SkimInfo keyed by skim_tag
-    skim_buffers: dict                  # when multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag
-    skim_dicts: dice                    # dict of SkimDict keyed by skim_tag
+      dict_factory_name: str              # e.g. 'NumpyArraySkimFactory'
+      zone_system: str                    # str (ONE_ZONE, TWO_ZONE, or THREE_ZONE)
+      skim_time_periods = None            # list of str e.g. ['AM', 'MD', 'PM''
 
-    # TWO_ZONE and THREE_ZONE
-    maz_taz_df: pandas.DataFrame        # DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ
-    maz_to_maz_df: pandas.DataFrame     # maz_to_maz attributes for MazSkimDict sparse skims
-                                        # indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)
-    maz_ceiling: int                    # max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)
-    max_blend_distance: dict            # dict of int maz_to_maz max_blend_distance values keyed by skim_tag
+      skims_info: dict                    # dict of SkimInfo keyed by skim_tag
+      skim_buffers: dict                  # if multiprocessing, dict of multiprocessing.Array buffers keyed by skim_tag
+      skim_dicts: dice                    # dict of SkimDict keyed by skim_tag
 
-    # THREE_ZONE only
-    tap_df: pandas.DataFrame
-    tap_lines_df: pandas.DataFrame      # if specified in settings, list of transit lines served, indexed by TAP
-                                        # used to prune maz_to_tap_dfs to drop more distant TAPS with redundant service
-                                        # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
-    maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
-                                        # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
-    tap_tap_uid: TapTapUidCalculator
+      # TWO_ZONE and THREE_ZONE
+      maz_taz_df: pandas.DataFrame        # DataFrame with two columns, MAZ and TAZ, mapping MAZ to containing TAZ
+      maz_to_maz_df: pandas.DataFrame     # maz_to_maz attributes for MazSkimDict sparse skims
+                                          # indexed by synthetic omaz/dmaz index for faster get_mazpairs lookup)
+      maz_ceiling: int                    # max maz_id + 1 (to compute synthetic omaz/dmaz index by get_mazpairs)
+      max_blend_distance: dict            # dict of int maz_to_maz max_blend_distance values keyed by skim_tag
 
+      # THREE_ZONE only
+      tap_df: pandas.DataFrame
+      tap_lines_df: pandas.DataFrame      # if specified in settings, list of transit lines served, indexed by TAP
+                                          # use to prune maz_to_tap_dfs to drop more distant TAPS with redundant service
+                                          # since a TAP can serve multiple lines, tap_lines_df TAP index is not unique
+      maz_to_tap_dfs: dict                # dict of maz_to_tap DataFrames indexed by access mode (e.g. 'walk', 'drive')
+                                          # maz_to_tap dfs have OMAZ and DMAZ columns plus additional attribute columns
+      tap_tap_uid: TapTapUidCalculator
     """
 
     def __init__(self, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
@@ -301,7 +302,8 @@ class Network_LOS(object):
                     # we don't need to remember which lines are served by which TAPs
                     df = df.drop(columns='line').drop_duplicates(subset=['MAZ', 'TAP']).sort_values(['MAZ', 'TAP'])
 
-                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows")
+                    logger.debug(f"trimmed maz_to_tap table {file_name} from {old_len} to {len(df)} rows "
+                                 f"based on tap_lines")
                     logger.debug(f"maz_to_tap table {file_name} max {distance_col} {df[distance_col].max()}")
 
                     max_dist = maz_to_tap_settings.get('max_dist', None)
@@ -314,13 +316,15 @@ class Network_LOS(object):
                     if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
                         tracing.write_csv(df, file_name=f"trimmed_{maz_to_tap_settings['table']}", transpose=False)
 
+                else:
+                    logger.warning(f"tap_line_distance_col not provided in {LOS_SETTINGS_FILE_NAME} so maz_to_tap "
+                                   f"pairs will not be trimmed which may result in high memory use and long runtimes")
+
                 df.set_index(['MAZ', 'TAP'], drop=True, inplace=True, verify_integrity=True)
                 logger.debug(f"loaded maz_to_tap table {file_name} with {len(df)} rows")
 
                 assert mode not in self.maz_to_tap_dfs
                 self.maz_to_tap_dfs[mode] = df
-
-        mem.trace_memory_info('#MEM network_los.load_data before create_skim_dicts')
 
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
@@ -347,8 +351,6 @@ class Network_LOS(object):
             self.skim_dicts['tap'] = tap_skim_dict
             # make sure skim has all tap_ids
             assert not (tap_skim_dict.offset_mapper.map(self.tap_df['TAP'].values) == NOT_IN_SKIM_ZONE_ID).any()
-
-        mem.trace_memory_info("network_los.load_data after create_skim_dicts")
 
     def create_skim_dict(self, skim_tag):
         """
@@ -380,28 +382,6 @@ class Network_LOS(object):
         logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_dict.omx_shape}")
 
         return skim_dict
-
-    def get_cache_dir(self):
-        """
-        return path of cache directory in output_dir (creating it, if need be)
-
-        cache directory is used to store
-            skim memmaps created by skim+dict_factories
-            tvpb tap_tap table cache
-
-        Returns
-        -------
-        str path
-        """
-        cache_dir = self.setting('cache_dir', default=None)
-        if cache_dir is None:
-            cache_dir = self.setting('cache_dir', os.path.join(inject.get_injectable('output_dir'), 'cache'))
-
-        if not os.path.isdir(cache_dir):
-            os.mkdir(cache_dir)
-        assert os.path.isdir(cache_dir)
-
-        return cache_dir
 
     def omx_file_names(self, skim_tag):
         """

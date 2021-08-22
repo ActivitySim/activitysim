@@ -10,13 +10,13 @@ use_shadow_pricing: False
 
 # - full sample - 1605264 households
 households_sample_size:  100
-chunk_size:  80000000000
+chunk_size:  0
 
 # raise error if any sub-process fails without waiting for others to complete
 fail_fast: True
 
 multiprocess: True
-num_processes: 32
+num_processes: 28
 
 models:
   - initialize_landuse

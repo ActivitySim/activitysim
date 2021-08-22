@@ -84,6 +84,8 @@ def test_2_zone_mp(data):
 
 
 def test_3_zone(data):
+    # python simulation.py -c configs_3_zone -c ../configs_3_zone -c \
+    # ../../example_mtc/configs -d ../data_3 -o output -s settings_mp
     run_test(zone='3', multiprocess=False)
 
 

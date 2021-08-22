@@ -13,13 +13,13 @@ import yaml
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import pipeline
 from activitysim.core import config
-
-from activitysim.core import chunk
+from activitysim.core import inject
 from activitysim.core import mem
+from activitysim.core import pipeline
+from activitysim.core import tracing
+from activitysim.core import util
+
 
 from activitysim.core.config import setting
 
@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 
 LAST_CHECKPOINT = '_'
 
+MEM_TRACE_TICKS = 5
 
 """
 mp_tasks - activitysim multiprocessing overview
@@ -481,18 +482,10 @@ def apportion_pipeline(sub_proc_names, step_info):
 
     pipeline_file_name = inject.get_injectable('pipeline_file_name')
 
-    # get last checkpoint from first job pipeline
-    pipeline_path = config.build_output_file_path(pipeline_file_name)
-
     # ensure that if we are resuming, we don't apportion any tables from future model steps
-    last_model_in_previous_multiprocess_step = step_info.get('last_model_in_previous_multiprocess_step', None)
-    assert last_model_in_previous_multiprocess_step is not None
-    pipeline.open_pipeline(resume_after=last_model_in_previous_multiprocess_step)
-
-    # adds a checkpoint named multiprocess_step_name with no tables modified
-    # (most importantly, truncates pipeline to last_model_in_previous_multiprocess_step if resuming)
-    checkpoint_name = multiprocess_step_name
-    pipeline.add_checkpoint(checkpoint_name)
+    last_checkpoint_in_previous_multiprocess_step = step_info.get('last_checkpoint_in_previous_multiprocess_step', None)
+    assert last_checkpoint_in_previous_multiprocess_step is not None
+    pipeline.open_pipeline(resume_after=last_checkpoint_in_previous_multiprocess_step)
 
     # ensure all tables are in the pipeline
     checkpointed_tables = pipeline.checkpointed_tables()
@@ -506,6 +499,7 @@ def apportion_pipeline(sub_proc_names, step_info):
     checkpoints_df = checkpoints_df.tail(1).copy()
 
     # load all tables from pipeline
+    checkpoint_name = multiprocess_step_name
     tables = {}
     for table_name in checkpointed_tables:
         # patch last checkpoint name for all tables
@@ -738,6 +732,43 @@ def setup_injectables_and_logging(injectables, locutor=True):
         raise e
 
 
+def adjust_chunk_size_for_shared_memory(chunk_size, data_buffers, num_processes):
+
+    # even if there is only one subprocess,
+    # we are separate from parent who allocated the shared memory
+    # so we still need to compensate for it
+
+    if chunk_size == 0:
+        return chunk_size
+
+    shared_memory_size = mem.shared_memory_size(data_buffers)
+
+    if shared_memory_size == 0:
+        return chunk_size
+
+    shared_memory_in_child_rss = mem.shared_memory_in_child_rss()
+    fair_share_of_shared_memory = int(shared_memory_size / num_processes)
+
+    if shared_memory_in_child_rss:
+        adjusted_chunk_size = chunk_size + shared_memory_size - fair_share_of_shared_memory
+    else:
+        adjusted_chunk_size = chunk_size - fair_share_of_shared_memory
+
+    logger.info(f"adjust_chunk_size_for_shared_memory "
+                f"adjusted_chunk_size {util.INT(adjusted_chunk_size)} "
+                f"shared_memory_in_child_rss {shared_memory_in_child_rss} "
+                f"chunk_size {util.INT(chunk_size)} "
+                f"shared_memory_size {util.INT(shared_memory_size)} "
+                f"num_processes {num_processes} "
+                f"fair_share_of_shared_memory {util.INT(fair_share_of_shared_memory)} ")
+
+    if adjusted_chunk_size <= 0:
+        raise RuntimeError(f"adjust_chunk_size_for_shared_memory: chunk_size too small for shared memory.  "
+                           f"adjusted_chunk_size: {adjusted_chunk_size}")
+
+    return adjusted_chunk_size
+
+
 def run_simulation(queue, step_info, resume_after, shared_data_buffer):
     """
     run step models as subtask
@@ -757,10 +788,13 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
         dict of shared data (e.g. skims and shadow_pricing)
     """
 
+    # step_label = step_info['name']
+
     models = step_info['models']
     chunk_size = step_info['chunk_size']
-    # step_label = step_info['name']
     num_processes = step_info['num_processes']
+
+    chunk_size = adjust_chunk_size_for_shared_memory(chunk_size, shared_data_buffer, num_processes)
 
     inject.add_injectable('data_buffers', shared_data_buffer)
     inject.add_injectable("chunk_size", chunk_size)
@@ -801,6 +835,10 @@ def run_simulation(queue, step_info, resume_after, shared_data_buffer):
 
     tracing.print_elapsed_time("run (%s models)" % len(models), t0)
 
+    # add checkpoint with final tables even if not intermediate checkpointing
+    checkpoint_name = step_info['name']
+    pipeline.add_checkpoint(checkpoint_name)
+
     pipeline.close_pipeline()
 
 
@@ -829,7 +867,6 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
     debug(f"mp_run_simulation {step_info['name']} locutor={inject.get_injectable('locutor', False)} ")
 
     try:
-        mem.init_trace(setting('mem_tick'))
 
         if step_info['num_processes'] > 1:
             pipeline_prefix = multiprocessing.current_process().name
@@ -839,8 +876,7 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
         shared_data_buffer = kwargs
         run_simulation(queue, step_info, resume_after, shared_data_buffer)
 
-        chunk.log_write_hwm()
-        mem.log_hwm()
+        mem.log_global_hwm()  # subprocess
 
     except Exception as e:
         exception(f"{type(e).__name__} exception caught in mp_run_simulation: {str(e)}")
@@ -1019,8 +1055,9 @@ def run_sub_simulations(
         for process, queue in zip(procs, queues):
             while not queue.empty():
                 msg = queue.get(block=False)
-                info(f"{process.name} {msg['model']} : {tracing.format_elapsed_time(msg['time'])}")
-                mem.trace_memory_info("%s.%s.completed" % (process.name, msg['model']))
+                model_name = msg['model']
+                info(f"{process.name} {model_name} : {tracing.format_elapsed_time(msg['time'])}")
+                mem.trace_memory_info(f"{process.name}.{model_name}.completed")
 
     def check_proc_status():
         # we want to drop 'completed' breadcrumb when it happens, lest we terminate
@@ -1034,13 +1071,13 @@ def run_sub_simulations(
                     info(f"process {p.name} completed")
                     completed.add(p.name)
                     drop_breadcrumb(step_name, 'completed', list(completed))
-                    mem.trace_memory_info("%s.completed" % p.name)
+                    mem.trace_memory_info(f"{p.name}.completed")
             else:
                 # process failed
                 if p.name not in failed:
                     warning(f"process {p.name} failed with exitcode {p.exitcode}")
                     failed.add(p.name)
-                    mem.trace_memory_info("%s.failed" % p.name)
+                    mem.trace_memory_info(f"{p.name}.failed")
                     if fail_fast:
                         warning(f"fail_fast terminating remaining running processes")
                         for op in procs:
@@ -1051,19 +1088,6 @@ def run_sub_simulations(
                                 except Exception as e:
                                     info(f"error terminating process {op.name}: {e}")
                         raise RuntimeError("Process %s failed" % (p.name,))
-
-    def idle(seconds):
-        # idle for specified number of seconds, monitoring message queue and sub process status
-        log_queued_messages()
-        check_proc_status()
-        mem.trace_memory_info()
-        for _ in range(seconds):
-            time.sleep(1)
-            # log queued messages as they are received
-            log_queued_messages()
-            # monitor sub process status and drop breadcrumbs or fail_fast as they terminate
-            check_proc_status()
-            mem.trace_memory_info()
 
     step_name = step_info['name']
 
@@ -1143,12 +1167,20 @@ def run_sub_simulations(
         if sys.platform == 'win32':
             time.sleep(1)
 
-        mem.trace_memory_info("%s.start" % p.name)
+        mem.trace_memory_info(f"{p.name}.start")
 
-    # - idle logging queued messages and proc completion
     while multiprocessing.active_children():
-        idle(seconds=1)
-    idle(seconds=0)
+        # log queued messages as they are received
+        log_queued_messages()
+        # monitor sub process status and drop breadcrumbs or fail_fast as they terminate
+        check_proc_status()
+        # monitor memory usage
+        mem.trace_memory_info("run_sub_simulations.idle", trace_ticks=mem.MEM_PARENT_TRACE_TICK_LEN)
+        time.sleep(1)
+
+    # clean up any messages or breadcrumbs that occurred while we slept
+    log_queued_messages()
+    check_proc_status()
 
     # no need to join() explicitly since multiprocessing.active_children joins completed procs
 
@@ -1178,13 +1210,13 @@ def run_sub_task(p):
     """
     info(f"#run_model running sub_process {p.name}")
 
-    mem.trace_memory_info("%s.start" % p.name)
+    mem.trace_memory_info(f"{p.name}.start")
 
     t0 = tracing.print_elapsed_time()
     p.start()
 
     while multiprocessing.active_children():
-        mem.trace_memory_info()
+        mem.trace_memory_info("run_sub_simulations.idle", trace_ticks=mem.MEM_PARENT_TRACE_TICK_LEN)
         time.sleep(1)
 
     # no need to join explicitly since multiprocessing.active_children joins completed procs
@@ -1193,7 +1225,7 @@ def run_sub_task(p):
     t0 = tracing.print_elapsed_time('#run_model sub_process %s' % p.name, t0)
     # info(f'{p.name}.exitcode = {p.exitcode}')
 
-    mem.trace_memory_info(f"#run_model {p.name} completed")
+    mem.trace_memory_info(f"run_model {p.name} completed")
 
     if p.exitcode:
         error(f"Process {p.name} returned exitcode {p.exitcode}")
@@ -1227,14 +1259,12 @@ def drop_breadcrumb(step_name, crumb, value=True):
     write_breadcrumbs(breadcrumbs)
 
 
-def run_multiprocess(run_list, injectables):
+def run_multiprocess(injectables):
     """
     run the steps in run_list, possibly resuming after checkpoint specified by resume_after
 
-    we never open the pipeline since that is all done within multi-processing steps
-        mp_apportion_pipeline
-        run_sub_simulations
-        mp_coalesce_pipelines
+    we never open the pipeline since that is all done within multi-processing steps -
+    mp_apportion_pipeline, run_sub_simulations, mp_coalesce_pipelines -
     each of which opens the pipeline/s and closes it/them within the sub-process
     This 'feature' makes the pipeline state a bit opaque to us, for better or worse...
 
@@ -1259,8 +1289,9 @@ def run_multiprocess(run_list, injectables):
         dict of values to inject in sub-processes
     """
 
-    mem.init_trace(setting('mem_tick'), write_header=True)
     mem.trace_memory_info("run_multiprocess.start")
+
+    run_list = get_run_list()
 
     if not run_list['multiprocess']:
         raise RuntimeError("run_multiprocess called but multiprocess flag is %s" %
@@ -1284,6 +1315,8 @@ def run_multiprocess(run_list, injectables):
     # - allocate shared data
     shared_data_buffers = {}
 
+    mem.trace_memory_info("allocate_shared_skim_buffer.before")
+
     t0 = tracing.print_elapsed_time()
     shared_data_buffers.update(allocate_shared_skim_buffers())
     t0 = tracing.print_elapsed_time('allocate shared skim buffer', t0)
@@ -1303,6 +1336,7 @@ def run_multiprocess(run_list, injectables):
                 kwargs=shared_data_buffers)
         )
         t0 = tracing.print_elapsed_time('setup shared_data_buffers', t0)
+        mem.trace_memory_info("mp_setup_skims.completed")
 
     # - for each step in run list
     for step_info in run_list['multiprocess_steps']:
@@ -1352,7 +1386,13 @@ def run_multiprocess(run_list, injectables):
             )
         drop_breadcrumb(step_name, 'coalesce')
 
-    mem.log_hwm()
+    # add checkpoint with final tables even if not intermediate checkpointing
+    if not pipeline.intermediate_checkpoint():
+        pipeline.open_pipeline('_')
+        pipeline.add_checkpoint(pipeline.FINAL_CHECKPOINT_NAME)
+        pipeline.close_pipeline()
+
+    mem.log_global_hwm()  # main process
 
 
 def get_breadcrumbs(run_list):
@@ -1526,6 +1566,9 @@ def get_run_list():
             if name in step_names:
                 raise RuntimeError("duplicate step name %s"
                                    " in multiprocess_steps" % name)
+            if name in models:
+                raise RuntimeError(f"multiprocess_steps step name '{name}' cannot also be a model name")
+
             step_names.add(name)
 
             # - validate num_processes and assign default
@@ -1597,9 +1640,9 @@ def get_run_list():
                                    " falls before that of prior step in models list" %
                                    (start_tag, start, name, istep))
 
-            # remember last_model_in_previous_multiprocess_step for apportion_pipeline
-            multiprocess_steps[istep]['last_model_in_previous_multiprocess_step'] = \
-                models[models.index(start) - 1] if models.index(start) > 0 else None
+            # remember there should always be a final checkpoint with same name as multiprocess_step name
+            multiprocess_steps[istep]['last_checkpoint_in_previous_multiprocess_step'] = \
+                multiprocess_steps[istep - 1].get('name') if istep > 0 else None
 
         # - build individual step model lists based on starts
         starts.append(len(models))  # so last step gets remaining models in list

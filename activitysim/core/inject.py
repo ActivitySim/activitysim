@@ -2,7 +2,7 @@
 # See full license in LICENSE.txt.
 import logging
 
-from . import orca
+from orca import orca
 
 _DECORATED_STEPS = {}
 _DECORATED_TABLES = {}

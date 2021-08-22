@@ -13,8 +13,6 @@ from activitysim.core import tracing
 
 from activitysim.abm.models.util.trip import generate_alternative_sizes, get_time_windows
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
-from activitysim.core.mem import force_garbage_collect
-
 
 logger = logging.getLogger(__name__)
 
@@ -145,22 +143,6 @@ def stop_two_way_only_patterns(tours, travel_duration_col=TOUR_DURATION_COLUMN):
     return patterns
 
 
-def trip_schedule_calc_row_size(choosers, trace_label):
-    """
-    rows_per_chunk calculator for trip_scheduler
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    chooser_row_size = len(choosers.columns)
-    spec_columns = 3
-
-    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
-
-    row_size = sizer.get_hwm()
-    return row_size
-
-
 def get_pattern_index_and_arrays(tour_indexes, durations, one_way=True):
     """
     A helper method to quickly calculate all of the potential time windows
@@ -253,11 +235,10 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
 
     if len(indirect_tours) > 0:
 
-        row_size = chunk_size and trip_schedule_calc_row_size(indirect_tours, trace_label)
         # Iterate through the chunks
         result_list = []
         for i, choosers, chunk_trace_label in \
-                chunk.adaptive_chunked_choosers(indirect_tours, chunk_size, row_size, trace_label):
+                chunk.adaptive_chunked_choosers(indirect_tours, chunk_size, trace_label):
 
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
@@ -274,6 +255,7 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
                 spec=spec,
                 choice_column=SCHEDULE_ID,
                 allow_zero_probs=True, zero_prob_choice_val=-999,
+                log_alt_losers=False,
                 want_logsums=False,
                 skims=skims,
                 locals_d=locals_dict,
@@ -288,7 +270,7 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
 
             result_list.append(choices)
 
-            force_garbage_collect()
+            chunk.log_df(trace_label, f'result_list', result_list)
 
         # FIXME: this will require 2X RAM
         # if necessary, could append to hdf5 store on disk:

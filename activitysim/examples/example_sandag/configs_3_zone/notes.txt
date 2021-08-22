@@ -1,0 +1,10 @@
+
+# test
+# activitysim run -c configs_local -c configs -c configs_3_zone -c ../example_mtc/configs -o output_test -d data_test
+# activitysim run -c configs_local -c configs -c configs_3_zone -c ../example_mtc/configs -o output_test -d data_test -s settings_mp.yaml
+
+# full dataset single-process 100K HH skip_accessibility
+# activitysim run -c configs_local -c configs_skip_accessibility -c configs -c configs_3_zone -c ../example_mtc/configs -o output_full -d data_full
+
+# full run multiprocess
+# activitysim run  -c configs -c configs_3_zone -c ../example_mtc/configs -o output_full -d data_full -s settings_mp.yaml

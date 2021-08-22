@@ -25,11 +25,12 @@ Contents
    :maxdepth: 3
 
    gettingstarted
-   abmexample
+   examples
    models
-   howitworks
    core
    cli
+   estimation
+   howitworks
    development
 
 

@@ -29,24 +29,6 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
 logger = logging.getLogger(__name__)
 
-#       nano micro milli    kilo mega giga tera peta exa  zeta yotta
-tiers = ['n', 'µ', 'm', '', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
-
-
-def si_units(x, kind='B', f="{}{:.3g} {}{}"):
-    tier = 3
-    shift = 1024 if kind == 'B' else 1000
-    sign = '-' if x < 0 else ''
-    x = abs(x)
-    if x > 0:
-        while x > shift and tier < len(tiers):
-            x /= shift
-            tier += 1
-        while x < 1 and tier >= 0:
-            x *= shift
-            tier -= 1
-    return f.format(sign, x, tiers[tier], kind)
-
 
 def extend_trace_label(trace_label, extension):
     if trace_label:
@@ -85,8 +67,9 @@ def log_runtime(model_name, start_time=None, timing=None):
     if config.setting('multiprocess', False) and not inject.get_injectable('locutor', False):
         return
 
-    with config.open_log_file('timing_log.txt', 'a') as log_file:
-        print(f"{process_name}, {model_name}, {seconds} seconds, {minutes} minutes", file=log_file)
+    header = "process_name,model_name,seconds,minutes"
+    with config.open_log_file('timing_log.csv', 'a', header) as log_file:
+        print(f"{process_name},{model_name},{seconds},{minutes}", file=log_file)
 
 
 def delete_output_files(file_type, ignore=None, subdir=None):
@@ -144,6 +127,7 @@ def delete_trace_files():
     Nothing
     """
     delete_output_files(CSV_FILE_TYPE, subdir='trace')
+    delete_output_files(CSV_FILE_TYPE, subdir='log')
 
     active_log_files = [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
 
@@ -321,10 +305,10 @@ def register_traceable_table(table_name, df):
         traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
         inject.add_injectable('traceable_table_ids', traceable_table_ids)
 
-    logger.info("register %s: added %s new ids to %s existing trace ids" %
-                (table_name, len(new_traced_ids), len(prior_traced_ids)))
-    logger.info("register %s: tracing new ids %s in %s" %
-                (table_name, new_traced_ids, table_name))
+    logger.debug("register %s: added %s new ids to %s existing trace ids" %
+                 (table_name, len(new_traced_ids), len(prior_traced_ids)))
+    logger.debug("register %s: tracing new ids %s in %s" %
+                 (table_name, new_traced_ids, table_name))
 
 
 def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
@@ -411,7 +395,9 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     if os.name == 'nt':
         abs_path = os.path.abspath(file_path)
-        assert len(abs_path) <= 255, f"Path length ({len(abs_path)}) exceeds maximum length for windows: {abs_path}"
+        if len(abs_path) > 255:
+            msg = f"path length ({len(abs_path)}) may exceed Windows maximum length unless LongPathsEnabled: {abs_path}"
+            logger.warning(msg)
 
     if os.path.isfile(file_path):
         logger.debug("write_csv file exists %s %s" % (type(df).__name__, file_name))

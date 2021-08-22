@@ -95,6 +95,7 @@ def link_same_value_coefficients(segment_names, coefficients, spec):
             coef_backwards_map
         )
         spec[segment_name] = spec[segment_name].map(r)
+    return relabel_coef
 
 
 def unavail_parameters(model):
@@ -124,7 +125,7 @@ def nonmand_tour_freq_model(
 
     settings = data.settings
     segment_names = [s["NAME"] for s in settings["SPEC_SEGMENTS"]]
-    link_same_value_coefficients(segment_names, data.coefficients, data.spec)
+    data.relabel_coef = link_same_value_coefficients(segment_names, data.coefficients, data.spec)
     spec = data.spec
     coefficients = data.coefficients
     chooser_data = data.chooser_data

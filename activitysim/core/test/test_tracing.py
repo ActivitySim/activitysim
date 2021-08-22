@@ -8,7 +8,6 @@ import pandas as pd
 
 from .. import tracing
 from .. import inject
-from .. import orca
 
 
 def close_handlers():

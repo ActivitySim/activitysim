@@ -10,8 +10,7 @@ from . import tracing
 from . import chunk
 from .simulate import set_skim_wrapper_targets
 
-from activitysim.core.mem import force_garbage_collect
-from .interaction_simulate import eval_interaction_utilities
+from . import interaction_simulate
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 def _interaction_sample_simulate(
         choosers, alternatives, spec,
         choice_column,
-        allow_zero_probs, zero_prob_choice_val,
+        allow_zero_probs, zero_prob_choice_val, log_alt_losers,
         want_logsums,
         skims, locals_d,
         trace_label, trace_choice_name,
@@ -118,6 +117,11 @@ def _interaction_sample_simulate(
 
     interaction_df = alternatives.join(choosers, how='left', rsuffix='_chooser')
 
+    if log_alt_losers:
+        # logit.interaction_dataset adds ALT_CHOOSER_ID column if log_alt_losers is True
+        # to enable detection of zero_prob-driving utils (e.g. -999 for all alts in a chooser)
+        interaction_df[interaction_simulate.ALT_CHOOSER_ID] = interaction_df.index.values
+
     chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
     if have_trace_targets:
@@ -138,7 +142,8 @@ def _interaction_sample_simulate(
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in alternative
     interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows, estimator)
+        = interaction_simulate.eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
+                                                          estimator=estimator, log_alt_losers=log_alt_losers)
     chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
     del interaction_df
@@ -207,7 +212,7 @@ def _interaction_sample_simulate(
     chunk.log_df(trace_label, 'probs', probs)
 
     if want_logsums:
-        logsums = logit.utils_to_logsums(utilities_df)
+        logsums = logit.utils_to_logsums(utilities_df, allow_zero_probs=allow_zero_probs)
         chunk.log_df(trace_label, 'logsums', logsums)
 
     del utilities_df
@@ -267,36 +272,20 @@ def _interaction_sample_simulate(
         choices = choices.to_frame('choice')
         choices['logsum'] = logsums
 
+    chunk.log_df(trace_label, 'choices', choices)
+
+    # handing this off to our caller
+    chunk.log_df(trace_label, 'choices', None)
+
     return choices
-
-
-def interaction_sample_simulate_calc_row_size(choosers, alt_sample, spec, trace_label):
-
-    # It is hard to estimate the size of the utilities_df since it conflates duplicate picks.
-    # Currently we ignore it, but maybe we should chunk based on worst case?
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    num_choosers = len(choosers.index)
-    chooser_row_size = len(choosers.columns)
-
-    # one column per alternative plus skims, interaction_utilities, probs
-    alt_row_size = alt_sample.shape[1] + 3
-    # average sample size
-    sample_size = alt_sample.shape[0] / float(num_choosers)
-
-    # interaction_df
-    sizer.add_elements((chooser_row_size + alt_row_size) * sample_size, 'interaction_df')
-
-    row_size = sizer.get_hwm()
-    return row_size
 
 
 def interaction_sample_simulate(
         choosers, alternatives, spec, choice_column,
         allow_zero_probs=False, zero_prob_choice_val=None,
+        log_alt_losers=False,
         want_logsums=False,
-        skims=None, locals_d=None, chunk_size=0,
+        skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
         trace_label=None, trace_choice_name=None,
         estimator=None):
 
@@ -356,24 +345,23 @@ def interaction_sample_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample_simulate')
-
-    row_size = chunk_size and interaction_sample_simulate_calc_row_size(choosers, alternatives, spec, trace_label)
+    chunk_tag = chunk_tag or trace_label
 
     result_list = []
     for i, chooser_chunk, alternative_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers_and_alts(choosers, alternatives,
-                                                        chunk_size, row_size, trace_label):
+            in chunk.adaptive_chunked_choosers_and_alts(choosers, alternatives, chunk_size, trace_label, chunk_tag):
 
         choices = _interaction_sample_simulate(
             chooser_chunk, alternative_chunk, spec, choice_column,
-            allow_zero_probs, zero_prob_choice_val, want_logsums,
+            allow_zero_probs, zero_prob_choice_val, log_alt_losers,
+            want_logsums,
             skims, locals_d,
             chunk_trace_label, trace_choice_name,
             estimator)
 
         result_list.append(choices)
 
-        force_garbage_collect()
+        chunk.log_df(trace_label, f'result_list', result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

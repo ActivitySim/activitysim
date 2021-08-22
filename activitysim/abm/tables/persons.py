@@ -41,8 +41,8 @@ def persons(households, trace_hh_id):
     if trace_hh_id:
         tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
-    print(f"{len(df.household_id.unique())} unique household_ids in persons")
-    print(f"{len(households.index.unique())} unique household_ids in households")
+    logger.debug(f"{len(df.household_id.unique())} unique household_ids in persons")
+    logger.debug(f"{len(households.index.unique())} unique household_ids in households")
     assert not households.index.duplicated().any()
     assert not df.index.duplicated().any()
 

@@ -251,7 +251,7 @@ class AbstractSkimFactory(ABC):
         assert False, "Not supported"
 
     def _memmap_skim_data_path(self, skim_tag):
-        return os.path.join(self.network_los.get_cache_dir(), f"cached_{skim_tag}.mmap")
+        return os.path.join(config.get_cache_dir(), f"cached_{skim_tag}.mmap")
 
     def load_skim_info(self, skim_tag):
         return SkimInfo(skim_tag, self.network_los)
@@ -377,7 +377,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
 
         csz = buffer_size * dtype.itemsize
         logger.info(f"allocate_skim_buffer shared {shared} {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
-                    f"total size: {csz} ({tracing.si_units(csz)})")
+                    f"total size: {util.INT(csz)} ({util.GB(csz)})")
 
         if shared:
             if dtype_name == 'float64':

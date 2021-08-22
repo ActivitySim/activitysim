@@ -1,7 +1,7 @@
 
 # rst doesn't support image maps, so we'll add one after the html has been built
 
-fileName = "_build/html/abmexample.html"
+fileName = "_build/html/examples.html"
 line = 'src="_images/abmexample.jpg" />'
 lineWithMap = 'src="_images/abmexample.jpg" usemap="#image-map" />'
 imageMap = """\n   <map name="image-map">
@@ -35,7 +35,7 @@ imageMap = """\n   <map name="image-map">
 
 print("add image map to " + fileName)
 
-with open(fileName) as file:
+with open(fileName, encoding='utf-8') as file:
     lines = file.readlines()
 
 with open(fileName, 'w') as file:

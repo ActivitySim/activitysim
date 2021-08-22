@@ -670,7 +670,7 @@ def run_od_logsums(
     logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
     in destination_sample, and computing the logsum of all the utilities
     """
-
+    chunk_tag = 'tour_od.logsums'
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
     origin_id_col = model_settings['ORIG_COL_NAME']
     dest_id_col = model_settings['DEST_COL_NAME']
@@ -780,6 +780,7 @@ def run_od_logsums(
         model_settings,
         network_los,
         chunk_size,
+        chunk_tag,
         trace_label, 'start', 'end', 'duration')
 
     od_sample['tour_mode_choice_logsum'] = logsums

@@ -124,6 +124,7 @@ class ShadowPriceCalculator(object):
 
         # - destination_size_table (desired_size)
         self.desired_size = inject.get_table(size_table_name(self.model_selector)).to_frame()
+        self.desired_size = self.desired_size.sort_index()
 
         assert self.desired_size.index.is_monotonic_increasing, \
             f"{size_table_name(self.model_selector)} not is_monotonic_increasing"
@@ -711,6 +712,7 @@ def load_shadow_price_calculator(model_settings):
     return spc
 
 
+@inject.step()
 def add_size_tables():
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)

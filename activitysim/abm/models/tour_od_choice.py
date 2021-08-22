@@ -39,6 +39,7 @@ def tour_od_choice(
     model_settings = config.read_model_settings(model_settings_file_name)
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
+    alt_id_col = tour_od.get_od_id_col(origin_col_name, dest_col_name)
 
     sample_table_name = model_settings.get('OD_CHOICE_SAMPLE_TABLE_NAME')
     want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
@@ -50,10 +51,10 @@ def tour_od_choice(
 
     estimator = estimation.manager.begin_estimation('tour_od_choice')
     if estimator:
-        estimator.write_coefficients(simulate.read_model_coefficients(model_settings))
-        # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
+        estimator.write_coefficients(model_settings=model_settings)
+        estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
         estimator.write_spec(model_settings, tag='SPEC')
-        estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
+        estimator.set_alt_id(alt_id_col)
         estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
         estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -68,8 +69,14 @@ def tour_od_choice(
         chunk_size, trace_hh_id, trace_label)
 
     if estimator:
+        assert estimator.want_unsampled_alternatives
         estimator.write_choices(choices_df.choice)
-        choices_df.choice = estimator.get_survey_values(choices_df.choice, 'tours', 'destination')
+        survey_od = estimator.get_survey_values(
+            choices_df.choice, 'tours', [origin_col_name, dest_col_name])
+        choices_df[origin_col_name] = survey_od[origin_col_name]
+        choices_df[dest_col_name] = survey_od[dest_col_name]
+        survey_od[alt_id_col] = tour_od.create_od_id_col(survey_od, origin_col_name, dest_col_name)
+        choices_df.choice = survey_od[alt_id_col]
         estimator.write_override_choices(choices_df.choice)
         estimator.end_estimation()
 

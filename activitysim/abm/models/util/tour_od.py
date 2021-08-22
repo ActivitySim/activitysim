@@ -42,12 +42,12 @@ ORIG_MAZ = 'orig_MAZ'
 ORIG_TAZ_EXT = 'orig_TAZ_ext'
 
 
-def _format_od_id_field(origin_col, destination_col):
+def get_od_id_col(origin_col, destination_col):
     colname = '{0}_{1}'.format(origin_col, destination_col)
     return colname
 
 
-def _create_od_id_col(df, origin_col, destination_col):
+def create_od_id_col(df, origin_col, destination_col):
     return df[origin_col].astype(str) + '_' + df[destination_col].astype(str)
 
 
@@ -85,7 +85,7 @@ def _create_od_alts_from_dest_size_terms(
         od_alts.rename(columns={land_use.index.name: dest_id_col}, inplace=True)
     
     if od_id_col is None:
-        new_index_name = _format_od_id_field(origin_id_col, dest_id_col)
+        new_index_name = get_od_id_col(origin_id_col, dest_id_col)
     else:
         new_index_name = od_id_col
     od_alts[new_index_name] = od_alts[origin_id_col].astype(str) + '_' + od_alts[dest_id_col].astype(str)
@@ -123,7 +123,7 @@ def _od_sample(
                                            segment_name=spec_segment_name,
                                            estimator=estimator)
     if alt_od_col_name is None:
-        alt_col_name = _format_od_id_field(origin_id_col, dest_id_col)
+        alt_col_name = get_od_id_col(origin_id_col, dest_id_col)
     else:
         alt_col_name = alt_od_col_name
 
@@ -135,8 +135,8 @@ def _od_sample(
         # FIXME interaction_sample will return unsampled complete alternatives
         # with probs and pick_count
         logger.info((
-            "Estimation mode for %s using unsampled alternatives ",
-            "short_circuit_choices") % (trace_label,))
+            "Estimation mode for %s using unsampled alternatives "
+            "short_circuit_choices") % trace_label)
         sample_size = 0
 
     locals_d = {
@@ -160,6 +160,8 @@ def _od_sample(
     if skims.orig_key == ORIG_TAZ:
         od_alts_df[ORIG_TAZ] = map_maz_to_taz(od_alts_df[origin_id_col], network_los)
 
+    # not sure this is ever getting triggered anymore. using external tazs for
+    # skim dists to is now handled via the ORIG_FILTER setting.
     elif skims.orig_key == ORIG_TAZ_EXT:
         od_alts_df[ORIG_TAZ_EXT] = map_maz_to_ext_taz(od_alts_df[origin_id_col])
 
@@ -198,7 +200,7 @@ def od_sample(
     skims = skim_dict.wrap(origin_col_name, dest_col_name)
 
     # the name of the od column to be returned in choices
-    alt_od_col_name = _format_od_id_field(origin_col_name, dest_col_name)
+    alt_od_col_name = get_od_id_col(origin_col_name, dest_col_name)
     choices = _od_sample(
         spec_segment_name,
         choosers,
@@ -483,7 +485,7 @@ def od_presample(
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
     logger.info(f"{trace_label} od_presample")
 
-    alt_od_col_name = _format_od_id_field(ORIG_MAZ, DEST_TAZ)
+    alt_od_col_name = get_od_id_col(ORIG_MAZ, DEST_TAZ)
 
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(destination_size_terms, network_los)
 
@@ -510,38 +512,12 @@ def od_presample(
     orig_MAZ_dest_TAZ_sample[ORIG_MAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[0].astype(int)
     orig_MAZ_dest_TAZ_sample[DEST_TAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[1].astype(int)
 
-    # for debugging
-    sample_df = orig_MAZ_dest_TAZ_sample.copy().reset_index()
-    lu = inject.get_table('land_use').to_frame(columns=['TAZ', 'pseudomsa'])
-    sample_df = pd.merge(sample_df, lu, left_on='dest_TAZ', right_on='TAZ')
-    num_alts = len(sample_df)
-    num_alts_in_pmsa_4 = len(sample_df[sample_df['pseudomsa'] == 4])
-    pct_pmsa_4 = np.round(num_alts_in_pmsa_4 / num_alts * 100, 1)
-    logger.warning("{0}% of sampled alts are in pseudo-MSA 4".format(pct_pmsa_4))
-
-    sample_df['pmsa4'] = sample_df['pseudomsa'] == 4
-    max_pmsa4_probs = sample_df.groupby(['tour_id', 'pmsa4'])['prob'].max().reset_index()
-    avg_pmsa4_max_probs = max_pmsa4_probs.groupby('pmsa4')['prob'].mean()
-    pmsa_4_avg_max = np.round(avg_pmsa4_max_probs.loc[True] * 100, 1)
-    other_avg_max = np.round(avg_pmsa4_max_probs.loc[False] * 100, 1)
-    logger.warning("presampled TAZ avg max probs -- pmsa 4: {0}%; the rest: {1}%".format(pmsa_4_avg_max, other_avg_max))
-
     # choose a MAZ for each DEST_TAZ choice, choice probability based on
     # MAZ size_term fraction of TAZ total
     
     maz_choices = choose_MAZ_for_TAZ(
         orig_MAZ_dest_TAZ_sample, MAZ_size_terms, trace_label,
         addtl_col_for_unique_key=ORIG_MAZ)
-
-    # for debugging
-    maz_sample_df = maz_choices.copy().reset_index()
-    maz_sample_df = pd.merge(maz_sample_df, lu, left_on=DEST_MAZ, right_index=True)
-    maz_sample_df['pmsa4'] = maz_sample_df['pseudomsa'] == 4
-    max_pmsa4_probs = maz_sample_df.groupby(['tour_id', 'pmsa4'])['prob'].max().reset_index()
-    avg_pmsa4_max_probs = max_pmsa4_probs.groupby('pmsa4')['prob'].mean()
-    pmsa_4_avg_max = np.round(avg_pmsa4_max_probs.loc[True] * 100, 1)
-    other_avg_max = np.round(avg_pmsa4_max_probs.loc[False] * 100, 1)
-    logger.warning("presampled MAZ avg max probs -- pmsa 4: {0}%; the rest: {1}%".format(pmsa_4_avg_max, other_avg_max))
 
     # outputs
     assert DEST_MAZ in maz_choices
@@ -661,6 +637,7 @@ def run_od_logsums(
         od_sample,
         model_settings,
         network_los,
+        estimator,
         chunk_size,
         trace_hh_id,
         trace_label):
@@ -674,7 +651,7 @@ def run_od_logsums(
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
     origin_id_col = model_settings['ORIG_COL_NAME']
     dest_id_col = model_settings['DEST_COL_NAME']
-    tour_od_id_col = _format_od_id_field(origin_id_col, dest_id_col)
+    tour_od_id_col = get_od_id_col(origin_id_col, dest_id_col)
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     tours_merged_df = \
@@ -781,7 +758,7 @@ def run_od_logsums(
         network_los,
         chunk_size,
         chunk_tag,
-        trace_label, 'start', 'end', 'duration')
+        trace_label, 'end', 'start', 'duration')
 
     od_sample['tour_mode_choice_logsum'] = logsums
 
@@ -812,10 +789,12 @@ def run_od_simulate(
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
     choosers = choosers[chooser_columns]
+
     # interaction_sample requires that choosers.index.is_monotonic_increasing
     if not choosers.index.is_monotonic_increasing:
         logger.debug(f"run_destination_simulate {trace_label} sorting choosers because not monotonic_increasing")
         choosers = choosers.sort_index()
+
     if estimator:
         estimator.write_choosers(choosers)
     
@@ -824,8 +803,8 @@ def run_od_simulate(
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
     origin_attr_cols = model_settings['ORIGIN_ATTR_COLS_TO_USE']
 
-    alt_od_col_name = _format_od_id_field(origin_col_name, dest_col_name)
-    od_sample[alt_od_col_name] = _create_od_id_col(od_sample, origin_col_name, dest_col_name)
+    alt_od_col_name = get_od_id_col(origin_col_name, dest_col_name)
+    od_sample[alt_od_col_name] = create_od_id_col(od_sample, origin_col_name, dest_col_name)
 
     # alternatives are pre-sampled and annotated with logsums and pick_count
     # but we have to merge size_terms column into alt sample list
@@ -855,7 +834,6 @@ def run_od_simulate(
         locals_d.update(constants)
 
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
-
     choices = interaction_sample_simulate(
         choosers,
         od_sample,
@@ -931,9 +909,20 @@ def run_tour_od(
                 segment_destination_size_terms,
                 estimator,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+                trace_label=tracing.extend_trace_label(
+                    trace_label, 'sample.%s' % segment_name))
 
-        od_sample_df[origin_col_name] = map_maz_to_ext_maz(od_sample_df[origin_col_name])
+        if model_settings['ORIG_FILTER'] == 'original_MAZ > 0':
+            pass
+        elif model_settings['ORIG_FILTER'] == 'external_TAZ > 0':
+            # sampled alts using internal mazs (the ctramp bug), so now we
+            # have to convert to using the external tazs
+            od_sample_df[origin_col_name] = map_maz_to_ext_maz(
+                od_sample_df[origin_col_name])
+        else:
+            raise ValueError(
+                'Not sure how you identified tour origins but you probably need '
+                'to choose a different ORIG_FILTER setting')
 
         # - destination_logsums
         od_sample_df = \
@@ -943,6 +932,7 @@ def run_tour_od(
                 od_sample_df,
                 model_settings,
                 network_los,
+                estimator,
                 chunk_size=chunk_size,
                 trace_hh_id=trace_hh_id,
                 trace_label=tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
@@ -961,6 +951,8 @@ def run_tour_od(
                 trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
 
         choices_list.append(choices)
+        if estimator:
+            assert estimator.want_unsampled_alternatives
 
         if want_sample_table:
             # FIXME - sample_table

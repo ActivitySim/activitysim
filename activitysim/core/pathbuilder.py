@@ -804,13 +804,13 @@ class TransitVirtualPathBuilder(object):
 
         return results
 
-    def get_tvpb_logsum(self, path_type, orig, dest, tod, demographic_segment, want_choices, trace_label=None):
+    def get_tvpb_logsum(
+            self, path_type, orig, dest, tod, demographic_segment, want_choices,
+            recipe='tour_mode_choice', trace_label=None):
 
         # assume they have given us a more specific name (since there may be more than one active wrapper)
         trace_label = trace_label or 'get_tvpb_logsum'
         trace_label = tracing.extend_trace_label(trace_label, path_type)
-
-        recipe = 'tour_mode_choice'
 
         with chunk.chunk_log(trace_label):
 
@@ -858,10 +858,12 @@ class TransitVirtualPathBuilder(object):
         return result
 
     def wrap_logsum(self, orig_key, dest_key, tod_key, segment_key,
+                    recipe='tour_mode_choice',
                     cache_choices=False, trace_label=None, tag=None):
 
-        return TransitVirtualPathLogsumWrapper(self, orig_key, dest_key, tod_key, segment_key,
-                                               cache_choices, trace_label, tag)
+        return TransitVirtualPathLogsumWrapper(
+            self, orig_key, dest_key, tod_key, segment_key,
+            recipe, cache_choices, trace_label, tag)
 
 
 class TransitVirtualPathLogsumWrapper(object):
@@ -869,7 +871,7 @@ class TransitVirtualPathLogsumWrapper(object):
     Transit virtual path builder logsum wrapper for three zone systems
     """
     def __init__(self, pathbuilder, orig_key, dest_key, tod_key, segment_key,
-                 cache_choices, trace_label, tag):
+                 recipe, cache_choices, trace_label, tag):
 
         self.tvpb = pathbuilder
         assert hasattr(pathbuilder, 'get_tvpb_logsum')
@@ -878,6 +880,7 @@ class TransitVirtualPathLogsumWrapper(object):
         self.dest_key = dest_key
         self.tod_key = tod_key
         self.segment_key = segment_key
+        self.recipe = recipe
         self.df = None
 
         self.cache_choices = cache_choices
@@ -947,6 +950,7 @@ class TransitVirtualPathLogsumWrapper(object):
         logsum_df = \
             self.tvpb.get_tvpb_logsum(path_type, orig, dest, tod, segment,
                                       want_choices=self.cache_choices,
+                                      recipe=self.recipe,
                                       trace_label=self.trace_label)
 
         if (self.cache_choices) and (not all(logsum_df['logsum'] == UNAVAILABLE)):

@@ -108,16 +108,31 @@ def trip_mode_choice(
 
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
                                            tod_key='trip_period', segment_key='demographic_segment',
-                                           cache_choices=True,
+                                           recipe='trip_mode_choice', cache_choices=True,
                                            trace_label=trace_label, tag='tvpb_logsum_odt')
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
         })
 
+        # This if-clause gives the user the option of NOT inheriting constants
+        # from the tvpb settings. previously, these constants were inherited 
+        # automatically, which had the undesirable effect of overwriting any
+        # trip mode choice model constants/coefficients that shared the same
+        # name. The default behavior is still the same (True), but the user
+        # can now avoid any chance of squashing these local variables by 
+        # adding `use_TVPB_constants: False` to the trip_mode_choice.yaml file.
+        # the tvpb will still use the constants as defined in the recipe
+        # specified above in `tvpb.wrap_logsum()` but they will not be used
+        # in the trip mode choice expressions.
         if model_settings.get('use_TVPB_constants', True):
             constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
-    estimator = estimation.manager.begin_estimation('trip_mode_choice')
+    # don't create estimation data bundle if trip mode choice is being called
+    # from another model step (i.e. tour mode choice logsum creation)
+    if pipeline._PIPELINE.rng().step_name != 'trip_mode_choice':
+        estimator = None
+    else:
+        estimator = estimation.manager.begin_estimation('trip_mode_choice')
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)

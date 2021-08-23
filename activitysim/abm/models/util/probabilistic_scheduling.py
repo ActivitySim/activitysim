@@ -13,8 +13,6 @@ from activitysim.core import chunk
 from activitysim.core import logit
 from activitysim.core import inject
 
-from activitysim.core.mem import force_garbage_collect
-
 logger = logging.getLogger(__name__)
 
 

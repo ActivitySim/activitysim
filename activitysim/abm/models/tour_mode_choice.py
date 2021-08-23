@@ -4,6 +4,7 @@ import logging
 
 import pandas as pd
 import numpy as np
+from orca import orca
 
 from activitysim.core import tracing
 from activitysim.core import config
@@ -11,8 +12,6 @@ from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import logit
-from activitysim.core import orca
-from activitysim.core.mem import force_garbage_collect
 from activitysim.core.util import assign_in_place, reindex
 
 from activitysim.core import los

@@ -4,6 +4,7 @@ import logging
 
 import pandas as pd
 import numpy as np
+from orca import orca
 
 from activitysim.core import tracing
 from activitysim.core import config
@@ -11,7 +12,6 @@ from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
 from activitysim.core import logit
-from activitysim.core import orca
 from activitysim.core import los
 from activitysim.core import expressions
 
@@ -20,8 +20,6 @@ from activitysim.core.util import reindex
 from activitysim.core.interaction_sample_simulate \
     import interaction_sample_simulate
 from activitysim.core.interaction_sample import interaction_sample
-
-from activitysim.core.mem import force_garbage_collect
 
 from . import trip, logsums as logsum
 
@@ -962,7 +960,6 @@ def run_tour_od(
 
         # FIXME - want to do this here?
         del od_sample_df
-        force_garbage_collect()
 
     if len(choices_list) > 0:
         choices_df = pd.concat(choices_list)

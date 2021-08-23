@@ -181,7 +181,6 @@ def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, 
 
     for i, chooser_chunk, chunk_trace_label \
             in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag):
-
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         assert chooser_chunk._is_view  # otherwise copying it is wasteful
         chooser_chunk = chooser_chunk.copy()

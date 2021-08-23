@@ -361,7 +361,7 @@ def run_trip_scheduling(
                 trips=leg_chunk,
                 probs_spec=probs_spec,
                 model_settings=model_settings,
-                last_iteration=is_last_iteration,
+                is_last_iteration=is_last_iteration,
                 trace_hh_id=trace_hh_id,
                 trace_label=leg_trace_label)
         result_list.append(choices)

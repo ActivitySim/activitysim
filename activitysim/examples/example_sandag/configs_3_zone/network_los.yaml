@@ -6,9 +6,9 @@ skim_dict_factory: NumpyArraySkimFactory
 #skim_dict_factory: MemMapSkimFactory
 
 # read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
-read_skim_cache: True
+read_skim_cache: False
 # write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
-write_skim_cache: True
+write_skim_cache: False
 
 # rebuild and overwrite existing tap_tap_utilities cache
 rebuild_tvpb_cache: True
@@ -18,16 +18,18 @@ rebuild_tvpb_cache: True
 # (n.b. csv file could be quite large if cache is STATIC!)
 trace_tvpb_cache_as_csv: False
 
-taz_skims: taz_skims.omx
+taz_skims: taz_skims*.omx
 
 # we require that skims for all tap_tap sets have unique names
 # and can therefor share a single skim_dict without name collision
 # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
-tap_skims: tap_skims.omx
+tap_skims: tap_skims*.omx
 
 maz: maz.csv
 
 tap: tap.csv
+
+tap_lines: tap_lines.csv
 
 maz_to_maz:
   tables:
@@ -47,8 +49,15 @@ maz_to_maz:
 maz_to_tap:
   walk:
     table: maz_to_tap_walk.csv
+    # if provided, this column will be used (together with tap_lines table) to trim the near tap set
+    # to only include the nearest tap to origin when more than oFne tap serves the same line
+    tap_line_distance_col: DISTWALK
+    max_dist: 1.2
   drive:
     table: maz_to_tap_drive.csv
+    # although maz_tap untility calculations use both DIST and drive_time,
+    # it looks like drive_time is a linera function of DIST so we can use either column to trim to nearest
+    tap_line_distance_col: DIST
 
 skim_time_periods:
     time_window: 1440
@@ -143,8 +152,9 @@ TVPB_SETTINGS:
         max_paths_per_tap_set: 1
     tap_tap_settings:
       SPEC: tvpb_accessibility_tap_tap_.csv
-#      sets:
-#        - transit
+      # FIXME this has to be explicitly specified, since e.g. attribute columns are assigned in expression files
+      attribute_segments:
+        tod: *skim_time_period_labels
     maz_tap_settings:
         walk:
           SPEC: tvpb_accessibility_walk_maz_tap.csv

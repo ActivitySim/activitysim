@@ -53,7 +53,7 @@ possible to do so by adding additional libraries to this command.  For example::
 
 This example installs a specific version of Python, version 3.9.  A similar
 approach can be used to install specific versions of other libraries as well,
-including ActivitySi, itself. For example::
+including ActivitySim, itself. For example::
 
   conda create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
 

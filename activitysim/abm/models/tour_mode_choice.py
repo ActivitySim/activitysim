@@ -135,7 +135,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     primary_tours_merged['tour_purpose'] = \
         primary_tours_merged.tour_type.where(not_university, 'univ')
 
-    # if trip logsums are used, run trip mode choice 
+    # if trip logsums are used, run trip mode choice
     if model_settings.get('COMPUTE_TRIP_MODE_CHOICE_LOGSUMS', False):
 
         # Construct table of hypothetical trips from tours for each potential
@@ -147,7 +147,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         trips['stop_frequency'] = '0out_0in'
         outbound = trips['outbound']
         trips['depart'] = reindex(primary_tours_merged.start, trips.tour_id)
-        trips.loc[~outbound, 'depart'] = reindex(primary_tours_merged.end, trips.loc[~outbound,'tour_id'])
+        trips.loc[~outbound, 'depart'] = reindex(primary_tours_merged.end, trips.loc[~outbound, 'tour_id'])
 
         logsum_trips = pd.DataFrame()
         nest_spec = config.get_logit_model_settings(model_settings)

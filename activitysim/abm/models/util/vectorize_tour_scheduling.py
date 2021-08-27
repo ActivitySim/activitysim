@@ -31,6 +31,7 @@ USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS = False
 
 RUN_ALTS_PREPROCESSOR_BEFORE_MERGE = True  # see FIXME below before changing this
 
+
 def skims_for_logsums(tour_purpose, model_settings, trace_label):
 
     assert 'LOGSUM_SETTINGS' in model_settings

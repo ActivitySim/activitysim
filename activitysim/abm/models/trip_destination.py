@@ -380,7 +380,7 @@ def destination_presample(
 
     # alternatives is just an empty dataframe indexed by maz with index name <alt_dest_col_name>
     # but logically, we are aggregating so lets do it, as there is no particular gain in being clever
-    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()    
+    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore

@@ -106,7 +106,7 @@ def _preprocess_departure_probs(
         chooser_probs = _clip_probs(choosers_df, choosers[probs_cols], depart_alt_base)
     else:
         chooser_probs = choosers.loc[:, probs_cols]
-    
+
     if first_trip_in_leg:
         # probs should sum to 1 unless all zero
         chooser_probs = chooser_probs.div(chooser_probs.sum(axis=1), axis=0).fillna(0)
@@ -145,7 +145,8 @@ def _preprocess_scheduling_probs(
     elif scheduling_mode == 'stop_duration':
         chooser_probs = _preprocess_stop_duration_probs(choosers)
     else:
-        logger.error("Invalid scheduling mode specified: {0}.".format(scheduling_mode),
+        logger.error(
+            "Invalid scheduling mode specified: {0}.".format(scheduling_mode),
             "Please select one of ['departure', 'stop_duration'] and try again.")
 
     # probs should sum to 1 with residual probs resulting in choice of 'fail'
@@ -171,11 +172,11 @@ def _postprocess_scheduling_choices(
     if scheduling_mode == 'stop_duration':
 
         # for outbound trips, offsets get added to the departure time constraint
-        if all(choosers.outbound == True):
+        if choosers.outbound.all():
             depart_alt_base = choosers['earliest']
 
         # for inbound trips, offsets get subtracted from tour end constraint
-        elif all(choosers.outbound == False):
+        elif not choosers.outbound.any():
             depart_alt_base = choosers['latest']
             choices *= -1
 
@@ -183,11 +184,10 @@ def _postprocess_scheduling_choices(
             logger.error(
                 'Outbound trips are being scheduled at the same '
                 'time as inbound trips. That should never happen.')
-    
+
     choices = (choices + depart_alt_base).where(~failed, -1)
 
     return choices, failed
-
 
 
 def calc_row_size(choosers, spec, trace_label, chooser_type, probs_join_cols=None):
@@ -208,7 +208,8 @@ def calc_row_size(choosers, spec, trace_label, chooser_type, probs_join_cols=Non
     if chooser_type == 'trip':
         # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
         outbound_chooser = (choosers.trip_num == 2) & choosers.outbound & (choosers.primary_purpose != 'atwork')
-        inbound_chooser = (choosers.trip_num == choosers.trip_count-1) & ~choosers.outbound & (choosers.primary_purpose != 'atwork')
+        inbound_chooser = (
+            choosers.trip_num == choosers.trip_count-1) & ~choosers.outbound & (choosers.primary_purpose != 'atwork')
 
         # furthermore, inbound and outbound are scheduled independently
         if outbound_chooser.sum() > inbound_chooser.sum():
@@ -244,8 +245,8 @@ def make_scheduling_choices(
         choosers_df, scheduling_mode,
         probs_spec, probs_join_cols,
         depart_alt_base,
-        first_trip_in_leg, 
-        report_failed_trips, trace_hh_id, trace_label, 
+        first_trip_in_leg,
+        report_failed_trips, trace_hh_id, trace_label,
         trace_choice_col_name='depart',
         clip_earliest_latest=True):
     """
@@ -271,7 +272,7 @@ def make_scheduling_choices(
     choices: pd.Series
         time periods depart choices, one per trip (except for trips with zero probs)
     """
-    
+
     choosers = pd.merge(choosers_df.reset_index(), probs_spec, on=probs_join_cols,
                         how='left').set_index(choosers_df.index.name)
     chunk.log_df(trace_label, "choosers", choosers)
@@ -283,12 +284,12 @@ def make_scheduling_choices(
     chooser_probs = _preprocess_scheduling_probs(
         scheduling_mode, choosers_df, choosers, probs_spec,
         probs_join_cols, clip_earliest_latest, depart_alt_base, first_trip_in_leg)
-        
+
     chunk.log_df(trace_label, "chooser_probs", chooser_probs)
 
     if trace_hh_id and tracing.has_trace_targets(choosers_df):
         tracing.trace_df(chooser_probs, '%s.chooser_probs' % trace_label)
-    
+
     raw_choices, rands = logit.make_choices(chooser_probs, trace_label=trace_label, trace_choosers=choosers)
 
     chunk.log_df(trace_label, "choices", raw_choices)
@@ -322,7 +323,7 @@ def make_scheduling_choices(
     if failed.any():
         choices = choices[~failed]
 
-    if all([check_col in choosers_df.columns for check_col in ['earliest','latest']]):
+    if all([check_col in choosers_df.columns for check_col in ['earliest', 'latest']]):
         assert (choices >= choosers_df.earliest[~failed]).all()
         assert (choices <= choosers_df.latest[~failed]).all()
 

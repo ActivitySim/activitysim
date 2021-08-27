@@ -50,7 +50,7 @@ def trip_mode_choice(
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
     # give trip mode choice the option to run without calling tours_merged. Useful for xborder
-    # model where tour_od_choice needs trip mode choice logsums before some of the join keys 
+    # model where tour_od_choice needs trip mode choice logsums before some of the join keys
     # needed by tour_merged (e.g. home_zone_id) exist
     tours_cols = [col for col in model_settings['TOURS_MERGED_CHOOSER_COLUMNS'] if col not in trips_df.columns]
     if len(tours_cols) > 0:
@@ -67,8 +67,7 @@ def trip_mode_choice(
         how="left")
     assert trips_merged.index.equals(trips.index)
 
-    tracing.print_summary('primary_purpose',
-                              trips_df.primary_purpose, value_counts=True)
+    tracing.print_summary('primary_purpose', trips_df.primary_purpose, value_counts=True)
 
     # setup skim keys
     assert ('trip_period' not in trips_merged)
@@ -115,11 +114,11 @@ def trip_mode_choice(
         })
 
         # This if-clause gives the user the option of NOT inheriting constants
-        # from the tvpb settings. previously, these constants were inherited 
+        # from the tvpb settings. previously, these constants were inherited
         # automatically, which had the undesirable effect of overwriting any
         # trip mode choice model constants/coefficients that shared the same
         # name. The default behavior is still the same (True), but the user
-        # can now avoid any chance of squashing these local variables by 
+        # can now avoid any chance of squashing these local variables by
         # adding `use_TVPB_constants: False` to the trip_mode_choice.yaml file.
         # the tvpb will still use the constants as defined in the recipe
         # specified above in `tvpb.wrap_logsum()` but they will not be used

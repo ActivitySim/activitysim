@@ -50,7 +50,7 @@ def create_od_id_col(df, origin_col, destination_col):
 
 
 def _get_od_cols_from_od_id(df, orig_col_name=None, dest_col_name=None, od_id_col='choice'):
-    
+
     df[orig_col_name] = df[od_id_col].str.split('_').str[0].astype(int)
     df[dest_col_name] = df[od_id_col].str.split('_').str[1].astype(int)
 
@@ -67,9 +67,9 @@ def _create_od_alts_from_dest_size_terms(
     will still only be associated with the destinations, but individual
     attributes of the origins can be preserved.
     """
-    
+
     land_use = inject.get_table('land_use').to_frame(columns=origin_attr_cols)
-        
+
     if origin_filter:
         origins = land_use.query(origin_filter)
     else:
@@ -81,7 +81,7 @@ def _create_od_alts_from_dest_size_terms(
     od_alts.reset_index(inplace=True)
     if dest_id_col not in od_alts.columns:
         od_alts.rename(columns={land_use.index.name: dest_id_col}, inplace=True)
-    
+
     if od_id_col is None:
         new_index_name = get_od_id_col(origin_id_col, dest_id_col)
     else:
@@ -166,7 +166,6 @@ def _od_sample(
     elif skims.orig_key not in od_alts_df:
         logger.error("Alts df is missing origin skim key column.")
 
-    
     choices = interaction_sample(
         choosers,
         alternatives=od_alts_df,
@@ -189,7 +188,7 @@ def od_sample(
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
-    
+
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
@@ -313,7 +312,6 @@ def choose_MAZ_for_TAZ(
                          label=tracing.extend_trace_label(trace_label, 'taz_sample'),
                          transpose=False)
 
-
     if addtl_col_for_unique_key is None:
         addtl_col_for_unique_key = []
         # unique_alt_id_cols = [dest_maz_id_col]:
@@ -364,7 +362,7 @@ def choose_MAZ_for_TAZ(
                          MAZ_size_terms, how='left', on=DEST_TAZ).set_index('index')
 
     #         tour_id  dest_TAZ  <addtl_col_for_unique_key>  zone_id  size_term
-    # index                                                 
+    # index
     # 0          856      4522          7066                  1624    899.648
     # 0          856      4522          7066                  1627     52.918
     # 1          856      4666          7066                  8507    253.256
@@ -512,7 +510,7 @@ def od_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on
     # MAZ size_term fraction of TAZ total
-    
+
     maz_choices = choose_MAZ_for_TAZ(
         orig_MAZ_dest_TAZ_sample, MAZ_size_terms, trace_label,
         addtl_col_for_unique_key=ORIG_MAZ)
@@ -669,7 +667,7 @@ def run_od_logsums(
         pseudo_tours = choosers.copy()
         trip_mode_choice_settings = config.read_model_settings('trip_mode_choice')
 
-        # tours_merged table doesn't yet have all the cols it needs to be called (e.g. 
+        # tours_merged table doesn't yet have all the cols it needs to be called (e.g.
         # home_zone_id), so in order to compute tour mode choice/trip mode choice logsums
         # in this step we have to pass all tour-level attributes in with the main trips
         # table. see trip_mode_choice.py L56-61 for more details.
@@ -689,7 +687,7 @@ def run_od_logsums(
 
         # need dest_id_col to create dest col in trips, but need to preserve
         # tour dest as separate column in the trips table bc the trip mode choice
-        # preprocessor isn't able to get the tour dest from the tours table bc the 
+        # preprocessor isn't able to get the tour dest from the tours table bc the
         # tours don't yet have ODs.
         pseudo_tours['tour_destination'] = pseudo_tours[dest_id_col]
         trips = trip.initialize_from_tours(
@@ -697,7 +695,7 @@ def run_od_logsums(
         outbound = trips['outbound']
         trips['depart'] = reindex(pseudo_tours.start, trips.unique_id)
         trips.loc[~outbound, 'depart'] = reindex(pseudo_tours.end, trips.loc[~outbound, 'unique_id'])
-        
+
         logsum_trips = pd.DataFrame()
         nest_spec = config.get_logit_model_settings(logsum_settings)
 
@@ -777,7 +775,7 @@ def run_od_simulate(
     run destination_simulate on tour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
     """
-    
+
     model_spec = simulate.spec_for_segment(model_settings, spec_id='SPEC',
                                            segment_name=spec_segment_name, estimator=estimator)
 
@@ -795,7 +793,7 @@ def run_od_simulate(
 
     if estimator:
         estimator.write_choosers(choosers)
-    
+
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
@@ -808,7 +806,7 @@ def run_od_simulate(
     # but we have to merge size_terms column into alt sample list
     od_sample['size_term'] = \
         reindex(destination_size_terms.size_term, od_sample[alt_dest_col_name])
-    
+
     # also have to add origin attribute columns
     lu = inject.get_table('land_use').to_frame(columns=origin_attr_cols)
     od_sample = pd.merge(od_sample, lu, left_on=origin_col_name, right_index=True, how='left')
@@ -954,8 +952,7 @@ def run_tour_od(
 
         if want_sample_table:
             # FIXME - sample_table
-            od_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'],
-                                         append=True, inplace=True)
+            od_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
             sample_list.append(od_sample_df)
 
         # FIXME - want to do this here?

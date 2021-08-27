@@ -819,7 +819,7 @@ class TransitVirtualPathBuilder(object):
                                         want_choices=want_choices, trace_label=trace_label)
 
             trace_hh_id = inject.get_injectable("trace_hh_id", None)
-            if (all(logsum_df['logsum'] == UNAVAILABLE)) or (len(logsum_df) == 0) :
+            if (all(logsum_df['logsum'] == UNAVAILABLE)) or (len(logsum_df) == 0):
                 trace_hh_id = False
 
             if trace_hh_id:

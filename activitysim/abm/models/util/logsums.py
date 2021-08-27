@@ -80,7 +80,6 @@ def compute_logsums(choosers,
     else:
         logger.error("Choosers table already has column 'duration'.")
 
-
     logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
     coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)
 

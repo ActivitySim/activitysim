@@ -215,7 +215,6 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
 
     np_logger = NumpyLogger(logger)
 
-
     def is_throwaway(target):
         return target == '_'
 
@@ -336,7 +335,6 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
         trace_results = pd.concat([df[trace_rows], trace_results], axis=1)
 
     assert variables, "No non-temp variables were assigned."
-
 
     if chunk_log:
         chunk.log_df(trace_label, 'temps', temps)

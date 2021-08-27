@@ -69,7 +69,7 @@ def choose_intermediate_trip_purpose(
 
     non_purpose_cols = probs_join_cols
     if use_depart_time:
-         non_purpose_cols += ['depart_range_start', 'depart_range_end']
+        non_purpose_cols += ['depart_range_start', 'depart_range_end']
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
 
     num_trips = len(trips.index)
@@ -101,8 +101,9 @@ def choose_intermediate_trip_purpose(
             # join to persons for better diagnostics
             persons = inject.get_table('persons').to_frame()
             persons_cols = ['age', 'is_worker', 'is_student', 'is_gradeschool', 'is_highschool', 'is_university']
-            unmatched_choosers = pd.merge(unmatched_choosers, persons[[col for col in persons_cols if col in persons.columns]],
-                                          left_on='person_id', right_index=True, how='left')
+            unmatched_choosers = pd.merge(
+                unmatched_choosers, persons[[col for col in persons_cols if col in persons.columns]],
+                left_on='person_id', right_index=True, how='left')
 
             file_name = '%s.UNMATCHED_PROBS' % trace_label
             logger.error("%s %s of %s intermediate trips could not be matched to probs based on join columns  %s" %

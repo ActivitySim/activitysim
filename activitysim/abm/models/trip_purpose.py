@@ -39,23 +39,6 @@ def map_coefficients(spec, coefficients):
     return spec
 
 
-def trip_purpose_calc_row_size(choosers, spec, probs_join_cols, trace_label):
-    """
-    rows_per_chunk calculator for trip_purpose
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    chooser_row_size = len(choosers.columns)
-
-    spec_columns = spec.shape[1] - len(probs_join_cols)
-
-    sizer.add_elements(chooser_row_size + spec_columns, 'choosers')
-
-    row_size = sizer.get_hwm()
-    return row_size
-
-
 def choose_intermediate_trip_purpose(
         trips, probs_spec, estimator, probs_join_cols, use_depart_time, trace_hh_id, trace_label):
     """
@@ -67,7 +50,7 @@ def choose_intermediate_trip_purpose(
     purpose: pandas.Series of purpose (str) indexed by trip_id
     """
 
-    non_purpose_cols = probs_join_cols
+    non_purpose_cols = probs_join_cols.copy()
     if use_depart_time:
         non_purpose_cols += ['depart_range_start', 'depart_range_end']
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
@@ -163,8 +146,7 @@ def run_trip_purpose(
     model_settings_file_name = 'trip_purpose.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    default_join_cols = PROBS_JOIN_COLUMNS
-    probs_join_cols = model_settings.get('probs_join_cols', default_join_cols)
+    probs_join_cols = model_settings.get('probs_join_cols', PROBS_JOIN_COLUMNS)
 
     spec_file_name = model_settings.get('PROBS_SPEC', 'trip_purpose_probs.csv')
     probs_spec = pd.read_csv(config.config_file_path(spec_file_name), comment='#')
@@ -208,11 +190,9 @@ def run_trip_purpose(
             trace_label=trace_label)
 
     use_depart_time = model_settings.get('use_depart_time', True)
-    row_size = chunk_size and trip_purpose_calc_row_size(
-        trips_df, probs_spec, probs_join_cols, trace_label=trace_label)
 
     for i, trips_chunk, chunk_trace_label in \
-            chunk.adaptive_chunked_choosers(trips_df, chunk_size, row_size, trace_label):
+            chunk.adaptive_chunked_choosers(trips_df, chunk_size, chunk_tag, trace_label):
         choices = choose_intermediate_trip_purpose(
             trips_chunk,
             probs_spec,

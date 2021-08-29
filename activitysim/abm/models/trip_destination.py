@@ -927,11 +927,14 @@ def run_trip_destination(
     tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(np.int64)
     tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(np.int64)
 
-    # # these values are now automatically created when trips are instantiated when
-    # # stop_frequency step calls trip.initialize_from_tours
-    # trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
-    # trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
-    # trips['failed'] = False
+    # these values are now automatically created when trips are instantiated when
+    # stop_frequency step calls trip.initialize_from_tours. But if this module is being
+    # called from trip_destination_and_purpose, these columns will have been deleted
+    # so they must be re-created
+    if pipeline.get_rn_generator().step_name == 'trip_purpose_and_destination':
+        trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
+        trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
+        trips['failed'] = False
 
     if estimator:
         # need to check or override non-intermediate trip destination

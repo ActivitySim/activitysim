@@ -104,10 +104,10 @@ def trip_mode_choice(
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
         tvpb = network_los.tvpb
-
+        tvpb_recipe = model_settings.get('TVPB_recipe', 'tour_mode_choice')
         tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
                                            tod_key='trip_period', segment_key='demographic_segment',
-                                           recipe='trip_mode_choice', cache_choices=True,
+                                           recipe=tvpb_recipe, cache_choices=True,
                                            trace_label=trace_label, tag='tvpb_logsum_odt')
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,

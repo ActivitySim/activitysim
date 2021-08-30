@@ -812,7 +812,7 @@ class TransitVirtualPathBuilder(object):
         trace_label = trace_label or 'get_tvpb_logsum'
         trace_label = tracing.extend_trace_label(trace_label, path_type)
 
-        with chunk.chunk_log(trace_label, base=True):
+        with chunk.chunk_log(trace_label):
 
             logsum_df = \
                 self.build_virtual_path(recipe, path_type, orig, dest, tod, demographic_segment,

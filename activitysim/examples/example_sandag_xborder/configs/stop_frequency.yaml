@@ -1,0 +1,24 @@
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: stop_frequency_annotate_tours_preprocessor
+  DF: tours_merged
+
+SEGMENT_COL: primary_purpose
+
+SPEC_SEGMENTS:
+  - primary_purpose: work
+    SPEC: stop_frequency_work.csv
+    COEFFICIENTS: stop_frequency_coefficients_work.csv
+  - primary_purpose: school
+    SPEC: stop_frequency_school.csv
+    COEFFICIENTS: stop_frequency_coefficients_school.csv
+  - primary_purpose: visit
+    SPEC: stop_frequency_visit.csv
+    COEFFICIENTS: stop_frequency_coefficients_visit.csv
+  - primary_purpose: shop
+    SPEC: stop_frequency_shop.csv
+    COEFFICIENTS: stop_frequency_coefficients_shop.csv
+  - primary_purpose: other
+    SPEC: stop_frequency_other.csv
+    COEFFICIENTS: stop_frequency_coefficients_other.csv

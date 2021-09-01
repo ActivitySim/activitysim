@@ -1,0 +1,108 @@
+# read trips table post preprocessor and run expressions to code
+# additional data fields, with one data fields for each matrix specified below
+
+preprocessor:
+  SPEC: write_trip_matrices_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+
+# divide trip counts by household expansion factor
+HH_EXPANSION_WEIGHT_COL: sample_rate  # added when households read in
+
+# save preprocessed trips table to pipeline if desired
+SAVE_TRIPS_TABLE: False
+
+MATRICES:
+  - file_name: trips_ea.omx
+    tables:
+      - name: DRIVEALONE_EA
+        data_field: DRIVEALONE_EA
+      - name: SHARED2_EA
+        data_field: SHARED2_EA
+      - name: SHARED3_EA
+        data_field: SHARED3_EA
+      - name: WALK_EA
+        data_field: WALK_EA
+      - name: WALK_TRANSIT_WALK_EA
+        data_field: WALK_TRANSIT_WALK_EA
+      - name: TAXI_EA
+        data_field: TAXI_EA
+      - name: TNC_SINGLE_EA
+        data_field: TNC_SINGLE_EA
+      - name: TNC_SHARED_EA
+        data_field: TNC_SHARED_EA
+  - file_name: trips_am.omx
+    tables:
+      - name: DRIVEALONE_AM
+        data_field: DRIVEALONE_AM
+      - name: SHARED2_AM
+        data_field: SHARED2_AM
+      - name: SHARED3_AM
+        data_field: SHARED3_AM
+      - name: WALK_AM
+        data_field: WALK_AM
+      - name: WALK_TRANSIT_WALK_AM
+        data_field: WALK_TRANSIT_WALK_EA
+      - name: TAXI_AM
+        data_field: TAXI_AM
+      - name: TNC_SINGLE_AM
+        data_field: TNC_SINGLE_AM
+      - name: TNC_SHARED_AM
+        data_field: TNC_SHARED_AM
+  - file_name: trips_md.omx
+    tables:
+      - name: DRIVEALONE_MD
+        data_field: DRIVEALONE_MD
+      - name: SHARED2_MD
+        data_field: SHARED2_MD
+      - name: SHARED3_MD
+        data_field: SHARED3_MD
+      - name: WALK_MD
+        data_field: WALK_MD
+      - name: WALK_TRANSIT_WALK_MD
+        data_field: WALK_TRANSIT_WALK_EA
+      - name: TAXI_MD
+        data_field: TAXI_MD
+      - name: TNC_SINGLE_MD
+        data_field: TNC_SINGLE_MD
+      - name: TNC_SHARED_MD
+        data_field: TNC_SHARED_MD
+  - file_name: trips_pm.omx
+    tables:
+      - name: DRIVEALONE_PM
+        data_field: DRIVEALONE_PM
+      - name: SHARED2_PM
+        data_field: SHARED2_PM
+      - name: SHARED3_PM
+        data_field: SHARED3_PM
+      - name: WALK_PM
+        data_field: WALK_PM
+      - name: WALK_TRANSIT_WALK_PM
+        data_field: WALK_TRANSIT_WALK_EA
+      - name: TAXI_PM
+        data_field: TAXI_PM
+      - name: TNC_SINGLE_PM
+        data_field: TNC_SINGLE_PM
+      - name: TNC_SHARED_PM
+        data_field: TNC_SHARED_PM
+  - file_name: trips_ev.omx
+    tables:
+      - name: DRIVEALONE_EV
+        data_field: DRIVEALONE_EV
+      - name: SHARED2_EV
+        data_field: SHARED2_EV
+      - name: SHARED3_EV
+        data_field: SHARED3_EV
+      - name: WALK_EV
+        data_field: WALK_EV
+      - name: WALK_TRANSIT_WALK_EV
+        data_field: WALK_TRANSIT_WALK_EA
+      - name: TAXI_EV
+        data_field: TAXI_EV
+      - name: TNC_SINGLE_EV
+        data_field: TNC_SINGLE_EV
+      - name: TNC_SHARED_EV
+        data_field: TNC_SHARED_EV
+
+CONSTANTS:

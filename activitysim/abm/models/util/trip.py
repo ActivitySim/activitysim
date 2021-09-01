@@ -212,7 +212,7 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
 
     """
 
-    # copied from trip_destination.py
+    # previously in trip_destination.py
     tour_destination = reindex(unique_tours.destination, trips.tour_temp_index).astype(np.int64)
     tour_origin = reindex(unique_tours.origin, trips.tour_temp_index).astype(np.int64)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
@@ -221,9 +221,18 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
 
     # replace temp tour identifier with tour_id
     trips['tour_id'] = reindex(unique_tours.tour_id, trips.tour_temp_index)
-    del trips['tour_temp_index']
 
-    # once we have the real tour id we can set the trip_id in the canonical way
-    set_trip_index(trips)
+    # trip ids are generated based on unique combination of `tour_id`, `outbound`,
+    # and `trip_num`. when pseudo-trips are generated from pseudo-tours for the
+    # purposes of computing logsums, `tour_id` won't be unique on `outbound` and
+    # `trip_num`, so we use `tour_temp_index` instead. this will only be the case
+    # when generating temporary pseudo-trips which won't get saved as outputs.
+    if trips.groupby(['tour_id', 'outbound', 'trip_num'])['person_id'].count().max() > 1:
+        trip_index_tour_id = 'tour_temp_index'
+    else:
+        trip_index_tour_id = 'tour_id'
+    
+    set_trip_index(trips, trip_index_tour_id)    
+    del trips['tour_temp_index']
 
     return trips

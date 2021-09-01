@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import chunk
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
@@ -496,10 +497,17 @@ def compute_ood_logsums(
 
     locals_dict.update(od_skims)
 
-    expressions.annotate_preprocessors(
-        choosers, locals_dict, od_skims,
-        logsum_settings,
-        trace_label)
+    # if preprocessor contains tvpb logsums term, `pathbuilder.get_tvpb_logsum()`
+    # will get called before a ChunkSizers class object has been instantiated,
+    # causing pathbuilder to throw an error at L815 due to the assert statement
+    # in `chunk.chunk_log()` at chunk.py L927. To avoid failing this assertion,
+    # the preprocessor must be called from within a "null chunker" as follows:
+    with chunk.chunk_log(tracing.extend_trace_label(
+            trace_label, 'annotate_preprocessor'), base=True):
+        expressions.annotate_preprocessors(
+            choosers, locals_dict, od_skims,
+            logsum_settings,
+            trace_label)
 
     logsums = simulate.simple_simulate_logsums(
         choosers,

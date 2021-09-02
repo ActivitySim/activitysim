@@ -1,8 +1,6 @@
 inherit_settings: False
 
 # number of households to simulate
-#households_sample_size: 1000
-
 households_sample_size: 0
 multiprocess: True
 strict: False

@@ -60,13 +60,16 @@
     - example_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data/skims.omx
+      579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/households.csv
       data/households.csv
+      bb96fe21eb5e57ac41daef464c403609832a38137e5ec5237e7ebc38800ffc87
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/persons.csv
       data/persons.csv
+      2bb265feefbebb353c5853ca1598ef4592e886be01bacd35d8166fd267326da0
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/land_use.csv
       data/land_use.csv
-
+      d47c117b379e9ba57230105916c749d25dc7896bb79d6e0e5a28d16822b54523
 - name: example_estimation
   description: Estimation mode 25 zone example
   # activitysim create -e example_estimation -d test_example_estimation
@@ -95,6 +98,7 @@
     - example_estimation/data_sf
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data_sf/skims.omx
+      579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
     - example_mtc/output
 
 - name: example_2_zone
@@ -110,21 +114,28 @@
     - example_multiple_zone/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/households.csv
       data_2/households.csv
+      0e247da9105b152730573e782e7b5f1d62040e3b381f683286fe1bb22f949529
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/land_use.csv
       data_2/land_use.csv
+      284c41112bc60d27b0be005a59a6e24e95bf9356153a96e89c8731e022cfd3a9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/maz.csv
       data_2/maz.csv
+      bbb1b45956217c22ed30f6b02eeaf24cc57cff99ef437a7b8952e6084df16e6e
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/maz_to_maz_bike.csv
       data_2/maz_to_maz_bike.csv
+      46930555a1d72860b91ba7d8f1f0757ded9f1a310c22399d68ce109636af63ec
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/maz_to_maz_walk.csv
       data_2/maz_to_maz_walk.csv
+      e70523b197edefa98326d8a1026bcbeebafb96cb0a187f8680d068f7fa28d503
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/persons.csv
       data_2/persons.csv
+      abbba34378519fa3e872e599456ed8ffe683a1b8548797d6aff257f8fd194776
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/taz.csv
       data_2/taz.csv
+      cad7b58ba4a6923e740f354ec5d01940d8357bea0ce9b292e784d2aa2008abf8
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/taz_skims.omx
       data_2/taz_skims.omx
-
+      773c89369f748e26309786b42aa4c62b5dd329a931214dd63a11007001de3829
 - name: example_3_zone
   description: 3 zone system test example based on TM1
   # activitysim create -e example_3_zone -d test_example_3_zone
@@ -143,31 +154,43 @@
     - example_multiple_zone/output_3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/households.csv
       data_3/households.csv
+      0e247da9105b152730573e782e7b5f1d62040e3b381f683286fe1bb22f949529
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/land_use.csv
       data_3/land_use.csv
+      284c41112bc60d27b0be005a59a6e24e95bf9356153a96e89c8731e022cfd3a9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/maz.csv
       data_3/maz.csv
+      bbb1b45956217c22ed30f6b02eeaf24cc57cff99ef437a7b8952e6084df16e6e
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/maz_to_maz_bike.csv
       data_3/maz_to_maz_bike.csv
+      79f2f761771575f02d7a4bf99a2c7e161e905faaa7c976d488dab68f335bca3f
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/maz_to_maz_walk.csv
       data_3/maz_to_maz_walk.csv
+      ab38747fca68619a0233dfab64f830dfe02b2e88ecdda3f74f85f884d11a361d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/maz_to_tap_bike.csv
       data_3/maz_to_tap_bike.csv
+      c9e66f82a0780e4640d3d7eb47c9f058613e7d3ad4ebe18a892643902d3bcd50
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/maz_to_tap_drive.csv
       data_3/maz_to_tap_drive.csv
+      1e69986bed8eae1f78eb277a85f878f5c3298b163ac6eb7b723ee2b40ea5ea66
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/maz_to_tap_walk.csv
       data_3/maz_to_tap_walk.csv
+      cc70d948244095f7ea9107d2ce39924d827a8deb6490535d096980c96968ea16
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/persons.csv
       data_3/persons.csv
+      abbba34378519fa3e872e599456ed8ffe683a1b8548797d6aff257f8fd194776
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/tap.csv
       data_3/tap.csv
+      eeadfa7f41ed2bb6b20160a683f443dd8bd7a05d24356d779dbdfb8b58f7cb7f
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/tap_skims.omx
       data_3/tap_skims.omx
+      c66d7596c38d8e6f12fc7597b3ce100a57de0d4a291381b7603268baee4da0f4
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/taz.csv
       data_3/taz.csv
+      cad7b58ba4a6923e740f354ec5d01940d8357bea0ce9b292e784d2aa2008abf8
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/taz_skims.omx
       data_3/taz_skims.omx
-
+      d3f89e29878d3384318b15db26bfddb48d63c9a8d5187aa02797178cfead0394
 - name: example_marin
   description: Marin TM2 work tour mode choice cropped to Downtown SF for testing
   # activitysim create -e example_marin -d test_example_marin
@@ -201,45 +224,64 @@
     - example_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_AM.omx
       data/highway_skims_AM.omx
+      2d5d21266a0cd29f174858bc2c47a26067c7af35e12793a78a3dc673df9f13df
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_EA.omx
       data/highway_skims_EA.omx
+      90bff2bbd5040594af71224a11bd36f618b8df5fe8e3097acc208753415047e7
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_EV.omx
       data/highway_skims_EV.omx
+      8234783f92576354880c2d2b4e5dca285a867e9a36b0688da6796646673bcf1e
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_MD.omx
       data/highway_skims_MD.omx
+      752e59391d322d7a54fb66b0a675555eedeabcd8911ca99891e70acd0dcc9fef
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_PM.omx
       data/highway_skims_PM.omx
+      57b17dbe9a78f77db921642fa8629931700f7ba8649cd38c7a8976c24df75f59
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/accessibility.csv
       data/accessibility.csv
+      300232f4dfdde956bbaf14cee2c6abee2a35410a7cacdeb6c80dcdf08e789452
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/households.csv
       data/households.csv
+      cd1a82945169b7dc3696939bc9e41d5f83151645ff61ea5e2a1daee2806e5dae
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/land_use.csv
       data/land_use.csv
+      3aefabf6bce1a8bee9da67f9ac30c04c94ef79cb86dc5336732e9c1644430d4d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/maz_maz_bike.csv
       data/maz_maz_bike.csv
+      85c178192a416d713cf7f7ee09cddd5859cbe90cd0669eb591a16c76332df508
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/maz_maz_walk.csv
       data/maz_maz_walk.csv
+      b4634a9acb57e67cab3464684b73f1ab1f60aea2c6b9ca19d86170ad1b1ebda0
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/maz_tap_walk.csv
       data/maz_tap_walk.csv
+      78232f4eada973575fadb4d58055f5d14f42af85e2e92790cc3a7815db15663b
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/maz_taz.csv
       data/maz_taz.csv
+      eaff32b2b83ddfe1b134235e3de01b399d62342bcb396153245c5ed7b1dba157
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/maz_taz_tap_drive.csv
       data/maz_taz_tap_drive.csv
+      198c17b036cf2d526fd36461ca094a0f42b47929cb5b5b91d0f1707433cc3252
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/persons.csv
       data/persons.csv
+      f1407ba4ee57ae0e5846825f489e250d49408237219bbae3a751b2004b81a17a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/tap.csv
       data/tap.csv
+      3425827fe8d5e6ba536056ce8f8af37f496a632eb3c89feebcb7271e35815520
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/tap_lines.csv
       data/tap_lines.csv
+      0f6082aac68326a2ade5267cb75d1d4ce2683dedd063513142c3dc828ca63ae9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/transit_skims_SET1.omx
       data/transit_skims_SET1.omx
+      db743c3630f788c619ff74c1e87d5ae58c2f3b12b85148fc53e4d86a6451fbf9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/transit_skims_SET2.omx
       data/transit_skims_SET2.omx
+      824cdc445cdb3242e5d17dfea9f1a9998d786b707eda9f9a765aae1356d0da0f
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/transit_skims_SET3.omx
       data/transit_skims_SET3.omx
+      1387a970ef753b229e54b432d7eb1bb5e21d7f7aed9040154c3223d8e371b9d7
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/work_tours.csv
       data/work_tours.csv
-
+      a88082ead7ace00f1b2d8ed3997aa3d27c0bc36c9deeee8b8e4c6cf85d6a7004
 - name: example_3_marin_full
   description: Marin TM2 work tour mode choice for the 9 county MTC region
   # activitysim create -e example_3_marin_full -d test_example_3_marin_full
@@ -253,45 +295,64 @@
     - example_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_AM.omx
       data/highway_skims_AM.omx
+      e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_EA.omx
       data/highway_skims_EA.omx
+      be7e4a8ab1ff1b01ded56b8fcc57cb8c76ff64f82d5e5869f8a4fdc05a35d7e3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_EV.omx
       data/highway_skims_EV.omx
+      5abbc4094602b5d0dac6bdcb1c019c177c5130c11042ba1d602d8c73497ecccd
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_MD.omx
       data/highway_skims_MD.omx
+      e75cfd0d2b0feddc0a79203a07c1d65e6b8e2e97b199112fe6e79c861866e1b8
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_PM.omx
       data/highway_skims_PM.omx
+      3c3a3109de3bae537118680ff8702c895a1ecb6478e1b8a4b6af6cbd0d25818e
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/accessibility.csv
       data/accessibility.csv
+      9b41e275a48469f3827c08df7468124df1550427a92d0d239a9ec886ea86bbad
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/households.csv
       data/households.csv
+      f7109f70663261305b905706a129c7974e7069132b3ee5c6cdee182ef84d6ac8
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/land_use.csv
       data/land_use.csv
+      0e376b9a519a50f02bd6ed4a02814fcd3f47e2a873a28266742232d052d75a25
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/maz_maz_bike.csv
       data/maz_maz_bike.csv
+      3838526b8d95e75bd470d45ae419a8989a6c7f2307bfe527bd5ffb569c06a4ef
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/maz_maz_walk.csv
       data/maz_maz_walk.csv
+      513b6072a11c6364afd1f5040cbfa5d3f8356c85f3ba08ae7649dc8540d321ba
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/maz_tap_walk.csv
       data/maz_tap_walk.csv
+      2dfbacf6b8163d06c90d73fc31e24d3f5666e52b3d769412df40fe77b7799a5c
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/maz_taz.csv
       data/maz_taz.csv
+      83cb56e5952410b38e279e1338a5558fbea8d6bc8183cb8d31103622e2b48901
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/maz_taz_tap_drive.csv
       data/maz_taz_tap_drive.csv
+      3e2be96e697154ff6c873a46e2b6a12c54ef0aff0b58a3cdd6f49fa9ea6eb60e
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/persons.csv
       data/persons.csv
+      2c86f20c654602dc266219ad6e3b6a82f80e1f61a77f15b885747a54ae7b1abb
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/tap.csv
       data/tap.csv
+      f2cca615709e35c001683b6e441c7c860859396f51ea0d5049e48894bf32a532
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/tap_lines.csv
       data/tap_lines.csv
+      f3f1a62cb19fe4b6c71849a06b175f498c535daa8782b0d1f0a1fe0339b5e220
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/transit_skims_SET1.omx
       data/transit_skims_SET1.omx
+      9eb30338067c0b0f31b42ba70f5ed56229ce8e90944aab59d5f409c3598ab343
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/transit_skims_SET2.omx
       data/transit_skims_SET2.omx
+      9999e9fae4137bcc76bd91154314ebb193431e3cb14736fa0481bd465d9c111d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/transit_skims_SET3.omx
       data/transit_skims_SET3.omx
+      1a568c4a1e2050ff42001f83524b931bba32595d7716090f161cfad9dda11066
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/work_tours.csv
       data/work_tours.csv
-
+      4d5accd2ed87faa70551cd0763b2a84a630f7dbdeeb09959c8300178cebedc8c
 - name: example_psrc
   description: 27-TAZ 487-MAZ example for the PSRC region, with 14871 Households
   # activitysim create -e example_psrc -d test_example_psrc
@@ -320,21 +381,28 @@
     - example_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/skims.omx
       data/skims.omx
+      bbbdc70d4eceb71d3be0d025a21fb83d18a69a1806bad9cb85d66dba136b07df
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/households.csv
       data/households.csv
+      76ff22667ead65824f1e1ca7df38088fccbb9c42cbab9b26023900f9bfc66334
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/persons.csv
       data/persons.csv
+      23ae93060d42c88457b6dda7ca66f2aad82b6753947d1a61cc8aaab5e7502f6f
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/land_use.csv
       data/land_use.csv
+      44ce3e1997c297200d7343773cc649aa5d49289ae47b1d5fefa470bf751e3f4a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/maz.csv
       data/maz.csv
+      ffadddea63c3691dd5de2c648dfdc4122659f0bf2d4dc233bfdf9acb9b5f680f
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/taz.csv
       data/taz.csv
+      4c48f95cb7eca8ab67f3f556a7a38e931b20a4c04a705dc0f95e6e7e3605c329
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/maz_to_maz_walk.csv
       data/maz_to_maz_walk.csv
+      0459dec0775119f23a42d2d2a605af5caab4de2365bb39212bc1fae34ec15fee
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/maz_to_maz_bike.csv
       data/maz_to_maz_bike.csv
-
+      6c11e712abe91d6112f9bd85a7a5a01f4ce7642d44c86c3352c978ef1bb00b20
 - name: example_psrc_full
   description: 3444-TAZ 43589-MAZ example for the PSRC region
   # activitysim create -e example_psrc_full -d test_example_psrc_full
@@ -354,29 +422,40 @@
     - example_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims.omx
       data/skims.omx
+      7e3746501632b1912ce4cc642f7401bf70141f121a71ba63d444e8d42197a4f7
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims2.omx
       data/skims2.omx
+      8086b73df1080cb6959950c991f13a25a4c214792aedd31518f8c41330beae79
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims3.omx
       data/skims3.omx
+      1da693ac045ca0dc72f05bf854d703428154f7dd40ce6682a558d80526224b67
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims4.omx
       data/skims4.omx
+      47a82f54efb3d1d6a4ad9aa1a777ed0cb3e5af765239ae4dcff6695b99029637
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/households.csv
       data/households.csv
+      b41c461127ca4f32d651e8a251d578301057ae5a7f611b9fb5208d4127d69553
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/persons.csv
       data/persons.csv
+      f537a79c35011e5155e4ca5e0c14a054f86bd9a65da8702f06f006f4b97abff0
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/land_use.csv
       data/land_use.csv
+      725dbb06f1e0fd7a420633026f4a6d6df2f43c62495832739b97d8e5177182fe
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/maz.csv
       data/maz.csv
+      d25e46ac2e2e7144b3e61865c548f68ba7f24a53b0e5938b36c2cce3b47bef41
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/taz.csv
       data/taz.csv
+      7ed6d8aa2bdc32f465a7c4df67dbbccfbb50fabc6c28d6d0fb13ff59e2174e77
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/maz_to_maz_walk.csv
       data/maz_to_maz_walk.csv
+      e7490588479b1d0470b9d392b1773c3f49151990c42b9f1ef5b86eb9ab299648
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/maz_to_maz_bike.csv
       data/maz_to_maz_bike.csv
+      20f214d04eed3c64b6dc3af74dbe38e0d2cadcc74559a30e6d338fe081e52b96
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/final_accessibility.csv
       data/final_accessibility.csv
-
+      949994345c9965054be260589fd64079e4032d2e4079e46b9eb9c758a40527c3
 - name: example_semcog
   description: 67 zone test example for the SEMCOG region
   # activitysim create -e example_semcog -d test_example_semcog
@@ -408,13 +487,16 @@
     - example_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/skims.omx
       data/skims.omx
+      7c824032940d1006e731d715bcee8771572e03558eef40ca1ca5f820bfc071ca
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/households.csv
       data/households.csv
+      93b74d3ad86c4c49222a2427cca6014a12a34c0b46c8a934fc8f849f943b820f
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/persons.csv
       data/persons.csv
+      3496761cc3b5f9718349ccd3ab97de7db96b8b5eed535a9bf97248fa087161a1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/land_use.csv
       data/land_use.csv
-
+      d4ddb6f5fc7cd844e3e9149d03d32c841c5cb641a77aea9174045ddb85f27a3a
 - name: example_semcog_full
   description: 2899 zone full size example for the SEMCOG region
   # activitysim create -e example_semcog_full -d test_example_semcog_full
@@ -431,15 +513,19 @@
     - example_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims.omx
       data/skims.omx
+      efa1f87395df354ccfad7cfe4e67ace96c7ac04fa0290e5e6f8e2593fc0ba6a3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims2.omx
       data/skims2.omx
+      3cec3453f12c3f07a19ef896b98da2ab79cbcca8bb541f845f6541bf878feeff
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/households.csv
       data/households.csv
+      25f5fcabd2953951e0e1cfe3ca2cc8bb4bc63ee11bbdee299a8fc026a775986d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/persons.csv
       data/persons.csv
+      934209ad17b789de07ad601c3f77a905a1c35c4bd7c15c62f088c045b3c64f43
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/land_use.csv
       data/land_use.csv
-
+      8f9146993bff315afc6ada52182cb3ea719a6a1ed07095b51535bc7c026285f6
 - name: example_arc
   description: 36 zone test example for the ARC region
   # activitysim create -e example_arc -d test_example_arc
@@ -465,13 +551,16 @@
     - example_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/skims.omx
       data/skims.omx
+      335be57a0b89eac8b51874cc5d8a2c0a0b19472f7ac77c99fd8afd54f223712b
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/households.csv
       data/households.csv
+      6f56026a64475e1161bcadd0d195db690ba03e32f47a53458ca478bf0c423ec4
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/persons.csv
       data/persons.csv
+      06a4da0e0a7c45da92648c31bd0d99449ddd3e26b80278e83f76d6957ab578d2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/land_use.csv
       data/land_use.csv
-
+      09a8c0cd0771c4ec3713940fc3d5b9e9443cc104668f7403c2caefb75c4fbb08
 - name: example_arc_full
   description: 5922 zone full example for the ARC region
   # activitysim create -e example_arc_full -d test_example_arc_full
@@ -485,19 +574,25 @@
     - example_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims.omx
       data/skims.omx
+      55af7b893f13b5275fd7d9721a07f3e09d98a2660fa5fa6f5ff99f8fa8ffbcdf
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims2.omx
       data/skims2.omx
+      e4c217a48a27850955f7071e52808b44f9b3e1f48e7cafb738aa3e968fbcf97e
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims3.omx
       data/skims3.omx
+      91169e5506d0aabd7b495fc9ad0c6fa6e836f795c5c03bf713b670db2e864653
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims4.omx
       data/skims4.omx
+      c175e7d62d6bf26308569bf31eb0aac4d19e4234e0af22fe3dda5f9903ab88d2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/households.csv
       data/households.csv
+      b6b481125d7d9b7cf605bfbba6b96dabb98e6c7a5d216d1638db6b778dc6dc52
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/persons.csv
       data/persons.csv
+      f1dc1bf9ed713194fb6bc293ed89bbec26026320aa5468329be4680ca04ccbab
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/land_use.csv
       data/land_use.csv
-
+      36383b4c9dacdd7dd10c84b4479aa9f53ced23e155b6d354c468decc6710c80e
 - name: example_sandag_1_zone
   description: 57 zone 1-zone test example for the SANDAG region
   # activitysim create -e example_sandag_1_zone -d test_example_sandag_1_zone
@@ -525,23 +620,31 @@
     - example_sandag/output_1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/households.csv
       data_1/households.csv
+      2b0b19a1a0b00901e80a533fc6418a4dbeb3d0b017d9feadae71324f9145dcec
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/persons.csv
       data_1/persons.csv
+      7864364ef70ab3f490570768da12984593da81921a0cd3f8e4b0d724ae436f7a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/land_use.csv
       data_1/land_use.csv
+      2088fd1375a6a5ee253cc11da5f1b9171a9e0b788896589197ecd41ded35edd0
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims1.omx
       data_1/skims1.omx
+      33cd691c51b205e0c2bd09dba5612cd05862127f3c8ffc83c4fd533e83a0817b
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims2.omx
       data_1/skims2.omx
+      e650d70aeb932a1452f636088af599abe6e66dd0843a045130d8e683601b5a82
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims3.omx
       data_1/skims3.omx
+      9940974c5cde572ad88e1e1d3db7ba7e7954084599f65aac1ebe575233cde68d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims4.omx
       data_1/skims4.omx
+      586cb610b15d698e5ebbb6ba02847c405b5ed6b65c24a01cd812684cf665631c
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims5.omx
       data_1/skims5.omx
+      c3584e8c413d63ee38847ece0cc665c969a2152480bd4ca71dfbe9e91b59b2bd
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims6.omx
       data_1/skims6.omx
-    
+      e3f7fb1e0b334fc83dc69985dce8b925e3660149c5de5635c7d8464e306074b9
 - name: example_sandag_2_zone
   description: 28 zone 2-zone test example for the SANDAG region
   # activitysim create -e example_sandag_2_zone -d test_example_sandag_2_zone
@@ -569,31 +672,43 @@
     - example_sandag/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/households.csv
       data_2/households.csv
+      4afe40dfbdb89f17cd150fd5b32245364d538cdebb91fd323e18c6f570d1a087
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/land_use.csv
       data_2/land_use.csv
+      e914b54b16000af84d2e49e27697898028a7c007a5792812c7274ce33e1dc064
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/maz.csv
       data_2/maz.csv
+      d9d908adcbe1e56fbb6d50665e767c317cdfbeedeae675dda449206f2a7fb3f1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/maz_to_maz_bike.csv
       data_2/maz_to_maz_bike.csv
+      c68322fff0ff32a7d487b7cd8dd1e205192d2728621c9cc541e8c41722293cbc
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/maz_to_maz_walk.csv
       data_2/maz_to_maz_walk.csv
+      76c702d8ded8ae9eb7ae978ffa35c1e74ae6264dd2f90d96cdaa42d49c54684a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/persons.csv
       data_2/persons.csv
+      7864364ef70ab3f490570768da12984593da81921a0cd3f8e4b0d724ae436f7a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/taz.csv
       data_2/taz.csv
+      ac9fa2f5adc13e90b1fa5537444f25b9ea389bdfe56e7e9f1ef3be9eb63014ef
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/skims1.omx
       data_2/skims1.omx
+      4ad4aa7669c095a0dfe94c48bc00f57ff7b07c623f4322d75d4ef5c69bcfabcd
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/skims2.omx
       data_2/skims2.omx
+      fad6033a5ddbd2efbd3ca20b5b6bb98408ad57708d91cf129fabf8d4ec8d8063
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/skims3.omx
       data_2/skims3.omx
+      c7691c95436a6599e7c5cb497eecd4b86a669a3078785ec37f40247f15016e9c
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/skims4.omx
       data_2/skims4.omx
+      61f907862c4cff5617c9fe36c0b68885277821b1a1cfa1b9290f30542f04cbbe
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/skims5.omx
       data_2/skims5.omx
+      04f5b2bad494b39eadb3a59e040aa1603edaa7cdc12ba1f457eacc69b0f89f60
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/skims6.omx
       data_2/skims6.omx
-
+      77a82afa09ee1f4c48aa7928e96756525d170402ca99da04cdf676e45cb6fbcf
 - name: example_sandag_3_zone
   description: 580 zone (zones 500 to 1079 to include univ) 3-zone example for the SANDAG region
   # activitysim create -e example_sandag_3_zone -d test_example_sandag_3_zone
@@ -623,39 +738,58 @@
     - example_sandag/output_3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims1.omx
       data_3/taz_skims1.omx
+      5b56d0e79ec671e37f8c71f7fedd741d7bf32d2bced866ab1f03f3973fccce8c
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims2.omx
       data_3/taz_skims2.omx
+      fbdd68ba7f8c82914b47da885326da35499293fd9097f5928b5247bbf8f70376
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims3.omx
       data_3/taz_skims3.omx
+      57e2e72e4e5ab19ecccc240df8223fc6433d315ca710dca975f81f32dc25e92d
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims4.omx
       data_3/taz_skims4.omx
+      f68cf6cf0b5c8e58a19d8ba9ea6cc39abcce0af417f635d6ccffdd28dae50779
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/tap_skims1.omx
       data_3/tap_skims1.omx
+      a26f38efab2f88a5923938b7572e47badac487a54d4819616bb5ccc5c19a6eb0
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/tap_skims2.omx
       data_3/tap_skims2.omx
+      a0aef494023763572674acbe755d665db100c1d18f664b464c514b30503824d9
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/tap_skims3.omx
       data_3/tap_skims3.omx
+      a33659454e215402618a352259398eed59a8e42991fd8890e267e563a0730853
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/tap_skims4.omx
       data_3/tap_skims4.omx
+      f905398e850ed005df5647de46f13eb976ba3c313f2f7aea1f71c369c9004c7f
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/households.csv
       data_3/households.csv
+      e504d391c19367b86a09074bbabeb9149a419a8e07f98cd7e380f98b399c1cd8
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/persons.csv
       data_3/persons.csv
+      7864364ef70ab3f490570768da12984593da81921a0cd3f8e4b0d724ae436f7a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/land_use.csv
       data_3/land_use.csv
+      d773c95d08d24962d53f54929080bacb91993c01925350b0d92a32f18b66d790
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/maz.csv
       data_3/maz.csv
+      c8162a6f38541f62ed706529c062bd0c4158bbcfbc1f65d787b506a5ad218dda
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz.csv
       data_3/taz.csv
+      ac9fa2f5adc13e90b1fa5537444f25b9ea389bdfe56e7e9f1ef3be9eb63014ef
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/maz_to_maz_bike.csv
       data_3/maz_to_maz_bike.csv
+      39199f42334c65f1eadf2c47213ee8a10d83eb0bac4a7447a6fbd165d9065e11
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/maz_to_maz_walk.csv
       data_3/maz_to_maz_walk.csv
+      8cf6cd05e95ed08a7501229ed8ec515d83fd2904d407ecc350f1867ef2a9b378
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/maz_to_tap_walk.csv
       data_3/maz_to_tap_walk.csv
+      2d0e4c49f7d94f8d15ee9a5d39d9dc9c9ab10cfe6259a835284053c84cef94d5
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/maz_to_tap_drive.csv
       data_3/maz_to_tap_drive.csv
+      bd4c4ef6a87c0c3db18615f6c2dcf6e863aac62afce48f627ffa142c9c4e9789
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/tap.csv
       data_3/tap.csv
+      9b74d18d681a1c61708dd5767d90d7872443a0ef7be189f802c3905592f3c8da
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/tap_lines.csv
       data_3/tap_lines.csv
+      0e1b2c532e5e85b48e2ac77b2836be7ec0cc7cba79907c6f5fb11d2ba171230a

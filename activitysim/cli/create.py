@@ -153,7 +153,6 @@ def copy_asset(asset_path, target_path, dirs_exist_ok=False):
 
 
 def download_asset(url, target_path, sha256=None):
-
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     if sha256 and os.path.isfile(target_path):
         computed_sha256 = sha256_checksum(target_path)

@@ -70,6 +70,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/land_use.csv
       data/land_use.csv
       d47c117b379e9ba57230105916c749d25dc7896bb79d6e0e5a28d16822b54523
+
 - name: example_estimation
   description: Estimation mode 25 zone example
   # activitysim create -e example_estimation -d test_example_estimation
@@ -136,6 +137,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/taz_skims.omx
       data_2/taz_skims.omx
       773c89369f748e26309786b42aa4c62b5dd329a931214dd63a11007001de3829
+
 - name: example_3_zone
   description: 3 zone system test example based on TM1
   # activitysim create -e example_3_zone -d test_example_3_zone
@@ -191,6 +193,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/taz_skims.omx
       data_3/taz_skims.omx
       d3f89e29878d3384318b15db26bfddb48d63c9a8d5187aa02797178cfead0394
+
 - name: example_marin
   description: Marin TM2 work tour mode choice cropped to Downtown SF for testing
   # activitysim create -e example_marin -d test_example_marin
@@ -282,6 +285,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/work_tours.csv
       data/work_tours.csv
       a88082ead7ace00f1b2d8ed3997aa3d27c0bc36c9deeee8b8e4c6cf85d6a7004
+
 - name: example_3_marin_full
   description: Marin TM2 work tour mode choice for the 9 county MTC region
   # activitysim create -e example_3_marin_full -d test_example_3_marin_full
@@ -353,6 +357,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/work_tours.csv
       data/work_tours.csv
       4d5accd2ed87faa70551cd0763b2a84a630f7dbdeeb09959c8300178cebedc8c
+
 - name: example_psrc
   description: 27-TAZ 487-MAZ example for the PSRC region, with 14871 Households
   # activitysim create -e example_psrc -d test_example_psrc
@@ -403,6 +408,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/maz_to_maz_bike.csv
       data/maz_to_maz_bike.csv
       6c11e712abe91d6112f9bd85a7a5a01f4ce7642d44c86c3352c978ef1bb00b20
+
 - name: example_psrc_full
   description: 3444-TAZ 43589-MAZ example for the PSRC region
   # activitysim create -e example_psrc_full -d test_example_psrc_full
@@ -456,6 +462,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/final_accessibility.csv
       data/final_accessibility.csv
       949994345c9965054be260589fd64079e4032d2e4079e46b9eb9c758a40527c3
+
 - name: example_semcog
   description: 67 zone test example for the SEMCOG region
   # activitysim create -e example_semcog -d test_example_semcog
@@ -497,6 +504,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/land_use.csv
       data/land_use.csv
       d4ddb6f5fc7cd844e3e9149d03d32c841c5cb641a77aea9174045ddb85f27a3a
+
 - name: example_semcog_full
   description: 2899 zone full size example for the SEMCOG region
   # activitysim create -e example_semcog_full -d test_example_semcog_full
@@ -526,6 +534,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/land_use.csv
       data/land_use.csv
       8f9146993bff315afc6ada52182cb3ea719a6a1ed07095b51535bc7c026285f6
+
 - name: example_arc
   description: 36 zone test example for the ARC region
   # activitysim create -e example_arc -d test_example_arc
@@ -561,6 +570,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/land_use.csv
       data/land_use.csv
       09a8c0cd0771c4ec3713940fc3d5b9e9443cc104668f7403c2caefb75c4fbb08
+
 - name: example_arc_full
   description: 5922 zone full example for the ARC region
   # activitysim create -e example_arc_full -d test_example_arc_full
@@ -593,6 +603,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/land_use.csv
       data/land_use.csv
       36383b4c9dacdd7dd10c84b4479aa9f53ced23e155b6d354c468decc6710c80e
+
 - name: example_sandag_1_zone
   description: 57 zone 1-zone test example for the SANDAG region
   # activitysim create -e example_sandag_1_zone -d test_example_sandag_1_zone
@@ -645,6 +656,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims6.omx
       data_1/skims6.omx
       e3f7fb1e0b334fc83dc69985dce8b925e3660149c5de5635c7d8464e306074b9
+
 - name: example_sandag_2_zone
   description: 28 zone 2-zone test example for the SANDAG region
   # activitysim create -e example_sandag_2_zone -d test_example_sandag_2_zone
@@ -709,6 +721,7 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/skims6.omx
       data_2/skims6.omx
       77a82afa09ee1f4c48aa7928e96756525d170402ca99da04cdf676e45cb6fbcf
+
 - name: example_sandag_3_zone
   description: 580 zone (zones 500 to 1079 to include univ) 3-zone example for the SANDAG region
   # activitysim create -e example_sandag_3_zone -d test_example_sandag_3_zone

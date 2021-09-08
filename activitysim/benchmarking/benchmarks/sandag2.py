@@ -3,7 +3,7 @@ from .componentwise_template import f_setup_cache, generate_component_timings
 
 # name of example to load from activitysim_resources
 EXAMPLE_NAME = "example_sandag_2_zone_full"
-CONFIGS_DIRS = ("configs_2_zone", "example_mtc/configs")
+CONFIGS_DIRS = ("configs_2_zone", "example_psrc/configs")
 DATA_DIR = "data_2"
 OUTPUT_DIR = "output_2"
 

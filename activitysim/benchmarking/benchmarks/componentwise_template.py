@@ -57,7 +57,7 @@ def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIR
                 read_skim_cache=True,
             )
             break
-    componentwise.pre_run(model_dir(EXAMPLE_NAME))
+    componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS)
 
 
 def local_dir():

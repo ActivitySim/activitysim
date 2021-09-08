@@ -149,11 +149,15 @@ def teardown_component(component_name):
     return 0
 
 
-def pre_run(model_working_dir):
+def pre_run(model_working_dir, configs_dirs=None):
     """
     Pre-run the models, checkpointing everything.
     """
-    inject.add_injectable('configs_dir', os.path.join(model_working_dir, 'configs'))
+    if configs_dirs is None:
+        inject.add_injectable('configs_dir', os.path.join(model_working_dir, 'configs'))
+    else:
+        configs_dirs_ = [os.path.join(model_working_dir, i) for i in configs_dirs]
+        inject.add_injectable('configs_dir', configs_dirs_)
     inject.add_injectable('data_dir', os.path.join(model_working_dir, 'data'))
     inject.add_injectable('output_dir', os.path.join(model_working_dir, 'output'))
 

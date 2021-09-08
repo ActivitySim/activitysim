@@ -1,6 +1,5 @@
 
-from functools import partial
-from .componentewise_template import f_setup_cache, generate_component_timings
+from .componentwise_template import f_setup_cache, generate_component_timings
 
 # name of example to load from activitysim_resources
 EXAMPLE_NAME = "example_sandag_1_zone_full"
@@ -59,7 +58,7 @@ PRELOAD_INJECTABLES = (
 # benchmarking implementation
 
 def setup_cache():
-    f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS)
+    f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIRS=("configs_1_zone", "example_mtc/configs"))
 
 
 for cname in COMPONENT_NAMES:

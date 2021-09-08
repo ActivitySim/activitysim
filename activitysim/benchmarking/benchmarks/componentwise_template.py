@@ -12,7 +12,7 @@ from activitysim.cli.create import get_example
 logger = logging.getLogger("activitysim.benchmarking")
 benchmarking_directory = workspace.get_dir()
 
-def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS):
+def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIRS=("configs",)):
 
     if workspace.get_dir() is None:
         from asv.console import log
@@ -24,9 +24,15 @@ def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS):
         example_name=EXAMPLE_NAME,
         destination=os.path.join(local_dir(), "models"),
     )
-    settings_filename = os.path.join(model_dir(EXAMPLE_NAME), "configs", "settings.yaml")
-    with open(settings_filename, 'rt') as f:
-        models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
+    models = None
+    for config_settings_dir in CONFIGS_DIRS:
+        settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, "settings.yaml")
+        if os.path.exists(settings_filename):
+            with open(settings_filename, 'rt') as f:
+                models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
+            break
+    if models is None:
+        raise ValueError("missing list of models from configs/settings.yaml")
 
     last_component_to_benchmark = 0
     for cname in COMPONENT_NAMES:
@@ -36,17 +42,21 @@ def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS):
         )
     pre_run_model_list = models[:last_component_to_benchmark]
     modify_yaml(
-        os.path.join(model_dir(EXAMPLE_NAME), "configs", "settings.yaml"),
+        settings_filename,
         **BENCHMARK_SETTINGS,
         models=pre_run_model_list,
         checkpoints=True,
         trace_hh_id=None,
         chunk_training_mode='off',
     )
-    modify_yaml(
-        os.path.join(model_dir(EXAMPLE_NAME), "configs", "network_los.yaml"),
-        read_skim_cache=True,
-    )
+    for config_network_los_dir in CONFIGS_DIRS:
+        network_los_filename = os.path.join(model_dir(EXAMPLE_NAME), config_network_los_dir, "network_los.yaml")
+        if os.path.exists(network_los_filename):
+            modify_yaml(
+                network_los_filename,
+                read_skim_cache=True,
+            )
+            break
     componentwise.pre_run(model_dir(EXAMPLE_NAME))
 
 

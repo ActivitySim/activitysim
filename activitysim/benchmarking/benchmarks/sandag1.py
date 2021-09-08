@@ -9,17 +9,17 @@ OUTPUT_DIR = "output_1"
 
 # any settings to override in the example's usual settings file
 BENCHMARK_SETTINGS = {
-    'households_sample_size': 100_000,
+    'households_sample_size': 20_000,
 }
 
 # the component names to be benchmarked
 COMPONENT_NAMES = [
     # "compute_accessibility",
     "school_location",
-    # "workplace_location",
-    # "auto_ownership_simulate",
-    # "free_parking",
-    # "cdap_simulate",
+    "workplace_location",
+    "auto_ownership_simulate",
+    "free_parking",
+    "cdap_simulate",
     # "mandatory_tour_frequency",
     # "mandatory_tour_scheduling",
     # "joint_tour_frequency",

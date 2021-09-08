@@ -55,6 +55,7 @@ def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIR
             modify_yaml(
                 network_los_filename,
                 read_skim_cache=True,
+                write_skim_cache=True,
             )
             break
     componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR)

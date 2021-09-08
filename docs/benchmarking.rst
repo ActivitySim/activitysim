@@ -32,6 +32,11 @@ do so by following these steps::
     gh repo clone jpn--/activitysim_benchmarks  # FUTURE: use org repo
     cd activitysim_benchmarks
 
+If you want to submit your benchmarking results to the common database of
+community results, you should also fork the `activitysim_benchmarks` repository::
+
+    gh repo fork --remote=true
+
 Next, we'll want to declare the specs of our benchmarking machine.  Some of
 these can be determined quasi-automatically, but we want to confirm the specs
 we'll use as they are written with our benchmark results into the database.
@@ -92,3 +97,17 @@ following environment variable are set automatically before benchmarking begins:
 This ensures that all benchmarking operations run processes in single-threaded
 mode.  This still allows ActivitySim itself to spin up multiple processes if the
 item being timed is a multiprocess benchmark.
+
+Submitting Benchmarks
+~~~~~~~~~~~~~~~~~~~~~
+
+One of the useful features of the airspeed velocity benchmarking engine is the
+opportunity to compare performance benchmarks across different machines. The
+ActivitySim community is interested in aggregating such results from a number
+of participants, so once you have successfully run a set of benchmarks, you
+should submit those results to our repository.
+
+To do so, assuming you have run the benchmark tool inside the `activitysim_benchmarks`
+repository as noted above, you simply need to commit any new or changed files
+in the `activitysim_benchmarks/results` directory.  You can then open a pull request
+against the community `activitysim_benchmarks` to submit those results.

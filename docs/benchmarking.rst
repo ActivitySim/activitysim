@@ -63,6 +63,9 @@ To run all of the benchmarks on the most recent commit in the main ActivitySim r
 
     activitysim benchmark run "HEAD^!" --verbose --append-samples
 
+Note that the literal quotation marks are neccessary on Windows, as the carat character
+preceding the exclamation mark is otherwise interpreted as an escape character.
+In most other shells (e.g. on Linux or macOS) the literal quotation marks are unneccessary.
 In this command, `"HEAD^!"` instructs the benchmarking to run only on the "HEAD"
 (most recent) commit in the repository, `--verbose` will generate a stream of output
 to the console (otherwise, the process may appear stalled as it can run a very long

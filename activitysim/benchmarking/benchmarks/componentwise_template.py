@@ -12,7 +12,7 @@ from activitysim.cli.create import get_example
 logger = logging.getLogger("activitysim.benchmarking")
 benchmarking_directory = workspace.get_dir()
 
-def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIRS=("configs",)):
+def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIRS=("configs",), DATA_DIR='data', OUTPUT_DIR='output'):
 
     if workspace.get_dir() is None:
         from asv.console import log
@@ -57,7 +57,7 @@ def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIR
                 read_skim_cache=True,
             )
             break
-    componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS)
+    componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR)
 
 
 def local_dir():

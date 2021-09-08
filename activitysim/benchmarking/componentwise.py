@@ -149,7 +149,7 @@ def teardown_component(component_name):
     return 0
 
 
-def pre_run(model_working_dir, configs_dirs=None):
+def pre_run(model_working_dir, configs_dirs=None, data_dir='data', output_dir='output'):
     """
     Pre-run the models, checkpointing everything.
     """
@@ -158,8 +158,8 @@ def pre_run(model_working_dir, configs_dirs=None):
     else:
         configs_dirs_ = [os.path.join(model_working_dir, i) for i in configs_dirs]
         inject.add_injectable('configs_dir', configs_dirs_)
-    inject.add_injectable('data_dir', os.path.join(model_working_dir, 'data'))
-    inject.add_injectable('output_dir', os.path.join(model_working_dir, 'output'))
+    inject.add_injectable('data_dir', os.path.join(model_working_dir, data_dir))
+    inject.add_injectable('output_dir', os.path.join(model_working_dir, output_dir))
 
     # register abm steps and other abm-specific injectables
     if not inject.is_injectable('preload_injectables'):

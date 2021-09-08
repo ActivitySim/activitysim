@@ -58,7 +58,12 @@ PRELOAD_INJECTABLES = (
 # benchmarking implementation
 
 def setup_cache():
-    f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIRS=("configs_1_zone", "example_mtc/configs"))
+    f_setup_cache(
+        EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
+        CONFIGS_DIRS=("configs_1_zone", "example_mtc/configs"),
+        DATA_DIR="data_1",
+        OUTPUT_DIR="output_1",
+    )
 
 
 for cname in COMPONENT_NAMES:

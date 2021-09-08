@@ -55,11 +55,12 @@ PRELOAD_INJECTABLES = (
     'skim_dict',
 )
 
+
 # benchmarking implementation
 
-setup_cache = partial(
-    f_setup_cache, EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
-)
+def setup_cache():
+    f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS)
+
 
 for cname in COMPONENT_NAMES:
     globals()[f"time_{cname}"] = generate_component_timings(

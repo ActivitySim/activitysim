@@ -3,6 +3,9 @@ from .componentwise_template import f_setup_cache, generate_component_timings
 
 # name of example to load from activitysim_resources
 EXAMPLE_NAME = "example_sandag_1_zone_full"
+CONFIGS_DIRS = ("configs_1_zone", "example_mtc/configs")
+DATA_DIR = "data_1"
+OUTPUT_DIR = "output_1"
 
 # any settings to override in the example's usual settings file
 BENCHMARK_SETTINGS = {
@@ -60,9 +63,7 @@ PRELOAD_INJECTABLES = (
 def setup_cache():
     f_setup_cache(
         EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
-        CONFIGS_DIRS=("configs_1_zone", "example_mtc/configs"),
-        DATA_DIR="data_1",
-        OUTPUT_DIR="output_1",
+        CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
     )
 
 
@@ -70,6 +71,9 @@ for cname in COMPONENT_NAMES:
     globals()[f"time_{cname}"] = generate_component_timings(
         cname,
         EXAMPLE_NAME,
+        CONFIGS_DIRS,
+        DATA_DIR,
+        OUTPUT_DIR,
         PRELOAD_INJECTABLES,
         REPEAT,
         NUMBER,

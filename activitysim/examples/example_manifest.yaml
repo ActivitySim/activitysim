@@ -680,7 +680,7 @@
     - example_sandag/../example_psrc/configs
       example_psrc
     - example_sandag/configs_2_zone
-    - example_sandag/data_2
+    # example_sandag/data_2 # load data from activitysim_resources instead
     - example_sandag/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/households.csv
       data_2/households.csv
@@ -743,7 +743,7 @@
   # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/data_3
+    # example_sandag/data_3 # load data from activitysim_resources instead
     - example_sandag/../example_mtc/configs
       example_mtc
     - example_sandag/configs_3_zone

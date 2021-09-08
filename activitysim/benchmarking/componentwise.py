@@ -44,7 +44,14 @@ def component_logging(component_name):
     logging.getLogger().addHandler(file_handler)
 
 
-def setup_component(component_name, working_dir='.', preload_injectables=()):
+def setup_component(
+        component_name,
+        working_dir='.',
+        preload_injectables=(),
+        configs_dirs=('configs'),
+        data_dir='data',
+        output_dir='output',
+):
     """
     Prepare to benchmark a model component.
 
@@ -53,9 +60,11 @@ def setup_component(component_name, working_dir='.', preload_injectables=()):
     All this happens here, before the model component itself
     is actually executed inside the timed portion of the loop.
     """
-    inject.add_injectable('configs_dir', os.path.join(working_dir, 'configs'))
-    inject.add_injectable('data_dir', os.path.join(working_dir, 'data'))
-    inject.add_injectable('output_dir', os.path.join(working_dir, 'output'))
+    if isinstance(configs_dirs, str):
+        configs_dirs = [configs_dirs]
+    inject.add_injectable('configs_dir', [os.path.join(working_dir, i) for i in configs_dirs])
+    inject.add_injectable('data_dir', os.path.join(working_dir, data_dir))
+    inject.add_injectable('output_dir', os.path.join(working_dir, output_dir))
 
     reload_settings(
         benchmarking=component_name,

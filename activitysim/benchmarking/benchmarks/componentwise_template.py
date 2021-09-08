@@ -73,6 +73,9 @@ def model_dir(example_name):
 def generate_component_timings(
         componentname,
         EXAMPLE_NAME,
+        CONFIGS_DIRS,
+        DATA_DIR,
+        OUTPUT_DIR,
         PRELOAD_INJECTABLES,
         REPEAT,
         NUMBER,
@@ -85,7 +88,10 @@ def generate_component_timings(
         number = NUMBER
         timeout = TIMEOUT
         def setup(self):
-            componentwise.setup_component(self.component_name, model_dir(EXAMPLE_NAME), PRELOAD_INJECTABLES)
+            componentwise.setup_component(
+                self.component_name, model_dir(EXAMPLE_NAME), PRELOAD_INJECTABLES,
+                CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
+            )
         def teardown(self):
             componentwise.teardown_component(self.component_name)
         def time_component(self):

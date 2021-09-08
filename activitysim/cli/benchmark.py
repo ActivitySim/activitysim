@@ -45,7 +45,7 @@ ASV_CONFIG = {
         "pyarrow": [],
         "numpy": [],
         "openmatrix": [],
-        "pandas": ["1.2"],
+        "pandas": [],
         "pyyaml": [],
         "pytables": [],
         "toolz": [],
@@ -73,7 +73,7 @@ ASV_CONFIG = {
 
     # List of branches to benchmark. If not provided, defaults to "master"
     # (for git) or "default" (for mercurial).
-    "branches": ["master", "performance1", "performance2"]
+    "branches": ["master", "develop", "performance2"]
 }
 
 def make_asv_argparser(parser):

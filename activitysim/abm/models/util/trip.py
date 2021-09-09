@@ -7,6 +7,7 @@ import numpy as np
 import numpy as np
 from activitysim.core import config
 from activitysim.core.util import assign_in_place, reindex
+from activitysim.abm.models.util.canonical_ids import set_trip_index
 
 
 logger = logging.getLogger(__name__)
@@ -133,7 +134,6 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
         config.config_file_path('stop_frequency_alternatives.csv'), comment='#')
     stop_frequency_alts.set_index('alt', inplace=True)
 
-    MAX_TRIPS_PER_LEG = 4  # max number of trips per leg (inbound or outbound) of tour
     OUTBOUND_ALT = 'out'
     assert OUTBOUND_ALT in stop_frequency_alts.columns
 
@@ -172,11 +172,11 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
     trips['outbound'] = trips.direction == OUTBOUND_ALT
 
     """
-           tour_id direction  trip_count  outbound
-    0       954910       out           2      True
-    1       954910        in           2     False
-    2       985824       out           1      True
-    3       985824        in           2     False
+           tour_temp_index direction  trip_count  outbound
+    0             0           out           2         True
+    1             0            in           1        False
+    2             1           out           2         True
+    3             1            in           3        False
     """
 
     # now do a repeat and a take, so if you have two trips of given type you
@@ -201,24 +201,18 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
                    'trip_num', 'outbound', 'trip_count'] + addtl_tour_cols_to_preserve]
 
     """
-      person_id  household_id  tour_id  primary_purpose trip_num  outbound  trip_count
-    0     32927         32927   954910             work        1      True           2
-    1     32927         32927   954910             work        2      True           2
-    2     32927         32927   954910             work        1     False           2
-    3     32927         32927   954910             work        2     False           2
-    4     33993         33993   985824             univ        1      True           1
-    5     33993         33993   985824             univ        1     False           2
-    6     33993         33993   985824             univ        2     False           2
+      person_id  household_id  tour_temp_index  primary_purpose trip_num  outbound  trip_count
+    0     32927         32927        0             work            1        True           2
+    1     32927         32927        0             work            2        True           2
+    2     32927         32927        0             work            1       False           2
+    3     32927         32927        0             work            2       False           2
+    4     33993         33993        1             univ            1        True           1
+    5     33993         33993        1             univ            1       False           2
+    6     33993         33993        1             univ            2       False           2
 
     """
 
-    # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
-    canonical_trip_num = (~trips.outbound * MAX_TRIPS_PER_LEG) + trips.trip_num
-    trips['trip_id'] = trips.tour_temp_index * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
-
-    trips.set_index('trip_id', inplace=True, verify_integrity=True)
-
-    # copied from trip_destination.py
+    # previously in trip_destination.py
     tour_destination = reindex(unique_tours.destination, trips.tour_temp_index).astype(np.int64)
     tour_origin = reindex(unique_tours.origin, trips.tour_temp_index).astype(np.int64)
     trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
@@ -227,6 +221,18 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
 
     # replace temp tour identifier with tour_id
     trips['tour_id'] = reindex(unique_tours.tour_id, trips.tour_temp_index)
+
+    # trip ids are generated based on unique combination of `tour_id`, `outbound`,
+    # and `trip_num`. when pseudo-trips are generated from pseudo-tours for the
+    # purposes of computing logsums, `tour_id` won't be unique on `outbound` and
+    # `trip_num`, so we use `tour_temp_index` instead. this will only be the case
+    # when generating temporary pseudo-trips which won't get saved as outputs.
+    if trips.groupby(['tour_id', 'outbound', 'trip_num'])['person_id'].count().max() > 1:
+        trip_index_tour_id = 'tour_temp_index'
+    else:
+        trip_index_tour_id = 'tour_id'
+    
+    set_trip_index(trips, trip_index_tour_id)    
     del trips['tour_temp_index']
 
     return trips

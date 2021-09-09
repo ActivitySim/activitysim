@@ -1,3 +1,0 @@
-Description,Target,Expression
-,sovtimemd,"od_skims[('SOV_TIME', 'MD')]"
-,sovtimemd_t,"do_skims[('SOV_TIME', 'MD')]"

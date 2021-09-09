@@ -16,6 +16,7 @@ looks like the other specs.
 
 logger = logging.getLogger(__name__)
 
+
 def mode_choice_simulate(
         choosers, spec, nest_spec, skims, locals_d,
         chunk_size,

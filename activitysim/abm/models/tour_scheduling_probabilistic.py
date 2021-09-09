@@ -26,18 +26,18 @@ logger = logging.getLogger(__name__)
 def run_tour_scheduling_probabilistic(
         tours_df, scheduling_probs, probs_join_cols, depart_alt_base, chunk_size,
         trace_label, trace_hh_id):
-    
+
     row_size = chunk_size and ps.calc_row_size(
             tours_df, scheduling_probs, trace_label, 'tour', probs_join_cols)
     result_list = []
-    for i, chooser_chunk, chunk_trace_label \
-        in chunk.adaptive_chunked_choosers(tours_df, chunk_size, row_size, trace_label):
-            choices = ps.make_scheduling_choices(
-                chooser_chunk, 'departure', scheduling_probs, probs_join_cols, depart_alt_base,
-                first_trip_in_leg=False, report_failed_trips=True,
-                trace_label=chunk_trace_label, trace_hh_id=trace_hh_id,
-                trace_choice_col_name='depart_return', clip_earliest_latest=False)
-            result_list.append(choices)
+    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
+            tours_df, chunk_size, row_size, trace_label):
+        choices = ps.make_scheduling_choices(
+            chooser_chunk, 'departure', scheduling_probs, probs_join_cols, depart_alt_base,
+            first_trip_in_leg=False, report_failed_trips=True,
+            trace_label=chunk_trace_label, trace_hh_id=trace_hh_id,
+            trace_choice_col_name='depart_return', clip_earliest_latest=False)
+        result_list.append(choices)
 
     choices = pd.concat(result_list)
     return choices
@@ -48,7 +48,7 @@ def tour_scheduling_probabilistic(
         tours,
         chunk_size,
         trace_hh_id):
-    
+
     trace_label = "tour_scheduling_probabilistic"
     model_settings_file_name = 'tour_scheduling_probabilistic.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
@@ -98,4 +98,3 @@ def tour_scheduling_probabilistic(
     assert not tours_df['duration'].isnull().any()
 
     pipeline.replace_table("tours", tours_df)
-

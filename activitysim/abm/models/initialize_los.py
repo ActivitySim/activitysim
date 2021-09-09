@@ -67,6 +67,7 @@ def num_uninitialized(data, lock=None):
         result = num_nans(data)
     return result
 
+
 @inject.step()
 def initialize_los(network_los):
     """
@@ -109,6 +110,7 @@ def initialize_los(network_los):
                 # subprocesses can detect when cache is fully populated
                 with lock_data(lock):
                     np.copyto(data, np.nan)
+
 
 def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):
     """
@@ -212,6 +214,7 @@ def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, 
 
     logger.debug(f"{trace_label} updated utilities")
 
+
 @inject.step()
 def initialize_tvpb(network_los, attribute_combinations, chunk_size):
     """
@@ -271,7 +274,6 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
 
         # make sure we populated the entire offset
         assert not any_uninitialized(data.reshape(uid_calculator.skim_shape)[offset], lock)
-
 
     if multiprocess and not inject.get_injectable('locutor', False):
         return

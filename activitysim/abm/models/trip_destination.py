@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import chunk
 from activitysim.core import pipeline
 from activitysim.core import simulate
 from activitysim.core import inject
@@ -380,7 +381,7 @@ def destination_presample(
 
     # alternatives is just an empty dataframe indexed by maz with index name <alt_dest_col_name>
     # but logically, we are aggregating so lets do it, as there is no particular gain in being clever
-    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()    
+    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore
@@ -496,10 +497,17 @@ def compute_ood_logsums(
 
     locals_dict.update(od_skims)
 
-    expressions.annotate_preprocessors(
-        choosers, locals_dict, od_skims,
-        logsum_settings,
-        trace_label)
+    # if preprocessor contains tvpb logsums term, `pathbuilder.get_tvpb_logsum()`
+    # will get called before a ChunkSizers class object has been instantiated,
+    # causing pathbuilder to throw an error at L815 due to the assert statement
+    # in `chunk.chunk_log()` at chunk.py L927. To avoid failing this assertion,
+    # the preprocessor must be called from within a "null chunker" as follows:
+    with chunk.chunk_log(tracing.extend_trace_label(
+            trace_label, 'annotate_preprocessor'), base=True):
+        expressions.annotate_preprocessors(
+            choosers, locals_dict, od_skims,
+            logsum_settings,
+            trace_label)
 
     logsums = simulate.simple_simulate_logsums(
         choosers,
@@ -927,11 +935,14 @@ def run_trip_destination(
     tour_destination = reindex(tours_merged.destination, trips.tour_id).astype(np.int64)
     tour_origin = reindex(tours_merged.origin, trips.tour_id).astype(np.int64)
 
-    # # these values are now automatically created when trips are instantiated when
-    # # stop_frequency step calls trip.initialize_from_tours
-    # trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
-    # trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
-    # trips['failed'] = False
+    # these values are now automatically created when trips are instantiated when
+    # stop_frequency step calls trip.initialize_from_tours. But if this module is being
+    # called from trip_destination_and_purpose, these columns will have been deleted
+    # so they must be re-created
+    if pipeline.get_rn_generator().step_name == 'trip_purpose_and_destination':
+        trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
+        trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
+        trips['failed'] = False
 
     if estimator:
         # need to check or override non-intermediate trip destination

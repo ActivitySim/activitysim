@@ -144,51 +144,6 @@ def update_tour_earliest(trips, outbound_choices):
     return
 
 
-def schedule_nth_trips(
-        trips,
-        scheduling_mode,
-        probs_spec,
-        probs_join_cols,
-        depart_alt_base,
-        first_trip_in_leg,
-        report_failed_trips,
-        trace_hh_id,
-        trace_label):
-    """
-    We join each trip with the appropriate row in probs_spec by joining on probs_join_cols,
-    which should exist in both trips, probs_spec dataframe.
-
-    Parameters
-    ----------
-    trips: pd.DataFrame
-    probs_spec: pd.DataFrame
-        Dataframe of probs for choice of depart times and join columns to match them with trips.
-        Depart columns names are irrelevant. Instead, they are position dependent,
-        time period choice is their index + depart_alt_base
-    depart_alt_base: int
-        int to add to probs column index to get time period it represents.
-        e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
-    report_failed_trips : bool
-    trace_hh_id
-    trace_label
-
-    Returns
-    -------
-    choices: pd.Series
-        time periods depart choices, one per trip (except for trips with zero probs)
-    """
-
-    choices, failed = ps.make_scheduling_choices(
-        trips, scheduling_mode, probs_spec, probs_join_cols,
-        depart_alt_base, first_trip_in_leg, report_failed_trips.
-        trace_label, trace_hh_id)
-
-    assert (choices >= trips.earliest[~failed]).all()
-    assert (choices <= trips.latest[~failed]).all()
-
-    return choices
-
-
 def schedule_trips_in_leg(
         outbound,
         trips,

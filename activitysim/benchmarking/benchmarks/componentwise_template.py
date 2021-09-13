@@ -12,7 +12,14 @@ from activitysim.cli.create import get_example
 logger = logging.getLogger("activitysim.benchmarking")
 benchmarking_directory = workspace.get_dir()
 
-def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIRS=("configs",), DATA_DIR='data', OUTPUT_DIR='output'):
+def f_setup_cache(
+        EXAMPLE_NAME,
+        COMPONENT_NAMES,
+        BENCHMARK_SETTINGS,
+        CONFIGS_DIRS=("configs",),
+        DATA_DIR='data',
+        OUTPUT_DIR='output',
+):
 
     if workspace.get_dir() is None:
         from asv.console import log
@@ -33,7 +40,6 @@ def f_setup_cache(EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS, CONFIGS_DIR
             break
     if models is None:
         raise ValueError("missing list of models from configs/settings.yaml")
-
     last_component_to_benchmark = 0
     for cname in COMPONENT_NAMES:
         last_component_to_benchmark = max(

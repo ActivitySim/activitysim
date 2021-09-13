@@ -52,6 +52,7 @@ def compute_accessibilities_for_zones(
         trace_od_rows = None
 
     # merge land_use_columns into od_df
+    logger.info(f"{trace_label}: merge land_use_columns into od_df")
     od_df = pd.merge(od_df, land_use_df, left_on='dest', right_index=True).sort_index()
     chunk.log_df(trace_label, "od_df", od_df)
 
@@ -69,11 +70,13 @@ def compute_accessibilities_for_zones(
     if network_los.zone_system == los.THREE_ZONE:
         locals_d['tvpb'] = network_los.tvpb
 
+    logger.info(f"{trace_label}: assign.assign_variables")
     results, trace_results, trace_assigned_locals \
         = assign.assign_variables(assignment_spec, od_df, locals_d,
                                   trace_rows=trace_od_rows, trace_label=trace_label, chunk_log=True)
 
     chunk.log_df(trace_label, "results", results)
+    logger.info(f"{trace_label}: have results")
 
     # accessibility_df = accessibility_df.copy()
     for column in results.columns:

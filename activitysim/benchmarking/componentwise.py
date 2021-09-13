@@ -9,8 +9,8 @@ from ..cli.run import handle_standard_args, config, warnings, cleanup_output_fil
 logger = logging.getLogger(__name__)
 
 
-def reload_settings(**kwargs):
-    settings = config.read_settings_file('settings.yaml', mandatory=True)
+def reload_settings(settings_filename, **kwargs):
+    settings = config.read_settings_file(settings_filename, mandatory=True)
     for k in kwargs:
         settings[k] = kwargs[k]
     inject.add_injectable("settings", settings)
@@ -51,6 +51,7 @@ def setup_component(
         configs_dirs=('configs'),
         data_dir='data',
         output_dir='output',
+        settings_filename='settings.yaml',
 ):
     """
     Prepare to benchmark a model component.
@@ -67,6 +68,7 @@ def setup_component(
     inject.add_injectable('output_dir', os.path.join(working_dir, output_dir))
 
     reload_settings(
+        settings_filename,
         benchmarking=component_name,
         checkpoints=False,
     )
@@ -158,7 +160,13 @@ def teardown_component(component_name):
     return 0
 
 
-def pre_run(model_working_dir, configs_dirs=None, data_dir='data', output_dir='output'):
+def pre_run(
+        model_working_dir,
+        configs_dirs=None,
+        data_dir='data',
+        output_dir='output',
+        settings_file_name=None,
+):
     """
     Pre-run the models, checkpointing everything.
     """
@@ -169,6 +177,8 @@ def pre_run(model_working_dir, configs_dirs=None, data_dir='data', output_dir='o
         inject.add_injectable('configs_dir', configs_dirs_)
     inject.add_injectable('data_dir', os.path.join(model_working_dir, data_dir))
     inject.add_injectable('output_dir', os.path.join(model_working_dir, output_dir))
+    if settings_file_name is not None:
+        inject.add_injectable('settings_file_name', settings_file_name)
 
     # register abm steps and other abm-specific injectables
     if not inject.is_injectable('preload_injectables'):

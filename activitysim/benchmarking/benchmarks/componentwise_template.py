@@ -19,6 +19,7 @@ def f_setup_cache(
         CONFIGS_DIRS=("configs",),
         DATA_DIR='data',
         OUTPUT_DIR='output',
+        SETTINGS_FILENAME="settings.yaml",
 ):
 
     if workspace.get_dir() is None:
@@ -33,13 +34,13 @@ def f_setup_cache(
     )
     models = None
     for config_settings_dir in CONFIGS_DIRS:
-        settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, "settings.yaml")
+        settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, SETTINGS_FILENAME)
         if os.path.exists(settings_filename):
             with open(settings_filename, 'rt') as f:
                 models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
             break
     if models is None:
-        raise ValueError("missing list of models from configs/settings.yaml")
+        raise ValueError(f"missing list of models from configs/{SETTINGS_FILENAME}")
     last_component_to_benchmark = 0
     for cname in COMPONENT_NAMES:
         last_component_to_benchmark = max(
@@ -64,7 +65,7 @@ def f_setup_cache(
                 write_skim_cache=True,
             )
             break
-    componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR)
+    componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
 
 
 def local_dir():

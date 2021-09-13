@@ -749,6 +749,8 @@
     - example_sandag/configs_3_zone
     - example_sandag/configs_skip_accessibility
     - example_sandag/output_3
+    - example_sandag/data_3/cached_accessibility.csv.gz
+      data_3/cached_accessibility.csv.gz
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims1.omx
       data_3/taz_skims1.omx
       5b56d0e79ec671e37f8c71f7fedd741d7bf32d2bced866ab1f03f3973fccce8c

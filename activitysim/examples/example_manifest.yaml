@@ -748,6 +748,7 @@
       example_mtc
     - example_sandag/configs_3_zone
     - example_sandag/configs_skip_accessibility
+    - example_sandag/configs_benchmarking
     - example_sandag/output_3
     - example_sandag/data_3/cached_accessibility.csv.gz
       data_3/cached_accessibility.csv.gz

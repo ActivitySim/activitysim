@@ -177,15 +177,19 @@ def pre_run(
         inject.add_injectable('configs_dir', configs_dirs_)
     inject.add_injectable('data_dir', os.path.join(model_working_dir, data_dir))
     inject.add_injectable('output_dir', os.path.join(model_working_dir, output_dir))
+
     if settings_file_name is not None:
         inject.add_injectable('settings_file_name', settings_file_name)
+
+    # Always pre_run from the beginning
+    config.override_setting('resume_after', None)
 
     # register abm steps and other abm-specific injectables
     if not inject.is_injectable('preload_injectables'):
         from activitysim import abm  # register abm steps and other abm-specific injectables
 
-    # Always pre_run from the beginning
-    config.override_setting('resume_after', None)
+    if settings_file_name is not None:
+        inject.add_injectable('settings_file_name', settings_file_name)
 
     # cleanup
     #cleanup_output_files()
@@ -229,6 +233,8 @@ def pre_run(
                     logger.info(f"NUMPY {cfg_key} {info_key}: {info[info_key]}")
 
     t0 = tracing.print_elapsed_time()
+
+    logger.info(f"MODELS: {config.setting('models')}")
 
     if config.setting('multiprocess', False):
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")

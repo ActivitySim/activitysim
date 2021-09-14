@@ -20,6 +20,7 @@ def f_setup_cache(
         DATA_DIR='data',
         OUTPUT_DIR='output',
         SETTINGS_FILENAME="settings.yaml",
+        SKIP_COMPONENT_NAMES=None,
 ):
 
     if workspace.get_dir() is None:
@@ -35,12 +36,16 @@ def f_setup_cache(
     models = None
     for config_settings_dir in CONFIGS_DIRS:
         settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, SETTINGS_FILENAME)
+        print(f"seaerching for {settings_filename}")
         if os.path.exists(settings_filename):
+            print(f"finded for {settings_filename}")
             with open(settings_filename, 'rt') as f:
                 models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
             break
     if models is None:
         raise ValueError(f"missing list of models from configs/{SETTINGS_FILENAME}")
+    else:
+        print(f"MODELS={models}")
     last_component_to_benchmark = 0
     for cname in COMPONENT_NAMES:
         last_component_to_benchmark = max(
@@ -48,6 +53,11 @@ def f_setup_cache(
             last_component_to_benchmark
         )
     pre_run_model_list = models[:last_component_to_benchmark]
+    if SKIP_COMPONENT_NAMES is not None:
+        for cname in SKIP_COMPONENT_NAMES:
+            if cname in pre_run_model_list:
+                pre_run_model_list.remove(cname)
+    print(f"pre_run_model_list={pre_run_model_list}")
     modify_yaml(
         settings_filename,
         **BENCHMARK_SETTINGS,

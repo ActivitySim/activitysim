@@ -34,6 +34,7 @@ def f_setup_cache(
         destination=os.path.join(local_dir(), "models"),
     )
     models = None
+    print(f"CONFIGS_DIRS={CONFIGS_DIRS}")
     for config_settings_dir in CONFIGS_DIRS:
         settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, SETTINGS_FILENAME)
         print(f"seaerching for {settings_filename}")

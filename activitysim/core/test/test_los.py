@@ -166,9 +166,9 @@ def test_30_minute_windows():
     assert network_los.skim_time_period_label(36) == 'PM'
     assert network_los.skim_time_period_label(46) == 'EV'
 
-    pd.testing.assert_series_equal(
+    np.testing.assert_array_equal(
         network_los.skim_time_period_label(pd.Series([1, 16, 24, 36, 46])),
-        pd.Series(['EA', 'AM', 'MD', 'PM', 'EV']))
+        np.array(['EA', 'AM', 'MD', 'PM', 'EV']))
 
 
 def test_60_minute_windows():
@@ -182,9 +182,9 @@ def test_60_minute_windows():
     assert network_los.skim_time_period_label(18) == 'PM'
     assert network_los.skim_time_period_label(23) == 'EV'
 
-    pd.testing.assert_series_equal(
+    np.testing.assert_array_equal(
         network_los.skim_time_period_label(pd.Series([1, 8, 12, 18, 23])),
-        pd.Series(['EA', 'AM', 'MD', 'PM', 'EV']))
+        np.array(['EA', 'AM', 'MD', 'PM', 'EV']))
 
 
 def test_1_week_time_window():
@@ -202,8 +202,8 @@ def test_1_week_time_window():
 
     weekly_series = network_los.skim_time_period_label(pd.Series([1, 2, 3, 4, 5, 6, 7]))
 
-    pd.testing.assert_series_equal(weekly_series,
-                                   pd.Series(['Sunday', 'Monday', 'Tuesday', 'Wednesday',
+    np.testing.assert_array_equal(weekly_series,
+                                   np.array(['Sunday', 'Monday', 'Tuesday', 'Wednesday',
                                               'Thursday', 'Friday', 'Saturday']))
 
 

@@ -76,10 +76,9 @@ def compute_logsums(choosers,
     if duration_col is not None:
         choosers['duration'] = choosers[duration_col]
     elif 'duration' not in choosers.columns:
-        choosers['duration'] = choosers['in_period'] - choosers['out_period']
+        choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
     else:
         logger.error("Choosers table already has column 'duration'.")
-
 
     logsum_spec = simulate.read_model_spec(file_name=logsum_settings['SPEC'])
     coefficients = simulate.get_segment_coefficients(logsum_settings, tour_purpose)

@@ -817,6 +817,3 @@ def deregister_traceable_table(table_name):
         inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
 
     return
-
-    
-

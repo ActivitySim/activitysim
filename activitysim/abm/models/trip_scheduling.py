@@ -98,7 +98,7 @@ def set_stop_num(trips):
     the duration of stop n-1 (the trip origin). For inbound trips, trip n
     chooses the duration of stop n (the trip destination). This means
     outbound trips technically choose a departure time while inbound trips
-    choose an arrival. 
+    choose an arrival.
     """
     trips['stop_num'] = trips['trip_num'] - 1
     trips['stop_num'] = trips.stop_num.where(trips['outbound'], trips['trip_num'])
@@ -109,7 +109,8 @@ def update_tour_earliest(trips, outbound_choices):
     Updates "earliest" column for inbound trips based on
     the maximum outbound trip departure time of the tour.
     This is done to ensure inbound trips do not depart
-    before the last outbound trip of a tour. 
+    before the last outbound trip of a tour.
+
     Parameters
     ----------
     trips: pd.DataFrame
@@ -132,7 +133,7 @@ def update_tour_earliest(trips, outbound_choices):
     # append max outbound trip departure times to trips
     tmp_trips = tmp_trips.merge(
         max_outbound_person_departures,
-        left_on=['person_id','tour_id'], right_index=True)
+        left_on=['person_id', 'tour_id'], right_index=True)
 
     # set the trips "earliest" column equal to the max outbound departure
     # time for all inbound trips. preserve values that were used for outbound trips
@@ -142,51 +143,6 @@ def update_tour_earliest(trips, outbound_choices):
     trips['earliest'] = tmp_trips['earliest'].reindex(trips.index)
 
     return
-
-
-def schedule_nth_trips(
-        trips,
-        scheduling_mode,
-        probs_spec,
-        probs_join_cols,
-        depart_alt_base,
-        first_trip_in_leg,
-        report_failed_trips,
-        trace_hh_id,
-        trace_label):
-    """
-    We join each trip with the appropriate row in probs_spec by joining on probs_join_cols,
-    which should exist in both trips, probs_spec dataframe.
-
-    Parameters
-    ----------
-    trips: pd.DataFrame
-    probs_spec: pd.DataFrame
-        Dataframe of probs for choice of depart times and join columns to match them with trips.
-        Depart columns names are irrelevant. Instead, they are position dependent,
-        time period choice is their index + depart_alt_base
-    depart_alt_base: int
-        int to add to probs column index to get time period it represents.
-        e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
-    report_failed_trips : bool
-    trace_hh_id
-    trace_label
-
-    Returns
-    -------
-    choices: pd.Series
-        time periods depart choices, one per trip (except for trips with zero probs)
-    """
-        
-    choices, failed = ps.make_scheduling_choices(
-        trips, scheduling_mode, probs_spec, probs_join_cols,
-        depart_alt_base, first_trip_in_leg, report_failed_trips.
-        trace_label, trace_hh_id)
-
-    assert (choices >= trips.earliest[~failed]).all()
-    assert (choices <= trips.latest[~failed]).all()
-
-    return choices
 
 
 def schedule_trips_in_leg(
@@ -223,7 +179,8 @@ def schedule_trips_in_leg(
     elif scheduling_mode == 'stop_duration':
         probs_join_cols = model_settings.get('probs_join_cols', PROBS_JOIN_COLUMNS_DURATION_BASED)
     else:
-        logger.error("Invalid scheduling mode specified: {0}.".format(scheduling_mode),
+        logger.error(
+            "Invalid scheduling mode specified: {0}.".format(scheduling_mode),
             "Please select one of ['departure', 'stop_duration'] and try again.")
 
     # logger.debug("%s scheduling %s trips" % (trace_label, trips.shape[0]))
@@ -233,15 +190,15 @@ def schedule_trips_in_leg(
 
     result_list = []
 
-    # trips to/from tour origin or atwork get tour_hour departure times 
+    # trips to/from tour origin or atwork get tour_hour departure times
     # no need to schedule them if there are no intermediate stops
     to_from_tour_orig = (trips.trip_num == 1) if outbound else (trips.trip_num == trips.trip_count)
     do_not_schedule = to_from_tour_orig | (trips.primary_purpose == 'atwork')
     choices = trips.tour_hour[do_not_schedule]
-    
+
     if do_not_schedule.all():
         return choices
-    
+
     result_list.append(choices)
     trips = trips[~do_not_schedule]
 
@@ -259,7 +216,7 @@ def schedule_trips_in_leg(
         # constrains latest depart of the preceding trip
         ADJUST_NEXT_DEPART_COL = 'latest'
     trips.next_trip_id = trips.next_trip_id.where(~is_final, NO_TRIP_ID)
-    
+
     first_trip_in_leg = True
     for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
 
@@ -322,8 +279,6 @@ def run_trip_scheduling(
     set_tour_hour(trips_chunk, tours)
     set_stop_num(trips_chunk)
 
-    row_size = chunk_size and ps.calc_row_size(
-            trips_chunk, probs_spec, trace_label, 'trip')
     # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
     # is_outbound_chooser = (trips.trip_num > 1) & trips.outbound & (trips.primary_purpose != 'atwork')
     # is_inbound_chooser = (trips.trip_num < trips.trip_count) & ~trips.outbound & (trips.primary_purpose != 'atwork')
@@ -350,7 +305,6 @@ def run_trip_scheduling(
         # departure time of last outbound trips must constrain
         # departure times for initial inbound trips
         update_tour_earliest(trips_chunk, choices)
-
 
     if (~trips_chunk.outbound).any():
         leg_chunk = trips_chunk[~trips_chunk.outbound]

@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+# Code here primarily based on tour_destination.py
+
 import logging
 
 import pandas as pd
@@ -114,6 +116,7 @@ def _od_sample(
         model_settings,
         alt_od_col_name,
         chunk_size,
+        chunk_tag,
         trace_label):
 
     model_spec = simulate.spec_for_segment(model_settings,
@@ -158,11 +161,6 @@ def _od_sample(
     if skims.orig_key == ORIG_TAZ:
         od_alts_df[ORIG_TAZ] = map_maz_to_taz(od_alts_df[origin_id_col], network_los)
 
-    # not sure this is ever getting triggered anymore. using external tazs for
-    # skim dists to is now handled via the ORIG_FILTER setting.
-    elif skims.orig_key == ORIG_TAZ_EXT:
-        od_alts_df[ORIG_TAZ_EXT] = map_maz_to_ext_taz(od_alts_df[origin_id_col])
-
     elif skims.orig_key not in od_alts_df:
         logger.error("Alts df is missing origin skim key column.")
 
@@ -175,6 +173,7 @@ def _od_sample(
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
+        chunk_tag=chunk_tag,
         trace_label=trace_label)
 
     return choices
@@ -188,6 +187,8 @@ def od_sample(
         destination_size_terms,
         estimator,
         chunk_size, trace_label):
+
+    chunk_tag = 'tour_od.sample'
 
     origin_col_name = model_settings['ORIG_COL_NAME']
     dest_col_name = model_settings['DEST_COL_NAME']
@@ -210,6 +211,7 @@ def od_sample(
         model_settings,
         alt_od_col_name,
         chunk_size,
+        chunk_tag,
         trace_label)
 
     choices[origin_col_name] = choices[alt_od_col_name].str.split('_').str[0].astype(int)
@@ -274,7 +276,6 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
 def choose_MAZ_for_TAZ(
         taz_sample, MAZ_size_terms, trace_label,
-        dest_maz_id_col=DEST_MAZ,
         addtl_col_for_unique_key=None
         ):
     """
@@ -285,6 +286,9 @@ def choose_MAZ_for_TAZ(
     ----------
     taz_sample: dataframe with duplicated index <chooser_id_col> and columns: <DEST_TAZ>, prob, pick_count
     MAZ_size_terms: dataframe with unique index and columns: <dest_maz_id_col>, dest_TAZ, size_term
+    trace_label: str
+    addtl_col_for_unique_key: str of col name to use in addition to destination zone if destination
+        zone alone will not be unique per chooser as is the case for joint simulation of tour ODs.
 
     Returns
     -------
@@ -314,8 +318,6 @@ def choose_MAZ_for_TAZ(
 
     if addtl_col_for_unique_key is None:
         addtl_col_for_unique_key = []
-        # unique_alt_id_cols = [dest_maz_id_col]:
-        # sample_cols_to_keep = [unique_alt_id_col]
     else:
         addtl_col_for_unique_key = [addtl_col_for_unique_key]
 
@@ -479,13 +481,15 @@ def od_presample(
         trace_label):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
+    chunk_tag = 'tour_od.presample'
+
     logger.info(f"{trace_label} od_presample")
 
     alt_od_col_name = get_od_id_col(ORIG_MAZ, DEST_TAZ)
 
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(destination_size_terms, network_los)
 
-    # create wrapper with keys for this lookup - in this case there is a ORIG_TAZ_EXT
+    # create wrapper with keys for this lookup - in this case there is a ORIG_TAZ
     # in the choosers and a DEST_TAZ in the alternatives which get merged during
     # interaction the skims will be available under the name "skims" for any @ expressions
     skim_dict = network_los.get_skim_dict('taz')
@@ -640,8 +644,8 @@ def run_od_logsums(
     """
     add logsum column to existing tour_destination_sample table
 
-    logsum is calculated by running the mode_choice model for each sample (person, dest_zone_id) pair
-    in destination_sample, and computing the logsum of all the utilities
+    logsum is calculated by running the mode_choice model for each sample
+    (person, OD_id) pair in od_sample, and computing the logsum of all the utilities
     """
     chunk_tag = 'tour_od.logsums'
     logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
@@ -661,7 +665,7 @@ def run_od_logsums(
 
     tracing.dump_df(DUMP, choosers, trace_label, 'choosers')
 
-    # run trip mode choice to computer tour mode choice logsums
+    # run trip mode choice to compute tour mode choice logsums
     if logsum_settings.get('COMPUTE_TRIP_MODE_CHOICE_LOGSUMS', False):
 
         pseudo_tours = choosers.copy()
@@ -765,6 +769,7 @@ def run_od_simulate(
         spec_segment_name,
         tours,
         od_sample,
+        want_logsums,
         model_settings,
         network_los,
         destination_size_terms,
@@ -772,8 +777,8 @@ def run_od_simulate(
         chunk_size,
         trace_label):
     """
-    run destination_simulate on tour_destination_sample
-    annotated with mode_choice logsum to select a destination from sample alternatives
+    run simulate OD choices on tour_od_sample annotated with mode_choice
+    logsum to select a tour OD from sample alternatives
     """
 
     model_spec = simulate.spec_for_segment(model_settings, spec_id='SPEC',
@@ -817,8 +822,8 @@ def run_od_simulate(
 
     logger.info("Running tour_destination_simulate with %d persons", len(choosers))
 
-    # create wrapper with keys for this lookup - in this case there is a home_zone_id in the choosers
-    # and a zone_id in the alternatives which get merged during interaction
+    # create wrapper with keys for this lookup - in this case there is an origin ID
+    # column and a destination ID columns in the alternatives table.
     # the skims will be available under the name "skims" for any @ expressions
     skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap(origin_col_name, dest_col_name)
@@ -835,14 +840,17 @@ def run_od_simulate(
         od_sample,
         spec=model_spec,
         choice_column=alt_od_col_name,
+        want_logsums=want_logsums,
         skims=skims,
         locals_d=locals_d,
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='origin_destination',
         estimator=estimator)
+    
+    if not want_logsums:
+        choices = choices.to_frame('choice')
 
-    choices = choices.to_frame('choice')
     choices = _get_od_cols_from_od_id(choices, origin_col_name, dest_col_name)
 
     return choices
@@ -851,6 +859,7 @@ def run_od_simulate(
 def run_tour_od(
         tours,
         persons,
+        want_logsums,
         want_sample_table,
         model_settings,
         network_los,
@@ -911,7 +920,7 @@ def run_tour_od(
         if model_settings['ORIG_FILTER'] == 'original_MAZ > 0':
             pass
         elif model_settings['ORIG_FILTER'] == 'external_TAZ > 0':
-            # sampled alts using internal mazs (the ctramp bug), so now we
+            # sampled alts using internal mazs, so now we
             # have to convert to using the external tazs
             od_sample_df[origin_col_name] = map_maz_to_ext_maz(
                 od_sample_df[origin_col_name])
@@ -939,9 +948,10 @@ def run_tour_od(
                 spec_segment_name,
                 choosers,
                 od_sample_df,
-                model_settings,
-                network_los,
-                segment_destination_size_terms,
+                want_logsums=want_logsums,
+                model_settings=model_settings,
+                network_los=network_los,
+                destination_size_terms=segment_destination_size_terms,
                 estimator=estimator,
                 chunk_size=chunk_size,
                 trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))

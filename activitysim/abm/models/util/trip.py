@@ -129,6 +129,10 @@ def get_time_windows(residual, level):
 
 
 def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
+    """
+    Instantiates a trips table based on tour-level attributes: stop frequency,
+    tour origin, tour destination.
+    """
 
     stop_frequency_alts = pd.read_csv(
         config.config_file_path('stop_frequency_alternatives.csv'), comment='#')
@@ -223,7 +227,7 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
     trips['tour_id'] = reindex(unique_tours.tour_id, trips.tour_temp_index)
 
     # trip ids are generated based on unique combination of `tour_id`, `outbound`,
-    # and `trip_num`. when pseudo-trips are generated from pseudo-tours for the
+    # and `trip_num`. When pseudo-trips are generated from pseudo-tours for the
     # purposes of computing logsums, `tour_id` won't be unique on `outbound` and
     # `trip_num`, so we use `tour_temp_index` instead. this will only be the case
     # when generating temporary pseudo-trips which won't get saved as outputs.

@@ -100,6 +100,7 @@ def _report_bad_choices(bad_row_map, df, filename, trace_label, trace_choosers=N
 def _preprocess_departure_probs(
         choosers_df, choosers, probs_spec, probs_join_cols,
         clip_earliest_latest, depart_alt_base, first_trip_in_leg):
+
     # zero out probs outside earliest-latest window if one exists
     probs_cols = [c for c in probs_spec.columns if c not in probs_join_cols]
     if clip_earliest_latest:
@@ -137,6 +138,10 @@ def _preprocess_stop_duration_probs(choosers):
 def _preprocess_scheduling_probs(
         scheduling_mode, choosers_df, choosers, probs_spec,
         probs_join_cols, clip_earliest_latest, depart_alt_base, first_trip_in_leg):
+    """
+    Preprocesses the choosers tables depending on the trip scheduling mode
+    selected. 
+    """
 
     if scheduling_mode == 'departure':
         chooser_probs = _preprocess_departure_probs(
@@ -255,6 +260,10 @@ def make_scheduling_choices(
 
     Parameters
     ----------
+    choosers: pd.DataFrame
+    scheduling_mode: str
+        Either 'departure' or 'stop_duration' depending on whether the probability
+        lookup table is keyed on depature period or stop duration.
     trips: pd.DataFrame
     probs_spec: pd.DataFrame
         Dataframe of probs for choice of depart times and join columns to match them with trips.

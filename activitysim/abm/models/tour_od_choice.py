@@ -29,9 +29,12 @@ def tour_od_choice(
         trace_hh_id):
 
     """
-    Given the tour generation from the above, each tour needs to have a
-    destination, so in this case tours are the choosers (with the associated
-    person that's making the tour)
+    Given a set of previously generated tours, each tour needs to have an
+    origin and a destination. In this case tours are the choosers, but
+    the associated person that's making the tour does not necessarily have
+    a home location assigned already. So we choose a tour origin at the same
+    time as we choose a tour destination, and assign the tour origin as that
+    person's home location.
     """
 
     trace_label = 'tour_od_choice'
@@ -89,13 +92,14 @@ def tour_od_choice(
     households[origin_col_name] = tours.set_index('household_id')[origin_col_name].reindex(households.index)
     persons[origin_col_name] = households[origin_col_name].reindex(persons.household_id).values
 
-    # downstream steps require 'home_zone_id' column, but for the xborder
-    # model this field is inherited from the tour origin which is only set now
+    # Downstream steps require that persons and households have a 'home_zone_id'
+    # column. We assume that if the tour_od_choice model is used, this field is
+    # missing from the population data, so it gets inherited from the tour origin
     households['home_zone_id'] = households[origin_col_name]
     persons['home_zone_id'] = persons[origin_col_name]
 
-    pipeline.replace_table("tours", tours)  # replace runs on pandas dfs
-    pipeline.replace_table("persons", persons)  # extend runs on orca df wrappers
+    pipeline.replace_table("tours", tours)
+    pipeline.replace_table("persons", persons)
     pipeline.replace_table("households", households)
 
     if want_sample_table:

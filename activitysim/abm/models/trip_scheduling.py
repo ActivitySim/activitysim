@@ -110,6 +110,7 @@ def update_tour_earliest(trips, outbound_choices):
     the maximum outbound trip departure time of the tour.
     This is done to ensure inbound trips do not depart
     before the last outbound trip of a tour.
+
     Parameters
     ----------
     trips: pd.DataFrame

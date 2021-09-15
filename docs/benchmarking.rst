@@ -21,16 +21,27 @@ plus one of the `activitysim_benchmarks` repository.
 If this isn't already set up on your performance benchmarking machine, you can
 do so by following these steps::
 
-    conda create -n ASIM-BENCH git gh -c conda-forge --override-channels
+    conda create -n ASIM-BENCH mamba git gh -c conda-forge --override-channels
     conda activate ASIM-BENCH
     gh auth login  # <--- (only needed if gh is not logged in)
     gh repo clone jpn--/activitysim  # FUTURE: use main repo
     cd activitysim
     git switch performance2  # FUTURE: use develop branch
-    conda env update --file=conda-environments/activitysim-dev.yml
+    mamba env update --file=conda-environments/activitysim-dev.yml
     cd ..
     gh repo clone jpn--/activitysim_benchmarks  # FUTURE: use org repo
     cd activitysim_benchmarks
+
+If this environment is set up but it's been a while since you last used it,
+consider updating the environment like this::
+
+    conda activate ASIM-BENCH
+    cd activitysim
+    git switch performanceTest  # FUTURE: use develop branch
+    mamba env update --file=conda-environments/activitysim-dev.yml
+    cd ..
+    cd activitysim_benchmarks
+    git pull
 
 If you want to submit your benchmarking results to the common database of
 community results, you should also fork the `activitysim_benchmarks` repository::
@@ -124,4 +135,4 @@ most conveniently accomplished using the `snakeviz` tool, which should be instal
 in the developer tools environment (`conda install snakeviz -c conda-forge`).
 Then, to profile a particular command,
 
-    activitysim benchmark profile sandag3s.time_trip_destination.time_component HEAD --gui=snakeviz -v
+    activitysim benchmark profile sandag2.time_trip_destination.time_component HEAD --gui=snakeviz -v

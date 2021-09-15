@@ -235,8 +235,8 @@ def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
         trip_index_tour_id = 'tour_temp_index'
     else:
         trip_index_tour_id = 'tour_id'
-    
-    set_trip_index(trips, trip_index_tour_id)    
+
+    set_trip_index(trips, trip_index_tour_id)
     del trips['tour_temp_index']
 
     return trips

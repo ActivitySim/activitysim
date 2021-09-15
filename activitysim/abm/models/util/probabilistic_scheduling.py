@@ -140,7 +140,7 @@ def _preprocess_scheduling_probs(
         probs_join_cols, clip_earliest_latest, depart_alt_base, first_trip_in_leg):
     """
     Preprocesses the choosers tables depending on the trip scheduling mode
-    selected. 
+    selected.
     """
 
     if scheduling_mode == 'departure':

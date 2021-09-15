@@ -847,7 +847,7 @@ def run_od_simulate(
         trace_label=trace_label,
         trace_choice_name='origin_destination',
         estimator=estimator)
-    
+
     if not want_logsums:
         choices = choices.to_frame('choice')
 

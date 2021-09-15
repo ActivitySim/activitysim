@@ -80,7 +80,7 @@ benchmarking a particular model or component, as running *all* the benchmarks ca
 take a very long time.  For example, to run only the SANDAG 1-Zone benchmarks,
 run::
 
-    activitysim benchmark run HEAD^! --verbose --append-samples --bench sandag1
+    activitysim benchmark run "HEAD^!" --verbose --append-samples --bench sandag3
 
 
 
@@ -114,3 +114,14 @@ To do so, assuming you have run the benchmark tool inside the `activitysim_bench
 repository as noted above, you simply need to commit any new or changed files
 in the `activitysim_benchmarks/results` directory.  You can then open a pull request
 against the community `activitysim_benchmarks` to submit those results.
+
+Profiling
+---------
+
+The benchmarking tool can also be used for profiling, which allows a developer to
+inspect the timings for various commands inside a particular benchmark. This is
+most conveniently accomplished using the `snakeviz` tool, which should be installed
+in the developer tools environment (`conda install snakeviz -c conda-forge`).
+Then, to profile a particular command,
+
+    activitysim benchmark profile sandag3s.time_trip_destination.time_component HEAD --gui=snakeviz -v

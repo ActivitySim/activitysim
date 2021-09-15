@@ -2,18 +2,15 @@
 from .componentwise_template import f_setup_cache, generate_component_timings
 
 # name of example to load from activitysim_resources
-# EXAMPLE_NAME = "example_sandag_3_zone_full"
-# CONFIGS_DIRS = ("configs_benchmarking", "configs_3_zone", "example_mtc/configs")
-
-EXAMPLE_NAME = "example_sandag_3_zone"
-CONFIGS_DIRS = ("configs_3_zone", "example_mtc/configs")
-
+EXAMPLE_NAME = "example_sandag_3_zone_full"
+CONFIGS_DIRS = ("configs_benchmarking", "configs_3_zone", "example_mtc/configs")
 DATA_DIR = "data_3"
 OUTPUT_DIR = "output_3"
+#SETTINGS_FILENAME = "settings_benchmarking.yaml"
 
 # any settings to override in the example's usual settings file
 BENCHMARK_SETTINGS = {
-    'households_sample_size': 0,
+    'households_sample_size': 20_000,
 }
 
 # the component names to be benchmarked

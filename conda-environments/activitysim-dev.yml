@@ -30,6 +30,7 @@ dependencies:
 - bump2version
 - asv
 - ruamel.yaml
+- snakeviz
 
 - pip:
   - -e ..

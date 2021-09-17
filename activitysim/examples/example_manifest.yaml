@@ -605,7 +605,7 @@
       36383b4c9dacdd7dd10c84b4479aa9f53ced23e155b6d354c468decc6710c80e
 
 - name: example_sandag_1_zone
-  description: 57 zone 1-zone test example for the SANDAG region
+  description: 90-TAZ (includes univ) 1-zone test example for the SANDAG region
   # activitysim create -e example_sandag_1_zone -d test_example_sandag_1_zone
   # cd test_example_sandag_1_zone
   # activitysim run -c configs_1_zone -c example_mtc/configs -d data_1 -o output_1 -s settings_mp.yaml
@@ -658,7 +658,7 @@
       e3f7fb1e0b334fc83dc69985dce8b925e3660149c5de5635c7d8464e306074b9
 
 - name: example_sandag_2_zone
-  description: 28 zone 2-zone test example for the SANDAG region
+  description: 90-TAZ 609-MAZ (includes univ) 2-zone test example for the SANDAG region
   # activitysim create -e example_sandag_2_zone -d test_example_sandag_2_zone
   # cd test_example_sandag_2_zone
   # activitysim run -c configs_2_zone -c example_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml
@@ -723,7 +723,7 @@
       77a82afa09ee1f4c48aa7928e96756525d170402ca99da04cdf676e45cb6fbcf
 
 - name: example_sandag_3_zone
-  description: 580 zone (zones 500 to 1079 to include univ) 3-zone example for the SANDAG region
+  description: 90-TAZ 609-MAZ (includes univ) 3-zone test example for the SANDAG region
   # activitysim create -e example_sandag_3_zone -d test_example_sandag_3_zone
   # cd test_example_sandag_3_zone
   # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml

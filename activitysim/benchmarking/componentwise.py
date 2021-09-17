@@ -237,7 +237,7 @@ def pre_run(
     logger.info(f"MODELS: {config.setting('models')}")
 
     if config.setting('multiprocess', False):
-        raise NotImplementedError("multiprocess benchmarking is not yet implemented")
+        logger.info('run multi-process complete simulation')
     else:
         logger.info('run single process simulation')
         pipeline.run(models=config.setting('models'))

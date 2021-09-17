@@ -4,6 +4,7 @@ import os
 import logging
 import time
 import yaml
+import multiprocessing
 from datetime import timedelta
 from functools import partial
 from activitysim.benchmarking import componentwise, modify_yaml, workspace
@@ -21,6 +22,7 @@ def f_setup_cache(
         OUTPUT_DIR='output',
         SETTINGS_FILENAME="settings.yaml",
         SKIP_COMPONENT_NAMES=None,
+        NUM_PROCESSES=None
 ):
 
     if workspace.get_dir() is None:
@@ -34,19 +36,24 @@ def f_setup_cache(
         destination=os.path.join(local_dir(), "models"),
     )
     models = None
-    print(f"CONFIGS_DIRS={CONFIGS_DIRS}")
+    settings_filename = os.path.join(model_dir(EXAMPLE_NAME), SETTINGS_FILENAME)
     for config_settings_dir in CONFIGS_DIRS:
         settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, SETTINGS_FILENAME)
-        print(f"seaerching for {settings_filename}")
         if os.path.exists(settings_filename):
-            print(f"finded for {settings_filename}")
+            if NUM_PROCESSES is not None:
+                modify_yaml(settings_filename, num_processes=NUM_PROCESSES)
             with open(settings_filename, 'rt') as f:
                 models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
             break
+    if models is None and SETTINGS_FILENAME != "settings.yaml":
+        for config_settings_dir in CONFIGS_DIRS:
+            settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, "settings.yaml")
+            if os.path.exists(settings_filename):
+                with open(settings_filename, 'rt') as f:
+                    models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
+                break
     if models is None:
         raise ValueError(f"missing list of models from configs/{SETTINGS_FILENAME}")
-    else:
-        print(f"MODELS={models}")
     last_component_to_benchmark = 0
     for cname in COMPONENT_NAMES:
         last_component_to_benchmark = max(
@@ -58,7 +65,6 @@ def f_setup_cache(
         for cname in SKIP_COMPONENT_NAMES:
             if cname in pre_run_model_list:
                 pre_run_model_list.remove(cname)
-    print(f"pre_run_model_list={pre_run_model_list}")
     modify_yaml(
         settings_filename,
         **BENCHMARK_SETTINGS,
@@ -76,6 +82,7 @@ def f_setup_cache(
                 write_skim_cache=True,
             )
             break
+    os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
     componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
 
 
@@ -122,3 +129,46 @@ def generate_component_timings(
 
     return ComponentTiming
 
+
+def generate_complete(
+        EXAMPLE_NAME,
+        CONFIGS_DIRS,
+        DATA_DIR,
+        OUTPUT_DIR,
+        TIMEOUT,
+        COMPONENT_NAMES,
+        BENCHMARK_SETTINGS,
+        SETTINGS_FILENAME="settings_mp.yaml",
+):
+
+    class time_mp_complete:
+        repeat = 1
+        number = 1
+        timeout = TIMEOUT*100
+        component_names = COMPONENT_NAMES
+        benchmark_settings = BENCHMARK_SETTINGS
+
+        def setup(self):
+            print("<Running MP Complete> SETUP")
+            f_setup_cache(
+                EXAMPLE_NAME, self.component_names, self.benchmark_settings,
+                CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR + "MP",
+                SETTINGS_FILENAME=SETTINGS_FILENAME,
+                NUM_PROCESSES=max(multiprocessing.cpu_count()-2, 2),
+            )
+            print("<End MP Complete> SETUP")
+
+        def time_complete(self):
+            print("<Running MP Complete>")
+            INJECTABLES = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name']
+            from activitysim.core import mp_tasks, inject, pipeline, config
+            injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+            mp_tasks.run_multiprocess(injectables)
+            assert not pipeline.is_open()
+            if config.setting('cleanup_pipeline_after_run', False):
+                pipeline.cleanup_pipeline()
+            print("<End MP Complete>")
+
+        time_complete.pretty_name = f"{EXAMPLE_NAME}:MP-Complete"
+
+    return time_mp_complete

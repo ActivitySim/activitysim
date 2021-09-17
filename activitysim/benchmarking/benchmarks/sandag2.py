@@ -1,5 +1,6 @@
+import os
 
-from .componentwise_template import f_setup_cache, generate_component_timings
+from .componentwise_template import f_setup_cache, generate_component_timings, generate_complete
 
 # name of example to load from activitysim_resources
 EXAMPLE_NAME = "example_sandag_2_zone"
@@ -41,6 +42,10 @@ COMPONENT_NAMES = [
     "trip_purpose_and_destination",
     "trip_scheduling",
     "trip_mode_choice",
+    "write_data_dictionary",
+    "track_skim_usage",
+    "write_trip_matrices",
+    "write_tables",
 ]
 
 # benchmarking configuration

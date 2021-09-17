@@ -158,6 +158,10 @@ def copy_asset(asset_path, target_path, dirs_exist_ok=False):
 
 def download_asset(url, target_path, sha256=None):
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
+    if url.endswith(".gz") and not target_path.endswith(".gz"):
+        target_path_dl = target_path + ".gz"
+    else:
+        target_path_dl = target_path
     if sha256 and os.path.isfile(target_path):
         computed_sha256 = sha256_checksum(target_path)
         if sha256 == computed_sha256:
@@ -171,9 +175,15 @@ def download_asset(url, target_path, sha256=None):
         print(f'downloading {os.path.basename(target_path)} ...')
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
-        with open(target_path, 'wb') as f:
+        with open(target_path_dl, 'wb') as f:
             for chunk in r.iter_content(chunk_size=None):
                 f.write(chunk)
+    if target_path_dl != target_path:
+        import gzip
+        with gzip.open(target_path_dl, 'rb') as f_in:
+            with open(target_path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(target_path_dl)
     computed_sha256 = sha256_checksum(target_path)
     if sha256 and sha256 != computed_sha256:
         raise ValueError(

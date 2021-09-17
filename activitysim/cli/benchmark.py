@@ -129,6 +129,14 @@ def make_asv_argparser(parser):
         )
         common_args.add_global_arguments(subparser)
 
+    from ..benchmarking.profile_inspector import ProfileInspector
+    subparser = ProfileInspector.setup_arguments(subparsers)
+    subparser.add_argument(
+        "--workspace", "-w",
+        help="benchmarking workspace directory",
+        default=".",
+    )
+
     parser.set_defaults(afunc=benchmark)
     return parser, subparsers
 

@@ -1,13 +1,10 @@
 
+
 from .componentwise_template import f_setup_cache, generate_component_timings
 
 # name of example to load from activitysim_resources
-# EXAMPLE_NAME = "example_sandag_3_zone_full"
-# CONFIGS_DIRS = ("configs_benchmarking", "configs_3_zone", "example_mtc/configs")
-
 EXAMPLE_NAME = "example_sandag_3_zone"
 CONFIGS_DIRS = ("configs_3_zone", "example_mtc/configs")
-
 DATA_DIR = "data_3"
 OUTPUT_DIR = "output_3"
 
@@ -18,7 +15,7 @@ BENCHMARK_SETTINGS = {
 
 # the component names to be benchmarked
 COMPONENT_NAMES = [
-    # "compute_accessibility",
+    "compute_accessibility",
     "school_location",
     "workplace_location",
     "auto_ownership_simulate",
@@ -45,6 +42,10 @@ COMPONENT_NAMES = [
     "trip_purpose_and_destination",
     "trip_scheduling",
     "trip_mode_choice",
+    "write_data_dictionary",
+    "track_skim_usage",
+    "write_trip_matrices",
+    "write_tables",
 ]
 
 # benchmarking configuration

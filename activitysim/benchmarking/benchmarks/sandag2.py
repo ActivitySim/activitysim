@@ -84,3 +84,14 @@ for cname in COMPONENT_NAMES:
         NUMBER,
         TIMEOUT,
     )
+
+
+time_mp_complete = generate_complete(
+        EXAMPLE_NAME,
+        CONFIGS_DIRS,
+        DATA_DIR,
+        OUTPUT_DIR,
+        TIMEOUT,
+        COMPONENT_NAMES,
+        BENCHMARK_SETTINGS,
+)

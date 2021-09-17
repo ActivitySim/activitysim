@@ -87,7 +87,7 @@ def f_setup_cache(
     os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
     use_prepared_pipeline = False
     if PIPELINE_HASH:
-        from ...cli.create import sha256_checksum
+        from activitysim.cli.create import sha256_checksum
         if PIPELINE_HASH == sha256_checksum(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR, 'pipeline.h5')):
             use_prepared_pipeline = True
     if not use_prepared_pipeline:

@@ -81,7 +81,7 @@ def list_examples():
     return ret
 
 
-def get_example(example_name, destination):
+def get_example(example_name, destination, benchmarking=False):
     """
     Copy project data to user-specified directory.
 
@@ -101,6 +101,7 @@ def get_example(example_name, destination):
         If the target directory already exists, project files
         will be copied into a subdirectory with the same name
         as the example
+    benchmarking: bool
     """
     if example_name not in EXAMPLES:
         sys.exit(f"error: could not find example '{example_name}'")
@@ -111,8 +112,11 @@ def get_example(example_name, destination):
         dest_path = destination
 
     example = EXAMPLES[example_name]
+    itemlist = example.get('include', [])
+    if benchmarking:
+        itemlist.extend(example.get('benchmarking', []))
 
-    for item in example.get('include', []):
+    for item in itemlist:
 
         # split include string into source/destination paths
         items = item.split()

@@ -69,6 +69,7 @@ def setup_cache():
     f_setup_cache(
         EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
         CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
+        PIPELINE_HASH='a30eb3630f91aeb0e917cba854bfb796495fdd18bbcd6309d5aea702bd7e9a91',
     )
 
 

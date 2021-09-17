@@ -669,6 +669,10 @@
     - example_sandag/configs_2_zone
     - example_sandag/data_2
     - example_sandag/output_2
+  benchmarking:
+    - example_sandag/benchmarking/sandag2.pipeline.h5
+      output_2/pipeline.h5
+      a30eb3630f91aeb0e917cba854bfb796495fdd18bbcd6309d5aea702bd7e9a91
 
 - name: example_sandag_2_zone_full
   description: full 2-zone example for the SANDAG region

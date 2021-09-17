@@ -77,6 +77,7 @@ def setup_cache():
     get_example(
         example_name=EXAMPLE_NAME,
         destination=os.path.join(local_dir(), "models"),
+        benchmarking=True,
     )
     settings_filename = os.path.join(model_dir(), "configs", "settings.yaml")
     with open(settings_filename, 'rt') as f:

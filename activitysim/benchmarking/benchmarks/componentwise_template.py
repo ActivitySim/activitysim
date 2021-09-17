@@ -22,7 +22,8 @@ def f_setup_cache(
         OUTPUT_DIR='output',
         SETTINGS_FILENAME="settings.yaml",
         SKIP_COMPONENT_NAMES=None,
-        NUM_PROCESSES=None
+        NUM_PROCESSES=None,
+        PIPELINE_HASH=None,
 ):
 
     if workspace.get_dir() is None:
@@ -34,6 +35,7 @@ def f_setup_cache(
     get_example(
         example_name=EXAMPLE_NAME,
         destination=os.path.join(local_dir(), "models"),
+        benchmarking=True,
     )
     models = None
     settings_filename = os.path.join(model_dir(EXAMPLE_NAME), SETTINGS_FILENAME)
@@ -83,7 +85,13 @@ def f_setup_cache(
             )
             break
     os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
-    componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
+    use_prepared_pipeline = False
+    if PIPELINE_HASH:
+        from ...cli.create import sha256_checksum
+        if PIPELINE_HASH == sha256_checksum(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR, 'pipeline.h5')):
+            use_prepared_pipeline = True
+    if not use_prepared_pipeline:
+        componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
 
 
 def local_dir():

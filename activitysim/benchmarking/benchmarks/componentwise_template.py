@@ -86,12 +86,23 @@ def f_setup_cache(
             break
     os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
     use_prepared_pipeline = False
-    if PIPELINE_HASH:
-        from activitysim.cli.create import sha256_checksum
-        if PIPELINE_HASH == sha256_checksum(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR, 'pipeline.h5')):
+    asv_commit = os.environ.get('ASV_COMMIT', 'ASV_COMMIT_UNKNOWN')
+    token_file = os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR, 'benchmark-setup-token.txt')
+    if os.path.exists(token_file):
+        with open(token_file, 'rt') as f:
+            token = f.read()
+        if token == asv_commit:
             use_prepared_pipeline = True
     if not use_prepared_pipeline:
-        componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
+        try:
+            componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
+        except Exception as err:
+            with open(token_file, 'wt') as f:
+                f.write(f"error {err}")
+            raise
+        else:
+            with open(token_file, 'wt') as f:
+                f.write(asv_commit)
 
 
 def local_dir():

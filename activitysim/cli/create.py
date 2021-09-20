@@ -153,6 +153,9 @@ def copy_asset(asset_path, target_path, dirs_exist_ok=False):
         shutil.copytree(asset_path, target_path, dirs_exist_ok=dirs_exist_ok)
 
     else:
+        target_dir = os.path.dirname(target_path)
+        if target_dir:
+            os.makedirs(target_dir, exist_ok=True)
         shutil.copy(asset_path, target_path)
 
 

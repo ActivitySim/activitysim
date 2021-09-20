@@ -101,13 +101,33 @@ def setup_component(
         resume_after = None
 
     if config.setting('multiprocess', False):
-        raise NotImplementedError("multiprocess benchmarking is not yet implemented")
+        raise NotImplementedError("multiprocess component benchmarking is not yet implemented")
     else:
         open_pipeline(resume_after, mode='r')
 
     for k in preload_injectables:
         if inject.get_injectable(k, None) is not None:
             logger.info("pre-loaded %s", k)
+
+    # Directories Logging
+    for k in ['configs_dir', 'settings_file_name', 'data_dir', 'output_dir']:
+        logger.info(f'DIRECTORY {k}: {inject.get_injectable(k, None)}')
+
+    # Settings Logging
+    log_settings = [
+        'checkpoints',
+        'chunk_training_mode',
+        'chunk_size',
+        'chunk_method',
+        'trace_hh_id',
+        'households_sample_size',
+        'check_for_variability',
+        'use_shadow_pricing',
+        'want_dest_choice_sample_tables',
+        'log_alt_losers',
+    ]
+    for k in log_settings:
+        logger.info(f'SETTING {k}: {config.setting(k)}')
 
     logger.info("setup_component completed: %s", component_name)
 
@@ -116,7 +136,7 @@ def run_component(component_name):
     logger.info("run_component: %s", component_name)
     try:
         if config.setting('multiprocess', False):
-            raise NotImplementedError("multiprocess benchmarking is not yet implemented")
+            raise NotImplementedError("multiprocess component benchmarking is not yet implemented")
             # logger.info('run multiprocess simulation')
             #
             # from activitysim.core import mp_tasks

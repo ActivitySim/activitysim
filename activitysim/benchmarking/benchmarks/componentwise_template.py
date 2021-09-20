@@ -91,7 +91,8 @@ def f_setup_cache(
     if os.path.exists(token_file):
         with open(token_file, 'rt') as f:
             token = f.read()
-        if token == asv_commit:
+        if token == asv_commit or token == 'STABLE':
+            # developers: manually set the token to STABLE for repeated testing if desired
             use_prepared_pipeline = True
     if not use_prepared_pipeline:
         try:

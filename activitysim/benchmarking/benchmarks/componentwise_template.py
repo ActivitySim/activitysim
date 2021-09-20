@@ -23,7 +23,6 @@ def f_setup_cache(
         SETTINGS_FILENAME="settings.yaml",
         SKIP_COMPONENT_NAMES=None,
         NUM_PROCESSES=None,
-        PIPELINE_HASH=None,
 ):
 
     if workspace.get_dir() is None:

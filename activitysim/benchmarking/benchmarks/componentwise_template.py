@@ -210,6 +210,7 @@ def apply_template(
         COMPONENT_NAMES,
         BENCHMARK_SETTINGS,
         SKIM_CACHE=True,
+        MP_SAMPLE_SIZE=0,
 ):
     def setup_cache():
         f_setup_cache(
@@ -233,6 +234,9 @@ def apply_template(
             TIMEOUT,
         )
 
+    BENCHMARK_SETTINGS_COMPLETE = BENCHMARK_SETTINGS.copy()
+    BENCHMARK_SETTINGS_COMPLETE['households_sample_size'] = MP_SAMPLE_SIZE
+
     GLOBALS[f"zz_complete"] = generate_complete(
         EXAMPLE_NAME,
         CONFIGS_DIRS,
@@ -240,6 +244,6 @@ def apply_template(
         OUTPUT_DIR,
         TIMEOUT,
         COMPONENT_NAMES,
-        BENCHMARK_SETTINGS,
+        BENCHMARK_SETTINGS_COMPLETE,
         SKIM_CACHE=SKIM_CACHE,
     )

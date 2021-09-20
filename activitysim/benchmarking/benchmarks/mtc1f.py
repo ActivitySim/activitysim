@@ -51,5 +51,5 @@ apply_template(
         'households_sample_size': 20_000,
     },
     SKIM_CACHE=True,
-
+    MP_SAMPLE_SIZE=0,
 )

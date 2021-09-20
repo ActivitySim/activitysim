@@ -191,3 +191,40 @@ def generate_complete(
         time_complete.pretty_name = f"{EXAMPLE_NAME}:MP-Complete"
 
     return time_mp_complete
+
+
+def apply_template(
+        GLOBALS,
+        EXAMPLE_NAME,
+        CONFIGS_DIRS,
+        DATA_DIR,
+        OUTPUT_DIR,
+        PRELOAD_INJECTABLES,
+        REPEAT,
+        NUMBER,
+        TIMEOUT,
+        COMPONENT_NAMES,
+        BENCHMARK_SETTINGS,
+):
+    def setup_cache():
+        f_setup_cache(
+            EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
+            CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
+        )
+
+    GLOBALS["setup_cache"] = setup_cache
+
+    for cname in COMPONENT_NAMES:
+        GLOBALS[f"time_{cname}"] = generate_component_timings(
+            cname,
+            EXAMPLE_NAME,
+            CONFIGS_DIRS,
+            DATA_DIR,
+            OUTPUT_DIR,
+            PRELOAD_INJECTABLES,
+            REPEAT,
+            NUMBER,
+            TIMEOUT,
+        )
+
+    

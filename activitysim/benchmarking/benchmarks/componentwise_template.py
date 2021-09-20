@@ -25,86 +25,96 @@ def f_setup_cache(
         NUM_PROCESSES=None,
         SKIM_CACHE=True,
 ):
-
-    if workspace.get_dir() is None:
-        from asv.console import log
-        for k,v in os.environ.items():
-            log.error(f" env {k}: {v}")
-        raise RuntimeError("workspace unavailable")
-    os.makedirs(os.path.join(local_dir(), "models"), exist_ok=True)
-    get_example(
-        example_name=EXAMPLE_NAME,
-        destination=os.path.join(local_dir(), "models"),
-        benchmarking=True,
-    )
     models = None
-    settings_filename = os.path.join(model_dir(EXAMPLE_NAME), SETTINGS_FILENAME)
-    for config_settings_dir in CONFIGS_DIRS:
-        settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, SETTINGS_FILENAME)
-        if os.path.exists(settings_filename):
-            if NUM_PROCESSES is not None:
-                modify_yaml(settings_filename, num_processes=NUM_PROCESSES)
-            with open(settings_filename, 'rt') as f:
-                models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
-            break
-    if models is None and SETTINGS_FILENAME != "settings.yaml":
+    try:
+        if workspace.get_dir() is None:
+            from asv.console import log
+            for k,v in os.environ.items():
+                log.error(f" env {k}: {v}")
+            raise RuntimeError("workspace unavailable")
+        os.makedirs(os.path.join(local_dir(), "models"), exist_ok=True)
+        get_example(
+            example_name=EXAMPLE_NAME,
+            destination=os.path.join(local_dir(), "models"),
+            benchmarking=True,
+        )
+        settings_filename = os.path.join(model_dir(EXAMPLE_NAME), SETTINGS_FILENAME)
         for config_settings_dir in CONFIGS_DIRS:
-            settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, "settings.yaml")
+            settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, SETTINGS_FILENAME)
             if os.path.exists(settings_filename):
+                if NUM_PROCESSES is not None:
+                    modify_yaml(settings_filename, num_processes=NUM_PROCESSES)
                 with open(settings_filename, 'rt') as f:
                     models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
                 break
-    if models is None:
-        raise ValueError(f"missing list of models from configs/{SETTINGS_FILENAME}")
-    last_component_to_benchmark = 0
-    for cname in COMPONENT_NAMES:
-        last_component_to_benchmark = max(
-            models.index(cname),
-            last_component_to_benchmark
+        if models is None and SETTINGS_FILENAME != "settings.yaml":
+            for config_settings_dir in CONFIGS_DIRS:
+                settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, "settings.yaml")
+                if os.path.exists(settings_filename):
+                    with open(settings_filename, 'rt') as f:
+                        models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
+                    break
+        if models is None:
+            raise ValueError(f"missing list of models from configs/{SETTINGS_FILENAME}")
+        last_component_to_benchmark = 0
+        for cname in COMPONENT_NAMES:
+            try:
+                last_component_to_benchmark = max(
+                    models.index(cname),
+                    last_component_to_benchmark
+                )
+            except ValueError:
+                if cname not in models:
+                    pass
+                else:
+                    raise
+        pre_run_model_list = models[:last_component_to_benchmark]
+        if SKIP_COMPONENT_NAMES is not None:
+            for cname in SKIP_COMPONENT_NAMES:
+                if cname in pre_run_model_list:
+                    pre_run_model_list.remove(cname)
+        modify_yaml(
+            settings_filename,
+            **BENCHMARK_SETTINGS,
+            models=pre_run_model_list,
+            checkpoints=True,
+            trace_hh_id=None,
+            chunk_training_mode='off',
         )
-    pre_run_model_list = models[:last_component_to_benchmark]
-    if SKIP_COMPONENT_NAMES is not None:
-        for cname in SKIP_COMPONENT_NAMES:
-            if cname in pre_run_model_list:
-                pre_run_model_list.remove(cname)
-    modify_yaml(
-        settings_filename,
-        **BENCHMARK_SETTINGS,
-        models=pre_run_model_list,
-        checkpoints=True,
-        trace_hh_id=None,
-        chunk_training_mode='off',
-    )
-    for config_network_los_dir in CONFIGS_DIRS:
-        network_los_filename = os.path.join(model_dir(EXAMPLE_NAME), config_network_los_dir, "network_los.yaml")
-        if os.path.exists(network_los_filename):
-            modify_yaml(
-                network_los_filename,
-                read_skim_cache=SKIM_CACHE,
-                write_skim_cache=SKIM_CACHE,
-            )
-            break
-    os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
-    use_prepared_pipeline = False
-    asv_commit = os.environ.get('ASV_COMMIT', 'ASV_COMMIT_UNKNOWN')
-    token_file = os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR, 'benchmark-setup-token.txt')
-    if os.path.exists(token_file):
-        with open(token_file, 'rt') as f:
-            token = f.read()
-        if token == asv_commit or token == 'STABLE':
-            # developers: manually set the token to STABLE for repeated testing if desired
-            use_prepared_pipeline = True
-    if not use_prepared_pipeline:
-        try:
-            componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
-        except Exception as err:
-            with open(token_file, 'wt') as f:
-                f.write(f"error {err}")
-            raise
-        else:
-            with open(token_file, 'wt') as f:
-                f.write(asv_commit)
-
+        for config_network_los_dir in CONFIGS_DIRS:
+            network_los_filename = os.path.join(model_dir(EXAMPLE_NAME), config_network_los_dir, "network_los.yaml")
+            if os.path.exists(network_los_filename):
+                modify_yaml(
+                    network_los_filename,
+                    read_skim_cache=SKIM_CACHE,
+                    write_skim_cache=SKIM_CACHE,
+                )
+                break
+        os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
+        use_prepared_pipeline = False
+        asv_commit = os.environ.get('ASV_COMMIT', 'ASV_COMMIT_UNKNOWN')
+        token_file = os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR, 'benchmark-setup-token.txt')
+        if os.path.exists(token_file):
+            with open(token_file, 'rt') as f:
+                token = f.read()
+            if token == asv_commit or token == 'STABLE':
+                # developers: manually set the token to STABLE for repeated testing if desired
+                use_prepared_pipeline = True
+        if not use_prepared_pipeline:
+            try:
+                componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
+            except Exception as err:
+                with open(token_file, 'wt') as f:
+                    f.write(f"error {err}")
+                raise
+            else:
+                with open(token_file, 'wt') as f:
+                    f.write(asv_commit)
+    except Exception as err:
+        print("models=", models)
+        import traceback
+        traceback.print_exc()
+        raise
 
 def local_dir():
     if benchmarking_directory is not None:

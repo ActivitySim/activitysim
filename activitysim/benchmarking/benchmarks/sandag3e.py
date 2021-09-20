@@ -5,7 +5,7 @@ apply_template(
     globals(),
     EXAMPLE_NAME="example_sandag_3_zone",
     CONFIGS_DIRS=("configs_3_zone", "example_mtc/configs"),
-    DATA_DIR="data_2",
-    OUTPUT_DIR="output_2",
+    DATA_DIR="data_3",
+    OUTPUT_DIR="output_3",
     **common_benchmark_settings,
 )

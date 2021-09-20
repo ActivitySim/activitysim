@@ -145,7 +145,7 @@ def generate_component_timings(
         #time_component.benchmark_name = f"{__name__}.time_component.{componentname}"
         time_component.pretty_name = f"{EXAMPLE_NAME}:{componentname}"
 
-    ComponentTiming.__name__ = f"time_{componentname}"
+    ComponentTiming.__name__ = f"{componentname}"
 
     return ComponentTiming
 
@@ -162,7 +162,7 @@ def generate_complete(
         SKIM_CACHE=True,
 ):
 
-    class time_mp_complete:
+    class time_zz_complete:
         repeat = 1
         number = 1
         timeout = TIMEOUT*100
@@ -194,7 +194,7 @@ def generate_complete(
 
         time_complete.pretty_name = f"{EXAMPLE_NAME}:MP-Complete"
 
-    return time_mp_complete
+    return time_zz_complete
 
 
 def apply_template(
@@ -221,7 +221,7 @@ def apply_template(
     GLOBALS["setup_cache"] = setup_cache
 
     for cname in COMPONENT_NAMES:
-        GLOBALS[f"time_{cname}"] = generate_component_timings(
+        GLOBALS[cname] = generate_component_timings(
             cname,
             EXAMPLE_NAME,
             CONFIGS_DIRS,
@@ -233,7 +233,7 @@ def apply_template(
             TIMEOUT,
         )
 
-    GLOBALS[f"time_zz_complete"] = generate_complete(
+    GLOBALS[f"zz_complete"] = generate_complete(
         EXAMPLE_NAME,
         CONFIGS_DIRS,
         DATA_DIR,

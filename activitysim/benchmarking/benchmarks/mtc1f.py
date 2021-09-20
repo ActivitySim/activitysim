@@ -1,4 +1,11 @@
-common_benchmark_settings = dict(
+from .componentwise_template import apply_template
+
+apply_template(
+    globals(),
+    EXAMPLE_NAME="example_mtc_full",
+    CONFIGS_DIRS=("configs", ),
+    DATA_DIR="data",
+    OUTPUT_DIR="output",
     PRELOAD_INJECTABLES=('skim_dict',),
     REPEAT=(
         1,  # min_repeat
@@ -41,7 +48,8 @@ common_benchmark_settings = dict(
         "write_tables",
     ],
     BENCHMARK_SETTINGS={
-        'households_sample_size': 0,
+        'households_sample_size': 20_000,
     },
     SKIM_CACHE=True,
+
 )

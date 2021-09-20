@@ -23,6 +23,7 @@ def f_setup_cache(
         SETTINGS_FILENAME="settings.yaml",
         SKIP_COMPONENT_NAMES=None,
         NUM_PROCESSES=None,
+        SKIM_CACHE=True,
 ):
 
     if workspace.get_dir() is None:
@@ -79,8 +80,8 @@ def f_setup_cache(
         if os.path.exists(network_los_filename):
             modify_yaml(
                 network_los_filename,
-                read_skim_cache=True,
-                write_skim_cache=True,
+                read_skim_cache=SKIM_CACHE,
+                write_skim_cache=SKIM_CACHE,
             )
             break
     os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
@@ -158,6 +159,7 @@ def generate_complete(
         COMPONENT_NAMES,
         BENCHMARK_SETTINGS,
         SETTINGS_FILENAME="settings_mp.yaml",
+        SKIM_CACHE=True,
 ):
 
     class time_mp_complete:
@@ -166,6 +168,7 @@ def generate_complete(
         timeout = TIMEOUT*100
         component_names = COMPONENT_NAMES
         benchmark_settings = BENCHMARK_SETTINGS
+        skim_cache = SKIM_CACHE
 
         def setup(self):
             print("<Running MP Complete> SETUP")
@@ -174,6 +177,7 @@ def generate_complete(
                 CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR + "MP",
                 SETTINGS_FILENAME=SETTINGS_FILENAME,
                 NUM_PROCESSES=max(multiprocessing.cpu_count()-2, 2),
+                SKIM_CACHE=self.skim_cache,
             )
             print("<End MP Complete> SETUP")
 
@@ -205,11 +209,13 @@ def apply_template(
         TIMEOUT,
         COMPONENT_NAMES,
         BENCHMARK_SETTINGS,
+        SKIM_CACHE=True,
 ):
     def setup_cache():
         f_setup_cache(
             EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
             CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
+            SKIM_CACHE=SKIM_CACHE,
         )
 
     GLOBALS["setup_cache"] = setup_cache
@@ -227,4 +233,13 @@ def apply_template(
             TIMEOUT,
         )
 
-    
+    GLOBALS[f"time_zz_complete"] = generate_complete(
+        EXAMPLE_NAME,
+        CONFIGS_DIRS,
+        DATA_DIR,
+        OUTPUT_DIR,
+        TIMEOUT,
+        COMPONENT_NAMES,
+        BENCHMARK_SETTINGS,
+        SKIM_CACHE=SKIM_CACHE,
+    )

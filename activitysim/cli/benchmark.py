@@ -129,7 +129,7 @@ def make_asv_argparser(parser):
         )
         common_args.add_global_arguments(subparser)
 
-    from ..benchmarking.latest import Latest
+    from ..benchmarking.latest import Latest, Batch
     subparser = Latest.setup_arguments(subparsers)
     subparser.add_argument(
         "--workspace", "-w",
@@ -137,6 +137,13 @@ def make_asv_argparser(parser):
         default=".",
     )
     common_args.add_global_arguments(subparser)
+
+    subparser = Batch.setup_arguments(subparsers)
+    subparser.add_argument(
+        "--workspace", "-w",
+        help="benchmarking workspace directory",
+        default=".",
+    )
 
     from ..benchmarking.profile_inspector import ProfileInspector
     subparser = ProfileInspector.setup_arguments(subparsers)

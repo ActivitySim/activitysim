@@ -4,7 +4,9 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
 import logging
+import subprocess
 import traceback
+import shlex
 from asv.console import log
 from asv import util
 from asv.commands.run import Run
@@ -111,3 +113,27 @@ class Latest(Run):
             launch_method=args.launch_method,
             **kwargs
         )
+
+
+class Batch(Run):
+    @classmethod
+    def setup_arguments(cls, subparsers):
+        parser = subparsers.add_parser(
+            "batch", help="Run a set of benchmark suites based on a batch file. "
+                          "Simply give the file name, which should be a text file "
+                          "containing a number of activitysim benchmark commands.",
+            description="Run a set of benchmark suites based on a batch file.")
+
+        parser.add_argument(
+            "file", action='store', type=str,
+            help="""Set the file name to use for reading multiple commands.""")
+
+        parser.set_defaults(func=cls.run_from_args)
+
+        return parser
+
+    @classmethod
+    def run_from_conf_args(cls, conf, args, **kwargs):
+        with open(args.file, 'rt') as f:
+            for line in f.readlines():
+                subprocess.run(["activitysim", "benchmark", *shlex.split(line)])

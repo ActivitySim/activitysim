@@ -202,9 +202,8 @@ def test_1_week_time_window():
 
     weekly_series = network_los.skim_time_period_label(pd.Series([1, 2, 3, 4, 5, 6, 7]))
 
-    np.testing.assert_array_equal(weekly_series,
-                                   np.array(['Sunday', 'Monday', 'Tuesday', 'Wednesday',
-                                              'Thursday', 'Friday', 'Saturday']))
+    np.testing.assert_array_equal(weekly_series, np.array([
+        'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']))
 
 
 def test_skim_time_periods_future_warning():

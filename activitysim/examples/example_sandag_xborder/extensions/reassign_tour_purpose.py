@@ -21,7 +21,7 @@ def reassign_tour_purpose_by_poe(
     """
     Simulates tour purpose choices after tour origin has been assigned. This
     is useful when the original tour purposes are assigned randomly
-    from an aggregate distribution that was not segmented by tour origin.  
+    from an aggregate distribution that was not segmented by tour origin.
     """
 
     trace_label = 'reassign_tour_purpose_by_poe'

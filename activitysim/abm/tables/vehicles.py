@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 @inject.table()
 def vehicles(households):
 
-	# initialize vehicles tables
+	# initialize vehicles table
     vehicles = households.to_frame().loc[
         households.index.repeat(households['auto_ownership'])]
     vehicles = vehicles.reset_index()[['household_id']]

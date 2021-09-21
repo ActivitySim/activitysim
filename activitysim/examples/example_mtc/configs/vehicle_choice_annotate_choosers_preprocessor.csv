@@ -1,4 +1,4 @@
 Description,Target,Expression
 total household distance to work,total_hh_dist_to_work,persons.groupby('household_id')['distance_to_work'].sum().reindex(df.household_id).fillna(0)
-total household distance to school,total_hh_dist_to_work,persons.groupby('household_id')['distance_to_school'].sum().reindex(df.household_id).fillna(0)
-total household commute distance, total_hh_commute_dist, total_hh_dist_to_work + total_hh_dist_to_work
+total household distance to school,total_hh_dist_to_school,persons.groupby('household_id')['distance_to_school'].sum().reindex(df.household_id).fillna(0)
+total household commute distance, total_hh_commute_dist, total_hh_dist_to_school + total_hh_dist_to_work

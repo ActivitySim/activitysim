@@ -1,0 +1,217 @@
+# vehicle_choice.yaml
+
+SPEC: vehicle_choice.csv
+COEFFICIENTS: vehicle_choice_coefficients.csv
+
+LOGIT_TYPE: NL
+
+NESTS:
+  name: root
+  coefficient: coef_nest_root
+  alternatives:
+      - name: AUTO
+        coefficient: coef_nest_AUTO
+        alternatives:
+            - name: AUTO_OLD
+              coefficient: coef_nest_AUTO_OLD
+              alternatives:
+                - AUTO_OLD_GAS
+                - AUTO_OLD_DIESEL
+                - AUTO_OLD_HEV
+                - AUTO_OLD_PEV
+                - AUTO_OLD_PHEV
+                - AUTO_OLD_OTHER_FUEL
+            - name: AUTO_RECENT
+              coefficient: coef_nest_AUTO_RECENT
+              alternatives:
+                - AUTO_RECENT_GAS
+                - AUTO_RECENT_DIESEL
+                - AUTO_RECENT_HEV
+                - AUTO_RECENT_PEV
+                - AUTO_RECENT_PHEV
+                - AUTO_RECENT_OTHER_FUEL
+            - name: AUTO_NEW
+              coefficient: coef_nest_AUTO_NEW
+              alternatives:
+                - AUTO_NEW_GAS
+                - AUTO_NEW_DIESEL
+                - AUTO_NEW_HEV
+                - AUTO_NEW_PEV
+                - AUTO_NEW_PHEV
+                - AUTO_NEW_OTHER_FUEL
+      - name: VAN
+        coefficient: coef_nest_VAN
+        alternatives:
+            - name: VAN_OLD
+              coefficient: coef_nest_VAN_OLD
+              alternatives:
+                - VAN_OLD_GAS
+                - VAN_OLD_DIESEL
+                - VAN_OLD_HEV
+                - VAN_OLD_PEV
+                - VAN_OLD_PHEV
+                - VAN_OLD_OTHER_FUEL
+            - name: VAN_RECENT
+              coefficient: coef_nest_VAN_RECENT
+              alternatives:
+                - VAN_RECENT_GAS
+                - VAN_RECENT_DIESEL
+                - VAN_RECENT_HEV
+                - VAN_RECENT_PEV
+                - VAN_RECENT_PHEV
+                - VAN_RECENT_OTHER_FUEL
+            - name: VAN_NEW
+              coefficient: coef_nest_VAN_NEW
+              alternatives:
+                - VAN_NEW_GAS
+                - VAN_NEW_DIESEL
+                - VAN_NEW_HEV
+                - VAN_NEW_PEV
+                - VAN_NEW_PHEV
+                - VAN_NEW_OTHER_FUEL
+      - name: SUV
+        coefficient: coef_nest_SUV
+        alternatives:
+            - name: SUV_OLD
+              coefficient: coef_nest_SUV_OLD
+              alternatives:
+                - SUV_OLD_GAS
+                - SUV_OLD_DIESEL
+                - SUV_OLD_HEV
+                - SUV_OLD_PEV
+                - SUV_OLD_PHEV
+                - SUV_OLD_OTHER_FUEL
+            - name: SUV_RECENT
+              coefficient: coef_nest_SUV_RECENT
+              alternatives:
+                - SUV_RECENT_GAS
+                - SUV_RECENT_DIESEL
+                - SUV_RECENT_HEV
+                - SUV_RECENT_PEV
+                - SUV_RECENT_PHEV
+                - SUV_RECENT_OTHER_FUEL
+            - name: SUV_NEW
+              coefficient: coef_nest_SUV_NEW
+              alternatives:
+                - SUV_NEW_GAS
+                - SUV_NEW_DIESEL
+                - SUV_NEW_HEV
+                - SUV_NEW_PEV
+                - SUV_NEW_PHEV
+                - SUV_NEW_OTHER_FUEL
+      - name: TRUCK
+        coefficient: coef_nest_TRUCK
+        alternatives:
+            - name: TRUCK_OLD
+              coefficient: coef_nest_TRUCK_OLD
+              alternatives:
+                - TRUCK_OLD_GAS
+                - TRUCK_OLD_DIESEL
+                - TRUCK_OLD_HEV
+                - TRUCK_OLD_PEV
+                - TRUCK_OLD_PHEV
+                - TRUCK_OLD_OTHER_FUEL
+            - name: TRUCK_RECENT
+              coefficient: coef_nest_TRUCK_RECENT
+              alternatives:
+                - TRUCK_RECENT_GAS
+                - TRUCK_RECENT_DIESEL
+                - TRUCK_RECENT_HEV
+                - TRUCK_RECENT_PEV
+                - TRUCK_RECENT_PHEV
+                - TRUCK_RECENT_OTHER_FUEL
+            - name: TRUCK_NEW
+              coefficient: coef_nest_TRUCK_NEW
+              alternatives:
+                - TRUCK_NEW_GAS
+                - TRUCK_NEW_DIESEL
+                - TRUCK_NEW_HEV
+                - TRUCK_NEW_PEV
+                - TRUCK_NEW_PHEV
+                - TRUCK_NEW_OTHER_FUEL
+      - name: MOTORCYCLE
+        coefficient: coef_nest_MOTORCYCLE
+        alternatives:
+            - name: MOTORCYCLE_OLD
+              coefficient: coef_nest_MOTORCYCLE_OLD
+              alternatives:
+                - MOTORCYCLE_OLD_GAS
+                - MOTORCYCLE_OLD_DIESEL
+                - MOTORCYCLE_OLD_HEV
+                - MOTORCYCLE_OLD_PEV
+                - MOTORCYCLE_OLD_PHEV
+                - MOTORCYCLE_OLD_OTHER_FUEL
+            - name: MOTORCYCLE_RECENT
+              coefficient: coef_nest_MOTORCYCLE_RECENT
+              alternatives:
+                - MOTORCYCLE_RECENT_GAS
+                - MOTORCYCLE_RECENT_DIESEL
+                - MOTORCYCLE_RECENT_HEV
+                - MOTORCYCLE_RECENT_PEV
+                - MOTORCYCLE_RECENT_PHEV
+                - MOTORCYCLE_RECENT_OTHER_FUEL
+            - name: MOTORCYCLE_NEW
+              coefficient: coef_nest_MOTORCYCLE_NEW
+              alternatives:
+                - MOTORCYCLE_NEW_GAS
+                - MOTORCYCLE_NEW_DIESEL
+                - MOTORCYCLE_NEW_HEV
+                - MOTORCYCLE_NEW_PEV
+                - MOTORCYCLE_NEW_PHEV
+                - MOTORCYCLE_NEW_OTHER_FUEL
+      - name: OTHER
+        coefficient: coef_nest_OTHER
+        alternatives:
+            - name: OTHER_OLD
+              coefficient: coef_nest_OTHER_OLD
+              alternatives:
+                - OTHER_BODY_OLD_GAS
+                - OTHER_BODY_OLD_DIESEL
+                - OTHER_BODY_OLD_HEV
+                - OTHER_BODY_OLD_PEV
+                - OTHER_BODY_OLD_PHEV
+                - OTHER_BODY_OLD_OTHER_FUEL
+            - name: OTHER_RECENT
+              coefficient: coef_nest_OTHER_RECENT
+              alternatives:
+                - OTHER_BODY_RECENT_GAS
+                - OTHER_BODY_RECENT_DIESEL
+                - OTHER_BODY_RECENT_HEV
+                - OTHER_BODY_RECENT_PEV
+                - OTHER_BODY_RECENT_PHEV
+                - OTHER_BODY_RECENT_OTHER_FUEL
+            - name: OTHER_NEW
+              coefficient: coef_nest_OTHER_NEW
+              alternatives:
+                - OTHER_BODY_NEW_GAS
+                - OTHER_BODY_NEW_DIESEL
+                - OTHER_BODY_NEW_HEV
+                - OTHER_BODY_NEW_PEV
+                - OTHER_BODY_NEW_PHEV
+                - OTHER_BODY_NEW_OTHER_FUEL
+            
+CONSTANTS:
+  vot: 5
+
+preprocessor:
+  SPEC: vehicle_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - vehicles
+    - persons
+
+annotate_persons:
+  SPEC: annotate_persons_vehicle_type
+  DF: persons
+  TABLES:
+    - vehicles
+
+annotate_households:
+  SPEC: annotate_households_vehicle_type
+  DF: households
+  TABLES:
+    - persons
+    - vehicles
+
+MODE_CHOICE_LOGSUM_COLUMN_NAME: vehicle_choice_logsum

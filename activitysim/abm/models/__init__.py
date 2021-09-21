@@ -34,3 +34,4 @@ from . import trip_departure_choice
 from . import trip_scheduling_choice
 from . import trip_matrices
 from . import summarize
+from . import vehicle_choice

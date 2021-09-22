@@ -172,7 +172,7 @@ def generate_complete(
         SKIM_CACHE=True,
 ):
 
-    class time_zz_complete:
+    class mp_complete:
         repeat = 1
         number = 1
         timeout = TIMEOUT*100
@@ -204,7 +204,7 @@ def generate_complete(
 
         time_complete.pretty_name = f"{EXAMPLE_NAME}:MP-Complete"
 
-    return time_zz_complete
+    return mp_complete
 
 
 def apply_template(

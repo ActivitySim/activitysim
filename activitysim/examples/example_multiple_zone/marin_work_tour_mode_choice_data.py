@@ -139,10 +139,10 @@ persons.to_csv("persons_asim.csv", index=False)
 pipeline = pd.io.pytables.HDFStore('pipeline.h5')
 pipeline.keys()
 
-pipeline['/accessibility/compute_accessibility'] = access     #index zone_id
-pipeline['/households/joint_tour_frequency'] = households     #index household_id
-pipeline['/persons/non_mandatory_tour_frequency'] = persons   #index person_id
-pipeline['/land_use/initialize_landuse'] = mazs               #index zone_id
-pipeline['/tours/non_mandatory_tour_scheduling'] = work_tours #index tour_id
+pipeline['/accessibility/compute_accessibility'] = access      # index zone_id
+pipeline['/households/joint_tour_frequency'] = households      # index household_id
+pipeline['/persons/non_mandatory_tour_frequency'] = persons    # index person_id
+pipeline['/land_use/initialize_landuse'] = mazs                # index zone_id
+pipeline['/tours/non_mandatory_tour_scheduling'] = work_tours  # index tour_id
 
 pipeline.close()

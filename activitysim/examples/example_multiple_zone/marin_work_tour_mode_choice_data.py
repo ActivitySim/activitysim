@@ -55,7 +55,7 @@ maz_maz_bike[["OMAZ", "DMAZ", "BIKE_DIST"]].to_csv("maz_maz_bike.csv", index=Fal
 mazs = pd.read_csv("2015_test_2019_02_13_Part2/landuse/maz_data_withDensity.csv")
 pcost = pd.read_csv("2015_test_2019_02_13/ctramp_output/mgraParkingCost.csv")
 
-mazs = pd.concat([mazs,pcost], axis=1)
+mazs = pd.concat([mazs, pcost], axis=1)
 mazs = mazs.fillna(0)
 
 tazs = pd.read_csv("2015_test_2019_02_13_Part2/landuse/taz_data.csv")

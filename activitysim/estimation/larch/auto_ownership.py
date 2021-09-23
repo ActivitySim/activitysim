@@ -1,18 +1,18 @@
 import os
+from typing import Collection
+
 import numpy as np
 import pandas as pd
 import yaml
-from typing import Collection
+from larch import DataFrames, Model, P, X
 from larch.util import Dict
 
-from .simple_simulate import simple_simulate_data
-
 from .general import (
-    remove_apostrophes,
     apply_coefficients,
     dict_of_linear_utility_from_spec,
+    remove_apostrophes,
 )
-from larch import Model, DataFrames, P, X
+from .simple_simulate import simple_simulate_data
 
 
 def auto_ownership_model(

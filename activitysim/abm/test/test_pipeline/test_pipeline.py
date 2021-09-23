@@ -1,23 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import os
 import logging
-import pkg_resources
+import os
 
-import openmatrix as omx
 import numpy as np
 import numpy.testing as npt
-
+import openmatrix as omx
 import pandas as pd
 import pandas.testing as pdt
+import pkg_resources
 import pytest
 import yaml
 
-from activitysim.core import random
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import inject
-from activitysim.core import config
+from activitysim.core import config, inject, pipeline, random, tracing
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -34,39 +29,39 @@ SKIP_FULL_RUN = False
 
 
 def example_path(dirname):
-    resource = os.path.join('examples', 'example_mtc', dirname)
-    return pkg_resources.resource_filename('activitysim', resource)
+    resource = os.path.join("examples", "example_mtc", dirname)
+    return pkg_resources.resource_filename("activitysim", resource)
 
 
 def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
     # ancillary_configs_dir is used by run_mp to test multiprocess
 
-    test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    example_configs_dir = example_path('configs')
+    test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), "configs")
+    example_configs_dir = example_path("configs")
     configs_dir = [test_pipeline_configs_dir, example_configs_dir]
 
     if ancillary_configs_dir is not None:
         configs_dir = [ancillary_configs_dir] + configs_dir
 
-    inject.add_injectable('configs_dir', configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable('output_dir', output_dir)
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+    inject.add_injectable("output_dir", output_dir)
 
     if not data_dir:
-        data_dir = example_path('data')
+        data_dir = example_path("data")
 
-    inject.add_injectable('data_dir', data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
     inject.clear_cache()
 
     tracing.config_logger()
 
-    tracing.delete_output_files('csv')
-    tracing.delete_output_files('txt')
-    tracing.delete_output_files('yaml')
-    tracing.delete_output_files('omx')
+    tracing.delete_output_files("csv")
+    tracing.delete_output_files("txt")
+    tracing.delete_output_files("yaml")
+    tracing.delete_output_files("omx")
 
 
 def teardown_function(func):
@@ -86,7 +81,7 @@ def close_handlers():
 
 def inject_settings(**kwargs):
 
-    settings = config.read_settings_file('settings.yaml', mandatory=True)
+    settings = config.read_settings_file("settings.yaml", mandatory=True)
 
     for k in kwargs:
         settings[k] = kwargs[k]
@@ -100,7 +95,7 @@ def test_rng_access():
 
     setup_dirs()
 
-    inject.add_injectable('rng_base_seed', 0)
+    inject.add_injectable("rng_base_seed", 0)
 
     pipeline.open_pipeline()
 
@@ -118,12 +113,15 @@ def regress_mini_auto():
     # should be the same results as in run_mp (multiprocessing) test case
     hh_ids = [1099626, 1173905, 1196298, 1286259]
     choices = [1, 1, 0, 0]
-    expected_choice = pd.Series(choices, index=pd.Index(hh_ids, name="household_id"),
-                                name='auto_ownership')
+    expected_choice = pd.Series(
+        choices, index=pd.Index(hh_ids, name="household_id"), name="auto_ownership"
+    )
 
     auto_choice = pipeline.get_table("households").sort_index().auto_ownership
 
-    offset = HOUSEHOLDS_SAMPLE_SIZE // 2  # choose something midway as hh_id ordered by hh size
+    offset = (
+        HOUSEHOLDS_SAMPLE_SIZE // 2
+    )  # choose something midway as hh_id ordered by hh size
     print("auto_choice\n%s" % auto_choice.head(offset).tail(4))
 
     auto_choice = auto_choice.reindex(hh_ids)
@@ -146,11 +144,14 @@ def regress_mini_mtf():
 
     # these choices are for pure regression - their appropriateness has not been checked
     per_ids = [2566701, 2566702, 3061895]
-    choices = ['school1', 'school1', 'work1']
-    expected_choice = pd.Series(choices, index=pd.Index(per_ids, name='person_id'),
-                                name='mandatory_tour_frequency')
+    choices = ["school1", "school1", "work1"]
+    expected_choice = pd.Series(
+        choices,
+        index=pd.Index(per_ids, name="person_id"),
+        name="mandatory_tour_frequency",
+    )
 
-    mtf_choice = mtf_choice[mtf_choice != '']  # drop null (empty string) choices
+    mtf_choice = mtf_choice[mtf_choice != ""]  # drop null (empty string) choices
 
     offset = len(mtf_choice) // 2  # choose something midway as hh_id ordered by hh size
     print("mtf_choice\n%s" % mtf_choice.head(offset).tail(3))
@@ -163,7 +164,9 @@ def regress_mini_mtf():
     3061895      work1
     Name: mandatory_tour_frequency, dtype: object
     """
-    pdt.assert_series_equal(mtf_choice.reindex(per_ids), expected_choice, check_dtype=False)
+    pdt.assert_series_equal(
+        mtf_choice.reindex(per_ids), expected_choice, check_dtype=False
+    )
 
 
 def regress_mini_location_choice_logsums():
@@ -171,36 +174,36 @@ def regress_mini_location_choice_logsums():
     persons = pipeline.get_table("persons")
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
-    assert 'school_location_logsum' in persons
+    assert "school_location_logsum" in persons
     assert not persons.school_location_logsum.isnull().all()
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is NOT specified in workplace_location.yaml
-    assert 'workplace_location_logsum' not in persons
+    assert "workplace_location_logsum" not in persons
 
 
 def test_mini_pipeline_run():
 
     setup_dirs()
 
-    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                    write_skim_cache=True
-                    )
+    inject_settings(
+        households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, write_skim_cache=True
+    )
 
     _MODELS = [
-        'initialize_landuse',
-        'compute_accessibility',
-        'initialize_households',
-        'school_location',
-        'workplace_location',
-        'auto_ownership_simulate'
+        "initialize_landuse",
+        "compute_accessibility",
+        "initialize_households",
+        "school_location",
+        "workplace_location",
+        "auto_ownership_simulate",
     ]
 
     pipeline.run(models=_MODELS, resume_after=None)
 
     regress_mini_auto()
 
-    pipeline.run_model('cdap_simulate')
-    pipeline.run_model('mandatory_tour_frequency')
+    pipeline.run_model("cdap_simulate")
+    pipeline.run_model("mandatory_tour_frequency")
 
     regress_mini_mtf()
     regress_mini_location_choice_logsums()
@@ -217,7 +220,7 @@ def test_mini_pipeline_run():
 
     # should create optional workplace_location_sample table
     workplace_location_sample_df = pipeline.get_table("workplace_location_sample")
-    assert 'mode_choice_logsum' in workplace_location_sample_df
+    assert "mode_choice_logsum" in workplace_location_sample_df
 
     pipeline.close_pipeline()
     inject.clear_cache()
@@ -232,8 +235,7 @@ def test_mini_pipeline_run2():
 
     setup_dirs()
 
-    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                    read_skim_cache=True)
+    inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, read_skim_cache=True)
 
     # should be able to get this BEFORE pipeline is opened
     checkpoints_df = pipeline.get_checkpoints()
@@ -242,18 +244,18 @@ def test_mini_pipeline_run2():
     # print "checkpoints_df\n%s" % checkpoints_df[['checkpoint_name']]
     assert prev_checkpoint_count == 9
 
-    pipeline.open_pipeline('auto_ownership_simulate')
+    pipeline.open_pipeline("auto_ownership_simulate")
 
     regress_mini_auto()
 
     # try to run a model already in pipeline
     with pytest.raises(RuntimeError) as excinfo:
-        pipeline.run_model('auto_ownership_simulate')
+        pipeline.run_model("auto_ownership_simulate")
     assert "run model 'auto_ownership_simulate' more than once" in str(excinfo.value)
 
     # and these new ones
-    pipeline.run_model('cdap_simulate')
-    pipeline.run_model('mandatory_tour_frequency')
+    pipeline.run_model("cdap_simulate")
+    pipeline.run_model("mandatory_tour_frequency")
 
     regress_mini_mtf()
 
@@ -264,9 +266,9 @@ def test_mini_pipeline_run2():
     # - write list of override_hh_ids to override_hh_ids.csv in data for use in next test
     num_hh_ids = 10
     hh_ids = pipeline.get_table("households").head(num_hh_ids).index.values
-    hh_ids = pd.DataFrame({'household_id': hh_ids})
+    hh_ids = pd.DataFrame({"household_id": hh_ids})
 
-    hh_ids_path = config.data_file_path('override_hh_ids.csv')
+    hh_ids_path = config.data_file_path("override_hh_ids.csv")
     hh_ids.to_csv(hh_ids_path, index=False, header=True)
 
     pipeline.close_pipeline()
@@ -279,11 +281,11 @@ def test_mini_pipeline_run3():
     # test that hh_ids setting overrides household sampling
 
     setup_dirs()
-    inject_settings(hh_ids='override_hh_ids.csv')
+    inject_settings(hh_ids="override_hh_ids.csv")
 
-    households = inject.get_table('households').to_frame()
+    households = inject.get_table("households").to_frame()
 
-    override_hh_ids = pd.read_csv(config.data_file_path('override_hh_ids.csv'))
+    override_hh_ids = pd.read_csv(config.data_file_path("override_hh_ids.csv"))
 
     print("\noverride_hh_ids\n%s" % override_hh_ids)
 
@@ -296,9 +298,14 @@ def test_mini_pipeline_run3():
     close_handlers()
 
 
-def full_run(resume_after=None, chunk_size=0,
-             households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-             trace_hh_id=None, trace_od=None, check_for_variability=None):
+def full_run(
+    resume_after=None,
+    chunk_size=0,
+    households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+    trace_hh_id=None,
+    trace_od=None,
+    check_for_variability=None,
+):
 
     setup_dirs()
 
@@ -310,15 +317,16 @@ def full_run(resume_after=None, chunk_size=0,
         testing_fail_trip_destination=False,
         check_for_variability=check_for_variability,
         want_dest_choice_sample_tables=False,
-        use_shadow_pricing=False)  # shadow pricing breaks replicability when sample_size varies
+        use_shadow_pricing=False,
+    )  # shadow pricing breaks replicability when sample_size varies
 
     # FIXME should enable testing_fail_trip_destination?
 
-    MODELS = settings['models']
+    MODELS = settings["models"]
 
     pipeline.run(models=MODELS, resume_after=resume_after)
 
-    tours = pipeline.get_table('tours')
+    tours = pipeline.get_table("tours")
     tour_count = len(tours.index)
 
     return tour_count
@@ -349,11 +357,10 @@ EXPECT_TOUR_COUNT = 121
 
 def regress_tour_modes(tours_df):
 
-    mode_cols = ['tour_mode', 'person_id', 'tour_type',
-                 'tour_num', 'tour_category']
+    mode_cols = ["tour_mode", "person_id", "tour_type", "tour_num", "tour_category"]
 
     tours_df = tours_df[tours_df.household_id == HH_ID]
-    tours_df = tours_df.sort_values(by=['person_id', 'tour_category', 'tour_num'])
+    tours_df = tours_df.sort_values(by=["person_id", "tour_category", "tour_num"])
 
     print("mode_df\n%s" % tours_df[mode_cols])
 
@@ -375,25 +382,18 @@ def regress_tour_modes(tours_df):
         325052,
         325052,
         325052,
-        ]
-
-    EXPECT_TOUR_TYPES = [
-        'othdiscr',
-        'work',
-        'work',
-        'business',
-        'work',
-        'othmaint'
     ]
 
+    EXPECT_TOUR_TYPES = ["othdiscr", "work", "work", "business", "work", "othmaint"]
+
     EXPECT_MODES = [
-        'WALK',
-        'WALK',
-        'SHARED3FREE',
-        'WALK',
-        'WALK_LOC',
-        'WALK',
-        ]
+        "WALK",
+        "WALK",
+        "SHARED3FREE",
+        "WALK",
+        "WALK_LOC",
+        "WALK",
+    ]
 
     assert len(tours_df) == len(EXPECT_PERSON_IDS)
     assert (tours_df.person_id.values == EXPECT_PERSON_IDS).all()
@@ -403,9 +403,9 @@ def regress_tour_modes(tours_df):
 
 def regress():
 
-    persons_df = pipeline.get_table('persons')
+    persons_df = pipeline.get_table("persons")
     persons_df = persons_df[persons_df.household_id == HH_ID]
-    print("persons_df\n%s" % persons_df[['value_of_time', 'distance_to_work']])
+    print("persons_df\n%s" % persons_df[["value_of_time", "distance_to_work"]])
 
     """
     persons_df
@@ -415,7 +415,7 @@ def regress():
     3249923        23.349532              0.62
     """
 
-    tours_df = pipeline.get_table('tours')
+    tours_df = pipeline.get_table("tours")
 
     regress_tour_modes(tours_df)
 
@@ -423,16 +423,27 @@ def regress():
     assert not tours_df.tour_mode.isnull().any()
 
     # optional logsum column was added to all tours except mandatory
-    assert 'destination_logsum' in tours_df
-    if (tours_df.destination_logsum.isnull() != (tours_df.tour_category == 'mandatory')).any():
-        print(tours_df[(tours_df.destination_logsum.isnull() != (tours_df.tour_category == 'mandatory'))])
-    assert (tours_df.destination_logsum.isnull() == (tours_df.tour_category == 'mandatory')).all()
+    assert "destination_logsum" in tours_df
+    if (
+        tours_df.destination_logsum.isnull() != (tours_df.tour_category == "mandatory")
+    ).any():
+        print(
+            tours_df[
+                (
+                    tours_df.destination_logsum.isnull()
+                    != (tours_df.tour_category == "mandatory")
+                )
+            ]
+        )
+    assert (
+        tours_df.destination_logsum.isnull() == (tours_df.tour_category == "mandatory")
+    ).all()
 
     # mode choice logsum calculated for all tours
-    assert 'mode_choice_logsum' in tours_df
+    assert "mode_choice_logsum" in tours_df
     assert not tours_df.mode_choice_logsum.isnull().any()
 
-    trips_df = pipeline.get_table('trips')
+    trips_df = pipeline.get_table("trips")
     assert trips_df.shape[0] > 0
     assert not trips_df.purpose.isnull().any()
     assert not trips_df.depart.isnull().any()
@@ -442,17 +453,17 @@ def regress():
     assert not trips_df.mode_choice_logsum.isnull().any()
 
     # should be at least two tours per trip
-    assert trips_df.shape[0] >= 2*tours_df.shape[0]
+    assert trips_df.shape[0] >= 2 * tours_df.shape[0]
 
     # write_trip_matrices
-    trip_matrices_file = config.output_file_path('trips_md.omx')
+    trip_matrices_file = config.output_file_path("trips_md.omx")
     assert os.path.exists(trip_matrices_file)
     trip_matrices = omx.open_file(trip_matrices_file)
     assert trip_matrices.shape() == (25, 25)
 
-    assert 'WALK_MD' in trip_matrices.list_matrices()
-    walk_trips = np.array(trip_matrices['WALK_MD'])
-    assert walk_trips.dtype == np.dtype('float64')
+    assert "WALK_MD" in trip_matrices.list_matrices()
+    walk_trips = np.array(trip_matrices["WALK_MD"])
+    assert walk_trips.dtype == np.dtype("float64")
 
     trip_matrices.close()
 
@@ -462,13 +473,17 @@ def test_full_run1():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(trace_hh_id=HH_ID, check_for_variability=True,
-                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE)
+    tour_count = full_run(
+        trace_hh_id=HH_ID,
+        check_for_variability=True,
+        households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+    )
 
     print("tour_count", tour_count)
 
-    assert(tour_count == EXPECT_TOUR_COUNT), \
-        "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
+    assert (
+        tour_count == EXPECT_TOUR_COUNT
+    ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
     regress()
 
@@ -482,10 +497,13 @@ def test_full_run2():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(resume_after='non_mandatory_tour_scheduling', trace_hh_id=HH_ID)
+    tour_count = full_run(
+        resume_after="non_mandatory_tour_scheduling", trace_hh_id=HH_ID
+    )
 
-    assert(tour_count == EXPECT_TOUR_COUNT), \
-        "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
+    assert (
+        tour_count == EXPECT_TOUR_COUNT
+    ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
     regress()
 
@@ -499,12 +517,15 @@ def test_full_run3_with_chunks():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(trace_hh_id=HH_ID,
-                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
-                          chunk_size=500000)
+    tour_count = full_run(
+        trace_hh_id=HH_ID,
+        households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
+        chunk_size=500000,
+    )
 
-    assert(tour_count == EXPECT_TOUR_COUNT), \
-        "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
+    assert (
+        tour_count == EXPECT_TOUR_COUNT
+    ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
     regress()
 
@@ -518,8 +539,9 @@ def test_full_run4_stability():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(trace_hh_id=HH_ID,
-                          households_sample_size=HOUSEHOLDS_SAMPLE_SIZE-10)
+    tour_count = full_run(
+        trace_hh_id=HH_ID, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE - 10
+    )
 
     regress()
 
@@ -535,9 +557,7 @@ def test_full_run5_singleton():
     if SKIP_FULL_RUN:
         return
 
-    tour_count = full_run(trace_hh_id=HH_ID,
-                          households_sample_size=1,
-                          chunk_size=1)
+    tour_count = full_run(trace_hh_id=HH_ID, households_sample_size=1, chunk_size=1)
 
     regress()
 
@@ -547,6 +567,7 @@ def test_full_run5_singleton():
 if __name__ == "__main__":
 
     from activitysim import abm  # register injectables
+
     print("running test_full_run1")
     test_full_run1()
     # teardown_function(None)

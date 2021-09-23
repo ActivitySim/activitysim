@@ -24,9 +24,9 @@ def land_use():
     logger.info("loaded land_use %s" % (df.shape,))
 
     # replace table function with dataframe
-    inject.add_table('land_use', df)
+    inject.add_table("land_use", df)
 
     return df
 
 
-inject.broadcast('land_use', 'households', cast_index=True, onto_on='home_zone_id')
+inject.broadcast("land_use", "households", cast_index=True, onto_on="home_zone_id")

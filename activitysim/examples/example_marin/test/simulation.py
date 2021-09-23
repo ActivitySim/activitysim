@@ -1,12 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import sys
 import argparse
+import sys
 
 from activitysim.cli.run import add_run_args, run
 
-if __name__ == '__main__':
+if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     add_run_args(parser)

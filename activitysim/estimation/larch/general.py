@@ -1,18 +1,18 @@
+import itertools
+import logging
+import os
+import re
+from pathlib import Path
+from typing import Mapping
+
 import numpy as np
 import pandas as pd
-import re
-import os
 import yaml
-import itertools
-from typing import Mapping
-from larch import P, X, DataFrames, Model
+from larch import DataFrames, Model, P, X
+from larch.log import logger_name
 from larch.model.abstract_model import AbstractChoiceModel
 from larch.model.tree import NestingTree
 from larch.util import Dict
-from pathlib import Path
-
-import logging
-from larch.log import logger_name
 
 _logger = logging.getLogger(logger_name)
 
@@ -318,7 +318,10 @@ def apply_coefficients(coefficients, model, minimum=None, maximum=None):
         assert "value" in coefficients.columns
         if "constrain" not in coefficients.columns:
             import warnings
-            warnings.warn("coefficient dataframe missing 'constrain' column, setting all to 'F'")
+
+            warnings.warn(
+                "coefficient dataframe missing 'constrain' column, setting all to 'F'"
+            )
             coefficients["constrain"] = "F"
         assert coefficients.index.name == "coefficient_name"
         assert isinstance(model, AbstractChoiceModel)
@@ -475,7 +478,7 @@ def clean_values(
     return values
 
 
-def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
+def update_coefficients(model, data, result_dir=Path("."), output_file=None):
     if isinstance(data, pd.DataFrame):
         coefficients = data.copy()
     else:
@@ -485,7 +488,6 @@ def update_coefficients(model, data, result_dir=Path('.'), output_file=None):
     if output_file is not None:
         os.makedirs(result_dir, exist_ok=True)
         coefficients.reset_index().to_csv(
-            result_dir/output_file,
-            index=False,
+            result_dir / output_file, index=False,
         )
     return coefficients

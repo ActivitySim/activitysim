@@ -3,9 +3,8 @@
 import logging
 from collections import OrderedDict
 
-from activitysim.core import inject
 from activitysim.abm.models.util import canonical_ids as cid
-
+from activitysim.core import inject
 
 logger = logging.getLogger(__name__)
 

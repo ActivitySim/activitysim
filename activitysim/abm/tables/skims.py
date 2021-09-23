@@ -3,12 +3,8 @@
 
 import logging
 
-from activitysim.core import los
-from activitysim.core import inject
-from activitysim.core import config
-
+from activitysim.core import config, inject, los
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
-
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +42,12 @@ def log_settings():
 
     # abm settings to log on startup
     return [
-        'households_sample_size',
-        'chunk_size',
-        'chunk_method',
-        'chunk_training_mode',
-        'multiprocess',
-        'num_processes',
-        'resume_after',
-        'trace_hh_id',
+        "households_sample_size",
+        "chunk_size",
+        "chunk_method",
+        "chunk_training_mode",
+        "multiprocess",
+        "num_processes",
+        "resume_after",
+        "trace_hh_id",
     ]

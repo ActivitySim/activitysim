@@ -1,16 +1,17 @@
 import os
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import yaml
+from larch import DataFrames, Model
 from larch.util import Dict
-from larch import Model, DataFrames
 
 from .general import (
-    remove_apostrophes,
-    dict_of_linear_utility_from_spec,
     apply_coefficients,
     construct_nesting_tree,
+    dict_of_linear_utility_from_spec,
+    remove_apostrophes,
 )
 
 
@@ -72,7 +73,9 @@ def simple_simulate_data(
         coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
 
         try:
-            coef_template = _read_csv(coefficients_template, index_col="coefficient_name",)
+            coef_template = _read_csv(
+                coefficients_template, index_col="coefficient_name",
+            )
         except FileNotFoundError:
             coef_template = None
 
@@ -94,6 +97,7 @@ def simple_simulate_data(
     except Exception:
         # when an error happens in reading anything other than settings, print settings
         from pprint import pprint
+
         pprint(settings)
         raise
 
@@ -112,12 +116,12 @@ def simple_simulate_data(
 
 
 def simple_simulate_model(
-        name,
-        edb_directory="output/estimation_data_bundle/{name}/",
-        return_data=False,
-        choices=None,
-        construct_avail=False,
-        values_index_col="household_id",
+    name,
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+    choices=None,
+    construct_avail=False,
+    values_index_col="household_id",
 ):
     data = simple_simulate_data(
         name=name, edb_directory=edb_directory, values_index_col=values_index_col,
@@ -132,13 +136,14 @@ def simple_simulate_model(
     alt_codes = data.alt_codes
 
     from .general import clean_values
+
     chooser_data = clean_values(
         chooser_data,
         alt_names_to_codes=choices or data.alt_names_to_codes,
         choice_code="override_choice_code",
     )
 
-    if settings.get('LOGIT_TYPE') == 'NL':
+    if settings.get("LOGIT_TYPE") == "NL":
         tree = construct_nesting_tree(data.alt_names, settings["NESTS"])
         m = Model(graph=tree)
     else:
@@ -155,7 +160,7 @@ def simple_simulate_model(
     else:
         avail = True
 
-    d = DataFrames(co=chooser_data, av=avail, alt_codes=alt_codes, alt_names=alt_names, )
+    d = DataFrames(co=chooser_data, av=avail, alt_codes=alt_codes, alt_names=alt_names,)
 
     m.dataservice = d
     m.choice_co_code = "override_choice_code"
@@ -186,8 +191,8 @@ def auto_ownership_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
-        choices={i: i+1 for i in range(5)},  # choices are coded in data as integers,
-                                             # not 'cars0' etc as appears in the spec
+        choices={i: i + 1 for i in range(5)},  # choices are coded in data as integers,
+        # not 'cars0' etc as appears in the spec
     )
 
 
@@ -200,7 +205,10 @@ def free_parking_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
-        choices={True: 1, False: 2},  # True is free parking, False is paid parking, names match spec positions
+        choices={
+            True: 1,
+            False: 2,
+        },  # True is free parking, False is paid parking, names match spec positions
     )
 
 
@@ -210,9 +218,7 @@ def mandatory_tour_frequency_model(
     return_data=False,
 ):
     return simple_simulate_model(
-        name=name,
-        edb_directory=edb_directory,
-        return_data=return_data,
+        name=name, edb_directory=edb_directory, return_data=return_data,
     )
 
 
@@ -222,9 +228,7 @@ def joint_tour_frequency_model(
     return_data=False,
 ):
     return simple_simulate_model(
-        name=name,
-        edb_directory=edb_directory,
-        return_data=return_data,
+        name=name, edb_directory=edb_directory, return_data=return_data,
     )
 
 
@@ -247,9 +251,7 @@ def joint_tour_composition_model(
     return_data=False,
 ):
     return simple_simulate_model(
-        name=name,
-        edb_directory=edb_directory,
-        return_data=return_data,
+        name=name, edb_directory=edb_directory, return_data=return_data,
     )
 
 

@@ -1,21 +1,21 @@
+import importlib
+import itertools
+import logging
+import os
+import re
+from pathlib import Path
+
+import larch
 import numpy as np
 import pandas as pd
-import re
-import itertools
-from larch import P, X, DataFrames, Model
+import yaml
+from larch import DataFrames, Model, P, X
+from larch.log import logger_name
 from larch.model.model_group import ModelGroup
 from larch.util import Dict
-import larch
-import os
-import yaml
-import importlib
-import logging
-from larch.log import logger_name
-from pathlib import Path
 
 from ...abm.models.util import cdap
 from .general import apply_coefficients, explicit_value_parameters
-
 
 _logger = logging.getLogger(logger_name)
 
@@ -322,7 +322,7 @@ def cdap_data(
     except FileNotFoundError:
         persons = pd.read_csv(persons_file)
 
-    person_type_map = settings.get('PERSON_TYPE_MAP')
+    person_type_map = settings.get("PERSON_TYPE_MAP")
     if person_type_map is None:
         raise KeyError("PERSON_TYPE_MAP missing from cdap_settings.yaml")
 

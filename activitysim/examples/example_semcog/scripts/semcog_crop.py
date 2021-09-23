@@ -1,30 +1,38 @@
-import os
-import pandas as pd
-import openmatrix as omx
-import numpy as np
-
 import argparse
+import os
+
+import numpy as np
+import openmatrix as omx
+import pandas as pd
 
 MAZ_OFFSET = 0
 
 segments = {
-    'test': (149, 215),  # SUPER_DIST_25==1, has univ
-    'z500': (0, 500),
-    'full': (0, 10000),
+    "test": (149, 215),  # SUPER_DIST_25==1, has univ
+    "z500": (0, 500),
+    "full": (0, 10000),
 }
 
-land_use_zone_col = 'ZONE'
-hh_zone_col = 'zone_id'
+land_use_zone_col = "ZONE"
+hh_zone_col = "zone_id"
 num_full_skim_files = 2
 
-parser = argparse.ArgumentParser(description='crop PSRC raw_data')
-parser.add_argument('segment_name', metavar='segment_name', type=str, nargs=1,
-                    help=f"geography segmentation (e.g. full)")
+parser = argparse.ArgumentParser(description="crop PSRC raw_data")
+parser.add_argument(
+    "segment_name",
+    metavar="segment_name",
+    type=str,
+    nargs=1,
+    help=f"geography segmentation (e.g. full)",
+)
 
-parser.add_argument('-c', '--check_geography',
-                    default=False,
-                    action='store_true',
-                    help='check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file')
+parser.add_argument(
+    "-c",
+    "--check_geography",
+    default=False,
+    action="store_true",
+    help="check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file",
+)
 
 args = parser.parse_args()
 
@@ -35,8 +43,8 @@ check_geography = args.check_geography
 assert segment_name in segments.keys(), f"Unknown seg: {segment_name}"
 zone_min, zone_max = segments[segment_name]
 
-input_dir = './data_raw'
-output_dir = f'./data_{segment_name}'
+input_dir = "./data_raw"
+output_dir = f"./data_{segment_name}"
 
 
 print(f"check_geography {check_geography}")
@@ -55,7 +63,15 @@ def output_path(file_name):
 
 
 def integerize_id_columns(df, table_name):
-    columns = ['ZONE', 'SUPER_DIST_25', 'zone_id', 'household_id', 'person_id', 'MAZ', 'TAZ']
+    columns = [
+        "ZONE",
+        "SUPER_DIST_25",
+        "zone_id",
+        "household_id",
+        "person_id",
+        "MAZ",
+        "TAZ",
+    ]
     for c in df.columns:
         if c in columns:
             print(f"converting {table_name}.{c} to int")
@@ -83,13 +99,17 @@ if check_geography:
     land_use = read_csv("land_use.csv")
 
     households = read_csv("households.csv")
-    orphan_households = households[~households[hh_zone_col].isin(land_use[land_use_zone_col])]
+    orphan_households = households[
+        ~households[hh_zone_col].isin(land_use[land_use_zone_col])
+    ]
     print(f"{len(orphan_households)} orphan_households")
 
     if len(orphan_households) > 0:
         # write orphan_households to INPUT directory (since it doesn't belong in output)
         file_name = "orphan_households.csv"
-        print(f"writing {file_name} {orphan_households.shape} to {input_path(file_name)}")
+        print(
+            f"writing {file_name} {orphan_households.shape} to {input_path(file_name)}"
+        )
         orphan_households.to_csv(input_path(file_name), index=False)
 
 
@@ -97,8 +117,11 @@ if check_geography:
 # land_use
 #
 land_use = read_csv("land_use.csv")
-land_use = land_use[(land_use[land_use_zone_col] >= zone_min) & (land_use[land_use_zone_col] <= zone_max)]
-integerize_id_columns(land_use, 'land_use')
+land_use = land_use[
+    (land_use[land_use_zone_col] >= zone_min)
+    & (land_use[land_use_zone_col] <= zone_max)
+]
+integerize_id_columns(land_use, "land_use")
 land_use = land_use.sort_values(land_use_zone_col)
 
 # move index col to front
@@ -122,10 +145,10 @@ to_csv(land_use, "land_use.csv")
 #
 households = read_csv("households.csv")
 households = households[households[hh_zone_col].isin(land_use[land_use_zone_col])]
-integerize_id_columns(households, 'households')
+integerize_id_columns(households, "households")
 
 # move index col to front
-households.insert(0, 'household_id', households.pop('household_id'))
+households.insert(0, "household_id", households.pop("household_id"))
 
 to_csv(households, "households.csv")
 
@@ -134,10 +157,10 @@ to_csv(households, "households.csv")
 #
 persons = read_csv("persons.csv")
 persons = persons[persons["household_id"].isin(households.household_id)]
-integerize_id_columns(persons, 'persons')
+integerize_id_columns(persons, "persons")
 
 # move index col to front
-persons.insert(0, 'person_id', persons.pop('person_id'))
+persons.insert(0, "person_id", persons.pop("person_id"))
 
 
 to_csv(persons, "persons.csv")
@@ -145,7 +168,7 @@ to_csv(persons, "persons.csv")
 #
 # skims
 #
-omx_infile_name = 'skims.omx'
+omx_infile_name = "skims.omx"
 skim_data_type = np.float32
 
 omx_in = omx.open_file(input_path(omx_infile_name))
@@ -163,11 +186,13 @@ zone_indexes = zone.index.tolist()  # index of TAZ in skim (zero-based, no mappi
 zone_labels = zone[land_use_zone_col].tolist()  # TAZ zone_ids in omx index order
 
 # create
-num_outfiles = num_full_skim_files if segment_name == 'full' else 1
+num_outfiles = num_full_skim_files if segment_name == "full" else 1
 if num_outfiles == 1:
-    omx_out = [omx.open_file(output_path(f"skims.omx"), 'w')]
+    omx_out = [omx.open_file(output_path(f"skims.omx"), "w")]
 else:
-    omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
+    omx_out = [
+        omx.open_file(output_path(f"skims{i+1}.omx"), "w") for i in range(num_outfiles)
+    ]
 
 for omx_file in omx_out:
     omx_file.create_mapping(land_use_zone_col, zone_labels)

@@ -1,23 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import os
 import logging
-import pkg_resources
+import os
 
-import openmatrix as omx
 import numpy as np
 import numpy.testing as npt
-
+import openmatrix as omx
 import pandas as pd
 import pandas.testing as pdt
+import pkg_resources
 import pytest
 import yaml
 
-from activitysim.core import random
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import inject
-from activitysim.core import config
+from activitysim.core import config, inject, pipeline, random, tracing
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -34,39 +29,39 @@ SKIP_FULL_RUN = False
 
 
 def example_path(dirname):
-    resource = os.path.join('examples', 'example_mtc', dirname)
-    return pkg_resources.resource_filename('activitysim', resource)
+    resource = os.path.join("examples", "example_mtc", dirname)
+    return pkg_resources.resource_filename("activitysim", resource)
 
 
 def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
     # ancillary_configs_dir is used by run_mp to test multiprocess
 
-    test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), 'configs')
-    example_configs_dir = example_path('configs')
+    test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), "configs")
+    example_configs_dir = example_path("configs")
     configs_dir = [test_pipeline_configs_dir, example_configs_dir]
 
     if ancillary_configs_dir is not None:
         configs_dir = [ancillary_configs_dir] + configs_dir
 
-    inject.add_injectable('configs_dir', configs_dir)
+    inject.add_injectable("configs_dir", configs_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), 'output')
-    inject.add_injectable('output_dir', output_dir)
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+    inject.add_injectable("output_dir", output_dir)
 
     if not data_dir:
-        data_dir = example_path('data')
+        data_dir = example_path("data")
 
-    inject.add_injectable('data_dir', data_dir)
+    inject.add_injectable("data_dir", data_dir)
 
     inject.clear_cache()
 
     tracing.config_logger()
 
-    tracing.delete_output_files('csv')
-    tracing.delete_output_files('txt')
-    tracing.delete_output_files('yaml')
-    tracing.delete_output_files('omx')
+    tracing.delete_output_files("csv")
+    tracing.delete_output_files("txt")
+    tracing.delete_output_files("yaml")
+    tracing.delete_output_files("omx")
 
 
 def teardown_function(func):
@@ -86,7 +81,7 @@ def close_handlers():
 
 def inject_settings(**kwargs):
 
-    settings = config.read_settings_file('settings.yaml', mandatory=True)
+    settings = config.read_settings_file("settings.yaml", mandatory=True)
 
     for k in kwargs:
         settings[k] = kwargs[k]

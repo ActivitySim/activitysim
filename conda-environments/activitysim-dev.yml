@@ -23,7 +23,8 @@ dependencies:
 - pytest
 - pytest-cov
 - coveralls
-- pycodestyle
+- black
+- isort
 - pytest-regressions
 - git
 - gh

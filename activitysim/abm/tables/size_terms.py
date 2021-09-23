@@ -1,20 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-from activitysim.core import config
-
+from activitysim.core import config, inject
 
 logger = logging.getLogger(__name__)
 
 
 @inject.injectable(cache=True)
 def size_terms():
-    f = config.config_file_path('destination_choice_size_terms.csv')
-    return pd.read_csv(f, comment='#', index_col='segment')
+    f = config.config_file_path("destination_choice_size_terms.csv")
+    return pd.read_csv(f, comment="#", index_col="segment")
 
 
 def size_term(land_use, destination_choice_coefficients):
@@ -86,19 +85,23 @@ def tour_destination_size_terms(land_use, size_terms, model_selector):
         land_use = land_use.sort_index()
 
     size_terms = size_terms[size_terms.model_selector == model_selector].copy()
-    del size_terms['model_selector']
+    del size_terms["model_selector"]
 
-    df = pd.DataFrame({key: size_term(land_use, row) for key, row in size_terms.iterrows()},
-                      index=land_use.index)
+    df = pd.DataFrame(
+        {key: size_term(land_use, row) for key, row in size_terms.iterrows()},
+        index=land_use.index,
+    )
 
-    assert land_use.index.name == 'zone_id'
+    assert land_use.index.name == "zone_id"
     df.index.name = land_use.index.name
 
-    if not (df.dtypes == 'float64').all():
-        logger.warning('Surprised to find that not all size_terms were float64!')
+    if not (df.dtypes == "float64").all():
+        logger.warning("Surprised to find that not all size_terms were float64!")
 
     if df.isna().any(axis=None):
-        logger.warning(f"tour_destination_size_terms with NAN values\n{df[df.isna().any(axis=1)]}")
+        logger.warning(
+            f"tour_destination_size_terms with NAN values\n{df[df.isna().any(axis=1)]}"
+        )
         assert not df.isna().any(axis=None)
 
     return df

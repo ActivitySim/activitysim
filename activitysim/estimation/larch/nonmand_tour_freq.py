@@ -1,21 +1,22 @@
+import itertools
+import logging
+import os
+import re
+from pathlib import Path
+from typing import Mapping
+
 import numpy as np
 import pandas as pd
-import re
-import os
 import yaml
-import itertools
-from typing import Mapping
-from larch import P, X, DataFrames, Model
-from larch.util import Dict
-from pathlib import Path
-
-import logging
+from larch import DataFrames, Model, P, X
 from larch.log import logger_name
+from larch.util import Dict
+
 from .general import (
-    remove_apostrophes,
-    linear_utility_from_spec,
     apply_coefficients,
     cv_to_ca,
+    linear_utility_from_spec,
+    remove_apostrophes,
 )
 
 _logger = logging.getLogger(logger_name)
@@ -125,7 +126,9 @@ def nonmand_tour_freq_model(
 
     settings = data.settings
     segment_names = [s["NAME"] for s in settings["SPEC_SEGMENTS"]]
-    data.relabel_coef = link_same_value_coefficients(segment_names, data.coefficients, data.spec)
+    data.relabel_coef = link_same_value_coefficients(
+        segment_names, data.coefficients, data.spec
+    )
     spec = data.spec
     coefficients = data.coefficients
     chooser_data = data.chooser_data

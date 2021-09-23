@@ -307,8 +307,8 @@ class AbstractSkimFactory(ABC):
 
     def _open_existing_readonly_memmap_skim_cache(self, skim_info):
         """
-            read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
-            return True if it was there and we read it, return False if not found
+        read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
+        return True if it was there and we read it, return False if not found
         """
 
         dtype = np.dtype(skim_info.dtype_name)
@@ -340,7 +340,7 @@ class AbstractSkimFactory(ABC):
 
     def _create_empty_writable_memmap_skim_cache(self, skim_info):
         """
-            write skim data from skim_data to canonically named cache file(s) in output directory
+        write skim data from skim_data to canonically named cache file(s) in output directory
         """
 
         dtype = np.dtype(skim_info.dtype_name)

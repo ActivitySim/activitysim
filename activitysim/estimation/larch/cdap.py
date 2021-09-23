@@ -329,7 +329,9 @@ def cdap_data(
     person_rank = cdap.assign_cdap_rank(persons, person_type_map)
 
     coefficients = read_csv(
-        coefficients_file, index_col="coefficient_name", comment="#",
+        coefficients_file,
+        index_col="coefficient_name",
+        comment="#",
     )
 
     interaction_coef = read_csv(

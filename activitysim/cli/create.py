@@ -31,8 +31,7 @@ EXAMPLES = _load_manifest()
 
 
 def add_create_args(parser):
-    """Create command args
-    """
+    """Create command args"""
     create_group = parser.add_mutually_exclusive_group(required=True)
     create_group.add_argument(
         "-l",

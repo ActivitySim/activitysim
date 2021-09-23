@@ -1205,7 +1205,13 @@ def run_sub_simulations(
         p = multiprocessing.Process(
             target=mp_run_simulation,
             name=process_name,
-            args=(locutor, q, injectables, step_info, resume_after,),
+            args=(
+                locutor,
+                q,
+                injectables,
+                step_info,
+                resume_after,
+            ),
             kwargs=shared_data_buffers,
         )
 

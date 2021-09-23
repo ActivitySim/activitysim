@@ -114,7 +114,10 @@ def choose_intermediate_trip_purpose(
         )
         logger.info(
             "Writing %s unmatched choosers to %s"
-            % (len(unmatched_choosers), file_name,)
+            % (
+                len(unmatched_choosers),
+                file_name,
+            )
         )
         tracing.write_csv(unmatched_choosers, file_name=file_name, transpose=False)
         raise RuntimeError(

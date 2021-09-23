@@ -351,9 +351,11 @@ class Estimator(object):
             "alt_id not set. Did you forget to call set_alt_id()? (%s)"
             % self.model_name
         )
-        assert alt_id_name in df, (
-            "alt_id_column_name '%s' not in alternatives table (%s)"
-            % (alt_id_name, self.model_name)
+        assert (
+            alt_id_name in df
+        ), "alt_id_column_name '%s' not in alternatives table (%s)" % (
+            alt_id_name,
+            self.model_name,
         )
 
         variable_column = "variable"
@@ -480,9 +482,11 @@ class EstimationManager(object):
 
             self.survey_tables = settings.get("survey_tables", {})
             for table_name, table_info in self.survey_tables.items():
-                assert "file_name" in table_info, (
-                    "No file name specified for survey_table '%s' in %s"
-                    % (table_name, ESTIMATION_SETTINGS_FILE_NAME)
+                assert (
+                    "file_name" in table_info
+                ), "No file name specified for survey_table '%s' in %s" % (
+                    table_name,
+                    ESTIMATION_SETTINGS_FILE_NAME,
                 )
                 file_path = config.data_file_path(
                     table_info["file_name"], mandatory=True
@@ -536,16 +540,21 @@ class EstimationManager(object):
             model_name not in self.estimating
         ), "Cant begin estimating %s - already estimating that model." % (model_name,)
 
-        assert bundle_name in self.model_estimation_table_types, (
-            "No estimation_table_type for %s in %s."
-            % (bundle_name, ESTIMATION_SETTINGS_FILE_NAME)
+        assert (
+            bundle_name in self.model_estimation_table_types
+        ), "No estimation_table_type for %s in %s." % (
+            bundle_name,
+            ESTIMATION_SETTINGS_FILE_NAME,
         )
 
         model_estimation_table_type = self.model_estimation_table_types[bundle_name]
 
-        assert model_estimation_table_type in self.estimation_table_recipes, (
-            "model_estimation_table_type '%s' for model %s no in %s."
-            % (model_estimation_table_type, model_name, ESTIMATION_SETTINGS_FILE_NAME)
+        assert (
+            model_estimation_table_type in self.estimation_table_recipes
+        ), "model_estimation_table_type '%s' for model %s no in %s." % (
+            model_estimation_table_type,
+            model_name,
+            ESTIMATION_SETTINGS_FILE_NAME,
         )
 
         self.estimating[model_name] = Estimator(

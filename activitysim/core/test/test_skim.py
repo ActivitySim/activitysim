@@ -39,7 +39,12 @@ def test_skims(data):
     skim_dict.offset_mapper.set_offset_int(0)  # default is -1
     skims = skim_dict.wrap("taz_l", "taz_r")
 
-    df = pd.DataFrame({"taz_l": [1, 9, 4], "taz_r": [2, 3, 7],})
+    df = pd.DataFrame(
+        {
+            "taz_l": [1, 9, 4],
+            "taz_r": [2, 3, 7],
+        }
+    )
 
     skims.set_df(df)
 

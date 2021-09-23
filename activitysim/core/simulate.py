@@ -128,9 +128,10 @@ def read_model_coefficients(model_settings=None, file_name=None):
         assert file_name is not None
     else:
         assert file_name is None
-        assert "COEFFICIENTS" in model_settings, (
-            "'COEFFICIENTS' tag not in model_settings in %s"
-            % model_settings.get("source_file_paths")
+        assert (
+            "COEFFICIENTS" in model_settings
+        ), "'COEFFICIENTS' tag not in model_settings in %s" % model_settings.get(
+            "source_file_paths"
         )
         file_name = model_settings["COEFFICIENTS"]
         logger.debug(f"read_model_coefficients file_name {file_name}")
@@ -212,9 +213,10 @@ def read_model_coefficient_template(model_settings):
     Read the coefficient template specified by COEFFICIENT_TEMPLATE model setting
     """
 
-    assert "COEFFICIENT_TEMPLATE" in model_settings, (
-        "'COEFFICIENT_TEMPLATE' not in model_settings in %s"
-        % model_settings.get("source_file_paths")
+    assert (
+        "COEFFICIENT_TEMPLATE" in model_settings
+    ), "'COEFFICIENT_TEMPLATE' not in model_settings in %s" % model_settings.get(
+        "source_file_paths"
     )
 
     coefficients_file_name = model_settings["COEFFICIENT_TEMPLATE"]

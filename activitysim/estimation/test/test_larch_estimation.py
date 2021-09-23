@@ -115,7 +115,12 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
         basename=f"test_loc_{name}_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
-    size_spec = update_size_spec(m, data, result_dir=None, output_file=None,)
+    size_spec = update_size_spec(
+        m,
+        data,
+        result_dir=None,
+        output_file=None,
+    )
     dataframe_regression.check(
         size_spec,
         basename=f"test_loc_{name}_size_spec",
@@ -177,7 +182,12 @@ def test_workplace_location(est_data, num_regression, dataframe_regression):
         basename="test_workplace_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
-    size_spec = update_size_spec(m, data, result_dir=None, output_file=None,)
+    size_spec = update_size_spec(
+        m,
+        data,
+        result_dir=None,
+        output_file=None,
+    )
     dataframe_regression.check(
         size_spec,
         basename="test_workplace_location_size_spec",
@@ -197,7 +207,12 @@ def test_school_location(est_data, num_regression, dataframe_regression):
         basename="test_school_location_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
-    size_spec = update_size_spec(m, data, result_dir=None, output_file=None,)
+    size_spec = update_size_spec(
+        m,
+        data,
+        result_dir=None,
+        output_file=None,
+    )
     dataframe_regression.check(
         size_spec,
         basename="test_school_location_size_spec",

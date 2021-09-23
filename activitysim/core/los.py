@@ -333,7 +333,9 @@ class Network_LOS(object):
 
                     if self.tap_lines_df is None:
                         # load tap_lines on demand (required if they specify tap_line_distance_col)
-                        tap_lines_file_name = self.setting("tap_lines",)
+                        tap_lines_file_name = self.setting(
+                            "tap_lines",
+                        )
                         self.tap_lines_df = pd.read_csv(
                             config.data_file_path(tap_lines_file_name, mandatory=True)
                         )

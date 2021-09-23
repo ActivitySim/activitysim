@@ -436,8 +436,11 @@ def _each_nest(spec, parent_nest, post_order):
     if isinstance(spec, dict):
         name = spec["name"]
         coefficient = spec["coefficient"]
-        assert isinstance(coefficient, (int, float)), (
-            "Coefficient '%s' (%s) not a number" % (name, coefficient)
+        assert isinstance(
+            coefficient, (int, float)
+        ), "Coefficient '%s' (%s) not a number" % (
+            name,
+            coefficient,
         )  # forgot to eval coefficient?
         alternatives = [
             a["name"] if isinstance(a, dict) else a for a in spec["alternatives"]

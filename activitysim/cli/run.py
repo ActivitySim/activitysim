@@ -17,8 +17,7 @@ INJECTABLES = ["data_dir", "configs_dir", "output_dir", "settings_file_name"]
 
 
 def add_run_args(parser, multiprocess=True):
-    """Run command args
-    """
+    """Run command args"""
     parser.add_argument(
         "-w",
         "--working_dir",

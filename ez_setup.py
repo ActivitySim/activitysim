@@ -350,7 +350,9 @@ def _parse_args():
         help="Use internal, non-validating downloader",
     )
     parser.add_option(
-        "--version", help="Specify which version to download", default=DEFAULT_VERSION,
+        "--version",
+        help="Specify which version to download",
+        default=DEFAULT_VERSION,
     )
     options, args = parser.parse_args()
     # positional arguments are ignored

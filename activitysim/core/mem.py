@@ -92,7 +92,10 @@ def consolidate_logs():
             # consolidate events (duplicate rows should be idle steps (e.g. log_rss)
             df = (
                 df.groupby("time")
-                .agg(rss=("rss", "max"), uss=("uss", "max"),)
+                .agg(
+                    rss=("rss", "max"),
+                    uss=("uss", "max"),
+                )
                 .reset_index(drop=False)
             )
 

@@ -11,9 +11,7 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def free_parking(persons_merged, persons, chunk_size, trace_hh_id):
-    """
-
-    """
+    """ """
 
     trace_label = "free_parking"
     model_settings_file_name = "free_parking.yaml"

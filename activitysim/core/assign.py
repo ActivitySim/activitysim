@@ -258,9 +258,12 @@ def assign_variables(
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
         target, expression = e
 
-        assert isinstance(target, str), (
-            "expected target '%s' for expression '%s' to be string not %s"
-            % (target, expression, type(target))
+        assert isinstance(
+            target, str
+        ), "expected target '%s' for expression '%s' to be string not %s" % (
+            target,
+            expression,
+            type(target),
         )
 
         if target in local_keys:

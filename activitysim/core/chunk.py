@@ -471,8 +471,7 @@ _HISTORIAN = ChunkHistorian()
 
 
 class ChunkLedger(object):
-    """
-    """
+    """ """
 
     def __init__(self, trace_label, chunk_size, baseline_rss, baseline_uss, headroom):
         self.trace_label = trace_label
@@ -708,8 +707,7 @@ class MemMonitor(threading.Thread):
 
 
 class ChunkSizer(object):
-    """
-    """
+    """ """
 
     def __init__(self, chunk_tag, trace_label, num_choosers=0, chunk_size=0):
 

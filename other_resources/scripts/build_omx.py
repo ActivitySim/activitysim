@@ -40,7 +40,10 @@ def omx_getMatrix(omx_file_name, omx_key):
             print omx_file.list_matrices()
             raise RuntimeError(
                 "Source matrix with key '%s' not found in file '%s"
-                % (omx_key, omx_file,)
+                % (
+                    omx_key,
+                    omx_file,
+                )
             )
 
         data = omx_file[omx_key]
@@ -83,7 +86,10 @@ with omx.open_file(dest_file_name, "a") as dest_omx:
                 print source_omx.list_matrices()
                 raise RuntimeError(
                     "Source matrix with key '%s' not found in file '%s"
-                    % (row.source_key, dest_omx,)
+                    % (
+                        row.source_key,
+                        dest_omx,
+                    )
                 )
 
             data = source_omx[row.source_key]

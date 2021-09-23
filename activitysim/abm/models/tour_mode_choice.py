@@ -144,7 +144,10 @@ def tour_mode_choice_simulate(
 
         logger.info(
             "tour_mode_choice_simulate tour_type '%s' (%s tours)"
-            % (tour_purpose, len(tours_segment.index),)
+            % (
+                tour_purpose,
+                len(tours_segment.index),
+            )
         )
 
         if network_los.zone_system == los.THREE_ZONE:

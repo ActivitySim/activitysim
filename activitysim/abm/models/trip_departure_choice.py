@@ -501,7 +501,10 @@ def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_i
         simulate.set_skim_wrapper_targets(trips_merged_df, skims)
 
         locals_d.update(
-            {"od_skims": od_skim, "do_skims": do_skim,}
+            {
+                "od_skims": od_skim,
+                "do_skims": do_skim,
+            }
         )
 
         expressions.assign_columns(

@@ -110,9 +110,10 @@ def eval_interaction_utilities(
             # bug - location choice has df index_name zone_id but should be person_id????
             if df.index.name is None:
                 chooser_id = estimator.get_chooser_id()
-                assert chooser_id in df.columns, (
-                    "Expected to find choose_id column '%s' in interaction dataset"
-                    % (chooser_id,)
+                assert (
+                    chooser_id in df.columns
+                ), "Expected to find choose_id column '%s' in interaction dataset" % (
+                    chooser_id,
                 )
                 assert df.index.name is None
                 expression_values_df[chooser_id] = df[chooser_id]

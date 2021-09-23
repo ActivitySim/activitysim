@@ -128,7 +128,10 @@ def trip_mode_choice(trips, tours_merged, network_los, chunk_size, trace_hh_id):
 
         logger.info(
             "trip_mode_choice tour_type '%s' (%s trips)"
-            % (primary_purpose, len(trips_segment.index),)
+            % (
+                primary_purpose,
+                len(trips_segment.index),
+            )
         )
 
         # name index so tracing knows how to slice

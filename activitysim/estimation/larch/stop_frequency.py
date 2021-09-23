@@ -26,7 +26,10 @@ def stop_frequency_data(
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+        settings = yaml.load(
+            yf,
+            Loader=yaml.SafeLoader,
+        )
 
     segments = [i["primary_purpose"] for i in settings["SPEC_SEGMENTS"]]
 
@@ -39,7 +42,8 @@ def stop_frequency_data(
         seg_purpose = seg_["primary_purpose"]
         seg_subdir = Path(os.path.join(edb_directory, seg_purpose))
         segment_coef[seg_["primary_purpose"]] = pd.read_csv(
-            seg_subdir / seg_["COEFFICIENTS"], index_col="coefficient_name",
+            seg_subdir / seg_["COEFFICIENTS"],
+            index_col="coefficient_name",
         )
 
     for seg in segments:
@@ -129,9 +133,13 @@ def stop_frequency_data(
 
 
 def stop_frequency_model(
-    edb_directory="output/estimation_data_bundle/{name}/", return_data=False,
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
 ):
-    data = stop_frequency_data(edb_directory=edb_directory, values_index_col="tour_id",)
+    data = stop_frequency_data(
+        edb_directory=edb_directory,
+        values_index_col="tour_id",
+    )
 
     models = []
 
@@ -161,7 +169,9 @@ def stop_frequency_model(
             m = Model()
 
         m.utility_co = dict_of_linear_utility_from_spec(
-            spec, "Label", dict(zip(alt_names, alt_codes)),
+            spec,
+            "Label",
+            dict(zip(alt_names, alt_codes)),
         )
 
         apply_coefficients(coefficients, m)
@@ -169,7 +179,10 @@ def stop_frequency_model(
         avail = True
 
         d = DataFrames(
-            co=chooser_data, av=avail, alt_codes=alt_codes, alt_names=alt_names,
+            co=chooser_data,
+            av=avail,
+            alt_codes=alt_codes,
+            alt_names=alt_names,
         )
 
         m.dataservice = d
@@ -205,5 +218,6 @@ def update_segment_coefficients(model, data, result_dir=Path("."), output_file=N
         if output_file is not None:
             os.makedirs(result_dir, exist_ok=True)
             coefficients.reset_index().to_csv(
-                result_dir / output_file.format(segment_name=segment_name), index=False,
+                result_dir / output_file.format(segment_name=segment_name),
+                index=False,
             )

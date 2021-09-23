@@ -5,7 +5,10 @@ import glob
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "working_dir", type=str, metavar="PATH", help="path to examples working directory",
+    "working_dir",
+    type=str,
+    metavar="PATH",
+    help="path to examples working directory",
 )
 
 args = parser.parse_args()

@@ -57,7 +57,10 @@ def location_choice_model(
         filename = filename.format(name=name)
         return pd.read_csv(os.path.join(edb_directory, filename), **kwargs)
 
-    coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
+    coefficients = _read_csv(
+        coefficients_file,
+        index_col="coefficient_name",
+    )
     spec = _read_csv(spec_file, comment="#")
     alt_values = _read_csv(alt_values_file)
     chooser_data = _read_csv(chooser_file)
@@ -71,14 +74,20 @@ def location_choice_model(
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+        settings = yaml.load(
+            yf,
+            Loader=yaml.SafeLoader,
+        )
 
     include_settings = settings.get("include_settings")
     if include_settings:
         include_settings = os.path.join(edb_directory, include_settings)
     if include_settings and os.path.exists(include_settings):
         with open(include_settings, "r") as yf:
-            more_settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+            more_settings = yaml.load(
+                yf,
+                Loader=yaml.SafeLoader,
+            )
         settings.update(more_settings)
 
     CHOOSER_SEGMENT_COLUMN_NAME = settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
@@ -212,7 +221,10 @@ def location_choice_model(
         spec.columns == ["Label", "Description", "Expression", "coefficient"]
     ):
         m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+            spec,
+            x_col="Label",
+            p_col=spec.columns[-1],
+            ignore_x=("local_dist",),
         )
     elif (
         len(spec.columns) == 4
@@ -221,7 +233,10 @@ def location_choice_model(
         and spec.columns[3] == list(SEGMENT_IDS.values())[0]
     ):
         m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+            spec,
+            x_col="Label",
+            p_col=spec.columns[-1],
+            ignore_x=("local_dist",),
         )
     else:
         m.utility_ca = linear_utility_from_spec(
@@ -301,23 +316,31 @@ def update_size_spec(model, data, result_dir=Path("."), output_file=None):
     if output_file is not None:
         os.makedirs(result_dir, exist_ok=True)
         master_size_spec.reset_index().to_csv(
-            result_dir / output_file, index=False,
+            result_dir / output_file,
+            index=False,
         )
 
     return master_size_spec
 
 
 def workplace_location_model(return_data=False):
-    return location_choice_model(name="workplace_location", return_data=return_data,)
+    return location_choice_model(
+        name="workplace_location",
+        return_data=return_data,
+    )
 
 
 def school_location_model(return_data=False):
-    return location_choice_model(name="school_location", return_data=return_data,)
+    return location_choice_model(
+        name="school_location",
+        return_data=return_data,
+    )
 
 
 def atwork_subtour_destination_model(return_data=False):
     return location_choice_model(
-        name="atwork_subtour_destination", return_data=return_data,
+        name="atwork_subtour_destination",
+        return_data=return_data,
     )
 
 
@@ -333,9 +356,13 @@ def joint_tour_destination_model(return_data=False):
 def non_mandatory_tour_destination_model(return_data=False):
     # goes with joint_tour_destination
     return location_choice_model(
-        name="non_mandatory_tour_destination", return_data=return_data,
+        name="non_mandatory_tour_destination",
+        return_data=return_data,
     )
 
 
 def trip_destination_model(return_data=False):
-    return location_choice_model(name="trip_destination", return_data=return_data,)
+    return location_choice_model(
+        name="trip_destination",
+        return_data=return_data,
+    )

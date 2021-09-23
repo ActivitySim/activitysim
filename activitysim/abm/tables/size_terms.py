@@ -55,27 +55,27 @@ def size_term(land_use, destination_choice_coefficients):
 def tour_destination_size_terms(land_use, size_terms, model_selector):
     """
 
-    Parameters
-    ----------
-    land_use - pipeline table
-    size_terms - pipeline table
-    model_selector - str
+     Parameters
+     ----------
+     land_use - pipeline table
+     size_terms - pipeline table
+     model_selector - str
 
-    Returns
-    -------
+     Returns
+     -------
 
-   ::
+    ::
 
-     pandas.dataframe
-        one column per model_selector segment with index of land_use
-        e.g. for model_selector 'workplace', columns will be work_low, work_med, ...
-        and for model_selector 'trip', columns will be eatout, escort, othdiscr, ...
+      pandas.dataframe
+         one column per model_selector segment with index of land_use
+         e.g. for model_selector 'workplace', columns will be work_low, work_med, ...
+         and for model_selector 'trip', columns will be eatout, escort, othdiscr, ...
 
-                 work_low    work_med  work_high   work_veryhigh
-        zone_id                                         ...
-        1      1267.00000     522.000  1108.000  1540.0000 ...
-        2      1991.00000     824.500  1759.000  2420.0000 ...
-    ...
+                  work_low    work_med  work_high   work_veryhigh
+         zone_id                                         ...
+         1      1267.00000     522.000  1108.000  1540.0000 ...
+         2      1991.00000     824.500  1759.000  2420.0000 ...
+     ...
     """
 
     land_use = land_use.to_frame()

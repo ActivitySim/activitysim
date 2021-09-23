@@ -47,14 +47,23 @@ def schedule_choice_model(
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+        settings = yaml.load(
+            yf,
+            Loader=yaml.SafeLoader,
+        )
 
     try:
-        coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
+        coefficients = _read_csv(
+            coefficients_file,
+            index_col="coefficient_name",
+        )
     except FileNotFoundError:
         # possibly mis-named file is shown in settings
         coefficients_file = settings.get("COEFFICIENTS", coefficients_file)
-        coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
+        coefficients = _read_csv(
+            coefficients_file,
+            index_col="coefficient_name",
+        )
 
     spec = _read_csv(spec_file, comment="#")
     alt_values = _read_csv(alt_values_file)
@@ -67,7 +76,10 @@ def schedule_choice_model(
     include_settings = settings.get("include_settings")
     if include_settings:
         with open(os.path.join(edb_directory, include_settings), "r") as yf:
-            more_settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+            more_settings = yaml.load(
+                yf,
+                Loader=yaml.SafeLoader,
+            )
         settings.update(more_settings)
 
     CHOOSER_SEGMENT_COLUMN_NAME = settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
@@ -90,7 +102,10 @@ def schedule_choice_model(
         == ["label", "description", "expression", "coefficient"]
     ):
         m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+            spec,
+            x_col="Label",
+            p_col=spec.columns[-1],
+            ignore_x=("local_dist",),
         )
     elif (
         len(spec.columns) == 4
@@ -99,7 +114,10 @@ def schedule_choice_model(
         and spec.columns[3] == list(SEGMENT_IDS.values())[0]
     ):
         m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+            spec,
+            x_col="Label",
+            p_col=spec.columns[-1],
+            ignore_x=("local_dist",),
         )
     else:
         m.utility_ca = linear_utility_from_spec(
@@ -216,15 +234,20 @@ def mandatory_tour_scheduling_school_model(return_data=False):
 
 def non_mandatory_tour_scheduling_model(return_data=False):
     return schedule_choice_model(
-        name="non_mandatory_tour_scheduling", return_data=return_data,
+        name="non_mandatory_tour_scheduling",
+        return_data=return_data,
     )
 
 
 def joint_tour_scheduling_model(return_data=False):
-    return schedule_choice_model(name="joint_tour_scheduling", return_data=return_data,)
+    return schedule_choice_model(
+        name="joint_tour_scheduling",
+        return_data=return_data,
+    )
 
 
 def atwork_subtour_scheduling_model(return_data=False):
     return schedule_choice_model(
-        name="atwork_subtour_scheduling", return_data=return_data,
+        name="atwork_subtour_scheduling",
+        return_data=return_data,
     )

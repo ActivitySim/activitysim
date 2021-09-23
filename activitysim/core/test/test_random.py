@@ -39,10 +39,20 @@ def test_channel():
     }
     rng = random.Random()
 
-    persons = pd.DataFrame({"household_id": [1, 1, 2, 2, 2],}, index=[1, 2, 3, 4, 5])
+    persons = pd.DataFrame(
+        {
+            "household_id": [1, 1, 2, 2, 2],
+        },
+        index=[1, 2, 3, 4, 5],
+    )
     persons.index.name = "person_id"
 
-    households = pd.DataFrame({"data": [1, 1, 2, 2, 2],}, index=[1, 2, 3, 4, 5])
+    households = pd.DataFrame(
+        {
+            "data": [1, 1, 2, 2, 2],
+        },
+        index=[1, 2, 3, 4, 5],
+    )
     households.index.name = "household_id"
 
     rng.begin_step("test_step")

@@ -174,7 +174,9 @@ def participants_chooser(probs, choosers, spec, trace_label):
 
     num_tours_remaining = len(candidates.tour_id.unique())
     logger.info(
-        "%s %s joint tours to satisfy.", trace_label, num_tours_remaining,
+        "%s %s joint tours to satisfy.",
+        trace_label,
+        num_tours_remaining,
     )
 
     iter = 0
@@ -233,7 +235,9 @@ def participants_chooser(probs, choosers, spec, trace_label):
     assert rands.index.equals(choosers.index)
 
     logger.info(
-        "%s %s iterations to satisfy all joint tours.", trace_label, iter,
+        "%s %s iterations to satisfy all joint tours.",
+        trace_label,
+        iter,
     )
 
     return choices, rands

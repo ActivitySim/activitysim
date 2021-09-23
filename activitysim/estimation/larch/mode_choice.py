@@ -29,7 +29,9 @@ def mode_choice_model(
         override_filenames = {}
     edb_directory = edb_directory.format(name=name)
     data = simple_simulate_data(
-        name=name, edb_directory=edb_directory, **override_filenames,
+        name=name,
+        edb_directory=edb_directory,
+        **override_filenames,
     )
     coefficients = data.coefficients
     coef_template = data.coef_template
@@ -56,7 +58,10 @@ def mode_choice_model(
     for alt_code, alt_name in tree.elemental_names().items():
         # Read in base utility function for this alt_name
         u = linear_utility_from_spec(
-            spec, x_col="Label", p_col=alt_name, ignore_x=("#",),
+            spec,
+            x_col="Label",
+            p_col=alt_name,
+            ignore_x=("#",),
         )
         for purpose in purposes:
             # Modify utility function based on template for purpose
@@ -75,7 +80,10 @@ def mode_choice_model(
     )
 
     d = DataFrames(
-        co=chooser_data, av=avail, alt_codes=data.alt_codes, alt_names=data.alt_names,
+        co=chooser_data,
+        av=avail,
+        alt_codes=data.alt_codes,
+        alt_names=data.alt_names,
     )
 
     if "atwork" not in name:
@@ -114,7 +122,9 @@ def tour_mode_choice_model(
     return_data=False,
 ):
     return mode_choice_model(
-        name=name, edb_directory=edb_directory, return_data=return_data,
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
     )
 
 
@@ -124,7 +134,9 @@ def trip_mode_choice_model(
     return_data=False,
 ):
     return mode_choice_model(
-        name=name, edb_directory=edb_directory, return_data=return_data,
+        name=name,
+        edb_directory=edb_directory,
+        return_data=return_data,
     )
 
 
@@ -137,5 +149,7 @@ def atwork_subtour_mode_choice_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
-        override_filenames=dict(coefficients_file="tour_mode_choice_coefficients.csv",),
+        override_filenames=dict(
+            coefficients_file="tour_mode_choice_coefficients.csv",
+        ),
     )

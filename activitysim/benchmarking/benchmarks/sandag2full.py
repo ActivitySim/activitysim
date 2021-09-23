@@ -1,5 +1,5 @@
 from .componentwise_template import apply_template
-from .sandag_f import common_benchmark_settings
+from .sandag_full import common_benchmark_settings
 
 apply_template(
     globals(),

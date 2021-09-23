@@ -44,4 +44,5 @@ common_benchmark_settings = dict(
         'households_sample_size': 25_000,
     },
     SKIM_CACHE=False,
+    MP_SAMPLE_SIZE=1_000_000,
 )

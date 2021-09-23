@@ -42,8 +42,6 @@ def f_setup_cache(
         for config_settings_dir in CONFIGS_DIRS:
             settings_filename = os.path.join(model_dir(EXAMPLE_NAME), config_settings_dir, SETTINGS_FILENAME)
             if os.path.exists(settings_filename):
-                if NUM_PROCESSES is not None:
-                    modify_yaml(settings_filename, num_processes=NUM_PROCESSES)
                 with open(settings_filename, 'rt') as f:
                     models = yaml.load(f, Loader=yaml.loader.SafeLoader).get('models')
                 break
@@ -73,13 +71,18 @@ def f_setup_cache(
             for cname in SKIP_COMPONENT_NAMES:
                 if cname in pre_run_model_list:
                     pre_run_model_list.remove(cname)
-        modify_yaml(
-            settings_filename,
-            **BENCHMARK_SETTINGS,
+        settings_changes = dict(
             models=pre_run_model_list,
             checkpoints=True,
             trace_hh_id=None,
             chunk_training_mode='off',
+        )
+        if NUM_PROCESSES is not None:
+            settings_changes['num_processes'] = NUM_PROCESSES
+        modify_yaml(
+            settings_filename,
+            **BENCHMARK_SETTINGS,
+            **settings_changes,
         )
         for config_network_los_dir in CONFIGS_DIRS:
             network_los_filename = os.path.join(model_dir(EXAMPLE_NAME), config_network_los_dir, "network_los.yaml")
@@ -91,16 +94,16 @@ def f_setup_cache(
                 )
                 break
         os.makedirs(os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR), exist_ok=True)
-        use_prepared_pipeline = False
-        asv_commit = os.environ.get('ASV_COMMIT', 'ASV_COMMIT_UNKNOWN')
+
+        # Running the model through all the steps and checkpointing everywhere is
+        # expensive and only needs to be run once.  Once it is done we will write
+        # out a completion token file to indicate to future benchmark attempts
+        # that this does not need to be repeated.  Developers should manually
+        # delete the token (or the whole model file) when a structural change
+        # in the model happens such that re-checkpointing is needed (this should
+        # happen rarely).
         token_file = os.path.join(model_dir(EXAMPLE_NAME), OUTPUT_DIR, 'benchmark-setup-token.txt')
-        if os.path.exists(token_file):
-            with open(token_file, 'rt') as f:
-                token = f.read()
-            if token == asv_commit or token == 'STABLE':
-                # developers: manually set the token to STABLE for repeated testing if desired
-                use_prepared_pipeline = True
-        if not use_prepared_pipeline:
+        if not os.path.exists(token_file):
             try:
                 componentwise.pre_run(model_dir(EXAMPLE_NAME), CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR, SETTINGS_FILENAME)
             except Exception as err:
@@ -109,9 +112,13 @@ def f_setup_cache(
                 raise
             else:
                 with open(token_file, 'wt') as f:
+                    # We write the commit into the token, in case that is useful
+                    # to developers to decide if the checkpointed pipeline is
+                    # out of date.
+                    asv_commit = os.environ.get('ASV_COMMIT', 'ASV_COMMIT_UNKNOWN')
                     f.write(asv_commit)
+
     except Exception as err:
-        print("models=", models)
         import traceback
         traceback.print_exc()
         raise
@@ -170,6 +177,7 @@ def generate_complete(
         BENCHMARK_SETTINGS,
         SETTINGS_FILENAME="settings_mp.yaml",
         SKIM_CACHE=True,
+        MAX_PROCESSES=10,
 ):
 
     class mp_complete:
@@ -181,18 +189,21 @@ def generate_complete(
         skim_cache = SKIM_CACHE
 
         def setup(self):
-            print("<Running MP Complete> SETUP")
+            # The output directory is changed by appending MP, to ensure
+            # that we do not overwrite the checkpointed pipeline used by
+            # single-component benchmarks.
             f_setup_cache(
                 EXAMPLE_NAME, self.component_names, self.benchmark_settings,
                 CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR + "MP",
                 SETTINGS_FILENAME=SETTINGS_FILENAME,
-                NUM_PROCESSES=max(multiprocessing.cpu_count()-2, 2),
+                NUM_PROCESSES=max(
+                    min(multiprocessing.cpu_count()-2, MAX_PROCESSES),
+                    2,
+                ),
                 SKIM_CACHE=self.skim_cache,
             )
-            print("<End MP Complete> SETUP")
 
         def time_complete(self):
-            print("<Running MP Complete>")
             INJECTABLES = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name']
             from activitysim.core import mp_tasks, inject, pipeline, config
             injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
@@ -200,7 +211,6 @@ def generate_complete(
             assert not pipeline.is_open()
             if config.setting('cleanup_pipeline_after_run', False):
                 pipeline.cleanup_pipeline()
-            print("<End MP Complete>")
 
         time_complete.pretty_name = f"{EXAMPLE_NAME}:MP-Complete"
 
@@ -221,6 +231,7 @@ def apply_template(
         BENCHMARK_SETTINGS,
         SKIM_CACHE=True,
         MP_SAMPLE_SIZE=0,
+        MAX_PROCESSES=10,
 ):
     def setup_cache():
         f_setup_cache(
@@ -247,7 +258,7 @@ def apply_template(
     BENCHMARK_SETTINGS_COMPLETE = BENCHMARK_SETTINGS.copy()
     BENCHMARK_SETTINGS_COMPLETE['households_sample_size'] = MP_SAMPLE_SIZE
 
-    GLOBALS[f"zz_complete"] = generate_complete(
+    GLOBALS[f"mp_complete"] = generate_complete(
         EXAMPLE_NAME,
         CONFIGS_DIRS,
         DATA_DIR,
@@ -256,4 +267,5 @@ def apply_template(
         COMPONENT_NAMES,
         BENCHMARK_SETTINGS_COMPLETE,
         SKIM_CACHE=SKIM_CACHE,
+        MAX_PROCESSES=MAX_PROCESSES,
     )

@@ -8,7 +8,7 @@ common_benchmark_settings = dict(
     NUMBER=1,
     TIMEOUT=36000.0,  # ten hours
     COMPONENT_NAMES=[
-        "compute_accessibility",
+        # "compute_accessibility",
         "school_location",
         "workplace_location",
         "auto_ownership_simulate",
@@ -35,10 +35,10 @@ common_benchmark_settings = dict(
         "trip_purpose_and_destination",
         "trip_scheduling",
         "trip_mode_choice",
-        "write_data_dictionary",
-        "track_skim_usage",
+        # "write_data_dictionary",
+        # "track_skim_usage",
         "write_trip_matrices",
-        "write_tables",
+        # "write_tables",
     ],
     BENCHMARK_SETTINGS={
         'households_sample_size': 25_000,

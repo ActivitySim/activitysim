@@ -2,9 +2,15 @@ import os
 import logging
 import logging.handlers
 import numpy as np
+import yaml
+import traceback
+
+from ..cli.create import get_example
 from ..core.pipeline import print_elapsed_time, open_pipeline, mem, run_model
 from ..core import inject, tracing
 from ..cli.run import handle_standard_args, config, warnings, cleanup_output_files, pipeline, INJECTABLES, chunk, add_run_args
+from .config_editing import modify_yaml
+from . import workspace
 
 logger = logging.getLogger(__name__)
 
@@ -266,3 +272,194 @@ def pre_run(
     tracing.print_elapsed_time('prerun required models for checkpointing', t0)
 
     return 0
+
+
+
+
+
+
+
+
+########
+
+def local_dir():
+    benchmarking_directory = workspace.get_dir()
+    if benchmarking_directory is not None:
+        return benchmarking_directory
+    return os.getcwd()
+
+
+def model_dir(*subdirs):
+    return os.path.join(local_dir(), "models", *subdirs)
+
+
+
+def template_setup_cache(
+        example_name,
+        component_names,
+        benchmark_settings,
+        benchmark_network_los,
+        config_dirs=("configs",),
+        data_dir='data',
+        output_dir='output',
+        settings_filename="settings.yaml",
+        skip_component_names=None,
+        # NUM_PROCESSES=None,
+        # SKIM_CACHE=True,
+):
+    """
+
+    Parameters
+    ----------
+    example_name : str
+        The name of the example to benchmark, as used in
+        the `activitysim create` command.
+    component_names : Sequence
+        The names of the model components to be individually
+        benchmarked.  This list does not need to include all
+        the components usually included in the example.
+    benchmark_settings : Mapping
+        Settings values to override from their usual values
+        in the example.
+    benchmark_network_los : Mapping
+        Network LOS values to override from their usual values
+        in the example.
+    config_dirs : Sequence
+    data_dir : str
+    output_dir : str
+    settings_filename : str
+    skip_component_names : Sequence, optional
+        Skip running these components when setting up the
+        benchmarks (i.e. in pre-run).
+    """
+    from asv.console import log
+    try:
+        log.info(f"running benchmarks in {local_dir()}")
+        os.makedirs(model_dir(), exist_ok=True)
+        get_example(
+            example_name=example_name,
+            destination=model_dir(),
+            benchmarking=True,
+        )
+
+        # Find the settings file and extract the complete set of models included
+        from ..core.config import read_settings_file
+        existing_settings, settings_filenames = read_settings_file(
+            settings_filename,
+            mandatory=True,
+            include_stack=True,
+            configs_dir_list=config_dirs,
+        )
+        if 'models' not in existing_settings:
+            raise ValueError(f"missing list of models from {config_dirs}/{settings_filename}")
+        models = existing_settings['models']
+
+        # Pre-run checkpointing only need to include models up to
+        # the penultimate component to be benchmarked.
+        last_component_to_benchmark = 0
+        for cname in component_names:
+            try:
+                last_component_to_benchmark = max(
+                    models.index(cname),
+                    last_component_to_benchmark
+                )
+            except ValueError:
+                if cname not in models:
+                    log.warning(f"want to benchmark {example_name}.{cname} but it is not in the list of models to run")
+                else:
+                    raise
+        pre_run_model_list = models[:last_component_to_benchmark]
+        if skip_component_names is not None:
+            for cname in skip_component_names:
+                if cname in pre_run_model_list:
+                    pre_run_model_list.remove(cname)
+        settings_changes = dict(
+            models=pre_run_model_list,
+            checkpoints=True,
+            trace_hh_id=None,
+            chunk_training_mode='off',
+        )
+        modify_yaml(
+            settings_filename,
+            **benchmark_settings,
+            **settings_changes,
+        )
+        for config_network_los_dir in config_dirs:
+            network_los_filename = model_dir(example_name, config_network_los_dir, "network_los.yaml")
+            if os.path.exists(network_los_filename):
+                modify_yaml(
+                    network_los_filename,
+                    **benchmark_network_los,
+                    # read_skim_cache=SKIM_CACHE,
+                    # write_skim_cache=SKIM_CACHE,
+                )
+                break
+        os.makedirs(model_dir(example_name, output_dir), exist_ok=True)
+
+        # Running the model through all the steps and checkpointing everywhere is
+        # expensive and only needs to be run once.  Once it is done we will write
+        # out a completion token file to indicate to future benchmark attempts
+        # that this does not need to be repeated.  Developers should manually
+        # delete the token (or the whole model file) when a structural change
+        # in the model happens such that re-checkpointing is needed (this should
+        # happen rarely).
+        token_file = model_dir(example_name, output_dir, 'benchmark-setup-token.txt')
+        if not os.path.exists(token_file):
+            try:
+                pre_run(model_dir(example_name), config_dirs, data_dir, output_dir, settings_filename)
+            except Exception as err:
+                with open(model_dir(example_name, output_dir, 'benchmark-setup-error.txt'), 'wt') as f:
+                    f.write(f"error {err}")
+                    f.write(traceback.format_exc())
+                raise
+            else:
+                with open(token_file, 'wt') as f:
+                    # We write the commit into the token, in case that is useful
+                    # to developers to decide if the checkpointed pipeline is
+                    # out of date.
+                    asv_commit = os.environ.get('ASV_COMMIT', 'ASV_COMMIT_UNKNOWN')
+                    f.write(asv_commit)
+
+    except Exception as err:
+        log.error(
+            f"error in template_setup_cache({example_name}):\n"+traceback.format_exc()
+        )
+        raise
+
+
+
+def template_component_timings(
+        module_globals,
+        component_names,
+        example_name,
+        config_dirs,
+        data_dir,
+        output_dir,
+        preload_injectables,
+        repeat_=(1,2,20.0), # min_repeat, max_repeat, max_time_seconds
+        number_=1,
+        timeout_=36000.0,  # ten hours,
+):
+
+    for componentname in component_names:
+
+        class ComponentTiming:
+            component_name = componentname
+            repeat = repeat_
+            number = number_
+            timeout = timeout_
+            def setup(self):
+                setup_component(
+                    self.component_name, model_dir(example_name), preload_injectables,
+                    config_dirs, data_dir, output_dir,
+                )
+            def teardown(self):
+                teardown_component(self.component_name)
+            def time_component(self):
+                run_component(self.component_name)
+            #time_component.benchmark_name = f"{__name__}.time_component.{componentname}"
+            time_component.pretty_name = f"{example_name}:{componentname}"
+
+        ComponentTiming.__name__ = f"{componentname}"
+
+        module_globals[componentname] = ComponentTiming

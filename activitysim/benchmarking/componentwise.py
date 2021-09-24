@@ -332,9 +332,8 @@ def template_setup_cache(
         Skip running these components when setting up the
         benchmarks (i.e. in pre-run).
     """
-    from asv.console import log
     try:
-        log.info(f"running benchmarks in {local_dir()}")
+        logger.info(f"running benchmarks in {local_dir()}")
         os.makedirs(model_dir(), exist_ok=True)
         get_example(
             example_name=example_name,
@@ -365,7 +364,7 @@ def template_setup_cache(
                 )
             except ValueError:
                 if cname not in models:
-                    log.warning(f"want to benchmark {example_name}.{cname} but it is not in the list of models to run")
+                    logger.warning(f"want to benchmark {example_name}.{cname} but it is not in the list of models to run")
                 else:
                     raise
         pre_run_model_list = models[:last_component_to_benchmark]
@@ -421,7 +420,7 @@ def template_setup_cache(
                     f.write(asv_commit)
 
     except Exception as err:
-        log.error(
+        logger.error(
             f"error in template_setup_cache({example_name}):\n"+traceback.format_exc()
         )
         raise

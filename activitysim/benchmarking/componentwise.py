@@ -451,6 +451,7 @@ def template_component_timings(
             component_name = componentname
             warmup_time = 0
             min_run_count = 1
+            processes = 1
             repeat = repeat_
             number = number_
             timeout = timeout_

@@ -233,12 +233,12 @@ def apply_template(
         MP_SAMPLE_SIZE=0,
         MAX_PROCESSES=10,
 ):
-    def setup_cache():
-        f_setup_cache(
-            EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
-            CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
-            SKIM_CACHE=SKIM_CACHE,
-        )
+    # def setup_cache():
+    #     f_setup_cache(
+    #         EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
+    #         CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
+    #         SKIM_CACHE=SKIM_CACHE,
+    #     )
 
     GLOBALS["setup_cache"] = setup_cache
 

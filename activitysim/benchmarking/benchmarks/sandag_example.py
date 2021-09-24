@@ -47,11 +47,7 @@ common_benchmark_settings = dict(
 )
 
 PRELOAD_INJECTABLES = ('skim_dict',)
-REPEAT = (
-    1,  # min_repeat
-    5,  # max_repeat
-    20.0,  # max_time in seconds
-)
+REPEAT = 1
 NUMBER = 1
 TIMEOUT = 36000.0  # ten hours
 

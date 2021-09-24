@@ -6,8 +6,6 @@ EXAMPLE_NAME = "example_sandag_1_zone"
 CONFIGS_DIRS = ("configs_1_zone", "example_mtc/configs")
 DATA_DIR = "data_1"
 OUTPUT_DIR = "output_1"
-MP_SAMPLE_SIZE = 0
-MAX_PROCESSES = 10
 
 
 def setup_cache():
@@ -23,6 +21,7 @@ def setup_cache():
         DATA_DIR,
         OUTPUT_DIR,
     )
+
 
 template_component_timings(
     globals(),

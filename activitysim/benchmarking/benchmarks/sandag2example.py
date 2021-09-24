@@ -1,4 +1,4 @@
-from .componentwise_template import apply_template, f_setup_cache
+from activitysim.benchmarking.componentwise import template_setup_cache, template_component_timings
 from .sandag_example import *
 
 EXAMPLE_NAME = "example_sandag_2_zone"
@@ -8,18 +8,30 @@ OUTPUT_DIR = "output_2"
 
 
 def setup_cache():
-    f_setup_cache(
-        EXAMPLE_NAME, COMPONENT_NAMES, BENCHMARK_SETTINGS,
-        CONFIGS_DIRS, DATA_DIR, OUTPUT_DIR,
-        SKIM_CACHE=SKIM_CACHE,
+    template_setup_cache(
+        EXAMPLE_NAME,
+        COMPONENT_NAMES,
+        BENCHMARK_SETTINGS,
+        dict(
+            read_skim_cache=SKIM_CACHE,
+            write_skim_cache=SKIM_CACHE,
+        ),
+        CONFIGS_DIRS,
+        DATA_DIR,
+        OUTPUT_DIR,
     )
 
 
-apply_template(
+template_component_timings(
     globals(),
-    EXAMPLE_NAME=EXAMPLE_NAME,
-    CONFIGS_DIRS=CONFIGS_DIRS,
-    DATA_DIR=DATA_DIR,
-    OUTPUT_DIR=OUTPUT_DIR,
-    **common_benchmark_settings,
+    COMPONENT_NAMES,
+    EXAMPLE_NAME,
+    CONFIGS_DIRS,
+    DATA_DIR,
+    OUTPUT_DIR,
+    PRELOAD_INJECTABLES,
+    REPEAT,
+    NUMBER,
+    TIMEOUT,
 )
+

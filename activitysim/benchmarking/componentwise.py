@@ -343,12 +343,16 @@ def template_setup_cache(
 
         # Find the settings file and extract the complete set of models included
         from ..core.config import read_settings_file
-        existing_settings, settings_filenames = read_settings_file(
-            settings_filename,
-            mandatory=True,
-            include_stack=True,
-            configs_dir_list=config_dirs,
-        )
+        try:
+            existing_settings, settings_filenames = read_settings_file(
+                settings_filename,
+                mandatory=True,
+                include_stack=True,
+                configs_dir_list=config_dirs,
+            )
+        except:
+            logger.error(f"os.getcwd:{os.getcwd()}")
+            raise
         if 'models' not in existing_settings:
             raise ValueError(f"missing list of models from {config_dirs}/{settings_filename}")
         models = existing_settings['models']

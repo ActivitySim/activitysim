@@ -1,6 +1,9 @@
-from activitysim.benchmarking.componentwise import template_setup_cache, template_component_timings
-from .sandag_example import *
+from activitysim.benchmarking.componentwise import (
+    template_component_timings,
+    template_setup_cache,
+)
 
+from .sandag_example import *
 
 EXAMPLE_NAME = "example_sandag_1_zone"
 CONFIGS_DIRS = ("configs_1_zone", "example_mtc/configs")
@@ -35,4 +38,3 @@ template_component_timings(
     NUMBER,
     TIMEOUT,
 )
-

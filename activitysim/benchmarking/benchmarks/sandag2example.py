@@ -1,4 +1,8 @@
-from activitysim.benchmarking.componentwise import template_setup_cache, template_component_timings
+from activitysim.benchmarking.componentwise import (
+    template_component_timings,
+    template_setup_cache,
+)
+
 from .sandag_example import *
 
 EXAMPLE_NAME = "example_sandag_2_zone"
@@ -34,4 +38,3 @@ template_component_timings(
     NUMBER,
     TIMEOUT,
 )
-

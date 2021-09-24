@@ -348,10 +348,11 @@ def template_setup_cache(
                 settings_filename,
                 mandatory=True,
                 include_stack=True,
-                configs_dir_list=config_dirs,
+                configs_dir_list=[model_dir(example_name, c) for c in config_dirs],
             )
         except:
             logger.error(f"os.getcwd:{os.getcwd()}")
+
             raise
         if 'models' not in existing_settings:
             raise ValueError(f"missing list of models from {config_dirs}/{settings_filename}")
@@ -383,7 +384,7 @@ def template_setup_cache(
             chunk_training_mode='off',
         )
         modify_yaml(
-            settings_filename,
+            settings_filenames[0],
             **benchmark_settings,
             **settings_changes,
         )

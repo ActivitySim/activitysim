@@ -1,4 +1,4 @@
-from activitysim.benchmarking.componentwise import template_setup_cache, template_component_timings, template_complete
+from activitysim.benchmarking.componentwise import template_setup_cache, template_component_timings
 from .sandag_example import *
 
 
@@ -35,14 +35,5 @@ template_component_timings(
     REPEAT,
     NUMBER,
     TIMEOUT,
-)
-
-template_complete(
-    EXAMPLE_NAME,
-    CONFIGS_DIRS,
-    DATA_DIR,
-    OUTPUT_DIR,
-    max_processes=MAX_PROCESSES,
-    households_sample=MP_SAMPLE_SIZE,
 )
 

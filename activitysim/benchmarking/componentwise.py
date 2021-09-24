@@ -4,6 +4,7 @@ import logging.handlers
 import numpy as np
 import yaml
 import traceback
+import multiprocessing
 
 from ..cli.create import get_example
 from ..core.pipeline import print_elapsed_time, open_pipeline, mem, run_model
@@ -333,7 +334,6 @@ def template_setup_cache(
         benchmarks (i.e. in pre-run).
     """
     try:
-        logger.info(f"running benchmarks in {local_dir()}")
         os.makedirs(model_dir(), exist_ok=True)
         get_example(
             example_name=example_name,
@@ -440,7 +440,7 @@ def template_component_timings(
         data_dir,
         output_dir,
         preload_injectables,
-        repeat_=(1,2,20.0), # min_repeat, max_repeat, max_time_seconds
+        repeat_=(1,20,10.0), # min_repeat, max_repeat, max_time_seconds
         number_=1,
         timeout_=36000.0,  # ten hours,
 ):
@@ -449,6 +449,8 @@ def template_component_timings(
 
         class ComponentTiming:
             component_name = componentname
+            warmup_time = 0
+            min_run_count = 1
             repeat = repeat_
             number = number_
             timeout = timeout_
@@ -467,3 +469,65 @@ def template_component_timings(
         ComponentTiming.__name__ = f"{componentname}"
 
         module_globals[componentname] = ComponentTiming
+
+
+
+def template_complete(
+        example_name,
+        config_dirs,
+        data_dir,
+        output_dir,
+        benchmark_settings=None,
+        settings_filename="settings_mp.yaml",
+        max_processes=10,
+        households_sample=None,
+        timeout_=36000.0,  # ten hours,
+):
+
+    class mp_complete:
+        repeat = 1
+        number = 1
+        timeout = timeout_
+
+        def setup(self):
+            # The output directory is changed by appending MP, to ensure
+            # that we do not overwrite the checkpointed pipeline used by
+            # single-component benchmarks.
+
+            if isinstance(config_dirs, str):
+                configs_dirs = [config_dirs]
+            inject.add_injectable('configs_dir', [model_dir(example_name, i) for i in configs_dirs])
+            inject.add_injectable('data_dir', model_dir(example_name, data_dir))
+            inject.add_injectable('output_dir', model_dir(example_name, output_dir+'MP'))
+            num_processes = max(
+                min(multiprocessing.cpu_count() - 2, max_processes),
+                2,
+            )
+            replace_settings = benchmark_settings or {}
+            replace_settings = replace_settings.copy()
+            if households_sample is not None:
+                replace_settings['households_sample_size'] = households_sample
+            reload_settings(
+                settings_filename,
+                num_processes=num_processes,
+                **replace_settings,
+            )
+
+        def time_complete(self):
+            INJECTABLES = [
+                'data_dir',
+                'configs_dir',
+                'output_dir',
+                'settings_file_name',
+                'settings',
+            ]
+            from activitysim.core import mp_tasks, inject, pipeline, config
+            injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+            mp_tasks.run_multiprocess(injectables)
+            assert not pipeline.is_open()
+            if config.setting('cleanup_pipeline_after_run', False):
+                pipeline.cleanup_pipeline()
+
+        time_complete.pretty_name = f"{example_name}:MP-Complete"
+
+    return mp_complete

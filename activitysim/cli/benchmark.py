@@ -211,9 +211,13 @@ def benchmark(args):
         log.info(f" local git repo available: {local_git}")
         asv_config["repo"] = "https://github.com/ActivitySim/activitysim.git"
 
-    # copy the benchmarks to the workspace
+    # copy the benchmarks to the workspace, deleting previous files in workspace
     import activitysim.benchmarking.benchmarks
     benchmarks_dir = os.path.dirname(activitysim.benchmarking.benchmarks.__file__)
+    shutil.rmtree(
+        os.path.join(args.workspace, "benchmarks"),
+        ignore_errors=True,
+    )
     shutil.copytree(
         benchmarks_dir,
         os.path.join(args.workspace, "benchmarks"),

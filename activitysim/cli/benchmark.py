@@ -235,6 +235,16 @@ def benchmark(args):
         raise ValueError("activitysim manages the asv config json file itself, do not use --config")
     args.config = os.path.abspath(conf_file)
 
+    # write the pre-commit search and replace hook to the workspace
+    search_replace_file = os.path.normpath(
+        os.path.join(args.workspace, ".pre-commit-search-and-replace.yaml")
+    )
+    with open(search_replace_file, 'wt') as sf:
+        benchpath = os.path.join(args.workspace, 'benchmarks')
+        if not benchpath.endswith(os.path.sep):
+            benchpath += os.path.sep
+        benchpath = benchpath.replace(os.path.sep, r"[/\\]")
+        sf.write(f"""- search: /{benchpath}/\n  replacement: ./\n""")
 
     try:
         result = args.func(args)

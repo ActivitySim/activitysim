@@ -16,7 +16,7 @@ Benchmarking Setup
 
 The first step in running benchmarks is to have a conda environment for
 benchmarking, as well as a local clone of the main ActivitySim repository,
-plus one of the `activitysim_benchmarks` repository.
+plus one of the `asim-benchmarks` repository.
 
 If this isn't already set up on your performance benchmarking machine, you can
 do so by following these steps::
@@ -24,27 +24,27 @@ do so by following these steps::
     conda create -n ASIM-BENCH mamba git gh -c conda-forge --override-channels
     conda activate ASIM-BENCH
     gh auth login  # <--- (only needed if gh is not logged in)
-    gh repo clone jpn--/activitysim  # FUTURE: use main repo
+    gh repo clone ActivitySim/activitysim          # TEMPORARY: use jpn--/activitysim
     cd activitysim
-    git switch performance2  # FUTURE: use develop branch
+    git switch develop                             # TEMPORARY: use performanceTest branch
     mamba env update --file=conda-environments/activitysim-dev.yml
     cd ..
-    gh repo clone jpn--/activitysim_benchmarks  # FUTURE: use org repo
-    cd activitysim_benchmarks
+    gh repo clone ActivitySim/asim-benchmarks      # TEMPORARY: use jpn--/asim-benchmarks
+    cd asim-benchmarks
 
 If this environment is set up but it's been a while since you last used it,
 consider updating the environment like this::
 
     conda activate ASIM-BENCH
     cd activitysim
-    git switch performanceTest  # FUTURE: use develop branch
+    git switch develop                             # TEMPORARY: use performanceTest branch
     mamba env update --file=conda-environments/activitysim-dev.yml
     cd ..
-    cd activitysim_benchmarks
+    cd asim-benchmarks
     git pull
 
 If you want to submit your benchmarking results to the common database of
-community results, you should also fork the `activitysim_benchmarks` repository::
+community results, you should also fork the `asim-benchmarks` repository::
 
     gh repo fork --remote=true
 
@@ -65,33 +65,46 @@ Running Benchmarks
 ~~~~~~~~~~~~~~~~~~
 
 ActivitySim automates the process of running many benchmarks. It can also easily
-aggregate benchmark results across many different machines, as long as the
+accumulate and analyze benchmark results across many different machines, as long as the
 benchmarks are all run in the same (relative) place. So before running benchmarks,
 change your working directory (at the command prompt) into the top directory of
-the `activitysim_benchmarks` repository, if you're not already there.
+the `asim-benchmarks` repository, if you're not already there.
 
 To run all of the benchmarks on the most recent commit in the main ActivitySim repo::
 
-    activitysim benchmark run "HEAD^!" --verbose --append-samples
+    activitysim benchmark latest
 
-Note that the literal quotation marks are neccessary on Windows, as the carat character
+This will run the benchmarks only on the "HEAD" commit of the main activitysim git
+repository.  To run on some other historical commit[s] from the git history, you can
+specify an individual commit or a range, in the same way you would do so for the
+`git log` command. For eaxmple, to run benchmarks on the commits to develop since
+it was branched off master, run::
+
+    activitysim benchmark run master..develop
+
+or to run only on the latest commit in develop, run::
+
+    activitysim benchmark run "develop^!"
+
+Note that the literal quotation marks are necessary on Windows, as the carat character
 preceding the exclamation mark is otherwise interpreted as an escape character.
-In most other shells (e.g. on Linux or macOS) the literal quotation marks are unneccessary.
-In this command, `"HEAD^!"` instructs the benchmarking to run only on the "HEAD"
-(most recent) commit in the repository, `--verbose` will generate a stream of output
-to the console (otherwise, the process may appear stalled as it can run a very long
-time without writing anything visible) and `--append-samples` will record the runtime
-of each attempt on each model component, instead of merely recording some statistical
-measurements.
+In most other shells (e.g. on Linux or macOS) the literal quotation marks are unnecessary.
 
 To run only benchmarks from a certain example, we can
 use the `--bench` argument, which allows us to write a "regular expression" that
 filters the benchmarks actually executed.  This is handy if you are interested in
 benchmarking a particular model or component, as running *all* the benchmarks can
-take a very long time.  For example, to run only the SANDAG 1-Zone benchmarks,
-run::
+take a very long time, and the larger benchmarks (e.g. on the full SANDAG model)
+will need a lot of disk space and RAM.  For example, to run only the mandatory
+tour frequency benchmark for the SANDAG 1-Zone example-sized system, run::
 
-    activitysim benchmark run "HEAD^!" --verbose --append-samples --bench sandag3
+    activitysim benchmark latest --bench sandag1example.time_mandatory_tour_frequency
+
+The "." character here means a literal dot, but since this is a regex expression,
+it is also a single-character wildcard.  Thus, you can run all the example-sized
+SANDAG benchmarks with::
+
+    activitysim benchmark latest --bench sandag.example
 
 
 
@@ -121,13 +134,22 @@ ActivitySim community is interested in aggregating such results from a number
 of participants, so once you have successfully run a set of benchmarks, you
 should submit those results to our repository.
 
-To do so, assuming you have run the benchmark tool inside the `activitysim_benchmarks`
+To do so, assuming you have run the benchmark tool inside the `asim-benchmarks`
 repository as noted above, you simply need to commit any new or changed files
-in the `activitysim_benchmarks/results` directory.  You can then open a pull request
-against the community `activitysim_benchmarks` to submit those results.
+in the `asim-benchmarks/results` directory.  You can then open a pull request
+against the community `asim-benchmarks` to submit those results.
+
+Publishing to Github Pages
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+activitysim benchmark gh-pages
+
 
 Profiling
----------
+~~~~~~~~~
 
 The benchmarking tool can also be used for profiling, which allows a developer to
 inspect the timings for various commands inside a particular benchmark. This is

@@ -465,7 +465,6 @@ def template_component_timings(
                 teardown_component(self.component_name)
             def time_component(self):
                 run_component(self.component_name)
-            time_component.benchmark_name = f"{__name__}.{componentname}"
             time_component.pretty_name = f"{example_name}:{componentname}"
             time_component.version = version_
 

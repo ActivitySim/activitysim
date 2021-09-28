@@ -522,7 +522,8 @@ def template_component_timings_mp(
             component_name = componentname
             def track_component(self):
                 durations = []
-                for logfile in glob.glob(model_dir(example_name, output_dir, "timing_log.mp_households_*.csv")):
+                logfiler = config.log_file_path(f'timing_log.mp_households_*.csv')
+                for logfile in glob.glob(logfiler):
                     df = pd.read_csv(logfile)
                     durations.append(df.query(f"component_name=='{self.component_name}'").iloc[-1].duration)
                 return np.mean(durations)

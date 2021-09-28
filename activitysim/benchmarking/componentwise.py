@@ -522,11 +522,17 @@ def template_component_timings_mp(
             component_name = componentname
             def track_component(self):
                 durations = []
+                inject.add_injectable('output_dir', model_dir(example_name, output_dir))
                 logfiler = config.log_file_path(f'timing_log.mp_households_*.csv')
                 for logfile in glob.glob(logfiler):
                     df = pd.read_csv(logfile)
-                    durations.append(df.query(f"component_name=='{self.component_name}'").iloc[-1].duration)
-                return np.mean(durations)
+                    dfq = df.query(f"component_name=='{self.component_name}'")
+                    if len(dfq):
+                        durations.append(dfq.iloc[-1].duration)
+                if len(durations):
+                    return np.mean(durations)
+                else:
+                    raise ValueError("no results available")
             track_component.pretty_name = f"{pretty_name}:{componentname}"
             track_component.version = version_
             track_component.unit = 's'

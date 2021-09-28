@@ -75,9 +75,15 @@ def log_runtime(model_name, start_time=None, timing=None):
 
     process_name = multiprocessing.current_process().name
 
-    # only log runtime for locutor
-    if config.setting('multiprocess', False) and not inject.get_injectable('locutor', False):
-        return
+    if config.setting('multiprocess', False):
+        # when benchmarking, log timing for each processes in its own log
+        if config.setting('benchmarking', False):
+            header = "component_name,duration"
+            with config.open_log_file(f'timing_log.{process_name}.csv', 'a', header) as log_file:
+                print(f"{model_name},{timing}", file=log_file)
+        # only continue to log runtime in global timing log for locutor
+        if not inject.get_injectable('locutor', False):
+            return
 
     header = "process_name,model_name,seconds,minutes"
     with config.open_log_file('timing_log.csv', 'a', header) as log_file:

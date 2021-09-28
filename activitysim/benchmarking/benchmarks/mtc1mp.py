@@ -1,15 +1,19 @@
 from activitysim.benchmarking.componentwise import (
-    template_component_timings,
     template_setup_cache,
+    template_component_timings_mp,
 )
 
+import multiprocessing
+import numpy as np
+
+PRETTY_NAME = "MTC1_MP6"
 EXAMPLE_NAME = "example_mtc_full"
-CONFIGS_DIRS = ("configs",)
-DYNAMIC_CONFIG_DIR = "bench_configs"
+NUM_PROCESSORS = int(np.clip(multiprocessing.cpu_count()-2, 2, 6))
+CONFIGS_DIRS = ("configs_mp", "configs")
+DYNAMIC_CONFIG_DIR = "bench_configs_mp"
 DATA_DIR = "data"
-OUTPUT_DIR = "output"
+OUTPUT_DIR = "output_mp"
 COMPONENT_NAMES = [
-    # "compute_accessibility",
     "school_location",
     "workplace_location",
     "auto_ownership_simulate",
@@ -36,13 +40,10 @@ COMPONENT_NAMES = [
     "trip_purpose_and_destination",
     "trip_scheduling",
     "trip_mode_choice",
-    # "write_data_dictionary",
-    # "track_skim_usage",
-    "write_trip_matrices",
-    # "write_tables",
 ]
 BENCHMARK_SETTINGS = {
-    "households_sample_size": 48_769,
+    "households_sample_size": 500 * NUM_PROCESSORS, #48_769 * NUM_PROCESSORS,
+    "num_processes": NUM_PROCESSORS,
 }
 SKIM_CACHE = False
 PRELOAD_INJECTABLES = ("skim_dict",)
@@ -68,16 +69,13 @@ def setup_cache():
     )
 
 
-template_component_timings(
+template_component_timings_mp(
     globals(),
     COMPONENT_NAMES,
     EXAMPLE_NAME,
-    (DYNAMIC_CONFIG_DIR, *CONFIGS_DIRS),
-    DATA_DIR,
     OUTPUT_DIR,
-    PRELOAD_INJECTABLES,
-    REPEAT,
-    NUMBER,
-    TIMEOUT,
+    PRETTY_NAME,
     VERSION,
 )
+
+

@@ -443,6 +443,7 @@ def template_component_timings(
         repeat_=(1,20,10.0), # min_repeat, max_repeat, max_time_seconds
         number_=1,
         timeout_=36000.0,  # ten hours,
+        version_='1',
 ):
 
     for componentname in component_names:
@@ -464,8 +465,9 @@ def template_component_timings(
                 teardown_component(self.component_name)
             def time_component(self):
                 run_component(self.component_name)
-            #time_component.benchmark_name = f"{__name__}.time_component.{componentname}"
+            time_component.benchmark_name = f"{__name__}.{componentname}"
             time_component.pretty_name = f"{example_name}:{componentname}"
+            time_component.version = version_
 
         ComponentTiming.__name__ = f"{componentname}"
 

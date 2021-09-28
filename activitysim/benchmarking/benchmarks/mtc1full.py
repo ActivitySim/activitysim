@@ -48,6 +48,7 @@ PRELOAD_INJECTABLES = ("skim_dict",)
 REPEAT = 1
 NUMBER = 1
 TIMEOUT = 36000.0  # ten hours
+VERSION = '1'
 
 
 def setup_cache():
@@ -76,4 +77,5 @@ template_component_timings(
     REPEAT,
     NUMBER,
     TIMEOUT,
+    VERSION,
 )

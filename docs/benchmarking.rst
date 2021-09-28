@@ -142,19 +142,39 @@ against the community `asim-benchmarks` to submit those results.
 Publishing to Github Pages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Publishing the standard airspeed velocity content to GitHub pages is a built-in
+feature of the command line tool.  Simply run::
 
-
-
-activitysim benchmark gh-pages
+    activitysim benchmark gh-pages
 
 
 Profiling
 ~~~~~~~~~
 
 The benchmarking tool can also be used for profiling, which allows a developer to
-inspect the timings for various commands inside a particular benchmark. This is
+inspect the timings for various commands *inside* a particular benchmark. This is
 most conveniently accomplished using the `snakeviz` tool, which should be installed
 in the developer tools environment (`conda install snakeviz -c conda-forge`).
-Then, to profile a particular command,
+Then, the developer needs to run two commands to compute and view the component
+profile.
 
-    activitysim benchmark profile sandag2.time_trip_destination.time_component HEAD --gui=snakeviz -v
+To create a profile record when benchmarking, add the `--profile` option when
+running the benchmarks.  For example, to create profile records for the SANDAG
+example-sized model's non-mandatory tour scheduling component across all three
+zone systems, run::
+
+    activitysim benchmark latest --bench sandag.example.non_mandatory_tour_scheduling --profile
+
+This command will save the profiling data directly into the json file that stores
+the benchmark timings.  This is a lot of extra data, so it's not advised to
+save profiling data for every benchmark, but only for benchmarks of particular
+interest.
+
+Once this data has been saved, you can access it using the `snakeviz` tool.  This
+visualization requires pointing to a specific profiled benchmark in a specific
+json result file.  For example::
+
+    activitysim benchmark snakeviz results/LUMBERJACK/241ddb64-env-c87ac846ee78e51351a06682de5adcb5.json sandag3example.non_mandatory_tour_scheduling.time_component
+
+On running this command, a web browser should pop open to display the snakeviz
+interface.

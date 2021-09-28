@@ -106,6 +106,10 @@ SANDAG benchmarks with::
 
     activitysim benchmark latest --bench sandag.example
 
+You can also repeat the `--bench` argument to give multiple different expressions.
+So, you can run just the 1- and 2-zone examples, without the 3-zone example::
+
+    activitysim benchmark latest --bench sandag1example --bench sandag2example
 
 
 Threading Limits
@@ -178,3 +182,14 @@ json result file.  For example::
 
 On running this command, a web browser should pop open to display the snakeviz
 interface.
+
+Writing New Benchmarks
+~~~~~~~~~~~~~~~~~~~~~~
+
+New benchmarks for other model examples can be added to
+`activitysim/benchmarking/benchmarks`. A basic template structure has been used,
+so that it should be relatively straight-forward to implement component-level
+single thread benchmarks for any model that is available using the
+`activitysim create` tool.
+
+Multi-thread benchmarks are not yet implemented.

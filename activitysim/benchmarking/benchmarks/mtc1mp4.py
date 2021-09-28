@@ -6,9 +6,9 @@ from activitysim.benchmarking.componentwise import (
 import multiprocessing
 import numpy as np
 
-PRETTY_NAME = "MTC1_MP6"
+PRETTY_NAME = "MTC1_MP4"
 EXAMPLE_NAME = "example_mtc_full"
-NUM_PROCESSORS = int(np.clip(multiprocessing.cpu_count()-2, 2, 6))
+NUM_PROCESSORS = int(np.clip(multiprocessing.cpu_count()-2, 2, 4))
 CONFIGS_DIRS = ("configs_mp", "configs")
 DYNAMIC_CONFIG_DIR = "bench_configs_mp"
 DATA_DIR = "data"
@@ -42,13 +42,10 @@ COMPONENT_NAMES = [
     "trip_mode_choice",
 ]
 BENCHMARK_SETTINGS = {
-    "households_sample_size": 500 * NUM_PROCESSORS, #48_769 * NUM_PROCESSORS,
+    "households_sample_size": 1_000_000,
     "num_processes": NUM_PROCESSORS,
 }
 SKIM_CACHE = False
-PRELOAD_INJECTABLES = ("skim_dict",)
-REPEAT = 1
-NUMBER = 1
 TIMEOUT = 36000.0  # ten hours
 VERSION = '1'
 

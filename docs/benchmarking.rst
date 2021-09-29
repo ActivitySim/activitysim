@@ -192,4 +192,7 @@ so that it should be relatively straight-forward to implement component-level
 single thread benchmarks for any model that is available using the
 `activitysim create` tool.
 
-Multi-thread benchmarks are not yet implemented.
+A basic framework for multi-processing benchmarks has been implemented and is
+demonstrated in the `mtc1mp4` benchmark file. However, work remains to write
+a stable process to execute chunking training for each machine prior to running
+the production-version benchmarks that will be meaningful for users.

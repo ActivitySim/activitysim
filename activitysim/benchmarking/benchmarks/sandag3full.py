@@ -7,6 +7,7 @@ from .sandag_full import *
 
 EXAMPLE_NAME = "example_sandag_3_zone_full"
 CONFIGS_DIRS = ("configs_benchmarking", "configs_3_zone", "example_mtc/configs")
+DYNAMIC_CONFIG_DIR = "bench_configs"
 DATA_DIR = "data_3"
 OUTPUT_DIR = "output_3"
 VERSION = "1"
@@ -31,7 +32,7 @@ template_component_timings(
     globals(),
     COMPONENT_NAMES,
     EXAMPLE_NAME,
-    CONFIGS_DIRS,
+    (DYNAMIC_CONFIG_DIR, *CONFIGS_DIRS),
     DATA_DIR,
     OUTPUT_DIR,
     PRELOAD_INJECTABLES,

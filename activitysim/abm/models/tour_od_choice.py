@@ -47,6 +47,9 @@ def tour_od_choice(
     sample_table_name = model_settings.get('OD_CHOICE_SAMPLE_TABLE_NAME')
     want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
+    logsum_column_name = model_settings.get('OD_CHOICE_LOGSUM_COLUMN_NAME', None)
+    want_logsums = logsum_column_name is not None
+
     tours = tours.to_frame()
 
     # interaction_sample_simulate insists choosers appear in same order as alts
@@ -65,6 +68,7 @@ def tour_od_choice(
     choices_df, save_sample_df = tour_od.run_tour_od(
         tours,
         persons,
+        want_logsums,
         want_sample_table,
         model_settings,
         network_los,

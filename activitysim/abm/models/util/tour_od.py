@@ -276,7 +276,8 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
 def choose_MAZ_for_TAZ(
         taz_sample, MAZ_size_terms, trace_label,
-        addtl_col_for_unique_key=None
+        addtl_col_for_unique_key=None,
+        dest_maz_id_col=DEST_MAZ,
         ):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
@@ -507,6 +508,7 @@ def od_presample(
         model_settings,
         alt_od_col_name,
         chunk_size,
+        chunk_tag,
         trace_label)
 
     orig_MAZ_dest_TAZ_sample[ORIG_MAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[0].astype(int)

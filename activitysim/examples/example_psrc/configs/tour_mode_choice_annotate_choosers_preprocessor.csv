@@ -66,6 +66,9 @@ local,_DF_IS_TOUR,'tour_type' in df.columns
 ,daily_parking_cost,"np.where(is_mandatory, _hourly_peak_parking_cost * df.duration, _hourly_offpeak_parking_cost * df.duration)"
 #,,
 ,distance,od_skims['DIST']
+,distance_walk_od,od_skims['DISTWALK']
+,distance_bike_od,od_skims['DISTBIKE']
+#,,
 ,sov_available,(odt_skims['SOV_TIME']>0) & (dot_skims['SOV_TIME']>0)
 ,sovtoll_available,(odt_skims['SOVTOLL_VTOLL']>0) | (dot_skims['SOVTOLL_VTOLL']>0)
 ,hov2_available,(odt_skims['HOV2_TIME'] + dot_skims['HOV2_TIME'])>0

@@ -42,7 +42,7 @@ COMPONENT_NAMES = [
     "trip_mode_choice",
 ]
 BENCHMARK_SETTINGS = {
-    "households_sample_size": 1_000_000,
+    "households_sample_size": 400,
     "num_processes": NUM_PROCESSORS,
 }
 SKIM_CACHE = False

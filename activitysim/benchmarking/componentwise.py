@@ -277,6 +277,13 @@ def pre_run(
 
 def run_multiprocess():
     logger.info('run multiprocess simulation')
+    tracing.delete_trace_files()
+    tracing.delete_output_files('h5')
+    tracing.delete_output_files('csv')
+    tracing.delete_output_files('txt')
+    tracing.delete_output_files('yaml')
+    tracing.delete_output_files('prof')
+    tracing.delete_output_files('omx')
 
     from activitysim.core import mp_tasks
     injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
@@ -453,8 +460,15 @@ def template_setup_cache(
             # Multiprocessing timing runs are actually fully completed within
             # the setup_cache step, and component-level timings are written out
             # to log files by activitysim during this run.
-            pre_run(model_dir(example_name), use_config_dirs, data_dir, output_dir, settings_filename)
-            run_multiprocess()
+            asv_commit = os.environ.get('ASV_COMMIT', 'ASV_COMMIT_UNKNOWN')
+            try:
+                pre_run(model_dir(example_name), use_config_dirs, data_dir, output_dir, settings_filename)
+                run_multiprocess()
+            except Exception as err:
+                with open(model_dir(example_name, output_dir, f'-mp-run-error-{asv_commit}.txt'), 'wt') as f:
+                    f.write(f"error {err}")
+                    f.write(traceback.format_exc())
+                raise
 
     except Exception as err:
         logger.error(

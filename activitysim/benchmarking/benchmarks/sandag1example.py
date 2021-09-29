@@ -9,7 +9,7 @@ EXAMPLE_NAME = "example_sandag_1_zone"
 CONFIGS_DIRS = ("configs_1_zone", "example_mtc/configs")
 DATA_DIR = "data_1"
 OUTPUT_DIR = "output_1"
-VERSION = '1'
+VERSION = "1"
 
 
 def setup_cache():

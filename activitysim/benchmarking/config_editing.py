@@ -19,12 +19,15 @@ def copy_to_original(filename):
     basefilename, originalfilename : Path
     """
     basefilename = Path(filename)
-    if '.original' in basefilename.stem:
+    if ".original" in basefilename.stem:
         basefilename = basefilename.parent / basefilename.name.replace(".original", "")
-    originalfilename = basefilename.parent / (basefilename.stem+".original"+basefilename.suffix)
+    originalfilename = basefilename.parent / (
+        basefilename.stem + ".original" + basefilename.suffix
+    )
     if basefilename.exists() and not originalfilename.exists():
         shutil.copyfile(basefilename, originalfilename)
     return basefilename, originalfilename
+
 
 def modify_yaml(filename, changes=None, **kwargs):
     """
@@ -51,5 +54,3 @@ def modify_yaml(filename, changes=None, **kwargs):
     settings.update(kwargs)
     yaml.dump(settings, doc)
     yaml.dump(kwargs, sys.stdout)
-
-

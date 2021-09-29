@@ -122,7 +122,8 @@ class SkimInfo(object):
                 if self.omx_shape is None:
                     self.omx_shape = tuple(int(i) for i in omx_file.shape())  # sometimes omx shape are floats!
                 else:
-                    assert (self.omx_shape == tuple(int(i) for i in omx_file.shape())), f"Mismatch shape {self.omx_shape} != {omx_file.shape()}"
+                    assert (self.omx_shape == tuple(int(i) for i in omx_file.shape())), \
+                        f"Mismatch shape {self.omx_shape} != {omx_file.shape()}"
 
                 for skim_name in omx_file.listMatrices():
                     assert skim_name not in self.omx_manifest, \

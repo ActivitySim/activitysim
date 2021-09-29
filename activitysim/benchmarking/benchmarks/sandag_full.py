@@ -32,7 +32,7 @@ COMPONENT_NAMES = [
     # "write_tables",
 ]
 BENCHMARK_SETTINGS = {
-    "households_sample_size": 48_769, # match hh sample size in example data
+    "households_sample_size": 48_769,  # match hh sample size in example data
 }
 SKIM_CACHE = False
 PRELOAD_INJECTABLES = ("skim_dict",)

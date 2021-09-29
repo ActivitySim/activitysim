@@ -5,6 +5,7 @@ import json
 import os
 import tempfile
 import zlib
+import traceback
 from asv.plugins.snakeviz import SnakevizGui
 from asv.commands import Command
 from asv.console import log
@@ -23,9 +24,9 @@ def benchmark_snakeviz(json_record, benchmark=None):
     """
     from asv import util
 
-    with open(json_record, 'rt') as f:
+    with open(json_record, "rt") as f:
         json_content = json.load(f)
-    profiles = json_content.get('profiles', {})
+    profiles = json_content.get("profiles", {})
     if benchmark is None or benchmark not in profiles:
         if profiles:
             log.info("\n\nAvailable profiles:")
@@ -37,29 +38,30 @@ def benchmark_snakeviz(json_record, benchmark=None):
             return
         raise KeyError()
     profile_data = zlib.decompress(base64.b64decode(profiles[benchmark].encode()))
-    prefix = benchmark.replace(".","__")+"."
+    prefix = benchmark.replace(".", "__") + "."
     with temp_profile(profile_data, prefix) as profile_path:
         log.info(f"Profiling data cached to {profile_path}")
         import pstats
+
         prof = pstats.Stats(profile_path)
-        prof.strip_dirs().dump_stats(profile_path+"b")
+        prof.strip_dirs().dump_stats(profile_path + "b")
         try:
-            SnakevizGui.open_profiler_gui(profile_path+"b")
+            SnakevizGui.open_profiler_gui(profile_path + "b")
         except KeyboardInterrupt:
             pass
-        except:
-            import traceback
+        except Exception:
+
             traceback.print_exc()
             input(input("Press Enter to continue..."))
         finally:
-            os.remove(profile_path+"b")
+            os.remove(profile_path + "b")
 
 
 @contextlib.contextmanager
 def temp_profile(profile_data, prefix=None):
     profile_fd, profile_path = tempfile.mkstemp(prefix=prefix)
     try:
-        with io.open(profile_fd, 'wb', closefd=True) as fd:
+        with io.open(profile_fd, "wb", closefd=True) as fd:
             fd.write(profile_data)
 
         yield profile_path
@@ -73,14 +75,16 @@ class ProfileInspector(Command):
         parser = subparsers.add_parser(
             "snakeviz",
             help="""Run snakeviz on a particular benchmark that has been profiled.""",
-            description="Inspect a benchmark profile")
+            description="Inspect a benchmark profile",
+        )
 
         parser.add_argument(
-            'json_record',
-            help="""The json file in the benchmark results to read profile data from.""")
+            "json_record",
+            help="""The json file in the benchmark results to read profile data from.""",
+        )
 
         parser.add_argument(
-            'benchmark',
+            "benchmark",
             help="""The benchmark to profile.  Must be a
             fully-specified benchmark name. For parameterized benchmark, it
             must include the parameter combination to use, e.g.:
@@ -100,4 +104,3 @@ class ProfileInspector(Command):
     @classmethod
     def run(cls, json_record, benchmark):
         benchmark_snakeviz(json_record, benchmark)
-

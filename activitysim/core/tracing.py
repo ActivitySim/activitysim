@@ -29,7 +29,6 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 logger = logging.getLogger(__name__)
 
 
-
 class ElapsedTimeFormatter(logging.Formatter):
     def format(self, record):
         duration_milliseconds = record.relativeCreated

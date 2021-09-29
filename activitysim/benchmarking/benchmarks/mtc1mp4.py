@@ -8,7 +8,7 @@ import numpy as np
 
 PRETTY_NAME = "MTC1_MP4"
 EXAMPLE_NAME = "example_mtc_full"
-NUM_PROCESSORS = int(np.clip(multiprocessing.cpu_count()-2, 2, 4))
+NUM_PROCESSORS = int(np.clip(multiprocessing.cpu_count() - 2, 2, 4))
 CONFIGS_DIRS = ("configs_mp", "configs")
 DYNAMIC_CONFIG_DIR = "bench_configs_mp"
 DATA_DIR = "data"
@@ -52,7 +52,7 @@ BENCHMARK_SETTINGS = {
 }
 SKIM_CACHE = False
 TIMEOUT = 36000.0  # ten hours
-VERSION = '1'
+VERSION = "1"
 
 
 def setup_cache():
@@ -79,5 +79,3 @@ template_component_timings_mp(
     PRETTY_NAME,
     VERSION,
 )
-
-

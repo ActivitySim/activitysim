@@ -47,7 +47,6 @@ ASV_CONFIG = {
         "numba": [],
         "coverage": [],
         "pytest": [],
-        "ruamel.yaml": [],
         "cytoolz": [],
     },
     # The directory (relative to the current directory) to cache the Python

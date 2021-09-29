@@ -42,6 +42,11 @@ COMPONENT_NAMES = [
     "trip_mode_choice",
 ]
 BENCHMARK_SETTINGS = {
+    # TODO: This multiprocess benchmarking is minimally functional,
+    # but has a bad habit of crashing due to memory allocation errors on
+    # all but the tiniest of examples. It would be great to fix the MP
+    # benchmarks so they use chunking, automatically configure for available
+    # RAM, and run a training-production cycle to get useful timing results.
     "households_sample_size": 400,
     "num_processes": NUM_PROCESSORS,
 }

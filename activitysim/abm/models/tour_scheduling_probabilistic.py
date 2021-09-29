@@ -26,6 +26,31 @@ logger = logging.getLogger(__name__)
 def run_tour_scheduling_probabilistic(
         tours_df, scheduling_probs, probs_join_cols, depart_alt_base, chunk_size,
         trace_label, trace_hh_id):
+    """Make probabilistic tour scheduling choices in chunks
+
+    Parameters
+    ----------
+    tours_df : pandas.DataFrame
+        table of tours
+    scheduling_probs : pandas.DataFrame
+        Probability lookup table for tour depature and return times
+    probs_join_cols : str or list of strs
+        Columns to use for merging probability lookup table with tours table
+    depart_alt_base : int 
+        int to add to probs column index to get time period it represents.
+        e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
+    chunk_size : int
+        size of chooser chunks, set in main settings.yaml
+    trace_label : str
+        label to append to tracing logs and table names
+    trace_hh_id : int
+        households to trace
+
+    Returns
+    -------
+    pandas.Series
+        series of chosen alternative indices for each chooser
+    """
 
     row_size = chunk_size and ps.calc_row_size(
             tours_df, scheduling_probs, trace_label, 'tour', probs_join_cols)
@@ -48,6 +73,23 @@ def tour_scheduling_probabilistic(
         tours,
         chunk_size,
         trace_hh_id):
+    """Makes tour departure and arrival choices by sampling from a probability lookup table
+
+    This model samples tour scheduling choices from an exogenously defined probability
+    distribution rather than simulating choices from a discrete choice model. This is particularly
+    useful when estimating from sparse survey data with small numbers of observations
+    across tour scheduling alternatives.
+
+    Parameters
+    ----------
+    tours :  orca.DataFrameWrapper
+        lazy-loaded table of tours
+    chunk_size :  int
+        size of chooser chunks, defined in main settings.yaml
+    trace_hh_id : int
+        households to trace, defined in main settings.yaml
+
+    """
 
     trace_label = "tour_scheduling_probabilistic"
     model_settings_file_name = 'tour_scheduling_probabilistic.yaml'

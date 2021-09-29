@@ -28,13 +28,31 @@ def tour_od_choice(
         chunk_size,
         trace_hh_id):
 
-    """
+    """Simulates joint origin/destination choice for all tours.
+
     Given a set of previously generated tours, each tour needs to have an
     origin and a destination. In this case tours are the choosers, but
     the associated person that's making the tour does not necessarily have
     a home location assigned already. So we choose a tour origin at the same
     time as we choose a tour destination, and assign the tour origin as that
     person's home location.
+
+    Parameters
+    ----------
+    tours : orca.DataFrameWrapper
+        lazy-loaded tours table
+    persons : orca.DataFrameWrapper
+        lazy-loaded persons table
+    households : orca.DataFrameWrapper
+        lazy-loaded households table
+    land_use : orca.DataFrameWrapper
+        lazy-loaded land use data table
+    network_los : orca._InjectableFuncWrapper
+        lazy-loaded activitysim.los.Network_LOS object
+    chunk_size
+        simulation chunk size, set in main settings.yaml
+    trace_hh_id : int
+        households to trace, set in main settings.yaml
     """
 
     trace_label = 'tour_od_choice'

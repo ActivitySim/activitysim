@@ -211,7 +211,6 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
             self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True)).sort_values('TAP')
-            self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
             self.tvpb = pathbuilder.TransitVirtualPathBuilder(self)  # dependent on self.tap_df
 
     def load_data(self):

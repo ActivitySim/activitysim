@@ -18,7 +18,7 @@ Read in the omx files and create the skim objects
 
 
 @inject.injectable(cache=True)
-def network_los_preload():\
+def network_los_preload():
 
     # when multiprocessing with shared data mp_tasks has to call network_los methods
     # allocate_shared_skim_buffers() and load_shared_data() BEFORE network_los.load_data()

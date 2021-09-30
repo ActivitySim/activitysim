@@ -558,7 +558,7 @@ class Network_LOS(object):
 
         Returns
         -------
-        pandas Series
+        numpy.array
             string time period labels
         """
 

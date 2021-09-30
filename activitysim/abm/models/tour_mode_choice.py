@@ -117,7 +117,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
 
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (i.e. tour mode choice logsum creation)
-    if pipeline._PIPELINE.rng().step_name != 'tour_mode_choice_simulate':
+    if pipeline.get_rn_generator().step_name != 'tour_mode_choice_simulate':
         estimator = None
     else:
         estimator = estimation.manager.begin_estimation('tour_mode_choice')

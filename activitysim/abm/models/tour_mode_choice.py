@@ -141,10 +141,11 @@ def tour_mode_choice_simulate(tours, persons_merged,
         # Construct table of hypothetical trips from tours for each potential
         # tour mode. Two trips (1 inbound, 1 outbound) per [tour, mode] bundle.
         # O/D, purpose, and departure times are inherited from tour.
-        primary_tours_merged['stop_frequency'] = '0out_0in'  # no intermediate stops
+        pseudo_trip_stop_freq = '0out_0in'  # no intermediate stops
+        primary_tours_merged['stop_frequency'] = pseudo_trip_stop_freq
         primary_tours_merged['primary_purpose'] = primary_tours_merged['tour_purpose']
         trips = trip.initialize_from_tours(primary_tours_merged)
-        trips['stop_frequency'] = '0out_0in'
+        trips['stop_frequency'] = pseudo_trip_stop_freq
         outbound = trips['outbound']
         trips['depart'] = reindex(primary_tours_merged.start, trips.tour_id)
         trips.loc[~outbound, 'depart'] = reindex(primary_tours_merged.end, trips.loc[~outbound, 'tour_id'])

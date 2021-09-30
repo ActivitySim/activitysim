@@ -274,7 +274,6 @@ def run_trip_scheduling(
         estimator,
         is_last_iteration,
         chunk_size,
-        chunk_tag,
         trace_hh_id,
         trace_label):
 
@@ -443,9 +442,8 @@ def trip_scheduling(
                         model_settings,
                         estimator=estimator,
                         is_last_iteration=is_last_iteration,
-                        trace_hh_id=trace_hh_id,
                         chunk_size=chunk_size,
-                        chunk_tag=trace_label,
+                        trace_hh_id=trace_hh_id,
                         trace_label=trace_label_i)
 
                 # boolean series of trips whose individual trip scheduling failed

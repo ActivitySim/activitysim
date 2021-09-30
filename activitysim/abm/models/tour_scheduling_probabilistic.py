@@ -51,12 +51,9 @@ def run_tour_scheduling_probabilistic(
     pandas.Series
         series of chosen alternative indices for each chooser
     """
-
-    row_size = chunk_size and ps.calc_row_size(
-            tours_df, scheduling_probs, trace_label, 'tour', probs_join_cols)
     result_list = []
     for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-            tours_df, chunk_size, row_size, trace_label):
+            tours_df, chunk_size, trace_label, trace_label):
         choices = ps.make_scheduling_choices(
             chooser_chunk, 'departure', scheduling_probs, probs_join_cols, depart_alt_base,
             first_trip_in_leg=False, report_failed_trips=True,

@@ -195,57 +195,6 @@ def _postprocess_scheduling_choices(
     return choices, failed
 
 
-def calc_row_size(choosers, spec, trace_label, chooser_type, probs_join_cols=None):
-
-    if probs_join_cols is None:
-        probs_join_cols = []
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    # NOTE we chunk chunk_id
-    # scale row_size by average number of chooser rows per chunk_id
-
-    if 'chunk_id' not in choosers.columns:
-        choosers['chunk_id'] = list(choosers.index.values)
-    num_choosers = choosers['chunk_id'].max() + 1
-    rows_per_chunk_id = len(choosers) / num_choosers
-
-    if chooser_type == 'trip':
-        # only non-initial trips require scheduling, segment handing first such trip in tour will use most space
-        outbound_chooser = (choosers.trip_num == 2) & choosers.outbound & (choosers.primary_purpose != 'atwork')
-        inbound_chooser = (
-            choosers.trip_num == choosers.trip_count-1) & ~choosers.outbound & (choosers.primary_purpose != 'atwork')
-
-        # furthermore, inbound and outbound are scheduled independently
-        if outbound_chooser.sum() > inbound_chooser.sum():
-            is_chooser = outbound_chooser
-            logger.debug(f"{trace_label} {is_chooser.sum()} outbound_choosers of {len(choosers)} require scheduling")
-        else:
-            is_chooser = inbound_chooser
-            logger.debug(f"{trace_label} {is_chooser.sum()} inbound_choosers of {len(choosers)} require scheduling")
-
-        chooser_fraction = is_chooser.sum()/len(choosers)
-    else:
-        chooser_fraction = 1
-    logger.debug(f"{trace_label} chooser_fraction {chooser_fraction *100}%")
-
-    chooser_row_size = len(choosers.columns) + len(spec.columns) - len(probs_join_cols)
-    sizer.add_elements(chooser_fraction * chooser_row_size, 'choosers')
-
-    # might be clipped to fewer but this is worst case
-    chooser_probs_row_size = len(spec.columns) - len(probs_join_cols)
-    sizer.add_elements(chooser_fraction * chooser_probs_row_size, 'chooser_probs')
-
-    sizer.add_elements(chooser_fraction, 'choices')
-    sizer.add_elements(chooser_fraction, 'rands')
-    sizer.add_elements(chooser_fraction, 'failed')
-
-    row_size = sizer.get_hwm()
-    row_size = row_size * rows_per_chunk_id
-
-    return row_size
-
-
 def make_scheduling_choices(
         choosers_df, scheduling_mode,
         probs_spec, probs_join_cols,

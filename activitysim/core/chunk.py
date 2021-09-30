@@ -661,6 +661,8 @@ class ChunkSizer(object):
                 log_rss(trace_label)  # give parent a complementary log_rss reading entering sub context
         else:
             self.rss, self.uss = 0, 0
+            chunk_size = 0
+            config.override_setting('chunk_size', 0)
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label

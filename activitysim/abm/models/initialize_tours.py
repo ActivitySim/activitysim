@@ -94,7 +94,7 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
         model_settings=model_settings.get('annotate_tours'),
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_tours'))
 
-    skip_patch_tour_ids = model_settings.get('skip_patch_tour_ids')
+    skip_patch_tour_ids = model_settings.get('skip_patch_tour_ids', False)
     if skip_patch_tour_ids:
         pass
     else:

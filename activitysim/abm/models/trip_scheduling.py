@@ -43,6 +43,8 @@ FAILFIX_CHOOSE_MOST_INITIAL = 'choose_most_initial'
 FAILFIX_DROP_AND_CLEANUP = 'drop_and_cleanup'
 FAILFIX_DEFAULT = FAILFIX_CHOOSE_MOST_INITIAL
 
+DEPARTURE_MODE = 'departure'
+DURATION_MODE = 'stop_duration'
 PROBS_JOIN_COLUMNS_DEPARTURE_BASED = ['primary_purpose', 'outbound', 'tour_hour', 'trip_num']
 PROBS_JOIN_COLUMNS_DURATION_BASED = ['outbound', 'stop_num']
 
@@ -204,7 +206,7 @@ def schedule_trips_in_leg(
 
     # add next_trip_id temp column, and specificy departure constraint column to update
     trips = trips.sort_index()
-    if outbound or scheduling_mode == 'stop_duration':
+    if outbound or scheduling_mode == DURATION_MODE:
         trips['next_trip_id'] = np.roll(trips.index, -1)
         is_final = trips.trip_num == trips.trip_count
         # each trip's depart constrains next trip's earliest depart option
@@ -220,7 +222,7 @@ def schedule_trips_in_leg(
     first_trip_in_leg = True
     for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
 
-        if outbound or scheduling_mode == 'stop_duration':
+        if outbound or scheduling_mode == DURATION_MODE:
             # iterate in ascending trip_num order
             nth_trips = trips[trips.trip_num == i]
         else:

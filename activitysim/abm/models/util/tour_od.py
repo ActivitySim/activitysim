@@ -1,6 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-# Code here primarily based on tour_destination.py
 
 import logging
 

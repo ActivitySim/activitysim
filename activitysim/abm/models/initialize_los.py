@@ -112,47 +112,6 @@ def initialize_los(network_los):
                     np.copyto(data, np.nan)
 
 
-def initialize_tvpb_calc_row_size(choosers, network_los, trace_label):
-    """
-    rows_per_chunk calculator for trip_purpose
-    """
-
-    sizer = chunk.RowSizeEstimator(trace_label)
-
-    model_settings = \
-        network_los.setting(f'TVPB_SETTINGS.tour_mode_choice.tap_tap_settings')
-    attributes_as_columns = \
-        network_los.setting('TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attributes_as_columns', [])
-
-    #  expression_values for each spec row
-    sizer.add_elements(len(choosers.columns), 'choosers')
-
-    #  expression_values for each spec row
-    sizer.add_elements(len(attributes_as_columns), 'attributes_as_columns')
-
-    preprocessor_settings = model_settings.get('PREPROCESSOR')
-    if preprocessor_settings:
-
-        preprocessor_spec_name = preprocessor_settings.get('SPEC', None)
-
-        if not preprocessor_spec_name.endswith(".csv"):
-            preprocessor_spec_name = f'{preprocessor_spec_name}.csv'
-        expressions_spec = assign.read_assignment_spec(config.config_file_path(preprocessor_spec_name))
-
-        sizer.add_elements(expressions_spec.shape[0], 'preprocessor')
-
-    #  expression_values for each spec row
-    spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
-    sizer.add_elements(spec.shape[0], 'expression_values')
-
-    #  expression_values for each spec row
-    sizer.add_elements(spec.shape[1], 'utilities')
-
-    row_size = sizer.get_hwm()
-
-    return row_size
-
-
 def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
 
     # scalar_attributes is a dict of attribute name/value pairs for this combination

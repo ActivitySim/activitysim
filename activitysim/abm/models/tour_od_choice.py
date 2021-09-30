@@ -24,6 +24,7 @@ def tour_od_choice(
         persons,
         households,
         land_use,
+        stop_frequency_alts,
         network_los,
         chunk_size,
         trace_hh_id):
@@ -47,6 +48,8 @@ def tour_od_choice(
         lazy-loaded households table
     land_use : orca.DataFrameWrapper
         lazy-loaded land use data table
+    stop_frequency_alts : orca.DataFrameWrapper
+        lazy-loaded table of stop frequency alternatives, e.g. "1out2in"
     network_los : orca._InjectableFuncWrapper
         lazy-loaded activitysim.los.Network_LOS object
     chunk_size
@@ -86,6 +89,7 @@ def tour_od_choice(
     choices_df, save_sample_df = tour_od.run_tour_od(
         tours,
         persons,
+        stop_frequency_alts,
         want_logsums,
         want_sample_table,
         model_settings,

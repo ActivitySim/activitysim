@@ -127,7 +127,16 @@ def get_time_windows(residual, level):
     return np.concatenate(ranges, axis=1)
 
 
-def initialize_from_tours(tours, addtl_tour_cols_to_preserve=None):
+@inject.injectable()
+def stop_frequency_alts():
+    # alt file for building trips even though simulation is simple_simulate not interaction_simulate
+    file_path = config.config_file_path('stop_frequency_alternatives.csv')
+    df = pd.read_csv(file_path, comment='#')
+    df.set_index('alt', inplace=True)
+    return df
+
+
+def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserve=None):
     """
     Instantiates a trips table based on tour-level attributes: stop frequency,
     tour origin, tour destination.

@@ -635,6 +635,7 @@ def run_od_logsums(
         spec_segment_name,
         tours_merged_df,
         od_sample,
+        stop_frequency_alts,
         model_settings,
         network_los,
         estimator,
@@ -695,7 +696,8 @@ def run_od_logsums(
         # tours don't yet have ODs.
         pseudo_tours['tour_destination'] = pseudo_tours[dest_id_col]
         trips = trip.initialize_from_tours(
-            pseudo_tours, [origin_id_col, dest_id_col, 'tour_destination', 'unique_id'])
+            pseudo_tours, stop_frequency_alts,
+            [origin_id_col, dest_id_col, 'tour_destination', 'unique_id'])
         outbound = trips['outbound']
         trips['depart'] = reindex(pseudo_tours.start, trips.unique_id)
         trips.loc[~outbound, 'depart'] = reindex(pseudo_tours.end, trips.loc[~outbound, 'unique_id'])
@@ -859,6 +861,7 @@ def run_od_simulate(
 def run_tour_od(
         tours,
         persons,
+        stop_frequency_alts,
         want_logsums,
         want_sample_table,
         model_settings,
@@ -935,6 +938,7 @@ def run_tour_od(
                 spec_segment_name,
                 choosers,
                 od_sample_df,
+                stop_frequency_alts,
                 model_settings,
                 network_los,
                 estimator,

@@ -33,6 +33,7 @@ will be used for the tour
 
 @inject.step()
 def tour_mode_choice_simulate(tours, persons_merged,
+                              stop_frequency_alts,
                               network_los,
                               chunk_size,
                               trace_hh_id):
@@ -144,7 +145,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
         pseudo_trip_stop_freq = '0out_0in'  # no intermediate stops
         primary_tours_merged['stop_frequency'] = pseudo_trip_stop_freq
         primary_tours_merged['primary_purpose'] = primary_tours_merged['tour_purpose']
-        trips = trip.initialize_from_tours(primary_tours_merged)
+        trips = trip.initialize_from_tours(primary_tours_merged, stop_frequency_alts)
         trips['stop_frequency'] = pseudo_trip_stop_freq
         outbound = trips['outbound']
         trips['depart'] = reindex(primary_tours_merged.start, trips.tour_id)

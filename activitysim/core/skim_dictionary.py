@@ -361,7 +361,7 @@ class SkimDict(object):
 class SkimWrapper(object):
 
     """
-    A   ltiple skim objects,
+    A SkimWrapper object is an access wrapper around a SkimDict of multiple skim objects,
     where each object is identified by a key.
 
     This is just a way to simplify expression files by hiding the and orig, dest arguments

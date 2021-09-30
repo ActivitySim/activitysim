@@ -1,6 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-
 import logging
 
 import pandas as pd

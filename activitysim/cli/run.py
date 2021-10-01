@@ -101,6 +101,7 @@ def handle_standard_args(args, multiprocess=True):
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
 
+    # settings_file_name should be cached or else it gets squashed by config.py
     if args.settings_file:
         inject_arg('settings_file_name', args.settings_file, cache=True)
 

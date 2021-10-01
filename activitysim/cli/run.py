@@ -92,9 +92,9 @@ def validate_injectable(name):
 
 def handle_standard_args(args, multiprocess=True):
 
-    def inject_arg(name, value):
+    def inject_arg(name, value, cache=False):
         assert name in INJECTABLES
-        inject.add_injectable(name, value)
+        inject.add_injectable(name, value, cache=cache)
 
     if args.working_dir:
         # activitysim will look in the current working directory for
@@ -102,7 +102,7 @@ def handle_standard_args(args, multiprocess=True):
         os.chdir(args.working_dir)
 
     if args.settings_file:
-        inject_arg('settings_file_name', args.settings_file)
+        inject_arg('settings_file_name', args.settings_file, cache=True)
 
     if args.config:
         inject_arg('configs_dir', args.config)

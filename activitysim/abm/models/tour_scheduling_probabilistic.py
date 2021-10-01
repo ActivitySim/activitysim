@@ -36,8 +36,8 @@ def run_tour_scheduling_probabilistic(
         Probability lookup table for tour depature and return times
     probs_join_cols : str or list of strs
         Columns to use for merging probability lookup table with tours table
-    depart_alt_base : int 
-        int to add to probs column index to get time period it represents.
+    depart_alt_base : int
+        int to add to probs column index to get time period it represents. 
         e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
     chunk_size : int
         size of chooser chunks, set in main settings.yaml

@@ -29,6 +29,8 @@ logger = logging.getLogger(__name__)
 Tour mode choice is run for all tours to determine the transportation mode that
 will be used for the tour
 """
+
+
 def get_alts_from_segmented_nested_logit(model_settings, segment_name, trace_label):
     """Infer alts from logit spec
 
@@ -42,7 +44,7 @@ def get_alts_from_segmented_nested_logit(model_settings, segment_name, trace_lab
     -------
     list
     """
-    
+
     nest_spec = config.get_logit_model_settings(model_settings)
     coefficients = simulate.get_segment_coefficients(model_settings, segment_name)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
@@ -58,7 +60,7 @@ def create_logsum_trips(
         tours, stop_frequency_alts, segment_column_name, model_settings, trace_label):
     """
     Construct table of trips from half-tours (1 inbound, 1 outbound) for each tour-mode.
-    
+
     Parameters
     ----------
     tours : pandas.DataFrame
@@ -141,9 +143,8 @@ def get_trip_mc_logsums_for_all_modes(
     -------
     tours : pd.DataFrame
         Adds two * n_modes logsum columns to each tour row, e.g. "logsum_DRIVE_outbound"
-
     """
-    
+
     # create pseudo-trips from tours for all tour modes
     logsum_trips = create_logsum_trips(
         tours, stop_frequency_alts, segment_column_name, model_settings,

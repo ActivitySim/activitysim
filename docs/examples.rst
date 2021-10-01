@@ -1437,7 +1437,10 @@ example_semcog
 
 The example_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
 and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
-submodel :ref:`sub-model-spec-files`.
+submodel :ref:`sub-model-spec-files`.  These submodels were added to example_semcog as extensions, which is a way for users to add 
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
+the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
+in order to load the extensions folder.
 
 .. _semcog-sub-model-spec-files:
 

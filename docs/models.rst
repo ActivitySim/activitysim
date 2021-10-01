@@ -98,6 +98,34 @@ Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O
 .. automodule:: activitysim.abm.models.accessibility
    :members:
 
+.. _work_from_home:
+
+Work From Home
+--------------
+
+Telecommuting is defined as workers who work from home instead of going 
+to work. It only applies to workers with a regular workplace outside of home. 
+The telecommute model consists of two submodels - this work from home model and a 
+person :ref:`telecommute_frequency` model. This model predicts for all workers whether they 
+usually work from home.
+
+The work from home model includes the ability to adjust a work from home alternative
+constant to attempt to realize a work from home percent for what-if type analysis.  
+This iterative single process procedure takes as input a number of iterations, a filter on 
+the choosers to use for the calculation, a target work from home percent, a tolerance percent 
+for convergence, and the name of the coefficient to adjust.  An example setup is provided and 
+the coefficient adjustment at each iteration is: 
+``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
+
+The main interface to the work from home model is the 
+:py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
+function is registered as an Inject step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.work_from_home
+   :members:
+
 .. _school_location:
 .. _work_location:
 
@@ -170,93 +198,6 @@ The shadow pricing calculator used by work and school location choice.
 .. automodule:: activitysim.abm.tables.shadow_pricing
    :members:
 
-.. _auto_ownership:
-
-Auto Ownership
---------------
-
-The auto ownership model selects a number of autos for each household in the simulation. 
-The primary model components are household demographics, zonal density, and accessibility.
-
-The main interface to the auto ownership model is the 
-:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate` 
-function.  This function is registered as an Inject step in the example Pipeline.
-
-Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
-
-
-.. automodule:: activitysim.abm.models.auto_ownership
-   :members:
-
-.. _freeparking:
-
-Free Parking Eligibility
-------------------------
-
-The Free Parking Eligibility model predicts the availability of free parking at a person's
-workplace.  It is applied for people who work in zones that have parking charges, which are 
-generally located in the Central Business Districts. The purpose of the model is to adequately 
-reflect the cost of driving to work in subsequent models, particularly in mode choice. 
-
-The main interface to the free parking eligibility model is the 
-:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered 
-as an Inject step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
-
-.. automodule:: activitysim.abm.models.free_parking
-   :members:
-
-.. _work_from_home:
-
-Work From Home
---------------
-
-Telecommuting is defined as workers who work from home instead of going 
-to work. It only applies to workers with a regular workplace outside of home. 
-The telecommute model consists of two submodels - this work from home model and a 
-person :ref:`telecommute_frequency` model. This model predicts for all workers whether they 
-usually work from home.
-
-The work from home model includes the ability to adjust a work from home alternative
-constant to attempt to realize a work from home percent for what-if type analysis.  
-This iterative single process procedure takes as input a number of iterations, a filter on 
-the choosers to use for the calculation, a target work from home percent, a tolerance percent 
-for convergence, and the name of the coefficient to adjust.  An example setup is provided and 
-the coefficient adjustment at each iteration is: 
-``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
-
-The main interface to the work from home model is the 
-:py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
-function is registered as an Inject step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
-
-.. automodule:: activitysim.examples.example_semcog.extensions.work_from_home
-   :members:
-
-.. _telecommute_frequency:
-
-Telecommute Frequency
----------------------
-
-Telecommuting is defined as workers who work from home instead of going to work. It only applies to
-workers with a regular workplace outside of home. The telecommute model consists of two 
-submodels - a person :ref:`work_from_home` model and this person telecommute frequency model.
-
-For all workers that work out of the home, the telecommute models predicts the 
-level of telecommuting. The model alternatives are the frequency of telecommuting in 
-days per week (0 days, 1 day, 2 to 3 days, 4+ days).
-
-The main interface to the work from home model is the 
-:py:func:`~activitysim.examples.example_semcog.extensions.telecommute_frequency` function.  This 
-function is registered as an Inject step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: NA
-
-.. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
-   :members:
-
 .. _transit_pass_subsidy:
 
 Transit Pass Subsidy
@@ -296,6 +237,65 @@ function is registered as an Inject step in the example Pipeline.
 Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
 
 .. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
+   :members:
+
+.. _auto_ownership:
+
+Auto Ownership
+--------------
+
+The auto ownership model selects a number of autos for each household in the simulation. 
+The primary model components are household demographics, zonal density, and accessibility.
+
+The main interface to the auto ownership model is the 
+:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate` 
+function.  This function is registered as an Inject step in the example Pipeline.
+
+Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
+
+
+.. automodule:: activitysim.abm.models.auto_ownership
+   :members:
+
+.. _telecommute_frequency:
+
+Telecommute Frequency
+---------------------
+
+Telecommuting is defined as workers who work from home instead of going to work. It only applies to
+workers with a regular workplace outside of home. The telecommute model consists of two 
+submodels - a person :ref:`work_from_home` model and this person telecommute frequency model.
+
+For all workers that work out of the home, the telecommute models predicts the 
+level of telecommuting. The model alternatives are the frequency of telecommuting in 
+days per week (0 days, 1 day, 2 to 3 days, 4+ days).
+
+The main interface to the work from home model is the 
+:py:func:`~activitysim.examples.example_semcog.extensions.telecommute_frequency` function.  This 
+function is registered as an Inject step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
+   :members:
+
+.. _freeparking:
+
+Free Parking Eligibility
+------------------------
+
+The Free Parking Eligibility model predicts the availability of free parking at a person's
+workplace.  It is applied for people who work in zones that have parking charges, which are 
+generally located in the Central Business Districts. The purpose of the model is to adequately 
+reflect the cost of driving to work in subsequent models, particularly in mode choice. 
+
+The main interface to the free parking eligibility model is the 
+:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered 
+as an Inject step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
+
+.. automodule:: activitysim.abm.models.free_parking
    :members:
 
 .. _cdap:

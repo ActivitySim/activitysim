@@ -365,6 +365,11 @@ accessibility-based parameters such as the mode choice logsum for the departure/
 combination, demographics, and time pattern characteristics such as the time windows available 
 from previously scheduled tours. This model uses person :ref:`time_windows`.
 
+
+.. note::
+   For ``example_mtc``, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
+
+
 If ``tour_departure_and_duration_segments.csv`` is included in the configs, then the model
 will use these representative start and end time periods when calculating mode choice logsums
 instead of the specific start and end combinations for each alternative to reduce runtime.  This
@@ -379,7 +384,6 @@ The main interface to the mandatory tour purpose scheduling model is the
 function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``TAZ, workplace_taz, school_taz, start, end``
-
 
 .. automodule:: activitysim.abm.models.mandatory_scheduling
    :members:

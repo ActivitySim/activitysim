@@ -142,10 +142,6 @@ def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserv
     tour origin, tour destination.
     """
 
-    stop_frequency_alts = pd.read_csv(
-        config.config_file_path('stop_frequency_alternatives.csv'), comment='#')
-    stop_frequency_alts.set_index('alt', inplace=True)
-
     OUTBOUND_ALT = 'out'
     assert OUTBOUND_ALT in stop_frequency_alts.columns
 

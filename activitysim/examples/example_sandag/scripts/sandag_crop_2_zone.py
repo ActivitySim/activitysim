@@ -8,7 +8,7 @@ import argparse
 MAZ_OFFSET = 0
 
 segments = {
-    'test': (331, 358),  # arbitrary
+    'test': (492, 1100),  # includes univ
     'full': (0, 100000),
 }
 
@@ -28,7 +28,7 @@ segment_name = args.segment_name[0]
 check_geography = args.check_geography
 
 assert segment_name in segments.keys(), f"Unknown seg: {segment_name}"
-taz_min, taz_max = segments[segment_name]
+maz_min, maz_max = segments[segment_name]
 
 input_dir = './data_raw'
 output_dir = f'./data_{segment_name}_2'
@@ -38,8 +38,8 @@ print(f"segment_name {segment_name}")
 
 print(f"input_dir {input_dir}")
 print(f"output_dir {output_dir}")
-print(f"taz_min {taz_min}")
-print(f"taz_max {taz_max}")
+print(f"maz_min {maz_min}")
+print(f"maz_max {maz_max}")
 
 print(f"check_geography {check_geography}")
 
@@ -79,7 +79,7 @@ def to_csv(df, file_name):
     df.to_csv(output_path(file_name), index=False)
 
 
-print(f"output_dir {output_dir} taz_min {taz_min} taz_max {taz_max}")
+print(f"output_dir {output_dir} maz_min {maz_min} maz_max {maz_max}")
 
 
 if check_geography:
@@ -139,7 +139,7 @@ if check_geography:
 # land_use
 #
 land_use = read_csv("land_use.csv")
-land_use = land_use[(land_use["TAZ"] >= taz_min) & (land_use["TAZ"] <= taz_max)]
+land_use = land_use[(land_use["MAZ"] >= maz_min) & (land_use["MAZ"] <= maz_max)]
 integerize_id_columns(land_use, 'land_use')
 land_use = land_use.sort_values('MAZ')
 
@@ -228,7 +228,7 @@ taz_labels = taz.TAZ.tolist()  # TAZ zone_ids in omx index order
 # create
 num_outfiles = 6 if segment_name == 'full' else 1
 if num_outfiles == 1:
-    omx_out = [omx.open_file(output_path(f"skims.omx"), 'w')]
+    omx_out = [omx.open_file(output_path(f"skims1.omx"), 'w')]
 else:
     omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
 

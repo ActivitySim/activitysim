@@ -635,7 +635,6 @@ def run_od_logsums(
         spec_segment_name,
         tours_merged_df,
         od_sample,
-        stop_frequency_alts,
         model_settings,
         network_los,
         estimator,
@@ -694,6 +693,7 @@ def run_od_logsums(
         # tour dest as separate column in the trips table bc the trip mode choice
         # preprocessor isn't able to get the tour dest from the tours table bc the
         # tours don't yet have ODs.
+        stop_frequency_alts = inject.get_injectable('stop_frequency_alts')
         pseudo_tours['tour_destination'] = pseudo_tours[dest_id_col]
         trips = trip.initialize_from_tours(
             pseudo_tours, stop_frequency_alts,
@@ -861,7 +861,6 @@ def run_od_simulate(
 def run_tour_od(
         tours,
         persons,
-        stop_frequency_alts,
         want_logsums,
         want_sample_table,
         model_settings,
@@ -938,7 +937,6 @@ def run_tour_od(
                 spec_segment_name,
                 choosers,
                 od_sample_df,
-                stop_frequency_alts,
                 model_settings,
                 network_los,
                 estimator,

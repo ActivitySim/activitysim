@@ -57,14 +57,13 @@ def get_alts_from_segmented_nested_logit(model_settings, segment_name, trace_lab
 
 
 def create_logsum_trips(
-        tours, stop_frequency_alts, segment_column_name, model_settings, trace_label):
+        tours, segment_column_name, model_settings, trace_label):
     """
     Construct table of trips from half-tours (1 inbound, 1 outbound) for each tour-mode.
 
     Parameters
     ----------
     tours : pandas.DataFrame
-    stop_frequency_alts : pandas.DataFrame
     segment_column_name : str
         column in tours table used for segmenting model spec
     model_settings : dict
@@ -75,6 +74,7 @@ def create_logsum_trips(
     pandas.DataFrame
         Table of trips: 2 per tour, with O/D and purpose inherited from tour
     """
+    stop_frequency_alts = inject.get_injectable('stop_frequency_alts')
     stop_freq = '0out_0in'  # no intermediate stops
     tours['stop_frequency'] = stop_freq
     tours['primary_purpose'] = tours['tour_purpose']
@@ -127,13 +127,12 @@ def append_tour_leg_trip_mode_choice_logsums(tours):
 
 
 def get_trip_mc_logsums_for_all_modes(
-        tours, stop_frequency_alts, segment_column_name, model_settings, trace_label):
+        tours, segment_column_name, model_settings, trace_label):
     """Creates pseudo-trips from tours and runs trip mode choice to get logsums
 
     Parameters
     ----------
     tours : pandas.DataFrame
-    stop_frequency_alts : pandas.DataFrame
     segment_column_name : str
         column in tours table used for segmenting model spec
     model_settings : dict
@@ -147,7 +146,7 @@ def get_trip_mc_logsums_for_all_modes(
 
     # create pseudo-trips from tours for all tour modes
     logsum_trips = create_logsum_trips(
-        tours, stop_frequency_alts, segment_column_name, model_settings,
+        tours, segment_column_name, model_settings,
         trace_label)
 
     # temporarily register trips in the pipeline
@@ -171,7 +170,6 @@ def get_trip_mc_logsums_for_all_modes(
 
 @inject.step()
 def tour_mode_choice_simulate(tours, persons_merged,
-                              stop_frequency_alts,
                               network_los,
                               chunk_size,
                               trace_hh_id):
@@ -278,7 +276,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     # if trip logsums are used, run trip mode choice and append the logsums
     if model_settings.get('COMPUTE_TRIP_MODE_CHOICE_LOGSUMS', False):
         primary_tours_merged = get_trip_mc_logsums_for_all_modes(
-            primary_tours_merged, stop_frequency_alts, segment_column_name,
+            primary_tours_merged, segment_column_name,
             model_settings, trace_label)
 
     choices_list = []

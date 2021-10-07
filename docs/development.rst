@@ -279,7 +279,7 @@ Releases
 ~~~~~~~~
 
 With the agreement of the PMC, a project administrator will handle making releases, following the detailed
-steps outlined in the [HOW_TO_RELEASE](https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md)
+steps outlined in the `HOW_TO_RELEASE <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__
 document.
 
 

@@ -265,7 +265,7 @@ def make_scheduling_choices(
 
     # report failed trips while we have the best diagnostic info
     if report_failed_trips and failed.any():
-        report_bad_choices(
+        _report_bad_choices(
             bad_row_map=failed,
             df=choosers,
             filename='failed_choosers',

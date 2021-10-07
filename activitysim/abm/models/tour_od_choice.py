@@ -24,7 +24,6 @@ def tour_od_choice(
         persons,
         households,
         land_use,
-        stop_frequency_alts,
         network_los,
         chunk_size,
         trace_hh_id):
@@ -89,7 +88,6 @@ def tour_od_choice(
     choices_df, save_sample_df = tour_od.run_tour_od(
         tours,
         persons,
-        stop_frequency_alts,
         want_logsums,
         want_sample_table,
         model_settings,

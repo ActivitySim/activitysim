@@ -6,7 +6,7 @@ import numpy as np
 import argparse
 
 segments = {
-    'test': (2185, 2240),  # arbitrary
+    'test': '../data_2/taz.csv',  # crop to match 2 zone TAZs, includes univ
     'full': (0, 100000),
 }
 
@@ -26,7 +26,12 @@ segment_name = args.segment_name[0]
 check_geography = args.check_geography
 
 assert segment_name in segments.keys(), f"Unknown seg: {segment_name}"
-zone_min, zone_max = segments[segment_name]
+if isinstance(segments[segment_name], str):
+    zone_df = pd.read_csv(segments[segment_name])
+    zones = zone_df['TAZ'].values
+else:
+    zone_min, zone_max = segments[segment_name]
+    zones = range(zone_min, zone_max + 1)
 
 input_dir = './data_raw'
 output_dir = f'./data_{segment_name}_1'
@@ -89,7 +94,7 @@ if check_geography:
 # land_use
 #
 land_use = read_csv("land_use.csv")
-land_use = land_use[(land_use["TAZ"] >= zone_min) & (land_use["TAZ"] <= zone_max)]
+land_use = land_use[land_use["TAZ"].isin(zones)]
 integerize_id_columns(land_use, 'land_use')
 land_use = land_use.sort_values('TAZ')
 
@@ -135,7 +140,7 @@ zone_labels = zone.TAZ.tolist()  # TAZ in omx index order
 # create
 num_outfiles = 6 if segment_name == 'full' else 1
 if num_outfiles == 1:
-    omx_out = [omx.open_file(output_path(f"skims.omx"), 'w')]
+    omx_out = [omx.open_file(output_path(f"skims1.omx"), 'w')]
 else:
     omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
 

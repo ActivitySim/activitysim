@@ -72,6 +72,10 @@ tools for certain development tasks::
   # packages for example notebooks
   conda install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
+To create an environment containing all these optional dependencies at once, you
+can run the shortcut command::
+
+  conda env create activitysim/ASIM -n asim
 
 4. To use the **asim** environment, you need to activate it::
 
@@ -109,6 +113,16 @@ the ActivitySim repository, and then from within that directory run::
 
 The "-e" will install in editable mode, so any changes you make to the ActivitySim
 code will also be reflected in your installation.
+
+Installing from source is easier if you have all the necessary dependencies already
+installed in a development conda environment.  Developers can create an
+environment that has all the optional dependencies preinstalled by running::
+
+  conda env create activitysim/ASIM-DEV
+
+If you prefer to use a different environment name than `ASIM-DEV`, just
+append `--name OTHERNAME` to the command. Then all that's left to do is install
+ActivitySim itself in editable mode as described above.
 
 .. note::
 

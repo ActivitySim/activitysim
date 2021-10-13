@@ -87,7 +87,7 @@ Estimation Notebooks
 
 ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive re-estimation examples for each estimatable submodel.  To run a Jupyter notebook, do the following:
 
-* Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed
+* Open a conda prompt and activate the conda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
 * Navigate to the ``examples/examples_estimaton/notebooks`` folder and select a notebook from the table below

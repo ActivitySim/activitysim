@@ -17,10 +17,11 @@ Installation
 1. It is recommended that you install and use a *conda* package manager
 for your system. One easy way to do so is by using `Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
 although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
-for this product and ensure you qualify (as of summer 2021, businesses and
-governments with over 200 employees do not qualify for free usage).  If you prefer
+for this product and ensure you qualify since businesses and
+governments with over 200 employees do not qualify for free usage.  If you prefer
 a completely free open source *conda* tool, you can download and install the
-appropriate version of `Miniforge <https://github.com/conda-forge/miniforge#miniforge3>`__.
+appropriate version of `Miniforge <https://github.com/conda-forge/miniforge#miniforge3>`__.  If desired, 
+select 'add miniforge3 to the system PATH environment variable' so typing 'conda' on the command line will work.
 
 2. If you access the internet from behind a firewall, then you may need to
 configure your proxy server. To do so, create a `.condarc` file in your
@@ -34,7 +35,7 @@ home installation folder, such as:
   ssl_verify: false
 
 3. Create a conda environment (basically a Python install just for this project)
-using Anaconda Prompt (on Windows) or the terminal (macOS or Linux)::
+using conda Prompt (on Windows) or the terminal (macOS or Linux)::
 
   conda create -n asim python=3.9 activitysim -c conda-forge --override-channels
 
@@ -82,7 +83,7 @@ can run the shortcut command::
   conda activate asim
 
 The activation of the correct environment needs to be done every time you
-start a new session (e.g. opening a new Anaconda Prompt window).
+start a new session (e.g. opening a new conda Prompt window).
 
 Alternative Installation Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,7 +131,7 @@ ActivitySim itself in editable mode as described above.
   scientific Python ecosystem, most notably `pandas <http://pandas.pydata.org>`__
   and `numpy <http://numpy.org>`__.
 
-  The recommended way to get your own scientific Python installation is to
+  As mentioned above, the recommended way to get your own scientific Python installation is to
   install 64 bit Anaconda, which contains many of the libraries upon which
   ActivitySim depends + some handy Python installation management tools.
 
@@ -174,7 +175,7 @@ Try the Notebooks
 
 ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive examples.  To run a Jupyter notebook, do the following:
 
-* Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed
+* Open a conda prompt and activate the conda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
 * Navigate to the ``examples/example_mtc/notebooks`` folder and select a notebook to learn more:

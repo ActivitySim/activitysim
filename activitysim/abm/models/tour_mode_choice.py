@@ -316,7 +316,7 @@ def tour_mode_choice_simulate(tours, persons_merged,
     if network_los.zone_system == los.THREE_ZONE:
 
         tvpb_mode_path_types = model_settings.get('tvpb_mode_path_types')
-        if tvpb_mode_path_types is None:
+        if tvpb_mode_path_types is not None:
             for mode, path_types in tvpb_mode_path_types.items():
 
                 for direction, skim in zip(['od', 'do'], [tvpb_logsum_odt, tvpb_logsum_dot]):

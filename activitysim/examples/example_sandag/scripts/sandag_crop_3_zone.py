@@ -1,16 +1,13 @@
-# crop marin tvpb example data processing to one county
-# Ben Stabler, ben.stabler@rsginc.com, 09/17/20
-
 import os
 import pandas as pd
 import openmatrix as omx
 import argparse
 import numpy as np
 
-MAZ_OFFSET = 100000
+MAZ_OFFSET = 0
 
 segments = {
-    'test': {'MAZ': np.arange(MAZ_OFFSET + 500, MAZ_OFFSET + 1080)},  # includes univ
+    'test': {'MAZ': np.arange(MAZ_OFFSET + 492, MAZ_OFFSET + 1101)},  # includes univ
     'univ_east': {'MAZ': np.arange(MAZ_OFFSET, MAZ_OFFSET + 1080)},
     'full': {},
 }
@@ -253,5 +250,5 @@ to_csv(persons, "persons.csv")
 
 # skims
 
-crop_omx('taz_skims', taz.TAZ, num_outfiles=(4 if segment_name == 'full' else 1))
-crop_omx('tap_skims', taps.TAP, num_outfiles=(4 if segment_name == 'full' else 1))
+crop_omx('taz_skims1', taz.TAZ, num_outfiles=(4 if segment_name == 'full' else 1))
+crop_omx('tap_skims1', taps.TAP, num_outfiles=(4 if segment_name == 'full' else 1))

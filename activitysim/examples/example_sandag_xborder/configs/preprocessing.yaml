@@ -1,48 +1,45 @@
+# misc settings
 data_dir: data
 config_dir: configs
-
-maz_input_fname: mgra13_based_input2016.csv
-maz_id_field: mgra
-poe_id_field: poe_id
-poe_access_field: 'colonia_pop_accessibility'
-
-colonia_input_fname: crossBorder_supercolonia.csv
-colonia_pop_field: 'Population'
 distance_param: -0.19
+walk_speed: 3
 
+
+# non-skim inputs
+maz_input_fname: mgra13_based_input2016.csv
+colonia_input_fname: crossBorder_supercolonia.csv
+tap_lines_input_fname: tapLines.csv
+tour_scheduling_probs_input_fname: crossBorder_tourEntryAndReturn.csv
+tour_purpose_control_probs_input_fname: crossBorder_tourPurpose_control.csv
+poe_wait_times_input_fname: crossBorder_pointOfEntryWaitTime.csv
+stop_frequency_input_fname: crossBorder_stopFrequency.csv
+trip_purpose_probs_input_fname: crossBorder_stopPurpose.csv
+trip_scheduling_probs_input_fnames:
+  outbound: crossBorder_outboundStopDuration.csv
+  inbound: crossBorder_inboundStopDuration.csv
+
+
+# output data
 mazs_output_fname: mazs_xborder.csv
 households_output_fname: households_xborder.csv
 persons_output_fname: persons_xborder.csv
 tours_output_fname: tours_xborder.csv
-
-tap_lines_input_fname: tapLines.csv
 tap_lines_output_fname: tap_lines.csv
 taps_output_fname: taps.csv
 
-tour_scheduling_probs_input_fname: crossBorder_tourEntryAndReturn.csv
+
+# output configs
 tour_scheduling_probs_output_fname: tour_scheduling_probs.csv
 tour_scheduling_alts_output_fname: tour_departure_and_duration_alternatives.csv
-
-tour_purpose_control_probs_input_fname: crossBorder_tourPurpose_control.csv
 tour_purpose_control_probs_output_fname: tour_purpose_probs_by_poe.csv
-
-poe_wait_times_input_fname: crossBorder_pointOfEntryWaitTime.csv
-
-stop_frequency_input_fname: crossBorder_stopFrequency.csv
 stop_frequency_alts_output_fname: stop_frequency_alternatives.csv
 stop_frequency_coeffs_output_formattable_fname: 'stop_frequency_coefficients_{purpose}.csv'
 stop_frequency_expressions_output_formattable_fname: 'stop_frequency_{purpose}.csv'
-
-trip_purpose_probs_input_fname: crossBorder_stopPurpose.csv
 trip_purpose_probs_output_fname: trip_purpose_probs.csv
-
-trip_scheduling_probs_input_fnames:
-  outbound: crossBorder_outboundStopDuration.csv
-  inbound: crossBorder_inboundStopDuration.csv
 trip_scheduling_probs_output_fname: trip_scheduling_probs.csv
 
-walk_speed: 3
 
+# skims
 skims:
   maz_to_maz:
     walk:
@@ -71,6 +68,8 @@ skims:
     input_base_fname: traffic_skims
     output_base_fname: traffic_skims_xborder
 
+
+# Points of Entry
 poes:
   0:
     name: San Ysidro
@@ -97,8 +96,13 @@ poes:
   #   name: Jacumba
   #   maz_id: 22094
 
+
+# Tours
 tours:
-  sentri_share: 0.29
+  pass_shares:
+    sentri: 0.219
+    ready: 0.322
+    no_pass: 0.459
   num_tours: 113995
   purpose_ids:
     work: 0
@@ -106,48 +110,28 @@ tours:
     shop: 2
     visit: 3
     other: 4
-  purpose_shares:
+  purpose_shares_by_pass_type:
     sentri:
-      work: 0.094789
-      school: 0.028892
-      # cargo: 0.125968
-      shop: 0.521858
-      visit: 0.093134
-      other: 0.135358
-    non_sentri:
-      work: 0.211918
-      school: 0.054489
-      # cargo: 0.127754
-      shop: 0.379447
-      visit: 0.082076
-      other: 0.144317
-  lane_shares_by_purpose: 
-    work:
-      std: 0.1
-      sentri: 0.2
-      ready: 0.2
-      ped: 0.5
-    school:
-      std: 0.1
-      sentri: 0.2
-      ready: 0.2
-      ped: 0.5
-    shop:
-      std: 0.1
-      sentri: 0.2
-      ready: 0.2
-      ped: 0.5
-    visit:
-      std: 0.1
-      sentri: 0.2
-      ready: 0.2
-      ped: 0.5
-    other:
-      std: 0.1
-      sentri: 0.2
-      ready: 0.2
-      ped: 0.5
+      work: 0.143264848  # new
+      school: 0.028223443  # new
+      shop: 0.727730975  # new
+      visit: 0.023476697  # new
+      other: 0.077304037  # new
+    ready:
+      work: 0.155162255  # new
+      school: 0.007794038  # new
+      shop: 0.702569828  # new
+      visit: 0.040267183  # new
+      other: 0.094206697  # new
+    no_pass:
+      work: 0.228715733  # new
+      school: 0.052974068  # new
+      shop: 0.59374183  # new
+      visit: 0.040553855  # new
+      other: 0.084014515  # new
 
+
+# Wait Time Model Settings
 wait_time_updating:
   iters: 3
   coeffs:

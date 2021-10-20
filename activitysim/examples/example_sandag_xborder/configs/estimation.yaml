@@ -11,18 +11,22 @@ bundles:
   - trip_scheduling
   - trip_mode_choice
 
+# NOTE: survey table indices must match 1-to-1 with input tables specified in
+# settings.yaml. It is recommended to use the same files in both places, but
+# this means the trip_id's in the survey data must have been created via the
+# abm.models.util.canonical_ids module.
 survey_tables:
   households:
-    file_name: output/final_households.csv
+    file_name: households_survey.csv
     index_col: household_id
   persons:
-    file_name:  output/final_persons.csv
+    file_name:  persons_survey.csv
     index_col: person_id
   tours:
-    file_name:  output/final_tours.csv
+    file_name:  tours_survey.csv
     index_col: tour_id
   trips:
-    file_name:  output/final_trips.csv
+    file_name:  trips_survey.csv
     index_col: trip_id
 
 estimation_table_recipes:

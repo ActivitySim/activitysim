@@ -81,7 +81,6 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
 
     offset_map = None
     for mapping_name in omx_in.listMappings():
-        breakpoint()
         _offset_map = np.asanyarray(omx_in.mapentries(mapping_name))
         offset_map = _offset_map
 
@@ -119,6 +118,7 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
 LAND_USE = "mazs_xborder.csv"
 HOUSEHOLDS = "households_xborder.csv"
 PERSONS = "persons_xborder.csv"
+TOURS = "tours_xborder.csv"
 # MAZ_TAZ = "maz.csv"
 # TAP_MAZ = "tap.csv"
 TAZ = "taz.csv"
@@ -175,19 +175,23 @@ taps = read_csv("taps.csv")
 taps = taps[taps["TAP"].isin(maz_tap_walk["TAP"])]
 to_csv(taps, "taps.csv")
 
-# # households
-# households = read_csv(HOUSEHOLDS)
-# households = households[households["MAZ"].isin(land_use["MAZ"])]
-# to_csv(households, "households.csv")
+tours = read_csv(TOURS)
+to_csv(tours, "tours.csv")
 
-# # persons
-# persons = read_csv(PERSONS)
+# households
+households = read_csv(HOUSEHOLDS)
+# households = households[households["MAZ"].isin(land_use["MAZ"])]
+to_csv(households, "households.csv")
+
+# persons
+persons = read_csv(PERSONS)
 # persons = persons[persons["household_id"].isin(households["HHID"])]
-# to_csv(persons, "persons.csv")
+to_csv(persons, "persons.csv")
 
 # drive skims
-for omx_fpath in glob.glob(input_path("*traffic*.omx")):
-    omx_fname = omx_fpath.split('/')[-1].split(".omx")[0]
+for omx_fpath in glob.glob(input_path("*traffic*xborder*.omx")):
+    print(omx_fpath)
+    omx_fname = omx_fpath.replace("\\", '/').split('/')[-1].split(".omx")[0]
     crop_omx(omx_fname, taz.TAZ)
 
 # transit skims

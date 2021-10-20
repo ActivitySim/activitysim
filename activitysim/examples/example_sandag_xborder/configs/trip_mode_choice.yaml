@@ -125,6 +125,6 @@ TOURS_MERGED_CHOOSER_COLUMNS:
   - stop_frequency
   - demographic_segment
   - duration
-  - sentri_crossing
+  - pass_type
 
 MODE_CHOICE_LOGSUM_COLUMN_NAME: trip_mode_choice_logsum

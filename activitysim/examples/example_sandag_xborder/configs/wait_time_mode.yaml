@@ -5,13 +5,43 @@ inherit_settings: False
 # chunk_size: 0
 
 households_sample_size: 0
-chunk_size: 15000000000
 
 multiprocess: True
 strict: False
 mem_tick: 30
 num_processes: 30
 fail_fast: True
+
+##############
+#
+# chunking
+#
+
+chunk_size: 50_000_000_000
+
+# minimum fraction of total chunk_size to reserve for adaptive chunking
+min_available_chunk_ratio: 0.05
+
+# initial number of chooser rows for first chunk in training mode
+# when there is no pre-existing chunk_cache to set initial value
+# ordinarily bigger is better as long as it is not so big it causes memory issues (e.g. accessibility with lots of zones)
+default_initial_rows_per_chunk: 500
+
+# method to calculate memory overhead when chunking is enabled
+chunk_method: hybrid_uss
+
+# chunk training mode
+# training to determine the chunking settings written to a cache file that is re-used for production runs
+# training
+# production
+# disabled
+chunk_training_mode: disabled
+
+# whether to preserve or delete subprocess chunk and mem logs when they are consolidated at end of multiprocess run
+keep_chunk_logs: True
+keep_mem_logs: True
+
+############
 
 trace_hh_id:
 

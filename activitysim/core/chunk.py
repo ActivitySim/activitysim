@@ -661,6 +661,8 @@ class ChunkSizer(object):
                 log_rss(trace_label)  # give parent a complementary log_rss reading entering sub context
         else:
             self.rss, self.uss = 0, 0
+            chunk_size = 0
+            config.override_setting('chunk_size', 0)
 
         self.chunk_tag = chunk_tag
         self.trace_label = trace_label
@@ -919,6 +921,10 @@ class ChunkSizer(object):
 
 @contextmanager
 def chunk_log(trace_label, chunk_tag=None, base=False):
+
+    # With `base=True` this method can be used to instantiate
+    # a ChunkSizer class object without actually chunking. This
+    # avoids breaking the assertion below.
 
     assert base == (len(CHUNK_SIZERS) == 0)
 

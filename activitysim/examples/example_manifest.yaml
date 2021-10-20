@@ -845,7 +845,7 @@
       data/tap_lines.csv 
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/taps.csv
       data/taps.csv 
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/tours_xborder.csv
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/tours_xborder.csv
       data/tours_xborder.csv   
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/transit_skims_xborder.omx
       data/transit_skims_xborder.omx

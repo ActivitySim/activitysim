@@ -269,7 +269,8 @@ def tour_mode_choice_simulate(tours, persons_merged,
     # FIXME should normalize handling of tour_type and tour_purpose
     # mtctm1 school tour_type includes univ, which has different coefficients from elementary and HS
     # we should either add this column when tours created or add univ to tour_types
-    not_university = (primary_tours_merged.tour_type != 'school') | ~primary_tours_merged.is_university
+    not_university = (primary_tours_merged.tour_type != 'school') | \
+        ~(primary_tours_merged.is_university if 'is_university' in primary_tours_merged.columns else False)
     primary_tours_merged['tour_purpose'] = \
         primary_tours_merged.tour_type.where(not_university, 'univ')
 

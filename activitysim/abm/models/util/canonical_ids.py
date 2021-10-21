@@ -150,13 +150,13 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
     return tours
 
 
-def set_trip_index(trips):
+def set_trip_index(trips, tour_id_column='tour_id'):
 
     MAX_TRIPS_PER_LEG = 4  # max number of trips per leg (inbound or outbound) of tour
 
     # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
     canonical_trip_num = (~trips.outbound * MAX_TRIPS_PER_LEG) + trips.trip_num
-    trips['trip_id'] = trips.tour_id * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
+    trips['trip_id'] = trips[tour_id_column] * (2 * MAX_TRIPS_PER_LEG) + canonical_trip_num
     trips.set_index('trip_id', inplace=True, verify_integrity=True)
 
     # we modify trips in place, but return the dataframe for the convenience of the caller

@@ -144,7 +144,7 @@ class TVPBCache(object):
             # multiprocessing usex preloaded fully_populated shared data buffer
             with memo("TVPBCache.open get_data_and_lock_from_buffers"):
                 data, _ = self.get_data_and_lock_from_buffers()
-            logger.info(f"TVBPCache.open {self.cache_tag} STATIC cache using existing data_buffers")
+            logger.info(f"TVPBCache.open {self.cache_tag} STATIC cache using existing data_buffers")
         elif os.path.isfile(self.cache_path):
             # single process ought have created a precomputed fully_populated STATIC file
             data = np.memmap(self.cache_path, dtype=DTYPE_NAME, mode='r')
@@ -156,7 +156,7 @@ class TVPBCache(object):
             # mm_data._mmap.close()
             # del mm_data
 
-            logger.info(f"TVBPCache.open {self.cache_tag} read fully_populated data array from mmap file")
+            logger.info(f"TVPBCache.open {self.cache_tag} read fully_populated data array from mmap file")
         else:
             raise RuntimeError(f"Pathbuilder cache not found. Did you forget to run initialize tvpb?"
                                f"Expected cache file: {self.cache_path}")
@@ -174,7 +174,7 @@ class TVPBCache(object):
         assert data.shape[0] == len(fully_populated_uids)
 
         self._data = data
-        logger.debug(f"TVBPCache.open initialized STATIC cache table")
+        logger.debug(f"TVPBCache.open initialized STATIC cache table")
 
     def close(self, trace=False):
         """

@@ -83,7 +83,8 @@ def compute_logsums(choosers,
     elif 'duration' not in choosers.columns:
         if type(model_settings['IN_PERIOD']) is dict and type(model_settings['OUT_PERIOD']) is dict:
             if tour_purpose in model_settings['IN_PERIOD'] and tour_purpose in model_settings['OUT_PERIOD']:
-                choosers['duration'] = model_settings['IN_PERIOD'][tour_purpose] - model_settings['OUT_PERIOD'][tour_purpose]
+                choosers['duration'] = model_settings['IN_PERIOD'][tour_purpose] - \
+                         model_settings['OUT_PERIOD'][tour_purpose]
         else:
             choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
     else:

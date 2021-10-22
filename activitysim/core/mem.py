@@ -264,20 +264,3 @@ def shared_memory_size(data_buffers=None):
         shared_size += data_size
 
     return shared_size
-
-
-def shared_memory_in_child_rss():
-
-    # Linux: Linux
-    # Mac: Darwin
-    # Windows: Windows
-
-    os_name = platform.system()
-    if os_name in ['Darwin']:
-        return False
-    elif os_name in ['Windows']:
-        return False
-    elif os_name in ['Linux']:
-        return True  # ???
-    else:
-        bug

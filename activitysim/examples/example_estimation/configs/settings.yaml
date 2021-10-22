@@ -1,6 +1,9 @@
 
 inherit_settings: True
 
+# assume enough RAM to not chunk
+chunk_training_mode: disabled
+
 # input tables
 input_table_list:
   #

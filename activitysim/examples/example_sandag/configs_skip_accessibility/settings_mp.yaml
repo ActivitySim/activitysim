@@ -1,6 +1,6 @@
 inherit_settings: True
 
-# activitysim run -c configs_skip_accessibility -c configs_sandag -c configs_3_zone -c ../example_mtc/configs -o output -d data -s settings_mp.yaml
+# activitysim run -c configs_skip_accessibility -c configs_3_zone -c ../example_mtc/configs -o output_3 -d data_3 -s settings_mp.yaml
 
 multiprocess: True
 

@@ -33,11 +33,10 @@ setup(
         'pandas >= 1.1.0',
         'pyyaml >= 5.1',
         'tables >= 3.5.1',
-        'toolz >= 0.8.1',
-        'zbox >= 1.2',
+        'cytoolz >= 0.8.1',
         'psutil >= 4.1',
         'requests >= 2.7',
         'numba >= 0.51.2',
-        # 'orca >= 1.6',
+        'orca >= 1.6',
     ]
 )

@@ -98,7 +98,6 @@ def _compute_logsums(alt_tdd, tours_merged, tour_purpose, model_settings, networ
 
     with chunk.chunk_log(trace_label):
         logsum_settings = config.read_model_settings(model_settings['LOGSUM_SETTINGS'])
-
         choosers = alt_tdd.join(tours_merged, how='left', rsuffix='_chooser')
         logger.info(f"{trace_label} compute_logsums for {choosers.shape[0]} choosers {alt_tdd.shape[0]} alts")
 
@@ -543,8 +542,10 @@ def _schedule_tours(
     # dataframe columns start, end , duration, person_id, tdd
     # indexed (not unique) on tour_id
     choice_column = TDD_CHOICE_COLUMN
-    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col, tour_trace_label)
+    alt_tdd = tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col,
+                                      tour_trace_label)
     # print(f"tours {tours.shape} alts {alts.shape}")
+
     chunk.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
     # - add logsums

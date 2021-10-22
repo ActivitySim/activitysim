@@ -27,15 +27,18 @@ combination of functionality means:
 Workflow
 ~~~~~~~~
 
-The general workflow for estimating models is shown in the figure below and explained in more detail below.
+The general workflow for estimating models is shown in the following figures and explained in more detail below.
 
-.. image:: images/estimation_example.jpg
+.. image:: images/estimation_tools.jpg
 
 * The user converts their household travel survey into ActivitySim format households, persons, tours, joint tour participants, and trip tables.  The households and persons tables must have the same fields as the synthetic population input tables since the surveyed households and persons will be run through the same set of submodels as the simulated households and persons.
 * The ActivitySim estimation example ``scripts\infer.py`` module reads the ActivitySim format household travel survey files and checks for inconsistencies in the input tables versus the model design + calculates additional fields such as the household joint tour frequency based on the trips and joint tour participants table.  Survey households and persons observed choices much match the model design (i.e. a person cannot have more work tours than the model allows).
 * ActivitySim is then run in estimation mode to read the ActivitySim format household travel survey files, run the ActivitySim submodels to write estimation data bundles (EDB) that contains the model utility specifications, coefficients, chooser data, and alternatives data for each submodel.  Estimation mode runs single-processed and without destination sampling.
-* The relevant EDBs are read and transformed into the format required by the model estimation tool (i.e. larch) and then the coefficients are re-estimated. The ``activitysim.estimation.larch`` library is included for integration with larch.  No changes to the model specification are made in the process.
+* The relevant EDBs are read and transformed into the format required by the model estimation tool (i.e. larch) and then the coefficients are re-estimated. The ``activitysim.estimation.larch`` library is included for integration with larch and there is a Jupyter Notebook estimation example for each core submodel.  No changes to the model specification are made in the process.
 * The user can then update the ActivitySim model coefficients file(s) for the estimated submodel and re-run the model in simulation mode.  The user may want to use the restartable pipeline feature of ActivitySim to just run the submodel of interest.
+
+.. image:: images/estimation_example.jpg
+
 
 .. _estimation_example:
 
@@ -65,6 +68,8 @@ To run the estimation example, do the following:
 * ActivitySim should log some information and write outputs to the output folder, including EDBs for each submodel.  The estimation example runs for about 15 minutes and writes EDBs for 2000 households.
 * Open :ref:`estimation_example_notebooks` for a specific submodel and then step through the notebook to re-estimate the sub-model.
 
+The estimation example assumes the machine has sufficient RAM to run with chunking disabled (`chunk_training_mode: disabled`).  See :ref:`chunk_size` for more information.
+
 Settings
 ~~~~~~~~
 
@@ -82,7 +87,7 @@ Estimation Notebooks
 
 ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book with interactive re-estimation examples for each estimatable submodel.  To run a Jupyter notebook, do the following:
 
-* Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed
+* Open a conda prompt and activate the conda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
 * Navigate to the ``examples/examples_estimaton/notebooks`` folder and select a notebook from the table below

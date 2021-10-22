@@ -112,14 +112,13 @@ Development Install
 The development version of ActivitySim can be installed as follows:
 
 * Clone or fork the source from the `GitHub repository <https://github.com/activitysim/activitysim>`__
-* Activate the correct conda environment if needed
 * Navigate to your local activitysim git directory
-* Run the command ``python setup.py develop``
-
-The ``develop`` command is required in order to make changes to the 
-source and see the results without reinstalling.  You may need to first uninstall the
-the pip installed version before installing the development version from source.  This is 
-done with ``pip uninstall activitysim``.
+* Create a development environment by running
+  ``conda env create --file=conda-environments/activitysim-dev.yml --name ASIM_DEV``.
+  This will create a new conda environment named "ASIM_DEV" (change the name in
+  the command if desired). ActivitySim will be installed in "editable" mode, so
+  any changes you make in the code in your git directory will be reflected.
+* Activate the new conda environment ``conda activate ASIM_DEV``
 
 
 Development Guidelines
@@ -154,25 +153,46 @@ Working Together in the Repository
 We use `GitHub Flow <https://guides.github.com/introduction/flow>`__.  The key points to 
 our GitHub workflow are:
 
-* The master branch contains the latest working/release version of the ActivitySim resources
-* The master branch is protected and therefore can only be written to by the `Travis <https://travis-ci.org/>`__ CI system
-* Work is done in an issue/feature branch (or a fork) and then pushed to a new branch
-* The test system automatically runs the tests on the new branch
-* If the tests pass, then a manual pull request can be approved to merge into master
-* The repository administrator handles the pull request and makes sure that related resources such as the wiki, documentation, issues, etc. are updated.  See :ref:`release_steps` for more information.
+* The ``master`` branch contains the latest release version of the ActivitySim resources
+* The ``develop`` branch contains new features or revisions planned for the next release.
+  Generally, developers should not work directly in the ``develop`` branch.
+* Work to implement new features or other revisions is done in an issue/feature branch
+  (or a fork) and developers can open a pull request (PR) to merge their work into ``develop``.
+* The test system automatically runs the tests on PR's.  PR's do not necessarily need to pass
+  all tests to be merged into ``develop``, but any failures should be cause by known existing
+  problems -- PR's should strive to not break anything beyond what was broken previously.
+* Upon review and agreement by a consortium member or committer other than the author,
+  and barring any objection raised by a consortium member, PR's can be merged into the
+  ``develop`` branch.
+* If tests pass for the ``develop`` branch, new features are suitably documented, and on approval of
+  `a lazy majority of the PMC <https://github.com/ActivitySim/activitysim/wiki/Governance#actions>`__,
+  a repository administrator can approve a manual pull request to merge ``develop`` into ``master``,
+  and otherwise make a `product release <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__.
 
 
 Versioning
 ~~~~~~~~~~
 
-ActivitySim uses the following `versioning convention <http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html>`__
+ActivitySim uses the following `versioning convention <http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html>`__:
 
 ::
 
-  MAJOR.MINOR
+  MAJOR.MINOR.PATCH[.devN]
 
-* where MAJOR designates a major revision number for the software, like 2 or 3 for Python. Usually, raising a major revision number means that you are adding a lot of features, breaking backward-compatibility or drastically changing the APIs (Application Program Interface) or ABIs (Application Binary Interface).
-* MINOR usually groups moderate changes to the software like bug fixes or minor improvements. Most of the time, end users can upgrade with no risks their software to a new minor release. In case an API changes, the end users will be notified with deprecation warnings. In other words, API and ABI stability is usually a promise between two minor releases.
+* where MAJOR designates a major revision number for the software, like 2 or 3 for Python.
+  Usually, raising a major revision number means that you are adding a lot of features,
+  breaking backward-compatibility or drastically changing the APIs (Application Program
+  Interface) or ABIs (Application Binary Interface).
+* MINOR usually groups moderate changes to the software like bug fixes or minor improvements.
+  Most of the time, end users can upgrade with no risks their software to a new minor release.
+  In case an API changes, the end users will be notified with deprecation warnings. In other
+  words, API and ABI stability is usually a promise between two minor releases.
+* PATCH releases are made principally to address bugs or update non-core parts of the
+  ActivitySim codebase (e.g. dependency requirements, distribution channels). End users
+  should expect no changes at all in how the software works between two patch releases.
+* DEVELOPMENT pre-releases are used to test and prepare integration with other external
+  services that require a "release". End users should not typically install or use a development
+  release other than for a specific well-defined purpose.
 
 Testing
 ~~~~~~~
@@ -258,21 +278,10 @@ GitHub automatically publishes the gh-pages branch at https://activitysim.github
 Releases
 ~~~~~~~~
 
-Before releasing a new version of ActivitySim, the following release checklist should be consulted:
+With the agreement of the PMC, a project administrator will handle making releases, following the detailed
+steps outlined in the `HOW_TO_RELEASE <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__
+document.
 
-* Create the required Anaconda environment
-* Run all the examples, including the full scale examples
-* Test the tutorial notebooks
-* Build the package
-* Install and run the package in a new Anaconda environment
-* Build the documentation
-* Run the tests
-* Run pycodestyle
-* Increment the package version number
-* Update any necessary web links, such as switching from the develop branch to the master branch
-
-ActivitySim releases are manually uploaded to the `Python Package Index <https://pypi.python.org/pypi/activitysim>`__  
-(pypi) and also tagged as GitHub `releases <https://github.com/ActivitySim/activitysim/releases>`__.
 
 Issues and Support
 ~~~~~~~~~~~~~~~~~~
@@ -331,36 +340,89 @@ The PMC and/or its Contractor will provide feedback for each review criteria abo
 Adding Agency Examples
 ----------------------
 
-ActivitySim includes several mature or in-development full scale agency :ref:`examples`.  Adding an agency example to ActivitySim adds additional assurances that future updates to ActivitySim will more easily work for users.  At the same time, with each additional implementation, the need for additional test coverage increases.  This increased need for test coverage relates to when setting up a new model, with differences in inputs and configurations, when adding new model components (and/or revisions to the core) in order to implement new features, and when implementing model components at a scale previously untested.  The following section describes the process to add an agency example model to ActivitySim.
+ActivitySim includes several mature or in-development full scale agency :ref:`examples`.  Adding an agency example to
+ActivitySim adds additional assurances that future updates to ActivitySim will more easily work for users.  At the same
+time, with each additional implementation, the need for additional test coverage increases.  This increased need for
+test coverage relates to when setting up a new model, with differences in inputs and configurations, when adding new
+model components (and/or revisions to the core) in order to implement new features, and when implementing model
+components at a scale previously untested.  The following section describes the process to add an agency example model
+to ActivitySim.
 
 Examples
 ~~~~~~~~
 
 Generally speaking, there are two types of ActivitySim examples: test examples and agency examples.
 
-* Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test examples are :ref:`example_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.  These examples are owned and maintained by the project.
-* Agency examples - these are agency partner model implementations currently being setup.  The current agency examples are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, and :ref:`example_sandag`.  These examples can be configured in ways different from the test examples, include new inputs and expressions, and may include new planned software components for contribution to ActivitySim.  These examples are owned by the agency.
+* Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test
+  examples are :ref:`example_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.
+  These examples are owned and maintained by the project.
+* Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
+  are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, and :ref:`example_sandag`.  These examples can be
+  configured in ways different from the test examples, include new inputs and expressions, and may include new planned
+  software components for contribution to ActivitySim.  These examples are owned by the agency.
 
 Furthermore, multiple versions of these examples can exist, and be used for various testing purposes:
 
-* Full scale - a full scale data setup, including all households, zones, skims, time periods, etc.  This is a "typical" model setup used for application.  This setup can be used to test the model results and performance since model results can be compared to observed/known answers and runtimes can be compared to industry experience.  It can also be used to test core software functionality such as tracing and repeatability.
-* Cropped - a subset of households and zones for efficient / portable running for testing.  This setup can really only be used to test the software since model results are difficult to compare to observed/known answers.  This version of an example is not recommended for testing overall runtime since it's a convenience sample and may not represent the true regional model travel demand patterns.  However, depending on the question, this setup may be able to answer questions related to runtime, such as improvements to methods indifferent to the size of the population and number of zones.  
-* Other - a specific route/path through the code for testing.  For example, the estimation example tests the estimation mode functionality.  The estimation example is a version of the example mtc example - it inherits most settings from example mtc and includes additional settings for reading in survey files and producing estimation data bundles.
+* Full scale - a full scale data setup, including all households, zones, skims, time periods, etc.  This is a "typical"
+  model setup used for application.  This setup can be used to test the model results and performance since model
+  results can be compared to observed/known answers and runtimes can be compared to industry experience.  It can also
+  be used to test core software functionality such as tracing and repeatability.
+* Cropped - a subset of households and zones for efficient / portable running for testing.  This setup can really only
+  be used to test the software since model results are difficult to compare to observed/known answers.  This version of
+  an example is not recommended for testing overall runtime since it's a convenience sample and may not represent the
+  true regional model travel demand patterns.  However, depending on the question, this setup may be able to answer
+  questions related to runtime, such as improvements to methods indifferent to the size of the population and number of
+  zones.
+* Other - a specific route/path through the code for testing.  For example, the estimation example tests the estimation
+  mode functionality.  The estimation example is a version of the example mtc example - it inherits most settings from
+  example mtc and includes additional settings for reading in survey files and producing estimation data bundles.
+
+Regardless of the type or version, all functioning examples are described in a common list stored in
+`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_.
+Each item included in this file represents one example, and each includes the following tags:
+
+* *name*: A unique name for the example, used to identify the example when using the `activitysim create` command. The
+  naming convention used is to give each example a name that is all lower case, and which uses underscores to separate
+  words.
+* *description*: A short sentence describing the example.
+* *include*: A list of files or directories to include in the example.  For smaller input files (e.g. configuration
+  files, or data files used on "test" sized examples), each file or directory to include can be given as a simple
+  string, which specifies the subdirectory of the embedded ActivitySim examples to be copied into a working directory.
+  For larger files that are not embedded into the main ActivitySim GitHub repository, items are given as a 3-tuple:
+  (url, target_path, sha256). The `url` points to a publicly available address where the file can be downloaded, the
+  `target_path` gives the relative filepath where the file should be installed in the working directory, and the
+  `sha256` is a checksum used to verify the file was downloaded correctly (and to prevent re-downloading when the file
+  is already available).  For defining new examples, use the `sha256_checksum` function to get a file's checksum that
+  should be included in the example manifest.
 
 Testing
 ~~~~~~~
 
 The test plan for test examples versus agency examples is different:
 
-* Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run by the TravisCI system and is a central feature of the software development process.  
-* Agency examples test a complete run of the cropped version to ensure it runs and the results are as expected.  This is done via a simple run model test that runs the cropped version and compares the output trip list to the expected trip list.  This is what is known as a regression test.  This test is also run by TravisCI.
+* Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run
+  by the TravisCI system and is a central feature of the software development process.
+* Agency examples test a complete run of the cropped version to ensure it runs and the results are as expected.  This
+  is done via a simple run model test that runs the cropped version and compares the output trip list to the expected
+  trip list.  This is what is known as a regression test.  This test is also run by TravisCI.
 
-Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.  There are two storage locations:
+Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.
+There are two storage locations:
 
-* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples>`_, which stores the test and agency example setup files, cropped data and cropping script, regression test script, expected results, and a change log to track any revisions to the example to get it working for testing.  These resources are the resources automatically tested by the TravisCI test system with each revision to the software.
-* The `activitysim_resources repository <https://github.com/activitysim/activitysim_resources>`_, which stores just the full scale example data inputs using `Git LFS <https://git-lfs.github.com>`_.  This repository has a monthly cost and takes time to upload/download and so the contents of it are separate from the main software repository.  These resources are the resources periodically and manually tested (for now).
+* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples>`_,
+  which stores the test and agency example setup files, cropped data and cropping script, regression test script,
+  expected results, and a change log to track any revisions to the example to get it working for testing.  These
+  resources are the resources automatically tested by the TravisCI test system with each revision to the software.
+* The `activitysim_resources repository <https://github.com/activitysim/activitysim_resources>`_, which stores just the
+  full scale example data inputs using `Git LFS <https://git-lfs.github.com>`_.  This repository has a monthly cost and
+  takes time to upload/download and so the contents of it are separate from the main software repository.  These
+  resources are the resources periodically and manually tested (for now).
 
-This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for creating and running examples makes uses the `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ to maintain the dictionary of the examples and how to get and run them.
+This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an
+organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for
+creating and running examples makes uses the
+`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+to maintain the dictionary of the examples and how to get and run them.
 
 Running the Test System
 ~~~~~~~~~~~~~~~~~~~~~~~

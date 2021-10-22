@@ -28,6 +28,8 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_sandag`           | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| :ref:`example_sandag_xborder`           | SANDAG agency example                                     | 3            | In development       |
++---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
    The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
@@ -503,8 +505,9 @@ is the main settings file for the model run.  This file includes:
 * ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
 * ``trace_hh_id`` - trace household id; comment out for no trace
 * ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_size`` - approximate amount of RAM in gigabytes to allocate to ActivitySim for batch processing choosers, see :ref:`chunk_size`.
-* ``chunk_training_mode`` - training or production, see :ref:`chunk_size`.
+* ``chunk_training_mode`` - disabled, training, production, or adaptive, see :ref:`chunk_size`.
+* ``chunk_size`` - approximate amount of RAM in GBs to allocate to ActivitySim for batch processing choosers, see :ref:`chunk_size`.
+* ``chunk_method`` - memory use measure such as hybrid_uss, see :ref:`chunk_size`.
 * ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
 * ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
 * ``log_alt_losers`` - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives.  This feature slows down the model run and so it is recommended for debugging purposes only.
@@ -530,7 +533,7 @@ Also in the ``configs`` folder is ``network_los.yaml``, which includes network L
     * ``labels`` - Labels to define names for aggregate periods for skims and assignment
 * ``read_skim_cache`` - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)
 * ``write_skim_cache`` - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
-* ``cache_dir`` - alternate dir to read/write skim cache (defaults to output_dir)
+* ``cache_dir`` - alternate dir to read/write cache files (defaults to output_dir)
 
 .. _sub-model-spec-files:
 
@@ -842,11 +845,14 @@ include the multiprocessing configuration settings via settings file inheritance
 
 The multiprocessing example also writes outputs to the output folder.
 
-The default multiprocessed example is configured to run with two processors and no chunking: ``num_processes: 2`` and ``chunk_size: 0``.  Additional more performant 
-configurations are included and commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example - ``example_mtc_full`` - 
-was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  See :ref:`multiprocessing` and 
-:ref:`chunk_size` for more information.  If the machine does not have enough RAM to solve all the choosers at once then chunking needs to 
-be configured, as discussed below.
+The default multiprocessed example is configured to run with two processors and chunking training: ``num_processes: 2``,
+``chunk_size: 0``, and ``chunk_training_mode: training``.  Additional more performant configurations are included and 
+commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example 
+- ``example_mtc_full`` - was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  
+The default setup runs with ``chunk_training_mode: training`` since no chunk cache file is present. To run the example 
+significantly faster, try ``chunk_training_mode: disabled`` if the machine has sufficient RAM, or try 
+``chunk_training_mode: production``.  To configure ``chunk_training_mode: production``, first configure chunking as 
+discussed below. See :ref:`multiprocessing` and :ref:`chunk_size` for more information.  
 
 ::
 
@@ -861,11 +867,14 @@ be configured, as discussed below.
 Configuring chunking
 ^^^^^^^^^^^^^^^^^^^^
 
-As described in :ref:`chunk_size`, to configure reasonable chunking behavior, ActivitySim must first be trained with the 
-model setup and machine.  The steps to configure chunking behavior are:
+To configure chunking, ActivitySim must first be trained to determine reasonable chunking settings given the 
+model setup and machine.  The steps to configure chunking are:
 
-* Run the full scale model with ``chunk_training_mode: training``.  Set ``num_processors`` to about 80% of the avaiable logical processors and ``chunk_size`` to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file for reuse.
+* Run the full scale model with ``chunk_training_mode: training``.  Set ``num_processors`` to about 80% of the available physical processors and ``chunk_size`` to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file in the output\cache directory for reuse.
+* The ``households_sample_size`` for training chunking should be at least 1 / num_processors to provide sufficient data for training and the ``chunk_method: hybrid_uss`` typically performs best.
 * Run the full scale model with ``chunk_training_mode: production``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
+
+See :ref:`chunk_size` for more information.  Users can run ``chunk_training_mode: disabled`` if the machine has an abundance of RAM for the model setup.
 
 Outputs
 ~~~~~~~
@@ -1430,7 +1439,10 @@ example_semcog
 
 The example_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
 and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
-submodel :ref:`sub-model-spec-files`.
+submodel :ref:`sub-model-spec-files`.  These submodels were added to example_semcog as extensions, which is a way for users to add 
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
+the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
+in order to load the extensions folder.
 
 .. _semcog-sub-model-spec-files:
 
@@ -1501,3 +1513,21 @@ Example
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
 for running example_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+
+.. _example_sandag :
+
+example_sandag_xborder
+--------------
+
+.. note::
+
+  This example is in development
+
+
+The example_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that generates cross-border activities for a tour-based population of Mexican residents. In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for each border crossing station (Port of Entry). Because the model is tour-based, there are no household or person-level attributes in the synthetic population. The principal difference between this and the standard 3-zone implementation is that since household do not have a default tour origin (home zones), a tour OD choice model is required to assign tour origins and destinations simultaneously.
+
+Example
+~~~~~~~
+
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
+for running example_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

@@ -123,8 +123,13 @@ class OffsetMapper(object):
         if self.offset_series is not None:
             assert(self.offset_int is None)
             assert isinstance(self.offset_series, pd.Series)
-            # FIXME - faster to use series.map if zone_ids is a series?
-            offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
+
+            # FIXME - turns out it is faster to use series.map if zone_ids is a series
+            # offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
+
+            if isinstance(zone_ids, np.ndarray):
+                zone_ids = pd.Series(zone_ids)
+            offsets = zone_ids.map(self.offset_series, na_action='ignore').fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
 
         elif self.offset_int:
             assert (self.offset_series is None)
@@ -692,15 +697,18 @@ class MazSkimDict(SkimDict):
                               backstop_fractions * backstop_values + (1 - backstop_fractions) * values)
 
         elif is_nan.any():
-
             # print(f"{is_nan.sum()} nans out of {len(is_nan)} for key '{self.key}")
 
             if key in self.base_keys:
+
                 # replace nan values using simple backstop without blending
                 backstop_values = super().lookup(orig, dest, key)
                 values = np.where(is_nan, backstop_values, values)
             else:
                 # FIXME - if no backstop skim, then return 0 (which conventionally means "not available")
+                logger.warning(
+                    "No backstop skims found for {0}, so setting Nulls to 0. Make sure "
+                    "mode availability flags are set to > 0")
                 values = np.where(is_nan, 0, values)
 
         # want to return same type as backstop skim

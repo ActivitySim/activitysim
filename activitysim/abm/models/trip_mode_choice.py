@@ -9,6 +9,7 @@ import numpy as np
 from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
+from activitysim.core import chunk
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import expressions
@@ -18,6 +19,7 @@ from activitysim.core import los
 
 from activitysim.core.util import assign_in_place
 
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from .util.mode import mode_choice_simulate
 from .util import estimation
 
@@ -28,7 +30,6 @@ logger = logging.getLogger(__name__)
 @inject.step()
 def trip_mode_choice(
         trips,
-        tours_merged,
         network_los,
         chunk_size, trace_hh_id):
     """
@@ -39,6 +40,7 @@ def trip_mode_choice(
 
     Adds trip_mode column to trip table
     """
+
     trace_label = 'trip_mode_choice'
     model_settings_file_name = 'trip_mode_choice.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
@@ -49,11 +51,14 @@ def trip_mode_choice(
     trips_df = trips.to_frame()
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])
 
-    tours_merged = tours_merged.to_frame()
-    tours_merged = tours_merged[model_settings['TOURS_MERGED_CHOOSER_COLUMNS']]
-
-    tracing.print_summary('primary_purpose',
-                          trips_df.primary_purpose, value_counts=True)
+    # give trip mode choice the option to run without calling tours_merged. Useful for xborder
+    # model where tour_od_choice needs trip mode choice logsums before some of the join keys
+    # needed by tour_merged (e.g. home_zone_id) exist
+    tours_cols = [col for col in model_settings['TOURS_MERGED_CHOOSER_COLUMNS'] if col not in trips_df.columns]
+    if len(tours_cols) > 0:
+        tours_merged = inject.get_table('tours_merged').to_frame(columns=tours_cols)
+    else:
+        tours_merged = pd.DataFrame()
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
@@ -64,18 +69,24 @@ def trip_mode_choice(
         how="left")
     assert trips_merged.index.equals(trips.index)
 
+    tracing.print_summary('primary_purpose', trips_df.primary_purpose, value_counts=True)
+
     # setup skim keys
     assert ('trip_period' not in trips_merged)
     trips_merged['trip_period'] = network_los.skim_time_period_label(trips_merged.depart)
 
     orig_col = 'origin'
     dest_col = 'destination'
+    min_per_period = network_los.skim_time_periods['period_minutes']
+    periods_per_hour = 60 / min_per_period
 
     constants = {}
     constants.update(config.get_model_constants(model_settings))
     constants.update({
         'ORIGIN': orig_col,
-        'DESTINATION': dest_col
+        'DESTINATION': dest_col,
+        'MIN_PER_PERIOD': min_per_period,
+        'PERIODS_PER_HOUR': periods_per_hour
     })
 
     skim_dict = network_los.get_default_skim_dict()
@@ -95,20 +106,35 @@ def trip_mode_choice(
     if network_los.zone_system == los.THREE_ZONE:
         # fixme - is this a lightweight object?
         tvpb = network_los.tvpb
-
-        tvpb_logsum_odt = tvpb.wrap_logsum(orig_key=orig_col, dest_key=dest_col,
-                                           tod_key='trip_period', segment_key='demographic_segment',
-                                           cache_choices=True,
-                                           trace_label=trace_label, tag='tvpb_logsum_odt')
+        tvpb_recipe = model_settings.get('TVPB_recipe', 'tour_mode_choice')
+        tvpb_logsum_odt = tvpb.wrap_logsum(
+            orig_key=orig_col, dest_key=dest_col,
+            tod_key='trip_period', segment_key='demographic_segment',
+            recipe=tvpb_recipe, cache_choices=True,
+            trace_label=trace_label, tag='tvpb_logsum_odt')
         skims.update({
             'tvpb_logsum_odt': tvpb_logsum_odt,
-            # 'tvpb_logsum_dot': tvpb_logsum_dot
         })
 
-        # TVPB constants can appear in expressions
-        constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
+        # This if-clause gives the user the option of NOT inheriting constants
+        # from the tvpb settings. previously, these constants were inherited
+        # automatically, which had the undesirable effect of overwriting any
+        # trip mode choice model constants/coefficients that shared the same
+        # name. The default behavior is still the same (True), but the user
+        # can now avoid any chance of squashing these local variables by
+        # adding `use_TVPB_constants: False` to the trip_mode_choice.yaml file.
+        # the tvpb will still use the constants as defined in the recipe
+        # specified above in `tvpb.wrap_logsum()` but they will not be used
+        # in the trip mode choice expressions.
+        if model_settings.get('use_TVPB_constants', True):
+            constants.update(network_los.setting('TVPB_SETTINGS.tour_mode_choice.CONSTANTS'))
 
-    estimator = estimation.manager.begin_estimation('trip_mode_choice')
+    # don't create estimation data bundle if trip mode choice is being called
+    # from another model step (e.g. tour mode choice logsum creation)
+    if pipeline._PIPELINE.rng().step_name != 'trip_mode_choice':
+        estimator = None
+    else:
+        estimator = estimation.manager.begin_estimation('trip_mode_choice')
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)
@@ -137,11 +163,19 @@ def trip_mode_choice(
 
         locals_dict = {}
         locals_dict.update(constants)
+
+        constants_keys = constants.keys()
+        if any([coeff in constants_keys for coeff in coefficients.keys()]):
+            logger.warning("coefficients are obscuring constants in locals_dict")
         locals_dict.update(coefficients)
 
-        expressions.annotate_preprocessors(
-            trips_segment, locals_dict, skims,
-            model_settings, segment_trace_label)
+        # have to initialize chunker for preprocessing in order to access
+        # tvpb logsum terms in preprocessor expressions.
+        with chunk.chunk_log(tracing.extend_trace_label(
+                trace_label, 'preprocessing'), base=True):
+            expressions.annotate_preprocessors(
+                trips_segment, locals_dict, skims,
+                model_settings, segment_trace_label)
 
         if estimator:
             # write choosers after annotation
@@ -201,8 +235,6 @@ def trip_mode_choice(
         choices_df.trip_mode = estimator.get_survey_values(choices_df.trip_mode, 'trips', 'trip_mode')
         estimator.write_override_choices(choices_df.trip_mode)
         estimator.end_estimation()
-
-    # update trips table with choices (and potionally logssums)
     trips_df = trips.to_frame()
     assign_in_place(trips_df, choices_df)
 

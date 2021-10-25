@@ -1,0 +1,10 @@
+coefficient_name,value,constrain
+coef_mode_choice_logsum,2.12300,T
+coef_mode_choice_logsum_dur_leq2,0.79600,T
+coef_mode_choice_logsum_dur_geq8,-0.31700,T
+coef_first_outbound_dist_poe_gt_1mi,-0.70000,T
+coef_last_outbound_dist_dest_gt_1mi,-0.84100,T
+coef_last_outbound_dist_dest_gt1_max3,-0.19400,T
+coef_first_inbound_dist_poe_gt_1mi,-0.86000,T
+coef_last_inbound_dist_dest_gt_1mi,-0.36600,T
+coef_last_inbound_dist_dest_gt1_max3,-0.26900,T

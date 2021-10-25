@@ -1,0 +1,3 @@
+Description,Target,Expression
+,is_mandatory,"df.tour_type.isin(['work','school'])"
+

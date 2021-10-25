@@ -11,6 +11,7 @@ import logging.config
 import sys
 import time
 import yaml
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -784,3 +785,35 @@ def no_results(trace_label):
 
     """
     logger.info("Skipping %s: no_results" % trace_label)
+
+
+def deregister_traceable_table(table_name):
+    """
+    un-register traceable table
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        traced dataframe
+
+    Returns
+    -------
+    Nothing
+    """
+    traceable_tables = inject.get_injectable('traceable_tables', [])
+    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+
+    if table_name not in traceable_tables:
+        logger.error("table '%s' not in traceable_tables" % table_name)
+
+    else:
+        traceable_table_ids = {
+            k: v for k, v in traceable_table_ids.items() if k != table_name}
+        traceable_table_indexes = OrderedDict({
+            k: v for k, v in traceable_table_indexes.items() if v != table_name})
+
+        inject.add_injectable('traceable_table_ids', traceable_table_ids)
+        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
+
+    return

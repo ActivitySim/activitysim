@@ -2,50 +2,43 @@ import os
 import pandas as pd
 import pytest
 import subprocess
+import tempfile
 
 from activitysim.cli.create import get_example
 
 
 @pytest.fixture(scope="module")
 def est_data():
-    # !activitysim create -e example_estimation_sf -d _test_est
-    if os.path.exists("_test_est"):
-        retain_test_data = True
-    else:
-        retain_test_data = False
-        get_example("example_estimation_sf", "_test_est")
 
-    # %cd _test_est
     cwd = os.getcwd()
+    tempdir = tempfile.TemporaryDirectory()
+    os.chdir(tempdir.name)
+
+    get_example("example_estimation_sf", "_test_est")
     os.chdir("_test_est")
 
     # !activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
-    if not retain_test_data:
-        print(f"List of files now in {os.getcwd()}")
-        subprocess.run(["find", "."])
-        print(f"\n\nrunning activitysim estimation mode in {os.getcwd()}")
-        subprocess.run(
-            [
-                "activitysim",
-                "run",
-                "-c",
-                "configs_estimation/configs",
-                "-c",
-                "configs",
-                "-o",
-                "output",
-                "-d",
-                "data_sf",
-            ],
-        )
-    else:
-        print(f"reusing existing data in {os.getcwd()}")
+    print(f"List of files now in {os.getcwd()}")
+    subprocess.run(["find", "."])
+    print(f"\n\nrunning activitysim estimation mode in {os.getcwd()}")
+    subprocess.run(
+        [
+            "activitysim",
+            "run",
+            "-c",
+            "configs_estimation/configs",
+            "-c",
+            "configs",
+            "-o",
+            "output",
+            "-d",
+            "data_sf",
+        ],
+    )
 
     yield os.getcwd()
 
     os.chdir(cwd)
-    # if not retain_test_data:
-    #     os.remove("_test_est")
 
 
 def _regression_check(dataframe_regression, df, basename=None):

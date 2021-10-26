@@ -72,18 +72,18 @@ local,_DF_IS_TOUR,'tour_type' in df.columns
 ,hov2toll_available,(odt_skims['HOV2TOLL_VTOLL'] + dot_skims['HOV2TOLL_VTOLL'])>0
 ,hov3_available,(odt_skims['HOV3_TIME']>0) & (dot_skims['HOV3_TIME']>0)
 ,hov3toll_available,(odt_skims['HOV3TOLL_VTOLL'] + dot_skims['HOV3TOLL_VTOLL'])>0
-,walk_local_available,walk_transit_available & (odt_skims['WLK_LOC_WLK_TOTIVT']/100>0) & (dot_skims['WLK_LOC_WLK_TOTIVT']/100>0)
-,walk_commuter_available,walk_transit_available & (odt_skims['WLK_COM_WLK_TOTIVT']/100>0) & (dot_skims['WLK_COM_WLK_TOTIVT']/100>0) & ((odt_skims['WLK_COM_WLK_KEYIVT']/100 + dot_skims['WLK_COM_WLK_KEYIVT']/100)>0)
-,walk_express_available,walk_transit_available & (odt_skims['WLK_EXP_WLK_TOTIVT']/100>0) & (dot_skims['WLK_EXP_WLK_TOTIVT']/100>0) & ((odt_skims['WLK_EXP_WLK_KEYIVT']/100 + dot_skims['WLK_EXP_WLK_KEYIVT']/100)>0)
-,walk_heavyrail_available,walk_transit_available & (odt_skims['WLK_HVY_WLK_TOTIVT']/100>0) & (dot_skims['WLK_HVY_WLK_TOTIVT']/100>0) & ((odt_skims['WLK_HVY_WLK_KEYIVT']/100 + dot_skims['WLK_HVY_WLK_KEYIVT']/100)>0)
-,walk_lrf_available,walk_transit_available & (odt_skims['WLK_LRF_WLK_TOTIVT']/100>0) & (dot_skims['WLK_LRF_WLK_TOTIVT']/100>0) & ((odt_skims['WLK_LRF_WLK_KEYIVT']/100 + dot_skims['WLK_LRF_WLK_KEYIVT']/100)>0)
-,walk_ferry_available,walk_lrf_available & ((odt_skims['WLK_LRF_WLK_FERRYIVT']/100 + dot_skims['WLK_LRF_WLK_FERRYIVT']/100)>0)
-,drive_local_available,drive_transit_available & (odt_skims['DRV_LOC_WLK_TOTIVT']/100>0) & (dot_skims['WLK_LOC_DRV_TOTIVT']/100>0)
-,drive_commuter_available,drive_transit_available & (odt_skims['DRV_COM_WLK_TOTIVT']/100>0) & (dot_skims['WLK_COM_DRV_TOTIVT']/100>0) & ((odt_skims['DRV_COM_WLK_KEYIVT']/100 + dot_skims['WLK_COM_DRV_KEYIVT']/100)>0)
-,drive_express_available,drive_transit_available & (odt_skims['DRV_EXP_WLK_TOTIVT']/100>0) & (dot_skims['WLK_EXP_DRV_TOTIVT']/100>0) & ((odt_skims['DRV_EXP_WLK_KEYIVT']/100 + dot_skims['WLK_EXP_DRV_KEYIVT']/100)>0)
-,drive_heavyrail_available,drive_transit_available & (odt_skims['DRV_HVY_WLK_TOTIVT']/100>0) & (dot_skims['WLK_HVY_DRV_TOTIVT']/100>0) & ((odt_skims['DRV_HVY_WLK_KEYIVT']/100 + dot_skims['WLK_HVY_DRV_KEYIVT']/100)>0)
-,drive_lrf_available,drive_transit_available & (odt_skims['DRV_LRF_WLK_TOTIVT']/100>0) & (dot_skims['WLK_LRF_DRV_TOTIVT']/100>0) & ((odt_skims['DRV_LRF_WLK_KEYIVT']/100 + dot_skims['WLK_LRF_DRV_KEYIVT']/100)>0)
-,drive_ferry_available,drive_lrf_available & ((odt_skims['DRV_LRF_WLK_FERRYIVT']/100 + dot_skims['WLK_LRF_WLK_FERRYIVT']/100)>0)
+,walk_local_available,walk_transit_available & (odt_skims['WLK_LOC_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_LOC_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0)
+,walk_commuter_available,walk_transit_available & (odt_skims['WLK_COM_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_COM_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['WLK_COM_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_COM_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,walk_express_available,walk_transit_available & (odt_skims['WLK_EXP_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_EXP_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['WLK_EXP_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_EXP_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,walk_heavyrail_available,walk_transit_available & (odt_skims['WLK_HVY_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_HVY_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['WLK_HVY_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_HVY_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,walk_lrf_available,walk_transit_available & (odt_skims['WLK_LRF_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_LRF_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['WLK_LRF_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_LRF_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,walk_ferry_available,walk_lrf_available & ((odt_skims['WLK_LRF_WLK_FERRYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_LRF_WLK_FERRYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,drive_local_available,drive_transit_available & (odt_skims['DRV_LOC_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_LOC_DRV_TOTIVT']/TRANSIT_SCALE_FACTOR>0)
+,drive_commuter_available,drive_transit_available & (odt_skims['DRV_COM_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_COM_DRV_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['DRV_COM_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_COM_DRV_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,drive_express_available,drive_transit_available & (odt_skims['DRV_EXP_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_EXP_DRV_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['DRV_EXP_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_EXP_DRV_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,drive_heavyrail_available,drive_transit_available & (odt_skims['DRV_HVY_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_HVY_DRV_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['DRV_HVY_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_HVY_DRV_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,drive_lrf_available,drive_transit_available & (odt_skims['DRV_LRF_WLK_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & (dot_skims['WLK_LRF_DRV_TOTIVT']/TRANSIT_SCALE_FACTOR>0) & ((odt_skims['DRV_LRF_WLK_KEYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_LRF_DRV_KEYIVT']/TRANSIT_SCALE_FACTOR)>0)
+,drive_ferry_available,drive_lrf_available & ((odt_skims['DRV_LRF_WLK_FERRYIVT']/TRANSIT_SCALE_FACTOR + dot_skims['WLK_LRF_WLK_FERRYIVT']/TRANSIT_SCALE_FACTOR)>0)
 #,,
 destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, df[dest_col_name]) < setting('cbd_threshold')) * 1"
 #,,FIXME diagnostic

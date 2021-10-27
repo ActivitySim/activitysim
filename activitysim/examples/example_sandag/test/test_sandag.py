@@ -30,12 +30,15 @@ def psrc_example_path(dirname):
     resource = os.path.join('examples', 'example_psrc', dirname)
     return pkg_resources.resource_filename('activitysim', resource)
 
+
 def build_data():
     pass
+
 
 @pytest.fixture(scope='module')
 def data():
     build_data()
+
 
 def run_test(zone, multiprocess=False):
 
@@ -79,23 +82,30 @@ def run_test(zone, multiprocess=False):
 
     regress(zone)
 
+
 def test_1_zone(data):
     run_test(zone='1', multiprocess=False)
+
 
 def test_1_zone_mp(data):
     run_test(zone='1', multiprocess=True)
 
+
 def test_2_zone(data):
     run_test(zone='2', multiprocess=False)
+
 
 def test_2_zone_mp(data):
     run_test(zone='2', multiprocess=True)
 
+
 def test_3_zone(data):
     run_test(zone='3', multiprocess=False)
 
+
 def test_3_zone_mp(data):
     run_test(zone='3', multiprocess=True)
+
 
 if __name__ == '__main__':
 

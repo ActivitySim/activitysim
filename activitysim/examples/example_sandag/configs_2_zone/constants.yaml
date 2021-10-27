@@ -1,0 +1,6 @@
+inherit_settings: True
+
+# Correction for transit skim expressions
+# e.g. MTC transit skims (Cube TRANPLAN skims) use scaled ints and
+# therefore need to be divided by the scale factor if used in expressions
+TRANSIT_SCALE_FACTOR: 1

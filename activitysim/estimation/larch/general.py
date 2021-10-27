@@ -327,15 +327,18 @@ def apply_coefficients(coefficients, model, minimum=None, maximum=None):
             if i.Index in model:
                 holdfast = (i.constrain == "T")
                 if holdfast:
-                    minimum = i.value
-                    maximum = i.value
+                    minimum_ = i.value
+                    maximum_ = i.value
+                else:
+                    minimum_ = minimum
+                    maximum_ = maximum
                 model.set_value(
                     i.Index,
                     value=i.value,
                     initvalue=i.value,
                     holdfast=holdfast,
-                    minimum=minimum,
-                    maximum=maximum,
+                    minimum=minimum_,
+                    maximum=maximum_,
                 )
 
 

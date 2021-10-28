@@ -93,7 +93,7 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     m, data = component_model(name, return_data=True)
     m.load_data()
     loglike_prior = m.loglike()
-    r = m.maximize_loglike(method=method)
+    r = m.maximize_loglike(method=method, options={'maxiter':1000})
     num_regression.check(
         {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename=f"test_loc_{name}_loglike",

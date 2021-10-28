@@ -1,0 +1,33 @@
+Label,Description,Expression,set1,set2,set3
+# Set 1,,,,,
+set1_unavailable,Shut off set if unavailable,@(1 - df.set1_available),C_UNAVAILABLE,,
+set1_total_ivt,total IVT,"@df.set1_available * c_ivt * (df.lb_ivt_set1 + eb_fac * (df.eb_ivt_set1 + df.ltd_ivt_set1) + brt_fac * (df.brt_red_ivt_set1 + df.brt_yel_ivt_set1) + lrt_fac * df.lrt_ivt_set1 + cr_fac * df.cr_ivt_set1)",1,,
+set1_first_wait_time,First wait time,"@df.set1_available * c_fwt * c_ivt * df.first_wait_set1",1,,
+set1_xfer_wait_time,set Transfer Wait Time,"@df.set1_available * c_xwt * c_ivt * df.xfer_wait_set1",1,,
+set1_xfer_walk_time,set Walk transfer time,"@df.set1_available * c_waux * c_ivt * df.walk_time_set1",1,,
+set1_fare,set Fare,"@df.set1_available * c_cost * df.fare_set1 * 100",1,,
+set1_xfers,transfers penalty,@df.set1_available * (df.transfers_set1 > 0) * c_ivt * 1.5 * (-23 + 23 * np.exp(0.414 * df.transfers_set1)),1,,
+set1_ASC,ASC,"@df.set1_available * df.asc_eb_set1 * np.where(df.asc_eb_set1 > 0, np.where(df.lb_ivt_set1 > 0, 0.5, 1), 1)",1,,
+set1_cr_long_distance,CR long distance bonus,"@df.set1_available * (df.cr_ivt_set1 > 10) * c_ivt * -1.0 * (np.clip(df.cr_ivt_set1, a_min=None, a_max=60) + np.where(df.cr_ivt_set1 > 40, (df.cr_ivt_set1 - 40) * 0.6, 0))",1,,
+
+# Set 2,,,,,
+set2_unavailable,Shut off set if unavailable,@(1 - df.set2_available),,C_UNAVAILABLE,
+set2_total_ivt,total IVT,"@df.set2_available * c_ivt * (df.lb_ivt_set2 + eb_fac * (df.eb_ivt_set2 + df.ltd_ivt_set2) + brt_fac * (df.brt_red_ivt_set2 + df.brt_yel_ivt_set2) + lrt_fac * df.lrt_ivt_set2 + cr_fac * df.cr_ivt_set2)",,1,
+set2_first_wait_time,First wait time,"@df.set2_available * c_fwt * c_ivt * df.first_wait_set2",,1,
+set2_xfer_wait_time,set Transfer Wait Time,"@df.set2_available * c_xwt * c_ivt * df.xfer_wait_set2",,1,
+set2_xfer_walk_time,set Walk transfer time,"@df.set2_available * c_waux * c_ivt * df.walk_time_set2",,1,
+set2_fare,set Fare,"@df.set2_available * c_cost * df.fare_set2 * 100",,1,
+set2_xfers,transfers penalty,@df.set2_available * (df.transfers_set2 > 0) * c_ivt * 1.5 * (-23 + 23 * np.exp(0.414 * df.transfers_set2)),,1,
+set2_ASC,ASC,"@df.set2_available * df.asc_eb_set2 * np.where(df.asc_eb_set2 > 0, np.where(df.lb_ivt_set2 > 0, 0.5, 1), 1)",,1,
+set2_cr_long_distance,CR long distance bonus,"@df.set2_available * (df.cr_ivt_set2 > 10) * c_ivt * -1.0 * (np.clip(df.cr_ivt_set2, a_min=None, a_max=60) + np.where(df.cr_ivt_set2 > 40, (df.cr_ivt_set2 - 40) * 0.6, 0))",,1,
+
+# Set 3,,,,,
+set3_unavailable,Shut off set if unavailable,@(1 - df.set3_available),,,C_UNAVAILABLE
+set3_total_ivt,total IVT,"@df.set3_available * c_ivt * (df.lb_ivt_set3 + eb_fac * (df.eb_ivt_set3 + df.ltd_ivt_set3) + brt_fac * (df.brt_red_ivt_set3 + df.brt_yel_ivt_set3) + lrt_fac * df.lrt_ivt_set3 + cr_fac * df.cr_ivt_set3)",,,1
+set3_first_wait_time,First wait time,"@df.set3_available * c_fwt * c_ivt * df.first_wait_set3",,,1
+set3_xfer_wait_time,set Transfer Wait Time,"@df.set3_available * c_xwt * c_ivt * df.xfer_wait_set3",,,1
+set3_xfer_walk_time,set Walk transfer time,"@df.set3_available * c_waux * c_ivt * df.walk_time_set3",,,1
+set3_fare,set Fare,"@df.set3_available * c_cost * df.fare_set3 * 100",,,1
+set3_xfers,transfers penalty,@df.set3_available * (df.transfers_set3 > 0) * c_ivt * 1.5 * (-23 + 23 * np.exp(0.414 * df.transfers_set3)),,,1
+set3_ASC,ASC,"@df.set3_available * df.asc_eb_set3 * np.where(df.asc_eb_set3 > 0, np.where(df.lb_ivt_set3 > 0, 0.5, 1), 1)",,,1
+set3_cr_long_distance,CR long distance bonus,"@df.set3_available * (df.cr_ivt_set3 > 10) * c_ivt * -1.0 * (np.clip(df.cr_ivt_set3, a_min=None, a_max=60) + np.where(df.cr_ivt_set3 > 40, (df.cr_ivt_set3 - 40) * 0.6, 0))",,,1

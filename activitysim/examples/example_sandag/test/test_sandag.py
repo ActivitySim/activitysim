@@ -4,6 +4,7 @@ import os
 import subprocess
 import pkg_resources
 
+import pytest
 import pandas as pd
 import pandas.testing as pdt
 
@@ -30,7 +31,16 @@ def psrc_example_path(dirname):
     return pkg_resources.resource_filename('activitysim', resource)
 
 
-def test_sandag():
+def build_data():
+    pass
+
+
+@pytest.fixture(scope='module')
+def data():
+    build_data()
+
+
+def run_test(zone, multiprocess=False):
 
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
@@ -40,41 +50,72 @@ def test_sandag():
         # ## regress tours
         regress_tours_df = pd.read_csv(test_path(f'regress/final_{zone}_zone_tours.csv'))
         tours_df = pd.read_csv(test_path(f'output/final_{zone}_zone_tours.csv'))
+        tours_df.to_csv(test_path(f'regress/final_{zone}_zone_tours_last_run.csv'), index=False)
         print(f"regress tours")
-        pdt.assert_frame_equal(tours_df, regress_tours_df), "regress tours"
+        pdt.assert_frame_equal(tours_df, regress_tours_df, rtol=1e-03)
 
         # ## regress trips
         regress_trips_df = pd.read_csv(test_path(f'regress/final_{zone}_zone_trips.csv'))
         trips_df = pd.read_csv(test_path(f'output/final_{zone}_zone_trips.csv'))
+        trips_df.to_csv(test_path(f'regress/final_{zone}_zone_trips_last_run.csv'), index=False)
         print(f"regress trips")
-        pdt.assert_frame_equal(trips_df, regress_trips_df), "regress trips"
+        pdt.assert_frame_equal(trips_df, regress_trips_df, rtol=1e-03)
 
-    # run tests with and without multi processing
-    zones = ['1', '2', '3']
-    test_combos = [(z, mp) for z in zones for mp in [False, True]]
-    for test_combo in test_combos:
-        zone, multiprocess = test_combo
+    # run test
+    file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
 
-        file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
+    if zone == '2':
+        base_configs = psrc_example_path(f'configs')
+    else:
+        base_configs = mtc_example_path(f'configs')
 
-        if zone == '2':
-            base_configs = psrc_example_path(f'configs')
-        else:
-            base_configs = mtc_example_path(f'configs')
+    run_args = ['-c', test_path(f'configs_{zone}_zone'),
+                '-c', example_path(f'configs_{zone}_zone'),
+                '-c', base_configs,
+                '-d', example_path(f'data_{zone}'),
+                '-o', test_path('output')]
 
-        run_args = ['-c', test_path(f'configs_{zone}_zone'),
-                    '-c', example_path(f'configs_{zone}_zone'),
-                    '-c', base_configs,
-                    '-d', example_path(f'data_{zone}'),
-                    '-o', test_path('output')]
+    if multiprocess:
+        run_args = run_args + ['-s', 'settings_mp.yaml']
 
-        if multiprocess:
-            run_args = run_args + ['-s', 'settings_mp.yaml']
+    subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
 
-        subprocess.run(['coverage', 'run', '-a', file_path] + run_args, check=True)
+    regress(zone)
 
-        regress(zone)
+
+def test_1_zone(data):
+    run_test(zone='1', multiprocess=False)
+
+
+def test_1_zone_mp(data):
+    run_test(zone='1', multiprocess=True)
+
+
+def test_2_zone(data):
+    run_test(zone='2', multiprocess=False)
+
+
+def test_2_zone_mp(data):
+    run_test(zone='2', multiprocess=True)
+
+
+def test_3_zone(data):
+    run_test(zone='3', multiprocess=False)
+
+
+def test_3_zone_mp(data):
+    run_test(zone='3', multiprocess=True)
 
 
 if __name__ == '__main__':
-    test_sandag()
+
+    # call each test explicitly so we get a pass/fail for each
+    build_data()
+    run_test(zone='1', multiprocess=False)
+    run_test(zone='1', multiprocess=True)
+
+    run_test(zone='2', multiprocess=False)
+    run_test(zone='2', multiprocess=True)
+
+    run_test(zone='3', multiprocess=False)
+    run_test(zone='3', multiprocess=True)

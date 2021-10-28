@@ -18,7 +18,7 @@ DEST_CHOICE_SAMPLE_TABLE_NAME: trip_destination_sample
 # model-specific logsum-related settings
 TRIP_ORIGIN: origin
 ALT_DEST_COL_NAME: dest_taz
-PRIMARY_DEST: destination
+PRIMARY_DEST: tour_leg_dest # must be created in preprocessor
 
 # tour_mode is already in trips table, so we don't need it from tours
 # (it is assigned in trip_destination_annotate_trips_preprocessor )

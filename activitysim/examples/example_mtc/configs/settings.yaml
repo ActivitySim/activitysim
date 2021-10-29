@@ -141,7 +141,8 @@ chunk_method: hybrid_uss
 # training
 # production
 # disabled
-chunk_training_mode: training
+# assume enough RAM to not chunk
+chunk_training_mode: disabled
 
 # whether to preserve or delete subprocess chunk and mem logs when they are consolidated at end of multiprocess run
 keep_chunk_logs: True

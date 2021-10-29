@@ -118,6 +118,9 @@ input_table_list:
 
 # chunk_size:
 
+# assume enough RAM to not chunk
+chunk_training_mode: disabled
+
 models:
   - initialize_landuse
   - initialize_households

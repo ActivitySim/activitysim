@@ -2,50 +2,43 @@ import os
 import pandas as pd
 import pytest
 import subprocess
+import tempfile
 
 from activitysim.cli.create import get_example
 
 
 @pytest.fixture(scope="module")
 def est_data():
-    # !activitysim create -e example_estimation_sf -d _test_est
-    if os.path.exists("_test_est"):
-        retain_test_data = True
-    else:
-        retain_test_data = False
-        get_example("example_estimation_sf", "_test_est")
 
-    # %cd _test_est
     cwd = os.getcwd()
+    tempdir = tempfile.TemporaryDirectory()
+    os.chdir(tempdir.name)
+
+    get_example("example_estimation_sf", "_test_est")
     os.chdir("_test_est")
 
     # !activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
-    if not retain_test_data:
-        print(f"List of files now in {os.getcwd()}")
-        subprocess.run(["find", "."])
-        print(f"\n\nrunning activitysim estimation mode in {os.getcwd()}")
-        subprocess.run(
-            [
-                "activitysim",
-                "run",
-                "-c",
-                "configs_estimation/configs",
-                "-c",
-                "configs",
-                "-o",
-                "output",
-                "-d",
-                "data_sf",
-            ],
-        )
-    else:
-        print(f"reusing existing data in {os.getcwd()}")
+    print(f"List of files now in {os.getcwd()}")
+    subprocess.run(["find", "."])
+    print(f"\n\nrunning activitysim estimation mode in {os.getcwd()}")
+    subprocess.run(
+        [
+            "activitysim",
+            "run",
+            "-c",
+            "configs_estimation/configs",
+            "-c",
+            "configs",
+            "-o",
+            "output",
+            "-d",
+            "data_sf",
+        ],
+    )
 
     yield os.getcwd()
 
     os.chdir(cwd)
-    # if not retain_test_data:
-    #     os.remove("_test_est")
 
 
 def _regression_check(dataframe_regression, df, basename=None):
@@ -54,7 +47,7 @@ def _regression_check(dataframe_regression, df, basename=None):
         # pandas 1.3 handles int8 dtypes as actual numbers, so holdfast needs to be dropped manually
         # we're dropping it not adding to the regression check so older pandas will also work.
         basename=basename,
-        default_tolerance=dict(atol=1e-6, rtol=1e-2)
+        default_tolerance=dict(atol=1e-6, rtol=5e-2)
         # set a little loose, as there is sometimes a little variance in these
         # results when switching backend implementations.
     )
@@ -100,7 +93,7 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     m, data = component_model(name, return_data=True)
     m.load_data()
     loglike_prior = m.loglike()
-    r = m.maximize_loglike(method=method)
+    r = m.maximize_loglike(method=method, options={'maxiter': 1000})
     num_regression.check(
         {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename=f"test_loc_{name}_loglike",
@@ -112,7 +105,7 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     dataframe_regression.check(
         size_spec,
         basename=f"test_loc_{name}_size_spec",
-        default_tolerance=dict(atol=1e-6, rtol=1e-2)
+        default_tolerance=dict(atol=1e-6, rtol=5e-2)
         # set a little loose, as there is sometimes a little variance in these
         # results when switching backend implementations.
     )

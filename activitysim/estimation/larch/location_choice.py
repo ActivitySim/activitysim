@@ -231,7 +231,7 @@ def location_choice_model(
             if size_spec.loc[i, q] != 0
         )
 
-    apply_coefficients(coefficients, m)
+    apply_coefficients(coefficients, m, minimum=-25, maximum=25)
     apply_coefficients(size_coef, m, minimum=-6, maximum=6)
 
     m.choice_co_code = "override_choice"

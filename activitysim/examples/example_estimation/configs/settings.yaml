@@ -10,7 +10,7 @@ input_table_list:
   # households (table index 'household_id')
   #
   - tablename: households
-    filename: households.csv
+    filename: survey_data/override_households.csv
     index_col: household_id
     keep_columns:
       - home_zone_id
@@ -23,7 +23,7 @@ input_table_list:
   # persons (table index 'person_id')
   #
   - tablename: persons
-    filename: persons.csv
+    filename: survey_data/override_persons.csv
     keep_columns:
       - household_id
       - age

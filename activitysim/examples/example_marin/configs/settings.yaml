@@ -6,6 +6,9 @@ households_sample_size: 500
 
 chunk_size: 0
 
+# assume enough RAM to not chunk
+chunk_training_mode: disabled
+
 #trace_hh_id: 662398
 trace_hh_id:
 

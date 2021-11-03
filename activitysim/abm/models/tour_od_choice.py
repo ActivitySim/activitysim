@@ -107,8 +107,11 @@ def tour_od_choice(
         estimator.write_override_choices(choices_df.choice)
         estimator.end_estimation()
 
-    tours[origin_col_name] = choices_df[origin_col_name]
-    tours[dest_col_name] = choices_df[dest_col_name]
+    tours[origin_col_name] = choices_df[origin_col_name].reindex(tours.index)
+    tours[dest_col_name] = choices_df[dest_col_name].reindex(tours.index)
+    if want_logsums:
+        tours[logsum_column_name] = \
+            choices_df['logsum'].reindex(tours.index).astype('float')
     tours['poe_id'] = tours[origin_col_name].map(land_use.to_frame(columns='poe_id').poe_id)
 
     households = households.to_frame()

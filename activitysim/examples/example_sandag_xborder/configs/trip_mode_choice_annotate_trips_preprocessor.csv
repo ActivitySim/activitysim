@@ -18,8 +18,8 @@ total intermediate stops,tot_stops,out_stops + in_stops
 ,tot_trips,tot_stops + 2
 first trip of tour,first_trip,(df.trip_num == 1) & (df.outbound == True)
 last trip of tour,last_trip,(df.trip_num == df.trip_count) & (df.outbound == False)
-,first_of_multi_trips,(out_stops > 0) * first_trip
-,last_of_multi_trips,(in_stops > 0) * last_trip
+,first_of_multi_trips,(out_stops > 0) & first_trip
+,last_of_multi_trips,(in_stops > 0) & last_trip
 ,tour_mode_is_da,df.tour_mode == 'DRIVEALONE'
 ,tour_mode_is_s2,df.tour_mode == 'SHARED2'
 ,tour_mode_is_s3,df.tour_mode == 'SHARED3'
@@ -55,7 +55,7 @@ vot-indexed skims,da_dist_skims,((odt_skims['SOV_NT_L_DIST'] * (_vot_bin_da == 1
 ,s3_cost_skims,((odt_skims['HOV3_L_TOLLCOST'] * (_vot_bin_s3 == 1)) + (odt_skims['HOV3_M_TOLLCOST'] * (_vot_bin_s3 == 2)) + (odt_skims['HOV3_H_TOLLCOST'] * (_vot_bin_s3 == 3)))
 ,s3_time_skims,((odt_skims['HOV3_L_TIME'] * (_vot_bin_s3 == 1)) + (odt_skims['HOV3_M_TIME'] * (_vot_bin_s3 == 2)) + (odt_skims['HOV3_H_TIME'] * (_vot_bin_s3 == 3)))
 ,walk_time,od_skims['walkTime']
-,walk_available,((walk_time < max_walk_time) * (walk_time > 0))
+,walk_available,((walk_time < max_walk_time) & (walk_time > 0))
 ,walk_transit_logsum,tvpb_logsum_odt['WTW']
 ,density_measure,"reindex(land_use.PopEmpDenPerMi, df[ORIGIN])"
 ,density_bin,"pd.cut(density_measure, bins=[-np.inf] + wait_time_distribution_by_density_breaks + [np.inf], labels=[1,2,3,4,5]).astype(int)"

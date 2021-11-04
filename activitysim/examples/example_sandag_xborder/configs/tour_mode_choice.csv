@@ -1,6 +1,7 @@
 Label,Description,Expression,DRIVEALONE,SHARED2,SHARED3,WALK
-util_auto_wait,Auto Wait Time,@(1 - df.sentri_crossing) * df.std_wait,coef_wait,coef_wait,coef_wait,
-util_auto_wait_sentri,Auto Wait Time - Sentri,@df.sentri_crossing * df.sentri_wait,coef_wait,coef_wait,coef_wait,
+util_auto_wait,Auto Wait Time,@(df.pass_type == 'no_pass') * df.std_wait,coef_wait,coef_wait,coef_wait,
+util_auto_wait_sentri,Auto Wait Time - Sentri,@(df.pass_type == 'sentri') * df.sentri_wait,coef_wait,coef_wait,coef_wait,
+util_auto_wait_ready,Auto Wait Time - Ready,@(df.pass_type == 'ready') * df.ready_wait,coef_wait,coef_wait,coef_wait,
 util_ped_wait,Walk - Wait Time,@df.ped_wait,,,,coef_wait
 util_trip_logsum_tour_da,Drive alone - Trip Logsum,@df.logsum_DRIVEALONE_outbound + df.logsum_DRIVEALONE_inbound,coef_trip_logsum,,,
 util_trip_logsum_tour_s2,Shared Ride 2 - Trip Logsum,@df.logsum_SHARED2_outbound + df.logsum_SHARED2_inbound,,coef_trip_logsum,,
@@ -9,8 +10,10 @@ util_trip_logsum_tour_walk,Walk - Trip Logsum,@df.logsum_WALK_outbound + df.logs
 util_ASC_s2,Shared Ride 2 - ASC,1,,SHARED2_asc,,
 util_ASC_s3,Shared Ride 3 - ASC,1,,,SHARED3_asc,
 util_ASC_walk,Walk - ASC,1,,,,WALK_asc
-util_sentri_s2,Crossing used Sentri - Shared Ride 2,@df.sentri_crossing,,SHARED2_coef_sentri,,
-util_sentri_s3,Crossing used Sentri - Shared Ride 3,@df.sentri_crossing,,,SHARED3_coef_sentri,
+util_sentri_s2,Crossing used Sentri - Shared Ride 2,@(df.pass_type == 'sentri'),,SHARED2_coef_sentri,,
+util_sentri_s3,Crossing used Sentri - Shared Ride 3,@(df.pass_type == 'sentri'),,,SHARED3_coef_sentri,
+util_ready_s2,Crossing used Sentri - Shared Ride 2,@(df.pass_type == 'ready'),,SHARED2_coef_ready,,
+util_ready_s3,Crossing used Sentri - Shared Ride 3,@(df.pass_type == 'ready'),,,SHARED3_coef_ready,
 util_visit_tour_s2,Visit Tour - Shared Ride 2,@df.tour_type == 'visit',,SHARED2_coef_visit,,
 util_visit_tour_s3,Visit Tour - Shared Ride 3,@df.tour_type == 'visit',,,SHARED3_coef_visit,
 util_visit_tour_walk,Visit Tour - Walk,@df.tour_type == 'visit',,,,WALK_coef_visit

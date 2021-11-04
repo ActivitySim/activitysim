@@ -1,8 +1,9 @@
 inherit_settings: False
 
 # number of households to simulate
+
 households_sample_size: 0
-multiprocess: True
+multiprocess: False
 strict: False
 mem_tick: 30
 num_processes: 30
@@ -15,8 +16,8 @@ fail_fast: True
 
 # chooser chunk size in gigabytes
 # target top memory usage during activitysim run (including shared memory, loaded tables, and transient memory usage)
-# chunk_size: 15_000_000_000
-chunk_size: 0
+chunk_size: 400_000_000_000
+#chunk_size: 0
 
 # minimum fraction of total chunk_size to reserve for adaptive chunking
 min_available_chunk_ratio: 0.05
@@ -63,6 +64,16 @@ input_table_list:
   - tablename: tours
     filename: tours_xborder.csv
     index_col: tour_id
+    keep_columns:
+      - pass_type
+      - tour_type
+      - purpose_id
+      - tour_category
+      - number_of_participants
+      - tour_num
+      - tour_count
+      - household_id
+      - person_id
 
 
 # set false to disable variability check in simple_simulate and interaction_simulate

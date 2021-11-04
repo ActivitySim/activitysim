@@ -752,6 +752,10 @@ def run_od_logsums(
         pipeline.get_rn_generator().drop_channel('trips')
         tracing.deregister_traceable_table('trips')
 
+        assert (od_sample.index == choosers.index).all()
+        for col in new_cols:
+            od_sample[col] = choosers[col]
+
     logsums = logsum.compute_logsums(
         choosers,
         spec_segment_name,
@@ -762,6 +766,7 @@ def run_od_logsums(
         chunk_tag,
         trace_label, 'end', 'start', 'duration')
 
+    assert (od_sample.index == logsums.index).all()
     od_sample['tour_mode_choice_logsum'] = logsums
 
     return od_sample

@@ -54,7 +54,7 @@ LOGSUM_CHOOSER_COLUMNS:
   - demographic_segment
   - c_ivt_for_segment
   - c_cost_for_segment
-  - sentri_crossing
+  - pass_type
   - start
   - end
   - duration

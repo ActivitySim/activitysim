@@ -30,6 +30,7 @@ tnc_shared_ASC_tour_s2,-10.0000,F
 tnc_shared_ASC_tour_s3,-10.0000,F
 tnc_shared_ASC_tour_walk,-10.0000,F
 s2_sentri_coef,-0.5310,F
+s2_ready_coef,0.0,F
 s2_work_tour_coef,-0.7970,F
 s2_calib_adj_tour_da,0.1280,F
 s2_calib_adj_tour_s2,-0.5901,F
@@ -40,6 +41,7 @@ s2_abm2_calib_adj_tour_s2,0.1003,F
 s2_abm2_calib_adj_tour_s3,0.0927,F
 s2_abm2_calib_adj_tour_walk,0.0615,F
 s3_sentri_coef,-0.8825,F
+s3_ready_coef,0.0,F
 s3_work_tour_coef,-0.7525,F
 s3_calib_adj_tour_da,0.3012,F
 s3_calib_adj_tour_s2,-1.1094,F
@@ -50,6 +52,7 @@ s3_abm2_calib_adj_tour_s2,0.1173,F
 s3_abm2_calib_adj_tour_s3,0.1219,F
 s3_abm2_calib_adj_tour_walk,-0.0099,F
 walk_sentri_coef,-0.3875,F
+walk_ready_coef,0.0,F
 walk_calib_adj_tour_da,0.2003,F
 walk_calib_adj_tour_s2,-0.0579,F
 walk_calib_adj_tour_s3,-0.4514,F
@@ -59,6 +62,7 @@ walk_abm2_calib_adj_tour_s2,-0.7036,F
 walk_abm2_calib_adj_tour_s3,-0.6691,F
 walk_abm2_calib_adj_tour_walk,-1.1779,F
 walk_transit_sentri_coef,0.6285,F
+walk_transit_ready_coef,0.0,F
 walk_transit_calib_adj_tour_da,-0.7947,F
 walk_transit_calib_adj_tour_s2,-2.0305,F
 walk_transit_calib_adj_tour_s3,-2.4453,F

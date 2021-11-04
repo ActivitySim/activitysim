@@ -10,6 +10,8 @@ SHARED3_asc_mandatory,-0.9820,F
 WALK_asc_mandatory,-3.4000,F
 SHARED2_coef_sentri_mandatory,0.1700,F
 SHARED3_coef_sentri_mandatory,0.1230,F
+SHARED2_coef_ready_mandatory,0.0,F
+SHARED3_coef_ready_mandatory,0.0,F
 SHARED2_coef_visit_mandatory,0.0,T
 SHARED3_coef_visit_mandatory,0.00,T
 WALK_coef_visit_mandatory,0.0,T
@@ -37,6 +39,8 @@ SHARED3_asc_nonmandatory,-1.3520,F
 WALK_asc_nonmandatory,-1.9340,F
 SHARED2_coef_sentri_nonmandatory,0.4210,F
 SHARED3_coef_sentri_nonmandatory,-0.1550,F
+SHARED2_coef_ready_nonmandatory,0.0,F
+SHARED3_coef_ready_nonmandatory,0.0,F
 SHARED2_coef_visit_nonmandatory,0.0754,F
 SHARED3_coef_visit_nonmandatory,0.0684,F
 WALK_coef_visit_nonmandatory,0.2257,F

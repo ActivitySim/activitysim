@@ -170,9 +170,7 @@ def run_trip_purpose(
 
     # - last trip of inbound tour gets home (or work for atwork subtours)
     purpose = trips_df.primary_purpose[last_trip & ~trips_df.outbound]
-
     purpose = pd.Series(np.where(purpose == 'atwork', 'work', 'home'), index=purpose.index)
-
     result_list.append(purpose)
     logger.info("assign purpose to %s last inbound trips", purpose.shape[0])
 

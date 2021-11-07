@@ -12,183 +12,118 @@ NESTS:
       - name: AUTO
         coefficient: coef_nest_AUTO
         alternatives:
-            - name: AUTO_OLD
-              coefficient: coef_nest_AUTO_OLD
-              alternatives:
-                - AUTO_OLD_GAS
-                - AUTO_OLD_DIESEL
-                - AUTO_OLD_HEV
-                - AUTO_OLD_PEV
-                - AUTO_OLD_PHEV
-                - AUTO_OLD_OTHER_FUEL
-            - name: AUTO_RECENT
-              coefficient: coef_nest_AUTO_RECENT
-              alternatives:
-                - AUTO_RECENT_GAS
-                - AUTO_RECENT_DIESEL
-                - AUTO_RECENT_HEV
-                - AUTO_RECENT_PEV
-                - AUTO_RECENT_PHEV
-                - AUTO_RECENT_OTHER_FUEL
-            - name: AUTO_NEW
-              coefficient: coef_nest_AUTO_NEW
-              alternatives:
-                - AUTO_NEW_GAS
-                - AUTO_NEW_DIESEL
-                - AUTO_NEW_HEV
-                - AUTO_NEW_PEV
-                - AUTO_NEW_PHEV
-                - AUTO_NEW_OTHER_FUEL
+          - AUTO_1YR
+          - AUTO_2YR
+          - AUTO_3YR
+          - AUTO_4YR
+          - AUTO_5YR
+          - AUTO_6YR
+          - AUTO_7YR
+          - AUTO_8YR
+          - AUTO_9YR
+          - AUTO_10YR
+          - AUTO_11YR
+          - AUTO_12YR
+          - AUTO_13YR
+          - AUTO_14YR
+          - AUTO_15YR
+          - AUTO_16YR
+          - AUTO_17YR
+          - AUTO_18YR
+          - AUTO_19YR
+          - AUTO_20PLUSYR 
       - name: VAN
         coefficient: coef_nest_VAN
         alternatives:
-            - name: VAN_OLD
-              coefficient: coef_nest_VAN_OLD
-              alternatives:
-                - VAN_OLD_GAS
-                - VAN_OLD_DIESEL
-                - VAN_OLD_HEV
-                - VAN_OLD_PEV
-                - VAN_OLD_PHEV
-                - VAN_OLD_OTHER_FUEL
-            - name: VAN_RECENT
-              coefficient: coef_nest_VAN_RECENT
-              alternatives:
-                - VAN_RECENT_GAS
-                - VAN_RECENT_DIESEL
-                - VAN_RECENT_HEV
-                - VAN_RECENT_PEV
-                - VAN_RECENT_PHEV
-                - VAN_RECENT_OTHER_FUEL
-            - name: VAN_NEW
-              coefficient: coef_nest_VAN_NEW
-              alternatives:
-                - VAN_NEW_GAS
-                - VAN_NEW_DIESEL
-                - VAN_NEW_HEV
-                - VAN_NEW_PEV
-                - VAN_NEW_PHEV
-                - VAN_NEW_OTHER_FUEL
+          - VAN_1YR
+          - VAN_2YR
+          - VAN_3YR
+          - VAN_4YR
+          - VAN_5YR
+          - VAN_6YR
+          - VAN_7YR
+          - VAN_8YR
+          - VAN_9YR
+          - VAN_10YR
+          - VAN_11YR
+          - VAN_12YR
+          - VAN_13YR
+          - VAN_14YR
+          - VAN_15YR
+          - VAN_16YR
+          - VAN_17YR
+          - VAN_18YR
+          - VAN_19YR
+          - VAN_20PLUSYR
       - name: SUV
         coefficient: coef_nest_SUV
         alternatives:
-            - name: SUV_OLD
-              coefficient: coef_nest_SUV_OLD
-              alternatives:
-                - SUV_OLD_GAS
-                - SUV_OLD_DIESEL
-                - SUV_OLD_HEV
-                - SUV_OLD_PEV
-                - SUV_OLD_PHEV
-                - SUV_OLD_OTHER_FUEL
-            - name: SUV_RECENT
-              coefficient: coef_nest_SUV_RECENT
-              alternatives:
-                - SUV_RECENT_GAS
-                - SUV_RECENT_DIESEL
-                - SUV_RECENT_HEV
-                - SUV_RECENT_PEV
-                - SUV_RECENT_PHEV
-                - SUV_RECENT_OTHER_FUEL
-            - name: SUV_NEW
-              coefficient: coef_nest_SUV_NEW
-              alternatives:
-                - SUV_NEW_GAS
-                - SUV_NEW_DIESEL
-                - SUV_NEW_HEV
-                - SUV_NEW_PEV
-                - SUV_NEW_PHEV
-                - SUV_NEW_OTHER_FUEL
+          - SUV_1YR
+          - SUV_2YR
+          - SUV_3YR
+          - SUV_4YR
+          - SUV_5YR
+          - SUV_6YR
+          - SUV_7YR
+          - SUV_8YR
+          - SUV_9YR
+          - SUV_10YR
+          - SUV_11YR
+          - SUV_12YR
+          - SUV_13YR
+          - SUV_14YR
+          - SUV_15YR
+          - SUV_16YR
+          - SUV_17YR
+          - SUV_18YR
+          - SUV_19YR
+          - SUV_20PLUSYR
       - name: TRUCK
         coefficient: coef_nest_TRUCK
         alternatives:
-            - name: TRUCK_OLD
-              coefficient: coef_nest_TRUCK_OLD
-              alternatives:
-                - TRUCK_OLD_GAS
-                - TRUCK_OLD_DIESEL
-                - TRUCK_OLD_HEV
-                - TRUCK_OLD_PEV
-                - TRUCK_OLD_PHEV
-                - TRUCK_OLD_OTHER_FUEL
-            - name: TRUCK_RECENT
-              coefficient: coef_nest_TRUCK_RECENT
-              alternatives:
-                - TRUCK_RECENT_GAS
-                - TRUCK_RECENT_DIESEL
-                - TRUCK_RECENT_HEV
-                - TRUCK_RECENT_PEV
-                - TRUCK_RECENT_PHEV
-                - TRUCK_RECENT_OTHER_FUEL
-            - name: TRUCK_NEW
-              coefficient: coef_nest_TRUCK_NEW
-              alternatives:
-                - TRUCK_NEW_GAS
-                - TRUCK_NEW_DIESEL
-                - TRUCK_NEW_HEV
-                - TRUCK_NEW_PEV
-                - TRUCK_NEW_PHEV
-                - TRUCK_NEW_OTHER_FUEL
+          - TRUCK_1YR
+          - TRUCK_2YR
+          - TRUCK_3YR
+          - TRUCK_4YR
+          - TRUCK_5YR
+          - TRUCK_6YR
+          - TRUCK_7YR
+          - TRUCK_8YR
+          - TRUCK_9YR
+          - TRUCK_10YR
+          - TRUCK_11YR
+          - TRUCK_12YR
+          - TRUCK_13YR
+          - TRUCK_14YR
+          - TRUCK_15YR
+          - TRUCK_16YR
+          - TRUCK_17YR
+          - TRUCK_18YR
+          - TRUCK_19YR
+          - TRUCK_20PLUSYR
       - name: MOTORCYCLE
         coefficient: coef_nest_MOTORCYCLE
         alternatives:
-            - name: MOTORCYCLE_OLD
-              coefficient: coef_nest_MOTORCYCLE_OLD
-              alternatives:
-                - MOTORCYCLE_OLD_GAS
-                - MOTORCYCLE_OLD_DIESEL
-                - MOTORCYCLE_OLD_HEV
-                - MOTORCYCLE_OLD_PEV
-                - MOTORCYCLE_OLD_PHEV
-                - MOTORCYCLE_OLD_OTHER_FUEL
-            - name: MOTORCYCLE_RECENT
-              coefficient: coef_nest_MOTORCYCLE_RECENT
-              alternatives:
-                - MOTORCYCLE_RECENT_GAS
-                - MOTORCYCLE_RECENT_DIESEL
-                - MOTORCYCLE_RECENT_HEV
-                - MOTORCYCLE_RECENT_PEV
-                - MOTORCYCLE_RECENT_PHEV
-                - MOTORCYCLE_RECENT_OTHER_FUEL
-            - name: MOTORCYCLE_NEW
-              coefficient: coef_nest_MOTORCYCLE_NEW
-              alternatives:
-                - MOTORCYCLE_NEW_GAS
-                - MOTORCYCLE_NEW_DIESEL
-                - MOTORCYCLE_NEW_HEV
-                - MOTORCYCLE_NEW_PEV
-                - MOTORCYCLE_NEW_PHEV
-                - MOTORCYCLE_NEW_OTHER_FUEL
-      - name: OTHER
-        coefficient: coef_nest_OTHER
-        alternatives:
-            - name: OTHER_OLD
-              coefficient: coef_nest_OTHER_OLD
-              alternatives:
-                - OTHER_BODY_OLD_GAS
-                - OTHER_BODY_OLD_DIESEL
-                - OTHER_BODY_OLD_HEV
-                - OTHER_BODY_OLD_PEV
-                - OTHER_BODY_OLD_PHEV
-                - OTHER_BODY_OLD_OTHER_FUEL
-            - name: OTHER_RECENT
-              coefficient: coef_nest_OTHER_RECENT
-              alternatives:
-                - OTHER_BODY_RECENT_GAS
-                - OTHER_BODY_RECENT_DIESEL
-                - OTHER_BODY_RECENT_HEV
-                - OTHER_BODY_RECENT_PEV
-                - OTHER_BODY_RECENT_PHEV
-                - OTHER_BODY_RECENT_OTHER_FUEL
-            - name: OTHER_NEW
-              coefficient: coef_nest_OTHER_NEW
-              alternatives:
-                - OTHER_BODY_NEW_GAS
-                - OTHER_BODY_NEW_DIESEL
-                - OTHER_BODY_NEW_HEV
-                - OTHER_BODY_NEW_PEV
-                - OTHER_BODY_NEW_PHEV
-                - OTHER_BODY_NEW_OTHER_FUEL
+          - MOTORCYCLE_1YR
+          - MOTORCYCLE_2YR
+          - MOTORCYCLE_3YR
+          - MOTORCYCLE_4YR
+          - MOTORCYCLE_5YR
+          - MOTORCYCLE_6YR
+          - MOTORCYCLE_7YR
+          - MOTORCYCLE_8YR
+          - MOTORCYCLE_9YR
+          - MOTORCYCLE_10YR
+          - MOTORCYCLE_11YR
+          - MOTORCYCLE_12YR
+          - MOTORCYCLE_13YR
+          - MOTORCYCLE_14YR
+          - MOTORCYCLE_15YR
+          - MOTORCYCLE_16YR
+          - MOTORCYCLE_17YR
+          - MOTORCYCLE_18YR
+          - MOTORCYCLE_19YR
+          - MOTORCYCLE_20PLUSYR
             
 CONSTANTS:
   vot: 5

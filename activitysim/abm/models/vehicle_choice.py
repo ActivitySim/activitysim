@@ -33,8 +33,7 @@ def vehicle_choice(
         vehicles_merged,
         chunk_size,
         trace_hh_id):
-    """
-    
+    """Assigns vehicle type to each vehicle
     """
     trace_label = 'vehicle_choice'
     model_settings_file_name = 'vehicle_choice.yaml'
@@ -82,7 +81,7 @@ def vehicle_choice(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
-    # run logit choices
+    # STEP I. run logit choices
     choices = simulate.simple_simulate(
         choosers=choosers,
         spec=model_spec,
@@ -104,7 +103,7 @@ def vehicle_choice(
     choices[choice_column_name] = \
         choices[choice_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
 
-    # append probabilistic attributes to veh types
+    # append probabilistic attributes to veh types if they exist
     probs_spec_file = model_settings.get("PROBS_SPEC", None)
     if probs_spec_file is not None:
 

@@ -26,7 +26,7 @@ do so by following these steps::
     gh auth login  # <--- (only needed if gh is not logged in)
     gh repo clone ActivitySim/activitysim          # TEMPORARY: use jpn--/activitysim
     cd activitysim
-    git switch develop                             # TEMPORARY: use performanceTest branch
+    git switch develop                             # TEMPORARY: use performance1 branch
     mamba env update --file=conda-environments/activitysim-dev.yml
     cd ..
     gh repo clone ActivitySim/asim-benchmarks      # TEMPORARY: use jpn--/asim-benchmarks
@@ -37,7 +37,7 @@ consider updating the environment like this::
 
     conda activate ASIM-BENCH
     cd activitysim
-    git switch develop                             # TEMPORARY: use performanceTest branch
+    git switch develop                             # TEMPORARY: use performance1 branch
     mamba env update --file=conda-environments/activitysim-dev.yml
     cd ..
     cd asim-benchmarks

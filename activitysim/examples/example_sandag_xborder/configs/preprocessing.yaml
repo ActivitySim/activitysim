@@ -1,0 +1,185 @@
+# misc settings
+data_dir: data
+config_dir: configs
+distance_param: -0.19
+walk_speed: 3
+
+
+# non-skim inputs
+maz_input_fname: mgra13_based_input2016.csv
+colonia_input_fname: crossBorder_supercolonia.csv
+tap_lines_input_fname: tapLines.csv
+tour_scheduling_probs_input_fname: crossBorder_tourEntryAndReturn.csv
+tour_purpose_control_probs_input_fname: crossBorder_tourPurpose_control.csv
+poe_wait_times_input_fname: crossBorder_pointOfEntryWaitTime.csv
+stop_frequency_input_fname: crossBorder_stopFrequency.csv
+trip_purpose_probs_input_fname: crossBorder_stopPurpose.csv
+trip_scheduling_probs_input_fnames:
+  outbound: crossBorder_outboundStopDuration.csv
+  inbound: crossBorder_inboundStopDuration.csv
+
+
+# output data
+mazs_output_fname: mazs_xborder.csv
+households_output_fname: households_xborder.csv
+persons_output_fname: persons_xborder.csv
+tours_output_fname: tours_xborder.csv
+tap_lines_output_fname: tap_lines.csv
+taps_output_fname: taps.csv
+
+
+# output configs
+tour_scheduling_probs_output_fname: tour_scheduling_probs.csv
+tour_scheduling_alts_output_fname: tour_departure_and_duration_alternatives.csv
+tour_purpose_control_probs_output_fname: tour_purpose_probs_by_poe.csv
+stop_frequency_alts_output_fname: stop_frequency_alternatives.csv
+stop_frequency_coeffs_output_formattable_fname: 'stop_frequency_coefficients_{purpose}.csv'
+stop_frequency_expressions_output_formattable_fname: 'stop_frequency_{purpose}.csv'
+trip_purpose_probs_output_fname: trip_purpose_probs.csv
+trip_scheduling_probs_output_fname: trip_scheduling_probs.csv
+
+
+# skims
+skims:
+  maz_to_maz:
+    walk:
+      input_fname: microMgraEquivMinutes.csv
+      output_fname: maz_maz_walk.csv
+      rename_columns:
+        i: OMAZ
+        j: DMAZ
+  maz_to_tap:
+    walk:
+      input_fname: microMgraTapEquivMinutes.csv
+      output_fname: maz_tap_walk.csv
+      rename_columns:
+        tap: TAP
+        mgra: MAZ
+  tap_to_tap:
+    input_fname: transit_skims.omx
+    output_fname: transit_skims_xborder.omx
+  taz_to_taz:
+    periods:
+      - EA
+      - AM
+      - MD
+      - PM
+      - EV
+    input_base_fname: traffic_skims
+    output_base_fname: traffic_skims_xborder
+
+
+# Points of Entry
+poes:
+  0:
+    name: San Ysidro
+    maz_id: 7090
+    ext_taz_id: 1
+    veh_lanes: 24
+    ped_lanes: 15
+  1:
+    name: Otay Mesa
+    maz_id: 7066
+    ext_taz_id: 2
+    veh_lanes: 13
+    ped_lanes: 6
+  2:
+    name: Tecate
+    maz_id: 21895
+    ext_taz_id: 4
+    veh_lanes: 2
+    ped_lanes: 2
+  # 3:
+  #   name: Otay Mesa East
+  #   maz_id: 7123
+  # 4:
+  #   name: Jacumba
+  #   maz_id: 22094
+
+
+# Tours
+tours:
+  pass_shares:
+    sentri: 0.219
+    ready: 0.322
+    no_pass: 0.459
+  num_tours: 113995
+  purpose_ids:
+    work: 0
+    school: 1
+    shop: 2
+    visit: 3
+    other: 4
+  purpose_shares_by_pass_type:
+    sentri:
+      work: 0.143264848  # new
+      school: 0.028223443  # new
+      shop: 0.727730975  # new
+      visit: 0.023476697  # new
+      other: 0.077304037  # new
+    ready:
+      work: 0.155162255  # new
+      school: 0.007794038  # new
+      shop: 0.702569828  # new
+      visit: 0.040267183  # new
+      other: 0.094206697  # new
+    no_pass:
+      work: 0.228715733  # new
+      school: 0.052974068  # new
+      shop: 0.59374183  # new
+      visit: 0.040553855  # new
+      other: 0.084014515  # new
+
+
+# Wait Time Model Settings
+wait_time_updating:
+  iters: 3
+  coeffs:
+    std:
+      asc: 24.4819  # c1
+      om_asc: 38.2236  # c2
+      tc_asc: -31.6399  # c3
+      vol: 2.138  # c4
+      vol_om: -1.329  # c5
+      vol_tc: -1.672  # c6
+      ea_constant: -17.017  # c7
+      ev_constant: -33.0233  # c8
+      ea_om_constant: -29.1815  # c9
+      ev_om_constant: -11.0587  # c10
+      ev_tc_constant: 21.8711  # c11
+    ready:
+      asc: 40.0794  # c1
+      om_asc: -33.5957  # c2
+      tc_asc: 0  # c3 - no ready lane at tecate
+      vol: 2.12e-12  # c4
+      vol_om: 1.253  # c5
+      vol_tc: 0  # c6 - no ready lane at tecate
+      ea_constant: -1.211E-11  # c7
+      ev_constant: 1.584E-12  # c8
+      ea_om_constant: -7.7458  # c9
+      ev_om_constant: -25.8116  # c10
+      ev_tc_constant: 0  # c11 - no ready lane at tecate
+    sentri:
+      asc: 3.5404  # c1
+      om_asc: -0.3852  # c2
+      tc_asc: 0  # c3 - no sentri lane at tecate
+      vol: 0.217  # c4
+      vol_om: -0.054  # c5
+      vol_tc: 0  # c6 - no sentri lane at tecate
+      ea_constant: 0.1617  # c7
+      ev_constant: 0.4187  # c8
+      ea_om_constant: 0  # c9 - no EA sentri crossings observed at otay mesa
+      ev_om_constant: -1.1282  # c10
+      ev_tc_constant: 0  # c11 - no sentri lane at tecate
+    ped:
+      asc: -3.5615  # c1
+      om_asc: 3.3397  # c2
+      tc_asc: -2.0119  # c3
+      vol: 0.2295  # c4
+      vol_om: -0.1517  # c5
+      vol_tc: 0.1184  # c6
+      ea_constant: 3.4151  # c7
+      ev_constant: 1.9005  # c8
+      ea_om_constant: -4.477  # c9
+      ev_om_constant: -3.8144  # c10
+      ev_tc_constant: 0  # c11 no ped lane at tecate?

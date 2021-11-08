@@ -329,6 +329,7 @@ class Network_LOS(object):
         # create taz skim dict
         assert 'taz' not in self.skim_dicts
         self.skim_dicts['taz'] = self.create_skim_dict('taz')
+
         # make sure skim has all taz_ids
         # FIXME - weird that there is no list of tazs?
 
@@ -480,7 +481,6 @@ class Network_LOS(object):
 
         assert skim_tag in self.skim_dicts, \
             f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
-
         return self.skim_dicts[skim_tag]
 
     def get_default_skim_dict(self):
@@ -558,7 +558,7 @@ class Network_LOS(object):
 
         Returns
         -------
-        pandas Series
+        numpy.array
             string time period labels
         """
 
@@ -574,14 +574,9 @@ class Network_LOS(object):
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
 
-        # FIXME - eventually test and use np version always?
-        if np.isscalar(time_period):
-            bin = np.digitize([time_period % total_periods],
-                              self.skim_time_periods['periods'], right=True)[0] - 1
-            return self.skim_time_periods['labels'][bin]
-
-        return pd.cut(time_period, self.skim_time_periods['periods'],
-                      labels=self.skim_time_periods['labels'], ordered=False).astype(str)
+        bins = np.digitize(
+            [np.array(time_period) % total_periods], self.skim_time_periods['periods'], right=True)[0] - 1
+        return np.array(self.skim_time_periods['labels'])[bins]
 
     def get_tazs(self):
         # FIXME - should compute on init?

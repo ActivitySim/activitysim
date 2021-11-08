@@ -1,0 +1,18 @@
+Label,Description,Expression,coefficient
+util_size_variable,Size variable,@(df['size_term']).apply(np.log1p),1
+util_no_attractions,No attractions,@df['size_term']==0,-999
+local_dist_variable,skim distance,"_DIST@skims[('SOV_NT_M_DIST','MD')]",1
+local_dist,skim distance,@_DIST,coef_dist
+poe_accessibility,station logsum,@df['colonia_pop_accessibility'],1
+otay_mesa_mandatory,"POE is Otay Mesa, mandatory","@(df['poe_id']==1) & (df.is_mandatory)",coef_otay_mesa_mandatory
+otay_mesa_non_mandatory,"POE is Otay Mesa, non-mandatory","@(df['poe_id']==1) & (1 - df.is_mandatory)",coef_otay_mesa_non_mandatory
+tecate_mandatory,"POE is Tecate, mandatory","@(df['poe_id']==2) & (df.is_mandatory)",coef_tecate_mandatory
+tecate_non_mandatory,"POE is Tecate, non-mandatory","@(df['poe_id']==2) & (1 - df.is_mandatory)",coef_tecate_non_mandatory
+util_dist_0_2_mandatory,"Distance, piecewise linear from 0 to 2 miles, mandatory","@(_DIST > 0) * (np.minimum(_DIST, 2)) * (df.is_mandatory)",coef_dist_0_2_mandatory_soa
+util_dist_2_5_mandatory,"Distance, piecewise linear from 2 to 5 miles, mandatory","@(_DIST > 2) * (np.minimum(_DIST - 2, 3)) * (df.is_mandatory)",coef_dist_2_5_mandatory_soa
+util_dist_5_20_mandatory,"Distance, piecewise linear from 5 to 20 miles, mandatory","@(_DIST > 5) * (np.minimum(_DIST - 5, 15)) * (df.is_mandatory)",coef_dist_5_20_mandatory_soa
+util_dist_20_up_mandatory,"Distance, piecewise linear for 20+ miles, mandatory","@(_DIST > 20) * (_DIST - 20) * (df.is_mandatory)",coef_dist_20_up_mandatory_soa
+util_dist_0_2_non_mandatory,"Distance, piecewise linear from 0 to 2 miles, non_mandatory","@(_DIST > 0) * (np.minimum(_DIST, 2)) * (1 - df.is_mandatory)",coef_dist_0_2_non_mandatory_soa
+util_dist_2_5_non_mandatory,"Distance, piecewise linear from 2 to 5 miles, non_mandatory","@(_DIST > 2) * (np.minimum(_DIST - 2, 3)) * (1 - df.is_mandatory)",coef_dist_2_5_non_mandatory_soa
+util_dist_5_20_non_mandatory,"Distance, piecewise linear from 5 to 20 miles, non_mandatory","@(_DIST > 5) * (np.minimum(_DIST - 5, 15)) * (1 - df.is_mandatory)",coef_dist_5_20_non_mandatory_soa
+util_dist_20_up_non_mandatory,"Distance, piecewise linear for 20+ miles, non_mandatory","@(_DIST > 20) * (_DIST - 20) * (1 - df.is_mandatory)",coef_dist_20_up_non_mandatory_soa

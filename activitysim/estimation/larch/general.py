@@ -325,13 +325,20 @@ def apply_coefficients(coefficients, model, minimum=None, maximum=None):
         explicit_value_parameters(model)
         for i in coefficients.itertuples():
             if i.Index in model:
+                holdfast = (i.constrain == "T")
+                if holdfast:
+                    minimum_ = i.value
+                    maximum_ = i.value
+                else:
+                    minimum_ = minimum
+                    maximum_ = maximum
                 model.set_value(
                     i.Index,
                     value=i.value,
                     initvalue=i.value,
-                    holdfast=(i.constrain == "T"),
-                    minimum=minimum,
-                    maximum=maximum,
+                    holdfast=holdfast,
+                    minimum=minimum_,
+                    maximum=maximum_,
                 )
 
 

@@ -1,0 +1,70 @@
+Description,Target,Expression
+,is_work_tour,df.tour_type == 'work'
+,work_time_factor,"rng.lognormal_for_df(df.set_index('tour_id'), mu=time_distrib_mean_work, sigma=time_distrib_stddev_work, broadcast=True, scale=True).set_axis(df.index, axis='index')"
+,non_work_time_factor,"rng.lognormal_for_df(df.set_index('tour_id'), mu=time_distrib_mean_nonwork, sigma=time_distrib_stddev_nonwork, broadcast=True, scale=True).set_axis(df.index, axis='index')"
+,c_ivt,c_ivt_base * (is_work_tour * work_time_factor + (1 - is_work_tour) * non_work_time_factor)
+,c_fwt,c_ivt * 1.5
+,c_xwt,c_ivt * 1.5
+,c_wacc,c_ivt * 1.5
+,c_wegr,c_ivt * 1.5
+,c_waux,c_ivt * 1.5
+,c_xfers,c_ivt * 24
+,c_walk_time,c_ivt * 1.8
+,c_xfers_pnr,c_ivt * 15
+,cost_per_mile,cost_per_mile_fuel + cost_per_mile_maint
+intermediate outbound stops on tour,out_stops,df['stop_frequency'].str[0].astype(int)
+intermediate inbound stops on tour,in_stops,df['stop_frequency'].str[5].astype(int)
+total intermediate stops,tot_stops,out_stops + in_stops
+,tot_trips,tot_stops + 2
+first trip of tour,first_trip,(df.trip_num == 1) & (df.outbound == True)
+last trip of tour,last_trip,(df.trip_num == df.trip_count) & (df.outbound == False)
+,first_of_multi_trips,(out_stops > 0) & first_trip
+,last_of_multi_trips,(in_stops > 0) & last_trip
+,tour_mode_is_da,df.tour_mode == 'DRIVEALONE'
+,tour_mode_is_s2,df.tour_mode == 'SHARED2'
+,tour_mode_is_s3,df.tour_mode == 'SHARED3'
+,tour_mode_is_walk,df.tour_mode == 'WALK'
+tour duration in hours,duration_hours,df['duration'] / PERIODS_PER_HOUR
+,_TOURS_HAVE_DEST,'destination' in tours.columns
+for tour_od_choice logsums read tour_dest from trips table,tour_dest,"reindex(tours.destination, df.tour_id) if _TOURS_HAVE_DEST else df.tour_destination"
+,trip_orig_is_tour_dest,df.origin == tour_dest
+,trip_dest_is_tour_dest,df.destination == tour_dest
+sandag costs need to be in cents,park_cost_day,"reindex(land_use.dparkcost, tour_dest) * 100"
+,park_cost_hour,"reindex(land_use.hparkcost, tour_dest) * 100"
+,park_cost_month,"reindex(land_use.mparkcost, tour_dest) * 100"
+effective parking cost,park_cost_prim_dest,"pd.concat((park_cost_day, park_cost_hour * duration_hours), axis=1).min(axis=1)"
+,park_cost_tour_dest_contrib,park_cost_prim_dest / tot_trips
+,park_cost_trip_orig,"reindex(land_use.hparkcost, df[ORIGIN]) * 100"
+,park_cost_trip_dest,"reindex(land_use.hparkcost, df[DESTINATION]) * 100"
+,park_cost_trip_orig_contrib,((1 - first_trip) * (1 - trip_orig_is_tour_dest)) * (park_cost_trip_orig / 2) + (trip_orig_is_tour_dest * (park_cost_tour_dest_contrib / (tot_trips + 2)))
+,park_cost_trip_dest_contrib,((1 - last_trip) * (1 - trip_dest_is_tour_dest)) * (park_cost_trip_dest / 2) + (trip_dest_is_tour_dest * (park_cost_tour_dest_contrib / (tot_trips + 2)))
+,parking_cost,park_cost_tour_dest_contrib + park_cost_trip_orig_contrib + park_cost_trip_dest_contrib
+,vot_da,c_ivt / c_cost * 0.6
+,vot_s2,vot_da * cost_share_s2
+,vot_s3,vot_da * cost_share_s3
+,_vot_bin_da,"np.where(vot_da < vot_threshold_low, 1, np.where(vot_da < vot_threshold_med, 2, 3))"
+,_vot_bin_s2,"np.where(vot_s2 < vot_threshold_low, 1, np.where(vot_s2 < vot_threshold_med, 2, 3))"
+,_vot_bin_s3,"np.where(vot_s3 < vot_threshold_low, 1, np.where(vot_s3 < vot_threshold_med, 2, 3))"
+vot-indexed skims,da_dist_skims,((odt_skims['SOV_NT_L_DIST'] * (_vot_bin_da == 1)) + (odt_skims['SOV_NT_M_DIST'] * (_vot_bin_da == 2)) + (odt_skims['SOV_NT_H_DIST'] * (_vot_bin_da == 3)))
+,da_cost_skims,((odt_skims['SOV_NT_L_TOLLCOST'] * (_vot_bin_da == 1)) + (odt_skims['SOV_NT_M_TOLLCOST'] * (_vot_bin_da == 2)) + (odt_skims['SOV_NT_H_TOLLCOST'] * (_vot_bin_da == 3)))
+,da_time_skims,((odt_skims['SOV_NT_L_TIME'] * (_vot_bin_da == 1)) + (odt_skims['SOV_NT_M_TIME'] * (_vot_bin_da == 2)) + (odt_skims['SOV_NT_H_TIME'] * (_vot_bin_da == 3)))
+,s2_dist_skims,((odt_skims['HOV2_L_DIST'] * (_vot_bin_s2 == 1)) + (odt_skims['HOV2_M_DIST'] * (_vot_bin_s2 == 2)) + (odt_skims['HOV2_H_DIST'] * (_vot_bin_s2 == 3)))
+,s2_cost_skims,((odt_skims['HOV2_L_TOLLCOST'] * (_vot_bin_s2 == 1)) + (odt_skims['HOV2_M_TOLLCOST'] * (_vot_bin_s2 == 2)) + (odt_skims['HOV2_H_TOLLCOST'] * (_vot_bin_s2 == 3)))
+,s2_time_skims,((odt_skims['HOV2_L_TIME'] * (_vot_bin_s2 == 1)) + (odt_skims['HOV2_M_TIME'] * (_vot_bin_s2 == 2)) + (odt_skims['HOV2_H_TIME'] * (_vot_bin_s2 == 3)))
+,s3_dist_skims,((odt_skims['HOV3_L_DIST'] * (_vot_bin_s3 == 1)) + (odt_skims['HOV3_M_DIST'] * (_vot_bin_s3 == 2)) + (odt_skims['HOV3_H_DIST'] * (_vot_bin_s3 == 3)))
+,s3_cost_skims,((odt_skims['HOV3_L_TOLLCOST'] * (_vot_bin_s3 == 1)) + (odt_skims['HOV3_M_TOLLCOST'] * (_vot_bin_s3 == 2)) + (odt_skims['HOV3_H_TOLLCOST'] * (_vot_bin_s3 == 3)))
+,s3_time_skims,((odt_skims['HOV3_L_TIME'] * (_vot_bin_s3 == 1)) + (odt_skims['HOV3_M_TIME'] * (_vot_bin_s3 == 2)) + (odt_skims['HOV3_H_TIME'] * (_vot_bin_s3 == 3)))
+,walk_time,od_skims['walkTime']
+,walk_available,((walk_time < max_walk_time) & (walk_time > 0))
+,walk_transit_logsum,tvpb_logsum_odt['WTW']
+,density_measure,"reindex(land_use.PopEmpDenPerMi, df[ORIGIN])"
+,density_bin,"pd.cut(density_measure, bins=[-np.inf] + wait_time_distribution_by_density_breaks + [np.inf], labels=[1,2,3,4,5]).astype(int)"
+,taxi_wait_time_mean,"density_bin.map({k: v for k,v in taxi_wait_time_mean_by_density.items()})"
+,taxi_wait_time_sd,"density_bin.map({k: v for k,v in taxi_wait_time_sd_by_density.items()})"
+,tnc_single_wait_time_mean,"density_bin.map({k: v for k,v in tnc_single_wait_time_mean_by_density.items()})"
+,tnc_single_wait_time_sd,"density_bin.map({k: v for k,v in tnc_single_wait_time_sd_by_density.items()})"
+,tnc_shared_wait_time_mean,"density_bin.map({k: v for k,v in tnc_shared_wait_time_mean_by_density.items()})"
+,tnc_shared_wait_time_sd,"density_bin.map({k: v for k,v in tnc_shared_wait_time_sd_by_density.items()})"
+,taxi_wait_time,"rng.lognormal_for_df(df.set_index('tour_id'), mu=taxi_wait_time_mean.values, sigma=taxi_wait_time_sd.values, broadcast=True, scale=True).set_axis(df.index, axis='index')"
+,tnc_single_wait_time,"rng.lognormal_for_df(df.set_index('tour_id'), mu=tnc_single_wait_time_mean.values, sigma=tnc_single_wait_time_sd.values, broadcast=True, scale=True).set_axis(df.index, axis='index')"
+,tnc_shared_wait_time,"rng.lognormal_for_df(df.set_index('tour_id'), mu=tnc_shared_wait_time_mean.values, sigma=tnc_shared_wait_time_sd.values, broadcast=True, scale=True).set_axis(df.index, axis='index')"

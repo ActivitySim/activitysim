@@ -45,17 +45,19 @@ def run_test(zone, multiprocess=False):
 
     def regress(zone):
 
-        # ## regress tours
+        # regress tours
         regress_tours_df = pd.read_csv(test_path(f'regress/final_tours_{zone}_zone.csv'))
         tours_df = pd.read_csv(test_path('output/final_tours.csv'))
+        tours_df.to_csv(test_path(f'regress/final_tours_{zone}_zone_last_run.csv'), index=False)
         print(f"regress tours")
-        pdt.assert_frame_equal(tours_df, regress_tours_df)
+        pdt.assert_frame_equal(tours_df, regress_tours_df, rtol=1e-03)
 
-        # ## regress trips
+        # regress trips
         regress_trips_df = pd.read_csv(test_path(f'regress/final_trips_{zone}_zone.csv'))
         trips_df = pd.read_csv(test_path('output/final_trips.csv'))
+        trips_df.to_csv(test_path(f'regress/final_trips_{zone}_zone_last_run.csv'), index=False)
         print(f"regress trips")
-        pdt.assert_frame_equal(trips_df, regress_trips_df), "regress trips"
+        pdt.assert_frame_equal(trips_df, regress_trips_df, rtol=1e-03)
 
     file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
 

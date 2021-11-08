@@ -1,0 +1,4 @@
+Description,Target,Expression
+#,,annotate persons table after import
+fake demog segments needed by trip mode choice model,demographic_segment,'everyone'
+university status required by tour mode choice,is_university,False

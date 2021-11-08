@@ -12,7 +12,7 @@ from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
 from activitysim.core import expressions
-
+from activitysim.core import logit
 from activitysim.core import assign
 from activitysim.core import los
 
@@ -27,9 +27,10 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def vehicle_choice(
+        persons,
         households,
-        households_merged,
         vehicles,
+        vehicles_merged,
         chunk_size,
         trace_hh_id):
     """
@@ -58,7 +59,7 @@ def vehicle_choice(
     locals_dict.update(coefficients_df)
 
     # merge vehicles onto households, index will be vehicle_id
-    choosers = inject.merge_tables('households_merged', ['households_merged', 'vehicles'])
+    choosers = vehicles_merged.to_frame()
 
     # - preprocessor
     preprocessor_settings = model_settings.get('preprocessor', None)
@@ -81,6 +82,7 @@ def vehicle_choice(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
+    # run logit choices
     choices = simulate.simple_simulate(
         choosers=choosers,
         spec=model_spec,
@@ -91,15 +93,60 @@ def vehicle_choice(
         trace_choice_name='vehicle_type',
         estimator=estimator)
 
+    if isinstance(choices, pd.Series):
+        choices = choices.to_frame('choice')
+
+    choices.rename(columns={'logsum': logsum_column_name,
+                            'choice': choice_column_name},
+                   inplace=True)
+
+    alts = model_spec.columns
+    choices[choice_column_name] = \
+        choices[choice_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
+
+    # append probabilistic attributes to veh types
+    probs_spec_file = model_settings.get("PROBS_SPEC", None)
+    if probs_spec_file is not None:
+
+        # name of first column must be "vehicle_type"
+        probs_spec = pd.read_csv(
+            config.config_file_path(probs_spec_file), comment='#')
+
+        # left join vehicles to probs
+        choosers = pd.merge(
+            choices.reset_index(), probs_spec,
+            on=choice_column_name,
+            how='left').set_index('vehicle_id')
+        del choosers[choice_column_name]
+
+        # probs should sum to 1 with residual probs resulting in choice of 'fail'
+        chooser_probs = choosers.div(choosers.sum(axis=1), axis=0).fillna(0)
+        chooser_probs['fail'] = 1 - chooser_probs.sum(axis=1).clip(0, 1)
+
+        # make probabilistic choices
+        prob_choices, rands = logit.make_choices(chooser_probs, trace_label=trace_label, trace_choosers=choosers)
+
+        # convert alt choice index to vehicle type attribute
+        prob_choices = chooser_probs.columns[prob_choices.values].to_series(index=prob_choices.index)
+        failed = (prob_choices == chooser_probs.columns.get_loc('fail'))
+        prob_choices = prob_choices.where(~failed, "NOT CHOSEN")
+
+        # add new attribute to logit choice vehicle types
+        choices[choice_column_name] = choices[choice_column_name] + '_' + prob_choices
+
     if estimator:
         estimator.write_choices(choices)
         choices = estimator.get_survey_values(choices, 'households', 'vehicle_choice')
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    vehicles['vehicle_type'] = choices
+    # update vehicles table
+    vehicles = vehicles.to_frame()
+    assign_in_place(vehicles, choices)
+    pipeline.replace_table("vehicles", vehicles)
 
     # - annotate households table
+    households = households.to_frame()
     expressions.assign_columns(
         df=households,
         model_settings=model_settings.get('annotate_households'),
@@ -107,16 +154,16 @@ def vehicle_choice(
     pipeline.replace_table("households", households)
 
     # - annotate persons table
-    households = persons.to_frame()
+    persons = persons.to_frame()
     expressions.assign_columns(
         df=persons,
         model_settings=model_settings.get('annotate_households'),
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
     pipeline.replace_table("persons", persons)
 
-    tracing.print_summary('vehicle_choice', households.vehicle_type, value_counts=True)
+    tracing.print_summary('vehicle_choice', vehicles.vehicle_type, value_counts=True)
 
     if trace_hh_id:
-        tracing.trace_df(households,
+        tracing.trace_df(vehicles,
                          label='vehicle_choice',
                          warn_if_empty=True)

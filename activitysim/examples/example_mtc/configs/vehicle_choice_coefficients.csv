@@ -1,157 +1,157 @@
-coefficient_name          ,value ,constrain
-coef_one                  ,1     ,T        
-coef_nest_root            ,1.00  ,T        
-coef_nest_AUTO            ,0.72  ,F        
-coef_nest_VAN             ,0.72  ,F        
-coef_nest_SUV             ,0.72  ,F        
-coef_nest_TRUCK           ,0.72  ,F        
-coef_nest_MOTORCYCLE      ,0.72  ,F        
-coef_hhinc_0_24k_VAN      ,0.197 ,F        
-coef_hhinc_0_24k_SUV      ,-0.256,F        
-coef_hhinc_0_24k_TRUCK    ,-0.141,F        
-coef_hhinc_0_24k_MOTO     ,-0.216,F        
-coef_hhinc_0_24k_AGE      ,0.101 ,F        
-coef_hhinc_25_49k_VAN     ,0.100 ,F        
-coef_hhinc_25_49k_SUV     ,-0.113,F        
-coef_hhinc_25_49k_TRUCK   ,0.004 ,F        
-coef_hhinc_25_49k_MOTO    ,-0.007,F        
-coef_hhinc_25_49k_AGE     ,0.042 ,F        
-coef_hhinc_100k_plus_VAN  ,-0.159,F        
-coef_hhinc_100k_plus_SUV  ,0.087 ,F        
-coef_hhinc_100k_plus_TRUCK,-0.210,F        
-coef_hhinc_100k_plus_MOTO ,-0.153,F        
-coef_hhinc_100k_plus_AGE  ,-0.042,F        
-coef_hhinc_missing_VAN    ,0.164 ,F        
-coef_hhinc_missing_SUV    ,-0.007,F        
-coef_hhinc_missing_TRUCK  ,-0.069,F        
-coef_hhinc_missing_MOTO   ,-0.527,F        
-coef_hhinc_missing_AGE    ,0.004 ,F        
-coef_hh_rural_VAN         ,0.277 ,F        
-coef_hh_rural_SUV         ,0.289 ,F        
-coef_hh_rural_TRUCK       ,0.830 ,F        
-coef_hh_rural_MOTO        ,0.011 ,F        
-coef_hh_rural_AGE         ,-0.004,F        
-coef_hh_1veh_VAN          ,-0.362,F        
-coef_hh_1veh_SUV          ,-0.149,F        
-coef_hh_1veh_TRUCK        ,-0.980,F        
-coef_hh_1veh_MOTO         ,-1.423,F        
-coef_hh_1veh_AGE          ,-0.023,F        
-coef_hh_veh_lt_drivers_VAN   ,0.066 ,F        
-coef_hh_veh_lt_drivers_SUV   ,-0.179,F        
-coef_hh_veh_lt_drivers_TRUCK ,-0.348,F        
-coef_hh_veh_lt_drivers_MOTO  ,0.111 ,F        
-coef_hh_veh_lt_drivers_AGE   ,0.020 ,F        
-coef_hh_veh_gt_drivers_VAN   ,-0.041,F        
-coef_hh_veh_gt_drivers_SUV   ,-0.053,F        
-coef_hh_veh_gt_drivers_TRUCK ,0.297 ,F        
-coef_hh_veh_gt_drivers_MOTO  ,2.853 ,F        
-coef_hh_veh_gt_drivers_AGE   ,0.070 ,F        
-coef_num_kids_VAN         ,0.571 ,F        
-coef_num_kids_SUV         ,0.179 ,F        
-coef_num_kids_TRUCK       ,0.053 ,F        
-coef_num_kids_MOTO        ,0.023 ,F        
-coef_num_kids_AGE         ,-0.001,F        
-coef_hh_dist_work_VAN     ,0.571 ,F        
-coef_hh_dist_work_SUV     ,0.179 ,F        
-coef_hh_dist_work_TRUCK   ,0.053 ,F        
-coef_hh_dist_work_MOTO    ,0.023 ,F        
-coef_hh_dist_work_AGE     ,-0.001,F        
-asc_VAN                   ,-2.663,F        
-asc_SUV                   ,-0.152,F        
-asc_TRUCK                 ,-1.224,F        
-asc_MOTORCYCLE            ,-4.851,F        
-asc_AUTO_2YR              ,0.164 ,F        
-asc_AUTO_3YR              ,0.203 ,F        
-asc_AUTO_4YR              ,0.251 ,F        
-asc_AUTO_5YR              ,0.124 ,F        
-asc_AUTO_6YR              ,-0.168,F        
-asc_AUTO_7YR              ,-0.102,F        
-asc_AUTO_8YR              ,-0.240,F        
-asc_AUTO_9YR              ,-0.079,F        
-asc_AUTO_10YR             ,-0.107,F        
-asc_AUTO_11YR             ,-0.209,F        
-asc_AUTO_12YR             ,-0.315,F        
-asc_AUTO_13YR             ,-0.505,F        
-asc_AUTO_14YR             ,-0.636,F        
-asc_AUTO_15YR             ,-0.799,F        
-asc_AUTO_16YR             ,-0.934,F        
-asc_AUTO_17YR             ,-1.094,F        
-asc_AUTO_18YR             ,-1.430,F        
-asc_AUTO_19YR             ,-1.676,F        
-asc_AUTO_20PLUSYR         ,-0.056,F        
-asc_VAN_2YR               ,0.196 ,F        
-asc_VAN_3YR               ,0.340 ,F        
-asc_VAN_4YR               ,0.120 ,F        
-asc_VAN_5YR               ,0.259 ,F        
-asc_VAN_6YR               ,-0.011,F        
-asc_VAN_7YR               ,0.031 ,F        
-asc_VAN_8YR               ,-0.346,F        
-asc_VAN_9YR               ,0.186 ,F        
-asc_VAN_10YR              ,0.131 ,F        
-asc_VAN_11YR              ,0.327 ,F        
-asc_VAN_12YR              ,0.329 ,F        
-asc_VAN_13YR              ,-0.146,F        
-asc_VAN_14YR              ,-0.295,F        
-asc_VAN_15YR              ,-0.337,F        
-asc_VAN_16YR              ,-0.519,F        
-asc_VAN_17YR              ,-0.479,F        
-asc_VAN_18YR              ,-0.980,F        
-asc_VAN_19YR              ,-1.355,F        
-asc_VAN_20PLUSYR          ,-0.011,F        
-asc_SUV_2YR               ,-0.013,F        
-asc_SUV_3YR               ,-0.191,F        
-asc_SUV_4YR               ,-0.284,F        
-asc_SUV_5YR               ,-0.469,F        
-asc_SUV_6YR               ,-0.572,F        
-asc_SUV_7YR               ,-0.793,F        
-asc_SUV_8YR               ,-1.117,F        
-asc_SUV_9YR               ,-0.723,F        
-asc_SUV_10YR              ,-0.805,F        
-asc_SUV_11YR              ,-0.948,F        
-asc_SUV_12YR              ,-1.009,F        
-asc_SUV_13YR              ,-1.012,F        
-asc_SUV_14YR              ,-1.244,F        
-asc_SUV_15YR              ,-1.495,F        
-asc_SUV_16YR              ,-1.747,F        
-asc_SUV_17YR              ,-1.985,F        
-asc_SUV_18YR              ,-2.136,F        
-asc_SUV_19YR              ,-2.573,F        
-asc_SUV_20PLUSYR          ,-1.381,F        
-asc_TRUCK_2YR             ,0.096 ,F        
-asc_TRUCK_3YR             ,-0.006,F        
-asc_TRUCK_4YR             ,-0.150,F        
-asc_TRUCK_5YR             ,-0.272,F        
-asc_TRUCK_6YR             ,-0.305,F        
-asc_TRUCK_7YR             ,-0.430,F        
-asc_TRUCK_8YR             ,-0.646,F        
-asc_TRUCK_9YR             ,-0.265,F        
-asc_TRUCK_10YR            ,-0.198,F        
-asc_TRUCK_11YR            ,-0.139,F        
-asc_TRUCK_12YR            ,-0.131,F        
-asc_TRUCK_13YR            ,-0.147,F        
-asc_TRUCK_14YR            ,-0.285,F        
-asc_TRUCK_15YR            ,-0.385,F        
-asc_TRUCK_16YR            ,-0.468,F        
-asc_TRUCK_17YR            ,-0.654,F        
-asc_TRUCK_18YR            ,-0.871,F        
-asc_TRUCK_19YR            ,-1.118,F        
-asc_TRUCK_20PLUSYR        ,0.678 ,F        
-asc_MOTORCYCLE_2YR        ,0.177 ,F        
-asc_MOTORCYCLE_3YR        ,0.269 ,F        
-asc_MOTORCYCLE_4YR        ,0.125 ,F        
-asc_MOTORCYCLE_5YR        ,0.203 ,F        
-asc_MOTORCYCLE_6YR        ,-0.369,F        
-asc_MOTORCYCLE_7YR        ,-0.197,F        
-asc_MOTORCYCLE_8YR        ,0.224 ,F        
-asc_MOTORCYCLE_9YR        ,0.232 ,F        
-asc_MOTORCYCLE_10YR       ,0.281 ,F        
-asc_MOTORCYCLE_11YR       ,0.184 ,F        
-asc_MOTORCYCLE_12YR       ,0.069 ,F        
-asc_MOTORCYCLE_13YR       ,-0.270,F        
-asc_MOTORCYCLE_14YR       ,-0.221,F        
-asc_MOTORCYCLE_15YR       ,-0.541,F        
-asc_MOTORCYCLE_16YR       ,-0.674,F        
-asc_MOTORCYCLE_17YR       ,-0.793,F        
-asc_MOTORCYCLE_18YR       ,-1.274,F        
-asc_MOTORCYCLE_19YR       ,-1.631,F        
-asc_MOTORCYCLE_20PLUSYR   ,0.572 ,F        
+coefficient_name,value,constrain
+coef_one,1,T
+coef_nest_root,1.00,T
+coef_nest_AUTO,0.72,F
+coef_nest_VAN,0.72,F
+coef_nest_SUV,0.72,F
+coef_nest_TRUCK,0.72,F
+coef_nest_MOTORCYCLE,0.72,F
+coef_hhinc_0_24k_VAN,0.197,F
+coef_hhinc_0_24k_SUV,-0.256,F
+coef_hhinc_0_24k_TRUCK,-0.141,F
+coef_hhinc_0_24k_MOTO,-0.216,F
+coef_hhinc_0_24k_AGE,0.101,F
+coef_hhinc_25_49k_VAN,0.100,F
+coef_hhinc_25_49k_SUV,-0.113,F
+coef_hhinc_25_49k_TRUCK,0.004,F
+coef_hhinc_25_49k_MOTO,-0.007,F
+coef_hhinc_25_49k_AGE,0.042,F
+coef_hhinc_100k_plus_VAN,-0.159,F
+coef_hhinc_100k_plus_SUV,0.087,F
+coef_hhinc_100k_plus_TRUCK,-0.210,F
+coef_hhinc_100k_plus_MOTO,-0.153,F
+coef_hhinc_100k_plus_AGE,-0.042,F
+coef_hhinc_missing_VAN,0.164,F
+coef_hhinc_missing_SUV,-0.007,F
+coef_hhinc_missing_TRUCK,-0.069,F
+coef_hhinc_missing_MOTO,-0.527,F
+coef_hhinc_missing_AGE,0.004,F
+coef_hh_rural_VAN,0.277,F
+coef_hh_rural_SUV,0.289,F
+coef_hh_rural_TRUCK,0.830,F
+coef_hh_rural_MOTO,0.011,F
+coef_hh_rural_AGE,-0.004,F
+coef_hh_1veh_VAN,-0.362,F
+coef_hh_1veh_SUV,-0.149,F
+coef_hh_1veh_TRUCK,-0.980,F
+coef_hh_1veh_MOTO,-1.423,F
+coef_hh_1veh_AGE,-0.023,F
+coef_hh_veh_lt_drivers_VAN,0.066,F
+coef_hh_veh_lt_drivers_SUV,-0.179,F
+coef_hh_veh_lt_drivers_TRUCK,-0.348,F
+coef_hh_veh_lt_drivers_MOTO,0.111,F
+coef_hh_veh_lt_drivers_AGE,0.020,F
+coef_hh_veh_gt_drivers_VAN,-0.041,F
+coef_hh_veh_gt_drivers_SUV,-0.053,F
+coef_hh_veh_gt_drivers_TRUCK,0.297,F
+coef_hh_veh_gt_drivers_MOTO,2.853,F
+coef_hh_veh_gt_drivers_AGE,0.070,F
+coef_num_kids_VAN,0.571,F
+coef_num_kids_SUV,0.179,F
+coef_num_kids_TRUCK,0.053,F
+coef_num_kids_MOTO,0.023,F
+coef_num_kids_AGE,-0.001,F
+coef_hh_dist_work_VAN,0.571,F
+coef_hh_dist_work_SUV,0.179,F
+coef_hh_dist_work_TRUCK,0.053,F
+coef_hh_dist_work_MOTO,0.023,F
+coef_hh_dist_work_AGE,-0.001,F
+asc_VAN,-2.663,F
+asc_SUV,-0.152,F
+asc_TRUCK,-1.224,F
+asc_MOTORCYCLE,-4.851,F
+asc_AUTO_2YR,0.164,F
+asc_AUTO_3YR,0.203,F
+asc_AUTO_4YR,0.251,F
+asc_AUTO_5YR,0.124,F
+asc_AUTO_6YR,-0.168,F
+asc_AUTO_7YR,-0.102,F
+asc_AUTO_8YR,-0.240,F
+asc_AUTO_9YR,-0.079,F
+asc_AUTO_10YR,-0.107,F
+asc_AUTO_11YR,-0.209,F
+asc_AUTO_12YR,-0.315,F
+asc_AUTO_13YR,-0.505,F
+asc_AUTO_14YR,-0.636,F
+asc_AUTO_15YR,-0.799,F
+asc_AUTO_16YR,-0.934,F
+asc_AUTO_17YR,-1.094,F
+asc_AUTO_18YR,-1.430,F
+asc_AUTO_19YR,-1.676,F
+asc_AUTO_20PLUSYR,-0.056,F
+asc_VAN_2YR,0.196,F
+asc_VAN_3YR,0.340,F
+asc_VAN_4YR,0.120,F
+asc_VAN_5YR,0.259,F
+asc_VAN_6YR,-0.011,F
+asc_VAN_7YR,0.031,F
+asc_VAN_8YR,-0.346,F
+asc_VAN_9YR,0.186,F
+asc_VAN_10YR,0.131,F
+asc_VAN_11YR,0.327,F
+asc_VAN_12YR,0.329,F
+asc_VAN_13YR,-0.146,F
+asc_VAN_14YR,-0.295,F
+asc_VAN_15YR,-0.337,F
+asc_VAN_16YR,-0.519,F
+asc_VAN_17YR,-0.479,F
+asc_VAN_18YR,-0.980,F
+asc_VAN_19YR,-1.355,F
+asc_VAN_20PLUSYR,-0.011,F
+asc_SUV_2YR,-0.013,F
+asc_SUV_3YR,-0.191,F
+asc_SUV_4YR,-0.284,F
+asc_SUV_5YR,-0.469,F
+asc_SUV_6YR,-0.572,F
+asc_SUV_7YR,-0.793,F
+asc_SUV_8YR,-1.117,F
+asc_SUV_9YR,-0.723,F
+asc_SUV_10YR,-0.805,F
+asc_SUV_11YR,-0.948,F
+asc_SUV_12YR,-1.009,F
+asc_SUV_13YR,-1.012,F
+asc_SUV_14YR,-1.244,F
+asc_SUV_15YR,-1.495,F
+asc_SUV_16YR,-1.747,F
+asc_SUV_17YR,-1.985,F
+asc_SUV_18YR,-2.136,F
+asc_SUV_19YR,-2.573,F
+asc_SUV_20PLUSYR,-1.381,F
+asc_TRUCK_2YR,0.096,F
+asc_TRUCK_3YR,-0.006,F
+asc_TRUCK_4YR,-0.150,F
+asc_TRUCK_5YR,-0.272,F
+asc_TRUCK_6YR,-0.305,F
+asc_TRUCK_7YR,-0.430,F
+asc_TRUCK_8YR,-0.646,F
+asc_TRUCK_9YR,-0.265,F
+asc_TRUCK_10YR,-0.198,F
+asc_TRUCK_11YR,-0.139,F
+asc_TRUCK_12YR,-0.131,F
+asc_TRUCK_13YR,-0.147,F
+asc_TRUCK_14YR,-0.285,F
+asc_TRUCK_15YR,-0.385,F
+asc_TRUCK_16YR,-0.468,F
+asc_TRUCK_17YR,-0.654,F
+asc_TRUCK_18YR,-0.871,F
+asc_TRUCK_19YR,-1.118,F
+asc_TRUCK_20PLUSYR,0.678,F
+asc_MOTORCYCLE_2YR,0.177,F
+asc_MOTORCYCLE_3YR,0.269,F
+asc_MOTORCYCLE_4YR,0.125,F
+asc_MOTORCYCLE_5YR,0.203,F
+asc_MOTORCYCLE_6YR,-0.369,F
+asc_MOTORCYCLE_7YR,-0.197,F
+asc_MOTORCYCLE_8YR,0.224,F
+asc_MOTORCYCLE_9YR,0.232,F
+asc_MOTORCYCLE_10YR,0.281,F
+asc_MOTORCYCLE_11YR,0.184,F
+asc_MOTORCYCLE_12YR,0.069,F
+asc_MOTORCYCLE_13YR,-0.270,F
+asc_MOTORCYCLE_14YR,-0.221,F
+asc_MOTORCYCLE_15YR,-0.541,F
+asc_MOTORCYCLE_16YR,-0.674,F
+asc_MOTORCYCLE_17YR,-0.793,F
+asc_MOTORCYCLE_18YR,-1.274,F
+asc_MOTORCYCLE_19YR,-1.631,F
+asc_MOTORCYCLE_20PLUSYR,0.572,F

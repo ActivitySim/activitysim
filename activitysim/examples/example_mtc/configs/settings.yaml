@@ -226,6 +226,7 @@ output_tables:
     - tours
     - trips
     - joint_tour_participants
+    - vehicles
 
 # area_types less than this are considered urban
 urban_threshold: 4

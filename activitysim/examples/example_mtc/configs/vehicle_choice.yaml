@@ -135,6 +135,9 @@ preprocessor:
     - land_use
     - vehicles
     - persons
+    - households
+
+PROBS_SPEC: vehicle_choice_fuel_type_probs.csv
 
 annotate_persons:
   SPEC: annotate_persons_vehicle_type

@@ -1,3 +1,3 @@
 Description,Target,Expression
-#,, annotate households table after vehicle choice model has run
-household has EV, has_ev,"df.index.isin(vehicles.loc[vehicles['vehicle_type'].str.contains('EV'), 'household_id'])"
+#,,annotate households table after vehicle choice model has run
+household has EV,has_ev,"df.index.isin(vehicles.loc[vehicles['vehicle_type'].str.contains('EV'), 'household_id'])"

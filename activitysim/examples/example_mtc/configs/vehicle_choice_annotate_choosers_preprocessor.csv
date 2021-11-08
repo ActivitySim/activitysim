@@ -1,5 +1,5 @@
-Description                       ,Target                 ,Expression                                                                                    
-total household distance to work  ,total_hh_dist_to_work  ,persons.groupby('household_id')['distance_to_work'].sum().reindex(df.household_id).fillna(0)  
+Description,Target,Expression
+total household distance to work,total_hh_dist_to_work,persons.groupby('household_id')['distance_to_work'].sum().reindex(df.household_id).fillna(0)
 total household distance to school,total_hh_dist_to_school,persons.groupby('household_id')['distance_to_school'].sum().reindex(df.household_id).fillna(0)
-total household commute distance  , total_hh_commute_dist , total_hh_dist_to_school + total_hh_dist_to_work 
-max hh commute distance 100m per worker, max_hh_commute,  (100 / 1609.34) * num_workers                                            
+total household commute distance,total_hh_commute_dist,total_hh_dist_to_school + total_hh_dist_to_work
+max hh commute distance 100m per worker,max_hh_commute,(100 / 1609.34) * households.num_workers.reindex(df.household_id)

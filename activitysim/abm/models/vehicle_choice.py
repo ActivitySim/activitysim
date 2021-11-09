@@ -50,7 +50,7 @@ def vehicle_choice(
 
     nest_spec = config.get_logit_model_settings(model_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients_df, trace_label)
-    
+
     constants = config.get_model_constants(model_settings)
 
     locals_dict = {}

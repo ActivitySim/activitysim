@@ -44,6 +44,7 @@ jobs:
 
     - stage: Deployment
       name: Documentation
+      env: TEST_ENV="activitysim-test-larch"
       script:
         - coveralls
         # Build docs

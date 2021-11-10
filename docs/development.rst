@@ -357,7 +357,7 @@ Generally speaking, there are two types of ActivitySim examples: test examples a
   examples are :ref:`example_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.
   These examples are owned and maintained by the project.
 * Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
-  are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, and :ref:`example_sandag`.  These examples can be
+  are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, :ref:`example_sandag`, and :ref:`example_sandag_xborder`.  These examples can be
   configured in ways different from the test examples, include new inputs and expressions, and may include new planned
   software components for contribution to ActivitySim.  These examples are owned by the agency.
 

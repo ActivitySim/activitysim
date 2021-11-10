@@ -81,7 +81,9 @@ def make_sample_choices(
     chunk.log_df(trace_label, 'rands', rands)
 
     # the alternative value chosen
-    choices_array = np.empty([sample_size, len(choosers)]).astype(int)
+    # WHY SHOULD CHOICES COL HAVE TO BE TYPE INT???
+    # choices_array = np.empty([sample_size, len(choosers)]).astype(int)
+    choices_array = np.empty([sample_size, len(choosers)]).astype(alternatives.index.dtype)
     # chunk log these later after we populate them...
 
     # the probability of the chosen alternative

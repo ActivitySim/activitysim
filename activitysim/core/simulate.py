@@ -271,7 +271,7 @@ def get_segment_coefficients(model_settings, segment_name):
     some specs mode_choice logsums have the same espression values with different coefficients for various segments
     (e.g. eatout, .. ,atwork) and a template file that maps a flat list of coefficients into segment columns.
 
-    This allows us to provide a coefficient fiel with just the coefficients for a specific segment,
+    This allows us to provide a coefficient file with just the coefficients for a specific segment,
     that works with generic coefficient names in the spec. For instance coef_ivt can take on the values
     of segment-specific coefficients coef_ivt_school_univ, coef_ivt_work, coef_ivt_atwork,...
 
@@ -290,7 +290,7 @@ def get_segment_coefficients(model_settings, segment_name):
         coefficient_name     eatout                       school                 school                 work
         coef_ivt             coef_ivt_eatout_escort_...   coef_ivt_school_univ   coef_ivt_school_univ   coef_ivt_work
 
-        For school segment this will return the generic coefficient name withe h segment-specific coefficient value
+        For school segment this will return the generic coefficient name with the segment-specific coefficient value
         e.g. {'coef_ivt': -0.0224, ...}
         ...
 
@@ -311,7 +311,7 @@ def get_segment_coefficients(model_settings, segment_name):
 
     if legacy:
         constants = config.get_model_constants(model_settings)
-        legacy_coeffs_file_path = config.config_file_path(model_settings['LEGACY_COEFFICIENTS'])
+        legacy_coeffs_file_path = config.config_file_path(model_settings[legacy])
         omnibus_coefficients = pd.read_csv(legacy_coeffs_file_path, comment='#', index_col='coefficient_name')
         coefficients_dict = assign.evaluate_constants(omnibus_coefficients[segment_name], constants=constants)
     else:
@@ -446,6 +446,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                 warnings.simplefilter("always")
                 if expr.startswith('@'):
                     expression_value = eval(expr[1:], globals_dict, locals_dict)
+
                 else:
                     expression_value = choosers.eval(expr)
 
@@ -486,7 +487,9 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
 
     chunk.log_df(trace_label, "utilities", utilities)
 
-    if trace_all_rows or have_trace_targets:
+    # sometimes tvpb will drop rows on the fly and we wind up with an empty
+    # table of choosers. this will just bypass tracing in that case.
+    if (trace_all_rows or have_trace_targets) and (len(choosers) > 0):
 
         if trace_all_rows:
             trace_targets = pd.Series(True, index=choosers.index)

@@ -1,0 +1,44 @@
+Description,Target,Expression
+# time of day,,SHOULD BE PASSED IN
+# demographic segment,,
+,c_ivt_for_segment,"np.where(df.demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_ivt_low_income, c_ivt_high_income)"
+,c_cost_for_segment,"np.where(df.demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_cost_low_income, c_cost_high_income)"
+# set1,,
+,not_transit_available_set1,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'BEST_MODE_SET1')==0"
+Total IVT,totalIVT_set1,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LB_TIME_SET1') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET1') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET1') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET1') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET1') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET1') "
+IVT on BART,bartIVT_set1,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET1')"
+premium modes used,premiumMode_set1,"(los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET1')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET1')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET1')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET1')>0)"
+only travel by BART,bartOnly_set1,bartIVT_set1 == totalIVT_set1
+Set contains only BART with Xfers,bartWithXfer_set1,"(bartIVT_set1 == totalIVT_set1) & (los.get_tappairs3d(df.btap, df.atap, df.tod, 'XFERS_SET1')>0)"
+Set contains premium mode with transfers to LB,premWithXfer_set1,"(premiumMode_set1>0) & (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LB_TIME_SET1')>0)"
+Number transfers,transfers_set1,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'XFERS_SET1')"
+0-1 transfers,xfers1_set1,(transfers_set1>0) & (transfers_set1 <=1)
+1-2 transfers,xfers2_set1,(transfers_set1>1) & (transfers_set1 <=2)
+>2 transfers,xfers3_set1,(transfers_set1>2)
+Commuter Rail Distance in miles [35 mph],crDistance_set1,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET1') * (35/60)"
+# set2,,
+,not_transit_available_set2,"(los.get_tappairs3d(df.btap, df.atap, df.tod, 'BEST_MODE_SET2')==0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'XFERS_SET2')==0)"
+Total IVT,totalIVT_set2,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LB_TIME_SET2') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET2') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET2') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET2') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET2') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET2') "
+IVT on BART,bartIVT_set2,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET2')"
+premium modes used,premiumMode_set2,"(los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET2')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET2')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET2')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET2')>0)"
+only travel by BART,bartOnly_set2,bartIVT_set2 == totalIVT_set2
+Set contains only BART with Xfers,bartWithXfer_set2,"(bartIVT_set2 == totalIVT_set2) & (los.get_tappairs3d(df.btap, df.atap, df.tod, 'XFERS_SET2')>0)"
+Set contains premium mode with transfers to LB,premWithXfer_set2,"(premiumMode_set2>0) & (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LB_TIME_SET2')>0)"
+Number transfers,transfers_set2,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'XFERS_SET2')"
+0-1 transfers,xfers1_set2,(transfers_set2>0) & (transfers_set2 <=1)
+1-2 transfers,xfers2_set2,(transfers_set2>1) & (transfers_set2 <=2)
+>2 transfers,xfers3_set2,(transfers_set2>2)
+Commuter Rail Distance in miles [35 mph],crDistance_set2,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET2') * (35/60)"
+# set3,,
+,not_transit_available_set3,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'BEST_MODE_SET3')==0"
+Total IVT,totalIVT_set3,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LB_TIME_SET3') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET3') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'FR_TIME_SET3') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET3') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET3') + los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET3') "
+IVT on BART,bartIVT_set3,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET3')"
+premium modes used,premiumMode_set3,"(los.get_tappairs3d(df.btap, df.atap, df.tod, 'EB_TIME_SET3')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'HR_TIME_SET3')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LR_TIME_SET3')>0) | (los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET3')>0)"
+only travel by BART,bartOnly_set3,bartIVT_set3 == totalIVT_set3
+Set contains only BART with Xfers,bartWithXfer_set3,"(bartIVT_set3 == totalIVT_set3) & (los.get_tappairs3d(df.btap, df.atap, df.tod, 'XFERS_SET3')>0)"
+Set contains premium mode with transfers to LB,premWithXfer_set3,"(premiumMode_set3>0) & (los.get_tappairs3d(df.btap, df.atap, df.tod, 'LB_TIME_SET3')>0)"
+Number transfers,transfers_set3,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'XFERS_SET3')"
+0-1 transfers,xfers1_set3,(transfers_set3>0) & (transfers_set3 <=1)
+1-2 transfers,xfers2_set3,(transfers_set3>1) & (transfers_set3 <=2)
+>2 transfers,xfers3_set3,(transfers_set3>2)
+Commuter Rail Distance in miles [35 mph],crDistance_set3,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'CR_TIME_SET3') * (35/60)"

@@ -1,0 +1,57 @@
+SAMPLE_SIZE: 30
+
+SAMPLE_SPEC: tour_od_choice_sample.csv
+SPEC: tour_od_choice.csv
+COEFFICIENTS: tour_od_choice_coefficients.csv
+preprocessor:
+  SPEC: tour_od_choice_annotate_choosers_preprocessor
+  DF: tours
+
+SIMULATE_CHOOSER_COLUMNS:
+  - is_mandatory  # created by preprocessor
+  - tour_type
+  - household_id
+
+
+# model-specific logsum-related settings
+CHOOSER_ORIG_COL_NAME: &o origin
+ALT_DEST_COL_NAME: &d destination
+
+# AFAIK, these column names need to be used bc the trip and tour
+# mode choice models use them as hard-coded skim keys
+ORIG_COL_NAME: *o
+DEST_COL_NAME: *d
+
+# filter to identify potential origin zones from the land use table.
+# external TAZ is only set for internal MAZs with a POE, and original_maz
+# is only set for external MAZs which must be POEs. Both values are -1
+# otherwise, so filtering out MAZs where external_TAZ <= 0 or
+# original_MAZ <= 0 will determine whether the model uses internal TAZs or
+# external TAZs for skim distances.
+ORIG_FILTER: "original_MAZ > 0"  # only new (external) mazs copied from internal mazs, bug fixed
+# ORIG_FILTER: "external_TAZ > 0"  # only internal mazs associated with external TAZs (CTRAMP bug)
+
+OD_CHOICE_SAMPLE_TABLE_NAME: tour_od_location_sample
+
+CHOOSER_TABLE_NAME: tours
+
+SIZE_TERM_SELECTOR: tour_od_choice
+
+CHOOSER_SEGMENT_COLUMN_NAME: tour_type
+
+ORIGIN_ATTR_COLS_TO_USE:
+  - poe_id
+  - colonia_pop_accessibility
+  - original_MAZ
+  - external_TAZ
+  - external_MAZ
+
+SEGMENTS:
+  - work
+  - school
+  - shop
+  - visit
+  - other
+
+LOGSUM_SETTINGS: tour_mode_choice
+LOGSUM_PREPROCESSOR: preprocessor

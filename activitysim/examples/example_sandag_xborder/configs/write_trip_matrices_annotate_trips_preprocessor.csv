@@ -1,0 +1,55 @@
+Description,Target,Expression
+# add additional fields,,
+,tour_participants,trips.tour_id.map(tours.number_of_participants)
+,distance,odt_skims['SOV_NT_M_DIST']
+# code time periods,,
+,is_ea,trips.trip_period == 'EA'
+,is_am,trips.trip_period == 'AM'
+,is_md,trips.trip_period == 'MD'
+,is_pm,trips.trip_period == 'PM'
+,is_ev,trips.trip_period == 'EV'
+# ea trips,,
+,DRIVEALONE_EA,((trips.trip_mode == 'DRIVEALONE') & is_ea) * tour_participants
+,SHARED2_EA,((trips.trip_mode == 'SHARED2') & is_ea) * tour_participants
+,SHARED3_EA,((trips.trip_mode == 'SHARED3') & is_ea) * tour_participants
+,WALK_EA,((trips.trip_mode == 'WALK') & is_ea) * tour_participants
+,WALK_TRANSIT_WALK_EA,((trips.trip_mode == 'WALK_TRANSIT') & is_ea) * tour_participants
+,TAXI_EA,((trips.trip_mode == 'TAXI') & is_ea) * tour_participants
+,TNC_SINGLE_EA,((trips.trip_mode == 'TNC_SINGLE') & is_ea) * tour_participants
+,TNC_SHARED_EA,((trips.trip_mode == 'TNC_SHARED') & is_ea) * tour_participants
+# am trips,,
+,DRIVEALONE_AM,((trips.trip_mode == 'DRIVEALONE') & is_am) * tour_participants
+,SHARED2_AM,((trips.trip_mode == 'SHARED2') & is_am) * tour_participants
+,SHARED3_AM,((trips.trip_mode == 'SHARED3') & is_am) * tour_participants
+,WALK_AM,((trips.trip_mode == 'WALK') & is_am) * tour_participants
+,WALK_TRANSIT_WALK_AM,((trips.trip_mode == 'WALK_TRANSIT') & is_am) * tour_participants
+,TAXI_AM,((trips.trip_mode == 'TAXI') & is_am) * tour_participants
+,TNC_SINGLE_AM,((trips.trip_mode == 'TNC_SINGLE') & is_am) * tour_participants
+,TNC_SHARED_AM,((trips.trip_mode == 'TNC_SHARED') & is_am) * tour_participants
+# md trips,,
+,DRIVEALONE_MD,((trips.trip_mode == 'DRIVEALONE') & is_md) * tour_participants
+,SHARED2_MD,((trips.trip_mode == 'SHARED2') & is_md) * tour_participants
+,SHARED3_MD,((trips.trip_mode == 'SHARED3') & is_md) * tour_participants
+,WALK_MD,((trips.trip_mode == 'WALK') & is_md) * tour_participants
+,WALK_TRANSIT_WALK_MD,((trips.trip_mode == 'WALK_TRANSIT') & is_md) * tour_participants
+,TAXI_MD,((trips.trip_mode == 'TAXI') & is_md) * tour_participants
+,TNC_SINGLE_MD,((trips.trip_mode == 'TNC_SINGLE') & is_md) * tour_participants
+,TNC_SHARED_MD,((trips.trip_mode == 'TNC_SHARED') & is_md) * tour_participants
+# pm trips,,
+,DRIVEALONE_PM,((trips.trip_mode == 'DRIVEALONE') & is_pm) * tour_participants
+,SHARED2_PM,((trips.trip_mode == 'SHARED2') & is_pm) * tour_participants
+,SHARED3_PM,((trips.trip_mode == 'SHARED3') & is_pm) * tour_participants
+,WALK_PM,((trips.trip_mode == 'WALK') & is_pm) * tour_participants
+,WALK_TRANSIT_WALK_PM,((trips.trip_mode == 'WALK_TRANSIT') & is_pm) * tour_participants
+,TAXI_PM,((trips.trip_mode == 'TAXI') & is_pm) * tour_participants
+,TNC_SINGLE_PM,((trips.trip_mode == 'TNC_SINGLE') & is_pm) * tour_participants
+,TNC_SHARED_PM,((trips.trip_mode == 'TNC_SHARED') & is_pm) * tour_participants
+# ev trips,,
+,DRIVEALONE_EV,((trips.trip_mode == 'DRIVEALONE') & is_ev) * tour_participants
+,SHARED2_EV,((trips.trip_mode == 'SHARED2') & is_ev) * tour_participants
+,SHARED3_EV,((trips.trip_mode == 'SHARED3') & is_ev) * tour_participants
+,WALK_EV,((trips.trip_mode == 'WALK') & is_ev) * tour_participants
+,WALK_TRANSIT_WALK_EV,((trips.trip_mode == 'WALK_TRANSIT') & is_ev) * tour_participants
+,TAXI_EV,((trips.trip_mode == 'TAXI') & is_ev) * tour_participants
+,TNC_SINGLE_EV,((trips.trip_mode == 'TNC_SINGLE') & is_ev) * tour_participants
+,TNC_SHARED_EV,((trips.trip_mode == 'TNC_SHARED') & is_ev) * tour_participants

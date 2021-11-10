@@ -38,7 +38,6 @@ maz_to_maz:
 
   # maz_to_maz blending distance (missing or 0 means no blending)
   max_blend_distance:
-    DIST: 5
     # blend distance of 0 means no blending
     DISTBIKE: 0
     DISTWALK: 1

@@ -34,5 +34,17 @@ LOGSUM_SETTINGS: tour_mode_choice.yaml
 # model-specific logsum-related settings
 CHOOSER_ORIG_COL_NAME: home_zone_id
 ALT_DEST_COL_NAME: alt_dest
-IN_PERIOD: 14
-OUT_PERIOD: 14
+IN_PERIOD:
+  shopping: 14
+  othmaint: 14
+  othdiscr: 14
+  eatout: 14
+  social: 14
+  escort: 14
+OUT_PERIOD:
+  shopping: 14
+  othmaint: 14
+  othdiscr: 14
+  eatout: 14
+  social: 14
+  escort: 14

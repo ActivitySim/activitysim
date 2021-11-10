@@ -74,11 +74,15 @@ tools for certain development tasks::
   conda install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
 To create an environment containing all these optional dependencies at once, you
-can run the shortcut command::
+can run the shortcut command
+
+::
 
   conda env create activitysim/ASIM -n asim
 
-4. To use the **asim** environment, you need to activate it::
+4. To use the **asim** environment, you need to activate it
+
+::
 
   conda activate asim
 

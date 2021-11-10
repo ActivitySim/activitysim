@@ -28,7 +28,7 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_sandag`           | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_sandag_xborder`           | SANDAG agency example                                     | 3            | In development       |
+| :ref:`example_sandag_xborder`   | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
@@ -1514,10 +1514,10 @@ Example
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
 for running example_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
-.. _example_sandag :
+.. _example_sandag_xborder :
 
 example_sandag_xborder
---------------
+----------------------
 
 .. note::
 

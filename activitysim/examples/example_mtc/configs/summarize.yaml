@@ -1,0 +1,10 @@
+
+
+SPEC_SEGMENTS:
+  - table: trips
+    spec: summaries_trips.csv
+    output: summaries
+
+  - table: tours
+    spec: summaries_tours.csv
+    output: summaries

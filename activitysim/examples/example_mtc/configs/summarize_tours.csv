@@ -1,0 +1,2 @@
+Description,Output,Expression
+Count Tours by Purpose,tours_by_purpose_count,df.groupby('tour_type')['tour_type'].count()

@@ -241,7 +241,7 @@ them into html as well.  ActivitySim's docstrings are written in `numpydoc forma
 than standard rst format.
 
 To build the documentation, first make sure the required packages are installed.  Next, build the 
-documentation in html format with the "make html" command run from the ``docs`` folder.
+documentation in html format with the ``make html`` command run from the ``docs`` folder.
 
 If the activitysim package is installed, then the documentation will be built from that version of 
 the source code instead of the git repo version.  When pushing revisions to the repo, the documentation 

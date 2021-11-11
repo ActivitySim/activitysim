@@ -1,75 +1,35 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Software Development &mdash; ActivitySim 1.0.3 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Software Development &mdash; ActivitySim 1.0.4 documentation</title>
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="How the System Works" href="howitworks.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ActivitySim
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.0.3
+                1.0.4
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -77,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
@@ -133,75 +82,34 @@
 </li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ActivitySim</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Software Development</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/development.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="software-development">
+             
+  <section id="software-development">
 <h1>Software Development<a class="headerlink" href="#software-development" title="Permalink to this headline">¶</a></h1>
 <p>This page documents the ActivitySim software design and how to contribute to the project.</p>
-<div class="section" id="software-design">
+<section id="software-design">
 <h2>Software Design<a class="headerlink" href="#software-design" title="Permalink to this headline">¶</a></h2>
 <p>The core software components of ActivitySim are described below.  ActivitySim is
 implemented in Python, and makes heavy use of the vectorized backend C/C++ libraries in
@@ -214,7 +122,7 @@ each simulation as a series of vectorized table operations and the Python layer
 is responsible for setting up and providing expressions to operate on these large data tables.</p>
 <p>In developing this software platform, we strive to adhere to a best practices approach to scientific computing,
 as summarized in <a class="reference external" href="http://www.plosbiology.org/article/info%3Adoi%2F10.1371%2Fjournal.pbio.1001745">this article.</a></p>
-<div class="section" id="model-orchestrator">
+<section id="model-orchestrator">
 <h3>Model Orchestrator<a class="headerlink" href="#model-orchestrator" title="Permalink to this headline">¶</a></h3>
 <p>An ActivitySim model is a sequence of model / data processing steps, commonly known as a data pipeline.
 A well defined data pipeline has the ability to resume jobs at a known point, which facilitates
@@ -230,8 +138,8 @@ as steps registered with the model orchestration engine.  Over time Inject has e
 adding a <a class="reference internal" href="core.html#pipeline-in-detail"><span class="std std-ref">Pipeline</span></a> that runs a series of model steps, manages the state of the data
 tables throughout the model run, allows for restarting at any model step, and integrates with the
 random number generation procedures (see <a class="reference internal" href="core.html#random-in-detail"><span class="std std-ref">Random</span></a>).</p>
-</div>
-<div class="section" id="data-handling">
+</section>
+<section id="data-handling">
 <h3>Data Handling<a class="headerlink" href="#data-handling" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim works with three open data formats, <a class="reference external" href="https://www.hdfgroup.org/HDF5/">HDF5</a>
 , <a class="reference external" href="https://github.com/osPlanning/omx">Open Matrix (OMX)</a>, and <a class="reference external" href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a> .
@@ -244,8 +152,8 @@ are used for various inputs and outputs as well.</p>
 <li><p><a class="reference external" href="http://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.html">pandas.Series</a> - a vector of data, a column in a DataFrame table or a 1D array</p></li>
 <li><p><a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.html">numpy.array</a> - an N-dimensional array of items of the same type, and is often a network skim matrix or collection of skim matrices by time-period or mode for example</p></li>
 </ul>
-</div>
-<div class="section" id="expressions">
+</section>
+<section id="expressions">
 <h3>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim exposes all model expressions in CSV files.  These model expression CSV files
 contain Python expressions, mainly pandas/numpy expression, and reference input data tables
@@ -260,22 +168,22 @@ required additional table fields, and join the fields to the target tables.  An 
 file is found in the example configuration files for households for the CDAP model -
 <a class="reference external" href="https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv">annotate_households_cdap.csv</a>.
 Refer to <a class="reference internal" href="models.html#table-annotation"><span class="std std-ref">Estimation</span></a> for more information and the <code class="xref py py-func docutils literal notranslate"><span class="pre">activitysim.abm.models.util.expressions.assign_columns()</span></code> function.</p>
-</div>
-<div class="section" id="choice-models">
+</section>
+<section id="choice-models">
 <h3>Choice Models<a class="headerlink" href="#choice-models" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim currently supports multinomial (MNL) and nested logit (NL) choice models. Refer to <a class="reference internal" href="core.html#logit-in-detail"><span class="std std-ref">Logit</span></a>
 for more information.  It also supports custom expressions as noted above, which can often be used to
 code additional types of choice models.  In addition, developers can write their own choice models
 in Python and expose these through the framework.</p>
-</div>
-<div class="section" id="person-time-windows">
+</section>
+<section id="person-time-windows">
 <h3>Person Time Windows<a class="headerlink" href="#person-time-windows" title="Permalink to this headline">¶</a></h3>
 <p>The departure time and duration models require person time windows. Time windows are adjacent time
 periods that are available for travel. ActivitySim maintains time windows in a pandas table where each row is
 a person and each time period is a column.  As travel is scheduled throughout the simulation, the relevant
 columns for the tour, trip, etc. are updated as needed. Refer to <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a> for more information.</p>
-</div>
-<div class="section" id="models">
+</section>
+<section id="models">
 <h3>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h3>
 <p>An activitysim travel model is made up of a series of models, or steps in the data pipeline.  A model
 typically does the following:</p>
@@ -292,9 +200,9 @@ typically does the following:</p>
 </ul>
 </div></blockquote>
 <p>See <a class="reference internal" href="models.html#models"><span class="std std-ref">Models</span></a> for more information.</p>
-</div>
-</div>
-<div class="section" id="development-install">
+</section>
+</section>
+<section id="development-install">
 <h2>Development Install<a class="headerlink" href="#development-install" title="Permalink to this headline">¶</a></h2>
 <p>The development version of ActivitySim can be installed as follows:</p>
 <ul class="simple">
@@ -307,18 +215,18 @@ the command if desired). ActivitySim will be installed in “editable” mode, s
 any changes you make in the code in your git directory will be reflected.</p></li>
 <li><p>Activate the new conda environment <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">ASIM_DEV</span></code></p></li>
 </ul>
-</div>
-<div class="section" id="development-guidelines">
+</section>
+<section id="development-guidelines">
 <h2>Development Guidelines<a class="headerlink" href="#development-guidelines" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim development adheres to the following standards.</p>
-<div class="section" id="style">
+<section id="style">
 <h3>Style<a class="headerlink" href="#style" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Python code should follow the <a class="reference external" href="https://pypi.python.org/pypi/pycodestyle">pycodestyle style guide</a></p></li>
 <li><p>Python docstrings should follow the <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc documentation format</a></p></li>
 </ul>
-</div>
-<div class="section" id="imports">
+</section>
+<section id="imports">
 <h3>Imports<a class="headerlink" href="#imports" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Imports should be one per line.</p></li>
@@ -331,8 +239,8 @@ any changes you make in the code in your git directory will be reflected.</p></l
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="working-together-in-the-repository">
+</section>
+<section id="working-together-in-the-repository">
 <h3>Working Together in the Repository<a class="headerlink" href="#working-together-in-the-repository" title="Permalink to this headline">¶</a></h3>
 <p>We use <a class="reference external" href="https://guides.github.com/introduction/flow">GitHub Flow</a>.  The key points to
 our GitHub workflow are:</p>
@@ -353,8 +261,8 @@ and barring any objection raised by a consortium member, PR’s can be merged in
 a repository administrator can approve a manual pull request to merge <code class="docutils literal notranslate"><span class="pre">develop</span></code> into <code class="docutils literal notranslate"><span class="pre">master</span></code>,
 and otherwise make a <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md">product release</a>.</p></li>
 </ul>
-</div>
-<div class="section" id="versioning">
+</section>
+<section id="versioning">
 <h3>Versioning<a class="headerlink" href="#versioning" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim uses the following <a class="reference external" href="http://the-hitchhikers-guide-to-packaging.readthedocs.io/en/latest/specification.html">versioning convention</a>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MAJOR</span><span class="o">.</span><span class="n">MINOR</span><span class="o">.</span><span class="n">PATCH</span><span class="p">[</span><span class="o">.</span><span class="n">devN</span><span class="p">]</span>
@@ -376,8 +284,8 @@ should expect no changes at all in how the software works between two patch rele
 services that require a “release”. End users should not typically install or use a development
 release other than for a specific well-defined purpose.</p></li>
 </ul>
-</div>
-<div class="section" id="testing">
+</section>
+<section id="testing">
 <h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim testing is done with three tools:</p>
 <ul class="simple">
@@ -404,14 +312,14 @@ which <cite>assert</cite> is failing, you can work your way back through the cod
 order to update it.  After updating the test targets, re-run the tests to confirm the new code passes all
 the tests.</p>
 <p>See <a class="reference internal" href="#adding-agency-examples"><span class="std std-ref">Adding Agency Examples</span></a> for more information on testing, most notably, agency example models.</p>
-</div>
-<div class="section" id="profiling">
+</section>
+<section id="profiling">
 <h3>Profiling<a class="headerlink" href="#profiling" title="Permalink to this headline">¶</a></h3>
 <p>A handy way to profile ActivitySim model runs is to use <a class="reference external" href="https://jiffyclub.github.io/snakeviz/">snakeviz</a>.
 To do so, first install snakeviz and then run ActivitySim with the Python profiler (cProfile) to create
 a profiler file.  Then run snakeviz on the profiler file to interactively explore the component runtimes.</p>
-</div>
-<div class="section" id="documentation">
+</section>
+<section id="documentation">
 <h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
 <p>The documentation is written in <a class="reference external" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> markup
 and built with <a class="reference external" href="http://www.sphinx-doc.org/en/stable/">Sphinx</a>.  In addition to converting rst files
@@ -438,23 +346,23 @@ The script does the following:</p>
 <li><p>copies the <code class="docutils literal notranslate"><span class="pre">master</span></code> branch <code class="docutils literal notranslate"><span class="pre">../activitysim/docs/_build/html/*</span></code> pages to the <code class="docutils literal notranslate"><span class="pre">gh-pages</span></code> branch</p></li>
 </ul>
 <p>GitHub automatically publishes the gh-pages branch at <a class="reference external" href="https://activitysim.github.io/activitysim">https://activitysim.github.io/activitysim</a>.</p>
-</div>
-<div class="section" id="releases">
+</section>
+<section id="releases">
 <span id="release-steps"></span><h3>Releases<a class="headerlink" href="#releases" title="Permalink to this headline">¶</a></h3>
 <p>With the agreement of the PMC, a project administrator will handle making releases, following the detailed
-steps outlined in the [HOW_TO_RELEASE](<a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md">https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md</a>)
+steps outlined in the <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md">HOW_TO_RELEASE</a>
 document.</p>
-</div>
-<div class="section" id="issues-and-support">
+</section>
+<section id="issues-and-support">
 <h3>Issues and Support<a class="headerlink" href="#issues-and-support" title="Permalink to this headline">¶</a></h3>
 <p>Issue tracking and support is done through GitHub <a class="reference external" href="https://github.com/ActivitySim/activitysim/issues">issues</a>.</p>
-</div>
-<div class="section" id="license">
+</section>
+<section id="license">
 <h3>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim is provided “as is.”  See the
 <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/LICENSE.txt">License</a> for more information.</p>
-</div>
-<div class="section" id="contribution-review-criteria">
+</section>
+<section id="contribution-review-criteria">
 <h3>Contribution Review Criteria<a class="headerlink" href="#contribution-review-criteria" title="Permalink to this headline">¶</a></h3>
 <p>When contributing to ActivitySim, the set of questions below will be asked of the contribution.  Make sure to also
 review the documentation above before making a submittal.  The automated test system also provides some helpful
@@ -514,40 +422,93 @@ Its a good idea to setup a pre-submittal meeting to discuss questions and better
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="section" id="adding-agency-examples">
+</section>
+</section>
+<section id="adding-agency-examples">
 <span id="id1"></span><h2>Adding Agency Examples<a class="headerlink" href="#adding-agency-examples" title="Permalink to this headline">¶</a></h2>
-<p>ActivitySim includes several mature or in-development full scale agency <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>.  Adding an agency example to ActivitySim adds additional assurances that future updates to ActivitySim will more easily work for users.  At the same time, with each additional implementation, the need for additional test coverage increases.  This increased need for test coverage relates to when setting up a new model, with differences in inputs and configurations, when adding new model components (and/or revisions to the core) in order to implement new features, and when implementing model components at a scale previously untested.  The following section describes the process to add an agency example model to ActivitySim.</p>
-<div class="section" id="examples">
+<p>ActivitySim includes several mature or in-development full scale agency <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>.  Adding an agency example to
+ActivitySim adds additional assurances that future updates to ActivitySim will more easily work for users.  At the same
+time, with each additional implementation, the need for additional test coverage increases.  This increased need for
+test coverage relates to when setting up a new model, with differences in inputs and configurations, when adding new
+model components (and/or revisions to the core) in order to implement new features, and when implementing model
+components at a scale previously untested.  The following section describes the process to add an agency example model
+to ActivitySim.</p>
+<section id="examples">
 <h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
 <p>Generally speaking, there are two types of ActivitySim examples: test examples and agency examples.</p>
 <ul class="simple">
-<li><p>Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test examples are <a class="reference internal" href="examples.html#example-mtc"><span class="std std-ref">example_mtc</span></a>, <a class="reference internal" href="examples.html#example-estimation"><span class="std std-ref">example_estimation</span></a>, <a class="reference internal" href="examples.html#example-multiple-zones"><span class="std std-ref">example_multiple_zones</span></a>, and <a class="reference internal" href="examples.html#example-marin"><span class="std std-ref">example_marin</span></a>.  These examples are owned and maintained by the project.</p></li>
-<li><p>Agency examples - these are agency partner model implementations currently being setup.  The current agency examples are <a class="reference internal" href="examples.html#example-arc"><span class="std std-ref">example_arc</span></a>, <a class="reference internal" href="examples.html#example-semcog"><span class="std std-ref">example_semcog</span></a>, <a class="reference internal" href="examples.html#example-psrc"><span class="std std-ref">example_psrc</span></a>, and <a class="reference internal" href="examples.html#example-sandag"><span class="std std-ref">example_sandag</span></a>.  These examples can be configured in ways different from the test examples, include new inputs and expressions, and may include new planned software components for contribution to ActivitySim.  These examples are owned by the agency.</p></li>
+<li><p>Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test
+examples are <a class="reference internal" href="examples.html#example-mtc"><span class="std std-ref">example_mtc</span></a>, <a class="reference internal" href="examples.html#example-estimation"><span class="std std-ref">example_estimation</span></a>, <a class="reference internal" href="examples.html#example-multiple-zones"><span class="std std-ref">example_multiple_zones</span></a>, and <a class="reference internal" href="examples.html#example-marin"><span class="std std-ref">example_marin</span></a>.
+These examples are owned and maintained by the project.</p></li>
+<li><p>Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
+are <a class="reference internal" href="examples.html#example-arc"><span class="std std-ref">example_arc</span></a>, <a class="reference internal" href="examples.html#example-semcog"><span class="std std-ref">example_semcog</span></a>, <a class="reference internal" href="examples.html#example-psrc"><span class="std std-ref">example_psrc</span></a>, <a class="reference internal" href="examples.html#example-sandag"><span class="std std-ref">example_sandag</span></a>, and <a class="reference internal" href="examples.html#example-sandag-xborder"><span class="std std-ref">example_sandag_xborder</span></a>.  These examples can be
+configured in ways different from the test examples, include new inputs and expressions, and may include new planned
+software components for contribution to ActivitySim.  These examples are owned by the agency.</p></li>
 </ul>
 <p>Furthermore, multiple versions of these examples can exist, and be used for various testing purposes:</p>
 <ul class="simple">
-<li><p>Full scale - a full scale data setup, including all households, zones, skims, time periods, etc.  This is a “typical” model setup used for application.  This setup can be used to test the model results and performance since model results can be compared to observed/known answers and runtimes can be compared to industry experience.  It can also be used to test core software functionality such as tracing and repeatability.</p></li>
-<li><p>Cropped - a subset of households and zones for efficient / portable running for testing.  This setup can really only be used to test the software since model results are difficult to compare to observed/known answers.  This version of an example is not recommended for testing overall runtime since it’s a convenience sample and may not represent the true regional model travel demand patterns.  However, depending on the question, this setup may be able to answer questions related to runtime, such as improvements to methods indifferent to the size of the population and number of zones.</p></li>
-<li><p>Other - a specific route/path through the code for testing.  For example, the estimation example tests the estimation mode functionality.  The estimation example is a version of the example mtc example - it inherits most settings from example mtc and includes additional settings for reading in survey files and producing estimation data bundles.</p></li>
+<li><p>Full scale - a full scale data setup, including all households, zones, skims, time periods, etc.  This is a “typical”
+model setup used for application.  This setup can be used to test the model results and performance since model
+results can be compared to observed/known answers and runtimes can be compared to industry experience.  It can also
+be used to test core software functionality such as tracing and repeatability.</p></li>
+<li><p>Cropped - a subset of households and zones for efficient / portable running for testing.  This setup can really only
+be used to test the software since model results are difficult to compare to observed/known answers.  This version of
+an example is not recommended for testing overall runtime since it’s a convenience sample and may not represent the
+true regional model travel demand patterns.  However, depending on the question, this setup may be able to answer
+questions related to runtime, such as improvements to methods indifferent to the size of the population and number of
+zones.</p></li>
+<li><p>Other - a specific route/path through the code for testing.  For example, the estimation example tests the estimation
+mode functionality.  The estimation example is a version of the example mtc example - it inherits most settings from
+example mtc and includes additional settings for reading in survey files and producing estimation data bundles.</p></li>
 </ul>
-</div>
-<div class="section" id="id2">
+<p>Regardless of the type or version, all functioning examples are described in a common list stored in
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>.
+Each item included in this file represents one example, and each includes the following tags:</p>
+<ul class="simple">
+<li><p><em>name</em>: A unique name for the example, used to identify the example when using the <cite>activitysim create</cite> command. The
+naming convention used is to give each example a name that is all lower case, and which uses underscores to separate
+words.</p></li>
+<li><p><em>description</em>: A short sentence describing the example.</p></li>
+<li><p><em>include</em>: A list of files or directories to include in the example.  For smaller input files (e.g. configuration
+files, or data files used on “test” sized examples), each file or directory to include can be given as a simple
+string, which specifies the subdirectory of the embedded ActivitySim examples to be copied into a working directory.
+For larger files that are not embedded into the main ActivitySim GitHub repository, items are given as a 3-tuple:
+(url, target_path, sha256). The <cite>url</cite> points to a publicly available address where the file can be downloaded, the
+<cite>target_path</cite> gives the relative filepath where the file should be installed in the working directory, and the
+<cite>sha256</cite> is a checksum used to verify the file was downloaded correctly (and to prevent re-downloading when the file
+is already available).  For defining new examples, use the <cite>sha256_checksum</cite> function to get a file’s checksum that
+should be included in the example manifest.</p></li>
+</ul>
+</section>
+<section id="id2">
 <h3>Testing<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
 <p>The test plan for test examples versus agency examples is different:</p>
 <ul class="simple">
-<li><p>Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run by the TravisCI system and is a central feature of the software development process.</p></li>
-<li><p>Agency examples test a complete run of the cropped version to ensure it runs and the results are as expected.  This is done via a simple run model test that runs the cropped version and compares the output trip list to the expected trip list.  This is what is known as a regression test.  This test is also run by TravisCI.</p></li>
+<li><p>Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run
+by the TravisCI system and is a central feature of the software development process.</p></li>
+<li><p>Agency examples test a complete run of the cropped version to ensure it runs and the results are as expected.  This
+is done via a simple run model test that runs the cropped version and compares the output trip list to the expected
+trip list.  This is what is known as a regression test.  This test is also run by TravisCI.</p></li>
 </ul>
-<p>Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.  There are two storage locations:</p>
+<p>Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.
+There are two storage locations:</p>
 <ul class="simple">
-<li><p>The <a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples">activitysim package example folder</a>, which stores the test and agency example setup files, cropped data and cropping script, regression test script, expected results, and a change log to track any revisions to the example to get it working for testing.  These resources are the resources automatically tested by the TravisCI test system with each revision to the software.</p></li>
-<li><p>The <a class="reference external" href="https://github.com/activitysim/activitysim_resources">activitysim_resources repository</a>, which stores just the full scale example data inputs using <a class="reference external" href="https://git-lfs.github.com">Git LFS</a>.  This repository has a monthly cost and takes time to upload/download and so the contents of it are separate from the main software repository.  These resources are the resources periodically and manually tested (for now).</p></li>
+<li><p>The <a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples">activitysim package example folder</a>,
+which stores the test and agency example setup files, cropped data and cropping script, regression test script,
+expected results, and a change log to track any revisions to the example to get it working for testing.  These
+resources are the resources automatically tested by the TravisCI test system with each revision to the software.</p></li>
+<li><p>The <a class="reference external" href="https://github.com/activitysim/activitysim_resources">activitysim_resources repository</a>, which stores just the
+full scale example data inputs using <a class="reference external" href="https://git-lfs.github.com">Git LFS</a>.  This repository has a monthly cost and
+takes time to upload/download and so the contents of it are separate from the main software repository.  These
+resources are the resources periodically and manually tested (for now).</p></li>
 </ul>
-<p>This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for creating and running examples makes uses the <a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a> to maintain the dictionary of the examples and how to get and run them.</p>
-</div>
-<div class="section" id="running-the-test-system">
+<p>This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an
+organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for
+creating and running examples makes uses the
+<a class="reference external" href="https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml">example_manifest.yaml</a>
+to maintain the dictionary of the examples and how to get and run them.</p>
+</section>
+<section id="running-the-test-system">
 <h3>Running the Test System<a class="headerlink" href="#running-the-test-system" title="Permalink to this headline">¶</a></h3>
 <p>The automatic TravisCI test system runs the test examples and the cropped agency examples.  Examples of the testing
 resources for each agency example that need to be up-to-date are:</p>
@@ -557,8 +518,8 @@ resources for each agency example that need to be up-to-date are:</p>
 <li><p><a class="reference external" href="https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/example_semcog/test/regress">regress folder (including expected outputs)</a></p></li>
 </ul>
 <p>For the time being, running the full scale examples is done manually since it involves getting and running several large examples that take many hours to run.  The entire system could be fully automated, and either run in the cloud or on a local server.</p>
-</div>
-<div class="section" id="update-use-cases">
+</section>
+<section id="update-use-cases">
 <h3>Update Use Cases<a class="headerlink" href="#update-use-cases" title="Permalink to this headline">¶</a></h3>
 <p>To better illustrate the workflow for adding agency examples, a series of use cases is discussed.</p>
 <p>When a new version of the code is pushed to develop:</p>
@@ -585,55 +546,38 @@ resources for each agency example that need to be up-to-date are:</p>
 <li><p>The new submodels and/or contributions to the core will then be reviewed by the repository manager and it’s likely some revisions will be required for acceptance.  Key items in the review include python code, user documentation, and testable examples for all new components.  If the contribution is just new submodels, then the agency example that exercises the new submodel is sufficient for test coverage since TravisCI will automatically test the cropped version of the new submodel.  If the contribution includes revisions to the core that impact other test examples, then the developer is responsible for ensuring all the other tests that are up-to-date are updated/passing as well.  This includes other agency examples that are up-to-date.  This is required to ensure the contribution to the core is adequately complete.</p></li>
 </ul>
 <p>To help understand this case, the addition of the parking location choice model for <a class="reference internal" href="examples.html#example-arc"><span class="std std-ref">example_arc</span></a> is discussed.  First, ARC gets their example in good working order - i.e. updates to develop, makes any required revisions to their model to get it working, creates a cropped and full scaled example, and creates the expected test results.  In addition, this use case includes additional submodel and/or core code so ARC also authors the new feature, including documentation and any other relevant requirements such as logging, tracing, support for estimation, etc.  With the new example and feature working offline, then ARC issues a pull request to add example_arc and the new submodel/core code and makes sure the automatic tests are passing.  Once accepted, the automatic test system will run the test example tests and the cropped agency examples.  Since the new feature - parking location choice model - is included in example_arc, then new feature is now tested.  Any testing of downstream impacts from the parking location choice model would also need to be implemented in the example.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="howitworks.html" class="btn btn-neutral float-left" title="How the System Works" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright contributing authors.
-
-    </p>
+    <p>&#169; Copyright contributing authors.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

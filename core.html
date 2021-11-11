@@ -1,76 +1,36 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Core Components &mdash; ActivitySim 1.0.3 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Core Components &mdash; ActivitySim 1.0.4 documentation</title>
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Command Line Interface" href="cli.html" />
     <link rel="prev" title="Models" href="models.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ActivitySim
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.0.3
+                1.0.4
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,18 +38,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
@@ -204,72 +153,31 @@
 <li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ActivitySim</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Core Components</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/core.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="core-components">
+             
+  <section id="core-components">
 <h1>Core Components<a class="headerlink" href="#core-components" title="Permalink to this headline">¶</a></h1>
 <p>ActivitySim’s core components include features for multiprocessing, data management,
 utility expressions, choice models, person time window management, and helper
@@ -277,14 +185,14 @@ functions.  These core components include the multiprocessor, network LOS (skim)
 data pipeline manager, the random number manager, the tracer, sampling
 methods, simulation methods, model specification readers and expression
 evaluators, choice models, timetable, transit virtual path builder, and helper functions.</p>
-<div class="section" id="multiprocessing">
+<section id="multiprocessing">
 <span id="multiprocessing-in-detail"></span><h2>Multiprocessing<a class="headerlink" href="#multiprocessing" title="Permalink to this headline">¶</a></h2>
 <p>Parallelization using multiprocessing</p>
-<div class="section" id="module-activitysim.core.mp_tasks">
+<section id="module-activitysim.core.mp_tasks">
 <span id="api"></span><h3>API<a class="headerlink" href="#module-activitysim.core.mp_tasks" title="Permalink to this headline">¶</a></h3>
 <dl class="py data">
 <dt class="sig sig-object py" id="activitysim.core.mp_tasks.MEM_TRACE_TICKS">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.mp_tasks.</span></span><span class="sig-name descname"><span class="pre">MEM_TRACE_TICKS</span></span><em class="property"> <span class="pre">=</span> <span class="pre">5</span></em><a class="headerlink" href="#activitysim.core.mp_tasks.MEM_TRACE_TICKS" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.mp_tasks.</span></span><span class="sig-name descname"><span class="pre">MEM_TRACE_TICKS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#activitysim.core.mp_tasks.MEM_TRACE_TICKS" title="Permalink to this definition">¶</a></dt>
 <dd><p>mp_tasks - activitysim multiprocessing overview</p>
 <p>Activitysim runs a list of models sequentially, performing various computational operations
 on tables. Model steps can modify values in existing tables, add columns, or create additional
@@ -960,14 +868,14 @@ the locutor flag indicates that this sub process is the designated singleton spo
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="data-management">
+</section>
+</section>
+<section id="data-management">
 <h2>Data Management<a class="headerlink" href="#data-management" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="input">
+<section id="input">
 <h3>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h3>
 <p>Input data table functions</p>
-<div class="section" id="id1">
+<section id="id1">
 <h4>API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.input"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.input.read_from_table_info">
@@ -1028,16 +936,16 @@ the locutor flag indicates that this sub process is the designated singleton spo
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="los">
+</section>
+</section>
+<section id="los">
 <span id="los-in-detail"></span><h3>LOS<a class="headerlink" href="#los" title="Permalink to this headline">¶</a></h3>
 <p>Network Level of Service (LOS) data access</p>
-<div class="section" id="id2">
+<section id="id2">
 <h4>API<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.los"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.los.Network_LOS">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.los.</span></span><span class="sig-name descname"><span class="pre">Network_LOS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">los_settings_file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'network_los.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.los.</span></span><span class="sig-name descname"><span class="pre">Network_LOS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">los_settings_file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'network_los.yaml'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS" title="Permalink to this definition">¶</a></dt>
 <dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">singleton</span> <span class="nb">object</span> <span class="n">to</span> <span class="n">manage</span> <span class="n">skims</span> <span class="ow">and</span> <span class="n">skim</span><span class="o">-</span><span class="n">related</span> <span class="n">tables</span>
 
 <span class="n">los_settings_file_name</span><span class="p">:</span> <span class="nb">str</span>         <span class="c1"># e.g. &#39;network_los.yaml&#39;</span>
@@ -1252,7 +1160,7 @@ THREE_ZONE systems have both TAZ and TAP skims</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>pandas Series</dt><dd><p>string time period labels</p>
+<dt>numpy.array</dt><dd><p>string time period labels</p>
 </dd>
 </dl>
 </dd>
@@ -1261,16 +1169,16 @@ THREE_ZONE systems have both TAZ and TAP skims</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="skims">
+</section>
+</section>
+<section id="skims">
 <h3>Skims<a class="headerlink" href="#skims" title="Permalink to this headline">¶</a></h3>
 <p>Skims data access</p>
-<div class="section" id="id3">
+<section id="id3">
 <h4>API<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.skim_dict_factory"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.AbstractSkimFactory">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">AbstractSkimFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.AbstractSkimFactory" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">AbstractSkimFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.AbstractSkimFactory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provide access to skim data from store.</p>
 <dl class="simple">
 <dt>load_skim_info(skim_tag: str): dict</dt><dd><p>Read omx files for skim &lt;skim_tag&gt; (e.g. ‘TAZ’) and build skim_info dict</p>
@@ -1288,7 +1196,7 @@ THREE_ZONE systems have both TAZ and TAP skims</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.AbstractSkimFactory.supports_shared_data_for_multiprocessing">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">supports_shared_data_for_multiprocessing</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.AbstractSkimFactory.supports_shared_data_for_multiprocessing" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">supports_shared_data_for_multiprocessing</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.AbstractSkimFactory.supports_shared_data_for_multiprocessing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does subclass support shareable data for multiprocessing</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -1303,14 +1211,14 @@ THREE_ZONE systems have both TAZ and TAP skims</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.JitMemMapSkimData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">JitMemMapSkimData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_cache_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.JitMemMapSkimData" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">JitMemMapSkimData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_cache_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.JitMemMapSkimData" title="Permalink to this definition">¶</a></dt>
 <dd><p>SkimData subclass for just-in-time memmap.</p>
 <p>Since opening a memmap is fast, open the memmap read the data on demand and immediately close it.
 This essentially eliminates RAM usage, but it means we are loading the data every time we access the skim,
 which may be significantly slower, depending on patterns of usage.</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.JitMemMapSkimData.shape">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.JitMemMapSkimData.shape" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.JitMemMapSkimData.shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1324,7 +1232,7 @@ which may be significantly slower, depending on patterns of usage.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.MemMapSkimFactory">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">MemMapSkimFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.MemMapSkimFactory" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">MemMapSkimFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.MemMapSkimFactory" title="Permalink to this definition">¶</a></dt>
 <dd><p>The numpy.memmap docs states: The memmap object can be used anywhere an ndarray is accepted.
 You might think that since memmap duck-types ndarray, we could simply wrap it in a SkimData object.</p>
 <p>But, as the numpy.memmap docs also say: “Memory-mapped files are used for accessing
@@ -1360,7 +1268,7 @@ every time you access the skim, which, depending on you patterns of usage, may o
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">NumpyArraySkimFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">NumpyArraySkimFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory.allocate_skim_buffer">
 <span class="sig-name descname"><span class="pre">allocate_skim_buffer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shared</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory.allocate_skim_buffer" title="Permalink to this definition">¶</a></dt>
@@ -1416,7 +1324,7 @@ If shared is True, return a shareable multiprocessing.RawArray, otherwise a nump
 
 <dl class="py property">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.NumpyArraySkimFactory.supports_shared_data_for_multiprocessing">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">supports_shared_data_for_multiprocessing</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory.supports_shared_data_for_multiprocessing" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">supports_shared_data_for_multiprocessing</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.NumpyArraySkimFactory.supports_shared_data_for_multiprocessing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does subclass support shareable data for multiprocessing</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -1431,7 +1339,7 @@ If shared is True, return a shareable multiprocessing.RawArray, otherwise a nump
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.SkimData">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">SkimData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.SkimData" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dict_factory.</span></span><span class="sig-name descname"><span class="pre">SkimData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dict_factory.SkimData" title="Permalink to this definition">¶</a></dt>
 <dd><p>A facade for 3D skim data exposing numpy indexing and shape
 The primary purpose is to document and police the api used to access skim data
 Subclasses using a different backing store to perform additional/alternative
@@ -1439,7 +1347,7 @@ only need to implement the methods exposed here.</p>
 <p>For instance, to open/close memmapped files just in time, or to access backing data via an alternate api</p>
 <dl class="py property">
 <dt class="sig sig-object py" id="activitysim.core.skim_dict_factory.SkimData.shape">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.SkimData.shape" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#activitysim.core.skim_dict_factory.SkimData.shape" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
@@ -1453,7 +1361,7 @@ only need to implement the methods exposed here.</p>
 
 <span class="target" id="module-activitysim.core.skim_dictionary"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dictionary.DataFrameMatrix">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">DataFrameMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.DataFrameMatrix" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">DataFrameMatrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.DataFrameMatrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Utility class to allow a pandas dataframe to be treated like a 2-D array,
 indexed by rowid, colname</p>
 <p>For use in vectorized expressions where the desired values depend on both a row column selector
@@ -1490,7 +1398,7 @@ e.g. size_terms.get(df.dest_taz, df.purpose)</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dictionary.MazSkimDict">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">MazSkimDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taz_skim_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.MazSkimDict" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">MazSkimDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">taz_skim_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.MazSkimDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>MazSkimDict provides a facade that allows skim-like lookup by maz orig,dest zone_id
 when there are often too many maz zones to create maz skims.</p>
 <p>Dependencies: network_los.load_data must have already loaded: taz skim_dict, maz_to_maz_df, and maz_taz_df</p>
@@ -1557,7 +1465,7 @@ For taz skim lookups, the offset_mapper will convert maz zone_ids directly to ta
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dictionary.OffsetMapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">OffsetMapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offset_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_series</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.OffsetMapper" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">OffsetMapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offset_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset_series</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.OffsetMapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Utility to map skim zone ids to ordinal offsets (e.g. numpy array indices)</p>
 <p>Can map either by a fixed offset (e.g. -1 to map 1-based to 0-based)
 or by an explicit mapping of zone id to offset (slower but more flexible)</p>
@@ -1632,7 +1540,7 @@ with implicit skim index mapping (e.g. an omx mapping as returned by omx_file.ma
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dictionary.Skim3dWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">Skim3dWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim3_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.Skim3dWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">Skim3dWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim3_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.Skim3dWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>This works the same as a SkimWrapper above, except the third dim3 is also supplied,
 and a 3D lookup is performed using orig, dest, and dim3.</p>
 <dl class="field-list simple">
@@ -1670,7 +1578,7 @@ above for a more complete description)</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dictionary.SkimDict">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">SkimDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">SkimDict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skim_data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SkimDict object is a wrapper around a dict of multiple skim objects,
 where each object is identified by a key.</p>
 <p>Note that keys are either strings or tuples of two strings (to support stacking of skims.)</p>
@@ -1746,7 +1654,7 @@ and thus rapidly get skim values for a list of (orig, dest, tod) tuples using in
 
 <dl class="py property">
 <dt class="sig sig-object py" id="activitysim.core.skim_dictionary.SkimDict.zone_ids">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">zone_ids</span></span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.zone_ids" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">zone_ids</span></span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimDict.zone_ids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return list of zone_ids we grok in skim index order</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -1761,7 +1669,7 @@ and thus rapidly get skim values for a list of (orig, dest, tod) tuples using in
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.skim_dictionary.SkimWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">SkimWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.skim_dictionary.</span></span><span class="sig-name descname"><span class="pre">SkimWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.skim_dictionary.SkimWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>A SkimWrapper object is an access wrapper around a SkimDict of multiple skim objects,
 where each object is identified by a key.</p>
 <p>This is just a way to simplify expression files by hiding the and orig, dest arguments
@@ -1834,14 +1742,14 @@ with the same index as df</p>
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="pipeline">
+</section>
+</section>
+<section id="pipeline">
 <span id="pipeline-in-detail"></span><h3>Pipeline<a class="headerlink" href="#pipeline" title="Permalink to this headline">¶</a></h3>
 <p>Data pipeline manager, which manages the list of model steps, runs them, reads
 and writes data tables from/to the pipeline datastore, and supports restarting of the pipeline
 at any model step.</p>
-<div class="section" id="id4">
+<section id="id4">
 <h4>API<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.pipeline"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.pipeline.add_checkpoint">
@@ -2159,9 +2067,9 @@ so we need to know both the table_name and the checkpoint_name to label the save
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="random">
+</section>
+</section>
+<section id="random">
 <span id="random-in-detail"></span><h3>Random<a class="headerlink" href="#random" title="Permalink to this headline">¶</a></h3>
 <p>ActivitySim’s random number generation has a number of important features unique to AB modeling:</p>
 <ul class="simple">
@@ -2192,11 +2100,11 @@ possible across alternative scenarios.  This is done for trips as well, by direc
 <p class="admonition-title">Note</p>
 <p>The Random module contains max model steps constants by chooser type - household, person, tour, trip - needs to be equal to the number of chooser sub-models.</p>
 </div>
-<div class="section" id="id5">
+<section id="id5">
 <h4>API<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.random"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.random.SimpleChannel">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.random.</span></span><span class="sig-name descname"><span class="pre">SimpleChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.random.</span></span><span class="sig-name descname"><span class="pre">SimpleChannel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channel_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_seed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel" title="Permalink to this definition">¶</a></dt>
 <dd><p>We need to ensure that we generate the same random streams (when re-run or even across
 different simulations.) We do this by generating a random seed for each domain_df row
 that is based on the domain_df index (which implies that generated tables like tours
@@ -2378,9 +2286,9 @@ method (q.v.) may be used to globally reseed all random streams.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="tracing">
+</section>
+</section>
+<section id="tracing">
 <h3>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h3>
 <p>Household tracer.  If a household trace ID is specified, then ActivitySim will output a
 comprehensive set of trace files for all calculations for all household members:</p>
@@ -2390,7 +2298,7 @@ comprehensive set of trace files for all calculations for all household members:
 </ul>
 <p>With the set of output CSV files, the user can trace ActivitySim’s calculations in order to ensure they are correct and/or to
 help debug data and/or logic errors.</p>
-<div class="section" id="id6">
+<section id="id6">
 <h4>API<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.tracing"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.tracing.config_logger">
@@ -2432,6 +2340,25 @@ help debug data and/or logic errors.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
+<dt>Nothing</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.tracing.deregister_traceable_table">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.tracing.</span></span><span class="sig-name descname"><span class="pre">deregister_traceable_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.tracing.deregister_traceable_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>un-register traceable table</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df: pandas.DataFrame</strong></dt><dd><p>traced dataframe</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
 <dt>Nothing</dt><dd></dd>
 </dl>
 </dd>
@@ -2682,10 +2609,10 @@ used to filter the trace_results dataframe by traced hh or person id</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-</div>
-<div class="section" id="utility-expressions">
+</section>
+</section>
+</section>
+<section id="utility-expressions">
 <span id="expressions"></span><h2>Utility Expressions<a class="headerlink" href="#utility-expressions" title="Permalink to this headline">¶</a></h2>
 <p>Much of the power of ActivitySim comes from being able to specify Python, pandas, and
 numpy expressions for calculations. Refer to the pandas help for a general
@@ -2695,7 +2622,7 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 <li><p>Python expressions, denoted by beginning with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, are evaluated with <a class="reference external" href="https://docs.python.org/2/library/functions.html#eval">Python’s eval()</a>.</p></li>
 </ul>
 <p>Simple table expressions can only refer to columns in the current DataFrame.  Python expressions can refer to any Python objects currently in memory.</p>
-<div class="section" id="conventions">
+<section id="conventions">
 <h3>Conventions<a class="headerlink" href="#conventions" title="Permalink to this headline">¶</a></h3>
 <p>There are a few conventions for writing expressions in ActivitySim:</p>
 <ul class="simple">
@@ -2707,8 +2634,8 @@ introduction to expressions.  ActivitySim provides two ways to evaluate expressi
 <li><p>often an object called <code class="docutils literal notranslate"><span class="pre">skims</span></code>, <code class="docutils literal notranslate"><span class="pre">skims_od</span></code>, or similar is available and is used to lookup the relevant skim information.  See <a class="reference internal" href="#los-in-detail"><span class="std std-ref">LOS</span></a> for more information.</p></li>
 <li><p>when editing the CSV files in Excel, use single quote ‘ or space at the start of a cell to get Excel to accept the expression</p></li>
 </ul>
-</div>
-<div class="section" id="example-expressions-file">
+</section>
+<section id="example-expressions-file">
 <h3>Example Expressions File<a class="headerlink" href="#example-expressions-file" title="Permalink to this headline">¶</a></h3>
 <p>An expressions file has the following basic form:</p>
 <table class="docutils align-default">
@@ -2817,8 +2744,8 @@ coefficients as columns.  Broadly speaking, there are currently four types of mo
 <li><p><a class="reference internal" href="#simulate-with-interaction"><span class="std std-ref">Simulate with Interaction</span></a> choice model - combine the choice expressions with the choice alternatives files since the alternatives are not listed in the expressions file.  The <a class="reference internal" href="models.html#non-mandatory-tour-destination-choice"><span class="std std-ref">Non-Mandatory Tour Destination Choice</span></a> model implements this approach.</p></li>
 <li><p>Combinatorial choice model - first generate a set of alternatives based on a combination of alternatives across choosers, and then make choices.  The <a class="reference internal" href="models.html#cdap"><span class="std std-ref">Coordinated Daily Activity Pattern</span></a> model implements this approach.</p></li>
 </ul>
-</div>
-<div class="section" id="id7">
+</section>
+<section id="id7">
 <h3>Expressions<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
 <p>The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate
 a number of additional table fields, and join the fields to the target table.  An example table annotation expressions
@@ -2866,8 +2793,8 @@ same index as df</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="sampling-with-interaction">
+</section>
+<section id="sampling-with-interaction">
 <h3>Sampling with Interaction<a class="headerlink" href="#sampling-with-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, and sampling (i.e. making multiple choices),
 with interaction with the chooser table.</p>
@@ -2887,7 +2814,7 @@ calculated as follows:</p>
 <p>As the alternative is oversampled, its utility goes up for final selection.  The unique set
 of alternatives is passed to the final choice model and the correction factor is
 included in the utility.</p>
-<div class="section" id="id8">
+<section id="id8">
 <h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_sample.interaction_sample">
@@ -2971,13 +2898,13 @@ and columns alt_col_name, prob, rand, pick_count</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="simulate">
+</section>
+</section>
+<section id="simulate">
 <span id="id9"></span><h3>Simulate<a class="headerlink" href="#simulate" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, choosing (i.e. making choices) from a fixed set of choices
 defined in the specification file.</p>
-<div class="section" id="id10">
+<section id="id10">
 <h4>API<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.simulate"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.compute_base_probabilities">
@@ -3245,7 +3172,7 @@ for an evaluation of an expression that begins with &#64;</p>
 <dd><p>Return a dict mapping generic coefficient names to segment-specific coefficient values</p>
 <p>some specs mode_choice logsums have the same espression values with different coefficients for various segments
 (e.g. eatout, .. ,atwork) and a template file that maps a flat list of coefficients into segment columns.</p>
-<p>This allows us to provide a coefficient fiel with just the coefficients for a specific segment,
+<p>This allows us to provide a coefficient file with just the coefficients for a specific segment,
 that works with generic coefficient names in the spec. For instance coef_ivt can take on the values
 of segment-specific coefficients coef_ivt_school_univ, coef_ivt_work, coef_ivt_atwork,…</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coefficients_df</span>
@@ -3261,7 +3188,7 @@ of segment-specific coefficients coef_ivt_school_univ, coef_ivt_work, coef_ivt_a
 <span class="n">coefficient_name</span>     <span class="n">eatout</span>                       <span class="n">school</span>                 <span class="n">school</span>                 <span class="n">work</span>
 <span class="n">coef_ivt</span>             <span class="n">coef_ivt_eatout_escort_</span><span class="o">...</span>   <span class="n">coef_ivt_school_univ</span>   <span class="n">coef_ivt_school_univ</span>   <span class="n">coef_ivt_work</span>
 
-<span class="n">For</span> <span class="n">school</span> <span class="n">segment</span> <span class="n">this</span> <span class="n">will</span> <span class="k">return</span> <span class="n">the</span> <span class="n">generic</span> <span class="n">coefficient</span> <span class="n">name</span> <span class="n">withe</span> <span class="n">h</span> <span class="n">segment</span><span class="o">-</span><span class="n">specific</span> <span class="n">coefficient</span> <span class="n">value</span>
+<span class="n">For</span> <span class="n">school</span> <span class="n">segment</span> <span class="n">this</span> <span class="n">will</span> <span class="k">return</span> <span class="n">the</span> <span class="n">generic</span> <span class="n">coefficient</span> <span class="n">name</span> <span class="k">with</span> <span class="n">the</span> <span class="n">segment</span><span class="o">-</span><span class="n">specific</span> <span class="n">coefficient</span> <span class="n">value</span>
 <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="p">{</span><span class="s1">&#39;coef_ivt&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0224</span><span class="p">,</span> <span class="o">...</span><span class="p">}</span>
 <span class="o">...</span>
 </pre></div>
@@ -3388,13 +3315,13 @@ properties and no need to sample from alternatives.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="simulate-with-interaction">
+</section>
+</section>
+<section id="simulate-with-interaction">
 <span id="id11"></span><h3>Simulate with Interaction<a class="headerlink" href="#simulate-with-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, choosing (i.e. making choices),
 with interaction with the chooser table.</p>
-<div class="section" id="id12">
+<section id="id12">
 <h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_simulate"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_simulate.eval_interaction_utilities">
@@ -3488,13 +3415,13 @@ choices are simulated in the standard Monte Carlo fashion</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="simulate-with-sampling-and-interaction">
+</section>
+</section>
+<section id="simulate-with-sampling-and-interaction">
 <h3>Simulate with Sampling and Interaction<a class="headerlink" href="#simulate-with-sampling-and-interaction" title="Permalink to this headline">¶</a></h3>
 <p>Methods for expression handling, solving, sampling (i.e. making multiple choices),
 and choosing (i.e. making choices), with interaction with the chooser table.</p>
-<div class="section" id="id13">
+<section id="id13">
 <h4>API<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample_simulate"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_sample_simulate.interaction_sample_simulate">
@@ -3556,14 +3483,14 @@ choices[‘logsum’] : float logsum of choice utilities across alternatives</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="assign">
+</section>
+</section>
+<section id="assign">
 <h3>Assign<a class="headerlink" href="#assign" title="Permalink to this headline">¶</a></h3>
 <p>Alternative version of the expression evaluators in <a class="reference internal" href="#module-activitysim.core.simulate" title="activitysim.core.simulate"><code class="xref py py-mod docutils literal notranslate"><span class="pre">activitysim.core.simulate</span></code></a> that supports temporary variable assignment.
 Temporary variables are identified in the expressions as starting with “_”, such as “_hh_density_bin”.  These
 fields are not saved to the data pipeline store.  This feature is used by the <a class="reference internal" href="models.html#accessibility"><span class="std std-ref">Accessibility</span></a> model.</p>
-<div class="section" id="id14">
+<section id="id14">
 <h4>API<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.assign"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.assign.assign_variables">
@@ -3576,9 +3503,11 @@ accessible as variable df.) They also have access to previously assigned
 targets as the assigned target name.</p>
 <p>lowercase variables starting with underscore are temp variables (e.g. _local_var)
 and not returned except in trace_results</p>
-<p>uppercase variables starting with underscore are temp scalar variables (e.g. _LOCAL_SCALAR)
+<p>uppercase variables starting with underscore are temp singular variables (e.g. _LOCAL_SCALAR)
 and not returned except in trace_assigned_locals
-This is useful for defining general purpose local constants in expression file</p>
+This is useful for defining general purpose local variables that don’t vary across
+choosers or alternatives and therefore don’t need to be stored as series/columns
+in the main choosers dataframe from which utilities are computed.</p>
 <p>Users should take care that expressions (other than temp scalar variables) should result in
 a Pandas Series (scalars will be automatically promoted to series.)</p>
 <dl class="field-list simple">
@@ -3684,12 +3613,12 @@ targets, and expressions,</p>
 <p>e.g. if there is already a key named “dog”, the second key will be reformatted to “dog (2)”</p>
 </dd></dl>
 
-</div>
-</div>
-</div>
-<div class="section" id="choice-models">
+</section>
+</section>
+</section>
+<section id="choice-models">
 <h2>Choice Models<a class="headerlink" href="#choice-models" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="logit">
+<section id="logit">
 <span id="logit-in-detail"></span><h3>Logit<a class="headerlink" href="#logit" title="Permalink to this headline">¶</a></h3>
 <p>Multinomial logit (MNL) or Nested logit (NL) choice model.  These choice models depend on the foundational components of ActivitySim, such
 as the expressions and data handling described in the <a class="reference internal" href="howitworks.html#id1"><span class="std std-ref">Execution Flow</span></a> section.</p>
@@ -3704,11 +3633,11 @@ as the expressions and data handling described in the <a class="reference intern
 <li><p>specify the nesting structure via the NESTS setting in the model configuration YAML file.  An example nested logit NESTS entry can be found in <code class="docutils literal notranslate"><span class="pre">example/configs/tour_mode_choice.yaml</span></code></p></li>
 <li><p>call <code class="docutils literal notranslate"><span class="pre">simulate.simple_simulate()</span></code>.  The <code class="docutils literal notranslate"><span class="pre">simulate.interaction_simulate()</span></code> functionality is not yet supported for NL.</p></li>
 </ul>
-<div class="section" id="id15">
+<section id="id15">
 <h4>API<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.logit"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.logit.Nest">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">Nest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.logit.</span></span><span class="sig-name descname"><span class="pre">Nest</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.logit.Nest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data for a nest-logit node or leaf</p>
 <p>This object is passed on yield when iterate over nest nodes (branch or leaf)
 The nested logit design is stored in a yaml file as a tree of dict objects,
@@ -3885,10 +3814,10 @@ which is indexed on index values from alternatives df</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-</div>
-<div class="section" id="person-time-windows">
+</section>
+</section>
+</section>
+<section id="person-time-windows">
 <span id="time-windows"></span><h2>Person Time Windows<a class="headerlink" href="#person-time-windows" title="Permalink to this headline">¶</a></h2>
 <p>The departure time and duration models require person time windows. Time windows are adjacent time
 periods that are available for travel. Time windows are stored in a timetable table and each row is
@@ -3903,11 +3832,11 @@ Each column is coded as follows:</p>
 </ul>
 <p>A good example of a time window expression is <code class="docutils literal notranslate"><span class="pre">&#64;tt.previous_tour_ends(df.person_id,</span> <span class="pre">df.start)</span></code>.  This
 uses the person id and the tour start period to check if a previous tour ends in the same time period.</p>
-<div class="section" id="id16">
+<section id="id16">
 <h3>API<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.core.timetable"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.timetable.TimeTable">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.timetable.</span></span><span class="sig-name descname"><span class="pre">TimeTable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tdd_alts_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.timetable.</span></span><span class="sig-name descname"><span class="pre">TimeTable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">windows_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tdd_alts_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.TimeTable" title="Permalink to this definition">¶</a></dt>
 <dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tdd_alts_df</span>      <span class="n">tdd_footprints_df</span>
 <span class="n">start</span>  <span class="n">end</span>      <span class="s1">&#39;0&#39;</span> <span class="s1">&#39;1&#39;</span> <span class="s1">&#39;2&#39;</span> <span class="s1">&#39;3&#39;</span> <span class="s1">&#39;4&#39;</span><span class="o">...</span>
 <span class="mi">5</span>      <span class="mi">5</span>    <span class="o">==&gt;</span>  <span class="mi">0</span>   <span class="mi">6</span>   <span class="mi">0</span>   <span class="mi">0</span>   <span class="mi">0</span> <span class="o">...</span>
@@ -4236,9 +4165,9 @@ checkpoint the table in another context where it does not know that name.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="transit-virtual-path-builder">
+</section>
+</section>
+<section id="transit-virtual-path-builder">
 <span id="id17"></span><h2>Transit Virtual Path Builder<a class="headerlink" href="#transit-virtual-path-builder" title="Permalink to this headline">¶</a></h2>
 <p>Transit virtual path builder (TVPB) for three zone system (see <a class="reference internal" href="examples.html#multiple-zone-systems"><span class="std std-ref">example_multiple_zones</span></a>) transit path utility calculations.
 TAP to TAP skims and walk access and egress times between MAZs and TAPs are input to the
@@ -4264,11 +4193,11 @@ each chunk of multiprocessed choosers.</p>
 <p>A model with TVPB can take considerably longer to run than a traditional TAZ based model since it does an order of magnitude more
 calculations.  Thus, it is important to be mindful of your approach to your network model as well, especially the number of TAPs
 accessible to each MAZ, which is the key determinant of runtime.</p>
-<div class="section" id="id18">
+<section id="id18">
 <h3>API<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
 <span class="target" id="module-activitysim.core.pathbuilder"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathBuilder">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder.</span></span><span class="sig-name descname"><span class="pre">TransitVirtualPathBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder.</span></span><span class="sig-name descname"><span class="pre">TransitVirtualPathBuilder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathBuilder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transit virtual path builder for three zone systems</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathBuilder.compute_tap_tap_utilities">
@@ -4327,7 +4256,7 @@ look up the utilities in the precomputed tap_cache data (which is indexed by uid
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder.</span></span><span class="sig-name descname"><span class="pre">TransitVirtualPathLogsumWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathbuilder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tod_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder.</span></span><span class="sig-name descname"><span class="pre">TransitVirtualPathLogsumWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathbuilder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tod_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recipe</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_choices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transit virtual path builder logsum wrapper for three zone systems</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder.TransitVirtualPathLogsumWrapper.set_df">
@@ -4356,12 +4285,12 @@ look up the utilities in the precomputed tap_cache data (which is indexed by uid
 <dd><p>Compute utilities</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-activitysim.core.pathbuilder_cache">
+</section>
+<section id="module-activitysim.core.pathbuilder_cache">
 <span id="cache-api"></span><h3>Cache API<a class="headerlink" href="#module-activitysim.core.pathbuilder_cache" title="Permalink to this headline">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder_cache.</span></span><span class="sig-name descname"><span class="pre">TVPBCache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid_calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder_cache.</span></span><span class="sig-name descname"><span class="pre">TVPBCache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uid_calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TVPBCache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transit virtual path builder cache for three zone systems</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TVPBCache.allocate_data_buffer">
@@ -4418,7 +4347,7 @@ either multiprocessing.Array and lock or multiprocessing.RawArray and None accor
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TapTapUidCalculator">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder_cache.</span></span><span class="sig-name descname"><span class="pre">TapTapUidCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.pathbuilder_cache.</span></span><span class="sig-name descname"><span class="pre">TapTapUidCalculator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pathbuilder_cache.TapTapUidCalculator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Transit virtual path builder TAP to TAP unique ID calculator for three zone systems</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.pathbuilder_cache.TapTapUidCalculator.get_od_dataframe">
@@ -4461,11 +4390,11 @@ btap and atap will be in dataframe, but the other attributes may be either df co
 
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="helpers">
+</section>
+</section>
+<section id="helpers">
 <h2>Helpers<a class="headerlink" href="#helpers" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="chunk">
+<section id="chunk">
 <span id="chunk-in-detail"></span><span id="chunk-size"></span><span id="index-0"></span><h3>Chunk<a class="headerlink" href="#chunk" title="Permalink to this headline">¶</a></h3>
 <p>Chunking management.</p>
 <div class="admonition note">
@@ -4543,27 +4472,27 @@ is therefore the default.</p>
 <li><p>keep_chunk_logs: True - whether to preserve or delete subprocess chunk logs when they are consolidated at end of multiprocess run</p></li>
 <li><p>keep_mem_logs: True - whether to preserve or delete subprocess mem logs when they are consolidated at end of multiprocess run</p></li>
 </ul>
-<div class="section" id="id19">
+<section id="id19">
 <h4>API<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.chunk"></span><dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.chunk.ChunkHistorian">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">ChunkHistorian</span></span><a class="headerlink" href="#activitysim.core.chunk.ChunkHistorian" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">ChunkHistorian</span></span><a class="headerlink" href="#activitysim.core.chunk.ChunkHistorian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Utility for estimating row_size</p>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.chunk.ChunkLedger">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">ChunkLedger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_rss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_uss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headroom</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.ChunkLedger" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">ChunkLedger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_rss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">baseline_uss</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headroom</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.ChunkLedger" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.chunk.ChunkSizer">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">ChunkSizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.ChunkSizer" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">ChunkSizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_choosers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.ChunkSizer" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="activitysim.core.chunk.DEFAULT_CHUNK_METHOD">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CHUNK_METHOD</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'hybrid_uss'</span></em><a class="headerlink" href="#activitysim.core.chunk.DEFAULT_CHUNK_METHOD" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_CHUNK_METHOD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'hybrid_uss'</span></em><a class="headerlink" href="#activitysim.core.chunk.DEFAULT_CHUNK_METHOD" title="Permalink to this definition">¶</a></dt>
 <dd><p>The chunk_cache table is a record of the memory usage and observed row_size required for chunking the various models.
 The row size differs depending on whether memory usage is calculated by rss, uss, or explicitly allocated bytes.
 We record all three during training so the mode can be changed without necessitating retraining.</p>
@@ -4599,7 +4528,7 @@ assuming there is abundant RAM.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="activitysim.core.chunk.MemMonitor">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">MemMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_snooping</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.MemMonitor" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.chunk.</span></span><span class="sig-name descname"><span class="pre">MemMonitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stop_snooping</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.MemMonitor" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.chunk.MemMonitor.run">
 <span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.chunk.MemMonitor.run" title="Permalink to this definition">¶</a></dt>
@@ -4671,12 +4600,12 @@ as choosers, we can use cumulative pick_counts to identify boundaries of sets of
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="utilities">
+</section>
+</section>
+<section id="utilities">
 <h3>Utilities<a class="headerlink" href="#utilities" title="Permalink to this headline">¶</a></h3>
 <p>Vectorized helper functions</p>
-<div class="section" id="id20">
+<section id="id20">
 <h4>API<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.util"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.util.assign_in_place">
@@ -4853,21 +4782,21 @@ table and would require a second step to change the index.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.util.reindex_i">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.util.</span></span><span class="sig-name descname"><span class="pre">reindex_i</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">series1</span></em>, <em class="sig-param"><span class="pre">series2</span></em>, <em class="sig-param"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.int8'&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.reindex_i" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.util.</span></span><span class="sig-name descname"><span class="pre">reindex_i</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">series2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'numpy.int8'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.util.reindex_i" title="Permalink to this definition">¶</a></dt>
 <dd><p>version of reindex that replaces missing na values and converts to int
 helpful in expression files that compute counts (e.g. num_work_tours)</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="config">
+</section>
+</section>
+<section id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for configuring a model run</p>
-<div class="section" id="id21">
+<section id="id21">
 <h4>API<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.config"></span><dl class="py exception">
 <dt class="sig sig-object py" id="activitysim.core.config.SettingsFileNotFound">
-<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">activitysim.core.config.</span></span><span class="sig-name descname"><span class="pre">SettingsFileNotFound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.SettingsFileNotFound" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.config.</span></span><span class="sig-name descname"><span class="pre">SettingsFileNotFound</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs_dir</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.config.SettingsFileNotFound" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -4987,7 +4916,7 @@ tvpb tap_tap table cache</p>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="activitysim.core.config.logger">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.config.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"> <span class="pre">=</span> <span class="pre">&lt;Logger</span> <span class="pre">activitysim.core.config</span> <span class="pre">(WARNING)&gt;</span></em><a class="headerlink" href="#activitysim.core.config.logger" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.config.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Logger</span> <span class="pre">activitysim.core.config</span> <span class="pre">(WARNING)&gt;</span></em><a class="headerlink" href="#activitysim.core.config.logger" title="Permalink to this definition">¶</a></dt>
 <dd><p>default injectables</p>
 </dd></dl>
 
@@ -5037,12 +4966,12 @@ read settings from yaml file and return as dict.</p>
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="inject">
+</section>
+</section>
+<section id="inject">
 <span id="id22"></span><h3>Inject<a class="headerlink" href="#inject" title="Permalink to this headline">¶</a></h3>
 <p>Model orchestration and data pipeline interaction.</p>
-<div class="section" id="id23">
+<section id="id23">
 <h4>API<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.inject"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.inject.add_table">
@@ -5057,12 +4986,12 @@ Silently replace if replace=True.</p>
 <dd><p>reinject the decorated tables (and columns)</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="mem">
+</section>
+</section>
+<section id="mem">
 <h3>Mem<a class="headerlink" href="#mem" title="Permalink to this headline">¶</a></h3>
 <p>Helper functions for tracking memory usage</p>
-<div class="section" id="id24">
+<section id="id24">
 <h4>API<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.mem"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.mem.consolidate_logs">
@@ -5076,12 +5005,12 @@ Silently replace if replace=True.</p>
 <dd><p>return total size of the multiprocessing shared memory block in data_buffers</p>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="output">
+</section>
+</section>
+<section id="output">
 <h3>Output<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h3>
 <p>Write output files and track skim usage.</p>
-<div class="section" id="id25">
+<section id="id25">
 <h4>API<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h4>
 <span class="target" id="module-activitysim.core.steps.output"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.steps.output.previous_write_data_dictionary">
@@ -5172,61 +5101,44 @@ if no output_tables list is specified, then all checkpointed tables will be writ
 </dl>
 </dd></dl>
 
-</div>
-</div>
-<div class="section" id="tests">
+</section>
+</section>
+<section id="tests">
 <h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
 <p>See activitysim.core.test</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="cli.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="models.html" class="btn btn-neutral float-left" title="Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cli.html" class="btn btn-neutral float-right" title="Command Line Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright contributing authors.
-
-    </p>
+    <p>&#169; Copyright contributing authors.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

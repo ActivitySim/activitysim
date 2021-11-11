@@ -1,76 +1,36 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Getting Started &mdash; ActivitySim 1.0.3 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Getting Started &mdash; ActivitySim 1.0.4 documentation</title>
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Examples" href="examples.html" />
     <link rel="prev" title="ActivitySim" href="index.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ActivitySim
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.0.3
+                1.0.4
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,18 +38,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a><ul>
@@ -113,87 +62,47 @@
 <li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ActivitySim</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Getting Started</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/gettingstarted.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="getting-started">
+             
+  <section id="getting-started">
 <h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>This page describes how to get started with ActivitySim.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim is under active development</p>
 </div>
-<div class="section" id="installation">
+<section id="installation">
 <span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <p>1. It is recommended that you install and use a <em>conda</em> package manager
 for your system. One easy way to do so is by using <a class="reference external" href="https://www.anaconda.com/distribution/">Anaconda 64bit Python 3</a>,
 although you should consult the <a class="reference external" href="https://www.anaconda.com/terms-of-service">terms of service</a>
-for this product and ensure you qualify (as of summer 2021, businesses and
-governments with over 200 employees do not qualify for free usage).  If you prefer
+for this product and ensure you qualify since businesses and
+governments with over 200 employees do not qualify for free usage.  If you prefer
 a completely free open source <em>conda</em> tool, you can download and install the
-appropriate version of <a class="reference external" href="https://github.com/conda-forge/miniforge#miniforge3">Miniforge</a>.</p>
+appropriate version of <a class="reference external" href="https://github.com/conda-forge/miniforge#miniforge3">Miniforge</a>.  If desired,
+select ‘add miniforge3 to the system PATH environment variable’ so typing ‘conda’ on the command line will work.</p>
 <p>2. If you access the internet from behind a firewall, then you may need to
 configure your proxy server. To do so, create a <cite>.condarc</cite> file in your
 home installation folder, such as:</p>
@@ -204,7 +113,7 @@ home installation folder, such as:</p>
 </pre></div>
 </div>
 <p>3. Create a conda environment (basically a Python install just for this project)
-using Anaconda Prompt (on Windows) or the terminal (macOS or Linux):</p>
+using conda Prompt (on Windows) or the terminal (macOS or Linux):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span> <span class="n">activitysim</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span>
 </pre></div>
 </div>
@@ -243,15 +152,20 @@ tools for certain development tasks:</p>
 <span class="n">conda</span> <span class="n">install</span> <span class="n">jupyterlab</span> <span class="n">matplotlib</span> <span class="n">geopandas</span> <span class="n">descartes</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
 </pre></div>
 </div>
+<p>To create an environment containing all these optional dependencies at once, you
+can run the shortcut command</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="n">activitysim</span><span class="o">/</span><span class="n">ASIM</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
+</pre></div>
+</div>
 <ol class="arabic simple" start="4">
-<li><p>To use the <strong>asim</strong> environment, you need to activate it:</p></li>
+<li><p>To use the <strong>asim</strong> environment, you need to activate it</p></li>
 </ol>
-<blockquote>
-<div><p>conda activate asim</p>
-</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">activate</span> <span class="n">asim</span>
+</pre></div>
+</div>
 <p>The activation of the correct environment needs to be done every time you
-start a new session (e.g. opening a new Anaconda Prompt window).</p>
-<div class="section" id="alternative-installation-methods">
+start a new session (e.g. opening a new conda Prompt window).</p>
+<section id="alternative-installation-methods">
 <h3>Alternative Installation Methods<a class="headerlink" href="#alternative-installation-methods" title="Permalink to this headline">¶</a></h3>
 <p>If you prefer to install ActivitySim without conda, it is possible to
 do so with pip, although you may find it more difficult to get all of the
@@ -276,12 +190,21 @@ the ActivitySim repository, and then from within that directory run:</p>
 </div>
 <p>The “-e” will install in editable mode, so any changes you make to the ActivitySim
 code will also be reflected in your installation.</p>
+<p>Installing from source is easier if you have all the necessary dependencies already
+installed in a development conda environment.  Developers can create an
+environment that has all the optional dependencies preinstalled by running:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">env</span> <span class="n">create</span> <span class="n">activitysim</span><span class="o">/</span><span class="n">ASIM</span><span class="o">-</span><span class="n">DEV</span>
+</pre></div>
+</div>
+<p>If you prefer to use a different environment name than <cite>ASIM-DEV</cite>, just
+append <cite>–name OTHERNAME</cite> to the command. Then all that’s left to do is install
+ActivitySim itself in editable mode as described above.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>ActivitySim is a 64bit Python 3 library that uses a number of packages from the
 scientific Python ecosystem, most notably <a class="reference external" href="http://pandas.pydata.org">pandas</a>
 and <a class="reference external" href="http://numpy.org">numpy</a>.</p>
-<p>The recommended way to get your own scientific Python installation is to
+<p>As mentioned above, the recommended way to get your own scientific Python installation is to
 install 64 bit Anaconda, which contains many of the libraries upon which
 ActivitySim depends + some handy Python installation management tools.</p>
 <p>Anaconda includes the <code class="docutils literal notranslate"><span class="pre">conda</span></code> command line tool, which does a number of useful
@@ -294,9 +217,9 @@ session.  You can remove an environment with <code class="docutils literal notra
 check the current active environment with <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">info</span> <span class="pre">-e</span></code>.</p>
 <p>For more information on Anaconda, see Anaconda’s <a class="reference external" href="https://docs.anaconda.com/anaconda/user-guide/getting-started">getting started</a> guide.</p>
 </div>
-</div>
-</div>
-<div class="section" id="run-the-primary-example">
+</section>
+</section>
+<section id="run-the-primary-example">
 <h2>Run the Primary Example<a class="headerlink" href="#run-the-primary-example" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim includes a <a class="reference internal" href="cli.html#cli"><span class="std std-ref">Command Line Interface</span></a> for creating examples and running the model.</p>
 <p>To setup and run the primary example (see <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>), do the following:</p>
@@ -316,12 +239,12 @@ ActivitySim model runs can be configured with settings file inheritance to avoid
 <p>Additional examples, including the full scale MTC regional demand model, estimation integration examples, multiple zone system examples,
 and examples for agency partners are available for creation by typing <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-l</span></code>.  To create these examples, ActivitySim downloads the (large) input files from
 the <a class="reference external" href="https://github.com/rsginc/activitysim_resources">ActivitySim resources</a> repository.  See <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a> for more information.</p>
-</div>
-<div class="section" id="try-the-notebooks">
+</section>
+<section id="try-the-notebooks">
 <h2>Try the Notebooks<a class="headerlink" href="#try-the-notebooks" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim includes a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a> recipe book with interactive examples.  To run a Jupyter notebook, do the following:</p>
 <ul class="simple">
-<li><p>Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed</p></li>
+<li><p>Open a conda prompt and activate the conda environment with ActivitySim installed</p></li>
 <li><p>If needed, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code> so you can run jupyter notebooks</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> to launch the web-based notebook manager</p></li>
 <li><p>Navigate to the <code class="docutils literal notranslate"><span class="pre">examples/example_mtc/notebooks</span></code> folder and select a notebook to learn more:</p>
@@ -334,8 +257,8 @@ the <a class="reference external" href="https://github.com/rsginc/activitysim_re
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="hardware">
+</section>
+<section id="hardware">
 <h2>Hardware<a class="headerlink" href="#hardware" title="Permalink to this headline">¶</a></h2>
 <p>The computing hardware required to run a model implemented in the ActivitySim framework generally depends on:</p>
 <ul class="simple">
@@ -355,7 +278,7 @@ on the amount of RAM and number of processors allocated.  See <a class="referenc
 <a class="reference external" href="https://azure.microsoft.com/en-us/">Microsoft Azure</a>.  Example configurations,
 scripts, and runtimes are in the <code class="docutils literal notranslate"><span class="pre">other_resources\example_azure</span></code> folder.</p>
 </div>
-<div class="section" id="mkl-settings">
+<section id="mkl-settings">
 <span id="id1"></span><h3>MKL Settings<a class="headerlink" href="#mkl-settings" title="Permalink to this headline">¶</a></h3>
 <p>Anaconda Python on Windows uses the <a class="reference external" href="https://software.intel.com/en-us/mkl">Intel Math Kernel Library</a> for
 many of its computationally intensive low-level C/C++ calculations.  By default, MKL threads many of its routines
@@ -365,56 +288,39 @@ processes and instead let ActivitySim run each process with one computing core o
 override the MKL number of threads setting via a system environment variable that is set before running the model.
 In practice, this means before running the model, first set the MKL number of threads variable via the command
 line as follows: <code class="docutils literal notranslate"><span class="pre">SET</span> <span class="pre">MKL_NUM_THREADS=1</span></code></p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="ActivitySim" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright contributing authors.
-
-    </p>
+    <p>&#169; Copyright contributing authors.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

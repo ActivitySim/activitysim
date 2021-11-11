@@ -279,7 +279,7 @@ Releases
 ~~~~~~~~
 
 With the agreement of the PMC, a project administrator will handle making releases, following the detailed
-steps outlined in the [HOW_TO_RELEASE](https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md)
+steps outlined in the `HOW_TO_RELEASE <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__
 document.
 
 
@@ -340,36 +340,89 @@ The PMC and/or its Contractor will provide feedback for each review criteria abo
 Adding Agency Examples
 ----------------------
 
-ActivitySim includes several mature or in-development full scale agency :ref:`examples`.  Adding an agency example to ActivitySim adds additional assurances that future updates to ActivitySim will more easily work for users.  At the same time, with each additional implementation, the need for additional test coverage increases.  This increased need for test coverage relates to when setting up a new model, with differences in inputs and configurations, when adding new model components (and/or revisions to the core) in order to implement new features, and when implementing model components at a scale previously untested.  The following section describes the process to add an agency example model to ActivitySim.
+ActivitySim includes several mature or in-development full scale agency :ref:`examples`.  Adding an agency example to
+ActivitySim adds additional assurances that future updates to ActivitySim will more easily work for users.  At the same
+time, with each additional implementation, the need for additional test coverage increases.  This increased need for
+test coverage relates to when setting up a new model, with differences in inputs and configurations, when adding new
+model components (and/or revisions to the core) in order to implement new features, and when implementing model
+components at a scale previously untested.  The following section describes the process to add an agency example model
+to ActivitySim.
 
 Examples
 ~~~~~~~~
 
 Generally speaking, there are two types of ActivitySim examples: test examples and agency examples.
 
-* Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test examples are :ref:`example_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.  These examples are owned and maintained by the project.
-* Agency examples - these are agency partner model implementations currently being setup.  The current agency examples are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, and :ref:`example_sandag`.  These examples can be configured in ways different from the test examples, include new inputs and expressions, and may include new planned software components for contribution to ActivitySim.  These examples are owned by the agency.
+* Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test
+  examples are :ref:`example_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.
+  These examples are owned and maintained by the project.
+* Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
+  are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, :ref:`example_sandag`, and :ref:`example_sandag_xborder`.  These examples can be
+  configured in ways different from the test examples, include new inputs and expressions, and may include new planned
+  software components for contribution to ActivitySim.  These examples are owned by the agency.
 
 Furthermore, multiple versions of these examples can exist, and be used for various testing purposes:
 
-* Full scale - a full scale data setup, including all households, zones, skims, time periods, etc.  This is a "typical" model setup used for application.  This setup can be used to test the model results and performance since model results can be compared to observed/known answers and runtimes can be compared to industry experience.  It can also be used to test core software functionality such as tracing and repeatability.
-* Cropped - a subset of households and zones for efficient / portable running for testing.  This setup can really only be used to test the software since model results are difficult to compare to observed/known answers.  This version of an example is not recommended for testing overall runtime since it's a convenience sample and may not represent the true regional model travel demand patterns.  However, depending on the question, this setup may be able to answer questions related to runtime, such as improvements to methods indifferent to the size of the population and number of zones.  
-* Other - a specific route/path through the code for testing.  For example, the estimation example tests the estimation mode functionality.  The estimation example is a version of the example mtc example - it inherits most settings from example mtc and includes additional settings for reading in survey files and producing estimation data bundles.
+* Full scale - a full scale data setup, including all households, zones, skims, time periods, etc.  This is a "typical"
+  model setup used for application.  This setup can be used to test the model results and performance since model
+  results can be compared to observed/known answers and runtimes can be compared to industry experience.  It can also
+  be used to test core software functionality such as tracing and repeatability.
+* Cropped - a subset of households and zones for efficient / portable running for testing.  This setup can really only
+  be used to test the software since model results are difficult to compare to observed/known answers.  This version of
+  an example is not recommended for testing overall runtime since it's a convenience sample and may not represent the
+  true regional model travel demand patterns.  However, depending on the question, this setup may be able to answer
+  questions related to runtime, such as improvements to methods indifferent to the size of the population and number of
+  zones.
+* Other - a specific route/path through the code for testing.  For example, the estimation example tests the estimation
+  mode functionality.  The estimation example is a version of the example mtc example - it inherits most settings from
+  example mtc and includes additional settings for reading in survey files and producing estimation data bundles.
+
+Regardless of the type or version, all functioning examples are described in a common list stored in
+`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_.
+Each item included in this file represents one example, and each includes the following tags:
+
+* *name*: A unique name for the example, used to identify the example when using the `activitysim create` command. The
+  naming convention used is to give each example a name that is all lower case, and which uses underscores to separate
+  words.
+* *description*: A short sentence describing the example.
+* *include*: A list of files or directories to include in the example.  For smaller input files (e.g. configuration
+  files, or data files used on "test" sized examples), each file or directory to include can be given as a simple
+  string, which specifies the subdirectory of the embedded ActivitySim examples to be copied into a working directory.
+  For larger files that are not embedded into the main ActivitySim GitHub repository, items are given as a 3-tuple:
+  (url, target_path, sha256). The `url` points to a publicly available address where the file can be downloaded, the
+  `target_path` gives the relative filepath where the file should be installed in the working directory, and the
+  `sha256` is a checksum used to verify the file was downloaded correctly (and to prevent re-downloading when the file
+  is already available).  For defining new examples, use the `sha256_checksum` function to get a file's checksum that
+  should be included in the example manifest.
 
 Testing
 ~~~~~~~
 
 The test plan for test examples versus agency examples is different:
 
-* Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run by the TravisCI system and is a central feature of the software development process.  
-* Agency examples test a complete run of the cropped version to ensure it runs and the results are as expected.  This is done via a simple run model test that runs the cropped version and compares the output trip list to the expected trip list.  This is what is known as a regression test.  This test is also run by TravisCI.
+* Test examples test software features such as stability, tracing, expression solving, etc.  This set of tests is run
+  by the TravisCI system and is a central feature of the software development process.
+* Agency examples test a complete run of the cropped version to ensure it runs and the results are as expected.  This
+  is done via a simple run model test that runs the cropped version and compares the output trip list to the expected
+  trip list.  This is what is known as a regression test.  This test is also run by TravisCI.
 
-Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.  There are two storage locations:
+Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.
+There are two storage locations:
 
-* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples>`_, which stores the test and agency example setup files, cropped data and cropping script, regression test script, expected results, and a change log to track any revisions to the example to get it working for testing.  These resources are the resources automatically tested by the TravisCI test system with each revision to the software.
-* The `activitysim_resources repository <https://github.com/activitysim/activitysim_resources>`_, which stores just the full scale example data inputs using `Git LFS <https://git-lfs.github.com>`_.  This repository has a monthly cost and takes time to upload/download and so the contents of it are separate from the main software repository.  These resources are the resources periodically and manually tested (for now).
+* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples>`_,
+  which stores the test and agency example setup files, cropped data and cropping script, regression test script,
+  expected results, and a change log to track any revisions to the example to get it working for testing.  These
+  resources are the resources automatically tested by the TravisCI test system with each revision to the software.
+* The `activitysim_resources repository <https://github.com/activitysim/activitysim_resources>`_, which stores just the
+  full scale example data inputs using `Git LFS <https://git-lfs.github.com>`_.  This repository has a monthly cost and
+  takes time to upload/download and so the contents of it are separate from the main software repository.  These
+  resources are the resources periodically and manually tested (for now).
 
-This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for creating and running examples makes uses the `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ to maintain the dictionary of the examples and how to get and run them.
+This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an
+organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for
+creating and running examples makes uses the
+`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+to maintain the dictionary of the examples and how to get and run them.
 
 Running the Test System
 ~~~~~~~~~~~~~~~~~~~~~~~

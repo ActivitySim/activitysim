@@ -1,76 +1,36 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Estimation &mdash; ActivitySim 1.0.3 documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Estimation &mdash; ActivitySim 1.0.4 documentation</title>
+      <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="How the System Works" href="howitworks.html" />
     <link rel="prev" title="Command Line Interface" href="cli.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ActivitySim
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                1.0.3
+                1.0.4
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -78,18 +38,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="gettingstarted.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
@@ -101,80 +50,39 @@
 <li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#settings">Settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#estimation-notebooks">Estimation Notebooks</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#general-api">General API</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#models-api">Models API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-activitysim.estimation.larch.general">General API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-activitysim.estimation.larch.auto_ownership">Models API</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="howitworks.html">How the System Works</a></li>
 <li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ActivitySim</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Estimation</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/estimation.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="estimation">
+             
+  <section id="estimation">
 <span id="id1"></span><h1>Estimation<a class="headerlink" href="#estimation" title="Permalink to this headline">¶</a></h1>
 <p>ActivitySim includes the ability to re-estimate submodels using choice model estimation tools
 such as <a class="reference external" href="https://larch.newman.me/">larch</a>.  To do so, ActivitySim adopts the concept of an estimation
@@ -195,19 +103,20 @@ combination of functionality means:</p>
 <li><p>Users are able to add zones, alternatives, new chooser data, new taz data, new modes, new coefficients, revise utilities, and revise nesting structures in ActivitySim and larch responds accordingly.</p></li>
 <li><p>Eventually it may be desirable for ActivitySim to automatically write larch estimators (or other types of estimators), but for now the integration is loosely coupled rather than tightly coupled in order to provide flexibility.</p></li>
 </ul>
-<div class="section" id="workflow">
+<section id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h2>
-<p>The general workflow for estimating models is shown in the figure below and explained in more detail below.</p>
-<img alt="_images/estimation_example.jpg" src="_images/estimation_example.jpg" />
+<p>The general workflow for estimating models is shown in the following figures and explained in more detail below.</p>
+<img alt="_images/estimation_tools.jpg" src="_images/estimation_tools.jpg" />
 <ul class="simple">
 <li><p>The user converts their household travel survey into ActivitySim format households, persons, tours, joint tour participants, and trip tables.  The households and persons tables must have the same fields as the synthetic population input tables since the surveyed households and persons will be run through the same set of submodels as the simulated households and persons.</p></li>
 <li><p>The ActivitySim estimation example <code class="docutils literal notranslate"><span class="pre">scripts\infer.py</span></code> module reads the ActivitySim format household travel survey files and checks for inconsistencies in the input tables versus the model design + calculates additional fields such as the household joint tour frequency based on the trips and joint tour participants table.  Survey households and persons observed choices much match the model design (i.e. a person cannot have more work tours than the model allows).</p></li>
 <li><p>ActivitySim is then run in estimation mode to read the ActivitySim format household travel survey files, run the ActivitySim submodels to write estimation data bundles (EDB) that contains the model utility specifications, coefficients, chooser data, and alternatives data for each submodel.  Estimation mode runs single-processed and without destination sampling.</p></li>
-<li><p>The relevant EDBs are read and transformed into the format required by the model estimation tool (i.e. larch) and then the coefficients are re-estimated. The <code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code> library is included for integration with larch.  No changes to the model specification are made in the process.</p></li>
+<li><p>The relevant EDBs are read and transformed into the format required by the model estimation tool (i.e. larch) and then the coefficients are re-estimated. The <code class="docutils literal notranslate"><span class="pre">activitysim.estimation.larch</span></code> library is included for integration with larch and there is a Jupyter Notebook estimation example for each core submodel.  No changes to the model specification are made in the process.</p></li>
 <li><p>The user can then update the ActivitySim model coefficients file(s) for the estimated submodel and re-run the model in simulation mode.  The user may want to use the restartable pipeline feature of ActivitySim to just run the submodel of interest.</p></li>
 </ul>
-</div>
-<div class="section" id="example">
+<img alt="_images/estimation_example.jpg" src="_images/estimation_example.jpg" />
+</section>
+<section id="example">
 <span id="estimation-example"></span><h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -232,8 +141,9 @@ combination of functionality means:</p>
 <li><p>ActivitySim should log some information and write outputs to the output folder, including EDBs for each submodel.  The estimation example runs for about 15 minutes and writes EDBs for 2000 households.</p></li>
 <li><p>Open <a class="reference internal" href="#estimation-example-notebooks"><span class="std std-ref">Estimation Notebooks</span></a> for a specific submodel and then step through the notebook to re-estimate the sub-model.</p></li>
 </ul>
-</div>
-<div class="section" id="settings">
+<p>The estimation example assumes the machine has sufficient RAM to run with chunking disabled (<cite>chunk_training_mode: disabled</cite>).  See <a class="reference internal" href="core.html#chunk-size"><span class="std std-ref">Chunk</span></a> for more information.</p>
+</section>
+<section id="settings">
 <h2>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
 <p>Additional settings for running ActivitySim in estimation mode are specified in the <code class="docutils literal notranslate"><span class="pre">estimation.yaml</span></code> file.  The settings are:</p>
 <ul class="simple">
@@ -241,12 +151,12 @@ combination of functionality means:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">bundles</span></code> - the list of submodels for which to write EDBs</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">survey_tables</span></code> - the list of input ActivitySim format survey tables with observed choices to override model simulation choices in order to write EDBs.  These tables are the output of the <code class="docutils literal notranslate"><span class="pre">scripts\infer.py</span></code> script that pre-processes the ActivitySim format household travel survey files for the example data and submodels</p></li>
 </ul>
-</div>
-<div class="section" id="estimation-notebooks">
+</section>
+<section id="estimation-notebooks">
 <span id="estimation-example-notebooks"></span><h2>Estimation Notebooks<a class="headerlink" href="#estimation-notebooks" title="Permalink to this headline">¶</a></h2>
 <p>ActivitySim includes a <a class="reference external" href="https://jupyter.org">Jupyter Notebook</a> recipe book with interactive re-estimation examples for each estimatable submodel.  To run a Jupyter notebook, do the following:</p>
 <ul class="simple">
-<li><p>Open an Anaconda prompt and activate the Anaconda environment with ActivitySim installed</p></li>
+<li><p>Open a conda prompt and activate the conda environment with ActivitySim installed</p></li>
 <li><p>If needed, <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">jupyterlab</span></code> so you can run jupyter notebooks</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> to launch the web-based notebook manager</p></li>
 <li><p>Navigate to the <code class="docutils literal notranslate"><span class="pre">examples/examples_estimaton/notebooks</span></code> folder and select a notebook from the table below</p></li>
@@ -334,61 +244,445 @@ combination of functionality means:</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="general-api">
-<h2>General API<a class="headerlink" href="#general-api" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="models-api">
-<h2>Models API<a class="headerlink" href="#models-api" title="Permalink to this headline">¶</a></h2>
-</div>
-</div>
+</section>
+<section id="module-activitysim.estimation.larch.general">
+<span id="general-api"></span><h2>General API<a class="headerlink" href="#module-activitysim.estimation.larch.general" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.apply_coef_template">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">apply_coef_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">linear_utility</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condition</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.apply_coef_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply a coefficient template over a linear utility function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>linear_utility</strong><span class="classifier">LinearFunction_C</span></dt><dd></dd>
+<dt><strong>template_col</strong><span class="classifier">Mapping</span></dt><dd></dd>
+<dt><strong>condition</strong><span class="classifier">any</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>LinearFunction_C</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.apply_coefficients">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">apply_coefficients</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">minimum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.apply_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the coefficients CSV file to a DataFrame and set model parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>coefficients</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>The coefficients table in the ActivitySim data bundle
+for this model.</p>
+</dd>
+<dt><strong>model</strong><span class="classifier">Model</span></dt><dd><p>Apply coefficient values and constraints to this model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.clean_values">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">clean_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'override_choice'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_names_to_codes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choice_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'override_choice_code'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.clean_values" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>values</strong><span class="classifier">pd.DataFrame</span></dt><dd></dd>
+<dt><strong>alt_names</strong><span class="classifier">Collection</span></dt><dd></dd>
+<dt><strong>override_choice</strong><span class="classifier">str</span></dt><dd><p>The columns of <cite>values</cite> containing the observed choices.</p>
+</dd>
+<dt><strong>alt_names_to_codes</strong><span class="classifier">Mapping, optional</span></dt><dd><p>If the <cite>override_choice</cite> column contains alternative names,
+use this mapping to convert the names into alternative code
+numbers.</p>
+</dd>
+<dt><strong>choice_code</strong><span class="classifier">str, default ‘override_choice_code’</span></dt><dd><p>The name of the observed choice code number column that will
+be added to <cite>values</cite>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pd.DataFrame</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.construct_nesting_tree">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">construct_nesting_tree</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nesting_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.construct_nesting_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a NestingTree from ActivitySim settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>alternatives</strong><span class="classifier">Mapping or Sequence</span></dt><dd><p>If given as a Mapping (dict), the keys are the alternative names
+as strings, and the values are alternative code numbers to use
+in larch.  If given as a Sequence, the values are the alternative
+names, and unique sequential codes will be created starting from 1.</p>
+</dd>
+<dt><strong>nesting_settings</strong><span class="classifier">Mapping</span></dt><dd><p>The ‘NESTS’ section of the ActivitySim config file.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>NestingTree</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.cv_to_ca">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">cv_to_ca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alt_values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'float64'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.cv_to_ca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a choosers-variables DataFrame to an idca DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>alt_values</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>This DataFrame should be in choosers-variables format,
+with one row per chooser and variable, and one column per
+alternative.  The id’s for the choosers and variables
+must be in that order, in a two-level MultiIndex.</p>
+</dd>
+<dt><strong>dtype</strong><span class="classifier">dtype</span></dt><dd><p>Convert the incoming data to this type.  Set to None to
+skip data conversion.</p>
+</dd>
+<dt><strong>required_labels</strong><span class="classifier">Collection, optional</span></dt><dd><p>If given, any columns in the output that are not required
+will be pre-emptively dropped.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.DataFrame</dt><dd><p>The resulting DataFrame is transformed into Larch’s
+idca format, with one row per chooser (case) and
+alternative, and one column per variable.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.dict_of_linear_utility_from_spec">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">dict_of_linear_utility_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.dict_of_linear_utility_from_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a linear function from a spec DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>A spec for an ActivitySim model.</p>
+</dd>
+<dt><strong>x_col: str</strong></dt><dd><p>The name of the columns in spec representing the data.</p>
+</dd>
+<dt><strong>p_col: dict</strong></dt><dd><p>The name of the columns in spec representing the parameters.
+The keys give the names of the columns to use, and the
+values will become the keys of the output dictionary.</p>
+</dd>
+<dt><strong>ignore_x</strong><span class="classifier">Collection, optional</span></dt><dd><p>Labels in the spec file to ignore.  Typically this
+includes variables that are pre-processed by ActivitySim
+and therefore don’t need to be made available in Larch.</p>
+</dd>
+<dt><strong>segment_id</strong><span class="classifier">str, optional</span></dt><dd><p>The CHOOSER_SEGMENT_COLUMN_NAME identified for ActivitySim.
+This value is ignored if <cite>p_col</cite> is a string, and required
+if <cite>p_col</cite> is a dict.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>dict</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.explicit_value_parameters">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">explicit_value_parameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.explicit_value_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define and lock parameters given as fixed values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model</strong><span class="classifier">larch.Model</span></dt><dd><p>The model to insert fixed value parameters.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.explicit_value_parameters_from_spec">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">explicit_value_parameters_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.explicit_value_parameters_from_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define and lock parameters given as fixed values in the spec.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>A spec for an ActivitySim model.</p>
+</dd>
+<dt><strong>p_col</strong><span class="classifier">str or dict</span></dt><dd><p>The name of the columns in spec representing the parameters.
+Give as a string for a single column, or as a dict to
+have segments on multiple columns. If given as a dict,
+the keys give the names of the columns to use, and the
+values give the identifiers that will need to match the
+loaded <cite>segment_id</cite> value.  Only the keys are used in this
+function.</p>
+</dd>
+<dt><strong>model</strong><span class="classifier">larch.Model</span></dt><dd><p>The model to insert fixed value parameters.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.linear_utility_from_spec">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">linear_utility_from_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_col</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">segment_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.linear_utility_from_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a linear function from a spec DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>spec</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>A spec for an ActivitySim model.</p>
+</dd>
+<dt><strong>x_col: str</strong></dt><dd><p>The name of the columns in spec representing the data.</p>
+</dd>
+<dt><strong>p_col: str or dict</strong></dt><dd><p>The name of the columns in spec representing the parameters.
+Give as a string for a single column, or as a dict to
+have segments on multiple columns. If given as a dict,
+the keys give the names of the columns to use, and the
+values give the identifiers that will need to match the
+loaded <cite>segment_id</cite> value.</p>
+</dd>
+<dt><strong>ignore_x</strong><span class="classifier">Collection, optional</span></dt><dd><p>Labels in the spec file to ignore.  Typically this
+includes variables that are pre-processed by ActivitySim
+and therefore don’t need to be made available in Larch.</p>
+</dd>
+<dt><strong>segment_id</strong><span class="classifier">str, optional</span></dt><dd><p>The CHOOSER_SEGMENT_COLUMN_NAME identified for ActivitySim.
+This value is ignored if <cite>p_col</cite> is a string, and required
+if <cite>p_col</cite> is a dict.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>LinearFunction_C</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.prevent_overlapping_column_names">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">prevent_overlapping_column_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_ca</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_co</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.prevent_overlapping_column_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Rename columns in idca data to prevent overlapping names.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>x_ca, x_co</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>The idca and idco data, respectively</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>x_ca, x_co</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.general.remove_apostrophes">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.general.</span></span><span class="sig-name descname"><span class="pre">remove_apostrophes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.general.remove_apostrophes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove apostrophes from columns names and from data in given columns.</p>
+<p>Also strips leading and trailing whitespace.</p>
+<p>This function operates in-place on DataFrames.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>df</strong><span class="classifier">pandas.DataFrame</span></dt><dd></dd>
+<dt><strong>from_columns</strong><span class="classifier">Collection, optional</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.DataFrame</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-activitysim.estimation.larch.data_maker"></span><span class="target" id="module-activitysim.estimation.larch.simple_simulate"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.simple_simulate.construct_availability">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.simple_simulate.</span></span><span class="sig-name descname"><span class="pre">construct_availability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.simple_simulate.construct_availability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an availability dataframe based on -999 parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model</strong><span class="classifier">larch.Model</span></dt><dd></dd>
+<dt><strong>chooser_data</strong><span class="classifier">pandas.DataFrame</span></dt><dd></dd>
+<dt><strong>alt_codes_to_names</strong><span class="classifier">Mapping[int,str]</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.DataFrame</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-activitysim.estimation.larch.auto_ownership">
+<span id="models-api"></span><h2>Models API<a class="headerlink" href="#module-activitysim.estimation.larch.auto_ownership" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-activitysim.estimation.larch.cdap"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.apply_replacements">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">apply_replacements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expression</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.apply_replacements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert general person terms to specific person terms for the CDAP model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>expression</strong><span class="classifier">str</span></dt><dd><p>An expression from the “Expression” column
+of cdap_INDIV_AND_HHSIZE1_SPEC.csv, or similar.</p>
+</dd>
+<dt><strong>prefix</strong><span class="classifier">str</span></dt><dd><p>A prefix to attach to each token in <cite>expression</cite>.</p>
+</dd>
+<dt><strong>tokens</strong><span class="classifier">list-like of str</span></dt><dd><p>A list of tokens to edit within an expression.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>expression</strong><span class="classifier">str</span></dt><dd><p>The modified expression</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.cdap_base_utility_by_person">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">cdap_base_utility_by_person</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.cdap_base_utility_by_person" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the base utility by person for each pattern.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model</strong><span class="classifier">larch.Model</span></dt><dd></dd>
+<dt><strong>n_persons</strong><span class="classifier">int</span></dt><dd></dd>
+<dt><strong>spec</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>The base utility by person spec provided by
+the ActivitySim framework.</p>
+</dd>
+<dt><strong>alts</strong><span class="classifier">dict, optional</span></dt><dd><p>The keys are the names of the patterns, and
+the values are the alternative code numbers,
+as created by <cite>generate_alternatives</cite>.  If not
+given, the alts are automatically regenerated
+using that function.</p>
+</dd>
+<dt><strong>value_tokens</strong><span class="classifier">list-like of str, optional</span></dt><dd><p>A list of tokens to edit within an the expressions,
+generally the column names of the provided values
+from the estimation data bundle.  Only used when
+<cite>n_persons</cite> is more than 1.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.generate_alternatives">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">generate_alternatives</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.generate_alternatives" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a dictionary of CDAP alternatives.</p>
+<p>The keys are the names of the patterns, and
+the values are the alternative code numbers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n_persons</strong><span class="classifier">int</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>Dict</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.cdap.interact_pattern">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.cdap.</span></span><span class="sig-name descname"><span class="pre">interact_pattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">select_persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.cdap.interact_pattern" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile a regex pattern to match CDAP alternatives.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n_persons</strong><span class="classifier">int</span></dt><dd></dd>
+<dt><strong>select_persons</strong><span class="classifier">list-like of int</span></dt><dd><p>The persons to be selected.</p>
+</dd>
+<dt><strong>tag</strong><span class="classifier">str</span></dt><dd><p>The activity letter, currently one of {M,N,H}.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>re.compile</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-activitysim.estimation.larch.location_choice"></span><span class="target" id="module-activitysim.estimation.larch.mode_choice"></span><span class="target" id="module-activitysim.estimation.larch.nonmand_tour_freq"></span><span class="target" id="module-activitysim.estimation.larch.scheduling"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.scheduling.construct_availability_ca">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.scheduling.</span></span><span class="sig-name descname"><span class="pre">construct_availability_ca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.scheduling.construct_availability_ca" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct an availability dataframe based on -999 parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>model</strong><span class="classifier">larch.Model</span></dt><dd></dd>
+<dt><strong>chooser_data</strong><span class="classifier">pandas.DataFrame</span></dt><dd></dd>
+<dt><strong>alt_codes_to_names</strong><span class="classifier">Mapping[int,str]</span></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pandas.DataFrame</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-activitysim.estimation.larch.stop_frequency"></span></section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="howitworks.html" class="btn btn-neutral float-right" title="How the System Works" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="cli.html" class="btn btn-neutral float-left" title="Command Line Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="howitworks.html" class="btn btn-neutral float-right" title="How the System Works" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright contributing authors.
-
-    </p>
+    <p>&#169; Copyright contributing authors.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

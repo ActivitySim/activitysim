@@ -105,6 +105,7 @@ models:
   - school_location
   - workplace_location
   - auto_ownership_simulate
+  - vehicle_choice
   - free_parking
   - cdap_simulate
   - mandatory_tour_frequency

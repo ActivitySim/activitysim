@@ -65,7 +65,7 @@ tools for certain development tasks::
   conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge --override-channels -n asim
 
   # packages for building documentation
-  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge --override-channels -n asim
+  conda install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
 
   # packages for estimation integration
   conda install larch -c conda-forge --override-channels -n asim

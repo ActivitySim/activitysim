@@ -1,0 +1,3 @@
+Description,Output,Expression
+Count Trips by Purpose,trips_by_purpose_count,trips.groupby('purpose')['purpose'].count()
+Count Trips by Person,trips_by_person_count,trips.groupby('person_id')['person_id'].count()

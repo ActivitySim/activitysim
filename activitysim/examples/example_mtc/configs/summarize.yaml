@@ -1,10 +1,8 @@
-
-
 SPEC_SEGMENTS:
-  #- table: trips
-  #  spec: summaries_trips.csv
-  #  output: summaries
+  - table: trips
+    spec: summarize_trips.csv
+    output: summaries
 
-  - table: tours_merged
+  - table: tours
     spec: summarize_tours.csv
     output: summaries

@@ -26,6 +26,8 @@ def summarize(network_los):
         output_location = segment['output'] if 'output' in segment else 'summaries'
         os.makedirs(config.output_file_path(output_location), exist_ok=True)
 
+        logger.info(f'Running summaries for {table}')
+
         # Go get specified tables from the pipeline unless they are supplied as a parameter
         locals_d = {
             table: pipeline.get_table(table)
@@ -37,6 +39,8 @@ def summarize(network_los):
 
             out_file = row['Output']
             expr = row['Expression']
+
+            logger.info(f'Summary: {expr} -> {out_file}.csv')
 
             resultset = eval(expr, globals(), locals_d)
             resultset.to_csv(config.output_file_path(os.path.join(output_location, f'{out_file}.csv')))

@@ -2,6 +2,7 @@ import pytest
 ### import models is necessary to initalize the model steps with orca
 from activitysim.abm import models
 from activitysim.core import pipeline
+import logging
 
 
 # Used by conftest.py initialize_pipeline method
@@ -23,5 +24,6 @@ def initialize_network_los():
     return True
 
 
-def test_summarize(initialize_pipeline):
+def test_summarize(initialize_pipeline, caplog):
+    caplog.set_level(logging.INFO)
     pipeline.run(models=['summarize'])

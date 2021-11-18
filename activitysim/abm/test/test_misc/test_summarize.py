@@ -1,24 +1,20 @@
-import os
-import orca
-import pandas as pd
+import pytest
 ### import models is necessary to initalize the model steps with orca
 from activitysim.abm import models
-from activitysim.core import config, inject, pipeline
+from activitysim.core import pipeline
 
 
-def test_summarize():
-    tours = pd.read_csv(os.path.join('data', 'summarize', 'tours.csv'))
-    trips = pd.read_csv(os.path.join('data', 'summarize', 'trips.csv'))
+# Used by conftest.py initialize_pipeline method
+@pytest.fixture(scope='module')
+def module():
+    return 'summarize'
 
-    orca.add_table('trips', trips)
-    orca.add_table('tours', tours)
-    pipeline.open_pipeline_store(overwrite=True)
-    pipeline.add_checkpoint('summarize')
 
-    ### Set to return the tables as they would be after the last step in the model
+# Used by conftest.py initialize_pipeline method
+@pytest.fixture(scope='module')
+def tables():
+    return ['tours', 'trips']
+
+
+def test_summarize(initialize_pipeline):
     pipeline.run(models=['summarize'])
-    #pipeline._PIPELINE.pipeline_store.close()
-
-    #pipeline_file_path = os.path.join('output', 'pipeline.h5' )
-    #os.unlink(pipeline_file_path)
-

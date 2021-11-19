@@ -16,10 +16,13 @@ Benchmarking Setup
 
 The first step in running benchmarks is to have a conda environment for
 benchmarking, as well as a local clone of the main ActivitySim repository,
-plus one of the `asim-benchmarks` repository.
+plus one of the `asim-benchmarks` repository. If you plan to submit your
+benchmarking results to the common repository of results, you'll want to
+also make sure that your `asim-benchmarks` repository is using a fork of the
+common repository to which you have write-access.
 
 If this isn't already set up on your performance benchmarking machine, you can
-do so by following these steps::
+do all of this setup by following these steps::
 
     conda create -n ASIM-BENCH mamba git gh -c conda-forge --override-channels
     conda activate ASIM-BENCH
@@ -29,8 +32,18 @@ do so by following these steps::
     git switch develop                             # TEMPORARY: use performance1 branch
     mamba env update --file=conda-environments/activitysim-dev.yml
     cd ..
-    gh repo clone ActivitySim/asim-benchmarks      # TEMPORARY: use jpn--/asim-benchmarks
+    gh repo fork ActivitySim/asim-benchmarks --remote      # TEMPORARY: use jpn--/asim-benchmarks
     cd asim-benchmarks
+    python initialize-hooks.py
+
+For non-Windows users, you can then actually activate the pre-commit hooks like
+this::
+
+    pre-commit install     # macOS/Linux only, do not run this line on Windows
+
+Windows users should not attempt to use installed pre-commit hooks with conda
+(see note below).  Instead, you must manually `pre-commit run` inside the correct
+conda environment before committing.
 
 If this environment is set up but it's been a while since you last used it,
 consider updating the environment like this::
@@ -42,11 +55,6 @@ consider updating the environment like this::
     cd ..
     cd asim-benchmarks
     git pull
-
-If you want to submit your benchmarking results to the common database of
-community results, you should also fork the `asim-benchmarks` repository::
-
-    gh repo fork --remote=true
 
 Next, we'll want to declare the specs of our benchmarking machine.  Some of
 these can be determined quasi-automatically, but we want to confirm the specs
@@ -74,10 +82,19 @@ To run all of the benchmarks on the most recent commit in the main ActivitySim r
 
     activitysim benchmark latest
 
+.. important::
+
+    Running the complete suite of benchmarks currently includes downloading and
+    running full-region model data for several different SANDAG zone systems.
+    Ideally you should have at least 50 GB of free disk space and 120 GB of RAM
+    to attempt this process on any given machine.  For a smaller machine, consider
+    benchmarking only the "test" sized examples, by adding `--bench sandag.example`
+    to this command, as discussed below.
+
 This will run the benchmarks only on the "HEAD" commit of the main activitysim git
 repository.  To run on some other historical commit[s] from the git history, you can
 specify an individual commit or a range, in the same way you would do so for the
-`git log` command. For eaxmple, to run benchmarks on the commits to develop since
+`git log` command. For example, to run benchmarks on the commits to develop since
 it was branched off master, run::
 
     activitysim benchmark run master..develop
@@ -142,6 +159,27 @@ To do so, assuming you have run the benchmark tool inside the `asim-benchmarks`
 repository as noted above, you simply need to commit any new or changed files
 in the `asim-benchmarks/results` directory.  You can then open a pull request
 against the community `asim-benchmarks` to submit those results.
+
+Assuming you are in (or first `cd` into) the `asim-benchmarks` directory, You can
+do this from the command line using the following steps::
+
+    git add results
+    pre-commit run    # required on Windows only, see note
+    git commit -m "adding benchmark results"
+    git push
+    gh pr create
+
+.. note::
+
+    On Windows, the process for automatically running pre-commit hooks when
+    making a Git a commit is not compatible with conda, see
+    `here <https://github.com/pre-commit/pre-commit/issues/1329>`. This will
+    probably never be fixed, as the developers of pre-commit and conda each
+    feel that the "bug" is in the other library.  So, manually running the
+    pre-commit step is required.
+
+Users may find it simpler to skip the last step on the command line, and simply
+visit their fork on GitHub.com to use the web interface to open a pull request.
 
 Publishing to Github Pages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -29,9 +29,10 @@ dependencies:
 - git
 - gh
 - pre-commit
-- bump2version
-- asv
-- snakeviz
+- bump2version   # for making a release
+- asv            # for benchmarking
+- ruby           # required for benchmarking pre-commit hooks
+- snakeviz       # for profiling
 
 - pip:
   - -e ..

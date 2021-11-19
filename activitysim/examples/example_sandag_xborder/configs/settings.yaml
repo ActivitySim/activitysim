@@ -3,7 +3,7 @@ inherit_settings: False
 # number of households to simulate
 
 households_sample_size: 0
-multiprocess: False
+multiprocess: True
 strict: False
 mem_tick: 30
 num_processes: 30

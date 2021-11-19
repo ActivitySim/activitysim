@@ -32,7 +32,6 @@
   include:
     - example_mtc/configs
     - example_mtc/configs_mp
-    # example_mtc/data # load data from activitysim_resources instead
     - example_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
@@ -627,7 +626,7 @@
     - example_sandag/../example_mtc/configs
       example_mtc
     - example_sandag/configs_1_zone
-    # example_sandag/data_1 # load data from activitysim_resources instead
+    - example_sandag/data_1
     - example_sandag/output_1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/households.csv
       data_1/households.csv
@@ -680,7 +679,7 @@
     - example_sandag/../example_psrc/configs
       example_psrc
     - example_sandag/configs_2_zone
-    # example_sandag/data_2 # load data from activitysim_resources instead
+    - example_sandag/data_2
     - example_sandag/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/households.csv
       data_2/households.csv
@@ -743,15 +742,12 @@
   # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    # example_sandag/data_3 # load data from activitysim_resources instead
+    - example_sandag/data_3
     - example_sandag/../example_mtc/configs
       example_mtc
     - example_sandag/configs_3_zone
     - example_sandag/configs_skip_accessibility
-    - example_sandag/configs_benchmarking
     - example_sandag/output_3
-    - example_sandag/data_3/cached_accessibility.csv.gz
-      data_3/cached_accessibility.csv.gz
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims1.omx
       data_3/taz_skims1.omx
       5b56d0e79ec671e37f8c71f7fedd741d7bf32d2bced866ab1f03f3973fccce8c

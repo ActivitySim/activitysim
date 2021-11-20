@@ -32,7 +32,7 @@ do all of this setup by following these steps::
     git switch develop                             # TEMPORARY: use performance1 branch
     mamba env update --file=conda-environments/activitysim-dev.yml
     cd ..
-    gh repo fork ActivitySim/asim-benchmarks --remote      # TEMPORARY: use jpn--/asim-benchmarks
+    gh repo fork ActivitySim/asim-benchmarks --remote      
     cd asim-benchmarks
     python initialize-hooks.py
 

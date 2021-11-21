@@ -65,7 +65,7 @@ tools for certain development tasks::
   conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge --override-channels -n asim
 
   # packages for building documentation
-  conda install sphinx numpydoc sphinx_rtd_theme -c conda-forge --override-channels -n asim
+  conda install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
 
   # packages for estimation integration
   conda install larch -c conda-forge --override-channels -n asim
@@ -74,11 +74,15 @@ tools for certain development tasks::
   conda install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
 To create an environment containing all these optional dependencies at once, you
-can run the shortcut command::
+can run the shortcut command
+
+::
 
   conda env create activitysim/ASIM -n asim
 
-4. To use the **asim** environment, you need to activate it::
+4. To use the **asim** environment, you need to activate it
+
+::
 
   conda activate asim
 

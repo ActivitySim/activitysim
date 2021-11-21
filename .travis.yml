@@ -3,8 +3,6 @@ language: python
 
 env:
   global:
-   # GH_TOKEN ActivitySim/activitysim public_repo token
-  - secure: WZeCAmI08hBRgtVWUlerfizvSpOVlBxQDa/Z6HJiDUlIXdSAOIi7TAwnluOgs3lHbSqACegbLCU9CyIQa/ytwmmuwzltkSQN14EcnKea0bXyygd8DFdx4x8st8M3a4nh2svgp4BDM9PCu6T1XIZ1rYM46JsKzNk9X8GpWOVN498=
   - TEST_ENV=activitysim-test
 
 jobs:
@@ -44,10 +42,12 @@ jobs:
 
     - stage: Deployment
       name: Documentation
+      env: TEST_ENV="activitysim-test-larch"
       script:
         - coveralls
         # Build docs
-        - mamba install sphinx numpydoc sphinx_rtd_theme
+        - mamba install sphinx numpydoc
+        - conda install -c conda-forge sphinx_rtd_theme==0.5.2
         - cd docs
         - make clean
         - make html
@@ -56,7 +56,7 @@ jobs:
         - provider: pages
           local_dir: docs/_build/html
           skip_cleanup: true
-          github_token: $GH_TOKEN
+          github_token: $GH_TOKEN  # Set in the settings page of the repository, as a secure variable
           keep_history: true
           on:
             branch: master
@@ -65,7 +65,7 @@ jobs:
       deploy:
         - provider: pypi
           username: "__token__"
-          password: "$PYPI_AUTH_TOKEN"
+          password: "$PYPI_AUTH_TOKEN"  # Set in the settings page of the repository, as a secure variable
           skip_existing: true
           on:
             branch: [ master ]
@@ -101,11 +101,3 @@ script:
 # run specific TEST_SUITE job on travis to avoid job max time
 - travis_wait 50 py.test $TEST_SUITE --cov activitysim --cov-report term-missing --durations=0
 - coveralls
-
-
-
-notifications:
-  slack:
-    on_success: never # default: change
-    on_failure: always # default: always
-    secure: Dpp+zBrnPGBHXrYWjwHy/bnHvhINfepSIiViwKfBZizBvTDvzSJfu6gCH+/lQ3squF3D4qTWwxB+LQ9V6KTYhuma8vQVisyneI6ARjUI/qgX6aJjuvmDDGPk6DVeDow7+aCLZ8VEHRhSjwy+dv0Ij0rxI6I94xPVwXUkk7ZjcK0=

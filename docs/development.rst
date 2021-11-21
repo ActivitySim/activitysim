@@ -203,19 +203,12 @@ ActivitySim testing is done with three tools:
 * `pytest <http://pytest.org/latest/>`__, a Python testing tool
 * `coveralls <https://github.com/coagulant/coveralls-python>`__, a tool for measuring code coverage and publishing code coverage stats online
 
-To run the tests locally, first make sure the required packages are installed:
+To run the tests locally, first make sure the required packages are installed.  Next, run the tests with the following commands:
 
 ::
 
-    pip install pytest pytest-cov coveralls pycodestyle
-    
-
-Next, run the tests with the following commands:
-
-::
-
-    pycodestyle activitysim
-    py.test --cov activitysim --cov-report term-missing
+    pycodestyle
+    py.test
 
 These same tests are run by Travis with each push to the repository.  These tests need to pass in order
 to merge the revisions into master.
@@ -247,29 +240,12 @@ them into html as well.  ActivitySim's docstrings are written in `numpydoc forma
 <https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt>`__ since it is easier to use 
 than standard rst format.
 
-To build the documentation, first make sure the required packages are installed:
-
-::
-
-    pip install sphinx numpydoc sphinx_rtd_theme
-
-Next, build the documentation in html format with the following command run from the ``docs`` folder:
-
-::
-
-    make html
+To build the documentation, first make sure the required packages are installed.  Next, build the 
+documentation in html format with the ``make html`` command run from the ``docs`` folder.
 
 If the activitysim package is installed, then the documentation will be built from that version of 
-the source code instead of the git repo version.  Make sure to ``pip uninstall activitysim`` before 
-building the documentation if needed.  
-
-When pushing revisions to the repo, the documentation is automatically built by Travis after 
-successfully passing the tests.  The documents are built with the ``bin/build_docs.sh`` script.  
-The script does the following:
-
-* installs the required python packages
-* runs ``make html``
-* copies the ``master`` branch ``../activitysim/docs/_build/html/*`` pages to the ``gh-pages`` branch
+the source code instead of the git repo version.  When pushing revisions to the repo, the documentation 
+is automatically built by Travis after successfully passing the tests.
 
 GitHub automatically publishes the gh-pages branch at https://activitysim.github.io/activitysim.  
 
@@ -357,7 +333,7 @@ Generally speaking, there are two types of ActivitySim examples: test examples a
   examples are :ref:`example_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.
   These examples are owned and maintained by the project.
 * Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
-  are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, and :ref:`example_sandag`.  These examples can be
+  are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, :ref:`example_sandag`, and :ref:`example_sandag_xborder`.  These examples can be
   configured in ways different from the test examples, include new inputs and expressions, and may include new planned
   software components for contribution to ActivitySim.  These examples are owned by the agency.
 

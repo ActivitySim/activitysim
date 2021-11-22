@@ -16,9 +16,9 @@ Benchmarking Setup
 
 The first step in running benchmarks is to have a conda environment for
 benchmarking, as well as a local clone of the main ActivitySim repository,
-plus one of the `asim-benchmarks` repository. If you plan to submit your
+plus one of the ``asim-benchmarks`` repository. If you plan to submit your
 benchmarking results to the common repository of results, you'll want to
-also make sure that your `asim-benchmarks` repository is using a fork of the
+also make sure that your ``asim-benchmarks`` repository is using a fork of the
 common repository to which you have write-access.
 
 If this isn't already set up on your performance benchmarking machine, you can
@@ -42,7 +42,7 @@ this::
     pre-commit install     # macOS/Linux only, do not run this line on Windows
 
 Windows users should not attempt to use installed pre-commit hooks with conda
-(see note below).  Instead, you must manually `pre-commit run` inside the correct
+(see note below).  Instead, you must manually ``pre-commit run`` inside the correct
 conda environment before committing.
 
 If this environment is set up but it's been a while since you last used it,
@@ -155,12 +155,12 @@ ActivitySim community is interested in aggregating such results from a number
 of participants, so once you have successfully run a set of benchmarks, you
 should submit those results to our repository.
 
-To do so, assuming you have run the benchmark tool inside the `asim-benchmarks`
+To do so, assuming you have run the benchmark tool inside the ``asim-benchmarks``
 repository as noted above, you simply need to commit any new or changed files
-in the `asim-benchmarks/results` directory.  You can then open a pull request
-against the community `asim-benchmarks` to submit those results.
+in the ``asim-benchmarks/results`` directory.  You can then open a pull request
+against the community ``asim-benchmarks`` to submit those results.
 
-Assuming you are in (or first `cd` into) the `asim-benchmarks` directory, You can
+Assuming you are in (or first ``cd`` into) the ``asim-benchmarks`` directory, You can
 do this from the command line using the following steps::
 
     git add results
@@ -195,12 +195,12 @@ Profiling
 
 The benchmarking tool can also be used for profiling, which allows a developer to
 inspect the timings for various commands *inside* a particular benchmark. This is
-most conveniently accomplished using the `snakeviz` tool, which should be installed
-in the developer tools environment (`conda install snakeviz -c conda-forge`).
+most conveniently accomplished using the ``snakeviz`` tool, which should be installed
+in the developer tools environment (``conda install snakeviz -c conda-forge``).
 Then, the developer needs to run two commands to compute and view the component
 profile.
 
-To create a profile record when benchmarking, add the `--profile` option when
+To create a profile record when benchmarking, add the ``--profile`` option when
 running the benchmarks.  For example, to create profile records for the SANDAG
 example-sized model's non-mandatory tour scheduling component across all three
 zone systems, run::
@@ -212,7 +212,7 @@ the benchmark timings.  This is a lot of extra data, so it's not advised to
 save profiling data for every benchmark, but only for benchmarks of particular
 interest.
 
-Once this data has been saved, you can access it using the `snakeviz` tool.  This
+Once this data has been saved, you can access it using the ``snakeviz`` tool.  This
 visualization requires pointing to a specific profiled benchmark in a specific
 json result file.  For example::
 
@@ -225,12 +225,12 @@ Writing New Benchmarks
 ~~~~~~~~~~~~~~~~~~~~~~
 
 New benchmarks for other model examples can be added to
-`activitysim/benchmarking/benchmarks`. A basic template structure has been used,
+``activitysim/benchmarking/benchmarks``. A basic template structure has been used,
 so that it should be relatively straight-forward to implement component-level
 single thread benchmarks for any model that is available using the
-`activitysim create` tool.
+``activitysim create`` tool.
 
 A basic framework for multi-processing benchmarks has been implemented and is
-demonstrated in the `mtc1mp4` benchmark file. However, work remains to write
+demonstrated in the ``mtc1mp4`` benchmark file. However, work remains to write
 a stable process to execute chunking training for each machine prior to running
 the production-version benchmarks that will be meaningful for users.

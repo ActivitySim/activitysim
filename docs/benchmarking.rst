@@ -234,3 +234,26 @@ A basic framework for multi-processing benchmarks has been implemented and is
 demonstrated in the ``mtc1mp4`` benchmark file. However, work remains to write
 a stable process to execute chunking training for each machine prior to running
 the production-version benchmarks that will be meaningful for users.
+
+Running Benchmarks for Pull Requests
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The complete set of performance benchmarks is too large to include in ActivitySim's
+automatic continuous integration (CI) testing, both by compute time and by memory usage.
+However, it is valuable to run these tests once against the final version of
+each PR before merging into the ``develop`` branch, to ensure there are no
+unexpected performance regressions. The airspeed velocity tools include a special
+CI mode, which runs the same benchmarks on the same machine with the same settings,
+giving developers a fair shot at a strict apples-to-apples comparison of performance.
+
+This mode can be activated to check the performance of code on a git branch called
+``my-new-feature-branch``, and compare against the ``develop`` branch like this::
+
+    activitysim benchmark continuous develop my-new-feature-branch
+
+Unlike other tests for mathematical correctness, it is not always necessary that
+new PR's must "pass" this testing, as new features or capabilities may justify a
+performance degradation.  But developers should always run these tests on new PR's
+so that the community is aware of the trade offs (if any) and can take steps to
+mitigate problems promptly if desired.
+

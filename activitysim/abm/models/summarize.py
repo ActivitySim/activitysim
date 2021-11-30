@@ -33,8 +33,9 @@ def summarize(network_los):
 
 
         #### Write logic to get trips from globals if not fed from csv ####
-        model_settings = config.read_model_settings('write_trip_matrices.yaml')
-        locals_d['trips'] = annotate_trips(locals_d['trips'], network_los, model_settings)
+        #model_settings = config.read_model_settings('write_trip_matrices.yaml')
+        model_settings = config.read_model_settings('summarize.yaml')
+        #locals_d['trips'] = annotate_trips(locals_d['trips'], network_los, model_settings)
 
         print(locals_d['trips'].columns)
 

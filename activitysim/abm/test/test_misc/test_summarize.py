@@ -16,5 +16,12 @@ def tables():
     return ['tours', 'trips']
 
 
+# Used by conftest.py initialize_pipeline method
+# Set to true if you need to read skims into the pipeline
+@pytest.fixture(scope='module')
+def initialize_network_los():
+    return True
+
+
 def test_summarize(initialize_pipeline):
     pipeline.run(models=['summarize'])

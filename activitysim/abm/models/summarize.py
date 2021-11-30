@@ -11,7 +11,7 @@ from activitysim.core import config
 logger = logging.getLogger(__name__)
 
 @inject.step()
-def summarize():
+def summarize(network_los):
     """
     summarize is a standard model which uses expression files
     to reduce tables

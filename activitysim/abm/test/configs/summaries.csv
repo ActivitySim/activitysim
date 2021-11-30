@@ -1,10 +1,14 @@
 Description,Output,Expression
-Count Trips by Purpose,trips_by_purpose_count,trips.groupby('purpose').size().rename('trips')
-"Count Trips by Origin, Destination, and Purpose",trips_by_o_d_purpose_count,"trips.groupby(['origin','destination','purpose']).size().rename('trips')"
-Count Trips by Departure Time and Purpose,trips_by_time_purpose_count,"trips.groupby(['depart','purpose']).size().rename('trips')"
-Count Trips by Sex and Purpose,trips_by_sex_purpose_count,"trips.merge(persons, on='person_id').groupby(['sex','purpose']).size().rename('trips')"
-Average Trips per Person by Sex and Mode,trips_per_person_by_sex_mode_avg,"trips.merge(persons, on='person_id').groupby(['person_id','sex','trip_mode']).size().groupby(['sex','trip_mode']).mean().rename('avg_trips')"
-Count Tours by Number of Participants,tours_by_number_of_participants_count,tours.groupby('number_of_participants').size().rename('tours')
-Count Tours by Category,tours_by_category_count,tours.groupby('tour_category').size().rename('tours')
-Count Households by Home TAZ and Auto Ownership,households_by_home_taz_auto_ownership_count,"households.groupby(['home_zone_id','auto_ownership']).size().rename('households')"
-Count Households by Value of Time,households_by_value_of_time_count,"households.groupby(pd.cut(households.hh_value_of_time, range(51))).size().rename('households')"
+Count Tours,tours_count,"pd.Series([len(tours)], index=['trips'])"
+Count Trips,trips_count,"pd.Series([len(trips)], index=['trips'])"
+Count Households,households_count,"pd.Series([len(households)], index=['households'])"
+Count Persons,persons_count,"pd.Series([len(persons)], index=['persons'])"
+Count Tours per Household,tours_per_household_count,"pd.Series([len(tours) / len(households)], index=['tours_per_household'])"
+Count Trips per Household,trips_per_household_count,"pd.Series([len(trips) / len(households)], index=['tours_per_household'])"
+Trip Mode Share,trip_mode_pct,(trips.groupby('trip_mode').trip_id.count() / len(trips)).rename('trip_pct')
+Trip Purpose,trip_purpose_pct,(trips.groupby('primary_purpose').trip_id.count() / len(trips)).rename('trip_pct')
+Trips by Purpose and Time of Day,trip_purpose_tod_count,"trips.groupby(['primary_purpose','depart']).trip_id.count().rename('trips')"
+Work Tour Departure Time,work_tours_tod_count,"tours[tours.tour_type == 'work'].merge(trips[['tour_id','depart']], on='tour_id').groupby('tour_id').depart.min().value_counts().sort_index()"
+School Tour Departure Time,school_tours_tod_count,"tours[tours.tour_type == 'school'].merge(trips[['tour_id','depart']], on='tour_id').groupby('tour_id').depart.min().value_counts().sort_index()"
+Non-Mandatory Tour Departure Time,non_mandatory_tours_tod_count,"tours[tours.tour_category == 'non_mandatory'].merge(trips[['tour_id','depart']], on='tour_id').groupby('tour_id').depart.min().value_counts().sort_index()"
+Tour to Trip Mode Share,tour_to_trip_mode_pct,"(tours[['tour_id','tour_mode']].merge(trips[['tour_id','trip_mode']], on='tour_id').groupby(['tour_mode','trip_mode']).size() / len(trips)).rename('trips')"

@@ -1,3 +1,0 @@
-Description,Output,Expression
-Count Tours by Purpose,tours_by_purpose_count,tours.groupby('tour_type')['tour_type'].count()
-Count Tours by Person,tours_by_person_count,tours.groupby('person_id')['person_id'].count()

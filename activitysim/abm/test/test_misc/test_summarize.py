@@ -14,7 +14,7 @@ def module():
 # Used by conftest.py initialize_pipeline method
 @pytest.fixture(scope='module')
 def tables():
-    return ['tours', 'trips']
+    return ['tours', 'trips', 'persons', 'households']
 
 
 # Used by conftest.py initialize_pipeline method

@@ -1,8 +1,8 @@
 SPEC_SEGMENTS:
-  - table: trips
-    spec: summarize_trips.csv
-    output: summaries
-
-  - table: tours
-    spec: summarize_tours.csv
+  - tables: 
+      - trips
+      - persons
+      - tours
+      - households
+    spec: summaries.csv
     output: summaries

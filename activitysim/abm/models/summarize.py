@@ -21,17 +21,15 @@ def summarize(network_los):
     model_settings = config.read_model_settings(model_settings_file_name)
 
     for segment in model_settings['SPEC_SEGMENTS']:
-        table = segment['table']
+        tables = segment['tables']
         spec_name = segment['spec']
         output_location = segment['output'] if 'output' in segment else 'summaries'
         os.makedirs(config.output_file_path(output_location), exist_ok=True)
 
-        logger.info(f'Running summaries for {table}')
+        logger.info(f'Running summaries from {spec_name}')
 
         # Go get specified tables from the pipeline unless they are supplied as a parameter
-        locals_d = {
-            table: pipeline.get_table(table)
-        }
+        locals_d = {table:pipeline.get_table(table) for table in tables}
 
         spec = pd.read_csv(config.config_file_path(spec_name))
 

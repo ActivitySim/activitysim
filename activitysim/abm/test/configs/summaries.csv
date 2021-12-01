@@ -12,3 +12,4 @@ Work Tour Departure Time,work_tours_tod_count,"tours[tours.tour_type == 'work'].
 School Tour Departure Time,school_tours_tod_count,"tours[tours.tour_type == 'school'].merge(trips[['tour_id','depart']], on='tour_id').groupby('tour_id').depart.min().value_counts().sort_index()"
 Non-Mandatory Tour Departure Time,non_mandatory_tours_tod_count,"tours[tours.tour_category == 'non_mandatory'].merge(trips[['tour_id','depart']], on='tour_id').groupby('tour_id').depart.min().value_counts().sort_index()"
 Tour to Trip Mode Share,tour_to_trip_mode_pct,"(tours[['tour_id','tour_mode']].merge(trips[['tour_id','trip_mode']], on='tour_id').groupby(['tour_mode','trip_mode']).size() / len(trips)).rename('trips')"
+,total_trip_distance,pd.Series(trips.distance.sum())

@@ -8,6 +8,8 @@ from activitysim.core import pipeline
 from activitysim.core import inject
 from activitysim.core import config
 
+from activitysim.abm.models.trip_matrices import annotate_trips
+
 logger = logging.getLogger(__name__)
 
 @inject.step()
@@ -31,13 +33,13 @@ def summarize(network_los):
         # Go get specified tables from the pipeline unless they are supplied as a parameter
         locals_d = {table:pipeline.get_table(table) for table in tables}
 
+        # Annotate trips
+        model_settings = config.read_model_settings('write_trip_matrices.yaml')
+        trips = inject.get_table('trips', None)
+        locals_d['trips'] = annotate_trips(trips, network_los, model_settings)
 
-        #### Write logic to get trips from globals if not fed from csv ####
-        #model_settings = config.read_model_settings('write_trip_matrices.yaml')
-        model_settings = config.read_model_settings('summarize.yaml')
-        #locals_d['trips'] = annotate_trips(locals_d['trips'], network_los, model_settings)
-
-        print(locals_d['trips'].columns)
+        # List available columns
+        logger.info(f"trips columns: {locals_d['trips'].columns}")
 
         spec = pd.read_csv(config.config_file_path(spec_name))
 

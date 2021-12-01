@@ -184,6 +184,10 @@ def annotate_trips(trips, network_los, model_settings):
         trips_df, locals_dict, skims,
         model_settings, trace_label)
 
+
+    print(trips_df.columns)
+
+
     # Data will be expanded by an expansion weight column from
     # the households pipeline table, if specified in the model settings.
     hh_weight_col = model_settings.get('HH_EXPANSION_WEIGHT_COL')

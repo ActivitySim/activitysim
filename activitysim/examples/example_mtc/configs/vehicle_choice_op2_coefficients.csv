@@ -1,11 +1,4 @@
 coefficient_name,value,constrain
-coef_one,1,T
-coef_nest_root,1.00,T
-coef_nest_AUTO,0.72,F
-coef_nest_VAN,0.72,F
-coef_nest_SUV,0.72,F
-coef_nest_TRUCK,0.72,F
-coef_nest_MOTORCYCLE,0.72,F
 coef_hhinc_0_24k_VAN,0.197,F
 coef_hhinc_0_24k_SUV,-0.256,F
 coef_hhinc_0_24k_TRUCK,-0.141,F

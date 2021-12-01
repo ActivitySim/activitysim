@@ -1,132 +1,10 @@
 # vehicle_choice.yaml
 
-SPEC: vehicle_choice.csv
-COEFFICIENTS: vehicle_choice_coefficients.csv
+SPEC: vehicle_choice_op4.csv
+COEFFICIENTS: vehicle_choice_op4_coefficients.csv
+PROBS_SPEC: vehicle_choice_fuel_type_probs.csv
 
-LOGIT_TYPE: NL
-
-NESTS:
-  name: root
-  coefficient: coef_nest_root
-  alternatives:
-      - name: AUTO
-        coefficient: coef_nest_AUTO
-        alternatives:
-          - AUTO_1YR
-          - AUTO_2YR
-          - AUTO_3YR
-          - AUTO_4YR
-          - AUTO_5YR
-          - AUTO_6YR
-          - AUTO_7YR
-          - AUTO_8YR
-          - AUTO_9YR
-          - AUTO_10YR
-          - AUTO_11YR
-          - AUTO_12YR
-          - AUTO_13YR
-          - AUTO_14YR
-          - AUTO_15YR
-          - AUTO_16YR
-          - AUTO_17YR
-          - AUTO_18YR
-          - AUTO_19YR
-          - AUTO_20PLUSYR 
-      - name: VAN
-        coefficient: coef_nest_VAN
-        alternatives:
-          - VAN_1YR
-          - VAN_2YR
-          - VAN_3YR
-          - VAN_4YR
-          - VAN_5YR
-          - VAN_6YR
-          - VAN_7YR
-          - VAN_8YR
-          - VAN_9YR
-          - VAN_10YR
-          - VAN_11YR
-          - VAN_12YR
-          - VAN_13YR
-          - VAN_14YR
-          - VAN_15YR
-          - VAN_16YR
-          - VAN_17YR
-          - VAN_18YR
-          - VAN_19YR
-          - VAN_20PLUSYR
-      - name: SUV
-        coefficient: coef_nest_SUV
-        alternatives:
-          - SUV_1YR
-          - SUV_2YR
-          - SUV_3YR
-          - SUV_4YR
-          - SUV_5YR
-          - SUV_6YR
-          - SUV_7YR
-          - SUV_8YR
-          - SUV_9YR
-          - SUV_10YR
-          - SUV_11YR
-          - SUV_12YR
-          - SUV_13YR
-          - SUV_14YR
-          - SUV_15YR
-          - SUV_16YR
-          - SUV_17YR
-          - SUV_18YR
-          - SUV_19YR
-          - SUV_20PLUSYR
-      - name: TRUCK
-        coefficient: coef_nest_TRUCK
-        alternatives:
-          - TRUCK_1YR
-          - TRUCK_2YR
-          - TRUCK_3YR
-          - TRUCK_4YR
-          - TRUCK_5YR
-          - TRUCK_6YR
-          - TRUCK_7YR
-          - TRUCK_8YR
-          - TRUCK_9YR
-          - TRUCK_10YR
-          - TRUCK_11YR
-          - TRUCK_12YR
-          - TRUCK_13YR
-          - TRUCK_14YR
-          - TRUCK_15YR
-          - TRUCK_16YR
-          - TRUCK_17YR
-          - TRUCK_18YR
-          - TRUCK_19YR
-          - TRUCK_20PLUSYR
-      - name: MOTORCYCLE
-        coefficient: coef_nest_MOTORCYCLE
-        alternatives:
-          - MOTORCYCLE_1YR
-          - MOTORCYCLE_2YR
-          - MOTORCYCLE_3YR
-          - MOTORCYCLE_4YR
-          - MOTORCYCLE_5YR
-          - MOTORCYCLE_6YR
-          - MOTORCYCLE_7YR
-          - MOTORCYCLE_8YR
-          - MOTORCYCLE_9YR
-          - MOTORCYCLE_10YR
-          - MOTORCYCLE_11YR
-          - MOTORCYCLE_12YR
-          - MOTORCYCLE_13YR
-          - MOTORCYCLE_14YR
-          - MOTORCYCLE_15YR
-          - MOTORCYCLE_16YR
-          - MOTORCYCLE_17YR
-          - MOTORCYCLE_18YR
-          - MOTORCYCLE_19YR
-          - MOTORCYCLE_20PLUSYR
-            
-CONSTANTS:
-  vot: 5
+LOGIT_TYPE: MNL
 
 preprocessor:
   SPEC: vehicle_choice_annotate_choosers_preprocessor
@@ -136,8 +14,6 @@ preprocessor:
     - vehicles
     - persons
     - households
-
-PROBS_SPEC: vehicle_choice_fuel_type_probs.csv
 
 annotate_persons:
   SPEC: annotate_persons_vehicle_type

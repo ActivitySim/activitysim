@@ -33,13 +33,16 @@ def summarize(network_los):
         # Go get specified tables from the pipeline unless they are supplied as a parameter
         locals_d = {table:pipeline.get_table(table) for table in tables}
 
-        # Annotate trips
+        # Get merged trips and annotate them
         model_settings = config.read_model_settings('write_trip_matrices.yaml')
-        trips = inject.get_table('trips', None)
+        trips = inject.get_table('trips_merged', None)
         locals_d['trips'] = annotate_trips(trips, network_los, model_settings)
 
-        # List available columns
-        logger.info(f"trips columns: {locals_d['trips'].columns}")
+        # locals_d['persons'] = inject.get_table('persons_merged', None).to_frame()
+
+        # Save table for testing
+        # locals_d['trips'].to_csv(config.output_file_path(os.path.join(output_location, f'trips_merged.csv')))
+        # locals_d['persons'].to_csv(config.output_file_path(os.path.join(output_location, f'persons_merged.csv')))
 
         spec = pd.read_csv(config.config_file_path(spec_name))
 
@@ -51,5 +54,5 @@ def summarize(network_los):
             logger.info(f'Summary: {expr} -> {out_file}.csv')
 
             resultset = eval(expr, globals(), locals_d)
-            resultset.to_csv(config.output_file_path(os.path.join(output_location, f'{out_file}.csv')))
+            resultset.to_csv(config.output_file_path(os.path.join(output_location, f'{out_file}.csv')), index=False)
 

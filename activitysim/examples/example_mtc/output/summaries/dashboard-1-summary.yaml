@@ -1,0 +1,238 @@
+version: 1
+
+header:
+  tab: Topsheet
+  title: ActivitySim Topsheet
+  description: "Some example metrics that people find generally useful."
+
+layout:
+  topsheetRow:
+    - title: "At-a-Glance"
+      type: "topsheet"
+      props:
+        configFile: "topsheet.yaml"
+
+  row0:
+    - title: "Trip Mode Share"
+      # description: ""
+      type: "pie"
+      width: 1
+      props:
+        dataset: "trips_by_mode_count.csv"
+        useLastRow: true
+
+    - title: "Trip Purpose"
+      # description: ""
+      type: "pie"
+      width: 1
+      props:
+        dataset: "trips_by_purpose_count.csv"
+        useLastRow: true
+
+    - title: "Trip Purpose by Time of Day"
+      # description: ""
+      type: "area"
+      width: 1
+      props:
+        dataset: "trip_purpose_by_time_of_day.csv"
+        x: "depart"
+
+  row1:
+    - title: "VMT per Resident"
+     # description: ""
+      type: "map"
+      width: 2
+      height: 8
+      props:
+        # boundaries: '../../taz1454.geojson'
+        boundaries: 'taz1454.geojson'
+        boundariesJoinCol: 'TAZ1454'
+        boundariesLabels: 'TAZ'
+        dataset: 'vmt_per_capita_by_home_taz.csv'
+        datasetJoinCol: 'home_zone_id'
+        datasetValue: 'vmt'
+
+    - title: "VMT per Employee"
+     # description: ""
+      type: "map"
+      width: 2
+      height: 8
+      props:
+        # boundaries: '../../taz1454.geojson'
+        boundaries: 'taz1454.geojson'
+        boundariesJoinCol: 'TAZ1454'
+        boundariesLabels: 'TAZ'
+        dataset: 'vmt_per_employee_by_work_taz.csv'
+        datasetJoinCol: 'workplace_zone_id'
+        datasetValue: 'vmt'
+
+  row2:
+    - title: "Work Tours by Departure Time"
+      type: "bar"
+      props:
+        dataset: "work_tours_tod_count.csv"
+        x: "depart"
+        xAxisTitle: "Time of Day"
+        columns: ['tours']
+        yAxisTitle: "Tours"
+        legendTitles: ['Work Tours']
+
+    # - title: "Work Tours by Departure Time"
+    #   # description: ""
+    #   type: "line"
+    #   width: 1
+    #   props:
+    #     dataset: "work_tours_tod_count.csv"
+    #     x: "depart"
+    #     xAxisName: "Time of Day"
+    #     yAxisName: "Tours"
+    #     usedCol: [tours]
+    #     legendName: [Work Tours]
+
+    - title: "School Tours by Departure Time"
+      type: "bar"
+      props:
+        dataset: "school_tours_tod_count.csv"
+        x: "depart"
+        xAxisTitle: "Time of Day"
+        columns: ['tours']
+        yAxisTitle: "Tours"
+        legendTitles: ['School Tours']
+
+    # - title: "School Tours by Departure Time"
+    #   # description: ""
+    #   type: "line"
+    #   width: 1
+    #   props:
+    #     dataset: "school_tours_tod_count.csv"
+    #     x: "depart"
+    #     xAxisName: "Time of Day"
+    #     yAxisName: "Tours"
+    #     usedCol: [tours]
+    #     legendName: [School Tours]
+
+    - title: "Non-Mandatory Tours by Departure Time"
+      type: "bar"
+      props:
+        dataset: "non_mandatory_tours_tod_count.csv"
+        x: "depart"
+        xAxisTitle: "Time of Day"
+        columns: ['tours']
+        yAxisTitle: "Tours"
+        legendTitles: ['Non-Mandatory Tours']
+
+    # - title: "Non-Mandatory Tours by Departure Time"
+    #   # description: ""
+    #   type: "line"
+    #   width: 1
+    #   props:
+    #     dataset: "non_mandatory_tours_tod_count.csv"
+    #     x: "depart"
+    #     xAxisName: "Time of Day"
+    #     yAxisName: "Tours"
+    #     usedCol: [tours]
+    #     legendName: [Non-Mandatory Tours]
+
+  row3:
+    topsheetRow:
+    - title: "Tour to Trip Mode Share"
+      type: "sankey"
+      props:
+        configFile: "sankey.yaml"
+
+
+  # trips:
+  #   - title: "Trip Origin/Destination Flows"
+  #     description: "Major flows shown"
+  #     type: "flowmap"
+  #     height: 10
+  #     props:
+  #       boundaries: "../taz1454/taz1454.geojson"
+  #       boundariesJoinCol: 'TAZ1454'
+  #       boundariesLabels: 'TAZ'
+  #       dataset: ".dashboard/trip-od-flows.csv"
+  #       origin:  'origin'
+  #       destination: 'destination'
+  #       flow: 'trips'
+
+  #   - title: "Trip Destinations"
+  #     description: "All day"
+  #     type: "map"
+  #     width: 1
+  #     height: 10
+  #     props:
+  #       boundaries: "../taz1454/taz1454.geojson"
+  #       boundariesJoinCol: "TAZ1454"
+  #       boundariesLabels: "TAZ"
+  #       dataset: ".dashboard/trip-destinations.csv"
+  #       datasetJoinCol: "destination"
+  #       datasetValue: 'household_id'
+  #       exponentColors: true
+
+
+  # row1:
+  #  - title: "Zero-Car Households"
+  #    description: "Absolute number of 0-car households"
+  #    type: "map"
+  #    width: 2
+  #    height: 8
+  #    props:
+  #      boundaries: "../taz1454/taz1454.geojson"
+  #      boundariesJoinCol: 'TAZ1454'
+  #      boundariesLabels: 'TAZ'
+  #      dataset: ".dashboard/hh-by-autos-taz.csv"
+  #      datasetJoinCol: 'home_zone_id'
+  #      datasetValue: 'auto0'
+
+  #  - title: "Auto Ownership"
+  #    description: "Households by Auto Ownership"
+  #    type: "bar"
+  #    props:
+  #      dataset: ".dashboard/hh-by-autoownership.csv"
+  #      x: "auto_ownership"
+  #      columns: ['income']
+  #      xAxisTitle: "Number of vehicles"
+  #      yAxisTitle: "Households"
+  #      legendTitles: ["Number of Vehicles"]
+
+  # row2:
+  #  - title: "Households by Value of Time"
+  #    description: 'in dollars'
+  #    type: "bar"
+  #    props:
+  #      dataset: ".dashboard/vot.csv"
+  #      x: "vot_bin"
+  #      #xAxisTitle: 'Value of Time'
+  #      columns: ['household_id']
+  #      yAxisTitle: 'Number of households'
+  #      legendTitles: ['Households']
+
+  #  - title: "CDAP Activities by Person Type"
+  #    type: "bar"
+  #    props:
+  #      dataset: ".dashboard/cdap.csv"
+  #      x: "ptypename"
+  #      columns: ['Stay at Home','Mandatory','Non-mandatory']
+  #      stacked: true
+  #      yAxisTitle: "Activities"
+
+  # TLF:
+  #  - title: "Trip Length Frequency"
+  #    type: "bar"
+  #    props:
+  #      dataset: ".dashboard/trips-tlf.csv"
+  #      x: "dist_bin"
+  #      #xAxisTitle: 'Value of Time'
+  #      columns: ['household_id']
+  #      yAxisTitle: 'Number of households'
+  #      legendTitles: ['Households']
+
+  #  - title: "Free Parking"
+  #    description: "By person type"
+  #    type: "bar"
+  #    props:
+  #      dataset: ".dashboard/free-parking.csv"
+  #      x: "ptypename"
+  #      columns: ['No','Yes']
+  #      barmode: 'stack'
+  #      yAxisTitle: "Free Parking"

@@ -1,0 +1,37 @@
+# Topsheet Test
+# title: Key Performance Indicators
+
+# Input files -------------------------
+files:
+  tours:
+    file: "tours_count.csv"
+  trips:
+    file: "trips_count.csv"
+  households:
+    file: "households_count.csv"
+  persons:
+    file: "persons_count.csv"
+
+# Calculations ------------------------
+calculations:
+  tours: '{tours.tours}'
+  trips: '{trips.trips}'
+  households: '{households.households}'
+  persons: '{persons.persons}'
+
+# Table rows
+outputs:
+  - title: Total Tours
+    # style: { font-weight: bold, color: purple }
+    value: tours
+
+  - title: Total Trips
+    value: trips
+
+  - title: Total Trips
+    value: households
+
+  - title: Total Persons
+    value: persons
+
+

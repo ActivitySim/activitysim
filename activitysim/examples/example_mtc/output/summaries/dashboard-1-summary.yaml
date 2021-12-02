@@ -38,7 +38,7 @@ layout:
         x: "depart"
 
   row1:
-    - title: "VMT per Resident"
+    - title: "VMT / Capita"
      # description: ""
       type: "map"
       width: 2
@@ -52,7 +52,7 @@ layout:
         datasetJoinCol: 'home_zone_id'
         datasetValue: 'vmt'
 
-    - title: "VMT per Employee"
+    - title: "VMT / Employee"
      # description: ""
       type: "map"
       width: 2

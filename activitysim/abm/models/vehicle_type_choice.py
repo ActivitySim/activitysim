@@ -42,18 +42,24 @@ def vehicle_type_choice(
     model_settings_file_name = 'vehicle_type_choice.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    # create alts
+    # load/create alts on-the-fly as cartesian product of categorical values
     alts_cats_dict = model_settings.get('combinatorial_alts', False)
     if alts_cats_dict:
-        cat_cols = list(alts_cats_dict.keys())
-        num_cats = len(cat_cols)
-        alts_long = pd.DataFrame(
-            list(itertools.product(*alts_cats_dict.values())),
-            columns=alts_cats_dict.keys())
-        alts_wide = pd.get_dummies(alts_long)
-        alts_wide.to_csv(
-            os.path.join(config.configs_dir(), 'vehicle_type_choice_alternatives.csv'),
-            index=False)
+        alts_fname = model_settings.get('ALTS')
+        try:
+            alts_wide = config.config_file_path(alts_fname)
+        except:
+            cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
+            num_cats = len(cat_cols)
+            alts_long = pd.DataFrame(
+                list(itertools.product(*alts_cats_dict.values())),
+                columns=alts_cats_dict.keys())
+            alts_wide = pd.get_dummies(alts_long)  # rows will sum to num_cats
+
+            # store alts in primary configs dir
+            configs_dirs = inject.get_injectable("configs_dir")
+            configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
+            alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=False)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
     choice_column_name = 'vehicle_type'

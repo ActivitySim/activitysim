@@ -36,7 +36,23 @@ def vehicle_type_choice(
         vehicles_merged,
         chunk_size,
         trace_hh_id):
-    """Assigns vehicle type to each vehicle
+    """Assigns a vehicle type to each vehicle.
+
+    If a dictionary of "combinatorial alts" is not specified in the model .yaml
+    config file, then the model specification .csv file should contain one column
+    of coefficients for each distinct alternative. This format corresponds to
+    ActivitySim's "simple_simulate" format. Otherwise, this model will construct
+    a table of alternatives, at run time, based on all possible combinations of
+    values of the categorical variables enumerated as "combinatorial_alts" in the
+    .yaml config. In this case, the model leverages ActivitySim's
+    "interaction_simulate" model design, in which the model specification .csv has
+    only one column of coefficients, and the utility expressions can turn coefficients
+    on or off based on attributes of either the chooser _or_ the alternative.
+
+    The user may also specify a "PROBS_SPEC" .csv file containing a lookup table of
+    additional vehicle attributes and probabilities to be sampled and assigned to vehicles
+    after the logit choices have been made. The rows of the "PROBS_SPEC" file must be
+    indexed on the vehicle type choices assigned in the logit model.
     """
     trace_label = 'vehicle_choice'
     model_settings_file_name = 'vehicle_type_choice.yaml'
@@ -46,9 +62,8 @@ def vehicle_type_choice(
     alts_cats_dict = model_settings.get('combinatorial_alts', False)
     if alts_cats_dict:
         alts_fname = model_settings.get('ALTS')
-        try:
-            alts_wide = config.config_file_path(alts_fname)
-        except:
+        alts_wide_fpath = config.config_file_path(alts_fname, mandatory=False)
+        if alts_wide is None:
             cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
             num_cats = len(cat_cols)
             alts_long = pd.DataFrame(
@@ -60,6 +75,8 @@ def vehicle_type_choice(
             configs_dirs = inject.get_injectable("configs_dir")
             configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
             alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=False)
+        else:
+            alts_wide = pd.read_csv(alts_wide_fpath)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
     choice_column_name = 'vehicle_type'
@@ -114,6 +131,10 @@ def vehicle_type_choice(
         estimator.set_chooser_id(choosers.index.name)
 
     # STEP I. run logit choices
+
+    # if there were so many alts that they had to be created programmatically,
+    # by combining categorical variables, then the utility expressions should make
+    # use of interaction terms to accommodate alt-specific coefficients and constants
     if alts_cats_dict:
         log_alt_losers = config.setting('log_alt_losers', False)
         choices = interaction_simulate(
@@ -126,6 +147,9 @@ def vehicle_type_choice(
             trace_label=trace_label,
             trace_choice_name='vehicle_type',
             estimator=estimator)
+
+    # otherwise, "simple simulation" should suffice, with a model spec that enumerates
+    # each alternative as a distinct column in the .csv
     else:
         choices = simulate.simple_simulate(
             choosers=choosers,

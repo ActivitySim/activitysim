@@ -5,7 +5,10 @@ import logging
 
 import pandas as pd
 import numpy as np
+import itertools
+import os
 
+from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core import simulate
 from activitysim.core import tracing
 from activitysim.core import config
@@ -26,7 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 @inject.step()
-def vehicle_choice(
+def vehicle_type_choice(
         persons,
         households,
         vehicles,
@@ -36,8 +39,21 @@ def vehicle_choice(
     """Assigns vehicle type to each vehicle
     """
     trace_label = 'vehicle_choice'
-    model_settings_file_name = 'vehicle_choice.yaml'
+    model_settings_file_name = 'vehicle_type_choice.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
+
+    # create alts
+    alts_cats_dict = model_settings.get('combinatorial_alts', False)
+    if alts_cats_dict:
+        cat_cols = list(alts_cats_dict.keys())
+        num_cats = len(cat_cols)
+        alts_long = pd.DataFrame(
+            list(itertools.product(*alts_cats_dict.values())),
+            columns=alts_cats_dict.keys())
+        alts_wide = pd.get_dummies(alts_long)
+        alts_wide.to_csv(
+            os.path.join(config.configs_dir(), 'vehicle_type_choice_alternatives.csv'),
+            index=False)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
     choice_column_name = 'vehicle_type'
@@ -47,9 +63,6 @@ def vehicle_choice(
     model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
     coefficients_df = simulate.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
-
-    nest_spec = config.get_logit_model_settings(model_settings)
-    nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients_df, trace_label)
 
     constants = config.get_model_constants(model_settings)
 
@@ -81,16 +94,41 @@ def vehicle_choice(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
+        # FIXME #interaction_simulate_estimation_requires_chooser_id_in_df_column
+        #  shuold we do it here or have interaction_simulate do it?
+        # chooser index must be duplicated in column or it will be omitted from interaction_dataset
+        # estimation requires that chooser_id is either in index or a column of interaction_dataset
+        # so it can be reformatted (melted) and indexed by chooser_id and alt_id
+        assert choosers.index.name == 'vehicle_id'
+        assert 'vehicle_id' not in choosers.columns
+        choosers['vehicle_id'] = choosers.index
+
+        # FIXME set_alt_id - do we need this for interaction_simulate estimation bundle tables?
+        estimator.set_alt_id('alt_id')
+        estimator.set_chooser_id(choosers.index.name)
+
     # STEP I. run logit choices
-    choices = simulate.simple_simulate(
-        choosers=choosers,
-        spec=model_spec,
-        nest_spec=nest_spec,
-        locals_d=locals_dict,
-        chunk_size=chunk_size,
-        trace_label=trace_label,
-        trace_choice_name='vehicle_type',
-        estimator=estimator)
+    if alts_cats_dict:
+        log_alt_losers = config.setting('log_alt_losers', False)
+        choices = interaction_simulate(
+            choosers=choosers,
+            alternatives=alts_wide,
+            spec=model_spec,
+            log_alt_losers=log_alt_losers,
+            locals_d=locals_dict,
+            chunk_size=chunk_size,
+            trace_label=trace_label,
+            trace_choice_name='vehicle_type',
+            estimator=estimator)
+    else:
+        choices = simulate.simple_simulate(
+            choosers=choosers,
+            spec=model_spec,
+            locals_d=locals_dict,
+            chunk_size=chunk_size,
+            trace_label=trace_label,
+            trace_choice_name='vehicle_type',
+            estimator=estimator)
 
     if isinstance(choices, pd.Series):
         choices = choices.to_frame('choice')
@@ -99,11 +137,15 @@ def vehicle_choice(
                             'choice': choice_column_name},
                    inplace=True)
 
-    alts = model_spec.columns
+    if alts_cats_dict:
+        alts = alts_long[alts_long.columns].apply(
+            lambda row: '_'.join(row.values.astype(str)), axis=1).values
+    else:
+        alts = model_spec.columns
     choices[choice_column_name] = \
         choices[choice_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
 
-    # append probabilistic attributes to veh types if they exist
+    # STEP II: append probabilistic vehicle type attributes
     probs_spec_file = model_settings.get("PROBS_SPEC", None)
     if probs_spec_file is not None:
 

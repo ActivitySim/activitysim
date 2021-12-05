@@ -1,0 +1,68 @@
+# vehicle_choice.yaml
+
+SPEC: vehicle_type_choice_op2.csv
+COEFFICIENTS: vehicle_type_choice_op2_coefficients.csv
+
+# toggle PROBS_SPEC on/off to run probabilistic second stage
+PROBS_SPEC: vehicle_type_choice_op2_fuel_type_probs.csv
+
+LOGIT_TYPE: MNL
+
+combinatorial_alts:
+  body_type:
+    - AUTO
+    - VAN
+    - SUV
+    - TRUCK
+    - MOTORCYCLE
+  age:
+    - 01YR
+    - 02YR
+    - 03YR
+    - 04YR
+    - 05YR
+    - 06YR
+    - 07YR
+    - 08YR
+    - 09YR
+    - 10YR
+    - 11YR
+    - 12YR
+    - 13YR
+    - 14YR
+    - 15YR
+    - 16YR
+    - 17YR
+    - 18YR
+    - 19YR
+    - 20YR_PLUS
+  fuel_type:
+    - GAS
+    - DIESEL
+    - HYBRID
+    - PEV
+    - BEV
+
+preprocessor:
+  SPEC: vehicle_type_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - vehicles
+    - persons
+    - households
+
+annotate_persons:
+  SPEC: annotate_persons_vehicle_type
+  DF: persons
+  TABLES:
+    - vehicles
+
+annotate_households:
+  SPEC: annotate_households_vehicle_type
+  DF: households
+  TABLES:
+    - persons
+    - vehicles
+
+MODE_CHOICE_LOGSUM_COLUMN_NAME: vehicle_choice_logsum

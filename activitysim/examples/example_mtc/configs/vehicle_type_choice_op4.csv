@@ -1,0 +1,441 @@
+﻿Label,Description,Expression,Coefficient
+util_hhinc_0_24k_VAN,,((income < 25000) & (income > -1)) * body_type_VAN,coef_hhinc_0_24k_VAN
+util_hhinc_0_24k_SUV,,((income < 25000) & (income > -1)) * body_type_SUV,coef_hhinc_0_24k_SUV
+util_hhinc_0_24k_TRUCK,,((income < 25000) & (income > -1)) * body_type_TRUCK,coef_hhinc_0_24k_TRUCK
+util_hhinc_0_24k_MOTORCYCLE,,((income < 25000) & (income > -1)) * body_type_MOTORCYCLE,coef_hhinc_0_24k_MOTORCYCLE
+util_hhinc_0_24k_HYBRID,,((income < 25000) & (income > -1)) * fuel_type_HYBRID,coef_hhinc_0_24k_HYBRID
+util_hhinc_0_24k_EV,,((income < 25000) & (income > -1)) * (fuel_type_PEV + fuel_type_BEV),coef_hhinc_0_24k_EV
+util_hhinc_0_24k_1YR,,((income < 25000) & (income > -1)) * age_01YR * 1,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_2YR,,((income < 25000) & (income > -1)) * age_02YR * 2,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_3YR,,((income < 25000) & (income > -1)) * age_03YR * 3,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_4YR,,((income < 25000) & (income > -1)) * age_04YR * 4,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_5YR,,((income < 25000) & (income > -1)) * age_05YR * 5,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_6YR,,((income < 25000) & (income > -1)) * age_06YR * 6,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_7YR,,((income < 25000) & (income > -1)) * age_07YR * 7,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_8YR,,((income < 25000) & (income > -1)) * age_08YR * 8,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_9YR,,((income < 25000) & (income > -1)) * age_09YR * 9,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_10YR,,((income < 25000) & (income > -1)) * age_10YR * 10,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_11YR,,((income < 25000) & (income > -1)) * age_11YR * 11,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_12YR,,((income < 25000) & (income > -1)) * age_12YR * 12,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_13YR,,((income < 25000) & (income > -1)) * age_13YR * 13,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_14YR,,((income < 25000) & (income > -1)) * age_14YR * 14,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_15YR,,((income < 25000) & (income > -1)) * age_15YR * 15,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_16YR,,((income < 25000) & (income > -1)) * age_16YR * 16,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_17YR,,((income < 25000) & (income > -1)) * age_17YR * 17,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_18YR,,((income < 25000) & (income > -1)) * age_18YR * 18,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_19YR,,((income < 25000) & (income > -1)) * age_19YR * 19,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_20YR_PLUS,,((income < 25000) & (income > -1)) * age_20YR_PLUS * 20,coef_hhinc_0_24k_AGE
+util_hhinc_25_49k_VAN,,((income < 50000) & (income >= 25000)) * body_type_VAN,coef_hhinc_25_49k_VAN
+util_hhinc_25_49k_SUV,,((income < 50000) & (income >= 25000)) * body_type_SUV,coef_hhinc_25_49k_SUV
+util_hhinc_25_49k_TRUCK,,((income < 50000) & (income >= 25000)) * body_type_TRUCK,coef_hhinc_25_49k_TRUCK
+util_hhinc_25_49k_MOTORCYCLE,,((income < 50000) & (income >= 25000)) * body_type_MOTORCYCLE,coef_hhinc_25_49k_MOTORCYCLE
+util_hhinc_25_49k_HYBRID,,((income < 50000) & (income >= 25000)) * fuel_type_HYBRID,coef_hhinc_25_49k_HYBRID
+util_hhinc_25_49k_EV,,((income < 50000) & (income >= 25000)) * (fuel_type_PEV + fuel_type_BEV),coef_hhinc_25_49k_EV
+util_hhinc_25_49k_1YR,,((income < 50000) & (income >= 25000)) * age_01YR * 1,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_2YR,,((income < 50000) & (income >= 25000)) * age_02YR * 2,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_3YR,,((income < 50000) & (income >= 25000)) * age_03YR * 3,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_4YR,,((income < 50000) & (income >= 25000)) * age_04YR * 4,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_5YR,,((income < 50000) & (income >= 25000)) * age_05YR * 5,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_6YR,,((income < 50000) & (income >= 25000)) * age_06YR * 6,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_7YR,,((income < 50000) & (income >= 25000)) * age_07YR * 7,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_8YR,,((income < 50000) & (income >= 25000)) * age_08YR * 8,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_9YR,,((income < 50000) & (income >= 25000)) * age_09YR * 9,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_10YR,,((income < 50000) & (income >= 25000)) * age_10YR * 10,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_11YR,,((income < 50000) & (income >= 25000)) * age_11YR * 11,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_12YR,,((income < 50000) & (income >= 25000)) * age_12YR * 12,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_13YR,,((income < 50000) & (income >= 25000)) * age_13YR * 13,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_14YR,,((income < 50000) & (income >= 25000)) * age_14YR * 14,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_15YR,,((income < 50000) & (income >= 25000)) * age_15YR * 15,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_16YR,,((income < 50000) & (income >= 25000)) * age_16YR * 16,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_17YR,,((income < 50000) & (income >= 25000)) * age_17YR * 17,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_18YR,,((income < 50000) & (income >= 25000)) * age_18YR * 18,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_19YR,,((income < 50000) & (income >= 25000)) * age_19YR * 19,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_20YR_PLUS,,((income < 50000) & (income >= 25000)) * age_20YR_PLUS * 20,coef_hhinc_25_49k_AGE
+util_hhinc_100k_VAN,,(income > 100000) * body_type_VAN,coef_hhinc_100k_VAN
+util_hhinc_100k_SUV,,(income > 100000) * body_type_SUV,coef_hhinc_100k_SUV
+util_hhinc_100k_TRUCK,,(income > 100000) * body_type_TRUCK,coef_hhinc_100k_TRUCK
+util_hhinc_100k_MOTORCYCLE,,(income > 100000) * body_type_MOTORCYCLE,coef_hhinc_100k_MOTORCYCLE
+util_hhinc_100k_HYBRID,,(income > 100000) * fuel_type_HYBRID,coef_hhinc_100k_HYBRID
+util_hhinc_100k_EV,,(income > 100000) * (fuel_type_PEV + fuel_type_BEV),coef_hhinc_100k_EV
+util_hhinc_100k_1YR,,(income > 100000) * age_01YR * 1,coef_hhinc_100k_AGE
+util_hhinc_100k_2YR,,(income > 100000) * age_02YR * 2,coef_hhinc_100k_AGE
+util_hhinc_100k_3YR,,(income > 100000) * age_03YR * 3,coef_hhinc_100k_AGE
+util_hhinc_100k_4YR,,(income > 100000) * age_04YR * 4,coef_hhinc_100k_AGE
+util_hhinc_100k_5YR,,(income > 100000) * age_05YR * 5,coef_hhinc_100k_AGE
+util_hhinc_100k_6YR,,(income > 100000) * age_06YR * 6,coef_hhinc_100k_AGE
+util_hhinc_100k_7YR,,(income > 100000) * age_07YR * 7,coef_hhinc_100k_AGE
+util_hhinc_100k_8YR,,(income > 100000) * age_08YR * 8,coef_hhinc_100k_AGE
+util_hhinc_100k_9YR,,(income > 100000) * age_09YR * 9,coef_hhinc_100k_AGE
+util_hhinc_100k_10YR,,(income > 100000) * age_10YR * 10,coef_hhinc_100k_AGE
+util_hhinc_100k_11YR,,(income > 100000) * age_11YR * 11,coef_hhinc_100k_AGE
+util_hhinc_100k_12YR,,(income > 100000) * age_12YR * 12,coef_hhinc_100k_AGE
+util_hhinc_100k_13YR,,(income > 100000) * age_13YR * 13,coef_hhinc_100k_AGE
+util_hhinc_100k_14YR,,(income > 100000) * age_14YR * 14,coef_hhinc_100k_AGE
+util_hhinc_100k_15YR,,(income > 100000) * age_15YR * 15,coef_hhinc_100k_AGE
+util_hhinc_100k_16YR,,(income > 100000) * age_16YR * 16,coef_hhinc_100k_AGE
+util_hhinc_100k_17YR,,(income > 100000) * age_17YR * 17,coef_hhinc_100k_AGE
+util_hhinc_100k_18YR,,(income > 100000) * age_18YR * 18,coef_hhinc_100k_AGE
+util_hhinc_100k_19YR,,(income > 100000) * age_19YR * 19,coef_hhinc_100k_AGE
+util_hhinc_100k_20YR_PLUS,,(income > 100000) * age_20YR_PLUS * 20,coef_hhinc_100k_AGE
+util_hhinc_missing_VAN,,((income != income) | (income < 0)) * body_type_VAN,coef_hhinc_missing_VAN
+util_hhinc_missing_SUV,,((income != income) | (income < 0)) * body_type_SUV,coef_hhinc_missing_SUV
+util_hhinc_missing_TRUCK,,((income != income) | (income < 0)) * body_type_TRUCK,coef_hhinc_missing_TRUCK
+util_hhinc_missing_MOTORCYCLE,,((income != income) | (income < 0)) * body_type_MOTORCYCLE,coef_hhinc_missing_MOTORCYCLE
+util_hhinc_missing_HYBRID,,((income != income) | (income < 0)) * fuel_type_HYBRID,coef_hhinc_missing_HYBRID
+util_hhinc_missing_EV,,((income != income) | (income < 0)) * (fuel_type_PEV + fuel_type_BEV),coef_hhinc_missing_EV
+util_hhinc_missing_1YR,,((income != income) | (income < 0)) * age_01YR * 1,coef_hhinc_missing_AGE
+util_hhinc_missing_2YR,,((income != income) | (income < 0)) * age_02YR * 2,coef_hhinc_missing_AGE
+util_hhinc_missing_3YR,,((income != income) | (income < 0)) * age_03YR * 3,coef_hhinc_missing_AGE
+util_hhinc_missing_4YR,,((income != income) | (income < 0)) * age_04YR * 4,coef_hhinc_missing_AGE
+util_hhinc_missing_5YR,,((income != income) | (income < 0)) * age_05YR * 5,coef_hhinc_missing_AGE
+util_hhinc_missing_6YR,,((income != income) | (income < 0)) * age_06YR * 6,coef_hhinc_missing_AGE
+util_hhinc_missing_7YR,,((income != income) | (income < 0)) * age_07YR * 7,coef_hhinc_missing_AGE
+util_hhinc_missing_8YR,,((income != income) | (income < 0)) * age_08YR * 8,coef_hhinc_missing_AGE
+util_hhinc_missing_9YR,,((income != income) | (income < 0)) * age_09YR * 9,coef_hhinc_missing_AGE
+util_hhinc_missing_10YR,,((income != income) | (income < 0)) * age_10YR * 10,coef_hhinc_missing_AGE
+util_hhinc_missing_11YR,,((income != income) | (income < 0)) * age_11YR * 11,coef_hhinc_missing_AGE
+util_hhinc_missing_12YR,,((income != income) | (income < 0)) * age_12YR * 12,coef_hhinc_missing_AGE
+util_hhinc_missing_13YR,,((income != income) | (income < 0)) * age_13YR * 13,coef_hhinc_missing_AGE
+util_hhinc_missing_14YR,,((income != income) | (income < 0)) * age_14YR * 14,coef_hhinc_missing_AGE
+util_hhinc_missing_15YR,,((income != income) | (income < 0)) * age_15YR * 15,coef_hhinc_missing_AGE
+util_hhinc_missing_16YR,,((income != income) | (income < 0)) * age_16YR * 16,coef_hhinc_missing_AGE
+util_hhinc_missing_17YR,,((income != income) | (income < 0)) * age_17YR * 17,coef_hhinc_missing_AGE
+util_hhinc_missing_18YR,,((income != income) | (income < 0)) * age_18YR * 18,coef_hhinc_missing_AGE
+util_hhinc_missing_19YR,,((income != income) | (income < 0)) * age_19YR * 19,coef_hhinc_missing_AGE
+util_hhinc_missing_20YR_PLUS,,((income != income) | (income < 0)) * age_20YR_PLUS * 20,coef_hhinc_missing_AGE
+util_hh_rural_VAN,,home_is_rural * body_type_VAN,coef_hh_rural_VAN
+util_hh_rural_SUV,,home_is_rural * body_type_SUV,coef_hh_rural_SUV
+util_hh_rural_TRUCK,,home_is_rural * body_type_TRUCK,coef_hh_rural_TRUCK
+util_hh_rural_MOTORCYCLE,,home_is_rural * body_type_MOTORCYCLE,coef_hh_rural_MOTORCYCLE
+util_hh_rural_HYBRID,,home_is_rural * fuel_type_HYBRID,coef_hh_rural_HYBRID
+util_hh_rural_EV,,home_is_rural * (fuel_type_PEV + fuel_type_BEV),coef_hh_rural_EV
+util_hh_rural_1YR,,home_is_rural * age_01YR * 1,coef_hh_rural_AGE
+util_hh_rural_2YR,,home_is_rural * age_02YR * 2,coef_hh_rural_AGE
+util_hh_rural_3YR,,home_is_rural * age_03YR * 3,coef_hh_rural_AGE
+util_hh_rural_4YR,,home_is_rural * age_04YR * 4,coef_hh_rural_AGE
+util_hh_rural_5YR,,home_is_rural * age_05YR * 5,coef_hh_rural_AGE
+util_hh_rural_6YR,,home_is_rural * age_06YR * 6,coef_hh_rural_AGE
+util_hh_rural_7YR,,home_is_rural * age_07YR * 7,coef_hh_rural_AGE
+util_hh_rural_8YR,,home_is_rural * age_08YR * 8,coef_hh_rural_AGE
+util_hh_rural_9YR,,home_is_rural * age_09YR * 9,coef_hh_rural_AGE
+util_hh_rural_10YR,,home_is_rural * age_10YR * 10,coef_hh_rural_AGE
+util_hh_rural_11YR,,home_is_rural * age_11YR * 11,coef_hh_rural_AGE
+util_hh_rural_12YR,,home_is_rural * age_12YR * 12,coef_hh_rural_AGE
+util_hh_rural_13YR,,home_is_rural * age_13YR * 13,coef_hh_rural_AGE
+util_hh_rural_14YR,,home_is_rural * age_14YR * 14,coef_hh_rural_AGE
+util_hh_rural_15YR,,home_is_rural * age_15YR * 15,coef_hh_rural_AGE
+util_hh_rural_16YR,,home_is_rural * age_16YR * 16,coef_hh_rural_AGE
+util_hh_rural_17YR,,home_is_rural * age_17YR * 17,coef_hh_rural_AGE
+util_hh_rural_18YR,,home_is_rural * age_18YR * 18,coef_hh_rural_AGE
+util_hh_rural_19YR,,home_is_rural * age_19YR * 19,coef_hh_rural_AGE
+util_hh_rural_20YR_PLUS,,home_is_rural * age_20YR_PLUS * 20,coef_hh_rural_AGE
+util_hh_1veh_VAN,,(auto_ownership == 1) * body_type_VAN,coef_hh_1veh_VAN
+util_hh_1veh_SUV,,(auto_ownership == 1) * body_type_SUV,coef_hh_1veh_SUV
+util_hh_1veh_TRUCK,,(auto_ownership == 1) * body_type_TRUCK,coef_hh_1veh_TRUCK
+util_hh_1veh_MOTORCYCLE,,(auto_ownership == 1) * body_type_MOTORCYCLE,coef_hh_1veh_MOTORCYCLE
+util_hh_1veh_HYBRID,,(auto_ownership == 1) * fuel_type_HYBRID,coef_hh_1veh_HYBRID
+util_hh_1veh_EV,,(auto_ownership == 1) * (fuel_type_PEV + fuel_type_BEV),coef_hh_1veh_EV
+util_hh_1veh_1YR,,(auto_ownership == 1) * age_01YR * 1,coef_hh_1veh_AGE
+util_hh_1veh_2YR,,(auto_ownership == 1) * age_02YR * 2,coef_hh_1veh_AGE
+util_hh_1veh_3YR,,(auto_ownership == 1) * age_03YR * 3,coef_hh_1veh_AGE
+util_hh_1veh_4YR,,(auto_ownership == 1) * age_04YR * 4,coef_hh_1veh_AGE
+util_hh_1veh_5YR,,(auto_ownership == 1) * age_05YR * 5,coef_hh_1veh_AGE
+util_hh_1veh_6YR,,(auto_ownership == 1) * age_06YR * 6,coef_hh_1veh_AGE
+util_hh_1veh_7YR,,(auto_ownership == 1) * age_07YR * 7,coef_hh_1veh_AGE
+util_hh_1veh_8YR,,(auto_ownership == 1) * age_08YR * 8,coef_hh_1veh_AGE
+util_hh_1veh_9YR,,(auto_ownership == 1) * age_09YR * 9,coef_hh_1veh_AGE
+util_hh_1veh_10YR,,(auto_ownership == 1) * age_10YR * 10,coef_hh_1veh_AGE
+util_hh_1veh_11YR,,(auto_ownership == 1) * age_11YR * 11,coef_hh_1veh_AGE
+util_hh_1veh_12YR,,(auto_ownership == 1) * age_12YR * 12,coef_hh_1veh_AGE
+util_hh_1veh_13YR,,(auto_ownership == 1) * age_13YR * 13,coef_hh_1veh_AGE
+util_hh_1veh_14YR,,(auto_ownership == 1) * age_14YR * 14,coef_hh_1veh_AGE
+util_hh_1veh_15YR,,(auto_ownership == 1) * age_15YR * 15,coef_hh_1veh_AGE
+util_hh_1veh_16YR,,(auto_ownership == 1) * age_16YR * 16,coef_hh_1veh_AGE
+util_hh_1veh_17YR,,(auto_ownership == 1) * age_17YR * 17,coef_hh_1veh_AGE
+util_hh_1veh_18YR,,(auto_ownership == 1) * age_18YR * 18,coef_hh_1veh_AGE
+util_hh_1veh_19YR,,(auto_ownership == 1) * age_19YR * 19,coef_hh_1veh_AGE
+util_hh_1veh_20YR_PLUS,,(auto_ownership == 1) * age_20YR_PLUS * 20,coef_hh_1veh_AGE
+util_hh_veh_lt_drivers_VAN,,(auto_ownership < num_drivers) * body_type_VAN,coef_hh_veh_lt_drivers_VAN
+util_hh_veh_lt_drivers_SUV,,(auto_ownership < num_drivers) * body_type_SUV,coef_hh_veh_lt_drivers_SUV
+util_hh_veh_lt_drivers_TRUCK,,(auto_ownership < num_drivers) * body_type_TRUCK,coef_hh_veh_lt_drivers_TRUCK
+util_hh_veh_lt_drivers_MOTORCYCLE,,(auto_ownership < num_drivers) * body_type_MOTORCYCLE,coef_hh_veh_lt_drivers_MOTORCYCLE
+util_hh_veh_lt_drivers_HYBRID,,(auto_ownership < num_drivers) * fuel_type_HYBRID,coef_hh_veh_lt_drivers_HYBRID
+util_hh_veh_lt_drivers_EV,,(auto_ownership < num_drivers) * (fuel_type_PEV + fuel_type_BEV),coef_hh_veh_lt_drivers_EV
+util_hh_veh_lt_drivers_1YR,,(auto_ownership < num_drivers) * age_01YR * 1,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_2YR,,(auto_ownership < num_drivers) * age_02YR * 2,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_3YR,,(auto_ownership < num_drivers) * age_03YR * 3,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_4YR,,(auto_ownership < num_drivers) * age_04YR * 4,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_5YR,,(auto_ownership < num_drivers) * age_05YR * 5,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_6YR,,(auto_ownership < num_drivers) * age_06YR * 6,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_7YR,,(auto_ownership < num_drivers) * age_07YR * 7,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_8YR,,(auto_ownership < num_drivers) * age_08YR * 8,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_9YR,,(auto_ownership < num_drivers) * age_09YR * 9,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_10YR,,(auto_ownership < num_drivers) * age_10YR * 10,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_11YR,,(auto_ownership < num_drivers) * age_11YR * 11,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_12YR,,(auto_ownership < num_drivers) * age_12YR * 12,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_13YR,,(auto_ownership < num_drivers) * age_13YR * 13,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_14YR,,(auto_ownership < num_drivers) * age_14YR * 14,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_15YR,,(auto_ownership < num_drivers) * age_15YR * 15,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_16YR,,(auto_ownership < num_drivers) * age_16YR * 16,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_17YR,,(auto_ownership < num_drivers) * age_17YR * 17,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_18YR,,(auto_ownership < num_drivers) * age_18YR * 18,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_19YR,,(auto_ownership < num_drivers) * age_19YR * 19,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_20YR_PLUS,,(auto_ownership < num_drivers) * age_20YR_PLUS * 20,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_gt_drivers_VAN,,(auto_ownership > num_drivers) * body_type_VAN,coef_hh_veh_gt_drivers_VAN
+util_hh_veh_gt_drivers_SUV,,(auto_ownership > num_drivers) * body_type_SUV,coef_hh_veh_gt_drivers_SUV
+util_hh_veh_gt_drivers_TRUCK,,(auto_ownership > num_drivers) * body_type_TRUCK,coef_hh_veh_gt_drivers_TRUCK
+util_hh_veh_gt_drivers_MOTORCYCLE,,(auto_ownership > num_drivers) * body_type_MOTORCYCLE,coef_hh_veh_gt_drivers_MOTORCYCLE
+util_hh_veh_gt_drivers_HYBRID,,(auto_ownership > num_drivers) * fuel_type_HYBRID,coef_hh_veh_gt_drivers_HYBRID
+util_hh_veh_gt_drivers_EV,,(auto_ownership > num_drivers) * (fuel_type_PEV + fuel_type_BEV),coef_hh_veh_gt_drivers_EV
+util_hh_veh_gt_drivers_1YR,,(auto_ownership > num_drivers) * age_01YR * 1,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_2YR,,(auto_ownership > num_drivers) * age_02YR * 2,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_3YR,,(auto_ownership > num_drivers) * age_03YR * 3,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_4YR,,(auto_ownership > num_drivers) * age_04YR * 4,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_5YR,,(auto_ownership > num_drivers) * age_05YR * 5,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_6YR,,(auto_ownership > num_drivers) * age_06YR * 6,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_7YR,,(auto_ownership > num_drivers) * age_07YR * 7,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_8YR,,(auto_ownership > num_drivers) * age_08YR * 8,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_9YR,,(auto_ownership > num_drivers) * age_09YR * 9,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_10YR,,(auto_ownership > num_drivers) * age_10YR * 10,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_11YR,,(auto_ownership > num_drivers) * age_11YR * 11,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_12YR,,(auto_ownership > num_drivers) * age_12YR * 12,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_13YR,,(auto_ownership > num_drivers) * age_13YR * 13,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_14YR,,(auto_ownership > num_drivers) * age_14YR * 14,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_15YR,,(auto_ownership > num_drivers) * age_15YR * 15,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_16YR,,(auto_ownership > num_drivers) * age_16YR * 16,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_17YR,,(auto_ownership > num_drivers) * age_17YR * 17,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_18YR,,(auto_ownership > num_drivers) * age_18YR * 18,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_19YR,,(auto_ownership > num_drivers) * age_19YR * 19,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_20YR_PLUS,,(auto_ownership > num_drivers) * age_20YR_PLUS * 20,coef_hh_veh_gt_drivers_AGE
+util_num_kids_VAN,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.body_type_VAN",coef_num_kids_VAN
+util_num_kids_SUV,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.body_type_SUV",coef_num_kids_SUV
+util_num_kids_TRUCK,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.body_type_TRUCK",coef_num_kids_TRUCK
+util_num_kids_MOTORCYCLE,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.body_type_MOTORCYCLE",coef_num_kids_MOTORCYCLE
+util_num_kids_HYBRID,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.fuel_type_HYBRID",coef_num_kids_HYBRID
+util_num_kids_EV,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * (df.fuel_type_PEV + df.fuel_type_BEV)",coef_num_kids_EV
+util_num_kids_1YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_01YR * 1",coef_num_kids_AGE
+util_num_kids_2YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_02YR * 2",coef_num_kids_AGE
+util_num_kids_3YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_03YR * 3",coef_num_kids_AGE
+util_num_kids_4YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_04YR * 4",coef_num_kids_AGE
+util_num_kids_5YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_05YR * 5",coef_num_kids_AGE
+util_num_kids_6YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_06YR * 6",coef_num_kids_AGE
+util_num_kids_7YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_07YR * 7",coef_num_kids_AGE
+util_num_kids_8YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_08YR * 8",coef_num_kids_AGE
+util_num_kids_9YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_09YR * 9",coef_num_kids_AGE
+util_num_kids_10YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_10YR * 10",coef_num_kids_AGE
+util_num_kids_11YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_11YR * 11",coef_num_kids_AGE
+util_num_kids_12YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_12YR * 12",coef_num_kids_AGE
+util_num_kids_13YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_13YR * 13",coef_num_kids_AGE
+util_num_kids_14YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_14YR * 14",coef_num_kids_AGE
+util_num_kids_15YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_15YR * 15",coef_num_kids_AGE
+util_num_kids_16YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_16YR * 16",coef_num_kids_AGE
+util_num_kids_17YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_17YR * 17",coef_num_kids_AGE
+util_num_kids_18YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_18YR * 18",coef_num_kids_AGE
+util_num_kids_19YR,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_19YR * 19",coef_num_kids_AGE
+util_num_kids_20YR_PLUS,,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_20YR_PLUS * 20",coef_num_kids_AGE
+util_hh_dist_work_VAN,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.body_type_VAN",coef_hh_dist_work_VAN
+util_hh_dist_work_SUV,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.body_type_SUV",coef_hh_dist_work_SUV
+util_hh_dist_work_TRUCK,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.body_type_TRUCK",coef_hh_dist_work_TRUCK
+util_hh_dist_work_MOTORCYCLE,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.body_type_MOTORCYCLE",coef_hh_dist_work_MOTORCYCLE
+util_hh_dist_work_HYBRID,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.fuel_type_HYBRID",coef_hh_dist_work_HYBRID
+util_hh_dist_work_EV,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * (df.fuel_type_PEV + df.fuel_type_BEV)",coef_hh_dist_work_EV
+util_hh_dist_work_1YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_01YR * 1",coef_hh_dist_work_AGE
+util_hh_dist_work_2YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_02YR * 2",coef_hh_dist_work_AGE
+util_hh_dist_work_3YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_03YR * 3",coef_hh_dist_work_AGE
+util_hh_dist_work_4YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_04YR * 4",coef_hh_dist_work_AGE
+util_hh_dist_work_5YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_05YR * 5",coef_hh_dist_work_AGE
+util_hh_dist_work_6YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_06YR * 6",coef_hh_dist_work_AGE
+util_hh_dist_work_7YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_07YR * 7",coef_hh_dist_work_AGE
+util_hh_dist_work_8YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_08YR * 8",coef_hh_dist_work_AGE
+util_hh_dist_work_9YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_09YR * 9",coef_hh_dist_work_AGE
+util_hh_dist_work_10YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_10YR * 10",coef_hh_dist_work_AGE
+util_hh_dist_work_11YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_11YR * 11",coef_hh_dist_work_AGE
+util_hh_dist_work_12YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_12YR * 12",coef_hh_dist_work_AGE
+util_hh_dist_work_13YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_13YR * 13",coef_hh_dist_work_AGE
+util_hh_dist_work_14YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_14YR * 14",coef_hh_dist_work_AGE
+util_hh_dist_work_15YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_15YR * 15",coef_hh_dist_work_AGE
+util_hh_dist_work_16YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_16YR * 16",coef_hh_dist_work_AGE
+util_hh_dist_work_17YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_17YR * 17",coef_hh_dist_work_AGE
+util_hh_dist_work_18YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_18YR * 18",coef_hh_dist_work_AGE
+util_hh_dist_work_19YR,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_19YR * 19",coef_hh_dist_work_AGE
+util_hh_dist_work_20YR_PLUS,,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_20YR_PLUS * 20",coef_hh_dist_work_AGE
+util_VAN,,body_type_VAN,asc_VAN
+util_SUV,,body_type_SUV,asc_SUV
+util_TRUCK,,body_type_TRUCK,asc_TRUCK
+util_MOTORCYCLE,,body_type_MOTORCYCLE,asc_MOTORCYCLE
+util_DIESEL,,fuel_type_DIESEL,asc_DIESEL
+util_HYBRID,,fuel_type_HYBRID,asc_HYBRID
+util_PEV,,fuel_type_PEV,asc_PEV
+util_BEV,,fuel_type_BEV,asc_BEV
+util_2YR,,age_02YR,asc_2YR
+util_3YR,,age_03YR,asc_3YR
+util_4YR,,age_04YR,asc_4YR
+util_5YR,,age_05YR,asc_5YR
+util_6YR,,age_06YR,asc_6YR
+util_7YR,,age_07YR,asc_7YR
+util_8YR,,age_08YR,asc_8YR
+util_9YR,,age_09YR,asc_9YR
+util_10YR,,age_10YR,asc_10YR
+util_11YR,,age_11YR,asc_11YR
+util_12YR,,age_12YR,asc_12YR
+util_13YR,,age_13YR,asc_13YR
+util_14YR,,age_14YR,asc_14YR
+util_15YR,,age_15YR,asc_15YR
+util_16YR,,age_16YR,asc_16YR
+util_17YR,,age_17YR,asc_17YR
+util_18YR,,age_18YR,asc_18YR
+util_19YR,,age_19YR,asc_19YR
+util_20YR_PLUS,,age_20YR_PLUS,asc_20YR_PLUS
+util_VAN_DIESEL,,body_type_VAN * fuel_type_DIESEL * 1,asc_VAN_DIESEL
+util_VAN_HYBRID,,body_type_VAN * fuel_type_HYBRID * 1,asc_VAN_HYBRID
+util_VAN_EV,,body_type_VAN * (fuel_type_PEV + fuel_type_BEV) * 1,asc_VAN_EV
+util_SUV_DIESEL,,body_type_SUV * fuel_type_DIESEL * 1,asc_SUV_DIESEL
+util_SUV_HYBRID,,body_type_SUV * fuel_type_HYBRID * 1,asc_SUV_HYBRID
+util_SUV_EV,,body_type_SUV * (fuel_type_PEV + fuel_type_BEV) * 1,asc_SUV_EV
+util_TRUCK_DIESEL,,body_type_TRUCK * fuel_type_DIESEL * 1,asc_TRUCK_DIESEL
+util_TRUCK_HYBRID,,body_type_TRUCK * fuel_type_HYBRID * 1,asc_TRUCK_HYBRID
+util_TRUCK_EV,,body_type_TRUCK * (fuel_type_PEV + fuel_type_BEV) * 1,asc_TRUCK_EV
+util_MOTORCYCLE_DIESEL,,body_type_MOTORCYCLE * fuel_type_DIESEL * 1,asc_MOTORCYCLE_DIESEL
+util_MOTORCYCLE_HYBRID,,body_type_MOTORCYCLE * fuel_type_HYBRID * 1,asc_MOTORCYCLE_HYBRID
+util_MOTORCYCLE_PEV,,body_type_MOTORCYCLE * fuel_type_PEV * 1,asc_MOTORCYCLE_PEV
+util_MOTORCYCLE_BEV,,body_type_MOTORCYCLE * fuel_type_BEV * 1,asc_MOTORCYCLE_BEV
+util_VAN_01YR,,body_type_VAN * age_01YR * 1,asc_VAN_AGE
+util_VAN_02YR,,body_type_VAN * age_02YR * 2,asc_VAN_AGE
+util_VAN_03YR,,body_type_VAN * age_03YR * 3,asc_VAN_AGE
+util_VAN_04YR,,body_type_VAN * age_04YR * 4,asc_VAN_AGE
+util_VAN_05YR,,body_type_VAN * age_05YR * 5,asc_VAN_AGE
+util_VAN_06YR,,body_type_VAN * age_06YR * 6,asc_VAN_AGE
+util_VAN_07YR,,body_type_VAN * age_07YR * 7,asc_VAN_AGE
+util_VAN_08YR,,body_type_VAN * age_08YR * 8,asc_VAN_AGE
+util_VAN_09YR,,body_type_VAN * age_09YR * 9,asc_VAN_AGE
+util_VAN_10YR,,body_type_VAN * age_10YR * 10,asc_VAN_AGE
+util_VAN_11YR,,body_type_VAN * age_11YR * 11,asc_VAN_AGE
+util_VAN_12YR,,body_type_VAN * age_12YR * 12,asc_VAN_AGE
+util_VAN_13YR,,body_type_VAN * age_13YR * 13,asc_VAN_AGE
+util_VAN_14YR,,body_type_VAN * age_14YR * 14,asc_VAN_AGE
+util_VAN_15YR,,body_type_VAN * age_15YR * 15,asc_VAN_AGE
+util_VAN_16YR,,body_type_VAN * age_16YR * 16,asc_VAN_AGE
+util_VAN_17YR,,body_type_VAN * age_17YR * 17,asc_VAN_AGE
+util_VAN_18YR,,body_type_VAN * age_18YR * 18,asc_VAN_AGE
+util_VAN_19YR,,body_type_VAN * age_19YR * 19,asc_VAN_AGE
+util_SUV_01YR,,body_type_SUV * age_01YR * 1,asc_SUV_AGE
+util_SUV_02YR,,body_type_SUV * age_02YR * 2,asc_SUV_AGE
+util_SUV_03YR,,body_type_SUV * age_03YR * 3,asc_SUV_AGE
+util_SUV_04YR,,body_type_SUV * age_04YR * 4,asc_SUV_AGE
+util_SUV_05YR,,body_type_SUV * age_05YR * 5,asc_SUV_AGE
+util_SUV_06YR,,body_type_SUV * age_06YR * 6,asc_SUV_AGE
+util_SUV_07YR,,body_type_SUV * age_07YR * 7,asc_SUV_AGE
+util_SUV_08YR,,body_type_SUV * age_08YR * 8,asc_SUV_AGE
+util_SUV_09YR,,body_type_SUV * age_09YR * 9,asc_SUV_AGE
+util_SUV_10YR,,body_type_SUV * age_10YR * 10,asc_SUV_AGE
+util_SUV_11YR,,body_type_SUV * age_11YR * 11,asc_SUV_AGE
+util_SUV_12YR,,body_type_SUV * age_12YR * 12,asc_SUV_AGE
+util_SUV_13YR,,body_type_SUV * age_13YR * 13,asc_SUV_AGE
+util_SUV_14YR,,body_type_SUV * age_14YR * 14,asc_SUV_AGE
+util_SUV_15YR,,body_type_SUV * age_15YR * 15,asc_SUV_AGE
+util_SUV_16YR,,body_type_SUV * age_16YR * 16,asc_SUV_AGE
+util_SUV_17YR,,body_type_SUV * age_17YR * 17,asc_SUV_AGE
+util_SUV_18YR,,body_type_SUV * age_18YR * 18,asc_SUV_AGE
+util_SUV_19YR,,body_type_SUV * age_19YR * 19,asc_SUV_AGE
+util_TRUCK_01YR,,body_type_TRUCK * age_01YR * 1,asc_TRUCK_AGE
+util_TRUCK_02YR,,body_type_TRUCK * age_02YR * 2,asc_TRUCK_AGE
+util_TRUCK_03YR,,body_type_TRUCK * age_03YR * 3,asc_TRUCK_AGE
+util_TRUCK_04YR,,body_type_TRUCK * age_04YR * 4,asc_TRUCK_AGE
+util_TRUCK_05YR,,body_type_TRUCK * age_05YR * 5,asc_TRUCK_AGE
+util_TRUCK_06YR,,body_type_TRUCK * age_06YR * 6,asc_TRUCK_AGE
+util_TRUCK_07YR,,body_type_TRUCK * age_07YR * 7,asc_TRUCK_AGE
+util_TRUCK_08YR,,body_type_TRUCK * age_08YR * 8,asc_TRUCK_AGE
+util_TRUCK_09YR,,body_type_TRUCK * age_09YR * 9,asc_TRUCK_AGE
+util_TRUCK_10YR,,body_type_TRUCK * age_10YR * 10,asc_TRUCK_AGE
+util_TRUCK_11YR,,body_type_TRUCK * age_11YR * 11,asc_TRUCK_AGE
+util_TRUCK_12YR,,body_type_TRUCK * age_12YR * 12,asc_TRUCK_AGE
+util_TRUCK_13YR,,body_type_TRUCK * age_13YR * 13,asc_TRUCK_AGE
+util_TRUCK_14YR,,body_type_TRUCK * age_14YR * 14,asc_TRUCK_AGE
+util_TRUCK_15YR,,body_type_TRUCK * age_15YR * 15,asc_TRUCK_AGE
+util_TRUCK_16YR,,body_type_TRUCK * age_16YR * 16,asc_TRUCK_AGE
+util_TRUCK_17YR,,body_type_TRUCK * age_17YR * 17,asc_TRUCK_AGE
+util_TRUCK_18YR,,body_type_TRUCK * age_18YR * 18,asc_TRUCK_AGE
+util_TRUCK_19YR,,body_type_TRUCK * age_19YR * 19,asc_TRUCK_AGE
+util_MOTORCYCLE_01YR,,body_type_MOTORCYCLE * age_01YR * 1,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_02YR,,body_type_MOTORCYCLE * age_02YR * 2,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_03YR,,body_type_MOTORCYCLE * age_03YR * 3,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_04YR,,body_type_MOTORCYCLE * age_04YR * 4,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_05YR,,body_type_MOTORCYCLE * age_05YR * 5,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_06YR,,body_type_MOTORCYCLE * age_06YR * 6,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_07YR,,body_type_MOTORCYCLE * age_07YR * 7,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_08YR,,body_type_MOTORCYCLE * age_08YR * 8,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_09YR,,body_type_MOTORCYCLE * age_09YR * 9,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_10YR,,body_type_MOTORCYCLE * age_10YR * 10,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_11YR,,body_type_MOTORCYCLE * age_11YR * 11,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_12YR,,body_type_MOTORCYCLE * age_12YR * 12,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_13YR,,body_type_MOTORCYCLE * age_13YR * 13,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_14YR,,body_type_MOTORCYCLE * age_14YR * 14,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_15YR,,body_type_MOTORCYCLE * age_15YR * 15,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_16YR,,body_type_MOTORCYCLE * age_16YR * 16,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_17YR,,body_type_MOTORCYCLE * age_17YR * 17,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_18YR,,body_type_MOTORCYCLE * age_18YR * 18,asc_MOTORCYCLE_AGE
+util_MOTORCYCLE_19YR,,body_type_MOTORCYCLE * age_19YR * 19,asc_MOTORCYCLE_AGE
+util_VAN_AGE_20PLUS,,body_type_VAN * age_20YR_PLUS,asc_VAN_AGE_20PLUS
+util_SUV_AGE_20PLUS,,body_type_SUV * age_20YR_PLUS,asc_SUV_AGE_20PLUS
+util_TRUCK_AGE_20PLUS,,body_type_TRUCK * age_20YR_PLUS,asc_TRUCK_AGE_20PLUS
+util_MOTORCYCLE_AGE_20PLUS,,body_type_MOTORCYCLE * age_20YR_PLUS,asc_MOTORCYCLE_AGE_20PLUS
+util_DIESEL_01YR,,fuel_type_DIESEL * age_01YR * 1,asc_DIESEL_AGE
+util_DIESEL_02YR,,fuel_type_DIESEL * age_02YR * 2,asc_DIESEL_AGE
+util_DIESEL_03YR,,fuel_type_DIESEL * age_03YR * 3,asc_DIESEL_AGE
+util_DIESEL_04YR,,fuel_type_DIESEL * age_04YR * 4,asc_DIESEL_AGE
+util_DIESEL_05YR,,fuel_type_DIESEL * age_05YR * 5,asc_DIESEL_AGE
+util_DIESEL_06YR,,fuel_type_DIESEL * age_06YR * 6,asc_DIESEL_AGE
+util_DIESEL_07YR,,fuel_type_DIESEL * age_07YR * 7,asc_DIESEL_AGE
+util_DIESEL_08YR,,fuel_type_DIESEL * age_08YR * 8,asc_DIESEL_AGE
+util_DIESEL_09YR,,fuel_type_DIESEL * age_09YR * 9,asc_DIESEL_AGE
+util_DIESEL_10YR,,fuel_type_DIESEL * age_10YR * 10,asc_DIESEL_AGE
+util_DIESEL_11YR,,fuel_type_DIESEL * age_11YR * 11,asc_DIESEL_AGE
+util_DIESEL_12YR,,fuel_type_DIESEL * age_12YR * 12,asc_DIESEL_AGE
+util_DIESEL_13YR,,fuel_type_DIESEL * age_13YR * 13,asc_DIESEL_AGE
+util_DIESEL_14YR,,fuel_type_DIESEL * age_14YR * 14,asc_DIESEL_AGE
+util_DIESEL_15YR,,fuel_type_DIESEL * age_15YR * 15,asc_DIESEL_AGE
+util_DIESEL_16YR,,fuel_type_DIESEL * age_16YR * 16,asc_DIESEL_AGE
+util_DIESEL_17YR,,fuel_type_DIESEL * age_17YR * 17,asc_DIESEL_AGE
+util_DIESEL_18YR,,fuel_type_DIESEL * age_18YR * 18,asc_DIESEL_AGE
+util_DIESEL_19YR,,fuel_type_DIESEL * age_19YR * 19,asc_DIESEL_AGE
+util_HYBRID_01YR,,fuel_type_HYBRID * age_01YR * 1,asc_HYBRID_AGE
+util_HYBRID_02YR,,fuel_type_HYBRID * age_02YR * 2,asc_HYBRID_AGE
+util_HYBRID_03YR,,fuel_type_HYBRID * age_03YR * 3,asc_HYBRID_AGE
+util_HYBRID_04YR,,fuel_type_HYBRID * age_04YR * 4,asc_HYBRID_AGE
+util_HYBRID_05YR,,fuel_type_HYBRID * age_05YR * 5,asc_HYBRID_AGE
+util_HYBRID_06YR,,fuel_type_HYBRID * age_06YR * 6,asc_HYBRID_AGE
+util_HYBRID_07YR,,fuel_type_HYBRID * age_07YR * 7,asc_HYBRID_AGE
+util_HYBRID_08YR,,fuel_type_HYBRID * age_08YR * 8,asc_HYBRID_AGE
+util_HYBRID_09YR,,fuel_type_HYBRID * age_09YR * 9,asc_HYBRID_AGE
+util_HYBRID_10YR,,fuel_type_HYBRID * age_10YR * 10,asc_HYBRID_AGE
+util_HYBRID_11YR,,fuel_type_HYBRID * age_11YR * 11,asc_HYBRID_AGE
+util_HYBRID_12YR,,fuel_type_HYBRID * age_12YR * 12,asc_HYBRID_AGE
+util_HYBRID_13YR,,fuel_type_HYBRID * age_13YR * 13,asc_HYBRID_AGE
+util_HYBRID_14YR,,fuel_type_HYBRID * age_14YR * 14,asc_HYBRID_AGE
+util_HYBRID_15YR,,fuel_type_HYBRID * age_15YR * 15,asc_HYBRID_AGE
+util_HYBRID_16YR,,fuel_type_HYBRID * age_16YR * 16,asc_HYBRID_AGE
+util_HYBRID_17YR,,fuel_type_HYBRID * age_17YR * 17,asc_HYBRID_AGE
+util_HYBRID_18YR,,fuel_type_HYBRID * age_18YR * 18,asc_HYBRID_AGE
+util_HYBRID_19YR,,fuel_type_HYBRID * age_19YR * 19,asc_HYBRID_AGE
+util_EV_01YR,,(fuel_type_PEV + fuel_type_BEV) * age_01YR * 1,asc_EV_AGE
+util_EV_02YR,,(fuel_type_PEV + fuel_type_BEV) * age_02YR * 2,asc_EV_AGE
+util_EV_03YR,,(fuel_type_PEV + fuel_type_BEV) * age_03YR * 3,asc_EV_AGE
+util_EV_04YR,,(fuel_type_PEV + fuel_type_BEV) * age_04YR * 4,asc_EV_AGE
+util_EV_05YR,,(fuel_type_PEV + fuel_type_BEV) * age_05YR * 5,asc_EV_AGE
+util_EV_06YR,,(fuel_type_PEV + fuel_type_BEV) * age_06YR * 6,asc_EV_AGE
+util_EV_07YR,,(fuel_type_PEV + fuel_type_BEV) * age_07YR * 7,asc_EV_AGE
+util_EV_08YR,,(fuel_type_PEV + fuel_type_BEV) * age_08YR * 8,asc_EV_AGE
+util_EV_09YR,,(fuel_type_PEV + fuel_type_BEV) * age_09YR * 9,asc_EV_AGE
+util_EV_10YR,,(fuel_type_PEV + fuel_type_BEV) * age_10YR * 10,asc_EV_AGE
+util_EV_11YR,,(fuel_type_PEV + fuel_type_BEV) * age_11YR * 11,asc_EV_AGE
+util_EV_12YR,,(fuel_type_PEV + fuel_type_BEV) * age_12YR * 12,asc_EV_AGE
+util_EV_13YR,,(fuel_type_PEV + fuel_type_BEV) * age_13YR * 13,asc_EV_AGE
+util_EV_14YR,,(fuel_type_PEV + fuel_type_BEV) * age_14YR * 14,asc_EV_AGE
+util_EV_15YR,,(fuel_type_PEV + fuel_type_BEV) * age_15YR * 15,asc_EV_AGE
+util_EV_16YR,,(fuel_type_PEV + fuel_type_BEV) * age_16YR * 16,asc_EV_AGE
+util_EV_17YR,,(fuel_type_PEV + fuel_type_BEV) * age_17YR * 17,asc_EV_AGE
+util_EV_18YR,,(fuel_type_PEV + fuel_type_BEV) * age_18YR * 18,asc_EV_AGE
+util_EV_19YR,,(fuel_type_PEV + fuel_type_BEV) * age_19YR * 19,asc_EV_AGE
+util_DIESEL_AGE_20PLUS,,fuel_type_DIESEL * age_20YR_PLUS,asc_DIESEL_AGE_20PLUS
+util_HYBRID_AGE_20PLUS,,fuel_type_HYBRID * age_20YR_PLUS,asc_HYBRID_AGE_20PLUS
+util_EV_AGE_20PLUS,,(fuel_type_PEV + fuel_type_BEV) * age_20YR_PLUS,asc_EV_AGE_20PLUS

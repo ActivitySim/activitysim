@@ -1,0 +1,330 @@
+Label,Description,Expression,Coefficient
+util_hhinc_0_24k_VAN,household income $0-24k,((income < 25000) & (income > -1)) * body_type_VAN,coef_hhinc_0_24k_VAN
+util_hhinc_0_24k_SUV,household income $0-24k,((income < 25000) & (income > -1)) * body_type_SUV,coef_hhinc_0_24k_SUV
+util_hhinc_0_24k_TRUCK,household income $0-24k,((income < 25000) & (income > -1)) * body_type_TRUCK,coef_hhinc_0_24k_TRUCK
+util_hhinc_0_24k_MOTORCYCLE,household income $0-24k,((income < 25000) & (income > -1)) * body_type_MOTORCYCLE,coef_hhinc_0_24k_MOTO
+util_hhinc_0_24k_02YR,household income $0-24k x 2YR age,((income < 25000) & (income > -1)) * age_02YR * 2,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_03YR,household income $0-24k x 3YR age,((income < 25000) & (income > -1)) * age_03YR * 3,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_04YR,household income $0-24k x 4YR age,((income < 25000) & (income > -1)) * age_04YR * 4,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_05YR,household income $0-24k x 5YR age,((income < 25000) & (income > -1)) * age_05YR * 5,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_06YR,household income $0-24k x 6YR age,((income < 25000) & (income > -1)) * age_06YR * 6,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_07YR,household income $0-24k x 7YR age,((income < 25000) & (income > -1)) * age_07YR * 7,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_08YR,household income $0-24k x 8YR age,((income < 25000) & (income > -1)) * age_08YR * 8,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_09YR,household income $0-24k x 9YR age,((income < 25000) & (income > -1)) * age_09YR * 9,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_10YR,household income $0-24k x 10YR age,((income < 25000) & (income > -1)) * age_10YR * 10,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_11YR,household income $0-24k x 11YR age,((income < 25000) & (income > -1)) * age_11YR * 11,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_12YR,household income $0-24k x 12YR age,((income < 25000) & (income > -1)) * age_12YR * 12,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_13YR,household income $0-24k x 13YR age,((income < 25000) & (income > -1)) * age_13YR * 13,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_14YR,household income $0-24k x 14YR age,((income < 25000) & (income > -1)) * age_14YR * 14,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_15YR,household income $0-24k x 15YR age,((income < 25000) & (income > -1)) * age_15YR * 15,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_16YR,household income $0-24k x 16YR age,((income < 25000) & (income > -1)) * age_16YR * 16,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_17YR,household income $0-24k x 17YR age,((income < 25000) & (income > -1)) * age_17YR * 17,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_18YR,household income $0-24k x 18YR age,((income < 25000) & (income > -1)) * age_18YR * 18,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_19YR,household income $0-24k x 19YR age,((income < 25000) & (income > -1)) * age_19YR * 19,coef_hhinc_0_24k_AGE
+util_hhinc_0_24k_20YR_PLUS,household income $0-24k x 20YR_PLUS age,((income < 25000) & (income > -1)) * age_20YR_PLUS * 20,coef_hhinc_0_24k_AGE
+util_hhinc_25_49k_VAN,household income $25-49k,((income >= 25000) & (income < 50000)) * body_type_VAN,coef_hhinc_25_49k_VAN
+util_hhinc_25_49k_SUV,household income $25-49k,((income >= 25000) & (income < 50000)) * body_type_SUV,coef_hhinc_25_49k_SUV
+util_hhinc_25_49k_TRUCK,household income $25-49k,((income >= 25000) & (income < 50000)) * body_type_TRUCK,coef_hhinc_25_49k_TRUCK
+util_hhinc_25_49k_MOTORCYCLE,household income $25-49k,((income >= 25000) & (income < 50000)) * body_type_MOTORCYCLE,coef_hhinc_25_49k_MOTO
+util_hhinc_25_49k_2YR,household income $25-49k x 2YR age,((income >= 25000) & (income < 50000)) * age_02YR * 2,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_3YR,household income $25-49k x 3YR age,((income >= 25000) & (income < 50000)) * age_03YR * 3,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_4YR,household income $25-49k x 4YR age,((income >= 25000) & (income < 50000)) * age_04YR * 4,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_5YR,household income $25-49k x 5YR age,((income >= 25000) & (income < 50000)) * age_05YR * 5,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_6YR,household income $25-49k x 6YR age,((income >= 25000) & (income < 50000)) * age_06YR * 6,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_7YR,household income $25-49k x 7YR age,((income >= 25000) & (income < 50000)) * age_07YR * 7,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_8YR,household income $25-49k x 8YR age,((income >= 25000) & (income < 50000)) * age_08YR * 8,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_9YR,household income $25-49k x 9YR age,((income >= 25000) & (income < 50000)) * age_09YR * 9,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_10YR,household income $25-49k x 10YR age,((income >= 25000) & (income < 50000)) * age_10YR * 10,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_11YR,household income $25-49k x 11YR age,((income >= 25000) & (income < 50000)) * age_11YR * 11,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_12YR,household income $25-49k x 12YR age,((income >= 25000) & (income < 50000)) * age_12YR * 12,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_13YR,household income $25-49k x 13YR age,((income >= 25000) & (income < 50000)) * age_13YR * 13,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_14YR,household income $25-49k x 14YR age,((income >= 25000) & (income < 50000)) * age_14YR * 14,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_15YR,household income $25-49k x 15YR age,((income >= 25000) & (income < 50000)) * age_15YR * 15,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_16YR,household income $25-49k x 16YR age,((income >= 25000) & (income < 50000)) * age_16YR * 16,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_17YR,household income $25-49k x 17YR age,((income >= 25000) & (income < 50000)) * age_17YR * 17,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_18YR,household income $25-49k x 18YR age,((income >= 25000) & (income < 50000)) * age_18YR * 18,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_19YR,household income $25-49k x 19YR age,((income >= 25000) & (income < 50000)) * age_19YR * 19,coef_hhinc_25_49k_AGE
+util_hhinc_25_49k_20YR_PLUS,household income $25-49k x 20YR_PLUS age,((income >= 25000) & (income < 50000)) * age_20YR_PLUS * 20,coef_hhinc_25_49k_AGE
+util_hhinc_100k_plus_VAN,household income > $100k,(income > 100000) * body_type_VAN,coef_hhinc_100k_plus_VAN
+util_hhinc_100k_plus_SUV,household income > $100k,(income > 100000) * body_type_SUV,coef_hhinc_100k_plus_SUV
+util_hhinc_100k_plus_TRUCK,household income > $100k,(income > 100000) * body_type_TRUCK,coef_hhinc_100k_plus_TRUCK
+util_hhinc_100k_plus_MOTORCYCLE,household income > $100k,(income > 100000) * body_type_MOTORCYCLE,coef_hhinc_100k_plus_MOTO
+util_hhinc_100k_plus_2YR,household income > $100k x 2YR age,(income > 100000) * age_02YR * 2,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_3YR,household income > $100k x 3YR age,(income > 100000) * age_03YR * 3,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_4YR,household income > $100k x 4YR age,(income > 100000) * age_04YR * 4,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_5YR,household income > $100k x 5YR age,(income > 100000) * age_05YR * 5,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_6YR,household income > $100k x 6YR age,(income > 100000) * age_06YR * 6,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_7YR,household income > $100k x 7YR age,(income > 100000) * age_07YR * 7,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_8YR,household income > $100k x 8YR age,(income > 100000) * age_08YR * 8,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_9YR,household income > $100k x 9YR age,(income > 100000) * age_09YR * 9,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_10YR,household income > $100k x 10YR age,(income > 100000) * age_10YR * 10,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_11YR,household income > $100k x 11YR age,(income > 100000) * age_11YR * 11,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_12YR,household income > $100k x 12YR age,(income > 100000) * age_12YR * 12,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_13YR,household income > $100k x 13YR age,(income > 100000) * age_13YR * 13,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_14YR,household income > $100k x 14YR age,(income > 100000) * age_14YR * 14,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_15YR,household income > $100k x 15YR age,(income > 100000) * age_15YR * 15,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_16YR,household income > $100k x 16YR age,(income > 100000) * age_16YR * 16,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_17YR,household income > $100k x 17YR age,(income > 100000) * age_17YR * 17,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_18YR,household income > $100k x 18YR age,(income > 100000) * age_18YR * 18,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_19YR,household income > $100k x 19YR age,(income > 100000) * age_19YR * 19,coef_hhinc_100k_plus_AGE
+util_hhinc_100k_plus_20YR_PLUS,household income > $100k x 20YR_PLUS age,(income > 100000) * age_20YR_PLUS * 20,coef_hhinc_100k_plus_AGE
+util_hhinc_missing_VAN,household income missing,((income != income) | (income < 0)) * body_type_VAN,coef_hhinc_missing_VAN
+util_hhinc_missing_SUV,household income missing,((income != income) | (income < 0)) * body_type_SUV,coef_hhinc_missing_SUV
+util_hhinc_missing_TRUCK,household income missing,((income != income) | (income < 0)) * body_type_TRUCK,coef_hhinc_missing_TRUCK
+util_hhinc_missing_MOTORCYCLE,household income missing,((income != income) | (income < 0)) * body_type_MOTORCYCLE,coef_hhinc_missing_MOTO
+util_hhinc_missing_2YR,household income missing x 2YR age,((income != income) | (income < 0)) * age_02YR * 2,coef_hhinc_missing_AGE
+util_hhinc_missing_3YR,household income missing x 3YR age,((income != income) | (income < 0)) * age_03YR * 3,coef_hhinc_missing_AGE
+util_hhinc_missing_4YR,household income missing x 4YR age,((income != income) | (income < 0)) * age_04YR * 4,coef_hhinc_missing_AGE
+util_hhinc_missing_5YR,household income missing x 5YR age,((income != income) | (income < 0)) * age_05YR * 5,coef_hhinc_missing_AGE
+util_hhinc_missing_6YR,household income missing x 6YR age,((income != income) | (income < 0)) * age_06YR * 6,coef_hhinc_missing_AGE
+util_hhinc_missing_7YR,household income missing x 7YR age,((income != income) | (income < 0)) * age_07YR * 7,coef_hhinc_missing_AGE
+util_hhinc_missing_8YR,household income missing x 8YR age,((income != income) | (income < 0)) * age_08YR * 8,coef_hhinc_missing_AGE
+util_hhinc_missing_9YR,household income missing x 9YR age,((income != income) | (income < 0)) * age_09YR * 9,coef_hhinc_missing_AGE
+util_hhinc_missing_10YR,household income missing x 10YR age,((income != income) | (income < 0)) * age_10YR * 10,coef_hhinc_missing_AGE
+util_hhinc_missing_11YR,household income missing x 11YR age,((income != income) | (income < 0)) * age_11YR * 11,coef_hhinc_missing_AGE
+util_hhinc_missing_12YR,household income missing x 12YR age,((income != income) | (income < 0)) * age_12YR * 12,coef_hhinc_missing_AGE
+util_hhinc_missing_13YR,household income missing x 13YR age,((income != income) | (income < 0)) * age_13YR * 13,coef_hhinc_missing_AGE
+util_hhinc_missing_14YR,household income missing x 14YR age,((income != income) | (income < 0)) * age_14YR * 14,coef_hhinc_missing_AGE
+util_hhinc_missing_15YR,household income missing x 15YR age,((income != income) | (income < 0)) * age_15YR * 15,coef_hhinc_missing_AGE
+util_hhinc_missing_16YR,household income missing x 16YR age,((income != income) | (income < 0)) * age_16YR * 16,coef_hhinc_missing_AGE
+util_hhinc_missing_17YR,household income missing x 17YR age,((income != income) | (income < 0)) * age_17YR * 17,coef_hhinc_missing_AGE
+util_hhinc_missing_18YR,household income missing x 18YR age,((income != income) | (income < 0)) * age_18YR * 18,coef_hhinc_missing_AGE
+util_hhinc_missing_19YR,household income missing x 19YR age,((income != income) | (income < 0)) * age_19YR * 19,coef_hhinc_missing_AGE
+util_hhinc_missing_20YR_PLUS,household income missing x 20YR_PLUS age,((income != income) | (income < 0)) * age_20YR_PLUS * 20,coef_hhinc_missing_AGE
+util_hh_rural_VAN,household in rural area,home_is_rural * body_type_VAN,coef_hh_rural_VAN
+util_hh_rural_SUV,household in rural area,home_is_rural * body_type_SUV,coef_hh_rural_SUV
+util_hh_rural_TRUCK,household in rural area,home_is_rural * body_type_TRUCK,coef_hh_rural_TRUCK
+util_hh_rural_MOTORCYCLE,household in rural area,home_is_rural * body_type_MOTORCYCLE,coef_hh_rural_MOTO
+util_hh_rural_2YR,household in rural area x 2YR age,home_is_rural * age_02YR * 2,coef_hh_rural_AGE
+util_hh_rural_3YR,household in rural area x 3YR age,home_is_rural * age_03YR * 3,coef_hh_rural_AGE
+util_hh_rural_4YR,household in rural area x 4YR age,home_is_rural * age_04YR * 4,coef_hh_rural_AGE
+util_hh_rural_5YR,household in rural area x 5YR age,home_is_rural * age_05YR * 5,coef_hh_rural_AGE
+util_hh_rural_6YR,household in rural area x 6YR age,home_is_rural * age_06YR * 6,coef_hh_rural_AGE
+util_hh_rural_7YR,household in rural area x 7YR age,home_is_rural * age_07YR * 7,coef_hh_rural_AGE
+util_hh_rural_8YR,household in rural area x 8YR age,home_is_rural * age_08YR * 8,coef_hh_rural_AGE
+util_hh_rural_9YR,household in rural area x 9YR age,home_is_rural * age_09YR * 9,coef_hh_rural_AGE
+util_hh_rural_10YR,household in rural area x 10YR age,home_is_rural * age_10YR * 10,coef_hh_rural_AGE
+util_hh_rural_11YR,household in rural area x 11YR age,home_is_rural * age_11YR * 11,coef_hh_rural_AGE
+util_hh_rural_12YR,household in rural area x 12YR age,home_is_rural * age_12YR * 12,coef_hh_rural_AGE
+util_hh_rural_13YR,household in rural area x 13YR age,home_is_rural * age_13YR * 13,coef_hh_rural_AGE
+util_hh_rural_14YR,household in rural area x 14YR age,home_is_rural * age_14YR * 14,coef_hh_rural_AGE
+util_hh_rural_15YR,household in rural area x 15YR age,home_is_rural * age_15YR * 15,coef_hh_rural_AGE
+util_hh_rural_16YR,household in rural area x 16YR age,home_is_rural * age_16YR * 16,coef_hh_rural_AGE
+util_hh_rural_17YR,household in rural area x 17YR age,home_is_rural * age_17YR * 17,coef_hh_rural_AGE
+util_hh_rural_18YR,household in rural area x 18YR age,home_is_rural * age_18YR * 18,coef_hh_rural_AGE
+util_hh_rural_19YR,household in rural area x 19YR age,home_is_rural * age_19YR * 19,coef_hh_rural_AGE
+util_hh_rural_20YR_PLUS,household in rural area x 20YR_PLUS age,home_is_rural * age_20YR_PLUS * 20,coef_hh_rural_AGE
+util_hh_1veh_VAN,household has only one vehicle,(auto_ownership == 1) * body_type_VAN,coef_hh_1veh_VAN
+util_hh_1veh_SUV,household has only one vehicle,(auto_ownership == 1) * body_type_SUV,coef_hh_1veh_SUV
+util_hh_1veh_TRUCK,household has only one vehicle,(auto_ownership == 1) * body_type_TRUCK,coef_hh_1veh_TRUCK
+util_hh_1veh_MOTORCYCLE,household has only one vehicle,(auto_ownership == 1) * body_type_MOTORCYCLE,coef_hh_1veh_MOTO
+util_hh_1veh_2YR,household has only one vehicle x 2YR age,(auto_ownership == 1) * age_02YR * 2,coef_hh_1veh_AGE
+util_hh_1veh_3YR,household has only one vehicle x 3YR age,(auto_ownership == 1) * age_03YR * 3,coef_hh_1veh_AGE
+util_hh_1veh_4YR,household has only one vehicle x 4YR age,(auto_ownership == 1) * age_04YR * 4,coef_hh_1veh_AGE
+util_hh_1veh_5YR,household has only one vehicle x 5YR age,(auto_ownership == 1) * age_05YR * 5,coef_hh_1veh_AGE
+util_hh_1veh_6YR,household has only one vehicle x 6YR age,(auto_ownership == 1) * age_06YR * 6,coef_hh_1veh_AGE
+util_hh_1veh_7YR,household has only one vehicle x 7YR age,(auto_ownership == 1) * age_07YR * 7,coef_hh_1veh_AGE
+util_hh_1veh_8YR,household has only one vehicle x 8YR age,(auto_ownership == 1) * age_08YR * 8,coef_hh_1veh_AGE
+util_hh_1veh_9YR,household has only one vehicle x 9YR age,(auto_ownership == 1) * age_09YR * 9,coef_hh_1veh_AGE
+util_hh_1veh_10YR,household has only one vehicle x 10YR age,(auto_ownership == 1) * age_10YR * 10,coef_hh_1veh_AGE
+util_hh_1veh_11YR,household has only one vehicle x 11YR age,(auto_ownership == 1) * age_11YR * 11,coef_hh_1veh_AGE
+util_hh_1veh_12YR,household has only one vehicle x 12YR age,(auto_ownership == 1) * age_12YR * 12,coef_hh_1veh_AGE
+util_hh_1veh_13YR,household has only one vehicle x 13YR age,(auto_ownership == 1) * age_13YR * 13,coef_hh_1veh_AGE
+util_hh_1veh_14YR,household has only one vehicle x 14YR age,(auto_ownership == 1) * age_14YR * 14,coef_hh_1veh_AGE
+util_hh_1veh_15YR,household has only one vehicle x 15YR age,(auto_ownership == 1) * age_15YR * 15,coef_hh_1veh_AGE
+util_hh_1veh_16YR,household has only one vehicle x 16YR age,(auto_ownership == 1) * age_16YR * 16,coef_hh_1veh_AGE
+util_hh_1veh_17YR,household has only one vehicle x 17YR age,(auto_ownership == 1) * age_17YR * 17,coef_hh_1veh_AGE
+util_hh_1veh_18YR,household has only one vehicle x 18YR age,(auto_ownership == 1) * age_18YR * 18,coef_hh_1veh_AGE
+util_hh_1veh_19YR,household has only one vehicle x 19YR age,(auto_ownership == 1) * age_19YR * 19,coef_hh_1veh_AGE
+util_hh_1veh_20YR_PLUS,household has only one vehicle x 20YR_PLUS age,(auto_ownership == 1) * age_20YR_PLUS * 20,coef_hh_1veh_AGE
+util_hh_veh_lt_drivers_VAN,household has fewer vehicles than members 16+,(auto_ownership < num_drivers) * body_type_VAN,coef_hh_veh_lt_drivers_VAN
+util_hh_veh_lt_drivers_SUV,household has fewer vehicles than members 16+,(auto_ownership < num_drivers) * body_type_SUV,coef_hh_veh_lt_drivers_SUV
+util_hh_veh_lt_drivers_TRUCK,household has fewer vehicles than members 16+,(auto_ownership < num_drivers) * body_type_TRUCK,coef_hh_veh_lt_drivers_TRUCK
+util_hh_veh_lt_drivers_MOTORCYCLE,household has fewer vehicles than members 16+,(auto_ownership < num_drivers) * body_type_MOTORCYCLE,coef_hh_veh_lt_drivers_MOTO
+util_hh_veh_lt_drivers_2YR,household has fewer vehicles than members 16+ x 2YR age,(auto_ownership < num_drivers) * age_02YR * 2,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_3YR,household has fewer vehicles than members 16+ x 3YR age,(auto_ownership < num_drivers) * age_03YR * 3,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_4YR,household has fewer vehicles than members 16+ x 4YR age,(auto_ownership < num_drivers) * age_04YR * 4,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_5YR,household has fewer vehicles than members 16+ x 5YR age,(auto_ownership < num_drivers) * age_05YR * 5,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_6YR,household has fewer vehicles than members 16+ x 6YR age,(auto_ownership < num_drivers) * age_06YR * 6,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_7YR,household has fewer vehicles than members 16+ x 7YR age,(auto_ownership < num_drivers) * age_07YR * 7,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_8YR,household has fewer vehicles than members 16+ x 8YR age,(auto_ownership < num_drivers) * age_08YR * 8,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_9YR,household has fewer vehicles than members 16+ x 9YR age,(auto_ownership < num_drivers) * age_09YR * 9,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_10YR,household has fewer vehicles than members 16+ x 10YR age,(auto_ownership < num_drivers) * age_10YR * 10,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_11YR,household has fewer vehicles than members 16+ x 11YR age,(auto_ownership < num_drivers) * age_11YR * 11,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_12YR,household has fewer vehicles than members 16+ x 12YR age,(auto_ownership < num_drivers) * age_12YR * 12,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_13YR,household has fewer vehicles than members 16+ x 13YR age,(auto_ownership < num_drivers) * age_13YR * 13,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_14YR,household has fewer vehicles than members 16+ x 14YR age,(auto_ownership < num_drivers) * age_14YR * 14,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_15YR,household has fewer vehicles than members 16+ x 15YR age,(auto_ownership < num_drivers) * age_15YR * 15,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_16YR,household has fewer vehicles than members 16+ x 16YR age,(auto_ownership < num_drivers) * age_16YR * 16,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_17YR,household has fewer vehicles than members 16+ x 17YR age,(auto_ownership < num_drivers) * age_17YR * 17,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_18YR,household has fewer vehicles than members 16+ x 18YR age,(auto_ownership < num_drivers) * age_18YR * 18,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_19YR,household has fewer vehicles than members 16+ x 19YR age,(auto_ownership < num_drivers) * age_19YR * 19,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_lt_drivers_20YR_PLUS,household has fewer vehicles than members 16+ x 20YR_PLUS age,(auto_ownership < num_drivers) * age_20YR_PLUS * 20,coef_hh_veh_lt_drivers_AGE
+util_hh_veh_gt_drivers_VAN,household has more vehicles than members 16+,(auto_ownership > num_drivers) * body_type_VAN,coef_hh_veh_gt_drivers_VAN
+util_hh_veh_gt_drivers_SUV,household has more vehicles than members 16+,(auto_ownership > num_drivers) * body_type_SUV,coef_hh_veh_gt_drivers_SUV
+util_hh_veh_gt_drivers_TRUCK,household has more vehicles than members 16+,(auto_ownership > num_drivers) * body_type_TRUCK,coef_hh_veh_gt_drivers_TRUCK
+util_hh_veh_gt_drivers_MOTORCYCLE,household has more vehicles than members 16+,(auto_ownership > num_drivers) * body_type_MOTORCYCLE,coef_hh_veh_gt_drivers_MOTO
+util_hh_veh_gt_drivers_2YR,household has more vehicles than members 16+ x 2YR age,(auto_ownership > num_drivers) * age_02YR * 2,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_3YR,household has more vehicles than members 16+ x 3YR age,(auto_ownership > num_drivers) * age_03YR * 3,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_4YR,household has more vehicles than members 16+ x 4YR age,(auto_ownership > num_drivers) * age_04YR * 4,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_5YR,household has more vehicles than members 16+ x 5YR age,(auto_ownership > num_drivers) * age_05YR * 5,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_6YR,household has more vehicles than members 16+ x 6YR age,(auto_ownership > num_drivers) * age_06YR * 6,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_7YR,household has more vehicles than members 16+ x 7YR age,(auto_ownership > num_drivers) * age_07YR * 7,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_8YR,household has more vehicles than members 16+ x 8YR age,(auto_ownership > num_drivers) * age_08YR * 8,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_9YR,household has more vehicles than members 16+ x 9YR age,(auto_ownership > num_drivers) * age_09YR * 9,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_10YR,household has more vehicles than members 16+ x 10YR age,(auto_ownership > num_drivers) * age_10YR * 10,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_11YR,household has more vehicles than members 16+ x 11YR age,(auto_ownership > num_drivers) * age_11YR * 11,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_12YR,household has more vehicles than members 16+ x 12YR age,(auto_ownership > num_drivers) * age_12YR * 12,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_13YR,household has more vehicles than members 16+ x 13YR age,(auto_ownership > num_drivers) * age_13YR * 13,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_14YR,household has more vehicles than members 16+ x 14YR age,(auto_ownership > num_drivers) * age_14YR * 14,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_15YR,household has more vehicles than members 16+ x 15YR age,(auto_ownership > num_drivers) * age_15YR * 15,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_16YR,household has more vehicles than members 16+ x 16YR age,(auto_ownership > num_drivers) * age_16YR * 16,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_17YR,household has more vehicles than members 16+ x 17YR age,(auto_ownership > num_drivers) * age_17YR * 17,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_18YR,household has more vehicles than members 16+ x 18YR age,(auto_ownership > num_drivers) * age_18YR * 18,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_19YR,household has more vehicles than members 16+ x 19YR age,(auto_ownership > num_drivers) * age_19YR * 19,coef_hh_veh_gt_drivers_AGE
+util_hh_veh_gt_drivers_20YR_PLUS,household has more vehicles than members 16+ x 20YR_PLUS age,(auto_ownership > num_drivers) * age_20YR_PLUS * 20,coef_hh_veh_gt_drivers_AGE
+util_num_kids_VAN,number of children in household (3 max.),"@np.clip(df.num_children, a_min=0, a_max=3) * df.body_type_VAN",coef_num_kids_VAN
+util_num_kids_SUV,number of children in household (3 max.),"@np.clip(df.num_children, a_min=0, a_max=3) * df.body_type_SUV",coef_num_kids_SUV
+util_num_kids_TRUCK,number of children in household (3 max.),"@np.clip(df.num_children, a_min=0, a_max=3) * df.body_type_TRUCK",coef_num_kids_TRUCK
+util_num_kids_MOTORCYCLE,number of children in household (3 max.),"@np.clip(df.num_children, a_min=0, a_max=3) * df.body_type_MOTORCYCLE",coef_num_kids_MOTO
+util_num_kids_2YR,number of children in household (3 max.) x 2YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_02YR * 2",coef_num_kids_AGE
+util_num_kids_3YR,number of children in household (3 max.) x 3YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_03YR * 3",coef_num_kids_AGE
+util_num_kids_4YR,number of children in household (3 max.) x 4YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_04YR * 4",coef_num_kids_AGE
+util_num_kids_5YR,number of children in household (3 max.) x 5YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_05YR * 5",coef_num_kids_AGE
+util_num_kids_6YR,number of children in household (3 max.) x 6YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_06YR * 6",coef_num_kids_AGE
+util_num_kids_7YR,number of children in household (3 max.) x 7YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_07YR * 7",coef_num_kids_AGE
+util_num_kids_8YR,number of children in household (3 max.) x 8YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_08YR * 8",coef_num_kids_AGE
+util_num_kids_9YR,number of children in household (3 max.) x 9YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_09YR * 9",coef_num_kids_AGE
+util_num_kids_10YR,number of children in household (3 max.) x 10YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_10YR * 10",coef_num_kids_AGE
+util_num_kids_11YR,number of children in household (3 max.) x 11YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_11YR * 11",coef_num_kids_AGE
+util_num_kids_12YR,number of children in household (3 max.) x 12YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_12YR * 12",coef_num_kids_AGE
+util_num_kids_13YR,number of children in household (3 max.) x 13YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_13YR * 13",coef_num_kids_AGE
+util_num_kids_14YR,number of children in household (3 max.) x 14YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_14YR * 14",coef_num_kids_AGE
+util_num_kids_15YR,number of children in household (3 max.) x 15YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_15YR * 15",coef_num_kids_AGE
+util_num_kids_16YR,number of children in household (3 max.) x 16YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_16YR * 16",coef_num_kids_AGE
+util_num_kids_17YR,number of children in household (3 max.) x 17YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_17YR * 17",coef_num_kids_AGE
+util_num_kids_18YR,number of children in household (3 max.) x 18YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_18YR * 18",coef_num_kids_AGE
+util_num_kids_19YR,number of children in household (3 max.) x 19YR age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_19YR * 19",coef_num_kids_AGE
+util_num_kids_20YR_PLUS,number of children in household (3 max.) x 20YR_PLUS age,"@(np.clip(df.num_children, a_min=0, a_max=3)) * df.age_20YR_PLUS * 20",coef_num_kids_AGE
+util_hh_dist_work_VAN,total distance to work (100m per worker max.),"@np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute) * df.body_type_VAN",coef_hh_dist_work_VAN
+util_hh_dist_work_SUV,total distance to work (100m per worker max.),"@np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute) * df.body_type_SUV",coef_hh_dist_work_SUV
+util_hh_dist_work_TRUCK,total distance to work (100m per worker max.),"@np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute) * df.body_type_TRUCK",coef_hh_dist_work_TRUCK
+util_hh_dist_work_MOTORCYCLE,total distance to work (100m per worker max.),"@np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute) * df.body_type_MOTORCYCLE",coef_hh_dist_work_MOTO
+util_hh_dist_work_2YR,total distance to work (100m per worker max.) x 2YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_02YR * 2",coef_hh_dist_work_AGE
+util_hh_dist_work_3YR,total distance to work (100m per worker max.) x 3YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_03YR * 3",coef_hh_dist_work_AGE
+util_hh_dist_work_4YR,total distance to work (100m per worker max.) x 4YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_04YR * 4",coef_hh_dist_work_AGE
+util_hh_dist_work_5YR,total distance to work (100m per worker max.) x 5YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_05YR * 5",coef_hh_dist_work_AGE
+util_hh_dist_work_6YR,total distance to work (100m per worker max.) x 6YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_06YR * 6",coef_hh_dist_work_AGE
+util_hh_dist_work_7YR,total distance to work (100m per worker max.) x 7YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_07YR * 7",coef_hh_dist_work_AGE
+util_hh_dist_work_8YR,total distance to work (100m per worker max.) x 8YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_08YR * 8",coef_hh_dist_work_AGE
+util_hh_dist_work_9YR,total distance to work (100m per worker max.) x 9YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_09YR * 9",coef_hh_dist_work_AGE
+util_hh_dist_work_10YR,total distance to work (100m per worker max.) x 10YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_10YR * 10",coef_hh_dist_work_AGE
+util_hh_dist_work_11YR,total distance to work (100m per worker max.) x 11YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_11YR * 11",coef_hh_dist_work_AGE
+util_hh_dist_work_12YR,total distance to work (100m per worker max.) x 12YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_12YR * 12",coef_hh_dist_work_AGE
+util_hh_dist_work_13YR,total distance to work (100m per worker max.) x 13YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_13YR * 13",coef_hh_dist_work_AGE
+util_hh_dist_work_14YR,total distance to work (100m per worker max.) x 14YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_14YR * 14",coef_hh_dist_work_AGE
+util_hh_dist_work_15YR,total distance to work (100m per worker max.) x 15YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_15YR * 15",coef_hh_dist_work_AGE
+util_hh_dist_work_16YR,total distance to work (100m per worker max.) x 16YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_16YR * 16",coef_hh_dist_work_AGE
+util_hh_dist_work_17YR,total distance to work (100m per worker max.) x 17YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_17YR * 17",coef_hh_dist_work_AGE
+util_hh_dist_work_18YR,total distance to work (100m per worker max.) x 18YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_18YR * 18",coef_hh_dist_work_AGE
+util_hh_dist_work_19YR,total distance to work (100m per worker max.) x 19YR age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_19YR * 19",coef_hh_dist_work_AGE
+util_hh_dist_work_20YR_PLUS,total distance to work (100m per worker max.) x 20YR_PLUS age,"@(np.clip(df.total_hh_commute_dist, a_min=0, a_max=df.max_hh_commute)) * df.age_20YR_PLUS * 20",coef_hh_dist_work_AGE
+util_VAN,,body_type_VAN,asc_VAN
+util_SUV,,body_type_SUV,asc_SUV
+util_TRUCK,,body_type_TRUCK,asc_TRUCK
+util_MOTORCYCLE,,body_type_MOTORCYCLE,asc_MOTORCYCLE
+util_AUTO_2YR,,body_type_AUTO * age_02YR,asc_AUTO_2YR
+util_AUTO_3YR,,body_type_AUTO * age_03YR,asc_AUTO_3YR
+util_AUTO_4YR,,body_type_AUTO * age_04YR,asc_AUTO_4YR
+util_AUTO_5YR,,body_type_AUTO * age_05YR,asc_AUTO_5YR
+util_AUTO_6YR,,body_type_AUTO * age_06YR,asc_AUTO_6YR
+util_AUTO_7YR,,body_type_AUTO * age_07YR,asc_AUTO_7YR
+util_AUTO_8YR,,body_type_AUTO * age_08YR,asc_AUTO_8YR
+util_AUTO_9YR,,body_type_AUTO * age_09YR,asc_AUTO_9YR
+util_AUTO_10YR,,body_type_AUTO * age_10YR,asc_AUTO_10YR
+util_AUTO_11YR,,body_type_AUTO * age_11YR,asc_AUTO_11YR
+util_AUTO_12YR,,body_type_AUTO * age_12YR,asc_AUTO_12YR
+util_AUTO_13YR,,body_type_AUTO * age_13YR,asc_AUTO_13YR
+util_AUTO_14YR,,body_type_AUTO * age_14YR,asc_AUTO_14YR
+util_AUTO_15YR,,body_type_AUTO * age_15YR,asc_AUTO_15YR
+util_AUTO_16YR,,body_type_AUTO * age_16YR,asc_AUTO_16YR
+util_AUTO_17YR,,body_type_AUTO * age_17YR,asc_AUTO_17YR
+util_AUTO_18YR,,body_type_AUTO * age_18YR,asc_AUTO_18YR
+util_AUTO_19YR,,body_type_AUTO * age_19YR,asc_AUTO_19YR
+util_AUTO_20YR_PLUS,,body_type_AUTO * age_20YR_PLUS,asc_AUTO_20YR_PLUS
+util_VAN_2YR,,body_type_VAN * age_02YR,asc_VAN_2YR
+util_VAN_3YR,,body_type_VAN * age_03YR,asc_VAN_3YR
+util_VAN_4YR,,body_type_VAN * age_04YR,asc_VAN_4YR
+util_VAN_5YR,,body_type_VAN * age_05YR,asc_VAN_5YR
+util_VAN_6YR,,body_type_VAN * age_06YR,asc_VAN_6YR
+util_VAN_7YR,,body_type_VAN * age_07YR,asc_VAN_7YR
+util_VAN_8YR,,body_type_VAN * age_08YR,asc_VAN_8YR
+util_VAN_9YR,,body_type_VAN * age_09YR,asc_VAN_9YR
+util_VAN_10YR,,body_type_VAN * age_10YR,asc_VAN_10YR
+util_VAN_11YR,,body_type_VAN * age_11YR,asc_VAN_11YR
+util_VAN_12YR,,body_type_VAN * age_12YR,asc_VAN_12YR
+util_VAN_13YR,,body_type_VAN * age_13YR,asc_VAN_13YR
+util_VAN_14YR,,body_type_VAN * age_14YR,asc_VAN_14YR
+util_VAN_15YR,,body_type_VAN * age_15YR,asc_VAN_15YR
+util_VAN_16YR,,body_type_VAN * age_16YR,asc_VAN_16YR
+util_VAN_17YR,,body_type_VAN * age_17YR,asc_VAN_17YR
+util_VAN_18YR,,body_type_VAN * age_18YR,asc_VAN_18YR
+util_VAN_19YR,,body_type_VAN * age_19YR,asc_VAN_19YR
+util_VAN_20YR_PLUS,,body_type_VAN * age_20YR_PLUS,asc_VAN_20YR_PLUS
+util_SUV_2YR,,body_type_VAN * age_02YR,asc_SUV_2YR
+util_SUV_3YR,,body_type_VAN * age_03YR,asc_SUV_3YR
+util_SUV_4YR,,body_type_VAN * age_04YR,asc_SUV_4YR
+util_SUV_5YR,,body_type_VAN * age_05YR,asc_SUV_5YR
+util_SUV_6YR,,body_type_VAN * age_06YR,asc_SUV_6YR
+util_SUV_7YR,,body_type_VAN * age_07YR,asc_SUV_7YR
+util_SUV_8YR,,body_type_VAN * age_08YR,asc_SUV_8YR
+util_SUV_9YR,,body_type_VAN * age_09YR,asc_SUV_9YR
+util_SUV_10YR,,body_type_VAN * age_10YR,asc_SUV_10YR
+util_SUV_11YR,,body_type_VAN * age_11YR,asc_SUV_11YR
+util_SUV_12YR,,body_type_VAN * age_12YR,asc_SUV_12YR
+util_SUV_13YR,,body_type_VAN * age_13YR,asc_SUV_13YR
+util_SUV_14YR,,body_type_VAN * age_14YR,asc_SUV_14YR
+util_SUV_15YR,,body_type_VAN * age_15YR,asc_SUV_15YR
+util_SUV_16YR,,body_type_VAN * age_16YR,asc_SUV_16YR
+util_SUV_17YR,,body_type_VAN * age_17YR,asc_SUV_17YR
+util_SUV_18YR,,body_type_VAN * age_18YR,asc_SUV_18YR
+util_SUV_19YR,,body_type_VAN * age_19YR,asc_SUV_19YR
+util_SUV_20YR_PLUS,,body_type_VAN * age_20YR_PLUS,asc_SUV_20YR_PLUS
+util_TRUCK_2YR,,body_type_TRUCK * age_02YR,asc_TRUCK_2YR
+util_TRUCK_3YR,,body_type_TRUCK * age_03YR,asc_TRUCK_3YR
+util_TRUCK_4YR,,body_type_TRUCK * age_04YR,asc_TRUCK_4YR
+util_TRUCK_5YR,,body_type_TRUCK * age_05YR,asc_TRUCK_5YR
+util_TRUCK_6YR,,body_type_TRUCK * age_06YR,asc_TRUCK_6YR
+util_TRUCK_7YR,,body_type_TRUCK * age_07YR,asc_TRUCK_7YR
+util_TRUCK_8YR,,body_type_TRUCK * age_08YR,asc_TRUCK_8YR
+util_TRUCK_9YR,,body_type_TRUCK * age_09YR,asc_TRUCK_9YR
+util_TRUCK_10YR,,body_type_TRUCK * age_10YR,asc_TRUCK_10YR
+util_TRUCK_11YR,,body_type_TRUCK * age_11YR,asc_TRUCK_11YR
+util_TRUCK_12YR,,body_type_TRUCK * age_12YR,asc_TRUCK_12YR
+util_TRUCK_13YR,,body_type_TRUCK * age_13YR,asc_TRUCK_13YR
+util_TRUCK_14YR,,body_type_TRUCK * age_14YR,asc_TRUCK_14YR
+util_TRUCK_15YR,,body_type_TRUCK * age_15YR,asc_TRUCK_15YR
+util_TRUCK_16YR,,body_type_TRUCK * age_16YR,asc_TRUCK_16YR
+util_TRUCK_17YR,,body_type_TRUCK * age_17YR,asc_TRUCK_17YR
+util_TRUCK_18YR,,body_type_TRUCK * age_18YR,asc_TRUCK_18YR
+util_TRUCK_19YR,,body_type_TRUCK * age_19YR,asc_TRUCK_19YR
+util_TRUCK_20YR_PLUS,,body_type_TRUCK * age_20YR_PLUS,asc_TRUCK_20YR_PLUS
+util_MOTORCYCLE_2YR,,body_type_MOTORCYCLE * age_02YR,asc_MOTORCYCLE_2YR
+util_MOTORCYCLE_3YR,,body_type_MOTORCYCLE * age_03YR,asc_MOTORCYCLE_3YR
+util_MOTORCYCLE_4YR,,body_type_MOTORCYCLE * age_04YR,asc_MOTORCYCLE_4YR
+util_MOTORCYCLE_5YR,,body_type_MOTORCYCLE * age_05YR,asc_MOTORCYCLE_5YR
+util_MOTORCYCLE_6YR,,body_type_MOTORCYCLE * age_06YR,asc_MOTORCYCLE_6YR
+util_MOTORCYCLE_7YR,,body_type_MOTORCYCLE * age_07YR,asc_MOTORCYCLE_7YR
+util_MOTORCYCLE_8YR,,body_type_MOTORCYCLE * age_08YR,asc_MOTORCYCLE_8YR
+util_MOTORCYCLE_9YR,,body_type_MOTORCYCLE * age_09YR,asc_MOTORCYCLE_9YR
+util_MOTORCYCLE_10YR,,body_type_MOTORCYCLE * age_10YR,asc_MOTORCYCLE_10YR
+util_MOTORCYCLE_11YR,,body_type_MOTORCYCLE * age_11YR,asc_MOTORCYCLE_11YR
+util_MOTORCYCLE_12YR,,body_type_MOTORCYCLE * age_12YR,asc_MOTORCYCLE_12YR
+util_MOTORCYCLE_13YR,,body_type_MOTORCYCLE * age_13YR,asc_MOTORCYCLE_13YR
+util_MOTORCYCLE_14YR,,body_type_MOTORCYCLE * age_14YR,asc_MOTORCYCLE_14YR
+util_MOTORCYCLE_15YR,,body_type_MOTORCYCLE * age_15YR,asc_MOTORCYCLE_15YR
+util_MOTORCYCLE_16YR,,body_type_MOTORCYCLE * age_16YR,asc_MOTORCYCLE_16YR
+util_MOTORCYCLE_17YR,,body_type_MOTORCYCLE * age_17YR,asc_MOTORCYCLE_17YR
+util_MOTORCYCLE_18YR,,body_type_MOTORCYCLE * age_18YR,asc_MOTORCYCLE_18YR
+util_MOTORCYCLE_19YR,,body_type_MOTORCYCLE * age_19YR,asc_MOTORCYCLE_19YR
+util_MOTORCYCLE_20YR_PLUS,,body_type_MOTORCYCLE * age_20YR_PLUS,asc_MOTORCYCLE_20YR_PLUS

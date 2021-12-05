@@ -58,25 +58,21 @@ def vehicle_type_choice(
     model_settings_file_name = 'vehicle_type_choice.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    # load/create alts on-the-fly as cartesian product of categorical values
+    # create alts on-the-fly as cartesian product of categorical values
     alts_cats_dict = model_settings.get('combinatorial_alts', False)
     if alts_cats_dict:
         alts_fname = model_settings.get('ALTS')
-        alts_wide_fpath = config.config_file_path(alts_fname, mandatory=False)
-        if alts_wide_fpath is None:
-            cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
-            num_cats = len(cat_cols)
-            alts_long = pd.DataFrame(
-                list(itertools.product(*alts_cats_dict.values())),
-                columns=alts_cats_dict.keys())
-            alts_wide = pd.get_dummies(alts_long)  # rows will sum to num_cats
+        cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
+        num_cats = len(cat_cols)
+        alts_long = pd.DataFrame(
+            list(itertools.product(*alts_cats_dict.values())),
+            columns=alts_cats_dict.keys())
+        alts_wide = pd.get_dummies(alts_long)  # rows will sum to num_cats
 
-            # store alts in primary configs dir
-            configs_dirs = inject.get_injectable("configs_dir")
-            configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
-            alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=False)
-        else:
-            alts_wide = pd.read_csv(alts_wide_fpath)
+        # store alts in primary configs dir
+        configs_dirs = inject.get_injectable("configs_dir")
+        configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
+        alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=False)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
     choice_column_name = 'vehicle_type'

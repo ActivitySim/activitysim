@@ -63,7 +63,7 @@ def vehicle_type_choice(
     if alts_cats_dict:
         alts_fname = model_settings.get('ALTS')
         alts_wide_fpath = config.config_file_path(alts_fname, mandatory=False)
-        if alts_wide is None:
+        if alts_wide_fpath is None:
             cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
             num_cats = len(cat_cols)
             alts_long = pd.DataFrame(

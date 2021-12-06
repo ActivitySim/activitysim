@@ -5,7 +5,7 @@ bundles:
   - school_location
   - workplace_location
   - auto_ownership
-  - vehicle_choice
+  - vehicle_type_choice
   - free_parking
   - cdap
   - mandatory_tour_frequency

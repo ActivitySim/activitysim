@@ -6,3 +6,20 @@ SPEC_SEGMENTS:
       - households
     spec: summarize.csv
     output: summaries
+
+SLICERS:
+  persons_merged:
+    income:
+      id: income_category
+      bins:
+        - 0
+        - 25000
+        - 50000
+        - 75000
+        - 100000
+      labels:
+        - Very Low Income ($0-$25k)
+        - Low Income ($25k-$50k)
+        - Medium Income ($50k-$75k)
+        - High Income ($75k-$100k)
+        - Very High Income (>$100k)

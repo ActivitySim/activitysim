@@ -1,8 +1,81 @@
-SPEC_SEGMENTS:
-  - tables: 
-      - trips
-      - persons
-      - tours
-      - households
-    spec: summarize.csv
-    output: summaries
+TABLES:
+
+  persons_merged:
+    SLICERS:
+      - column: income
+        label: income_category
+        bins:
+          - 0
+          - 25000
+          - 50000
+          - 75000
+          - 100000
+          - 999999
+        bin_labels:
+          - Very Low Income ($0-$25k)
+          - Low Income ($25k-$50k)
+          - Medium Income ($50k-$75k)
+          - High Income ($75k-$100k)
+          - Very High Income (>$100k)
+
+  trips_merged:
+    SPECIFICATION: summarize_trips.csv
+    SLICERS:
+    AGGREGATE:
+      - column: trip_mode
+        label: major_trip_mode
+        map:
+          DRIVEALONEFREE: SOV
+          DRIVEALONEPAY: SOV
+          SHARED2FREE: HOV
+          SHARED2PAY: HOV
+          SHARED3FREE: HOV
+          SHARED3PAY: HOV
+          WALK_LOC: Transit
+          WALK_LRF: Transit
+          WALK_EXP: Transit
+          WALK_HVY: Transit
+          WALK_COM: Transit
+          DRIVE_LOC: Transit
+          DRIVE_LRF: Transit
+          DRIVE_EXP: Transit
+          DRIVE_HVY: Transit
+          DRIVE_COM: Transit
+          DRIVEACCESS: Transit
+          WALK: Non-Motorized
+          BIKE: Non-Motorized
+          TAXI: Ride Hail
+          TNC_SINGLE: Ride Hail
+          TNC_SHARED: Ride Hail
+      - column: trip_mode
+        label: major_access_trip_mode
+        map:
+          DRIVEALONEFREE: SOV
+          DRIVEALONEPAY: SOV
+          SHARED2FREE: HOV
+          SHARED2PAY: HOV
+          SHARED3FREE: HOV
+          SHARED3PAY: HOV
+          WALK_LOC: Walk to Transit
+          WALK_LRF: Walk to Transit
+          WALK_EXP: Walk to Transit
+          WALK_HVY: Walk to Transit
+          WALK_COM: Walk to Transit
+          DRIVE_LOC: Drive to Transit
+          DRIVE_LRF: Drive to Transit
+          DRIVE_EXP: Drive to Transit
+          DRIVE_HVY: Drive to Transit
+          DRIVE_COM: Drive to Transit
+          WALK: Non-Motorized
+          BIKE: Non-Motorized
+          TAXI: Ride Hail
+          TNC_SINGLE: Ride Hail
+          TNC_SHARED: Ride Hail
+  tours_merged:
+    SPECIFICATION: summarize_tours.csv
+    SLICERS:
+    OUTPUT:
+
+OUTPUT: summarize
+
+SLICERS:

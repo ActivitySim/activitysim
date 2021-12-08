@@ -1,6 +1,11 @@
 SPECIFICATION: summarize.csv
 OUTPUT: summarize
 
+preprocessor:
+  DF: trips_mergerd
+  SPEC: summarize_preprocessor.csv
+#  TABLES:
+
 persons_merged:
   SLICERS:
     - column: income

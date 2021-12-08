@@ -5,6 +5,7 @@ import logging
 import pandas as pd
 
 from activitysim.core import pipeline
+from activitysim.core import expressions
 from activitysim.core import inject
 from activitysim.core import config
 
@@ -21,14 +22,14 @@ def wrap_skims(network_los, trips_merged):
     trips_merged['trip_period'] = network_los.skim_time_period_label(trips_merged['depart'])
 
     odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='origin_tour', dest_key='destination_tour',
-                                               dim3_key='start_tour_period').set_df(trips_merged)
+                                               dim3_key='start_tour_period')#.set_df(trips_merged)
     dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='destination_tour', dest_key='origin_tour',
-                                               dim3_key='end_tour_period').set_df(trips_merged)
+                                               dim3_key='end_tour_period')#.set_df(trips_merged)
     odr_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='origin_trip', dest_key='destination_trip',
-                                               dim3_key='trip_period').set_df(trips_merged)
+                                               dim3_key='trip_period')#.set_df(trips_merged)
 
-    od_skim_stack_wrapper = skim_dict.wrap('origin_tour', 'destination_tour').set_df(trips_merged)
-    od_trip_skim_stack_wrapper = skim_dict.wrap('origin_trip', 'destination_trip').set_df(trips_merged)
+    od_skim_stack_wrapper = skim_dict.wrap('origin_tour', 'destination_tour')#.set_df(trips_merged)
+    od_trip_skim_stack_wrapper = skim_dict.wrap('origin_trip', 'destination_trip')#.set_df(trips_merged)
 
     return {
         "tour_odt_skims": odt_skim_stack_wrapper,
@@ -92,7 +93,11 @@ def summarize(network_los, persons_merged, trips, tours_merged):
 
         # locals_d['persons'] = inject.get_table('persons_merged', None).to_frame()
 
-    locals_d.update(wrap_skims(network_los,trips_merged))
+    skims = wrap_skims(network_los,trips_merged)
+
+    expressions.annotate_preprocessors(trips_merged, locals_d, skims, model_settings, 'summarize')
+
+    locals_d.update(skims)
 
     for i, row in spec.iterrows():
 

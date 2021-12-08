@@ -1,0 +1,14 @@
+Description,Target,Expression
+,_sov_dist,trip_odt_skims['SOV_DIST']
+,_hov2_dist,trip_odt_skims['HOV2_DIST']
+,_hov3_dist,trip_odt_skims['HOV3_DIST']
+,_sovtoll_dist,trip_odt_skims['SOVTOLL_DIST']
+,_hov2toll_dist,trip_odt_skims['HOV2TOLL_DIST']
+,_hov3toll_dist,trip_odt_skims['HOV3TOLL_DIST']
+,_sov_mode,trips_merged['trip_mode'] == 'DRIVEALONEFREE'
+,_hov2_mode,trips_merged['trip_mode'] == 'SHARED2FREE'
+,_hov3_mode,trips_merged['trip_mode'] == 'SHARED3FREE'
+,_sovtoll_mode,trips_merged['trip_mode'] == 'DRIVEALONEPAY'
+,_hov2toll_mode,trips_merged['trip_mode'] == 'SHARED2PAY'
+,_hov3toll_mode,trips_merged['trip_mode'] == 'SHARED3PAY'
+,trip_distance,_sov_mode * _sov_dist + _hov2_mode * _hov2_dist + _hov3_mode * _hov3_dist + _sovtoll_mode * _sovtoll_dist + _hov2toll_mode * _hov2toll_dist + _hov3toll_mode * _hov3toll_dist

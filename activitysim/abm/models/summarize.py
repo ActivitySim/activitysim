@@ -83,7 +83,7 @@ def summarize(network_los, persons_merged, trips, tours_merged):
 
         if 'SLICERS' in meta and meta['SLICERS']:
             for slicer in meta['SLICERS']:
-                df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bins'],
+                df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bin_breaks'],
                                              labels=slicer['bin_labels'], include_lowest=True)
 
         # Get merged trips and annotate them

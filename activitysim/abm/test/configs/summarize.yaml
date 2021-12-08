@@ -10,7 +10,7 @@ persons_merged:
   SLICERS:
     - column: income
       label: income_category
-      bins:
+      bin_breaks:
         - 0
         - 25000
         - 50000

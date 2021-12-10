@@ -82,6 +82,31 @@ Description,Target,Expression
 ,_drv_loc_wlk_dtim,trip_odt_skims['DRV_LOC_WLK_DTIM']/100
 ,_drv_lrf_wlk_dtim,trip_odt_skims['DRV_LRF_WLK_DTIM']/100
 
+# Vehicle tolls
+# Bridge toll
+,_sov_btoll,trip_odt_skims['SOV_BTOLL']
+,_sovtoll_btoll,trip_odt_skims['SOVTOLL_BTOLL']
+,_hov2_btoll,trip_odt_skims['HOV2_BTOLL']
+,_hov2toll_btoll,trip_odt_skims['HOV2TOLL_BTOLL']
+,_hov3_btoll,trip_odt_skims['HOV3_BTOLL']
+,_hov3toll_btoll,trip_odt_skims['HOV3TOLL_BTOLL']
+# Value toll
+,_hov2toll_vtoll,trip_odt_skims['HOV2TOLL_VTOLL']
+,_sovtoll_vtoll,trip_odt_skims['SOVTOLL_VTOLL']
+,_hov3toll_vtoll,trip_odt_skims['HOV3TOLL_VTOLL']
+
+# Transit fares
+,_drv_com_wlk_far,trip_odt_skims['DRV_COM_WLK_FAR']
+,_drv_exp_wlk_far,trip_odt_skims['DRV_EXP_WLK_FAR']
+,_drv_hvy_wlk_far,trip_odt_skims['DRV_HVY_WLK_FAR']
+,_drv_loc_wlk_far,trip_odt_skims['DRV_LOC_WLK_FAR']
+,_drv_lrf_wlk_far,trip_odt_skims['DRV_LRF_WLK_FAR']
+,_wlk_com_wlk_far,trip_odt_skims['WLK_COM_WLK_FAR']
+,_wlk_exp_wlk_far,trip_odt_skims['WLK_EXP_WLK_FAR']
+,_wlk_hvy_wlk_far,trip_odt_skims['WLK_HVY_WLK_FAR']
+,_wlk_loc_wlk_far,trip_odt_skims['WLK_LOC_WLK_FAR']
+,_wlk_lrf_wlk_far,trip_odt_skims['WLK_LRF_WLK_FAR']
+
 # Transit distance (miles x 100)
 # Drive access/eggress distance (DDIST)
 ,_drv_com_wlk_ddist,trip_odt_skims['DRV_COM_WLK_DDIST']/100
@@ -133,3 +158,5 @@ Description,Target,Expression
 ,bike_distance,_bike_mode * _bike_dist
 
 # Trip Cost
+,_fare_cost,(_drive_com_mode * _drv_com_wlk_far) + (_drive_exp_mode * _drv_exp_wlk_far) + (_drive_hvy_mode * _drv_hvy_wlk_far) + (_drive_loc_mode * _drv_loc_wlk_far) + (_drive_lrf_mode * _drv_lrf_wlk_far) + (_walk_com_mode * _wlk_com_wlk_far) + (_walk_exp_mode * _wlk_exp_wlk_far) + (_walk_hvy_mode * _wlk_hvy_wlk_far) + (_walk_loc_mode * _wlk_loc_wlk_far) + (_walk_lrf_mode * _wlk_lrf_wlk_far)
+#,_toll_cost

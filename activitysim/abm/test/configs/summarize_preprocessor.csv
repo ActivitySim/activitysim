@@ -96,11 +96,11 @@ Description,Target,Expression
 ,_drive_hvy_mode,trips_merged['trip_mode'] == 'DRIVE_HVY'
 ,_drive_loc_mode,trips_merged['trip_mode'] == 'DRIVE_LOC'
 ,_drive_lrf_mode,trips_merged['trip_mode'] == 'DRIVE_LRF'
-,_walk_com,_modetrips_merged['trip_mode'] == 'WALK_COM'
-,_walk_exp,_modetrips_merged['trip_mode'] == 'WALK_EXP'
-,_walk_hvy,_modetrips_merged['trip_mode'] == 'WALK_HVY'
-,_walk_loc,_modetrips_merged['trip_mode'] == 'WALK_LOC'
-,_walk_lrf,_modetrips_merged['trip_mode'] == 'WALK_LRF'
+,_walk_com_mode,trips_merged['trip_mode'] == 'WALK_COM'
+,_walk_exp_mode,trips_merged['trip_mode'] == 'WALK_EXP'
+,_walk_hvy_mode,trips_merged['trip_mode'] == 'WALK_HVY'
+,_walk_loc_mode,trips_merged['trip_mode'] == 'WALK_LOC'
+,_walk_lrf_mode,trips_merged['trip_mode'] == 'WALK_LRF'
 
 # Bike mode
 ,_bike_mode,trips_merged['trip_mode'] == 'BIKE'

@@ -12,6 +12,14 @@ Description,Target,Expression
 ,_hov2toll_dist,trip_odt_skims['HOV2TOLL_DIST']
 ,_hov3toll_dist,trip_odt_skims['HOV3TOLL_DIST']
 
+# Vehicle time
+,_sov_time,trip_odt_skims['SOV_TIME']
+,_hov2_time,trip_odt_skims['HOV2_TIME']
+,_hov3_time,trip_odt_skims['HOV3_TIME']
+,_sovtoll_time,trip_odt_skims['SOVTOLL_TIME']
+,_hov2toll_time,trip_odt_skims['HOV2TOLL_TIME']
+,_hov3toll_time,trip_odt_skims['HOV3TOLL_TIME']
+
 # Bike distance
 ,_bike_dist,trip_od_skims['DISTBIKE']
 
@@ -20,67 +28,67 @@ Description,Target,Expression
 
 # Transit time (minutes x 100)
 # Total in-vehicle time (TOTIVT)
-,_drv_com_wlk_totivt,trip_odt_skims['DRV_COM_WLK_TOTIVT']
-,_drv_exp_wlk_totivt,trip_odt_skims['DRV_EXP_WLK_TOTIVT']
-,_drv_hvy_wlk_totivt,trip_odt_skims['DRV_HVY_WLK_TOTIVT']
-,_drv_loc_wlk_totivt,trip_odt_skims['DRV_LOC_WLK_TOTIVT']
-,_drv_lrf_wlk_totivt,trip_odt_skims['DRV_LRF_WLK_TOTIVT']
-,_wlk_com_wlk_totivt,trip_odt_skims['WLK_COM_WLK_TOTIVT']
-,_wlk_exp_wlk_totivt,trip_odt_skims['WLK_EXP_WLK_TOTIVT']
-,_wlk_hvy_wlk_totivt,trip_odt_skims['WLK_HVY_WLK_TOTIVT']
-,_wlk_loc_wlk_totivt,trip_odt_skims['WLK_LOC_WLK_TOTIVT']
-,_wlk_lrf_wlk_totivt,trip_odt_skims['WLK_LRF_WLK_TOTIVT']
+,_drv_com_wlk_totivt,trip_odt_skims['DRV_COM_WLK_TOTIVT']/100
+,_drv_exp_wlk_totivt,trip_odt_skims['DRV_EXP_WLK_TOTIVT']/100
+,_drv_hvy_wlk_totivt,trip_odt_skims['DRV_HVY_WLK_TOTIVT']/100
+,_drv_loc_wlk_totivt,trip_odt_skims['DRV_LOC_WLK_TOTIVT']/100
+,_drv_lrf_wlk_totivt,trip_odt_skims['DRV_LRF_WLK_TOTIVT']/100
+,_wlk_com_wlk_totivt,trip_odt_skims['WLK_COM_WLK_TOTIVT']/100
+,_wlk_exp_wlk_totivt,trip_odt_skims['WLK_EXP_WLK_TOTIVT']/100
+,_wlk_hvy_wlk_totivt,trip_odt_skims['WLK_HVY_WLK_TOTIVT']/100
+,_wlk_loc_wlk_totivt,trip_odt_skims['WLK_LOC_WLK_TOTIVT']/100
+,_wlk_lrf_wlk_totivt,trip_odt_skims['WLK_LRF_WLK_TOTIVT']/100
 
 # Initial wait time (IWAIT)
-,_drv_com_wlk_iwait,trip_odt_skims['DRV_COM_WLK_IWAIT']
-,_drv_exp_wlk_iwait,trip_odt_skims['DRV_EXP_WLK_IWAIT']
-,_drv_hvy_wlk_iwait,trip_odt_skims['DRV_HVY_WLK_IWAIT']
-,_drv_loc_wlk_iwait,trip_odt_skims['DRV_LOC_WLK_IWAIT']
-,_drv_lrf_wlk_iwait,trip_odt_skims['DRV_LRF_WLK_IWAIT']
-,_wlk_com_wlk_iwait,trip_odt_skims['WLK_COM_WLK_IWAIT']
-,_wlk_exp_wlk_iwait,trip_odt_skims['WLK_EXP_WLK_IWAIT']
-,_wlk_hvy_wlk_iwait,trip_odt_skims['WLK_HVY_WLK_IWAIT']
-,_wlk_loc_wlk_iwait,trip_odt_skims['WLK_LOC_WLK_IWAIT']
-,_wlk_lrf_wlk_iwait,trip_odt_skims['WLK_LRF_WLK_IWAIT']
+,_drv_com_wlk_iwait,trip_odt_skims['DRV_COM_WLK_IWAIT']/100
+,_drv_exp_wlk_iwait,trip_odt_skims['DRV_EXP_WLK_IWAIT']/100
+,_drv_hvy_wlk_iwait,trip_odt_skims['DRV_HVY_WLK_IWAIT']/100
+,_drv_loc_wlk_iwait,trip_odt_skims['DRV_LOC_WLK_IWAIT']/100
+,_drv_lrf_wlk_iwait,trip_odt_skims['DRV_LRF_WLK_IWAIT']/100
+,_wlk_com_wlk_iwait,trip_odt_skims['WLK_COM_WLK_IWAIT']/100
+,_wlk_exp_wlk_iwait,trip_odt_skims['WLK_EXP_WLK_IWAIT']/100
+,_wlk_hvy_wlk_iwait,trip_odt_skims['WLK_HVY_WLK_IWAIT']/100
+,_wlk_loc_wlk_iwait,trip_odt_skims['WLK_LOC_WLK_IWAIT']/100
+,_wlk_lrf_wlk_iwait,trip_odt_skims['WLK_LRF_WLK_IWAIT']/100
 
 # Transfer wait time (XWAIT)
-,_drv_com_wlk_xwait,trip_odt_skims['DRV_COM_WLK_XWAIT']
-,_drv_exp_wlk_xwait,trip_odt_skims['DRV_EXP_WLK_XWAIT']
-,_drv_hvy_wlk_xwait,trip_odt_skims['DRV_HVY_WLK_XWAIT']
-,_drv_loc_wlk_xwait,trip_odt_skims['DRV_LOC_WLK_XWAIT']
-,_drv_lrf_wlk_xwait,trip_odt_skims['DRV_LRF_WLK_XWAIT']
-,_wlk_com_wlk_xwait,trip_odt_skims['WLK_COM_WLK_XWAIT']
-,_wlk_exp_wlk_xwait,trip_odt_skims['WLK_EXP_WLK_XWAIT']
-,_wlk_hvy_wlk_xwait,trip_odt_skims['WLK_HVY_WLK_XWAIT']
-,_wlk_loc_wlk_xwait,trip_odt_skims['WLK_LOC_WLK_XWAIT']
-,_wlk_lrf_wlk_xwait,trip_odt_skims['WLK_LRF_WLK_XWAIT']
+,_drv_com_wlk_xwait,trip_odt_skims['DRV_COM_WLK_XWAIT']/100
+,_drv_exp_wlk_xwait,trip_odt_skims['DRV_EXP_WLK_XWAIT']/100
+,_drv_hvy_wlk_xwait,trip_odt_skims['DRV_HVY_WLK_XWAIT']/100
+,_drv_loc_wlk_xwait,trip_odt_skims['DRV_LOC_WLK_XWAIT']/100
+,_drv_lrf_wlk_xwait,trip_odt_skims['DRV_LRF_WLK_XWAIT']/100
+,_wlk_com_wlk_xwait,trip_odt_skims['WLK_COM_WLK_XWAIT']/100
+,_wlk_exp_wlk_xwait,trip_odt_skims['WLK_EXP_WLK_XWAIT']/100
+,_wlk_hvy_wlk_xwait,trip_odt_skims['WLK_HVY_WLK_XWAIT']/100
+,_wlk_loc_wlk_xwait,trip_odt_skims['WLK_LOC_WLK_XWAIT']/100
+,_wlk_lrf_wlk_xwait,trip_odt_skims['WLK_LRF_WLK_XWAIT']/100
 
 # Auxiliary walk time (WAUX)
-,_drv_com_wlk_waux,trip_odt_skims['DRV_COM_WLK_WAUX']
-,_drv_exp_wlk_waux,trip_odt_skims['DRV_EXP_WLK_WAUX']
-,_drv_hvy_wlk_waux,trip_odt_skims['DRV_HVY_WLK_WAUX']
-,_drv_loc_wlk_waux,trip_odt_skims['DRV_LOC_WLK_WAUX']
-,_drv_lrf_wlk_waux,trip_odt_skims['DRV_LRF_WLK_WAUX']
-,_wlk_com_wlk_waux,trip_odt_skims['WLK_COM_WLK_WAUX']
-,_wlk_exp_wlk_waux,trip_odt_skims['WLK_EXP_WLK_WAUX']
-,_wlk_hvy_wlk_waux,trip_odt_skims['WLK_HVY_WLK_WAUX']
-,_wlk_loc_wlk_waux,trip_odt_skims['WLK_LOC_WLK_WAUX']
-,_wlk_lrf_wlk_waux,trip_odt_skims['WLK_LRF_WLK_WAUX']
+,_drv_com_wlk_waux,trip_odt_skims['DRV_COM_WLK_WAUX']/100
+,_drv_exp_wlk_waux,trip_odt_skims['DRV_EXP_WLK_WAUX']/100
+,_drv_hvy_wlk_waux,trip_odt_skims['DRV_HVY_WLK_WAUX']/100
+,_drv_loc_wlk_waux,trip_odt_skims['DRV_LOC_WLK_WAUX']/100
+,_drv_lrf_wlk_waux,trip_odt_skims['DRV_LRF_WLK_WAUX']/100
+,_wlk_com_wlk_waux,trip_odt_skims['WLK_COM_WLK_WAUX']/100
+,_wlk_exp_wlk_waux,trip_odt_skims['WLK_EXP_WLK_WAUX']/100
+,_wlk_hvy_wlk_waux,trip_odt_skims['WLK_HVY_WLK_WAUX']/100
+,_wlk_loc_wlk_waux,trip_odt_skims['WLK_LOC_WLK_WAUX']/100
+,_wlk_lrf_wlk_waux,trip_odt_skims['WLK_LRF_WLK_WAUX']/100
 
 # Drive access/egress time (DTIM)
-,_drv_com_wlk_dtim,trip_odt_skims['DRV_COM_WLK_DTIM']
-,_drv_exp_wlk_dtim,trip_odt_skims['DRV_EXP_WLK_DTIM']
-,_drv_hvy_wlk_dtim,trip_odt_skims['DRV_HVY_WLK_DTIM']
-,_drv_loc_wlk_dtim,trip_odt_skims['DRV_LOC_WLK_DTIM']
-,_drv_lrf_wlk_dtim,trip_odt_skims['DRV_LRF_WLK_DTIM']
+,_drv_com_wlk_dtim,trip_odt_skims['DRV_COM_WLK_DTIM']/100
+,_drv_exp_wlk_dtim,trip_odt_skims['DRV_EXP_WLK_DTIM']/100
+,_drv_hvy_wlk_dtim,trip_odt_skims['DRV_HVY_WLK_DTIM']/100
+,_drv_loc_wlk_dtim,trip_odt_skims['DRV_LOC_WLK_DTIM']/100
+,_drv_lrf_wlk_dtim,trip_odt_skims['DRV_LRF_WLK_DTIM']/100
 
 # Transit distance (miles x 100)
 # Drive access/eggress distance (DDIST)
-,_drv_com_wlk_ddist,trip_odt_skims['DRV_COM_WLK_DDIST']
-,_drv_exp_wlk_ddist,trip_odt_skims['DRV_EXP_WLK_DDIST']
-,_drv_hvy_wlk_ddist,trip_odt_skims['DRV_HVY_WLK_DDIST']
-,_drv_loc_wlk_ddist,trip_odt_skims['DRV_LOC_WLK_DDIST']
-,_drv_lrf_wlk_ddist,trip_odt_skims['DRV_LRF_WLK_DDIST']
+,_drv_com_wlk_ddist,trip_odt_skims['DRV_COM_WLK_DDIST']/100
+,_drv_exp_wlk_ddist,trip_odt_skims['DRV_EXP_WLK_DDIST']/100
+,_drv_hvy_wlk_ddist,trip_odt_skims['DRV_HVY_WLK_DDIST']/100
+,_drv_loc_wlk_ddist,trip_odt_skims['DRV_LOC_WLK_DDIST']/100
+,_drv_lrf_wlk_ddist,trip_odt_skims['DRV_LRF_WLK_DDIST']/100
 
 # Vehicle mode
 ,_sov_mode,trips_merged['trip_mode'] == 'DRIVEALONEFREE'
@@ -108,7 +116,16 @@ Description,Target,Expression
 # Walk mode
 ,_walk_mode,trips_merged['trip_mode'] == 'WALK'
 
-# Trip Distances
-,vehicle_trip_distance,_sov_mode * _sov_dist + _hov2_mode * _hov2_dist + _hov3_mode * _hov3_dist + _sovtoll_mode * _sovtoll_dist + _hov2toll_mode * _hov2toll_dist + _hov3toll_mode * _hov3toll_dist + _drive_com_mode * _drv_com_wlk_ddist + _drive_exp_mode * _drv_exp_wlk_ddist + _drive_hvy_mode * _drv_hvy_wlk_ddist + _drive_loc_mode * _drv_loc_wlk_ddist + _drive_lrf_mode * _drv_lrf_wlk_ddist
-,bike_trip_distance,_bike_mode * _bike_dist
-,walk_trip_distance,_walk_mode * _walk_dist
+# Trip Time
+,_transit_in_vehicle_time,(_drive_com_mode * _drv_com_wlk_totivt) + (_drive_exp_mode * _drv_exp_wlk_totivt) + (_drive_hvy_mode * _drv_hvy_wlk_totivt) + (_drive_loc_mode * _drv_loc_wlk_totivt) + (_drive_lrf_mode * _drv_lrf_wlk_totivt) + (_walk_com_mode * _wlk_com_wlk_totivt) + (_walk_exp_mode * _wlk_exp_wlk_totivt) + (_walk_hvy_mode * _wlk_hvy_wlk_totivt) + (_walk_loc_mode * _wlk_loc_wlk_totivt) + (_walk_lrf_mode * _wlk_lrf_wlk_totivt)
+,_transit_initial_wait_time,(_drive_com_mode * _drv_com_wlk_iwait) + (_drive_exp_mode * _drv_exp_wlk_iwait) + (_drive_hvy_mode * _drv_hvy_wlk_iwait) + (_drive_loc_mode * _drv_loc_wlk_iwait) + (_drive_lrf_mode * _drv_lrf_wlk_iwait) + (_walk_com_mode * _wlk_com_wlk_iwait) + (_walk_exp_mode * _wlk_exp_wlk_iwait) + (_walk_hvy_mode * _wlk_hvy_wlk_iwait) + (_walk_loc_mode * _wlk_loc_wlk_iwait) + (_walk_lrf_mode * _wlk_lrf_wlk_iwait)
+,_transit_transfer_wait_time,(_drive_com_mode * _drv_com_wlk_xwait) + (_drive_exp_mode * _drv_exp_wlk_xwait) + (_drive_hvy_mode * _drv_hvy_wlk_xwait) + (_drive_loc_mode * _drv_loc_wlk_xwait) + (_drive_lrf_mode * _drv_lrf_wlk_xwait) + (_walk_com_mode * _wlk_com_wlk_xwait) + (_walk_exp_mode * _wlk_exp_wlk_xwait) + (_walk_hvy_mode * _wlk_hvy_wlk_xwait) + (_walk_loc_mode * _wlk_loc_wlk_xwait) + (_walk_lrf_mode * _wlk_lrf_wlk_xwait)
+,_transit_drive_time,_drive_com_mode * _drv_com_wlk_dtim + _drive_exp_mode * _drv_exp_wlk_dtim + _drive_hvy_mode * _drv_hvy_wlk_dtim + _drive_loc_mode * _drv_loc_wlk_dtim + _drive_lrf_mode * _drv_lrf_wlk_dtim
+,_transit_walk_time,_drive_com_mode * _drv_com_wlk_waux + _drive_exp_mode * _drv_exp_wlk_waux + _drive_hvy_mode * _drv_hvy_wlk_waux + _drive_loc_mode * _drv_loc_wlk_waux + _drive_lrf_mode * _drv_lrf_wlk_waux + _walk_com_mode * _wlk_com_wlk_waux + _walk_exp_mode * _wlk_exp_wlk_waux + _walk_hvy_mode * _wlk_hvy_wlk_waux + _walk_loc_mode * _wlk_loc_wlk_waux + _walk_lrf_mode * _wlk_lrf_wlk_waux
+
+# Trip Distance
+,vehicle_distance,_sov_mode * _sov_dist + _hov2_mode * _hov2_dist + _hov3_mode * _hov3_dist + _sovtoll_mode * _sovtoll_dist + _hov2toll_mode * _hov2toll_dist + _hov3toll_mode * _hov3toll_dist + _drive_com_mode * _drv_com_wlk_ddist + _drive_exp_mode * _drv_exp_wlk_ddist + _drive_hvy_mode * _drv_hvy_wlk_ddist + _drive_loc_mode * _drv_loc_wlk_ddist + _drive_lrf_mode * _drv_lrf_wlk_ddist
+,walk_distance,(_walk_mode * _walk_dist) + (_transit_walk_time / 60 * _WALK_SPEED)
+,bike_distance,_bike_mode * _bike_dist
+
+# Trip Cost

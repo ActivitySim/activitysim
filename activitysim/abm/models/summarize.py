@@ -21,22 +21,22 @@ def wrap_skims(network_los, trips_merged):
     trips_merged['end_tour_period'] = network_los.skim_time_period_label(trips_merged['end'])
     trips_merged['trip_period'] = network_los.skim_time_period_label(trips_merged['depart'])
 
-    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='origin_tour', dest_key='destination_tour',
-                                               dim3_key='start_tour_period')#.set_df(trips_merged)
-    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='destination_tour', dest_key='origin_tour',
-                                               dim3_key='end_tour_period')#.set_df(trips_merged)
-    odr_skim_stack_wrapper = skim_dict.wrap_3d(orig_key='origin_trip', dest_key='destination_trip',
-                                               dim3_key='trip_period')#.set_df(trips_merged)
+    tour_odt_skim_stack_wrapper = skim_dict.wrap_3d(
+        orig_key='origin_tour', dest_key='destination_tour', dim3_key='start_tour_period')
+    tour_dot_skim_stack_wrapper = skim_dict.wrap_3d(
+        orig_key='destination_tour', dest_key='origin_tour', dim3_key='end_tour_period')
+    trip_odt_skim_stack_wrapper = skim_dict.wrap_3d(
+        orig_key='origin_trip', dest_key='destination_trip', dim3_key='trip_period')
 
-    od_skim_stack_wrapper = skim_dict.wrap('origin_tour', 'destination_tour')#.set_df(trips_merged)
-    od_trip_skim_stack_wrapper = skim_dict.wrap('origin_trip', 'destination_trip')#.set_df(trips_merged)
+    tour_od_skim_stack_wrapper = skim_dict.wrap('origin_tour', 'destination_tour')
+    trip_od_skim_stack_wrapper = skim_dict.wrap('origin_trip', 'destination_trip')
 
     return {
-        "tour_odt_skims": odt_skim_stack_wrapper,
-        "tour_dot_skims": dot_skim_stack_wrapper,
-        "trip_odt_skims": odr_skim_stack_wrapper,
-        "tour_od_skims": od_skim_stack_wrapper,
-        "trip_od_skims": od_trip_skim_stack_wrapper
+        "tour_odt_skims": tour_odt_skim_stack_wrapper,
+        "tour_dot_skims": tour_dot_skim_stack_wrapper,
+        "trip_odt_skims": trip_odt_skim_stack_wrapper,
+        "tour_od_skims": tour_od_skim_stack_wrapper,
+        "trip_od_skims": trip_od_skim_stack_wrapper,
     }
 
 @inject.step()
@@ -52,7 +52,7 @@ def summarize(network_los, persons_merged, trips, tours_merged):
     output_location = model_settings['OUTPUT'] if 'OUTPUT' in model_settings  else 'summaries'
     os.makedirs(config.output_file_path(output_location), exist_ok=True)
 
-    spec = pd.read_csv(config.config_file_path(model_settings['SPECIFICATION']))
+    spec = pd.read_csv(config.config_file_path(model_settings['SPECIFICATION']), comment='#')
 
     persons_merged = persons_merged.to_frame()
     trips = trips.to_frame()

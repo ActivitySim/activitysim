@@ -1,6 +1,6 @@
 Description,Output,Expression
-Total VMT,total_vmt,"trips_merged[['trip_distance']].sum().rename('vmt')"
-VMT per Capita,vmt_per_capita,"pd.Series(trips_merged[['trip_distance']].sum() / len(persons_merged), name='vmt_per_capita')"
+Total VMT,total_vmt,"trips_merged[['vehicle_trip_distance']].sum().rename('vmt')"
+VMT per Capita,vmt_per_capita,"pd.Series(trips_merged[['vehicle_trip_distance']].sum() / len(persons_merged), name='vmt_per_capita')"
 Count Households,households_count,persons_merged[['household_id']].nunique().rename('households')
 Count Persons,persons_count,persons_merged[['household_id']].count().rename('persons')
 Person Tours,person_tours,"trips_merged[['tour_id', 'number_of_participants']].drop_duplicates()[['number_of_participants']].sum().rename('tours')"

@@ -122,6 +122,10 @@ Description,Target,Expression
 ,_transit_transfer_wait_time,(_drive_com_mode * _drv_com_wlk_xwait) + (_drive_exp_mode * _drv_exp_wlk_xwait) + (_drive_hvy_mode * _drv_hvy_wlk_xwait) + (_drive_loc_mode * _drv_loc_wlk_xwait) + (_drive_lrf_mode * _drv_lrf_wlk_xwait) + (_walk_com_mode * _wlk_com_wlk_xwait) + (_walk_exp_mode * _wlk_exp_wlk_xwait) + (_walk_hvy_mode * _wlk_hvy_wlk_xwait) + (_walk_loc_mode * _wlk_loc_wlk_xwait) + (_walk_lrf_mode * _wlk_lrf_wlk_xwait)
 ,_transit_drive_time,_drive_com_mode * _drv_com_wlk_dtim + _drive_exp_mode * _drv_exp_wlk_dtim + _drive_hvy_mode * _drv_hvy_wlk_dtim + _drive_loc_mode * _drv_loc_wlk_dtim + _drive_lrf_mode * _drv_lrf_wlk_dtim
 ,_transit_walk_time,_drive_com_mode * _drv_com_wlk_waux + _drive_exp_mode * _drv_exp_wlk_waux + _drive_hvy_mode * _drv_hvy_wlk_waux + _drive_loc_mode * _drv_loc_wlk_waux + _drive_lrf_mode * _drv_lrf_wlk_waux + _walk_com_mode * _wlk_com_wlk_waux + _walk_exp_mode * _wlk_exp_wlk_waux + _walk_hvy_mode * _wlk_hvy_wlk_waux + _walk_loc_mode * _wlk_loc_wlk_waux + _walk_lrf_mode * _wlk_lrf_wlk_waux
+,vehicle_time,(_sov_mode * _sov_time) + (_hov2_mode * _hov2_time) + (_hov3_mode * _hov3_time) + (_sovtoll_mode * _sovtoll_time) + (_hov2toll_mode * _hov2toll_time) + (_hov3toll_mode * _hov3toll_time) + _transit_drive_time
+,transit_time,_transit_in_vehicle_time + _transit_initial_wait_time + _transit_transfer_wait_time
+,walk_time,(_walk_mode * _walk_dist / _WALK_SPEED * 60) + _transit_walk_time
+,bike_time,_bike_mode * _bike_dist / _BIKE_SPEED * 60
 
 # Trip Distance
 ,vehicle_distance,_sov_mode * _sov_dist + _hov2_mode * _hov2_dist + _hov3_mode * _hov3_dist + _sovtoll_mode * _sovtoll_dist + _hov2toll_mode * _hov2toll_dist + _hov3toll_mode * _hov3toll_dist + _drive_com_mode * _drv_com_wlk_ddist + _drive_exp_mode * _drv_exp_wlk_ddist + _drive_hvy_mode * _drv_hvy_wlk_ddist + _drive_loc_mode * _drv_loc_wlk_ddist + _drive_lrf_mode * _drv_lrf_wlk_ddist

@@ -99,6 +99,10 @@ def summarize(network_los, persons_merged, trips, tours_merged):
 
     locals_d.update(skims)
 
+    # Save merged tables for expression development
+    # locals_d['trips_merged'].to_csv(config.output_file_path(os.path.join(output_location, f'trips_merged.csv')))
+    # locals_d['persons_merged'].to_csv(config.output_file_path(os.path.join(output_location, f'persons_merged.csv')))
+
     for i, row in spec.iterrows():
 
         out_file = row['Output']

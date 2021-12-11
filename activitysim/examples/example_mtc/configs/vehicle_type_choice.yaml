@@ -4,10 +4,12 @@ SPEC: vehicle_type_choice_op2.csv
 COEFFICIENTS: vehicle_type_choice_op2_coefficients.csv
 ALTS: vehicle_type_choice_op2_alternatives.csv
 
-# toggle PROBS_SPEC on/off to run probabilistic second stage
+# comment out this line or delete the file name to toggle
+# on/off the probabilistic second stage
 PROBS_SPEC: vehicle_type_choice_op2_fuel_type_probs.csv
 
 LOGIT_TYPE: MNL
+CHOICE_COL: vehicle_type
 
 combinatorial_alts:
   body_type:

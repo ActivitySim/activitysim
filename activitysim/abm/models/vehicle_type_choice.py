@@ -36,25 +36,48 @@ def vehicle_type_choice(
         vehicles_merged,
         chunk_size,
         trace_hh_id):
-    """Assigns a vehicle type to each vehicle.
+    """Assigns a vehicle type to each vehicle in the `vehicles` table.
 
-    If a dictionary of "combinatorial alts" is not specified in the model .yaml
-    config file, then the model specification .csv file should contain one column
-    of coefficients for each distinct alternative. This format corresponds to
-    ActivitySim's "simple_simulate" format. Otherwise, this model will construct
-    a table of alternatives, at run time, based on all possible combinations of
-    values of the categorical variables enumerated as "combinatorial_alts" in the
-    .yaml config. In this case, the model leverages ActivitySim's
-    "interaction_simulate" model design, in which the model specification .csv has
-    only one column of coefficients, and the utility expressions can turn coefficients
-    on or off based on attributes of either the chooser _or_ the alternative.
+    If a dictionary of "combinatorial alts" is not specified in
+    vehicle_type_choice.yaml config file, then the model specification .csv file
+    should contain one column of coefficients for each distinct alternative. This
+    format corresponds to ActivitySim's :func:`activitysim.core.simulate.simple_simulate`
+    format. Otherwise, this model will construct a table of alternatives, at run time,
+    based on all possible combinations of values of the categorical variables enumerated
+    as "combinatorial_alts" in the .yaml config. In this case, the model leverages
+    ActivitySim's :func:`activitysim.core.interaction_simulate` model design, in which
+    the model specification .csv has only one column of coefficients, and the utility
+    expressions can turn coefficients on or off based on attributes of either
+    the chooser _or_ the alternative.
 
-    The user may also specify a "PROBS_SPEC" .csv file containing a lookup table of
-    additional vehicle attributes and probabilities to be sampled and assigned to vehicles
-    after the logit choices have been made. The rows of the "PROBS_SPEC" file must be
-    indexed on the vehicle type choices assigned in the logit model.
+    As an optional second step, the user may also specify a "PROBS_SPEC" .csv file in
+    the main .yaml config, corresponding to a lookup table of additional vehicle
+    attributes and probabilities to be sampled and assigned to vehicles after the logit
+    choices have been made. The rows of the "PROBS_SPEC" file must be indexed on the
+    vehicle type choices assigned in the logit model. These additional attributes are
+    concatenated with the selected alternative from the logit model to form a single
+    vehicle type name to be stored in the `vehicles` table as the column specified as 
+    "CHOICE_COL" in the .yaml config.
+
+    The user may also augment the `households` or `persons` tables with new vehicle
+    type-based fields specified via expressions in "annotate_households_vehicle_type.csv"
+    and "annotate_persons_vehicle_type.csv", respectively. 
+
+
+    Parameters
+    ----------
+    persons : orca.DataFrameWrapper
+    households : orca.DataFrameWrapper
+    vehicles : orca.DataFrameWrapper
+    vehicles_merged : orca.DataFrameWrapper
+    chunk_size : orca.injectable
+    trace_hh_id : orca.injectable
+
+    Returns
+    -------
+    
     """
-    trace_label = 'vehicle_choice'
+    trace_label = 'vehicle_type_choice'
     model_settings_file_name = 'vehicle_type_choice.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -68,14 +91,13 @@ def vehicle_type_choice(
             list(itertools.product(*alts_cats_dict.values())),
             columns=alts_cats_dict.keys())
         alts_wide = pd.get_dummies(alts_long)  # rows will sum to num_cats
-
         # store alts in primary configs dir
         configs_dirs = inject.get_injectable("configs_dir")
         configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
         alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=False)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
-    choice_column_name = 'vehicle_type'
+    choice_column_name = model_settings.get("CHOICE_COL", 'vehicle_type')
 
     estimator = estimation.manager.begin_estimation('vehicle_type')
 
@@ -203,7 +225,7 @@ def vehicle_type_choice(
 
     if estimator:
         estimator.write_choices(choices)
-        choices = estimator.get_survey_values(choices, 'households', 'vehicle_choice')
+        choices = estimator.get_survey_values(choices, 'households', 'vehicle_type_choice')
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
@@ -228,9 +250,9 @@ def vehicle_type_choice(
         trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
     pipeline.replace_table("persons", persons)
 
-    tracing.print_summary('vehicle_choice', vehicles.vehicle_type, value_counts=True)
+    tracing.print_summary('vehicle_type_choice', vehicles.vehicle_type, value_counts=True)
 
     if trace_hh_id:
         tracing.trace_df(vehicles,
-                         label='vehicle_choice',
+                         label='vehicle_type_choice',
                          warn_if_empty=True)

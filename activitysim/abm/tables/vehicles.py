@@ -9,6 +9,19 @@ logger = logging.getLogger(__name__)
 
 @inject.table()
 def vehicles(households):
+    """ Creates the vehicles table and load it as an injectable
+
+    This method initializes the `vehicles` table, where the number of rows
+    is equal to the sum of `households["auto_ownership"]`.
+
+    Parameters
+    ----------
+    households :  orca.DataFrameWrapper
+
+    Returns
+    -------
+    vehicles : pandas.DataFrame
+    """
 
     # initialize vehicles table
     vehicles = households.to_frame().loc[
@@ -35,6 +48,17 @@ def vehicles(households):
 
 @inject.table()
 def vehicles_merged(vehicles, households_merged):
+    """ Augments the vehicles table with household attributes
+
+    Parameters
+    ----------
+    vehicles :  orca.DataFrameWrapper
+    households_merged :  orca.DataFrameWrapper
+
+    Returns
+    -------
+    vehicles_merged : pandas.DataFrame
+    """
 
     vehicles_merged = inject.merge_tables(
         vehicles.name, tables=[vehicles, households_merged])

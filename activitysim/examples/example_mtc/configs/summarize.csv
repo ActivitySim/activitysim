@@ -1,18 +1,26 @@
 Description,Output,Expression
-Count Tours,tours_count,pd.Series([len(tours)]).rename('tours')
-Count Trips,trips_count,pd.Series([len(trips)]).rename('trips')
-Count Households,households_count,pd.Series([len(households)]).rename('households')
-Count Persons,persons_count,pd.Series([len(persons)]).rename('persons')
-Count Tours per Household,tours_per_household_count,pd.Series([len(tours) / len(households)]).rename('tours_per_household')
-Count Trips per Household,trips_per_household_count,pd.Series([len(trips) / len(households)]).rename('trips_per_household')
-Total VMT,total_vmt,"pd.Series([trips[trips.trip_mode.isin(['DRIVEALONEFREE', 'SHARED2FREE', 'SHARED3FREE', 'TNC_SHARED', 'TAXI'])].distance.sum()]).rename('vmt')"
-VMT per Capita,vmt_per_capita,"pd.Series([trips[trips.trip_mode.isin(['DRIVEALONEFREE', 'SHARED2FREE', 'SHARED3FREE', 'TNC_SHARED', 'TAXI'])].distance.sum() / len(persons)]).rename('vmt_per_capita')"
-Trips by Mode,trips_by_mode_count,trips.groupby('trip_mode').size().reset_index().set_index('trip_mode').T
-Trips by Purpose,trips_by_purpose_count,trips.groupby('primary_purpose').size().reset_index().set_index('primary_purpose').T
-Trips by Purpose and Time of Day,trip_purpose_by_time_of_day,"trips.groupby(['primary_purpose','depart']).size().reset_index().pivot(index='depart', columns='primary_purpose').droplevel(0, axis=1).reset_index()"
-Work Tour Departure Time,work_tours_tod_count,trips[trips.tour_type == 'work'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
-School Tour Departure Time,school_tours_tod_count,trips[trips.tour_type == 'school'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
-Non-Mandatory Tour Departure Time,non_mandatory_tours_tod_count,trips[trips.tour_category == 'non_mandatory'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
-Tour Mode to Trip Mode,tour_mode_to_trip_mode,"trips.groupby(['tour_mode','trip_mode']).size().rename('trips').reset_index()"
-VMT per Capita by Home TAZ,vmt_per_capita_by_home_taz,"(persons[['home_zone_id']].merge(trips[trips.trip_mode.isin(['DRIVEALONEFREE', 'SHARED2FREE', 'SHARED3FREE', 'TNC_SHARED', 'TAXI'])], left_index=True, right_on='person_id', how='left').groupby('home_zone_id').distance.sum() / persons.groupby('home_zone_id').size()).rename('vmt').reset_index()"
-VMT per Employee by Work TAZ,vmt_per_employee_by_work_taz,"(persons[persons.workplace_zone_id > 0][['workplace_zone_id']].merge(trips[trips.trip_mode.isin(['DRIVEALONEFREE', 'SHARED2FREE', 'SHARED3FREE', 'TNC_SHARED', 'TAXI'])][['person_id','distance']], left_index=True, right_on='person_id', how='left').groupby('workplace_zone_id').distance.sum() / persons[persons.workplace_zone_id > 0].groupby('workplace_zone_id').size()).rename('vmt').reset_index()"
+,total_vmt,"trips_merged[['auto_distance']].sum().rename('vmt')"
+,vmt_per_capita,"pd.Series(trips_merged[['auto_distance']].sum() / len(persons_merged), name='vmt_per_capita')"
+,vmt_per_capita,"pd.Series(trips_merged[['auto_distance']].sum() / len(persons_merged), name='vmt_per_capita')"
+,vmt_per_capita_by_home_taz,(trips_merged.groupby('home_zone_id').auto_distance.sum() / persons_merged.groupby('home_zone_id').size()).fillna(0).rename('vmt_per_capita_by_home_taz').reset_index()
+,vmt_per_capita_by_work_taz,(trips_merged.groupby('workplace_zone_id').auto_distance.sum() / persons_merged[persons_merged.workplace_zone_id > 0].groupby('workplace_zone_id').size()).fillna(0).rename('vmt_per_capita_by_work_taz').reset_index()
+,households_count,persons_merged[['household_id']].nunique().rename('households')
+,persons_count,persons_merged[['household_id']].count().rename('persons')
+,person_tours,"trips_merged[['tour_id', 'number_of_participants']].drop_duplicates()[['number_of_participants']].sum().rename('tours')"
+,person_trips,trips_merged[['number_of_participants']].sum().rename('trips')
+,tours_per_household_count,"pd.Series(trips_merged[['tour_id', 'number_of_participants']].drop_duplicates()['number_of_participants'].sum() / persons_merged['household_id'].nunique(), name='tours_per_household')"
+,trips_per_household_count,"pd.Series(trips_merged['number_of_participants'].sum() / persons_merged['household_id'].nunique(), name='trips_per_household')"
+,trip_by_income_category_major_mode,"pd.merge(trips_merged, persons_merged['income_category'], left_on='person_id', right_index=True).groupby(['income_category', 'major_trip_mode']).size().unstack(-1).reset_index()"
+,trips_by_mode_count,trips_merged.groupby('trip_mode')[['number_of_participants']].sum().T
+,trips_by_major_mode_count,trips_merged.groupby('major_trip_mode')[['number_of_participants']].sum().T
+,trips_by_purpose_count,trips_merged.groupby('primary_purpose_trip')[['number_of_participants']].sum().T
+,trip_purpose_by_time_of_day,"trips_merged.groupby(['depart','primary_purpose_trip'])['number_of_participants'].sum().unstack(-1).reset_index()"
+,tour_mode_to_trip_mode,"trips_merged.groupby(['tour_mode','trip_mode']).size().rename('trips').reset_index()"
+,work_tours_tod_count,"trips_merged[trips_merged['tour_type'] == 'work'][['tour_id', 'start', 'number_of_participants']].drop_duplicates().groupby('start')['number_of_participants'].sum().rename('tours').reset_index()"
+,school_tours_tod_count,"trips_merged[trips_merged['tour_type'] == 'school'][['tour_id', 'start', 'number_of_participants']].drop_duplicates().groupby('start')['number_of_participants'].sum().rename('tours').reset_index()"
+,non_mandatory_tours_tod_count,"trips_merged[trips_merged['tour_category'] == 'non_mandatory'][['tour_id', 'start', 'number_of_participants']].drop_duplicates().groupby('start')['number_of_participants'].sum().rename('tours').reset_index()"
+,work_tours_tod_count,trips_merged[trips_merged.tour_type == 'work'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
+,school_tours_tod_count,trips_merged[trips_merged.tour_type == 'school'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
+,non_mandatory_tours_tod_count,trips_merged[trips_merged.tour_category == 'non_mandatory'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
+
+

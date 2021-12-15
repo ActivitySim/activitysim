@@ -56,12 +56,12 @@ def vehicle_type_choice(
     choices have been made. The rows of the "PROBS_SPEC" file must be indexed on the
     vehicle type choices assigned in the logit model. These additional attributes are
     concatenated with the selected alternative from the logit model to form a single
-    vehicle type name to be stored in the `vehicles` table as the column specified as 
+    vehicle type name to be stored in the `vehicles` table as the column specified as
     "CHOICE_COL" in the .yaml config.
 
     The user may also augment the `households` or `persons` tables with new vehicle
     type-based fields specified via expressions in "annotate_households_vehicle_type.csv"
-    and "annotate_persons_vehicle_type.csv", respectively. 
+    and "annotate_persons_vehicle_type.csv", respectively.
 
 
     Parameters
@@ -75,7 +75,7 @@ def vehicle_type_choice(
 
     Returns
     -------
-    
+
     """
     trace_label = 'vehicle_type_choice'
     model_settings_file_name = 'vehicle_type_choice.yaml'

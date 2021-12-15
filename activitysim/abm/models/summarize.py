@@ -3,6 +3,7 @@
 import os
 import logging
 import pandas as pd
+import numpy as np
 
 from activitysim.core import pipeline
 from activitysim.core import expressions
@@ -38,6 +39,56 @@ def wrap_skims(network_los, trips_merged):
         "tour_od_skims": tour_od_skim_stack_wrapper,
         "trip_od_skims": trip_od_skim_stack_wrapper,
     }
+
+DEFAULT_BIN_LABEL_FORMAT = "{left:,.2f} - {right:,.2f}"
+
+def construct_bin_labels(bins, label_format):
+    left = bins.apply(lambda x: x.left)
+    mid = bins.apply(lambda x: x.mid)
+    right = bins.apply(lambda x: x.right)
+
+    def construct_label(label_format, bounds_dict):
+        # parts = [part for part in ['left', 'right'] if part in label_format]
+        bounds_dict = {x:bound for x, bound in bounds_dict.items() if x in label_format}
+        return label_format.format(**bounds_dict)
+
+    labels = pd.Series(
+        [construct_label(label_format, {'left':l, 'mid':m, 'right':r}) for l,m,r in zip(left, mid, right)],
+        index=bins.index)
+    # Convert to numeric if possible
+    labels = pd.to_numeric(labels, errors='ignore')
+    return labels
+
+def quantiles(data, bins, label_format=DEFAULT_BIN_LABEL_FORMAT):
+    vals = data.sort_values()
+    # qcut a ranking instead of raw values to deal with high frequencies of the same value
+    # (e.g., many 0 values) that may span multiple bins
+    ranks = vals.rank(method='first')
+    bins = pd.qcut(ranks, bins)
+    bins = construct_bin_labels(bins, label_format)
+    return bins
+
+def defined_intervals(data, lower_bound, interval, label_format=DEFAULT_BIN_LABEL_FORMAT):
+    if lower_bound == 'min':
+        lower_bound = data.min()
+    breaks = np.arange(lower_bound, data.max(), interval)
+    bins = pd.cut(data, breaks, include_lowest=True)
+    bins = construct_bin_labels(bins, label_format)
+    return bins
+
+def equal_intervals(data, bins, label_format=DEFAULT_BIN_LABEL_FORMAT):
+    bins = pd.cut(data, bins, include_lowest=True)
+    bins = construct_bin_labels(bins, label_format)
+    return bins
+
+def manual_breaks(data, bin_breaks, labels=DEFAULT_BIN_LABEL_FORMAT):
+    if isinstance(labels, list):
+        return pd.cut(data, bin_breaks, labels=labels, include_lowest=True)
+    else:
+        bins = pd.cut(data, bin_breaks, include_lowest=True)
+        bins = construct_bin_labels(bins, label_format)
+        return bins
+
 
 @inject.step()
 def summarize(network_los, persons_merged, trips, tours_merged):
@@ -83,8 +134,21 @@ def summarize(network_los, persons_merged, trips, tours_merged):
 
         if 'SLICERS' in meta and meta['SLICERS']:
             for slicer in meta['SLICERS']:
-                df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bin_breaks'],
-                                             labels=slicer['bin_labels'], include_lowest=True)
+                if slicer['type'] == 'manual_breaks':
+                    # df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bin_breaks'],
+                    #                              labels=slicer['bin_labels'], include_lowest=True)
+                    df[slicer['label']] = manual_breaks(df[slicer['column']], slicer['bin_breaks'], slicer['bin_labels'])
+
+                elif slicer['type'] == 'quantiles':
+                    df[slicer['label']] = quantiles(df[slicer['column']], slicer['bins'], slicer['label_format'])
+
+                elif slicer['type'] == 'spaced_intervals':
+                    df[slicer['label']] = defined_intervals(df[slicer['column']], slicer['lower_bound'], slicer['interval'], slicer['label_format'])
+
+                elif slicer['type'] == 'equal_intervals':
+                    df[slicer['label']] = equal_intervals(df[slicer['column']], slicer['bins'], slicer['label_format'])
+
+
 
         # Get merged trips and annotate them
         # model_settings = config.read_model_settings('write_trip_matrices.yaml')
@@ -98,6 +162,14 @@ def summarize(network_los, persons_merged, trips, tours_merged):
     expressions.annotate_preprocessors(trips_merged, locals_d, skims, model_settings, 'summarize')
 
     locals_d.update(skims)
+
+
+    locals_d.update(
+        {
+            'quantiles': quantiles,
+            'defined_interavls': defined_intervals,
+        }
+    )
 
     # Save merged tables for expression development
     # locals_d['trips_merged'].to_csv(config.output_file_path(os.path.join(output_location, f'trips_merged.csv')))

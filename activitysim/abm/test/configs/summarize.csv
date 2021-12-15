@@ -23,4 +23,9 @@ Description,Output,Expression
 ,school_tours_tod_count,trips_merged[trips_merged.tour_type == 'school'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
 ,non_mandatory_tours_tod_count,trips_merged[trips_merged.tour_category == 'non_mandatory'].groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
 
+,low_income_share_by_taz_deciles,"quantiles(persons_merged[persons_merged['income'] < 50000].groupby('home_zone_id').size() / persons_merged.groupby('home_zone_id').size(), 10, '{mid}').rename('low_income_share_by_taz_deciles').reset_index()"
+
+,persons_by_income_category,persons_merged.groupby('income_category')[['income_category']].count().T
+
+,vmt_per_capita_by_home_taz_quintiles,"quantiles((trips_merged.groupby('home_zone_id').auto_distance.sum() / trips_merged.groupby('home_zone_id').number_of_participants.sum() / persons_merged.groupby('home_zone_id').size()).fillna(0), 5, '{mid}').rename('vmt_per_capita_by_home_taz_quintiles').reset_index()"
 

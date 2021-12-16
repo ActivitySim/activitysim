@@ -14,7 +14,6 @@ from activitysim.abm.models.trip_matrices import annotate_trips
 
 logger = logging.getLogger(__name__)
 
-
 def wrap_skims(network_los, trips_merged):
     skim_dict = network_los.get_default_skim_dict()
 
@@ -46,6 +45,8 @@ def construct_bin_labels(bins, label_format):
     left = bins.apply(lambda x: x.left)
     mid = bins.apply(lambda x: x.mid)
     right = bins.apply(lambda x: x.right)
+    # Get integer ranks of bins (e.g., 1st, 2nd ... nth quantile)
+    rank = mid.map({x:sorted(mid.unique().tolist()).index(x) + 1 if pd.notnull(x) else np.nan for x in mid.unique()}, na_action='ignore')
 
     def construct_label(label_format, bounds_dict):
         # parts = [part for part in ['left', 'right'] if part in label_format]
@@ -53,7 +54,7 @@ def construct_bin_labels(bins, label_format):
         return label_format.format(**bounds_dict)
 
     labels = pd.Series(
-        [construct_label(label_format, {'left':l, 'mid':m, 'right':r}) for l,m,r in zip(left, mid, right)],
+        [construct_label(label_format, {'left':l, 'mid':m, 'right':r, 'rank':rk}) for l,m,r,rk in zip(left, mid, right, rank)],
         index=bins.index)
     # Convert to numeric if possible
     labels = pd.to_numeric(labels, errors='ignore')
@@ -68,10 +69,10 @@ def quantiles(data, bins, label_format=DEFAULT_BIN_LABEL_FORMAT):
     bins = construct_bin_labels(bins, label_format)
     return bins
 
-def defined_intervals(data, lower_bound, interval, label_format=DEFAULT_BIN_LABEL_FORMAT):
+def spaced_intervals(data, lower_bound, interval, label_format=DEFAULT_BIN_LABEL_FORMAT):
     if lower_bound == 'min':
         lower_bound = data.min()
-    breaks = np.arange(lower_bound, data.max(), interval)
+    breaks = np.arange(lower_bound, data.max() + interval, interval)
     bins = pd.cut(data, breaks, include_lowest=True)
     bins = construct_bin_labels(bins, label_format)
     return bins
@@ -123,6 +124,10 @@ def summarize(network_los, persons_merged, trips, tours_merged):
         'persons_merged': persons_merged
     }
 
+    skims = wrap_skims(network_los, trips_merged)
+
+    expressions.annotate_preprocessors(trips_merged, locals_d, skims, model_settings, 'summarize')
+
     for table_name, df in locals_d.items():
         meta = model_settings[table_name]
         df = eval(table_name)
@@ -143,11 +148,10 @@ def summarize(network_los, persons_merged, trips, tours_merged):
                     df[slicer['label']] = quantiles(df[slicer['column']], slicer['bins'], slicer['label_format'])
 
                 elif slicer['type'] == 'spaced_intervals':
-                    df[slicer['label']] = defined_intervals(df[slicer['column']], slicer['lower_bound'], slicer['interval'], slicer['label_format'])
+                    df[slicer['label']] = spaced_intervals(df[slicer['column']], slicer['lower_bound'], slicer['interval'], slicer['label_format'])
 
                 elif slicer['type'] == 'equal_intervals':
                     df[slicer['label']] = equal_intervals(df[slicer['column']], slicer['bins'], slicer['label_format'])
-
 
 
         # Get merged trips and annotate them
@@ -157,23 +161,25 @@ def summarize(network_los, persons_merged, trips, tours_merged):
 
         # locals_d['persons'] = inject.get_table('persons_merged', None).to_frame()
 
-    skims = wrap_skims(network_los,trips_merged)
-
-    expressions.annotate_preprocessors(trips_merged, locals_d, skims, model_settings, 'summarize')
+    # skims = wrap_skims(network_los,trips_merged)
+    #
+    # expressions.annotate_preprocessors(trips_merged, locals_d, skims, model_settings, 'summarize')
 
     locals_d.update(skims)
 
-
+    # Add classification functions to locals
     locals_d.update(
         {
             'quantiles': quantiles,
-            'defined_interavls': defined_intervals,
+            'spaced_intervals': spaced_intervals,
+            'equal_intervals': equal_intervals,
+            'manual_breaks': manual_breaks,
         }
     )
 
     # Save merged tables for expression development
-    # locals_d['trips_merged'].to_csv(config.output_file_path(os.path.join(output_location, f'trips_merged.csv')))
-    # locals_d['persons_merged'].to_csv(config.output_file_path(os.path.join(output_location, f'persons_merged.csv')))
+    locals_d['trips_merged'].to_csv(config.output_file_path(os.path.join(output_location, f'trips_merged.csv')))
+    locals_d['persons_merged'].to_csv(config.output_file_path(os.path.join(output_location, f'persons_merged.csv')))
 
     for i, row in spec.iterrows():
 

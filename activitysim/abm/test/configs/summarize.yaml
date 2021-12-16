@@ -37,7 +37,7 @@ persons_merged:
     - column: income
       label: income_intervals_10000
       type: spaced_intervals
-      lower_bound: min # can be set to integer
+      lower_bound: min # can be set to float
       interval: 10000
       label_format: ${left:,.2f} - ${right:,.2f} # 'left' and 'right' are bin boundaries
 
@@ -50,6 +50,31 @@ persons_merged:
 
 trips_merged:
   SLICERS:
+    - column: income
+      label: trip_income_category # TODO: Figure out why this can't have the same name as a slicer for persons_merged
+      type: manual_breaks
+      bin_breaks:
+        - 0
+        - 25000
+        - 50000
+        - 75000
+        - 100000
+        - 999999
+      bin_labels:
+        - Very Low Income ($0-$25k)
+        - Low Income ($25k-$50k)
+        - Medium Income ($50k-$75k)
+        - High Income ($75k-$100k)
+        - Very High Income (>$100k)
+
+    - column: total_time
+      label: total_time_category
+      type: spaced_intervals
+      lower_bound: 0 # can be set to float
+      interval: 5
+      label_format: "{left:,.2f} - {right:,.2f}" # 'left' and 'right' are bin boundaries
+
+
   AGGREGATE:
     - column: trip_mode
       label: major_trip_mode

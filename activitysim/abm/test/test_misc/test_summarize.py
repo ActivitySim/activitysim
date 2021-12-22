@@ -33,5 +33,5 @@ def initialize_network_los() -> bool:
 
 
 def test_summarize(initialize_pipeline: pipeline.Pipeline, caplog):
-    caplog.set_level(logging.INFO)
+    caplog.set_level(logging.DEBUG)
     pipeline.run(models=['summarize'])

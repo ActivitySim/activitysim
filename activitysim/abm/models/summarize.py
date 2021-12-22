@@ -239,7 +239,7 @@ def summarize(
         out_file = row['Output']
         expr = row['Expression']
 
-        logger.info(f'Summary: {expr} -> {out_file}.csv')
+        logger.debug(f'Summary: {expr} -> {out_file}.csv')
 
         resultset = eval(expr, globals(), locals_d)
         resultset.to_csv(

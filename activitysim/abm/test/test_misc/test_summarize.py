@@ -1,8 +1,10 @@
+import logging
+
 import pytest
+
 ### import models is necessary to initalize the model steps with orca
 from activitysim.abm import models
 from activitysim.core import pipeline
-import logging
 
 
 # Used by conftest.py initialize_pipeline method
@@ -14,11 +16,13 @@ def module():
 # Used by conftest.py initialize_pipeline method
 @pytest.fixture(scope='module')
 def tables():
-    return {'land_use': 'zone_id',
-            'tours': 'tour_id',
-            'trips': 'trip_id',
-            'persons': 'person_id',
-            'households': 'household_id'}
+    return {
+        'land_use': 'zone_id',
+        'tours': 'tour_id',
+        'trips': 'trip_id',
+        'persons': 'person_id',
+        'households': 'household_id',
+    }
 
 
 # Used by conftest.py initialize_pipeline method

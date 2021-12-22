@@ -10,12 +10,21 @@ from activitysim.core import pipeline
 # Used by conftest.py initialize_pipeline method
 @pytest.fixture(scope='module')
 def module() -> str:
+    """
+    A pytest fixture that returns the data folder location.
+    :return: folder location for any necessary data to initialize the tests
+    """
     return 'summarize'
 
 
 # Used by conftest.py initialize_pipeline method
 @pytest.fixture(scope='module')
 def tables() -> dict[str, str]:
+    """
+    A pytest fixture that returns the "mock" tables to build pipeline dataframes. The
+    key-value pair is the name of the table and the index column.
+    :return: dict
+    """
     return {
         'land_use': 'zone_id',
         'tours': 'tour_id',
@@ -29,6 +38,11 @@ def tables() -> dict[str, str]:
 # Set to true if you need to read skims into the pipeline
 @pytest.fixture(scope='module')
 def initialize_network_los() -> bool:
+    """
+    A pytest boolean fixture indicating whether network skims should be read from the
+    fixtures test data folder.
+    :return: bool
+    """
     return True
 
 

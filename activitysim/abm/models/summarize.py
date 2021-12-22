@@ -75,8 +75,8 @@ def construct_bin_labels(bins: pd.Series, label_format: str) -> pd.Series:
 
     labels = pd.Series(
         [
-            construct_label(label_format, {'left': l, 'mid': m, 'right': r, 'rank': rk})
-            for l, m, r, rk in zip(left, mid, right, rank)
+            construct_label(label_format, {'left': lt, 'mid': md, 'right': rt, 'rank': rk})
+            for lt, md, rt, rk in zip(left, mid, right, rank)
         ],
         index=bins.index,
     )

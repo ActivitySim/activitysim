@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-### import models is necessary to initalize the model steps with orca
+# import models is necessary to initalize the model steps with orca
 from activitysim.abm import models
 from activitysim.core import pipeline
 

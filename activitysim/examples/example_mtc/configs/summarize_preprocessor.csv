@@ -196,6 +196,8 @@ Description,Target,Expression
 ,walk_time,(_walk_mode * _walk_dist / _WALK_SPEED * 60) + _transit_walk_access_time + _transit_walk_aux_time + _transit_walk_egress_time
 # Bike
 ,bike_time,_bike_mode * _bike_dist / _BIKE_SPEED * 60
+# Total
+,total_time,auto_time + transit_vehicle_time + wait_time + walk_time + bike_time
 
 ## Distance
 # Auto

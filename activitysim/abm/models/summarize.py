@@ -11,7 +11,9 @@ from activitysim.core import config, expressions, inject, pipeline
 logger = logging.getLogger(__name__)
 
 
-def wrap_skims(network_los, trips_merged):
+def wrap_skims(
+    network_los: pipeline.Pipeline, trips_merged: pd.DataFrame
+) -> dict[str, object]:
     skim_dict = network_los.get_default_skim_dict()
 
     trips_merged['start_tour_period'] = network_los.skim_time_period_label(
@@ -51,7 +53,7 @@ def wrap_skims(network_los, trips_merged):
 DEFAULT_BIN_LABEL_FORMAT = "{left:,.2f} - {right:,.2f}"
 
 
-def construct_bin_labels(bins, label_format):
+def construct_bin_labels(bins: pd.Series, label_format: str) -> pd.Series:
     left = bins.apply(lambda x: x.left)
     mid = bins.apply(lambda x: x.mid)
     right = bins.apply(lambda x: x.right)
@@ -83,7 +85,9 @@ def construct_bin_labels(bins, label_format):
     return labels
 
 
-def quantiles(data, bins, label_format=DEFAULT_BIN_LABEL_FORMAT):
+def quantiles(
+    data: pd.Series, bins: pd.Series, label_format: str = DEFAULT_BIN_LABEL_FORMAT
+) -> pd.Series:
     vals = data.sort_values()
     # qcut a ranking instead of raw values to deal with high frequencies of the same value
     # (e.g., many 0 values) that may span multiple bins
@@ -94,8 +98,11 @@ def quantiles(data, bins, label_format=DEFAULT_BIN_LABEL_FORMAT):
 
 
 def spaced_intervals(
-    data, lower_bound, interval, label_format=DEFAULT_BIN_LABEL_FORMAT
-):
+    data: pd.Series,
+    lower_bound: str,
+    interval: float,
+    label_format: str = DEFAULT_BIN_LABEL_FORMAT,
+) -> pd.Series:
     if lower_bound == 'min':
         lower_bound = data.min()
     breaks = np.arange(lower_bound, data.max() + interval, interval)
@@ -104,13 +111,17 @@ def spaced_intervals(
     return bins
 
 
-def equal_intervals(data, bins, label_format=DEFAULT_BIN_LABEL_FORMAT):
+def equal_intervals(
+    data: pd.Series, bins: int, label_format: str = DEFAULT_BIN_LABEL_FORMAT
+) -> pd.Series:
     bins = pd.cut(data, bins, include_lowest=True)
     bins = construct_bin_labels(bins, label_format)
     return bins
 
 
-def manual_breaks(data, bin_breaks, labels=DEFAULT_BIN_LABEL_FORMAT):
+def manual_breaks(
+    data, bin_breaks, labels: list = None, label_format=DEFAULT_BIN_LABEL_FORMAT
+) -> pd.Series:
     if isinstance(labels, list):
         return pd.cut(data, bin_breaks, labels=labels, include_lowest=True)
     else:
@@ -120,7 +131,12 @@ def manual_breaks(data, bin_breaks, labels=DEFAULT_BIN_LABEL_FORMAT):
 
 
 @inject.step()
-def summarize(network_los, persons_merged, trips, tours_merged):
+def summarize(
+    network_los: pipeline.Pipeline,
+    persons_merged: pd.DataFrame,
+    trips: pd.DataFrame,
+    tours_merged: pd.DataFrame,
+):
     """
     summarize is a standard model which uses expression files
     to reduce tables
@@ -197,17 +213,6 @@ def summarize(network_los, persons_merged, trips, tours_merged):
                     df[slicer['label']] = equal_intervals(
                         df[slicer['column']], slicer['bins'], slicer['label_format']
                     )
-
-        # Get merged trips and annotate them
-        # model_settings = config.read_model_settings('write_trip_matrices.yaml')
-        # trips = inject.get_table('trips_merged', None)
-        # locals_d['trips_merged'] = annotate_trips(trips, network_los, model_settings)
-
-        # locals_d['persons'] = inject.get_table('persons_merged', None).to_frame()
-
-    # skims = wrap_skims(network_los,trips_merged)
-    #
-    # expressions.annotate_preprocessors(trips_merged, locals_d, skims, model_settings, 'summarize')
 
     locals_d.update(skims)
 

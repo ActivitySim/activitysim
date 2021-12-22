@@ -8,13 +8,12 @@ from activitysim.core.los import Network_LOS as los
 
 
 @pytest.fixture(scope='module')
-def initialize_pipeline(module, tables, initialize_network_los):
+def initialize_pipeline(module: str, tables: dict[str, str], initialize_network_los: bool) -> pipeline.Pipeline:
     # Read in the input test dataframes
     for dataframe_name, idx_name in tables.items():
         df = pd.read_csv(
             os.path.join('data', module, f'{dataframe_name}.csv'), index_col=idx_name
         )
-        # df = df.set_index(f'{id}_id')
         orca.add_table(dataframe_name, df)
 
     if initialize_network_los:

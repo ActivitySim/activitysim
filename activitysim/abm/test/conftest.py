@@ -25,7 +25,6 @@ def initialize_pipeline(module: str, tables: dict[str, str], initialize_network_
             os.mkdir(output_dir)
         orca.add_injectable('output_dir', output_dir)
 
-
     # Read in the input test dataframes
     for dataframe_name, idx_name in tables.items():
         df = pd.read_csv(

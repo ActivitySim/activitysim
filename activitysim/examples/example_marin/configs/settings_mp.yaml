@@ -49,7 +49,6 @@ models:
   - write_data_dictionary
   - track_skim_usage
   - write_tables
-  - write_summaries
 
 multiprocess_steps:
   - name: mp_initialize

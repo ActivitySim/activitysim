@@ -92,7 +92,7 @@ def quantiles(
     # qcut a ranking instead of raw values to deal with high frequencies of the same value
     # (e.g., many 0 values) that may span multiple bins
     ranks = vals.rank(method='first')
-    bins = pd.qcut(ranks, bins)
+    bins = pd.qcut(ranks, bins, duplicates='drop')
     bins = construct_bin_labels(bins, label_format)
     return bins
 

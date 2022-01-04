@@ -72,4 +72,4 @@ _test_est
 *_local/
 *_local.*
 
-activitysim/abm/test/output/
+**/output/

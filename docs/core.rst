@@ -410,6 +410,101 @@ Cache API
 .. automodule:: activitysim.core.pathbuilder_cache
    :members:
 
+.. _visualization:
+
+Visualization
+-------------
+Simwrapper is a standalone software package that creates browser-based, interactive, graphical visualizations of ActivitySim outputs.
+It requires supporting components within the ActivitySim software in order to automatically run several post-processing steps at the
+end of the standard model run.  Once the model run is complete, Simwrapper can be started and stopped at any time to view the outputs
+of individual model runs.  The tool currently allows users to view dashboards for multiple model  runs side-by-side in the browser.
+The ability to compute and visualize the differences between two model runs is a planned future enhancement.
+
+To use Simwrapper, you will need an instance of ActivitySim that contains the following files:
+
+In the configs directory:
+
+* summarize.yaml = configuration for the summarize model step
+* summarize.csv = expression file containing the final aggregations that will be generated at the end of the model run
+* summarize_preprocessor.csv = intermediate expression file used to make trip-level skim summaries available in pipeline tables
+
+In the output directory, a new summarize directory, which must contain:
+
+* dashboard-1-summary.yaml = configuration for the layout and formatting of charts and other objects in the dashboard
+* Additional dashboard-\*.yaml files may be used to configure additional dashboard tabs
+* topsheet.yaml = configuration for calculated statistics in the ‘At-a-Glance’ table at the top of the dashboard
+* The output/summarize directory may also contain one or more .geojson files to support map-based visualizations in the dashboard.
+
+At present, example versions of all of the items above are located in the examples_mtc directory of the develop branch of the
+ActivitySim/activitysim repo on GitHub.
+
+
+Install and Run Simwrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Download and install the Simwrapper Python library in the same virtual environment as your instance of ActivitySim that contains
+the Summarize outputs.
+::
+
+  > pip install simwrapper
+
+This library provides a command line interface for running a simple file server to view model outputs from local directories and
+opening the Simwrapper interface in a browser window.
+
+The latest information about the Simwrapper library is available on its PyPI page.
+
+From the command line, navigate to the output\summarize directory and then run Simwrapper to view the contents of that directory
+in your browser.  simwrapper knows two commands:
+
+* simwrapper serve starts a local file server in the current directory. Run this command, then browse to either https://vsp.berlin/simwrapper or https://activitysim.github.io/dashboard to view your local folder outputs.
+* simwrapper open asim opens a new web browser tab pointing to the Activitysim-specific version of Simwrapper AND starts a local file server in the current directory. The site will only be able to access local files as long as you keep the local server running, so don't close the command window.
+
+
+Optional: Configure Inputs to Summarize Step
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+You may wish to manipulate the default expression files prior to running the enhanced version of ActivitySim in order to suit
+your particular needs.  If you have a working knowledge of python, you can make many changes such as renaming items, adding
+new aggregations, or modifying the calculation of sub-totals that will be computed at the end of the model run.  Make any changes
+to the files in the configs directory before running ActivitySim.  If you do modify the files in configs, make parallel changes to
+the two .yaml files in the output\summarize directory before running Simwrapper to ensure that the dashboard correctly captures
+your updates.
+
+Navigation
+~~~~~~~~~~
+When Simwrapper launches, the dashboard is displayed in the scrollable field in the main part of the browser window, and there are
+two sets of navigation controls.  The left-hand sidebar contains a menu of the available simulation outputs you can access from the
+current directory, including a number of sample outputs:
+
+.. image:: images/viz_nav-1.png
+
+The header and tabs at the top of the page help you navigate within the simulation run that is currently being visualized:
+
+.. image:: images/viz_nav-2.png
+
+Clicking on ‘Details’ will switch from the visualizations view to a current directory listing to facilitate viewing and downloading of
+the code and raw data used to create the dashboard:
+
+.. image:: images/viz_nav-3.png
+
+Clicking on ‘Topsheet’ returns you to the visualization graphics page.  The three buttons in the lower left corner provide additional
+functionality to:
+
+1. re-sync with the latest version of the output files,
+2. toggle light theme vs. dark theme, and
+3. split the visualization window into two separate panels like this:
+
+.. image:: images/viz_nav-4.png
+
+Before starting the split-screen view, choose the model run that you want to appear in the right side pane (‘1-sf-run’ in the image above).
+Then, click on the split view button to divide the window into two visualization panels.  Finally, use the left-hand navigation pane to
+change the comparison run on the left side (‘2-nine-county’ in the image above).
+
+Each side of the split screen has independent header navigation (Topsheet vs. Details) and independent vertical and horizontal scrolling.
+However, panning and zooming on any one map object controls all maps on both sides of the split view at the same time:
+
+.. image:: images/viz_nav-5.png
+
+.. _helpers:
+
 Helpers
 -------
 

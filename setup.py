@@ -28,7 +28,7 @@ setup(
     entry_points={'console_scripts': ['activitysim=activitysim.cli.main:main']},
     install_requires=[
         'pyarrow >= 2.0',
-        'numpy >= 1.16.1',
+        'numpy >= 1.16.1,<=1.21',
         'openmatrix >= 0.3.4.1',
         'pandas >= 1.1.0',
         'pyyaml >= 5.1',

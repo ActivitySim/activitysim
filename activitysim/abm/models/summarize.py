@@ -12,8 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 def wrap_skims(
-    network_los: pipeline.Pipeline, trips_merged: pd.DataFrame
+    network_los: pipeline.Pipeline, 
+    trips_merged: pd.DataFrame
 ) -> dict[str, object]:
+    """
+    Retrieve skim wrappers for merged trips.
+
+    For each record in `trips_merged`, retrieve skim wrappers for appropriate time of day.
+
+    Returns dictionary of skims wrappers that are available for use in expressions defined
+    in `summarize_preprocessor.csv`
+    """
     skim_dict = network_los.get_default_skim_dict()
 
     trips_merged['start_tour_period'] = network_los.skim_time_period_label(
@@ -54,6 +63,17 @@ DEFAULT_BIN_LABEL_FORMAT = "{left:,.2f} - {right:,.2f}"
 
 
 def construct_bin_labels(bins: pd.Series, label_format: str) -> pd.Series:
+    """
+    Construct bin label strings based on intervals (pd.Interval) in `bins`
+
+    `label_format` is an F-string format that can reference the following variables:
+     - 'left': Bin minimum
+     - 'right': Min maximum
+     - 'mid': Bin center
+     - 'rank': Bin rank (lowest to highest)
+
+     For example: '{left:,.2f} - {right:,.2f}' might yield '0.00 - 1.00'
+    """
     left = bins.apply(lambda x: x.left)
     mid = bins.apply(lambda x: x.mid)
     right = bins.apply(lambda x: x.right)
@@ -86,8 +106,22 @@ def construct_bin_labels(bins: pd.Series, label_format: str) -> pd.Series:
 
 
 def quantiles(
-    data: pd.Series, bins: pd.Series, label_format: str = DEFAULT_BIN_LABEL_FORMAT
+    data: pd.Series, 
+    bins: pd.Series, 
+    label_format: str = DEFAULT_BIN_LABEL_FORMAT
 ) -> pd.Series:
+    """
+    Construct quantiles from a Series given a number of bins.
+
+    For example: set bins = 5 to construct quintiles.
+
+    data: Input Series    
+    bins: Number of bins
+    label_format: F-string format for bin labels
+        Bins are labeled with 'min - max' ranges by default.
+
+    Returns a Series indexed by labels
+    """
     vals = data.sort_values()
     # qcut a ranking instead of raw values to deal with high frequencies of the same value
     # (e.g., many 0 values) that may span multiple bins
@@ -99,10 +133,21 @@ def quantiles(
 
 def spaced_intervals(
     data: pd.Series,
-    lower_bound: str,
+    lower_bound: float,
     interval: float,
     label_format: str = DEFAULT_BIN_LABEL_FORMAT,
 ) -> pd.Series:
+    """
+    Construct evenly-spaced intervals from a Series given a starting value and bin size.
+
+    data: Input Series
+    lower_bound: Minimum value of lowest bin
+    interval: Bin spacing above the `lower_bound`
+    label_format: F-string format for bin labels
+        Bins are labeled with 'min - max' ranges by default.
+
+    Returns a Series indexed by labels
+    """
     if lower_bound == 'min':
         lower_bound = data.min()
     breaks = np.arange(lower_bound, data.max() + interval, interval)
@@ -112,16 +157,42 @@ def spaced_intervals(
 
 
 def equal_intervals(
-    data: pd.Series, bins: int, label_format: str = DEFAULT_BIN_LABEL_FORMAT
+    data: pd.Series, 
+    bins: int, 
+    label_format: str = DEFAULT_BIN_LABEL_FORMAT
 ) -> pd.Series:
+    """
+    Construct equally-spaced intervals across the entire range of a Series.
+
+    data: Input Series
+    bins: Number of bins
+    label_format: F-string format for bin labels
+        Bins are labeled with 'min - max' ranges by default.
+
+    Returns a Series indexed by labels
+    """
     bins = pd.cut(data, bins, include_lowest=True)
     bins = construct_bin_labels(bins, label_format)
     return bins
 
 
 def manual_breaks(
-    data, bin_breaks, labels: list = None, label_format=DEFAULT_BIN_LABEL_FORMAT
+    data: pd.Series, 
+    bin_breaks: list, 
+    labels: list = None, 
+    label_format: str = DEFAULT_BIN_LABEL_FORMAT
 ) -> pd.Series:
+    """
+    Classify numeric data in a Pandas Series into manually-defined bins.
+
+    data: Input Series
+    bin_breaks: Break points between bins
+    labels: Manually-defined labels for each bin (`len(labels)` == `len(bin_breaks) + 1`)
+    label_format: F-string format for bin labels if not defined by `labels`
+        Bins are labeled with 'min - max' ranges by default.
+
+    Returns a Series indexed by labels
+    """
     if isinstance(labels, list):
         return pd.cut(data, bin_breaks, labels=labels, include_lowest=True)
     else:
@@ -138,8 +209,16 @@ def summarize(
     tours_merged: pd.DataFrame,
 ):
     """
-    summarize is a standard model which uses expression files
-    to reduce tables
+    A standard model that uses expression files to summarize pipeline tables for vizualization.
+
+    Summaries are configured in `summarize.yaml`, including specification of the 
+    expression file (`summarize.csv` by default).
+
+    Columns in pipeline tables can also be sliced and aggregated prior to summarization.
+    This preprocessing is configured in `summarize.yaml`.
+
+
+    Outputs a seperate csv summary file for each expression.
     """
     trace_label = 'summarize'
     model_settings_file_name = 'summarize.yaml'
@@ -227,12 +306,12 @@ def summarize(
     )
 
     # Save merged tables for expression development
-    locals_d['trips_merged'].to_csv(
-        config.output_file_path(os.path.join(output_location, f'trips_merged.csv'))
-    )
-    locals_d['persons_merged'].to_csv(
-        config.output_file_path(os.path.join(output_location, f'persons_merged.csv'))
-    )
+    # locals_d['trips_merged'].to_csv(
+    #     config.output_file_path(os.path.join(output_location, f'trips_merged.csv'))
+    # )
+    # locals_d['persons_merged'].to_csv(
+    #     config.output_file_path(os.path.join(output_location, f'persons_merged.csv'))
+    # )
 
     for i, row in spec.iterrows():
 

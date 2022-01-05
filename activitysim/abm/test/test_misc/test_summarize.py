@@ -51,7 +51,7 @@ def test_summarize(initialize_pipeline: pipeline.Pipeline, caplog):
     # Run summarize model
     caplog.set_level(logging.DEBUG)
     pipeline.run(models=['summarize'])
-    
+
     # Retrieve output tables to check contents
     model_settings = config.read_model_settings('summarize.yaml')
     output_location = (model_settings['OUTPUT'] if 'OUTPUT' in model_settings else 'summaries')
@@ -63,6 +63,7 @@ def test_summarize(initialize_pipeline: pipeline.Pipeline, caplog):
     assert int(households_count.iloc[0]) == len(households)
 
     # Check that bike trips are counted correctly
-    trips_by_mode_count = pd.read_csv(config.output_file_path(os.path.join(output_location, f'trips_by_mode_count.csv')))
+    trips_by_mode_count = pd.read_csv(
+        config.output_file_path(os.path.join(output_location, f'trips_by_mode_count.csv')))
     trips = pd.read_csv(config.data_file_path("trips.csv"))
     assert int(trips_by_mode_count.BIKE.iloc[0]) == len(trips[trips.trip_mode == 'BIKE'])

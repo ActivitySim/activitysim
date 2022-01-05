@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def wrap_skims(
-    network_los: pipeline.Pipeline, 
+    network_los: pipeline.Pipeline,
     trips_merged: pd.DataFrame
 ) -> dict[str, object]:
     """
@@ -106,8 +106,8 @@ def construct_bin_labels(bins: pd.Series, label_format: str) -> pd.Series:
 
 
 def quantiles(
-    data: pd.Series, 
-    bins: pd.Series, 
+    data: pd.Series,
+    bins: pd.Series,
     label_format: str = DEFAULT_BIN_LABEL_FORMAT
 ) -> pd.Series:
     """
@@ -115,7 +115,7 @@ def quantiles(
 
     For example: set bins = 5 to construct quintiles.
 
-    data: Input Series    
+    data: Input Series
     bins: Number of bins
     label_format: F-string format for bin labels
         Bins are labeled with 'min - max' ranges by default.
@@ -157,8 +157,8 @@ def spaced_intervals(
 
 
 def equal_intervals(
-    data: pd.Series, 
-    bins: int, 
+    data: pd.Series,
+    bins: int,
     label_format: str = DEFAULT_BIN_LABEL_FORMAT
 ) -> pd.Series:
     """
@@ -177,9 +177,9 @@ def equal_intervals(
 
 
 def manual_breaks(
-    data: pd.Series, 
-    bin_breaks: list, 
-    labels: list = None, 
+    data: pd.Series,
+    bin_breaks: list,
+    labels: list = None,
     label_format: str = DEFAULT_BIN_LABEL_FORMAT
 ) -> pd.Series:
     """
@@ -211,7 +211,7 @@ def summarize(
     """
     A standard model that uses expression files to summarize pipeline tables for vizualization.
 
-    Summaries are configured in `summarize.yaml`, including specification of the 
+    Summaries are configured in `summarize.yaml`, including specification of the
     expression file (`summarize.csv` by default).
 
     Columns in pipeline tables can also be sliced and aggregated prior to summarization.

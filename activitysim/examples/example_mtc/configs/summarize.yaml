@@ -2,7 +2,7 @@ SPECIFICATION: summarize.csv
 OUTPUT: summarize
 
 preprocessor:
-  DF: trips_mergerd
+  DF: trips_merged
   SPEC: summarize_preprocessor.csv
 #  TABLES:
 

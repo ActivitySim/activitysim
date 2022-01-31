@@ -4,6 +4,16 @@
 Benchmarking
 ------------
 
+A key focus of the ActivitySim project is *performance*.  It's not enough
+to build a new modeling platform that's mathematically sound and simulates
+travel behavior as expected.  It's also required that it do so quickly.
+It's not too hard to run performance tests manually on individual models, and
+doing so after making changes that are expected to *improve* performance is
+typical. But monitoring performance regularly and automatically can help ensure
+that new features do not introduce unexpected performance regressions (i.e.
+models run slower than before). Developing an extensive set of automatic
+performance benchmarks can streamline the former problem and solve the latter.
+
 ActivitySim includes the ability to run performance benchmarks using a tool
 called `airspeed velocity <https://asv.readthedocs.io/en/stable/>`__.
 

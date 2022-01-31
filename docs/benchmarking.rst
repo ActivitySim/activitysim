@@ -203,7 +203,9 @@ Publishing to Github Pages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Publishing the standard airspeed velocity content to GitHub pages is a built-in
-feature of the command line tool.  Simply run::
+feature of the command line tool, available to users who have write-access to the
+asim-benchmarks GitHub repository.  Be sure you have all the relevant branches
+tracked locally (especially master and develop) and then run::
 
     activitysim benchmark gh-pages
 

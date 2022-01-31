@@ -61,7 +61,7 @@ ASV_CONFIG = {
     # "html_dir": "../activitysim-asv/html",
     # List of branches to benchmark. If not provided, defaults to "master"
     # (for git) or "default" (for mercurial).
-    "branches": ["master", "develop"],
+    "branches": ["develop"],
 }
 
 
@@ -106,6 +106,13 @@ def make_asv_argparser(parser):
             help="benchmarking workspace directory",
             default=".",
         )
+        subparser.add_argument(
+            '--branch',
+            type=str,
+            action='append',
+            metavar='NAME',
+            help='git branch to include in benchmarking'
+        )
         del commands[command]
 
     for name, command in sorted(commands.items()):
@@ -118,6 +125,13 @@ def make_asv_argparser(parser):
             help="benchmarking workspace directory",
             default=".",
         )
+        subparser.add_argument(
+            '--branch',
+            type=str,
+            action='append',
+            metavar='NAME',
+            help='git branch to include in benchmarking'
+        )
         common_args.add_global_arguments(subparser)
 
     from ..benchmarking.latest import Latest, Batch
@@ -128,6 +142,13 @@ def make_asv_argparser(parser):
         "-w",
         help="benchmarking workspace directory",
         default=".",
+    )
+    subparser.add_argument(
+        '--branch',
+        type=str,
+        action='append',
+        metavar='NAME',
+        help='git branch to include in benchmarking'
     )
     common_args.add_global_arguments(subparser)
 
@@ -197,24 +218,29 @@ def benchmark(args):
     local_git = os.path.exists(git_dir)
     log.info(f" local git repo available: {local_git}")
 
+    branches = args.branch
+
     asv_config = ASV_CONFIG.copy()
     if local_git:
         repo_dir_rel = os.path.relpath(repo_dir, args.workspace)
         log.info(f" local git repo: {repo_dir_rel}")
         asv_config["repo"] = repo_dir_rel
-        # add current branch to the branches to benchmark
-        current_branch = subprocess.check_output(
-            ['git', 'branch', '--show-current'],
-            env={'GIT_DIR': git_dir},
-            stdin=None, stderr=None,
-            shell=False,
-            universal_newlines=False,
-        ).decode().strip()
-        if current_branch:
-            asv_config["branches"].append(current_branch)
+        if not branches:
+            # add current branch to the branches to benchmark
+            current_branch = subprocess.check_output(
+                ['git', 'branch', '--show-current'],
+                env={'GIT_DIR': git_dir},
+                stdin=None, stderr=None,
+                shell=False,
+                universal_newlines=False,
+            ).decode().strip()
+            if current_branch:
+                asv_config["branches"].append(current_branch)
     else:
         log.info(f" local git repo available: {local_git}")
         asv_config["repo"] = "https://github.com/ActivitySim/activitysim.git"
+
+    asv_config["branches"].extend(branches)
 
     # copy the benchmarks to the workspace, deleting previous files in workspace
     import activitysim.benchmarking.benchmarks

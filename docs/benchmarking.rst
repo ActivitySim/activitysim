@@ -128,6 +128,14 @@ So, you can run just the 1- and 2-zone examples, without the 3-zone example::
 
     activitysim benchmark latest --bench sandag1example --bench sandag2example
 
+If you want to run several different benchmarking commmands together, for example
+to run a custom curated subset of interesting benchmarks, the benchmark tool also
+includes a `batch` mode.  You can assemble the various commands you would run
+(i.e. everything you would type on the command line after "activitysim benchmark")
+into a text file, and then point to that file using the `batch` command::
+
+    activitysim benchmark batch my_interesting_benchmarks.txt
+
 
 Threading Limits
 ~~~~~~~~~~~~~~~~

@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import shutil
+import subprocess
 
 ASV_CONFIG = {
     # The version of the config file format.  Do not change, unless
@@ -60,7 +61,7 @@ ASV_CONFIG = {
     # "html_dir": "../activitysim-asv/html",
     # List of branches to benchmark. If not provided, defaults to "master"
     # (for git) or "default" (for mercurial).
-    "branches": ["master", "develop", "performanceTest"],
+    "branches": ["master", "develop"],
 }
 
 
@@ -201,6 +202,16 @@ def benchmark(args):
         repo_dir_rel = os.path.relpath(repo_dir, args.workspace)
         log.info(f" local git repo: {repo_dir_rel}")
         asv_config["repo"] = repo_dir_rel
+        # add current branch to the branches to benchmark
+        current_branch = subprocess.check_output(
+            ['git', 'branch', '--show-current'],
+            env={'GIT_DIR': git_dir},
+            stdin=None, stderr=None,
+            shell=False,
+            universal_newlines=False,
+        ).decode().strip()
+        if current_branch:
+            asv_config["branches"].append(current_branch)
     else:
         log.info(f" local git repo available: {local_git}")
         asv_config["repo"] = "https://github.com/ActivitySim/activitysim.git"

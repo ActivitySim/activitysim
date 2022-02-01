@@ -94,6 +94,10 @@ To run all of the benchmarks on the most recent commit in the main ActivitySim r
 
 .. important::
 
+    The benchmarks do not currently use ActivitySim's dynamic chunking features,
+    as these require manual configuration and training on a per-machine basis
+    to ensure good performance.
+
     Running the complete suite of benchmarks currently includes downloading and
     running full-region model data for several different SANDAG zone systems.
     Ideally you should have at least 50 GB of free disk space and 120 GB of RAM

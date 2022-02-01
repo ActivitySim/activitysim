@@ -116,6 +116,10 @@ def setup_component(
         raise NotImplementedError(
             "multiprocess component benchmarking is not yet implemented"
         )
+        # Component level timings for multiprocess benchmarking
+        # are not generated using this code that re-runs individual
+        # components.  Instead, those benchmarks are generated in
+        # aggregate during setup and then extracted from logs later.
     else:
         open_pipeline(resume_after, mode="r")
 
@@ -153,16 +157,10 @@ def run_component(component_name):
             raise NotImplementedError(
                 "multiprocess component benchmarking is not yet implemented"
             )
-            # logger.info('run multiprocess simulation')
-            #
-            # from activitysim.core import mp_tasks
-            # injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-            # mp_tasks.run_multiprocess(injectables)
-            #
-            # assert not pipeline.is_open()
-            #
-            # if config.setting('cleanup_pipeline_after_run', False):
-            #     pipeline.cleanup_pipeline()
+            # Component level timings for multiprocess benchmarking
+            # are not generated using this code that re-runs individual
+            # components.  Instead, those benchmarks are generated in
+            # aggregate during setup and then extracted from logs later.
         else:
             run_model(component_name)
     except Exception as err:
@@ -203,6 +201,28 @@ def pre_run(
 ):
     """
     Pre-run the models, checkpointing everything.
+
+    By checkpointing everything, it is possible to run each benchmark
+    by recreating the state of the pipeline immediately prior to that
+    component.
+
+    Parameters
+    ----------
+    model_working_dir : str
+        Path to the model working directory, generally inside the
+        benchmarking workspace.
+    configs_dirs : Iterable[str], optional
+        Override the config dirs, similar to using -c on the command line
+        for a model run.
+    data_dir : str, optional
+        Override the data directory similar to using -d on the command line
+        for a model run.
+    output_dir : str, optional
+        Override the output directory similar to using -o on the command line
+        for a model run.
+    settings_file_name : str, optional
+        Override the settings file name, similar to using -s on the command line
+        for a model run.
     """
     if configs_dirs is None:
         inject.add_injectable("configs_dir", os.path.join(model_working_dir, "configs"))
@@ -528,6 +548,44 @@ def template_component_timings(
     timeout_=36000.0,  # ten hours,
     version_="1",
 ):
+    """
+    Inject ComponentTiming classes into a module namespace for benchmarking a model.
+
+    Arguments with a trailing underscore get passed through to airspeed velocity, see
+    https://asv.readthedocs.io/en/stable/benchmarks.html?highlight=repeat#timing-benchmarks
+    for more info on these.
+
+    Parameters
+    ----------
+    module_globals : Mapping
+        The module globals namespace, into which the timing classes are written.
+    component_names : Iterable[str]
+        Names of components to benchmark.
+    example_name : str
+        Name of the example model being benchmarked, as it appears in the
+        exammple_manifest.yaml file.
+    config_dirs : Tuple[str]
+        Config directories to use when running the model being benchmarked.
+    data_dir, output_dir : str
+        Data and output directories to use when running the model being
+        benchmarked.
+    preload_injectables : Tuple[str]
+        Names of injectables to pre-load (typically skims).
+    repeat_ : tuple
+        The values for (min_repeat, max_repeat, max_time_seconds).  See ASV docs
+        for more information.
+    number_ : int, default 1
+        The number of iterations in each sample.  Generally this should stay
+        set to 1 for ActivitySim timing.
+    timeout_ : number, default 36000.0,
+        How many seconds before the benchmark is assumed to have crashed.  The
+        typical default for airspeed velocity is 60 but that is wayyyyy too short for
+        ActivitySim, so the default here is set to ten hours.
+    version_ : str
+        Used to determine when to invalidate old benchmark results. Benchmark results
+        produced with a different value of the version than the current value will be
+        ignored.
+    """
 
     for componentname in component_names:
 
@@ -572,6 +630,32 @@ def template_component_timings_mp(
     pretty_name,
     version_="1",
 ):
+    """
+    Inject ComponentTiming classes into a module namespace for benchmarking a model.
+
+    This "MP" version for multiprocessing doesn't actually measure the time taken,
+    but instead it parses the run logs from a single full run of the mode, to
+    extract the per-component timings.  Most of the configurability has been removed
+    compared to the single-process version of this function.
+
+    Parameters
+    ----------
+    module_globals : Mapping
+        The module globals namespace, into which the timing classes are written.
+    component_names : Iterable[str]
+        Names of components to benchmark.
+    example_name : str
+        Name of the example model being benchmarked, as it appears in the
+        exammple_manifest.yaml file.
+    output_dir : str
+        Output directory to use when running the model being benchmarked.
+    pretty_name : str
+        A "pretty" name for this set of benchmarks.
+    version_ : str
+        Used to determine when to invalidate old benchmark results. Benchmark results
+        produced with a different value of the version than the current value will be
+        ignored.
+    """
 
     for componentname in component_names:
 

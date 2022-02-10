@@ -207,7 +207,7 @@ def summarize(
     persons: pd.DataFrame,
     persons_merged: pd.DataFrame,
     households: pd.DataFrame,
-    housedshols_merged: pd.DataFrame,
+    households_merged: pd.DataFrame,
     trips: pd.DataFrame,
     tours: pd.DataFrame,
     tours_merged: pd.DataFrame,

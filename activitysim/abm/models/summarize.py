@@ -323,11 +323,11 @@ def summarize(
                     )
 
     # Output pipeline tables for expression development
-    # Comment out to avoid writing these tables
-    pipeline_table_dir = os.path.join(output_location, 'pipeline_tables')
-    os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
-    for name, df in locals_d.items():
-        df.to_csv(config.output_file_path(os.path.join(pipeline_table_dir, f'{name}.csv')))
+    if model_settings['EXPORT_PIPELINE_TABLES']:
+        pipeline_table_dir = os.path.join(output_location, 'pipeline_tables')
+        os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
+        for name, df in locals_d.items():
+            df.to_csv(config.output_file_path(os.path.join(pipeline_table_dir, f'{name}.csv')))
 
     # Add skims to locals
     ### Not necessary

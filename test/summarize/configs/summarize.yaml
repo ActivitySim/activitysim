@@ -1,6 +1,9 @@
 SPECIFICATION: summarize.csv
 OUTPUT: summarize
 
+# Set to True to export pipeline tables for expression development
+EXPORT_PIPELINE_TABLES: True
+
 preprocessor:
   DF: trips_mergerd
   SPEC: summarize_preprocessor.csv

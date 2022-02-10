@@ -28,10 +28,12 @@ def tables() -> dict[str, str]:
     """
     return {
         'land_use': 'zone_id',
+        'accessibility': 'zone_id',
         'tours': 'tour_id',
         'trips': 'trip_id',
         'persons': 'person_id',
         'households': 'household_id',
+        'joint_tour_participants': 'participant_id',
     }
 
 

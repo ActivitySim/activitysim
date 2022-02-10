@@ -212,6 +212,8 @@ def summarize(
     tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
     land_use: pd.DataFrame,
+    accessibility: pd.DataFrame,
+    joint_tour_participants: pd.DataFrame,
 ):
     """
     A standard model that uses expression files to summarize pipeline tables for vizualization.
@@ -246,6 +248,8 @@ def summarize(
     tours = tours_merged.to_frame()
     tours_merged = tours_merged.to_frame()
     land_use = land_use.to_frame()
+    accessibility = accessibility.to_frame()
+    joint_tour_participants = joint_tour_participants.to_frame()
 
     # Make trips_merged
     trips_merged = pd.merge(
@@ -268,6 +272,8 @@ def summarize(
         'tours': tours_merged,
         'tour_merged': tours_merged,
         'land_use': land_use,
+        'accessibility': accessibility,
+        'joint_tour_participants': joint_tour_participants,
     }
 
     skims = wrap_skims(network_los, trips_merged)
@@ -316,9 +322,19 @@ def summarize(
                             df[slicer['column']], slicer['bins'], slicer['label_format']
                     )
 
-    locals_d.update(skims)
+    # Output pipeline tables for expression development
+    # Comment out to avoid writing these tables
+    pipeline_table_dir = os.path.join(output_location, 'pipeline_tables')
+    os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
+    for name, df in locals_d.items():
+        df.to_csv(config.output_file_path(os.path.join(pipeline_table_dir, f'{name}.csv')))
+
+    # Add skims to locals
+    ### Not necessary
+    # locals_d.update(skims)
 
     # Add classification functions to locals
+    # Necessary for using these functions in expressions
     locals_d.update(
         {
             'quantiles': quantiles,
@@ -327,14 +343,6 @@ def summarize(
             'manual_breaks': manual_breaks,
         }
     )
-
-    # Save merged tables for expression development
-    # locals_d['trips_merged'].to_csv(
-    #     config.output_file_path(os.path.join(output_location, f'trips_merged.csv'))
-    # )
-    # locals_d['persons_merged'].to_csv(
-    #     config.output_file_path(os.path.join(output_location, f'persons_merged.csv'))
-    # )
 
     for i, row in spec.iterrows():
 

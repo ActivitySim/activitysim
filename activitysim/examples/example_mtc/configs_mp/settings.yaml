@@ -5,26 +5,26 @@ inherit_settings: True
 fail_fast: True
 
 # - ------------------------- production config
-#multiprocess: True
-#strict: False
-#use_shadow_pricing: True
-
-# - full sample - 2875192 households on 64 processor 432 GiB RAM
-#households_sample_size:  0
-#chunk_size:  400_000_000_000
-#num_processes: 60
-
-# - ------------------------- no chunking due to sufficient RAM
-# chunk_training_mode: disabled
-
-# - ------------------------- dev config
 multiprocess: True
 strict: False
-use_shadow_pricing: False
+use_shadow_pricing: True
 
-households_sample_size: 0
-chunk_size: 0
-num_processes: 2
+# - full sample - 2875192 households on 64 processor 432 GiB RAM
+households_sample_size: 100
+chunk_size:  30_000_000_000
+num_processes: 8
+
+# - ------------------------- no chunking due to sufficient RAM
+chunk_training_mode: production
+
+# - ------------------------- dev config
+# multiprocess: True
+# strict: False
+# use_shadow_pricing: False
+
+# households_sample_size: 100
+# chunk_size: 0
+# num_processes: 2
 
 # - -------------------------
 
@@ -39,7 +39,7 @@ want_dest_choice_sample_tables: False
 trace_od:
 
 # to resume after last successful checkpoint, specify resume_after: _
-#resume_after: trip_purpose_and_destination
+resume_after: write_tables
 
 models:
   ### mp_initialize step
@@ -78,6 +78,7 @@ models:
   - write_data_dictionary
   - write_trip_matrices
   - write_tables
+  - summarize
 
 multiprocess_steps:
   - name: mp_initialize

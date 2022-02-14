@@ -28,8 +28,6 @@ def tables() -> dict[str, str]:
     """
     return {
         'land_use': 'zone_id',
-        'tours': 'tour_id',
-        'trips': 'trip_id',
         'persons': 'person_id',
         'households': 'household_id',
     }
@@ -44,26 +42,26 @@ def initialize_network_los() -> bool:
     fixtures test data folder.
     :return: bool
     """
-    return True
+    return False
 
 
-def test_summarize(initialize_pipeline: pipeline.Pipeline, caplog):
+def test_auto_ownership(initialize_pipeline: pipeline.Pipeline, caplog):
     # Run summarize model
     caplog.set_level(logging.DEBUG)
-    pipeline.run(models=['summarize'])
+    pipeline.run(models=['auto_ownership_simulate'])
 
-    # Retrieve output tables to check contents
-    model_settings = config.read_model_settings('summarize.yaml')
-    output_location = (model_settings['OUTPUT'] if 'OUTPUT' in model_settings else 'summaries')
-    output_dir = config.output_file_path(output_location)
+    # # Retrieve output tables to check contents
+    # model_settings = config.read_model_settings('auto_ownership.yaml')
+    # output_location = (model_settings['OUTPUT'] if 'OUTPUT' in model_settings else 'output')
+    # output_dir = config.output_file_path(output_location)
 
-    # Check that households are counted correctly
-    households_count = pd.read_csv(config.output_file_path(os.path.join(output_location, f'households_count.csv')))
-    households = pd.read_csv(config.data_file_path("households.csv"))
-    assert int(households_count.iloc[0]) == len(households)
+    # # Check that households are counted correctly
+    # households_count = pd.read_csv(config.output_file_path(os.path.join(output_location, f'households_count.csv')))
+    # households = pd.read_csv(config.data_file_path("households.csv"))
+    # assert int(households_count.iloc[0]) == len(households)
 
-    # Check that bike trips are counted correctly
-    trips_by_mode_count = pd.read_csv(
-        config.output_file_path(os.path.join(output_location, f'trips_by_mode_count.csv')))
-    trips = pd.read_csv(config.data_file_path("trips.csv"))
-    assert int(trips_by_mode_count.BIKE.iloc[0]) == len(trips[trips.trip_mode == 'BIKE'])
+    # # Check that bike trips are counted correctly
+    # trips_by_mode_count = pd.read_csv(
+    #     config.output_file_path(os.path.join(output_location, f'trips_by_mode_count.csv')))
+    # trips = pd.read_csv(config.data_file_path("trips.csv"))
+    # assert int(trips_by_mode_count.BIKE.iloc[0]) == len(trips[trips.trip_mode == 'BIKE'])

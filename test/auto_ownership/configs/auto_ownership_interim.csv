@@ -1,0 +1,65 @@
+Label,Description,Expression,0_CARS,1_CAR_1CV,1_CAR_1AV,2_CARS_2CV,2_CARS_2AV,2_CARS_1CV1AV,3_CARS_3CV,3_CARS_3AV,3_CARS_2CV1AV,3_CARS_1CV2AV,4_CARS_4CV
+,Boolean indicating that household is in SF county,"@np.where(df.county_id == ID_SAN_FRANCISCO, 1, 0)",1.233276051,,,,,,,,,,
+#,alternative specific constant for 1 driver household,num_drivers==1,-1.920143842,,,-0.934889684,-0.934889684,-0.934889684,-1.904733531,-1.904733531,-1.904733531,-1.904733531,-2.488003709
+#,alternative specific constant for 2 driver household,num_drivers==2,-3.470781624,-2.20339718,-2.20339718,,,,-0.829354142,-0.829354142,-0.829354142,-0.829354142,-1.778311581
+#,alternative specific constant for 3 driver household,num_drivers==3,-3.329633459,-2.473061365,-2.473061365,-0.317496682,-0.317496682,-0.317496682,,,,,-0.533915593
+#,alternative specific constant for 4+ driver household,num_drivers>=4,-6.111494495,-3.983965837,-3.983965837,-0.909626603,-0.909626603,-0.909626603,-0.524427892,-0.524427892,-0.524427892,-0.524427892,
+#,workers to drivers ratio for 1 driver household,(num_drivers==1) * (num_workers/num_drivers),-1.464256557,,,0.474996826,0.474996826,0.474996826,0.474996826,0.474996826,0.474996826,0.474996826,0.474996826
+#,workers to drivers ratio for 2 driver household,(num_drivers==2) * (num_workers/num_drivers),-1.464256557,-0.407798013,-0.407798013,,,,0.474996826,0.474996826,0.474996826,0.474996826,0.474996826
+#,workers to drivers ratio for 3 driver household,(num_drivers==3) * (num_workers/num_drivers),-1.464256557,-0.407798013,-0.407798013,-0.407798013,-0.407798013,-0.407798013,,,,,0.474996826
+#,workers to drivers ratio for 4+ driver household,(num_drivers>=4) * (num_workers/num_drivers),-1.464256557,-0.407798013,-0.407798013,-0.407798013,-0.407798013,-0.407798013,-0.407798013,-0.407798013,-0.407798013,-0.407798013,
+#,young adults to drivers ratio for 1 driver household,(num_drivers==1) * (num_young_adults/num_drivers),-1.769767608,,,0,0,0,0,0,0,0,0
+#,young adults to drivers ratio for 2 driver household,(num_drivers==2) * (num_young_adults/num_drivers),-1.769767608,-0.598263093,-0.598263093,,,,0,0,0,0,0
+#,young adults to drivers ratio for 3 driver household,(num_drivers==3) * (num_young_adults/num_drivers),-1.769767608,-0.598263093,-0.598263093,-0.598263093,-0.598263093,-0.598263093,,,,,0
+#,young adults to drivers ratio for 4+ driver household,(num_drivers>=4) * (num_young_adults/num_drivers),-1.769767608,-0.598263093,-0.598263093,-0.598263093,-0.598263093,-0.598263093,-0.598263093,-0.598263093,-0.598263093,-0.598263093,
+#,school children to drivers ratio for 1 driver household,(num_drivers==1) * (num_children_6_to_15/num_drivers),-0.346415088,,,0.108758563,0.108758563,0.108758563,0.108758563,0.108758563,0.108758563,0.108758563,0.108758563
+#,school children to drivers ratio for 2 driver household,(num_drivers==2) * (num_children_6_to_15/num_drivers),-0.346415088,-0.018572553,-0.018572553,,,,0.108758563,0.108758563,0.108758563,0.108758563,0.108758563
+#,school children to drivers ratio for 3 driver household,(num_drivers==3) * (num_children_6_to_15/num_drivers),-0.346415088,-0.018572553,-0.018572553,-0.018572553,-0.018572553,-0.018572553,,,,,0.108758563
+#,school children to drivers ratio for 4+ driver household,(num_drivers>=4) * (num_children_6_to_15/num_drivers),-0.346415088,-0.018572553,-0.018572553,-0.018572553,-0.018572553,-0.018572553,-0.018572553,-0.018572553,-0.018572553,-0.018572553,
+#,young retirees to drivers ratio for 1 driver household,(num_drivers==1) * (num_young_retirees/num_drivers),-0.38172487,,,0.28676361,0.28676361,0.28676361,0.28676361,0.28676361,0.28676361,0.28676361,0.28676361
+#,young retirees to drivers ratio for 2 driver household,(num_drivers==2) * (num_young_retirees/num_drivers),-0.38172487,-0.19861915,-0.19861915,,,,0.28676361,0.28676361,0.28676361,0.28676361,0.28676361
+#,young retirees to drivers ratio for 3 driver household,(num_drivers==3) * (num_young_retirees/num_drivers),-0.38172487,-0.19861915,-0.19861915,-0.19861915,-0.19861915,-0.19861915,,,,,0.28676361
+#,young retirees to drivers ratio for 4+ driver household,(num_drivers>=4) * (num_young_retirees/num_drivers),-0.38172487,-0.19861915,-0.19861915,-0.19861915,-0.19861915,-0.19861915,-0.19861915,-0.19861915,-0.19861915,-0.19861915,
+#,old retirees to drivers ratio for 1 driver household,(num_drivers==1) * (num_old_retirees/num_drivers),0.608700053,,,-0.901020484,-0.901020484,-0.901020484,-0.901020484,-0.901020484,-0.901020484,-0.901020484,-0.901020484
+#,old retirees to drivers ratio for 2 driver household,(num_drivers==2) * (num_old_retirees/num_drivers),0.608700053,0.232672708,0.232672708,,,,-0.901020484,-0.901020484,-0.901020484,-0.901020484,-0.901020484
+#,old retirees to drivers ratio for 3 driver household,(num_drivers==3) * (num_old_retirees/num_drivers),0.608700053,0.232672708,0.232672708,0.232672708,0.232672708,0.232672708,,,,,-0.901020484
+#,old retirees to drivers ratio for 4+ driver household,(num_drivers>=4) * (num_old_retirees/num_drivers),0.608700053,0.232672708,0.232672708,0.232672708,0.232672708,0.232672708,0.232672708,0.232672708,0.232672708,0.232672708,
+#,household income <30k,income<30000,2.654926169,0.632172646,0.632172646,,,,-0.601152419,-0.601152419,-0.601152419,-0.601152419,-0.936061162
+#,household income 30-60k,(income>=30000)*(income<60000),0.918219369,0.342605571,0.342605571,,,,-0.305680609,-0.305680609,-0.305680609,-0.305680609,-0.271548734
+#,household income 100k+,income>=100000,-0.44306913,-0.44306913,-0.44306913,,,,0.087029823,0.087029823,0.087029823,0.087029823,0.144123363
+#,low educational level for 1 driver household,(num_drivers==1)*(##highSchoolGraduateBoolean##==0),0.767760942,,,,,,-0.176660377,-0.176660377,-0.176660377,-0.176660377,-0.176660377
+#,low educational level for 2 driver household,(num_drivers==2)*(##highSchoolGraduateBoolean##==0),0.767760942,0.432294097,0.432294097,,,,-0.176660377,-0.176660377,-0.176660377,-0.176660377,-0.176660377
+#,low educational level for 3 driver household,(num_drivers==3)*(##highSchoolGraduateBoolean##==0),0.767760942,0.432294097,0.432294097,,,,,,,,-0.176660377
+#,low educational level for 4+ driver household,(num_drivers>=4)*(##highSchoolGraduateBoolean##==0),0.767760942,0.432294097,0.432294097,,,,0.432294097,0.432294097,0.432294097,0.432294097,
+#,detached single family house,##detachedDwellingBoolean##==1,-1.774689947,-0.528137281,-0.528137281,,,,0.427320086,0.427320086,0.427320086,0.427320086,0.539511974
+#,Intersection density,##intersectionDensity##,0,0,0,,,,-0.326525635,-0.326525635,-0.326525635,-0.326525635,-0.326525635
+#,Population density,population_density,0.046206562,0.02268226,0.02268226,,,,0,0,0,0,0
+#,Retail density,##retailDensity##,0.074563803,0.029544267,0.029544267,,,,0,0,0,0,0
+#,Non-motorized zonal accessbility,##nonMotorizedAccessibility##,0.060875253,0.039970159,0.039970159,,,,-0.052524462,-0.052524462,-0.052524462,-0.052524462,-0.100612397
+#,auto-transit zonal accessibility,##autoAccess## - ##transitAccess##,-0.200776981,-0.009060243,-0.009060243,,,,0,0,0,0,0
+#,worker mandatory tour auto dependency,(##useAccessibilities##) * (num_##workersAutoDependency##),-0.16516642,-0.16516642,-0.16516642,,,,0.104064535,0.104064535,0.104064535,0.104064535,0.104064535
+#,student mandatory tour auto dependency,(##useAccessibilities##) * (##studentsAutoDependency##),-0.04422711,-0.04422711,-0.04422711,,,,0,0,0,0,0
+#,worker mandatory tour rail mode portion,(##useAccessibilities##) * (num_##workersRailProportion##),0.171079447,0.171079447,0.171079447,,,,-0.206713378,-0.206713378,-0.206713378,-0.206713378,-0.206713378
+#,student mandatory tour rail mode portion,(##useAccessibilities##) * (##studentsRailProportion##),0.26285636,0.26285636,0.26285636,,,,0,0,0,0,0
+#,alternative specific constant adjustment for PRE-AO non-group quarter households,##hhBoolean##==1,,0.04582774,0.04582774,-1.602468896,-1.602468896,-1.602468896,-2.169791463,-2.169791463,-2.169791463,-2.169791463,-2.641133846
+#,alternative specific constant adjustment for POST-AO non-group quarter households,(##hhBoolean##==1)*(##useAccessibilities##==1),,-0.013942306,-0.013942306,-0.132328921,-0.132328921,-0.132328921,-0.180285245,-0.180285245,-0.180285245,-0.180285245,-0.186095557
+#,alternative specific constant adjustment for POST-AO non GQ hhlds -- SERPM calibration,(##hhBoolean##==1)*(##useAccessibilities##==1),,0,0,0,0,0,0,0,0,0,0
+#,adjustment for 2 workers in non-family 0-car household,(non_family==1)*(num_workers==2),0.725034403,,,,,,,,,,
+#,adjustment for 3 workers in non-family 0-car household,(non_family==1)*(num_workers==3),1.194820674,,,,,,,,,,
+#,adjustment for 4+ workers in non-family 0-car household,(non_family==1)*(num_workers>3),2.844226409,,,,,,,,,,
+#,adjustment for 4+ workers in family 0-car household,(non_family==0)*(num_workers>3),2.116557339,,,,,,,,,,
+#,TM2 Round 2 ASC adjustment for 1 workers in 0-car household,(num_workers==1),1.097234124,,,-0.151698573,-0.151698573,-0.151698573,-0.209786195,-0.209786195,-0.209786195,-0.209786195,-0.308288035
+#,TM2 Round 2 ASC adjustment for 2 workers in 0-car household,(num_workers==2),0.893156568,,,-0.17099367,-0.17099367,-0.17099367,-0.382492356,-0.382492356,-0.382492356,-0.382492356,-0.551034746
+#,TM2 Round 2 ASC adjustment for 3+ workers in 0-car household,(num_workers>=3),0.937133013,,,-0.553211417,-0.553211417,-0.553211417,0.065128979,0.065128979,0.065128979,0.065128979,-0.048670057
+#,TM2 Round 2 ASC adjustment for non-GQ PRE-AO,##hhBoolean##==1,-1.511025686,0,0,0.723793144,0.723793144,0.723793144,0.617090781,0.617090781,0.617090781,0.617090781,0.69421287
+#,TM2 Round 2 ASC adjustment for non-GQ POST-AO,(##hhBoolean##==1)*(##useAccessibilities##==1),-0.115788174,0,0,0.16375467,0.16375467,0.16375467,0.222715484,0.222715484,0.222715484,0.222715484,0.2639107
+#,AV ASC - Household Income under $50k,(income<50000),,,-1,,-1,-1,,-1,-1,-1,
+#,AV ASC - Household Income 100k+,income>=100000,,,1,,1,1,,1,1,1,
+#,AV ASC - Young household,num_persons_18_to_35 >= num_persons_65_plus,,,0.5,,0.5,0.5,,0.5,0.5,0.5,
+#,AV ASC - Old household,num_persons_18_to_35 < num_persons_65_plus,,,-1,,-1,-1,,-1,-1,-1,
+#,"AV  Coeff Per Hour of travel by auto for work, summed across all workers in household",((num_workers>0) * (##useAccessibilities##==1)) * (##@workAutoTime##),,,0.25,,0.25,0.25,,0.25,0.25,0.25,
+#,AV ASC - 100% AV Share,##%Mobility.AV.Share%##==1.0,,-999,,-999,,-999,-999,,-999,-999,-999
+#,AV ASC - 90% AV Share,##%Mobility.AV.Share%##==0.9,,,,,,,,,,,
+#,AV ASC - 50% AV Share,##%Mobility.AV.Share%##==0.5,,,,,,,,,,,
+#,AV ASC - 10% AV Share,##%Mobility.AV.Share%##==0.1,,,,,,,,,,,
+#,AV ASC - 0% AV Share,##%Mobility.AV.Share%##==0.0,,,-999,,-999,-999,,-999,-999,-999,

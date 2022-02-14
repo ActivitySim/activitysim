@@ -1,5 +1,5 @@
 
-SPEC: auto_ownership.csv
+SPEC: auto_ownership_interim.csv
 COEFFICIENTS: auto_ownership_coefficients.csv
 
 #LOGIT_TYPE: NL

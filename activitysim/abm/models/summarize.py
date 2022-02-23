@@ -320,7 +320,7 @@ def summarize(
                     elif slicer['type'] == 'equal_intervals':
                         df[slicer['label']] = equal_intervals(
                             df[slicer['column']], slicer['bins'], slicer['label_format']
-                    )
+                        )
 
     # Output pipeline tables for expression development
     if model_settings['EXPORT_PIPELINE_TABLES']:
@@ -328,10 +328,6 @@ def summarize(
         os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
         for name, df in locals_d.items():
             df.to_csv(config.output_file_path(os.path.join(pipeline_table_dir, f'{name}.csv')))
-
-    # Add skims to locals
-    ### Not necessary
-    # locals_d.update(skims)
 
     # Add classification functions to locals
     # Necessary for using these functions in expressions

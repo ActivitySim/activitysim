@@ -4,12 +4,22 @@ OUTPUT: summarize
 # Set to True to export pipeline tables for expression development
 EXPORT_PIPELINE_TABLES: True
 
-preprocessor:
-  DF: trips_mergerd
-  SPEC: summarize_preprocessor.csv
-#  TABLES:
+# preprocessor:
+#   DF: trips_merged
+#   SPEC: trips_merged_preprocessor.csv
+
+# preprocessor:
+#   - DF: trips_merged
+#     SPEC: trips_merged_preprocessor.csv
+#   - DF: persons_merged
+#     SPEC: persons_merged_preprocessor.csv
 
 persons_merged:
+  
+  preprocessor:
+    DF: persons_merged
+    SPEC: persons_merged_preprocessor.csv
+
   SLICERS:
     # Manually-specified bins
     - column: income
@@ -52,6 +62,11 @@ persons_merged:
       label_format: ${left:,.2f} - ${right:,.2f} # 'left' and 'right' are bin boundaries
 
 trips_merged:
+  
+  preprocessor:
+    DF: trips_merged
+    SPEC: trips_merged_preprocessor.csv
+  
   SLICERS:
     - column: income
       label: trip_income_category # TODO: Figure out why this can't have the same name as a slicer for persons_merged

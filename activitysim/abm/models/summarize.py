@@ -270,23 +270,27 @@ def summarize(
         'trips': trips,
         'trips_merged': trips_merged,
         'tours': tours_merged,
-        'tour_merged': tours_merged,
+        'tours_merged': tours_merged,
         'land_use': land_use,
         'accessibility': accessibility,
         'joint_tour_participants': joint_tour_participants,
     }
 
-    skims = wrap_skims(network_los, trips_merged)
-
-    expressions.annotate_preprocessors(
-        trips_merged, locals_d, skims, model_settings, 'summarize'
-    )
-
-    # Evaluate aggregators and slicers defined in summarize.yaml
+    # Evaluate preprocessors, aggregators and slicers defined in summarize.yaml
     for table_name, df in locals_d.items():
         if table_name in model_settings:
+
             meta = model_settings[table_name]
-            df = eval(table_name)
+
+            # Preprocessors
+            try:
+                skims = wrap_skims(network_los, df)
+            except KeyError:
+                skims = None
+
+            expressions.annotate_preprocessors(
+                df, locals_d, skims, meta, 'summarize'
+            )
 
             if 'AGGREGATE' in meta and meta['AGGREGATE']:
                 for agg in meta['AGGREGATE']:
@@ -298,8 +302,6 @@ def summarize(
             if 'SLICERS' in meta and meta['SLICERS']:
                 for slicer in meta['SLICERS']:
                     if slicer['type'] == 'manual_breaks':
-                        # df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bin_breaks'],
-                        #                              labels=slicer['bin_labels'], include_lowest=True)
                         df[slicer['label']] = manual_breaks(
                             df[slicer['column']], slicer['bin_breaks'], slicer['bin_labels']
                         )

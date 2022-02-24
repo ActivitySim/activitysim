@@ -414,21 +414,16 @@ Cache API
 
 Visualization
 -------------
-Simwrapper is a standalone software package that creates browser-based, interactive, graphical visualizations of ActivitySim outputs.
-It requires supporting components within the ActivitySim software in order to automatically run several post-processing steps at the
-end of the standard model run.  Once the model run is complete, Simwrapper can be started and stopped at any time to view the outputs
-of individual model runs.  The tool currently allows users to view dashboards for multiple model  runs side-by-side in the browser.
+Visualization capabilities are provided with SimWrapper, a standalone browser-based software that creates interactive, graphical visualizations of ActivitySim outputs. SimWrapper builds graphs and other visualization components from CSV summary tables that are produced by the *summarize* model step. Once the model run is complete, Simwrapper can be started and stopped at any time, independent of ActivitySim to visualize outputs. The tool currently allows users to view dashboards for multiple model runs side-by-side in the browser.
 The ability to compute and visualize the differences between two model runs is a planned future enhancement.
 
-To use Simwrapper, you will need an instance of ActivitySim that contains the following files:
-
-In the configs directory:
+To use set up the summarize model to produce tables for SimWrapper, add `summarize` to the list of models in `configs_mp/settings.yaml` and add the following files to the `config` directory:
 
 * summarize.yaml = configuration for the summarize model step
 * summarize.csv = expression file containing the final aggregations that will be generated at the end of the model run
-* summarize_preprocessor.csv = intermediate expression file used to make trip-level skim summaries available in pipeline tables
+* \[table\]_summarize_preprocessor.csv = intermediate expression file used to add columns, including skim summaries, to a given pipeline table
 
-In the output directory, a new summarize directory, which must contain:
+In the output directory, add a new summarize directory, which must contain:
 
 * dashboard-1-summary.yaml = configuration for the layout and formatting of charts and other objects in the dashboard
 * Additional dashboard-\*.yaml files may be used to configure additional dashboard tabs

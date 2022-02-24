@@ -38,6 +38,5 @@ setup(
         'requests >= 2.7',
         'numba >= 0.51.2',
         'orca >= 1.6',
-        'simwrapper > 1.7'
     ]
 )

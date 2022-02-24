@@ -136,16 +136,14 @@ def annotate_preprocessors(
 
     locals_d = {}
     locals_d.update(locals_dict)
-    if skims:
-        locals_d.update(skims)
+    locals_d.update(skims)
 
     preprocessor_settings = model_settings.get('preprocessor', [])
     if not isinstance(preprocessor_settings, list):
         assert isinstance(preprocessor_settings, dict)
         preprocessor_settings = [preprocessor_settings]
 
-    if skims:
-        simulate.set_skim_wrapper_targets(df, skims)
+    simulate.set_skim_wrapper_targets(df, skims)
 
     for model_settings in preprocessor_settings:
 

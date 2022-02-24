@@ -1,4 +1,0 @@
-Description,Target,Expression
-
-# Example person-level preprocess
-,worker_under_30,(df.age < 30) & (~df.has_non_worker)

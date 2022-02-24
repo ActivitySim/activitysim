@@ -78,7 +78,6 @@ models:
   - write_data_dictionary
   - write_trip_matrices
   - write_tables
-  - summarize
 
 multiprocess_steps:
   - name: mp_initialize

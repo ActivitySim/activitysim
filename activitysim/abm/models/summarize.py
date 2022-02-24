@@ -347,6 +347,14 @@ def summarize(
         out_file = row['Output']
         expr = row['Expression']
 
+        # Save temporary variables starting with underscores in locals_d
+        if out_file.startswith('_'):
+            
+            logger.debug(f'Temp Variable: {expr} -> {out_file}')
+
+            locals_d[out_file] = eval(expr, globals(), locals_d)
+            continue
+
         logger.debug(f'Summary: {expr} -> {out_file}.csv')
 
         resultset = eval(expr, globals(), locals_d)

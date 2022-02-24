@@ -349,7 +349,7 @@ def summarize(
 
         # Save temporary variables starting with underscores in locals_d
         if out_file.startswith('_'):
-            
+
             logger.debug(f'Temp Variable: {expr} -> {out_file}')
 
             locals_d[out_file] = eval(expr, globals(), locals_d)

@@ -460,7 +460,12 @@ The SimWrapper Python package, which contains convience functions for initiating
 
 The latest information about the Simwrapper package is available on its `PyPI page <https://pypi.org/project/simwrapper/1.2.0/>`.
 
-To run SimWrapper, navigate on the command line to ``output\summarize`` within the model directory, or a directory where you may have copied outputs, and run ``simwrapper open asim`` to start SimWrapper in your default browser. If this directory contains the appropriate configuration files for a dashboard (see above), the dashboard will open automatically. Otherwise, SimWrapper will show a file browser with the contents of the directory.
+To run SimWrapper, navigate on the command line to ``output\summarize`` within the model directory, or a directory where you may have copied outputs, and run:
+::
+
+  > simwrapper open asim 
+
+This will start SimWrapper in your default browser. If this directory contains the appropriate configuration files for a dashboard (see above), the dashboard will open automatically. Otherwise, SimWrapper will show a file browser with the contents of the directory.
 
 
 Navigate SimWrappper

@@ -34,6 +34,12 @@ Description,Output,Expression
 # Count person-trips
 ,person_trips,trips_merged[['number_of_participants']].sum().rename('trips')
 
+# Count tours
+,tours_count,tours_merged.reset_index()[['tour_id']].count().rename('tours')
+
+# Count trips
+,trips_count,trips_merged.reset_index()[['trip_id']].count().rename('trips')
+
 # Count tours per household
 ,_tours,"trips_merged[['tour_id', 'number_of_participants']].drop_duplicates()['number_of_participants'].sum()"
 ,_households,persons_merged['household_id'].nunique()

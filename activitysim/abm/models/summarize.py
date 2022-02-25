@@ -222,7 +222,8 @@ def summarize(
     Columns in pipeline tables can also be sliced and aggregated prior to summarization.
     This preprocessing is configured in `summarize.yaml`.
 
-    Outputs a seperate csv summary file for each expression; outputs starting with '_' are saved as temporary local variables.
+    Outputs a seperate csv summary file for each expression;
+    outputs starting with '_' are saved as temporary local variables.
     """
     trace_label = 'summarize'
     model_settings_file_name = 'summarize.yaml'

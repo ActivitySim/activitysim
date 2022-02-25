@@ -414,62 +414,57 @@ Cache API
 
 Visualization
 -------------
-Simwrapper is a standalone software package that creates browser-based, interactive, graphical visualizations of ActivitySim outputs.
-It requires supporting components within the ActivitySim software in order to automatically run several post-processing steps at the
-end of the standard model run.  Once the model run is complete, Simwrapper can be started and stopped at any time to view the outputs
-of individual model runs.  The tool currently allows users to view dashboards for multiple model  runs side-by-side in the browser.
+Visualization capabilities are provided with SimWrapper, a standalone browser-based software that creates interactive, graphical visualizations of ActivitySim outputs. SimWrapper builds graphs and other visualization components from CSV summary tables that are produced by the *summarize* model step. Once the model run is complete, Simwrapper can be started and stopped at any time, independent of ActivitySim to visualize outputs. The tool currently allows users to view dashboards for multiple model runs side-by-side in the browser.
 The ability to compute and visualize the differences between two model runs is a planned future enhancement.
 
-To use Simwrapper, you will need an instance of ActivitySim that contains the following files:
-
-In the configs directory:
+To use set up the summarize model to produce tables for SimWrapper, add ``summarize`` to the list of models in ``configs_mp/settings.yaml`` and add the following files to the `config` directory:
 
 * summarize.yaml = configuration for the summarize model step
 * summarize.csv = expression file containing the final aggregations that will be generated at the end of the model run
-* summarize_preprocessor.csv = intermediate expression file used to make trip-level skim summaries available in pipeline tables
+* \[table_name\]_summarize_preprocessor.csv = intermediate expression file used to add columns, including skim summaries, to a given pipeline table
 
-In the output directory, a new summarize directory, which must contain:
+In the output directory, add a new summarize directory, which must contain:
 
 * dashboard-1-summary.yaml = configuration for the layout and formatting of charts and other objects in the dashboard
 * Additional dashboard-\*.yaml files may be used to configure additional dashboard tabs
 * topsheet.yaml = configuration for calculated statistics in the ‘At-a-Glance’ table at the top of the dashboard
 * The output/summarize directory may also contain one or more .geojson files to support map-based visualizations in the dashboard.
 
-At present, example versions of all of the items above are located in the examples_mtc directory of the develop branch of the
-ActivitySim/activitysim repo on GitHub.
+At present, example versions of all of the items above are located in the MTC example model: ``activitysim/examples/example_mtc``.
 
 
-Install and Run Simwrapper
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-Download and install the Simwrapper Python library in the same virtual environment as your instance of ActivitySim that contains
-the Summarize outputs.
-::
+Configure the summarize Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example configuration files for the summarize model step (as listed above) are included in MTC example. These files will need to be adjusted to produce customized SimWrapper dashboards. These files are structured as standard ActivitySim expression (CSV) and configuration (YAML) files. More detailed information about configuration of the summarize model step is available in the Models documentation.
 
-  > pip install simwrapper
-
-This library provides a command line interface for running a simple file server to view model outputs from local directories and
-opening the Simwrapper interface in a browser window.
-
-The latest information about the Simwrapper library is available on its PyPI page.
-
-From the command line, navigate to the output\summarize directory and then run Simwrapper to view the contents of that directory
-in your browser.  simwrapper knows two commands:
-
-* simwrapper serve starts a local file server in the current directory. Run this command, then browse to either https://vsp.berlin/simwrapper or https://activitysim.github.io/dashboard to view your local folder outputs.
-* simwrapper open asim opens a new web browser tab pointing to the Activitysim-specific version of Simwrapper AND starts a local file server in the current directory. The site will only be able to access local files as long as you keep the local server running, so don't close the command window.
-
-
-Optional: Configure Inputs to Summarize Step
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 You may wish to manipulate the default expression files prior to running the enhanced version of ActivitySim in order to suit
-your particular needs.  If you have a working knowledge of python, you can make many changes such as renaming items, adding
+your particular needs.  If you have a working knowledge of Python, you can make many changes such as renaming items, adding
 new aggregations, or modifying the calculation of sub-totals that will be computed at the end of the model run.  Make any changes
 to the files in the configs directory before running ActivitySim.  If you do modify the files in configs, make parallel changes to
 the two .yaml files in the output\summarize directory before running Simwrapper to ensure that the dashboard correctly captures
 your updates.
 
-Navigation
-~~~~~~~~~~
+
+Configure a SimWrapper Dashboard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SimWrapper Dashboards must be configured to render summary tables into charts and other dashboard components. An example of this configuration is included in the MTC example. Complete documentation for configuring dashboards is available in the `SimWrapper Docs <https://simwrapper.github.io/docs/simwrapper-intro>`
+
+
+Install and Run Simwrapper
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+The SimWrapper Python package, which contains convience functions for initiating the SimWrapper app in the browser and a local file server for accessing summary tables from this app, is automatically installed as a dependency of ActivitySim. However, you can also use SimWrapper independent of ActivitySim to, for example, visualize summaries on a different workstation. SimWrapper is available on pip:
+::
+
+  > pip install simwrapper
+
+The latest information about the Simwrapper package is available on its `PyPI page <https://pypi.org/project/simwrapper/1.2.0/>`.
+
+To run SimWrapper, navigate on the command line to ``output\summarize`` within the model directory, or a directory where you may have copied outputs, and run ``simwrapper open asim`` to start SimWrapper in your default browser. If this directory contains the appropriate configuration files for a dashboard (see above), the dashboard will open automatically. Otherwise, SimWrapper will show a file browser with the contents of the directory.
+
+
+Navigate SimWrappper
+~~~~~~~~~~~~~~~~~~~~
 When Simwrapper launches, the dashboard is displayed in the scrollable field in the main part of the browser window, and there are
 two sets of navigation controls.  The left-hand sidebar contains a menu of the available simulation outputs you can access from the
 current directory, including a number of sample outputs:

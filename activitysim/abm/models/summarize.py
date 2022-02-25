@@ -204,9 +204,14 @@ def manual_breaks(
 @inject.step()
 def summarize(
     network_los: pipeline.Pipeline,
+    persons: pd.DataFrame,
     persons_merged: pd.DataFrame,
+    households: pd.DataFrame,
+    households_merged: pd.DataFrame,
     trips: pd.DataFrame,
+    tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
+    land_use: pd.DataFrame,
 ):
     """
     A standard model that uses expression files to summarize pipeline tables for vizualization.
@@ -217,8 +222,7 @@ def summarize(
     Columns in pipeline tables can also be sliced and aggregated prior to summarization.
     This preprocessing is configured in `summarize.yaml`.
 
-
-    Outputs a seperate csv summary file for each expression.
+    Outputs a seperate csv summary file for each expression; outputs starting with '_' are saved as temporary local variables.
     """
     trace_label = 'summarize'
     model_settings_file_name = 'summarize.yaml'
@@ -233,9 +237,15 @@ def summarize(
         config.config_file_path(model_settings['SPECIFICATION']), comment='#'
     )
 
+    # Load dataframes from pipeline
+    persons = persons.to_frame()
     persons_merged = persons_merged.to_frame()
+    households = households.to_frame()
+    households_merged = households_merged.to_frame()
     trips = trips.to_frame()
+    tours = tours_merged.to_frame()
     tours_merged = tours_merged.to_frame()
+    land_use = land_use.to_frame()
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
@@ -247,53 +257,76 @@ def summarize(
         how="left",
     )
 
-    locals_d = {'trips_merged': trips_merged, 'persons_merged': persons_merged}
+    # Add dataframes as local variables
+    locals_d = {
+        'persons': persons,
+        'persons_merged': persons_merged,
+        'households': households,
+        'households_merged': households_merged,
+        'trips': trips,
+        'trips_merged': trips_merged,
+        'tours': tours_merged,
+        'tours_merged': tours_merged,
+        'land_use': land_use,
+    }
 
     skims = wrap_skims(network_los, trips_merged)
 
+    # Annotate trips_merged
     expressions.annotate_preprocessors(
         trips_merged, locals_d, skims, model_settings, 'summarize'
     )
 
     for table_name, df in locals_d.items():
-        meta = model_settings[table_name]
-        df = eval(table_name)
+        if table_name in model_settings:
 
-        if 'AGGREGATE' in meta and meta['AGGREGATE']:
-            for agg in meta['AGGREGATE']:
-                assert set(('column', 'label', 'map')) <= agg.keys()
-                df[agg['label']] = (
-                    df[agg['column']].map(agg['map']).fillna(df[agg['column']])
-                )
+            meta = model_settings[table_name]
+            df = eval(table_name)
 
-        if 'SLICERS' in meta and meta['SLICERS']:
-            for slicer in meta['SLICERS']:
-                if slicer['type'] == 'manual_breaks':
-                    # df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bin_breaks'],
-                    #                              labels=slicer['bin_labels'], include_lowest=True)
-                    df[slicer['label']] = manual_breaks(
-                        df[slicer['column']], slicer['bin_breaks'], slicer['bin_labels']
+            if 'AGGREGATE' in meta and meta['AGGREGATE']:
+                for agg in meta['AGGREGATE']:
+                    assert set(('column', 'label', 'map')) <= agg.keys()
+                    df[agg['label']] = (
+                        df[agg['column']].map(agg['map']).fillna(df[agg['column']])
                     )
 
-                elif slicer['type'] == 'quantiles':
-                    df[slicer['label']] = quantiles(
-                        df[slicer['column']], slicer['bins'], slicer['label_format']
-                    )
+            if 'SLICERS' in meta and meta['SLICERS']:
+                for slicer in meta['SLICERS']:
+                    if slicer['type'] == 'manual_breaks':
+                        # df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bin_breaks'],
+                        #                              labels=slicer['bin_labels'], include_lowest=True)
+                        df[slicer['label']] = manual_breaks(
+                            df[slicer['column']], slicer['bin_breaks'], slicer['bin_labels']
+                        )
 
-                elif slicer['type'] == 'spaced_intervals':
-                    df[slicer['label']] = spaced_intervals(
-                        df[slicer['column']],
-                        slicer['lower_bound'],
-                        slicer['interval'],
-                        slicer['label_format'],
-                    )
+                    elif slicer['type'] == 'quantiles':
+                        df[slicer['label']] = quantiles(
+                            df[slicer['column']], slicer['bins'], slicer['label_format']
+                        )
 
-                elif slicer['type'] == 'equal_intervals':
-                    df[slicer['label']] = equal_intervals(
-                        df[slicer['column']], slicer['bins'], slicer['label_format']
-                    )
+                    elif slicer['type'] == 'spaced_intervals':
+                        df[slicer['label']] = spaced_intervals(
+                            df[slicer['column']],
+                            slicer['lower_bound'],
+                            slicer['interval'],
+                            slicer['label_format'],
+                        )
 
-    locals_d.update(skims)
+                    elif slicer['type'] == 'equal_intervals':
+                        df[slicer['label']] = equal_intervals(
+                            df[slicer['column']], slicer['bins'], slicer['label_format']
+                        )
+
+    # TODO: The table output code below causes an error in the pipeline test (RuntimeError: Pipeline is already open!)
+    # and fails TravisCI, even when even when EXPORT_PIPELINE_TABLES is set to FALSE. WHY??
+    # Only short-term solution seems to be to comment it out.
+
+    # Output pipeline tables for expression development
+    # if model_settings['EXPORT_PIPELINE_TABLES'] == True:
+    #     pipeline_table_dir = os.path.join(output_location, 'pipeline_tables')
+    #     os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
+    #     for name, df in locals_d.items():
+    #         df.to_csv(config.output_file_path(os.path.join(pipeline_table_dir, f'{name}.csv')))
 
     # Add classification functions to locals
     locals_d.update(
@@ -305,18 +338,18 @@ def summarize(
         }
     )
 
-    # Save merged tables for expression development
-    # locals_d['trips_merged'].to_csv(
-    #     config.output_file_path(os.path.join(output_location, f'trips_merged.csv'))
-    # )
-    # locals_d['persons_merged'].to_csv(
-    #     config.output_file_path(os.path.join(output_location, f'persons_merged.csv'))
-    # )
-
     for i, row in spec.iterrows():
 
         out_file = row['Output']
         expr = row['Expression']
+
+        # Save temporary variables starting with underscores in locals_d
+        if out_file.startswith('_'):
+
+            logger.debug(f'Temp Variable: {expr} -> {out_file}')
+
+            locals_d[out_file] = eval(expr, globals(), locals_d)
+            continue
 
         logger.debug(f'Summary: {expr} -> {out_file}.csv')
 

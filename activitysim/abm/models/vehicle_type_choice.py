@@ -28,6 +28,64 @@ from .util import estimation
 logger = logging.getLogger(__name__)
 
 
+def read_vehicle_type_data(model_settings):
+    # This is essentially a re-implementation of core/config/base_settings_file_path
+    # Should we make this a little more general and move it there?
+    file_name = model_settings.get('VEHICLE_TYPE_DATA_FILE')
+
+    if not file_name.lower().endswith('.csv'):
+        file_name = '%s.csv' % (file_name, )
+
+    configs_dir = inject.get_injectable('configs_dir')
+    configs_dir = [configs_dir] if isinstance(configs_dir, str) else configs_dir
+
+    for dir in configs_dir:
+        file_path = os.path.join(dir, file_name)
+        if os.path.exists(file_path):
+            return pd.read_csv(file_path)
+
+    raise RuntimeError("base_settings_file %s not found" % file_name)
+
+
+def get_vehicle_alternatives(alts_cats_dict, model_settings):
+    alts_fname = model_settings.get('ALTS')
+    cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
+    print(cat_cols)
+    num_cats = len(cat_cols)
+    alts_long = pd.DataFrame(
+        list(itertools.product(*alts_cats_dict.values())),
+        columns=alts_cats_dict.keys()).astype(str)
+    alts_wide = pd.get_dummies(alts_long)  # rows will sum to num_cats
+
+    # store alts in primary configs dir
+    configs_dirs = inject.get_injectable("configs_dir")
+    configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
+    print(alts_wide)
+    print(alts_long)
+    alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=True)
+    alts_wide = pd.concat([alts_wide,alts_long], axis=1)
+    print(alts_wide)
+    return alts_wide, alts_long
+
+
+def annotate_vehicle_type_choice(model_settings, trace_label):
+    # - annotate households table
+    households = inject.get_table('households').to_frame()
+    expressions.assign_columns(
+        df=households,
+        model_settings=model_settings.get('annotate_households'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
+    pipeline.replace_table("households", households)
+
+    # - annotate persons table
+    persons = inject.get_table('persons').to_frame()
+    expressions.assign_columns(
+        df=persons,
+        model_settings=model_settings.get('annotate_households'),
+        trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
+    pipeline.replace_table("persons", persons)
+
+
 @inject.step()
 def vehicle_type_choice(
         persons,
@@ -84,17 +142,7 @@ def vehicle_type_choice(
     # create alts on-the-fly as cartesian product of categorical values
     alts_cats_dict = model_settings.get('combinatorial_alts', False)
     if alts_cats_dict:
-        alts_fname = model_settings.get('ALTS')
-        cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
-        num_cats = len(cat_cols)
-        alts_long = pd.DataFrame(
-            list(itertools.product(*alts_cats_dict.values())),
-            columns=alts_cats_dict.keys())
-        alts_wide = pd.get_dummies(alts_long)  # rows will sum to num_cats
-        # store alts in primary configs dir
-        configs_dirs = inject.get_injectable("configs_dir")
-        configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
-        alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=False)
+        alts_wide, alts_long = get_vehicle_alternatives(alts_cats_dict, model_settings)
 
     logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
     choice_column_name = model_settings.get("CHOICE_COL", 'vehicle_type')
@@ -110,6 +158,30 @@ def vehicle_type_choice(
     locals_dict = {}
     locals_dict.update(constants)
     locals_dict.update(coefficients_df)
+
+    # adding vehicle type data to be available to locals_dict
+    if model_settings.get('VEHICLE_TYPE_DATA_FILE'):
+
+        vehicle_type_data = read_vehicle_type_data(model_settings)
+        body_type_col = model_settings.get('BODY_TYPE_COL')
+        fuel_type_col = model_settings.get('FUEL_TYPE_COL')
+        veh_year_col = model_settings.get('VEHICLE_YEAR_COL')
+        scenario_year = model_settings.get('SCENARIO_YEAR')
+
+        vehicle_type_data['age'] = (1 + scenario_year - vehicle_type_data[veh_year_col]).astype(str)
+        # vehicle_type_data.set_index([body_type_col, fuel_type_col, 'age'], inplace=True)
+
+        locals_dict.update({'vehicle_type_data': vehicle_type_data})
+
+    # merging vehicle type data onto each alternative
+    if alts_cats_dict:
+        print(alts_wide.columns)
+        print(vehicle_type_data.columns)
+        alts_wide = \
+            pd.merge(alts_wide, vehicle_type_data, how='left',
+                     left_on=['body_type', 'fuel_type', 'age'],
+                     right_on=[body_type_col, fuel_type_col, 'age'])
+        alts_wide['age'] = alts_wide['age'].astype(int)
 
     # merge vehicles onto households, index will be vehicle_id
     choosers = vehicles_merged.to_frame()
@@ -147,6 +219,8 @@ def vehicle_type_choice(
         # FIXME set_alt_id - do we need this for interaction_simulate estimation bundle tables?
         estimator.set_alt_id('alt_id')
         estimator.set_chooser_id(choosers.index.name)
+
+    choosers.to_csv('choosers.csv')
 
     # STEP I. run logit choices
 
@@ -234,21 +308,7 @@ def vehicle_type_choice(
     assign_in_place(vehicles, choices)
     pipeline.replace_table("vehicles", vehicles)
 
-    # - annotate households table
-    households = households.to_frame()
-    expressions.assign_columns(
-        df=households,
-        model_settings=model_settings.get('annotate_households'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
-    pipeline.replace_table("households", households)
-
-    # - annotate persons table
-    persons = persons.to_frame()
-    expressions.assign_columns(
-        df=persons,
-        model_settings=model_settings.get('annotate_households'),
-        trace_label=tracing.extend_trace_label(trace_label, 'annotate_households'))
-    pipeline.replace_table("persons", persons)
+    annotate_vehicle_type_choice(model_settings, trace_label)
 
     tracing.print_summary('vehicle_type_choice', vehicles.vehicle_type, value_counts=True)
 

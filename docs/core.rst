@@ -414,41 +414,130 @@ Cache API
 
 Visualization
 -------------
-Visualization capabilities are provided with SimWrapper, a standalone browser-based software that creates interactive, graphical visualizations of ActivitySim outputs. SimWrapper builds graphs and other visualization components from CSV summary tables that are produced by the *summarize* model step. Once the model run is complete, Simwrapper can be started and stopped at any time, independent of ActivitySim to visualize outputs. The tool currently allows users to view dashboards for multiple model runs side-by-side in the browser.
-The ability to compute and visualize the differences between two model runs is a planned future enhancement.
+Visualization capabilities are provided with SimWrapper, a standalone browser-based software that creates interactive, graphical visualizations of ActivitySim outputs. SimWrapper builds graphs and other visualization components from CSV summary tables that are produced by the *summarize* model step. Once the model run is complete, Simwrapper can be started and stopped at any time, independent of ActivitySim to visualize outputs. The tool currently allows users to view dashboards for multiple model runs side-by-side in the browser. The ability to compute and visualize the differences between two model runs is a planned future enhancement.
 
 To use set up the summarize model to produce tables for SimWrapper, add ``summarize`` to the list of models in ``configs_mp/settings.yaml`` and add the following files to the `config` directory:
 
-* summarize.yaml = configuration for the summarize model step
-* summarize.csv = expression file containing the final aggregations that will be generated at the end of the model run
-* \[table_name\]_summarize_preprocessor.csv = intermediate expression file used to add columns, including skim summaries, to a given pipeline table
+* ``summarize.yaml``: configuration for the summarize model step
+* ``summarize.csv:`` expression file containing the final aggregations that will be generated at the end of the model run
+* ``summarize_preprocessor.csv``: intermediate expression file used to add columns, including skim summaries, to the ``trips_merged`` pipeline table
 
 In the output directory, add a new summarize directory, which must contain:
 
-* dashboard-1-summary.yaml = configuration for the layout and formatting of charts and other objects in the dashboard
-* Additional dashboard-\*.yaml files may be used to configure additional dashboard tabs
-* topsheet.yaml = configuration for calculated statistics in the ‘At-a-Glance’ table at the top of the dashboard
-* The output/summarize directory may also contain one or more .geojson files to support map-based visualizations in the dashboard.
+* ``dashboard-1-summary.yaml``: configuration for the layout and formatting of charts and other objects in the dashboard
+* Additional ``dashboard-\*.yaml`` files may be used to configure additional dashboard tabs
+* ``topsheet.yaml``: configuration for calculated statistics in the ‘At-a-Glance’ table at the top of the dashboard
+* The ``/output/summarize`` directory may also contain one or more .geojson files to support map-based visualizations in the dashboard.
 
-At present, example versions of all of the items above are located in the MTC example model: ``activitysim/examples/example_mtc``.
+At present, example versions of all of the items above are located in the MTC example model: ``/activitysim/examples/example_mtc``. Complete documentation for configuring dashboards is available in the `SimWrapper Docs <https://simwrapper.github.io/docs/simwrapper-intro>`_.
 
 
-Configure the summarize Model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configure the Summarize Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Summary Expressions
+^^^^^^^^^^^^^^^^^^^
 Example configuration files for the summarize model step (as listed above) are included in MTC example. These files will need to be adjusted to produce customized SimWrapper dashboards. These files are structured as standard ActivitySim expression (CSV) and configuration (YAML) files. More detailed information about configuration of the summarize model step is available in the Models documentation.
 
-You may wish to manipulate the default expression files prior to running the enhanced version of ActivitySim in order to suit
-your particular needs.  If you have a working knowledge of Python, you can make many changes such as renaming items, adding
-new aggregations, or modifying the calculation of sub-totals that will be computed at the end of the model run.  Make any changes
-to the files in the configs directory before running ActivitySim.  If you do modify the files in configs, make parallel changes to
-the two .yaml files in the output\summarize directory before running Simwrapper to ensure that the dashboard correctly captures
-your updates.
+You may wish to manipulate the default expression files to suit your particular needs. Expression files are formatted as CSVs and structured according to ActivitySim conventions with three columns:
+
+* ``Description``: Brief description of expression. Non-functional and may be left blank.
+* ``Output``: Name of expression output. Will be used to name either the CSV or local variable storing the expression output.
+* ``Expression``: Python expression that will be evaluated to produce the output.
+
+Rows with output values that begin with an alphanumeric character will be saved to a CSV (e.g., ``output_name`` --> ``output_name.csv``). These expressions must yield a Pandas Series, DataFrame, or another object with a ``to_csv`` method.
+
+Rows with output values that begin with underscores (e.g., ``_output_name``) will be stored as temporary variables in the local namespace so they can be used in following expressions. Expressions defining temporary variables can produce any data type. Users are encouraged to follow the ActivitySim convention using capitals to denote constants (e.g., ``_TEMP_CONSTANT``), though this convention is not formally enforced for summarize expressions.
+
+Summarize expressions can make use of several convenience functions for binning numeric Pandas Series' into quantiles, equal intervals, or manually-specified ranges. These functions are available in the local namespace used to evaluate summarize expressions (as well as for preprocessing the ``trips_merged`` table; see below), so they can be used directly in summary expressions. These functions include:
+
+* ``quantiles``: Construct quantiles from a Series given a number of bins.
+* ``spaced_intervals``: Construct evenly-spaced intervals from a Series given a starting value and bin size.
+* ``equal_intervals``: Construct equally-spaced intervals across the entire range of a Series.
+* ``manual_breaks``: Classify numeric data in a Series into manually-defined bins.
+
+For example population density quintiles could be calculated with the expression:
+::
+
+  quantiles(data=land_use.TOTPOP/land_use.TOTACRE, bins:5, label_format:'{rank}')
+
+The ``label_format`` parameter uses f-string formatting to specify how bins should be labeled. Several named variables are automatically available in the local namespace for use in labels:
+
+* ``left``: Left extent, or minimum, of the bin range
+* ``mid``: Center of the bin range
+* ``right``: Right extent, or maximum, of the bin range
+* ``rank``: Numeric rank of the bin, with 1 being the lowest rank
+
+By default, bins are labeled with their extents using the following f-string: ``'{left:,.2f} - {right:,.2f}'``. The ``'{rank}'`` option demonstrated above would label each bin with its ordinal rank. Numeric labels are converted to numeric data types, if possible.
+
+Examples of each summarize function are included in the ``summarize.csv`` expression file for the MTC example. Consult the docstrings for each function in the ``/activitysim/abm/models/summarize.py`` module for complete specification of parameters.
+
+Preprocessing
+^^^^^^^^^^^^^
+Pipeline tables available for summarization can be preprocessed to include columns that bin or aggregate existing columns into categories or add skim data related to trips or tours. Preprocessing is configured both in ``summarize.yaml`` and ``summarize_preprocessor.csv``.
+
+Binning and aggregation operations that should take place *before* expressions are calculated, in order to produce a new column in a pipeline table, can be specified in ``summarize.yaml``. This can be useful for reducing clutter and redundancy in the summary expressions file.
+
+Binning during the preprocessing stage uses the same convenience functions available for expression files but specifies them in the configuration YAML. To calculate manually-defined income categories, for example, the YAML would include:
+
+::
+
+  persons_merged:                      # Pipeline table on which to operate
+    BIN:
+      # Manually-specified bins
+      - column: income                 # Column on which to operate
+        label: income_category         # New column to make
+        type: manual_breaks            # Binning function
+        bin_breaks:                    # Must include lower and upper extents;
+          - 0                          # (One more value than the number of bins)
+          - 25000
+          - 50000
+          - 75000
+          - 100000
+          - 999999
+        bin_labels:                    # (optional)
+          - Very Low Income ($0-$25k)
+          - Low Income ($25k-$50k)
+          - Medium Income ($50k-$75k)
+          - High Income ($75k-$100k)
+          - Very High Income (>$100k)
+
+Example uses of each binning function are included in the ``summarize.yaml`` configuration file in the MTC example.
+
+Table columns can also be aggregated, or "remapped," during the preprocessing stage. Aggregations are specified in the configuration YAML using a key-value  structure:
+
+::
+
+  trips_merged:                        # Pipeline table on which to operate
+    AGGREGATE:
+      - column: major_trip_mode        # Column on which to operate
+        label: major_trip_mode         # New column to make
+        map:
+          DRIVEALONEFREE: SOV          # Keys: Existing values to map from 
+          DRIVEALONEPAY: SOV           # Values: New values to map to
+          SHARED2FREE: HOV
+          SHARED2PAY: HOV
+          SHARED3FREE: HOV
+          SHARED3PAY: HOV
+          WALK_LOC: Transit
+          WALK_LRF: Transit
+          WALK_EXP: Transit
+          WALK_HVY: Transit
+          WALK_COM: Transit
+          DRIVE_LOC: Transit
+          DRIVE_LRF: Transit
+          DRIVE_EXP: Transit
+          DRIVE_HVY: Transit
+          DRIVE_COM: Transit
+          DRIVEACCESS: Transit
+          WALK: Non-Motorized
+          BIKE: Non-Motorized
+          TAXI: Ride Hail
+          TNC_SINGLE: Ride Hail
+          TNC_SHARED: Ride Hail
 
 
-Configure a SimWrapper Dashboard
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-SimWrapper Dashboards must be configured to render summary tables into charts and other dashboard components. An example of this configuration is included in the MTC example. Complete documentation for configuring dashboards is available in the `SimWrapper Docs <https://simwrapper.github.io/docs/simwrapper-intro>`
+Trip-level skim data are also made available in the preprocessing stage by attaching columns to the ``trips_merged`` table based on expressions in ``summarize_preprocessor.csv``. This process uses skim wrappers indexed by origin, destination, and time of day to gather distance, time, and cost data and each trip, enabling calculation of variables such as vehicle miles traveled (VMT). Preprocessing expressions are interpreted with standard ActivitySim annotation methods, including definition of scalar and vector temporary variables based on underscores and capitalization. The preprocessor expressions included in the MTC example demonstrate calculation of a number of skim-based variables involving distance, time, and cost. The system for joining skim data to trips is currently configured for the one-zone MTC example model and will need to be generalized for multi-zone systems in future work.
 
 
 Install and Run Simwrapper
@@ -458,7 +547,7 @@ The SimWrapper Python package, which contains convience functions for initiating
 
   > pip install simwrapper
 
-The latest information about the Simwrapper package is available on its `PyPI page <https://pypi.org/project/simwrapper/1.2.0/>`.
+The latest information about the Simwrapper package is available on its `PyPI page <https://pypi.org/project/simwrapper/1.2.0/>`_.
 
 To run SimWrapper, navigate on the command line to ``output\summarize`` within the model directory, or a directory where you may have copied outputs, and run:
 ::

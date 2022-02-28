@@ -87,7 +87,6 @@ def construct_bin_labels(bins: pd.Series, label_format: str) -> pd.Series:
     )
 
     def construct_label(label_format, bounds_dict):
-        # parts = [part for part in ['left', 'right'] if part in label_format]
         bounds_dict = {
             x: bound for x, bound in bounds_dict.items() if x in label_format
         }
@@ -291,11 +290,9 @@ def summarize(
                         df[agg['column']].map(agg['map']).fillna(df[agg['column']])
                     )
 
-            if 'SLICERS' in meta and meta['SLICERS']:
-                for slicer in meta['SLICERS']:
+            if 'BIN' in meta and meta['BIN']:
+                for slicer in meta['BIN']:
                     if slicer['type'] == 'manual_breaks':
-                        # df[slicer['label']] = pd.cut(df[slicer['column']], slicer['bin_breaks'],
-                        #                              labels=slicer['bin_labels'], include_lowest=True)
                         df[slicer['label']] = manual_breaks(
                             df[slicer['column']], slicer['bin_breaks'], slicer['bin_labels']
                         )

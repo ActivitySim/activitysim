@@ -77,6 +77,10 @@ Description,Output,Expression
 ,_non_mandatory_tours,trips_merged[trips_merged.tour_category == 'non_mandatory']
 ,non_mandatory_tours_tod_count,_non_mandatory_tours.groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
 
+# TAZ population density quintiles
+,_taz_pop_dens,land_use.TOTPOP/land_use.TOTACRE
+,taz_population_density_quintiles,"quantiles(_taz_pop_dens, 5, '{rank}').rename('pop_dens_quintile').reset_index()"
+
 # Calculate share of taz population that is low income by decile
 # (Output deciles by specifying '{rank}' as the label format in the quantile function)
 ,_low_income_pop_by_taz,persons_merged[persons_merged.income < 50000].groupby('home_zone_id').size()
@@ -94,7 +98,7 @@ Description,Output,Expression
 ,_vmt_per_capita_quintiles,"quantiles(_vmt_per_capita_by_home_taz, 5, '{rank}')"
 ,vmt_per_capita_by_home_taz_quintiles,"_vmt_per_capita_quintiles.rename('vmt_per_capita_by_home_taz_quintiles').reset_index()"
 
-# Counts non-motorized trips by 0.25-mile distance bins
+# Counts of non-motorized trips by 0.25-mile distance bins
 ,_non_motorized_distances,(trips_merged.walk_distance + trips_merged.bike_distance)
 ,_non_motorized_trips,trips_merged.major_trip_mode == 'Non-Motorized'
 ,_non_motorized_trip_distances,_non_motorized_distances[_non_motorized_trips]
@@ -104,6 +108,9 @@ Description,Output,Expression
 # Counts of trips by income and travel time category
 #,trips_by_income_and_travel_time_category,"trips_merged.groupby(['trip_income_category','total_time_category']).size().rename('trips').unstack(-2).reset_index()"
 
-# TAZ population density quintiles
-,_taz_pop_dens,land_use.TOTPOP/land_use.TOTACRE
-,taz_population_density_quintiles,"quantiles(_taz_pop_dens, 5, '{rank}').rename('pop_dens_quintile').reset_index()"
+
+
+
+
+
+

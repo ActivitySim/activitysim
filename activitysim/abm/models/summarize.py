@@ -320,7 +320,7 @@ def summarize(
     # Only short-term solution seems to be to comment it out.
 
     # Output pipeline tables for expression development
-    if model_settings['EXPORT_PIPELINE_TABLES'] == True:
+    if model_settings['EXPORT_PIPELINE_TABLES'] is True:
         pipeline_table_dir = os.path.join(output_location, 'pipeline_tables')
         os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
         for name, df in locals_d.items():

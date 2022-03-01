@@ -30,6 +30,12 @@ logging:
     sharrow:
       level: INFO
 
+    blib2to3:
+      level: WARN
+
+    black:
+      level: WARN
+
   handlers:
 
     logfile:

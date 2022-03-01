@@ -120,17 +120,14 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
-            sh_util, sh_flow, sh_flow_idxs = apply_flow(spec, df, locals_d, trace_label, interacts=extra_data)
+            sh_util, sh_flow = apply_flow(spec, df, locals_d, trace_label, interacts=extra_data)
             if sh_util is not None:
                 chunk.log_df(trace_label, 'sh_util', sh_util)
-                chunk.log_df(trace_label, 'sh_flow_idxs', sh_flow_idxs)
                 utilities = pd.DataFrame(
                     {'utility': sh_util.reshape(-1)},
                     index=df.index if extra_data is None else None,
                 )
                 chunk.log_df(trace_label, 'sh_util', None)  # hand off to caller
-                del sh_flow_idxs
-                chunk.log_df(trace_label, 'sh_flow_idxs', None)
 
             timelogger.mark("sharrow flow", True, logger, trace_label)
         else:

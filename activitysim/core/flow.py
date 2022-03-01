@@ -600,7 +600,7 @@ def size_terms_on_flow(locals_d):
 
 def apply_flow(spec, choosers, locals_d=None, trace_label=None, required=False, interacts=None):
     if sh is None:
-        return None, None, None
+        return None, None
     if locals_d is None:
         locals_d = {}
     with logtime("apply_flow"):
@@ -611,26 +611,27 @@ def apply_flow(spec, choosers, locals_d=None, trace_label=None, required=False, 
                 logger.error(f"error in apply_flow: {err!s}")
                 if required:
                     raise
-                return None, None, None
+                return None, None
             else:
                 raise
         with logtime("flow.load", trace_label or ''):
             try:
-                flow_result, flow_indexes = flow.load(
-                    dot=spec.values.astype(np.float32),
+                flow_result = flow.dot(
+                    coefficients=spec.values.astype(np.float32),
                     dtype=np.float32,
-                    return_indexes=True,
                 )
+                # TODO: are there remaining internal arrays in dot that need to be
+                #  passed out to be seen by the dynamic chunker before they are freed?
             except ValueError as err:
                 if "could not convert" in str(err):
                     logger.error(f"error in apply_flow: {err!s}")
                     if required:
                         raise
-                    return None, flow, None
+                    return None, flow
                 raise
             except Exception as err:
                 logger.error(f"error in apply_flow: {err!s}")
                 # index_keys = self.shared_data.meta_match_names_idx.keys()
                 # logger.debug(f"Flow._get_indexes: {index_keys}")
                 raise
-            return flow_result, flow, flow_indexes
+            return flow_result, flow

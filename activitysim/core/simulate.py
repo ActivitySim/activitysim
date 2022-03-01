@@ -457,10 +457,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         locals_dict.update(config.get_global_constants())
         if locals_d is not None:
             locals_dict.update(locals_d)
-        sh_util, sh_flow, sh_flow_idxs = apply_flow(spec, choosers, locals_dict, trace_label, sharrow_enabled == 'require')
-        chunk.log_df(trace_label, "sh_flow_idxs", sh_flow_idxs)
-        del sh_flow_idxs
-        chunk.log_df(trace_label, "sh_flow_idxs", None)
+        sh_util, sh_flow = apply_flow(spec, choosers, locals_dict, trace_label, sharrow_enabled == 'require')
         utilities = sh_util
         timelogger.mark("sharrow flow", True, logger, trace_label)
     else:

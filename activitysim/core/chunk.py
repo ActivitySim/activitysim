@@ -12,6 +12,7 @@ from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from . import config
 from . import mem
@@ -470,10 +471,10 @@ class ChunkLedger(object):
             elif isinstance(df, pd.DataFrame):
                 elements = util.iprod(df.shape)
                 bytes = 0 if not elements else df.memory_usage(index=True).sum()
-            elif isinstance(df, np.ndarray):
+            elif isinstance(df, (np.ndarray, xr.DataArray)):
                 elements = util.iprod(df.shape)
                 bytes = df.nbytes
-            elif isinstance(df, list):
+            elif isinstance(df, (list, tuple)):
                 # dict of series, dataframe, or ndarray (e.g. assign assign_variables target and temp dicts)
                 elements = 0
                 bytes = 0
@@ -481,7 +482,7 @@ class ChunkLedger(object):
                     e, b = size_it(v)
                     elements += e
                     bytes += b
-            elif isinstance(df, dict):
+            elif isinstance(df, (dict, xr.Dataset)):
                 # dict of series, dataframe, or ndarray (e.g. assign assign_variables target and temp dicts)
                 elements = 0
                 bytes = 0
@@ -512,6 +513,8 @@ class ChunkLedger(object):
             shape = f"list({[x.shape for x in df]})"
         elif isinstance(df, dict):
             shape = f"dict({[v.shape for v in df.values()]})"
+        elif isinstance(df, xr.Dataset):
+            shape = df.dims
         else:
             shape = df.shape
 

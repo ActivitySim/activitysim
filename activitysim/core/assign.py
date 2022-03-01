@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+import pickle
 from builtins import zip
 from builtins import object
 
@@ -255,6 +256,36 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
     variables = OrderedDict()
     temps = OrderedDict()
 
+    # draw required randomness in one slug
+    # TODO: generalize to all randomness, not just lognormals
+    n_randoms = 0
+    for expression_idx in assignment_expressions.index:
+        expression = assignment_expressions.loc[expression_idx,'expression']
+        if 'rng.lognormal_for_df(df,' in expression:
+            expression = expression.replace('rng.lognormal_for_df(df,', f'rng_lognormal(random_draws[{n_randoms}],')
+            n_randoms += 1
+            assignment_expressions.loc[expression_idx, 'expression'] = expression
+    if n_randoms:
+        from activitysim.core import pipeline
+        try:
+            random_draws = pipeline.get_rn_generator().normal_for_df(df, broadcast=True, size=n_randoms)
+        except RuntimeError:
+            pass
+        else:
+            _locals_dict['random_draws'] = random_draws
+
+            def rng_lognormal(random_draws, mu, sigma, broadcast=True, scale=False):
+                if scale:
+                    x = 1 + ((sigma * sigma) / (mu * mu))
+                    mu = np.log(mu / (np.sqrt(x)))
+                    sigma = np.sqrt(np.log(x))
+                assert broadcast
+                return np.exp(random_draws*sigma + mu)
+
+            _locals_dict['rng_lognormal'] = rng_lognormal
+
+    sharrow_enabled = config.setting("sharrow", False)
+
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
 
@@ -269,7 +300,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
             logger.warning("assign_variables target obscures local_d name '%s'", str(target))
 
         if trace_label:
-            logger.debug(f"{trace_label}.assign_variables {target} = {expression}")
+            logger.info(f"{trace_label}.assign_variables {target} = {expression}")
 
         if is_temp_singular(target) or is_throwaway(target):
             try:
@@ -296,7 +327,29 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
 
             # FIXME should whitelist globals for security?
             globals_dict = {}
-            expr_values = to_series(eval(expression, globals_dict, _locals_dict))
+            try:
+                expr_values = to_series(eval(expression, globals_dict, _locals_dict))
+            except ValueError:
+                import os
+                import uuid
+                uid = uuid.uuid1()
+                # for k in globals_dict.keys():
+                #     try:
+                #         with open(os.path.join(config.get_cache_dir(), f"dump-{uid}-g-{k}.pkl"), 'wb') as f:
+                #             pickle.dump(globals_dict[k], f)
+                #     except Exception as err:
+                #         logger.error(repr(err))
+                # for k in _locals_dict.keys():
+                #     try:
+                #         with open(os.path.join(config.get_cache_dir(), f"dump-{uid}-l-{k}.pkl"), 'wb') as f:
+                #             pickle.dump(_locals_dict[k], f)
+                #     except Exception as err:
+                #         logger.error(repr(err))
+                raise
+
+            if sharrow_enabled and np.issubdtype(expr_values.dtype, np.floating) and expr_values.dtype.itemsize < 4:
+                # promote to float32, sharrow is not compatible with float less than 32
+                expr_values = expr_values.astype(np.float32)
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)

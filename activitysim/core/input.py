@@ -88,6 +88,7 @@ def read_from_table_info(table_info):
     column_map = table_info.get('column_map', None)
     keep_columns = table_info.get('keep_columns', None)
     rename_columns = table_info.get('rename_columns', None)
+    recode_columns = table_info.get('recode_columns', None)
     csv_dtypes = table_info.get('dtypes', {})
 
     # don't require a redundant index_col directive for canonical tables
@@ -152,6 +153,26 @@ def read_from_table_info(table_info):
         logger.debug("renaming columns: %s" % rename_columns)
         df.rename(columns=rename_columns, inplace=True)
 
+    # recode columns, can simplify data structure
+    if recode_columns:
+        for colname, recode_instruction in recode_columns.items():
+            logger.info(f"recoding column {colname}: {recode_instruction}")
+            if recode_instruction == "zero-based":
+                remapper = {j:i for i,j in enumerate(sorted(set(df[colname])))}
+                df[f"_original_{colname}"] = df[colname]
+                df[colname] = df[colname].apply(remapper.get)
+                if keep_columns:
+                    keep_columns.append(f"_original_{colname}")
+            else:
+                source_table, lookup_col = recode_instruction.split(".")
+                parent_table = inject.get_table(source_table)
+                try:
+                    map_col = parent_table[f"_original_{lookup_col}"]
+                except KeyError:
+                    map_col = parent_table[lookup_col]
+                remapper = dict(zip(map_col, parent_table.index))
+                df[colname] = df[colname].apply(remapper.get)
+
     # set index
     if index_col is not None:
         if index_col in df.columns:
@@ -193,7 +214,7 @@ def read_from_table_info(table_info):
 def _read_input_file(filepath, h5_tablename=None, csv_dtypes=None):
     assert os.path.exists(filepath), 'input file not found: %s' % filepath
 
-    if filepath.endswith('.csv'):
+    if filepath.endswith('.csv') or filepath.endswith('.csv.gz'):
         return _read_csv_with_fallback_encoding(filepath, csv_dtypes)
 
     if filepath.endswith('.h5'):

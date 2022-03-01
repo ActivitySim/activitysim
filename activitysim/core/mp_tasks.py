@@ -1307,15 +1307,18 @@ def run_multiprocess(injectables):
     def find_breadcrumb(crumb, default=None):
         return old_breadcrumbs.get(step_name, {}).get(crumb, default)
 
+    sharrow_enabled = config.setting("sharrow", False)
+
     # - allocate shared data
     shared_data_buffers = {}
 
     mem.trace_memory_info("allocate_shared_skim_buffer.before")
 
     t0 = tracing.print_elapsed_time()
-    shared_data_buffers.update(allocate_shared_skim_buffers())
-    t0 = tracing.print_elapsed_time('allocate shared skim buffer', t0)
-    mem.trace_memory_info("allocate_shared_skim_buffer.completed")
+    if not sharrow_enabled:
+        shared_data_buffers.update(allocate_shared_skim_buffers())
+        t0 = tracing.print_elapsed_time('allocate shared skim buffer', t0)
+        mem.trace_memory_info("allocate_shared_skim_buffer.completed")
 
     # combine shared_skim_buffer and shared_shadow_pricing_buffer in shared_data_buffer
     t0 = tracing.print_elapsed_time()
@@ -1323,15 +1326,29 @@ def run_multiprocess(injectables):
     t0 = tracing.print_elapsed_time('allocate shared shadow_pricing buffer', t0)
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
 
+    if sharrow_enabled:
+        shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
+
+        # Loading skim_dataset must be done in the main process, not a subprocess,
+        # so that this min process can hold on to the shared memory and then cleanly
+        # release it on exit.
+        from . import flow  # make injectable known
+        inject.get_injectable('skim_dataset')
+
+        t0 = tracing.print_elapsed_time('setup skim_dataset', t0)
+        mem.trace_memory_info("skim_dataset.completed")
+
     # - mp_setup_skims
-    if len(shared_data_buffers) > 0:
-        run_sub_task(
-            multiprocessing.Process(
-                target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
-                kwargs=shared_data_buffers)
-        )
-        t0 = tracing.print_elapsed_time('setup shared_data_buffers', t0)
-        mem.trace_memory_info("mp_setup_skims.completed")
+    if not sharrow_enabled:
+        if len(shared_data_buffers) > 0:
+            run_sub_task(
+                multiprocessing.Process(
+                    target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
+                    kwargs=shared_data_buffers)
+            )
+
+            t0 = tracing.print_elapsed_time('setup shared_data_buffers', t0)
+            mem.trace_memory_info("mp_setup_skims.completed")
 
     # - for each step in run list
     for step_info in run_list['multiprocess_steps']:

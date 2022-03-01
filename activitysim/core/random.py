@@ -248,7 +248,7 @@ class SimpleChannel(object):
         self.row_states.loc[df.index, 'offset'] += n
         return rands
 
-    def normal_for_df(self, df, step_name, mu, sigma, lognormal=False):
+    def normal_for_df(self, df, step_name, mu, sigma, lognormal=False, size=None):
         """
         Return a floating point random number in normal (or lognormal) distribution
         for each row in df using the appropriate random channel for each row.
@@ -296,11 +296,11 @@ class SimpleChannel(object):
 
         if lognormal:
             rands = \
-                np.asanyarray([prng.lognormal(mean=mu[i], sigma=sigma[i])
+                np.asanyarray([prng.lognormal(mean=mu[i], sigma=sigma[i], size=size)
                                for i, prng in enumerate(generators)])
         else:
             rands = \
-                np.asanyarray([prng.normal(loc=mu[i], scale=sigma[i])
+                np.asanyarray([prng.normal(loc=mu[i], scale=sigma[i], size=size)
                                for i, prng in enumerate(generators)])
 
         # update offset for rows we handled
@@ -602,7 +602,7 @@ class Random(object):
         rands = channel.random_for_df(df, self.step_name, n)
         return rands
 
-    def normal_for_df(self, df, mu=0, sigma=1, broadcast=False):
+    def normal_for_df(self, df, mu=0, sigma=1, broadcast=False, size=None):
         """
         Return a single floating point normal random number in range (-inf, inf) for each row in df
         using the appropriate random channel for each row.
@@ -640,11 +640,14 @@ class Random(object):
         if broadcast:
             alts_df = df
             df = df.index.unique().to_series()
-            rands = channel.normal_for_df(df, self.step_name, mu=0, sigma=1, lognormal=False)
-            rands = reindex(pd.Series(rands, index=df.index), alts_df.index)
+            rands = channel.normal_for_df(df, self.step_name, mu=0, sigma=1, lognormal=False, size=size)
+            if size is not None:
+                rands = reindex(pd.DataFrame(rands, index=df.index), alts_df.index)
+            else:
+                rands = reindex(pd.Series(rands, index=df.index), alts_df.index)
             rands = rands*sigma + mu
         else:
-            rands = channel.normal_for_df(df, self.step_name, mu, sigma, lognormal=False)
+            rands = channel.normal_for_df(df, self.step_name, mu, sigma, lognormal=False, size=size)
 
         return rands
 

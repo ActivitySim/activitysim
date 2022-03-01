@@ -3,12 +3,16 @@
 
 from builtins import range
 
+import os
 import warnings
 import logging
 from collections import OrderedDict
 
 import numpy as np
+import orca
 import pandas as pd
+import time
+from datetime import timedelta
 
 from . import logit
 from . import tracing
@@ -19,14 +23,10 @@ from . import assign
 from . import chunk
 
 from . import pathbuilder
+from .simulate_consts import *
 
 logger = logging.getLogger(__name__)
 
-SPEC_DESCRIPTION_NAME = 'Description'
-SPEC_EXPRESSION_NAME = 'Expression'
-SPEC_LABEL_NAME = 'Label'
-
-ALT_LOSER_UTIL = -900
 
 
 def random_rows(df, n):
@@ -373,6 +373,11 @@ def eval_coefficients(spec, coefficients, estimator):
             continue
         spec[c] = spec[c].apply(lambda x: eval(str(x), {}, coefficients)).astype(np.float32)
 
+    sharrow_enabled = config.setting("sharrow", False)
+    if sharrow_enabled:
+        # keep all zero rows, reduces the number of unique flows to compile and store.
+        return spec
+
     # drop any rows with all zeros since they won't have any effect (0 marginal utility)
     # (do not drop rows in estimation mode as it may confuse the estimation package (e.g. larch)
     zero_rows = (spec == 0).all(axis=1)
@@ -385,6 +390,9 @@ def eval_coefficients(spec, coefficients, estimator):
 
     return spec
 
+
+_OLD_TIME = 0
+_NEW_TIME = 0
 
 def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                    have_trace_targets=False, trace_all_rows=False,
@@ -413,79 +421,130 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     -------
 
     """
+    start_time = time.time()
 
+    global _OLD_TIME, _NEW_TIME
+
+    # from .flow import apply_flow # need import here to make injectable available
+    # from . import inject
+    # skim_dataset = inject.get_injectable('skim_dataset')
+    sharrow_enabled = config.setting("sharrow", False)
+
+    if trace_label and (
+            # TODO: make this smarter
+            # trace_label.startswith("trip_mode_choice") # uses '.isin(I_RIDE_HAIL_MODES)'
+            # or
+            trace_label.startswith("joint_tour_composition")
+            or trace_label.startswith("stop_frequency.social")
+            or trace_label.startswith("stop_frequency.shopping")
+            or trace_label.startswith("stop_frequency.eatout")
+            # or trace_label.startswith("trip_destination")
+    ):
+        sharrow_enabled = False
+
+    expression_values = None
+
+    t0 = time.time()
+    from .flow import TimeLogger
+    timelogger = TimeLogger("simulate")
+    sh_util = None
+    sh_flow = None
+    utilities = None
+
+    if sharrow_enabled:
+        from .flow import apply_flow # import inside func to prevent circular imports
+        locals_dict = {}
+        locals_dict.update(config.get_global_constants())
+        if locals_d is not None:
+            locals_dict.update(locals_d)
+        sh_util, sh_flow, sh_flow_idxs = apply_flow(spec, choosers, locals_dict, trace_label, sharrow_enabled == 'require')
+        chunk.log_df(trace_label, "sh_flow_idxs", sh_flow_idxs)
+        del sh_flow_idxs
+        chunk.log_df(trace_label, "sh_flow_idxs", None)
+        utilities = sh_util
+        timelogger.mark("sharrow flow", True, logger, trace_label)
+    else:
+        timelogger.mark("sharrow flow", False)
+
+    t1 = time.time()
     # fixme - restore tracing and _check_for_variability
 
-    trace_label = tracing.extend_trace_label(trace_label, 'eval_utils')
+    if utilities is None or estimator or sharrow_enabled == 'test':
 
-    # avoid altering caller's passed-in locals_d parameter (they may be looping)
-    locals_dict = assign.local_utilities()
+        trace_label = tracing.extend_trace_label(trace_label, 'eval_utils')
 
-    if locals_d is not None:
-        locals_dict.update(locals_d)
-    globals_dict = {}
+        # avoid altering caller's passed-in locals_d parameter (they may be looping)
+        locals_dict = assign.local_utilities()
 
-    locals_dict['df'] = choosers
+        if locals_d is not None:
+            locals_dict.update(locals_d)
+        globals_dict = {}
 
-    # - eval spec expressions
-    if isinstance(spec.index, pd.MultiIndex):
-        # spec MultiIndex with expression and label
-        exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
+        locals_dict['df'] = choosers
+
+        # - eval spec expressions
+        if isinstance(spec.index, pd.MultiIndex):
+            # spec MultiIndex with expression and label
+            exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
+        else:
+            exprs = spec.index
+
+        expression_values = np.empty((spec.shape[0], choosers.shape[0]))
+        chunk.log_df(trace_label, "expression_values", expression_values)
+
+        i = 0
+        for expr, coefficients in zip(exprs, spec.values):
+
+            try:
+                with warnings.catch_warnings(record=True) as w:
+                    # Cause all warnings to always be triggered.
+                    warnings.simplefilter("always")
+                    if expr.startswith('@'):
+                        expression_value = eval(expr[1:], globals_dict, locals_dict)
+                    else:
+                        expression_value = choosers.eval(expr)
+
+                    if len(w) > 0:
+                        for wrn in w:
+                            logger.warning(f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}")
+
+            except Exception as err:
+                logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
+                raise err
+
+            if log_alt_losers:
+                # utils for each alt for this expression
+                # FIXME if we always did tis, we cold uem these and skip np.dot below
+                utils = np.outer(expression_value, coefficients)
+                losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
+
+                if losers.any():
+                    logger.warning(f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
+                                   f"with prohibitive utilities for all alternatives for expression: {expr}")
+
+            expression_values[i] = expression_value
+            i += 1
+
+        chunk.log_df(trace_label, "expression_values", expression_values)
+
+        if estimator:
+            df = pd.DataFrame(
+                data=expression_values.transpose(),
+                index=choosers.index,
+                columns=spec.index.get_level_values(SPEC_LABEL_NAME))
+            df.index.name = choosers.index.name
+            estimator.write_expression_values(df)
+
+        # - compute_utilities
+        utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
+
+        timelogger.mark("simple flow", True, logger=logger, suffix=trace_label)
     else:
-        exprs = spec.index
+        timelogger.mark("simple flow", False)
 
-    expression_values = np.empty((spec.shape[0], choosers.shape[0]))
-    chunk.log_df(trace_label, "expression_values", expression_values)
-
-    i = 0
-    for expr, coefficients in zip(exprs, spec.values):
-
-        try:
-            with warnings.catch_warnings(record=True) as w:
-                # Cause all warnings to always be triggered.
-                warnings.simplefilter("always")
-                if expr.startswith('@'):
-                    expression_value = eval(expr[1:], globals_dict, locals_dict)
-
-                else:
-                    expression_value = choosers.eval(expr)
-
-                if len(w) > 0:
-                    for wrn in w:
-                        logger.warning(f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}")
-
-        except Exception as err:
-            logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
-            raise err
-
-        if log_alt_losers:
-            # utils for each alt for this expression
-            # FIXME if we always did tis, we cold uem these and skip np.dot below
-            utils = np.outer(expression_value, coefficients)
-            losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
-
-            if losers.any():
-                logger.warning(f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
-                               f"with prohibitive utilities for all alternatives for expression: {expr}")
-
-        expression_values[i] = expression_value
-        i += 1
-
-    chunk.log_df(trace_label, "expression_values", expression_values)
-
-    if estimator:
-        df = pd.DataFrame(
-            data=expression_values.transpose(),
-            index=choosers.index,
-            columns=spec.index.get_level_values(SPEC_LABEL_NAME))
-        df.index.name = choosers.index.name
-        estimator.write_expression_values(df)
-
-    # - compute_utilities
-    utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
-
     chunk.log_df(trace_label, "utilities", utilities)
+    timelogger.mark("assemble utilities")
 
     # sometimes tvpb will drop rows on the fly and we wind up with an empty
     # table of choosers. this will just bypass tracing in that case.
@@ -500,6 +559,21 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         # get int offsets of the trace_targets (offsets of bool=True values)
         offsets = np.nonzero(list(trace_targets))[0]
 
+        # trace sharrow
+        if sh_flow is not None:
+            try:
+                data_sh = sh_flow.load(
+                    sh_flow.shared_data.replace_datasets(
+                        df=choosers.iloc[offsets],
+                    ),
+                    dtype=np.float32,
+                )
+                expression_values_sh = pd.DataFrame(data=data_sh.T, index=spec.index)
+            except ValueError:
+                expression_values_sh = None
+        else:
+            expression_values_sh = None
+
         # get array of expression_values
         # expression_values.shape = (len(spec), len(choosers))
         # data.shape = (len(spec), len(offsets))
@@ -513,6 +587,9 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                 trace_column_names = [trace_column_names]
             expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, trace_column_names])
 
+        if expression_values_sh is not None:
+            tracing.trace_df(expression_values_sh, tracing.extend_trace_label(trace_label, 'expression_values_sh'),
+                             slicer=None, transpose=False)
         tracing.trace_df(expression_values_df, tracing.extend_trace_label(trace_label, 'expression_values'),
                          slicer=None, transpose=False)
 
@@ -524,6 +601,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                 tracing.trace_df(expression_values_df.multiply(spec[c].values, axis=0),
                                  tracing.extend_trace_label(trace_label, name),
                                  slicer=None, transpose=False)
+        timelogger.mark("trace", True, logger, trace_label)
 
     del expression_values
     chunk.log_df(trace_label, "expression_values", None)
@@ -531,6 +609,34 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
     # no longer our problem - but our caller should re-log this...
     chunk.log_df(trace_label, "utilities", None)
 
+    if sharrow_enabled == 'test':
+        try:
+            np.testing.assert_allclose(
+                sh_util, utilities.values, rtol=1e-2, atol=0,
+                err_msg='utility not aligned', verbose=True,
+            )
+        except AssertionError as err:
+            print(err)
+            misses = np.where(~np.isclose(sh_util, utilities.values, rtol=1e-2, atol=0))
+            _sh_util_miss1 = sh_util[tuple(m[0] for m in misses)]
+            _u_miss1 = utilities.values[tuple(m[0] for m in misses)]
+            diff = _sh_util_miss1 - _u_miss1
+            if len(misses[0]) > sh_util.size*0.01:
+                print(f"big problem: {len(misses[0])} missed close values out of {sh_util.size} ({100*len(misses[0]) / sh_util.size:.2f}%)")
+                print(f"{sh_util.shape=}")
+                print(misses)
+                raise
+        except TypeError as err:
+            print(err)
+            print("sh_util")
+            print(sh_util)
+            print("utilities")
+            print(utilities)
+        timelogger.mark("sharrow test", True, logger, trace_label)
+
+    end_time = time.time()
+    logger.info(f"simulate.eval_utils runtime: {timedelta(seconds=end_time - start_time)} {trace_label}")
+    timelogger.summary(logger, "simulate.eval_utils timing")
     return utilities
 
 

@@ -254,6 +254,10 @@ def shared_memory_size(data_buffers=None):
         data_buffers = inject.get_injectable('data_buffers', {})
 
     for k, data_buffer in data_buffers.items():
+        if isinstance(data_buffer, str) and data_buffer.startswith("sh.Dataset:"):
+            from sharrow import Dataset
+            shared_size += Dataset.preload_shared_memory_size(data_buffer[11:])
+            continue
         try:
             obj = data_buffer.get_obj()
         except Exception:

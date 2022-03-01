@@ -58,6 +58,13 @@ def add_run_args(parser, multiprocess=True):
                         type=int,
                         metavar='BYTES',
                         help='chunk size')
+    parser.add_argument('--chunk_training_mode',
+                        type=str,
+                        help='chunk training mode, one of [training, adaptive, production, disabled]')
+    parser.add_argument('--households_sample_size',
+                        type=int,
+                        metavar='N',
+                        help='households sample size')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
@@ -77,7 +84,7 @@ def validate_injectable(name):
     except RuntimeError:
         # injectable is missing, meaning is hasn't been explicitly set
         # and defaults cannot be found.
-        sys.exit('Error: please specify either a --working_dir '
+        sys.exit(f'Error({name}): please specify either a --working_dir '
                  "containing 'configs', 'data', and 'output' folders "
                  'or all three of --config, --data, and --output')
 
@@ -130,6 +137,10 @@ def handle_standard_args(args, multiprocess=True):
 
     if args.chunk_size:
         config.override_setting('chunk_size', int(args.chunk_size))
+    if args.chunk_training_mode is not None:
+        config.override_setting('chunk_training_mode', args.chunk_training_mode)
+    if args.households_sample_size is not None:
+        config.override_setting('households_sample_size', args.households_sample_size)
 
     for injectable in ['configs_dir', 'data_dir', 'output_dir']:
         validate_injectable(injectable)
@@ -173,6 +184,9 @@ def run(args):
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
+
+    if config.setting("rotate_logs", False):
+        config.rotate_log_directory()
 
     # legacy support for run_list setting nested 'models' and 'resume_after' settings
     if config.setting('run_list'):
@@ -274,6 +288,9 @@ def run(args):
 
     chunk.consolidate_logs()
     mem.consolidate_logs()
+
+    from ..core.flow import TimeLogger
+    TimeLogger.aggregate_summary(logger)
 
     tracing.print_elapsed_time('all models', t0)
 

@@ -139,7 +139,10 @@ def _location_sample(
 
     locals_d = {
         'skims': skims,
-        'segment_size': segment_name
+        'segment_size': segment_name,
+        'orig_col_name': skims.orig_key, # added for sharrow flows
+        'dest_col_name': skims.dest_key, # added for sharrow flows
+        'timeframe': 'timeless',
     }
     constants = config.get_model_constants(model_settings)
     locals_d.update(constants)
@@ -500,7 +503,10 @@ def run_location_simulate(
 
     locals_d = {
         'skims': skims,
-        'segment_size': segment_name
+        'segment_size': segment_name,
+        'orig_col_name': skims.orig_key,  # added for sharrow flows
+        'dest_col_name': skims.dest_key,  # added for sharrow flows
+        'timeframe': 'timeless',
     }
     constants = config.get_model_constants(model_settings)
     if constants is not None:
@@ -886,6 +892,10 @@ def workplace_location(
     # if multiprocessing.current_process().name =='mp_households_0':
     #     raise RuntimeError(f"fake fail {process_name}")
 
+    # disable locutor for benchmarking
+    if config.setting('benchmarking', False):
+        locutor = False
+
     iterate_location_choice(
         model_settings,
         persons_merged, persons, households,
@@ -916,6 +926,10 @@ def school_location(
     estimator = estimation.manager.begin_estimation('school_location')
     if estimator:
         write_estimation_specs(estimator, model_settings, 'school_location.yaml')
+
+    # disable locutor for benchmarking
+    if config.setting('benchmarking', False):
+        locutor = False
 
     iterate_location_choice(
         model_settings,

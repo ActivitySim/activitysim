@@ -39,7 +39,12 @@ def track_skim_usage(output_dir):
         for key in skim_dict.get_skim_usage():
             print(key, file=output_file)
 
-        unused = set(k for k in skim_dict.skim_info.base_keys) - set(k for k in skim_dict.get_skim_usage())
+        try:
+            unused = set(k for k in skim_dict.skim_info.base_keys) - set(k for k in skim_dict.get_skim_usage())
+        except AttributeError:
+            base_keys = set(skim_dict.dataset.variables.keys()) - set(skim_dict.dataset.coords.keys())
+            # using dataset
+            unused = base_keys - set(k for k in skim_dict.get_skim_usage())
 
         for key in unused:
             print(key, file=output_file)

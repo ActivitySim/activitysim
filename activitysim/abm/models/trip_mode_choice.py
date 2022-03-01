@@ -97,6 +97,11 @@ def trip_mode_choice(
                                                dim3_key='trip_period')
     od_skim_wrapper = skim_dict.wrap('origin', 'destination')
 
+    if hasattr(skim_dict, 'map_time_periods_from_series'):
+        trip_period_idx = skim_dict.map_time_periods_from_series(trips_merged['trip_period'])
+        if trip_period_idx is not None:
+            trips_merged['trip_period'] = trip_period_idx
+
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
         "dot_skims": dot_skim_stack_wrapper,
@@ -182,6 +187,7 @@ def trip_mode_choice(
             estimator.write_choosers(trips_segment)
 
         locals_dict.update(skims)
+        locals_dict['timeframe'] = 'trip'
 
         choices = mode_choice_simulate(
             choosers=trips_segment,

@@ -8,6 +8,8 @@ import logging
 
 import numpy as np
 import pandas as pd
+import xarray as xr
+import numba as nb
 
 from activitysim.core import pipeline
 from activitysim.core import chunk
@@ -37,7 +39,7 @@ COLLISIONS = [
 ]
 
 COLLISION_LIST = [a + (b << I_BIT_SHIFT) for a, b in COLLISIONS]
-
+COLLISION_ARRAY = np.asarray(COLLISION_LIST)
 
 # str versions of time windows period states
 C_EMPTY = str(I_EMPTY)
@@ -45,6 +47,73 @@ C_END = str(I_END)
 C_START = str(I_START)
 C_MIDDLE = str(I_MIDDLE)
 C_START_END = str(I_START_END)
+
+
+@nb.njit
+def _fast_tour_available(
+        tdds,
+        tdd_footprints,
+        window_row_ids,
+        window_row_ix__mapper,
+        self_windows,
+):
+    """
+
+    Parameters
+    ----------
+    tdds : array-like, shape (k)
+    tdd_footprints : array-like, shape (c, t)
+    window_row_ids : array-like, shape (k)
+    window_row_ix__mapper : FastMapping._mapper
+    self_windows : array-like
+
+    Returns
+    -------
+    array of bool, shape (k)
+    """
+    out = np.ones_like(tdds, dtype=np.bool_)
+    for k in range(tdds.shape[0]):
+        tour_footprints = tdd_footprints[tdds[k]]  # -> shape (t)
+        row_ix = window_row_ix__mapper[window_row_ids[k]]
+        windows = self_windows[row_ix]
+        x = tour_footprints + (windows << I_BIT_SHIFT)
+        stop = False
+        for j in range(COLLISION_ARRAY.size):
+            for i in range(x.size):
+                if x[i] == COLLISION_ARRAY[j]:
+                    out[k] = False
+                    stop = True
+                    break
+            if stop:
+                break
+    return out
+
+
+@nb.njit
+def _available_run_length(
+        available,
+        before,
+        periods,
+        time_ix_mapper,
+):
+    num_rows = available.shape[0]
+    num_cols = available.shape[1]
+    _time_col_ix_map = np.arange(num_cols)
+    available_run_length = np.zeros(num_rows, dtype=np.int32)
+    for row in range(num_rows):
+        _time_col_ix = time_ix_mapper[periods[row]]  # scalar
+        if before:
+            mask = (_time_col_ix_map < _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where((1 - available[row]) * mask, _time_col_ix_map, 0).max()
+            available_run_length[row] = _time_col_ix - first_unavailable - 1
+        else:
+            # ones after specified time, zeroes before
+            mask = (_time_col_ix_map > _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where((1 - available[row]) * mask, _time_col_ix_map, num_cols).min()
+            available_run_length[row] = first_unavailable - _time_col_ix - 1
+    return available_run_length
 
 
 def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
@@ -194,10 +263,15 @@ class TimeTable(object):
         self.checkpoint_df = None
 
         # series to map window row index value to window row's ordinal index
-        self.window_row_ix = pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
+        from ..core.fast_mapping import FastMapping
+        self.window_row_ix = FastMapping(
+            pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
+        )
 
         int_time_periods = [int(c) for c in windows_df.columns.values]
-        self.time_ix = pd.Series(list(range(len(windows_df.columns))), index=int_time_periods)
+        self.time_ix = FastMapping(
+            pd.Series(list(range(len(windows_df.columns))), index=int_time_periods)
+        )
 
         # - pre-compute window state footprints for every tdd_alt
         min_period = min(int_time_periods)
@@ -242,7 +316,7 @@ class TimeTable(object):
         return windows array slice containing rows for specified window_row_ids
         (in window_row_ids order)
         """
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids.values)
         windows = self.windows[row_ixs]
 
         return windows
@@ -250,10 +324,10 @@ class TimeTable(object):
     def slice_windows_by_row_id_and_period(self, window_row_ids, periods):
 
         # row ixs of tour_df group rows in windows
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         # col ixs of periods in windows
-        time_col_ixs = periods.map(self.time_ix).values
+        time_col_ixs = self.time_ix.apply_to(periods)
 
         windows = self.windows[row_ixs, time_col_ixs]
 
@@ -305,22 +379,31 @@ class TimeTable(object):
         available : pandas Series of bool
             with same index as window_row_ids.index (presumably tour_id, but we don't care)
         """
+        available = _fast_tour_available(
+                tdds.astype(int),
+                self.tdd_footprints,
+                window_row_ids.astype(int).to_numpy(),
+                self.window_row_ix._mapper,
+                self.windows,
+        )
 
-        assert len(window_row_ids) == len(tdds)
-
-        # numpy array with one tdd_footprints_df row for tdds
-        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
-
-        # numpy array with one windows row for each person
-        windows = self.slice_windows_by_row_id(window_row_ids)
-
-        # t0 = tracing.print_elapsed_time("slice_windows_by_row_id", t0, debug=True)
-
-        x = tour_footprints + (windows << I_BIT_SHIFT)
-
-        available = ~np.isin(x, COLLISION_LIST).any(axis=1)
-        available = pd.Series(available, index=window_row_ids.index)
-
+        # assert len(window_row_ids) == len(tdds)
+        #
+        # # numpy array with one tdd_footprints_df row for tdds
+        # tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
+        #
+        # # numpy array with one windows row for each person
+        # windows = self.slice_windows_by_row_id(window_row_ids)
+        #
+        # # t0 = tracing.print_elapsed_time("slice_windows_by_row_id", t0, debug=True)
+        #
+        # x = tour_footprints + (windows << I_BIT_SHIFT)
+        #
+        # available = ~np.isin(x, COLLISION_LIST).any(axis=1)
+        # if isinstance(window_row_ids, pd.Series):
+        #     available = pd.Series(available, index=window_row_ids.index)
+        # elif isinstance(window_row_ids, xr.DataArray):
+        #     available = xr.DataArray(available, dims=window_row_ids.dims, coords=window_row_ids.coords)
         return available
 
     def assign(self, window_row_ids, tdds):
@@ -347,7 +430,7 @@ class TimeTable(object):
         tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         self.windows[row_ixs] = np.bitwise_or(self.windows[row_ixs], tour_footprints)
 
@@ -384,7 +467,7 @@ class TimeTable(object):
         tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         self.windows[row_ixs] = (tour_footprints == 0) * I_MIDDLE
 
@@ -412,7 +495,7 @@ class TimeTable(object):
         assert len(window_row_ids.values) == len(np.unique(window_row_ids.values))
 
         # row idxs of windows to assign to
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         self.windows[row_ixs] = np.bitwise_or(self.windows[row_ixs], footprints)
 
@@ -448,8 +531,8 @@ class TimeTable(object):
         trace_label = 'tt.adjacent_window_run_length'
         with chunk.chunk_log(trace_label):
 
-            time_col_ixs = periods.map(self.time_ix).values
-            chunk.log_df(trace_label, 'time_col_ixs', time_col_ixs)
+            # time_col_ixs = self.time_ix.apply_to(periods).to_numpy()
+            # chunk.log_df(trace_label, 'time_col_ixs', time_col_ixs)
 
             # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
             available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
@@ -459,29 +542,38 @@ class TimeTable(object):
             available[:, 0] = 0
             available[:, -1] = 0
 
-            # column idxs of windows
-            num_rows, num_cols = available.shape
-            time_col_ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
-            # 0 1 2 3 4 5...
-            # 0 1 2 3 4 5...
-            # 0 1 2 3 4 5...
-            chunk.log_df(trace_label, 'time_col_ix_map', time_col_ix_map)
+            available_run_length = _available_run_length(
+                available,
+                before,
+                periods.to_numpy(),
+                self.time_ix._mapper,
+            )
 
-            if before:
-                # ones after specified time, zeroes before
-                mask = (time_col_ix_map < time_col_ixs.reshape(num_rows, 1)) * 1
-                # index of first unavailable window after time
-                first_unavailable = np.where((1-available)*mask, time_col_ix_map, 0).max(axis=1)
-                available_run_length = time_col_ixs - first_unavailable - 1
-            else:
-                # ones after specified time, zeroes before
-                mask = (time_col_ix_map > time_col_ixs.reshape(num_rows, 1)) * 1
-                # index of first unavailable window after time
-                first_unavailable = np.where((1 - available) * mask, time_col_ix_map, num_cols).min(axis=1)
-                available_run_length = first_unavailable - time_col_ixs - 1
-
-            chunk.log_df(trace_label, 'mask', mask)
-            chunk.log_df(trace_label, 'first_unavailable', first_unavailable)
+            # # column idxs of windows
+            # num_rows, num_cols = available.shape
+            # time_col_ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
+            # # 0 1 2 3 4 5...
+            # # 0 1 2 3 4 5...
+            # # 0 1 2 3 4 5...
+            # chunk.log_df(trace_label, 'time_col_ix_map', time_col_ix_map)
+            # # START MYSTERY RAM
+            #
+            # if before:
+            #     # ones after specified time, zeroes before
+            #     mask = (time_col_ix_map < time_col_ixs.reshape(num_rows, 1)) * 1
+            #     # index of first unavailable window after time
+            #     first_unavailable = np.where((1-available)*mask, time_col_ix_map, 0).max(axis=1)
+            #     available_run_length = time_col_ixs - first_unavailable - 1
+            # else:
+            #     # ones after specified time, zeroes before
+            #     mask = (time_col_ix_map > time_col_ixs.reshape(num_rows, 1)) * 1
+            #     # index of first unavailable window after time
+            #     first_unavailable = np.where((1 - available) * mask, time_col_ix_map, num_cols).min(axis=1)
+            #     available_run_length = first_unavailable - time_col_ixs - 1
+            #
+            # # END MYSTERY RAM
+            # chunk.log_df(trace_label, 'mask', mask)
+            # chunk.log_df(trace_label, 'first_unavailable', first_unavailable)
             chunk.log_df(trace_label, 'available_run_length', available_run_length)
 
         return pd.Series(available_run_length, index=window_row_ids.index)

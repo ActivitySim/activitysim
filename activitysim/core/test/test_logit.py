@@ -105,7 +105,8 @@ def test_make_choices_only_one():
 
     pdt.assert_series_equal(
         choices,
-        pd.Series([0, 1], index=['x', 'y']))
+        pd.Series([0, 1], index=['x', 'y']),
+        check_dtype=False)
 
 
 def test_make_choices_real_probs(utilities):
@@ -114,7 +115,9 @@ def test_make_choices_real_probs(utilities):
 
     pdt.assert_series_equal(
         choices,
-        pd.Series([1, 2], index=[0, 1]))
+        pd.Series([1, 2], index=[0, 1]),
+        check_dtype=False,
+    )
 
 
 @pytest.fixture(scope='module')

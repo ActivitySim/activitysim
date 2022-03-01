@@ -91,7 +91,10 @@ def _destination_sample(
         sample_size = 0
 
     locals_d = {
-        'skims': skims
+        'skims': skims,
+        'orig_col_name': skims.orig_key,  # added for sharrow flows
+        'dest_col_name': skims.dest_key,  # added for sharrow flows
+        'timeframe': 'timeless',
     }
     constants = config.get_model_constants(model_settings)
     if constants is not None:
@@ -612,6 +615,9 @@ def run_destination_simulate(
 
     locals_d = {
         'skims': skims,
+        'orig_col_name': skims.orig_key,  # added for sharrow flows
+        'dest_col_name': skims.dest_key,  # added for sharrow flows
+        'timeframe': 'timeless',
     }
     if constants is not None:
         locals_d.update(constants)

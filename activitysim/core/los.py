@@ -9,6 +9,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import skim_dictionary
+from activitysim.core import skim_dataset
 from activitysim.core import inject
 from activitysim.core import util
 from activitysim.core import config
@@ -126,11 +127,16 @@ class Network_LOS(object):
         s = self.los_settings
         for key in key_list[:-1]:
             s = s.get(key)
-            assert isinstance(s, dict), f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
+            if default == '<REQUIRED>':
+                assert isinstance(s, dict), f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
         key = key_list[-1]  # last key
         if default == '<REQUIRED>':
             assert key in s, f"Expected setting {keys} not found in in {LOS_SETTINGS_FILE_NAME}"
-        return s.get(key, default)
+        if isinstance(s, dict):
+            return s.get(key, default)
+        else:
+            return default
+
 
     def load_settings(self):
         """
@@ -327,11 +333,17 @@ class Network_LOS(object):
                 self.maz_to_tap_dfs[mode] = df
 
         # create taz skim dict
-        assert 'taz' not in self.skim_dicts
-        self.skim_dicts['taz'] = self.create_skim_dict('taz')
-
-        # make sure skim has all taz_ids
-        # FIXME - weird that there is no list of tazs?
+        if not config.setting("sharrow", False):
+            assert 'taz' not in self.skim_dicts
+            # If offset_preprocessing was completed, then TAZ values
+            # will be pre-offset and there's no need to re-offset them.
+            if config.setting("offset_preprocessing", False):
+                _override_offset_int = 0
+            else:
+                _override_offset_int = None
+            self.skim_dicts['taz'] = self.create_skim_dict('taz', _override_offset_int=_override_offset_int)
+            # make sure skim has all taz_ids
+            # FIXME - weird that there is no list of tazs?
 
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
@@ -352,7 +364,7 @@ class Network_LOS(object):
             # make sure skim has all tap_ids
             assert not (tap_skim_dict.offset_mapper.map(self.tap_df['TAP'].values) == NOT_IN_SKIM_ZONE_ID).any()
 
-    def create_skim_dict(self, skim_tag):
+    def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """
         Create a new SkimDict of type specified by skim_tag (e.g. 'taz', 'maz' or 'tap')
 
@@ -381,6 +393,9 @@ class Network_LOS(object):
 
         logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_dict.omx_shape}")
 
+        if _override_offset_int is not None:
+            skim_dict.offset_mapper.set_offset_int(_override_offset_int)  # default is -1
+
         return skim_dict
 
     def omx_file_names(self, skim_tag):
@@ -396,8 +411,42 @@ class Network_LOS(object):
         list of str
         """
         file_names = self.setting(f'{skim_tag}_skims')
+        if isinstance(file_names, dict):
+            for i in ("file", "files", "omx"):
+                if i in file_names:
+                    file_names = file_names[i]
+                    break
+        if isinstance(file_names, dict):
+            raise ValueError(f"must specify `{skim_tag}_skims.file` in network_los settings file")
         file_names = [file_names] if isinstance(file_names, str) else file_names
         return file_names
+
+    def zarr_file_name(self, skim_tag):
+        """
+        Return zarr directory name from network_los settings file for the specified skim_tag (e.g. 'taz')
+
+        Parameters
+        ----------
+        skim_tag: str (e.g. 'taz')
+
+        Returns
+        -------
+        list of str
+        """
+        skim_setting = self.setting(f'{skim_tag}_skims')
+        if isinstance(skim_setting, dict):
+            return skim_setting.get("zarr", None)
+        else:
+            return None
+
+    def skim_backing_store(self, skim_tag):
+        return self.setting(f'{skim_tag}_skims.backend', f"shared_memory_{skim_tag}")
+
+    def skim_max_float_precision(self, skim_tag):
+        return self.setting(f'{skim_tag}_skims.max_float_precision', 32)
+
+    def skim_digital_encoding(self, skim_tag):
+        return self.setting(f'{skim_tag}_skims.digital_encoding', [])
 
     def multiprocess(self):
         """
@@ -481,6 +530,7 @@ class Network_LOS(object):
 
         assert skim_tag in self.skim_dicts, \
             f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
+
         return self.skim_dicts[skim_tag]
 
     def get_default_skim_dict(self):
@@ -492,7 +542,13 @@ class Network_LOS(object):
         TAZ SkimDict for ONE_ZONE, MazSkimDict for TWO_ZONE and THREE_ZONE
         """
         if self.zone_system == ONE_ZONE:
-            return self.get_skim_dict('taz')
+            sharrow_enabled = config.setting("sharrow", False)
+            if sharrow_enabled:
+                skim_dataset = inject.get_injectable('skim_dataset')
+                from .skim_dataset import SkimDataset
+                return SkimDataset(skim_dataset)
+            else:
+                return self.get_skim_dict('taz')
         else:
             return self.get_skim_dict('maz')
 
@@ -558,7 +614,7 @@ class Network_LOS(object):
 
         Returns
         -------
-        numpy.array
+        pandas Series
             string time period labels
         """
 
@@ -574,9 +630,16 @@ class Network_LOS(object):
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
 
-        bins = np.digitize(
-            [np.array(time_period) % total_periods], self.skim_time_periods['periods'], right=True)[0] - 1
-        return np.array(self.skim_time_periods['labels'])[bins]
+        # FIXME - eventually test and use np version always?
+        if np.isscalar(time_period):
+            bin = np.digitize([time_period % total_periods],
+                              self.skim_time_periods['periods'], right=True)[0] - 1
+            result = self.skim_time_periods['labels'][bin]
+        else:
+            result = pd.cut(time_period, self.skim_time_periods['periods'],
+                          labels=self.skim_time_periods['labels'], ordered=False).astype(str)
+
+        return result
 
     def get_tazs(self):
         # FIXME - should compute on init?

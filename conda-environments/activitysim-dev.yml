@@ -1,7 +1,8 @@
 # Environment for development
-# usage: $ conda env create --file=activitysim-dev.yml -n ASIM-DEV-TMP
+# usage: $ mamba env create --file=activitysim-dev.yml -n ASIM-SH
 channels:
 - conda-forge
+- nodefaults
 dependencies:
 - python=3.9
 - pip
@@ -16,7 +17,7 @@ dependencies:
 - requests >= 2.7
 - numba >= 0.51.2
 - orca >= 1.6
-- larch >= 5.5.8
+- larch >= 5.6
 - geopandas
 - jupyterlab
 - matplotlib
@@ -29,6 +30,10 @@ dependencies:
 - git
 - gh
 - bump2version
+- dask
+- filelock
+- numexpr
 
 - pip:
+  - -e ../../sharrow
   - -e ..

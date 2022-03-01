@@ -259,8 +259,10 @@ class SkimDict(object):
         #     print(f"in_skim\n{in_skim}")
 
         # check for bad indexes (other than NOT_IN_SKIM_ZONE_ID)
-        assert (in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all(), \
-            f"{(~in_skim).sum()} od pairs not in skim"
+        if not (in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)).all():
+            raise AssertionError(
+                f"{(~in_skim).sum()} od pairs not in skim including [{orig[~in_skim][:5]}]->[{dest[~in_skim][:5]}]"
+            )
 
         if not in_skim.all():
             result = np.where(in_skim, result, NOT_IN_SKIM_NAN).astype(self.dtype)
@@ -817,3 +819,9 @@ class DataFrameMatrix(object):
             result = pd.Series(result, index=row_ids.index)
 
         return result
+
+    def get_rows(self, row_ids):
+        return self.offset_mapper.map(np.asanyarray(row_ids))
+
+    def get_cols(self, col_ids):
+        return np.vectorize(self.cols_to_indexes.get)(col_ids)

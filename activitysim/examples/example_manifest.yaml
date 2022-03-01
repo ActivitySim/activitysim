@@ -32,6 +32,11 @@
   include:
     - example_mtc/configs
     - example_mtc/configs_mp
+    - example_mtc/configs_sh
+    - example_mtc/configs_sh_compile
+    - example_mtc/configs_chunktrain
+    - example_mtc/configs_production
+    # example_mtc/data # load data from activitysim_resources instead
     - example_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
@@ -615,6 +620,8 @@
     - example_sandag/configs_1_zone
     - example_sandag/data_1
     - example_sandag/output_1
+  optimize:
+    - patch_example_sandag_1_zone
 
 - name: example_sandag_1_zone_full
   description: full 1-zone example for the SANDAG region
@@ -626,7 +633,7 @@
     - example_sandag/../example_mtc/configs
       example_mtc
     - example_sandag/configs_1_zone
-    - example_sandag/data_1
+    # example_sandag/data_1 # load data from activitysim_resources instead
     - example_sandag/output_1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/households.csv
       data_1/households.csv
@@ -679,7 +686,7 @@
     - example_sandag/../example_psrc/configs
       example_psrc
     - example_sandag/configs_2_zone
-    - example_sandag/data_2
+    # example_sandag/data_2 # load data from activitysim_resources instead
     - example_sandag/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/households.csv
       data_2/households.csv
@@ -742,12 +749,15 @@
   # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/data_3
+    # example_sandag/data_3 # load data from activitysim_resources instead
     - example_sandag/../example_mtc/configs
       example_mtc
     - example_sandag/configs_3_zone
     - example_sandag/configs_skip_accessibility
+    - example_sandag/configs_benchmarking
     - example_sandag/output_3
+    - example_sandag/data_3/cached_accessibility.csv.gz
+      data_3/cached_accessibility.csv.gz
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims1.omx
       data_3/taz_skims1.omx
       5b56d0e79ec671e37f8c71f7fedd741d7bf32d2bced866ab1f03f3973fccce8c
@@ -805,56 +815,3 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/tap_lines.csv
       data_3/tap_lines.csv
       0e1b2c532e5e85b48e2ac77b2836be7ec0cc7cba79907c6f5fb11d2ba171230a
-
-- name: example_sandag_xborder
-  description: SANDAG cross border travel model
-  # activitysim create -e example_sandag_xborder -d test_example_sandag_xborder
-  # cd test_example_sandag_xborder
-  # python simulation.py
-  # cd ..
-  include:
-    - example_sandag_xborder/configs
-    - example_sandag_xborder/data
-    - example_sandag_xborder/extensions
-    - example_sandag_xborder/output
-    - example_sandag_xborder/simulation.py
-
-- name: example_sandag_xborder_full
-  description: full scale SANDAG cross border travel model
-  # activitysim create -e example_sandag_xborder_full -d test_example_sandag_xborder_full
-  # cd test_example_sandag_xborder_full
-  # python simulation.py
-  # cd ..
-  include:
-    - example_sandag_xborder/configs
-    - example_sandag_xborder/extensions
-    - example_sandag_xborder/output
-    - example_sandag_xborder/simulation.py
-    - https://raw.githubusercontent.com/ActivitySim/activitysim_resources/master/sandag_xborder/households_xborder.csv
-      data/households_xborder.csv
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/maz_maz_walk.csv
-      data/maz_maz_walk.csv   
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/maz_tap_walk.csv
-      data/maz_tap_walk.csv  
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/mazs_xborder.csv
-      data/mazs_xborder.csv  
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/persons_xborder.csv
-      data/persons_xborder.csv 
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/tap_lines.csv
-      data/tap_lines.csv 
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/taps.csv
-      data/taps.csv 
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/tours_xborder.csv
-      data/tours_xborder.csv   
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/transit_skims_xborder.omx
-      data/transit_skims_xborder.omx
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_AM.omx
-      data/traffic_skims_xborder_AM.omx
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_EA.omx
-      data/traffic_skims_xborder_EA.omx
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_EV.omx
-      data/traffic_skims_xborder_EV.omx
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_MD.omx
-      data/traffic_skims_xborder_MD.omx
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_PM.omx
-      data/traffic_skims_xborder_PM.omx      

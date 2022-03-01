@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import io
 
 import pandas as pd
 
@@ -22,6 +23,9 @@ def land_use():
         df = df.sort_index()
 
     logger.info("loaded land_use %s" % (df.shape,))
+    buffer = io.StringIO()
+    df.info(buf=buffer)
+    logger.debug("land_use.info:\n"+buffer.getvalue())
 
     # replace table function with dataframe
     inject.add_table('land_use', df)

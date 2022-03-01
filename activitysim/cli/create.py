@@ -81,7 +81,7 @@ def list_examples():
     return ret
 
 
-def get_example(example_name, destination):
+def get_example(example_name, destination, benchmarking=False, optimize=True):
     """
     Copy project data to user-specified directory.
 
@@ -101,6 +101,8 @@ def get_example(example_name, destination):
         If the target directory already exists, project files
         will be copied into a subdirectory with the same name
         as the example
+    benchmarking: bool
+    optimize: bool
     """
     if example_name not in EXAMPLES:
         sys.exit(f"error: could not find example '{example_name}'")
@@ -111,8 +113,11 @@ def get_example(example_name, destination):
         dest_path = destination
 
     example = EXAMPLES[example_name]
+    itemlist = example.get('include', [])
+    if benchmarking:
+        itemlist.extend(example.get('benchmarking', []))
 
-    for item in example.get('include', []):
+    for item in itemlist:
 
         # split include string into source/destination paths
         items = item.split()
@@ -136,6 +141,18 @@ def get_example(example_name, destination):
 
     print(f'copied! new project files are in {os.path.abspath(dest_path)}')
 
+    if optimize:
+        optimize_func_names = example.get('optimize', None)
+        if isinstance(optimize_func_names, str):
+            optimize_func_names = [optimize_func_names]
+        if optimize_func_names:
+            from ..examples import optimize_example_data
+            for optimize_func_name in optimize_func_names:
+                getattr(
+                    optimize_example_data,
+                    optimize_func_name,
+                )(os.path.abspath(dest_path))
+
     instructions = example.get('instructions')
     if instructions:
         print(instructions)
@@ -149,11 +166,18 @@ def copy_asset(asset_path, target_path, dirs_exist_ok=False):
         shutil.copytree(asset_path, target_path, dirs_exist_ok=dirs_exist_ok)
 
     else:
+        target_dir = os.path.dirname(target_path)
+        if target_dir:
+            os.makedirs(target_dir, exist_ok=True)
         shutil.copy(asset_path, target_path)
 
 
 def download_asset(url, target_path, sha256=None):
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
+    if url.endswith(".gz") and not target_path.endswith(".gz"):
+        target_path_dl = target_path + ".gz"
+    else:
+        target_path_dl = target_path
     if sha256 and os.path.isfile(target_path):
         computed_sha256 = sha256_checksum(target_path)
         if sha256 == computed_sha256:
@@ -167,9 +191,15 @@ def download_asset(url, target_path, sha256=None):
         print(f'downloading {os.path.basename(target_path)} ...')
     with requests.get(url, stream=True) as r:
         r.raise_for_status()
-        with open(target_path, 'wb') as f:
+        with open(target_path_dl, 'wb') as f:
             for chunk in r.iter_content(chunk_size=None):
                 f.write(chunk)
+    if target_path_dl != target_path:
+        import gzip
+        with gzip.open(target_path_dl, 'rb') as f_in:
+            with open(target_path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+        os.remove(target_path_dl)
     computed_sha256 = sha256_checksum(target_path)
     if sha256 and sha256 != computed_sha256:
         raise ValueError(

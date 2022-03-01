@@ -81,7 +81,7 @@ def test_simple_simulate(data, spec):
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
-    pdt.assert_series_equal(choices, expected)
+    pdt.assert_series_equal(choices, expected, check_dtype=False)
 
 
 def test_simple_simulate_chunked(data, spec):
@@ -90,4 +90,4 @@ def test_simple_simulate_chunked(data, spec):
 
     choices = simulate.simple_simulate(choosers=data, spec=spec, nest_spec=None, chunk_size=2)
     expected = pd.Series([1, 1, 1], index=data.index)
-    pdt.assert_series_equal(choices, expected)
+    pdt.assert_series_equal(choices, expected, check_dtype=False)

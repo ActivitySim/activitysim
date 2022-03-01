@@ -92,7 +92,9 @@ def _destination_sample(
     # (unless we iterate over trip.purpose - which we could, though we are already iterating over trip_num)
     # so, instead, expressions determine row-specific size_term by a call to: size_terms.get(df.alt_dest, df.purpose)
     locals_dict.update({
-        'size_terms': size_term_matrix
+        'size_terms': size_term_matrix,
+        'size_terms_array': size_term_matrix.df.to_numpy(),
+        'timeframe': 'trip',
     })
     locals_dict.update(skims)
 
@@ -601,6 +603,7 @@ def compute_logsums(
         "odt_skims": skims['odt_skims'],
         "dot_skims": skims['dot_skims'],
         "od_skims": skims['od_skims'],
+        "timeframe": "trip",
     }
     if network_los.zone_system == los.THREE_ZONE:
         od_skims.update({
@@ -679,9 +682,17 @@ def trip_destination_simulate(
 
     skims = skim_hotel.sample_skims(presample=False)
 
+    if not np.issubdtype(trips['trip_period'].dtype, np.integer):
+        if hasattr(skims['odt_skims'], 'map_time_periods'):
+            trip_period_idx = skims['odt_skims'].map_time_periods(trips)
+            if trip_period_idx is not None:
+                trips['trip_period'] = trip_period_idx
+
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update({
-        'size_terms': size_term_matrix
+        'size_terms': size_term_matrix,
+        'size_terms_array': size_term_matrix.df.to_numpy(),
+        'timeframe': 'trip',
     })
     locals_dict.update(skims)
 
@@ -1011,7 +1022,8 @@ def run_trip_destination(
             nth_trace_label = tracing.extend_trace_label(trace_label, 'trip_num_%s' % trip_num)
 
             locals_dict = {
-                'network_los': network_los
+                'network_los': network_los,
+                'size_terms': size_term_matrix,
             }
             locals_dict.update(config.get_model_constants(model_settings))
 
@@ -1022,6 +1034,13 @@ def run_trip_destination(
                     model_settings=preprocessor_settings,
                     locals_dict=locals_dict,
                     trace_label=nth_trace_label)
+
+            if not np.issubdtype(nth_trips['trip_period'].dtype, np.integer):
+                skims = network_los.get_default_skim_dict()
+                if hasattr(skims, 'map_time_periods_from_series'):
+                    trip_period_idx = skims.map_time_periods_from_series(nth_trips['trip_period'])
+                    if trip_period_idx is not None:
+                        nth_trips['trip_period'] = trip_period_idx
 
             logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
 

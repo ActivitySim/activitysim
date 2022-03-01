@@ -72,3 +72,4 @@ _test_est
 *_local/
 *_local.*
 
+**/__sharrowcache__

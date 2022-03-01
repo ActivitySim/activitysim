@@ -16,6 +16,7 @@ from .simulate import set_skim_wrapper_targets
 
 from . import interaction_simulate
 from . import pipeline
+from . import config
 
 logger = logging.getLogger(__name__)
 
@@ -63,13 +64,13 @@ def make_sample_choices(
             probs = probs[~zero_probs]
             choosers = choosers[~zero_probs]
 
-    cum_probs_array = probs.values.cumsum(axis=1)
-    chunk.log_df(trace_label, 'cum_probs_array', cum_probs_array)
-
-    # alt probs in convenient layout to return prob of chose alternative
-    # (same layout as cum_probs_arr)
-    alt_probs_array = probs.values.flatten()
-    chunk.log_df(trace_label, 'alt_probs_array', alt_probs_array)
+    # cum_probs_array = probs.values.cumsum(axis=1)
+    # chunk.log_df(trace_label, 'cum_probs_array', cum_probs_array)
+    #
+    # # alt probs in convenient layout to return prob of chose alternative
+    # # (same layout as cum_probs_arr)
+    # alt_probs_array = probs.values.flatten()
+    # chunk.log_df(trace_label, 'alt_probs_array', alt_probs_array)
 
     # get sample_size rands for each chooser
     rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
@@ -77,61 +78,73 @@ def make_sample_choices(
     # transform as we iterate over alternatives
     # reshape so rands[i] is in broadcastable (2-D) shape for cum_probs_arr
     # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
-    rands = rands.T.reshape(sample_size, -1, 1)
+    # rands = rands.T #.reshape(sample_size, -1, 1)
     chunk.log_df(trace_label, 'rands', rands)
 
-    # the alternative value chosen
-    # WHY SHOULD CHOICES COL HAVE TO BE TYPE INT???
+    #
+    # # the alternative value chosen
     # choices_array = np.empty([sample_size, len(choosers)]).astype(int)
-    choices_array = np.empty([sample_size, len(choosers)]).astype(alternatives.index.dtype)
-    # chunk log these later after we populate them...
+    # # chunk log these later after we populate them...
+    #
+    # # the probability of the chosen alternative
+    # choice_probs_array = np.empty([sample_size, len(choosers)])
+    # # chunk log these later after we populate them...
+    #
+    # alts = np.tile(alternatives.index.values, len(choosers))
+    # chunk.log_df(trace_label, 'alts', alts)
+    #
+    # # FIXME - do this all at once rather than iterate?
+    # for i in range(sample_size):
+    #
+    #     # FIXME - do this in numpy, not pandas?
+    #
+    #     # rands for this alt in broadcastable shape
+    #     r = rands[i]
+    #
+    #     # position of first occurrence of positive value
+    #     positions = np.argmax(cum_probs_array > r, axis=1)
+    #
+    #     # FIXME - leave positions as numpy array, not pandas series?
+    #     # positions is series with the chosen alternative represented as a column index in probs
+    #     # which is an integer between zero and num alternatives in the alternative sample
+    #     positions = pd.Series(positions, index=probs.index)
+    #
+    #     # need to get from an integer offset into the alternative sample to the alternative index
+    #     # that is, we want the index value of the row that is offset by <position> rows into the
+    #     # tranche of this choosers alternatives created by cross join of alternatives and choosers
+    #
+    #     # offsets is the offset into model_design df of first row of chooser alternatives
+    #     offsets = np.arange(len(positions)) * alternative_count
+    #
+    #     # choices and choice_probs have one element per chooser and is in same order as choosers
+    #     choices_array[i] = np.take(alts, positions + offsets)
+    #     choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
+    #
+    #     del positions
+    #     del offsets
+    #
+    # chunk.log_df(trace_label, 'choices_array', choices_array)
+    # chunk.log_df(trace_label, 'choice_probs_array', choice_probs_array)
+    #
+    # del alts
+    # chunk.log_df(trace_label, 'alts', None)
+    # del cum_probs_array
+    # chunk.log_df(trace_label, 'cum_probs_array', None)
+    # del alt_probs_array
+    # chunk.log_df(trace_label, 'alt_probs_array', None)
 
-    # the probability of the chosen alternative
-    choice_probs_array = np.empty([sample_size, len(choosers)])
-    # chunk log these later after we populate them...
-
-    alts = np.tile(alternatives.index.values, len(choosers))
-    chunk.log_df(trace_label, 'alts', alts)
-
-    # FIXME - do this all at once rather than iterate?
-    for i in range(sample_size):
-
-        # FIXME - do this in numpy, not pandas?
-
-        # rands for this alt in broadcastable shape
-        r = rands[i]
-
-        # position of first occurrence of positive value
-        positions = np.argmax(cum_probs_array > r, axis=1)
-
-        # FIXME - leave positions as numpy array, not pandas series?
-        # positions is series with the chosen alternative represented as a column index in probs
-        # which is an integer between zero and num alternatives in the alternative sample
-        positions = pd.Series(positions, index=probs.index)
-
-        # need to get from an integer offset into the alternative sample to the alternative index
-        # that is, we want the index value of the row that is offset by <position> rows into the
-        # tranche of this choosers alternatives created by cross join of alternatives and choosers
-
-        # offsets is the offset into model_design df of first row of chooser alternatives
-        offsets = np.arange(len(positions)) * alternative_count
-
-        # choices and choice_probs have one element per chooser and is in same order as choosers
-        choices_array[i] = np.take(alts, positions + offsets)
-        choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
-
-        del positions
-        del offsets
+    from .choosing import sample_choices_maker
+    choices_array, choice_probs_array = sample_choices_maker(
+        probs.values,
+        rands,
+        alternatives.index.values,
+    )
 
     chunk.log_df(trace_label, 'choices_array', choices_array)
     chunk.log_df(trace_label, 'choice_probs_array', choice_probs_array)
 
-    del alts
-    chunk.log_df(trace_label, 'alts', None)
-    del cum_probs_array
-    chunk.log_df(trace_label, 'cum_probs_array', None)
-    del alt_probs_array
-    chunk.log_df(trace_label, 'alt_probs_array', None)
+    # np.testing.assert_array_equal(choices_array, choices_array__)
+    # np.testing.assert_array_almost_equal(choice_probs_array, choice_probs_array__)
 
     # explode to one row per chooser.index, alt_zone_id
     choices_df = pd.DataFrame(
@@ -240,47 +253,88 @@ def _interaction_sample(
 
     chooser_index_id = interaction_simulate.ALT_CHOOSER_ID if log_alt_losers else None
 
+    sharrow_enabled = config.setting("sharrow", False)
+
     # - cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     alternative_count = alternatives.shape[0]
-    interaction_df = \
-        logit.interaction_dataset(choosers, alternatives, sample_size=alternative_count,
-                                  chooser_index_id=chooser_index_id)
 
-    chunk.log_df(trace_label, 'interaction_df', interaction_df)
+    interaction_utilities = None
+    interaction_utilities_sh = None
+    if sharrow_enabled:
+        interaction_utilities, trace_eval_results = interaction_simulate.eval_interaction_utilities(
+            spec,
+            choosers,
+            locals_d,
+            trace_label,
+            None,
+            estimator=None,
+            log_alt_losers=log_alt_losers,
+            extra_data=alternatives,
+        )
+        chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
+        if sharrow_enabled == 'test':
+            interaction_utilities_sh, trace_eval_results_sh = interaction_utilities, trace_eval_results
+    if not sharrow_enabled or (sharrow_enabled == 'test'):
+        interaction_df = logit.interaction_dataset(
+            choosers,
+            alternatives,
+            sample_size=alternative_count,
+            chooser_index_id=chooser_index_id,
+        )
 
-    assert alternative_count == len(interaction_df.index) / len(choosers.index)
+        chunk.log_df(trace_label, 'interaction_df', interaction_df)
 
-    if skims is not None:
-        set_skim_wrapper_targets(interaction_df, skims)
+        assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
-    # evaluate expressions from the spec multiply by coefficients and sum
-    # spec is df with one row per spec expression and one col with utility coefficient
-    # column names of interaction_df match spec index values
-    # utilities has utility value for element in the cross product of choosers and alternatives
-    # interaction_utilities is a df with one utility column and one row per row in interaction_df
-    if have_trace_targets:
-        trace_rows, trace_ids \
-            = tracing.interaction_trace_rows(interaction_df, choosers, alternative_count)
+        if skims is not None:
+            set_skim_wrapper_targets(interaction_df, skims)
 
-        tracing.trace_df(interaction_df[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_df'),
-                         slicer='NONE', transpose=False)
-    else:
-        trace_rows = trace_ids = None
+        # evaluate expressions from the spec multiply by coefficients and sum
+        # spec is df with one row per spec expression and one col with utility coefficient
+        # column names of interaction_df match spec index values
+        # utilities has utility value for element in the cross product of choosers and alternatives
+        # interaction_utilities is a df with one utility column and one row per row in interaction_df
+        if have_trace_targets:
+            trace_rows, trace_ids \
+                = tracing.interaction_trace_rows(interaction_df, choosers, alternative_count)
 
-    # interaction_utilities is a df with one utility column and one row per interaction_df row
-    interaction_utilities, trace_eval_results \
-        = interaction_simulate.eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
-                                                          estimator=None,
-                                                          log_alt_losers=log_alt_losers)
-    chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
+            tracing.trace_df(interaction_df[trace_rows],
+                             tracing.extend_trace_label(trace_label, 'interaction_df'),
+                             slicer='NONE', transpose=False)
+        else:
+            trace_rows = trace_ids = None
 
-    # ########### HWM - high water mark (point of max observed memory usage)
+        # interaction_utilities is a df with one utility column and one row per interaction_df row
+        interaction_utilities, trace_eval_results \
+            = interaction_simulate.eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
+                                                              estimator=None,
+                                                              log_alt_losers=log_alt_losers)
+        chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
 
-    del interaction_df
-    chunk.log_df(trace_label, 'interaction_df', None)
+        # ########### HWM - high water mark (point of max observed memory usage)
+
+        del interaction_df
+        chunk.log_df(trace_label, 'interaction_df', None)
+
+    if sharrow_enabled == 'test':
+        try:
+            if interaction_utilities_sh is not None:
+                np.testing.assert_allclose(
+                    interaction_utilities_sh.values.reshape(interaction_utilities.values.shape), interaction_utilities.values, rtol=1e-2, atol=0,
+                    err_msg='utility not aligned', verbose=True,
+                )
+        except AssertionError as err:
+            print(err)
+            misses = np.where(~np.isclose(interaction_utilities_sh.values, interaction_utilities.values, rtol=1e-2, atol=0))
+            _sh_util_miss1 = interaction_utilities_sh.values[tuple(m[0] for m in misses)]
+            _u_miss1 = interaction_utilities.values[tuple(m[0] for m in misses)]
+            diff = _sh_util_miss1 - _u_miss1
+            if len(misses[0]) > interaction_utilities_sh.values.size * 0.01:
+                print("big problem")
+                print(misses)
+                raise
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,

@@ -364,9 +364,9 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 
     Parameters
     ----------
-    tours : pandas DataFrame
+    tours : pandas.DataFrame
         must have person_id column and index on tour_id
-    alts : pandas DataFrame
+    alts : pandas.DataFrame
         alts index must be timetable tdd id
     timetable : TimeTable object
     choice_column : str
@@ -390,29 +390,39 @@ def tdd_interaction_dataset(tours, alts, timetable, choice_column, window_id_col
 
         tour_ids = np.repeat(tours.index, len(alts.index))
         window_row_ids = np.repeat(tours[window_id_col], len(alts.index))
+        chunk.log_df(trace_label, 'window_row_ids', window_row_ids)
 
         alt_tdd = alts.take(alts_ids)
 
         alt_tdd.index = tour_ids
-        alt_tdd[window_id_col] = window_row_ids
+
+        import xarray as xr
+        alt_tdd_ = xr.Dataset.from_dataframe(alt_tdd)
+        dimname = alt_tdd.index.name or "index"
+        # alt_tdd_[window_id_col] = xr.DataArray(window_row_ids, dims=(dimname,))
+        alt_tdd_[choice_column] = xr.DataArray(alts_ids, dims=(dimname,), coords=alt_tdd_.coords)
 
         # add tdd alternative id
         # by convention, the choice column is the first column in the interaction dataset
-        alt_tdd.insert(loc=0, column=choice_column, value=alts_ids)
+        # alt_tdd.insert(loc=0, column=choice_column, value=alts_ids)
 
         # slice out all non-available tours
-        available = timetable.tour_available(alt_tdd[window_id_col], alt_tdd[choice_column])
+        available = timetable.tour_available(window_row_ids, alts_ids)
+
+        del window_row_ids
+        chunk.log_df(trace_label, 'window_row_ids', None)
+
         logger.debug(f"tdd_interaction_dataset keeping {available.sum()} of ({len(available)}) available alt_tdds")
         assert available.any()
 
-        chunk.log_df(trace_label, 'alt_tdd', alt_tdd)  # catch this before we slice on available
+        chunk.log_df(trace_label, 'alt_tdd_', alt_tdd_)  # catch this before we slice on available
 
-        alt_tdd = alt_tdd[available]
+        alt_tdd = alt_tdd_.isel({dimname:available}).to_dataframe()
 
         chunk.log_df(trace_label, 'alt_tdd', alt_tdd)
 
         # FIXME - don't need this any more after slicing
-        del alt_tdd[window_id_col]
+        #del alt_tdd[window_id_col]
 
     return alt_tdd
 

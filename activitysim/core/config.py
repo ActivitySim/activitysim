@@ -6,6 +6,7 @@ import glob
 import yaml
 import sys
 import warnings
+import time
 
 import logging
 from activitysim.core import inject
@@ -237,18 +238,19 @@ def cascading_input_file_path(file_name, dir_list_injectable_name, mandatory=Tru
     dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
 
     file_path = None
-    for dir in dir_paths:
-        p = os.path.join(dir, file_name)
-        if os.path.isfile(p):
-            file_path = p
-            break
+    if file_name is not None:
+        for dir in dir_paths:
+            p = os.path.join(dir, file_name)
+            if os.path.isfile(p):
+                file_path = p
+                break
 
-        if allow_glob and len(glob.glob(p)) > 0:
-            file_path = p
-            break
+            if allow_glob and len(glob.glob(p)) > 0:
+                file_path = p
+                break
 
     if mandatory and not file_path:
-        raise RuntimeError("file_path %s: file '%s' not in %s" %
+        raise FileNotFoundError("file_path %s: file '%s' not in %s" %
                            (dir_list_injectable_name, file_name, dir_paths))
 
     return file_path
@@ -315,6 +317,21 @@ def output_file_path(file_name):
     return build_output_file_path(file_name, use_prefix=prefix)
 
 
+def profiling_file_path(file_name):
+
+    profile_dir = inject.get_injectable('profile_dir', None)
+    if profile_dir is None:
+        output_dir = inject.get_injectable('output_dir')
+        profile_dir = os.path.join(
+            output_dir,
+            time.strftime("profiling--%Y-%m-%d--%H-%M-%S")
+        )
+        os.makedirs(profile_dir, exist_ok=True)
+        inject.add_injectable('profile_dir', profile_dir)
+
+    return os.path.join(profile_dir, file_name)
+
+
 def trace_file_path(file_name):
 
     output_dir = inject.get_injectable('output_dir')
@@ -332,6 +349,12 @@ def trace_file_path(file_name):
 def log_file_path(file_name, prefix=True):
 
     output_dir = inject.get_injectable('output_dir')
+
+    # - check if running asv and if so, log to commit-specific subfolder
+    asv_commit = os.environ.get('ASV_COMMIT', None)
+    if asv_commit:
+        output_dir = os.path.join(output_dir, f'log-{asv_commit}')
+        os.makedirs(output_dir, exist_ok=True)
 
     # - check for optional log subfolder
     if os.path.exists(os.path.join(output_dir, 'log')):
@@ -362,6 +385,30 @@ def open_log_file(file_name, mode, header=None, prefix=False):
     return f
 
 
+def rotate_log_directory():
+
+    output_dir = inject.get_injectable('output_dir')
+    log_dir = os.path.join(output_dir, 'log')
+    if not os.path.exists(log_dir):
+        return
+
+    from datetime import datetime
+    from stat import ST_CTIME
+    old_log_time = os.stat(log_dir)[ST_CTIME]
+    rotate_name = os.path.join(
+        output_dir,
+        datetime.fromtimestamp(old_log_time).strftime("log--%Y-%m-%d--%H-%M-%S")
+    )
+    try:
+        os.rename(log_dir, rotate_name)
+    except Exception as err:
+        # if Windows fights us due to permissions or whatever,
+        print(f"unable to rotate log file, {err!r}")
+    else:
+        # on successful rotate, create new empty log directory
+        os.makedirs(log_dir)
+
+
 def pipeline_file_path(file_name):
 
     prefix = inject.get_injectable('pipeline_file_prefix', None)
@@ -377,7 +424,7 @@ class SettingsFileNotFound(Exception):
         return repr(f"Settings file '{self.file_name}' not found in {self.configs_dir}")
 
 
-def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_list=None):
+def read_settings_file(file_name, mandatory=True, include_stack=False, configs_dir_list=None):
     """
 
     look for first occurence of yaml file named <file_name> in directories in configs_dir list,
@@ -396,7 +443,7 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
     file_name
     mandatory: booelan
         if true, raise SettingsFileNotFound exception if no settings file, otherwise return empty dict
-    include_stack: boolean
+    include_stack: boolean or list
         only used for recursive calls to provide list of files included so far to detect cycles
 
     Returns: dict
@@ -422,7 +469,10 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
 
     inheriting = False
     settings = {}
-    source_file_paths = include_stack.copy()
+    if isinstance(include_stack, list):
+        source_file_paths = include_stack.copy()
+    else:
+        source_file_paths = []
     for dir in configs_dir_list:
         file_path = os.path.join(dir, file_name)
         if os.path.exists(file_path):
@@ -480,7 +530,6 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
                 assert os.path.join(dir, inherit_file_name) not in source_file_paths, \
                     f"circular inheritance of {inherit_file_name}: {source_file_paths}: "
                 # make a recursive call to switch inheritance chain to specified file
-                configs_dir_list = None
 
                 logger.debug("inheriting additional settings for %s from %s" % (file_name, inherit_file_name))
                 s, source_file_paths = \

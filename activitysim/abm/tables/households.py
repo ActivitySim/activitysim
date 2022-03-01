@@ -3,6 +3,7 @@
 from builtins import range
 
 import logging
+import io
 
 import pandas as pd
 
@@ -91,6 +92,9 @@ def households(households_sample_size, override_hh_ids, trace_hh_id):
         df['sample_rate'] = sample_rate
 
     logger.info("loaded households %s" % (df.shape,))
+    buffer = io.StringIO()
+    df.info(buf=buffer)
+    logger.debug("households.info:\n"+buffer.getvalue())
 
     # replace table function with dataframe
     inject.add_table('households', df)

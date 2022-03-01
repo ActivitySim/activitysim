@@ -12,7 +12,7 @@ preprocessor:
 
 persons_merged:
   
-  SLICERS:
+  BIN:
     # Manually-specified bins
     - column: income
       label: income_category
@@ -55,7 +55,7 @@ persons_merged:
 
 trips_merged:
   
-  SLICERS:
+  BIN:
     - column: income
       label: trip_income_category # TODO: Figure out why this can't have the same name as a slicer for persons_merged
       type: manual_breaks

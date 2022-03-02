@@ -315,10 +315,6 @@ def summarize(
                             df[slicer['column']], slicer['bins'], slicer['label_format']
                         )
 
-    # TODO: The table output code below causes an error in the pipeline test (RuntimeError: Pipeline is already open!)
-    # and fails TravisCI, even when even when EXPORT_PIPELINE_TABLES is set to FALSE. WHY??
-    # Only short-term solution seems to be to comment it out.
-
     # Output pipeline tables for expression development
     if model_settings['EXPORT_PIPELINE_TABLES'] is True:
         pipeline_table_dir = os.path.join(output_location, 'pipeline_tables')

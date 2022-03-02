@@ -2,7 +2,6 @@ SPECIFICATION: summarize.csv
 OUTPUT: summarize
 
 # Set to True to export pipeline tables for expression development
-# Not currently implemented. See note in summarize.py
 EXPORT_PIPELINE_TABLES: True
 
 preprocessor:

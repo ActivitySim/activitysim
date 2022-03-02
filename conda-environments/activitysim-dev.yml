@@ -32,3 +32,5 @@ dependencies:
 
 - pip:
   - -e ..
+# Placeholder until available on conda-forge 
+  - simwrapper > 1.7

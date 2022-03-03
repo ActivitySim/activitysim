@@ -38,5 +38,7 @@ setup(
         'requests >= 2.7',
         'numba >= 0.51.2',
         'orca >= 1.6',
+        'sharrow >= 2.0',
+        'xarray >= 0.21',
     ]
 )

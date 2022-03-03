@@ -23,5 +23,5 @@ dependencies:
 - coveralls
 - pycodestyle
 - pytest-regressions
-- xarray
-- sharrow
+- sharrow >= 2.0
+- xarray >= 0.21

@@ -1,0 +1,51 @@
+version: "3"
+
+services:
+  dependencies:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.dependencies
+      target: activitysim-dependencies
+    image: activitysim-dependencies
+  develop:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.develop
+      target: activitysim-develop
+    image: activitysim-develop
+    volumes:
+      - ..:/usr/node
+  debug:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.debug
+      target: activitysim-debug
+    image: activitysim-debug
+    ports:
+      - 5678:5678
+    volumes:
+      - ..:/usr/node
+    entrypoint: docker/entrypoint_debug.sh
+  deploy:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.deploy
+      target: activitysim
+    image: activitysim
+    volumes:
+      - ..:/usr/node
+    entrypoint: docker/entrypoint.sh
+
+# Build all containers
+# docker-compose build
+#
+# Build a specific container
+# docker-compose up --build develop
+#
+# To start up a bash command line for a specific container
+#     docker-compose run develop /bin/bash
+# To exit bash and shut down
+#     exit
+#
+# To remove closed container
+# docker-compose rm 

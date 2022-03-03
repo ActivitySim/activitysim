@@ -23,6 +23,8 @@ dependencies:
 - coveralls
 - pycodestyle
 - pytest-regressions
+- xarray
+- sharrow
 
 - pip:
 # Placeholder until available on conda-forge 

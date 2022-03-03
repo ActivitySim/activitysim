@@ -34,6 +34,12 @@ logging:
       handlers: [console, logfile]
       propagate: false
 
+    black:
+      level: WARN
+
+    blib2to3:
+      level: WARN
+
   handlers:
 
     logfile:

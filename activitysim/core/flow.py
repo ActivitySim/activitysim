@@ -203,7 +203,7 @@ def skim_dataset():
             # modified more recently.
             if not should_invalidate_cache_file(backing[7:], *omx_file_paths):
                 try:
-                    d = sh.Dataset.from_shared_memory(backing, mode="r")
+                    d = sh.Dataset.shm.from_shared_memory(backing, mode="r")
                 except FileNotFoundError as err:
                     logger.info(f"skim dataset {skim_tag!r} not found {err!s}")
                     logger.info(f"loading skim dataset {skim_tag!r} from disk")
@@ -211,12 +211,12 @@ def skim_dataset():
                 else:
                     logger.info(f"using skim_dataset from shared memory")
             else:
-                sh.Dataset.delete_shared_memory_files(backing)
+                sh.Dataset.shm.delete_shared_memory_files(backing)
         else:
             # when working in ephemeral shared memory, assume that if that data
             # is loaded then it is good to use without further checks.
             try:
-                d = sh.Dataset.from_shared_memory(backing, mode="r")
+                d = sh.Dataset.shm.from_shared_memory(backing, mode="r")
             except FileNotFoundError as err:
                 logger.info(f"skim dataset {skim_tag!r} not found {err!s}")
                 logger.info(f"loading skim dataset {skim_tag!r} from disk")
@@ -234,9 +234,9 @@ def skim_dataset():
             if zarr_file and os.path.exists(zarr_file):
                 # load skims from zarr.zip
                 logger.info(f"found zarr skims, loading them")
-                d = sh.Dataset.from_zarr(zarr_file).max_float_precision(max_float_precision)
+                d = sh.dataset.from_zarr(zarr_file).max_float_precision(max_float_precision)
             else:
-                d = sh.Dataset.from_omx_3d(
+                d = sh.dataset.from_omx_3d(
                     [openmatrix.open_file(f) for f in omx_file_paths],
                     time_periods=time_periods,
                     max_float_precision=max_float_precision,
@@ -303,11 +303,11 @@ def skim_dataset():
         else:
             np.testing.assert_array_equal(land_use.index, d.dtaz)
 
-        if d.is_shared_memory:
+        if d.shm.is_shared_memory:
             return d
         else:
             logger.info(f"writing skims to shared memory")
-            return d.to_shared_memory(backing, mode="r")
+            return d.shm.to_shared_memory(backing, mode="r")
 
 
 def scan_for_unused_names(tokens):
@@ -484,7 +484,7 @@ def new_flow(
                 rename_dataset_cols[stop_col_name] = '_stop_col_name'
             flow_tree.root_dataset = flow_tree.root_dataset.rename(rename_dataset_cols).ensure_integer(['_orig_col_name', '_dest_col_name', '_stop_col_name'])
         else:
-            top = sh.Dataset.from_named_objects(
+            top = sh.dataset.from_named_objects(
                 pd.RangeIndex(len(choosers), name="chooserindex"),
                 pd.RangeIndex(len(interacts), name="interactindex"),
             )
@@ -495,13 +495,13 @@ def new_flow(
             }
             if stop_col_name is not None:
                 rename_dataset_cols[stop_col_name] = '_stop_col_name'
-            choosers_ = sh.Dataset.construct(choosers).rename_or_ignore(rename_dataset_cols).ensure_integer(['_orig_col_name', '_dest_col_name', '_stop_col_name'])
+            choosers_ = sh.dataset.construct(choosers).rename_or_ignore(rename_dataset_cols).ensure_integer(['_orig_col_name', '_dest_col_name', '_stop_col_name'])
             flow_tree.add_dataset(
                 'df',
                 choosers_,
                 f"start.chooserindex -> df.{next(iter(choosers_.dims))}"
             )
-            interacts_ = sh.Dataset.construct(interacts).rename_or_ignore(rename_dataset_cols)
+            interacts_ = sh.dataset.construct(interacts).rename_or_ignore(rename_dataset_cols)
             flow_tree.add_dataset(
                 'interact_table',
                 interacts_,
@@ -588,9 +588,7 @@ def size_terms_on_flow(locals_d):
         )})
         a = a.reindex(stoptaz=skim_dataset.coords['dtaz'].values)
         locals_d['size_array'] = dict(
-            size_terms=a.set_match_names(
-                {'stoptaz': f'@{dest_col_name}^', 'purpose_index': f'purpose_index_num^'},
-            ),
+            size_terms=a,
             relationships=(
                 f"df._dest_col_name -> size_terms.stoptaz",
                 f"df.purpose_index_num -> size_terms.purpose_index",

@@ -10,21 +10,22 @@ ALTS: vehicle_type_choice_op4_alternatives.csv
 
 # comment out this line or delete the file name to toggle
 # on/off the probabilistic second stage
+# first column must be named "vehicle_type"
 # PROBS_SPEC: vehicle_type_choice_op2_fuel_type_probs.csv
 
 LOGIT_TYPE: MNL
 CHOICE_COL: vehicle_type
 
-# additional vehicle_type_data for use in expressions
+# additional vehicle_type_data merged to the alternatives for use in utility expressions
+# need to have columns body_type, fuel_type, and vehicle_year
+# age is computed as (1 + SCENARIO_YEAR - vehicle_year)
+# entries in the data need to match the combinations in combinatorial_alts
+# if PROBS_SPEC is supplied, vehicle_type_data will not be used
 VEHICLE_TYPE_DATA_FILE: vehicle_type_data.csv
-# creates a dataframe accessible as vehicle_type_data and is joined to the combinatorial_alts if available
-# age is computed as (1 + SCENARIO_YEAR - VEHICLE_YEAR_COL)
-# entries in this data should match what is specified in the combinatorial_alts
-BODY_TYPE_COL: body_type
-FUEL_TYPE_COL: fuel_type
-VEHICLE_YEAR_COL: vehicle_year
 SCENARIO_YEAR: 2017
 
+
+# If PROBS_SPEC is supplied, fuel_type will be ignored
 combinatorial_alts:
   body_type:
     - Car
@@ -69,20 +70,18 @@ preprocessor:
     - persons
     - households
 
-annotate_persons:
-  SPEC: annotate_persons_vehicle_type
-  DF: persons
-  TABLES:
-    - vehicles
-
-annotate_households:
-  SPEC: annotate_households_vehicle_type
-  DF: households
-  TABLES:
-    - persons
-    - vehicles
-
-MODE_CHOICE_LOGSUM_COLUMN_NAME: vehicle_choice_logsum
+# annotate_persons:
+#   SPEC: annotate_persons_vehicle_type
+#   DF: persons
+#   TABLES:
+#     - vehicles
+#
+# annotate_households:
+#   SPEC: annotate_households_vehicle_type
+#   DF: households
+#   TABLES:
+#     - persons
+#     - vehicles
 
 CONSTANTS:
   # Select region for model and input the MSA population
@@ -92,3 +91,4 @@ CONSTANTS:
   #   Washington DC (DCA), Oregon (OREG), Ohio (OHIO)
   CBSA: SFO
   MSA_POP: 3320000
+  CHARGERS_PER_CAP: 0.000721205

@@ -4,8 +4,7 @@ util_ln_nmakes,number of makes available,"@np.log(1 + df.NumMakes)",coef_ln_nmak
 util_mpg,miles per gallon (or equivalent),"@df.MPG",coef_mpg
 util_crange,Range for BEV (mi),"@df.Range",coef_crange
 #util_crangeltwk,range less than average round trip distance to work,"",coef_crangeltwk
-#util_ln_chpc_ev,ln(1+number of chargers per capita in MSA/state),"@np.log(1+)",coef_ln_chpc_ev
-#util_ln_chpc_ev,ln(1+number of chargers per capita in MSA/state),"@np.log(1+)",coef_ln_chpc_ev
+util_ln_chpc_ev,ln(1+number of chargers per capita in MSA/state),"@np.log(1+CHARGERS_PER_CAP)",coef_ln_chpc_ev
 #,income related variables,,
 util_cprice0,New Purchase Price (2017$) Segmented by Income,"((income < 25000) & (income > -1)) * NewPrice",coef_cprice0
 util_cprice25,New Purchase Price (2017$) Segmented by Income,"((income < 50000) & (income >= 25000)) * NewPrice",coef_cprice25
@@ -72,6 +71,30 @@ util_nchld_ev,Number of children max 3 * EVs,num_children.clip(upper=3) * ((fuel
 util_nchld_age,Number of children max 3 * age,num_children.clip(upper=3) * age,coef_nchld_age
 util_dstwkt_age,Total distance to work * age,total_hh_dist_to_work_cap * age,coef_dstwkt_age
 #,household already owning vehicles,,
+util_van_van,Household already owns a Van -- Van,"(num_hh_Van > 0) & (body_type == 'Van')",coef_van_van
+util_van_suv,Household already owns a Van -- SUV,"(num_hh_Van > 0) & (body_type == 'SUV')",coef_van_suv
+util_van_pu,Household already owns a Van -- Pickup,"(num_hh_Van > 0) & (body_type == 'Pickup')",coef_van_pu
+util_van_mc,Household already owns a Van -- Motorcycle,"(num_hh_Van > 0) & (body_type == 'Motorcycle')",coef_van_mc
+util_van_suv,Household already owns an SUV -- Van (symmetrical with above),"(num_hh_SUV > 0) & (body_type == 'Van')",coef_van_suv
+util_suv_suv,Household already owns an SUV -- SUV,"(num_hh_SUV > 0) & (body_type == 'SUV')",coef_suv_suv
+util_suv_pu,Household already owns an SUV -- Pickup,"(num_hh_SUV > 0) & (body_type == 'Pickup')",coef_suv_pu
+util_suv_mc,Household already owns an SUV -- Motorcycle,"(num_hh_SUV > 0) & (body_type == 'Motorcycle')",coef_suv_mc
+util_van_pu,Household already owns a Pickup -- Van (symmetrical with above),"(num_hh_Pickup > 0) & (body_type == 'Van')",coef_van_pu
+util_suv_pu,Household already owns a Pickup -- SUV (symmetrical with above),"(num_hh_Pickup > 0) & (body_type == 'SUV')",coef_suv_pu
+util_pu_pu,Household already owns a Pickup -- Pickup,"(num_hh_Pickup > 0) & (body_type == 'Pickup')",coef_pu_pu
+util_pu_mc,Household already owns a Pickup -- Motorcycle,"(num_hh_Pickup > 0) & (body_type == 'Motorcycle')",coef_pu_mc
+util_van_mc,Household already owns a Motorcycle -- Van (symmetrical with above),"(num_hh_Motorcycle > 0) & (body_type == 'Van')",coef_van_mc
+util_suv_mc,Household already owns a Motorcycle -- SUV (symmetrical with above),"(num_hh_Motorcycle > 0) & (body_type == 'SUV')",coef_suv_mc
+util_pu_mc,Household already owns a Motorcycle -- Pickup (symmetrical with above),"(num_hh_Motorcycle > 0) & (body_type == 'Pickup')",coef_pu_mc
+util_mc_mc,Household already owns a Motorcycle -- Motorcycle,"(num_hh_Motorcycle > 0) & (body_type == 'Motorcycle')",coef_mc_mc
+util_hyb_hyb,Houeshold already owns a Hybrid -- Hybrid,"(num_hh_Hybrid > 0) & (fuel_type == 'Hybrid')",coef_hyb_hyb
+util_hyb_ev,Houeshold already owns a Hybrid -- EV,"(num_hh_Hybrid > 0) & ((fuel_type=='PEV') | (fuel_type=='BEV'))",coef_hyb_ev
+util_hyb_ev,Houeshold already owns an EV -- Hybrid (symmetrical with above),"(num_hh_EV> 0) & (fuel_type == 'Hybrid')",coef_hyb_ev
+util_only_van,Household only owns Vans,"(num_hh_Van > 0) & (num_hh_Van == num_hh_veh_owned) & (body_type == 'Van')",coef_only_van
+util_only_suv,Household only owns SUVs,"(num_hh_SUV > 0) & (num_hh_SUV == num_hh_veh_owned) & (body_type == 'SUV')",coef_only_suv
+util_only_pu,Household only owns Pickups,"(num_hh_Pickup > 0) & (num_hh_Pickup == num_hh_veh_owned) & (body_type == 'Pickup')",coef_only_pu
+util_only_mc,Household only owns Motorcycles,"(num_hh_Motorcycle > 0) & (num_hh_Motorcycle == num_hh_veh_owned) & (body_type == 'Motorcycle')",coef_only_mc
+util_only_bev,Household only owns BEVs,"(num_hh_BEV > 0) & (num_hh_BEV == num_hh_veh_owned) & (fuel_type == 'BEV')",coef_only_bev
 #,constants,,
 util_van,Van ASC,(body_type == 'Van'),coef_van
 util_suv,SUV ASC,(body_type == 'SUV'),coef_suv

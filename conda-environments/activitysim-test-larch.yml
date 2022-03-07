@@ -25,7 +25,4 @@ dependencies:
 - pytest-regressions
 - xarray
 - sharrow
-
-- pip:
-# Placeholder until available on conda-forge 
-  - simwrapper > 1.7
+- simwrapper > 1.7

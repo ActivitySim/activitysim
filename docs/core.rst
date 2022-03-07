@@ -542,12 +542,16 @@ Trip-level skim data are also made available in the preprocessing stage by attac
 
 Install and Run Simwrapper
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
-The SimWrapper Python package, which contains convience functions for initiating the SimWrapper app in the browser and a local file server for accessing summary tables from this app, is automatically installed as a dependency of ActivitySim. However, you can also use SimWrapper independent of ActivitySim to, for example, visualize summaries on a different workstation. SimWrapper is available on pip:
+The SimWrapper Python package, which contains convenience functions for initiating the SimWrapper app in the browser and a local file server for accessing summary tables from this app, is automatically installed as a dependency of ActivitySim. However, you can also use SimWrapper independent of ActivitySim to, for example, visualize summaries on a different workstation. SimWrapper is available on both conda-forge and pip:
 ::
+
+  > conda install -c conda-forge simwrapper
+
+or
 
   > pip install simwrapper
 
-The latest information about the Simwrapper package is available on its `PyPI page <https://pypi.org/project/simwrapper/1.2.0/>`_.
+The latest information about the Simwrapper package is available on its `PyPI page <https://pypi.org/project/simwrapper/>`_.
 
 To run SimWrapper, navigate on the command line to ``output\summarize`` within the model directory, or a directory where you may have copied outputs, and run:
 ::

@@ -29,8 +29,4 @@ dependencies:
 - git
 - gh
 - bump2version
-
-- pip:
-  - -e ..
-# Placeholder until available on conda-forge 
-  - simwrapper > 1.7
+- simwrapper > 1.7

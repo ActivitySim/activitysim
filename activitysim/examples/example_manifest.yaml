@@ -550,6 +550,8 @@
   include:
     - example_arc/data
     - example_arc/configs
+    - example_mtc/configs_sh
+    - example_mtc/configs_sh_compile
     - example_arc/output
     - example_arc/README.MD
 
@@ -562,6 +564,8 @@
   include:
     - example_arc/data
     - example_arc/configs
+    - example_mtc/configs_sh
+    - example_mtc/configs_sh_compile
     - example_arc/output
     - example_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/skims.omx
@@ -586,6 +590,8 @@
   include:
     - example_arc/data
     - example_arc/configs
+    - example_mtc/configs_sh
+    - example_mtc/configs_sh_compile
     - example_arc/output
     - example_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims.omx

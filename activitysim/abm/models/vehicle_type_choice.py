@@ -48,7 +48,6 @@ def read_vehicle_type_data(model_settings):
 
 def get_combinatorial_vehicle_alternatives(alts_cats_dict, model_settings):
     alts_fname = model_settings.get('ALTS')
-    print(alts_cats_dict)
     cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
     alts_long = pd.DataFrame(
         list(itertools.product(*alts_cats_dict.values())),
@@ -64,7 +63,8 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict, model_settings):
     return alts_wide, alts_long
 
 
-def append_probabilistic_vehtype_type_choices(chooser, probs_spec_file):
+def append_probabilistic_vehtype_type_choices(
+        choices, probs_spec_file, choice_column_name, trace_label):
     # name of first column must be "vehicle_type"
     probs_spec = pd.read_csv(
         config.config_file_path(probs_spec_file), comment='#')
@@ -73,7 +73,14 @@ def append_probabilistic_vehtype_type_choices(chooser, probs_spec_file):
     choosers = pd.merge(
         choices.reset_index(), probs_spec,
         on=choice_column_name,
-        how='left').set_index('vehicle_id')
+        how='left',
+        indicator=True).set_index('vehicle_id')
+
+    # checking to make sure all alternatives have probabilities
+    missing_alts = choosers.loc[choosers._merge == 'left_only', ['vehicle_type']]
+    assert len(missing_alts) == 0, \
+        f"missing probabilities for alternatives:\n {missing_alts}"
+    choosers.drop(columns='_merge', inplace=True)
     del choosers[choice_column_name]
 
     # probs should sum to 1 with residual probs resulting in choice of 'fail'
@@ -178,13 +185,10 @@ def iterate_vehicle_type_choice(
     # This is necessary to determine and use utility terms that include other
     #   household vehicles
     for veh_num in range(1, vehicles_merged.vehicle_num.max()+1):
-        print("veh_num: ", veh_num)
-        # merge vehicles onto households, index will be vehicle_id
-        choosers = vehicles_merged
-
         # - preprocessor
         # running preprocessor on entire vehicle table to enumerate vehicle types
         # already owned by the household
+        choosers = vehicles_merged
         preprocessor_settings = model_settings.get('preprocessor', None)
         if preprocessor_settings:
             expressions.assign_columns(
@@ -195,9 +199,7 @@ def iterate_vehicle_type_choice(
 
         # only make choices for vehicles that have not been selected yet
         choosers = choosers[vehicles_merged['vehicle_num'] == veh_num]
-        logger.info("Running %s with %d households", trace_label, len(choosers))
-
-        choosers.to_csv(f'choosers_{veh_num}.csv')
+        logger.info("Running %s for vehicle number %s with %d vehicles", trace_label, veh_num, len(choosers))
 
         # if there were so many alts that they had to be created programmatically,
         # by combining categorical variables, then the utility expressions should make
@@ -241,11 +243,10 @@ def iterate_vehicle_type_choice(
         choices[choice_column_name] = \
             choices[choice_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
 
-        print(choices)
-
         # STEP II: append probabilistic vehicle type attributes
         if probs_spec_file is not None:
-            choices = append_probabilistic_vehtype_type_choices(chooser, probs_spec_file)
+            choices = append_probabilistic_vehtype_type_choices(
+                choices, probs_spec_file, choice_column_name, trace_label)
 
         vehicles_merged.loc[choices.index, 'already_owned_veh'] = choices[choice_column_name]
         all_choices.append(choices)

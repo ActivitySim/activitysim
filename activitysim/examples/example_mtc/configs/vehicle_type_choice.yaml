@@ -19,8 +19,8 @@ CHOICE_COL: vehicle_type
 # additional vehicle_type_data merged to the alternatives for use in utility expressions
 # need to have columns body_type, fuel_type, and vehicle_year
 # age is computed as (1 + SCENARIO_YEAR - vehicle_year)
-# entries in the data need to match the combinations in combinatorial_alts
-# if PROBS_SPEC is supplied, vehicle_type_data will not be used
+# entries in the data need to match the combinations in combinatorial_alts below
+# if PROBS_SPEC is supplied, vehicle_type_data will not be merged
 VEHICLE_TYPE_DATA_FILE: vehicle_type_data.csv
 SCENARIO_YEAR: 2017
 

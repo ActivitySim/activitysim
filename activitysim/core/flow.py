@@ -357,7 +357,7 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
     if orig_col_name is not None and dest_col_name is not None and stop_col_name is None:
         if timeframe == 'timeless':
             return dict(
-                skims=skim_dataset.drop_dims('time_period'),
+                skims=skim_dataset,
                 relationships=(
                     f"df._orig_col_name -> skims.otaz",
                     f"df._dest_col_name -> skims.dtaz",

@@ -1,6 +1,6 @@
 Description,Expression,escort,escortkids,escortnokids,shopping,eatout,othmaint,social,othdiscr
 Mode choice logsum,mode_choice_logsum,1,1,1,coef_shopping_mode_logsum,coef_eatout_mode_logsum,coef_othmaint_mode_logsum,1,1
-Intrazonal,@(df['zone_id']==df['home_zone_id']),0,0,0,0,0,0,0,0
+#Intrazonal,@(df['zone_id']==df['home_zone_id']),0,0,0,0,0,0,0,0
 CBD area type,@df['is_CBD'],0,0,0,coef_shopping_cbd,coef_eatout_cbd,coef_othmaint_cbd,coef_social_cbd,0
 Urban high area type,@df['is_urban'],0,0,0,coef_shopping_urban,coef_eatout_urban,coef_othmaint_urban,coef_social_urban,coef_othdiscr_urban
 "# CTRAMP expression has two 'Distance' coefficients. For example, 0.2553 and 0.0100 for Escort, so used their sum here",,,,,,,,,

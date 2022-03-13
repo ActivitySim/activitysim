@@ -482,7 +482,17 @@ def new_flow(
                 rename_dataset_cols[dest_col_name] = '_dest_col_name'
             if stop_col_name is not None:
                 rename_dataset_cols[stop_col_name] = '_stop_col_name'
-            flow_tree.root_dataset = flow_tree.root_dataset.rename(rename_dataset_cols).ensure_integer(['_orig_col_name', '_dest_col_name', '_stop_col_name'])
+            ds = flow_tree.root_dataset.rename(
+                rename_dataset_cols
+            ).ensure_integer(
+                ['_orig_col_name', '_dest_col_name', '_stop_col_name']
+            )
+            # copy back the names of the renamed dims so they can be used in spec files.
+            # note this doesn't copy the *data* just makes another named reference to the
+            # same data.
+            for _k, _v in rename_dataset_cols.items():
+                ds[_k] = ds[_v]
+            flow_tree.root_dataset = ds
         else:
             top = sh.dataset.from_named_objects(
                 pd.RangeIndex(len(choosers), name="chooserindex"),
@@ -495,7 +505,16 @@ def new_flow(
             }
             if stop_col_name is not None:
                 rename_dataset_cols[stop_col_name] = '_stop_col_name'
-            choosers_ = sh.dataset.construct(choosers).rename_or_ignore(rename_dataset_cols).ensure_integer(['_orig_col_name', '_dest_col_name', '_stop_col_name'])
+            choosers_ = sh.dataset.construct(
+                choosers
+            ).rename_or_ignore(
+                rename_dataset_cols
+            ).ensure_integer(
+                ['_orig_col_name', '_dest_col_name', '_stop_col_name']
+            )
+            for _k, _v in rename_dataset_cols.items():
+                if _v in choosers_:
+                    choosers_[_k] = choosers_[_v]
             flow_tree.add_dataset(
                 'df',
                 choosers_,

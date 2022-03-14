@@ -17,6 +17,7 @@ def main():
     from activitysim.cli import run
     from activitysim.cli import create
     from activitysim.cli import benchmark
+    from activitysim import workflows
 
     from activitysim import __version__, __doc__
 
@@ -34,4 +35,11 @@ def main():
                         args_func=benchmark.make_asv_argparser,
                         exec_func=benchmark.benchmark,
                         description=benchmark.benchmark.__doc__)
-    sys.exit(asim.execute())
+    asim.add_subcommand(name='workflow',
+                        args_func=lambda x: None,
+                        exec_func=workflows.main,
+                        description=workflows.main.__doc__)
+    if len(sys.argv) >= 2 and sys.argv[1] == 'workflow':
+        sys.exit(workflows.main(sys.argv[2:]))
+    else:
+        sys.exit(asim.execute())

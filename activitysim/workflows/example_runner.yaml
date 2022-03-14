@@ -31,7 +31,7 @@ steps:
 #- pypyr.steps.debug
 
 - description: Create (download as needed) the example to be tested
-  name: streaming_cmd
+  name: activitysim.workflows.cmd
   in:
     cmd:
       run: activitysim create -e {example_name} -d .
@@ -49,27 +49,17 @@ steps:
         households_sample_size: 100
 
 - description: Run activitysim to compile and test sharrow-enabled model
-  name: streaming_cmd
+  name: activitysim.workflows.cmd
   in:
     cmd:
       run: activitysim run -c configs_sh_compile -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
 
 - description: Archive outputs of compile
-  name: pypyr.steps.py
+  name: activitysim.workflows.archive_outputs
   in:
-    py: |
-      import os
-      from pathlib import Path
-      import glob
-      import shutil
-      dest_dir = Path(f"{workspace}/{example_name}/output-sh-compile-{tag}")
-      os.makedirs(dest_dir/"log", exist_ok=True)
-      for file in glob.glob(f"{workspace}/{example_name}/output/log/*.*"):
-          shutil.move(file, dest_dir/"log")
-      for ext in ["csv", "h5", "omx"]:
-        for file in glob.glob(f"{workspace}/{example_name}/output/*.{ext}"):
-          shutil.move(file, dest_dir)
+    source: "output"
+    destination: "output-sh-compile-{tag}"
 
 - description: write.configs_sh
   name: pypyr.steps.filewriteyaml
@@ -81,30 +71,20 @@ steps:
         sharrow: require
 
 - description: Run activitysim to evaluate sharrow-enabled model
-  name: streaming_cmd
+  name: activitysim.workflows.cmd
   in:
     cmd:
       run: activitysim run -c configs_sh -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
 
 - description: Archive outputs of sharrow run
-  name: pypyr.steps.py
+  name: activitysim.workflows.archive_outputs
   in:
-    py: |
-      import os
-      from pathlib import Path
-      import glob
-      import shutil
-      dest_dir = Path(f"{workspace}/{example_name}/output-sh-{tag}")
-      os.makedirs(dest_dir/"log", exist_ok=True)
-      for file in glob.glob(f"{workspace}/{example_name}/output/log/*.*"):
-          shutil.move(file, dest_dir/"log")
-      for ext in ["csv", "h5", "omx"]:
-        for file in glob.glob(f"{workspace}/{example_name}/output/*.{ext}"):
-          shutil.move(file, dest_dir)
+    source: "output"
+    destination: "output-sh-{tag}"
 
 - description: Run activitysim to evaluate legacy model
-  name: streaming_cmd
+  name: activitysim.workflows.cmd
   run: '{legacy}'
   in:
     cmd:
@@ -112,19 +92,26 @@ steps:
       cwd: "{workspace}/{example_name}"
 
 - description: Archive outputs of legacy run
-  name: pypyr.steps.py
+  name: activitysim.workflows.archive_outputs
   run: '{legacy}'
   in:
-    py: |
-      import os
-      from pathlib import Path
-      import glob
-      import shutil
-      dest_dir = Path(f"{workspace}/{example_name}/output-legacy-{tag}")
-      os.makedirs(dest_dir/"log", exist_ok=True)
-      for file in glob.glob(f"{workspace}/{example_name}/output/log/*.*"):
-          shutil.move(file, dest_dir/"log")
-      for ext in ["csv", "h5", "omx"]:
-        for file in glob.glob(f"{workspace}/{example_name}/output/*.{ext}"):
-          shutil.move(file, dest_dir)
+    source: "output"
+    destination: "output-legacy-{tag}"
 
+- description: Generate composite timing log
+  name: pypyr.steps.py
+  in:
+    py: |
+      import pandas as pd
+      timings = {}
+      for t in ['sh-compile', 'sh', 'legacy']:
+        df = pd.read_csv(f"{workspace}/{example_name}/output-{t}-{tag}/log/timing_log.csv")
+        timings[t] = df.set_index("model_name")['seconds']
+      composite_timing = pd.concat(timings, axis=1)
+      composite_timing.to_csv(f"{workspace}/{example_name}/combined_timing_log-{tag}.csv")
+      mems = {}
+      for t in ['sh-compile', 'sh', 'legacy']:
+          df = pd.read_csv(f"{workspace}/{example_name}/output-{t}-{tag}/log/mem.csv")
+          mems[t] = df.set_index('event')[['rss', 'full_rss', 'uss']]
+      composite_mem = pd.concat(mems, axis=1)
+      composite_mem.to_csv(f"{workspace}/{example_name}/combined_mem_log-{tag}.csv")

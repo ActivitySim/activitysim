@@ -248,5 +248,4 @@ household_median_value_of_time:
   3: 10.44
   4: 12.86
 
-sharrow: test
 offset_preprocessing: True

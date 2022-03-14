@@ -1,0 +1,130 @@
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Default to testing example_mtc if no other example is named
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: example_mtc
+      workspace: workspace
+      legacy: True
+      tag:
+
+- description: Make {workspace} directory if it does not exist
+  name: pypyr.steps.py
+  in:
+    py: |
+      import os
+      os.makedirs(f"{workspace}", exist_ok=True)
+
+#- pypyr.steps.debug
+
+- description: Generate a tag based on datetime if tag is not given
+  name: pypyr.steps.py
+  in:
+    py: |
+      import time
+      if tag is None:
+        tag = time.strftime("%Y-%m-%d-%H%M%S")
+      save(tag=tag)
+
+#- pypyr.steps.debug
+
+- description: Create (download as needed) the example to be tested
+  name: streaming_cmd
+  in:
+    cmd:
+      run: activitysim create -e {example_name} -d .
+      cwd: "{workspace}"
+
+- description: write.configs_sh_compile
+  name: pypyr.steps.filewriteyaml
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_sh_compile/settings.yaml"
+      payload:
+        inherit_settings: True
+        sharrow: test
+        chunk_training_mode: disabled
+        households_sample_size: 100
+
+- description: Run activitysim to compile and test sharrow-enabled model
+  name: streaming_cmd
+  in:
+    cmd:
+      run: activitysim run -c configs_sh_compile -c configs -d data -o output
+      cwd: "{workspace}/{example_name}"
+
+- description: Archive outputs of compile
+  name: pypyr.steps.py
+  in:
+    py: |
+      import os
+      from pathlib import Path
+      import glob
+      import shutil
+      dest_dir = Path(f"{workspace}/{example_name}/output-sh-compile-{tag}")
+      os.makedirs(dest_dir/"log", exist_ok=True)
+      for file in glob.glob(f"{workspace}/{example_name}/output/log/*.*"):
+          shutil.move(file, dest_dir/"log")
+      for ext in ["csv", "h5", "omx"]:
+        for file in glob.glob(f"{workspace}/{example_name}/output/*.{ext}"):
+          shutil.move(file, dest_dir)
+
+- description: write.configs_sh
+  name: pypyr.steps.filewriteyaml
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_sh/settings.yaml"
+      payload:
+        inherit_settings: True
+        sharrow: require
+
+- description: Run activitysim to evaluate sharrow-enabled model
+  name: streaming_cmd
+  in:
+    cmd:
+      run: activitysim run -c configs_sh -c configs -d data -o output
+      cwd: "{workspace}/{example_name}"
+
+- description: Archive outputs of sharrow run
+  name: pypyr.steps.py
+  in:
+    py: |
+      import os
+      from pathlib import Path
+      import glob
+      import shutil
+      dest_dir = Path(f"{workspace}/{example_name}/output-sh-{tag}")
+      os.makedirs(dest_dir/"log", exist_ok=True)
+      for file in glob.glob(f"{workspace}/{example_name}/output/log/*.*"):
+          shutil.move(file, dest_dir/"log")
+      for ext in ["csv", "h5", "omx"]:
+        for file in glob.glob(f"{workspace}/{example_name}/output/*.{ext}"):
+          shutil.move(file, dest_dir)
+
+- description: Run activitysim to evaluate legacy model
+  name: streaming_cmd
+  run: '{legacy}'
+  in:
+    cmd:
+      run: activitysim run -c configs -d data -o output
+      cwd: "{workspace}/{example_name}"
+
+- description: Archive outputs of legacy run
+  name: pypyr.steps.py
+  run: '{legacy}'
+  in:
+    py: |
+      import os
+      from pathlib import Path
+      import glob
+      import shutil
+      dest_dir = Path(f"{workspace}/{example_name}/output-legacy-{tag}")
+      os.makedirs(dest_dir/"log", exist_ok=True)
+      for file in glob.glob(f"{workspace}/{example_name}/output/log/*.*"):
+          shutil.move(file, dest_dir/"log")
+      for ext in ["csv", "h5", "omx"]:
+        for file in glob.glob(f"{workspace}/{example_name}/output/*.{ext}"):
+          shutil.move(file, dest_dir)
+

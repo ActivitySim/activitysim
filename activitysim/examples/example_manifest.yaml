@@ -8,8 +8,8 @@
     - example_mtc/data
     - example_mtc/configs
     - example_mtc/configs_mp
-    - example_mtc/configs_sh
-    - example_mtc/configs_sh_compile
+#    - example_mtc/configs_sh
+#    - example_mtc/configs_sh_compile
     - example_mtc/output
     - example_mtc/README.MD
 

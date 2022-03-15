@@ -37,6 +37,16 @@ steps:
       run: activitysim create -e {example_name} -d .
       cwd: "{workspace}"
 
+- description: Make archive directory for this tag
+  name: pypyr.steps.py
+  in:
+    py: |
+      import os
+      from pathlib import Path
+      archive_dir = f"{workspace}/{example_name}/archive-{tag}"
+      os.makedirs(archive_dir)
+      save(archive_dir=archive_dir)
+
 - description: write.configs_sh_compile
   name: pypyr.steps.filewriteyaml
   in:
@@ -59,7 +69,7 @@ steps:
   name: activitysim.workflows.archive_outputs
   in:
     source: "output"
-    destination: "output-sh-compile-{tag}"
+    destination: "{archive_dir}/output-sh-compile"
 
 - description: write.configs_sh
   name: pypyr.steps.filewriteyaml
@@ -81,7 +91,7 @@ steps:
   name: activitysim.workflows.archive_outputs
   in:
     source: "output"
-    destination: "output-sh-{tag}"
+    destination: "{archive_dir}/output-sh"
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.cmd
@@ -96,7 +106,7 @@ steps:
   run: '{legacy}'
   in:
     source: "output"
-    destination: "output-legacy-{tag}"
+    destination: "{archive_dir}/output-legacy"
 
 - description: Generate composite timing log
   name: pypyr.steps.py
@@ -105,13 +115,13 @@ steps:
       import pandas as pd
       timings = {}
       for t in ['sh-compile', 'sh', 'legacy']:
-        df = pd.read_csv(f"{workspace}/{example_name}/output-{t}-{tag}/log/timing_log.csv")
+        df = pd.read_csv(f"{workspace}/{example_name}/{archive_dir}/output-{t}/log/timing_log.csv")
         timings[t] = df.set_index("model_name")['seconds']
       composite_timing = pd.concat(timings, axis=1)
-      composite_timing.to_csv(f"{workspace}/{example_name}/combined_timing_log-{tag}.csv")
+      composite_timing.to_csv(f"{workspace}/{example_name}/{archive_dir}/combined_timing_log-{tag}.csv")
       mems = {}
       for t in ['sh-compile', 'sh', 'legacy']:
-          df = pd.read_csv(f"{workspace}/{example_name}/output-{t}-{tag}/log/mem.csv")
+          df = pd.read_csv(f"{workspace}/{example_name}/{archive_dir}/output-{t}/log/mem.csv")
           mems[t] = df.set_index('event')[['rss', 'full_rss', 'uss']]
       composite_mem = pd.concat(mems, axis=1)
-      composite_mem.to_csv(f"{workspace}/{example_name}/combined_mem_log-{tag}.csv")
+      composite_mem.to_csv(f"{workspace}/{example_name}/{archive_dir}/combined_mem_log-{tag}.csv")

@@ -2,16 +2,7 @@ import sys
 import os
 
 
-def main():
-
-    # set all these before we import numpy or any other math library
-    if len(sys.argv) > 1 and sys.argv[1] == "benchmark":
-        os.environ['MKL_NUM_THREADS'] = '1'
-        os.environ['OMP_NUM_THREADS'] = '1'
-        os.environ['OPENBLAS_NUM_THREADS'] = '1'
-        os.environ['NUMBA_NUM_THREADS'] = '1'
-        os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
-        os.environ['NUMEXPR_NUM_THREADS'] = '1'
+def prog():
 
     from activitysim.cli import CLI
     from activitysim.cli import run
@@ -39,7 +30,28 @@ def main():
                         args_func=lambda x: None,
                         exec_func=workflows.main,
                         description=workflows.main.__doc__)
+    return asim
+
+
+def main():
+
+    # set all these before we import numpy or any other math library
+    if len(sys.argv) > 1 and sys.argv[1] == "benchmark":
+        os.environ['MKL_NUM_THREADS'] = '1'
+        os.environ['OMP_NUM_THREADS'] = '1'
+        os.environ['OPENBLAS_NUM_THREADS'] = '1'
+        os.environ['NUMBA_NUM_THREADS'] = '1'
+        os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
+        os.environ['NUMEXPR_NUM_THREADS'] = '1'
+
+    asim = prog()
     if len(sys.argv) >= 2 and sys.argv[1] == 'workflow':
+        from activitysim import workflows
         sys.exit(workflows.main(sys.argv[2:]))
     else:
         sys.exit(asim.execute())
+
+
+def parser():
+    asim = prog()
+    return asim.parser

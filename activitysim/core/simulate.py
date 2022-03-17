@@ -560,7 +560,7 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         if sh_flow is not None:
             try:
                 data_sh = sh_flow.load(
-                    sh_flow.shared_data.replace_datasets(
+                    sh_flow.tree.replace_datasets(
                         df=choosers.iloc[offsets],
                     ),
                     dtype=np.float32,

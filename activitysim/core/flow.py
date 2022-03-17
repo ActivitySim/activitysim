@@ -363,11 +363,22 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
                     f"df._dest_col_name -> skims.dtaz",
                 ),
             )
+        if timeframe == 'timeless_directional':
+            return dict(
+                od_skims=skim_dataset,
+                do_skims=skim_dataset,
+                relationships=(
+                    f"df._orig_col_name -> od_skims.otaz",
+                    f"df._dest_col_name -> od_skims.dtaz",
+                    f"df._dest_col_name -> do_skims.otaz",
+                    f"df._orig_col_name -> do_skims.dtaz",
+                ),
+            )
         elif timeframe == 'trip':
             return dict(
                 odt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
                 dot_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz'}),
-                od_skims=skim_dataset.drop_dims('time_period').rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
+                od_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
                 relationships=(
                     f"df._orig_col_name -> odt_skims.ptaz",
                     f"df._dest_col_name -> odt_skims.ataz",
@@ -385,7 +396,7 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
                 dot_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz', 'time_period': 'in_period'}),
                 odr_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz', 'time_period': 'in_period'}),
                 dor_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz', 'time_period': 'out_period'}),
-                od_skims=skim_dataset.drop_dims('time_period').rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
+                od_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
                 relationships=(
                     f"df._orig_col_name -> odt_skims.ptaz",
                     f"df._dest_col_name -> odt_skims.ataz",
@@ -405,8 +416,8 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
             )
     elif stop_col_name is not None: # trip_destination
         return dict(
-            od_skims=skim_dataset.drop_dims('time_period').rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
-            dp_skims=skim_dataset.drop_dims('time_period').rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'staz'}),
+            od_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
+            dp_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'staz'}),
             odt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
             dot_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz'}),
             dpt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'staz'}),
@@ -482,17 +493,30 @@ def new_flow(
                 rename_dataset_cols[dest_col_name] = '_dest_col_name'
             if stop_col_name is not None:
                 rename_dataset_cols[stop_col_name] = '_stop_col_name'
-            ds = flow_tree.root_dataset.rename(
-                rename_dataset_cols
-            ).ensure_integer(
-                ['_orig_col_name', '_dest_col_name', '_stop_col_name']
-            )
-            # copy back the names of the renamed dims so they can be used in spec files.
-            # note this doesn't copy the *data* just makes another named reference to the
-            # same data.
-            for _k, _v in rename_dataset_cols.items():
-                ds[_k] = ds[_v]
-            flow_tree.root_dataset = ds
+            # ds = flow_tree.root_dataset.rename(
+            #     rename_dataset_cols
+            # ).ensure_integer(
+            #     ['_orig_col_name', '_dest_col_name', '_stop_col_name']
+            # )
+            # # copy back the names of the renamed dims so they can be used in spec files.
+            # # note this doesn't copy the *data* just makes another named reference to the
+            # # same data.
+            # for _k, _v in rename_dataset_cols.items():
+            #     ds[_k] = ds[_v]
+
+            def _apply_filter(_dataset, renames:dict):
+                ds = _dataset.rename(
+                    renames
+                ).ensure_integer(
+                    renames.values()
+                )
+                for _k, _v in renames.items():
+                    ds[_k] = ds[_v]
+                return ds
+
+            from functools import partial
+            flow_tree.replacement_filters[flow_tree.root_node_name] = partial(_apply_filter, renames=rename_dataset_cols)
+            flow_tree.root_dataset = flow_tree.root_dataset # apply the filter
         else:
             top = sh.dataset.from_named_objects(
                 pd.RangeIndex(len(choosers), name="chooserindex"),

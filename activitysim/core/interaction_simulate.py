@@ -300,18 +300,24 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
             timelogger.mark("regular interact flow", False)
 
         if sh_flow is not None and trace_eval_results is not None:
+            if trace_rows is None:
+                trace_rows = slice(None)
+            # df_ = df.rename(columns={
+            #     'dest_zone_id': "_dest_col_name",
+            #
+            # })
             sh_utility_fat = sh_flow.load(
-                sh_flow.shared_data.replace_datasets(
-                    df=df.loc[trace_rows],
+                sh_flow.tree.replace_datasets(
+                    df=df.iloc[trace_rows],
                 ),
                 dtype=np.float32,
             )
             sh_utility_fat1 = np.dot(sh_utility_fat, spec.values)
-            sh_utility_fat2 = sh_flow.load(
-                sh_flow.shared_data.replace_datasets(
-                    df=df.loc[trace_rows],
+            sh_utility_fat2 = sh_flow.dot(
+                source=sh_flow.tree.replace_datasets(
+                    df=df.iloc[trace_rows],
                 ),
-                dot=spec.values.astype(np.float32),
+                coefficients=spec.values.astype(np.float32),
                 dtype=np.float32,
             )
             timelogger.mark("sharrow interact trace", True, logger, trace_label)
@@ -333,7 +339,43 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                 if len(misses[0]) > sh_util.size * 0.01:
                     print("big problem")
                     print(misses)
-                    raise
+
+                    re_trace = misses[0]
+                    retrace_eval_data = {}
+                    retrace_eval_parts = {}
+                    re_trace_df = df.iloc[re_trace]
+
+                    for expr, label, coefficient in zip(exprs, labels, spec.iloc[:, 0]):
+                        if expr.startswith('_'):
+                            target = expr[:expr.index('@')]
+                            rhs = expr[expr.index('@') + 1:]
+                            v = to_series(eval(rhs, globals(), locals_d))
+                            locals_d[target] = v
+                            if trace_eval_results is not None:
+                                trace_eval_results[expr] = v.iloc[re_trace]
+                            continue
+                        if expr.startswith('@'):
+                            v = to_series(eval(expr[1:], globals(), locals_d))
+                        else:
+                            v = df.eval(expr)
+                        if check_for_variability and v.std() == 0:
+                            logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
+                            no_variability += 1
+                        retrace_eval_data[expr] = v.iloc[re_trace]
+                        k = 'partial utility (coefficient = %s) for %s' % (coefficient, expr)
+                        retrace_eval_parts[k] = (v.iloc[re_trace] * coefficient).astype('float')
+                    retrace_eval_data_ = pd.concat(retrace_eval_data, axis=1)
+                    retrace_eval_parts_ = pd.concat(retrace_eval_parts, axis=1)
+
+                    re_sh_flow_load = sh_flow.load(
+                        dtype=np.float32,
+                    )
+                    re_sh_flow_load_ = re_sh_flow_load[re_trace]
+                    # np.dot(re_sh_flow_load_, spec.iloc[:, 0])
+
+                    look_for_problems_here = np.where(~np.isclose(re_sh_flow_load_, retrace_eval_data_.values.astype(np.float32)))
+
+                    raise # enter debugger now to see what's up
             timelogger.mark("sharrow interact test", True, logger, trace_label)
 
     logger.info(f"utilities.dtypes {trace_label}\n{utilities.dtypes}")

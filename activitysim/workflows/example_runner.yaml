@@ -34,7 +34,7 @@ steps:
   name: activitysim.workflows.cmd
   in:
     cmd:
-      run: activitysim create -e {example_name} -d .
+      run: activitysim create -e {example_name} -d . --link
       cwd: "{workspace}"
 
 - description: Make archive directory for this tag

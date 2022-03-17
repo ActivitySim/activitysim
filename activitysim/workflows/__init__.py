@@ -5,22 +5,18 @@ import sys
 import traceback
 from pathlib import Path
 
-import pypyr.log.logger
-import pypyr.pipelinerunner
-import pypyr.version
-import pypyr.yaml
-from pypyr.config import config
-
 
 def get_pipeline_definition(pipeline_name, parent):
     """Simplified loader that gets pipeline_name.yaml in working dir."""
+    import pypyr.yaml
+    from pypyr.loaders.file import get_pipeline_definition
+
     search_dir = Path(os.path.dirname(__file__))
     workflow_file = search_dir.joinpath(f"{pipeline_name}.yaml")
     if os.path.exists(workflow_file):
         with open(workflow_file) as yaml_file:
             return pypyr.yaml.get_pipeline_yaml(yaml_file)
     else:
-        from pypyr.loaders.file import get_pipeline_definition
 
         return get_pipeline_definition(pipeline_name, parent)
 
@@ -32,8 +28,14 @@ def main(args):
     Each workflow defines its own arguments, refer to the workflow itself to
     learn what the arguments and options are.
     """
-    cwd = Path.cwd()
-    from pypyr.cli import get_args
+    try:
+        import pypyr.log.logger
+        import pypyr.pipelinerunner
+        import pypyr.yaml
+        from pypyr.config import config
+        from pypyr.cli import get_args
+    except ImportError:
+        raise ImportError("activitysim.workflows requires pypyr")
 
     if args is None:
         args = sys.argv[2:]

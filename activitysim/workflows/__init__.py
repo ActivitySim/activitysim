@@ -21,6 +21,18 @@ def get_pipeline_definition(pipeline_name, parent):
         return get_pipeline_definition(pipeline_name, parent)
 
 
+def enable_vt_support():
+    # allow printing in color on windows terminal
+    if os.name == 'nt':
+        import ctypes
+        hOut = ctypes.windll.kernel32.GetStdHandle(-11)
+        out_modes = ctypes.c_uint32()
+        ENABLE_VT_PROCESSING = ctypes.c_uint32(0x0004)
+        ctypes.windll.kernel32.GetConsoleMode(hOut, ctypes.byref(out_modes))
+        out_modes = ctypes.c_uint32(out_modes.value | 0x0004)
+        ctypes.windll.kernel32.SetConsoleMode(hOut, out_modes)
+
+
 def main(args):
     """
     Run a named workflow.
@@ -28,6 +40,7 @@ def main(args):
     Each workflow defines its own arguments, refer to the workflow itself to
     learn what the arguments and options are.
     """
+    enable_vt_support()
     try:
         import pypyr.log.logger
         import pypyr.pipelinerunner

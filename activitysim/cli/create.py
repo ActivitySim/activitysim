@@ -235,10 +235,16 @@ def download_asset(url, target_path, sha256=None, link=True):
             os.path.dirname(os.path.normpath(original_target_path)),
             exist_ok=True,
         )
-        os.symlink(
-            os.path.normpath(target_path),
-            os.path.normpath(original_target_path),
-        )
+        try:
+            os.symlink(
+                os.path.normpath(target_path),
+                os.path.normpath(original_target_path),
+            )
+        except OSError:
+            shutil.copy(
+                os.path.normpath(target_path),
+                os.path.normpath(original_target_path),
+            )
 
 
 def sha256_checksum(filename, block_size=65536):

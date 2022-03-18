@@ -3,6 +3,7 @@ import shlex
 import subprocess
 import logging
 import sys
+import time
 
 from pypyr.config import config
 from pypyr.errors import ContextError
@@ -13,10 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 def stream_process(process):
-    go = process.poll() is None
-    for line in process.stdout:
-        print(line.decode().rstrip())
-    return go
+    go = True
+    while go:
+        go = process.poll() is None
+        for line in process.stdout:
+            print(line.decode().rstrip())
+        if process.stderr:
+            sys.stderr.write(process.stderr)
 
 
 class CmdStep():
@@ -155,6 +159,17 @@ class CmdStep():
                 stdout = subprocess.PIPE,
                 cwd=self.cwd,
             )
-            while stream_process(process):
-                pass
+            stream_process(process)
+            self.context['cmdOut'] = {
+                'returncode': process.returncode,
+            }
 
+            # don't swallow the error, because it's the Step swallow decorator
+            # responsibility to decide to ignore or not.
+            if process.returncode:
+                raise subprocess.CalledProcessError(
+                    process.returncode,
+                    process.args,
+                    process.stdout,
+                    process.stderr,
+                )

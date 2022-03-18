@@ -4,6 +4,7 @@ read_skim_cache: False
 write_skim_cache: True
 
 zone_system: 1
+name: example_mtc
 
 taz_skims: skims.omx
 

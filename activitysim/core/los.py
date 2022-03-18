@@ -440,7 +440,8 @@ class Network_LOS(object):
             return None
 
     def skim_backing_store(self, skim_tag):
-        return self.setting(f'{skim_tag}_skims.backend', f"shared_memory_{skim_tag}")
+        name = self.setting("name", "unnamed")
+        return self.setting(f'{skim_tag}_skims.backend', f"shared_memory_{skim_tag}_{name}")
 
     def skim_max_float_precision(self, skim_tag):
         return self.setting(f'{skim_tag}_skims.max_float_precision', 32)

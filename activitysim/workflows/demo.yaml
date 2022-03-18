@@ -1,8 +1,7 @@
 context_parser: pypyr.parser.keyvaluepairs
 steps:
 
-- description: Default to testing example_mtc if no other example is named
-  name: pypyr.steps.default
+- name: pypyr.steps.default
   in:
     defaults:
       example_name: example_mtc
@@ -11,19 +10,26 @@ steps:
       tag:
 
 - description: Make {workspace} directory if it does not exist
-  name: pypyr.steps.py
+  name: activitysim.workflows.py
   in:
     py: |
       import os
       os.makedirs(f"{workspace}", exist_ok=True)
 
 - description: Generate a tag based on datetime if tag is not given
-  name: pypyr.steps.py
+  name: activitysim.workflows.py
   in:
+    label: Generate tag
     py: |
       import time
       if tag is None:
         tag = time.strftime("%Y-%m-%d-%H%M%S")
+      time.sleep(2)
       save(tag=tag)
       print(f"tag is {tag}")
 
+- description: Ping Google
+  name: activitysim.workflows.cmd
+  in:
+    cmd:
+      run: ping google.com

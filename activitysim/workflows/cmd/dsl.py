@@ -5,22 +5,26 @@ import logging
 import sys
 import time
 
+import pypyr.errors
 from pypyr.config import config
 from pypyr.errors import ContextError
 from pypyr.utils import types
+
+from .. import console
 
 # logger means the log level will be set correctly
 logger = logging.getLogger(__name__)
 
 
-def stream_process(process):
-    go = True
-    while go:
-        go = process.poll() is None
-        for line in process.stdout:
-            print(line.decode().rstrip())
-        if process.stderr:
-            sys.stderr.write(process.stderr)
+def stream_process(process, label):
+    with console.status(f"[bold]{label}[/]", spinner="bouncingBall"):
+        go = True
+        while go:
+            go = process.poll() is None
+            for line in process.stdout:
+                print(line.decode().rstrip())
+            if process.stderr:
+                sys.stderr.write(process.stderr)
 
 
 class CmdStep():
@@ -83,6 +87,7 @@ class CmdStep():
             self.cmd_text = cmd_config
             self.cwd = None
             self.logger.debug("Processing command string: %s", cmd_config)
+            self.label = cmd_config
         elif isinstance(cmd_config, dict):
             context.assert_child_key_has_value(parent='cmd',
                                                child='run',
@@ -90,6 +95,7 @@ class CmdStep():
 
             self.cmd_text = cmd_config['run']
             self.is_save = types.cast_to_bool(cmd_config.get('save', False))
+            self.label = cmd_config.get('label', self.cmd_text)
 
             cwd_string = cmd_config.get('cwd', None)
             if cwd_string:
@@ -159,7 +165,7 @@ class CmdStep():
                 stdout = subprocess.PIPE,
                 cwd=self.cwd,
             )
-            stream_process(process)
+            stream_process(process, self.label)
             self.context['cmdOut'] = {
                 'returncode': process.returncode,
             }

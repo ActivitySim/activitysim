@@ -1,9 +1,23 @@
 """Naive custom loader without any error handling."""
+import contextlib
 import os
 import signal
 import sys
 import traceback
 from pathlib import Path
+
+try:
+    import rich.console
+except ImportError:
+
+    class Console:
+        @contextlib.contextmanager
+        def status(self, *args, **kwargs):
+            yield
+
+    console = Console()
+else:
+    console = rich.console.Console()
 
 
 def get_pipeline_definition(pipeline_name, parent):

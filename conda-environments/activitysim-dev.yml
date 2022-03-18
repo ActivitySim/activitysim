@@ -36,3 +36,4 @@ dependencies:
 - sharrow >= 2.0
 - xarray >= 0.21
 - pypyr
+- rich

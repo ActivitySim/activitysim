@@ -20,7 +20,7 @@ steps:
 #- pypyr.steps.debug
 
 - description: Generate a tag based on datetime if tag is not given
-  name: pypyr.steps.py
+  name: activitysim.workflows.py
   in:
     py: |
       import time
@@ -64,6 +64,7 @@ steps:
     cmd:
       run: python -m activitysim run -c configs_sh_compile -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
+      label: "{example_name} -- sharrow compile"
 
 - description: Archive outputs of compile
   name: activitysim.workflows.archive_outputs
@@ -86,6 +87,7 @@ steps:
     cmd:
       run: python -m activitysim run -c configs_sh -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
+      label: "{example_name} -- sharrow run"
 
 - description: Archive outputs of sharrow run
   name: activitysim.workflows.archive_outputs
@@ -100,6 +102,7 @@ steps:
     cmd:
       run: python -m activitysim run -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
+      label: "{example_name} -- legacy run"
 
 - description: Archive outputs of legacy run
   name: activitysim.workflows.archive_outputs
@@ -108,9 +111,9 @@ steps:
     source: "output"
     destination: "{archive_base}/output-legacy"
 
-- description: Generate composite timing log
-  name: pypyr.steps.py
+- name: activitysim.workflows.py
   in:
+    label: Generate composite timing log
     py: |
       import pandas as pd
       timings = {}

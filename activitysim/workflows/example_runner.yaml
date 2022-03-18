@@ -34,7 +34,7 @@ steps:
   name: activitysim.workflows.cmd
   in:
     cmd:
-      run: activitysim create -e {example_name} -d . --link
+      run: python -m activitysim create -e {example_name} -d . --link
       cwd: "{workspace}"
 
 - description: Make archive directory for this tag
@@ -62,7 +62,7 @@ steps:
   name: activitysim.workflows.cmd
   in:
     cmd:
-      run: activitysim run -c configs_sh_compile -c configs -d data -o output
+      run: python -m activitysim run -c configs_sh_compile -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
 
 - description: Archive outputs of compile
@@ -84,7 +84,7 @@ steps:
   name: activitysim.workflows.cmd
   in:
     cmd:
-      run: activitysim run -c configs_sh -c configs -d data -o output
+      run: python -m activitysim run -c configs_sh -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
 
 - description: Archive outputs of sharrow run
@@ -98,7 +98,7 @@ steps:
   run: '{legacy}'
   in:
     cmd:
-      run: activitysim run -c configs -d data -o output
+      run: python -m activitysim run -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
 
 - description: Archive outputs of legacy run

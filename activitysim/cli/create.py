@@ -227,7 +227,10 @@ def download_asset(url, target_path, sha256=None, link=True):
             f"   computed checksum {computed_sha256}"
         )
     if link:
-        os.symlink(target_path, original_target_path)
+        os.symlink(
+            os.path.normpath(target_path),
+            os.path.normpath(original_target_path),
+        )
 
 
 def sha256_checksum(filename, block_size=65536):

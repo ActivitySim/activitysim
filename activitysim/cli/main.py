@@ -45,12 +45,14 @@ def main():
         os.environ['NUMEXPR_NUM_THREADS'] = '1'
 
     asim = prog()
-    if len(sys.argv) >= 2 and sys.argv[1] == 'workflow':
-        from activitysim import workflows
-        sys.exit(workflows.main(sys.argv[2:]))
-    else:
-        sys.exit(asim.execute())
-
+    try:
+        if len(sys.argv) >= 2 and sys.argv[1] == 'workflow':
+            from activitysim import workflows
+            sys.exit(workflows.main(sys.argv[2:]))
+        else:
+            sys.exit(asim.execute())
+    except Exception:
+        sys.exit(99)
 
 def parser():
     asim = prog()

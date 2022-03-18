@@ -201,35 +201,37 @@ def download_asset(url, target_path, sha256=None, link=True):
         target_path_dl = target_path + ".gz"
     else:
         target_path_dl = target_path
+    download = True
     if sha256 and os.path.isfile(target_path):
         computed_sha256 = sha256_checksum(target_path)
         if sha256 == computed_sha256:
             print(f'not re-downloading existing {os.path.basename(target_path)} ...')
-            return
+            download = False
         else:
             print(f're-downloading existing {os.path.basename(target_path)} ...')
             print(f'   expected checksum {sha256}')
             print(f'   computed checksum {computed_sha256}')
     else:
         print(f'downloading {os.path.basename(target_path)} ...')
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-        with open(target_path_dl, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=None):
-                f.write(chunk)
-    if target_path_dl != target_path:
-        import gzip
-        with gzip.open(target_path_dl, 'rb') as f_in:
-            with open(target_path, 'wb') as f_out:
-                shutil.copyfileobj(f_in, f_out)
-        os.remove(target_path_dl)
-    computed_sha256 = sha256_checksum(target_path)
-    if sha256 and sha256 != computed_sha256:
-        raise ValueError(
-            f"downloaded {os.path.basename(target_path)} has incorrect checksum\n"
-            f"   expected checksum {sha256}\n"
-            f"   computed checksum {computed_sha256}"
-        )
+    if download:
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(target_path_dl, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=None):
+                    f.write(chunk)
+        if target_path_dl != target_path:
+            import gzip
+            with gzip.open(target_path_dl, 'rb') as f_in:
+                with open(target_path, 'wb') as f_out:
+                    shutil.copyfileobj(f_in, f_out)
+            os.remove(target_path_dl)
+        computed_sha256 = sha256_checksum(target_path)
+        if sha256 and sha256 != computed_sha256:
+            raise ValueError(
+                f"downloaded {os.path.basename(target_path)} has incorrect checksum\n"
+                f"   expected checksum {sha256}\n"
+                f"   computed checksum {computed_sha256}"
+            )
     if link:
         os.makedirs(
             os.path.dirname(os.path.normpath(original_target_path)),
@@ -241,6 +243,7 @@ def download_asset(url, target_path, sha256=None, link=True):
                 os.path.normpath(original_target_path),
             )
         except OSError:
+            # permission errors likely foil symlinking on windows
             shutil.copy(
                 os.path.normpath(target_path),
                 os.path.normpath(original_target_path),

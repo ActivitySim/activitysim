@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import requests
@@ -69,8 +70,11 @@ def create(args):
         sys.exit(0)
 
     if args.example:
-
-        get_example(args.example, args.destination, link=args.link)
+        try:
+            get_example(args.example, args.destination, link=args.link)
+        except Exception:
+            logging.getLogger().exception("failure in activitysim create")
+            sys.exit(101)
         sys.exit(0)
 
 
@@ -227,6 +231,10 @@ def download_asset(url, target_path, sha256=None, link=True):
             f"   computed checksum {computed_sha256}"
         )
     if link:
+        os.makedirs(
+            os.path.dirname(os.path.normpath(original_target_path)),
+            exist_ok=True,
+        )
         os.symlink(
             os.path.normpath(target_path),
             os.path.normpath(original_target_path),

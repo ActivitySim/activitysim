@@ -471,8 +471,7 @@ def new_flow(
             chooser_cols = list(choosers.columns)
 
         cache_dir = os.path.join(
-            orca.get_injectable('output_dir'),
-            "cache",
+            config.get_cache_dir(),
             "__sharrowcache__",
         )
         os.makedirs(cache_dir, exist_ok=True)
@@ -550,6 +549,7 @@ def new_flow(
                 interacts_,
                 f"start.interactindex -> interact_table.{next(iter(interacts_.dims))}"
             )
+            flow_tree.subspace_fallbacks['df'] = ['interact_table']
 
         flow_tree.add_items(skims_mapping_)
         flow_tree.add_items(size_term_mapping)

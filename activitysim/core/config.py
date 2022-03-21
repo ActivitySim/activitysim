@@ -103,6 +103,13 @@ def get_cache_dir():
         os.mkdir(cache_dir)
     assert os.path.isdir(cache_dir)
 
+    # create a git-ignore in the cache dir if it does not exist.
+    # this helps prevent accidentally committing cache contents to git
+    gitignore = os.path.join(cache_dir, ".gitignore")
+    if not os.path.exists(gitignore):
+        with open(gitignore, 'wt') as f:
+            f.write("/*")
+
     return cache_dir
 
 

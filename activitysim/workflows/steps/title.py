@@ -1,9 +1,9 @@
 from pypyr.errors import KeyNotInContextError
 from pypyr.steps.py import run_step as _run_step
-from . import console
+from .progression import progress, progress_overall, progress_step
 
 def run_step(context):
-    """Execute dynamic python code.
+    """Set the overall progress title.
 
     Takes two forms of input:
         py: exec contents as dynamically interpreted python statements, with
@@ -21,7 +21,5 @@ def run_step(context):
     except KeyNotInContextError:
         label = None
     if label is None:
-        label = "Running Python Step Script"
-
-    with console.status(f"[bold]{label}[/]", spinner="dots"):
-        _run_step(context)
+        label = "ActivitySim Workflow"
+    progress.update(progress_overall, description=label)

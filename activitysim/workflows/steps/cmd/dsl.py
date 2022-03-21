@@ -10,21 +10,20 @@ from pypyr.config import config
 from pypyr.errors import ContextError
 from pypyr.utils import types
 
-from .. import console
+from ..progression import progress_step, progress
 
 # logger means the log level will be set correctly
 logger = logging.getLogger(__name__)
 
 
 def stream_process(process, label):
-    with console.status(f"[bold]{label}[/]", spinner="bouncingBall"):
-        go = True
-        while go:
-            go = process.poll() is None
-            for line in process.stdout:
-                print(line.decode().rstrip())
-            if process.stderr:
-                sys.stderr.write(process.stderr)
+    go = True
+    while go:
+        go = process.poll() is None
+        for line in process.stdout:
+            print(line.decode().rstrip())
+        if process.stderr:
+            sys.stderr.write(process.stderr)
 
 
 class CmdStep():
@@ -131,6 +130,8 @@ class CmdStep():
             args = self.cmd_text
         else:
             args = shlex.split(self.cmd_text)
+
+        progress.reset(progress_step, description=f"[bold red]{self.label}")
 
         if self.is_save:
             completed_process = subprocess.run(args,

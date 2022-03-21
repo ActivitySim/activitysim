@@ -299,27 +299,47 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         else:
             timelogger.mark("regular interact flow", False)
 
-        if sh_flow is not None and trace_eval_results is not None:
-            if trace_rows is None:
-                trace_rows = slice(None)
-            # df_ = df.rename(columns={
-            #     'dest_zone_id': "_dest_col_name",
-            #
-            # })
-            sh_utility_fat = sh_flow.load(
+        #
+        #   Sharrow tracing
+        #
+        if sh_flow is not None and trace_rows is not None and trace_rows.any():
+            assert type(trace_rows) == np.ndarray
+            sh_utility_fat = sh_flow.load_dataframe(
                 sh_flow.tree.replace_datasets(
                     df=df.iloc[trace_rows],
                 ),
                 dtype=np.float32,
             )
-            sh_utility_fat1 = np.dot(sh_utility_fat, spec.values)
-            sh_utility_fat2 = sh_flow.dot(
-                source=sh_flow.tree.replace_datasets(
-                    df=df.iloc[trace_rows],
-                ),
-                coefficients=spec.values.astype(np.float32),
-                dtype=np.float32,
-            )
+            sh_utility_fat.add_prefix("SH:")
+            sh_utility_fat_coef = sh_utility_fat * spec.iloc[:, 0].values.reshape(1, -1)
+            sh_utility_fat_coef.columns = [f"{i} * ({j})" for i,j in zip(sh_utility_fat_coef.columns, spec.iloc[:, 0].values)]
+            if trace_eval_results is None:
+                trace_eval_results = pd.concat([
+                    sh_utility_fat,
+                    sh_utility_fat_coef,
+                    utilities.utility[trace_rows].rename('total utility'),
+                ], axis=1)
+                trace_eval_results.index = df[trace_rows].index
+                chunk.log_df(trace_label, 'eval.trace_eval_results', trace_eval_results)
+            else:
+                # in test mode, trace from non-sharrow exists
+                trace_eval_results = pd.concat([
+                    trace_eval_results,
+                    sh_utility_fat,
+                    sh_utility_fat_coef,
+                    utilities.utility[trace_rows].rename('total utility'),
+                ], axis=1)
+                trace_eval_results.index = df[trace_rows].index
+                chunk.log_df(trace_label, 'eval.trace_eval_results', trace_eval_results)
+
+            # sh_utility_fat1 = np.dot(sh_utility_fat, spec.values)
+            # sh_utility_fat2 = sh_flow.dot(
+            #     source=sh_flow.tree.replace_datasets(
+            #         df=df.iloc[trace_rows],
+            #     ),
+            #     coefficients=spec.values.astype(np.float32),
+            #     dtype=np.float32,
+            # )
             timelogger.mark("sharrow interact trace", True, logger, trace_label)
 
         if sharrow_enabled == 'test':

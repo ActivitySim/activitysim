@@ -8,7 +8,7 @@ import logging
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 
-from . import console
+from .progression import progress_step, progress
 
 logger = logging.getLogger(__name__)
 
@@ -36,15 +36,15 @@ def run_step(context: Context) -> None:
     source_dir = Path(f"{workspace}/{example_name}/{source}")
     dest_dir = Path(f"{workspace}/{example_name}/{destination}")
 
-    with console.status(f"[bold]Archiving to {dest_dir}[/]", spinner="arrow3"):
+    progress.reset(progress_step, description=f"[bold black]Archiving to {dest_dir}")
 
-        for pattern in patterns:
-            pattern_dir, pattern_base = os.path.split(pattern)
-            if pattern_dir:
-                into = dest_dir / pattern_dir
-                os.makedirs(into, exist_ok=True)
-            else:
-                into = dest_dir
-            for file in glob.glob(os.path.join(source_dir, pattern)):
-                shutil.move(file, into)
+    for pattern in patterns:
+        pattern_dir, pattern_base = os.path.split(pattern)
+        if pattern_dir:
+            into = dest_dir / pattern_dir
+            os.makedirs(into, exist_ok=True)
+        else:
+            into = dest_dir
+        for file in glob.glob(os.path.join(source_dir, pattern)):
+            shutil.move(file, into)
 

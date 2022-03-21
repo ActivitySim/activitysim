@@ -1,3 +1,5 @@
+# activitysim workflow example_runner example_name=example_mtc
+
 context_parser: pypyr.parser.keyvaluepairs
 steps:
 
@@ -10,41 +12,44 @@ steps:
       legacy: True
       tag:
 
-- description: Make {workspace} directory if it does not exist
-  name: pypyr.steps.py
+- name: activitysim.workflows.steps.title
   in:
+    label: "[bold blue]activitysim workflow example_runner {example_name}"
+
+- name: activitysim.workflows.steps.py
+  in:
+    label: Make {workspace} directory if it does not exist
     py: |
       import os
       os.makedirs(f"{workspace}", exist_ok=True)
 
-#- pypyr.steps.debug
-
-- description: Generate a tag based on datetime if tag is not given
-  name: activitysim.workflows.py
+- name: activitysim.workflows.steps.py
   in:
+    label: Generate a tag based on datetime if tag is not given
     py: |
       import time
       if tag is None:
         tag = time.strftime("%Y-%m-%d-%H%M%S")
+        print(f"{tag=}")
       save(tag=tag)
 
-#- pypyr.steps.debug
-
-- description: Create (download as needed) the example to be tested
-  name: activitysim.workflows.cmd
+- name: activitysim.workflows.steps.cmd
   in:
     cmd:
+      label: "activitysim create {example_name}"
       run: python -m activitysim create -e {example_name} -d . --link
       cwd: "{workspace}"
 
-- description: Make archive directory for this tag
-  name: pypyr.steps.py
+- name: pypyr.steps.py
   in:
+    label: Make archive directory for this tag
     py: |
       import os
       from pathlib import Path
       archive_dir = f"{workspace}/{example_name}/archive-{tag}"
       os.makedirs(archive_dir)
+      os.makedirs(f"{workspace}/{example_name}/output-compile", exist_ok=True)
+      os.makedirs(f"{workspace}/{example_name}/output-compile/log", exist_ok=True)
       save(archive_dir=archive_dir, archive_base=os.path.basename(archive_dir))
 
 - description: write.configs_sh_compile
@@ -58,18 +63,25 @@ steps:
         chunk_training_mode: disabled
         households_sample_size: 100
 
+- name: activitysim.workflows.steps.update_yaml
+  in:
+    updateYaml:
+      path: "{workspace}/{example_name}/configs/settings.yaml"
+      payload:
+        cache_dir: cache
+
 - description: Run activitysim to compile and test sharrow-enabled model
-  name: activitysim.workflows.cmd
+  name: activitysim.workflows.steps.cmd
   in:
     cmd:
-      run: python -m activitysim run -c configs_sh_compile -c configs -d data -o output
+      run: python -m activitysim run -c configs_sh_compile -c configs -d data -o output-compile
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- sharrow compile"
 
 - description: Archive outputs of compile
-  name: activitysim.workflows.archive_outputs
+  name: activitysim.workflows.steps.archive_outputs
   in:
-    source: "output"
+    source: "output-compile"
     destination: "{archive_base}/output-sh-compile"
 
 - description: write.configs_sh
@@ -82,7 +94,7 @@ steps:
         sharrow: require
 
 - description: Run activitysim to evaluate sharrow-enabled model
-  name: activitysim.workflows.cmd
+  name: activitysim.workflows.steps.cmd
   in:
     cmd:
       run: python -m activitysim run -c configs_sh -c configs -d data -o output
@@ -90,13 +102,13 @@ steps:
       label: "{example_name} -- sharrow run"
 
 - description: Archive outputs of sharrow run
-  name: activitysim.workflows.archive_outputs
+  name: activitysim.workflows.steps.archive_outputs
   in:
     source: "output"
     destination: "{archive_base}/output-sh"
 
 - description: Run activitysim to evaluate legacy model
-  name: activitysim.workflows.cmd
+  name: activitysim.workflows.steps.cmd
   run: '{legacy}'
   in:
     cmd:
@@ -105,13 +117,13 @@ steps:
       label: "{example_name} -- legacy run"
 
 - description: Archive outputs of legacy run
-  name: activitysim.workflows.archive_outputs
+  name: activitysim.workflows.steps.archive_outputs
   run: '{legacy}'
   in:
     source: "output"
     destination: "{archive_base}/output-legacy"
 
-- name: activitysim.workflows.py
+- name: activitysim.workflows.steps.py
   in:
     label: Generate composite timing log
     py: |

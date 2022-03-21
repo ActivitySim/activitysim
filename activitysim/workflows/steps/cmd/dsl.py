@@ -131,7 +131,7 @@ class CmdStep():
         else:
             args = shlex.split(self.cmd_text)
 
-        progress.reset(progress_step, description=f"[bold red]{self.label}")
+        progress.reset(progress_step, description=f"[bold green]{self.label}")
 
         if self.is_save:
             completed_process = subprocess.run(args,

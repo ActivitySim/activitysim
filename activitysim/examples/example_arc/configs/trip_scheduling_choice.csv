@@ -78,8 +78,8 @@ Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='shopping'),-2.0
 Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='shopping'),-1.0205
 Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='shopping'),-0.0582
 Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='shopping'),0.5533
-Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='eatout'),-100
-Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='eatout'),-100
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='eatout'),-50
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='eatout'),-50
 Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='eatout'),-6.8372
 Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='eatout'),-0.3319
 Calibration,@(df['main_leg_duration'] == 4) & (df['tour_type']=='eatout'),0.8709

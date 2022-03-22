@@ -10,6 +10,7 @@ steps:
       example_name: example_mtc
       workspace: workspace
       legacy: True
+      sharrow: True
       tag:
 
 - name: activitysim.workflows.steps.title
@@ -48,12 +49,14 @@ steps:
       from pathlib import Path
       archive_dir = f"{workspace}/{example_name}/archive-{tag}"
       os.makedirs(archive_dir)
-      os.makedirs(f"{workspace}/{example_name}/output-compile", exist_ok=True)
-      os.makedirs(f"{workspace}/{example_name}/output-compile/log", exist_ok=True)
+      if sharrow:
+        os.makedirs(f"{workspace}/{example_name}/output-compile", exist_ok=True)
+        os.makedirs(f"{workspace}/{example_name}/output-compile/log", exist_ok=True)
       save(archive_dir=archive_dir, archive_base=os.path.basename(archive_dir))
 
 - description: write.configs_sh_compile
   name: pypyr.steps.filewriteyaml
+  run: '{sharrow}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh_compile/settings.yaml"
@@ -72,6 +75,7 @@ steps:
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.cmd
+  run: '{sharrow}'
   in:
     cmd:
       run: python -m activitysim run -c configs_sh_compile -c configs -d data -o output-compile
@@ -80,12 +84,14 @@ steps:
 
 - description: Archive outputs of compile
   name: activitysim.workflows.steps.archive_outputs
+  run: '{sharrow}'
   in:
     source: "output-compile"
     destination: "{archive_base}/output-sh-compile"
 
 - description: write.configs_sh
   name: pypyr.steps.filewriteyaml
+  run: '{sharrow}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh/settings.yaml"
@@ -95,6 +101,7 @@ steps:
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.cmd
+  run: '{sharrow}'
   in:
     cmd:
       run: python -m activitysim run -c configs_sh -c configs -d data -o output
@@ -103,16 +110,27 @@ steps:
 
 - description: Archive outputs of sharrow run
   name: activitysim.workflows.steps.archive_outputs
+  run: '{sharrow}'
   in:
     source: "output"
     destination: "{archive_base}/output-sh"
+
+- description: write.configs_sh
+  name: pypyr.steps.filewriteyaml
+  run: '{legacy}'
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_legacy/settings.yaml"
+      payload:
+        inherit_settings: True
+        recode_input_columns: False
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.steps.cmd
   run: '{legacy}'
   in:
     cmd:
-      run: python -m activitysim run -c configs -d data -o output
+      run: python -m activitysim run -c configs_legacy -c configs -d data -o output
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- legacy run"
 
@@ -129,13 +147,18 @@ steps:
     py: |
       import pandas as pd
       timings = {}
-      for t in ['sh-compile', 'sh', 'legacy']:
+      compares = []
+      if sharrow:
+        compares.extend(['sh-compile', 'sh'])
+      if legacy:
+        compares.append('legacy')
+      for t in compares:
         df = pd.read_csv(f"{workspace}/{example_name}/{archive_base}/output-{t}/log/timing_log.csv")
         timings[t] = df.set_index("model_name")['seconds']
       composite_timing = pd.concat(timings, axis=1)
       composite_timing.to_csv(f"{workspace}/{example_name}/{archive_base}/combined_timing_log-{tag}.csv")
       mems = {}
-      for t in ['sh-compile', 'sh', 'legacy']:
+      for t in compares:
           df = pd.read_csv(f"{workspace}/{example_name}/{archive_base}/output-{t}/log/mem.csv")
           mems[t] = df.set_index('event')[['rss', 'full_rss', 'uss']]
       composite_mem = pd.concat(mems, axis=1)

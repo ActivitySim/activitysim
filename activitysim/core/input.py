@@ -154,7 +154,7 @@ def read_from_table_info(table_info):
         df.rename(columns=rename_columns, inplace=True)
 
     # recode columns, can simplify data structure
-    if recode_columns and config.setting('recode_input_columns', True):
+    if recode_columns and config.setting('recode_pipeline_columns', True):
         for colname, recode_instruction in recode_columns.items():
             logger.info(f"recoding column {colname}: {recode_instruction}")
             if recode_instruction == "zero-based":

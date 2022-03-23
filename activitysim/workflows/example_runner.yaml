@@ -134,7 +134,7 @@ steps:
       path: "{workspace}/{example_name}/configs_legacy/settings.yaml"
       payload:
         inherit_settings: True
-        recode_input_columns: False
+        recode_pipeline_columns: False
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.steps.cmd

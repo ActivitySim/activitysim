@@ -555,7 +555,15 @@ def open_pipeline(resume_after=None, mode='a'):
         # open existing pipeline
         logger.debug("open_pipeline - open existing pipeline")
         open_pipeline_store(overwrite=False, mode=mode)
-        load_checkpoint(resume_after)
+        try:
+            load_checkpoint(resume_after)
+        except KeyError as err:
+            if "checkpoints" in err.args[0]:
+                # no checkpoints initialized, fall back to restart
+                _PIPELINE.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
+                add_checkpoint(INITIAL_CHECKPOINT_NAME)
+            else:
+                raise
     else:
         # open new, empty pipeline
         logger.debug("open_pipeline - new, empty pipeline")

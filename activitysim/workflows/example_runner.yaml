@@ -12,6 +12,7 @@ steps:
       legacy: True
       sharrow: True
       tag:
+      resume_after:
 
 - name: activitysim.workflows.steps.title
   in:
@@ -33,6 +34,8 @@ steps:
         tag = time.strftime("%Y-%m-%d-%H%M%S")
         print(f"{tag=}")
       save(tag=tag)
+      if resume_after:
+        save(resume=f" -r {resume_after}")
 
 - name: activitysim.workflows.steps.cmd
   in:
@@ -86,7 +89,7 @@ steps:
   run: '{sharrow}'
   in:
     cmd:
-      run: "python -m activitysim run -c configs_sh_compile -c configs -d data -o output-{tag}/output-compile"
+      run: "python -m activitysim run -c configs_sh_compile -c configs -d data -o output-{tag}/output-compile {resume}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- sharrow compile"
 
@@ -112,7 +115,7 @@ steps:
   run: '{sharrow}'
   in:
     cmd:
-      run: "python -m activitysim run -c configs_sh -c configs -d data -o output-{tag}/output-sharrow"
+      run: "python -m activitysim run -c configs_sh -c configs -d data -o output-{tag}/output-sharrow {resume}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- sharrow run"
 
@@ -138,7 +141,7 @@ steps:
   run: '{legacy}'
   in:
     cmd:
-      run: "python -m activitysim run -c configs_legacy -c configs -d data -o output-{tag}/output-legacy"
+      run: "python -m activitysim run -c configs_legacy -c configs -d data -o output-{tag}/output-legacy {resume}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- legacy run"
 

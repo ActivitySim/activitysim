@@ -317,9 +317,9 @@ def write_tables(output_dir):
                 else:
                     raise ValueError(f"unknown decode_filter {decode_filter}")
             if colname in df.columns:
-                df[colname] = df[colname].map(map_func)
+                df[colname] = df[colname].astype(int).map(map_func)
             elif colname == df.index.name:
-                df.index = df.index.map(map_func)
+                df.index = df.index.astype(int).map(map_func)
             # drop _original_x from table if it is duplicative
             if source_table == table_name and f"_original_{lookup_col}" in df:
                 df = df.drop(columns=[f"_original_{lookup_col}"])

@@ -113,10 +113,12 @@ def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None):
     orig_col_name = local_d.get('orig_col_name', None)
     dest_col_name = local_d.get('dest_col_name', None)
     stop_col_name = None
+    parking_col_name = None
     timeframe = local_d.get('timeframe', 'tour')
     if timeframe == 'trip':
         orig_col_name = local_d.get('ORIGIN', orig_col_name)
         dest_col_name = local_d.get('DESTINATION', dest_col_name)
+        parking_col_name = local_d.get('PARKING', parking_col_name)
         if orig_col_name is None and 'od_skims' in local_d:
             orig_col_name = local_d['od_skims'].orig_key
         if dest_col_name is None and 'od_skims' in local_d:
@@ -133,6 +135,7 @@ def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None):
         timeframe=timeframe,
         choosers=choosers,
         stop_col_name=stop_col_name,
+        parking_col_name=parking_col_name,
         size_term_mapping=size_term_mapping,
         interacts=interacts,
     )
@@ -348,13 +351,13 @@ def skim_dataset_dict(skim_dataset):
     return SkimDataset(skim_dataset)
 
 
-def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=None):
+def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=None, parking_col_name=None):
     logger.info(f"loading skims_mapping")
     logger.info(f"- orig_col_name: {orig_col_name}")
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
     skim_dataset = inject.get_injectable('skim_dataset')
-    if orig_col_name is not None and dest_col_name is not None and stop_col_name is None:
+    if orig_col_name is not None and dest_col_name is not None and stop_col_name is None and parking_col_name is None:
         if timeframe == 'timeless':
             return dict(
                 skims=skim_dataset,
@@ -446,6 +449,46 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
                 f"df.trip_period     -> pdt_skims.time_period",
             ),
         )
+    elif parking_col_name is not None: # parking location
+        return dict(
+            od_skims=skim_dataset,
+            do_skims=skim_dataset,
+            op_skims=skim_dataset,
+            pd_skims=skim_dataset,
+            odt_skims=skim_dataset,
+            dot_skims=skim_dataset,
+            opt_skims=skim_dataset,
+            pdt_skims=skim_dataset,
+            relationships=(
+                f"df._orig_col_name -> od_skims.otaz",
+                f"df._dest_col_name -> od_skims.dtaz",
+
+                f"df._dest_col_name -> do_skims.otaz",
+                f"df._orig_col_name -> do_skims.dtaz",
+
+                f"df._orig_col_name -> op_skims.otaz",
+                f"df._park_col_name -> op_skims.dtaz",
+
+                f"df._park_col_name -> pd_skims.otaz",
+                f"df._dest_col_name -> pd_skims.dtaz",
+
+                f"df._orig_col_name -> odt_skims.otaz",
+                f"df._dest_col_name -> odt_skims.dtaz",
+                f"df.trip_period    -> odt_skims.time_period",
+
+                f"df._dest_col_name -> dot_skims.otaz",
+                f"df._orig_col_name -> dot_skims.dtaz",
+                f"df.trip_period    -> dot_skims.time_period",
+
+                f"df._orig_col_name -> opt_skims.otaz",
+                f"df._park_col_name -> opt_skims.dtaz",
+                f"df.trip_period    -> opt_skims.time_period",
+
+                f"df._park_col_name -> pdt_skims.otaz",
+                f"df._dest_col_name -> pdt_skims.dtaz",
+                f"df.trip_period    -> pdt_skims.time_period",
+            ),
+        )
     else:
         return {}
 
@@ -460,6 +503,7 @@ def new_flow(
         timeframe='tour',
         choosers=None,
         stop_col_name=None,
+        parking_col_name=None,
         size_term_mapping=None,
         interacts=None
 ):
@@ -476,7 +520,7 @@ def new_flow(
         )
         os.makedirs(cache_dir, exist_ok=True)
         logger.debug(f"flow.cache_dir: {cache_dir}")
-        skims_mapping_ = skims_mapping(orig_col_name, dest_col_name, timeframe, stop_col_name)
+        skims_mapping_ = skims_mapping(orig_col_name, dest_col_name, timeframe, stop_col_name, parking_col_name=parking_col_name)
         if size_term_mapping is None:
             size_term_mapping = {}
 
@@ -492,16 +536,8 @@ def new_flow(
                 rename_dataset_cols[dest_col_name] = '_dest_col_name'
             if stop_col_name is not None:
                 rename_dataset_cols[stop_col_name] = '_stop_col_name'
-            # ds = flow_tree.root_dataset.rename(
-            #     rename_dataset_cols
-            # ).ensure_integer(
-            #     ['_orig_col_name', '_dest_col_name', '_stop_col_name']
-            # )
-            # # copy back the names of the renamed dims so they can be used in spec files.
-            # # note this doesn't copy the *data* just makes another named reference to the
-            # # same data.
-            # for _k, _v in rename_dataset_cols.items():
-            #     ds[_k] = ds[_v]
+            if parking_col_name is not None:
+                rename_dataset_cols[parking_col_name] = '_park_col_name'
 
             def _apply_filter(_dataset, renames:dict):
                 ds = _dataset.rename(
@@ -528,12 +564,14 @@ def new_flow(
             }
             if stop_col_name is not None:
                 rename_dataset_cols[stop_col_name] = '_stop_col_name'
+            if parking_col_name is not None:
+                rename_dataset_cols[parking_col_name] = '_park_col_name'
             choosers_ = sh.dataset.construct(
                 choosers
             ).rename_or_ignore(
                 rename_dataset_cols
             ).ensure_integer(
-                ['_orig_col_name', '_dest_col_name', '_stop_col_name']
+                ['_orig_col_name', '_dest_col_name', '_stop_col_name', '_park_col_name']
             )
             for _k, _v in rename_dataset_cols.items():
                 if _v in choosers_:

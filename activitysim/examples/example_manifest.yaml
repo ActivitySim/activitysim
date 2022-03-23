@@ -588,7 +588,6 @@
   # activitysim run -c configs -o output -d data -s settings_mp.yaml
   # cd ..
   include:
-    - example_arc/data
     - example_arc/configs
     - example_mtc/configs_sh
     - example_mtc/configs_sh_compile

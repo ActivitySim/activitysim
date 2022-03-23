@@ -36,6 +36,8 @@ steps:
       save(tag=tag)
       if resume_after:
         save(resume=f" -r {resume_after}")
+      else:
+        save(resume="")
 
 - name: activitysim.workflows.steps.cmd
   in:
@@ -75,7 +77,7 @@ steps:
         inherit_settings: True
         sharrow: test
         chunk_training_mode: disabled
-        households_sample_size: 100
+        households_sample_size: 10000
 
 - name: activitysim.workflows.steps.update_yaml
   in:
@@ -83,6 +85,7 @@ steps:
       path: "{workspace}/{example_name}/configs/settings.yaml"
       payload:
         cache_dir: cache
+        households_sample_size: 100000
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.cmd

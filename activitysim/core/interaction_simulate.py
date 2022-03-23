@@ -116,7 +116,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                     spec.iloc[n, 0] = 0.0
 
             for i1, i2 in zip(exprs, labels):
-                logger.info(f"        - expr: {i1}: {i2}")
+                logger.debug(f"        - expr: {i1}: {i2}")
 
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 

@@ -28,6 +28,7 @@ setup(
     entry_points={'console_scripts': [
         'activitysim=activitysim.cli.main:main',
         'activitysim1=activitysim.__main__:main',
+        'activitysim_checksums=activitysim.cli.create:display_sha256_checksums',
     ]},
     install_requires=[
         'pyarrow >= 2.0',

@@ -237,17 +237,28 @@ def download_asset(url, target_path, sha256=None, link=True):
             os.path.dirname(os.path.normpath(original_target_path)),
             exist_ok=True,
         )
-        try:
-            os.symlink(
-                os.path.normpath(target_path),
-                os.path.normpath(original_target_path),
-            )
-        except OSError:
-            # permission errors likely foil symlinking on windows
-            shutil.copy(
-                os.path.normpath(target_path),
-                os.path.normpath(original_target_path),
-            )
+
+        # check if the original_target_path exists and if so check if it is the correct file
+        if os.path.isfile(os.path.normpath(original_target_path)):
+            if sha256 is None:
+                sha256 = sha256_checksum(os.path.normpath(target_path))
+            existing_sha256 = sha256_checksum(os.path.normpath(original_target_path))
+            if existing_sha256 != sha256:
+                os.unlink(os.path.normpath(original_target_path))
+
+        # if the original_target_path exists now it is the correct file, keep it
+        if not os.path.isfile(os.path.normpath(original_target_path)):
+            try:
+                os.symlink(
+                    os.path.normpath(target_path),
+                    os.path.normpath(original_target_path),
+                )
+            except OSError:
+                # permission errors likely foil symlinking on windows
+                shutil.copy(
+                    os.path.normpath(target_path),
+                    os.path.normpath(original_target_path),
+                )
 
 
 def sha256_checksum(filename, block_size=65536):
@@ -256,3 +267,18 @@ def sha256_checksum(filename, block_size=65536):
         for block in iter(lambda: f.read(block_size), b''):
             sha256.update(block)
     return sha256.hexdigest()
+
+
+def display_sha256_checksums(directory=None):
+    print("SHA 256 CHECKSUMS")
+    if directory is None:
+        if len(sys.argv)>1:
+            directory = sys.argv[1]
+        else:
+            directory = os.getcwd()
+    print(f"  in {directory}")
+    for dirpath, dirnames, filenames in os.walk(directory):
+        print(f"- in {dirpath}")
+        for filename in filenames:
+            f = os.path.join(dirpath, filename)
+            print(f"= {sha256_checksum(f)} = {f}")

@@ -160,17 +160,19 @@ steps:
       timings = {}
       compares = []
       if sharrow:
-        compares.extend(['sh-compile', 'sh'])
+        compares.extend(['compile', 'sharrow'])
       if legacy:
         compares.append('legacy')
       for t in compares:
         df = pd.read_csv(f"{archive_dir}/output-{t}/log/timing_log.csv")
-        timings[t] = df.set_index("model_name")['seconds']
+        df = df.set_index("model_name")['seconds']
+        timings[t] = df.loc[~df.index.duplicated()]
       composite_timing = pd.concat(timings, axis=1)
       composite_timing.to_csv(f"{archive_dir}/combined_timing_log-{tag}.csv")
       mems = {}
       for t in compares:
-          df = pd.read_csv(f"{archive_dir}/output-{t}/log/mem.csv")
-          mems[t] = df.set_index('event')[['rss', 'full_rss', 'uss']]
+        df = pd.read_csv(f"{archive_dir}/output-{t}/log/mem.csv")
+        df = df.set_index('event')[['rss', 'full_rss', 'uss']]
+        mems[t] = df.loc[~df.index.duplicated()]
       composite_mem = pd.concat(mems, axis=1)
       composite_mem.to_csv(f"{archive_dir}/combined_mem_log-{tag}.csv")

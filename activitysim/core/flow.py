@@ -239,6 +239,8 @@ def skim_dataset():
                 logger.info(f"found zarr skims, loading them")
                 d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(max_float_precision)
             else:
+                if zarr_file:
+                    logger.info(f"did not find zarr skims, loading omx")
                 d = sh.dataset.from_omx_3d(
                     [openmatrix.open_file(f) for f in omx_file_paths],
                     time_periods=time_periods,
@@ -246,8 +248,10 @@ def skim_dataset():
                 )
                 if zarr_file:
                     if zarr_digital_encoding:
+                        import zarr # ensure zarr is available before we do all this work.
                         # apply once, before saving to zarr, will stick around in cache
                         for encoding in zarr_digital_encoding:
+                            logger.info(f"applying zarr digital-encoding: {encoding}")
                             regex = encoding.pop('regex', None)
                             joint_dict = encoding.pop('joint_dict', None)
                             if joint_dict:

@@ -6,7 +6,7 @@ import sys
 import traceback
 from pathlib import Path
 
-from .progression import progress
+from .progression import get_progress
 
 
 def get_pipeline_definition(pipeline_name, parent):
@@ -43,7 +43,14 @@ def main(args):
     Each workflow defines its own arguments, refer to the workflow itself to
     learn what the arguments and options are.
     """
-    with progress:
+    if args is None:
+        args = sys.argv[2:]
+
+    if "--no-rich" in args:
+        args.remove("--no-rich")
+        os.environ['NO_RICH'] = '1'
+
+    with get_progress():
 
         try:
             import pypyr.log.logger
@@ -53,9 +60,6 @@ def main(args):
             from pypyr.cli import get_args
         except ImportError:
             raise ImportError("activitysim.workflows requires pypyr")
-
-        if args is None:
-            args = sys.argv[2:]
 
         parsed_args = get_args(args)
 

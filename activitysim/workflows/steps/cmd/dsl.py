@@ -10,7 +10,7 @@ from pypyr.config import config
 from pypyr.errors import ContextError
 from pypyr.utils import types
 
-from ..progression import progress_step, progress
+from ..progression import reset_progress_step
 
 # logger means the log level will be set correctly
 logger = logging.getLogger(__name__)
@@ -131,7 +131,7 @@ class CmdStep():
         else:
             args = shlex.split(self.cmd_text)
 
-        progress.reset(progress_step, description=f"[bold green]{self.label}")
+        reset_progress_step(description=f"{self.label}", prefix="[bold green]")
 
         if self.is_save:
             completed_process = subprocess.run(args,

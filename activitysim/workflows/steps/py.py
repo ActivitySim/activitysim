@@ -1,6 +1,6 @@
 from pypyr.errors import KeyNotInContextError
 from pypyr.steps.py import run_step as _run_step
-from .progression import progress, progress_overall, progress_step
+from .progression import reset_progress_step
 
 def run_step(context):
     """Execute dynamic python code.
@@ -23,5 +23,5 @@ def run_step(context):
     if label is None:
         label = "Running Python Step Script"
 
-    progress.reset(progress_step, description=label)
+    reset_progress_step(description=label)
     _run_step(context)

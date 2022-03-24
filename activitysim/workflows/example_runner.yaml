@@ -3,7 +3,7 @@
 context_parser: pypyr.parser.keyvaluepairs
 steps:
 
-- description: Default to testing example_mtc if no other example is named
+- description: Setting default workflow parameters
   name: pypyr.steps.default
   in:
     defaults:
@@ -14,6 +14,7 @@ steps:
       sharrow: True
       tag:
       resume_after:
+      fast: False
 
 - name: activitysim.workflows.steps.title
   in:
@@ -33,12 +34,26 @@ steps:
       import time
       if tag is None:
         tag = time.strftime("%Y-%m-%d-%H%M%S")
-        print(f"{tag=}")
+      compile = (compile and sharrow)
+      print("==============")
+      print(f"{tag=}")
+      print(f"{resume_after=}")
+      print(f"{fast=}")
+      print(f"{legacy=}")
+      print(f"{compile=}")
+      print(f"{sharrow=}")
+      print(f"{workspace=}")
+      print(f"{example_name=}")
+      print("==============")
       save(tag=tag)
       if resume_after:
         save(resume=f" -r {resume_after}")
       else:
         save(resume="")
+      if fast:
+        save(fastly=f" --fast")
+      else:
+        save(fastly="")
 
 - name: activitysim.workflows.steps.cmd
   in:
@@ -68,9 +83,9 @@ steps:
         os.makedirs(f"{archive_dir}/output-legacy/trace", exist_ok=True)
       save(archive_dir=archive_dir, archive_base=os.path.basename(archive_dir))
 
-- description: write.configs_sh_compile
+- description: "write.configs_sh_compile, {sharrow} and {compile}"
   name: pypyr.steps.filewriteyaml
-  run: '{sharrow} and {compile}'
+  run: '{compile}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh_compile/settings.yaml"
@@ -90,10 +105,10 @@ steps:
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.cmd
-  run: '{sharrow} and {compile}'
+  run: '{compile}'
   in:
     cmd:
-      run: "python -m activitysim run -c configs_sh_compile -c configs -d data -o output-{tag}/output-compile {resume}"
+      run: "python -m activitysim run -c configs_sh_compile -c configs -d data -o output-{tag}/output-compile {resume} {fastly}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- sharrow compile"
 
@@ -119,7 +134,7 @@ steps:
   run: '{sharrow}'
   in:
     cmd:
-      run: "python -m activitysim run -c configs_sh -c configs -d data -o output-{tag}/output-sharrow {resume}"
+      run: "python -m activitysim run -c configs_sh -c configs -d data -o output-{tag}/output-sharrow {resume} {fastly}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- sharrow run"
 
@@ -145,7 +160,7 @@ steps:
   run: '{legacy}'
   in:
     cmd:
-      run: "python -m activitysim run -c configs_legacy -c configs -d data -o output-{tag}/output-legacy {resume}"
+      run: "python -m activitysim run -c configs_legacy -c configs -d data -o output-{tag}/output-legacy {resume} {fastly}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- legacy run"
 

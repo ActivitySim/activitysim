@@ -65,6 +65,11 @@ def add_run_args(parser, multiprocess=True):
                         type=int,
                         metavar='N',
                         help='households sample size')
+    parser.add_argument('--fast',
+                        action='store_true',
+                        help='Do not limit process to one thread. '
+                             'Can make single process runs faster, '
+                             'but will cause thrashing on MP runs.')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',

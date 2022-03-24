@@ -174,6 +174,7 @@ def get_example(example_name, destination, benchmarking=False, optimize=True, li
 def copy_asset(asset_path, target_path, dirs_exist_ok=False):
 
     print(f'copying {os.path.basename(asset_path)} ...')
+    sys.stdout.flush()
     if os.path.isdir(asset_path):
         target_path = os.path.join(target_path, os.path.basename(asset_path))
         shutil.copytree(asset_path, target_path, dirs_exist_ok=dirs_exist_ok)
@@ -213,6 +214,7 @@ def download_asset(url, target_path, sha256=None, link=True):
             print(f'   computed checksum {computed_sha256}')
     else:
         print(f'downloading {os.path.basename(target_path)} ...')
+    sys.stdout.flush()
     if download:
         with requests.get(url, stream=True) as r:
             r.raise_for_status()

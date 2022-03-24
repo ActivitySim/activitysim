@@ -216,7 +216,7 @@ output_tables:
     - joint_tour_participants
     
 #trace_od: [100,10]
-trace_hh_id: [88, 41232]
+trace_hh_id:
 # trace_hh_id: 2
 #trace_hh_id: 1643904
 

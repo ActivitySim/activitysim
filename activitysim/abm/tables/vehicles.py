@@ -27,10 +27,13 @@ def vehicles(households):
     vehicles = households.to_frame().loc[
         households.index.repeat(households['auto_ownership'])]
     vehicles = vehicles.reset_index()[['household_id']]
-    vehicles.index.name = 'vehicle_id'
 
     vehicles['vehicle_num'] = vehicles.groupby('household_id').cumcount() + 1
+    # tying the vehicle id to the household id in order to ensure reproducability
+    vehicles['vehicle_id'] = vehicles.household_id * 10 + vehicles.vehicle_num
+    vehicles.set_index('vehicle_id', inplace = True)
     vehicles.loc[:, 'vehicle_type'] = None
+    print(vehicles)
 
     # I do not understand why this line is necessary, it seems circular
     # to inject the vehicles table in the inside the table definition

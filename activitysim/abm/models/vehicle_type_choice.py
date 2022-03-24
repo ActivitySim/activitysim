@@ -141,10 +141,9 @@ def iterate_vehicle_type_choice(
     if vehicle_type_data_file:
         vehicle_type_data = pd.read_csv(
             config.config_file_path(vehicle_type_data_file), comment='#')
-        scenario_year = model_settings.get('SCENARIO_YEAR')
+        fleet_year = model_settings.get('FLEET_YEAR')
 
-        vehicle_type_data['age'] = (1 + scenario_year - vehicle_type_data['vehicle_year']).astype(str)
-        # vehicle_type_data.set_index([body_type_col, fuel_type_col, 'age'], inplace=True)
+        vehicle_type_data['age'] = (1 + fleet_year - vehicle_type_data['vehicle_year']).astype(str)
         locals_dict.update({'vehicle_type_data': vehicle_type_data})
 
     # - Preparing alternatives
@@ -359,9 +358,11 @@ def vehicle_type_choice(
     # update vehicles table
     vehicles = vehicles.to_frame()
     assign_in_place(vehicles, choices)
-    pipeline.replace_table("vehicles", vehicles)
 
     annotate_vehicle_type_choice(model_settings, trace_label)
+    pipeline.replace_table("vehicles", vehicles)
+
+
 
     tracing.print_summary('vehicle_type_choice', vehicles.vehicle_type, value_counts=True)
 

@@ -112,10 +112,10 @@ def vehicle_allocation(
     #   still need columns for alternatives 3 and 4
     for veh_num, col_name in vehicle_alt_columns_dict.items():
         if col_name not in vehicles_wide.columns:
-            vehicles_wide[col_name] = np.NaN
+            vehicles_wide[col_name] = ''
 
     # last entry in spec is the non-hh-veh option
-    vehicles_wide[alts_from_spec[-1]] = np.NaN
+    vehicles_wide[alts_from_spec[-1]] = ''
 
     # merging vehicle alternatives to choosers
     choosers = tours_merged.to_frame().reset_index()
@@ -126,8 +126,8 @@ def vehicle_allocation(
     if model_settings.get('VEHICLE_TYPE_DATA_FILE'):
         vehicle_type_data = pd.read_csv(config.config_file_path(
             model_settings.get('VEHICLE_TYPE_DATA_FILE')), comment='#')
-        scenario_year = model_settings.get('SCENARIO_YEAR')
-        vehicle_type_data['age'] = (1 + scenario_year - vehicle_type_data['vehicle_year']).astype(int)
+        fleet_year = model_settings.get('FLEET_YEAR')
+        vehicle_type_data['age'] = (1 + fleet_year - vehicle_type_data['vehicle_year']).astype(int)
         vehicle_type_data['vehicle_type'] = vehicle_type_data[
             ['body_type', 'age', 'fuel_type']].astype(str).agg('_'.join, axis = 1)
 
@@ -140,6 +140,8 @@ def vehicle_allocation(
         #  the alternative number.  i.e. Range -> Range_1, Range_2, etc.
         for veh_num, col_name in vehicle_alt_columns_dict.items():
             vehicle_type_data.columns = cols + '_' + str(veh_num)
+            # need to ensure type incase column is all NA (i.e. no hh has 4 veh in sample)
+            # choosers[col_name] = choosers[col_name].astype(str)
             choosers = pd.merge(choosers, vehicle_type_data, how='left', left_on=col_name, right_index=True)
 
     # ----- setup skim keys
@@ -181,6 +183,7 @@ def vehicle_allocation(
         estimator.write_choosers(choosers)
 
     tours = tours.to_frame()
+    choosers.to_csv('allocation_choosers.csv')
 
     # ------ running for each occupancy level selected
     tours_veh_occup_cols = []
@@ -203,6 +206,7 @@ def vehicle_allocation(
         # matching alt names to choices
         choices = choices.map(dict(list(zip(list(range(len(alts_from_spec))), alts_from_spec)))).to_frame()
         choices.columns = ['alt_choice']
+        choices.to_csv(f'choices_{occup}.csv')
         # last alternative is the non-household vehicle option
         for alt in alts_from_spec[:-1]:
             choices.loc[choices['alt_choice'] == alt, 'choice'] = \

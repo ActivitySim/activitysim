@@ -7,7 +7,9 @@ zone_system: 1
 name: example_arc
 
 # glob 'skims*.omx' will match one or more files: skims.omx, skims1.omx, skims2.omx...
-taz_skims: skims*.omx
+taz_skims:
+    omx: skims*.omx
+    zarr: skims.zarr
 
 skim_time_periods:
     time_window: 1440

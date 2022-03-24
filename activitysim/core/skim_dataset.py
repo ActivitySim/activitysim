@@ -10,78 +10,6 @@ logger = logging.getLogger(__name__)
 
 POSITIONS_AS_DICT = True
 
-def _iat(source, *, _names=None, _load=False, _index_name=None, **idxs):
-    loaders = {}
-    if _index_name is None:
-        _index_name = "index"
-    for k, v in idxs.items():
-        loaders[k] = xr.DataArray(v, dims=[_index_name])
-    if _names:
-        ds = source[_names]
-    else:
-        ds = source
-    if _load:
-        ds = ds.load()
-    return ds.isel(**loaders)
-
-
-def _at(source, *, _names=None, _load=False, _index_name=None, **idxs):
-    loaders = {}
-    if _index_name is None:
-        _index_name = "index"
-    for k, v in idxs.items():
-        loaders[k] = xr.DataArray(v, dims=[_index_name])
-    if _names:
-        ds = source[_names]
-    else:
-        ds = source
-    if _load:
-        ds = ds.load()
-    return ds.sel(**loaders)
-
-
-def gather(source, indexes):
-    """
-    Extract values by label on the coordinates indicated by columns of a DataFrame.
-
-    Parameters
-    ----------
-    source : xarray.DataArray or xarray.Dataset
-        The source of the values to extract.
-    indexes : Mapping[str, array-like]
-        The keys of `indexes` (if given as a dataframe, the column names)
-        should match the named dimensions of `source`.  The resulting extracted
-        data will have a shape one row per row of `df`, and columns matching
-        the data variables in `source`, and each value is looked up by the labels.
-
-    Returns
-    -------
-    pd.DataFrame
-    """
-    result = _at(source, **indexes).reset_coords(drop=True)
-    return result
-
-
-def igather(source, positions):
-    """
-    Extract values by position on the coordinates indicated by columns of a DataFrame.
-
-    Parameters
-    ----------
-    source : xarray.DataArray or xarray.Dataset
-    positions : pd.DataFrame or Mapping[str, array-like]
-        The columns (or keys) of `df` should match the named dimensions of
-        this Dataset.  The resulting extracted DataFrame will have one row
-        per row of `df`, columns matching the data variables in this dataset,
-        and each value is looked up by the positions.
-
-    Returns
-    -------
-    pd.DataFrame
-    """
-    result = _iat(source, **positions).reset_coords(drop=True)
-    return result
-
 
 class SkimDataset:
 
@@ -136,10 +64,11 @@ class SkimDataset:
             else:
                 raise KeyError(key)
 
-        result = igather(self.dataset[key], positions)
-
-        if 'digital_encoding' in self.dataset[key].attrs:
-            result = array_decode(result, self.dataset[key].attrs['digital_encoding'])
+        result = self.dataset.iat(**positions, _name=key) # iat strips data encoding
+        # result = igather(self.dataset[key], positions)
+        #
+        # if 'digital_encoding' in self.dataset[key].attrs:
+        #     result = array_decode(result, self.dataset[key].attrs['digital_encoding'])
 
         result = result.to_series()
 
@@ -281,9 +210,9 @@ class DatasetWrapper:
             else:
                 raise KeyError(key)
 
-        result = igather(self.dataset[key], x)
-        if 'digital_encoding' in self.dataset[key].attrs:
-            result = array_decode(result, self.dataset[key].attrs['digital_encoding'])
+        result = self.dataset.iat(**x, _name=key) # iat strips data encoding
+        # if 'digital_encoding' in self.dataset[key].attrs:
+        #     result = array_decode(result, self.dataset[key].attrs['digital_encoding'])
 
         # Return a series, consistent with ActivitySim SkimWrapper
         return result.to_series()

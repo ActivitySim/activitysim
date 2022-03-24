@@ -145,6 +145,11 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     # fixme - conversion to float not needed in either case?
     # utils_arr = utils.values.astype('float')
     utils_arr = utils.values
+
+    if utils_arr.dtype == np.float32 and utils_arr.max() > 85:
+        # exponentiated utils will overflow, downshift them
+        utils_arr -= utils_arr.max(1, keepdims=True)
+
     if not exponentiated:
         # TODO: reduce memory usage by exponentiating in-place.
         #       but first we need to make sure the raw utilities

@@ -181,14 +181,14 @@ def skim_dataset():
     omx_file_paths = config.expand_input_file_list(
         network_los_preload.omx_file_names(skim_tag),
     )
-    zarr_file = config.data_file_path(
-        network_los_preload.zarr_file_name(skim_tag),
-        mandatory=False,
-        allow_glob=False,
-    )
+    zarr_file = network_los_preload.zarr_file_name(skim_tag)
+    if zarr_file is not None:
+        zarr_file = os.path.join(config.get_cache_dir(), zarr_file)
+
     max_float_precision = network_los_preload.skim_max_float_precision(skim_tag)
 
     skim_digital_encoding = network_los_preload.skim_digital_encoding(skim_tag)
+    zarr_digital_encoding = network_los_preload.zarr_pre_encoding(skim_tag)
 
     # The backing can be plain shared_memory, or a memmap
     backing = network_los_preload.skim_backing_store(skim_tag)
@@ -237,7 +237,7 @@ def skim_dataset():
             if zarr_file and os.path.exists(zarr_file):
                 # load skims from zarr.zip
                 logger.info(f"found zarr skims, loading them")
-                d = sh.dataset.from_zarr(zarr_file).max_float_precision(max_float_precision)
+                d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(max_float_precision)
             else:
                 d = sh.dataset.from_omx_3d(
                     [openmatrix.open_file(f) for f in omx_file_paths],
@@ -245,16 +245,38 @@ def skim_dataset():
                     max_float_precision=max_float_precision,
                 )
                 if zarr_file:
+                    if zarr_digital_encoding:
+                        # apply once, before saving to zarr, will stick around in cache
+                        for encoding in zarr_digital_encoding:
+                            regex = encoding.pop('regex', None)
+                            joint_dict = encoding.pop('joint_dict', None)
+                            if joint_dict:
+                                joins = []
+                                for k in d.variables:
+                                    if re.match(regex, k):
+                                        joins.append(k)
+                                d = d.digital_encoding.set(joins, joint_dict=joint_dict, **encoding)
+                            elif regex:
+                                if 'name' in encoding:
+                                    raise ValueError("cannot give both name and regex for digital_encoding")
+                                for k in d.variables:
+                                    if re.match(regex, k):
+                                        d = d.digital_encoding.set(k, **encoding)
+                            else:
+                                d = d.digital_encoding.set(**encoding)
+
                     logger.info(f"writing zarr skims to {zarr_file}")
                     # save skims to zarr
                     try:
-                        d.to_zarr(zarr_file)
+                        d.to_zarr_with_attr(zarr_file)
                     except ModuleNotFoundError:
                         logger.warning("the 'zarr' package is not installed")
             logger.info(f"scanning for unused skims")
             tokens = set(d.variables.keys()) - set(d.coords.keys())
             unused_tokens = scan_for_unused_names(tokens)
             if unused_tokens:
+                baggage = d.digital_encoding.baggage(None)
+                unused_tokens -= baggage
                 logger.info(f"dropping unused skims: {unused_tokens}")
                 d = d.drop_vars(unused_tokens)
             else:
@@ -268,9 +290,9 @@ def skim_dataset():
                             raise ValueError("cannot give both name and regex for digital_encoding")
                         for k in d.variables:
                             if re.match(regex, k):
-                                d = d.set_digital_encoding(k, **encoding)
+                                d = d.digital_encoding.set(k, **encoding)
                     else:
-                        d = d.set_digital_encoding(**encoding)
+                        d = d.digital_encoding.set(**encoding)
 
         # check alignment of TAZs that it matches land_use table
         logger.info(f"checking skims alignment with land_use")

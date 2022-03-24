@@ -439,6 +439,24 @@ class Network_LOS(object):
         else:
             return None
 
+    def zarr_pre_encoding(self, skim_tag):
+        """
+        Return digital encoding pre-processing before writing to zarr for the specified skim_tag (e.g. 'taz')
+
+        Parameters
+        ----------
+        skim_tag: str (e.g. 'taz')
+
+        Returns
+        -------
+        list or None
+        """
+        skim_setting = self.setting(f'{skim_tag}_skims')
+        if isinstance(skim_setting, dict):
+            return skim_setting.get("zarr-digital-encoding", None)
+        else:
+            return None
+
     def skim_backing_store(self, skim_tag):
         name = self.setting("name", "unnamed")
         return self.setting(f'{skim_tag}_skims.backend', f"shared_memory_{skim_tag}_{name}")

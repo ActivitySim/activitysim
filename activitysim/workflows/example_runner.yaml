@@ -10,6 +10,7 @@ steps:
       example_name: example_mtc
       workspace: workspace
       legacy: True
+      compile: True
       sharrow: True
       tag:
       resume_after:
@@ -69,7 +70,7 @@ steps:
 
 - description: write.configs_sh_compile
   name: pypyr.steps.filewriteyaml
-  run: '{sharrow}'
+  run: '{sharrow} and {compile}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh_compile/settings.yaml"
@@ -89,7 +90,7 @@ steps:
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.cmd
-  run: '{sharrow}'
+  run: '{sharrow} and {compile}'
   in:
     cmd:
       run: "python -m activitysim run -c configs_sh_compile -c configs -d data -o output-{tag}/output-compile {resume}"

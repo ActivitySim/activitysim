@@ -35,6 +35,7 @@ steps:
       if tag is None:
         tag = time.strftime("%Y-%m-%d-%H%M%S")
       compile = (compile and sharrow)
+      contrast = (sharrow and legacy)
       print("==============")
       print(f"{tag=}")
       print(f"{resume_after=}")
@@ -44,6 +45,7 @@ steps:
       print(f"{sharrow=}")
       print(f"{workspace=}")
       print(f"{example_name=}")
+      print(f"{contrast=}")
       print("==============")
       save(tag=tag)
       if resume_after:
@@ -195,3 +197,17 @@ steps:
         mems[t] = df.loc[~df.index.duplicated()]
       composite_mem = pd.concat(mems, axis=1)
       composite_mem.to_csv(f"{archive_dir}/combined_mem_log-{tag}.csv")
+
+- name: activitysim.workflows.steps.py
+  in:
+    label: Generate contrast report
+    py: |
+      from activitysim.standalone.render import render_comparison
+      if example_name in {"example_mtc", "example_mtc_full"}:
+        dist_name = "DIST"
+      elif example_name in {"example_arc", "example_arc_full"}:
+        dist_name = "SOV_FREE_DISTANCE"
+      else:
+        dist_name = None
+      render_comparison(f"{archive_dir}/report-{tag}.html", title=example_name)
+      

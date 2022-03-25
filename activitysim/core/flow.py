@@ -22,6 +22,7 @@ except ModuleNotFoundError:
 from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
 from . import inject, config
 from .. import __version__
+from ..core import tracing
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +243,7 @@ def skim_dataset():
                 if zarr_file:
                     logger.info(f"did not find zarr skims, loading omx")
                 d = sh.dataset.from_omx_3d(
-                    [openmatrix.open_file(f) for f in omx_file_paths],
+                    [openmatrix.open_file(f, mode='r') for f in omx_file_paths],
                     time_periods=time_periods,
                     max_float_precision=max_float_precision,
                 )
@@ -724,6 +725,7 @@ def apply_flow(spec, choosers, locals_d=None, trace_label=None, required=False, 
                 flow_result = flow.dot(
                     coefficients=spec.values.astype(np.float32),
                     dtype=np.float32,
+                    compile_watch=True,
                 )
                 # TODO: are there remaining internal arrays in dot that need to be
                 #  passed out to be seen by the dynamic chunker before they are freed?
@@ -739,4 +741,6 @@ def apply_flow(spec, choosers, locals_d=None, trace_label=None, required=False, 
                 # index_keys = self.shared_data.meta_match_names_idx.keys()
                 # logger.debug(f"Flow._get_indexes: {index_keys}")
                 raise
+            if flow.compiled_recently:
+                tracing.timing_notes.add(f"compiled:{flow.name}")
             return flow_result, flow

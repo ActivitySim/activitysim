@@ -116,7 +116,7 @@ class SkimInfo(object):
 
             logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
-            with omx.open_file(omx_file_path) as omx_file:
+            with omx.open_file(omx_file_path, mode='r') as omx_file:
 
                 # fixme call to omx_file.shape() failing in windows p3.5
                 if self.omx_shape is None:
@@ -273,7 +273,7 @@ class AbstractSkimFactory(ABC):
             logger.info(f"_read_skims_from_omx {omx_file_path}")
 
             # read skims into skim_data
-            with omx.open_file(omx_file_path) as omx_file:
+            with omx.open_file(omx_file_path, mode='r') as omx_file:
                 for skim_key, omx_key in omx_keys.items():
 
                     if omx_manifest[omx_key] == omx_file_path:

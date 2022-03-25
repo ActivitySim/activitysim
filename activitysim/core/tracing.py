@@ -28,6 +28,7 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 
 
 logger = logging.getLogger(__name__)
+timing_notes = set()
 
 
 class ElapsedTimeFormatter(logging.Formatter):
@@ -66,6 +67,7 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
 
 
 def log_runtime(model_name, start_time=None, timing=None):
+    global timing_notes
 
     assert (start_time or timing) and not (start_time and timing)
 
@@ -85,10 +87,12 @@ def log_runtime(model_name, start_time=None, timing=None):
         if not inject.get_injectable('locutor', False):
             return
 
-    header = "process_name,model_name,seconds,minutes"
+    header = "process_name,model_name,seconds,minutes,notes"
+    note = " ".join(timing_notes)
     with config.open_log_file('timing_log.csv', 'a', header) as log_file:
-        print(f"{process_name},{model_name},{seconds},{minutes}", file=log_file)
+        print(f"{process_name},{model_name},{seconds},{minutes},{note}", file=log_file)
 
+    timing_notes.clear()
 
 def delete_output_files(file_type, ignore=None, subdir=None):
     """

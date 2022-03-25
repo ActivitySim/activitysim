@@ -1,6 +1,6 @@
 import os
 import time
-
+from datetime import timedelta
 
 class DummyProgress:
     def __init__(self, *args, **kwargs):
@@ -25,7 +25,7 @@ dummy_progress = DummyProgress()
 
 try:
 
-    from rich.progress import Progress, TimeElapsedColumn
+    from rich.progress import Progress, ProgressColumn, Text
     from rich.panel import Panel
 
 except ImportError:
@@ -47,6 +47,19 @@ else:
     class MyProgress(Progress):
         def get_renderables(self):
             yield Panel(self.make_tasks_table(self.tasks))
+
+
+    class TimeElapsedColumn(ProgressColumn):
+        """Renders time elapsed."""
+
+        def render(self, task: "Task") -> Text:
+            """Show time remaining."""
+            elapsed = task.finished_time if task.finished else task.elapsed
+            if elapsed is None:
+                return Text("-:--:--", style="progress.elapsed")
+            delta = timedelta(seconds=(elapsed))
+            return Text(str(delta)[:-5], style="progress.elapsed")
+
 
     progress = MyProgress(
         TimeElapsedColumn(),

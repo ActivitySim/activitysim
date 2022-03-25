@@ -156,6 +156,7 @@ steps:
       payload:
         inherit_settings: True
         recode_pipeline_columns: False
+        offset_preprocessing: False
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.steps.cmd

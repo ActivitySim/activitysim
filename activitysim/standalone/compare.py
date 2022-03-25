@@ -17,7 +17,7 @@ def load_pipelines(pipelines, tables=None, checkpoint_name=None):
             pth,
             tables=tables,
             checkpoint_name=checkpoint_name,
-        )
+        )[1]
         for key, pth in pipelines.items()
     }
 

@@ -2,6 +2,7 @@ import altair as alt
 import pandas as pd
 import os
 from .pipeline import load_checkpointed_tables
+from .data_dictionary import check_data_dictionary
 
 def load_pipelines(pipelines, tables=None, checkpoint_name=None):
     """
@@ -159,3 +160,58 @@ def compare_trip_distance(
 
     return fig
 
+
+def compare_work_district(
+        tablesets,
+        district_id,
+        label='district',
+        hometaz_col='home_zone_id',
+        worktaz_col='workplace_zone_id',
+        data_dictionary=None,
+):
+    data_dictionary = check_data_dictionary(data_dictionary)
+
+    d = {}
+    h = f"home_{label}"
+    w = f"work_{label}"
+
+    for key, tableset in tablesets.items():
+        persons = tableset['persons']
+        workers = persons[persons[worktaz_col] >= 0].copy()
+        district_map = tableset['land_use'][district_id]
+        # workers[f"home_{label}_"] = workers[hometaz_col].map(district_map)
+        # workers[f"work_{label}_"] = workers[worktaz_col].map(district_map)
+        home_district = workers[hometaz_col].map(district_map).rename(h)
+        work_district = workers[worktaz_col].map(district_map).rename(w)
+        df = workers.groupby(
+            [home_district, work_district]
+            # [f"home_{label}_", f"work_{label}_"]
+        ).size().rename('n_workers')
+        d[key] = df
+
+    all_d = pd.concat(d, names=['source']).reset_index()
+
+    district_names = data_dictionary.get('land_use', {}).get(district_id, None)
+    if district_names is not None:
+        all_d[h] = all_d[h].map(district_names)
+        all_d[w] = all_d[w].map(district_names)
+
+    selection = alt.selection_point(
+        fields=[w], bind='legend',
+    )
+
+    fig = alt.Chart(
+        all_d
+    ).mark_bar(
+    ).encode(
+        color=f'{w}:N',
+        y=alt.Y('source', axis=alt.Axis(grid=False, title='')),
+        x=alt.X('n_workers', axis=alt.Axis(grid=False)),
+        row=f'{h}:N',
+        opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
+        tooltip = [f'{h}:N', f'{w}:N', 'source', 'n_workers'],
+    ).add_selection(
+        selection,
+    )
+
+    return fig

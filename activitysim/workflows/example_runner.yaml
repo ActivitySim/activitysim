@@ -203,12 +203,17 @@ steps:
   in:
     label: Generate contrast report
     py: |
+      import os
       from activitysim.standalone.render import render_comparison
       if example_name in {"example_mtc", "example_mtc_full"}:
         dist_name = "DIST"
+        county_id = "county_id"
       elif example_name in {"example_arc", "example_arc_full"}:
         dist_name = "SOV_FREE_DISTANCE"
+        county_id = "county"
       else:
         dist_name = None
-      render_comparison(f"{archive_dir}/report-{tag}.html", title=example_name)
+        county_id = None
+      os.chdir(f"{workspace}/{example_name}")
+      render_comparison(f"{archive_dir}/report-{tag}.html", title=example_name, dist_skim=dist_name, county_id=county_id)
       

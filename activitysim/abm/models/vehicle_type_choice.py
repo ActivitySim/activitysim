@@ -22,31 +22,23 @@ from activitysim.core import los
 from activitysim.core.util import assign_in_place
 from .util import estimation
 
-
 logger = logging.getLogger(__name__)
 
 
-def read_vehicle_type_data(model_settings):
-    # This is essentially a re-implementation of core/config/base_settings_file_path
-    # Should we make this a little more general and move it there?
-    # Also called in vehicle allocation model
-    file_name = model_settings.get('VEHICLE_TYPE_DATA_FILE')
-
-    if not file_name.lower().endswith('.csv'):
-        file_name = '%s.csv' % (file_name, )
-
-    configs_dir = inject.get_injectable('configs_dir')
-    configs_dir = [configs_dir] if isinstance(configs_dir, str) else configs_dir
-
-    for dir in configs_dir:
-        file_path = os.path.join(dir, file_name)
-        if os.path.exists(file_path):
-            return pd.read_csv(file_path)
-
-    raise RuntimeError("base_settings_file %s not found" % file_name)
-
-
 def get_combinatorial_vehicle_alternatives(alts_cats_dict, model_settings):
+    """
+    Builds a pandas dataframe containing columns for each vehicle alternative.
+    Rows will correspond to the alternative number and will be 0 except for the
+    1 in the column corresponding to that alternative
+
+    Parameters
+    ----------
+    alts_cats_dict : dict
+    model_settings : dict
+
+    Returns
+    -------
+    """
     alts_fname = model_settings.get('ALTS')
     cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
     alts_long = pd.DataFrame(
@@ -59,12 +51,28 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict, model_settings):
     configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
 
     alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=True)
-    alts_wide = pd.concat([alts_wide,alts_long], axis=1)
+    alts_wide = pd.concat([alts_wide, alts_long], axis=1)
     return alts_wide, alts_long
 
 
 def append_probabilistic_vehtype_type_choices(
-        choices, probs_spec_file, choice_column_name, trace_label):
+        choices, probs_spec_file, trace_label):
+    """
+    Selects a fuel type for the provided body type and age of the vehicle.
+    Makes probabilitstic choices based on the `PROBS_SPEC` file.
+
+    Parameters
+    ----------
+    choices : pandas.DataFrame
+        selection of {body_type}_{age} to append vehicle type to
+    probs_spec_file : str
+    trace_label : str
+
+    Returns
+    -------
+    choices : pandas.DataFrame
+        table of chosen vehicle types
+    """
     # name of first column must be "vehicle_type"
     probs_spec = pd.read_csv(
         config.config_file_path(probs_spec_file), comment='#')
@@ -72,7 +80,7 @@ def append_probabilistic_vehtype_type_choices(
     # left join vehicles to probs
     choosers = pd.merge(
         choices.reset_index(), probs_spec,
-        on=choice_column_name,
+        on='vehicle_type',
         how='left',
         indicator=True).set_index('vehicle_id')
 
@@ -81,7 +89,7 @@ def append_probabilistic_vehtype_type_choices(
     assert len(missing_alts) == 0, \
         f"missing probabilities for alternatives:\n {missing_alts}"
     choosers.drop(columns='_merge', inplace=True)
-    del choosers[choice_column_name]
+    del choosers['vehicle_type']
 
     # probs should sum to 1 with residual probs resulting in choice of 'fail'
     chooser_probs = choosers.div(choosers.sum(axis=1), axis=0).fillna(0)
@@ -96,12 +104,24 @@ def append_probabilistic_vehtype_type_choices(
     prob_choices = prob_choices.where(~failed, "NOT CHOSEN")
 
     # add new attribute to logit choice vehicle types
-    choices[choice_column_name] = choices[choice_column_name] + '_' + prob_choices
+    choices['vehicle_type'] = choices['vehicle_type'] + '_' + prob_choices
 
     return choices
 
 
 def annotate_vehicle_type_choice(model_settings, trace_label):
+    """
+    Contains the calls to optionally annotate the persons, households, or
+    vehicles tables.  Adds columns to the corresponding output tables.
+
+    Parameters
+    ----------
+    model_settings : dict
+    trace_label : str
+
+    Returns
+    -------
+    """
     # - annotate households table
     if model_settings.get('annotate_households'):
         households = inject.get_table('households').to_frame()
@@ -120,6 +140,15 @@ def annotate_vehicle_type_choice(model_settings, trace_label):
             trace_label=tracing.extend_trace_label(trace_label, 'annotate_persons'))
         pipeline.replace_table("persons", persons)
 
+    # - annotate vehicles table
+    if model_settings.get('annotate_vehicles'):
+        vehicles = inject.get_table('vehicles').to_frame()
+        expressions.assign_columns(
+            df=vehicles,
+            model_settings=model_settings.get('annotate_vehicles'),
+            trace_label=tracing.extend_trace_label(trace_label, 'annotate_vehicles'))
+        pipeline.replace_table("vehicles", vehicles)
+
 
 def iterate_vehicle_type_choice(
         vehicles_merged,
@@ -129,9 +158,37 @@ def iterate_vehicle_type_choice(
         estimator,
         chunk_size,
         trace_label):
+    """
+    Iterates through household vehicle numbers and selects a vehicle type of
+    the form {body_type}_{age}_{fuel_type}. The preprocessor is run for each
+    iteration on the entire chooser table, not just the one for the current
+    vehicle number.  This allows for computation of terms involving the presence
+    of other household vehicles.
 
+    Vehicle type data is read in according to the specification and joined to
+    the alternatives. It can optionally be included in the output vehicles table
+    by specifying the `COLS_TO_INCLUDE_IN_VEHICLE_TABLE` option in the model yaml.
+
+    Parameters
+    ----------
+    vehicles_merged : orca.DataFrameWrapper
+    model_settings : dict
+        yaml model settings file as dict
+    model_spec : pandas.DataFrame
+        omnibus spec file with expressions in index and one column per segment
+    locals_dict : dict
+    estimator : Estimator object
+    chunk_size : orca.injectable
+    trace_label : str
+
+    Returns
+    -------
+    all_choices : pandas.DataFrame
+        table of selected vehicle types and associated data
+    all_choosers : pandas.DataFrame
+        table of chooser data with preprocessor variables included
+    """
     # - model settings
-    choice_column_name = model_settings.get("CHOICE_COL", 'vehicle_type')
     nest_spec = config.get_logit_model_settings(model_settings)
     vehicle_type_data_file = model_settings.get('VEHICLE_TYPE_DATA_FILE', None)
     probs_spec_file = model_settings.get("PROBS_SPEC", None)
@@ -144,6 +201,8 @@ def iterate_vehicle_type_choice(
         fleet_year = model_settings.get('FLEET_YEAR')
 
         vehicle_type_data['age'] = (1 + fleet_year - vehicle_type_data['vehicle_year']).astype(str)
+        vehicle_type_data['vehicle_type'] = vehicle_type_data[
+            ['body_type', 'age', 'fuel_type']].astype(str).agg('_'.join, axis=1)
         locals_dict.update({'vehicle_type_data': vehicle_type_data})
 
     # - Preparing alternatives
@@ -164,8 +223,9 @@ def iterate_vehicle_type_choice(
                 indicator=True)
 
             # checking to make sure all alternatives have data
-            missing_alts = alts_wide.loc[alts_wide._merge == 'left_only',
-                ['body_type', 'fuel_type', 'age']]
+            missing_alts = alts_wide.loc[
+                alts_wide._merge == 'left_only', ['body_type', 'fuel_type', 'age']]
+
             assert len(missing_alts) == 0, \
                 f"missing vehicle data for alternatives:\n {missing_alts}"
             alts_wide.drop(columns='_merge', inplace=True)
@@ -197,7 +257,7 @@ def iterate_vehicle_type_choice(
                 trace_label=trace_label)
 
         # only make choices for vehicles that have not been selected yet
-        choosers = choosers[vehicles_merged['vehicle_num'] == veh_num]
+        choosers = choosers[choosers['vehicle_num'] == veh_num]
         logger.info("Running %s for vehicle number %s with %d vehicles", trace_label, veh_num, len(choosers))
 
         # if there were so many alts that they had to be created programmatically,
@@ -232,27 +292,37 @@ def iterate_vehicle_type_choice(
         if isinstance(choices, pd.Series):
             choices = choices.to_frame('choice')
 
-        choices.rename(columns={'choice': choice_column_name}, inplace=True)
+        choices.rename(columns={'choice': 'vehicle_type'}, inplace=True)
 
         if alts_cats_dict:
             alts = alts_long[alts_long.columns].apply(
                 lambda row: '_'.join(row.values.astype(str)), axis=1).values
         else:
             alts = model_spec.columns
-        choices[choice_column_name] = \
-            choices[choice_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
+        choices['vehicle_type'] = \
+            choices['vehicle_type'].map(dict(list(zip(list(range(len(alts))), alts))))
 
         # STEP II: append probabilistic vehicle type attributes
         if probs_spec_file is not None:
             choices = append_probabilistic_vehtype_type_choices(
-                choices, probs_spec_file, choice_column_name, trace_label)
+                choices, probs_spec_file, trace_label)
 
-        vehicles_merged.loc[choices.index, 'already_owned_veh'] = choices[choice_column_name]
+        vehicles_merged.loc[choices.index, 'already_owned_veh'] = choices['vehicle_type']
         all_choices.append(choices)
         all_choosers.append(choosers)
 
+    # adding all vehicle numbers to one dataframe
     all_choices = pd.concat(all_choices)
     all_choosers = pd.concat(all_choosers)
+
+    # appending vehicle type data to the vehicle table
+    additional_cols = model_settings.get('COLS_TO_INCLUDE_IN_VEHICLE_TABLE')
+    if additional_cols:
+        additional_cols.append('vehicle_type')
+        all_choices = all_choices.reset_index().merge(
+            vehicle_type_data[additional_cols],
+            how='left', on='vehicle_type').set_index('vehicle_id')
+
     return all_choices, all_choosers
 
 
@@ -330,7 +400,6 @@ def vehicle_type_choice(
         chunk_size,
         trace_label)
 
-
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
@@ -356,13 +425,10 @@ def vehicle_type_choice(
         estimator.end_estimation()
 
     # update vehicles table
-    vehicles = vehicles.to_frame()
-    assign_in_place(vehicles, choices)
-
-    annotate_vehicle_type_choice(model_settings, trace_label)
+    # vehicles = pd.merge(vehicles.to_frame(), choices, left_index=True, right_index=True)
+    vehicles = pd.concat([vehicles.to_frame(), choices], axis=1)
     pipeline.replace_table("vehicles", vehicles)
-
-
+    annotate_vehicle_type_choice(model_settings, trace_label)
 
     tracing.print_summary('vehicle_type_choice', vehicles.vehicle_type, value_counts=True)
 

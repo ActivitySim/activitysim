@@ -19,8 +19,6 @@ from activitysim.core import logit
 from activitysim.core import assign
 from activitysim.core import los
 
-from activitysim.abm.models.vehicle_type_choice import read_vehicle_type_data
-
 from activitysim.core.util import assign_in_place
 
 from .util.mode import mode_choice_simulate
@@ -129,7 +127,7 @@ def vehicle_allocation(
         fleet_year = model_settings.get('FLEET_YEAR')
         vehicle_type_data['age'] = (1 + fleet_year - vehicle_type_data['vehicle_year']).astype(int)
         vehicle_type_data['vehicle_type'] = vehicle_type_data[
-            ['body_type', 'age', 'fuel_type']].astype(str).agg('_'.join, axis = 1)
+            ['body_type', 'age', 'fuel_type']].astype(str).agg('_'.join, axis=1)
 
         vehicle_data_cols = model_settings.get('VEHICLE_DATA_TO_INCLUDE')
         vehicle_type_data.set_index('vehicle_type', inplace=True)
@@ -217,7 +215,6 @@ def vehicle_allocation(
         tours_veh_occup_col = f'vehicle_occup_{occup}'
         tours[tours_veh_occup_col] = choices['choice']
         tours_veh_occup_cols.append(tours_veh_occup_col)
-
 
     if estimator:
         estimator.write_choices(choices)

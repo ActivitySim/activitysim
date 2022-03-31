@@ -50,7 +50,7 @@ def compare_trip_mode_choice(tablesets, title="Trip Mode Choice", grouping='prim
 
     all_d = pd.concat(d, names=['source']).reset_index()
 
-    selection = alt.selection_point(
+    selection = alt.selection_multi(
         fields=['trip_mode'], bind='legend',
     )
 
@@ -196,7 +196,7 @@ def compare_work_district(
         all_d[h] = all_d[h].map(district_names)
         all_d[w] = all_d[w].map(district_names)
 
-    selection = alt.selection_point(
+    selection = alt.selection_multi(
         fields=[w], bind='legend',
     )
 
@@ -215,3 +215,38 @@ def compare_work_district(
     )
 
     return fig
+
+
+def compare_runtime(combo_timing_log):
+    df = pd.read_csv(combo_timing_log, index_col='model_name')
+    df1 = df[['sharrow', 'legacy']].rename_axis(columns="source").unstack().rename('seconds').reset_index()
+    c = alt.Chart(df1, height={"step": 20}, )
+
+    result = c.mark_bar(
+        yOffset=-3,
+        size=6,
+    ).transform_filter(
+        (alt.datum.source == 'legacy')
+    ).encode(
+        x=alt.X('seconds:Q', stack=None),
+        y=alt.Y('model_name', type='nominal', sort=None),
+        color="source",
+        tooltip=['source', 'model_name', 'seconds']
+    ) + c.mark_bar(
+        yOffset=4,
+        size=6,
+    ).transform_filter(
+        (alt.datum.source == 'sharrow')
+    ).encode(
+        x=alt.X('seconds:Q', stack=None),
+        y=alt.Y('model_name', type='nominal', sort=None),
+        color="source",
+        tooltip=['source', 'model_name', 'seconds']
+    ) | alt.Chart(df1).mark_bar().encode(
+        color='source',
+        x='source',
+        y='sum(seconds)',
+        tooltip=['source', 'sum(seconds)']
+    )
+
+    return result

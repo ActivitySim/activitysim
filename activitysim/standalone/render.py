@@ -1,10 +1,36 @@
+import logging
 import os
 import nbformat as nbf
 from nbconvert import HTMLExporter
 import nbclient
 import textwrap
+from contextlib import contextmanager
+from pathlib import Path
+from xmle import Reporter
 
 # from jupyter_contrib_nbextensions.nbconvert_support import TocExporter # problematic
+
+
+@contextmanager
+def chdir(path: Path):
+    """
+    Sets the cwd within the context
+
+    Args:
+        path (Path): The path to the cwd
+
+    Yields:
+        None
+    """
+
+    cwd = Path().absolute()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(cwd)
+
+
 
 def render_notebook(nb_filename, cellcontent):
     nb_filename = os.path.splitext(nb_filename)[0]
@@ -36,76 +62,67 @@ def render_notebook(nb_filename, cellcontent):
         f.write(body)
 
 
-def render_comparison(html_filename, title, dist_skim="DIST", county_id="county_id"):
+def render_comparison(html_filename, title, dist_skim="DIST", county_id="county_id", timing_log=None):
 
-    cells = [
-        f"[md]# {title}",
+    from activitysim.standalone.compare import load_final_tables, compare_trip_mode_choice, compare_trip_distance, compare_work_district, compare_runtime
+    from activitysim.standalone.skims import load_skims
 
-        """
-        from activitysim.standalone.compare import load_final_tables, compare_trip_mode_choice, compare_trip_distance
-        from activitysim.standalone.skims import load_skims
-        """,
+    with chdir(os.path.dirname(html_filename)):
 
-        """
         data = load_final_tables(
-            {"sharrow": "output-sharrow", "legacy": "output-legacy"},
-            {"trips": "final_trips.csv"},
-            {"trips": "trip_id"},
+            {
+                "sharrow": "output-sharrow",
+                "legacy": "output-legacy",
+            },
+            {"trips": "final_trips.csv", "persons": "final_persons.csv", "land_use": "final_land_use.csv"},
+            {"trips": "trip_id", "persons": "person_id", "land_use": "zone_id"},
         )
-        """,
 
-        f"[md]## Trip Mode Choice",
+        report = Reporter(title=title)
 
-        """
-        compare_trip_mode_choice(data)
-        """,
-    ]
+        if timing_log:
+            report << "## Model Runtime"
+            report << compare_runtime(timing_log)
 
-    if dist_skim:
-        dist_cells = [
-            f"[md]## Trip Distance",
+        report << "## Trip Mode Choice"
+        report << compare_trip_mode_choice(
+            data,
+            title=None,
+        )
 
-            f"""
+        if dist_skim:
             skims = load_skims("../configs/network_los.yaml", "../data")
-            compare_trip_distance(
+            report << "## Trip Distance"
+
+            report << "### Trip Length Distribution <10 miles"
+            report << compare_trip_distance(
                 data,
                 skims,
-                "{dist_skim}",
+                dist_skim,
                 max_dist=10,
-                title="Trip Length Distribution <10 miles",
-                )
-            """,
+                title=None,
+            )
 
-            f"""
-            compare_trip_distance(
+            report << "### Trip Length Distribution Overall"
+            report << compare_trip_distance(
                 data,
                 skims,
-                "{dist_skim}",
-                title="Trip Length Distribution Overall",
-                )
-            """,
-        ]
-    else:
-        dist_cells = []
+                dist_skim,
+                title=None,
+            )
 
-    if county_id:
-        work_county_cells = [
-            f"[md]## Workers by Home and Work County",
+        work_district = compare_work_district(
+            data,
+            district_id=county_id,
+            label='county',
+            hometaz_col='home_zone_id',
+            worktaz_col='workplace_zone_id',
+            data_dictionary="../configs/data_dictionary.yaml",
+        )
+        if work_district is not None:
+            report << "## Workers by Home and Work County"
+            report << work_district
 
-            f"""
-            compare_work_district(
-                data,
-                district_id='{county_id}',
-                label='county',
-                hometaz_col='home_zone_id',
-                worktaz_col='workplace_zone_id',
-                data_dictionary="../configs/data_dictionary.yaml",
-            )"""
-        ]
-    else:
-        work_county_cells = []
 
-    render_notebook(
-        html_filename,
-        work_county_cells + cells + dist_cells
-    )
+        # save final report
+        report.save(os.path.basename(html_filename), overwrite=True)

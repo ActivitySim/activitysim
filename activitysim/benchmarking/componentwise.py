@@ -353,6 +353,22 @@ def template_setup_cache(
     config_overload_dir="dynamic_configs",
 ):
     """
+    Prepare an example model for benchmarking.
+
+    The algorithm for benchmarking components requires an existing pipeline
+    file with checkpoints after every component, which allows the code to
+    recreate the state of pipeline tables immediately prior to each component's
+    execution.  The checkpoints file is very large, and can be recreated
+    by running the model, so it is not stored/downloaded but just rebuilt as
+    needed.
+
+    This template function creates that pipeline store if it does not exist by
+    getting the example model and running once through from the beginning through
+    the last component to be benchmarked.  After this is done, a token is written
+    out to `benchmark-setup-token.txt` in the output directory, flagging that
+    the complete checkpointed pipeline has been created without errors and is
+    ready to use.  If the template setup finds this token file, all this work
+    is assumed to be already done and is skipped.
 
     Parameters
     ----------

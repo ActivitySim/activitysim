@@ -12,6 +12,9 @@
 #    - example_mtc/configs_sh_compile
     - example_mtc/output
     - example_mtc/README.MD
+  run_flags:
+    single: "-c configs -d data"
+    multi: "-c configs_mp -c configs -d data"
 
 - name: example_test
   description: data and configs for the ActivitySim test system
@@ -24,6 +27,9 @@
     - example_mtc/configs
     - example_mtc/configs_mp
     - example_mtc/output
+  run_flags:
+    single: "-c configs -d data"
+    multi: "-c configs_mp -c configs -d data"
 
 - name: example_mtc_full
   description: Full 1475-zone dataset for the MTC region with 2.8M households and 7.5M persons
@@ -52,6 +58,9 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/land_use.csv
       data/land_use.csv
       fac71207925a34c32b956632fe375814e42860624a99f88401c42317af0fc203
+  run_flags:
+    single: "-c configs -d data"
+    multi: "-c configs_mp -c configs -d data"
 
 - name: example_mtc_sf
   description: San Francisco MTC dataset with 190 zones, 400k households and 900k persons
@@ -76,6 +85,9 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/land_use.csv
       data/land_use.csv
       d47c117b379e9ba57230105916c749d25dc7896bb79d6e0e5a28d16822b54523
+  run_flags:
+    single: "-c configs -d data"
+    multi: "-c configs_mp -c configs -d data"
 
 - name: example_estimation
   description: Estimation mode 25 zone example
@@ -554,6 +566,7 @@
     - example_mtc/configs_sh_compile
     - example_arc/output
     - example_arc/README.MD
+  run_flags: "-c configs -d data"
 
 - name: example_arc_fulton
   description: 1296 zone fulton county example for the ARC region
@@ -614,6 +627,9 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/land_use.csv
       data/land_use.csv
       36383b4c9dacdd7dd10c84b4479aa9f53ced23e155b6d354c468decc6710c80e
+  run_flags:
+    single: "-c configs -d data"
+    multi: "-c configs -d data -s settings_mp.yaml"
 
 - name: example_sandag_1_zone
   description: 90-TAZ (includes univ) 1-zone test example for the SANDAG region
@@ -629,6 +645,9 @@
     - example_sandag/output_1
   optimize:
     - patch_example_sandag_1_zone
+  run_flags:
+    single: "-c configs_1_zone -c example_mtc/configs -d data_1"
+    multi: "-c configs_1_zone -c example_mtc/configs -d data_1 -s settings_mp.yaml"
 
 - name: example_sandag_1_zone_full
   description: full 1-zone example for the SANDAG region
@@ -669,6 +688,9 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/skims6.omx
       data_1/skims6.omx
       e3f7fb1e0b334fc83dc69985dce8b925e3660149c5de5635c7d8464e306074b9
+  run_flags:
+    single: "-c configs_1_zone -c example_mtc/configs -d data_1"
+    multi: "-c configs_1_zone -c example_mtc/configs -d data_1 -s settings_mp.yaml"
 
 - name: example_sandag_2_zone
   description: 90-TAZ 609-MAZ (includes univ) 2-zone test example for the SANDAG region

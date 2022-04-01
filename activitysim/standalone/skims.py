@@ -4,6 +4,9 @@ import sharrow as sh
 import yaml
 import glob
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 def load_skims(
         network_los_settings_filename,

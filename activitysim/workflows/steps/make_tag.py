@@ -16,11 +16,10 @@ def run_step(context):
     fast = context.get('fast', True)
     mp = context.get('mp', False)
 
-
     if tag is None:
         tag = time.strftime("%Y-%m-%d-%H%M%S")
         context['tag'] = tag
-    context['compile'] = (compile and sharrow)
+    # context['compile'] = (compile and sharrow)
     context['contrast'] = (sharrow and legacy)
 
     flags = []

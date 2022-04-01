@@ -99,10 +99,20 @@ def compare_trip_distance(
     distances = {}
     for key, tableset in tablesets.items():
         skim_dist = skims[key][[dist_skim_name]]
-        looks = [
-            tableset['trips'][otaz_col].rename('otaz'),
-            tableset['trips'][dtaz_col].rename('dtaz'),
-        ]
+
+        zone_ids = tableset['land_use'].index
+        if zone_ids.is_monotonic_increasing and zone_ids[-1] == len(zone_ids) + zone_ids[0] - 1:
+            offset = zone_ids[0]
+            looks = [
+                tableset['trips'][otaz_col].rename('otaz') - offset,
+                tableset['trips'][dtaz_col].rename('dtaz') - offset,
+            ]
+        else:
+            remapper = dict(zip(zone_ids, pd.RangeIndex(len(zone_ids))))
+            looks = [
+                tableset['trips'][otaz_col].rename('otaz').apply(remapper.get),
+                tableset['trips'][dtaz_col].rename('dtaz').apply(remapper.get),
+            ]
         if 'time_period' in skim_dist.dims:
             looks.append(
                 tableset['trips'][time_col].apply(skims[key].attrs['time_period_imap'].get).rename('time_period'),

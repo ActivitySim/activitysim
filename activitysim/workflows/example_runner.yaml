@@ -17,9 +17,10 @@ steps:
     defaults:
       example_name: example_mtc
       workspace: workspace
-      legacy: True
+      create: True
       compile: True
       sharrow: True
+      legacy: True
       tag:
       resume_after:
       fast: False
@@ -38,6 +39,7 @@ steps:
 - activitysim.workflows.steps.make_tag
 
 - name: activitysim.workflows.steps.cmd
+  run: '{create}'
   in:
     cmd:
       label: "activitysim create {example_name}"
@@ -45,26 +47,6 @@ steps:
       cwd: "{workspace}"
 
 - activitysim.workflows.steps.directory_prep
-#- name: activitysim.workflows.steps.py
-#  in:
-#    label: Make archive directory for this tag
-#    py: |
-#      import os
-#      from pathlib import Path
-#      archive_dir = f"{workspace}/{example_name}/output-{tag}"
-#      os.makedirs(archive_dir, exist_ok=True)
-#      if sharrow:
-#        os.makedirs(f"{archive_dir}/output-compile", exist_ok=True)
-#        os.makedirs(f"{archive_dir}/output-compile/log", exist_ok=True)
-#        os.makedirs(f"{archive_dir}/output-compile/trace", exist_ok=True)
-#        os.makedirs(f"{archive_dir}/output-sharrow", exist_ok=True)
-#        os.makedirs(f"{archive_dir}/output-sharrow/log", exist_ok=True)
-#        os.makedirs(f"{archive_dir}/output-sharrow/trace", exist_ok=True)
-#      if legacy:
-#        os.makedirs(f"{archive_dir}/output-legacy", exist_ok=True)
-#        os.makedirs(f"{archive_dir}/output-legacy/log", exist_ok=True)
-#        os.makedirs(f"{archive_dir}/output-legacy/trace", exist_ok=True)
-#      save(archive_dir=archive_dir, archive_base=os.path.basename(archive_dir))
 
 - description: "write.configs_sh_compile"
   name: pypyr.steps.filewriteyaml
@@ -95,13 +77,6 @@ steps:
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- sharrow compile"
 
-#- description: Archive outputs of compile
-#  name: activitysim.workflows.steps.archive_outputs
-#  run: '{sharrow}'
-#  in:
-#    source: "output-compile"
-#    destination: "{archive_base}/output-sh-compile"
-
 - description: write.configs_sh
   name: pypyr.steps.filewriteyaml
   run: '{sharrow}'
@@ -120,13 +95,6 @@ steps:
       run: "python -m activitysim run -c configs_sh -c configs -d data -o output-{tag}/output-sharrow {flags}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- sharrow run"
-
-#- description: Archive outputs of sharrow run
-#  name: activitysim.workflows.steps.archive_outputs
-#  run: '{sharrow}'
-#  in:
-#    source: "output"
-#    destination: "{archive_base}/output-sh"
 
 - description: write.configs_sh
   name: pypyr.steps.filewriteyaml
@@ -147,13 +115,6 @@ steps:
       run: "python -m activitysim run -c configs_legacy -c configs -d data -o output-{tag}/output-legacy {flags}"
       cwd: "{workspace}/{example_name}"
       label: "{example_name} -- legacy run"
-
-#- description: Archive outputs of legacy run
-#  name: activitysim.workflows.steps.archive_outputs
-#  run: '{legacy}'
-#  in:
-#    source: "output"
-#    destination: "{archive_base}/output-legacy"
 
 - activitysim.workflows.steps.composite_log
 - activitysim.workflows.steps.contrast_report

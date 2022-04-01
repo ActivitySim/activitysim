@@ -81,7 +81,7 @@ input_table_list:
       - PROPFREE
       - PARKRATE
       - areatype
-#      - county
+      - county
       - CBDFlag
       - N11
       - N21

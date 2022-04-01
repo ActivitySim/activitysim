@@ -37,3 +37,4 @@ dependencies:
 - xarray >= 0.21
 - pypyr
 - rich
+- xmle

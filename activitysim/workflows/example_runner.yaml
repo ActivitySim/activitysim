@@ -137,12 +137,18 @@ reporting:
       sharrow: "output-sharrow"
       legacy: "output-legacy"
     tables:
-      trips:
-        filename: final_trips.csv
-        index_col: trip_id
+      households:
+        filename: final_households.csv
+        index_col: household_id
       persons:
         filename: final_persons.csv
         index_col: person_id
+      tours:
+        filename: final_tours.csv
+        index_col: tour_id
+      trips:
+        filename: final_trips.csv
+        index_col: trip_id
       land_use:
         filename: final_land_use.csv
         index_col: zone_id

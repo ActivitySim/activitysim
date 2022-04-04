@@ -4,6 +4,21 @@ from .progression import reset_progress_step
 from .error_handler import error_logging
 
 
+def to_csv_safe(obj, filename, *args, **kwargs):
+    """
+    Write a csv as normal, changing the filename if a permission error occurs.
+    """
+    try:
+        obj.to_csv(filename, *args, **kwargs)
+    except PermissionError:
+        n = 1
+        f1, f2 = os.path.splitext(filename)
+        while os.path.exists(f"{f1} ({n}){f2}"):
+            n += 1
+        obj.to_csv(f"{f1} ({n}){f2}", *args, **kwargs)
+
+
+
 @error_logging
 def run_step(context: Context) -> None:
 
@@ -34,7 +49,7 @@ def run_step(context: Context) -> None:
             timings[t] = df.loc[~df.index.duplicated()]
     if timings:
         composite_timing = pd.concat(timings, axis=1)
-        composite_timing.to_csv(f"{archive_dir}/combined_timing_log-{tag}.csv")
+        to_csv_safe(composite_timing, f"{archive_dir}/combined_timing_log-{tag}.csv")
     mems = {}
     for t in compares:
         filename = f"{archive_dir}/output-{t}/log/mem.csv"
@@ -44,4 +59,4 @@ def run_step(context: Context) -> None:
             mems[t] = df.loc[~df.index.duplicated()]
     if mems:
         composite_mem = pd.concat(mems, axis=1)
-        composite_mem.to_csv(f"{archive_dir}/combined_mem_log-{tag}.csv")
+        to_csv_safe(composite_mem, f"{archive_dir}/combined_mem_log-{tag}.csv")

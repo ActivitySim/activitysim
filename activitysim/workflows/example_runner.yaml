@@ -162,22 +162,39 @@ reporting:
     title: "{example_name} report"
     common_directory: "{workspace}/{example_name}"
 
+
+#### Runtime and Data Inventory ####
+
 - name: activitysim.workflows.steps.contrast.runtime
   in:
     common_output_directory: "{workspace}/{example_name}/output-{tag}"
 
 - name: activitysim.workflows.steps.contrast.data_inventory
 
+
+#### Trip Mode Choice ####
+
+- name: activitysim.workflows.steps.contrast.section_title
+  in:
+    title: Trip Mode Choice
+
 - name: activitysim.workflows.steps.contrast.trip_mode_choice
   in:
     title: Trip Mode Choice by Primary Purpose
+    title_level: 3
     grouping: primary_purpose
 
 - name: activitysim.workflows.steps.contrast.trip_mode_choice
   in:
     title: Trip Mode Choice by Departure Time
+    title_level: 3
     grouping: depart
 
+
+####  ####
+
+
+################################################################################
 report-save:
 - name: activitysim.workflows.steps.contrast.save_report
   in:

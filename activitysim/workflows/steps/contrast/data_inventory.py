@@ -46,6 +46,11 @@ def run_step(context: Context) -> None:
     with report:
         with pd.option_context('display.max_rows', 1_000_000, 'display.max_columns', 10_000):
             report << tab("Table Contents", level=3)
-            report << pd.DataFrame(dtypes).rename_axis(index=['table','column']).fillna("")
+            dtypes_table = pd.DataFrame(dtypes).rename_axis(index=['table','column']).fillna("")
+            dtypes_table[""] = pd.Series(
+                (dtypes_table.iloc[:, 0].to_frame().values == dtypes_table.values).all(1),
+                index=dtypes_table.index,
+            ).apply(lambda x: "" if x else "\u2B05")
+            report << dtypes_table
 
 

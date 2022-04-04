@@ -17,11 +17,12 @@ def run_step(context: Context) -> None:
     contrast_data = context.get('contrast_data')
     grouping = context.get_formatted('grouping')
     title = context.get_formatted('title')
+    title_level = context.get('title_level', None)
 
     reset_progress_step(description=f"report trip mode choice / {grouping}")
 
     with report:
-        report << fig(title)
+        report << fig(title, level=title_level)
         report << compare_trip_mode_choice(contrast_data, title=None, grouping=grouping)
 
 
@@ -58,7 +59,7 @@ def compare_trip_mode_choice(tablesets, title="Trip Mode Choice", grouping='prim
     ).encode(
         color='trip_mode',
         y=alt.Y('source', axis=alt.Axis(grid=False, title='')),
-        x=alt.X('share_trips', axis=alt.Axis(grid=False, labels=False, title='Mode Share')),
+        x=alt.X('share_trips', axis=alt.Axis(grid=False, labels=False, title='Mode Share'), scale=alt.Scale(domain=[0., 1.])),
         row=grouping,
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip = ['trip_mode', 'source', 'n_trips', alt.Tooltip('share_trips:Q', format='.2%')],

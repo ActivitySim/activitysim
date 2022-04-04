@@ -160,6 +160,8 @@ reporting:
   in:
     common_output_directory: "{workspace}/{example_name}/output-{tag}"
 
+- name: activitysim.workflows.steps.contrast.data_inventory
+
 - name: activitysim.workflows.steps.contrast.trip_mode_choice
   in:
     title: Trip Mode Choice by Primary Purpose

@@ -39,6 +39,30 @@ def run_step(context: Context) -> None:
     a.parameter_reference {font-style: italic; text-decoration: none}
     .strut2 {min-width:2in}
     .histogram_cell { padding-top:1; padding-bottom:1; vertical-align:center; }
+    table { border-spacing: 0; border: none; }
+    .dataframe tbody tr:nth-child(odd) {
+        background: #f5f5f5;
+    }
+    .dataframe tr, .dataframe th, .dataframe td {
+        text-align: right;
+        vertical-align: middle;
+        padding: 0.2em 0.2em;
+        line-height: normal;
+        white-space: normal;
+        max-width: none;
+        border: none;
+    }
+    .dataframe table {
+        margin-left: auto;
+        margin-right: auto;
+        border: none;
+        border-collapse: collapse;
+        border-spacing: 0;
+        color: black;
+        font-size: 12px;
+        table-layout: fixed;
+    }
+    
     table.floatinghead thead {background-color:#FFF;}
     table.dataframe thead {background-color:#FFF;}
     @media print {

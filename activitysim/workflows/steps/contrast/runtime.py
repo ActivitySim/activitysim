@@ -3,10 +3,12 @@ import pandas as pd
 import altair as alt
 from pypyr.context import Context
 from ....standalone.utils import chdir
+from ..progression import reset_progress_step
 
 logger = logging.getLogger(__name__)
 
 def run_step(context: Context) -> None:
+    reset_progress_step(description="report model runtime")
 
     context.assert_key_has_value(key='common_output_directory', caller=__name__)
     common_output_directory = context.get_formatted('common_output_directory')

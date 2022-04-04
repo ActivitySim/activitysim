@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 import altair as alt
 from pypyr.context import Context
+from ..progression import reset_progress_step
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +18,8 @@ def run_step(context: Context) -> None:
     grouping = context.get_formatted('grouping')
     title = context.get_formatted('title')
 
+    reset_progress_step(description=f"report trip mode choice / {grouping}")
+
     with report:
         report << fig(title)
         report << compare_trip_mode_choice(contrast_data, title=None, grouping=grouping)
@@ -25,6 +28,13 @@ def run_step(context: Context) -> None:
 
 
 def compare_trip_mode_choice(tablesets, title="Trip Mode Choice", grouping='primary_purpose'):
+    """
+    Parameters
+    ----------
+    tablesets : Mapping
+    title : str, optional
+    grouping : str
+    """
 
     d = {}
     groupings = [grouping,]

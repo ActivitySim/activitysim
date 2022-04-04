@@ -9,6 +9,8 @@ from activitysim.standalone.utils import chdir
 @error_logging
 def run_step(context: Context) -> None:
 
+    reset_progress_step(description="load tables")
+
     context.assert_key_has_value(key='common_output_directory', caller=__name__)
     common_output_directory = context.get_formatted('common_output_directory')
 

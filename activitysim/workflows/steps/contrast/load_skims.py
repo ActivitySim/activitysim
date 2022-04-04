@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 @error_logging
 def run_step(context: Context) -> None:
+    reset_progress_step(description="load skims")
+
     context.assert_key_has_value(key='common_directory', caller=__name__)
     common_directory = context.get_formatted('common_directory')
     config_dirs = context.get_formatted('config_dirs')

@@ -2,6 +2,7 @@
 import logging
 import pandas as pd
 import altair as alt
+import xmle
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 from ..error_handler import error_logging
@@ -20,6 +21,7 @@ def run_step(context: Context) -> None:
     tab = context.get('tab')
 
     contrast_data = context.get('contrast_data')
+    skims = context.get('skims')
     try:
         title = context.get_formatted('title')
     except (KeyError, KeyNotInContextError):
@@ -53,4 +55,11 @@ def run_step(context: Context) -> None:
             ).apply(lambda x: "" if x else "\u2B05")
             report << dtypes_table
 
-
+    with report:
+        report << tab("Skims Contents", level=3)
+        ul = xmle.Elem('ul')
+        for k in skims:
+            i = xmle.Elem('li')
+            i << xmle.Elem('b', text=k, tail=f" {skims[k].dtype} {skims[k].dims}")
+            ul << i
+        report << ul

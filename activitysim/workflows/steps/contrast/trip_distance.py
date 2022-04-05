@@ -20,13 +20,10 @@ def run_step(context: Context) -> None:
     title = context.get_formatted('title') or "Trip Length Distribution"
     title_level = context.get('title_level', None)
 
-    otaz_col = context.get_formatted('otaz_col')
-    dtaz_col = context.get_formatted('dtaz_col')
-    time_col = context.get_formatted('time_col')
     dist_bins = context.get_formatted('dist_bins')
     max_dist = context.get_formatted_or_default('max_dist', None)
 
-    reset_progress_step(description=f"report trip mode choice / {grouping}")
+    reset_progress_step(description=f"report trip distance / {grouping}")
 
     with report:
         report << fig(title, level=title_level)
@@ -34,9 +31,6 @@ def run_step(context: Context) -> None:
             contrast_data,
             skims,
             dist_skim_name,
-            otaz_col=otaz_col,
-            dtaz_col=dtaz_col,
-            time_col=time_col,
             dist_bins=dist_bins,
             grouping=grouping,
             title=None,
@@ -51,9 +45,6 @@ def compare_trip_distance(
     tablesets,
     skims,
     dist_skim_name,
-    otaz_col='origin',
-    dtaz_col='destination',
-    time_col='depart',
     dist_bins=20,
     grouping='primary_purpose',
     title="Trip Length Distribution",
@@ -65,33 +56,13 @@ def compare_trip_distance(
 
     distances = {}
     for key, tableset in tablesets.items():
-        skim_dist = skims[key][[dist_skim_name]]
-
-        zone_ids = tableset['land_use'].index
-        if zone_ids.is_monotonic_increasing and zone_ids[-1] == len(zone_ids) + zone_ids[0] - 1:
-            offset = zone_ids[0]
-            looks = [
-                tableset['trips'][otaz_col].rename('otaz') - offset,
-                tableset['trips'][dtaz_col].rename('dtaz') - offset,
-            ]
-        else:
-            remapper = dict(zip(zone_ids, pd.RangeIndex(len(zone_ids))))
-            looks = [
-                tableset['trips'][otaz_col].rename('otaz').apply(remapper.get),
-                tableset['trips'][dtaz_col].rename('dtaz').apply(remapper.get),
-            ]
-        if 'time_period' in skim_dist.dims:
-            looks.append(
-                tableset['trips'][time_col].apply(skims[key].attrs['time_period_imap'].get).rename('time_period'),
-            )
-        look = pd.concat(looks, axis=1)
-        distances[key] = skims[key][[dist_skim_name]].iat.df(look)
+        distances[key] = tableset['trips'][dist_skim_name]
 
     if dist_bins is not None:
         result = pd.concat(distances, names=['source'])
         if max_dist is not None:
             result = result[result <= max_dist]
-        result = pd.cut(result.iloc[:, 0], dist_bins).to_frame()
+        result = pd.cut(result, dist_bins).to_frame()
         distances = {k:result.loc[k] for k in tablesets.keys()}
 
     data = {}

@@ -197,14 +197,19 @@ reporting:
   in:
     title: Trip Distance
 
+- name: activitysim.workflows.steps.contrast.attach_skim_data
+  in:
+    tablename: trips
+    otaz_col: origin
+    dtaz_col: destination
+    time_col: depart
+    skim_vars: DIST
+
 - name: activitysim.workflows.steps.contrast.trip_distance
   in:
     title: Trip Distance by Primary Purpose, <10 miles
     title_level: 3
     grouping: primary_purpose
-    otaz_col: origin
-    dtaz_col: destination
-    time_col: depart
     dist_bins: 20
     dist_skim_name: DIST
     max_dist: 10
@@ -214,9 +219,6 @@ reporting:
     title: Trip Distance by Primary Purpose
     title_level: 3
     grouping: primary_purpose
-    otaz_col: origin
-    dtaz_col: destination
-    time_col: depart
     dist_bins: 20
     dist_skim_name: DIST
 

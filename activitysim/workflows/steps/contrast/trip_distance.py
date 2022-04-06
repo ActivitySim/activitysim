@@ -3,44 +3,45 @@ import pandas as pd
 import altair as alt
 from pypyr.context import Context
 from ..progression import reset_progress_step
+from ..wrapping import report_step
 
 logger = logging.getLogger(__name__)
 
-
-def run_step(context: Context) -> None:
-
-    context.assert_key_has_value(key='report', caller=__name__)
-    report = context.get('report')
-    fig = context.get('fig')
-
-    contrast_data = context.get('contrast_data')
-    skims = context.get('skims')
-    dist_skim_name = context.get_formatted('dist_skim_name')
-    grouping = context.get_formatted('grouping')
-    title = context.get_formatted('title') or "Trip Length Distribution"
-    title_level = context.get('title_level', None)
-
-    dist_bins = context.get_formatted('dist_bins')
-    max_dist = context.get_formatted_or_default('max_dist', None)
-
-    reset_progress_step(description=f"report trip distance / {grouping}")
-
-    with report:
-        report << fig(title, level=title_level)
-        report << compare_trip_distance(
-            contrast_data,
-            skims,
-            dist_skim_name,
-            dist_bins=dist_bins,
-            grouping=grouping,
-            title=None,
-            max_dist=max_dist,
-        )
-
-
-
+#
+# def run_step(context: Context) -> None:
+#
+#     context.assert_key_has_value(key='report', caller=__name__)
+#     report = context.get('report')
+#     fig = context.get('fig')
+#
+#     contrast_data = context.get('contrast_data')
+#     skims = context.get('skims')
+#     dist_skim_name = context.get_formatted('dist_skim_name')
+#     grouping = context.get_formatted('grouping')
+#     title = context.get_formatted('title') or "Trip Length Distribution"
+#     title_level = context.get('title_level', None)
+#
+#     dist_bins = context.get_formatted('dist_bins')
+#     max_dist = context.get_formatted_or_default('max_dist', None)
+#
+#     reset_progress_step(description=f"report trip distance / {grouping}")
+#
+#     with report:
+#         report << fig(title, level=title_level)
+#         report << compare_trip_distance(
+#             contrast_data,
+#             skims,
+#             dist_skim_name,
+#             dist_bins=dist_bins,
+#             grouping=grouping,
+#             title=None,
+#             max_dist=max_dist,
+#         )
+#
 
 
+
+@report_step
 def compare_trip_distance(
     tablesets,
     skims,

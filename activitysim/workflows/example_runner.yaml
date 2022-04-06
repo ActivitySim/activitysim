@@ -172,23 +172,58 @@ reporting:
 - name: activitysim.workflows.steps.contrast.data_inventory
 
 
+#### Tour Mode Choice ####
+
+- name: activitysim.workflows.steps.contrast.section_title
+  in:
+    title: Tour Mode Choice
+
+- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+  in:
+    tablesets: '{contrast_data}'
+    caption: Tour Mode Choice by Primary Purpose
+    caption_level: 3
+    tablename: tours
+    nominal_col: tour_mode
+    grouping: primary_purpose
+    share_axis_label: Tour Mode Share
+
+- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+  in:
+    tablesets: '{contrast_data}'
+    caption: Tour Mode Choice by Composition
+    caption_level: 3
+    tablename: tours
+    nominal_col: tour_mode
+    grouping: composition
+    share_axis_label: Tour Mode Share
+
+
 #### Trip Mode Choice ####
 
 - name: activitysim.workflows.steps.contrast.section_title
   in:
     title: Trip Mode Choice
 
-- name: activitysim.workflows.steps.contrast.trip_mode_choice
+- name: activitysim.workflows.steps.contrast.nominal_choice_shares
   in:
-    title: Trip Mode Choice by Primary Purpose
-    title_level: 3
+    tablesets: '{contrast_data}'
+    caption: Trip Mode Choice by Primary Purpose
+    caption_level: 3
+    tablename: trips
+    nominal_col: trip_mode
     grouping: primary_purpose
+    share_axis_label: Trip Mode Share
 
-- name: activitysim.workflows.steps.contrast.trip_mode_choice
+- name: activitysim.workflows.steps.contrast.nominal_choice_shares
   in:
-    title: Trip Mode Choice by Departure Time
-    title_level: 3
+    tablesets: '{contrast_data}'
+    caption: Trip Mode Choice by Departure Time
+    caption_level: 3
+    tablename: trips
+    nominal_col: trip_mode
     grouping: depart
+    share_axis_label: Trip Mode Share
 
 
 #### Trip Distance ####
@@ -207,8 +242,9 @@ reporting:
 
 - name: activitysim.workflows.steps.contrast.trip_distance
   in:
-    title: Trip Distance by Primary Purpose, <10 miles
-    title_level: 3
+    tablesets: '{contrast_data}'
+    caption: Trip Distance by Primary Purpose, <10 miles
+    caption_level: 3
     grouping: primary_purpose
     dist_bins: 20
     dist_skim_name: DIST
@@ -216,8 +252,9 @@ reporting:
 
 - name: activitysim.workflows.steps.contrast.trip_distance
   in:
-    title: Trip Distance by Primary Purpose
-    title_level: 3
+    tablesets: '{contrast_data}'
+    caption: Trip Distance by Primary Purpose
+    caption_level: 3
     grouping: primary_purpose
     dist_bins: 20
     dist_skim_name: DIST
@@ -231,6 +268,7 @@ reporting:
 
 - name: activitysim.workflows.steps.contrast.district_to_district
   in:
+    progress_tag: Workplace Location
     tablesets: '{contrast_data}'
     tablename: persons
     caption: Workplace County

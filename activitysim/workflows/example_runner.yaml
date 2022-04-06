@@ -225,6 +225,25 @@ reporting:
 
 ####  ####
 
+- name: activitysim.workflows.steps.contrast.section_title
+  in:
+    title: Workplace Location
+
+- name: activitysim.workflows.steps.contrast.district_to_district
+  in:
+    tablesets: '{contrast_data}'
+    tablename: persons
+    caption: Workplace County
+    caption_level: 3
+    district_id: area_type
+    orig_label: home district
+    dest_label: work district
+    orig_col: home_zone_id
+    dest_col: workplace_zone_id
+    filter: workplace_zone_id >= 0
+    data_dictionary:
+    size_label: n_workers
+
 
 ################################################################################
 report-save:

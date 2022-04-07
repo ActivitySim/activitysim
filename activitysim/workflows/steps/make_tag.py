@@ -1,8 +1,10 @@
 from .progression import reset_progress_step
+from .error_handler import error_logging
 import pprint
 import time
 
 
+@error_logging
 def run_step(context):
     reset_progress_step(description="Initialize Tag")
 
@@ -28,7 +30,7 @@ def run_step(context):
     run_flags = EXAMPLES.get(example_name, {}).get('run_flags', {})
     if isinstance(run_flags, str):
         flags.append(run_flags)
-    else:
+    elif run_flags:
         flags.append(run_flags.get('multi' if mp else 'single'))
 
     if resume_after:

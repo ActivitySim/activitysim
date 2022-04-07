@@ -8,6 +8,17 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
+class MockReport:
+    def __enter__(self):
+        pass
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type or exc_val or exc_tb:
+            logger.exception(repr(exc_val))
+    def __lshift__(self, other):
+        logger.info(str(other))
+
+
 def report_step(func):
 
     _args, _varargs, _varkw, _defaults, _kwonlyargs, _kwonlydefaults, _annotations = getfullargspec(func)
@@ -19,23 +30,29 @@ def report_step(func):
         if progress_tag is not None:
             reset_progress_step(description=progress_tag)
 
-        context.assert_key_has_value(key='report', caller=func.__module__)
-        report = context.get('report')
+        if _annotations.get('return', '<missing>') not in {None, dict, Context}:
+            context.assert_key_has_value(key='report', caller=func.__module__)
+        report = context.get('report', MockReport())
         with report:
             caption_type = get_formatted_or_default(context, 'caption_type', 'fig')
             caption_maker = get_formatted_or_default(context, caption_type, None)
-
             # parse and run function itself
-            ndefault = len(_defaults)
+            if _defaults is None:
+                ndefault = 0
+                _required_args = _args
+            else:
+                ndefault = len(_defaults)
+                _required_args = _args[:-ndefault]
             args = []
-            for arg in _args[:-ndefault]:
+            for arg in _required_args:
                 context.assert_key_has_value(key=arg, caller=func.__module__)
                 try:
                     args.append(context.get_formatted_or_raw(arg))
                 except Exception as err:
                     raise ValueError(f"extracting {arg} from context") from err
-            for arg, default in zip(_args[-ndefault:], _defaults):
-                args.append(get_formatted_or_default(context, arg, default))
+            if ndefault:
+                for arg, default in zip(_args[-ndefault:], _defaults):
+                    args.append(get_formatted_or_default(context, arg, default))
             kwargs = {}
             for karg in _kwonlyargs:
                 if karg in _kwonlydefaults:
@@ -48,7 +65,7 @@ def report_step(func):
                         raise ValueError(f"extracting {karg} from context") from err
             outcome = error_logging(func)(*args, **kwargs)
             logger.critical(f"{type(outcome)=}")
-            if isinstance(outcome, dict):
+            if isinstance(outcome, (dict, Context)):
                 for k, v in outcome.items():
                     context[k] = v
             elif outcome is not None:

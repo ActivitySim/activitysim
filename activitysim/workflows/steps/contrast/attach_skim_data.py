@@ -2,20 +2,22 @@ import logging
 import pandas as pd
 from pypyr.context import Context
 from ..progression import reset_progress_step
+from ..wrapping import report_step
 
 logger = logging.getLogger(__name__)
 
 
-def run_step(context: Context) -> None:
 
-    contrast_data = context.get('contrast_data')
-    skims = context.get('skims')
-    skim_vars = context.get_formatted('skim_vars')
-    tablename = context.get_formatted('tablename')
-    otaz_col = context.get_formatted('otaz_col')
-    dtaz_col = context.get_formatted('dtaz_col')
-    time_col = context.get_formatted('time_col')
-
+@report_step
+def attach_skim_data(
+    tablesets,
+    skims,
+    skim_vars,
+    tablename,
+    otaz_col,
+    dtaz_col,
+    time_col=None,
+) -> dict:
     if isinstance(skim_vars, str):
         skim_vars = [skim_vars]
     if len(skim_vars) == 1:
@@ -25,29 +27,6 @@ def run_step(context: Context) -> None:
 
     reset_progress_step(description=f"attach skim data / {tablename} <- {skim_vars_note}")
 
-    contrast_data = attach_skim_data(
-        contrast_data,
-        skims,
-        skim_vars,
-        tablename,
-        otaz_col,
-        dtaz_col,
-        time_col,
-    )
-    context['contrast_data'] = contrast_data
-
-
-
-
-def attach_skim_data(
-    tablesets,
-    skims,
-    skim_vars,
-    tablename,
-    otaz_col,
-    dtaz_col,
-    time_col,
-):
     if not isinstance(skims, dict):
         skims = {i: skims for i in tablesets.keys()}
 
@@ -68,6 +47,8 @@ def attach_skim_data(
                 tableset[tablename][dtaz_col].rename('dtaz').apply(remapper.get),
             ]
         if 'time_period' in skim_subset.dims:
+            if time_col is None:
+                raise KeyError("time_period in skims to slice but time_col is missing")
             looks.append(
                 tableset[tablename][time_col].apply(skims[key].attrs['time_period_imap'].get).rename('time_period'),
             )
@@ -75,4 +56,4 @@ def attach_skim_data(
         out = skim_subset.iat.df(look)
         tablesets[key][tablename] = tablesets[key][tablename].assign(**out)
 
-    return tablesets
+    return dict(tablesets=tablesets)

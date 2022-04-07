@@ -20,7 +20,7 @@ def run_step(context: Context) -> None:
     fig = context.get('fig')
     tab = context.get('tab')
 
-    contrast_data = context.get('contrast_data')
+    tablesets = context.get('tablesets')
     skims = context.get('skims')
     try:
         title = context.get_formatted('title')
@@ -29,7 +29,7 @@ def run_step(context: Context) -> None:
 
     lens = {}
     dtypes = {}
-    for source, tableset in contrast_data.items():
+    for source, tableset in tablesets.items():
         lens[source] = {}
         dtypes[source] = {}
         for tablename, tabledata in tableset.items():

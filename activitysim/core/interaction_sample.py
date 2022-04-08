@@ -233,6 +233,8 @@ def _interaction_sample(
     """
 
     have_trace_targets = tracing.has_trace_targets(choosers)
+    trace_ids = None
+    trace_rows = None
     num_choosers = len(choosers.index)
 
     assert num_choosers > 0
@@ -336,10 +338,11 @@ def _interaction_sample(
                 print(misses)
                 raise
 
-    if have_trace_targets:
+    if have_trace_targets and trace_ids is not None:
         tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
                                                tracing.extend_trace_label(trace_label, 'eval'))
 
+    if have_trace_targets and trace_rows is not None:
         tracing.trace_df(interaction_utilities[trace_rows],
                          tracing.extend_trace_label(trace_label, 'interaction_utilities'),
                          slicer='NONE', transpose=False)

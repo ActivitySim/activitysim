@@ -324,10 +324,10 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
             else:
                 # in test mode, trace from non-sharrow exists
                 trace_eval_results = pd.concat([
-                    trace_eval_results,
-                    sh_utility_fat,
-                    sh_utility_fat_coef,
-                    utilities.utility[trace_rows].rename('total utility'),
+                    trace_eval_results.reset_index(drop=True),
+                    sh_utility_fat.reset_index(drop=True),
+                    sh_utility_fat_coef.reset_index(drop=True),
+                    utilities.utility[trace_rows].rename('total utility').reset_index(drop=True),
                 ], axis=1)
                 trace_eval_results.index = df[trace_rows].index
                 chunk.log_df(trace_label, 'eval.trace_eval_results', trace_eval_results)

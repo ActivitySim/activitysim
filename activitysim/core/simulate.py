@@ -574,30 +574,34 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
         # get array of expression_values
         # expression_values.shape = (len(spec), len(choosers))
         # data.shape = (len(spec), len(offsets))
-        data = expression_values[:, offsets]
+        if expression_values is not None:
+            data = expression_values[:, offsets]
 
-        # index is utility expressions (and optional label if MultiIndex)
-        expression_values_df = pd.DataFrame(data=data, index=spec.index)
+            # index is utility expressions (and optional label if MultiIndex)
+            expression_values_df = pd.DataFrame(data=data, index=spec.index)
 
-        if trace_column_names is not None:
-            if isinstance(trace_column_names, str):
-                trace_column_names = [trace_column_names]
-            expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, trace_column_names])
+            if trace_column_names is not None:
+                if isinstance(trace_column_names, str):
+                    trace_column_names = [trace_column_names]
+                expression_values_df.columns = pd.MultiIndex.from_frame(choosers.loc[trace_targets, trace_column_names])
+        else:
+            expression_values_df = None
 
         if expression_values_sh is not None:
             tracing.trace_df(expression_values_sh, tracing.extend_trace_label(trace_label, 'expression_values_sh'),
                              slicer=None, transpose=False)
-        tracing.trace_df(expression_values_df, tracing.extend_trace_label(trace_label, 'expression_values'),
-                         slicer=None, transpose=False)
+        if expression_values_df is not None:
+            tracing.trace_df(expression_values_df, tracing.extend_trace_label(trace_label, 'expression_values'),
+                             slicer=None, transpose=False)
 
-        if len(spec.columns) > 1:
+            if len(spec.columns) > 1:
 
-            for c in spec.columns:
-                name = f'expression_value_{c}'
-
-                tracing.trace_df(expression_values_df.multiply(spec[c].values, axis=0),
-                                 tracing.extend_trace_label(trace_label, name),
-                                 slicer=None, transpose=False)
+                for c in spec.columns:
+                    name = f'expression_value_{c}'
+    
+                    tracing.trace_df(expression_values_df.multiply(spec[c].values, axis=0),
+                                     tracing.extend_trace_label(trace_label, name),
+                                     slicer=None, transpose=False)
         timelogger.mark("trace", True, logger, trace_label)
 
     del expression_values

@@ -94,23 +94,24 @@ class TimeLogger:
         logger.log(level=level, msg=msg)
 
 
-def only_numbers(x, exclude_keys=()):
+def only_simple(x, exclude_keys=()):
     """
-    All the values in a dict that are plain numbers.
+    All the values in a dict that are plain numbers, strings, or lists or tuples thereof.
     """
     y = {}
     for k, v in x.items():
         if k not in exclude_keys:
-            if isinstance(v, Number):
+            if isinstance(v, (Number, str)):
                 y[k] = v
-            # elif isinstance(v, np.ndarray):
-            #     y[k] = v
+            elif isinstance(v, (list, tuple)):
+                if all(isinstance(j, (Number, str)) for j in v):
+                    y[k] = v
     return y
 
 
 def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None):
     global _FLOWS
-    extra_vars = only_numbers(local_d)
+    extra_vars = only_simple(local_d)
     orig_col_name = local_d.get('orig_col_name', None)
     dest_col_name = local_d.get('dest_col_name', None)
     stop_col_name = None

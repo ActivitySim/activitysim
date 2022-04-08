@@ -220,6 +220,24 @@ reporting:
     ordinal: true
 
 
+#### CDAP ####
+
+- name: activitysim.workflows.steps.contrast.section_title
+  in:
+    title: Coordinated Daily Activity Pattern
+
+- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+  in:
+    caption: Coordinated Daily Activity Pattern by Person Type
+    caption_level: 3
+    tablename: persons
+    nominal_col: cdap_activity
+    row_grouping:
+      field: ptype
+      title: Person Type
+    share_axis_label: Daily Activity Pattern Share
+
+
 #### Tour Mode Choice ####
 
 - name: activitysim.workflows.steps.contrast.section_title

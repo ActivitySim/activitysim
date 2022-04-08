@@ -24,23 +24,15 @@ def run_step(context: Context) -> None:
 
     reset_progress_step(description="composite timing and memory logs")
 
-    context.assert_key_has_value(key='sharrow', caller=__name__)
-    context.assert_key_has_value(key='legacy', caller=__name__)
     context.assert_key_has_value(key='tag', caller=__name__)
     context.assert_key_has_value(key='archive_dir', caller=__name__)
 
-    sharrow = context.get_formatted('sharrow')
-    legacy = context.get_formatted('legacy')
     tag = context.get_formatted('tag')
     archive_dir = context.get_formatted('archive_dir')
 
     import pandas as pd
     timings = {}
-    compares = []
-    if sharrow:
-        compares.extend(['compile', 'sharrow'])
-    if legacy:
-        compares.append('legacy')
+    compares = ['compile', 'sharrow', 'legacy']
     for t in compares:
         filename = f"{archive_dir}/output-{t}/log/timing_log.csv"
         if os.path.exists(filename):

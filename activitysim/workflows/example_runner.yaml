@@ -64,6 +64,8 @@ steps:
         chunk_training_mode: disabled
         households_sample_size: '{compile_n_households}'
         cache_dir: cache
+        trace_hh_id:
+        trace_od:
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.run
@@ -85,6 +87,8 @@ steps:
         sharrow: require
         cache_dir: cache
         households_sample_size: '{main_n_households}'
+        trace_hh_id:
+        trace_od:
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.run
@@ -107,13 +111,15 @@ steps:
         offset_preprocessing: False
         cache_dir: cache
         households_sample_size: '{main_n_households}'
+        trace_hh_id:
+        trace_od:
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.steps.run
   run: '{legacy}'
   in:
     pre_config_dirs: configs_legacy
-    output_dir: 'output-{tag}/output-output-legacy'
+    output_dir: 'output-{tag}/output-legacy'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- legacy run"
 
@@ -172,6 +178,48 @@ reporting:
 - name: activitysim.workflows.steps.contrast.data_inventory
 
 
+#### Auto Ownership ####
+
+- name: activitysim.workflows.steps.contrast.section_title
+  in:
+    title: Auto Ownership
+
+- name: activitysim.workflows.steps.contrast.transform_data
+  in:
+    tablename: households
+    column: hhsize
+    out: hhsize_to6
+    clip:
+      upper: 6
+
+- name: activitysim.workflows.steps.contrast.transform_data
+  in:
+    tablename: households
+    column: income
+    out: income_tertile
+    qcut:
+      q: 3
+      labels:
+        - low
+        - mid
+        - high
+
+- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+  in:
+    caption: Household Auto Ownership by Size
+    caption_level: 3
+    tablename: households
+    nominal_col: auto_ownership
+    row_grouping:
+      field: hhsize_to6
+      title: Household Size (up to 6)
+    col_grouping:
+      field: income_tertile
+      sort: [low, mid, high]
+      title: Income Tertile
+    ordinal: true
+
+
 #### Tour Mode Choice ####
 
 - name: activitysim.workflows.steps.contrast.section_title
@@ -184,7 +232,7 @@ reporting:
     caption_level: 3
     tablename: tours
     nominal_col: tour_mode
-    grouping: primary_purpose
+    row_grouping: primary_purpose
     share_axis_label: Tour Mode Share
 
 - name: activitysim.workflows.steps.contrast.nominal_choice_shares
@@ -193,7 +241,7 @@ reporting:
     caption_level: 3
     tablename: tours
     nominal_col: tour_mode
-    grouping: composition
+    row_grouping: composition
     share_axis_label: Tour Mode Share
 
 
@@ -209,7 +257,7 @@ reporting:
     caption_level: 3
     tablename: trips
     nominal_col: trip_mode
-    grouping: primary_purpose
+    row_grouping: primary_purpose
     share_axis_label: Trip Mode Share
 
 - name: activitysim.workflows.steps.contrast.nominal_choice_shares
@@ -218,7 +266,7 @@ reporting:
     caption_level: 3
     tablename: trips
     nominal_col: trip_mode
-    grouping: depart
+    row_grouping: depart
     share_axis_label: Trip Mode Share
 
 

@@ -2,7 +2,7 @@ import os
 from pypyr.context import Context
 from ..progression import reset_progress_step
 from ..error_handler import error_logging
-from ..wrapping import report_step
+from ..wrapping import report_step, workstep
 from pathlib import Path
 from activitysim.standalone.compare import load_final_tables
 from activitysim.standalone.utils import chdir
@@ -26,7 +26,7 @@ from activitysim.standalone.utils import chdir
 #     #   filename: final_land_use.csv
 #     #   index_col: zone_id
 
-@report_step
+@workstep("tablesets")
 def load_tables(databases, tables, common_output_directory=None) -> dict:
     """
     Load tables from one or more tablesets.
@@ -61,6 +61,9 @@ def load_tables(databases, tables, common_output_directory=None) -> dict:
             tablefiles[t] = v.get("filename")
             index_cols[t] = v.get("index_col", None)
 
+    if common_output_directory is None:
+        common_output_directory = os.getcwd()
+
     with chdir(common_output_directory):
         tablesets = load_final_tables(
             databases,
@@ -68,4 +71,4 @@ def load_tables(databases, tables, common_output_directory=None) -> dict:
             index_cols,
         )
 
-    return dict(tablesets=tablesets)
+    return tablesets

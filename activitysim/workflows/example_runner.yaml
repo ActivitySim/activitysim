@@ -28,6 +28,7 @@ steps:
       main_n_households: 100000
       config_dirs: configs
       data_dir: data
+      instrument: False
 
 - name: activitysim.workflows.steps.title
   in:
@@ -66,6 +67,7 @@ steps:
         cache_dir: cache
         trace_hh_id:
         trace_od:
+        instrument: '{instrument}'
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.run
@@ -89,6 +91,7 @@ steps:
         households_sample_size: '{main_n_households}'
         trace_hh_id:
         trace_od:
+        instrument: '{instrument}'
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.run
@@ -113,6 +116,7 @@ steps:
         households_sample_size: '{main_n_households}'
         trace_hh_id:
         trace_od:
+        instrument: '{instrument}'
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.steps.run

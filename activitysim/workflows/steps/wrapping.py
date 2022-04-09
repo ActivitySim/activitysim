@@ -19,9 +19,12 @@ class MockReport:
         logger.info(str(other))
 
 
-def report_step(func):
+def report_step(func, *, returns_names=None):
 
     _args, _varargs, _varkw, _defaults, _kwonlyargs, _kwonlydefaults, _annotations = getfullargspec(func)
+
+    if isinstance(returns_names, str):
+        returns_names = (returns_names,)
 
     def run_step(context:Context=None) -> None:
 
@@ -31,7 +34,8 @@ def report_step(func):
             reset_progress_step(description=progress_tag)
 
         if _annotations.get('return', '<missing>') not in {None, dict, Context}:
-            context.assert_key_has_value(key='report', caller=func.__module__)
+            if returns_names is None:
+                context.assert_key_has_value(key='report', caller=func.__module__)
         report = context.get('report', MockReport())
         with report:
             caption_type = get_formatted_or_default(context, 'caption_type', 'fig')
@@ -64,10 +68,15 @@ def report_step(func):
                     except Exception as err:
                         raise ValueError(f"extracting {karg} from context") from err
             outcome = error_logging(func)(*args, **kwargs)
-            logger.critical(f"{type(outcome)=}")
             if isinstance(outcome, (dict, Context)):
                 for k, v in outcome.items():
                     context[k] = v
+            elif returns_names:
+                if len(returns_names) == 1:
+                    context[returns_names[0]] = outcome
+                else:
+                    for returns_name, out in zip(returns_names, outcome):
+                        context[returns_name] = out
             elif outcome is not None:
                 caption_level = get_formatted_or_default(context, 'caption_level', None)
                 if caption is not None:
@@ -78,3 +87,30 @@ def report_step(func):
     if hasattr(module, 'run_step'):
         raise ValueError(f"{func.__module__}.run_step exists, there can be only one per module")
     setattr(module, 'run_step', run_step)
+
+    return func
+
+class workstep:
+
+    def __new__(cls, wrapped_func=None, *, returns_names=None):
+        """
+        Initialize a work step wrapper.
+
+        Parameters
+        ----------
+        wrapped_func : Callable
+            The function being decorated.
+        """
+        if isinstance(wrapped_func, (str, tuple, list)):
+            # the returns_names are provided instead of the wrapped func
+            returns_names = wrapped_func
+            wrapped_func = None
+        self = super().__new__(cls)
+        self._returns_names = returns_names
+        if wrapped_func is not None:
+            return self(wrapped_func)
+        else:
+            return self
+
+    def __call__(self, wrapped_func):
+        return report_step(wrapped_func, returns_names=self._returns_names)

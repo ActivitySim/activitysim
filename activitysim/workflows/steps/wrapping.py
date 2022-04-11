@@ -68,15 +68,15 @@ def report_step(func, *, returns_names=None):
                     except Exception as err:
                         raise ValueError(f"extracting {karg} from context") from err
             outcome = error_logging(func)(*args, **kwargs)
-            if isinstance(outcome, (dict, Context)):
-                for k, v in outcome.items():
-                    context[k] = v
-            elif returns_names:
+            if returns_names:
                 if len(returns_names) == 1:
                     context[returns_names[0]] = outcome
                 else:
                     for returns_name, out in zip(returns_names, outcome):
                         context[returns_name] = out
+            elif isinstance(outcome, (dict, Context)):
+                for k, v in outcome.items():
+                    context[k] = v
             elif outcome is not None:
                 caption_level = get_formatted_or_default(context, 'caption_level', None)
                 if caption is not None:

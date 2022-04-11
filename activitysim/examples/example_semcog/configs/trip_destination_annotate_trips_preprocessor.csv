@@ -9,5 +9,5 @@ Description,Target,Expression
 #,size_segment,"df.primary_purpose.where(df.primary_purpose != 'school', np.where(_grade_school,'gradeschool', 'highschool'))"
 ,tour_leg_dest,"np.where(df.outbound,reindex(tours.destination, df.tour_id), reindex(tours.origin, df.tour_id))"
 ,purpose_index_num,"size_terms.get_cols(df.purpose)"
-,walk_too_far,@(df.tour_mode=='WALK') & ((od_skims['DISTWALK'] > max_walk_distance) | (dp_skims['DISTWALK'] > max_walk_distance))
-,bike_too_far,@(df.tour_mode=='BIKE') & ((od_skims['DISTBIKE'] > max_bike_distance) | (dp_skims['DISTBIKE'] > max_bike_distance))
+,walk_too_far,(df.tour_mode=='WALK') & ((od_skims['DISTWALK'] > max_walk_distance) | (dp_skims['DISTWALK'] > max_walk_distance))
+,bike_too_far,(df.tour_mode=='BIKE') & ((od_skims['DISTBIKE'] > max_bike_distance) | (dp_skims['DISTBIKE'] > max_bike_distance))

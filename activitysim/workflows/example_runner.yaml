@@ -32,7 +32,8 @@ steps:
 
 - name: activitysim.workflows.steps.title
   in:
-    label: "[bold blue]activitysim workflow example_runner {example_name}"
+    label: "activitysim workflow example_runner {example_name}"
+    formatting: bold blue
 
 - name: activitysim.workflows.steps.py
   in:

@@ -1,10 +1,13 @@
 import importlib
-from inspect import getfullargspec
-from pypyr.context import Context
-from . import get_formatted_or_default
-from .progression import reset_progress_step
-from .error_handler import error_logging
 import logging
+from inspect import getfullargspec
+from typing import Mapping
+
+from pypyr.context import Context
+
+from . import get_formatted_or_default
+from .error_handler import error_logging
+from .progression import reset_progress_step
 
 logger = logging.getLogger(__name__)
 
@@ -12,33 +15,43 @@ logger = logging.getLogger(__name__)
 class MockReport:
     def __enter__(self):
         pass
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         if exc_type or exc_val or exc_tb:
             logger.exception(repr(exc_val))
+
     def __lshift__(self, other):
         logger.info(str(other))
 
 
-def report_step(func, *, returns_names=None):
+def report_step(func, *, returns_names=None, updates_context=False):
 
-    _args, _varargs, _varkw, _defaults, _kwonlyargs, _kwonlydefaults, _annotations = getfullargspec(func)
+    (
+        _args,
+        _varargs,
+        _varkw,
+        _defaults,
+        _kwonlyargs,
+        _kwonlydefaults,
+        _annotations,
+    ) = getfullargspec(func)
 
     if isinstance(returns_names, str):
         returns_names = (returns_names,)
 
-    def run_step(context:Context=None) -> None:
+    def run_step(context: Context = None) -> None:
 
-        caption = get_formatted_or_default(context, 'caption', None)
-        progress_tag = get_formatted_or_default(context, 'progress_tag', caption)
+        caption = get_formatted_or_default(context, "caption", None)
+        progress_tag = get_formatted_or_default(context, "progress_tag", caption)
         if progress_tag is not None:
             reset_progress_step(description=progress_tag)
 
-        if _annotations.get('return', '<missing>') not in {None, dict, Context}:
-            if returns_names is None:
-                context.assert_key_has_value(key='report', caller=func.__module__)
-        report = context.get('report', MockReport())
+        if _annotations.get("return", "<missing>") not in {None, dict, Context}:
+            if returns_names is None and not updates_context:
+                context.assert_key_has_value(key="report", caller=func.__module__)
+        report = context.get("report", MockReport())
         with report:
-            caption_type = get_formatted_or_default(context, 'caption_type', 'fig')
+            caption_type = get_formatted_or_default(context, "caption_type", "fig")
             caption_maker = get_formatted_or_default(context, caption_type, None)
             # parse and run function itself
             if _defaults is None:
@@ -60,7 +73,9 @@ def report_step(func, *, returns_names=None):
             kwargs = {}
             for karg in _kwonlyargs:
                 if karg in _kwonlydefaults:
-                    kwargs[karg] = get_formatted_or_default(context, karg, _kwonlydefaults[karg])
+                    kwargs[karg] = get_formatted_or_default(
+                        context, karg, _kwonlydefaults[karg]
+                    )
                 else:
                     context.assert_key_has_value(key=karg, caller=func.__module__)
                     try:
@@ -74,25 +89,34 @@ def report_step(func, *, returns_names=None):
                 else:
                     for returns_name, out in zip(returns_names, outcome):
                         context[returns_name] = out
+            elif updates_context:
+                if not isinstance(outcome, Mapping):
+                    raise ValueError(
+                        f"{func.__name__} is marked as updates_context, "
+                        f"it should return a mapping"
+                    )
+                context.update(outcome)
             elif isinstance(outcome, (dict, Context)):
                 for k, v in outcome.items():
                     context[k] = v
             elif outcome is not None:
-                caption_level = get_formatted_or_default(context, 'caption_level', None)
+                caption_level = get_formatted_or_default(context, "caption_level", None)
                 if caption is not None:
                     report << caption_maker(caption, level=caption_level)
                 report << outcome
 
     module = importlib.import_module(func.__module__)
-    if hasattr(module, 'run_step'):
-        raise ValueError(f"{func.__module__}.run_step exists, there can be only one per module")
-    setattr(module, 'run_step', run_step)
+    if hasattr(module, "run_step"):
+        raise ValueError(
+            f"{func.__module__}.run_step exists, there can be only one per module"
+        )
+    setattr(module, "run_step", run_step)
 
     return func
 
-class workstep:
 
-    def __new__(cls, wrapped_func=None, *, returns_names=None):
+class workstep:
+    def __new__(cls, wrapped_func=None, *, returns_names=None, updates_context=False):
         """
         Initialize a work step wrapper.
 
@@ -107,10 +131,15 @@ class workstep:
             wrapped_func = None
         self = super().__new__(cls)
         self._returns_names = returns_names
+        self._updates_context = updates_context
         if wrapped_func is not None:
             return self(wrapped_func)
         else:
             return self
 
     def __call__(self, wrapped_func):
-        return report_step(wrapped_func, returns_names=self._returns_names)
+        return report_step(
+            wrapped_func,
+            returns_names=self._returns_names,
+            updates_context=self._updates_context,
+        )

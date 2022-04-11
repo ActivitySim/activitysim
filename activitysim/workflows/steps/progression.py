@@ -41,6 +41,7 @@ except ImportError:
         ctypes.windll.kernel32.SetConsoleMode(hOut, out_modes)
 
     Progress = DummyProgress
+    progress_overall = None
 
 else:
 
@@ -77,8 +78,18 @@ def get_progress():
         return progress
 
 
-def update_progress_overall(*args, **kwargs):
-    progress.update(progress_overall, *args, **kwargs)
+def update_progress_overall(description, formatting=""):
+    if progress_overall is not None:
+        if formatting:
+            if not formatting.startswith("[") and not formatting.endswith("]"):
+                formatting = f"[{formatting}]"
+            progress.update(progress_overall, description=f"{formatting}{description}")
+        else:
+            progress.update(progress_overall, description=f"{description}")
+    else:
+        print("╔" + "═" * (len(description) + 2) + "╗")
+        print(f"║ {description} ║ {time.strftime('%I:%M:%S %p')}")
+        print("╚" + "═" * (len(description) + 2) + "╝")
 
 
 def reset_progress_step(*args, description='', prefix='', **kwargs):

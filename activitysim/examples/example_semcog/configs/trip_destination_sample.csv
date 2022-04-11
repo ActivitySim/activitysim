@@ -1,8 +1,10 @@
 Description,Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
 ,_od_DIST@od_skims['DIST'],1,1,1,1,1,1,1,1,1,1
 ,_dp_DIST@dp_skims['DIST'],1,1,1,1,1,1,1,1,1,1
-Not available if walk tour not within walking distance,walk_too_far,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Not available if bike tour not within biking distance,bike_too_far,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Not available if walk tour not within walking distance,@tour_mode_is_walk & (od_skims['DISTWALK'] > max_walk_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Not available if walk tour not within walking distance,@tour_mode_is_walk & (dp_skims['DISTWALK'] > max_walk_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Not available if bike tour not within biking distance,@tour_mode_is_bike & (od_skims['DISTBIKE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Not available if bike tour not within biking distance,@tour_mode_is_bike & (dp_skims['DISTBIKE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 #If transit tour is not in walk sub-zone it must be walkable,,,,,,,,,,,
 size term,"@np.log1p(size_terms.get(df.dest_taz, df.purpose)) # sharrow: np.log1p(size_terms['arry'])",1,1,1,1,1,1,1,1,1,1
 no attractions,"@size_terms.get(df.dest_taz, df.purpose) == 0 # sharrow: size_terms['arry'] == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

@@ -1,5 +1,4 @@
 Description,Target,Expression
-#,,
 ,_tour_mode,"reindex(tours.tour_mode, df.tour_id)"
 ,_tod,"np.where(df.outbound,reindex_i(tours.start, df.tour_id),reindex_i(tours.end, df.tour_id))"
 ,trip_period,network_los.skim_time_period_label(_tod)
@@ -9,5 +8,5 @@ Description,Target,Expression
 #,size_segment,"df.primary_purpose.where(df.primary_purpose != 'school', np.where(_grade_school,'gradeschool', 'highschool'))"
 ,tour_leg_dest,"np.where(df.outbound,reindex(tours.destination, df.tour_id), reindex(tours.origin, df.tour_id))"
 ,purpose_index_num,"size_terms.get_cols(df.purpose)"
-,walk_too_far,(_tour_mode=='WALK') & ((od_skims['DISTWALK'] > max_walk_distance) | (dp_skims['DISTWALK'] > max_walk_distance))
-,bike_too_far,(_tour_mode=='BIKE') & ((od_skims['DISTBIKE'] > max_bike_distance) | (dp_skims['DISTBIKE'] > max_bike_distance))
+,tour_mode_is_walk,"_tour_mode=='WALK'"
+,tour_mode_is_bike,"_tour_mode=='BIKE'"

@@ -178,7 +178,7 @@ reporting:
 
 - name: activitysim.workflows.steps.contrast.runtime
   in:
-    common_output_directory: "{workspace}/{example_name}/output-{tag}"
+    caption: Model Runtime
 
 - name: activitysim.workflows.steps.contrast.data_inventory
 

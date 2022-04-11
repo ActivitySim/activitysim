@@ -1,8 +1,7 @@
+import pandas as pd
 import os
-from pypyr.context import Context
 from .progression import reset_progress_step
-from .error_handler import error_logging
-
+from .wrapping import workstep
 
 def to_csv_safe(obj, filename, *args, **kwargs):
     """
@@ -19,18 +18,14 @@ def to_csv_safe(obj, filename, *args, **kwargs):
 
 
 
-@error_logging
-def run_step(context: Context) -> None:
+@workstep(updates_context=True)
+def composite_log(
+        tag,
+        archive_dir,
+) -> dict:
 
     reset_progress_step(description="composite timing and memory logs")
 
-    context.assert_key_has_value(key='tag', caller=__name__)
-    context.assert_key_has_value(key='archive_dir', caller=__name__)
-
-    tag = context.get_formatted('tag')
-    archive_dir = context.get_formatted('archive_dir')
-
-    import pandas as pd
     timings = {}
     compares = ['compile', 'sharrow', 'legacy']
     for t in compares:
@@ -52,3 +47,8 @@ def run_step(context: Context) -> None:
     if mems:
         composite_mem = pd.concat(mems, axis=1)
         to_csv_safe(composite_mem, f"{archive_dir}/combined_mem_log-{tag}.csv")
+
+    return dict(
+        combined_timing_log=f"{archive_dir}/combined_timing_log-{tag}.csv",
+        combined_mem_log=f"{archive_dir}/combined_mem_log-{tag}.csv",
+    )

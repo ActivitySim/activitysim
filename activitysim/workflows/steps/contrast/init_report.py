@@ -1,13 +1,14 @@
-from pypyr.context import Context
-from xmle import Reporter, NumberedCaption
+from xmle import NumberedCaption, Reporter
+
 from ..progression import reset_progress_step
+from ..wrapping import workstep
 
 
-def run_step(context: Context) -> None:
+@workstep(updates_context=True)
+def init_report(title,):
     reset_progress_step(description="initialize report")
-
-    title = context.get_formatted('title')
-    context['report'] = Reporter(title=title)
-    context['fig'] = NumberedCaption("Figure", level=2, anchor=True)
-    context['tab'] = NumberedCaption("Table", level=2, anchor=True)
-
+    return dict(
+        report=Reporter(title=title),
+        fig=NumberedCaption("Figure", level=2, anchor=True),
+        tab=NumberedCaption("Table", level=2, anchor=True),
+    )

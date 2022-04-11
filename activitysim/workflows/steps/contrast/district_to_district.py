@@ -9,41 +9,6 @@ from ..wrapping import report_step
 logger = logging.getLogger(__name__)
 
 
-# def run_step(context: Context) -> None:
-#
-#     context.assert_key_has_value(key='report', caller=__name__)
-#     report = context.get('report')
-#     fig = context.get('fig')
-#
-#     contrast_data = context.get('contrast_data')
-#     grouping = context.get_formatted('grouping')
-#     title = context.get_formatted('title') or "Trip Length Distribution"
-#     title_level = context.get('title_level', None)
-#
-#     tablename = context.get_formatted('tablename')
-#     district_id = context.get_formatted('district_id')
-#     filter = context.get_formatted('filter')
-#     size_label = context.get_formatted('size_label')
-#
-#     reset_progress_step(description=f"report trip distance / {grouping}")
-#
-#     with report:
-#         report << fig(title, level=title_level)
-#         report << compare_district_to_district(
-#                 contrast_data,
-#                 tablename,
-#                 district_id,
-#                 orig_col='home_zone_id',
-#                 dest_col='workplace_zone_id',
-#                 orig_label='home_district',
-#                 dest_label='work_district',
-#                 filter=filter,
-#                 data_dictionary=None,
-#                 size_label=size_label,
-#                 viz_engine='altair',
-#         )
-#
-
 
 @report_step
 def compare_district_to_district(

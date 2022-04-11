@@ -1,60 +1,53 @@
 import logging
 import pandas as pd
 import altair as alt
-from pypyr.context import Context
 from ....standalone.utils import chdir
 from ..progression import reset_progress_step
+from ..wrapping import report_step
 
 logger = logging.getLogger(__name__)
 
-def run_step(context: Context) -> None:
+
+@report_step
+def contrast_runtime(
+        combined_timing_log,
+        include_runs=('sharrow', 'legacy'),
+) -> None:
     reset_progress_step(description="report model runtime")
 
-    context.assert_key_has_value(key='common_output_directory', caller=__name__)
-    common_output_directory = context.get_formatted('common_output_directory')
+    include_runs = list(include_runs)
 
-    context.assert_key_has_value(key='report', caller=__name__)
-    report = context.get('report')
-    fig = context.get('fig')
-    tag = context.get('tag')
-    timing_log = f"combined_timing_log-{tag}.csv"
+    logger.info(f"building runtime report from {combined_timing_log}")
 
-    with report:
-        with chdir(common_output_directory):
+    df = pd.read_csv(combined_timing_log, index_col='model_name')
+    df1 = df[include_runs].rename_axis(columns="source").unstack().rename('seconds').reset_index()
+    c = alt.Chart(df1, height={"step": 20}, )
 
-            report << fig("Model Runtime")
+    result = c.mark_bar(
+        yOffset=-3,
+        size=6,
+    ).transform_filter(
+        (alt.datum.source == 'legacy')
+    ).encode(
+        x=alt.X('seconds:Q', stack=None),
+        y=alt.Y('model_name', type='nominal', sort=None),
+        color="source",
+        tooltip=['source', 'model_name', 'seconds']
+    ) + c.mark_bar(
+        yOffset=4,
+        size=6,
+    ).transform_filter(
+        (alt.datum.source == 'sharrow')
+    ).encode(
+        x=alt.X('seconds:Q', stack=None),
+        y=alt.Y('model_name', type='nominal', sort=None),
+        color="source",
+        tooltip=['source', 'model_name', 'seconds']
+    ) | alt.Chart(df1).mark_bar().encode(
+        color='source',
+        x='source',
+        y='sum(seconds)',
+        tooltip=['source', 'sum(seconds)']
+    )
 
-            logger.info(f"building runtime report from {common_output_directory}/{timing_log}")
-
-            df = pd.read_csv(timing_log, index_col='model_name')
-            df1 = df[['sharrow', 'legacy']].rename_axis(columns="source").unstack().rename('seconds').reset_index()
-            c = alt.Chart(df1, height={"step": 20}, )
-
-            result = c.mark_bar(
-                yOffset=-3,
-                size=6,
-            ).transform_filter(
-                (alt.datum.source == 'legacy')
-            ).encode(
-                x=alt.X('seconds:Q', stack=None),
-                y=alt.Y('model_name', type='nominal', sort=None),
-                color="source",
-                tooltip=['source', 'model_name', 'seconds']
-            ) + c.mark_bar(
-                yOffset=4,
-                size=6,
-            ).transform_filter(
-                (alt.datum.source == 'sharrow')
-            ).encode(
-                x=alt.X('seconds:Q', stack=None),
-                y=alt.Y('model_name', type='nominal', sort=None),
-                color="source",
-                tooltip=['source', 'model_name', 'seconds']
-            ) | alt.Chart(df1).mark_bar().encode(
-                color='source',
-                x='source',
-                y='sum(seconds)',
-                tooltip=['source', 'sum(seconds)']
-            )
-
-            report << result
+    return result

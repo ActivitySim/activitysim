@@ -29,6 +29,7 @@ dependencies:
 - git
 - gh
 - bump2version
+- simwrapper > 1.7
 
 - pip:
   - -e ..

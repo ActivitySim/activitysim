@@ -22,3 +22,4 @@ dependencies:
 - coveralls
 - pycodestyle
 - pytest-regressions
+- simwrapper > 1.7

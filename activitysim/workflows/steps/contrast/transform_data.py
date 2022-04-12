@@ -1,5 +1,6 @@
 import logging
 import pandas as pd
+import numpy as np
 from pypyr.context import Context
 from ..progression import reset_progress_step
 from ..wrapping import report_step
@@ -18,12 +19,19 @@ def transform_data(
     cut=None,
     clip=None,
     censor=None,
+    eval=None,
 ) -> dict:
 
     if qcut is None and cut is None and clip is None and censor is None:
         raise ValueError("must give at least one of {cut, qcut, clip, censor}")
 
     reset_progress_step(description=f"attach transformed data / {tablename} <- {out}")
+
+    if eval is not None:
+        for key, tableset in tablesets.items():
+            for target, expr in eval.items():
+                tableset[tablename][target] = tableset[tablename].eval(expr)
+        return dict(tablesets=tablesets)
 
     # collect all series into a common vector, so bins are common
     pieces = {}

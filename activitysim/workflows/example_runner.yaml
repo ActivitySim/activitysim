@@ -193,9 +193,9 @@ reporting:
   in:
     tablename: households
     column: hhsize
-    out: hhsize_to6
+    out: hhsize_to5
     clip:
-      upper: 6
+      upper: 5
 
 - name: activitysim.workflows.steps.contrast.transform_data
   in:
@@ -209,15 +209,32 @@ reporting:
         - mid
         - high
 
-- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+- name: activitysim.workflows.steps.contrast.nominal_choice
   in:
-    caption: Household Auto Ownership by Size
+    caption: Household Auto Ownership Counts by Household Size
     caption_level: 3
     tablename: households
     nominal_col: auto_ownership
     row_grouping:
-      field: hhsize_to6
-      title: Household Size (up to 6)
+      field: hhsize_to5
+      title: Household Size (up to 5)
+    col_grouping:
+      field: income_tertile
+      sort: [low, mid, high]
+      title: Income Tertile
+    ordinal: true
+    plot_type: count
+    axis_label: "# of Households"
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  in:
+    caption: Household Auto Ownership Shares by Household Size
+    caption_level: 3
+    tablename: households
+    nominal_col: auto_ownership
+    row_grouping:
+      field: hhsize_to5
+      title: Household Size (up to 5)
     col_grouping:
       field: income_tertile
       sort: [low, mid, high]
@@ -231,7 +248,7 @@ reporting:
   in:
     title: Coordinated Daily Activity Pattern
 
-- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+- name: activitysim.workflows.steps.contrast.nominal_choice
   in:
     caption: Coordinated Daily Activity Pattern by Person Type
     caption_level: 3
@@ -240,7 +257,8 @@ reporting:
     row_grouping:
       field: ptype
       title: Person Type
-    share_axis_label: Daily Activity Pattern Share
+    axis_label: Daily Activity Pattern Count
+    plot_type: count
 
 
 #### Tour Mode Choice ####
@@ -249,23 +267,48 @@ reporting:
   in:
     title: Tour Mode Choice
 
-- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+- name: activitysim.workflows.steps.contrast.nominal_choice
   in:
     caption: Tour Mode Choice by Primary Purpose
     caption_level: 3
     tablename: tours
     nominal_col: tour_mode
     row_grouping: primary_purpose
-    share_axis_label: Tour Mode Share
+    axis_label: Tour Mode Share
 
-- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+- name: activitysim.workflows.steps.contrast.nominal_choice
   in:
     caption: Tour Mode Choice by Composition
     caption_level: 3
     tablename: tours
     nominal_col: tour_mode
     row_grouping: composition
-    share_axis_label: Tour Mode Share
+    axis_label: Tour Mode Share
+
+
+#### Tour Schedule ####
+
+- name: activitysim.workflows.steps.contrast.section_title
+  in:
+    title: Tour Scheduling
+
+- name: activitysim.workflows.steps.contrast.ordinal_distribution
+  in:
+    caption: Tour Start Time by Primary Purpose
+    caption_level: 3
+    tablename: tours
+    ordinal_col: start
+    facet_grouping: primary_purpose
+    plot_type: count
+
+- name: activitysim.workflows.steps.contrast.ordinal_distribution
+  in:
+    caption: Tour Duration by Primary Purpose
+    caption_level: 3
+    tablename: tours
+    ordinal_col: duration
+    facet_grouping: primary_purpose
+    plot_type: count
 
 
 #### Trip Mode Choice ####
@@ -274,23 +317,23 @@ reporting:
   in:
     title: Trip Mode Choice
 
-- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+- name: activitysim.workflows.steps.contrast.nominal_choice
   in:
     caption: Trip Mode Choice by Primary Purpose
     caption_level: 3
     tablename: trips
     nominal_col: trip_mode
     row_grouping: primary_purpose
-    share_axis_label: Trip Mode Share
+    axis_label: Trip Mode Share
 
-- name: activitysim.workflows.steps.contrast.nominal_choice_shares
+- name: activitysim.workflows.steps.contrast.nominal_choice
   in:
     caption: Trip Mode Choice by Departure Time
     caption_level: 3
     tablename: trips
     nominal_col: trip_mode
     row_grouping: depart
-    share_axis_label: Trip Mode Share
+    axis_label: Trip Mode Share
 
 
 #### Trip Distance ####

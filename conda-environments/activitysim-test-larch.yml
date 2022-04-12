@@ -25,3 +25,6 @@ dependencies:
 - coveralls
 - pycodestyle
 - pytest-regressions
+- xarray
+- sharrow
+- simwrapper > 1.7

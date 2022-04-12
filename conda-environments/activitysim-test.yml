@@ -24,3 +24,4 @@ dependencies:
 - pytest-regressions
 - sharrow >= 2.0
 - xarray >= 0.21
+- simwrapper > 1.7

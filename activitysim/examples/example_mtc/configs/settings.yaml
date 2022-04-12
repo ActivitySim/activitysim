@@ -216,6 +216,7 @@ models:
   - track_skim_usage
   - write_trip_matrices
   - write_tables
+  - summarize
 
 output_tables:
   h5_store: False

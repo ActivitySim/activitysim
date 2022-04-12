@@ -87,8 +87,7 @@
         "pytest": [],
         "cytoolz": [],
         "zarr": [],
-        "sharrow": ["pip+/Users/jeffnewman/LocalGit/sharrow_lite/dist/sharrow-2021.4-py3-none-any.whl"],
-        "sharrow_pro": ["pip+/Users/jeffnewman/LocalGit/sharrow_pro/dist/sharrow_pro-2021.4-py3-none-any.whl"]
+        "sharrow": []
     },
 
     // Combinations of libraries/python versions can be excluded/included

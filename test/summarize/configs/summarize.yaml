@@ -1,0 +1,132 @@
+SPECIFICATION: summarize.csv
+OUTPUT: summarize
+
+# Set to True to export pipeline tables for expression development
+EXPORT_PIPELINE_TABLES: True
+
+preprocessor:
+  DF: trips_merged
+  SPEC: summarize_preprocessor.csv
+#  TABLES:
+
+persons_merged:
+  
+  BIN:
+    # Manually-specified bins
+    - column: income
+      label: income_category
+      type: manual_breaks
+      bin_breaks:
+        - 0
+        - 25000
+        - 50000
+        - 75000
+        - 100000
+        - 999999
+      bin_labels:
+        - Very Low Income ($0-$25k)
+        - Low Income ($25k-$50k)
+        - Medium Income ($50k-$75k)
+        - High Income ($75k-$100k)
+        - Very High Income (>$100k)
+
+      # Breaks column into quantiles
+    - column: income
+      label: income_quintile
+      type: quantiles
+      bins: 5
+      label_format: ${left:,.2f} - ${right:,.2f} # 'left' and 'right' are bin boundaries
+
+      # Breaks column into bins with a specified width
+    - column: income
+      label: income_intervals_10000
+      type: spaced_intervals
+      lower_bound: min # can be set to float
+      interval: 10000
+      label_format: ${left:,.2f} - ${right:,.2f} # 'left' and 'right' are bin boundaries
+
+      # Breaks column into equally-spaced bins between min and max values
+    - column: income
+      label: income_intervals_equal
+      type: equal_intervals
+      bins: 10
+      label_format: ${left:,.2f} - ${right:,.2f} # 'left' and 'right' are bin boundaries
+
+trips_merged:
+  
+  BIN:
+    - column: income
+      label: trip_income_category # TODO: Figure out why this can't have the same name as a slicer for persons_merged
+      type: manual_breaks
+      bin_breaks:
+        - 0
+        - 25000
+        - 50000
+        - 75000
+        - 100000
+        - 999999
+      bin_labels:
+        - Very Low Income ($0-$25k)
+        - Low Income ($25k-$50k)
+        - Medium Income ($50k-$75k)
+        - High Income ($75k-$100k)
+        - Very High Income (>$100k)
+
+    - column: total_time
+      label: total_time_category
+      type: spaced_intervals
+      lower_bound: 0 # can be set to float
+      interval: 5
+      label_format: "{left:,.2f} - {right:,.2f}" # 'left' and 'right' are bin boundaries
+
+
+  AGGREGATE:
+    - column: trip_mode
+      label: major_trip_mode
+      map:
+        DRIVEALONEFREE: SOV
+        DRIVEALONEPAY: SOV
+        SHARED2FREE: HOV
+        SHARED2PAY: HOV
+        SHARED3FREE: HOV
+        SHARED3PAY: HOV
+        WALK_LOC: Transit
+        WALK_LRF: Transit
+        WALK_EXP: Transit
+        WALK_HVY: Transit
+        WALK_COM: Transit
+        DRIVE_LOC: Transit
+        DRIVE_LRF: Transit
+        DRIVE_EXP: Transit
+        DRIVE_HVY: Transit
+        DRIVE_COM: Transit
+        DRIVEACCESS: Transit
+        WALK: Non-Motorized
+        BIKE: Non-Motorized
+        TAXI: Ride Hail
+        TNC_SINGLE: Ride Hail
+        TNC_SHARED: Ride Hail
+    - column: trip_mode
+      label: major_access_trip_mode
+      map:
+        DRIVEALONEFREE: SOV
+        DRIVEALONEPAY: SOV
+        SHARED2FREE: HOV
+        SHARED2PAY: HOV
+        SHARED3FREE: HOV
+        SHARED3PAY: HOV
+        WALK_LOC: Walk to Transit
+        WALK_LRF: Walk to Transit
+        WALK_EXP: Walk to Transit
+        WALK_HVY: Walk to Transit
+        WALK_COM: Walk to Transit
+        DRIVE_LOC: Drive to Transit
+        DRIVE_LRF: Drive to Transit
+        DRIVE_EXP: Drive to Transit
+        DRIVE_HVY: Drive to Transit
+        DRIVE_COM: Drive to Transit
+        WALK: Non-Motorized
+        BIKE: Non-Motorized
+        TAXI: Ride Hail
+        TNC_SINGLE: Ride Hail
+        TNC_SHARED: Ride Hail

@@ -53,7 +53,7 @@ ASV_CONFIG = {
         "filelock": [],
         "dask": [],
         "networkx": [],
-        # "sharrow": [],
+        "sharrow": [],
     },
     # The directory (relative to the current directory) to cache the Python
     # environments in.  If not provided, defaults to "env"

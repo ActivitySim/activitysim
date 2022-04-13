@@ -38,6 +38,28 @@ def annotate_vehicle_allocation(model_settings, trace_label):
     pipeline.replace_table("tours", tours)
 
 
+def get_skim_dict(network_los, choosers):
+    skim_dict = network_los.get_default_skim_dict()
+    orig_col_name = 'home_zone_id'
+    dest_col_name = 'destination'
+
+    out_time_col_name = 'start'
+    in_time_col_name = 'end'
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
+                                               dim3_key='out_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
+                                               dim3_key='in_period')
+
+    choosers['in_period'] = network_los.skim_time_period_label(choosers[in_time_col_name])
+    choosers['out_period'] = network_los.skim_time_period_label(choosers[out_time_col_name])
+
+    skims = {
+        "odt_skims": odt_skim_stack_wrapper.set_df(choosers),
+        "dot_skims": dot_skim_stack_wrapper.set_df(choosers),
+    }
+    return skims
+
+
 @inject.step()
 def vehicle_allocation(
         persons,
@@ -113,6 +135,7 @@ def vehicle_allocation(
             vehicles_wide[col_name] = ''
 
     # last entry in spec is the non-hh-veh option
+    assert alts_from_spec[-1] == 'non_hh_veh', "Last option in spec needs to be non_hh_veh"
     vehicles_wide[alts_from_spec[-1]] = ''
 
     # merging vehicle alternatives to choosers
@@ -120,47 +143,8 @@ def vehicle_allocation(
     choosers = pd.merge(choosers, vehicles_wide, how='left', on='household_id')
     choosers.set_index('tour_id', inplace=True)
 
-    # merging vehicle data into choosers if supplied
-    if model_settings.get('VEHICLE_TYPE_DATA_FILE'):
-        vehicle_type_data = pd.read_csv(config.config_file_path(
-            model_settings.get('VEHICLE_TYPE_DATA_FILE')), comment='#')
-        fleet_year = model_settings.get('FLEET_YEAR')
-        vehicle_type_data['age'] = (1 + fleet_year - vehicle_type_data['vehicle_year']).astype(int)
-        vehicle_type_data['vehicle_type'] = vehicle_type_data[
-            ['body_type', 'age', 'fuel_type']].astype(str).agg('_'.join, axis=1)
-
-        vehicle_data_cols = model_settings.get('VEHICLE_DATA_TO_INCLUDE')
-        vehicle_type_data.set_index('vehicle_type', inplace=True)
-        vehicle_type_data = vehicle_type_data[vehicle_data_cols]
-        cols = vehicle_type_data.columns
-
-        # joining data for each alternative where the column name is suffixed by
-        #  the alternative number.  i.e. Range -> Range_1, Range_2, etc.
-        for veh_num, col_name in vehicle_alt_columns_dict.items():
-            vehicle_type_data.columns = cols + '_' + str(veh_num)
-            # need to ensure type incase column is all NA (i.e. no hh has 4 veh in sample)
-            # choosers[col_name] = choosers[col_name].astype(str)
-            choosers = pd.merge(choosers, vehicle_type_data, how='left', left_on=col_name, right_index=True)
-
     # ----- setup skim keys
-    skim_dict = network_los.get_default_skim_dict()
-    orig_col_name = 'home_zone_id'
-    dest_col_name = 'destination'
-
-    out_time_col_name = 'start'
-    in_time_col_name = 'end'
-    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col_name, dest_key=dest_col_name,
-                                               dim3_key='out_period')
-    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col_name, dest_key=orig_col_name,
-                                               dim3_key='in_period')
-
-    choosers['in_period'] = network_los.skim_time_period_label(choosers[in_time_col_name])
-    choosers['out_period'] = network_los.skim_time_period_label(choosers[out_time_col_name])
-
-    skims = {
-        "odt_skims": odt_skim_stack_wrapper.set_df(choosers),
-        "dot_skims": dot_skim_stack_wrapper.set_df(choosers),
-    }
+    skims = get_skim_dict(network_los, choosers)
     locals_dict.update(skims)
 
     # ------ preprocessor
@@ -181,7 +165,6 @@ def vehicle_allocation(
         estimator.write_choosers(choosers)
 
     tours = tours.to_frame()
-    choosers.to_csv('allocation_choosers.csv')
 
     # ------ running for each occupancy level selected
     tours_veh_occup_cols = []
@@ -204,7 +187,7 @@ def vehicle_allocation(
         # matching alt names to choices
         choices = choices.map(dict(list(zip(list(range(len(alts_from_spec))), alts_from_spec)))).to_frame()
         choices.columns = ['alt_choice']
-        choices.to_csv(f'choices_{occup}.csv')
+
         # last alternative is the non-household vehicle option
         for alt in alts_from_spec[:-1]:
             choices.loc[choices['alt_choice'] == alt, 'choice'] = \
@@ -218,7 +201,7 @@ def vehicle_allocation(
 
     if estimator:
         estimator.write_choices(choices)
-        choices = estimator.get_survey_values(choices, 'households', 'vehicle_type_choice')
+        choices = estimator.get_survey_values(choices, 'households', 'vehicle_allocation')
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 

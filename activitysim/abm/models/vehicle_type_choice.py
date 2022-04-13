@@ -46,7 +46,7 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict, model_settings):
         columns=alts_cats_dict.keys()).astype(str)
     alts_wide = pd.get_dummies(alts_long)  # rows will sum to num_cats
 
-    # store alts in primary configs dir
+    # store alts in primary configs dir -- is this the best place for it?
     configs_dirs = inject.get_injectable("configs_dir")
     configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
 
@@ -319,6 +319,7 @@ def iterate_vehicle_type_choice(
     additional_cols = model_settings.get('COLS_TO_INCLUDE_IN_VEHICLE_TABLE')
     if additional_cols:
         additional_cols.append('vehicle_type')
+        print(vehicle_type_data[additional_cols])
         all_choices = all_choices.reset_index().merge(
             vehicle_type_data[additional_cols],
             how='left', on='vehicle_type').set_index('vehicle_id')

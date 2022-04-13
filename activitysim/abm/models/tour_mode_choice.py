@@ -9,6 +9,7 @@ from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import inject
 from activitysim.core import pipeline
+from activitysim.core import expressions
 
 from activitysim.core.util import assign_in_place
 
@@ -194,6 +195,15 @@ def tour_mode_choice_simulate(tours, persons_merged,
     assign_in_place(all_tours, choices_df)
 
     pipeline.replace_table("tours", all_tours)
+
+    # - annotate tours table
+    if model_settings.get('annotate_tours'):
+        tours = inject.get_table('tours').to_frame()
+        expressions.assign_columns(
+            df=tours,
+            model_settings=model_settings.get('annotate_tours'),
+            trace_label=tracing.extend_trace_label(trace_label, 'annotate_tours'))
+        pipeline.replace_table("tours", tours)
 
     if trace_hh_id:
         tracing.trace_df(primary_tours,

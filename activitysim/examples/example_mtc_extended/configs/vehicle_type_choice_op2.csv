@@ -1,0 +1,169 @@
+Label,Description,Expression,Coefficient
+#,income,,
+util_i025_age,Income $0-25k - Age,"((income < 25000) & (income > -1)) * age",coef_i025_age
+util_i2550_age,Income $25-50k - Age,"((income < 50000) & (income >= 25000)) * age",coef_i2550_age
+util_i100_age,Income $100-150k - Age,"((income < 150000) & (income >= 100000)) * age",coef_i100_age
+util_i150p_age,Income $150k+ - Age,"(income > 150000) * age",coef_i150p_age
+util_i025_van,Income $0-25k - Van,"((income < 25000) & (income > -1)) & (body_type == 'Van')",coef_i025_van
+util_i2550_van,Income $25-50k - Van,"((income < 50000) & (income >= 25000)) & (body_type == 'Van')",coef_i2550_van
+util_i100_van,Income $100-150k - Van,"((income < 150000) & (income >= 100000)) & (body_type == 'Van')",coef_i100_van
+util_i150p_van,Income $150k+ - Van,"(income > 150000) & (body_type == 'Van')",coef_i150p_van
+util_i025_suv,Income $0-25k - SUV,"((income < 25000) & (income > -1)) & (body_type == 'SUV')",coef_i025_suv
+util_i2550_suv,Income $25-50k - SUV,"((income < 50000) & (income >= 25000)) & (body_type == 'SUV')",coef_i2550_suv
+util_i100_suv,Income $100-150k - SUV,"((income < 150000) & (income >= 100000)) & (body_type == 'SUV')",coef_i100_suv
+util_i150p_suv,Income $150k+ - SUV,"(income > 150000) & (body_type == 'SUV')",coef_i150p_suv
+util_i025_pu,Income $0-25k - Pickup,"((income < 25000) & (income > -1)) & (body_type == 'Pickup')",coef_i025_pu
+util_i2550_pu,Income $25-50k - Pickup,"((income < 50000) & (income >= 25000)) & (body_type == 'Pickup')",coef_i2550_pu
+util_i100_pu,Income $100-150k - Pickup,"((income < 150000) & (income >= 100000)) & (body_type == 'Pickup')",coef_i100_pu
+util_i150p_pu,Income $150k+ - Pickup,"(income > 150000) & (body_type == 'Pickup')",coef_i150p_pu
+util_i025_mc,Income $0-25k - Motorcycle,"((income < 25000) & (income > -1)) & (body_type == 'Motorcycle')",coef_i025_mc
+util_i2550_mc,Income $25-50k - Motorcycle,"((income < 50000) & (income >= 25000)) & (body_type == 'Motorcycle')",coef_i2550_mc
+util_i100_mc,Income $100-150k - Motorcycle,"((income < 150000) & (income >= 100000)) & (body_type == 'Motorcycle')",coef_i100_mc
+util_i150p_mc,Income $150k+ - Motorcycle,"(income > 150000) & (body_type == 'Motorcycle')",coef_i150p_mc
+util_imiss_van,Income Missing - Van,"((income < 0) | income.isna()) & (body_type == 'Van')",coef_imiss_van
+util_imiss_suv,Income Missing - SUV,"((income < 0) | income.isna()) & (body_type == 'SUV')",coef_imiss_suv
+util_imiss_pu,Income Missing - Pickup,"((income < 0) | income.isna()) & (body_type == 'Pickup')",coef_imiss_pu
+util_imiss_mc,Income Missing - Motorcycle,"((income < 0) | income.isna()) & (body_type == 'Motorcycle')",coef_imiss_mc
+util_imiss_age,Income Missing - Age,"((income < 0) | income.isna()) * age",coef_imiss_age
+#,household density variables,,
+util_den3_van,500-999 HH / sq mi Van,"((hh_per_mi < 1000) & (hh_per_mi >= 500)) & (body_type == 'Van')",coef_den3_van
+util_den4_van,1000-1999 HH / sq mi Van,"((hh_per_mi < 2000) & (hh_per_mi >= 1000)) & (body_type == 'Van')",coef_den4_van
+util_den5_van,2000-3999 HH / sq mi Van,"((hh_per_mi < 4000) & (hh_per_mi >= 2000)) & (body_type == 'Van')",coef_den5_van
+util_den6_van,4000-9999 HH / sq mi Van,"((hh_per_mi < 10000) & (hh_per_mi >= 4000)) & (body_type == 'Van')",coef_den6_van
+util_den7_van,10000-24999 HH / sq mi Van,"((hh_per_mi < 25000) & (hh_per_mi >= 10000)) & (body_type == 'Van')",coef_den7_van
+util_den8_van,25000+ HH / sq mi Van,"(hh_per_mi >= 25000) & (body_type == 'Van')",coef_den8_van
+util_den3_suv,500-999 HH / sq mi SUV,"((hh_per_mi < 1000) & (hh_per_mi >= 500)) & (body_type == 'SUV')",coef_den3_suv
+util_den4_suv,1000-1999 HH / sq mi SUV,"((hh_per_mi < 2000) & (hh_per_mi >= 1000)) & (body_type == 'SUV')",coef_den4_suv
+util_den5_suv,2000-3999 HH / sq mi SUV,"((hh_per_mi < 4000) & (hh_per_mi >= 2000)) & (body_type == 'SUV')",coef_den5_suv
+util_den6_suv,4000-9999 HH / sq mi SUV,"((hh_per_mi < 10000) & (hh_per_mi >= 4000)) & (body_type == 'SUV')",coef_den6_suv
+util_den7_suv,10000-24999 HH / sq mi SUV,"((hh_per_mi < 25000) & (hh_per_mi >= 10000)) & (body_type == 'SUV')",coef_den7_suv
+util_den8_suv,25000+ HH / sq mi SUV,"(hh_per_mi >= 25000) & (body_type == 'SUV')",coef_den8_suv
+util_den3_pu,500-999 HH / sq mi Pickup,"((hh_per_mi < 1000) & (hh_per_mi >= 500)) & (body_type == 'Pickup')",coef_den3_pu
+util_den4_pu,1000-1999 HH / sq mi Pickup,"((hh_per_mi < 2000) & (hh_per_mi >= 1000)) & (body_type == 'Pickup')",coef_den4_pu
+util_den5_pu,2000-3999 HH / sq mi Pickup,"((hh_per_mi < 4000) & (hh_per_mi >= 2000)) & (body_type == 'Pickup')",coef_den5_pu
+util_den6_pu,4000-9999 HH / sq mi Pickup,"((hh_per_mi < 10000) & (hh_per_mi >= 4000)) & (body_type == 'Pickup')",coef_den6_pu
+util_den7_pu,10000-24999 HH / sq mi Pickup,"((hh_per_mi < 25000) & (hh_per_mi >= 10000)) & (body_type == 'Pickup')",coef_den7_pu
+util_den8_mc,25000+ HH / sq mi Pickup,"(hh_per_mi >= 25000) & (body_type == 'Pickup')",coef_den8_pu
+util_den3_mc,500-999 HH / sq mi Motorcycle,"((hh_per_mi < 1000) & (hh_per_mi >= 500)) & (body_type == 'Motorcycle')",coef_den3_mc
+util_den4_mc,1000-1999 HH / sq mi Motorcycle,"((hh_per_mi < 2000) & (hh_per_mi >= 1000)) & (body_type == 'Motorcycle')",coef_den4_mc
+util_den5_mc,2000-3999 HH / sq mi Motorcycle,"((hh_per_mi < 4000) & (hh_per_mi >= 2000)) & (body_type == 'Motorcycle')",coef_den5_mc
+util_den6_mc,4000-9999 HH / sq mi Motorcycle,"((hh_per_mi < 10000) & (hh_per_mi >= 4000)) & (body_type == 'Motorcycle')",coef_den6_mc
+util_den7_mc,10000-24999 HH / sq mi Motorcycle,"((hh_per_mi < 25000) & (hh_per_mi >= 10000)) & (body_type == 'Motorcycle')",coef_den7_mc
+util_den8_mc,25000+ HH / sq mi Motorcycle,"(hh_per_mi >= 25000) & (body_type == 'Motorcycle')",coef_den8_mc
+#,household interactions,,
+util_oneveh_age,Household owns 1 vehicle * Age,"(auto_ownership == 1) * age",coef_oneveh_age
+util_vhgtdr_van,Household vehicles gt drivers for Van,hh_veh_gt_drivers * (body_type == 'Van'),coef_vhgtdr_van
+util_vhgtdr_suv,Household vehicles gt drivers for SUV,hh_veh_gt_drivers * (body_type == 'SUV'),coef_vhgtdr_suv
+util_vhgtdr_pu,Household vehicles gt drivers for Pickup,hh_veh_gt_drivers * (body_type == 'Pickup'),coef_vhgtdr_pu
+util_vhgtdr_mc,Household vehicles gt drivers for Motorcycle,hh_veh_gt_drivers * (body_type == 'Motorcycle'),coef_vhgtdr_mc
+util_vhgtdr_age,Household vehicles gt drivers for age,hh_veh_gt_drivers * age,coef_vhgtdr_age
+#,interacting with number of children,,
+util_nchld_van,Number of children max 3 * Van,num_children.clip(upper=3) * (body_type == 'Van'),coef_nchld_van
+util_nchld_suv,Number of children max 3 * SUV,num_children.clip(upper=3) * (body_type == 'SUV'),coef_nchld_suv
+util_nchld_pu,Number of children max 3 * Pickup,num_children.clip(upper=3) * (body_type == 'Pickup'),coef_nchld_pu
+util_nchld_mc,Number of children max 3 * Motorcycle,num_children.clip(upper=3) * (body_type == 'Motorcycle'),coef_nchld_mc
+util_nchld_age,Number of children max 3 * age,num_children.clip(upper=3) * age,coef_nchld_age
+util_dstwkt_age,Total distance to work * age,total_hh_dist_to_work_cap * age,coef_dstwkt_age
+#,household already owning vehicles,,
+util_van_van,Household already owns a Van -- Van,"(num_hh_Van > 0) & (body_type == 'Van')",coef_van_van
+util_van_suv,Household already owns a Van -- SUV,"(num_hh_Van > 0) & (body_type == 'SUV')",coef_van_suv
+util_van_pu,Household already owns a Van -- Pickup,"(num_hh_Van > 0) & (body_type == 'Pickup')",coef_van_pu
+util_van_mc,Household already owns a Van -- Motorcycle,"(num_hh_Van > 0) & (body_type == 'Motorcycle')",coef_van_mc
+util_van_suv,Household already owns an SUV -- Van (symmetrical with above),"(num_hh_SUV > 0) & (body_type == 'Van')",coef_van_suv
+util_suv_suv,Household already owns an SUV -- SUV,"(num_hh_SUV > 0) & (body_type == 'SUV')",coef_suv_suv
+util_suv_pu,Household already owns an SUV -- Pickup,"(num_hh_SUV > 0) & (body_type == 'Pickup')",coef_suv_pu
+util_suv_mc,Household already owns an SUV -- Motorcycle,"(num_hh_SUV > 0) & (body_type == 'Motorcycle')",coef_suv_mc
+util_van_pu,Household already owns a Pickup -- Van (symmetrical with above),"(num_hh_Pickup > 0) & (body_type == 'Van')",coef_van_pu
+util_suv_pu,Household already owns a Pickup -- SUV (symmetrical with above),"(num_hh_Pickup > 0) & (body_type == 'SUV')",coef_suv_pu
+util_pu_pu,Household already owns a Pickup -- Pickup,"(num_hh_Pickup > 0) & (body_type == 'Pickup')",coef_pu_pu
+util_pu_mc,Household already owns a Pickup -- Motorcycle,"(num_hh_Pickup > 0) & (body_type == 'Motorcycle')",coef_pu_mc
+util_van_mc,Household already owns a Motorcycle -- Van (symmetrical with above),"(num_hh_Motorcycle > 0) & (body_type == 'Van')",coef_van_mc
+util_suv_mc,Household already owns a Motorcycle -- SUV (symmetrical with above),"(num_hh_Motorcycle > 0) & (body_type == 'SUV')",coef_suv_mc
+util_pu_mc,Household already owns a Motorcycle -- Pickup (symmetrical with above),"(num_hh_Motorcycle > 0) & (body_type == 'Pickup')",coef_pu_mc
+util_mc_mc,Household already owns a Motorcycle -- Motorcycle,"(num_hh_Motorcycle > 0) & (body_type == 'Motorcycle')",coef_mc_mc
+util_only_van,Household only owns Vans,"(num_hh_Van > 0) & (num_hh_Van == num_hh_veh_owned) & (body_type == 'Van')",coef_only_van
+util_only_suv,Household only owns SUVs,"(num_hh_SUV > 0) & (num_hh_SUV == num_hh_veh_owned) & (body_type == 'SUV')",coef_only_suv
+util_only_pu,Household only owns Pickups,"(num_hh_Pickup > 0) & (num_hh_Pickup == num_hh_veh_owned) & (body_type == 'Pickup')",coef_only_pu
+util_only_mc,Household only owns Motorcycles,"(num_hh_Motorcycle > 0) & (num_hh_Motorcycle == num_hh_veh_owned) & (body_type == 'Motorcycle')",coef_only_mc
+#,constants,,
+util_van,Van ASC,(body_type == 'Van'),coef_van
+util_suv,SUV ASC,(body_type == 'SUV'),coef_suv
+util_pu,Pickup ASC,(body_type == 'Pickup'),coef_pu
+util_mc,Motorcycle ASC,(body_type == 'Motorcycle'),coef_mc
+util_age2,Age 2 ASC,(age==2),coef_age2
+util_age3,Age 3 ASC,(age==3),coef_age3
+util_age4,Age 4 ASC,(age==4),coef_age4
+util_age5,Age 5 ASC,(age==5),coef_age5
+util_age6,Age 6 ASC,(age==6),coef_age6
+util_age7,Age 7 ASC,(age==7),coef_age7
+util_age8,Age 8 ASC,(age==8),coef_age8
+util_age9,Age 9 ASC,(age==9),coef_age9
+util_age10,Age 10 ASC,(age==10),coef_age10
+util_age11,Age 11 ASC,(age==11),coef_age11
+util_age12,Age 12 ASC,(age==12),coef_age12
+util_age13,Age 13 ASC,(age==13),coef_age13
+util_age14,Age 14 ASC,(age==14),coef_age14
+util_age15,Age 15 ASC,(age==15),coef_age15
+util_age16,Age 16 ASC,(age==16),coef_age16
+util_age17,Age 17 ASC,(age==17),coef_age17
+util_age18,Age 18 ASC,(age==18),coef_age18
+util_age19,Age 19 ASC,(age==19),coef_age19
+util_age20,Age 20 ASC,(age==20),coef_age20
+#,rural household coefficients,,
+util_rural_van,Household is in Rural Area - Van,"home_is_rural & (body_type == 'Van')",coef_rural_van
+util_rural_suv,Household is in Rural Area - SUV,"home_is_rural & (body_type == 'SUV')",coef_rural_suv
+util_rural_pu,Household is in Rural Area - Pickup,"home_is_rural & (body_type == 'Pickup')",coef_rural_pu
+util_rural_mc,Household is in Rural Area - Motorcycle,"home_is_rural & (body_type == 'Motorcycle')",coef_rural_mc
+util_rural_age,Household is in Rural Area - Age,"home_is_rural * age",coef_rural_age
+#,MSA population coefficients,,
+util_smsa_van,MSA population less than 1 million - Van,"@(MSA_POP < 1000000) * (df.body_type == 'Van')",coef_smsa_van
+util_smsa_suv,MSA population less than 1 million - SUV,"@(MSA_POP < 1000000) * (df.body_type == 'SUV')",coef_smsa_suv
+util_smsa_pu,MSA population less than 1 million - Pickup,"@(MSA_POP < 1000000) * (df.body_type == 'Pickup')",coef_smsa_pu
+util_smsa_mc,MSA population less than 1 million - Motorcycle,"@(MSA_POP < 1000000) * (df.body_type == 'Motorcycle')",coef_smsa_mc
+util_smsa_age,MSA population less than 1 million - Age,"@(MSA_POP < 1000000) * df.age",coef_smsa_age
+#,Region Specific Constants,,
+util_sfo_van,SF and San Jose - Van,"@(CBSA == 'SFO') * (df.body_type == 'Van')",coef_sfo_van
+util_sfo_suv,SF and San Jose - SUV,"@(CBSA == 'SFO') * (df.body_type == 'SUV')",coef_sfo_suv
+util_sfo_pu,SF and San Jose - Pickup,"@(CBSA == 'SFO') * (df.body_type == 'Pickup')",coef_sfo_pu
+util_sfo_mc,SF and San Jose - Motorcycle,"@(CBSA == 'SFO') * (df.body_type == 'Motorcycle')",coef_sfo_mc
+util_sfo_age,SF and San Jose - Age,"@(CBSA == 'SFO') * df.age",coef_sfo_age
+util_san_van,San Diego - Van,"@(CBSA == 'SAN') * (df.body_type == 'Van')",coef_san_van
+util_san_suv,San Diego - SUV,"@(CBSA == 'SAN') * (df.body_type == 'SUV')",coef_san_suv
+util_san_pu,San Diego - Pickup,"@(CBSA == 'SAN') * (df.body_type == 'Pickup')",coef_san_pu
+util_san_mc,San Diego - Motorcycle,"@(CBSA == 'SAN') * (df.body_type == 'Motorcycle')",coef_san_mc
+util_san_age,San Diego - Age,"@(CBSA == 'SAN') * df.age",coef_san_age
+util_atl_van,Atlanta - Van,"@(CBSA == 'ATL') * (df.body_type == 'Van')",coef_atl_van
+util_atl_suv,Atlanta - SUV,"@(CBSA == 'ATL') * (df.body_type == 'SUV')",coef_atl_suv
+util_atl_pu,Atlanta - Pickup,"@(CBSA == 'ATL') * (df.body_type == 'Pickup')",coef_atl_pu
+util_atl_mc,Atlanta - Motorcycle,"@(CBSA == 'ATL') * (df.body_type == 'Motorcycle')",coef_atl_mc
+util_atl_age,Atlanta - Age,"@(CBSA == 'ATL') * df.age",coef_atl_age
+util_sea_van,Seattle - Van,"@(CBSA == 'SEA') * (df.body_type == 'Van')",coef_sea_van
+util_sea_suv,Seattle - SUV,"@(CBSA == 'SEA') * (df.body_type == 'SUV')",coef_sea_suv
+util_sea_pu,Seattle - Pickup,"@(CBSA == 'SEA') * (df.body_type == 'Pickup')",coef_sea_pu
+util_sea_mc,Seattle - Motorcycle,"@(CBSA == 'SEA') * (df.body_type == 'Motorcycle')",coef_sea_mc
+util_sea_age,Seattle - Age,"@(CBSA == 'SEA') * df.age",coef_sea_age
+util_det_van,Detroit - Van,"@(CBSA == 'DET') * (df.body_type == 'Van')",coef_det_van
+util_det_suv,Detroit - SUV,"@(CBSA == 'DET') * (df.body_type == 'SUV')",coef_det_suv
+util_det_pu,Detroit - Pickup,"@(CBSA == 'DET') * (df.body_type == 'Pickup')",coef_det_pu
+util_det_mc,Detroit - Motorcycle,"@(CBSA == 'DET') * (df.body_type == 'Motorcycle')",coef_det_mc
+util_det_age,Detroit - Age,"@(CBSA == 'DET') * df.age",coef_det_age
+util_msp_van,Minneapolis - Van,"@(CBSA == 'MSP') * (df.body_type == 'Van')",coef_msp_van
+util_msp_suv,Minneapolis - SUV,"@(CBSA == 'MSP') * (df.body_type == 'SUV')",coef_msp_suv
+util_msp_pu,Minneapolis - Pickup,"@(CBSA == 'MSP') * (df.body_type == 'Pickup')",coef_msp_pu
+util_msp_mc,Minneapolis - Motorcycle,"@(CBSA == 'MSP') * (df.body_type == 'Motorcycle')",coef_msp_mc
+util_msp_age,Minneapolis - Age,"@(CBSA == 'MSP') * df.age",coef_msp_age
+util_dca_van,Washington DC - Van,"@(CBSA == 'DCA') * (df.body_type == 'Van')",coef_dca_van
+util_dca_suv,Washington DC - SUV,"@(CBSA == 'DCA') * (df.body_type == 'SUV')",coef_dca_suv
+util_dca_pu,Washington DC - Pickup,"@(CBSA == 'DCA') * (df.body_type == 'Pickup')",coef_dca_pu
+util_dca_mc,Washington DC - Motorcycle,"@(CBSA == 'DCA') * (df.body_type == 'Motorcycle')",coef_dca_mc
+util_dca_age,Washington DC - Age,"@(CBSA == 'DCA') * df.age",coef_dca_age
+util_oreg_van,Oregon - Van,"@(CBSA == 'OREG') * (df.body_type == 'Van')",coef_oreg_van
+util_oreg_suv,Oregon - SUV,"@(CBSA == 'OREG') * (df.body_type == 'SUV')",coef_oreg_suv
+util_oreg_pu,Oregon - Pickup,"@(CBSA == 'OREG') * (df.body_type == 'Pickup')",coef_oreg_pu
+util_oreg_mc,Oregon - Motorcycle,"@(CBSA == 'OREG') * (df.body_type == 'Motorcycle')",coef_oreg_mc
+util_oreg_age,Oregon - Age,"@(CBSA == 'OREG') * df.age",coef_oreg_age
+util_ohio_van,Ohio - Van,"@(CBSA == 'OHIO') * (df.body_type == 'Van')",coef_ohio_van
+util_ohio_suv,Ohio - SUV,"@(CBSA == 'OHIO') * (df.body_type == 'SUV')",coef_ohio_suv
+util_ohio_pu,Ohio - Pickup,"@(CBSA == 'OHIO') * (df.body_type == 'Pickup')",coef_ohio_pu
+util_ohio_mc,Ohio - Motorcycle,"@(CBSA == 'OHIO') * (df.body_type == 'Motorcycle')",coef_ohio_mc
+util_ohio_age,Ohio - Age,"@(CBSA == 'OHIO') * df.age",coef_ohio_age

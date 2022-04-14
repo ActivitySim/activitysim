@@ -1,3 +1,0 @@
-Description,Target,Expression
-#,, annotate persons table after vehicle choice model has run
-person has car, is_primary_driver, df.index.isin(vehicles['primary_person_id'])

@@ -95,4 +95,8 @@ def main(args):
                     # traceback prints to stderr by default
                     traceback.print_exc()
 
+            # if we are in the debugger, re-raise the error instead of returning
+            if sys.gettrace() is not None:
+                raise
+
             return 255

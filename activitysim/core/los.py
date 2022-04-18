@@ -344,6 +344,8 @@ class Network_LOS(object):
             self.skim_dicts['taz'] = self.create_skim_dict('taz', _override_offset_int=_override_offset_int)
             # make sure skim has all taz_ids
             # FIXME - weird that there is no list of tazs?
+        else:
+            self.skim_dicts['taz'] = self.get_skim_dict('taz')
 
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
@@ -546,11 +548,16 @@ class Network_LOS(object):
         -------
         SkimDict or subclass (e.g. MazSkimDict)
         """
-
-        assert skim_tag in self.skim_dicts, \
-            f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
-
-        return self.skim_dicts[skim_tag]
+        # TODO:SHARROW: TAZ and MAZ are the same
+        sharrow_enabled = config.setting("sharrow", False)
+        if sharrow_enabled and skim_tag == 'taz':
+            skim_dataset = inject.get_injectable('skim_dataset')
+            from .skim_dataset import SkimDataset
+            return SkimDataset(skim_dataset)
+        else:
+            assert skim_tag in self.skim_dicts, \
+                f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
+            return self.skim_dicts[skim_tag]
 
     def get_default_skim_dict(self):
         """
@@ -569,6 +576,7 @@ class Network_LOS(object):
             else:
                 return self.get_skim_dict('taz')
         else:
+            # TODO:SHARROW: taz and maz are the same
             return self.get_skim_dict('maz')
 
     def get_mazpairs(self, omaz, dmaz, attribute):

@@ -22,6 +22,7 @@ def ordinal_distribution(
     share_label=None,
     interpolate='monotone',
     plot_type='share',
+    value_format=None,
 ):
     if count_label is None:
         count_label = f"# of {tablename}"
@@ -46,11 +47,15 @@ def ordinal_distribution(
     all_d = pd.concat(d, names=['source']).reset_index()
 
     if plot_type == 'count':
-        y=alt.Y(count_label, axis=alt.Axis(grid=False, title=''))
+        y=alt.Y(count_label, axis=alt.Axis(grid=False, title=''), stack=None)
     elif plot_type == 'share':
-        y=alt.Y(share_label, axis=alt.Axis(grid=False, title=''))
+        y=alt.Y(share_label, axis=alt.Axis(grid=False, title=''), stack=None)
     else:
         raise ValueError(f"unknown plot_type {plot_type}")
+
+    val_format = {}
+    if value_format is not None:
+        val_format['format'] = value_format
 
     fig = alt.Chart(all_d).mark_area(
         interpolate=interpolate,
@@ -59,8 +64,13 @@ def ordinal_distribution(
     ).encode(
         color='source',
         y=y,
-        x=alt.X(ordinal_col, axis=alt.Axis(grid=False, title=axis_label)),
-        tooltip = [ordinal_col, 'source', count_label, alt.Tooltip(f'{share_label}:Q', format='.2%')],
+        x=alt.X(ordinal_col, axis=alt.Axis(grid=False, title=axis_label, **val_format)),
+        tooltip = [
+            alt.Tooltip(ordinal_col, **val_format),
+            'source',
+            count_label,
+            alt.Tooltip(f'{share_label}:Q', format='.2%'),
+        ],
         facet=alt.Facet(facet_grouping, columns=3),
         strokeWidth = 'source',
     ).properties(

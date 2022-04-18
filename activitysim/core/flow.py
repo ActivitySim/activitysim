@@ -23,6 +23,7 @@ from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
 from . import inject, config
 from .. import __version__
 from ..core import tracing
+from ..core.los import TWO_ZONE, THREE_ZONE
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +175,7 @@ def should_invalidate_cache_file(cache_filename, *source_filenames):
 
 @inject.injectable(cache=True)
 def skim_dataset():
+    # TODO:SHARROW: taz and maz are the same
     skim_tag = 'taz'
     network_los_preload = inject.get_injectable('network_los_preload', None)
     if network_los_preload is None:
@@ -248,6 +250,43 @@ def skim_dataset():
                     time_periods=time_periods,
                     max_float_precision=max_float_precision,
                 )
+                # load sparse MAZ skims, if any
+                if network_los_preload.zone_system in [TWO_ZONE, THREE_ZONE]:
+
+                    # maz
+                    maz2taz_file_name = network_los_preload.setting('maz')
+                    maz_taz = pd.read_csv(config.data_file_path(maz2taz_file_name, mandatory=True))
+                    maz_taz = maz_taz[['MAZ', 'TAZ']].set_index('MAZ').sort_index()
+                    d.redirection.set(
+                        maz_taz,
+                        map_to='otaz',
+                        name="omaz",
+                        map_also={'dtaz': "dmaz"},
+                    )
+
+                    maz_to_maz_tables = network_los_preload.setting('maz_to_maz.tables')
+                    maz_to_maz_tables = [maz_to_maz_tables] if isinstance(maz_to_maz_tables, str) else maz_to_maz_tables
+
+                    max_blend_distance = network_los_preload.setting('maz_to_maz.max_blend_distance', default={})
+                    if isinstance(max_blend_distance, int):
+                        max_blend_distance = {'DEFAULT': max_blend_distance}
+
+                    for file_name in maz_to_maz_tables:
+
+                        df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                        for colname in df.columns:
+                            if colname in ['OMAZ', 'DMAZ']:
+                                continue
+                            max_blend_distance_i = max_blend_distance.get('DEFAULT', None)
+                            max_blend_distance_i = max_blend_distance.get(colname, max_blend_distance_i)
+                            d.redirection.sparse_blender(
+                                colname,
+                                df.OMAZ,
+                                df.DMAZ,
+                                df[colname],
+                                max_blend_distance=max_blend_distance_i,
+                            )
+
                 if zarr_file:
                     if zarr_digital_encoding:
                         import zarr # ensure zarr is available before we do all this work.
@@ -423,6 +462,7 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
             )
         else:
             return dict(
+                # TODO:SHARROW: organize dimensions.
                 odt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz', 'time_period': 'out_period'}),
                 dot_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz', 'time_period': 'in_period'}),
                 odr_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz', 'time_period': 'in_period'}),

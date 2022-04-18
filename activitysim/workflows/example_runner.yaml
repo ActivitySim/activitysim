@@ -350,6 +350,30 @@ reporting:
     time_col: depart
     skim_vars: DIST
 
+- name: activitysim.workflows.steps.contrast.transform_data
+  in:
+    tablename: trips
+    column: DIST
+    out: distance_to10_binned
+    censor:
+      left: 0
+      right: 10
+    cut:
+      bins: 20
+      labels: midpoint
+
+- name: activitysim.workflows.steps.contrast.ordinal_distribution
+  in:
+    caption: Trip Distance by the Primary Purpose, <10 miles
+    caption_level: 3
+    tablename: trips
+    ordinal_col: distance_to10_binned
+    facet_grouping: primary_purpose
+    plot_type: count
+    interpolate: step
+    value_format: "0.2f"
+    axis_label: Distance (to 10 miles)
+
 - name: activitysim.workflows.steps.contrast.trip_distance
   in:
     caption: Trip Distance by Primary Purpose, <10 miles

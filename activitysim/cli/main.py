@@ -52,6 +52,9 @@ def main():
         else:
             sys.exit(asim.execute())
     except Exception:
+        # if we are in the debugger, re-raise the error instead of exiting
+        if sys.gettrace() is not None:
+            raise
         sys.exit(99)
 
 def parser():

@@ -46,10 +46,20 @@ def transform_data(
     if censor is not None:
         common = common.where(common.between(**censor))
 
+    use_midpoint = False
     if cut is not None:
+        if cut.get('labels', None) == 'midpoint':
+            use_midpoint = True
+            cut.pop('labels')
         common = pd.cut(common, **cut)
     elif qcut is not None:
+        if qcut.get('labels', None) == 'midpoint':
+            use_midpoint = True
+            qcut.pop('labels')
         common = pd.qcut(common, **qcut)
+
+    if use_midpoint:
+        common = common.apply(lambda x: x.mid)
 
     pieces = {k: common.loc[k] for k in tablesets.keys()}
 

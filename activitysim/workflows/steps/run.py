@@ -1,6 +1,7 @@
 from pypyr.errors import KeyNotInContextError
 from .cmd import run_step as _run_cmd
-
+from .progression import reset_progress_step
+from ...standalone.utils import chdir
 
 def _get_formatted(context, key, default):
     try:
@@ -35,5 +36,18 @@ def run_step(context):
     cmd['label'] = context.get_formatted('label')
     cfgs = " ".join(f"-c {c}" for c in pre_config_dirs+config_dirs)
     cmd['run'] = f"python -m activitysim run {cfgs} -d {data_dir} -o {output_dir} {flags}"
+    args = f"run {cfgs} -d {data_dir} -o {output_dir} {flags}"
     context['cmd'] = cmd
-    _run_cmd(context)
+    #_run_cmd(context)
+
+    reset_progress_step(description=f"{cmd['label']}", prefix="[bold green]")
+
+    # Clear all saved state from ORCA
+    import orca
+    orca.clear_cache()
+
+    # Call the run program inside this process
+    from activitysim.cli.main import prog
+    with chdir(cmd['cwd']):
+        namespace = prog().parser.parse_args(args.split())
+        namespace.afunc(namespace)

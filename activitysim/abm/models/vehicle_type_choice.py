@@ -38,8 +38,9 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict, model_settings):
 
     Returns
     -------
+    alts_wide : pd.DataFrame in wide format expanded using pandas get_dummies function
+    alts_long : pd.DataFrame in long format
     """
-    alts_fname = model_settings.get('ALTS')
     cat_cols = list(alts_cats_dict.keys())  # e.g. fuel type, body type, age
     alts_long = pd.DataFrame(
         list(itertools.product(*alts_cats_dict.values())),
@@ -50,7 +51,6 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict, model_settings):
     configs_dirs = inject.get_injectable("configs_dir")
     configs_dirs = [configs_dirs] if isinstance(configs_dirs, str) else configs_dirs
 
-    alts_wide.to_csv(os.path.join(configs_dirs[0], alts_fname), index=True)
     alts_wide = pd.concat([alts_wide, alts_long], axis=1)
     return alts_wide, alts_long
 
@@ -355,13 +355,18 @@ def vehicle_type_choice(
     choices have been made. The rows of the "PROBS_SPEC" file must be indexed on the
     vehicle type choices assigned in the logit model. These additional attributes are
     concatenated with the selected alternative from the logit model to form a single
-    vehicle type name to be stored in the `vehicles` table as the column specified as
-    "CHOICE_COL" in the .yaml config.
+    vehicle type name to be stored in the `vehicles` table as the vehicle_type column.
+
+    Only one household vehicle is selected at a time to allow for the introduction of
+    owned vehicle related attributes. For example, a household may be less likely to
+    own a second van if they already own one. The model is run sequentially through
+    household vehicle numbers. The preprocessor is run for each iteration on the entire
+    vehicles table to allow for computation of terms involving the presence of other
+    household vehicles.
 
     The user may also augment the `households` or `persons` tables with new vehicle
     type-based fields specified via expressions in "annotate_households_vehicle_type.csv"
     and "annotate_persons_vehicle_type.csv", respectively.
-
 
     Parameters
     ----------

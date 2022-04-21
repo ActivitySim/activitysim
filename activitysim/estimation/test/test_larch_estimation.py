@@ -50,7 +50,7 @@ def _regression_check(dataframe_regression, df, basename=None):
         default_tolerance=dict(atol=1e-6, rtol=0.1)
         # set a little loose, as there is sometimes a little variance in these
         # results when switching backend implementations. We're checking all
-        # the parameters and the log likelihood, so modest variance in individual 
+        # the parameters and the log likelihood, so modest variance in individual
         # parameters, especially those with high std errors, is not problematic.
     )
 

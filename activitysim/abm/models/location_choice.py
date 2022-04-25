@@ -217,10 +217,23 @@ def aggregate_size_terms(dest_size_terms, network_los):
     # aggregate MAZ_size_terms to TAZ_size_terms
     #
 
+    # TODO:SHARROW FIX ME
+    sharrow_enabled = config.setting("sharrow", False)
+    if sharrow_enabled:
+        skim_dataset = inject.get_injectable('skim_dataset')
+    else:
+        skim_dataset = None
+
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
-    maz_to_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').sort_values(by='TAZ').TAZ
+    if sharrow_enabled:
+        # FIXME:SHARROW - this assumes that both MAZ and TAZ have been recoded to
+        #                 zero-based indexes, but what if that was not done?
+        #                 Should we check it and error out here or bravely march forward?
+        maz_to_taz = skim_dataset['_digitized_otaz_of_omaz'].to_series()
+    else:
+        maz_to_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').sort_values(by='TAZ').TAZ
     MAZ_size_terms[DEST_TAZ] = MAZ_size_terms.index.map(maz_to_taz)
 
     weighted_average_cols = ['shadow_price_size_term_adjustment', 'shadow_price_utility_adjustment']

@@ -349,14 +349,18 @@ class Network_LOS(object):
 
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
-            # create MazSkimDict facade skim_dict
-            # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
-            assert 'maz' not in self.skim_dicts
-            maz_skim_dict = self.create_skim_dict('maz')
-            self.skim_dicts['maz'] = maz_skim_dict
+            if not config.setting("sharrow", False):
+                # create MazSkimDict facade skim_dict
+                # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
+                assert 'maz' not in self.skim_dicts
+                maz_skim_dict = self.create_skim_dict('maz')
+                self.skim_dicts['maz'] = maz_skim_dict
 
-            # make sure skim has all maz_ids
-            assert not (maz_skim_dict.offset_mapper.map(self.maz_taz_df['MAZ'].values) == NOT_IN_SKIM_ZONE_ID).any()
+                # make sure skim has all maz_ids
+                assert not (maz_skim_dict.offset_mapper.map(self.maz_taz_df['MAZ'].values) == NOT_IN_SKIM_ZONE_ID).any()
+            else:
+                self.skim_dicts['maz'] = self.get_skim_dict('maz')
+                # TODO:SHARROW: make sure skim has all maz_ids
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
@@ -550,7 +554,7 @@ class Network_LOS(object):
         """
         # TODO:SHARROW: TAZ and MAZ are the same
         sharrow_enabled = config.setting("sharrow", False)
-        if sharrow_enabled and skim_tag == 'taz':
+        if sharrow_enabled and skim_tag in ('taz', 'maz'):
             skim_dataset = inject.get_injectable('skim_dataset')
             from .skim_dataset import SkimDataset
             return SkimDataset(skim_dataset)
@@ -568,13 +572,7 @@ class Network_LOS(object):
         TAZ SkimDict for ONE_ZONE, MazSkimDict for TWO_ZONE and THREE_ZONE
         """
         if self.zone_system == ONE_ZONE:
-            sharrow_enabled = config.setting("sharrow", False)
-            if sharrow_enabled:
-                skim_dataset = inject.get_injectable('skim_dataset')
-                from .skim_dataset import SkimDataset
-                return SkimDataset(skim_dataset)
-            else:
-                return self.get_skim_dict('taz')
+            return self.get_skim_dict('taz')
         else:
             # TODO:SHARROW: taz and maz are the same
             return self.get_skim_dict('maz')

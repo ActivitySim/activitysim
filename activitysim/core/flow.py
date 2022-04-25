@@ -23,7 +23,6 @@ from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
 from . import inject, config
 from .. import __version__
 from ..core import tracing
-from ..core.los import TWO_ZONE, THREE_ZONE
 
 logger = logging.getLogger(__name__)
 
@@ -175,6 +174,8 @@ def should_invalidate_cache_file(cache_filename, *source_filenames):
 
 @inject.injectable(cache=True)
 def skim_dataset():
+    from ..core.los import ONE_ZONE, TWO_ZONE, THREE_ZONE
+
     # TODO:SHARROW: taz and maz are the same
     skim_tag = 'taz'
     network_los_preload = inject.get_injectable('network_los_preload', None)
@@ -202,6 +203,14 @@ def skim_dataset():
         backing = f"memmap:{mmap_file}"
 
     with logtime("loading skims as dataset"):
+
+        land_use = inject.get_table('land_use')
+
+        if f"_original_{land_use.index.name}" in land_use.to_frame():
+            land_use_zone_ids = land_use.to_frame()[f"_original_{land_use.index.name}"]
+            remapper = dict(zip(land_use_zone_ids, land_use_zone_ids.index))
+        else:
+            remapper = None
 
         d = None
         if backing.startswith("memmap:"):
@@ -257,6 +266,20 @@ def skim_dataset():
                     maz2taz_file_name = network_los_preload.setting('maz')
                     maz_taz = pd.read_csv(config.data_file_path(maz2taz_file_name, mandatory=True))
                     maz_taz = maz_taz[['MAZ', 'TAZ']].set_index('MAZ').sort_index()
+
+                    # MAZ alignment is ensured here, so no re-alignment check is
+                    # needed below for TWO_ZONE or THREE_ZONE systems
+                    try:
+                        pd.testing.assert_index_equal(maz_taz.index, land_use.index, check_names=False)
+                    except AssertionError:
+                        if remapper is not None:
+                            maz_taz.index = maz_taz.index.map(remapper.get)
+                            maz_taz = maz_taz.sort_index()
+                            assert maz_taz.index.equals(land_use.to_frame().sort_index().index), \
+                                f"maz-taz lookup index does not match index of land_use table"
+                        else:
+                            raise
+
                     d.redirection.set(
                         maz_taz,
                         map_to='otaz',
@@ -274,6 +297,9 @@ def skim_dataset():
                     for file_name in maz_to_maz_tables:
 
                         df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                        if remapper is not None:
+                            df.OMAZ = df.OMAZ.map(remapper.get)
+                            df.DMAZ = df.DMAZ.map(remapper.get)
                         for colname in df.columns:
                             if colname in ['OMAZ', 'DMAZ']:
                                 continue
@@ -285,6 +311,7 @@ def skim_dataset():
                                 df.DMAZ,
                                 df[colname],
                                 max_blend_distance=max_blend_distance_i,
+                                index=land_use.index,
                             )
 
                 if zarr_file:
@@ -322,6 +349,10 @@ def skim_dataset():
             if unused_tokens:
                 baggage = d.digital_encoding.baggage(None)
                 unused_tokens -= baggage
+                # retain sparse matrix tables
+                unused_tokens = set(i for i in unused_tokens if not i.startswith("_s_"))
+                # retain lookup tables
+                unused_tokens = set(i for i in unused_tokens if not i.startswith("_digitized_"))
                 logger.info(f"dropping unused skims: {unused_tokens}")
                 d = d.drop_vars(unused_tokens)
             else:
@@ -341,37 +372,40 @@ def skim_dataset():
 
         # check alignment of TAZs that it matches land_use table
         logger.info(f"checking skims alignment with land_use")
-        land_use = inject.get_table('land_use')
         try:
             land_use_zone_id = land_use[f'_original_{land_use.index.name}']
         except KeyError:
             land_use_zone_id = land_use.index
 
-        if d['otaz'].attrs.get('preprocessed') != 'zero-based-contiguous':
-            try:
-                np.testing.assert_array_equal(land_use_zone_id, d.otaz)
-            except AssertionError as err:
-                logger.info(f"otaz realignment required\n{err}")
-                d = d.reindex(otaz=land_use_zone_id)
+        if network_los_preload.zone_system == ONE_ZONE:
+            # check TAZ alignment for ONE_ZONE system.
+            # other systems use MAZ for most lookups, which dynamicially
+            # resolves to TAZ inside the Dataset code.
+            if d['otaz'].attrs.get('preprocessed') != 'zero-based-contiguous':
+                try:
+                    np.testing.assert_array_equal(land_use_zone_id, d.otaz)
+                except AssertionError as err:
+                    logger.info(f"otaz realignment required\n{err}")
+                    d = d.reindex(otaz=land_use_zone_id)
+                else:
+                    logger.info(f"otaz alignment ok")
+                d['otaz'] = land_use.index.to_numpy()
+                d['otaz'].attrs['preprocessed'] = ('zero-based-contiguous')
             else:
-                logger.info(f"otaz alignment ok")
-            d['otaz'] = land_use.index.to_numpy()
-            d['otaz'].attrs['preprocessed'] = ('zero-based-contiguous')
-        else:
-            np.testing.assert_array_equal(land_use.index, d.otaz)
+                np.testing.assert_array_equal(land_use.index, d.otaz)
 
-        if d['dtaz'].attrs.get('preprocessed') != 'zero-based-contiguous':
-            try:
-                np.testing.assert_array_equal(land_use_zone_id, d.dtaz)
-            except AssertionError as err:
-                logger.info(f"dtaz realignment required\n{err}")
-                d = d.reindex(dtaz=land_use_zone_id)
+            if d['dtaz'].attrs.get('preprocessed') != 'zero-based-contiguous':
+                try:
+                    np.testing.assert_array_equal(land_use_zone_id, d.dtaz)
+                except AssertionError as err:
+                    logger.info(f"dtaz realignment required\n{err}")
+                    d = d.reindex(dtaz=land_use_zone_id)
+                else:
+                    logger.info(f"dtaz alignment ok")
+                d['dtaz'] = land_use.index.to_numpy()
+                d['dtaz'].attrs['preprocessed'] = ('zero-based-contiguous')
             else:
-                logger.info(f"dtaz alignment ok")
-            d['dtaz'] = land_use.index.to_numpy()
-            d['dtaz'].attrs['preprocessed'] = ('zero-based-contiguous')
-        else:
-            np.testing.assert_array_equal(land_use.index, d.dtaz)
+                np.testing.assert_array_equal(land_use.index, d.dtaz)
 
         if d.shm.is_shared_memory:
             return d
@@ -424,13 +458,15 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
     skim_dataset = inject.get_injectable('skim_dataset')
+    odim = 'omaz' if 'omaz' in skim_dataset.dims else 'otaz'
+    ddim = 'dmaz' if 'dmaz' in skim_dataset.dims else 'dtaz'
     if orig_col_name is not None and dest_col_name is not None and stop_col_name is None and parking_col_name is None:
         if timeframe == 'timeless':
             return dict(
                 skims=skim_dataset,
                 relationships=(
-                    f"df._orig_col_name -> skims.otaz",
-                    f"df._dest_col_name -> skims.dtaz",
+                    f"df._orig_col_name -> skims.{odim}",
+                    f"df._dest_col_name -> skims.{ddim}",
                 ),
             )
         if timeframe == 'timeless_directional':
@@ -438,10 +474,10 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
                 od_skims=skim_dataset,
                 do_skims=skim_dataset,
                 relationships=(
-                    f"df._orig_col_name -> od_skims.otaz",
-                    f"df._dest_col_name -> od_skims.dtaz",
-                    f"df._dest_col_name -> do_skims.otaz",
-                    f"df._orig_col_name -> do_skims.dtaz",
+                    f"df._orig_col_name -> od_skims.{odim}",
+                    f"df._dest_col_name -> od_skims.{ddim}",
+                    f"df._dest_col_name -> do_skims.{odim}",
+                    f"df._orig_col_name -> do_skims.{ddim}",
                 ),
             )
         elif timeframe == 'trip':
@@ -528,32 +564,32 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
             opt_skims=skim_dataset,
             pdt_skims=skim_dataset,
             relationships=(
-                f"df._orig_col_name -> od_skims.otaz",
-                f"df._dest_col_name -> od_skims.dtaz",
+                f"df._orig_col_name -> od_skims.{odim}",
+                f"df._dest_col_name -> od_skims.{ddim}",
 
-                f"df._dest_col_name -> do_skims.otaz",
-                f"df._orig_col_name -> do_skims.dtaz",
+                f"df._dest_col_name -> do_skims.{odim}",
+                f"df._orig_col_name -> do_skims.{ddim}",
 
-                f"df._orig_col_name -> op_skims.otaz",
-                f"df._park_col_name -> op_skims.dtaz",
+                f"df._orig_col_name -> op_skims.{odim}",
+                f"df._park_col_name -> op_skims.{ddim}",
 
-                f"df._park_col_name -> pd_skims.otaz",
-                f"df._dest_col_name -> pd_skims.dtaz",
+                f"df._park_col_name -> pd_skims.{odim}",
+                f"df._dest_col_name -> pd_skims.{ddim}",
 
-                f"df._orig_col_name -> odt_skims.otaz",
-                f"df._dest_col_name -> odt_skims.dtaz",
+                f"df._orig_col_name -> odt_skims.{odim}",
+                f"df._dest_col_name -> odt_skims.{ddim}",
                 f"df.trip_period    -> odt_skims.time_period",
 
-                f"df._dest_col_name -> dot_skims.otaz",
-                f"df._orig_col_name -> dot_skims.dtaz",
+                f"df._dest_col_name -> dot_skims.{odim}",
+                f"df._orig_col_name -> dot_skims.{ddim}",
                 f"df.trip_period    -> dot_skims.time_period",
 
-                f"df._orig_col_name -> opt_skims.otaz",
-                f"df._park_col_name -> opt_skims.dtaz",
+                f"df._orig_col_name -> opt_skims.{odim}",
+                f"df._park_col_name -> opt_skims.{ddim}",
                 f"df.trip_period    -> opt_skims.time_period",
 
-                f"df._park_col_name -> pdt_skims.otaz",
-                f"df._dest_col_name -> pdt_skims.dtaz",
+                f"df._park_col_name -> pdt_skims.{odim}",
+                f"df._dest_col_name -> pdt_skims.{ddim}",
                 f"df.trip_period    -> pdt_skims.time_period",
             ),
         )
@@ -735,7 +771,7 @@ def size_terms_on_flow(locals_d):
                 'stoptaz': np.asarray(inject.get_table("land_use").to_frame().index),
             }
         )})
-        a = a.reindex(stoptaz=skim_dataset.coords['dtaz'].values)
+        a = a.reindex(stoptaz=skim_dataset.coords['dtaz'].values) # TODO {ddim}?
         locals_d['size_array'] = dict(
             size_terms=a,
             relationships=(

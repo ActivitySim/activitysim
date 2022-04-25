@@ -18,6 +18,20 @@ class SkimDataset:
         self.time_map = {j: i for i, j in enumerate(self.dataset.indexes['time_period'])}
         self.usage = set()  # track keys of skims looked up
 
+    @property
+    def odim(self):
+        if 'omaz' in self.dataset.dims:
+            return 'omaz'
+        else:
+            return 'otaz'
+
+    @property
+    def ddim(self):
+        if 'dmaz' in self.dataset.dims:
+            return 'dmaz'
+        else:
+            return 'dtaz'
+
     def get_skim_usage(self):
         """
         return set of keys of skims looked up. e.g. {'DIST', 'SOV'}
@@ -53,7 +67,7 @@ class SkimDataset:
         dest = np.asanyarray(dest).astype(int)
 
         # TODO offset mapper if required
-        positions = {'otaz':orig, 'dtaz':dest}
+        positions = {self.odim: orig, self.ddim:dest}
 
         # When asking for a particular time period
         if isinstance(key, tuple) and len(key) == 2:
@@ -109,6 +123,20 @@ class DatasetWrapper:
         else:
             self.time_map = time_map
 
+    @property
+    def odim(self):
+        if 'omaz' in self.dataset.dims:
+            return 'omaz'
+        else:
+            return 'otaz'
+
+    @property
+    def ddim(self):
+        if 'dmaz' in self.dataset.dims:
+            return 'dmaz'
+        else:
+            return 'dtaz'
+
     def map_time_periods(self, df):
         if self.time_key:
             logger.info(f"vectorize lookup for time_period={self.time_key}")
@@ -139,8 +167,8 @@ class DatasetWrapper:
 
         # TODO allow offsets if needed
         positions = {
-            'otaz': df[self.orig_key],
-            'dtaz': df[self.dest_key],
+            self.odim: df[self.orig_key],
+            self.ddim: df[self.dest_key],
         }
         if self.time_key:
             if np.issubdtype(df[self.time_key].dtype, np.integer) and df[self.time_key].max() < self.dataset.dims['time_period']:
@@ -187,11 +215,11 @@ class DatasetWrapper:
             if isinstance(self.positions, dict):
                 x = self.positions.copy()
                 x.update({
-                    'otaz': self.positions['dtaz'],
-                    'dtaz': self.positions['otaz'],
+                    self.odim: self.positions[self.ddim],
+                    self.ddim: self.positions[self.odim],
                 })
             else:
-                x = self.positions.rename(columns={'otaz': 'dtaz', 'dtaz': 'otaz'})
+                x = self.positions.rename(columns={self.odim: self.ddim, self.ddim: self.odim})
         else:
             if isinstance(self.positions, dict):
                 x = self.positions.copy()
@@ -203,7 +231,7 @@ class DatasetWrapper:
             main_key, time_key = key
             if time_key in self.time_map:
                 if isinstance(x, dict):
-                    x['time_period'] = np.full_like(x['otaz'], fill_value=self.time_map[time_key])
+                    x['time_period'] = np.full_like(x[self.odim], fill_value=self.time_map[time_key])
                 else:
                     x = x.assign(time_period=self.time_map[time_key])
                 key = main_key
@@ -215,7 +243,9 @@ class DatasetWrapper:
         #     result = array_decode(result, self.dataset[key].attrs['digital_encoding'])
 
         # Return a series, consistent with ActivitySim SkimWrapper
-        return result.to_series()
+        out = result.to_series()
+        out.index = self.df.index
+        return out
 
     def reverse(self, key):
         """

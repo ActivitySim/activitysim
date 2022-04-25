@@ -250,7 +250,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
                         del max_utils_by_chooser
 
-                    utilities.utility += utility
+                    utilities.utility.values[:] += utility
 
                     if trace_eval_results is not None:
 

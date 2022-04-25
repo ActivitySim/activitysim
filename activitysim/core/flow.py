@@ -379,7 +379,7 @@ def skim_dataset():
 
         if network_los_preload.zone_system == ONE_ZONE:
             # check TAZ alignment for ONE_ZONE system.
-            # other systems use MAZ for most lookups, which dynamicially
+            # other systems use MAZ for most lookups, which dynamically
             # resolves to TAZ inside the Dataset code.
             if d['otaz'].attrs.get('preprocessed') != 'zero-based-contiguous':
                 try:
@@ -482,74 +482,74 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
             )
         elif timeframe == 'trip':
             return dict(
-                odt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
-                dot_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz'}),
-                od_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
+                odt_skims=skim_dataset,
+                dot_skims=skim_dataset,
+                od_skims=skim_dataset,
                 relationships=(
-                    f"df._orig_col_name -> odt_skims.ptaz",
-                    f"df._dest_col_name -> odt_skims.ataz",
+                    f"df._orig_col_name -> odt_skims.{odim}",
+                    f"df._dest_col_name -> odt_skims.{ddim}",
                     f"df.trip_period -> odt_skims.time_period",
-                    f"df._dest_col_name -> dot_skims.ataz",
-                    f"df._orig_col_name -> dot_skims.ptaz",
+                    f"df._dest_col_name -> dot_skims.{odim}",
+                    f"df._orig_col_name -> dot_skims.{ddim}",
                     f"df.trip_period -> dot_skims.time_period",
-                    f"df._orig_col_name -> od_skims.ptaz",
-                    f"df._dest_col_name -> od_skims.ataz",
+                    f"df._orig_col_name -> od_skims.{odim}",
+                    f"df._dest_col_name -> od_skims.{ddim}",
                 ),
             )
         else:
             return dict(
                 # TODO:SHARROW: organize dimensions.
-                odt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz', 'time_period': 'out_period'}),
-                dot_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz', 'time_period': 'in_period'}),
-                odr_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz', 'time_period': 'in_period'}),
-                dor_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz', 'time_period': 'out_period'}),
-                od_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
+                odt_skims=skim_dataset,
+                dot_skims=skim_dataset,
+                odr_skims=skim_dataset,
+                dor_skims=skim_dataset,
+                od_skims=skim_dataset,
                 relationships=(
-                    f"df._orig_col_name -> odt_skims.ptaz",
-                    f"df._dest_col_name -> odt_skims.ataz",
-                    f"df.out_period      @  odt_skims.out_period",
-                    f"df._dest_col_name -> dot_skims.ataz",
-                    f"df._orig_col_name -> dot_skims.ptaz",
-                    f"df.in_period       @  dot_skims.in_period",
-                    f"df._orig_col_name -> odr_skims.ptaz",
-                    f"df._dest_col_name -> odr_skims.ataz",
-                    f"df.in_period       @  odr_skims.in_period",
-                    f"df._dest_col_name -> dor_skims.ataz",
-                    f"df._orig_col_name -> dor_skims.ptaz",
-                    f"df.out_period      @  dor_skims.out_period",
-                    f"df._orig_col_name -> od_skims.ptaz",
-                    f"df._dest_col_name -> od_skims.ataz",
+                    f"df._orig_col_name -> odt_skims.{odim}",
+                    f"df._dest_col_name -> odt_skims.{ddim}",
+                    f"df.out_period      @  odt_skims.time_period",
+                    f"df._dest_col_name -> dot_skims.{odim}",
+                    f"df._orig_col_name -> dot_skims.{ddim}",
+                    f"df.in_period       @  dot_skims.time_period",
+                    f"df._orig_col_name -> odr_skims.{odim}",
+                    f"df._dest_col_name -> odr_skims.{ddim}",
+                    f"df.in_period       @  odr_skims.time_period",
+                    f"df._dest_col_name -> dor_skims.{odim}",
+                    f"df._orig_col_name -> dor_skims.{ddim}",
+                    f"df.out_period      @  dor_skims.time_period",
+                    f"df._orig_col_name -> od_skims.{odim}",
+                    f"df._dest_col_name -> od_skims.{ddim}",
                 ),
             )
     elif stop_col_name is not None: # trip_destination
         return dict(
-            od_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
-            dp_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'staz'}),
-            odt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ptaz', 'dtaz': 'ataz'}),
-            dot_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'ptaz'}),
-            dpt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'ataz', 'dtaz': 'staz'}),
-            pdt_skims=skim_dataset.rename_dims_and_coords({'otaz': 'staz', 'dtaz': 'ataz'}),
+            od_skims=skim_dataset,
+            dp_skims=skim_dataset,
+            odt_skims=skim_dataset,
+            dot_skims=skim_dataset,
+            dpt_skims=skim_dataset,
+            pdt_skims=skim_dataset,
             relationships=(
-                f"df._orig_col_name -> od_skims.ptaz",
-                f"df._dest_col_name -> od_skims.ataz",
+                f"df._orig_col_name -> od_skims.{odim}",
+                f"df._dest_col_name -> od_skims.{ddim}",
 
-                f"df._dest_col_name -> dp_skims.ataz",
-                f"df._stop_col_name    -> dp_skims.staz",
+                f"df._dest_col_name -> dp_skims.{odim}",
+                f"df._stop_col_name -> dp_skims.{ddim}",
 
-                f"df._orig_col_name -> odt_skims.ptaz",
-                f"df._dest_col_name -> odt_skims.ataz",
+                f"df._orig_col_name -> odt_skims.{odim}",
+                f"df._dest_col_name -> odt_skims.{ddim}",
                 f"df.trip_period     -> odt_skims.time_period",
 
-                f"df._dest_col_name -> dot_skims.ataz",
-                f"df._orig_col_name -> dot_skims.ptaz",
+                f"df._dest_col_name -> dot_skims.{odim}",
+                f"df._orig_col_name -> dot_skims.{ddim}",
                 f"df.trip_period     -> dot_skims.time_period",
 
-                f"df._dest_col_name -> dpt_skims.ataz",
-                f"df._stop_col_name    -> dpt_skims.staz",
+                f"df._dest_col_name -> dpt_skims.{odim}",
+                f"df._stop_col_name  -> dpt_skims.{ddim}",
                 f"df.trip_period     -> dpt_skims.time_period",
 
-                f"df._stop_col_name    -> pdt_skims.staz",
-                f"df._dest_col_name -> pdt_skims.ataz",
+                f"df._stop_col_name    -> pdt_skims.{odim}",
+                f"df._dest_col_name -> pdt_skims.{ddim}",
                 f"df.trip_period     -> pdt_skims.time_period",
             ),
         )

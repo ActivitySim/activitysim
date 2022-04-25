@@ -269,7 +269,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
             logger.warning("assign_variables target obscures local_d name '%s'", str(target))
 
         if trace_label:
-            logger.debug(f"{trace_label}.assign_variables {target} = {expression}")
+            logger.info(f"{trace_label}.assign_variables {target} = {expression}")
 
         if is_temp_singular(target) or is_throwaway(target):
             try:

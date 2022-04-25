@@ -193,7 +193,7 @@ def read_from_table_info(table_info):
 def _read_input_file(filepath, h5_tablename=None, csv_dtypes=None):
     assert os.path.exists(filepath), 'input file not found: %s' % filepath
 
-    if filepath.endswith('.csv'):
+    if filepath.endswith('.csv') or filepath.endswith('.csv.gz'):
         return _read_csv_with_fallback_encoding(filepath, csv_dtypes)
 
     if filepath.endswith('.h5'):

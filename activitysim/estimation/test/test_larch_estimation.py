@@ -47,9 +47,11 @@ def _regression_check(dataframe_regression, df, basename=None):
         # pandas 1.3 handles int8 dtypes as actual numbers, so holdfast needs to be dropped manually
         # we're dropping it not adding to the regression check so older pandas will also work.
         basename=basename,
-        default_tolerance=dict(atol=1e-6, rtol=5e-2)
+        default_tolerance=dict(atol=1e-6, rtol=0.1)
         # set a little loose, as there is sometimes a little variance in these
-        # results when switching backend implementations.
+        # results when switching backend implementations. We're checking all
+        # the parameters and the log likelihood, so modest variance in individual
+        # parameters, especially those with high std errors, is not problematic.
     )
 
 

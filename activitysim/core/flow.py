@@ -762,16 +762,16 @@ def new_flow(
 
 def size_terms_on_flow(locals_d):
     if 'size_terms_array' in locals_d:
-        skim_dataset = inject.get_injectable('skim_dataset')
+        #skim_dataset = inject.get_injectable('skim_dataset')
         dest_col_name = locals_d['od_skims'].dest_key
         a = sh.Dataset({'arry': sh.DataArray(
             locals_d['size_terms_array'],
             dims=['stoptaz', 'purpose_index'],
             coords={
-                'stoptaz': np.asarray(inject.get_table("land_use").to_frame().index),
+                'stoptaz': np.arange(locals_d['size_terms_array'].shape[0]), # TODO: this assumes zero-based array of choices, is this always right?
             }
         )})
-        a = a.reindex(stoptaz=skim_dataset.coords['dtaz'].values) # TODO {ddim}?
+        # a = a.reindex(stoptaz=skim_dataset.coords['dtaz'].values) # TODO {ddim}?
         locals_d['size_array'] = dict(
             size_terms=a,
             relationships=(

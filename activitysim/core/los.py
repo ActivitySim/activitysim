@@ -688,3 +688,49 @@ class Network_LOS(object):
         taps = self.tap_df.TAP.values
         assert isinstance(taps, np.ndarray)
         return taps
+
+    @property
+    def get_maz_to_taz_series(self):
+        """
+        pd.Series: Index is the MAZ, value is the corresponding TAZ
+        """
+        sharrow_enabled = config.setting("sharrow", False)
+        if sharrow_enabled:
+            # FIXME:SHARROW - this assumes that both MAZ and TAZ have been recoded to
+            #                 zero-based indexes, but what if that was not done?
+            #                 Should we check it and error out here or bravely march forward?
+            skim_dataset = inject.get_injectable('skim_dataset')
+            maz_to_taz = skim_dataset['_digitized_otaz_of_omaz'].to_series()
+        else:
+            maz_to_taz = self.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').TAZ
+        return maz_to_taz
+
+    def map_maz_to_taz(self, s):
+        """
+        Convert MAZ's to TAZ's
+
+        Parameters
+        ----------
+        s : Array-like
+            Integer MAZ values
+
+        Returns
+        -------
+        pd.Series
+            Integer TAZ values
+        """
+        if not isinstance(s, (pd.Series, pd.Index)):
+            s = pd.Series(s)
+            input_was_series = False
+        else:
+            input_was_series = True
+        out = s.map(self.get_maz_to_taz_series)
+        if np.issubdtype(out, np.floating):
+            if out.isna().any():
+                raise KeyError("failed in mapping MAZ to TAZ")
+            else:
+                out = out.astype(np.int32)
+        if input_was_series:
+            return out
+        else:
+            return out.to_numpy()

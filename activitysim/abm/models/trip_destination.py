@@ -149,12 +149,12 @@ def destination_sample(
     return choices
 
 
-def aggregate_size_term_matrix(maz_size_term_matrix, maz_taz):
+def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
 
     df = maz_size_term_matrix.df
     assert ALT_DEST_TAZ not in df
 
-    dest_taz = df.index.map(maz_taz)
+    dest_taz = network_los.map_maz_to_taz(df.index)
     taz_size_term_matrix = df.groupby(dest_taz).sum()
 
     taz_size_term_matrix = DataFrameMatrix(taz_size_term_matrix)
@@ -243,7 +243,10 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trips, network_los, alt_dest_
     # there will be a different set (and number) of candidate MAZs for each TAZ
     # (preserve index, which will have duplicates as result of join)
 
-    maz_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].rename(columns={'TAZ': DEST_TAZ, 'MAZ': DEST_MAZ})
+    maz_taz = network_los.get_maz_to_taz_series\
+        .rename(DEST_TAZ).rename_axis(index=DEST_MAZ)\
+        .to_frame().reset_index()
+
     maz_sizes = pd.merge(taz_choices[[chooser_id_col, DEST_TAZ]].reset_index(),
                          maz_taz,
                          how='left', on=DEST_TAZ).set_index('index')
@@ -370,20 +373,19 @@ def destination_presample(
     chunk_tag = 'trip_destination.presample'  # distinguish from trip_destination.sample
 
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    maz_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').TAZ
 
-    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, maz_taz)
+    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, network_los)
 
     TRIP_ORIGIN = model_settings['TRIP_ORIGIN']
     PRIMARY_DEST = model_settings['PRIMARY_DEST']
     trips_taz = trips.copy()
 
-    trips_taz[TRIP_ORIGIN] = trips_taz[TRIP_ORIGIN].map(maz_taz)
-    trips_taz[PRIMARY_DEST] = trips_taz[PRIMARY_DEST].map(maz_taz)
+    trips_taz[TRIP_ORIGIN] = network_los.map_maz_to_taz(trips_taz[TRIP_ORIGIN])
+    trips_taz[PRIMARY_DEST] = network_los.map_maz_to_taz(trips_taz[PRIMARY_DEST])
 
     # alternatives is just an empty dataframe indexed by maz with index name <alt_dest_col_name>
     # but logically, we are aggregating so lets do it, as there is no particular gain in being clever
-    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()
+    alternatives = alternatives.groupby(network_los.map_maz_to_taz(alternatives.index)).sum()
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore

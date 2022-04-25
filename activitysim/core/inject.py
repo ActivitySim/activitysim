@@ -8,6 +8,7 @@ _DECORATED_STEPS = {}
 _DECORATED_TABLES = {}
 _DECORATED_COLUMNS = {}
 _DECORATED_INJECTABLES = {}
+_BROADCASTS = []
 
 
 # we want to allow None (any anyting else) as a default value, so just choose an improbable string
@@ -100,6 +101,10 @@ def add_injectable(name, injectable, cache=False):
 
 
 def broadcast(cast, onto, cast_on=None, onto_on=None, cast_index=False, onto_index=False):
+    _BROADCASTS.append([
+        (cast, onto),
+        dict(cast_on=cast_on, onto_on=onto_on, cast_index=cast_index, onto_index=onto_index),
+    ])
     return orca.broadcast(cast, onto,
                           cast_on=cast_on, onto_on=onto_on,
                           cast_index=cast_index, onto_index=onto_index)
@@ -131,9 +136,12 @@ def remove_injectable(name):
     orca._INJECTABLES.pop(name, None)
 
 
-def reinject_decorated_tables():
+def reinject_decorated_tables(steps=False):
     """
     reinject the decorated tables (and columns)
+
+    This function can be used to completely reset the global state for
+    ActivitySim.
     """
 
     logger.info("reinject_decorated_tables")
@@ -143,6 +151,9 @@ def reinject_decorated_tables():
     orca._COLUMNS.clear()
     orca._TABLE_CACHE.clear()
     orca._COLUMN_CACHE.clear()
+    if steps:
+        orca._STEPS.clear()
+        orca._BROADCASTS.clear()
 
     for name, func in _DECORATED_TABLES.items():
         logger.debug("reinject decorated table %s" % name)
@@ -157,6 +168,12 @@ def reinject_decorated_tables():
         logger.debug("reinject decorated injectable %s" % name)
         orca.add_injectable(name, args['func'], cache=args['cache'])
 
+    if steps:
+        for name, func in _DECORATED_STEPS.items():
+            logger.debug("reinject decorated step %s" % name)
+            orca.add_step(name, func)
+        for arg, kwarg in _BROADCASTS:
+            orca.broadcast(*arg, **kwarg)
 
 def clear_cache():
     return orca.clear_cache()

@@ -157,7 +157,7 @@ def _od_sample(
         origin_attr_cols=origin_attr_cols)
 
     if skims.orig_key == ORIG_TAZ:
-        od_alts_df[ORIG_TAZ] = map_maz_to_taz(od_alts_df[origin_id_col], network_los)
+        od_alts_df[ORIG_TAZ] = network_los.map_maz_to_taz(od_alts_df[origin_id_col])
 
     elif skims.orig_key not in od_alts_df:
         logger.error("Alts df is missing origin skim key column.")
@@ -218,11 +218,6 @@ def od_sample(
     return choices
 
 
-def map_maz_to_taz(s, network_los):
-    maz_to_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').TAZ
-    return s.map(maz_to_taz)
-
-
 def map_maz_to_ext_taz(s):
     land_use = inject.get_table('land_use').to_frame(columns=['external_TAZ']).external_TAZ
     return s.map(land_use).astype(int)
@@ -244,7 +239,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
-    MAZ_size_terms[DEST_TAZ] = map_maz_to_taz(MAZ_size_terms.index, network_los)
+    MAZ_size_terms[DEST_TAZ] = network_los.map_maz_to_taz(MAZ_size_terms.index)
 
     # aggregate to TAZ
     TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg({'size_term': 'sum'})

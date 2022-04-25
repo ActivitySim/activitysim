@@ -45,6 +45,11 @@ def run_step(context):
     # Clear all saved state from ORCA
     import orca
     orca.clear_cache()
+    orca.clear_all()
+
+    # Re-inject everything from ActivitySim
+    from ...core.inject import reinject_decorated_tables
+    reinject_decorated_tables(steps=True)
 
     # Call the run program inside this process
     from activitysim.cli.main import prog

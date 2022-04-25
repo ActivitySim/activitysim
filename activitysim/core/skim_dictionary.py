@@ -617,15 +617,12 @@ class MazSkimDict(SkimDict):
         OffsetMapper
         """
 
-        # start with a series with MAZ zone_id index and TAZ zone id values
-        maz_to_taz = self.network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').sort_values(by='TAZ').TAZ
-
         # use taz offset_mapper to create series mapping directly from MAZ to TAZ skim index
         taz_offset_mapper = super()._offset_mapper()
-        maz_to_skim_offset = taz_offset_mapper.map(maz_to_taz)
+        maz_to_skim_offset = self.network_los.map_maz_to_taz(taz_offset_mapper)
 
         if isinstance(maz_to_skim_offset, np.ndarray):
-            maz_to_skim_offset = pd.Series(maz_to_skim_offset, maz_to_taz.index)  # bug
+            maz_to_skim_offset = pd.Series(maz_to_skim_offset, self.network_los.get_maz_to_taz_series.index)  # bug
 
         # MAZ
         # 19062    330 <- The TAZ would be, say, 331, and the offset is 330
@@ -637,6 +634,8 @@ class MazSkimDict(SkimDict):
             offset_mapper = OffsetMapper(offset_series=maz_to_skim_offset)
         elif isinstance(maz_to_skim_offset, np.ndarray):
             offset_mapper = OffsetMapper(offset_list=maz_to_skim_offset)
+        else:
+            raise NotImplementedError
 
         return offset_mapper
 

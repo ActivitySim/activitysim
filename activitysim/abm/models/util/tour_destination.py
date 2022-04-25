@@ -167,11 +167,6 @@ DEST_TAZ = 'dest_TAZ'
 ORIG_TAZ = 'TAZ'  # likewise a temp, but if already in choosers, we assume we can use it opportunistically
 
 
-def map_maz_to_taz(s, network_los):
-    maz_to_taz = network_los.maz_taz_df[['MAZ', 'TAZ']].set_index('MAZ').TAZ
-    return s.map(maz_to_taz)
-
-
 def aggregate_size_terms(dest_size_terms, network_los):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
@@ -180,7 +175,9 @@ def aggregate_size_terms(dest_size_terms, network_los):
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
-    MAZ_size_terms[DEST_TAZ] = map_maz_to_taz(MAZ_size_terms.index, network_los)
+    MAZ_size_terms[DEST_TAZ] = network_los.map_maz_to_taz(MAZ_size_terms.index)
+    if MAZ_size_terms[DEST_TAZ].isna().any():
+        raise ValueError("found NaN MAZ")
 
     # aggregate to TAZ
     TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg({'size_term': 'sum'})
@@ -205,6 +202,9 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
     # print(f"TAZ_size_terms ({TAZ_size_terms.shape})\n{TAZ_size_terms}")
     # print(f"MAZ_size_terms ({MAZ_size_terms.shape})\n{MAZ_size_terms}")
+
+    if np.issubdtype(TAZ_size_terms[DEST_TAZ], np.floating):
+        raise TypeError("TAZ indexes are not integer")
 
     return MAZ_size_terms, TAZ_size_terms
 
@@ -411,7 +411,7 @@ def destination_presample(
     orig_maz = model_settings['CHOOSER_ORIG_COL_NAME']
     assert orig_maz in choosers
     if ORIG_TAZ not in choosers:
-        choosers[ORIG_TAZ] = map_maz_to_taz(choosers[orig_maz], network_los)
+        choosers[ORIG_TAZ] = network_los.map_maz_to_taz(choosers[orig_maz])
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
     # and a DEST_TAZ in the alternatives which get merged during interaction

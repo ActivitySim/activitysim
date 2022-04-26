@@ -545,7 +545,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the example_mtc are below.  The
-:ref:`example_arc` example and :ref:`example_semcog` example added additional submodels.
+:ref:`example_arc`, :ref:`example_semcog`, and :ref:`example_mtc_extended` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -1058,16 +1058,17 @@ only be activated when writing logsums for a small set of households for model e
 .. _example_mtc_extended :
 
 example_mtc_extended
-------------------
+--------------------
 
 example_mtc_extended contains additional models that were developed to enhance ActivitySim's modeling
 capabilities, but are not part of travel model one that example_mtc was developed from. This example inherets
 the data and configuration files from example_mtc. The current list of additional models included
 in this example are:
 
- * :ref:`vehicle_type_choice`: Selects a vehicle type for each household vehicle. Runs after auto_ownership.
- * :ref:`vehicle_allocation`: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
- auto operating costs are modified to reflect the allocated vehicle option.
+* :ref:`vehicle_type_choice`: Selects a vehicle type for each household vehicle. Runs after auto_ownership.
+* :ref:`vehicle_allocation`: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
+  auto operating costs are modified to reflect the allocated vehicle option.
+
 
 .. _example_estimation :
 

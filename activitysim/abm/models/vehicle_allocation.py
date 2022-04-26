@@ -75,11 +75,11 @@ def vehicle_allocation(
     Alternatives consist of the up to the number of household vehicles plus one
     option for non-household vehicles.
 
-    The model will be run 3 times, once for each tour occupancy defined in the model yaml.
-    Output tour table will have 3 columns added, one for each occupancy level.
+    The model will be run once for each tour occupancy defined in the model yaml.
+    Output tour table will columns added for each occupancy level.
 
     The user may also augment the `tours` tables with new vehicle
-    type-based fields specified via expressions in "annotate_tours_vehicle_allocation.csv".
+    type-based fields specified via the annotate_tours option.
 
     Parameters
     ----------

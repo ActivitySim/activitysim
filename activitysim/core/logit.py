@@ -473,7 +473,10 @@ def _each_nest(spec, parent_nest, post_order):
         nest.product_of_coefficients = parent_nest.product_of_coefficients
         nest.ancestors = parent_nest.ancestors + [name]
         nest.coefficient = parent_nest.coefficient
-        nest.parent_nest_scale = parent_nest.coefficient
+
+        # this is used for frozen individual ru - see discussion in simulate.py l.740
+        nest.parent_nest_scale = parent_nest.product_of_coefficients
+        #nest.parent_nest_scale = parent_nest.coefficient
 
         yield spec, nest
 

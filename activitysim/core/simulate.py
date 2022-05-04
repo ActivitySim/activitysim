@@ -964,6 +964,122 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
     return choices
 
 
+def eval_nl_fixed_ru(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
+            log_alt_losers=False,
+            want_logsums=False, trace_label=None,
+            trace_choice_name=None, trace_column_names=None):
+    """
+    Run a nested-logit simulation for when the model spec does not involve alternative
+    specific data, e.g. there are no interactions with alternative
+    properties and no need to sample from alternatives.
+
+    Parameters
+    ----------
+    choosers : pandas.DataFrame
+    spec : pandas.DataFrame
+        A table of variable specifications and coefficient values.
+        Variable expressions should be in the table index and the table
+        should have a column for each alternative.
+    nest_spec:
+        dictionary specifying nesting structure and nesting coefficients
+        (from the model spec yaml file)
+    locals_d : Dict or None
+        This is a dictionary of local variables that will be the environment
+        for an evaluation of an expression that begins with @
+    custom_chooser : function(probs, choosers, spec, trace_label) returns choices, rands
+        custom alternative to logit.make_choices
+    estimator : Estimator object
+        called to report intermediate table results (used for estimation)
+    trace_label: str
+        This is the label to be used  for trace log file entries and dump file names
+        when household tracing enabled. No tracing occurs if label is empty or None.
+    trace_choice_name: str
+        This is the column label to be used in trace file csv dump of choices
+    trace_column_names: str or list of str
+        chooser columns to include when tracing expression_values
+
+    Returns
+    -------
+    choices : pandas.Series
+        Index will be that of `choosers`, values will match the columns
+        of `spec`.
+    """
+
+    trace_label = tracing.extend_trace_label(trace_label, 'eval_nl_fixed_ru')
+    assert trace_label
+    have_trace_targets = tracing.has_trace_targets(choosers)
+
+    logit.validate_nest_spec(nest_spec, trace_label)
+
+    if have_trace_targets:
+        tracing.trace_df(choosers, '%s.choosers' % trace_label)
+
+    raw_utilities = eval_utilities(spec, choosers, locals_d,
+                                   log_alt_losers=log_alt_losers,
+                                   trace_label=trace_label, have_trace_targets=have_trace_targets,
+                                   estimator=estimator, trace_column_names=trace_column_names)
+    chunk.log_df(trace_label, "raw_utilities", raw_utilities)
+
+    if have_trace_targets:
+        tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+
+    # utilities of leaves and nests
+    nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
+    chunk.log_df(trace_label, "nested_utilities", nested_utilities)
+
+    del raw_utilities
+    chunk.log_df(trace_label, 'raw_utilities', None)
+
+    if have_trace_targets:
+        tracing.trace_df(nested_utilities, '%s.nested_utilities' % trace_label,
+                         column_labels=['alternative', 'utility'])
+
+    # TODO - check this is correct
+    if want_logsums:
+        # logsum of nest root
+        logsums = pd.Series(nested_utilities.root, index=choosers.index)
+        chunk.log_df(trace_label, "logsums", logsums)
+
+
+    # TODO: add checks on utilities?
+    # # note base_probabilities could all be zero since we allowed all probs for nests to be zero
+    # # check here to print a clear message but make_choices will raise error if probs don't sum to 1
+    # BAD_PROB_THRESHOLD = 0.001
+    # no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
+    #
+    # if no_choices.any():
+    #
+    #     logit.report_bad_choices(
+    #         no_choices, base_probabilities,
+    #         trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
+    #         trace_choosers=choosers,
+    #         msg="base_probabilities do not sum to one")
+
+    # TODO: add custom_chooser
+    # if custom_chooser:
+    #     choices, rands = custom_chooser(probs=base_probabilities, choosers=choosers, spec=spec,
+    #                                     trace_label=trace_label)
+    # else:
+
+    choices = logit.make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=trace_label)
+
+    if have_trace_targets:
+        tracing.trace_df(choices, '%s.choices' % trace_label,
+                         columns=[None, trace_choice_name])
+        #tracing.trace_df(rands, '%s.rands' % trace_label,
+        #                 columns=[None, 'rand'])
+        if want_logsums:
+            tracing.trace_df(logsums, '%s.logsums' % trace_label,
+                             columns=[None, 'logsum'])
+
+    if want_logsums:
+        choices = choices.to_frame('choice')
+        choices['logsum'] = logsums
+
+    return choices
+
+
 def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
             log_alt_losers=False,
             want_logsums=False, trace_label=None,

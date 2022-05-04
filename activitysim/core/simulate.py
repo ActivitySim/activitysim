@@ -709,6 +709,46 @@ def _check_for_variability(expression_values, trace_label):
         logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
 
 
+def compute_nested_utilities(raw_utilities, nest_spec):
+    """
+        compute nest utilities based on nesting coefficients
+
+        For nest nodes this is the logsum of alternatives adjusted by nesting coefficient
+
+        leaf <- raw_utility / nest_coefficient
+        nest <- ln(sum of exponentiated raw_utility of leaves) * nest_coefficient)
+
+        Parameters
+        ----------
+        raw_utilities : pandas.DataFrame
+            dataframe with the raw alternative utilities of all leaves
+            (what in non-nested logit would be the utilities of all the alternatives)
+        nest_spec : dict
+            Nest tree dict from the model spec yaml file
+
+        Returns
+        -------
+        nested_utilities : pandas.DataFrame
+            Will have the index of `raw_utilities` and columns for leaf and node utilities
+        """
+    nested_utilities = pd.DataFrame(index=raw_utilities.index)
+
+    for nest in logit.each_nest(nest_spec, post_order=True):
+        name = nest.name
+        if nest.is_leaf:
+            nested_utilities[name] = \
+                raw_utilities[name].astype(float) / nest.coefficient #nest.product_of_coefficients
+        else:
+            # the alternative nested_utilities will already have been computed due to post_order
+            # this will RuntimeWarning: divide by zero encountered in log
+            # if all nest alternative utilities are zero and produce -inf
+            with np.errstate(divide='ignore'):
+                nested_utilities[name] = \
+                    nest.coefficient * np.log((np.exp(nested_utilities[nest.alternatives])).sum(axis=1))
+
+    return nested_utilities
+
+
 def compute_nested_exp_utilities(raw_utilities, nest_spec):
     """
     compute exponentiated nest utilities based on nesting coefficients

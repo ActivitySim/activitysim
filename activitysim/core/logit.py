@@ -423,6 +423,7 @@ def _each_nest(spec, parent_nest, post_order):
         nest.level = parent_nest.level + 1
         nest.product_of_coefficients = parent_nest.product_of_coefficients
         nest.ancestors = parent_nest.ancestors + [name]
+        nest.coefficient = parent_nest.coefficient
 
         yield spec, nest
 

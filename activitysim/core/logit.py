@@ -222,8 +222,11 @@ def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_
         nest_utils_for_choice.loc[no_choices_made_yet, "choice"] = \
             np.where(choice_this_level.apply(is_alternative), choice_this_level, None)
 
-    assert not nest_utils_for_choice["choice"].isnull.any(), "No choice for XXX - implement reporting"
+    assert not nest_utils_for_choice["choice"].isnull().any(), "No choice for XXX - implement reporting"
     choices = pd.Series(nest_utils_for_choice["choice"], index=nested_utilities.index)
+
+    assert not choices.isnull().any(), "No choice for XXX - implement reporting"
+
     return choices
 
 

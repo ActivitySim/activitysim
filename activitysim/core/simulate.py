@@ -1041,7 +1041,6 @@ def eval_nl_fixed_ru(choosers, spec, nest_spec, locals_d, custom_chooser, estima
         logsums = pd.Series(nested_utilities.root, index=choosers.index)
         chunk.log_df(trace_label, "logsums", logsums)
 
-
     # TODO: add checks on utilities?
     # # note base_probabilities could all be zero since we allowed all probs for nests to be zero
     # # check here to print a clear message but make_choices will raise error if probs don't sum to 1
@@ -1223,6 +1222,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                      want_logsums=False,
                      estimator=None,
                      trace_label=None, trace_choice_name=None, trace_column_names=None,
+                     choose_individual_max_utility=False
                      ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1273,6 +1273,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
         set_skim_wrapper_targets(choosers, skims)
 
     if nest_spec is None:
+        # TODO: add frozen individual ru for mnl
         choices = eval_mnl(choosers, spec, locals_d, custom_chooser,
                            log_alt_losers=log_alt_losers,
                            want_logsums=want_logsums,
@@ -1280,12 +1281,20 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                            trace_label=trace_label,
                            trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
     else:
-        choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
-                          log_alt_losers=log_alt_losers,
-                          want_logsums=want_logsums,
-                          estimator=estimator,
-                          trace_label=trace_label,
-                          trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
+        if choose_individual_max_utility:
+            choices = eval_nl_fixed_ru(choosers, spec, nest_spec, locals_d, custom_chooser,
+                              log_alt_losers=log_alt_losers,
+                              want_logsums=want_logsums,
+                              estimator=estimator,
+                              trace_label=trace_label,
+                              trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
+        else:
+            choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
+                              log_alt_losers=log_alt_losers,
+                              want_logsums=want_logsums,
+                              estimator=estimator,
+                              trace_label=trace_label,
+                              trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
 
     return choices
 
@@ -1308,7 +1317,8 @@ def simple_simulate(choosers, spec, nest_spec,
                     log_alt_losers=False,
                     want_logsums=False,
                     estimator=None,
-                    trace_label=None, trace_choice_name=None, trace_column_names=None):
+                    trace_label=None, trace_choice_name=None, trace_column_names=None,
+                    choose_individual_max_utility=False):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -1334,7 +1344,8 @@ def simple_simulate(choosers, spec, nest_spec,
             estimator=estimator,
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
-            trace_column_names=trace_column_names)
+            trace_column_names=trace_column_names,
+            choose_individual_max_utility=choose_individual_max_utility)
 
         result_list.append(choices)
 

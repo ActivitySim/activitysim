@@ -736,18 +736,20 @@ def compute_nested_utilities(raw_utilities, nest_spec):
     for nest in logit.each_nest(nest_spec, post_order=True):
         name = nest.name
         if nest.is_leaf:
-            nested_utilities[name] = raw_utilities[name].astype(float) / nest.product_of_coefficients
-            #nested_utilities[name] = raw_utilities[name].astype(float) / nest.coefficient
-            # WHY does asim use product of coeffs here? the above gives us identical root logsums
-            # but then we need to dscale ev1 accordingly for alternatives, right?
-            # can be achieved by
+            #nested_utilities[name] = raw_utilities[name].astype(float) / nest.product_of_coefficients
+            nested_utilities[name] = raw_utilities[name].astype(float) / nest.coefficient
+            # WHY does asim use product of coeffs here? using that gives us identical root logsums
+            # but then we need to scale ev1 accordingly for alternatives, right?
         else:
             # the alternative nested_utilities will already have been computed due to post_order
-            # this will RuntimeWarning: divide by zero encountered in log
-            # if all nest alternative utilities are zero and produce -inf
+            if nest.level == 1:  # FIXME: work out the parent scale mess
+                scale = 1.0
+            else:
+                scale = nest.parent_nest_scale
+
             with np.errstate(divide='ignore'):
                 nested_utilities[name] = \
-                    nest.coefficient * np.log(np.exp(nested_utilities[nest.alternatives]).sum(axis=1))
+                    nest.coefficient * np.log(np.exp(nested_utilities[nest.alternatives] / scale).sum(axis=1))
 
     return nested_utilities
 

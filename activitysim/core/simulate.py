@@ -746,8 +746,12 @@ def compute_nested_utilities(raw_utilities, nest_spec):
                         np.exp(nested_utilities[nest.alternatives] / nest.coefficient).sum(axis=1)
                     )
 
-    for nest in logit.each_nest(nest_spec, type="leaf"):
-        nested_utilities[nest.name] /= nest.coefficient
+
+    # calculate scaled utilties, as would be used for probability calculations
+    for nest in logit.each_nest(nest_spec):
+        if nest.level == 1:
+            continue  # root does not have parent
+        nested_utilities[nest.name] /= nest.parent_scale
 
     return nested_utilities
 

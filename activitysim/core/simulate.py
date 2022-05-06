@@ -743,15 +743,10 @@ def compute_nested_utilities(raw_utilities, nest_spec):
             with np.errstate(divide='ignore'):
                 nested_utilities[name] = \
                     nest.coefficient * np.log(
-                        np.exp(nested_utilities[nest.alternatives] / nest.coefficient).sum(axis=1)
-                    )
+                        np.exp(nested_utilities[nest.alternatives]).sum(axis=1))
 
-
-    # calculate scaled utilties, as would be used for probability calculations
-    for nest in logit.each_nest(nest_spec):
-        if nest.level == 1:
-            continue  # root does not have parent
-        nested_utilities[nest.name] /= nest.parent_scale
+        if nest.level > 1:  # root does not have parent. also, parent_scale seems to be 0.
+            nested_utilities[name] = nested_utilities[name] / nest.parent_scale
 
     return nested_utilities
 
@@ -1041,6 +1036,36 @@ def eval_nl_fixed_ru(choosers, spec, nest_spec, locals_d, custom_chooser, estima
     if have_trace_targets:
         tracing.trace_df(nested_utilities, '%s.nested_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
+
+
+    ########### comparison only
+    # probabilities of alternatives relative to siblings sharing the same nest
+    nested_probabilities = \
+        compute_nested_probabilities(np.exp(nested_utilities), nest_spec, trace_label=trace_label)
+    chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
+
+    if want_logsums:
+        # logsum of nest root
+        logsums = pd.Series(nested_utilities.root, index=choosers.index)
+        chunk.log_df(trace_label, "logsums", logsums)
+
+    if have_trace_targets:
+        tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'])
+
+    base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
+    chunk.log_df(trace_label, "base_probabilities", base_probabilities)
+
+    del nested_probabilities
+    chunk.log_df(trace_label, "nested_probabilities", None)
+
+    if have_trace_targets:
+        tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
+                         column_labels=['alternative', 'probability'])
+
+    del(base_probabilities)
+    chunk.log_df(trace_label, "base_probabilities", None)
+    ########### end comparison only
 
     # TODO - check this is correct
     if want_logsums:

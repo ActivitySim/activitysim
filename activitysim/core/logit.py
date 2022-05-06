@@ -198,9 +198,13 @@ def add_ev1_random(df, nest_spec):
     for n in each_nest(nest_spec):
         if n.level == 1:
             continue # skip the root level
-        # TODO: check parent nest level scale is what we want this is right
+        # TODO: check parent nest level scale is what we want
         uniform_rands = pipeline.get_rn_generator().random_for_df(nest_utils_for_choice)
-        rands = inverse_ev1_cdf(uniform_rands, scale=n.parent_nest_scale)
+        #if n.is_leaf:
+        #    scale = n.coefficient  # product_of_coefficients parent_nest_scale coefficient
+        #else:
+        scale = 1.0  # n.coefficient
+        rands = inverse_ev1_cdf(uniform_rands, scale=scale)
         nest_utils_for_choice.loc[:, n.name] += rands[:, 0]  # inverse_ev1_cdf of single-row df adds dimension
     return nest_utils_for_choice
 
@@ -224,9 +228,6 @@ def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_
 
     assert not nest_utils_for_choice["choice"].isnull().any(), "No choice for XXX - implement reporting"
     choices = pd.Series(nest_utils_for_choice["choice"], index=nested_utilities.index)
-
-    assert not choices.isnull().any(), "No choice for XXX - implement reporting"
-
     return choices
 
 

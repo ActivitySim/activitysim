@@ -18,6 +18,199 @@ from activitysim.core import expressions
 from activitysim.core.util import assign_in_place
 
 
+
+def mode_choice_for_trip(choose_individual_max_utility, trip_id_to_check, num_samples):
+    """open pipeline and load stuff for mode choice dev assuming model has been run and pipeline.h5 exists"""
+    resume_after = "trip_scheduling"
+    model_name = "trip_mode_choice"
+    chunk_size = 0  # test_mtc means no chunking
+
+    pipeline.open_pipeline(resume_after)
+    # preload any bulky injectables (e.g. skims) not in pipeline
+    inject.get_injectable('preload_injectables', None)
+    pipeline._PIPELINE.rng().begin_step(model_name)
+    #step_name = model_name
+    args = {}
+    #checkpoint = pipeline.intermediate_checkpoint(model_name)
+    inject.set_step_args(args)
+
+    trips = inject.get_table('trips')
+    tours_merged = inject.get_table('tours_merged')
+    network_los = inject.get_injectable('network_los')
+
+    trace_label = 'trip_mode_choice'
+    model_settings_file_name = 'trip_mode_choice.yaml'
+    model_settings = config.read_model_settings(model_settings_file_name)
+
+    logsum_column_name = model_settings.get('MODE_CHOICE_LOGSUM_COLUMN_NAME')
+    mode_column_name = 'trip_mode'
+
+    trips_df = trips.to_frame()
+    print("Running with %d trips", trips_df.shape[0])
+
+    tours_merged = tours_merged.to_frame()
+    tours_merged = tours_merged[model_settings['TOURS_MERGED_CHOOSER_COLUMNS']]
+
+    # - trips_merged - merge trips and tours_merged
+    trips_merged = pd.merge(
+        trips_df,
+        tours_merged,
+        left_on='tour_id',
+        right_index=True,
+        how="left")
+    assert trips_merged.index.equals(trips.index)
+
+    # setup skim keys
+    assert ('trip_period' not in trips_merged)
+    trips_merged['trip_period'] = network_los.skim_time_period_label(trips_merged.depart)
+
+    orig_col = 'origin'
+    dest_col = 'destination'
+
+    constants = {}
+    constants.update(config.get_model_constants(model_settings))
+    constants.update({
+        'ORIGIN': orig_col,
+        'DESTINATION': dest_col
+    })
+
+    skim_dict = network_los.get_default_skim_dict()
+
+    odt_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=orig_col, dest_key=dest_col,
+                                               dim3_key='trip_period')
+    dot_skim_stack_wrapper = skim_dict.wrap_3d(orig_key=dest_col, dest_key=orig_col,
+                                               dim3_key='trip_period')
+    od_skim_wrapper = skim_dict.wrap('origin', 'destination')
+
+    skims = {
+        "odt_skims": odt_skim_stack_wrapper,
+        "dot_skims": dot_skim_stack_wrapper,
+        "od_skims": od_skim_wrapper,
+    }
+
+    model_spec = simulate.read_model_spec(file_name=model_settings['SPEC'])
+    nest_specs = config.get_logit_model_settings(model_settings)
+
+    estimator = estimation.manager.begin_estimation('trip_mode_choice')
+
+    #choices_list = []
+
+
+    # grab one, duplicate num_samples times
+    trips_segment = trips_merged.loc[trips_merged.index == trip_id_to_check].copy()
+    primary_purpose = trips_segment['primary_purpose'].values[0]
+    trips_segment = trips_segment.loc[trips_segment.index.repeat(num_samples)]
+
+    # need to add new row_states for rng here, need to ensure there are no collisions with existing keys
+    existing_indexes = pipeline._PIPELINE.rng().get_channel_for_df(trips_merged).row_states.index.values
+    num_new_indexes = trips_segment.shape[0]
+    new_indexes = np.arange(existing_indexes.max()+1, existing_indexes.max() + num_new_indexes + 1)
+
+    trips_segment.index = new_indexes #+= np.arange(num_samples)
+    # name index so tracing knows how to slice
+    trips_segment.index.name = 'trip_id'
+
+
+    # #logger.warning("Change seeding back when done with testing")
+    # pipeline._PIPELINE.rng.row_states = pd.DataFrame(columns=['row_seed', 'offset'], index=trips_segment.index)
+    # pipeline._PIPELINE.rng.row_states["row_seed"] = trips_segment.index.values
+    # pipeline._PIPELINE.rng.row_states["offset"] = 0
+    pipeline._PIPELINE.rng().add_channel("trips", trips_segment)
+
+
+    #for primary_purpose, trips_segment in trips_merged.groupby('primary_purpose'):
+    #if (do_these_purposes is not None) and (primary_purpose not in do_these_purposes):
+    #    continue
+
+    print("trip_mode_choice tour_type '%s' (%s trips)" %
+          (primary_purpose, len(trips_segment.index), ))
+
+    coefficients = simulate.get_segment_coefficients(model_settings, primary_purpose)
+
+    locals_dict = {}
+    locals_dict.update(constants)
+    locals_dict.update(coefficients)
+
+    segment_trace_label = tracing.extend_trace_label(trace_label, primary_purpose)
+
+    expressions.annotate_preprocessors(
+        trips_segment, locals_dict, skims,
+        model_settings, segment_trace_label)
+
+    locals_dict.update(skims)
+
+    ################ Replace wrapper function
+    #     choices = mode_choice_simulate(...)
+    spec=simulate.eval_coefficients(model_spec, coefficients, estimator)
+    nest_spec = simulate.eval_nest_coefficients(nest_specs, coefficients, segment_trace_label)
+    choices = simulate.simple_simulate(
+        choosers=trips_segment,
+        spec=spec,
+        nest_spec=nest_spec,
+        skims=skims,
+        locals_d=locals_dict,
+        chunk_size=chunk_size,
+        want_logsums=logsum_column_name is not None,
+        trace_label=segment_trace_label,
+        trace_choice_name='trip_mode_choice',
+        estimator=estimator,
+        trace_column_names=None,
+        choose_individual_max_utility=choose_individual_max_utility)
+    # for consistency, always return dataframe, whether or not logsums were requested
+    if isinstance(choices, pd.Series):
+        choices = choices.to_frame('choice')
+    choices.rename(columns={'logsum': logsum_column_name,
+                            'choice': mode_column_name},
+                   inplace=True)
+    if not choose_individual_max_utility:
+        alts = spec.columns
+        choices[mode_column_name] = choices[mode_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
+    ################
+    #choices_list.append(choices)
+    #choices_df_asim = pd.concat(choices_list)
+
+    # update trips table with choices (and potionally logssums)
+    #trips_df = trips_merged.copy() # trips.to_frame()
+
+    #if (do_these_purposes is not None):
+    #    trips_df  = trips_df.loc[trips_df.primary_purpose.isin(do_these_purposes)]
+
+    #assign_in_place(trips_df, choices)
+    #assert not trips_df[mode_column_name].isnull().any()
+
+    finalise = True
+    if finalise:
+        inject.set_step_args(None)
+        #
+        pipeline._PIPELINE.rng().end_step(model_name)
+        pipeline.add_checkpoint(model_name)
+        if not pipeline.intermediate_checkpoint():
+            pipeline.add_checkpoint(pipeline.FINAL_CHECKPOINT_NAME)
+
+        pipeline.close_pipeline()
+
+    print("Done")
+    return trips_merged, choices
+
+
+def comp_mode_shares(base_probs, choose_individual_max_utility, num_samples, trip_id_to_check):
+    t_, c_ = mode_choice_for_trip(choose_individual_max_utility=choose_individual_max_utility,
+                                  trip_id_to_check=trip_id_to_check, num_samples=num_samples)
+
+    sim_mode_shares = c_.trip_mode.value_counts() / c_.shape[0]
+    #sim_mode_shares.columns = ["mode_share_sim"]
+    obs_probs = base_probs[0].loc[base_probs[0].index == trip_id_to_check].T
+    obs_probs.columns = ["mode_share_obs"]
+    ms_comp = obs_probs.merge(sim_mode_shares, left_index=True, right_index=True, how="outer").fillna(0)
+    ms_comp["diff"] = ms_comp["trip_mode"] - ms_comp["mode_share_obs"]
+    ms_comp["rel_diff"] = ms_comp["diff"] / ms_comp["mode_share_obs"]
+    #ms_comp.style.format('{:.2}')
+    #with pd.option_context("precision", 3):
+    #    display(ms_comp)
+    return ms_comp
+
+
+
 def run_trip_mode_choice(do_these_purposes=None, choose_individual_max_utility=True):
 
     """open pipeline and load stuff for mode choice dev assuming model has been run and pipeline.h5 exists"""

@@ -737,7 +737,7 @@ def compute_nested_utilities(raw_utilities, nest_spec):
         name = nest.name
         if nest.is_leaf:
             # do not scale here, do afterwards so recursive structure works
-            nested_utilities[name] = raw_utilities[name].astype(float) #/ nest.coefficient
+            nested_utilities[name] = raw_utilities[name].astype(float)
         else:
             # the alternative nested_utilities will already have been computed due to post_order
             with np.errstate(divide='ignore'):

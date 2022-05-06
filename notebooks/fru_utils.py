@@ -199,7 +199,7 @@ def comp_mode_shares(base_probs, choose_individual_max_utility, num_samples, tri
 
     sim_mode_shares = c_.trip_mode.value_counts() / c_.shape[0]
     #sim_mode_shares.columns = ["mode_share_sim"]
-    obs_probs = base_probs[0].loc[base_probs[0].index == trip_id_to_check].T
+    obs_probs = base_probs.loc[base_probs.index == trip_id_to_check].T
     obs_probs.columns = ["mode_share_obs"]
     ms_comp = obs_probs.merge(sim_mode_shares, left_index=True, right_index=True, how="outer").fillna(0)
     ms_comp["diff"] = ms_comp["trip_mode"] - ms_comp["mode_share_obs"]

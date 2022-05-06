@@ -197,14 +197,9 @@ def add_ev1_random(df, nest_spec):
     nest_utils_for_choice = df.copy()
     for n in each_nest(nest_spec):
         if n.level == 1:
-            continue # skip the root level
-        # TODO: check parent nest level scale is what we want
+            continue # skip the root level, not needed
         uniform_rands = pipeline.get_rn_generator().random_for_df(nest_utils_for_choice)
-        #if n.is_leaf:
-        #    scale = n.coefficient  # product_of_coefficients parent_nest_scale coefficient
-        #else:
-        scale = 1.0  # n.coefficient
-        rands = inverse_ev1_cdf(uniform_rands, scale=scale)
+        rands = inverse_ev1_cdf(uniform_rands)
         nest_utils_for_choice.loc[:, n.name] += rands[:, 0]  # inverse_ev1_cdf of single-row df adds dimension
     return nest_utils_for_choice
 
@@ -377,12 +372,10 @@ class Nest(object):
         self.ancestors = []
         self.alternatives = None
         self.coefficient = 0
-        self.parent_nest_scale = 1.0
 
     def print(self):
-        print("Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s parent nest scale: "
-              "%s" %
-              (self.name, self.level, self.coefficient, self.product_of_coefficients, self.ancestors, self.parent_nest_scale))
+        print("Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s " %
+              (self.name, self.level, self.coefficient, self.product_of_coefficients, self.ancestors))
 
     @property
     def is_leaf(self):
@@ -453,7 +446,6 @@ def _each_nest(spec, parent_nest, post_order):
         nest.product_of_coefficients = parent_nest.product_of_coefficients * coefficient
         nest.alternatives = alternatives
         nest.ancestors = parent_nest.ancestors + [name]
-        nest.parent_nest_scale = parent_nest.coefficient
 
         if pre_order:
             yield spec, nest
@@ -474,10 +466,6 @@ def _each_nest(spec, parent_nest, post_order):
         nest.product_of_coefficients = parent_nest.product_of_coefficients
         nest.ancestors = parent_nest.ancestors + [name]
         nest.coefficient = parent_nest.coefficient
-
-        # this is used for frozen individual ru - see discussion in simulate.py l.740
-        #nest.parent_nest_scale = parent_nest.product_of_coefficients
-        nest.parent_nest_scale = parent_nest.coefficient
 
         yield spec, nest
 

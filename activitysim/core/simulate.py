@@ -736,21 +736,18 @@ def compute_nested_utilities(raw_utilities, nest_spec):
     for nest in logit.each_nest(nest_spec, post_order=True):
         name = nest.name
         if nest.is_leaf:
-            #nested_utilities[name] = raw_utilities[name].astype(float) / nest.product_of_coefficients
-            nested_utilities[name] = raw_utilities[name].astype(float)  / nest.coefficient
-            # WHY does asim use product of coeffs here? using that gives us identical root logsums
-            # but then we need to scale ev1 accordingly for alternatives, right?
+            # do not scale here, do afterwards so recursive structure works
+            nested_utilities[name] = raw_utilities[name].astype(float) #/ nest.coefficient
         else:
             # the alternative nested_utilities will already have been computed due to post_order
-            #if nest.level == 1:  # FIXME: work out the parent scale mess
-            #    scale = 1.0
-            #else:
-            #    scale = nest.parent_nest_scale
-            scale = 1.0  # IT'S RECURSIVE for lowest level but check for higher level
-
             with np.errstate(divide='ignore'):
                 nested_utilities[name] = \
-                    nest.coefficient * np.log(np.exp(nested_utilities[nest.alternatives] / scale).sum(axis=1))
+                    nest.coefficient * np.log(
+                        np.exp(nested_utilities[nest.alternatives] / nest.coefficient).sum(axis=1)
+                    )
+
+    for nest in logit.each_nest(nest_spec, type="leaf"):
+        nested_utilities[nest.name] /= nest.coefficient
 
     return nested_utilities
 

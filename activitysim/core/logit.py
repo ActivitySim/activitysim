@@ -236,7 +236,7 @@ def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_
         axis=1
     )
     assert not choices.isnull().any(), "No choice for XXX - implement reporting"
-    choices = pd.Series(choices, index=nested_utilities.index)
+    choices = pd.Series(choices, index=nest_utils_for_choice.index)
     return choices
 
 

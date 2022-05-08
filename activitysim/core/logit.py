@@ -210,24 +210,15 @@ def add_ev1_random(df):
     return nest_utils_for_choice
 
 
-def choose_from_tree(nest_utils, nest_spec):
-    all_alternatives = [nest.name for nest in each_nest(nest_spec, type='leaf')]
-    for level, nests_at_level in group_nests_by_level(nest_spec).items():
-        nest_alts = [nest.name for nest in nests_at_level]
+def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alternatives_by_name):
+    for level, nest_names in logit_nest_groups.items():
         if level == 1:
-            assert len(nests_at_level) == 1
-            assert len(nest_alts) == 1
-            next_level_alts = nests_at_level[0].alternatives
+            next_level_alts = nest_alternatives_by_name[nest_names[0]]
             continue
-        # all alternatives from the previous level
-        alts_this_level = list(filter(lambda x: x in next_level_alts, nest_alts))
-        choice_this_level = nest_utils[nest_utils.index.isin(alts_this_level)].idxmax()
+        choice_this_level = nest_utils[nest_utils.index.isin(next_level_alts)].idxmax()
         if choice_this_level in all_alternatives:
             return choice_this_level
-        chosen_nest = list(filter(lambda x: x.name == choice_this_level, nests_at_level))
-        assert len(chosen_nest) == 1
-        next_level_alts = chosen_nest[0].alternatives
-
+        next_level_alts = nest_alternatives_by_name[choice_this_level]
     raise ValueError("This should never happen - no alternative found")
 
 
@@ -235,8 +226,15 @@ def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_
     """ walk down the nesting tree and make choice at each level, which is the root of the next level choice."""
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
     nest_utils_for_choice = add_ev1_random(nested_utilities)
-    # TODO: the following apply is slow, try to improve it
-    choices = nest_utils_for_choice.apply(lambda x: choose_from_tree(x, nest_spec), axis=1)
+
+    all_alternatives = set(nest.name for nest in each_nest(nest_spec, type='leaf'))
+    logit_nest_groups = group_nest_names_by_level(nest_spec)
+    nest_alternatives_by_name = {n.name: n.alternatives for n in each_nest(nest_spec)}
+
+    choices = nest_utils_for_choice.apply(
+        lambda x: choose_from_tree(x, all_alternatives, logit_nest_groups, nest_alternatives_by_name),
+        axis=1
+    )
     assert not choices.isnull().any(), "No choice for XXX - implement reporting"
     choices = pd.Series(choices, index=nested_utilities.index)
     return choices
@@ -534,10 +532,10 @@ def count_nests(nest_spec):
     return count_each_nest(nest_spec, 0) if nest_spec is not None else 0
 
 
-def group_nests_by_level(nest_spec):
+def group_nest_names_by_level(nest_spec):
     # group nests by level, returns {level: [nest.name at that level]}
     depth = np.max([x.level for x in each_nest(nest_spec)])
     nest_levels = {x: [] for x in range(1, depth+1)}
     for n in each_nest(nest_spec):
-        nest_levels[n.level].append(n)
+        nest_levels[n.level].append(n.name)
     return nest_levels

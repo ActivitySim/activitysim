@@ -192,37 +192,53 @@ def inverse_ev1_cdf(x, location=0.0, scale=1.0):
     return location - scale * np.log(-np.log(x))
 
 
-def add_ev1_random(df, nest_spec):
-    # TODO: generalise to logit for nest_spec==None by adding one rand (scale=1) to all columns
+# def add_ev1_random(df, nest_spec):
+#     # TODO: generalise to logit for nest_spec==None by adding one rand (scale=1) to all columns
+#     nest_utils_for_choice = df.copy()
+#     for n in each_nest(nest_spec):
+#         if n.level == 1:
+#             continue  # skip the root level, not needed
+#         uniform_rands = pipeline.get_rn_generator().random_for_df(nest_utils_for_choice)
+#         rands = inverse_ev1_cdf(uniform_rands)
+#         nest_utils_for_choice.loc[:, n.name] += rands[:, 0]  # inverse_ev1_cdf of single-row df adds dimension
+#     return nest_utils_for_choice
+def add_ev1_random(df):
     nest_utils_for_choice = df.copy()
-    for n in each_nest(nest_spec):
-        if n.level == 1:
-            continue # skip the root level, not needed
-        uniform_rands = pipeline.get_rn_generator().random_for_df(nest_utils_for_choice)
-        rands = inverse_ev1_cdf(uniform_rands)
-        nest_utils_for_choice.loc[:, n.name] += rands[:, 0]  # inverse_ev1_cdf of single-row df adds dimension
+    uniform_rands = pipeline.get_rn_generator().random_for_df(nest_utils_for_choice, n=df.shape[1])
+    rands = inverse_ev1_cdf(uniform_rands)
+    nest_utils_for_choice += rands
     return nest_utils_for_choice
 
 
-def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_choosers=None):
-    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
-    nest_utils_for_choice = add_ev1_random(nested_utilities, nest_spec)
-    all_alternatives = list(map(lambda x: x.name, filter(lambda x: x.is_leaf, each_nest(nest_spec))))
-
-    def is_alternative(name):
-        return name in all_alternatives
-
-    nest_utils_for_choice["choice"] = None
-    for level, alts in group_nests_by_level(nest_spec).items():
+def choose_from_tree(nest_utils, nest_spec):
+    all_alternatives = [nest.name for nest in each_nest(nest_spec, type='leaf')]
+    for level, nests_at_level in group_nests_by_level(nest_spec).items():
+        nest_alts = [nest.name for nest in nests_at_level]
         if level == 1:
+            assert len(nests_at_level) == 1
+            assert len(nest_alts) == 1
+            next_level_alts = nests_at_level[0].alternatives
             continue
-        no_choices_made_yet = nest_utils_for_choice["choice"].isnull()
-        choice_this_level = nest_utils_for_choice.loc[no_choices_made_yet][alts].idxmax(1)
-        nest_utils_for_choice.loc[no_choices_made_yet, "choice"] = \
-            np.where(choice_this_level.apply(is_alternative), choice_this_level, None)
+        # all alternatives from the previous level
+        alts_this_level = list(filter(lambda x: x in next_level_alts, nest_alts))
+        choice_this_level = nest_utils[nest_utils.index.isin(alts_this_level)].idxmax()
+        if choice_this_level in all_alternatives:
+            return choice_this_level
+        chosen_nest = list(filter(lambda x: x.name == choice_this_level, nests_at_level))
+        assert len(chosen_nest) == 1
+        next_level_alts = chosen_nest[0].alternatives
 
-    assert not nest_utils_for_choice["choice"].isnull().any(), "No choice for XXX - implement reporting"
-    choices = pd.Series(nest_utils_for_choice["choice"], index=nested_utilities.index)
+    raise ValueError("This should never happen - no alternative found")
+
+
+def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_choosers=None):
+    """ walk down the nesting tree and make choice at each level, which is the root of the next level choice."""
+    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
+    nest_utils_for_choice = add_ev1_random(nested_utilities)
+    # TODO: the following apply is slow, try to improve it
+    choices = nest_utils_for_choice.apply(lambda x: choose_from_tree(x, nest_spec), axis=1)
+    assert not choices.isnull().any(), "No choice for XXX - implement reporting"
+    choices = pd.Series(choices, index=nested_utilities.index)
     return choices
 
 
@@ -523,6 +539,5 @@ def group_nests_by_level(nest_spec):
     depth = np.max([x.level for x in each_nest(nest_spec)])
     nest_levels = {x: [] for x in range(1, depth+1)}
     for n in each_nest(nest_spec):
-        nest_levels[n.level].append(n.name)
-    assert len(nest_levels[1]) == 1  # only one root
+        nest_levels[n.level].append(n)
     return nest_levels

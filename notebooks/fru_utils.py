@@ -1,11 +1,9 @@
 import os
-import argparse
 from datetime import datetime
 
 import numpy as np
 import pandas as pd
 
-from activitysim.cli import run
 from activitysim.core import inject
 from activitysim.core import tracing
 from activitysim.core import config

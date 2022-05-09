@@ -1044,11 +1044,6 @@ def eval_nl_fixed_ru(choosers, spec, nest_spec, locals_d, custom_chooser, estima
         compute_nested_probabilities(np.exp(nested_utilities), nest_spec, trace_label=trace_label)
     chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
 
-    if want_logsums:
-        # logsum of nest root
-        logsums = pd.Series(nested_utilities.root, index=choosers.index)
-        chunk.log_df(trace_label, "logsums", logsums)
-
     if have_trace_targets:
         tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
                          column_labels=['alternative', 'probability'])

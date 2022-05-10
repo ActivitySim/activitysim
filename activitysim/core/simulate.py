@@ -737,16 +737,13 @@ def compute_nested_utilities(raw_utilities, nest_spec):
         name = nest.name
         if nest.is_leaf:
             # do not scale here, do afterwards so recursive structure works
-            nested_utilities[name] = raw_utilities[name].astype(float)
+            nested_utilities[name] = raw_utilities[name].astype(float) / nest.product_of_coefficients
         else:
             # the alternative nested_utilities will already have been computed due to post_order
             with np.errstate(divide='ignore'):
                 nested_utilities[name] = \
                     nest.coefficient * np.log(
-                        np.exp(nested_utilities[nest.alternatives]).sum(axis=1))
-
-        if nest.level > 1:  # root does not have parent. also, parent_scale seems to be 0.
-            nested_utilities[name] = nested_utilities[name] / nest.parent_scale
+                    np.exp(nested_utilities[nest.alternatives]).sum(axis=1))
 
     return nested_utilities
 

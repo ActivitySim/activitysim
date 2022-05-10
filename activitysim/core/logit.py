@@ -386,7 +386,6 @@ class Nest(object):
         self.ancestors = []
         self.alternatives = None
         self.coefficient = 0
-        self.parent_scale = 1
 
     def print(self):
         print("Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s " %
@@ -461,7 +460,6 @@ def _each_nest(spec, parent_nest, post_order):
         nest.product_of_coefficients = parent_nest.product_of_coefficients * coefficient
         nest.alternatives = alternatives
         nest.ancestors = parent_nest.ancestors + [name]
-        nest.parent_scale = parent_nest.coefficient
 
         if pre_order:
             yield spec, nest
@@ -482,7 +480,6 @@ def _each_nest(spec, parent_nest, post_order):
         nest.product_of_coefficients = parent_nest.product_of_coefficients
         nest.ancestors = parent_nest.ancestors + [name]
         nest.coefficient = parent_nest.coefficient
-        nest.parent_scale = parent_nest.coefficient
 
         yield spec, nest
 

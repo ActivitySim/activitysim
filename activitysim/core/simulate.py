@@ -746,6 +746,21 @@ def compute_nested_utilities(raw_utilities, nest_spec):
                     np.exp(nested_utilities[nest.alternatives]).sum(axis=1))
 
     return nested_utilities
+# So it looks like TM1 was estimated such that the nest coefficient is the ratio of lower level and upper level
+# nest in larch. This means the values can all be between 0 and 1, unlike for larch where they need to be decreasing
+# going down the tree. In that world, the above would read
+# for nest in logit.each_nest(nest_spec, post_order=True):
+#     name = nest.name
+#     if nest.is_leaf:
+#         # do not scale here, do afterwards so recursive structure works
+#         nested_utilities[name] = raw_utilities[name].astype(float)
+#     else:
+#         # the alternative nested_utilities will already have been computed due to post_order
+#         with np.errstate(divide='ignore'):
+#             nested_utilities[name] = \
+#                 nest.coefficient * np.log(np.exp(nested_utilities[nest.alternatives]).sum(axis=1))
+#     nested_utilities[name] /= parent_nest_scale  # parent_nest_scale would need to be defined as part of nest
+#     #  and would be = coeffiecient for leaves and for nests it would be that of the parent nest
 
 
 def compute_nested_exp_utilities(raw_utilities, nest_spec):

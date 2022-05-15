@@ -221,7 +221,12 @@ def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alter
         next_level_alts = nest_alternatives_by_name[choice_this_level]
     raise ValueError("This should never happen - no alternative found")
 
-
+# Note: this is relatively slow due to the apply.
+# It could *maybe* be sped up by using the fact that the nesting structure is the same for all rows: Add ev1(0,1) to
+# all entries (as is currently being done). Then, at each level, pick the maximum of the available composite
+# alternatives and set the corresponding entry to 1 for each row, set all other alternatives at this level to zero.
+# Once the tree is walked (all alternatives have been processed), take the product of the alternatives in each
+# leaf's alternative list. Then pick the only alternative with entry 1, all others must be 0.
 def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_choosers=None):
     """ walk down the nesting tree and make choice at each level, which is the root of the next level choice."""
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')

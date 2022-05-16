@@ -4,6 +4,14 @@ from pypyr.context import Context
 from .... import __version__
 from ..error_handler import error_logging
 
+# Get decorated version when in development
+try:
+    top_package = __import__(__name__.split('.')[0])
+    import setuptools_scm
+    version = setuptools_scm.get_version(os.path.dirname(top_package.__path__[0]))
+except:
+    version = __version__
+
 
 @error_logging
 def run_step(context: Context) -> None:
@@ -91,5 +99,5 @@ def run_step(context: Context) -> None:
         css=css,
         toc_font=bootstrap_font_family,
         toc_color=toc_color,
-        branding=f"ActivitySim {__version__}",
+        branding=f"ActivitySim {version.replace('+', ' +')}",
     )

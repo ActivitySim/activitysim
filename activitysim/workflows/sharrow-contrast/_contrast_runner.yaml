@@ -44,14 +44,6 @@ steps:
 
 - activitysim.workflows.steps.make_tag
 
-#- name: activitysim.workflows.steps.cmd
-#  run: '{create}'
-#  in:
-#    cmd:
-#      label: "activitysim create {example_name}"
-#      run: python -m activitysim create -e {example_name} -d . --link
-#      cwd: "{workspace}"
-
 - name: activitysim.workflows.steps.create
   run: '{create}'
   in:
@@ -431,6 +423,6 @@ reporting:
 
 ################################################################################
 report-save:
-- name: activitysim.workflows.steps.contrast.save_report
+- name: activitysim.workflows.steps.reporting.save_report
   in:
     html_filename: "{workspace}/{example_name}/output-{tag}/report-{tag}.html"

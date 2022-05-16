@@ -168,7 +168,7 @@ reporting:
   in:
     common_directory: "{workspace}/{example_name}"
 
-- name: activitysim.workflows.steps.contrast.init_report
+- name: activitysim.workflows.steps.reporting.init_report
   in:
     title: "{example_name} report"
     common_directory: "{workspace}/{example_name}"
@@ -185,7 +185,7 @@ reporting:
 
 #### Auto Ownership ####
 
-- name: activitysim.workflows.steps.contrast.section_title
+- name: activitysim.workflows.steps.reporting.section_title
   in:
     title: Auto Ownership
 
@@ -244,7 +244,7 @@ reporting:
 
 #### CDAP ####
 
-- name: activitysim.workflows.steps.contrast.section_title
+- name: activitysim.workflows.steps.reporting.section_title
   in:
     title: Coordinated Daily Activity Pattern
 
@@ -263,7 +263,7 @@ reporting:
 
 #### Tour Mode Choice ####
 
-- name: activitysim.workflows.steps.contrast.section_title
+- name: activitysim.workflows.steps.reporting.section_title
   in:
     title: Tour Mode Choice
 
@@ -288,7 +288,7 @@ reporting:
 
 #### Tour Schedule ####
 
-- name: activitysim.workflows.steps.contrast.section_title
+- name: activitysim.workflows.steps.reporting.section_title
   in:
     title: Tour Scheduling
 
@@ -313,7 +313,7 @@ reporting:
 
 #### Trip Mode Choice ####
 
-- name: activitysim.workflows.steps.contrast.section_title
+- name: activitysim.workflows.steps.reporting.section_title
   in:
     title: Trip Mode Choice
 
@@ -338,7 +338,7 @@ reporting:
 
 #### Trip Distance ####
 
-- name: activitysim.workflows.steps.contrast.section_title
+- name: activitysim.workflows.steps.reporting.section_title
   in:
     title: Trip Distance
 
@@ -399,7 +399,7 @@ reporting:
     defaults:
       workplace_zone_agg:
 
-- name: activitysim.workflows.steps.contrast.section_title
+- name: activitysim.workflows.steps.reporting.section_title
   run: '{workplace_zone_agg}'
   in:
     title: Workplace Location

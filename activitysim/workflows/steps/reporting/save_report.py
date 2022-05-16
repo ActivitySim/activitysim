@@ -1,8 +1,7 @@
 import logging
 import os
-from pypyr.context import Context
 from .... import __version__
-from ..error_handler import error_logging
+from ..wrapping import workstep
 
 # Get decorated version when in development
 try:
@@ -13,16 +12,12 @@ except:
     version = __version__
 
 
-@error_logging
-def run_step(context: Context) -> None:
-
-    context.assert_key_has_value(key='report', caller=__name__)
-    report = context.get('report')
-    html_filename = context.get_formatted('html_filename')
-    if 'toc_color' in context:
-        toc_color = context.get_formatted('toc_color')
-    else:
-        toc_color = 'forest'
+@workstep
+def save_report(
+        report,
+        html_filename,
+        toc_color='forest',
+):
 
     bootstrap_font_family = (
         'font-family: -apple-system, "system-ui", "Segoe UI",'

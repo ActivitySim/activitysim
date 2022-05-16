@@ -162,12 +162,13 @@ def mode_choice_for_trip(choose_individual_max_utility, trip_id_to_check, num_sa
     return trips_merged, choices, nest_spec
 
 
-def comp_mode_shares(base_probs, choose_individual_max_utility, num_samples, trip_id_to_check):
-    t_, c_, _ = mode_choice_for_trip(choose_individual_max_utility=choose_individual_max_utility,
-                                  trip_id_to_check=trip_id_to_check, num_samples=num_samples)
+# def comp_mode_shares(base_probs, choose_individual_max_utility, num_samples, trip_id_to_check):
+#     t_, c_, _ = mode_choice_for_trip(choose_individual_max_utility=choose_individual_max_utility,
+#                                   trip_id_to_check=trip_id_to_check, num_samples=num_samples)
+#     sim_mode_shares = c_.trip_mode.value_counts() / c_.shape[0]
+#     return sim_mode_shares
 
-    sim_mode_shares = c_.trip_mode.value_counts() / c_.shape[0]
-    #sim_mode_shares.columns = ["mode_share_sim"]
+def comp_mode_shares(base_probs, sim_mode_shares, trip_id_to_check):
     obs_probs = base_probs.loc[base_probs.index == trip_id_to_check].T
     obs_probs.columns = ["mode_share_obs"]
     ms_comp = obs_probs.merge(sim_mode_shares, left_index=True, right_index=True, how="outer").fillna(0)

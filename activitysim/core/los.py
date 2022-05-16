@@ -557,7 +557,15 @@ class Network_LOS(object):
         if sharrow_enabled and skim_tag in ('taz', 'maz'):
             skim_dataset = inject.get_injectable('skim_dataset')
             from .skim_dataset import SkimDataset
-            return SkimDataset(skim_dataset)
+            if skim_tag == 'maz':
+                return SkimDataset(skim_dataset)
+            else:
+                dropdims = ['omaz','dmaz']
+                skim_dataset = skim_dataset.drop_dims(dropdims, errors="ignore")
+                for dd in dropdims:
+                    if f'dim_redirection_{dd}' in skim_dataset.attrs:
+                        del skim_dataset.attrs[f'dim_redirection_{dd}']
+                return SkimDataset(skim_dataset)
         else:
             assert skim_tag in self.skim_dicts, \
                 f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"

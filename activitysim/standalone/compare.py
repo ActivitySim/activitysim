@@ -1,3 +1,5 @@
+import warnings
+
 import altair as alt
 import pandas as pd
 import os
@@ -26,6 +28,9 @@ def load_pipelines(pipelines, tables=None, checkpoint_name=None):
 def load_final_tables(output_dirs, tables=None, index_cols=None):
     result = {}
     for key, pth in output_dirs.items():
+        if not os.path.exists(pth):
+            warnings.warn(f"{key} directory does not exist: {pth}")
+            continue
         result[key] = {}
         for tname, tfile in tables.items():
             tpath = os.path.join(pth, tfile)

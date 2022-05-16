@@ -3,6 +3,7 @@ import logging
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 from ..error_handler import error_logging
+from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 

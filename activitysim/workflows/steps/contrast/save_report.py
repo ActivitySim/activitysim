@@ -2,7 +2,10 @@ import logging
 import os
 from pypyr.context import Context
 from .... import __version__
+from ..error_handler import error_logging
 
+
+@error_logging
 def run_step(context: Context) -> None:
 
     context.assert_key_has_value(key='report', caller=__name__)

@@ -67,15 +67,15 @@ def create(args):
     if args.list:
 
         list_examples()
-        sys.exit(0)
+        return 0
 
     if args.example:
         try:
             get_example(args.example, args.destination, link=args.link)
         except Exception:
             logging.getLogger().exception("failure in activitysim create")
-            sys.exit(101)
-        sys.exit(0)
+            return 101
+        return 0
 
 
 def list_examples():

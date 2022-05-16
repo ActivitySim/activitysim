@@ -16,7 +16,8 @@ def chdir(path: Path):
 
     cwd = Path().absolute()
     try:
-        os.chdir(path)
+        if path is not None:
+            os.chdir(path)
         yield
     finally:
         os.chdir(cwd)

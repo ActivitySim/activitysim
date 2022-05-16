@@ -619,7 +619,8 @@ class MazSkimDict(SkimDict):
 
         # use taz offset_mapper to create series mapping directly from MAZ to TAZ skim index
         taz_offset_mapper = super()._offset_mapper()
-        maz_to_skim_offset = self.network_los.map_maz_to_taz(taz_offset_mapper)
+        maz_taz = self.network_los.get_maz_to_taz_series
+        maz_to_skim_offset = taz_offset_mapper.map(maz_taz)
 
         if isinstance(maz_to_skim_offset, np.ndarray):
             maz_to_skim_offset = pd.Series(maz_to_skim_offset, self.network_los.get_maz_to_taz_series.index)  # bug

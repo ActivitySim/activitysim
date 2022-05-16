@@ -3,14 +3,14 @@ import pandas as pd
 import altair as alt
 from pypyr.context import Context
 from ..progression import reset_progress_step
-from ..wrapping import report_step
+from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 
 
 
 
-@report_step
+@workstep
 def ordinal_distribution(
     tablesets,
     tablename,

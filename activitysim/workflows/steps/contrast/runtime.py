@@ -3,16 +3,16 @@ import pandas as pd
 import altair as alt
 from ....standalone.utils import chdir
 from ..progression import reset_progress_step
-from ..wrapping import report_step
+from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 
 
-@report_step
+@workstep
 def contrast_runtime(
         combined_timing_log,
         include_runs=('sharrow', 'legacy'),
-) -> None:
+):
     reset_progress_step(description="report model runtime")
 
     include_runs = list(include_runs)

@@ -781,7 +781,10 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
 
     slicer_column_name = trace_ids[0]
 
-    trace_results[slicer_column_name] = trace_ids[1]
+    try:
+        trace_results[slicer_column_name] = trace_ids[1]
+    except ValueError:
+        trace_results[slicer_column_name] = int(trace_ids[1])
 
     targets = np.unique(trace_ids[1])
 

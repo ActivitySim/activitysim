@@ -2,7 +2,7 @@ import os
 from pypyr.context import Context
 from ..progression import reset_progress_step
 from ..error_handler import error_logging
-from ..wrapping import report_step, workstep
+from ..wrapping import workstep
 from pathlib import Path
 from activitysim.standalone.compare import load_final_tables
 from activitysim.standalone.utils import chdir

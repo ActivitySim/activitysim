@@ -1,4 +1,5 @@
 """pypyr step yaml definition for commands - domain specific language."""
+import os
 import shlex
 import subprocess
 import logging
@@ -133,6 +134,8 @@ class CmdStep():
             args = self.cmd_text
         else:
             args = shlex.split(self.cmd_text)
+
+        args = ["conda", "run", "-p", sys.exec_prefix] + list(args) # TODO windows
 
         reset_progress_step(description=f"{self.label}", prefix="[bold green]")
 

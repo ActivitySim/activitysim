@@ -304,22 +304,50 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         #
         if sh_flow is not None and trace_rows is not None and trace_rows.any():
             assert type(trace_rows) == np.ndarray
-            sh_utility_fat = sh_flow.load_dataframe(
-                sh_flow.tree.replace_datasets(
-                    df=df.iloc[trace_rows],
-                ),
+            sh_utility_fat = sh_flow.load_dataarray(
+                # sh_flow.tree.replace_datasets(
+                #     df=df.iloc[trace_rows],
+                # ),
                 dtype=np.float32,
             )
+            sh_utility_fat = sh_utility_fat.sel(
+                chooserindex=trace_rows
+            )
+            sh_utility_fat = sh_utility_fat.to_dataframe(
+                "vals"
+            )
+            try:
+                sh_utility_fat = sh_utility_fat.unstack(
+                    "expressions"
+                )
+            except ValueError:
+                exprs = sh_utility_fat.index.levels[-1]
+                sh_utility_fat = pd.DataFrame(
+                    sh_utility_fat.values.reshape(-1, len(exprs)),
+                    index=sh_utility_fat.index[::len(exprs)].droplevel(-1),
+                    columns=exprs,
+                )
+            else:
+                sh_utility_fat = sh_utility_fat.droplevel(
+                    0, axis=1
+                )
             sh_utility_fat.add_prefix("SH:")
             sh_utility_fat_coef = sh_utility_fat * spec.iloc[:, 0].values.reshape(1, -1)
             sh_utility_fat_coef.columns = [f"{i} * ({j})" for i,j in zip(sh_utility_fat_coef.columns, spec.iloc[:, 0].values)]
+            if utilities.shape[0] > trace_rows.shape[0]:
+                trace_rows_ = np.repeat(trace_rows, utilities.shape[0]//trace_rows.shape[0])
+            else:
+                trace_rows_ = trace_rows
             if trace_eval_results is None:
                 trace_eval_results = pd.concat([
                     sh_utility_fat,
                     sh_utility_fat_coef,
-                    utilities.utility[trace_rows].rename('total utility').to_frame().set_index(sh_utility_fat.index),
+                    utilities.utility[trace_rows_].rename('total utility').to_frame().set_index(sh_utility_fat.index),
                 ], axis=1)
-                trace_eval_results.index = df[trace_rows].index
+                try:
+                    trace_eval_results.index = df[trace_rows].index
+                except ValueError:
+                    pass
                 chunk.log_df(trace_label, 'eval.trace_eval_results', trace_eval_results)
             else:
                 # in test mode, trace from non-sharrow exists
@@ -327,7 +355,7 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                     trace_eval_results.reset_index(drop=True),
                     sh_utility_fat.reset_index(drop=True),
                     sh_utility_fat_coef.reset_index(drop=True),
-                    utilities.utility[trace_rows].rename('total utility').reset_index(drop=True),
+                    utilities.utility[trace_rows_].rename('total utility').reset_index(drop=True),
                 ], axis=1)
                 trace_eval_results.index = df[trace_rows].index
                 chunk.log_df(trace_label, 'eval.trace_eval_results', trace_eval_results)

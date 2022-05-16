@@ -1,15 +1,16 @@
 import logging
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 from pypyr.context import Context
+
 from ..progression import reset_progress_step
-from ..wrapping import report_step
+from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 
 
-
-@report_step
+@workstep(updates_context=True)
 def transform_data(
     tablesets,
     tablename,
@@ -38,7 +39,7 @@ def transform_data(
     for key, tableset in tablesets.items():
         pieces[key] = tableset[tablename][column]
 
-    common = pd.concat(pieces, names=['source'])
+    common = pd.concat(pieces, names=["source"])
 
     if clip is not None:
         common = common.clip(**clip)
@@ -48,14 +49,14 @@ def transform_data(
 
     use_midpoint = False
     if cut is not None:
-        if cut.get('labels', None) == 'midpoint':
+        if cut.get("labels", None) == "midpoint":
             use_midpoint = True
-            cut.pop('labels')
+            cut.pop("labels")
         common = pd.cut(common, **cut)
     elif qcut is not None:
-        if qcut.get('labels', None) == 'midpoint':
+        if qcut.get("labels", None) == "midpoint":
             use_midpoint = True
-            qcut.pop('labels')
+            qcut.pop("labels")
         common = pd.qcut(common, **qcut)
 
     if use_midpoint:
@@ -64,6 +65,8 @@ def transform_data(
     pieces = {k: common.loc[k] for k in tablesets.keys()}
 
     for key in tablesets:
-        tablesets[key][tablename] = tablesets[key][tablename].assign(**{out: pieces[key]})
+        tablesets[key][tablename] = tablesets[key][tablename].assign(
+            **{out: pieces[key]}
+        )
 
     return dict(tablesets=tablesets)

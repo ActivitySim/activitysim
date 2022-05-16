@@ -265,18 +265,52 @@ def _interaction_sample(
     interaction_utilities = None
     interaction_utilities_sh = None
     if sharrow_enabled:
+
+        # # TRACE ONLY
+        # from . import inject
+        # traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+        #
+        # if choosers.index.name == 'person_id' and 'persons' in traceable_table_ids:
+        #     slicer_column_name = choosers.index.name
+        #     targets = traceable_table_ids['persons']
+        # elif 'household_id' in choosers.columns and 'households' in traceable_table_ids:
+        #     slicer_column_name = 'household_id'
+        #     targets = traceable_table_ids['households']
+        # elif 'person_id' in choosers.columns and 'persons' in traceable_table_ids:
+        #     slicer_column_name = 'person_id'
+        #     targets = traceable_table_ids['persons']
+        # else:
+        #     print(choosers.columns)
+        #     raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
+        #                        % choosers.index.name)
+        #
+        # if slicer_column_name == choosers.index.name:
+        #     trace_rows = np.in1d(choosers.index, targets)
+        #     trace_ids = np.asanyarray(choosers[trace_rows].index)
+        # elif slicer_column_name == 'person_id':
+        #     trace_rows = np.in1d(choosers['person_id'], targets)
+        #     trace_ids = np.asanyarray(choosers[trace_rows].person_id)
+        # elif slicer_column_name == 'household_id':
+        #     trace_rows = np.in1d(choosers['household_id'], targets)
+        #     trace_ids = np.asanyarray(choosers[trace_rows].household_id)
+        # else:
+        #     assert False
+        #
+        # trace_ids = (slicer_column_name, trace_ids)
+        # # /TRACE ONLY
+
         interaction_utilities, trace_eval_results = interaction_simulate.eval_interaction_utilities(
             spec,
             choosers,
             locals_d,
             trace_label,
-            None,
+            trace_rows,
             estimator=None,
             log_alt_losers=log_alt_losers,
             extra_data=alternatives,
         )
         chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
-        if sharrow_enabled == 'test':
+        if sharrow_enabled == 'test' or True:
             interaction_utilities_sh, trace_eval_results_sh = interaction_utilities, trace_eval_results
     if not sharrow_enabled or (sharrow_enabled == 'test'):
         interaction_df = logit.interaction_dataset(
@@ -343,9 +377,12 @@ def _interaction_sample(
                                                tracing.extend_trace_label(trace_label, 'eval'))
 
     if have_trace_targets and trace_rows is not None:
-        tracing.trace_df(interaction_utilities[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_utilities'),
-                         slicer='NONE', transpose=False)
+        try:
+            tracing.trace_df(interaction_utilities[trace_rows],
+                             tracing.extend_trace_label(trace_label, 'interaction_utilities'),
+                             slicer='NONE', transpose=False)
+        except ValueError:
+            pass
 
     tracing.dump_df(DUMP, interaction_utilities, trace_label, 'interaction_utilities')
 

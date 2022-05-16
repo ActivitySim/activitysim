@@ -4,13 +4,13 @@ import altair as alt
 from pypyr.context import Context
 from ..progression import reset_progress_step
 from ....standalone.data_dictionary import check_data_dictionary
-from ..wrapping import report_step
+from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 
 
 
-@report_step
+@workstep
 def compare_district_to_district(
         tablesets,
         tablename,

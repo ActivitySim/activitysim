@@ -44,13 +44,19 @@ steps:
 
 - activitysim.workflows.steps.make_tag
 
-- name: activitysim.workflows.steps.cmd
+#- name: activitysim.workflows.steps.cmd
+#  run: '{create}'
+#  in:
+#    cmd:
+#      label: "activitysim create {example_name}"
+#      run: python -m activitysim create -e {example_name} -d . --link
+#      cwd: "{workspace}"
+
+- name: activitysim.workflows.steps.create
   run: '{create}'
   in:
-    cmd:
-      label: "activitysim create {example_name}"
-      run: python -m activitysim create -e {example_name} -d . --link
-      cwd: "{workspace}"
+    label: "activitysim create {example_name}"
+    destination: "{workspace}"
 
 - activitysim.workflows.steps.directory_prep
 
@@ -91,6 +97,7 @@ steps:
         cache_dir: cache
         households_sample_size: '{main_n_households}'
         trace_hh_id:
+        # trace_hh_id: 271021
         trace_od:
         instrument: '{instrument}'
 
@@ -103,7 +110,7 @@ steps:
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- sharrow run"
 
-- description: write.configs_sh
+- description: write.configs_legacy
   name: pypyr.steps.filewriteyaml
   run: '{legacy}'
   in:
@@ -115,7 +122,7 @@ steps:
         offset_preprocessing: False
         cache_dir: cache
         households_sample_size: '{main_n_households}'
-        trace_hh_id:
+        trace_hh_id: 271021
         trace_od:
         instrument: '{instrument}'
 
@@ -147,6 +154,7 @@ reporting:
     databases:
       sharrow: "output-sharrow"
       legacy: "output-legacy"
+      reference: "output-reference"
     tables:
       households:
         filename: final_households.csv

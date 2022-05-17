@@ -27,6 +27,7 @@ def install_env(
         "-c",
         "conda-forge",
         "--override-channels",
+        "--yes",
     ]
 
     if label is None:

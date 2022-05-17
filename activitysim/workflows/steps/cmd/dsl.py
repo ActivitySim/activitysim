@@ -82,7 +82,6 @@ class CmdStep():
         context.assert_key_has_value(key='cmd', caller=name)
 
         self.context = context
-        self.is_save = False
 
         cmd_config = context.get_formatted('cmd')
 
@@ -97,7 +96,6 @@ class CmdStep():
                                                caller=name)
 
             self.cmd_text = cmd_config['run']
-            self.is_save = types.cast_to_bool(cmd_config.get('save', False))
             self.label = cmd_config.get('label', self.cmd_text)
             self.conda_path = cmd_config.get('conda_path', None)
 
@@ -140,51 +138,28 @@ class CmdStep():
 
         reset_progress_step(description=f"{self.label}", prefix="[bold green]")
 
-        if self.is_save:
-            completed_process = subprocess.run(args,
-                                               cwd=self.cwd,
-                                               shell=is_shell,
-                                               # capture_output=True,only>py3.7
-                                               stdout=subprocess.PIPE,
-                                               stderr=subprocess.PIPE,
-                                               # text=True, only>=py3.7,
-                                               universal_newlines=True)
-            self.context['cmdOut'] = {
-                'returncode': completed_process.returncode,
-                'stdout': (completed_process.stdout.rstrip()
-                           if completed_process.stdout else None),
-                'stderr': (completed_process.stderr.rstrip()
-                           if completed_process.stderr else None)
-            }
+        env = os.environ.copy()
+        pythonpath = env.pop("PYTHONPATH", None)
 
-            # when capture is true, output doesn't write to stdout
-            self.logger.info("stdout: %s", completed_process.stdout)
-            if completed_process.stderr:
-                self.logger.error("stderr: %s", completed_process.stderr)
+        process = subprocess.Popen(
+            args,
+            shell=is_shell,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=self.cwd,
+            env=env,
+        )
+        stream_process(process, self.label)
+        self.context['cmdOut'] = {
+            'returncode': process.returncode,
+        }
 
-            # don't swallow the error, because it's the Step swallow decorator
-            # responsibility to decide to ignore or not.
-            completed_process.check_returncode()
-        else:
-            # check=True throws CalledProcessError if exit code != 0
-            process = subprocess.Popen(
-                args,
-                shell=is_shell,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                cwd=self.cwd,
+        # don't swallow the error, because it's the Step swallow decorator
+        # responsibility to decide to ignore or not.
+        if process.returncode:
+            raise subprocess.CalledProcessError(
+                process.returncode,
+                process.args,
+                process.stdout,
+                process.stderr,
             )
-            stream_process(process, self.label)
-            self.context['cmdOut'] = {
-                'returncode': process.returncode,
-            }
-
-            # don't swallow the error, because it's the Step swallow decorator
-            # responsibility to decide to ignore or not.
-            if process.returncode:
-                raise subprocess.CalledProcessError(
-                    process.returncode,
-                    process.args,
-                    process.stdout,
-                    process.stderr,
-                )

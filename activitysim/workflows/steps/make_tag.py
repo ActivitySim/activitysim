@@ -14,6 +14,7 @@ def make_tag(
     resume_after=True,
     fast=True,
     mp=False,
+    reference=None,
 ):
     reset_progress_step(description="Initialize Tag")
     if tag is None:
@@ -34,4 +35,9 @@ def make_tag(
     if fast:
         flags.append("--fast")
 
-    return dict(tag=tag, contrast=contrast, flags=" ".join(flags),)
+    out = dict(tag=tag, contrast=contrast, flags=" ".join(flags),)
+    if isinstance(reference, str) and "." in reference:
+        out['reference_asim_version'] = reference
+        out['reference'] = True
+
+    return out

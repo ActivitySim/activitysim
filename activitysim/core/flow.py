@@ -629,6 +629,10 @@ def new_flow(
             size_term_mapping = {}
 
         if interacts is None:
+            if choosers is None:
+                logger.info(f"empty flow on {trace_label}")
+            else:
+                logger.info(f"{len(choosers)} chooser rows on {trace_label}")
             flow_tree = sh.DataTree(df=[] if choosers is None else choosers)
             idx_name = choosers.index.name or 'index'
             rename_dataset_cols = {
@@ -657,6 +661,7 @@ def new_flow(
             flow_tree.replacement_filters[flow_tree.root_node_name] = partial(_apply_filter, renames=rename_dataset_cols)
             flow_tree.root_dataset = flow_tree.root_dataset # apply the filter
         else:
+            logger.info(f"{len(choosers)} chooser rows and {len(interacts)} interact rows on {trace_label}")
             top = sh.dataset.from_named_objects(
                 pd.RangeIndex(len(choosers), name="chooserindex"),
                 pd.RangeIndex(len(interacts), name="interactindex"),

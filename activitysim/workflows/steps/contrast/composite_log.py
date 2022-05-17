@@ -22,12 +22,13 @@ def to_csv_safe(obj, filename, *args, **kwargs):
 def composite_log(
         tag,
         archive_dir,
+        compares=('compile', 'sharrow', 'legacy', 'reference'),
 ) -> dict:
 
     reset_progress_step(description="composite timing and memory logs")
 
     timings = {}
-    compares = ['compile', 'sharrow', 'legacy']
+    compares = list(compares)
     for t in compares:
         filename = f"{archive_dir}/output-{t}/log/timing_log.csv"
         if os.path.exists(filename):

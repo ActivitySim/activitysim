@@ -6,6 +6,8 @@ from .wrapping import workstep
 import shlex
 import subprocess
 from .cmd.dsl import stream_process
+import os
+
 
 def _get_formatted(context, key, default):
     try:
@@ -52,8 +54,14 @@ def run_activitysim_as_subprocess(
 
     # args = shlex.split(args)
 
-    import os
-    for k, v in os.environ.items():
+    env = os.environ.copy()
+    pythonpath = env.pop("PYTHONPATH", None)
+    if pythonpath:
+        print(f"removed PYTHONPATH from ENV: {pythonpath}")
+    else:
+        print(f"no removed PYTHONPATH from ENV!")
+
+    for k, v in env.items():
         print(f"  - {k}: {v}")
 
     # if conda_prefix is not None:
@@ -72,6 +80,7 @@ def run_activitysim_as_subprocess(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=cwd,
+        env=env,
     )
     stream_process(process, label)
 

@@ -33,7 +33,7 @@ steps:
 
 - name: activitysim.workflows.steps.title
   in:
-    label: "activitysim workflow example_runner {example_name}"
+    label: "activitysim workflow: contrast {example_name}"
     formatting: bold blue
 
 - name: activitysim.workflows.steps.py
@@ -130,18 +130,37 @@ steps:
 
 - activitysim.workflows.steps.contrast.composite_log
 
+- name: activitysim.workflows.steps.py
+  in:
+    label: show_reference
+    py: |
+      print("reference=>")
+      print(reference)
+      try:
+        print("reference_asim_version=", reference_asim_version)
+      except:
+        print("reference_asim_version= NO")
+
 - description: Install a reference environment
   name: activitysim.workflows.steps.install_env
   run: '{reference}'
   in:
-    env_prefix: "{workspace}/env/asim-ref-104"
-    asim_version: "1.0.4"
+    env_prefix: "{workspace}/env/asim-ref-{reference_asim_version}"
+    asim_version: '{reference_asim_version}'
 
-- description: write.configs_reference
-  name: pypyr.steps.filewriteyaml
+- description: Copy required reference settings
+  name: activitysim.workflows.steps.copy_files
   run: '{reference}'
   in:
-    fileWriteYaml:
+    copyFiles:
+      source: "{workspace}/{example_name}/configs/legacy-{reference_asim_version}/*.yaml"
+      dest: "{workspace}/{example_name}/configs_reference"
+
+- description: write.configs_reference
+  name: activitysim.workflows.steps.update_yaml
+  run: '{reference}'
+  in:
+    updateYaml:
       path: "{workspace}/{example_name}/configs_reference/settings.yaml"
       payload:
         inherit_settings: True
@@ -149,16 +168,16 @@ steps:
         trace_hh_id:
         trace_od:
 
-- description: Run activitysim to evaluate legacy model
+- description: Run activitysim to evaluate reference model
   name: activitysim.workflows.steps.run_subprocess
   run: '{reference}'
   in:
-    run:
+    resume_after:
     pre_config_dirs: configs_reference
     output_dir: 'output-{tag}/output-reference'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- reference run"
-    conda_prefix: "../env/asim-ref-104"
+    conda_prefix: "../env/asim-ref-{reference_asim_version}"
 
 - name: pypyr.steps.call
   in:
@@ -209,9 +228,12 @@ reporting:
 - name: activitysim.workflows.steps.contrast.runtime
   in:
     caption: Model Runtime
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
 
 - name: activitysim.workflows.steps.contrast.data_inventory
-
 
 #### Auto Ownership ####
 

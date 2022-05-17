@@ -1,7 +1,7 @@
 import pandas as pd
 import os
-from .progression import reset_progress_step
-from .wrapping import workstep
+from ..progression import reset_progress_step
+from ..wrapping import workstep
 
 def to_csv_safe(obj, filename, *args, **kwargs):
     """

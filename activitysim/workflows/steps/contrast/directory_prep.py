@@ -1,11 +1,7 @@
 import os
 from pathlib import Path
 
-from pypyr.context import Context
-
-from .error_handler import error_logging
-from .progression import reset_progress_step
-from .wrapping import workstep
+from ..wrapping import workstep
 
 
 def _prep_dir(directory):

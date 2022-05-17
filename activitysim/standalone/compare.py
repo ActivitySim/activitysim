@@ -37,7 +37,11 @@ def load_final_tables(output_dirs, tables=None, index_cols=None):
             kwargs = {}
             if index_cols is not None and tname in index_cols:
                 kwargs['index_col'] = index_cols[tname]
-            result[key][tname] = pd.read_csv(tpath, **kwargs)
+            if os.path.exists(tpath):
+                result[key][tname] = pd.read_csv(tpath, **kwargs)
+        if len(result[key]) == 0:
+            # no tables were loaded, delete the entire group
+            del result[key]
     return result
 
 

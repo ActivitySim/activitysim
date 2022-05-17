@@ -99,6 +99,7 @@ class CmdStep():
             self.cmd_text = cmd_config['run']
             self.is_save = types.cast_to_bool(cmd_config.get('save', False))
             self.label = cmd_config.get('label', self.cmd_text)
+            self.conda_path = cmd_config.get('conda_path', None)
 
             cwd_string = cmd_config.get('cwd', None)
             if cwd_string:
@@ -126,16 +127,16 @@ class CmdStep():
                       the default shell.
         """
         assert is_shell is not None, ("is_shell param must exist for CmdStep.")
+        conda_path = self.conda_path or sys.exec_prefix
 
         # why? If shell is True, it is recommended to pass args as a string
         # rather than as a sequence.
         # But not on windows, because windows wants strings, not sequences.
         if is_shell or config.is_windows:
-            args = self.cmd_text
+            args = f'conda run -p "{conda_path}" ' + self.cmd_text
         else:
             args = shlex.split(self.cmd_text)
-
-        args = ["conda", "run", "-p", sys.exec_prefix] + list(args) # TODO windows
+            args = ["conda", "run", "-p", conda_path] + list(args) # TODO windows?
 
         reset_progress_step(description=f"{self.label}", prefix="[bold green]")
 

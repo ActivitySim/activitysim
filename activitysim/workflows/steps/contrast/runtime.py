@@ -20,6 +20,7 @@ def contrast_runtime(
     logger.info(f"building runtime report from {combined_timing_log}")
 
     df = pd.read_csv(combined_timing_log, index_col='model_name')
+    include_runs = [i for i in include_runs if i in df.columns]
     df1 = df[include_runs].rename_axis(columns="source").unstack().rename('seconds').reset_index().fillna(0)
     c = alt.Chart(df1, height={"step": 20}, )
 

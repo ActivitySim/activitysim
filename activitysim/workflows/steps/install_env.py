@@ -12,7 +12,7 @@ def install_env(
 ):
     if os.path.exists(env_prefix):
         return 0
-    reset_progress_step("Creating activitysim v{asim_version} environment")
+    reset_progress_step(description="Creating activitysim v{asim_version} environment")
 
     command = [
         "mamba",
@@ -31,7 +31,11 @@ def install_env(
         label = f"Creating {asim_version} Environment"
 
     process = subprocess.Popen(
-        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd,
+        " ".join(command),
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=cwd,
     )
     stream_process(process, label)
 

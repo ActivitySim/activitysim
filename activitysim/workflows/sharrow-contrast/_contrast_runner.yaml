@@ -241,6 +241,39 @@ reporting:
 
 - name: activitysim.workflows.steps.contrast.data_inventory
 
+
+#### Workplace Location ####
+
+- name: activitysim.workflows.steps.reporting.load_data_dictionary
+  in:
+    cwd: "{workspace}/{example_name}"
+
+- name: pypyr.steps.default
+  in:
+    defaults:
+      workplace_zone_agg:
+
+- name: activitysim.workflows.steps.reporting.section_title
+  run: '{workplace_zone_agg}'
+  in:
+    title: Workplace Location
+
+- name: activitysim.workflows.steps.contrast.district_to_district
+  run: '{workplace_zone_agg}'
+  in:
+    progress_tag: Workplace Location
+    tablename: persons
+    caption: '{workplace_zone_agg[caption]}'
+    caption_level: 3
+    district_id: '{workplace_zone_agg[district_id]}'
+    orig_label: home district
+    dest_label: work district
+    orig_col: home_zone_id
+    dest_col: workplace_zone_id
+    filter: workplace_zone_id >= 0
+    size_label: n_workers
+
+
 #### Auto Ownership ####
 
 - name: activitysim.workflows.steps.reporting.section_title
@@ -448,35 +481,6 @@ reporting:
     grouping: primary_purpose
     dist_bins: 20
     dist_skim_name: DIST
-
-
-####  ####
-
-- name: pypyr.steps.default
-  in:
-    defaults:
-      workplace_zone_agg:
-
-- name: activitysim.workflows.steps.reporting.section_title
-  run: '{workplace_zone_agg}'
-  in:
-    title: Workplace Location
-
-- name: activitysim.workflows.steps.contrast.district_to_district
-  run: '{workplace_zone_agg}'
-  in:
-    progress_tag: Workplace Location
-    tablename: persons
-    caption: '{workplace_zone_agg[caption]}'
-    caption_level: 3
-    district_id: '{workplace_zone_agg[district_id]}'
-    orig_label: home district
-    dest_label: work district
-    orig_col: home_zone_id
-    dest_col: workplace_zone_id
-    filter: workplace_zone_id >= 0
-    data_dictionary:
-    size_label: n_workers
 
 
 ################################################################################

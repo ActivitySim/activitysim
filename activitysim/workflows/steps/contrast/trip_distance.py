@@ -15,7 +15,7 @@ def trip_distance(
     dist_skim_name,
     dist_bins=20,
     grouping="primary_purpose",
-    title="Trip Length Distribution",
+    title=None,
     max_dist=None,
     relabel_tablesets=None,
 ):

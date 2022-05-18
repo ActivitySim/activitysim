@@ -33,6 +33,19 @@ class workstep:
     with the pypyr workflow model.  The original function also remains
     available to import and use without changes.
 
+    When called as a step inside a pypyr workflow, the following context
+    variables are potentially accessed:
+
+    progress_tag : str
+        Used to log step progression during a run.
+    report : xmle.Reporter
+        The active report into which new figures or tables are added.
+    caption : str
+        A caption for the item being added to the report.
+    caption_type : str
+        The caption type (typically, 'fig' for figures or 'tab'
+        for tables).
+
     If the function returns values that should update the context, that
     can be done in one of three ways:
 
@@ -60,7 +73,7 @@ class workstep:
     Returns
     -------
     wrapped_func : Callable
-        The resulting wrapped function
+        The original wrapped function
 
     """
 

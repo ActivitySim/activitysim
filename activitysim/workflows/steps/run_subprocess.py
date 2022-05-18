@@ -54,22 +54,25 @@ def run_activitysim_as_subprocess(
 
     # args = shlex.split(args)
 
-    env = os.environ.copy()
-    pythonpath = env.pop("PYTHONPATH", None)
-    if pythonpath:
-        print(f"removed PYTHONPATH from ENV: {pythonpath}")
-    else:
-        print(f"no removed PYTHONPATH from ENV!")
-
-    for k, v in env.items():
-        print(f"  - {k}: {v}")
+    # env = os.environ.copy()
+    # pythonpath = env.pop("PYTHONPATH", None)
+    # if pythonpath:
+    #     print(f"removed PYTHONPATH from ENV: {pythonpath}")
+    # else:
+    #     print(f"no removed PYTHONPATH from ENV!")
+    #
+    # for k, v in env.items():
+    #     print(f"  - {k}: {v}")
 
     # if conda_prefix is not None:
         # args = ["conda", "init", "bash", "&&", 'conda', 'activate', conda_prefix, '&&'] + list(args)
         # args = ['conda', 'run', '-p', conda_prefix] + list(args)
 
+    conda_prefix_1 = os.environ.get('CONDA_PREFIX_1', None)
+    if conda_prefix_1 is None:
+        conda_prefix_1 = os.environ.get('CONDA_PREFIX', None)
     script = [
-        f"source {os.environ['CONDA_PREFIX']}/etc/profile.d/conda.sh",
+        f"source {conda_prefix_1}/etc/profile.d/conda.sh",
         f'conda activate "{conda_prefix}"',
         args,
     ]

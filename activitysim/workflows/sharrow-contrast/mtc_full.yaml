@@ -14,7 +14,7 @@ steps:
       reference: True
       reference_asim_version: "1.0.4"
       tag: '2022-04'
-      resume_after:
+      resume_after: _
       fast: False
       compile_n_households: 1000
       main_n_households: 100000

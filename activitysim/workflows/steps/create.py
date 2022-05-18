@@ -1,14 +1,11 @@
+import shlex
+
 from .progression import reset_progress_step
 from .wrapping import workstep
-import shlex
 
 
 @workstep
-def create_activitysim(
-    example_name,
-    destination=None,
-    label=None,
-) -> None:
+def create_activitysim(example_name, destination=None, label=None,) -> None:
     args = f"create -e {example_name} --link"
     if destination:
         args += f' -d "{destination}"'
@@ -19,6 +16,6 @@ def create_activitysim(
 
     # Call the run program inside this process
     from activitysim.cli.main import prog
+
     namespace = prog().parser.parse_args(shlex.split(args))
     namespace.afunc(namespace)
-

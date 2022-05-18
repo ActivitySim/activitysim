@@ -2,6 +2,7 @@ import os.path
 import subprocess
 
 from .cmd.dsl import stream_process
+from .progression import reset_progress_step
 from .wrapping import workstep
 
 
@@ -11,6 +12,7 @@ def install_env(
 ):
     if os.path.exists(env_prefix):
         return 0
+    reset_progress_step("Creating activitysim v{asim_version} environment")
 
     command = [
         "mamba",

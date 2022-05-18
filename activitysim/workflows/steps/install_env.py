@@ -17,6 +17,7 @@ def install_env(
         return 0
     reset_progress_step(description=f"Creating activitysim v{asim_version} environment")
 
+    os.makedirs(os.path.dirname(env_prefix), exist_ok=True)
     command = [
         "mamba",
         "create",

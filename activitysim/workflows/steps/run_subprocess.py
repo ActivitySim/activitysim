@@ -75,13 +75,19 @@ def run_activitysim_as_subprocess(
         conda_prefix_1 = os.environ.get("CONDA_PREFIX_1", None)
         if conda_prefix_1 is None:
             conda_prefix_1 = os.environ.get("CONDA_PREFIX", None)
+        if os.name == 'nt':
+            conda_prefix_1 = conda_prefix_1.replace("\\","/")
+            conda_prefix = conda_prefix.replace("\\","/")
+            joiner = "; "
+        else:
+            joiner = " && "
         script = [
             f"source {conda_prefix_1}/etc/profile.d/conda.sh",
             f'conda activate "{conda_prefix}"',
             args,
         ]
         process = subprocess.Popen(
-            args="bash -c '" + " && ".join(script) + "'",
+            args="bash -c '" + joiner.join(script) + "'",
             shell=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

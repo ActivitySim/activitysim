@@ -68,7 +68,7 @@ def compare_trip_mode_choice(tablesets, title="Trip Mode Choice", grouping='prim
     ).mark_bar(
     ).encode(
         color='trip_mode',
-        y=alt.Y('source', axis=alt.Axis(grid=False, title='')),
+        y=alt.Y('source', axis=alt.Axis(grid=False, title=''), sort=None),
         x=alt.X('share_trips', axis=alt.Axis(grid=False, labels=False, title='Mode Share')),
         row='primary_purpose',
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
@@ -224,7 +224,7 @@ def compare_work_district(
     ).mark_bar(
     ).encode(
         color=f'{w}:N',
-        y=alt.Y('source', axis=alt.Axis(grid=False, title='')),
+        y=alt.Y('source', axis=alt.Axis(grid=False, title=''), sort=None),
         x=alt.X('n_workers', axis=alt.Axis(grid=False)),
         row=f'{h}:N',
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),

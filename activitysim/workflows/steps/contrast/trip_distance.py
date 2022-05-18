@@ -2,16 +2,14 @@ import logging
 
 import altair as alt
 import pandas as pd
-from pypyr.context import Context
 
-from ..progression import reset_progress_step
 from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 
 
 @workstep
-def compare_trip_distance(
+def trip_distance(
     tablesets,
     skims,
     dist_skim_name,
@@ -19,7 +17,32 @@ def compare_trip_distance(
     grouping="primary_purpose",
     title="Trip Length Distribution",
     max_dist=None,
+    relabel_tablesets=None,
 ):
+    """
+
+    Parameters
+    ----------
+    tablesets
+    skims
+    dist_skim_name
+    dist_bins
+    grouping
+    title
+    max_dist
+    relabel_tablesets : Mapping[str,str]
+        Remap the keys in `tablesets` with these values. Any
+        missing values are retained.  This allows you to modify
+        the figure to e.g. change "reference" to "v1.0.4" without
+        editing the original input data.
+
+    Returns
+    -------
+    altair.Chart
+    """
+    if relabel_tablesets is None:
+        relabel_tablesets = {}
+
     groupings = [grouping]
     if not isinstance(skims, dict):
         skims = {i: skims for i in tablesets.keys()}
@@ -54,9 +77,12 @@ def compare_trip_distance(
         df["share_trips"] = df["n_trips"] / df.groupby(groupings)["n_trips"].transform(
             "sum"
         )
-        d[key] = df
+        d[relabel_tablesets.get(key, key)] = df
 
-    all_d = pd.concat(d, names=["source"]).reset_index()
+    # This is sorted in reverse alphabetical order by source, so that
+    # the stroke width for the first line plotted is fattest, and progressively
+    # thinner lines are plotted over that, so all data is visible on the figure.
+    all_d = pd.concat(d, names=["source"]).reset_index().sort_values("source", ascending=False)
     all_d["distance"] = all_d["distance"].apply(lambda x: x.mid)
 
     fig = (

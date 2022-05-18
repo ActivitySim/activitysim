@@ -15,6 +15,7 @@ def make_tag(
     fast=True,
     mp=False,
     reference=None,
+    reference_asim_version="0.0.0",
 ):
     reset_progress_step(description="Initialize Tag")
     if tag is None:
@@ -35,9 +36,9 @@ def make_tag(
     if fast:
         flags.append("--fast")
 
-    out = dict(tag=tag, contrast=contrast, flags=" ".join(flags),)
+    out = dict(tag=tag, contrast=contrast, flags=" ".join(flags))
     if isinstance(reference, str) and "." in reference:
         out['reference_asim_version'] = reference
         out['reference'] = True
-
+    out['relabel_tablesets'] = {'reference': f'v{reference_asim_version}'}
     return out

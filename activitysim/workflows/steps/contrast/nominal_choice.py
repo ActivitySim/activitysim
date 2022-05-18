@@ -34,6 +34,7 @@ def compare_nominal_choice(
     title=None,
     ordinal=False,
     plot_type="share",
+    relabel_tablesets=None,
 ):
     """
     Parameters
@@ -41,12 +42,18 @@ def compare_nominal_choice(
     tablesets : Mapping
     title : str, optional
     grouping : str
+    relabel_tablesets : Mapping[str,str]
+        Remap the keys in `tablesets` with these values. Any
+        missing values are retained.  This allows you to modify
+        the figure to e.g. change "reference" to "v1.0.4" without
+        editing the original input data.
     """
     if count_label is None:
         count_label = f"# of {tablename}"
-
     if share_label is None:
         share_label = f"share of {tablename}"
+    if relabel_tablesets is None:
+        relabel_tablesets = {}
 
     row_g, row_g_kwd = parse_grouping(row_grouping)
     col_g, col_g_kwd = parse_grouping(col_grouping)
@@ -72,7 +79,7 @@ def compare_nominal_choice(
             df[share_label] = df[count_label] / df.groupby(groupings)[
                 count_label
             ].transform("sum")
-        d[key] = df
+        d[relabel_tablesets.get(key, key)] = df
 
     all_d = pd.concat(d, names=["source"]).reset_index()
 
@@ -93,8 +100,11 @@ def compare_nominal_choice(
         raise ValueError(f"unknown plot_type {plot_type}")
 
     encode = dict(
-        color=alt.Color(nominal_col, type="ordinal" if ordinal else "nominal"),
-        y=alt.Y("source", axis=alt.Axis(grid=False, title="")),
+        color=alt.Color(
+            nominal_col,
+            type="ordinal" if ordinal else "nominal",
+        ),
+        y=alt.Y("source", axis=alt.Axis(grid=False, title=""), sort=None),
         x=x,
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip=[

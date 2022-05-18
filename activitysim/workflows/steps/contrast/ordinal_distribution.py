@@ -44,7 +44,10 @@ def ordinal_distribution(
         df[share_label] = df[count_label] / df.groupby(groupings)[count_label].transform('sum')
         d[key] = df
 
-    all_d = pd.concat(d, names=['source']).reset_index()
+    # This is sorted in reverse alphabetical order by source, so that
+    # the stroke width for the first line plotted is fattest, and progressively
+    # thinner lines are plotted over that, so all data is visible on the figure.
+    all_d = pd.concat(d, names=["source"]).reset_index().sort_values("source", ascending=False)
 
     if plot_type == 'count':
         y=alt.Y(count_label, axis=alt.Axis(grid=False, title=''), stack=None)
@@ -72,7 +75,7 @@ def ordinal_distribution(
             alt.Tooltip(f'{share_label}:Q', format='.2%'),
         ],
         facet=alt.Facet(facet_grouping, columns=3),
-        strokeWidth = 'source',
+        strokeWidth='source',
     ).properties(
         width=200,
         height=120,

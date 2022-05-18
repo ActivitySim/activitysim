@@ -60,7 +60,7 @@ def compare_district_to_district(
     ).mark_bar(
     ).encode(
         color=f'{dest_label}:N',
-        y=alt.Y('source', axis=alt.Axis(grid=False, title='')),
+        y=alt.Y('source', axis=alt.Axis(grid=False, title=''), sort=None),
         x=alt.X(size_label, axis=alt.Axis(grid=False)),
         row=f'{orig_label}:N',
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),

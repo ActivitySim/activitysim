@@ -22,6 +22,7 @@ steps:
       sharrow: True
       legacy: True
       reference: False
+      reference_asim_version: "1.0.4"
       tag:
       resume_after:
       fast: False

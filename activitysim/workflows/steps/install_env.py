@@ -1,13 +1,8 @@
 import os.path
-
-command = (
-    "conda create -n asim python=3.9 activitysim -c conda-forge --override-channels"
-)
-
 import subprocess
 
-from .wrapping import workstep
 from .cmd.dsl import stream_process
+from .wrapping import workstep
 
 
 @workstep(returns_names="install_env_returncode")
@@ -34,11 +29,7 @@ def install_env(
         label = f"Creating {asim_version} Environment"
 
     process = subprocess.Popen(
-        command,
-        shell=False,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=cwd,
+        command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd,
     )
     stream_process(process, label)
 

@@ -1,9 +1,12 @@
+import logging
 import os.path
 import subprocess
 
 from .cmd.dsl import stream_process
 from .progression import reset_progress_step
 from .wrapping import workstep
+
+logger = logging.getLogger(__name__)
 
 
 @workstep(returns_names="install_env_returncode")
@@ -12,7 +15,7 @@ def install_env(
 ):
     if os.path.exists(env_prefix):
         return 0
-    reset_progress_step(description="Creating activitysim v{asim_version} environment")
+    reset_progress_step(description=f"Creating activitysim v{asim_version} environment")
 
     command = [
         "mamba",
@@ -30,6 +33,7 @@ def install_env(
     if label is None:
         label = f"Creating {asim_version} Environment"
 
+    logger.info(f"running command:\n{' '.join(command)}")
     process = subprocess.Popen(
         " ".join(command),
         shell=True,

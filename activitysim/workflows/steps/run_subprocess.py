@@ -1,12 +1,14 @@
-from pypyr.errors import KeyNotInContextError
-from .cmd import run_step as _run_cmd
-from .progression import reset_progress_step
-from ...standalone.utils import chdir
-from .wrapping import workstep
+import os
 import shlex
 import subprocess
+
+from pypyr.errors import KeyNotInContextError
+
+from ...standalone.utils import chdir
+from .cmd import run_step as _run_cmd
 from .cmd.dsl import stream_process
-import os
+from .progression import reset_progress_step
+from .wrapping import workstep
 
 
 def _get_formatted(context, key, default):
@@ -24,9 +26,9 @@ def run_activitysim_as_subprocess(
     label=None,
     cwd=None,
     pre_config_dirs=(),
-    config_dirs=('configs',),
+    config_dirs=("configs",),
     data_dir="data",
-    output_dir='output',
+    output_dir="output",
     resume_after=None,
     fast=True,
     conda_prefix=None,
@@ -45,7 +47,7 @@ def run_activitysim_as_subprocess(
     if fast:
         flags.append("--fast")
     flags = " ".join(flags)
-    cfgs = " ".join(f"-c {c}" for c in pre_config_dirs+config_dirs)
+    cfgs = " ".join(f"-c {c}" for c in pre_config_dirs + config_dirs)
     args = f"activitysim run {cfgs} -d {data_dir} -o {output_dir} {flags}"
     if label is None:
         label = f"{args}"
@@ -54,8 +56,9 @@ def run_activitysim_as_subprocess(
 
     # args = shlex.split(args)
 
-    # env = os.environ.copy()
-    # pythonpath = env.pop("PYTHONPATH", None)
+    env = os.environ.copy()
+    pythonpath = env.pop("PYTHONPATH", None)
+
     # if pythonpath:
     #     print(f"removed PYTHONPATH from ENV: {pythonpath}")
     # else:
@@ -65,36 +68,43 @@ def run_activitysim_as_subprocess(
     #     print(f"  - {k}: {v}")
 
     # if conda_prefix is not None:
-        # args = ["conda", "init", "bash", "&&", 'conda', 'activate', conda_prefix, '&&'] + list(args)
-        # args = ['conda', 'run', '-p', conda_prefix] + list(args)
+    # args = ["conda", "init", "bash", "&&", 'conda', 'activate', conda_prefix, '&&'] + list(args)
+    # args = ['conda', 'run', '-p', conda_prefix] + list(args)
 
-    conda_prefix_1 = os.environ.get('CONDA_PREFIX_1', None)
-    if conda_prefix_1 is None:
-        conda_prefix_1 = os.environ.get('CONDA_PREFIX', None)
-    script = [
-        f"source {conda_prefix_1}/etc/profile.d/conda.sh",
-        f'conda activate "{conda_prefix}"',
-        args,
-    ]
+    if conda_prefix:
+        conda_prefix_1 = os.environ.get("CONDA_PREFIX_1", None)
+        if conda_prefix_1 is None:
+            conda_prefix_1 = os.environ.get("CONDA_PREFIX", None)
+        script = [
+            f"source {conda_prefix_1}/etc/profile.d/conda.sh",
+            f'conda activate "{conda_prefix}"',
+            args,
+        ]
+        process = subprocess.Popen(
+            args="bash -c '" + " && ".join(script) + "'",
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=cwd,
+            env=env,
+        )
+    else:
+        process = subprocess.Popen(
+            args=args,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=cwd,
+            env=env,
+        )
 
-    process = subprocess.Popen(
-        args="bash -c '" + " && ".join(script) + "'",
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=cwd,
-        env=env,
-    )
     stream_process(process, label)
 
     # don't swallow the error, because it's the Step swallow decorator
     # responsibility to decide to ignore or not.
     if process.returncode:
         raise subprocess.CalledProcessError(
-            process.returncode,
-            process.args,
-            process.stdout,
-            process.stderr,
+            process.returncode, process.args, process.stdout, process.stderr,
         )
 
     # # Clear all saved state from ORCA

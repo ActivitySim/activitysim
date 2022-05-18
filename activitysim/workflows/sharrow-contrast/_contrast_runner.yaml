@@ -5,9 +5,9 @@ context_parser: pypyr.parser.keyvaluepairs
 on_failure:
 - name: activitysim.workflows.steps.py
   in:
-    label: FAILURE
     py: |
-      print("FAILURE")
+      import time
+      print("FAILURE", time.strftime("%Y-%m-%d %I:%M:%S%p"))
 
 steps:
 
@@ -53,9 +53,42 @@ steps:
 
 - activitysim.workflows.steps.contrast.directory_prep
 
+- name: pypyr.steps.call
+  run: '{compile}'
+  in:
+    call: run-compile
+
+- name: pypyr.steps.call
+  run: '{sharrow}'
+  in:
+    call: run-sharrow
+
+- name: pypyr.steps.call
+  run: '{legacy}'
+  in:
+    call: run-legacy
+
+- name: pypyr.steps.call
+  run: '{reference}'
+  in:
+    call: run-reference
+
+- activitysim.workflows.steps.contrast.composite_log
+
+- name: pypyr.steps.call
+  in:
+    call:
+      groups: reporting
+      success: report-save
+      failure: report-save
+
+################################################################################
+run-compile:
+  # This step group runs activitysim with a (usually) smaller sample of
+  # household, to generate the compiled numba code for the local machine
+
 - description: write configs_sh_compile
   name: pypyr.steps.filewriteyaml
-  run: '{compile}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh_compile/settings.yaml"
@@ -71,16 +104,18 @@ steps:
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.run
-  run: '{compile}'
   in:
     pre_config_dirs: configs_sh_compile
     output_dir: 'output-{tag}/output-compile'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- sharrow compile"
 
+
+################################################################################
+run-sharrow:
+
 - description: write configs_sh
   name: pypyr.steps.filewriteyaml
-  run: '{sharrow}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh/settings.yaml"
@@ -95,17 +130,18 @@ steps:
         instrument: '{instrument}'
 
 - description: Run activitysim to evaluate sharrow-enabled model
-  name: activitysim.workflows.steps.run
-  run: '{sharrow}'
+  name: activitysim.workflows.steps.run_subprocess
   in:
     pre_config_dirs: configs_sh
     output_dir: 'output-{tag}/output-sharrow'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- sharrow run"
 
+################################################################################
+run-legacy:
+
 - description: write.configs_legacy
   name: pypyr.steps.filewriteyaml
-  run: '{legacy}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_legacy/settings.yaml"
@@ -120,17 +156,19 @@ steps:
         instrument: '{instrument}'
 
 - description: Run activitysim to evaluate legacy model
-  name: activitysim.workflows.steps.run
-  run: '{legacy}'
+  name: activitysim.workflows.steps.run_subprocess
   in:
     pre_config_dirs: configs_legacy
     output_dir: 'output-{tag}/output-legacy'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- legacy run"
 
+
+################################################################################
+run-reference:
+
 - description: Install a reference environment
   name: activitysim.workflows.steps.install_env
-  run: '{reference}'
   in:
     label: "{example_name} -- install ref env {reference_asim_version}"
     env_prefix: "{workspace}/env/asim-ref-{reference_asim_version}"
@@ -138,7 +176,6 @@ steps:
 
 - description: Copy required reference settings
   name: activitysim.workflows.steps.copy_files
-  run: '{reference}'
   in:
     source_glob:
       - "{workspace}/{example_name}/configs/legacy-{reference_asim_version}/*.yaml"
@@ -160,7 +197,6 @@ steps:
 
 - description: write.configs_reference
   name: activitysim.workflows.steps.update_yaml
-  run: '{reference}'
   in:
     updateYaml:
       path: "{workspace}/{example_name}/configs_reference/settings.yaml"
@@ -173,7 +209,6 @@ steps:
 
 - description: Run activitysim to evaluate reference model
   name: activitysim.workflows.steps.run_subprocess
-  run: '{reference}'
   in:
     resume_after:
     pre_config_dirs: configs_reference
@@ -182,14 +217,6 @@ steps:
     label: "{example_name} -- reference run"
     conda_prefix: "../env/asim-ref-{reference_asim_version}"
 
-- activitysim.workflows.steps.contrast.composite_log
-
-- name: pypyr.steps.call
-  in:
-    call:
-      groups: reporting
-      success: report-save
-      failure: report-save
 
 ################################################################################
 reporting:
@@ -237,6 +264,41 @@ reporting:
       - reference
       - legacy
       - sharrow
+
+- name: activitysim.workflows.steps.reporting.section_title
+  in:
+    title: Memory Usage
+
+- name: activitysim.workflows.steps.contrast.memory_use
+  in:
+    caption: USS
+    caption_level: 3
+    memory_measure: uss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.contrast.memory_use
+  in:
+    caption: RSS
+    caption_level: 3
+    memory_measure: rss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.contrast.memory_use
+  in:
+    caption: Full RSS
+    caption_level: 3
+    memory_measure: full_rss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
 
 - name: activitysim.workflows.steps.contrast.data_inventory
 

@@ -36,15 +36,17 @@ class workstep:
     When called as a step inside a pypyr workflow, the following context
     variables are potentially accessed:
 
-    progress_tag : str
-        Used to log step progression during a run.
     report : xmle.Reporter
         The active report into which new figures or tables are added.
     caption : str
-        A caption for the item being added to the report.
+        A caption for the item being processed.  This is used both in
+        writing out the output (if any) in the report and for logging
+        step progression during a run.
     caption_type : str
         The caption type (typically, 'fig' for figures or 'tab'
         for tables).
+    progress_tag : str
+        Use this instead of `caption` to log step progression during a run.
 
     If the function returns values that should update the context, that
     can be done in one of three ways:

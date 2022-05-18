@@ -260,7 +260,6 @@ reporting:
 - name: activitysim.workflows.steps.contrast.district_to_district
   run: '{workplace_zone_agg}'
   in:
-    progress_tag: Workplace Location
     tablename: persons
     caption: '{workplace_zone_agg[caption]}'
     caption_level: 3

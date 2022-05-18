@@ -49,7 +49,6 @@ steps:
 - name: activitysim.workflows.steps.create
   run: '{create}'
   in:
-    label: "activitysim create {example_name}"
     destination: "{workspace}"
 
 - activitysim.workflows.steps.contrast.directory_prep

@@ -5,24 +5,25 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_mtc
+      example_name: example_arc_full
       workspace: workspace
       create: True
       compile: True
       sharrow: True
       legacy: True
       reference: True
-      tag: '2022-05'
+      reference_asim_version: "1.0.4"
+      tag: '2022-05-1k'
       resume_after: _
       fast: False
       compile_n_households: 1000
-      main_n_households: 100000
+      main_n_households: 1000
       config_dirs: configs
       data_dir: data
       instrument: False
-      workplace_zone_agg:
-        caption: Workplaces by County
-        district_id: county_id
+#      workplace_zone_agg:
+#        caption: Workplaces by County
+#        district_id: county_id
 
 - name: activitysim.workflows.steps.pype
   in:

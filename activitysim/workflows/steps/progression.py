@@ -42,6 +42,7 @@ except ImportError:
 
     Progress = DummyProgress
     progress_overall = None
+    progress = dummy_progress
 
 else:
 

@@ -47,7 +47,23 @@ def contrast_runtime(
     df1["source"] = df1["source"].map(relabel_source)
     c = alt.Chart(df1, height={"step": 20}, )
 
-    if len(include_runs) == 2:
+    if len(include_runs) == 1:
+
+        result = c.mark_bar(
+            size=6,
+        ).encode(
+            x=alt.X('seconds:Q', stack=None),
+            y=alt.Y('model_name', type='nominal', sort=None),
+            color="source",
+            tooltip=['source', 'model_name', 'seconds']
+        ) | alt.Chart(df1).mark_bar().encode(
+            color='source',
+            x='source',
+            y='sum(seconds)',
+            tooltip=['source', 'sum(seconds)']
+        )
+
+    elif len(include_runs) == 2:
 
         result = c.mark_bar(
             yOffset=-3,

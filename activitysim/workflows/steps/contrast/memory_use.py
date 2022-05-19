@@ -1,6 +1,7 @@
 import logging
 
 import altair as alt
+import numpy as np
 import pandas as pd
 
 from ..progression import reset_progress_step
@@ -30,7 +31,7 @@ def memory_use(
             combined_mem_log, header=[0, 1], skipinitialspace=True, index_col=0,
         )
         .fillna(0)
-        .astype(int)
+        .astype(np.float64)
     )
     df.columns = df.columns.set_names(["source", "mem"])
     mem = (

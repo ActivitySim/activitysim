@@ -32,6 +32,7 @@ def run_activitysim_as_subprocess(
     resume_after=None,
     fast=True,
     conda_prefix=None,
+    single_thread=True,
 ) -> None:
     if isinstance(pre_config_dirs, str):
         pre_config_dirs = [pre_config_dirs]
@@ -58,6 +59,14 @@ def run_activitysim_as_subprocess(
 
     env = os.environ.copy()
     pythonpath = env.pop("PYTHONPATH", None)
+
+    if single_thread:
+        env["MKL_NUM_THREADS"] = "1"
+        env["OMP_NUM_THREADS"] = "1"
+        env["OPENBLAS_NUM_THREADS"] = "1"
+        env["NUMBA_NUM_THREADS"] = "1"
+        env["VECLIB_MAXIMUM_THREADS"] = "1"
+        env["NUMEXPR_NUM_THREADS"] = "1"
 
     # if pythonpath:
     #     print(f"removed PYTHONPATH from ENV: {pythonpath}")

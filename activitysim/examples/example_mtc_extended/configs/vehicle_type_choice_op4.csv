@@ -4,7 +4,7 @@ util_ln_nmakes,number of makes available,"@np.log(1 + df.NumMakes)",coef_ln_nmak
 util_mpg,miles per gallon (or equivalent),"@df.MPG",coef_mpg
 util_crange,Range for BEV (mi),"@df.Range",coef_crange
 util_crangeltwk,range less than average round trip distance to work,"@np.where((df.Range < df.avg_hh_dist_to_work * 2) & (df.fuel_type=='BEV'), 1, 0)",coef_crangeltwk
-util_ln_chpc_ev,ln(1+number of chargers per capita in MSA/state),"@np.log(1+CHARGERS_PER_CAP) & ((fuel_type=='PEV') | (fuel_type=='BEV'))",coef_ln_chpc_ev
+util_ln_chpc_ev,ln(1+number of chargers per capita in MSA/state),"@np.log(1+CHARGERS_PER_CAP) * ((df.fuel_type=='PEV') | (df.fuel_type=='BEV'))",coef_ln_chpc_ev
 #,income related variables,,
 util_cprice0,New Purchase Price (2017$) Segmented by Income,"((income < 25000) & (income > -1)) * NewPrice",coef_cprice0
 util_cprice25,New Purchase Price (2017$) Segmented by Income,"((income < 50000) & (income >= 25000)) * NewPrice",coef_cprice25

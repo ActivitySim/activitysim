@@ -36,4 +36,5 @@ output_tables:
   prefix: final_
   sort: True
   tables:
-    - tours
+    - trips
+    - vehicles

@@ -241,8 +241,16 @@ Maintenance costs were not varied by vehicle year. (According to
 `data from the U.S. Bureau of Labor Statistics <https://www.bls.gov/opub/btn/volume-3/pdf/americans-aging-autos.pdf>`_,
 there was no consistent relationship between vehicle age and maintenance costs.)
 
-Users are encouraged to make their own assumptions and calculate auto operating costs as they see fit. Auto operating costs
-are in cents for this example.
+Using the above methodology, the average auto operating costs of vehicles output from :ref:`example_mtc_extended` was 18.4 cents.
+This value is very close to the auto operating cost of 18.3 cents used in :ref:`example_mtc`.
+Non-household vehicles in example_mtc_extended use the auto operating cost of 18.3 cents used in example_mtc.
+Users are encouraged to make their own assumptions and calculate auto operating costs as they see fit.
+
+The distribution of fuel type probabilities included in :ref:`example_mtc_extended` are computed directly from the National Household Travel Survey data
+and include the entire US. Therefore, there is "lumpiness" in probabilities due to poor statistics in the data for some vehicle types.
+The user is encouraged to adjust the probabilities to their modeling region and "smooth" them for more consistent results.
+
+Further discussion of output results and model sensitivities can be found `here <https://github.com/ActivitySim/activitysim/wiki/Project-Meeting-2022.05.05>`_.
 
 .. automodule:: activitysim.abm.models.vehicle_type_choice
    :members:

@@ -33,11 +33,7 @@ def vehicles(households):
     vehicles['vehicle_id'] = vehicles.household_id * 10 + vehicles.vehicle_num
     vehicles.set_index('vehicle_id', inplace = True)
 
-    # I do not understand why this line is necessary, it seems circular
-    # to inject the vehicles table in the inside the table definition
-    # that injects it, but without it I found that it failed the assert
-    # statement at random.py L144. This appears to be how its done for
-    # the persons, households tables as well.
+    # replace table function with dataframe
     inject.add_table('vehicles', vehicles)
 
     pipeline.get_rn_generator().add_channel('vehicles', vehicles)

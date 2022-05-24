@@ -21,11 +21,11 @@ local,_DF_IS_TOUR,'tour_type' in df.columns
 ,sr2_veh_option,"np.where(is_atwork_subtour, parent_tour_veh, df.get('vehicle_occup_2', np.nan))"
 ,sr3p_veh_option,"np.where(is_atwork_subtour, parent_tour_veh, df.get('vehicle_occup_3.5', np.nan))"
 ,sov_auto_op_cost,"reindex(vehicles.groupby('vehicle_type')['auto_operating_cost'].mean(), pd.Series(sov_veh_option, df.index)) if 'vehicle_occup_1' in df.columns else np.nan"
-,sov_auto_op_cost,"np.where(sov_auto_op_cost.isna() | (sov_veh_option == 'non_hh_veh'), costPerMile, sov_auto_op_cost)"
+,sov_auto_op_cost,"np.where(sov_auto_op_cost.isna() | (pd.Series(sov_veh_option, df.index) == 'non_hh_veh'), costPerMile, sov_auto_op_cost)"
 ,sr2_auto_op_cost,"reindex(vehicles.groupby('vehicle_type')['auto_operating_cost'].mean(), pd.Series(sr2_veh_option, df.index)) if 'vehicle_occup_2' in df.columns else np.nan"
-,sr2_auto_op_cost,"np.where(sr2_auto_op_cost.isna() | (sr2_veh_option == 'non_hh_veh'), costPerMile, sr2_auto_op_cost)"
+,sr2_auto_op_cost,"np.where(sr2_auto_op_cost.isna() | (pd.Series(sr2_veh_option, df.index) == 'non_hh_veh'), costPerMile, sr2_auto_op_cost)"
 ,sr3p_auto_op_cost,"reindex(vehicles.groupby('vehicle_type')['auto_operating_cost'].mean(), pd.Series(sr3p_veh_option, df.index)) if 'vehicle_occup_3.5' in df.columns else np.nan"
-,sr3p_auto_op_cost,"np.where(sr3p_auto_op_cost.isna() | (sr3p_veh_option == 'non_hh_veh'), costPerMile, sr3p_auto_op_cost)"
+,sr3p_auto_op_cost,"np.where(sr3p_auto_op_cost.isna() | (pd.Series(sr3p_veh_option, df.index) == 'non_hh_veh'), costPerMile, sr3p_auto_op_cost)"
 # FIXME why inverse of value of time? need better name?,,
 #,c_cost,(0.60 * c_ivt) / df.value_of_time
 # ivot * (c_ivt_cost_multiplier * c_ivt)

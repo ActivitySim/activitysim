@@ -7,17 +7,25 @@ ALTS: vehicle_type_choice_op4_alternatives.csv
 # SPEC: vehicle_type_choice_op2.csv
 # COEFFICIENTS: vehicle_type_choice_op2_coefficients.csv
 # ALTS: vehicle_type_choice_op2_alternatives.csv
-# # probs spec must have "vehicle_type" column of form "{body_type}_{age}"
+# # probs must have body_type and vehicle_year columns
+# # probs spec has vehicle age calculated from FLEET_YEAR
 # PROBS_SPEC: vehicle_type_choice_op2_fuel_type_probs.csv
 
 LOGIT_TYPE: MNL
 
+# options: simple_simulate or interaction_simulate
+# if interaction_simulate, will build alteratives from combinatorial_alts below
+# if simple_simulate, alternatives need to be specified in the columns of the model spec
+SIMULATION_TYPE: interaction_simulate
+
 # additional vehicle_type_data merged to the alternatives for use in utility expressions
 # need to have columns body_type, fuel_type, and vehicle_year
-# age is computed as (1 + FLEET_YEAR - vehicle_year)
 # entries in the data need to match the combinations in combinatorial_alts below
 VEHICLE_TYPE_DATA_FILE: vehicle_type_data.csv
+
+# age is computed as (1 + FLEET_YEAR - vehicle_year)
 FLEET_YEAR: 2017
+
 # if PROBS_SPEC is supplied, auto operating cost will not be
 #  merged until after a fuel type is selected
 COLS_TO_INCLUDE_IN_VEHICLE_TABLE:
@@ -60,6 +68,10 @@ combinatorial_alts:
     - Hybrid
     - PEV
     - BEV
+
+# will write out the created vehicle_type_model_alternatives.csv file
+#  to the base configs directory. Helpful for debugging alternaties.
+WRITE_OUT_ALTS_FILE: False
 
 preprocessor:
   SPEC: vehicle_type_choice_annotate_choosers_preprocessor

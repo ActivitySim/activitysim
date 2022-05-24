@@ -24,12 +24,18 @@ from activitysim.core.util import assign_in_place
 from .util.mode import mode_choice_simulate
 from .util import estimation
 
-
 logger = logging.getLogger(__name__)
 
 
 def annotate_vehicle_allocation(model_settings, trace_label):
-    # - annotate tours table
+    """
+    Add columns to the tours table in the pipeline according to spec.
+
+    Parameters
+    ----------
+    model_settings : dict
+    trace_label : str
+    """
     tours = inject.get_table('tours').to_frame()
     expressions.assign_columns(
         df=tours,
@@ -39,6 +45,21 @@ def annotate_vehicle_allocation(model_settings, trace_label):
 
 
 def get_skim_dict(network_los, choosers):
+    """
+    Returns a dictionary of skim wrappers to use in expression writing.
+
+    Skims have origin as home_zone_id and destination as the tour destination.
+
+    Parameters
+    ----------
+    network_los : activitysim.core.los.Network_LOS object
+    choosers : pd.DataFrame
+
+    Returns
+    -------
+    skims : dict
+        index is skim wrapper name, value is the skim wrapper
+    """
     skim_dict = network_los.get_default_skim_dict()
     orig_col_name = 'home_zone_id'
     dest_col_name = 'destination'
@@ -91,10 +112,6 @@ def vehicle_allocation(
     tours_merged : orca.DataFrameWrapper
     chunk_size : orca.injectable
     trace_hh_id : orca.injectable
-
-    Returns
-    -------
-
     """
     trace_label = 'vehicle_allocation'
     model_settings_file_name = 'vehicle_allocation.yaml'
@@ -185,7 +202,7 @@ def vehicle_allocation(
             estimator=estimator)
 
         # matching alt names to choices
-        choices = choices.map(dict(list(zip(list(range(len(alts_from_spec))), alts_from_spec)))).to_frame()
+        choices = choices.map(dict(enumerate(alts_from_spec))).to_frame()
         choices.columns = ['alt_choice']
 
         # last alternative is the non-household vehicle option

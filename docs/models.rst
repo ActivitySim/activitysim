@@ -98,6 +98,34 @@ Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O
 .. automodule:: activitysim.abm.models.accessibility
    :members:
 
+.. _work_from_home:
+
+Work From Home
+--------------
+
+Telecommuting is defined as workers who work from home instead of going 
+to work. It only applies to workers with a regular workplace outside of home. 
+The telecommute model consists of two submodels - this work from home model and a 
+person :ref:`telecommute_frequency` model. This model predicts for all workers whether they 
+usually work from home.
+
+The work from home model includes the ability to adjust a work from home alternative
+constant to attempt to realize a work from home percent for what-if type analysis.  
+This iterative single process procedure takes as input a number of iterations, a filter on 
+the choosers to use for the calculation, a target work from home percent, a tolerance percent 
+for convergence, and the name of the coefficient to adjust.  An example setup is provided and 
+the coefficient adjustment at each iteration is: 
+``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
+
+The main interface to the work from home model is the 
+:py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
+function is registered as an Inject step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.work_from_home
+   :members:
+
 .. _school_location:
 .. _work_location:
 
@@ -167,7 +195,85 @@ Shadow Pricing
 
 The shadow pricing calculator used by work and school location choice.
 
+**Turning on and saving shadow prices**
+
+Shadow pricing is activated by setting the ``use_shadow_pricing`` to True in the settings.yaml file. Once this setting has
+been activated, ActivitySim will search for shadow pricing configuration in the shadow_pricing.yaml file. When shadow pricing is
+activated, the shadow pricing outputs will be exported by the tracing engine. As a result, the shadow pricing output files will
+be prepended with ``trace`` followed by the iteration number the results represent. For example, the shadow pricing outputs
+for iteration 3 of the school location model will be called ``trace.shadow_price_school_shadow_prices_3.csv``.
+
+In total, ActivitySim generates three types of output files for each model with shadow pricing:
+
+- ``trace.shadow_price_<model>_desired_size.csv``
+  The size terms by zone that shadow pricing is attempting to target. These usually will match the size terms identified
+  in the land_use input file.
+
+- ``trace.shadow_price_<model>_modeled_size_<iteration>.csv``
+  These are the modeled size terms after the iteration of shadow pricing identified by the <iteration> number. In other
+  words, these are the predicted choices by zone for the model after the iteration completes.
+
+- ``trace.shadow_price_<model>_shadow_prices_<iteration>.csv``
+  The actual shadow price for each zone and segment after the <iteration> of shadow pricing. This the file that can be
+  used to warm start the shadow pricing mechanism in ActivitySim.
+
+**shadow_pricing.yaml Attributes**
+
+- ``shadow_pricing_models`` List model_selectors and model_names of models that use shadow pricing. This list identifies which size_terms to preload which must be done in single process mode, so predicted_size tables can be scaled to population)
+- ``LOAD_SAVED_SHADOW_PRICES`` global switch to enable/disable loading of saved shadow prices. From the above example, this would be trace.shadow_price_<model>_shadow_prices_<iteration>.csv renamed and stored in the ``data_dir``.
+- ``MAX_ITERATIONS`` If no loaded shadow prices, maximum number of times shadow pricing can be run on each model before proceeding to the next model.
+- ``MAX_ITERATIONS_SAVED`` If loaded shadow prices, maximum number of times shadow pricing can be run.
+- ``SIZE_THRESHOLD`` Ignore zones in failure calculation with fewer choices than specified here.
+- ``PERCENT_TOLERANCE`` Maximum percent difference between modeled and desired size terms
+- ``FAIL_THRESHOLD`` Number of zones exceeding the PERCENT_TOLERANCE considered a failure
+- ``SHADOW_PRICE_METHOD`` [ctramp | daysim]
+- ``DAMPING_FACTOR`` On each iteration, ActivitySim will attempt to adjust the model to match desired size terms. The number is multiplied by adjustment factor to dampen or amplify the ActivitySim calculation. (only for CT-RAMP)
+- ``DAYSIM_ABSOLUTE_TOLERANCE``
+
+- ``DAYSIM_PERCENT_TOLERANCE``
+
 .. automodule:: activitysim.abm.tables.shadow_pricing
+   :members:
+
+.. _transit_pass_subsidy:
+
+Transit Pass Subsidy
+--------------------
+
+The transit fare discount model is defined as persons who purchase or are
+provided a transit pass.  The transit fare discount consists of two submodels - this
+transit pass subsidy model and a person :ref:`transit_pass_ownership` model.  The
+result of this model can be used to condition downstream models such as the
+person :ref:`transit_pass_ownership` model and the tour and trip mode choice models
+via fare discount adjustments.
+
+The main interface to the transit pass subsidy model is the
+:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_subsidy` function.  This
+function is registered as an Inject step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_subsidy
+   :members:
+
+.. _transit_pass_ownership:
+
+Transit Pass Ownership
+----------------------
+
+The transit fare discount is defined as persons who purchase or are
+provided a transit pass.  The transit fare discount consists of two submodels - this
+transit pass ownership model and a person :ref:`transit_pass_subsidy` model. The
+result of this model can be used to condition downstream models such as the tour and trip
+mode choice models via fare discount adjustments.
+
+The main interface to the transit pass ownership model is the
+:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This
+function is registered as an Inject step in the example Pipeline.
+
+Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
+
+.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
    :members:
 
 .. _auto_ownership:
@@ -175,11 +281,11 @@ The shadow pricing calculator used by work and school location choice.
 Auto Ownership
 --------------
 
-The auto ownership model selects a number of autos for each household in the simulation.
+The auto ownership model selects a number of autos for each household in the simulation. 
 The primary model components are household demographics, zonal density, and accessibility.
 
-The main interface to the auto ownership model is the
-:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate`
+The main interface to the auto ownership model is the 
+:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate` 
 function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
@@ -187,7 +293,7 @@ Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
 
 .. automodule:: activitysim.abm.models.auto_ownership
    :members:
-
+   
 .. _vehicle_type_choice:
 
 Vehicle Type Choice
@@ -255,53 +361,6 @@ Further discussion of output results and model sensitivities can be found `here 
 .. automodule:: activitysim.abm.models.vehicle_type_choice
    :members:
 
-.. _freeparking:
-
-Free Parking Eligibility
-------------------------
-
-The Free Parking Eligibility model predicts the availability of free parking at a person's
-workplace.  It is applied for people who work in zones that have parking charges, which are
-generally located in the Central Business Districts. The purpose of the model is to adequately
-reflect the cost of driving to work in subsequent models, particularly in mode choice.
-
-The main interface to the free parking eligibility model is the
-:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered
-as an Inject step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
-
-.. automodule:: activitysim.abm.models.free_parking
-   :members:
-
-.. _work_from_home:
-
-Work From Home
---------------
-
-Telecommuting is defined as workers who work from home instead of going
-to work. It only applies to workers with a regular workplace outside of home.
-The telecommute model consists of two submodels - this work from home model and a
-person :ref:`telecommute_frequency` model. This model predicts for all workers whether they
-usually work from home.
-
-The work from home model includes the ability to adjust a work from home alternative
-constant to attempt to realize a work from home percent for what-if type analysis.
-This iterative single process procedure takes as input a number of iterations, a filter on
-the choosers to use for the calculation, a target work from home percent, a tolerance percent
-for convergence, and the name of the coefficient to adjust.  An example setup is provided and
-the coefficient adjustment at each iteration is:
-``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
-
-The main interface to the work from home model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This
-function is registered as an Inject step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
-
-.. automodule:: activitysim.examples.example_semcog.extensions.work_from_home
-   :members:
-
 .. _telecommute_frequency:
 
 Telecommute Frequency
@@ -324,45 +383,23 @@ Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: 
 .. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
    :members:
 
-.. _transit_pass_subsidy:
+.. _freeparking:
 
-Transit Pass Subsidy
---------------------
+Free Parking Eligibility
+------------------------
 
-The transit fare discount model is defined as persons who purchase or are
-provided a transit pass.  The transit fare discount consists of two submodels - this
-transit pass subsidy model and a person :ref:`transit_pass_ownership` model.  The
-result of this model can be used to condition downstream models such as the
-person :ref:`transit_pass_ownership` model and the tour and trip mode choice models
-via fare discount adjustments.
+The Free Parking Eligibility model predicts the availability of free parking at a person's
+workplace.  It is applied for people who work in zones that have parking charges, which are 
+generally located in the Central Business Districts. The purpose of the model is to adequately 
+reflect the cost of driving to work in subsequent models, particularly in mode choice. 
 
-The main interface to the transit pass subsidy model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_subsidy` function.  This
-function is registered as an Inject step in the example Pipeline.
+The main interface to the free parking eligibility model is the 
+:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered 
+as an Inject step in the example Pipeline.
 
-Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: NA
+Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_subsidy
-   :members:
-
-.. _transit_pass_ownership:
-
-Transit Pass Ownership
-----------------------
-
-The transit fare discount is defined as persons who purchase or are
-provided a transit pass.  The transit fare discount consists of two submodels - this
-transit pass ownership model and a person :ref:`transit_pass_subsidy` model. The
-result of this model can be used to condition downstream models such as the tour and trip
-mode choice models via fare discount adjustments.
-
-The main interface to the transit pass ownership model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This
-function is registered as an Inject step in the example Pipeline.
-
-Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
-
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
+.. automodule:: activitysim.abm.models.free_parking
    :members:
 
 .. _cdap:
@@ -432,6 +469,11 @@ accessibility-based parameters such as the mode choice logsum for the departure/
 combination, demographics, and time pattern characteristics such as the time windows available
 from previously scheduled tours. This model uses person :ref:`time_windows`.
 
+
+.. note::
+   For ``example_mtc``, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
+
+
 If ``tour_departure_and_duration_segments.csv`` is included in the configs, then the model
 will use these representative start and end time periods when calculating mode choice logsums
 instead of the specific start and end combinations for each alternative to reduce runtime.  This
@@ -446,7 +488,6 @@ The main interface to the mandatory tour purpose scheduling model is the
 function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``tours`` | Result Field: ``start, end, duration`` | Skims Keys: ``TAZ, workplace_taz, school_taz, start, end``
-
 
 .. automodule:: activitysim.abm.models.mandatory_scheduling
    :members:

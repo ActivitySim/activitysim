@@ -1,0 +1,3 @@
+Description,Target,Expression
+#,,
+leg has multiple intermediate stops,multistop,df.trip_count > 2

@@ -231,7 +231,7 @@ def location_choice_model(
             if size_spec.loc[i, q] != 0
         )
 
-    apply_coefficients(coefficients, m)
+    apply_coefficients(coefficients, m, minimum=-25, maximum=25)
     apply_coefficients(size_coef, m, minimum=-6, maximum=6)
 
     m.choice_co_code = "override_choice"
@@ -287,46 +287,53 @@ def update_size_spec(model, data, result_dir=Path('.'), output_file=None):
     return master_size_spec
 
 
-def workplace_location_model(return_data=False):
+def workplace_location_model(**kwargs):
+    unused = kwargs.pop('name', None)
     return location_choice_model(
         name="workplace_location",
-        return_data=return_data,
+        **kwargs,
     )
 
 
-def school_location_model(return_data=False):
+def school_location_model(**kwargs):
+    unused = kwargs.pop('name', None)
     return location_choice_model(
         name="school_location",
-        return_data=return_data,
+        **kwargs,
     )
 
 
-def atwork_subtour_destination_model(return_data=False):
+def atwork_subtour_destination_model(**kwargs):
+    unused = kwargs.pop('name', None)
     return location_choice_model(
         name="atwork_subtour_destination",
-        return_data=return_data,
+        **kwargs,
     )
 
 
-def joint_tour_destination_model(return_data=False):
+def joint_tour_destination_model(**kwargs):
     # goes with non_mandatory_tour_destination
+    unused = kwargs.pop('name', None)
+    if 'coefficients_file' not in kwargs:
+        kwargs['coefficients_file'] = "non_mandatory_tour_destination_coefficients.csv"
     return location_choice_model(
         name="joint_tour_destination",
-        coefficients_file="non_mandatory_tour_destination_coefficients.csv",
-        return_data=return_data,
+        **kwargs,
     )
 
 
-def non_mandatory_tour_destination_model(return_data=False):
+def non_mandatory_tour_destination_model(**kwargs):
     # goes with joint_tour_destination
+    unused = kwargs.pop('name', None)
     return location_choice_model(
         name="non_mandatory_tour_destination",
-        return_data=return_data,
+        **kwargs,
     )
 
 
-def trip_destination_model(return_data=False):
+def trip_destination_model(**kwargs):
+    unused = kwargs.pop('name', None)
     return location_choice_model(
         name="trip_destination",
-        return_data=return_data,
+        **kwargs,
     )

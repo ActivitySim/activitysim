@@ -10,6 +10,9 @@ households_sample_size:  100
 
 chunk_size: 0
 
+# assume enough RAM to not chunk
+chunk_training_mode: disabled
+
 # set false to disable variability check in simple_simulate and interaction_simulate
 check_for_variability: False
 

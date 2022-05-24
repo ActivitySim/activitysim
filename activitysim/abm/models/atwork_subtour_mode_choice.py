@@ -152,6 +152,7 @@ def atwork_subtour_mode_choice(
 
                     if dest_col not in choices_df:
                         choices_df[dest_col] = np.nan if pd.api.types.is_numeric_dtype(skim_cache[c]) else ''
+
                     choices_df[dest_col].where(choices_df.tour_mode != mode, skim_cache[c], inplace=True)
 
     if estimator:

@@ -30,6 +30,8 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_sandag`           | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| :ref:`example_sandag_xborder`   | SANDAG agency example                                     | 3            | In development       |
++---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
    The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
@@ -1453,8 +1455,11 @@ example_semcog
 
 
 The example_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
-and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc`
-submodel :ref:`sub-model-spec-files`.
+and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
+submodel :ref:`sub-model-spec-files`.  These submodels were added to example_semcog as extensions, which is a way for users to add 
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
+the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
+in order to load the extensions folder.
 
 .. _semcog-sub-model-spec-files:
 
@@ -1523,5 +1528,23 @@ example_mtc model design.  It uses SANDAG zones, land use, synthetic population,
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
 for running example_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+
+.. _example_sandag_xborder :
+
+example_sandag_xborder
+----------------------
+
+.. note::
+
+  This example is in development
+
+
+The example_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that generates cross-border activities for a tour-based population of Mexican residents. In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for each border crossing station (Port of Entry). Because the model is tour-based, there are no household or person-level attributes in the synthetic population. The principal difference between this and the standard 3-zone implementation is that since household do not have a default tour origin (home zones), a tour OD choice model is required to assign tour origins and destinations simultaneously.
+
+Example
+~~~~~~~
+
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
+for running example_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

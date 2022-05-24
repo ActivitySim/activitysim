@@ -5,29 +5,54 @@ channels:
 dependencies:
 - python=3.9
 - pip
-- numpy >= 1.16.1
-- pandas >= 1.1.0
-- pyarrow >= 2.0
-- openmatrix >= 0.3.4.1
-- pyyaml >= 5.1
-- pytables >= 3.5.1
+- asv  # for benchmarking
+- bump2version  # for making a release
+- coveralls
 - cytoolz >= 0.8.1
-- psutil >= 4.1
-- requests >= 2.7
-- numba >= 0.51.2
-- orca >= 1.6
-- geopandas
-- jupyterlab
-- matplotlib
+- dask
 - descartes
+- filelock
+- fsspec
+- geopandas
+- gh
+- git
+- ipykernel  # so this env will appear in jupyter as a selection
+- jupyterlab
+- larch >= 5.5.8
+- matplotlib
+- myst-parser  # allows markdown in sphinx
+- nbconvert
+- nbformat
+- numba >= 0.51.2
+- numexpr
+- numpy >= 1.16.1,<=1.21
+- numpydoc
+- openmatrix >= 0.3.4.1
+- orca >= 1.6
+- pandas >= 1.1.0
+- pre-commit
+- psutil >= 4.1
+- pyarrow >= 2.0
+- pycodestyle
+- pydata-sphinx-theme
+- pyinstrument
+- pypyr
+- pytables >=3.5.1,<3.7
 - pytest
 - pytest-cov
-- coveralls
-- pycodestyle
 - pytest-regressions
-- git
-- gh
-- bump2version
+- pyyaml >= 5.1
+- requests >= 2.7
+- rich
+- ruby  # required for benchmarking pre-commit hooks
+- simwrapper > 1.7
+- snakeviz  # for profiling
+- sphinx
+- sphinx_rtd_theme
+- sphinx-argparse
+- xarray >= 0.21
+- xmle
+- zarr
 
 - pip:
   - -e ..

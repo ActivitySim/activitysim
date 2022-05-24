@@ -1,0 +1,4 @@
+Label,Description,Expression,utility
+#,,,FIXME column values shouldn't ever be na if different moides have different tables?
+util_walk_available,walk available,@(df.walkTime==0) * C_UNAVAILABLE,1
+util_walk_time,walk time,"@c_ivt * c_walk * df.walkTime",1

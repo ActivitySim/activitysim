@@ -6,6 +6,9 @@ households_sample_size: 500
 
 chunk_size: 0
 
+# assume enough RAM to not chunk
+chunk_training_mode: disabled
+
 #trace_hh_id: 662398
 trace_hh_id:
 
@@ -214,7 +217,6 @@ models:
   - write_data_dictionary
   - track_skim_usage
   - write_tables
-  - write_summaries
 
 output_tables:
   h5_store: False

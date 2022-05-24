@@ -126,7 +126,6 @@ class TransitVirtualPathBuilder(object):
         trace_label = tracing.extend_trace_label(trace_label, f'maz_tap_utils.{leg}')
 
         with chunk.chunk_log(trace_label):
-
             maz_tap_settings = \
                 self.network_los.setting(f'TVPB_SETTINGS.{recipe}.maz_tap_settings.{mode}')
             chooser_columns = maz_tap_settings['CHOOSER_COLUMNS']
@@ -151,6 +150,9 @@ class TransitVirtualPathBuilder(object):
                 maz_od_df[['idx', maz_col]].drop_duplicates(),
                 utilities_df,
                 on=maz_col, how='inner')
+
+            if len(utilities_df) == 0:
+                trace = False
             # add any supplemental chooser attributes (e.g. demographic_segment, tod)
             for c in attribute_columns:
                 utilities_df[c] = reindex(chooser_attributes[c], utilities_df['idx'])
@@ -648,8 +650,14 @@ class TransitVirtualPathBuilder(object):
                 trace_label=trace_label, trace=trace)
         chunk.log_df(trace_label, "egress_df", egress_df)
 
+        # L200 will drop all rows if all trips are intra-tap.
+        if np.array_equal(access_df['btap'].values, egress_df['atap'].values):
+            trace = False
+
         # path_info for use by expressions (e.g. penalty for drive access if no parking at access tap)
         with memo("#TVPB build_virtual_path compute_tap_tap"):
+            if len(access_df) * len(egress_df) == 0:
+                trace = False
             transit_df = self.compute_tap_tap(
                 recipe,
                 maz_od_df,
@@ -659,6 +667,10 @@ class TransitVirtualPathBuilder(object):
                 path_info=path_info,
                 trace_label=trace_label, trace=trace)
         chunk.log_df(trace_label, "transit_df", transit_df)
+
+        # Cannot trace if df is empty. Prob happened at L200
+        if len(transit_df) == 0:
+            want_choices = False
 
         with memo("#TVPB build_virtual_path best_paths"):
             path_df = self.best_paths(
@@ -711,7 +723,6 @@ class TransitVirtualPathBuilder(object):
                         if DUMP:
                             zero_utilities_df = utilities_df[np.nansum(np.exp(utilities_df.values), axis=1) == 0]
                             zero_utilities_df.to_csv(config.output_file_path('warning_utilities_df.csv'), index=True)
-                            bug
 
             if want_choices:
 
@@ -793,13 +804,13 @@ class TransitVirtualPathBuilder(object):
 
         return results
 
-    def get_tvpb_logsum(self, path_type, orig, dest, tod, demographic_segment, want_choices, trace_label=None):
+    def get_tvpb_logsum(
+            self, path_type, orig, dest, tod, demographic_segment, want_choices,
+            recipe='tour_mode_choice', trace_label=None):
 
         # assume they have given us a more specific name (since there may be more than one active wrapper)
         trace_label = trace_label or 'get_tvpb_logsum'
         trace_label = tracing.extend_trace_label(trace_label, path_type)
-
-        recipe = 'tour_mode_choice'
 
         with chunk.chunk_log(trace_label):
 
@@ -808,6 +819,9 @@ class TransitVirtualPathBuilder(object):
                                         want_choices=want_choices, trace_label=trace_label)
 
             trace_hh_id = inject.get_injectable("trace_hh_id", None)
+            if (all(logsum_df['logsum'] == UNAVAILABLE)) or (len(logsum_df) == 0):
+                trace_hh_id = False
+
             if trace_hh_id:
                 filter_targets = tracing.trace_targets(orig)
                 # choices from preceding run (because random numbers)
@@ -844,10 +858,12 @@ class TransitVirtualPathBuilder(object):
         return result
 
     def wrap_logsum(self, orig_key, dest_key, tod_key, segment_key,
+                    recipe='tour_mode_choice',
                     cache_choices=False, trace_label=None, tag=None):
 
-        return TransitVirtualPathLogsumWrapper(self, orig_key, dest_key, tod_key, segment_key,
-                                               cache_choices, trace_label, tag)
+        return TransitVirtualPathLogsumWrapper(
+            self, orig_key, dest_key, tod_key, segment_key,
+            recipe, cache_choices, trace_label, tag)
 
 
 class TransitVirtualPathLogsumWrapper(object):
@@ -855,7 +871,7 @@ class TransitVirtualPathLogsumWrapper(object):
     Transit virtual path builder logsum wrapper for three zone systems
     """
     def __init__(self, pathbuilder, orig_key, dest_key, tod_key, segment_key,
-                 cache_choices, trace_label, tag):
+                 recipe, cache_choices, trace_label, tag):
 
         self.tvpb = pathbuilder
         assert hasattr(pathbuilder, 'get_tvpb_logsum')
@@ -864,6 +880,7 @@ class TransitVirtualPathLogsumWrapper(object):
         self.dest_key = dest_key
         self.tod_key = tod_key
         self.segment_key = segment_key
+        self.recipe = recipe
         self.df = None
 
         self.cache_choices = cache_choices
@@ -933,9 +950,10 @@ class TransitVirtualPathLogsumWrapper(object):
         logsum_df = \
             self.tvpb.get_tvpb_logsum(path_type, orig, dest, tod, segment,
                                       want_choices=self.cache_choices,
+                                      recipe=self.recipe,
                                       trace_label=self.trace_label)
 
-        if self.cache_choices:
+        if (self.cache_choices) and (not all(logsum_df['logsum'] == UNAVAILABLE)):
 
             # not tested on duplicate index because not currently needed
             # caching strategy does not require unique indexes but care would need to be taken to maintain alignment

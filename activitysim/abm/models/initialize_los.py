@@ -112,7 +112,7 @@ def initialize_los(network_los):
                     np.copyto(data, np.nan)
 
 
-def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
+def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
 
     # scalar_attributes is a dict of attribute name/value pairs for this combination
     # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
@@ -142,7 +142,6 @@ def compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data,
 
     for i, chooser_chunk, chunk_trace_label \
             in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag):
-
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         assert chooser_chunk._is_view  # otherwise copying it is wasteful
         chooser_chunk = chooser_chunk.copy()
@@ -230,7 +229,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
         offset = network_los.tvpb.uid_calculator.get_skim_offset(scalar_attributes)
         tuple_trace_label = tracing.extend_trace_label(trace_label, f'offset{offset}')
 
-        compute_utilities_for_atttribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
+        compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
 
         # make sure we populated the entire offset
         assert not any_uninitialized(data.reshape(uid_calculator.skim_shape)[offset], lock)
@@ -246,6 +245,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
             # (the other processes don't have to wait, since we were sliced by attribute combination
             # and they must wait to coalesce at the end of the multiprocessing_step)
             # FIXME testing entire array is costly in terms of RAM)
+
             while any_uninitialized(data, lock):
                 logger.debug(f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
                              f" to populate {num_uninitialized(data, lock)} uninitialized data values")

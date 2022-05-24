@@ -58,6 +58,13 @@ def add_run_args(parser, multiprocess=True):
                         type=int,
                         metavar='BYTES',
                         help='chunk size')
+    parser.add_argument('--chunk_training_mode',
+                        type=str,
+                        help='chunk training mode, one of [training, adaptive, production, disabled]')
+    parser.add_argument('--households_sample_size',
+                        type=int,
+                        metavar='N',
+                        help='households sample size')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
@@ -92,17 +99,18 @@ def validate_injectable(name):
 
 def handle_standard_args(args, multiprocess=True):
 
-    def inject_arg(name, value):
+    def inject_arg(name, value, cache=False):
         assert name in INJECTABLES
-        inject.add_injectable(name, value)
+        inject.add_injectable(name, value, cache=cache)
 
     if args.working_dir:
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
 
+    # settings_file_name should be cached or else it gets squashed by config.py
     if args.settings_file:
-        inject_arg('settings_file_name', args.settings_file)
+        inject_arg('settings_file_name', args.settings_file, cache=True)
 
     if args.config:
         inject_arg('configs_dir', args.config)
@@ -129,6 +137,10 @@ def handle_standard_args(args, multiprocess=True):
 
     if args.chunk_size:
         config.override_setting('chunk_size', int(args.chunk_size))
+    if args.chunk_training_mode is not None:
+        config.override_setting('chunk_training_mode', args.chunk_training_mode)
+    if args.households_sample_size is not None:
+        config.override_setting('households_sample_size', args.households_sample_size)
 
     for injectable in ['configs_dir', 'data_dir', 'output_dir']:
         validate_injectable(injectable)

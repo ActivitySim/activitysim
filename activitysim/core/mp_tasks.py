@@ -746,17 +746,12 @@ def adjust_chunk_size_for_shared_memory(chunk_size, data_buffers, num_processes)
     if shared_memory_size == 0:
         return chunk_size
 
-    shared_memory_in_child_rss = mem.shared_memory_in_child_rss()
     fair_share_of_shared_memory = int(shared_memory_size / num_processes)
 
-    if shared_memory_in_child_rss:
-        adjusted_chunk_size = chunk_size + shared_memory_size - fair_share_of_shared_memory
-    else:
-        adjusted_chunk_size = chunk_size - fair_share_of_shared_memory
+    adjusted_chunk_size = chunk_size - fair_share_of_shared_memory
 
     logger.info(f"adjust_chunk_size_for_shared_memory "
                 f"adjusted_chunk_size {util.INT(adjusted_chunk_size)} "
-                f"shared_memory_in_child_rss {shared_memory_in_child_rss} "
                 f"chunk_size {util.INT(chunk_size)} "
                 f"shared_memory_size {util.INT(shared_memory_size)} "
                 f"num_processes {num_processes} "

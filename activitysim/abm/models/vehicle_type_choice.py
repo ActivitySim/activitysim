@@ -340,10 +340,11 @@ def iterate_vehicle_type_choice(
         assert (simulation_type == 'interaction_simulate') or (simulation_type == 'simple_simulate'), \
             "SIMULATION_TYPE needs to be interaction_simulate or simple_simulate"
 
+        log_alt_losers = config.setting('log_alt_losers', False)
+
         if simulation_type == 'interaction_simulate':
             assert alts_cats_dict is not None, "Need to supply combinatorial_alts in yaml"
 
-            log_alt_losers = config.setting('log_alt_losers', False)
             choices = interaction_simulate(
                 choosers=choosers,
                 alternatives=alts_wide,
@@ -361,6 +362,7 @@ def iterate_vehicle_type_choice(
             choices = simulate.simple_simulate(
                 choosers=choosers,
                 spec=model_spec,
+                log_alt_losers=log_alt_losers,
                 nest_spec=nest_spec,
                 locals_d=locals_dict,
                 chunk_size=chunk_size,

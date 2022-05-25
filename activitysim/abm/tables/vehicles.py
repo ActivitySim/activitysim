@@ -31,7 +31,7 @@ def vehicles(households):
     vehicles['vehicle_num'] = vehicles.groupby('household_id').cumcount() + 1
     # tying the vehicle id to the household id in order to ensure reproducability
     vehicles['vehicle_id'] = vehicles.household_id * 10 + vehicles.vehicle_num
-    vehicles.set_index('vehicle_id', inplace = True)
+    vehicles.set_index('vehicle_id', inplace=True)
 
     # replace table function with dataframe
     inject.add_table('vehicles', vehicles)

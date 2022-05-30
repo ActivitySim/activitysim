@@ -7,4 +7,3 @@ util_income_high,High income housheold dummy,@(df.income>=60000) & (df.income<10
 util_hh_size_4_up,Household size is greater than 3 dummy,@df.hhsize>3,coef_hh_size_4_up,0.0
 util_more_autos_than_workers,More automobiles than workers dummy,@df.auto_ownership>df.num_workers,coef_more_autos_than_workers,0.0
 util_fewer_autos_than_workers,Fewer automobiles than workers dummy,@df.auto_ownership<df.num_workers,coef_fewer_autos_than_workers,0.0
-util_hh_has_ev,Household has an electric vehicle,@df.has_ev,0.0,0.0

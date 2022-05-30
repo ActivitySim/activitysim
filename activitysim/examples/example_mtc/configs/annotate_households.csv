@@ -29,8 +29,3 @@ non_family,non_family,households.HHT.isin(HHT_NONFAMILY)
 family,family,households.HHT.isin(HHT_FAMILY)
 home_is_urban,home_is_urban,"reindex(land_use.area_type, households.home_zone_id) < setting('urban_threshold')"
 home_is_rural,home_is_rural,"reindex(land_use.area_type, households.home_zone_id) > setting('rural_threshold')"
-number of full-time workers,num_fte,"_PERSON_COUNT('has_full_time == True', persons, households)"
-number of part-time workers,num_pte,"_PERSON_COUNT('has_part_time == True', persons, households)"
-number of univeristy students,num_uni_students,"_PERSON_COUNT('is_university == True', persons, households)"
-number of non-working seniors,num_adults_65_plus_no_work,"_PERSON_COUNT('(65 <= age) & (~is_worker)', persons, households)"
-number of non-working non-senior adults,num_adults_under_65_no_work,"_PERSON_COUNT('(65 > age) & (adult) & (~is_worker)', persons, households)"

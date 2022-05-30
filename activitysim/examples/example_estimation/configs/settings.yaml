@@ -108,7 +108,6 @@ models:
   - school_location
   - workplace_location
   - auto_ownership_simulate
-  - vehicle_type_choice
   - free_parking
   - cdap_simulate
   - mandatory_tour_frequency
@@ -136,4 +135,3 @@ models:
 #  - track_skim_usage
 #  - write_trip_matrices
   - write_tables
-

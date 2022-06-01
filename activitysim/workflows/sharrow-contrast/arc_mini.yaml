@@ -5,7 +5,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_arc_full
+      example_name: example_arc
       workspace: workspace
       create: True
       compile: True

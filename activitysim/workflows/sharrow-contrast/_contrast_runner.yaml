@@ -303,6 +303,26 @@ reporting:
       - legacy
       - sharrow
 
+- name: activitysim.workflows.steps.contrast.memory_use_peak
+  in:
+    caption: Peak RSS by Component
+    caption_level: 3
+    memory_measure: rss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.contrast.memory_use_peak
+  in:
+    caption: Peak USS by Component
+    caption_level: 3
+    memory_measure: uss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
 
 - name: activitysim.workflows.steps.contrast.data_inventory
 

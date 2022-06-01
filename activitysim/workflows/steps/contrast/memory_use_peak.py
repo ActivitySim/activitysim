@@ -11,24 +11,24 @@ logger = logging.getLogger(__name__)
 
 
 @workstep
-def memory_use(
-    combined_mem_log,
+def memory_use_peak(
+    combined_peakmem_log,
     include_runs=("legacy", "sharrow", "reference"),
     relabel_tablesets=None,
     memory_measure="uss",
 ):
-    reset_progress_step(description="report model memory usage")
+    reset_progress_step(description="report component peak memory use")
 
     if relabel_tablesets is None:
         relabel_tablesets = {}
 
     include_runs = list(include_runs)
 
-    logger.info(f"building memory use report from {combined_mem_log}")
+    logger.info(f"building peak memory use report from {combined_peakmem_log}")
 
     df = (
         pd.read_csv(
-            combined_mem_log, header=[0, 1], skipinitialspace=True, index_col=0,
+            combined_peakmem_log, header=[0, 1], skipinitialspace=True, index_col=0,
         )
         .fillna(0)
         .astype(np.float64)
@@ -54,11 +54,11 @@ def memory_use(
 
     chart = (
         alt.Chart(mem)
-        .mark_line()
+        .mark_line(interpolate='step')
         .encode(
             y="mem_gigs",
             color="source",
-            x=alt.X("index", sort=None),
+            x=alt.X("event", sort=None),
             tooltip=["event", "source", "mem_gigs"],
         )
     )

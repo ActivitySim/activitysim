@@ -48,8 +48,19 @@ def composite_log(
     if mems:
         composite_mem = pd.concat(mems, axis=1)
         to_csv_safe(composite_mem, f"{archive_dir}/combined_mem_log-{tag}.csv")
-
+    peaks = {}
+    for t in compares:
+        filename = f"{archive_dir}/output-{t}/log/memory_profile.csv"
+        if os.path.exists(filename):
+            df = pd.read_csv(filename)
+            df['time'] = pd.to_datetime(df['time'])
+            peak_by_event = df.groupby('event')[['rss', 'full_rss', 'uss', 'time']].max().sort_values('time')
+            peaks[t] = peak_by_event[['rss', 'full_rss', 'uss']]
+    if peaks:
+        composite_peaks = pd.concat(peaks, axis=1)
+        to_csv_safe(composite_peaks, f"{archive_dir}/combined_mem_peak-{tag}.csv")
     return dict(
         combined_timing_log=f"{archive_dir}/combined_timing_log-{tag}.csv",
         combined_mem_log=f"{archive_dir}/combined_mem_log-{tag}.csv",
+        combined_peakmem_log=f"{archive_dir}/combined_mem_peak-{tag}.csv",
     )

@@ -31,6 +31,9 @@ steps:
       config_dirs: configs
       data_dir: data
       instrument: False
+      memory_profile: False
+      trace_hh_id:
+      trace_od:
 
 - name: activitysim.workflows.steps.title
   in:
@@ -125,9 +128,9 @@ run-sharrow:
         cache_dir: cache
         households_sample_size: '{main_n_households}'
         trace_hh_id:
-        # trace_hh_id: 271021
         trace_od:
         instrument: '{instrument}'
+        memory_profile: '{memory_profile}'
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.run_subprocess
@@ -151,9 +154,10 @@ run-legacy:
         offset_preprocessing: False
         cache_dir: cache
         households_sample_size: '{main_n_households}'
-        trace_hh_id:
-        trace_od:
+        trace_hh_id: '{trace_hh_id}'
+        trace_od: '{trace_od}'
         instrument: '{instrument}'
+        memory_profile: '{memory_profile}'
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.steps.run_subprocess
@@ -203,8 +207,8 @@ run-reference:
       payload:
         inherit_settings: True
         households_sample_size: '{main_n_households}'
-        trace_hh_id:
-        trace_od:
+        trace_hh_id: '{trace_hh_id}'
+        trace_od: '{trace_od}'
         resume_after: '{resume_after_ref}'
 
 - description: Run activitysim to evaluate reference model

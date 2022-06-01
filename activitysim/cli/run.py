@@ -193,6 +193,13 @@ def run(args):
     if config.setting("rotate_logs", False):
         config.rotate_log_directory()
 
+    if config.setting("memory_profile", False):
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        from ..core.memory_sidecar import MemorySidecar
+        memory_sidecar_process = MemorySidecar(mem_prof_log)
+    else:
+        memory_sidecar_process = None
+
     # legacy support for run_list setting nested 'models' and 'resume_after' settings
     if config.setting('run_list'):
         warnings.warn("Support for 'run_list' settings group will be removed.\n"
@@ -277,7 +284,11 @@ def run(args):
         else:
             logger.info('run single process simulation')
 
-            pipeline.run(models=config.setting('models'), resume_after=resume_after)
+            pipeline.run(
+                models=config.setting('models'),
+                resume_after=resume_after,
+                memory_sidecar_process=memory_sidecar_process,
+            )
 
             if config.setting('cleanup_pipeline_after_run', False):
                 pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
@@ -298,6 +309,9 @@ def run(args):
     TimeLogger.aggregate_summary(logger)
 
     tracing.print_elapsed_time('all models', t0)
+
+    if memory_sidecar_process:
+        memory_sidecar_process.stop()
 
     return 0
 

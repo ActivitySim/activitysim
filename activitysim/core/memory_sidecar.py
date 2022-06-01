@@ -6,23 +6,32 @@ from multiprocessing import Pipe, Process, Queue
 import psutil
 
 
-def record_memory_usage(logstream, event="", event_idx=-1, measure_uss=False, pid=None):
+def record_memory_usage(
+    logstream, event="", event_idx=-1, measure_uss=False, measure_cpu=False, pid=None
+):
 
     if pid is None:
         pid = os.getpid()
     current_process = psutil.Process(pid)
-    process_name = current_process.name()
+    with current_process.oneshot():
+        process_name = current_process.name()
 
-    if measure_uss:
-        try:
-            info = current_process.memory_full_info()
-            uss = info.uss
-        except (PermissionError, psutil.AccessDenied):
+        if measure_uss:
+            try:
+                info = current_process.memory_full_info()
+                uss = info.uss
+            except (PermissionError, psutil.AccessDenied):
+                info = current_process.memory_info()
+                uss = 0
+        else:
             info = current_process.memory_info()
             uss = 0
-    else:
-        info = current_process.memory_info()
-        uss = 0
+
+        if measure_cpu:
+            cpu_pct = current_process.cpu_percent()
+        else:
+            cpu_pct = -1
+
 
     full_rss = rss = info.rss
 
@@ -43,6 +52,7 @@ def record_memory_usage(logstream, event="", event_idx=-1, measure_uss=False, pi
         f"{int(rss)},"
         f"{int(full_rss)},"
         f"{int(uss)},"
+        f"{cpu_pct},"
         f"{event_idx},"
         f"{event},"
         f"{num_children},"
@@ -58,17 +68,29 @@ def monitor_memory_usage(
     flush_interval=5,
     filename="/tmp/sidecar.csv",
     measure_uss=True,
+    measure_cpu=True,
 ):
     event = ""
     event_idx = 0
     last_flush = time.time()
+    if measure_cpu:
+        psutil.cpu_percent()
     with open(filename, "w") as stream:
-        MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event_idx,event,children,time"
+        MEM_LOG_HEADER = (
+            "process,pid,rss,full_rss,uss,cpu,event_idx,event,children,time"
+        )
         print(MEM_LOG_HEADER, file=stream)
         while True:
             # timestamp = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")  # sortable
             # print(f"{timestamp} [{event}]", file=stream)
-            record_memory_usage(stream, event=event, event_idx=event_idx, measure_uss=measure_uss, pid=pid)
+            record_memory_usage(
+                stream,
+                event=event,
+                event_idx=event_idx,
+                measure_uss=measure_uss,
+                measure_cpu=measure_cpu,
+                pid=pid,
+            )
             if conn.poll(interval):
                 event_ = conn.recv()
                 if event_ != event:

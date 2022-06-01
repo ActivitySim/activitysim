@@ -133,8 +133,9 @@ def make_sample_choices(
     # del alt_probs_array
     # chunk.log_df(trace_label, 'alt_probs_array', None)
 
-    from .choosing import sample_choices_maker
-    choices_array, choice_probs_array = sample_choices_maker(
+    # TODO: is `sample_choices_maker` more efficient?  The order of samples changes, might change repro-randoms
+    from .choosing import sample_choices_maker_preserve_ordering
+    choices_array, choice_probs_array = sample_choices_maker_preserve_ordering(
         probs.values,
         rands,
         alternatives.index.values,
@@ -149,7 +150,7 @@ def make_sample_choices(
     # explode to one row per chooser.index, alt_zone_id
     choices_df = pd.DataFrame(
         {alt_col_name: choices_array.flatten(order='F'),
-         'rand': rands.flatten(order='F'),
+         'rand': rands.T.flatten(order='F'),
          'prob': choice_probs_array.flatten(order='F'),
          choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
          })

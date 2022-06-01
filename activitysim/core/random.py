@@ -304,7 +304,11 @@ class SimpleChannel(object):
                                for i, prng in enumerate(generators)])
 
         # update offset for rows we handled
-        self.row_states.loc[df.index, 'offset'] += 1
+        if size is not None:
+            consume_offsets = int(size)
+        else:
+            consume_offsets = 1
+        self.row_states.loc[df.index, 'offset'] += consume_offsets
 
         return rands
 

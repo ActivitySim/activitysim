@@ -17,6 +17,8 @@ steps:
     defaults:
       example_name: example_mtc
       workspace: workspace
+      multiprocess: 0
+      chunk_size: 0
       create: True
       compile: True
       sharrow: True
@@ -131,6 +133,9 @@ run-sharrow:
         trace_od:
         instrument: '{instrument}'
         memory_profile: '{memory_profile}'
+        chunk_size: '{chunk_size}'
+        num_processes: '{multiprocess}'
+        multiprocess: '{is_multiprocess}'
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.run_subprocess
@@ -375,7 +380,7 @@ reporting:
 - name: activitysim.workflows.steps.contrast.transform_data
   in:
     tablename: households
-    column: income
+    column: '{household_income}'
     out: income_tertile
     qcut:
       q: 3
@@ -523,12 +528,12 @@ reporting:
     otaz_col: origin
     dtaz_col: destination
     time_col: depart
-    skim_vars: DIST
+    skim_vars: '{distance_skim}'
 
 - name: activitysim.workflows.steps.contrast.transform_data
   in:
     tablename: trips
-    column: DIST
+    column: '{distance_skim}'
     out: distance_to10_binned
     censor:
       left: 0
@@ -555,7 +560,7 @@ reporting:
     caption_level: 3
     grouping: primary_purpose
     dist_bins: 20
-    dist_skim_name: DIST
+    dist_skim_name: '{distance_skim}'
     max_dist: 10
 
 - name: activitysim.workflows.steps.contrast.trip_distance
@@ -564,7 +569,7 @@ reporting:
     caption_level: 3
     grouping: primary_purpose
     dist_bins: 20
-    dist_skim_name: DIST
+    dist_skim_name: '{distance_skim}'
 
 
 ################################################################################

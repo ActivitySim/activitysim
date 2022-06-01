@@ -26,6 +26,8 @@ steps:
       workplace_zone_agg:
         caption: Workplaces by County
         district_id: county_id
+      distance_skim: DIST
+      household_income: income
 
 - name: activitysim.workflows.steps.pype
   in:

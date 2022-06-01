@@ -8,10 +8,10 @@ steps:
       example_name: example_arc
       workspace: workspace
       create: True
-      compile: True
-      sharrow: True
-      legacy: True
-      reference: True
+      compile: False
+      sharrow: False
+      legacy: False
+      reference: False
       reference_asim_version: "1.0.4"
       tag: '2022-06'
       resume_after: _
@@ -24,6 +24,8 @@ steps:
 #      workplace_zone_agg:
 #        caption: Workplaces by County
 #        district_id: county_id
+      distance_skim: SOV_FREE_DISTANCE
+      household_income: income_in_thousands
 
 - name: activitysim.workflows.steps.pype
   in:

@@ -26,10 +26,14 @@ def memory_use_peak(
 
     logger.info(f"building peak memory use report from {combined_peakmem_log}")
 
-    df = (
-        pd.read_csv(
+    try:
+        df = pd.read_csv(
             combined_peakmem_log, header=[0, 1], skipinitialspace=True, index_col=0,
         )
+    except FileNotFoundError:
+        return f"File Not Found: {combined_peakmem_log}"
+    df = (
+        df
         .fillna(0)
         .astype(np.float64)
     )

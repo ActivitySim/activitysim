@@ -16,6 +16,7 @@ def make_tag(
     mp=False,
     reference=None,
     reference_asim_version="0.0.0",
+    multiprocess=0,
 ):
     reset_progress_step(description="Initialize Tag")
     if tag is None:
@@ -41,4 +42,6 @@ def make_tag(
         out['reference_asim_version'] = reference
         out['reference'] = True
     out['relabel_tablesets'] = {'reference': f'v{reference_asim_version}'}
+    out['is_multiprocess'] = (multiprocess > 1)
+    out['num_processes'] = int(multiprocess)
     return out

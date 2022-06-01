@@ -1671,7 +1671,11 @@ def get_run_list():
 
         # - add resume breadcrumbs
         if resume_after:
-            breadcrumbs = get_breadcrumbs(run_list)
+            try:
+                breadcrumbs = get_breadcrumbs(run_list)
+            except IOError: # file does not exist, no resume_after is possible
+                breadcrumbs = None
+                resume_after = None
             if breadcrumbs:
                 run_list['breadcrumbs'] = breadcrumbs
 

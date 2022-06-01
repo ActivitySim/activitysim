@@ -20,7 +20,7 @@ steps:
       config_dirs: configs
       data_dir: data
       instrument: False
-      memory_profile: False
+      memory_profile: True
       trace_hh_id:
       trace_od:
       workplace_zone_agg:

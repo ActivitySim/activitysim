@@ -20,7 +20,7 @@ def record_memory_usage(
             try:
                 info = current_process.memory_full_info()
                 uss = info.uss
-            except (PermissionError, psutil.AccessDenied):
+            except (PermissionError, psutil.AccessDenied, RuntimeError):
                 info = current_process.memory_info()
                 uss = 0
         else:
@@ -118,9 +118,14 @@ class MemorySidecar:
         self.sidecar_process.start()
 
     def stop(self):
-        self.local_conn.send("STOP")
-        self.sidecar_process.join()
+        self.set_event("STOP")
+        self.sidecar_process.join(timeout=5)
+        if self.sidecar_process.exitcode is None:
+            self.sidecar_process.kill()
         print("memory sidecar stopped")
 
     def set_event(self, event):
-        self.local_conn.send(str(event))
+        try:
+            self.local_conn.send(str(event))
+        except BrokenPipeError:
+            pass

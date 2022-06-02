@@ -1,6 +1,10 @@
+import logging
 import os
 import shlex
 import subprocess
+import sys
+from tempfile import TemporaryFile
+from time import sleep
 
 from pypyr.errors import KeyNotInContextError
 
@@ -52,6 +56,8 @@ def run_activitysim_as_subprocess(
     args = f"activitysim run {cfgs} -d {data_dir} -o {output_dir} {flags}"
     if label is None:
         label = f"{args}"
+    else:
+        logging.getLogger(__name__).critical(f"\n=======\nSUBPROC {args}\n=======")
 
     reset_progress_step(description=f"{label}", prefix="[bold green]")
 
@@ -84,9 +90,9 @@ def run_activitysim_as_subprocess(
         conda_prefix_1 = os.environ.get("CONDA_PREFIX_1", None)
         if conda_prefix_1 is None:
             conda_prefix_1 = os.environ.get("CONDA_PREFIX", None)
-        if os.name == 'nt':
-            conda_prefix_1 = conda_prefix_1.replace("\\","/")
-            conda_prefix = conda_prefix.replace("\\","/")
+        if os.name == "nt":
+            conda_prefix_1 = conda_prefix_1.replace("\\", "/")
+            conda_prefix = conda_prefix.replace("\\", "/")
             joiner = "; "
         else:
             joiner = " && "
@@ -103,17 +109,29 @@ def run_activitysim_as_subprocess(
             cwd=cwd,
             env=env,
         )
+        stream_process(process, label)
     else:
-        process = subprocess.Popen(
-            args=args,
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=cwd,
-            env=env,
-        )
+        with TemporaryFile() as outputstream:
+            process = subprocess.Popen(
+                args=args,
+                shell=True,
+                stdout=outputstream,
+                stderr=subprocess.STDOUT,
+                cwd=cwd,
+                env=env,
+            )
+            while process.poll() is None:
+                where = outputstream.tell()
+                lines = outputstream.read()
+                if not lines:
+                    # Adjust the sleep interval to your needs
+                    sleep(0.25)
+                    # make sure pointing to the last place we read
+                    outputstream.seek(where)
+                else:
+                    print(lines.decode(), end="")
 
-    stream_process(process, label)
+    # stream_process(process, label)
 
     # don't swallow the error, because it's the Step swallow decorator
     # responsibility to decide to ignore or not.

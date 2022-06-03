@@ -38,6 +38,7 @@ steps:
       trace_od:
       chunk_method: hybrid_uss
       chunk_training_mode: disabled
+      machine_name:
 
 - name: activitysim.workflows.steps.title
   in:
@@ -270,6 +271,10 @@ reporting:
   in:
     title: "{example_name} report"
     common_directory: "{workspace}/{example_name}"
+
+- name: activitysim.workflows.steps.reporting.machine_info
+  in:
+    caption: Machine Info
 
 
 #### Runtime and Data Inventory ####

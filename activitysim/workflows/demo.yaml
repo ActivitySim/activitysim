@@ -8,6 +8,7 @@ steps:
       workspace: workspace
       legacy: True
       tag:
+      stress: 22
 
 - name: activitysim.workflows.steps.title
   in:
@@ -32,8 +33,7 @@ steps:
       save(tag=tag)
       print(f"tag is {tag}")
 
-- description: Ping Google
-  name: activitysim.workflows.steps.cmd
+- description: Memory Stress Test
+  name: activitysim.workflows.steps.memory_stress_test
   in:
-    cmd:
-      run: ping google.com
+    n: '{stress}'

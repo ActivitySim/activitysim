@@ -187,6 +187,12 @@ def skim_dataset():
         network_los_preload.omx_file_names(skim_tag),
     )
     zarr_file = network_los_preload.zarr_file_name(skim_tag)
+
+    if config.setting("disable_zarr", False):
+        # we can disable the zarr optimizations by setting the `disable_zarr`
+        # flag in the master config file to True
+        zarr_file = None
+
     if zarr_file is not None:
         zarr_file = os.path.join(config.get_cache_dir(), zarr_file)
 
@@ -248,6 +254,8 @@ def skim_dataset():
             if zarr_file:
                 logger.info(f"looking for zarr skims at {zarr_file}")
             if zarr_file and os.path.exists(zarr_file):
+                # TODO: check if the OMX skims are modified more recently than
+                #       the cached ZARR versions; if so do not use the ZARR
                 # load skims from zarr.zip
                 logger.info(f"found zarr skims, loading them")
                 d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(max_float_precision)

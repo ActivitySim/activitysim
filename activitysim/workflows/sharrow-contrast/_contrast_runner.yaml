@@ -39,6 +39,7 @@ steps:
       chunk_method: hybrid_uss
       chunk_training_mode: disabled
       machine_name:
+      disable_zarr: False
 
 - name: activitysim.workflows.steps.title
   in:
@@ -141,6 +142,7 @@ run-sharrow:
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_training_mode}'
+        disable_zarr: '{disable_zarr}'
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.run_subprocess

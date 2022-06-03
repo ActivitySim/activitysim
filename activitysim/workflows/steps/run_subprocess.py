@@ -129,7 +129,10 @@ def run_activitysim_as_subprocess(
                     # make sure pointing to the last place we read
                     outputstream.seek(where)
                 else:
-                    print(lines.decode(), end="")
+                    # Windows adds an extra carriage return and then chokes on
+                    # it when displaying (or, as it were, not displaying) the
+                    # output.  So we give Windows a little helping hand.
+                    print(lines.decode().replace("\r\n", "\n"), end="")
 
     # stream_process(process, label)
 

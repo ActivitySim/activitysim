@@ -78,7 +78,7 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def log_runtime(model_name, start_time=None, timing=None):
+def log_runtime(model_name, start_time=None, timing=None, force=False):
     global timing_notes
 
     assert (start_time or timing) and not (start_time and timing)
@@ -89,7 +89,7 @@ def log_runtime(model_name, start_time=None, timing=None):
 
     process_name = multiprocessing.current_process().name
 
-    if config.setting('multiprocess', False):
+    if config.setting('multiprocess', False) and not force:
         # when benchmarking, log timing for each processes in its own log
         if config.setting('benchmarking', False):
             header = "component_name,duration"

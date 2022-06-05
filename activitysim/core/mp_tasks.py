@@ -1327,6 +1327,7 @@ def run_multiprocess(injectables):
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
 
     if sharrow_enabled:
+        start_time = time.time()
         shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
 
         # Loading skim_dataset must be done in the main process, not a subprocess,
@@ -1337,10 +1338,12 @@ def run_multiprocess(injectables):
 
         t0 = tracing.print_elapsed_time('setup skim_dataset', t0)
         mem.trace_memory_info("skim_dataset.completed")
+        tracing.log_runtime('mp_setup_skims', start_time=start_time, force=True)
 
     # - mp_setup_skims
     if not sharrow_enabled:
         if len(shared_data_buffers) > 0:
+            start_time = time.time()
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_setup_skims, name='mp_setup_skims', args=(injectables,),
@@ -1349,6 +1352,7 @@ def run_multiprocess(injectables):
 
             t0 = tracing.print_elapsed_time('setup shared_data_buffers', t0)
             mem.trace_memory_info("mp_setup_skims.completed")
+            tracing.log_runtime('mp_setup_skims', start_time=start_time, force=True)
 
     # - for each step in run list
     for step_info in run_list['multiprocess_steps']:
@@ -1365,11 +1369,13 @@ def run_multiprocess(injectables):
 
         # - mp_apportion_pipeline
         if not skip_phase('apportion') and num_processes > 1:
+            start_time = time.time()
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_apportion_pipeline, name='%s_apportion' % step_name,
                     args=(injectables, sub_proc_names, step_info))
             )
+            tracing.log_runtime('%s_apportion' % step_name, start_time=start_time, force=True)
         drop_breadcrumb(step_name, 'apportion')
 
         # - run_sub_simulations
@@ -1391,11 +1397,13 @@ def run_multiprocess(injectables):
 
         # - mp_coalesce_pipelines
         if not skip_phase('coalesce') and num_processes > 1:
+            start_time = time.time()
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_coalesce_pipelines, name='%s_coalesce' % step_name,
                     args=(injectables, sub_proc_names, slice_info))
             )
+            tracing.log_runtime('%s_coalesce' % step_name, start_time=start_time, force=True)
         drop_breadcrumb(step_name, 'coalesce')
 
     # add checkpoint with final tables even if not intermediate checkpointing

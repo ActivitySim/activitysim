@@ -193,7 +193,9 @@ def run(args):
     if config.setting("rotate_logs", False):
         config.rotate_log_directory()
 
-    if config.setting("memory_profile", False):
+    if config.setting("memory_profile", False) and not config.setting('multiprocess', False):
+        # Memory sidecar is only useful for single process runs
+        # multiprocess runs log memory usage without blocking in the controlling process.
         mem_prof_log = config.log_file_path("memory_profile.csv")
         from ..core.memory_sidecar import MemorySidecar
         memory_sidecar_process = MemorySidecar(mem_prof_log)

@@ -71,7 +71,7 @@
   include:
     - example_mtc/configs
     - example_mtc/configs_mp
-    - example_mtc/data
+    # example_mtc/data # load data from activitysim_resources instead
     - example_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data/skims.omx

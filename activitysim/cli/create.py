@@ -9,9 +9,9 @@ import yaml
 import hashlib
 from pathlib import Path
 
-PACKAGE = 'activitysim'
-EXAMPLES_DIR = 'examples'
-MANIFEST = 'example_manifest.yaml'
+PACKAGE = "activitysim"
+EXAMPLES_DIR = "examples"
+MANIFEST = "example_manifest.yaml"
 
 
 def _example_path(resource):
@@ -22,37 +22,43 @@ def _example_path(resource):
 
 
 def _load_manifest():
-    with open(_example_path(MANIFEST), 'r') as f:
+    with open(_example_path(MANIFEST), "r") as f:
         manifest = yaml.safe_load(f.read())
 
-    assert manifest, f'error: could not load {MANIFEST}'
-    return {example['name']: example for example in manifest}
+    assert manifest, f"error: could not load {MANIFEST}"
+    return {example["name"]: example for example in manifest}
 
 
 EXAMPLES = _load_manifest()
 
 
 def add_create_args(parser):
-    """Create command args
-    """
+    """Create command args"""
     create_group = parser.add_mutually_exclusive_group(required=True)
-    create_group.add_argument('-l', '--list',
-                              action='store_true',
-                              help='list available example directories and exit')
-    create_group.add_argument('-e', '--example',
-                              type=str,
-                              metavar='PATH',
-                              help='example directory to copy')
+    create_group.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        help="list available example directories and exit",
+    )
+    create_group.add_argument(
+        "-e", "--example", type=str, metavar="PATH", help="example directory to copy"
+    )
 
-    parser.add_argument('-d', '--destination',
-                        type=str,
-                        metavar='PATH',
-                        default=os.getcwd(),
-                        help="path to new project directory (default: %(default)s)")
+    parser.add_argument(
+        "-d",
+        "--destination",
+        type=str,
+        metavar="PATH",
+        default=os.getcwd(),
+        help="path to new project directory (default: %(default)s)",
+    )
 
-    parser.add_argument('--link',
-                        action='store_true',
-                        help="cache and reuse downloaded files via symlinking")
+    parser.add_argument(
+        "--link",
+        action="store_true",
+        help="cache and reuse downloaded files via symlinking",
+    )
 
 
 def create(args):
@@ -79,18 +85,20 @@ def create(args):
 
 
 def list_examples():
-    print('*** Available examples ***\n')
+    print("*** Available examples ***\n")
 
     ret = []
     for example in list(EXAMPLES.values()):
-        del example['include']
+        del example["include"]
         ret.append(example)
         print(yaml.dump(example))
 
     return ret
 
 
-def get_example(example_name, destination, benchmarking=False, optimize=True, link=True):
+def get_example(
+    example_name, destination, benchmarking=False, optimize=True, link=True
+):
     """
     Copy project data to user-specified directory.
 
@@ -126,9 +134,9 @@ def get_example(example_name, destination, benchmarking=False, optimize=True, li
         dest_path = destination
 
     example = EXAMPLES[example_name]
-    itemlist = example.get('include', [])
+    itemlist = example.get("include", [])
     if benchmarking:
-        itemlist.extend(example.get('benchmarking', []))
+        itemlist.extend(example.get("benchmarking", []))
 
     for item in itemlist:
 
@@ -145,35 +153,36 @@ def get_example(example_name, destination, benchmarking=False, optimize=True, li
             target_path = dest_path
             sha256 = None
 
-        if assets.startswith('http'):
+        if assets.startswith("http"):
             download_asset(assets, target_path, sha256, link=link)
 
         else:
             for asset_path in glob.glob(_example_path(assets)):
                 copy_asset(asset_path, target_path, dirs_exist_ok=True)
 
-    print(f'copied! new project files are in {os.path.abspath(dest_path)}')
+    print(f"copied! new project files are in {os.path.abspath(dest_path)}")
 
     if optimize:
-        optimize_func_names = example.get('optimize', None)
+        optimize_func_names = example.get("optimize", None)
         if isinstance(optimize_func_names, str):
             optimize_func_names = [optimize_func_names]
         if optimize_func_names:
             from ..examples import optimize_example_data
+
             for optimize_func_name in optimize_func_names:
                 getattr(
                     optimize_example_data,
                     optimize_func_name,
                 )(os.path.abspath(dest_path))
 
-    instructions = example.get('instructions')
+    instructions = example.get("instructions")
     if instructions:
         print(instructions)
 
 
 def copy_asset(asset_path, target_path, dirs_exist_ok=False):
 
-    print(f'copying {os.path.basename(asset_path)} ...')
+    print(f"copying {os.path.basename(asset_path)} ...")
     sys.stdout.flush()
     if os.path.isdir(asset_path):
         target_path = os.path.join(target_path, os.path.basename(asset_path))
@@ -206,25 +215,26 @@ def download_asset(url, target_path, sha256=None, link=True):
     if sha256 and os.path.isfile(target_path):
         computed_sha256 = sha256_checksum(target_path)
         if sha256 == computed_sha256:
-            print(f'not re-downloading existing {os.path.basename(target_path)} ...')
+            print(f"not re-downloading existing {os.path.basename(target_path)} ...")
             download = False
         else:
-            print(f're-downloading existing {os.path.basename(target_path)} ...')
-            print(f'   expected checksum {sha256}')
-            print(f'   computed checksum {computed_sha256}')
+            print(f"re-downloading existing {os.path.basename(target_path)} ...")
+            print(f"   expected checksum {sha256}")
+            print(f"   computed checksum {computed_sha256}")
     else:
-        print(f'downloading {os.path.basename(target_path)} ...')
+        print(f"downloading {os.path.basename(target_path)} ...")
     sys.stdout.flush()
     if download:
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
-            with open(target_path_dl, 'wb') as f:
+            with open(target_path_dl, "wb") as f:
                 for chunk in r.iter_content(chunk_size=None):
                     f.write(chunk)
         if target_path_dl != target_path:
             import gzip
-            with gzip.open(target_path_dl, 'rb') as f_in:
-                with open(target_path, 'wb') as f_out:
+
+            with gzip.open(target_path_dl, "rb") as f_in:
+                with open(target_path, "wb") as f_out:
                     shutil.copyfileobj(f_in, f_out)
             os.remove(target_path_dl)
         computed_sha256 = sha256_checksum(target_path)
@@ -265,8 +275,8 @@ def download_asset(url, target_path, sha256=None, link=True):
 
 def sha256_checksum(filename, block_size=65536):
     sha256 = hashlib.sha256()
-    with open(filename, 'rb') as f:
-        for block in iter(lambda: f.read(block_size), b''):
+    with open(filename, "rb") as f:
+        for block in iter(lambda: f.read(block_size), b""):
             sha256.update(block)
     return sha256.hexdigest()
 
@@ -274,7 +284,7 @@ def sha256_checksum(filename, block_size=65536):
 def display_sha256_checksums(directory=None):
     print("SHA 256 CHECKSUMS")
     if directory is None:
-        if len(sys.argv)>1:
+        if len(sys.argv) > 1:
             directory = sys.argv[1]
         else:
             directory = os.getcwd()

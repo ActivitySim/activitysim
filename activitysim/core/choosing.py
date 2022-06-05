@@ -1,7 +1,7 @@
-
 import numpy as np
 import pandas as pd
 from numba import njit
+
 
 @njit
 def choice_maker(pr, rn, out=None):
@@ -30,11 +30,11 @@ def choice_maker(pr, rn, out=None):
 
 @njit
 def sample_choices_maker(
-        prob_array,
-        random_array,
-        alts_array,
-        out_choices=None,
-        out_choice_probs=None,
+    prob_array,
+    random_array,
+    alts_array,
+    out_choices=None,
+    out_choice_probs=None,
 ):
     """
     Random sample of alternatives.
@@ -77,7 +77,7 @@ def sample_choices_maker(
             # or if the sum of probabilities is less than 1 and a random point
             # is greater than that sum, which due to the limits of numerical
             # precision can technically happen
-            a = n_alts-1
+            a = n_alts - 1
             while prob_array[c, a] < 1e-30 and a > 0:
                 # slip back to the last choice with non-trivial prob
                 a -= 1
@@ -91,11 +91,11 @@ def sample_choices_maker(
 
 @njit
 def sample_choices_maker_preserve_ordering(
-        prob_array,
-        random_array,
-        alts_array,
-        out_choices=None,
-        out_choice_probs=None,
+    prob_array,
+    random_array,
+    alts_array,
+    out_choices=None,
+    out_choice_probs=None,
 ):
     """
     Random sample of alternatives.
@@ -141,7 +141,7 @@ def sample_choices_maker_preserve_ordering(
             # or if the sum of probabilities is less than 1 and a random point
             # is greater than that sum, which due to the limits of numerical
             # precision can technically happen
-            a = n_alts-1
+            a = n_alts - 1
             while prob_array[c, a] < 1e-30 and a > 0:
                 # slip back to the last choice with non-trivial prob
                 a -= 1

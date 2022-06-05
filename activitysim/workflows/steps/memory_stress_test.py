@@ -1,12 +1,12 @@
 import logging
+import os
+import time
 
 import numpy as np
-import time
 import psutil
-import os
 
-from .wrapping import workstep
 from ...core.util import si_units
+from .wrapping import workstep
 
 
 def ping_mem(pid=None):
@@ -25,7 +25,7 @@ def ping_mem(pid=None):
 def memory_stress_test(n=37):
 
     logging.critical(f"ping_mem = {ping_mem()}")
-    big = np.arange(int(2**float(n) / 8), dtype=np.float64)
+    big = np.arange(int(2 ** float(n) / 8), dtype=np.float64)
     big *= 2.0
     time.sleep(1.0)
     logging.critical(f"ping_mem = {ping_mem()}")

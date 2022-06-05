@@ -1,12 +1,14 @@
 import logging
 import os
-import nbformat as nbf
-from nbconvert import HTMLExporter
-import nbclient
 import textwrap
 from contextlib import contextmanager
 from pathlib import Path
-from xmle import Reporter, NumberedCaption
+
+import nbclient
+import nbformat as nbf
+from nbconvert import HTMLExporter
+from xmle import NumberedCaption, Reporter
+
 from .. import __version__
 
 # from jupyter_contrib_nbextensions.nbconvert_support import TocExporter # problematic
@@ -32,7 +34,6 @@ def chdir(path: Path):
         os.chdir(cwd)
 
 
-
 def render_notebook(nb_filename, cellcontent):
     nb_filename = os.path.splitext(nb_filename)[0]
     nb = nbf.v4.new_notebook()
@@ -44,11 +45,11 @@ def render_notebook(nb_filename, cellcontent):
             cells.append(nbf.v4.new_markdown_cell(c[4:]))
         else:
             cells.append(nbf.v4.new_code_cell(c))
-    nb['cells'] = cells
-    nbf.write(nb, nb_filename+".ipynb")
+    nb["cells"] = cells
+    nbf.write(nb, nb_filename + ".ipynb")
 
     nb = nbclient.execute(nb, cwd=os.path.dirname(nb_filename))
-    nbf.write(nb, nb_filename+"-e.ipynb")
+    nbf.write(nb, nb_filename + "-e.ipynb")
 
     html_exporter = HTMLExporter(
         embed_images=True,
@@ -59,7 +60,5 @@ def render_notebook(nb_filename, cellcontent):
     )
     (body, resources) = html_exporter.from_notebook_node(nb)
 
-    with open(nb_filename+".html", 'w') as f:
+    with open(nb_filename + ".html", "w") as f:
         f.write(body)
-
-

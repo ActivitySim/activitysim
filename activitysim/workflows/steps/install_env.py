@@ -11,7 +11,10 @@ logger = logging.getLogger(__name__)
 
 @workstep(returns_names="install_env_returncode")
 def install_env(
-    env_prefix, asim_version="1.0.4", cwd=None, label=None,
+    env_prefix,
+    asim_version="1.0.4",
+    cwd=None,
+    label=None,
 ):
     if os.path.exists(env_prefix):
         return 0
@@ -48,7 +51,10 @@ def install_env(
     # responsibility to decide to ignore or not.
     if process.returncode:
         raise subprocess.CalledProcessError(
-            process.returncode, process.args, process.stdout, process.stderr,
+            process.returncode,
+            process.args,
+            process.stdout,
+            process.stderr,
         )
 
     return process.returncode

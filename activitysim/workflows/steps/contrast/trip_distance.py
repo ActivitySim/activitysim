@@ -82,12 +82,18 @@ def trip_distance(
     # This is sorted in reverse alphabetical order by source, so that
     # the stroke width for the first line plotted is fattest, and progressively
     # thinner lines are plotted over that, so all data is visible on the figure.
-    all_d = pd.concat(d, names=["source"]).reset_index().sort_values("source", ascending=False)
+    all_d = (
+        pd.concat(d, names=["source"])
+        .reset_index()
+        .sort_values("source", ascending=False)
+    )
     all_d["distance"] = all_d["distance"].apply(lambda x: x.mid)
 
     fig = (
         alt.Chart(all_d)
-        .mark_line(interpolate="monotone",)
+        .mark_line(
+            interpolate="monotone",
+        )
         .encode(
             color="source",
             y=alt.Y("share_trips", axis=alt.Axis(grid=False, title="")),
@@ -97,12 +103,17 @@ def trip_distance(
             facet=alt.Facet(grouping, columns=3),
             strokeWidth="source",
         )
-        .properties(width=200, height=120,)
+        .properties(
+            width=200,
+            height=120,
+        )
     )
 
     if title:
         fig = fig.properties(title=title).configure_title(
-            fontSize=20, anchor="start", color="black",
+            fontSize=20,
+            anchor="start",
+            color="black",
         )
 
     return fig

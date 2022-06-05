@@ -45,31 +45,36 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
 
     if isinstance(model_settings, str):
         model_settings_name = model_settings
-        model_settings = config.read_model_settings('%s.yaml' % model_settings)
+        model_settings = config.read_model_settings("%s.yaml" % model_settings)
         assert model_settings, "Found no model settings for %s" % model_settings_name
     else:
-        model_settings_name = 'dict'
+        model_settings_name = "dict"
         assert isinstance(model_settings, dict)
 
-    assert 'DF' in model_settings, \
-        "Expected to find 'DF' in %s" % model_settings_name
+    assert "DF" in model_settings, "Expected to find 'DF' in %s" % model_settings_name
 
-    df_name = model_settings.get('DF')
-    helper_table_names = model_settings.get('TABLES', [])
-    expressions_spec_name = model_settings.get('SPEC', None)
+    df_name = model_settings.get("DF")
+    helper_table_names = model_settings.get("TABLES", [])
+    expressions_spec_name = model_settings.get("SPEC", None)
 
-    assert expressions_spec_name is not None, \
+    assert expressions_spec_name is not None, (
         "Expected to find 'SPEC' in %s" % model_settings_name
+    )
 
-    trace_label = tracing.extend_trace_label(trace_label or '', expressions_spec_name)
+    trace_label = tracing.extend_trace_label(trace_label or "", expressions_spec_name)
 
     if not expressions_spec_name.endswith(".csv"):
-        expressions_spec_name = '%s.csv' % expressions_spec_name
-    logger.debug(f"{trace_label} compute_columns using expression spec file {expressions_spec_name}")
-    expressions_spec = assign.read_assignment_spec(config.config_file_path(expressions_spec_name))
+        expressions_spec_name = "%s.csv" % expressions_spec_name
+    logger.debug(
+        f"{trace_label} compute_columns using expression spec file {expressions_spec_name}"
+    )
+    expressions_spec = assign.read_assignment_spec(
+        config.config_file_path(expressions_spec_name)
+    )
 
-    assert expressions_spec.shape[0] > 0, \
+    assert expressions_spec.shape[0] > 0, (
         "Expected to find some assignment expressions in %s" % expressions_spec_name
+    )
 
     tables = {t: inject.get_table(t).to_frame() for t in helper_table_names}
 
@@ -78,7 +83,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     tables[df_name] = df
 
     # be nice and also give it to them as df?
-    tables['df'] = df
+    tables["df"] = df
 
     _locals_dict = assign.local_utilities()
     _locals_dict.update(locals_dict)
@@ -86,20 +91,16 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
 
     # FIXME a number of asim model preprocessors want skim_dict - should they request it in model_settings.TABLES?
     if config.setting("sharrow", False):
-        _locals_dict['skim_dict'] = inject.get_injectable('skim_dataset_dict', None)
+        _locals_dict["skim_dict"] = inject.get_injectable("skim_dataset_dict", None)
     else:
-        _locals_dict['skim_dict'] = inject.get_injectable('skim_dict', None)
+        _locals_dict["skim_dict"] = inject.get_injectable("skim_dict", None)
 
-    results, trace_results, trace_assigned_locals \
-        = assign.assign_variables(expressions_spec,
-                                  df,
-                                  _locals_dict,
-                                  trace_rows=tracing.trace_targets(df))
+    results, trace_results, trace_assigned_locals = assign.assign_variables(
+        expressions_spec, df, _locals_dict, trace_rows=tracing.trace_targets(df)
+    )
 
     if trace_results is not None:
-        tracing.trace_df(trace_results,
-                         label=trace_label,
-                         slicer='NONE')
+        tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
 
     if trace_assigned_locals:
         tracing.write_csv(trace_assigned_locals, file_name="%s_locals" % trace_label)
@@ -130,15 +131,13 @@ def assign_columns(df, model_settings, locals_dict={}, trace_label=None):
 # ##################################################################################################
 
 
-def annotate_preprocessors(
-        df, locals_dict, skims,
-        model_settings, trace_label):
+def annotate_preprocessors(df, locals_dict, skims, model_settings, trace_label):
 
     locals_d = {}
     locals_d.update(locals_dict)
     locals_d.update(skims)
 
-    preprocessor_settings = model_settings.get('preprocessor', [])
+    preprocessor_settings = model_settings.get("preprocessor", [])
     if not isinstance(preprocessor_settings, list):
         assert isinstance(preprocessor_settings, dict)
         preprocessor_settings = [preprocessor_settings]
@@ -151,7 +150,8 @@ def annotate_preprocessors(
             df=df,
             model_settings=model_settings,
             locals_dict=locals_d,
-            trace_label=trace_label)
+            trace_label=trace_label,
+        )
 
         assign_in_place(df, results)
 

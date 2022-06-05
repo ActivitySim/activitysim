@@ -28,20 +28,16 @@ def memory_use_peak(
 
     try:
         df = pd.read_csv(
-            combined_peakmem_log, header=[0, 1], skipinitialspace=True, index_col=0,
+            combined_peakmem_log,
+            header=[0, 1],
+            skipinitialspace=True,
+            index_col=0,
         )
     except FileNotFoundError:
         return f"File Not Found: {combined_peakmem_log}"
-    df = (
-        df
-        .fillna(0)
-        .astype(np.float64)
-    )
+    df = df.fillna(0).astype(np.float64)
     df.columns = df.columns.set_names(["source", "mem"])
-    mem = (
-        df.stack()
-        .query(f"mem == '{memory_measure}'")
-    )
+    mem = df.stack().query(f"mem == '{memory_measure}'")
     include_runs = [i for i in include_runs if i in mem.columns]
     mem = (
         mem[include_runs]
@@ -58,7 +54,7 @@ def memory_use_peak(
 
     chart = (
         alt.Chart(mem)
-        .mark_line(interpolate='step')
+        .mark_line(interpolate="step")
         .encode(
             y="mem_gigs",
             color="source",

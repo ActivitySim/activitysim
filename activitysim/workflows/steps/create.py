@@ -1,9 +1,9 @@
 import os
 import shlex
 
+from ...standalone.utils import chdir
 from .progression import reset_progress_step
 from .wrapping import workstep
-from ...standalone.utils import chdir
 
 
 @workstep

@@ -1,8 +1,9 @@
 import os.path
-
-import yaml
 import warnings
 from typing import Mapping
+
+import yaml
+
 
 def check_data_dictionary(input):
     """
@@ -18,7 +19,7 @@ def check_data_dictionary(input):
         if not os.path.exists(input):
             warnings.warn(f"data dictionary file {input} is missing")
             return {}
-        with open(input, 'rt') as f:
+        with open(input, "rt") as f:
             content = yaml.safe_load(f)
     else:
         content = input
@@ -31,4 +32,3 @@ def check_data_dictionary(input):
             assert isinstance(j, Mapping)
 
     return content
-

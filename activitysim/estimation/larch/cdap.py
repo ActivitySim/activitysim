@@ -322,14 +322,16 @@ def cdap_data(
     except FileNotFoundError:
         persons = pd.read_csv(persons_file)
 
-    person_type_map = settings.get('PERSON_TYPE_MAP')
+    person_type_map = settings.get("PERSON_TYPE_MAP")
     if person_type_map is None:
         raise KeyError("PERSON_TYPE_MAP missing from cdap_settings.yaml")
 
     person_rank = cdap.assign_cdap_rank(persons, person_type_map)
 
     coefficients = read_csv(
-        coefficients_file, index_col="coefficient_name", comment="#",
+        coefficients_file,
+        index_col="coefficient_name",
+        comment="#",
     )
 
     interaction_coef = read_csv(

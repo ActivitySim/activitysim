@@ -76,12 +76,12 @@ def run_activitysim_as_subprocess(
         env["NUMEXPR_NUM_THREADS"] = "1"
 
     if multi_thread:
-        env["MKL_NUM_THREADS"] = str(multi_thread.get('MKL', 1))
-        env["OMP_NUM_THREADS"] = str(multi_thread.get('OMP', 1))
-        env["OPENBLAS_NUM_THREADS"] = str(multi_thread.get('OPENBLAS', 1))
-        env["NUMBA_NUM_THREADS"] = str(multi_thread.get('NUMBA', 1))
-        env["VECLIB_MAXIMUM_THREADS"] = str(multi_thread.get('VECLIB', 1))
-        env["NUMEXPR_NUM_THREADS"] = str(multi_thread.get('NUMEXPR', 1))
+        env["MKL_NUM_THREADS"] = str(multi_thread.get("MKL", 1))
+        env["OMP_NUM_THREADS"] = str(multi_thread.get("OMP", 1))
+        env["OPENBLAS_NUM_THREADS"] = str(multi_thread.get("OPENBLAS", 1))
+        env["NUMBA_NUM_THREADS"] = str(multi_thread.get("NUMBA", 1))
+        env["VECLIB_MAXIMUM_THREADS"] = str(multi_thread.get("VECLIB", 1))
+        env["NUMEXPR_NUM_THREADS"] = str(multi_thread.get("NUMEXPR", 1))
 
     # if pythonpath:
     #     print(f"removed PYTHONPATH from ENV: {pythonpath}")
@@ -149,7 +149,10 @@ def run_activitysim_as_subprocess(
     # responsibility to decide to ignore or not.
     if process.returncode:
         raise subprocess.CalledProcessError(
-            process.returncode, process.args, process.stdout, process.stderr,
+            process.returncode,
+            process.args,
+            process.stdout,
+            process.stderr,
         )
 
     # # Clear all saved state from ORCA

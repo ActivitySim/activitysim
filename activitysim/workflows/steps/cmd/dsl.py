@@ -16,8 +16,8 @@ from ..progression import reset_progress_step
 # logger means the log level will be set correctly
 logger = logging.getLogger(__name__)
 
-RED = '\033[91m'
-END = '\033[0m'
+RED = "\033[91m"
+END = "\033[0m"
 
 
 def stream_process(process, label):
@@ -27,10 +27,10 @@ def stream_process(process, label):
         for line in process.stdout:
             print(line.decode().rstrip())
         for line in process.stderr:
-            print(RED+line.decode().rstrip()+END, file=sys.stderr)
+            print(RED + line.decode().rstrip() + END, file=sys.stderr)
 
 
-class CmdStep():
+class CmdStep:
     """A pypyr step that represents a command runner step.
 
     This models a step that takes config like this:
@@ -73,17 +73,17 @@ class CmdStep():
                      instance.
 
         """
-        assert name, ("name parameter must exist for CmdStep.")
-        assert context, ("context param must exist for CmdStep.")
+        assert name, "name parameter must exist for CmdStep."
+        assert context, "context param must exist for CmdStep."
         # this way, logs output as the calling step, which makes more sense
         # to end-user than a mystery steps.dsl.blah logging output.
         self.logger = logging.getLogger(name)
 
-        context.assert_key_has_value(key='cmd', caller=name)
+        context.assert_key_has_value(key="cmd", caller=name)
 
         self.context = context
 
-        cmd_config = context.get_formatted('cmd')
+        cmd_config = context.get_formatted("cmd")
 
         if isinstance(cmd_config, str):
             self.cmd_text = cmd_config
@@ -91,28 +91,30 @@ class CmdStep():
             self.logger.debug("Processing command string: %s", cmd_config)
             self.label = cmd_config
         elif isinstance(cmd_config, dict):
-            context.assert_child_key_has_value(parent='cmd',
-                                               child='run',
-                                               caller=name)
+            context.assert_child_key_has_value(parent="cmd", child="run", caller=name)
 
-            self.cmd_text = cmd_config['run']
-            self.label = cmd_config.get('label', self.cmd_text)
-            self.conda_path = cmd_config.get('conda_path', None)
+            self.cmd_text = cmd_config["run"]
+            self.label = cmd_config.get("label", self.cmd_text)
+            self.conda_path = cmd_config.get("conda_path", None)
 
-            cwd_string = cmd_config.get('cwd', None)
+            cwd_string = cmd_config.get("cwd", None)
             if cwd_string:
                 self.cwd = cwd_string
-                self.logger.debug("Processing command string in dir "
-                                  "%s: %s", self.cwd, self.cmd_text)
+                self.logger.debug(
+                    "Processing command string in dir " "%s: %s",
+                    self.cwd,
+                    self.cmd_text,
+                )
             else:
                 self.cwd = None
-                self.logger.debug("Processing command string: %s",
-                                  self.cmd_text)
+                self.logger.debug("Processing command string: %s", self.cmd_text)
 
         else:
-            raise ContextError(f"{name} cmd config should be either a simple "
-                               "string cmd='mycommandhere' or a dictionary "
-                               "cmd={'run': 'mycommandhere', 'save': False}.")
+            raise ContextError(
+                f"{name} cmd config should be either a simple "
+                "string cmd='mycommandhere' or a dictionary "
+                "cmd={'run': 'mycommandhere', 'save': False}."
+            )
 
     def run_step(self, is_shell):
         """Run a command.
@@ -124,7 +126,7 @@ class CmdStep():
             is_shell: bool. defaults False. Set to true to execute cmd through
                       the default shell.
         """
-        assert is_shell is not None, ("is_shell param must exist for CmdStep.")
+        assert is_shell is not None, "is_shell param must exist for CmdStep."
         conda_path = self.conda_path or sys.exec_prefix
 
         # why? If shell is True, it is recommended to pass args as a string
@@ -134,7 +136,7 @@ class CmdStep():
             args = f'conda run -p "{conda_path}" ' + self.cmd_text
         else:
             args = shlex.split(self.cmd_text)
-            args = ["conda", "run", "-p", conda_path] + list(args) # TODO windows?
+            args = ["conda", "run", "-p", conda_path] + list(args)  # TODO windows?
 
         reset_progress_step(description=f"{self.label}", prefix="[bold green]")
 
@@ -150,8 +152,8 @@ class CmdStep():
             env=env,
         )
         stream_process(process, self.label)
-        self.context['cmdOut'] = {
-            'returncode': process.returncode,
+        self.context["cmdOut"] = {
+            "returncode": process.returncode,
         }
 
         # don't swallow the error, because it's the Step swallow decorator

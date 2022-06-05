@@ -26,8 +26,9 @@ def get_pipeline_definition(pipeline_name, parent):
 
 def enable_vt_support():
     # allow printing in color on windows terminal
-    if os.name == 'nt':
+    if os.name == "nt":
         import ctypes
+
         hOut = ctypes.windll.kernel32.GetStdHandle(-11)
         out_modes = ctypes.c_uint32()
         ENABLE_VT_PROCESSING = ctypes.c_uint32(0x0004)
@@ -48,7 +49,7 @@ def main(args):
 
     if "--no-rich" in args:
         args.remove("--no-rich")
-        os.environ['NO_RICH'] = '1'
+        os.environ["NO_RICH"] = "1"
 
     with get_progress():
 
@@ -56,8 +57,8 @@ def main(args):
             import pypyr.log.logger
             import pypyr.pipelinerunner
             import pypyr.yaml
-            from pypyr.config import config
             from pypyr.cli import get_args
+            from pypyr.config import config
         except ImportError:
             raise ImportError("activitysim.workflows requires pypyr")
 

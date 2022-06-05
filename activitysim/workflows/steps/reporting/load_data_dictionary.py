@@ -3,11 +3,11 @@ from ..wrapping import workstep
 import yaml
 
 
-@workstep('data_dictionary')
+@workstep("data_dictionary")
 def load_data_dictionary(
-        config_dirs,
-        data_dict_filename="data_dictionary.yaml",
-        cwd=".",
+    config_dirs,
+    data_dict_filename="data_dictionary.yaml",
+    cwd=".",
 ):
     if isinstance(config_dirs, str):
         config_dirs = [config_dirs]
@@ -16,6 +16,6 @@ def load_data_dictionary(
         if os.path.isdir(os.path.join(cwd, config_dir)):
             f = os.path.join(cwd, config_dir, data_dict_filename)
             if os.path.exists(f):
-                with open(f, 'rt') as stream:
+                with open(f, "rt") as stream:
                     dd.update(yaml.safe_load(stream))
     return dd

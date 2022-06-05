@@ -83,14 +83,17 @@ def compare_nominal_choice(
 
     all_d = pd.concat(d, names=["source"]).reset_index()
 
-    selection = alt.selection_multi(fields=[nominal_col], bind="legend",)
+    selection = alt.selection_multi(
+        fields=[nominal_col],
+        bind="legend",
+    )
 
-    if plot_type == 'count':
+    if plot_type == "count":
         x = alt.X(
             count_label,
             axis=alt.Axis(grid=False, labels=False, title=axis_label),
         )
-    elif plot_type == 'share':
+    elif plot_type == "share":
         x = alt.X(
             share_label,
             axis=alt.Axis(grid=False, labels=False, title=axis_label),
@@ -119,14 +122,27 @@ def compare_nominal_choice(
     if col_g is not None:
         encode["column"] = alt.Column(**col_g_kwd)
 
-    fig = alt.Chart(all_d).mark_bar().encode(**encode,).add_selection(selection,)
+    fig = (
+        alt.Chart(all_d)
+        .mark_bar()
+        .encode(
+            **encode,
+        )
+        .add_selection(
+            selection,
+        )
+    )
 
     if title:
         fig = fig.properties(title=title).configure_title(
-            fontSize=20, anchor="start", color="black",
+            fontSize=20,
+            anchor="start",
+            color="black",
         )
 
     if col_grouping is not None:
-        fig = fig.properties(width=100,)
+        fig = fig.properties(
+            width=100,
+        )
 
     return fig

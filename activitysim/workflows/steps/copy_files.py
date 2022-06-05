@@ -12,7 +12,10 @@ from .wrapping import workstep
 
 
 @workstep
-def copy_files(source_glob, dest_dir,) -> None:
+def copy_files(
+    source_glob,
+    dest_dir,
+) -> None:
     """
     Copy files.
 

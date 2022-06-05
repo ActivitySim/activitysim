@@ -2,12 +2,13 @@ import os
 import openmatrix
 import pandas as pd
 
+
 def patch_example_sandag_1_zone(example_dir):
 
     cwd = os.getcwd()
     try:
         os.chdir(example_dir)
-        skims = openmatrix.open_file("data_1/skims1.omx", mode='a')
+        skims = openmatrix.open_file("data_1/skims1.omx", mode="a")
         skims_lookup = skims.root["lookup"]
 
         zone_name = None
@@ -23,11 +24,11 @@ def patch_example_sandag_1_zone(example_dir):
 
         if rezone is not None:
             households = pd.read_csv("data_1/households.csv")
-            households['TAZ'] = households['TAZ'].map(rezone)
+            households["TAZ"] = households["TAZ"].map(rezone)
             households.to_csv("data_1/households.csv", index=False)
 
             land_use = pd.read_csv("data_1/land_use.csv")
-            land_use['TAZ'] = land_use['TAZ'].map(rezone)
+            land_use["TAZ"] = land_use["TAZ"].map(rezone)
             land_use.to_csv("data_1/land_use.csv", index=False)
 
         if zone_name:

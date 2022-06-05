@@ -17,7 +17,13 @@ def _prep_dir(directory):
 
 @workstep(updates_context=True)
 def directory_prep(
-    tag, example_name, workspace, compile=True, sharrow=True, legacy=True, reference=True,
+    tag,
+    example_name,
+    workspace,
+    compile=True,
+    sharrow=True,
+    legacy=True,
+    reference=True,
 ):
     archive_dir = f"{workspace}/{example_name}/output-{tag}"
     os.makedirs(archive_dir, exist_ok=True)
@@ -29,4 +35,7 @@ def directory_prep(
         _prep_dir(f"{archive_dir}/output-legacy")
     if reference:
         _prep_dir(f"{archive_dir}/output-reference")
-    return dict(archive_dir=archive_dir, archive_base=os.path.basename(archive_dir),)
+    return dict(
+        archive_dir=archive_dir,
+        archive_base=os.path.basename(archive_dir),
+    )

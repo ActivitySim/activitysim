@@ -1,28 +1,29 @@
-import os
-import hashlib
-import re
-import glob
-import numpy as np
-import pandas as pd
-import time
-import logging
-import openmatrix
 import contextlib
-from orca import orca
-from numbers import Number
-from typing import Mapping
+import glob
+import hashlib
+import logging
+import os
+import re
+import time
 from datetime import timedelta
+from numbers import Number
 from stat import ST_MTIME
+from typing import Mapping
+
+import numpy as np
+import openmatrix
+import pandas as pd
+from orca import orca
 
 try:
     import sharrow as sh
 except ModuleNotFoundError:
     sh = None
 
-from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
-from . import inject, config
 from .. import __version__
 from ..core import tracing
+from . import config, inject
+from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +31,12 @@ _FLOWS = {}
 
 
 @contextlib.contextmanager
-def logtime(tag, tag2=''):
+def logtime(tag, tag2=""):
     logger.info(f"begin {tag} {tag2}")
     t0 = time.time()
     try:
         yield
-    except:
+    except Exception:
         logger.error(f"error in {tag} after {timedelta(seconds=time.time()-t0)} {tag2}")
         raise
     else:
@@ -58,9 +59,13 @@ class TimeLogger:
             self._time_log.append((tag, timedelta(seconds=elapsed)))
             self._time_point = now
             if logger is not None:
-                logger.info("elapsed time {0} {1} {2}".format(
-                    tag, timedelta(seconds=elapsed), suffix,
-                ))
+                logger.info(
+                    "elapsed time {0} {1} {2}".format(
+                        tag,
+                        timedelta(seconds=elapsed),
+                        suffix,
+                    )
+                )
         else:
             self._time_log.append((tag, "skipped"))
             elapsed = 0
@@ -85,7 +90,9 @@ class TimeLogger:
         logger.log(level=level, msg=msg)
 
     @classmethod
-    def aggregate_summary(cls, logger, heading="Aggregate Flow Timing Summary", level=20):
+    def aggregate_summary(
+        cls, logger, heading="Aggregate Flow Timing Summary", level=20
+    ):
         msg = f"{heading}\n"
         msgs = []
         for tag, elapsed in cls.aggregate_timing.items():
@@ -112,25 +119,26 @@ def only_simple(x, exclude_keys=()):
 def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None):
     global _FLOWS
     extra_vars = only_simple(local_d)
-    orig_col_name = local_d.get('orig_col_name', None)
-    dest_col_name = local_d.get('dest_col_name', None)
+    orig_col_name = local_d.get("orig_col_name", None)
+    dest_col_name = local_d.get("dest_col_name", None)
     stop_col_name = None
     parking_col_name = None
-    timeframe = local_d.get('timeframe', 'tour')
-    if timeframe == 'trip':
-        orig_col_name = local_d.get('ORIGIN', orig_col_name)
-        dest_col_name = local_d.get('DESTINATION', dest_col_name)
-        parking_col_name = local_d.get('PARKING', parking_col_name)
-        if orig_col_name is None and 'od_skims' in local_d:
-            orig_col_name = local_d['od_skims'].orig_key
-        if dest_col_name is None and 'od_skims' in local_d:
-            dest_col_name = local_d['od_skims'].dest_key
-        if stop_col_name is None and 'dp_skims' in local_d:
-            stop_col_name = local_d['dp_skims'].dest_key
+    timeframe = local_d.get("timeframe", "tour")
+    if timeframe == "trip":
+        orig_col_name = local_d.get("ORIGIN", orig_col_name)
+        dest_col_name = local_d.get("DESTINATION", dest_col_name)
+        parking_col_name = local_d.get("PARKING", parking_col_name)
+        if orig_col_name is None and "od_skims" in local_d:
+            orig_col_name = local_d["od_skims"].orig_key
+        if dest_col_name is None and "od_skims" in local_d:
+            dest_col_name = local_d["od_skims"].dest_key
+        if stop_col_name is None and "dp_skims" in local_d:
+            stop_col_name = local_d["dp_skims"].dest_key
     local_d = size_terms_on_flow(local_d)
-    size_term_mapping = local_d.get('size_array', {})
+    size_term_mapping = local_d.get("size_array", {})
     flow = new_flow(
-        spec, extra_vars,
+        spec,
+        extra_vars,
         orig_col_name,
         dest_col_name,
         trace_label,
@@ -174,11 +182,11 @@ def should_invalidate_cache_file(cache_filename, *source_filenames):
 
 @inject.injectable(cache=True)
 def skim_dataset():
-    from ..core.los import ONE_ZONE, TWO_ZONE, THREE_ZONE
+    from ..core.los import ONE_ZONE, THREE_ZONE, TWO_ZONE
 
     # TODO:SHARROW: taz and maz are the same
-    skim_tag = 'taz'
-    network_los_preload = inject.get_injectable('network_los_preload', None)
+    skim_tag = "taz"
+    network_los_preload = inject.get_injectable("network_los_preload", None)
     if network_los_preload is None:
         raise ValueError("missing network_los_preload")
 
@@ -205,12 +213,14 @@ def skim_dataset():
     backing = network_los_preload.skim_backing_store(skim_tag)
     if backing == "memmap":
         # if memmap is given without a path, create a cache file
-        mmap_file = os.path.join(config.get_cache_dir(), f"sharrow_dataset_{skim_tag}.mmap")
+        mmap_file = os.path.join(
+            config.get_cache_dir(), f"sharrow_dataset_{skim_tag}.mmap"
+        )
         backing = f"memmap:{mmap_file}"
 
     with logtime("loading skims as dataset"):
 
-        land_use = inject.get_table('land_use')
+        land_use = inject.get_table("land_use")
 
         if f"_original_{land_use.index.name}" in land_use.to_frame():
             land_use_zone_ids = land_use.to_frame()[f"_original_{land_use.index.name}"]
@@ -245,7 +255,9 @@ def skim_dataset():
                 d = None
 
         if d is None:
-            time_periods_ = network_los_preload.los_settings['skim_time_periods']['labels']
+            time_periods_ = network_los_preload.los_settings["skim_time_periods"][
+                "labels"
+            ]
             # deduplicate time period names
             time_periods = []
             for t in time_periods_:
@@ -258,12 +270,14 @@ def skim_dataset():
                 #       the cached ZARR versions; if so do not use the ZARR
                 # load skims from zarr.zip
                 logger.info(f"found zarr skims, loading them")
-                d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(max_float_precision)
+                d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(
+                    max_float_precision
+                )
             else:
                 if zarr_file:
                     logger.info(f"did not find zarr skims, loading omx")
                 d = sh.dataset.from_omx_3d(
-                    [openmatrix.open_file(f, mode='r') for f in omx_file_paths],
+                    [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
                     time_periods=time_periods,
                     max_float_precision=max_float_precision,
                 )
@@ -271,48 +285,65 @@ def skim_dataset():
                 if network_los_preload.zone_system in [TWO_ZONE, THREE_ZONE]:
 
                     # maz
-                    maz2taz_file_name = network_los_preload.setting('maz')
-                    maz_taz = pd.read_csv(config.data_file_path(maz2taz_file_name, mandatory=True))
-                    maz_taz = maz_taz[['MAZ', 'TAZ']].set_index('MAZ').sort_index()
+                    maz2taz_file_name = network_los_preload.setting("maz")
+                    maz_taz = pd.read_csv(
+                        config.data_file_path(maz2taz_file_name, mandatory=True)
+                    )
+                    maz_taz = maz_taz[["MAZ", "TAZ"]].set_index("MAZ").sort_index()
 
                     # MAZ alignment is ensured here, so no re-alignment check is
                     # needed below for TWO_ZONE or THREE_ZONE systems
                     try:
-                        pd.testing.assert_index_equal(maz_taz.index, land_use.index, check_names=False)
+                        pd.testing.assert_index_equal(
+                            maz_taz.index, land_use.index, check_names=False
+                        )
                     except AssertionError:
                         if remapper is not None:
                             maz_taz.index = maz_taz.index.map(remapper.get)
                             maz_taz = maz_taz.sort_index()
-                            assert maz_taz.index.equals(land_use.to_frame().sort_index().index), \
-                                f"maz-taz lookup index does not match index of land_use table"
+                            assert maz_taz.index.equals(
+                                land_use.to_frame().sort_index().index
+                            ), f"maz-taz lookup index does not match index of land_use table"
                         else:
                             raise
 
                     d.redirection.set(
                         maz_taz,
-                        map_to='otaz',
+                        map_to="otaz",
                         name="omaz",
-                        map_also={'dtaz': "dmaz"},
+                        map_also={"dtaz": "dmaz"},
                     )
 
-                    maz_to_maz_tables = network_los_preload.setting('maz_to_maz.tables')
-                    maz_to_maz_tables = [maz_to_maz_tables] if isinstance(maz_to_maz_tables, str) else maz_to_maz_tables
+                    maz_to_maz_tables = network_los_preload.setting("maz_to_maz.tables")
+                    maz_to_maz_tables = (
+                        [maz_to_maz_tables]
+                        if isinstance(maz_to_maz_tables, str)
+                        else maz_to_maz_tables
+                    )
 
-                    max_blend_distance = network_los_preload.setting('maz_to_maz.max_blend_distance', default={})
+                    max_blend_distance = network_los_preload.setting(
+                        "maz_to_maz.max_blend_distance", default={}
+                    )
                     if isinstance(max_blend_distance, int):
-                        max_blend_distance = {'DEFAULT': max_blend_distance}
+                        max_blend_distance = {"DEFAULT": max_blend_distance}
 
                     for file_name in maz_to_maz_tables:
 
-                        df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                        df = pd.read_csv(
+                            config.data_file_path(file_name, mandatory=True)
+                        )
                         if remapper is not None:
                             df.OMAZ = df.OMAZ.map(remapper.get)
                             df.DMAZ = df.DMAZ.map(remapper.get)
                         for colname in df.columns:
-                            if colname in ['OMAZ', 'DMAZ']:
+                            if colname in ["OMAZ", "DMAZ"]:
                                 continue
-                            max_blend_distance_i = max_blend_distance.get('DEFAULT', None)
-                            max_blend_distance_i = max_blend_distance.get(colname, max_blend_distance_i)
+                            max_blend_distance_i = max_blend_distance.get(
+                                "DEFAULT", None
+                            )
+                            max_blend_distance_i = max_blend_distance.get(
+                                colname, max_blend_distance_i
+                            )
                             d.redirection.sparse_blender(
                                 colname,
                                 df.OMAZ,
@@ -324,21 +355,26 @@ def skim_dataset():
 
                 if zarr_file:
                     if zarr_digital_encoding:
-                        import zarr # ensure zarr is available before we do all this work.
+                        import zarr  # ensure zarr is available before we do all this work.
+
                         # apply once, before saving to zarr, will stick around in cache
                         for encoding in zarr_digital_encoding:
                             logger.info(f"applying zarr digital-encoding: {encoding}")
-                            regex = encoding.pop('regex', None)
-                            joint_dict = encoding.pop('joint_dict', None)
+                            regex = encoding.pop("regex", None)
+                            joint_dict = encoding.pop("joint_dict", None)
                             if joint_dict:
                                 joins = []
                                 for k in d.variables:
                                     if re.match(regex, k):
                                         joins.append(k)
-                                d = d.digital_encoding.set(joins, joint_dict=joint_dict, **encoding)
+                                d = d.digital_encoding.set(
+                                    joins, joint_dict=joint_dict, **encoding
+                                )
                             elif regex:
-                                if 'name' in encoding:
-                                    raise ValueError("cannot give both name and regex for digital_encoding")
+                                if "name" in encoding:
+                                    raise ValueError(
+                                        "cannot give both name and regex for digital_encoding"
+                                    )
                                 for k in d.variables:
                                     if re.match(regex, k):
                                         d = d.digital_encoding.set(k, **encoding)
@@ -360,7 +396,9 @@ def skim_dataset():
                 # retain sparse matrix tables
                 unused_tokens = set(i for i in unused_tokens if not i.startswith("_s_"))
                 # retain lookup tables
-                unused_tokens = set(i for i in unused_tokens if not i.startswith("_digitized_"))
+                unused_tokens = set(
+                    i for i in unused_tokens if not i.startswith("_digitized_")
+                )
                 logger.info(f"dropping unused skims: {unused_tokens}")
                 d = d.drop_vars(unused_tokens)
             else:
@@ -368,10 +406,12 @@ def skim_dataset():
             # apply digital encoding
             if skim_digital_encoding:
                 for encoding in skim_digital_encoding:
-                    regex = encoding.pop('regex', None)
+                    regex = encoding.pop("regex", None)
                     if regex:
-                        if 'name' in encoding:
-                            raise ValueError("cannot give both name and regex for digital_encoding")
+                        if "name" in encoding:
+                            raise ValueError(
+                                "cannot give both name and regex for digital_encoding"
+                            )
                         for k in d.variables:
                             if re.match(regex, k):
                                 d = d.digital_encoding.set(k, **encoding)
@@ -381,7 +421,7 @@ def skim_dataset():
         # check alignment of TAZs that it matches land_use table
         logger.info(f"checking skims alignment with land_use")
         try:
-            land_use_zone_id = land_use[f'_original_{land_use.index.name}']
+            land_use_zone_id = land_use[f"_original_{land_use.index.name}"]
         except KeyError:
             land_use_zone_id = land_use.index
 
@@ -389,7 +429,7 @@ def skim_dataset():
             # check TAZ alignment for ONE_ZONE system.
             # other systems use MAZ for most lookups, which dynamically
             # resolves to TAZ inside the Dataset code.
-            if d['otaz'].attrs.get('preprocessed') != 'zero-based-contiguous':
+            if d["otaz"].attrs.get("preprocessed") != "zero-based-contiguous":
                 try:
                     np.testing.assert_array_equal(land_use_zone_id, d.otaz)
                 except AssertionError as err:
@@ -397,12 +437,12 @@ def skim_dataset():
                     d = d.reindex(otaz=land_use_zone_id)
                 else:
                     logger.info(f"otaz alignment ok")
-                d['otaz'] = land_use.index.to_numpy()
-                d['otaz'].attrs['preprocessed'] = ('zero-based-contiguous')
+                d["otaz"] = land_use.index.to_numpy()
+                d["otaz"].attrs["preprocessed"] = "zero-based-contiguous"
             else:
                 np.testing.assert_array_equal(land_use.index, d.otaz)
 
-            if d['dtaz'].attrs.get('preprocessed') != 'zero-based-contiguous':
+            if d["dtaz"].attrs.get("preprocessed") != "zero-based-contiguous":
                 try:
                     np.testing.assert_array_equal(land_use_zone_id, d.dtaz)
                 except AssertionError as err:
@@ -410,8 +450,8 @@ def skim_dataset():
                     d = d.reindex(dtaz=land_use_zone_id)
                 else:
                     logger.info(f"dtaz alignment ok")
-                d['dtaz'] = land_use.index.to_numpy()
-                d['dtaz'].attrs['preprocessed'] = ('zero-based-contiguous')
+                d["dtaz"] = land_use.index.to_numpy()
+                d["dtaz"].attrs["preprocessed"] = "zero-based-contiguous"
             else:
                 np.testing.assert_array_equal(land_use.index, d.dtaz)
 
@@ -434,15 +474,17 @@ def scan_for_unused_names(tokens):
     -------
     Set[str]
     """
-    configs_dir_list = inject.get_injectable('configs_dir')
-    configs_dir_list = [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
+    configs_dir_list = inject.get_injectable("configs_dir")
+    configs_dir_list = (
+        [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
+    )
     assert isinstance(configs_dir_list, list)
 
     for directory in configs_dir_list:
         logger.debug(f"scanning for unused skims in {directory}")
         filenames = glob.glob(os.path.join(directory, "*.csv"))
         for filename in filenames:
-            with open(filename, 'rt') as f:
+            with open(filename, "rt") as f:
                 content = f.read()
             missing_tokens = set()
             for t in tokens:
@@ -457,19 +499,31 @@ def scan_for_unused_names(tokens):
 @inject.injectable(cache=True)
 def skim_dataset_dict(skim_dataset):
     from .skim_dataset import SkimDataset
+
     return SkimDataset(skim_dataset)
 
 
-def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=None, parking_col_name=None):
+def skims_mapping(
+    orig_col_name,
+    dest_col_name,
+    timeframe="tour",
+    stop_col_name=None,
+    parking_col_name=None,
+):
     logger.info(f"loading skims_mapping")
     logger.info(f"- orig_col_name: {orig_col_name}")
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
-    skim_dataset = inject.get_injectable('skim_dataset')
-    odim = 'omaz' if 'omaz' in skim_dataset.dims else 'otaz'
-    ddim = 'dmaz' if 'dmaz' in skim_dataset.dims else 'dtaz'
-    if orig_col_name is not None and dest_col_name is not None and stop_col_name is None and parking_col_name is None:
-        if timeframe == 'timeless':
+    skim_dataset = inject.get_injectable("skim_dataset")
+    odim = "omaz" if "omaz" in skim_dataset.dims else "otaz"
+    ddim = "dmaz" if "dmaz" in skim_dataset.dims else "dtaz"
+    if (
+        orig_col_name is not None
+        and dest_col_name is not None
+        and stop_col_name is None
+        and parking_col_name is None
+    ):
+        if timeframe == "timeless":
             return dict(
                 skims=skim_dataset,
                 relationships=(
@@ -477,7 +531,7 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
                     f"df._dest_col_name -> skims.{ddim}",
                 ),
             )
-        if timeframe == 'timeless_directional':
+        if timeframe == "timeless_directional":
             return dict(
                 od_skims=skim_dataset,
                 do_skims=skim_dataset,
@@ -488,7 +542,7 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
                     f"df._orig_col_name -> do_skims.{ddim}",
                 ),
             )
-        elif timeframe == 'trip':
+        elif timeframe == "trip":
             return dict(
                 odt_skims=skim_dataset,
                 dot_skims=skim_dataset,
@@ -529,7 +583,7 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
                     f"df._dest_col_name -> od_skims.{ddim}",
                 ),
             )
-    elif stop_col_name is not None: # trip_destination
+    elif stop_col_name is not None:  # trip_destination
         return dict(
             od_skims=skim_dataset,
             dp_skims=skim_dataset,
@@ -540,28 +594,23 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
             relationships=(
                 f"df._orig_col_name -> od_skims.{odim}",
                 f"df._dest_col_name -> od_skims.{ddim}",
-
                 f"df._dest_col_name -> dp_skims.{odim}",
                 f"df._stop_col_name -> dp_skims.{ddim}",
-
                 f"df._orig_col_name -> odt_skims.{odim}",
                 f"df._dest_col_name -> odt_skims.{ddim}",
                 f"df.trip_period     -> odt_skims.time_period",
-
                 f"df._dest_col_name -> dot_skims.{odim}",
                 f"df._orig_col_name -> dot_skims.{ddim}",
                 f"df.trip_period     -> dot_skims.time_period",
-
                 f"df._dest_col_name -> dpt_skims.{odim}",
                 f"df._stop_col_name  -> dpt_skims.{ddim}",
                 f"df.trip_period     -> dpt_skims.time_period",
-
                 f"df._stop_col_name    -> pdt_skims.{odim}",
                 f"df._dest_col_name -> pdt_skims.{ddim}",
                 f"df.trip_period     -> pdt_skims.time_period",
             ),
         )
-    elif parking_col_name is not None: # parking location
+    elif parking_col_name is not None:  # parking location
         return dict(
             od_skims=skim_dataset,
             do_skims=skim_dataset,
@@ -574,28 +623,21 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
             relationships=(
                 f"df._orig_col_name -> od_skims.{odim}",
                 f"df._dest_col_name -> od_skims.{ddim}",
-
                 f"df._dest_col_name -> do_skims.{odim}",
                 f"df._orig_col_name -> do_skims.{ddim}",
-
                 f"df._orig_col_name -> op_skims.{odim}",
                 f"df._park_col_name -> op_skims.{ddim}",
-
                 f"df._park_col_name -> pd_skims.{odim}",
                 f"df._dest_col_name -> pd_skims.{ddim}",
-
                 f"df._orig_col_name -> odt_skims.{odim}",
                 f"df._dest_col_name -> odt_skims.{ddim}",
                 f"df.trip_period    -> odt_skims.time_period",
-
                 f"df._dest_col_name -> dot_skims.{odim}",
                 f"df._orig_col_name -> dot_skims.{ddim}",
                 f"df.trip_period    -> dot_skims.time_period",
-
                 f"df._orig_col_name -> opt_skims.{odim}",
                 f"df._park_col_name -> opt_skims.{ddim}",
                 f"df.trip_period    -> opt_skims.time_period",
-
                 f"df._park_col_name -> pdt_skims.{odim}",
                 f"df._dest_col_name -> pdt_skims.{ddim}",
                 f"df.trip_period    -> pdt_skims.time_period",
@@ -605,19 +647,18 @@ def skims_mapping(orig_col_name, dest_col_name, timeframe='tour', stop_col_name=
         return {}
 
 
-
 def new_flow(
-        spec,
-        extra_vars,
-        orig_col_name,
-        dest_col_name,
-        trace_label=None,
-        timeframe='tour',
-        choosers=None,
-        stop_col_name=None,
-        parking_col_name=None,
-        size_term_mapping=None,
-        interacts=None
+    spec,
+    extra_vars,
+    orig_col_name,
+    dest_col_name,
+    trace_label=None,
+    timeframe="tour",
+    choosers=None,
+    stop_col_name=None,
+    parking_col_name=None,
+    size_term_mapping=None,
+    interacts=None,
 ):
 
     with logtime(f"setting up flow {trace_label}"):
@@ -632,7 +673,13 @@ def new_flow(
         )
         os.makedirs(cache_dir, exist_ok=True)
         logger.debug(f"flow.cache_dir: {cache_dir}")
-        skims_mapping_ = skims_mapping(orig_col_name, dest_col_name, timeframe, stop_col_name, parking_col_name=parking_col_name)
+        skims_mapping_ = skims_mapping(
+            orig_col_name,
+            dest_col_name,
+            timeframe,
+            stop_col_name,
+            parking_col_name=parking_col_name,
+        )
         if size_term_mapping is None:
             size_term_mapping = {}
 
@@ -642,69 +689,77 @@ def new_flow(
             else:
                 logger.info(f"{len(choosers)} chooser rows on {trace_label}")
             flow_tree = sh.DataTree(df=[] if choosers is None else choosers)
-            idx_name = choosers.index.name or 'index'
+            idx_name = choosers.index.name or "index"
             rename_dataset_cols = {
-                idx_name: 'chooserindex',
+                idx_name: "chooserindex",
             }
             if orig_col_name is not None:
-                rename_dataset_cols[orig_col_name] = '_orig_col_name'
+                rename_dataset_cols[orig_col_name] = "_orig_col_name"
             if dest_col_name is not None:
-                rename_dataset_cols[dest_col_name] = '_dest_col_name'
+                rename_dataset_cols[dest_col_name] = "_dest_col_name"
             if stop_col_name is not None:
-                rename_dataset_cols[stop_col_name] = '_stop_col_name'
+                rename_dataset_cols[stop_col_name] = "_stop_col_name"
             if parking_col_name is not None:
-                rename_dataset_cols[parking_col_name] = '_park_col_name'
+                rename_dataset_cols[parking_col_name] = "_park_col_name"
 
-            def _apply_filter(_dataset, renames:dict):
-                ds = _dataset.rename(
-                    renames
-                ).ensure_integer(
-                    renames.values()
-                )
+            def _apply_filter(_dataset, renames: dict):
+                ds = _dataset.rename(renames).ensure_integer(renames.values())
                 for _k, _v in renames.items():
                     ds[_k] = ds[_v]
                 return ds
 
             from functools import partial
-            flow_tree.replacement_filters[flow_tree.root_node_name] = partial(_apply_filter, renames=rename_dataset_cols)
-            flow_tree.root_dataset = flow_tree.root_dataset # apply the filter
+
+            flow_tree.replacement_filters[flow_tree.root_node_name] = partial(
+                _apply_filter, renames=rename_dataset_cols
+            )
+            flow_tree.root_dataset = flow_tree.root_dataset  # apply the filter
         else:
-            logger.info(f"{len(choosers)} chooser rows and {len(interacts)} interact rows on {trace_label}")
+            logger.info(
+                f"{len(choosers)} chooser rows and {len(interacts)} interact rows on {trace_label}"
+            )
             top = sh.dataset.from_named_objects(
                 pd.RangeIndex(len(choosers), name="chooserindex"),
                 pd.RangeIndex(len(interacts), name="interactindex"),
             )
             flow_tree = sh.DataTree(start=top)
             rename_dataset_cols = {
-                orig_col_name: '_orig_col_name',
-                dest_col_name: '_dest_col_name',
+                orig_col_name: "_orig_col_name",
+                dest_col_name: "_dest_col_name",
             }
             if stop_col_name is not None:
-                rename_dataset_cols[stop_col_name] = '_stop_col_name'
+                rename_dataset_cols[stop_col_name] = "_stop_col_name"
             if parking_col_name is not None:
-                rename_dataset_cols[parking_col_name] = '_park_col_name'
-            choosers_ = sh.dataset.construct(
-                choosers
-            ).rename_or_ignore(
-                rename_dataset_cols
-            ).ensure_integer(
-                ['_orig_col_name', '_dest_col_name', '_stop_col_name', '_park_col_name']
+                rename_dataset_cols[parking_col_name] = "_park_col_name"
+            choosers_ = (
+                sh.dataset.construct(choosers)
+                .rename_or_ignore(rename_dataset_cols)
+                .ensure_integer(
+                    [
+                        "_orig_col_name",
+                        "_dest_col_name",
+                        "_stop_col_name",
+                        "_park_col_name",
+                    ]
+                )
             )
             for _k, _v in rename_dataset_cols.items():
                 if _v in choosers_:
                     choosers_[_k] = choosers_[_v]
             flow_tree.add_dataset(
-                'df',
+                "df",
                 choosers_,
-                f"start.chooserindex -> df.{next(iter(choosers_.dims))}"
+                f"start.chooserindex -> df.{next(iter(choosers_.dims))}",
             )
-            interacts_ = sh.dataset.construct(interacts).rename_or_ignore(rename_dataset_cols)
+            interacts_ = sh.dataset.construct(interacts).rename_or_ignore(
+                rename_dataset_cols
+            )
             flow_tree.add_dataset(
-                'interact_table',
+                "interact_table",
                 interacts_,
-                f"start.interactindex -> interact_table.{next(iter(interacts_.dims))}"
+                f"start.interactindex -> interact_table.{next(iter(interacts_.dims))}",
             )
-            flow_tree.subspace_fallbacks['df'] = ['interact_table']
+            flow_tree.subspace_fallbacks["df"] = ["interact_table"]
 
         flow_tree.add_items(skims_mapping_)
         flow_tree.add_items(size_term_mapping)
@@ -733,19 +788,19 @@ def new_flow(
             if expr[0] == "@":
                 if label == expr:
                     if expr[1:].isidentifier():
-                        defs[expr[1:]+"_"] = expr[1:]
+                        defs[expr[1:] + "_"] = expr[1:]
                     else:
                         defs[expr[1:]] = expr[1:]
                 else:
                     defs[label] = expr[1:]
             elif expr[0] == "_" and "@" in expr:
                 # - allow temps of form _od_DIST@od_skim['DIST']
-                target = expr[:expr.index('@')]
-                rhs = expr[expr.index('@') + 1:]
+                target = expr[: expr.index("@")]
+                rhs = expr[expr.index("@") + 1 :]
                 defs[target] = rhs
             else:
                 if label == expr and expr.isidentifier():
-                    defs[expr+"_"] = expr
+                    defs[expr + "_"] = expr
                 else:
                     defs[label] = expr
 
@@ -766,7 +821,7 @@ def new_flow(
         return flow_tree.setup_flow(
             defs,
             cache_dir=cache_dir,
-            readme=readme[1:], # remove leading newline
+            readme=readme[1:],  # remove leading newline
             flow_library=_FLOWS,
             # extra_hash_data=(orig_col_name, dest_col_name),
             hashing_level=0,
@@ -774,18 +829,24 @@ def new_flow(
 
 
 def size_terms_on_flow(locals_d):
-    if 'size_terms_array' in locals_d:
-        #skim_dataset = inject.get_injectable('skim_dataset')
-        dest_col_name = locals_d['od_skims'].dest_key
-        a = sh.Dataset({'arry': sh.DataArray(
-            locals_d['size_terms_array'],
-            dims=['stoptaz', 'purpose_index'],
-            coords={
-                'stoptaz': np.arange(locals_d['size_terms_array'].shape[0]), # TODO: this assumes zero-based array of choices, is this always right?
+    if "size_terms_array" in locals_d:
+        # skim_dataset = inject.get_injectable('skim_dataset')
+        dest_col_name = locals_d["od_skims"].dest_key
+        a = sh.Dataset(
+            {
+                "arry": sh.DataArray(
+                    locals_d["size_terms_array"],
+                    dims=["stoptaz", "purpose_index"],
+                    coords={
+                        "stoptaz": np.arange(
+                            locals_d["size_terms_array"].shape[0]
+                        ),  # TODO: this assumes zero-based array of choices, is this always right?
+                    },
+                )
             }
-        )})
+        )
         # a = a.reindex(stoptaz=skim_dataset.coords['dtaz'].values) # TODO {ddim}?
-        locals_d['size_array'] = dict(
+        locals_d["size_array"] = dict(
             size_terms=a,
             relationships=(
                 f"df._dest_col_name -> size_terms.stoptaz",
@@ -794,14 +855,19 @@ def size_terms_on_flow(locals_d):
         )
     return locals_d
 
-def apply_flow(spec, choosers, locals_d=None, trace_label=None, required=False, interacts=None):
+
+def apply_flow(
+    spec, choosers, locals_d=None, trace_label=None, required=False, interacts=None
+):
     if sh is None:
         return None, None
     if locals_d is None:
         locals_d = {}
     with logtime("apply_flow"):
         try:
-            flow = get_flow(spec, locals_d, trace_label, choosers=choosers, interacts=interacts)
+            flow = get_flow(
+                spec, locals_d, trace_label, choosers=choosers, interacts=interacts
+            )
         except ValueError as err:
             if "unable to rewrite" in str(err):
                 logger.error(f"error in apply_flow: {err!s}")
@@ -810,7 +876,7 @@ def apply_flow(spec, choosers, locals_d=None, trace_label=None, required=False, 
                 return None, None
             else:
                 raise
-        with logtime("flow.load", trace_label or ''):
+        with logtime("flow.load", trace_label or ""):
             try:
                 flow_result = flow.dot(
                     coefficients=spec.values.astype(np.float32),

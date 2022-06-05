@@ -3,5 +3,8 @@ from .wrapping import workstep
 
 
 @workstep
-def title(label="ActivitySim Workflow", formatting="bold blue",) -> None:
+def title(
+    label="ActivitySim Workflow",
+    formatting="bold blue",
+) -> None:
     update_progress_overall(label, formatting)

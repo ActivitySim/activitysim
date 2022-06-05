@@ -11,7 +11,13 @@ logger = logging.getLogger(__name__)
 
 @workstep(updates_context=True)
 def attach_skim_data(
-    tablesets, skims, skim_vars, tablename, otaz_col, dtaz_col, time_col=None,
+    tablesets,
+    skims,
+    skim_vars,
+    tablename,
+    otaz_col,
+    dtaz_col,
+    time_col=None,
 ) -> dict:
     if isinstance(skim_vars, str):
         skim_vars = [skim_vars]

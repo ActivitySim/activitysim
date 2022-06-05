@@ -5,8 +5,10 @@ import os
 import pandas as pd
 import openmatrix as omx
 
-input_dir = './data_3_marin'
-output_dir = './data_3_marin/fix'  # don't overwrite - but these files shold replace 'oritinals'
+input_dir = "./data_3_marin"
+output_dir = (
+    "./data_3_marin/fix"  # don't overwrite - but these files shold replace 'oritinals'
+)
 
 
 def input_path(filenane):
@@ -20,8 +22,8 @@ def output_path(filenane):
 # 0 - get county zones
 
 mazs = pd.read_csv(input_path("maz_data_asim.csv"))
-del mazs['zone_id']
-del mazs['county_id']
+del mazs["zone_id"]
+del mazs["county_id"]
 mazs.to_csv(output_path("maz_data_asim.csv"), index=False)
 
 tazs = mazs["TAZ"].unique()
@@ -44,9 +46,9 @@ maz_tap_walk = pd.read_csv(input_path("maz_tap_walk.csv"))
 maz_maz_walk = pd.read_csv(input_path("maz_maz_walk.csv"))
 maz_maz_bike = pd.read_csv(input_path("maz_maz_bike.csv"))
 
-del maz_tap_walk['TAP.1']
-del maz_maz_walk['DMAZ.1']
-del maz_maz_bike['DMAZ.1']
+del maz_tap_walk["TAP.1"]
+del maz_maz_walk["DMAZ.1"]
+del maz_maz_bike["DMAZ.1"]
 
 maz_tap_walk.to_csv(output_path("maz_tap_walk.csv"), index=False)
 maz_maz_walk.to_csv(output_path("maz_maz_walk.csv"), index=False)
@@ -55,7 +57,7 @@ maz_maz_bike.to_csv(output_path("maz_maz_bike.csv"), index=False)
 # 3 - accessibility data
 
 access = pd.read_csv(input_path("access.csv"))
-del access['zone_id']
+del access["zone_id"]
 access.to_csv(output_path("access.csv"), index=False)
 
 # 4 - maz to tap drive data
@@ -67,17 +69,17 @@ taz_tap_drive.to_csv(output_path("maz_taz_tap_drive.csv"), index=False)
 # 5 - households
 
 households = pd.read_csv(input_path("households_asim.csv"))
-del households['home_zone_id']
-del households['household_id']
+del households["home_zone_id"]
+del households["household_id"]
 
 households.to_csv(output_path("households_asim.csv"), index=False)
 
 # 6 - persons
 
 persons = pd.read_csv(input_path("persons_asim.csv"))
-del persons['person_id']
-del persons['household_id']
-del persons['is_university']
+del persons["person_id"]
+del persons["household_id"]
+del persons["is_university"]
 persons.to_csv(output_path("persons_asim.csv"), index=False)
 
 # 7 - tours file

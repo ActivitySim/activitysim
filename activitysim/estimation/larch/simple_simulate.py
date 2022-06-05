@@ -66,13 +66,22 @@ def simple_simulate_data(
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+        settings = yaml.load(
+            yf,
+            Loader=yaml.SafeLoader,
+        )
 
     try:
-        coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
+        coefficients = _read_csv(
+            coefficients_file,
+            index_col="coefficient_name",
+        )
 
         try:
-            coef_template = _read_csv(coefficients_template, index_col="coefficient_name",)
+            coef_template = _read_csv(
+                coefficients_template,
+                index_col="coefficient_name",
+            )
         except FileNotFoundError:
             coef_template = None
 
@@ -89,11 +98,15 @@ def simple_simulate_data(
         alt_names_to_codes = dict(zip(alt_names, alt_codes))
         alt_codes_to_names = dict(zip(alt_codes, alt_names))
 
-        chooser_data = _read_csv(chooser_data_file, index_col=values_index_col,)
+        chooser_data = _read_csv(
+            chooser_data_file,
+            index_col=values_index_col,
+        )
 
     except Exception:
         # when an error happens in reading anything other than settings, print settings
         from pprint import pprint
+
         pprint(settings)
         raise
 
@@ -112,15 +125,17 @@ def simple_simulate_data(
 
 
 def simple_simulate_model(
-        name,
-        edb_directory="output/estimation_data_bundle/{name}/",
-        return_data=False,
-        choices=None,
-        construct_avail=False,
-        values_index_col="household_id",
+    name,
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+    choices=None,
+    construct_avail=False,
+    values_index_col="household_id",
 ):
     data = simple_simulate_data(
-        name=name, edb_directory=edb_directory, values_index_col=values_index_col,
+        name=name,
+        edb_directory=edb_directory,
+        values_index_col=values_index_col,
     )
     coefficients = data.coefficients
     # coef_template = data.coef_template # not used
@@ -132,20 +147,23 @@ def simple_simulate_model(
     alt_codes = data.alt_codes
 
     from .general import clean_values
+
     chooser_data = clean_values(
         chooser_data,
         alt_names_to_codes=choices or data.alt_names_to_codes,
         choice_code="override_choice_code",
     )
 
-    if settings.get('LOGIT_TYPE') == 'NL':
+    if settings.get("LOGIT_TYPE") == "NL":
         tree = construct_nesting_tree(data.alt_names, settings["NESTS"])
         m = Model(graph=tree)
     else:
         m = Model(alts=data.alt_codes_to_names)
 
     m.utility_co = dict_of_linear_utility_from_spec(
-        spec, "Label", dict(zip(alt_names, alt_codes)),
+        spec,
+        "Label",
+        dict(zip(alt_names, alt_codes)),
     )
 
     apply_coefficients(coefficients, m)
@@ -155,7 +173,12 @@ def simple_simulate_model(
     else:
         avail = True
 
-    d = DataFrames(co=chooser_data, av=avail, alt_codes=alt_codes, alt_names=alt_names, )
+    d = DataFrames(
+        co=chooser_data,
+        av=avail,
+        alt_codes=alt_codes,
+        alt_names=alt_names,
+    )
 
     m.dataservice = d
     m.choice_co_code = "override_choice_code"
@@ -186,8 +209,8 @@ def auto_ownership_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
-        choices={i: i+1 for i in range(5)},  # choices are coded in data as integers,
-                                             # not 'cars0' etc as appears in the spec
+        choices={i: i + 1 for i in range(5)},  # choices are coded in data as integers,
+        # not 'cars0' etc as appears in the spec
     )
 
 
@@ -200,7 +223,10 @@ def free_parking_model(
         name=name,
         edb_directory=edb_directory,
         return_data=return_data,
-        choices={True: 1, False: 2},  # True is free parking, False is paid parking, names match spec positions
+        choices={
+            True: 1,
+            False: 2,
+        },  # True is free parking, False is paid parking, names match spec positions
     )
 
 

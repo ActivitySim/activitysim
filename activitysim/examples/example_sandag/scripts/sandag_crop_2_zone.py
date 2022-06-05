@@ -8,18 +8,26 @@ import argparse
 MAZ_OFFSET = 0
 
 segments = {
-    'test': (492, 1100),  # includes univ
-    'full': (0, 100000),
+    "test": (492, 1100),  # includes univ
+    "full": (0, 100000),
 }
 
-parser = argparse.ArgumentParser(description='crop SANDAG 2 zone raw_data')
-parser.add_argument('segment_name', metavar='segment_name', type=str, nargs=1,
-                    help=f"geography segmentation (e.g. full)")
+parser = argparse.ArgumentParser(description="crop SANDAG 2 zone raw_data")
+parser.add_argument(
+    "segment_name",
+    metavar="segment_name",
+    type=str,
+    nargs=1,
+    help=f"geography segmentation (e.g. full)",
+)
 
-parser.add_argument('-c', '--check_geography',
-                    default=False,
-                    action='store_true',
-                    help='check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file')
+parser.add_argument(
+    "-c",
+    "--check_geography",
+    default=False,
+    action="store_true",
+    help="check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file",
+)
 
 args = parser.parse_args()
 
@@ -30,8 +38,8 @@ check_geography = args.check_geography
 assert segment_name in segments.keys(), f"Unknown seg: {segment_name}"
 maz_min, maz_max = segments[segment_name]
 
-input_dir = './data_raw'
-output_dir = f'./data_{segment_name}_2'
+input_dir = "./data_raw"
+output_dir = f"./data_{segment_name}_2"
 
 
 print(f"segment_name {segment_name}")
@@ -57,7 +65,7 @@ def output_path(file_name):
 
 
 def integerize_id_columns(df, table_name):
-    columns = ['MAZ', 'OMAZ', 'DMAZ', 'TAZ', 'zone_id', 'household_id', 'HHID']
+    columns = ["MAZ", "OMAZ", "DMAZ", "TAZ", "zone_id", "household_id", "HHID"]
     for c in df.columns:
         if c in columns:
             print(f"converting {table_name}.{c} to int")
@@ -86,8 +94,8 @@ if check_geography:
 
     # ######## check for orphan_households not in any maz in land_use
     land_use = read_csv("land_use.csv")
-    land_use = land_use[['MAZ', 'TAZ']]  # King County
-    land_use = land_use.sort_values(['TAZ', 'MAZ'])
+    land_use = land_use[["MAZ", "TAZ"]]  # King County
+    land_use = land_use.sort_values(["TAZ", "MAZ"])
 
     households = read_csv("households.csv")
     orphan_households = households[~households.MAZ.isin(land_use.MAZ)]
@@ -103,12 +111,14 @@ if check_geography:
     # could just build maz and taz files, but want to make sure PSRC data is right
 
     land_use = read_csv("land_use.csv")
-    land_use = land_use.sort_values('MAZ')
-    maz = read_csv("maz.csv").sort_values('MAZ')
+    land_use = land_use.sort_values("MAZ")
+    maz = read_csv("maz.csv").sort_values("MAZ")
 
     # ### FATAL ###
     if not land_use.MAZ.isin(maz.MAZ).all():
-        print(f"land_use.MAZ not in maz.MAZ\n{land_use.MAZ[~land_use.MAZ.isin(maz.MAZ)]}")
+        print(
+            f"land_use.MAZ not in maz.MAZ\n{land_use.MAZ[~land_use.MAZ.isin(maz.MAZ)]}"
+        )
         raise RuntimeError(f"land_use.MAZ not in maz.MAZ")
 
     if not maz.MAZ.isin(land_use.MAZ).all():
@@ -116,18 +126,22 @@ if check_geography:
 
     # ### FATAL ###
     if not land_use.TAZ.isin(maz.TAZ).all():
-        print(f"land_use.TAZ not in maz.TAZ\n{land_use.TAZ[~land_use.TAZ.isin(maz.TAZ)]}")
+        print(
+            f"land_use.TAZ not in maz.TAZ\n{land_use.TAZ[~land_use.TAZ.isin(maz.TAZ)]}"
+        )
         raise RuntimeError(f"land_use.TAZ not in maz.TAZ")
 
     if not maz.TAZ.isin(land_use.TAZ).all():
         print(f"maz.TAZ not in land_use.TAZ\n{maz.TAZ[~maz.TAZ.isin(land_use.TAZ)]}")
 
-    land_use = land_use.sort_values('TAZ')
-    taz = read_csv("taz.csv").sort_values('TAZ')
+    land_use = land_use.sort_values("TAZ")
+    taz = read_csv("taz.csv").sort_values("TAZ")
 
     # ### FATAL ###
     if not land_use.TAZ.isin(taz.TAZ).all():
-        print(f"land_use.TAZ not in taz.TAZ\n{land_use.TAZ[~land_use.TAZ.isin(taz.MAZ)]}")
+        print(
+            f"land_use.TAZ not in taz.TAZ\n{land_use.TAZ[~land_use.TAZ.isin(taz.MAZ)]}"
+        )
         raise RuntimeError(f"land_use.TAZ not in taz.TAZ")
 
     if not taz.TAZ.isin(land_use.TAZ).all():
@@ -140,44 +154,46 @@ if check_geography:
 #
 land_use = read_csv("land_use.csv")
 land_use = land_use[(land_use["MAZ"] >= maz_min) & (land_use["MAZ"] <= maz_max)]
-integerize_id_columns(land_use, 'land_use')
-land_use = land_use.sort_values('MAZ')
+integerize_id_columns(land_use, "land_use")
+land_use = land_use.sort_values("MAZ")
 
 # make sure we have some HSENROLL and COLLFTE, even for very for small samples
-if land_use['HSENROLL'].sum() == 0:
-    assert segment_name != 'full', f"land_use['HSENROLL'] is 0 for full sample!"
-    land_use['HSENROLL'] = land_use['AGE0519']
+if land_use["HSENROLL"].sum() == 0:
+    assert segment_name != "full", f"land_use['HSENROLL'] is 0 for full sample!"
+    land_use["HSENROLL"] = land_use["AGE0519"]
     print(f"\nWARNING: land_use.HSENROLL is 0, so backfilled with AGE0519\n")
 
-if land_use['COLLFTE'].sum() == 0:
-    assert segment_name != 'full', f"land_use['COLLFTE'] is 0 for full sample!"
-    land_use['COLLFTE'] = land_use['HSENROLL']
+if land_use["COLLFTE"].sum() == 0:
+    assert segment_name != "full", f"land_use['COLLFTE'] is 0 for full sample!"
+    land_use["COLLFTE"] = land_use["HSENROLL"]
     print(f"\nWARNING: land_use.COLLFTE is 0, so backfilled with HSENROLL\n")
 
 # move MAZ and TAZ columns to front
-land_use = land_use[['MAZ', 'TAZ'] + [c for c in land_use.columns if c not in ['MAZ', 'TAZ']]]
+land_use = land_use[
+    ["MAZ", "TAZ"] + [c for c in land_use.columns if c not in ["MAZ", "TAZ"]]
+]
 to_csv(land_use, "land_use.csv")
 
 #
 # maz
 #
-maz = read_csv("maz.csv").sort_values(['MAZ', 'TAZ'])
+maz = read_csv("maz.csv").sort_values(["MAZ", "TAZ"])
 maz = maz[maz["MAZ"].isin(land_use.MAZ)]
-integerize_id_columns(maz, 'maz')
+integerize_id_columns(maz, "maz")
 
-assert (land_use.MAZ.isin(maz.MAZ).all())
-assert (land_use.TAZ.isin(maz.TAZ).all())
-assert (maz.TAZ.isin(land_use.TAZ).all())
+assert land_use.MAZ.isin(maz.MAZ).all()
+assert land_use.TAZ.isin(maz.TAZ).all()
+assert maz.TAZ.isin(land_use.TAZ).all()
 to_csv(maz, "maz.csv")
 
 #
 # taz
 #
-taz = read_csv("taz.csv").sort_values(['TAZ'])
+taz = read_csv("taz.csv").sort_values(["TAZ"])
 taz = taz[taz["TAZ"].isin(land_use.TAZ)]
-integerize_id_columns(taz, 'taz')
+integerize_id_columns(taz, "taz")
 
-assert (land_use.TAZ.isin(taz.TAZ).all())
+assert land_use.TAZ.isin(taz.TAZ).all()
 to_csv(taz, "taz.csv")
 
 # print(maz.shape)
@@ -189,7 +205,7 @@ to_csv(taz, "taz.csv")
 #
 households = read_csv("households.csv")
 households = households[households["MAZ"].isin(maz.MAZ)]
-integerize_id_columns(households, 'households')
+integerize_id_columns(households, "households")
 
 to_csv(households, "households.csv")
 
@@ -198,7 +214,7 @@ to_csv(households, "households.csv")
 #
 persons = read_csv("persons.csv")
 persons = persons[persons["household_id"].isin(households.HHID)]
-integerize_id_columns(persons, 'persons')
+integerize_id_columns(persons, "persons")
 
 to_csv(persons, "persons.csv")
 
@@ -214,26 +230,28 @@ for file_name in ["maz_to_maz_walk.csv", "maz_to_maz_bike.csv"]:
 #
 # skims
 #
-omx_infile_name = 'skims.omx'
+omx_infile_name = "skims.omx"
 skim_data_type = np.float32
 
 omx_in = omx.open_file(input_path(omx_infile_name))
 print(f"omx_in shape {omx_in.shape()}")
 
-taz = taz.sort_values('TAZ')
+taz = taz.sort_values("TAZ")
 taz.index = taz.TAZ - 1
 tazs_indexes = taz.index.tolist()  # index of TAZ in skim (zero-based, no mapping)
 taz_labels = taz.TAZ.tolist()  # TAZ zone_ids in omx index order
 
 # create
-num_outfiles = 6 if segment_name == 'full' else 1
+num_outfiles = 6 if segment_name == "full" else 1
 if num_outfiles == 1:
-    omx_out = [omx.open_file(output_path(f"skims1.omx"), 'w')]
+    omx_out = [omx.open_file(output_path(f"skims1.omx"), "w")]
 else:
-    omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
+    omx_out = [
+        omx.open_file(output_path(f"skims{i+1}.omx"), "w") for i in range(num_outfiles)
+    ]
 
 for omx_file in omx_out:
-    omx_file.create_mapping('ZONE', taz_labels)
+    omx_file.create_mapping("ZONE", taz_labels)
 
 iskim = 0
 for mat_name in omx_in.list_matrices():

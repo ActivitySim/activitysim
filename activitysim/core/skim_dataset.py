@@ -1,7 +1,8 @@
+import logging
+
+import numpy as np
 import pandas as pd
 import xarray as xr
-import numpy as np
-import logging
 from sharrow import array_decode
 
 from . import flow as __flow
@@ -12,25 +13,26 @@ POSITIONS_AS_DICT = True
 
 
 class SkimDataset:
-
     def __init__(self, dataset):
         self.dataset = dataset
-        self.time_map = {j: i for i, j in enumerate(self.dataset.indexes['time_period'])}
+        self.time_map = {
+            j: i for i, j in enumerate(self.dataset.indexes["time_period"])
+        }
         self.usage = set()  # track keys of skims looked up
 
     @property
     def odim(self):
-        if 'omaz' in self.dataset.dims:
-            return 'omaz'
+        if "omaz" in self.dataset.dims:
+            return "omaz"
         else:
-            return 'otaz'
+            return "otaz"
 
     @property
     def ddim(self):
-        if 'dmaz' in self.dataset.dims:
-            return 'dmaz'
+        if "dmaz" in self.dataset.dims:
+            return "dmaz"
         else:
-            return 'dtaz'
+            return "dtaz"
 
     def get_skim_usage(self):
         """
@@ -52,33 +54,35 @@ class SkimDataset:
         """
         return a SkimWrapper for self
         """
-        return DatasetWrapper(self.dataset, orig_key, dest_key, dim3_key, time_map=self.time_map)
+        return DatasetWrapper(
+            self.dataset, orig_key, dest_key, dim3_key, time_map=self.time_map
+        )
 
     def lookup(self, orig, dest, key):
         self.usage.add(key)
         use_index = None
 
-        if use_index is None and hasattr(orig, 'index'):
+        if use_index is None and hasattr(orig, "index"):
             use_index = orig.index
-        if use_index is None and hasattr(dest, 'index'):
+        if use_index is None and hasattr(dest, "index"):
             use_index = dest.index
 
         orig = np.asanyarray(orig).astype(int)
         dest = np.asanyarray(dest).astype(int)
 
         # TODO offset mapper if required
-        positions = {self.odim: orig, self.ddim:dest}
+        positions = {self.odim: orig, self.ddim: dest}
 
         # When asking for a particular time period
         if isinstance(key, tuple) and len(key) == 2:
             main_key, time_key = key
             if time_key in self.time_map:
-                positions['time_period'] = np.full_like(orig, self.time_map[time_key])
+                positions["time_period"] = np.full_like(orig, self.time_map[time_key])
                 key = main_key
             else:
                 raise KeyError(key)
 
-        result = self.dataset.iat(**positions, _name=key) # iat strips data encoding
+        result = self.dataset.iat(**positions, _name=key)  # iat strips data encoding
         # result = igather(self.dataset[key], positions)
         #
         # if 'digital_encoding' in self.dataset[key].attrs:
@@ -100,7 +104,6 @@ class SkimDataset:
 
 
 class DatasetWrapper:
-
     def __init__(self, dataset, orig_key, dest_key, time_key=None, *, time_map=None):
         """
 
@@ -119,23 +122,25 @@ class DatasetWrapper:
         self.time_key = time_key
         self.df = None
         if time_map is None:
-            self.time_map = {j: i for i, j in enumerate(self.dataset.indexes['time_period'])}
+            self.time_map = {
+                j: i for i, j in enumerate(self.dataset.indexes["time_period"])
+            }
         else:
             self.time_map = time_map
 
     @property
     def odim(self):
-        if 'omaz' in self.dataset.dims:
-            return 'omaz'
+        if "omaz" in self.dataset.dims:
+            return "omaz"
         else:
-            return 'otaz'
+            return "otaz"
 
     @property
     def ddim(self):
-        if 'dmaz' in self.dataset.dims:
-            return 'dmaz'
+        if "dmaz" in self.dataset.dims:
+            return "dmaz"
         else:
-            return 'dtaz'
+            return "dtaz"
 
     def map_time_periods(self, df):
         if self.time_key:
@@ -159,10 +164,16 @@ class DatasetWrapper:
         -------
         self (to facilitate chaining)
         """
-        assert self.orig_key in df, f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
-        assert self.dest_key in df, f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
+        assert (
+            self.orig_key in df
+        ), f"orig_key '{self.orig_key}' not in df columns: {list(df.columns)}"
+        assert (
+            self.dest_key in df
+        ), f"dest_key '{self.dest_key}' not in df columns: {list(df.columns)}"
         if self.time_key:
-            assert self.time_key in df, f"time_key '{self.time_key}' not in df columns: {list(df.columns)}"
+            assert (
+                self.time_key in df
+            ), f"time_key '{self.time_key}' not in df columns: {list(df.columns)}"
         self.df = df
 
         # TODO allow offsets if needed
@@ -171,12 +182,15 @@ class DatasetWrapper:
             self.ddim: df[self.dest_key],
         }
         if self.time_key:
-            if np.issubdtype(df[self.time_key].dtype, np.integer) and df[self.time_key].max() < self.dataset.dims['time_period']:
+            if (
+                np.issubdtype(df[self.time_key].dtype, np.integer)
+                and df[self.time_key].max() < self.dataset.dims["time_period"]
+            ):
                 logger.info(f"natural use for time_period={self.time_key}")
-                positions['time_period'] = df[self.time_key]
+                positions["time_period"] = df[self.time_key]
             else:
                 logger.info(f"vectorize lookup for time_period={self.time_key}")
-                positions['time_period'] = pd.Series(
+                positions["time_period"] = pd.Series(
                     np.vectorize(self.time_map.get)(df[self.time_key]),
                     index=df.index,
                 )
@@ -214,12 +228,16 @@ class DatasetWrapper:
         if reverse:
             if isinstance(self.positions, dict):
                 x = self.positions.copy()
-                x.update({
-                    self.odim: self.positions[self.ddim],
-                    self.ddim: self.positions[self.odim],
-                })
+                x.update(
+                    {
+                        self.odim: self.positions[self.ddim],
+                        self.ddim: self.positions[self.odim],
+                    }
+                )
             else:
-                x = self.positions.rename(columns={self.odim: self.ddim, self.ddim: self.odim})
+                x = self.positions.rename(
+                    columns={self.odim: self.ddim, self.ddim: self.odim}
+                )
         else:
             if isinstance(self.positions, dict):
                 x = self.positions.copy()
@@ -231,14 +249,16 @@ class DatasetWrapper:
             main_key, time_key = key
             if time_key in self.time_map:
                 if isinstance(x, dict):
-                    x['time_period'] = np.full_like(x[self.odim], fill_value=self.time_map[time_key])
+                    x["time_period"] = np.full_like(
+                        x[self.odim], fill_value=self.time_map[time_key]
+                    )
                 else:
                     x = x.assign(time_period=self.time_map[time_key])
                 key = main_key
             else:
                 raise KeyError(key)
 
-        result = self.dataset.iat(**x, _name=key) # iat strips data encoding
+        result = self.dataset.iat(**x, _name=key)  # iat strips data encoding
         # if 'digital_encoding' in self.dataset[key].attrs:
         #     result = array_decode(result, self.dataset[key].attrs['digital_encoding'])
 
@@ -281,5 +301,3 @@ class DatasetWrapper:
             A Series of impedances values from the single Skim with specified key, indexed byt orig/dest pair
         """
         return self.lookup(key)
-
-

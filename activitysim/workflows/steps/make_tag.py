@@ -39,9 +39,9 @@ def make_tag(
 
     out = dict(tag=tag, contrast=contrast, flags=" ".join(flags))
     if isinstance(reference, str) and "." in reference:
-        out['reference_asim_version'] = reference
-        out['reference'] = True
-    out['relabel_tablesets'] = {'reference': f'v{reference_asim_version}'}
-    out['is_multiprocess'] = (multiprocess > 1)
-    out['num_processes'] = int(multiprocess)
+        out["reference_asim_version"] = reference
+        out["reference"] = True
+    out["relabel_tablesets"] = {"reference": f"v{reference_asim_version}"}
+    out["is_multiprocess"] = multiprocess > 1
+    out["num_processes"] = int(multiprocess)
     return out

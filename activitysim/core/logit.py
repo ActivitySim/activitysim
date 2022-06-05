@@ -21,7 +21,9 @@ PROB_MIN = 0.0
 PROB_MAX = 1.0
 
 
-def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, raise_error=True):
+def report_bad_choices(
+    bad_row_map, df, trace_label, msg, trace_choosers=None, raise_error=True
+):
     """
 
     Parameters
@@ -43,7 +45,12 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
     MAX_DUMP = 1000
     MAX_PRINT = 10
 
-    msg_with_count = "%s %s for %s of %s rows" % (trace_label, msg, bad_row_map.sum(), len(df))
+    msg_with_count = "%s %s for %s of %s rows" % (
+        trace_label,
+        msg,
+        bad_row_map.sum(),
+        len(df),
+    )
     logger.warning(msg_with_count)
 
     df = df[bad_row_map]
@@ -55,15 +62,18 @@ def report_bad_choices(bad_row_map, df, trace_label, msg, trace_choosers=None, r
 
     if trace_label:
         logger.info("dumping %s" % trace_label)
-        tracing.write_csv(df[:MAX_DUMP],
-                          file_name=trace_label,
-                          transpose=False)
+        tracing.write_csv(df[:MAX_DUMP], file_name=trace_label, transpose=False)
 
     # log the indexes of the first MAX_DUMP offending rows
     for idx in df.index[:MAX_PRINT].values:
 
-        row_msg = "%s : %s in: %s = %s (hh_id = %s)" % \
-                  (trace_label, msg, df.index.name, idx, df[trace_col].loc[idx])
+        row_msg = "%s : %s in: %s = %s (hh_id = %s)" % (
+            trace_label,
+            msg,
+            df.index.name,
+            idx,
+            df[trace_col].loc[idx],
+        )
 
         logger.warning(row_msg)
 
@@ -100,7 +110,7 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
 
     utils_arr = np.where(utils_arr == EXP_UTIL_MIN, 0.0, utils_arr)
 
-    with np.errstate(divide='ignore' if allow_zero_probs else 'warn'):
+    with np.errstate(divide="ignore" if allow_zero_probs else "warn"):
         logsums = np.log(utils_arr.sum(axis=1))
 
     logsums = pd.Series(logsums, index=utils.index)
@@ -108,8 +118,13 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
     return logsums
 
 
-def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_probs=False,
-                   trace_choosers=None):
+def utils_to_probs(
+    utils,
+    trace_label=None,
+    exponentiated=False,
+    allow_zero_probs=False,
+    trace_choosers=None,
+):
     """
     Convert a table of utilities to probabilities.
 
@@ -140,7 +155,7 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
         Will have the same index and columns as `utils`.
 
     """
-    trace_label = tracing.extend_trace_label(trace_label, 'utils_to_probs')
+    trace_label = tracing.extend_trace_label(trace_label, "utils_to_probs")
 
     # fixme - conversion to float not needed in either case?
     # utils_arr = utils.values.astype('float')
@@ -165,23 +180,31 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
     arr_sum = utils_arr.sum(axis=1)
 
     if not allow_zero_probs:
-        zero_probs = (arr_sum == 0.0)
+        zero_probs = arr_sum == 0.0
         if zero_probs.any():
-            report_bad_choices(zero_probs, utils,
-                               trace_label=tracing.extend_trace_label(trace_label, 'zero_prob_utils'),
-                               msg="all probabilities are zero",
-                               trace_choosers=trace_choosers)
+            report_bad_choices(
+                zero_probs,
+                utils,
+                trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
+                msg="all probabilities are zero",
+                trace_choosers=trace_choosers,
+            )
 
     inf_utils = np.isinf(arr_sum)
     if inf_utils.any():
-        report_bad_choices(inf_utils, utils,
-                           trace_label=tracing.extend_trace_label(trace_label, 'inf_exp_utils'),
-                           msg="infinite exponentiated utilities",
-                           trace_choosers=trace_choosers)
+        report_bad_choices(
+            inf_utils,
+            utils,
+            trace_label=tracing.extend_trace_label(trace_label, "inf_exp_utils"),
+            msg="infinite exponentiated utilities",
+            trace_choosers=trace_choosers,
+        )
 
     # if allow_zero_probs, this may cause a RuntimeWarning: invalid value encountered in divide
-    with np.errstate(invalid='ignore' if allow_zero_probs else 'warn',
-                     divide='ignore' if allow_zero_probs else 'warn'):
+    with np.errstate(
+        invalid="ignore" if allow_zero_probs else "warn",
+        divide="ignore" if allow_zero_probs else "warn",
+    ):
         np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
 
     # if allow_zero_probs, this will cause EXP_UTIL_MIN util rows to have all zero probabilities
@@ -220,21 +243,24 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
         The random numbers used to make the choices (for debugging, tracing)
 
     """
-    trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
+    trace_label = tracing.extend_trace_label(trace_label, "make_choices")
 
     # probs should sum to 1 across each row
 
     BAD_PROB_THRESHOLD = 0.001
-    bad_probs = \
-        probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
-        > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
+    bad_probs = probs.sum(axis=1).sub(
+        np.ones(len(probs.index))
+    ).abs() > BAD_PROB_THRESHOLD * np.ones(len(probs.index))
 
     if bad_probs.any() and not allow_bad_probs:
 
-        report_bad_choices(bad_probs, probs,
-                           trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
-                           msg="probabilities do not add up to 1",
-                           trace_choosers=trace_choosers)
+        report_bad_choices(
+            bad_probs,
+            probs,
+            trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
+            msg="probabilities do not add up to 1",
+            trace_choosers=trace_choosers,
+        )
 
     rands = pipeline.get_rn_generator().random_for_df(probs)
 
@@ -245,7 +271,9 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
     return choices, rands
 
 
-def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=None, chooser_index_id=None):
+def interaction_dataset(
+    choosers, alternatives, sample_size=None, alt_index_id=None, chooser_index_id=None
+):
     """
     Combine choosers and alternatives into one table for the purposes
     of creating interaction variables and/or sampling alternatives.
@@ -269,12 +297,12 @@ def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=N
     """
     if not choosers.index.is_unique:
         raise RuntimeError(
-            "ERROR: choosers index is not unique, "
-            "sample will not work correctly")
+            "ERROR: choosers index is not unique, " "sample will not work correctly"
+        )
     if not alternatives.index.is_unique:
         raise RuntimeError(
-            "ERROR: alternatives index is not unique, "
-            "sample will not work correctly")
+            "ERROR: alternatives index is not unique, " "sample will not work correctly"
+        )
 
     numchoosers = len(choosers)
     numalts = len(alternatives)
@@ -284,8 +312,9 @@ def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=N
     alts_idx = np.arange(numalts)
 
     if sample_size < numalts:
-        sample = pipeline.get_rn_generator().choice_for_df(choosers,
-                                                           alts_idx, sample_size, replace=False)
+        sample = pipeline.get_rn_generator().choice_for_df(
+            choosers, alts_idx, sample_size, replace=False
+        )
     else:
         sample = np.tile(alts_idx, numchoosers)
 
@@ -296,13 +325,15 @@ def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=N
         # permits identification of alternative row in the joined dataset
         alts_sample[alt_index_id] = alts_sample.index
 
-    logger.debug("interaction_dataset pre-merge choosers %s alternatives %s alts_sample %s" %
-                 (choosers.shape, alternatives.shape, alts_sample.shape))
+    logger.debug(
+        "interaction_dataset pre-merge choosers %s alternatives %s alts_sample %s"
+        % (choosers.shape, alternatives.shape, alts_sample.shape)
+    )
 
     # no need to do an expensive merge of alts and choosers
     # we can simply assign repeated chooser values
     for c in choosers.columns:
-        c_chooser = (c + '_chooser') if c in alts_sample.columns else c
+        c_chooser = (c + "_chooser") if c in alts_sample.columns else c
         alts_sample[c_chooser] = np.repeat(choosers[c].values, sample_size)
 
     # caller may want this to detect utils that make all alts for a chooser unavailable (e.g. -999)
@@ -310,7 +341,7 @@ def interaction_dataset(choosers, alternatives, sample_size=None, alt_index_id=N
         assert chooser_index_id not in alts_sample
         alts_sample[chooser_index_id] = np.repeat(choosers.index.values, sample_size)
 
-    logger.debug("interaction_dataset merged alts_sample %s" % (alts_sample.shape, ))
+    logger.debug("interaction_dataset merged alts_sample %s" % (alts_sample.shape,))
 
     return alts_sample
 
@@ -336,20 +367,28 @@ class Nest(object):
         self.coefficient = 0
 
     def print(self):
-        print("Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s" %
-              (self.name, self.level, self.coefficient, self.product_of_coefficients, self.ancestors))
+        print(
+            "Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s"
+            % (
+                self.name,
+                self.level,
+                self.coefficient,
+                self.product_of_coefficients,
+                self.ancestors,
+            )
+        )
 
     @property
     def is_leaf(self):
-        return (self.alternatives is None)
+        return self.alternatives is None
 
     @property
     def type(self):
-        return 'leaf' if self.is_leaf else 'node'
+        return "leaf" if self.is_leaf else "node"
 
     @classmethod
     def nest_types(cls):
-        return ['leaf', 'node']
+        return ["leaf", "node"]
 
 
 def validate_nest_spec(nest_spec, trace_label):
@@ -358,14 +397,20 @@ def validate_nest_spec(nest_spec, trace_label):
     duplicates = []
     for nest in each_nest(nest_spec):
         if nest.name in keys:
-            logger.error("validate_nest_spec:duplicate nest key '%s' in nest spec - %s" % (nest.name, trace_label))
+            logger.error(
+                "validate_nest_spec:duplicate nest key '%s' in nest spec - %s"
+                % (nest.name, trace_label)
+            )
             duplicates.append(nest.name)
 
         keys.append(nest.name)
         # nest.print()
 
     if duplicates:
-        raise RuntimeError("validate_nest_spec:duplicate nest key/s '%s' in nest spec - %s" % (duplicates, trace_label))
+        raise RuntimeError(
+            "validate_nest_spec:duplicate nest key/s '%s' in nest spec - %s"
+            % (duplicates, trace_label)
+        )
 
 
 def _each_nest(spec, parent_nest, post_order):
@@ -396,11 +441,17 @@ def _each_nest(spec, parent_nest, post_order):
     level = parent_nest.level + 1
 
     if isinstance(spec, dict):
-        name = spec['name']
-        coefficient = spec['coefficient']
-        assert isinstance(coefficient, (int, float)), \
-            "Coefficient '%s' (%s) not a number" % (name, coefficient)  # forgot to eval coefficient?
-        alternatives = [a['name'] if isinstance(a, dict) else a for a in spec['alternatives']]
+        name = spec["name"]
+        coefficient = spec["coefficient"]
+        assert isinstance(
+            coefficient, (int, float)
+        ), "Coefficient '%s' (%s) not a number" % (
+            name,
+            coefficient,
+        )  # forgot to eval coefficient?
+        alternatives = [
+            a["name"] if isinstance(a, dict) else a for a in spec["alternatives"]
+        ]
 
         nest = Nest(name=name)
         nest.level = parent_nest.level + 1
@@ -413,7 +464,7 @@ def _each_nest(spec, parent_nest, post_order):
             yield spec, nest
 
         # recursively iterate the list of alternatives
-        for alternative in spec['alternatives']:
+        for alternative in spec["alternatives"]:
             for sub_node, sub_nest in _each_nest(alternative, nest, post_order):
                 yield sub_node, sub_nest
 
@@ -468,7 +519,11 @@ def count_nests(nest_spec):
 
     def count_each_nest(spec, count):
         if isinstance(spec, dict):
-            return count + 1 + sum([count_each_nest(alt, count) for alt in spec['alternatives']])
+            return (
+                count
+                + 1
+                + sum([count_each_nest(alt, count) for alt in spec["alternatives"]])
+            )
         else:
             assert isinstance(spec, str)
             return 1

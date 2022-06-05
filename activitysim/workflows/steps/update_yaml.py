@@ -1,8 +1,10 @@
 from pypyr.errors import KeyNotInContextError
-from pypyr.steps.py import run_step as _run_step
-from .progression import progress, progress_overall, progress_step
 from pypyr.steps.fetchyaml import run_step as _fetch
 from pypyr.steps.filewriteyaml import run_step as _write
+from pypyr.steps.py import run_step as _run_step
+
+from .progression import progress, progress_overall, progress_step
+
 
 def run_step(context):
     """Update yaml file with payload.
@@ -30,19 +32,19 @@ def run_step(context):
             fileWriteYaml['path'] exists but is None.
 
     """
-    context.assert_key_has_value('updateYaml', __name__)
-    fetch_yaml_input = context.get_formatted('updateYaml')
-    context['fetchYaml'] = {
-        'path': fetch_yaml_input['path'],
-        'key': 'file_payload',
-        'encoding': fetch_yaml_input.get('encoding', None),
+    context.assert_key_has_value("updateYaml", __name__)
+    fetch_yaml_input = context.get_formatted("updateYaml")
+    context["fetchYaml"] = {
+        "path": fetch_yaml_input["path"],
+        "key": "file_payload",
+        "encoding": fetch_yaml_input.get("encoding", None),
     }
     _fetch(context)
-    payload = fetch_yaml_input['payload']
-    context['file_payload'].update(payload)
-    context['fileWriteYaml'] = {
-        'path': fetch_yaml_input['path'],
-        'payload': context['file_payload'],
-        'encoding': fetch_yaml_input.get('encoding', None),
+    payload = fetch_yaml_input["payload"]
+    context["file_payload"].update(payload)
+    context["fileWriteYaml"] = {
+        "path": fetch_yaml_input["path"],
+        "payload": context["file_payload"],
+        "encoding": fetch_yaml_input.get("encoding", None),
     }
     _write(context)

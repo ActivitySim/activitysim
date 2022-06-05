@@ -112,11 +112,11 @@ def make_asv_argparser(parser):
             default=".",
         )
         subparser.add_argument(
-            '--branch',
+            "--branch",
             type=str,
-            action='append',
-            metavar='NAME',
-            help='git branch to include in benchmarking'
+            action="append",
+            metavar="NAME",
+            help="git branch to include in benchmarking",
         )
         del commands[command]
 
@@ -131,11 +131,11 @@ def make_asv_argparser(parser):
             default=".",
         )
         subparser.add_argument(
-            '--branch',
+            "--branch",
             type=str,
-            action='append',
-            metavar='NAME',
-            help='git branch to include in benchmarking'
+            action="append",
+            metavar="NAME",
+            help="git branch to include in benchmarking",
         )
         common_args.add_global_arguments(subparser)
 
@@ -149,11 +149,11 @@ def make_asv_argparser(parser):
         default=".",
     )
     subparser.add_argument(
-        '--branch',
+        "--branch",
         type=str,
-        action='append',
-        metavar='NAME',
-        help='git branch to include in benchmarking'
+        action="append",
+        metavar="NAME",
+        help="git branch to include in benchmarking",
     )
     common_args.add_global_arguments(subparser)
 
@@ -232,13 +232,18 @@ def benchmark(args):
         asv_config["repo"] = repo_dir_rel
         if not branches:
             # add current branch to the branches to benchmark
-            current_branch = subprocess.check_output(
-                ['git', 'branch', '--show-current'],
-                env={'GIT_DIR': git_dir},
-                stdin=None, stderr=None,
-                shell=False,
-                universal_newlines=False,
-            ).decode().strip()
+            current_branch = (
+                subprocess.check_output(
+                    ["git", "branch", "--show-current"],
+                    env={"GIT_DIR": git_dir},
+                    stdin=None,
+                    stderr=None,
+                    shell=False,
+                    universal_newlines=False,
+                )
+                .decode()
+                .strip()
+            )
             if current_branch:
                 asv_config["branches"].append(current_branch)
     else:

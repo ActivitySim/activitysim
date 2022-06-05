@@ -2,6 +2,7 @@ import os
 from contextlib import contextmanager
 from pathlib import Path
 
+
 @contextmanager
 def chdir(path: Path):
     """

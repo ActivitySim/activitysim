@@ -1,4 +1,3 @@
-
 import logging
 import pandas as pd
 import altair as alt
@@ -15,15 +14,15 @@ logger = logging.getLogger(__name__)
 def run_step(context: Context) -> None:
     reset_progress_step(description="report model inventory")
 
-    context.assert_key_has_value(key='report', caller=__name__)
-    report = context.get('report')
-    fig = context.get('fig')
-    tab = context.get('tab')
+    context.assert_key_has_value(key="report", caller=__name__)
+    report = context.get("report")
+    fig = context.get("fig")
+    tab = context.get("tab")
 
-    tablesets = context.get('tablesets')
-    skims = context.get('skims')
+    tablesets = context.get("tablesets")
+    skims = context.get("skims")
     try:
-        title = context.get_formatted('title')
+        title = context.get_formatted("title")
     except (KeyError, KeyNotInContextError):
         title = "Data Inventory"
 
@@ -41,25 +40,35 @@ def run_step(context: Context) -> None:
         report << f"## {title}"
 
     with report:
-        with pd.option_context('display.max_rows', 1_000_000, 'display.max_columns', 10_000):
+        with pd.option_context(
+            "display.max_rows", 1_000_000, "display.max_columns", 10_000
+        ):
             report << tab("Table Row Count", level=3)
-            report << pd.DataFrame(lens).applymap(lambda x: f"{x:,}" if isinstance(x, int) else x)
+            report << pd.DataFrame(lens).applymap(
+                lambda x: f"{x:,}" if isinstance(x, int) else x
+            )
 
     with report:
-        with pd.option_context('display.max_rows', 1_000_000, 'display.max_columns', 10_000):
+        with pd.option_context(
+            "display.max_rows", 1_000_000, "display.max_columns", 10_000
+        ):
             report << tab("Table Contents", level=3)
-            dtypes_table = pd.DataFrame(dtypes).rename_axis(index=['table','column']).fillna("")
+            dtypes_table = (
+                pd.DataFrame(dtypes).rename_axis(index=["table", "column"]).fillna("")
+            )
             dtypes_table[""] = pd.Series(
-                (dtypes_table.iloc[:, 0].to_frame().values == dtypes_table.values).all(1),
+                (dtypes_table.iloc[:, 0].to_frame().values == dtypes_table.values).all(
+                    1
+                ),
                 index=dtypes_table.index,
             ).apply(lambda x: "" if x else "\u2B05")
             report << dtypes_table
 
     with report:
         report << tab("Skims Contents", level=3)
-        ul = xmle.Elem('ul')
+        ul = xmle.Elem("ul")
         for k in skims:
-            i = xmle.Elem('li')
-            i << xmle.Elem('b', text=k, tail=f" {skims[k].dtype} {skims[k].dims}")
+            i = xmle.Elem("li")
+            i << xmle.Elem("b", text=k, tail=f" {skims[k].dtype} {skims[k].dims}")
             ul << i
         report << ul

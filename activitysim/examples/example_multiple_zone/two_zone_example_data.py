@@ -19,8 +19,8 @@ import openmatrix as omx
 
 # Create example directory
 
-input_data = os.path.join(os.path.dirname(__file__), 'data')
-output_data = os.path.join(os.path.dirname(__file__), 'data_2')
+input_data = os.path.join(os.path.dirname(__file__), "data")
+output_data = os.path.join(os.path.dirname(__file__), "data_2")
 MAZ_MULTIPLIER = 1000
 
 # ### initialize output data directory
@@ -29,7 +29,7 @@ MAZ_MULTIPLIER = 1000
 if os.path.exists(output_data):
     # shutil.rmtree(output_data)
     # os.makedirs(output_data)
-    file_type = ('csv', 'omx')
+    file_type = ("csv", "omx")
     for file_name in os.listdir(output_data):
         if file_name.endswith(file_type):
             os.unlink(os.path.join(output_data, file_name))
@@ -38,11 +38,11 @@ else:
 
 # ### Convert tazs to mazs and add transit access distance by mode
 
-land_use = pd.read_csv(os.path.join(input_data, 'land_use.csv'))
+land_use = pd.read_csv(os.path.join(input_data, "land_use.csv"))
 
-land_use.insert(loc=0, column='MAZ', value=land_use.ZONE)
-land_use.insert(loc=1, column='TAZ', value=land_use.ZONE)
-land_use.drop(columns=['ZONE'], inplace=True)
+land_use.insert(loc=0, column="MAZ", value=land_use.ZONE)
+land_use.insert(loc=1, column="TAZ", value=land_use.ZONE)
+land_use.drop(columns=["ZONE"], inplace=True)
 
 land_use.TAZ = land_use.TAZ.replace([1, 2, 3, 4], 2)
 land_use.TAZ = land_use.TAZ.replace([13, 14, 15], 14)
@@ -52,31 +52,31 @@ land_use.MAZ *= MAZ_MULTIPLIER
 
 shortWalk = 0.333  # the tm1 example assumes this distance for transit access
 longWalk = 0.667
-land_use['access_dist_transit'] = shortWalk
+land_use["access_dist_transit"] = shortWalk
 
 # FIXME - could assign longWalk where maz != taz, but then results wodl differe from one-zone
 # land_use['access_dist_transit'] =\
 #     np.where(land_use.TAZ*MAZ_MULTIPLIER==land_use.MAZ, shortWalk, longWalk)
 
 
-land_use.to_csv(os.path.join(output_data, 'land_use.csv'), index=False)
+land_use.to_csv(os.path.join(output_data, "land_use.csv"), index=False)
 
 # ### Put households in mazs instead of tazs
 
-households = pd.read_csv(os.path.join(input_data, 'households.csv'))
-households.rename(columns={'TAZ': 'MAZ'}, inplace=True)
+households = pd.read_csv(os.path.join(input_data, "households.csv"))
+households.rename(columns={"TAZ": "MAZ"}, inplace=True)
 households.MAZ *= MAZ_MULTIPLIER
-households.to_csv(os.path.join(output_data, 'households.csv'), index=False)
+households.to_csv(os.path.join(output_data, "households.csv"), index=False)
 
-persons = pd.read_csv(os.path.join(input_data, 'persons.csv'))
-persons.to_csv(os.path.join(output_data, 'persons.csv'), index=False)
+persons = pd.read_csv(os.path.join(input_data, "persons.csv"))
+persons.to_csv(os.path.join(output_data, "persons.csv"), index=False)
 
 # ### Create maz correspondence file
 
 # FIXME - not clear we need this
-maz_df = land_use[['MAZ', 'TAZ']]
-maz_df.to_csv(os.path.join(output_data, 'maz.csv'), index=False)
-print("maz.csv\n%s" % (maz_df.head(6), ))
+maz_df = land_use[["MAZ", "TAZ"]]
+maz_df.to_csv(os.path.join(output_data, "maz.csv"), index=False)
+print("maz.csv\n%s" % (maz_df.head(6),))
 
 # ### Create taz file
 
@@ -87,10 +87,10 @@ print("maz.csv\n%s" % (maz_df.head(6), ))
 # 7
 
 new_zone_labels = np.unique(land_use.TAZ)
-new_zone_indexes = (new_zone_labels-1)
-taz_df = pd.DataFrame({'TAZ': new_zone_labels}, index=new_zone_indexes)
-taz_df.to_csv(os.path.join(output_data, 'taz.csv'), index=False)
-print("taz.csv\n%s" % (taz_df.head(6), ))
+new_zone_indexes = new_zone_labels - 1
+taz_df = pd.DataFrame({"TAZ": new_zone_labels}, index=new_zone_indexes)
+taz_df.to_csv(os.path.join(output_data, "taz.csv"), index=False)
+print("taz.csv\n%s" % (taz_df.head(6),))
 
 # currently this has only the one TAZ column, but the legacy table had:
 # index TAZ
@@ -100,8 +100,11 @@ print("taz.csv\n%s" % (taz_df.head(6), ))
 
 # ### Create taz skims
 
-with omx.open_file(os.path.join(input_data, 'skims.omx'), 'r') as skims_file, \
-        omx.open_file(os.path.join(output_data, 'taz_skims.omx'), "w") as output_skims_file:
+with omx.open_file(
+    os.path.join(input_data, "skims.omx"), "r"
+) as skims_file, omx.open_file(
+    os.path.join(output_data, "taz_skims.omx"), "w"
+) as output_skims_file:
 
     skims = skims_file.list_matrices()
     num_zones = skims_file.shape()[0]
@@ -126,20 +129,23 @@ max_distance_for_walk = 1.0
 max_distance_for_bike = 5.0
 
 
-with omx.open_file(os.path.join(input_data, 'skims.omx')) as skims_file:
+with omx.open_file(os.path.join(input_data, "skims.omx")) as skims_file:
 
     # create df with DIST column
-    maz_to_maz = pd.DataFrame(np.transpose(skims_file['DIST'])).unstack().reset_index()
-    maz_to_maz.columns = ['OMAZ', 'DMAZ', 'DIST']
-    maz_to_maz['OMAZ'] = (maz_to_maz['OMAZ'] + 1) * MAZ_MULTIPLIER
-    maz_to_maz['DMAZ'] = (maz_to_maz['DMAZ'] + 1) * MAZ_MULTIPLIER
+    maz_to_maz = pd.DataFrame(np.transpose(skims_file["DIST"])).unstack().reset_index()
+    maz_to_maz.columns = ["OMAZ", "DMAZ", "DIST"]
+    maz_to_maz["OMAZ"] = (maz_to_maz["OMAZ"] + 1) * MAZ_MULTIPLIER
+    maz_to_maz["DMAZ"] = (maz_to_maz["DMAZ"] + 1) * MAZ_MULTIPLIER
 
     # additional columns
-    for c in ['DISTBIKE', 'DISTWALK']:
+    for c in ["DISTBIKE", "DISTWALK"]:
         maz_to_maz[c] = pd.DataFrame(np.transpose(skims_file[c])).unstack().values
 
-    maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_walk, ['OMAZ', 'DMAZ', 'DISTWALK']].\
-        to_csv(os.path.join(output_data, 'maz_to_maz_walk.csv'), index=False)
+    maz_to_maz.loc[
+        maz_to_maz["DIST"] <= max_distance_for_walk, ["OMAZ", "DMAZ", "DISTWALK"]
+    ].to_csv(os.path.join(output_data, "maz_to_maz_walk.csv"), index=False)
 
-    maz_to_maz.loc[maz_to_maz['DIST'] <= max_distance_for_bike, ['OMAZ', 'DMAZ', 'DIST', 'DISTBIKE']].\
-        to_csv(os.path.join(output_data, 'maz_to_maz_bike.csv'), index=False)
+    maz_to_maz.loc[
+        maz_to_maz["DIST"] <= max_distance_for_bike,
+        ["OMAZ", "DMAZ", "DIST", "DISTBIKE"],
+    ].to_csv(os.path.join(output_data, "maz_to_maz_bike.csv"), index=False)

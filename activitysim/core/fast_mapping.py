@@ -12,7 +12,6 @@ def _fast_map(fm, target, dtype=np.int32):
 
 
 class FastMapping:
-
     def __init__(self, source, to_range=np.int64):
         if isinstance(source, pd.Series):
             m = nb.typed.Dict.empty(
@@ -49,8 +48,15 @@ class FastMapping:
     def apply_to(self, target):
         if isinstance(target, pd.Series):
             return pd.Series(
-                _fast_map(self._mapper, target.astype(self._in_dtype).to_numpy(), dtype=self._out_dtype),
+                _fast_map(
+                    self._mapper,
+                    target.astype(self._in_dtype).to_numpy(),
+                    dtype=self._out_dtype,
+                ),
                 index=target.index,
             )
-        return _fast_map(self._mapper, np.asarray(target, dtype=self._in_dtype), dtype=self._out_dtype)
-
+        return _fast_map(
+            self._mapper,
+            np.asarray(target, dtype=self._in_dtype),
+            dtype=self._out_dtype,
+        )

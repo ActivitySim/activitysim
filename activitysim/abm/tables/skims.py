@@ -46,14 +46,14 @@ def log_settings():
 
     # abm settings to log on startup
     return [
-        'households_sample_size',
-        'chunk_size',
-        'chunk_method',
-        'chunk_training_mode',
-        'multiprocess',
-        'num_processes',
-        'resume_after',
-        'trace_hh_id',
-        'memory_profile',
-        'instrument',
+        "households_sample_size",
+        "chunk_size",
+        "chunk_method",
+        "chunk_training_mode",
+        "multiprocess",
+        "num_processes",
+        "resume_after",
+        "trace_hh_id",
+        "memory_profile",
+        "instrument",
     ]

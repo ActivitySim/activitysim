@@ -1,4 +1,5 @@
 import os
+
 import yaml
 
 NO_DEFAULT = "< NO DEFAULT >"
@@ -10,12 +11,12 @@ class IsA:
     """
 
     def __init__(
-            self,
-            *required_types,
-            coerce=False,
-            default=NO_DEFAULT,
-            doc=None,
-            type_descrip=None,
+        self,
+        *required_types,
+        coerce=False,
+        default=NO_DEFAULT,
+        doc=None,
+        type_descrip=None,
     ):
         """
         Decorator for class attribute that validates type and optional defaults
@@ -50,7 +51,7 @@ class IsA:
         # owner : parent class that will have `self` as a member
         # name : the name of the attribute that `self` will be
         self.public_name = name
-        self.private_name = '_' + name
+        self.private_name = "_" + name
 
     def __get__(self, obj, objtype=None):
         # self : IsA
@@ -66,7 +67,9 @@ class IsA:
                 pass
             else:
                 if f:
-                    raise ValueError(f"{self.public_name!r} is not set and has no default")
+                    raise ValueError(
+                        f"{self.public_name!r} is not set and has no default"
+                    )
         return v
 
     def __set__(self, obj, value):
@@ -78,9 +81,13 @@ class IsA:
                 try:
                     value = self.required_types[0](value)
                 except Exception as err:
-                    raise AttributeError(f"for {self.public_name!r} can't coerce {type(value)}") from err
+                    raise AttributeError(
+                        f"for {self.public_name!r} can't coerce {type(value)}"
+                    ) from err
             else:
-                raise AttributeError(f"can't set {self.public_name!r} with {type(value)}, must be {self.type_descrip}")
+                raise AttributeError(
+                    f"can't set {self.public_name!r} with {type(value)}, must be {self.type_descrip}"
+                )
         setattr(obj, self.private_name, value)
 
     def __delete__(self, obj):
@@ -91,17 +98,17 @@ class IsA:
     def validate(self, obj):
         pass
 
-class IsPath(IsA):
 
+class IsPath(IsA):
     def __init__(
-            self,
-            *,
-            coerce=True,
-            default=NO_DEFAULT,
-            doc=None,
-            create=False,
-            exists=False,
-            isdir=False,
+        self,
+        *,
+        coerce=True,
+        default=NO_DEFAULT,
+        doc=None,
+        create=False,
+        exists=False,
+        isdir=False,
     ):
         super(IsPath, self).__init__(str, coerce=coerce, default=default, doc=doc)
         self._create = create
@@ -117,7 +124,9 @@ class IsPath(IsA):
                 try:
                     value = self.required_types[0](value)
                 except Exception as err:
-                    raise AttributeError(f"for {self.public_name} can't coerce {type(value)}") from err
+                    raise AttributeError(
+                        f"for {self.public_name} can't coerce {type(value)}"
+                    ) from err
             else:
                 raise AttributeError(f"can't set {self.public_name} with {type(value)}")
         if self._exists and not os.path.exists(value):
@@ -128,13 +137,12 @@ class IsPath(IsA):
 
 
 class IsSubconfig(IsA):
-
     def __init__(
-            self,
-            *required_types,
-            coerce=True,
-            default=NO_DEFAULT,
-            doc=None,
+        self,
+        *required_types,
+        coerce=True,
+        default=NO_DEFAULT,
+        doc=None,
     ):
         super().__init__(dict, *required_types, coerce=coerce, default=default, doc=doc)
 
@@ -147,16 +155,17 @@ class IsSubconfig(IsA):
                 try:
                     value = self.required_types[1](**value)
                 except Exception as err:
-                    raise AttributeError(f"for {self.public_name} can't coerce {type(value)}") from err
+                    raise AttributeError(
+                        f"for {self.public_name} can't coerce {type(value)}"
+                    ) from err
             else:
                 raise AttributeError(f"can't set {self.public_name} with {type(value)}")
         setattr(obj, self.private_name, value)
 
 
 class Configuration:
-
     def __setattr__(self, name, value):
-        if name[0]=="_" and name[-1] != "_":
+        if name[0] == "_" and name[-1] != "_":
             super().__setattr__(name, value)
         else:
             if not hasattr(self, name):
@@ -179,8 +188,8 @@ class Configuration:
                 continue
             try:
                 setattr(self, k, getattr(self, k))
-            except:
-                raise #TypeError(f"missing required keyword {k!r}")
+            except Exception:
+                raise  # TypeError(f"missing required keyword {k!r}")
 
     def __getitem__(self, item):
         return getattr(self, item)
@@ -214,12 +223,8 @@ class Configuration:
             raise ValueError("must give at least one filename")
         staged = []
 
-
-
-
-
         for filename in filenames:
-            with open(filename, 'r', encoding=encoding) as f:
+            with open(filename, "r", encoding=encoding) as f:
                 try:
                     content = yaml.safe_load(f)
                     if isinstance(content, Mapping):
@@ -228,9 +233,9 @@ class Configuration:
                         raise ValueError(f"error in reading {filename!r}")
                 except Exception as err:
                     from io import StringIO
+
                     buffer = StringIO()
-                    err_logger = lambda x: buffer.write(f"{x}\n")
-                    yaml_check(filename, logger=err_logger)
+                    yaml_check(filename, logger=lambda x: buffer.write(f"{x}\n"))
                     raise ValueError(buffer.getvalue()) from err
 
         result = staged[0]
@@ -260,4 +265,3 @@ class _ConfigurationDemo(Configuration):
     ii = IsA(int, default=1)
     ff = IsA(float, default=0.0)
     kk = IsSubconfig(_SubConfigurationDemo)
-

@@ -32,7 +32,6 @@ def record_memory_usage(
         else:
             cpu_pct = -1
 
-
     full_rss = rss = info.rss
 
     num_children = 0

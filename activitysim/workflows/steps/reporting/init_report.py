@@ -5,7 +5,9 @@ from ..wrapping import workstep
 
 
 @workstep(updates_context=True)
-def init_report(title,):
+def init_report(
+    title,
+):
     reset_progress_step(description="initialize report")
     return dict(
         report=Reporter(title=title),

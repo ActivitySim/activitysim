@@ -167,6 +167,11 @@ class workstep:
                             kwargs[karg] = context.get_formatted_or_raw(karg)
                         except Exception as err:
                             raise ValueError(f"extracting {karg} from context") from err
+                if _varkw:
+                    kwargs.update(context)
+                    for arg in _required_args:
+                        if arg in kwargs:
+                            kwargs.pop(arg)
                 outcome = error_logging(wrapped_func)(*args, **kwargs)
                 if returns_names:
                     if len(returns_names) == 1:

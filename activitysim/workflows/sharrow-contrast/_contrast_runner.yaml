@@ -110,6 +110,7 @@ run-compile:
         trace_hh_id:
         trace_od:
         instrument: '{instrument}'
+        disable_zarr: '{disable_zarr}'
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.run
@@ -170,6 +171,9 @@ run-legacy:
         trace_od: '{trace_od}'
         instrument: '{instrument}'
         memory_profile: '{memory_profile}'
+        chunk_size: '{chunk_size}'
+        num_processes: '{multiprocess}'
+        multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_training_mode}'
 
@@ -224,6 +228,9 @@ run-reference:
         trace_hh_id: '{trace_hh_id}'
         trace_od: '{trace_od}'
         resume_after: '{resume_after_ref}'
+        chunk_size: '{chunk_size}'
+        num_processes: '{multiprocess}'
+        multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_training_mode}'
 
@@ -277,6 +284,20 @@ reporting:
 - name: activitysim.workflows.steps.reporting.machine_info
   in:
     caption: Machine Info
+
+- name: activitysim.workflows.steps.reporting.settings
+  in:
+    caption: Settings
+    names:
+      - disable_zarr
+      - resume_after
+      - instrument
+      - memory_profile
+      - fast
+      - chunk_method
+      - chunk_training_mode
+      - chunk_size
+      - multiprocess
 
 
 #### Runtime and Data Inventory ####

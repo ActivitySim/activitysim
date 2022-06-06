@@ -340,7 +340,6 @@ def _interaction_simulate(
                          slicer='NONE', transpose=False)
     else:
         trace_rows = trace_ids = None
-
     interaction_utilities, trace_eval_results \
         = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
                                      estimator=estimator,

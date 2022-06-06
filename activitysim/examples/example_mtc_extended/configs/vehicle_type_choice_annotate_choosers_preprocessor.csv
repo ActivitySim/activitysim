@@ -1,0 +1,15 @@
+Description,Target,Expression
+total household distance to work,total_hh_dist_to_work,persons.groupby('household_id')['distance_to_work'].sum().reindex(df.household_id).fillna(0)
+total household distance to work capped at 100 mi per worker,total_hh_dist_to_work_cap,"np.where(total_hh_dist_to_work > (100*df.num_workers.values), 100*df.num_workers.values, total_hh_dist_to_work)"
+average household distance to work,avg_hh_dist_to_work,persons.groupby('household_id')['distance_to_work'].mean().reindex(df.household_id).fillna(0)
+household density per square mile,hh_per_mi,(df.TOTHH.values / df.TOTACRE.values) * 640
+number of vehicles is greater than the number of drivers,hh_veh_gt_drivers,"np.where(df.auto_ownership > df.num_drivers, 1, 0)"
+number of household vehicles owned,num_hh_veh_owned,df[df['already_owned_veh'].str.len() > 0].groupby('household_id').size().reindex(df.household_id).fillna(0)
+number of household Vans,num_hh_Van,"df[df['already_owned_veh'].str.contains('Van', na=False)].groupby('household_id').size().reindex(df.household_id).fillna(0)"
+number of household SUVs,num_hh_SUV,"df[df['already_owned_veh'].str.contains('SUV', na=False)].groupby('household_id').size().reindex(df.household_id).fillna(0)"
+number of household Pickups,num_hh_Pickup,"df[df['already_owned_veh'].str.contains('Pickup', na=False)].groupby('household_id').size().reindex(df.household_id).fillna(0)"
+number of household Motorcycles,num_hh_Motorcycle,"df[df['already_owned_veh'].str.contains('Motorcycle', na=False)].groupby('household_id').size().reindex(df.household_id).fillna(0)"
+number of household Hybrid,num_hh_Hybrid,"df[df['already_owned_veh'].str.contains('Hybrid', na=False)].groupby('household_id').size().reindex(df.household_id).fillna(0)"
+number of household BEV,num_hh_BEV,"df[df['already_owned_veh'].str.contains('BEV', na=False)].groupby('household_id').size().reindex(df.household_id).fillna(0)"
+number of household PEV,num_hh_PEV,"df[df['already_owned_veh'].str.contains('PEV', na=False)].groupby('household_id').size().reindex(df.household_id).fillna(0)"
+number of household EVs,num_hh_EV,"num_hh_BEV + num_hh_PEV"

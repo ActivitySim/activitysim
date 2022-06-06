@@ -10,5 +10,5 @@ from . import size_terms
 from . import trips
 from . import time_windows
 from . import shadow_pricing
-
 from . import table_dict
+from . import vehicles

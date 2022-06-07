@@ -36,6 +36,7 @@ from .util import estimation
 from activitysim.abm.models.util.trip import cleanup_failed_trips
 from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
 
+
 logger = logging.getLogger(__name__)
 
 NO_DESTINATION = -1
@@ -546,6 +547,7 @@ def compute_logsums(
     """
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
+
     # chunk usage is uniform so better to combine
     chunk_tag = 'trip_destination.compute_logsums'
 
@@ -816,7 +818,7 @@ class SkimHotel(object):
 
         o = self.model_settings['TRIP_ORIGIN']
         d = self.model_settings['ALT_DEST_COL_NAME']
-        n = self.model_settings['PRIMARY_ORIGIN']
+        n = self.model_settings.get('PRIMARY_ORIGIN', None)
         p = self.model_settings['PRIMARY_DEST']
 
         if presample:

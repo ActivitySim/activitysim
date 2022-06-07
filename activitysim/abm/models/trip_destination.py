@@ -546,7 +546,6 @@ def compute_logsums(
     """
     trace_label = tracing.extend_trace_label(trace_label, 'compute_logsums')
     logger.info("Running %s with %d samples", trace_label, destination_sample.shape[0])
-    
     # chunk usage is uniform so better to combine
     chunk_tag = 'trip_destination.compute_logsums'
 
@@ -616,7 +615,7 @@ def compute_logsums(
         trace_label=tracing.extend_trace_label(trace_label, 'od'),
         chunk_tag=chunk_tag)
 
-    # - _sk_logsums
+    # - dp_logsums
     dp_skims = {
         'ORIGIN': model_settings['ALT_DEST_COL_NAME'],
         'DESTINATION': model_settings['PRIMARY_DEST'],
@@ -624,7 +623,6 @@ def compute_logsums(
         "dot_skims": skims['pdt_skims'],
         "od_skims": skims['dp_skims'],
     }
-
     if network_los.zone_system == los.THREE_ZONE:
         dp_skims.update({
             'tvpb_logsum_odt':  skims['tvpb_logsum_dpt'],
@@ -640,7 +638,6 @@ def compute_logsums(
         chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, 'dp'),
         chunk_tag=chunk_tag)
-        
 
     return destination_sample
 
@@ -685,8 +682,6 @@ def trip_destination_simulate(
         'size_terms': size_term_matrix
     })
     locals_dict.update(skims)
-    #edit
-    trips.to_csv(r'C:\ABM_runs\abm3_dev\run_dir\trips.csv')
 
     log_alt_losers = config.setting('log_alt_losers', False)
     destinations = interaction_sample_simulate(
@@ -881,7 +876,6 @@ class SkimHotel(object):
                                                tod_key='trip_period', segment_key='demographic_segment',
                                                trace_label=self.trace_label, tag='tvpb_logsum_pdt')
 
-
             skims.update({
                 'tvpb_logsum_odt': tvpb_logsum_odt,
                 'tvpb_logsum_dot': tvpb_logsum_dot,
@@ -1025,8 +1019,7 @@ def run_trip_destination(
                 'network_los': network_los
             }
             locals_dict.update(config.get_model_constants(model_settings))
-            #edit
-            nth_trips.to_csv(r'C:\ABM_runs\abm3_dev\run_dir\ntrips.csv')
+
             # - annotate nth_trips
             if preprocessor_settings:
                 expressions.assign_columns(

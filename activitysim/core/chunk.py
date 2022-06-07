@@ -1174,11 +1174,6 @@ def adaptive_chunked_choosers_and_alts(
     last_repeat = alternatives.index != np.roll(alternatives.index, -1)
 
     assert (num_choosers == 1) or choosers.index.equals(alternatives.index[last_repeat])
-    assert (
-        "pick_count" in alternatives.columns
-        or choosers.index.name == alternatives.index.name
-    )
-    assert choosers.index.name == alternatives.index.name
 
     logger.info(
         f"{trace_label} Running adaptive_chunked_choosers_and_alts "

@@ -61,3 +61,8 @@ PTYPE_NAME:
 CDAP_ACTIVITY_MANDATORY: M
 CDAP_ACTIVITY_NONMANDATORY: N
 CDAP_ACTIVITY_HOME: H
+
+# Correction for transit skim expressions
+# e.g. MTC transit skims (Cube TRANPLAN skims) use scaled ints and
+# therefore need to be divided by the scale factor if used in expressions
+TRANSIT_SCALE_FACTOR: 100

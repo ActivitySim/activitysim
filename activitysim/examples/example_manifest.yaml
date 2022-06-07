@@ -32,7 +32,10 @@
   include:
     - example_mtc/configs
     - example_mtc/configs_mp
+<<<<<<< Updated upstream
     # example_mtc/data
+=======
+>>>>>>> Stashed changes
     - example_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx

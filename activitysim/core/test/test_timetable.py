@@ -150,7 +150,9 @@ def test_basic(persons, tdd_alts):
                 17,  # START + MIDDLE + END collides with same
             ]
         )
-        assert_array_equal(timetable.tour_available(person_ids, tdds), [True, True, False, False])
+        assert_array_equal(
+            timetable.tour_available(person_ids, tdds), [True, True, False, False]
+        )
 
         # assigning overlapping trip END,START should convert END to START_END
         person_ids = pd.Series([2])
@@ -193,13 +195,17 @@ def test_basic(persons, tdd_alts):
         person_ids = pd.Series([0, 1, 2, 3, 4, 5])
         periods = pd.Series([5, 5, 5, 5, 5, 5])
         adjacent_run_length = timetable.adjacent_window_after(person_ids, periods)
-        pdt.assert_series_equal(adjacent_run_length, pd.Series([5, 5, 0, 5, 5, 3]), check_dtype=False)
+        pdt.assert_series_equal(
+            adjacent_run_length, pd.Series([5, 5, 0, 5, 5, 3]), check_dtype=False
+        )
 
         # - adjacent_window_before
         person_ids = pd.Series([0, 1, 2, 3, 4, 5])
         periods = pd.Series([10, 10, 10, 10, 10, 10])
         adjacent_run_length = timetable.adjacent_window_before(person_ids, periods)
-        pdt.assert_series_equal(adjacent_run_length, pd.Series([5, 5, 1, 5, 5, 0]), check_dtype=False)
+        pdt.assert_series_equal(
+            adjacent_run_length, pd.Series([5, 5, 1, 5, 5, 0]), check_dtype=False
+        )
 
         # - remaining_periods_available
         person_ids = pd.Series([0, 1, 2, 3])

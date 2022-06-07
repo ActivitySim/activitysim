@@ -12,7 +12,12 @@ logger = logging.getLogger(__name__)
 
 @workstep
 def contrast_runtime(
-    combined_timing_log, include_runs=("legacy", "sharrow",), relabel_tablesets=None,
+    combined_timing_log,
+    include_runs=(
+        "legacy",
+        "sharrow",
+    ),
+    relabel_tablesets=None,
 ):
     """
     Generate a figure contrasting runtime for each model component.
@@ -55,7 +60,10 @@ def contrast_runtime(
         return relabel_tablesets.get(x, x)
 
     df1["source"] = df1["source"].map(relabel_source)
-    c = alt.Chart(df1, height={"step": 20},)
+    c = alt.Chart(
+        df1,
+        height={"step": 20},
+    )
 
     if len(include_runs) == 1:
 
@@ -81,7 +89,8 @@ def contrast_runtime(
             color="source",
             tooltip=["source", "model_name", "seconds"],
         ) + c.mark_bar(
-            yOffset=4, size=6,
+            yOffset=4,
+            size=6,
         ).transform_filter(
             (alt.datum.source == relabel_source(include_runs[1]))
         ).encode(
@@ -107,7 +116,8 @@ def contrast_runtime(
             color="source",
             tooltip=["source", "model_name", "seconds"],
         ) + c.mark_bar(
-            yOffset=0, size=4,
+            yOffset=0,
+            size=4,
         ).transform_filter(
             (alt.datum.source == relabel_source(include_runs[1]))
         ).encode(
@@ -116,7 +126,8 @@ def contrast_runtime(
             color="source",
             tooltip=["source", "model_name", "seconds"],
         ) + c.mark_bar(
-            yOffset=5, size=4,
+            yOffset=5,
+            size=4,
         ).transform_filter(
             (alt.datum.source == relabel_source(include_runs[2]))
         ).encode(

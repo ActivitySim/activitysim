@@ -198,12 +198,13 @@ def atwork_subtour_mode_choice(
     pipeline.replace_table("tours", tours)
 
     # - annotate tours table
-    if model_settings.get('annotate_tours'):
-        tours = inject.get_table('tours').to_frame()
+    if model_settings.get("annotate_tours"):
+        tours = inject.get_table("tours").to_frame()
         expressions.assign_columns(
             df=tours,
-            model_settings=model_settings.get('annotate_tours'),
-            trace_label=tracing.extend_trace_label(trace_label, 'annotate_tours'))
+            model_settings=model_settings.get("annotate_tours"),
+            trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
+        )
         pipeline.replace_table("tours", tours)
 
     if trace_hh_id:

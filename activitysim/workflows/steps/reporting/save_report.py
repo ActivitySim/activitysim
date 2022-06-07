@@ -16,7 +16,9 @@ except:  # noqa: E722
 
 @workstep
 def save_report(
-    report, html_filename, toc_color="forest",
+    report,
+    html_filename,
+    toc_color="forest",
 ):
 
     bootstrap_font_family = (

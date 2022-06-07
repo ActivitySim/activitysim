@@ -395,10 +395,19 @@ class TimeTable(object):
         available : pandas Series of bool
             with same index as window_row_ids.index (presumably tour_id, but we don't care)
         """
+        if isinstance(tdds, pd.Series):
+            tdds = tdds.astype(int).to_numpy()
+        else:
+            tdds = tdds.astype(int)
+        if isinstance(window_row_ids, pd.Series):
+            window_row_ids = window_row_ids.astype(int).to_numpy()
+        else:
+            window_row_ids = window_row_ids.astype(int)
+
         available = _fast_tour_available(
-            tdds.astype(int),
+            tdds,
             self.tdd_footprints,
-            window_row_ids.astype(int).to_numpy(),
+            window_row_ids,
             self.window_row_ix._mapper,
             self.windows,
         )

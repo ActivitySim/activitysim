@@ -1,0 +1,28 @@
+# vehicle_choice.yaml
+
+# last column in spec needs to be non_hh_veh
+SPEC: vehicle_allocation.csv
+COEFFICIENTS: vehicle_allocation_coefficients.csv
+
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: vehicle_allocation_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - vehicles
+
+# will create columns in the tour table selecting a vehicle for each of the following
+# occupancy levels. They are named vehicle_occup_1, vehicle_occup_2, ...
+# if not supplied, will default to only one occupancy level of 1
+OCCUPANCY_LEVELS:
+  - 1
+  - 2
+  - 3.5
+
+# optional annotate tours
+# annotate_tours:
+#   SPEC: annotate_tours_vehicle_allocation
+#   DF: tours
+#   TABLES:
+#     - vehicles

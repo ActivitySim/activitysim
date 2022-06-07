@@ -11,3 +11,4 @@ tables:
   - tours
   - trips
   - joint_tour_participants
+  - vehicles

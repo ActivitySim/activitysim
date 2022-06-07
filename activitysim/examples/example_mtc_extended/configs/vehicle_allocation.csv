@@ -1,0 +1,174 @@
+Label,Description,Expression,veh_num1,veh_num2,veh_num3,veh_num4,non_hh_veh
+#,Availability Conditions,,,,
+util_alt1_unavail,Household does not own vehicle,"veh_num1.isna() | (veh_num1 == '')",coef_unavail,0,0,0,0
+util_alt2_unavail,Household does not own vehicle,"veh_num2.isna() | (veh_num2 == '')",0,coef_unavail,0,0,0
+util_alt3_unavail,Household does not own vehicle,"veh_num3.isna() | (veh_num3 == '')",0,0,coef_unavail,0,0
+util_alt4_unavail,Household does not own vehicle,"veh_num4.isna() | (veh_num4 == '')",0,0,0,coef_unavail,0
+#,BEV Range,,,,
+util_dstgtrng1,Round trip tour distance > BEV range,"@np.where((df.tot_tour_dist > df.Range_1) & (df.fuel_type_1 == 'BEV'), 1, 0)",coef_dstgtrng,0,0,0,0
+util_dstgtrng2,Round trip tour distance > BEV range,"@np.where((df.tot_tour_dist > df.Range_2) & (df.fuel_type_2 == 'BEV'), 1, 0)",0,coef_dstgtrng,0,0,0
+util_dstgtrng3,Round trip tour distance > BEV range,"@np.where((df.tot_tour_dist > df.Range_3) & (df.fuel_type_3 == 'BEV'), 1, 0)",0,0,coef_dstgtrng,0,0
+util_dstgtrng4,Round trip tour distance > BEV range,"@np.where((df.tot_tour_dist > df.Range_4) & (df.fuel_type_4 == 'BEV'), 1, 0)",0,0,0,coef_dstgtrng,0
+#,Vehicles & Driver interactions,,,,
+util_vehltdr_nh,Vehicles < Drivers --  Non-Household Vehicle,"hh_veh_lt_drivers",0,0,0,0,coef_vehltdr_nh
+util_vehltdr_nh,Vehicles > Drivers --  Non-Household Vehicle,"hh_veh_gt_drivers",0,0,0,0,coef_vehgtdr_nh
+util_vehltdr_van1,Vehicles > Drivers -- Van alt 1,"hh_veh_gt_drivers * (body_type_1 == 'Van')",coef_vehltdr_van,0,0,0,0
+util_vehltdr_van2,Vehicles > Drivers -- Van alt 2,"hh_veh_gt_drivers * (body_type_2 == 'Van')",0,coef_vehltdr_van,0,0,0
+util_vehltdr_van3,Vehicles > Drivers -- Van alt 3,"hh_veh_gt_drivers * (body_type_3 == 'Van')",0,0,coef_vehltdr_van,0,0
+util_vehltdr_van4,Vehicles > Drivers -- Van alt 4,"hh_veh_gt_drivers * (body_type_4 == 'Van')",0,0,0,coef_vehltdr_van,0
+util_vehltdr_suv1,Vehicles > Drivers -- SUV alt 1,"hh_veh_gt_drivers * (body_type_1 == 'SUV')",coef_vehltdr_suv,0,0,0,0
+util_vehltdr_suv2,Vehicles > Drivers -- SUV alt 2,"hh_veh_gt_drivers * (body_type_2 == 'SUV')",0,coef_vehltdr_suv,0,0,0
+util_vehltdr_suv3,Vehicles > Drivers -- SUV alt 3,"hh_veh_gt_drivers * (body_type_3 == 'SUV')",0,0,coef_vehltdr_suv,0,0
+util_vehltdr_suv4,Vehicles > Drivers -- SUV alt 4,"hh_veh_gt_drivers * (body_type_4 == 'SUV')",0,0,0,coef_vehltdr_suv,0
+util_vehltdr_pu1,Vehicles > Drivers -- Pickup alt 1,"hh_veh_gt_drivers * (body_type_1 == 'Pickup')",coef_vehltdr_pu,0,0,0,0
+util_vehltdr_pu2,Vehicles > Drivers -- Pickup alt 2,"hh_veh_gt_drivers * (body_type_2 == 'Pickup')",0,coef_vehltdr_pu,0,0,0
+util_vehltdr_pu3,Vehicles > Drivers -- Pickup alt 3,"hh_veh_gt_drivers * (body_type_3 == 'Pickup')",0,0,coef_vehltdr_pu,0,0
+util_vehltdr_pu4,Vehicles > Drivers -- Pickup alt 4,"hh_veh_gt_drivers * (body_type_4 == 'Pickup')",0,0,0,coef_vehltdr_pu,0
+util_vehltdr_mc1,Vehicles > Drivers -- Motorcycle alt 1,"hh_veh_gt_drivers * (body_type_1 == 'Motorcycle')",coef_vehltdr_mc,0,0,0,0
+util_vehltdr_mc2,Vehicles > Drivers -- Motorcycle alt 2,"hh_veh_gt_drivers * (body_type_2 == 'Motorcycle')",0,coef_vehltdr_mc,0,0,0
+util_vehltdr_mc3,Vehicles > Drivers -- Motorcycle alt 3,"hh_veh_gt_drivers * (body_type_3 == 'Motorcycle')",0,0,coef_vehltdr_mc,0,0
+util_vehltdr_mc4,Vehicles > Drivers -- Motorcycle alt 4,"hh_veh_gt_drivers * (body_type_4 == 'Motorcycle')",0,0,0,coef_vehltdr_mc,0
+util_vehltdr_hyb1,Vehicles > Drivers -- Hybrid alt 1,"hh_veh_gt_drivers * (fuel_type_1 == 'Hybrid')",coef_vehltdr_hyb,0,0,0,0
+util_vehltdr_hyb2,Vehicles > Drivers -- Hybrid alt 2,"hh_veh_gt_drivers * (fuel_type_2 == 'Hybrid')",0,coef_vehltdr_hyb,0,0,0
+util_vehltdr_hyb3,Vehicles > Drivers -- Hybrid alt 3,"hh_veh_gt_drivers * (fuel_type_3 == 'Hybrid')",0,0,coef_vehltdr_hyb,0,0
+util_vehltdr_hyb4,Vehicles > Drivers -- Hybrid alt 4,"hh_veh_gt_drivers * (fuel_type_4 == 'Hybrid')",0,0,0,coef_vehltdr_hyb,0
+util_vehltdr_ev1,Vehicles > Drivers -- Hybrid alt 1,"hh_veh_gt_drivers * ((fuel_type_1=='PEV') | (fuel_type_1=='BEV'))",coef_vehltdr_ev,0,0,0,0
+util_vehltdr_ev2,Vehicles > Drivers -- Hybrid alt 2,"hh_veh_gt_drivers * ((fuel_type_2=='PEV') | (fuel_type_2=='BEV'))",0,coef_vehltdr_ev,0,0,0
+util_vehltdr_ev3,Vehicles > Drivers -- Hybrid alt 3,"hh_veh_gt_drivers * ((fuel_type_3=='PEV') | (fuel_type_3=='BEV'))",0,0,coef_vehltdr_ev,0,0
+util_vehltdr_ev4,Vehicles > Drivers -- Hybrid alt 4,"hh_veh_gt_drivers * ((fuel_type_4=='PEV') | (fuel_type_4=='BEV'))",0,0,0,coef_vehltdr_ev,0
+util_vehltdr_age1,Vehicles > Drivers -- Age alt 1,"hh_veh_gt_drivers * age_1",coef_vehltdr_age,0,0,0,0
+util_vehltdr_age2,Vehicles > Drivers -- Age alt 2,"hh_veh_gt_drivers * age_2",0,coef_vehltdr_age,0,0,0
+util_vehltdr_age3,Vehicles > Drivers -- Age alt 3,"hh_veh_gt_drivers * age_3",0,0,coef_vehltdr_age,0,0
+util_vehltdr_age4,Vehicles > Drivers -- Age alt 4,"hh_veh_gt_drivers * age_4",0,0,0,coef_vehltdr_age,0
+#,Occupancy interactions,,,,
+util_maxocc_van1,Maximum Occupancy -- Van alt 1,"@occup * (df.body_type_1 == 'Van')",coef_maxocc_van,0,0,0,0
+util_maxocc_van2,Maximum Occupancy -- Van alt 2,"@occup * (df.body_type_2 == 'Van')",0,coef_maxocc_van,0,0,0
+util_maxocc_van3,Maximum Occupancy -- Van alt 3,"@occup * (df.body_type_3 == 'Van')",0,0,coef_maxocc_van,0,0
+util_maxocc_van4,Maximum Occupancy -- Van alt 4,"@occup * (df.body_type_4 == 'Van')",0,0,0,coef_maxocc_van,0
+util_maxocc_suv1,Maximum Occupancy -- SUV alt 1,"@occup * (df.body_type_1 == 'SUV')",coef_maxocc_suv,0,0,0,0
+util_maxocc_suv2,Maximum Occupancy -- SUV alt 2,"@occup * (df.body_type_2 == 'SUV')",0,coef_maxocc_suv,0,0,0
+util_maxocc_suv3,Maximum Occupancy -- SUV alt 3,"@occup * (df.body_type_3 == 'SUV')",0,0,coef_maxocc_suv,0,0
+util_maxocc_suv4,Maximum Occupancy -- SUV alt 4,"@occup * (df.body_type_4 == 'SUV')",0,0,0,coef_maxocc_suv,0
+util_maxocc_pu1,Maximum Occupancy -- Pickup alt 1,"@occup * (df.body_type_1 == 'Pickup')",coef_maxocc_pu,0,0,0,0
+util_maxocc_pu2,Maximum Occupancy -- Pickup alt 2,"@occup * (df.body_type_2 == 'Pickup')",0,coef_maxocc_pu,0,0,0
+util_maxocc_pu3,Maximum Occupancy -- Pickup alt 3,"@occup * (df.body_type_3 == 'Pickup')",0,0,coef_maxocc_pu,0,0
+util_maxocc_pu4,Maximum Occupancy -- Pickup alt 4,"@occup * (df.body_type_4 == 'Pickup')",0,0,0,coef_maxocc_pu,0
+util_maxocc_mc1,Maximum Occupancy -- Motorcycle alt 1,"@occup * (df.body_type_1 == 'Motorcycle')",coef_maxocc_mc,0,0,0,0
+util_maxocc_mc2,Maximum Occupancy -- Motorcycle alt 2,"@occup * (df.body_type_2 == 'Motorcycle')",0,coef_maxocc_mc,0,0,0
+util_maxocc_mc3,Maximum Occupancy -- Motorcycle alt 3,"@occup * (df.body_type_3 == 'Motorcycle')",0,0,coef_maxocc_mc,0,0
+util_maxocc_mc4,Maximum Occupancy -- Motorcycle alt 4,"@occup * (df.body_type_4 == 'Motorcycle')",0,0,0,coef_maxocc_mc,0
+util_maxocc_age1,Maximum Occupancy -- Age alt 1,"@occup * df.age_1",coef_maxocc_age,0,0,0,0
+util_maxocc_age2,Maximum Occupancy -- Age alt 2,"@occup * df.age_2",0,coef_maxocc_age,0,0,0
+util_maxocc_age3,Maximum Occupancy -- Age alt 3,"@occup * df.age_3",0,0,coef_maxocc_age,0,0
+util_maxocc_age4,Maximum Occupancy -- Age alt 4,"@occup * df.age_4",0,0,0,coef_maxocc_age,0
+util_maxocc_nh,Maximum Occupancy -- Age alt 1,"@occup",0,0,0,0,util_maxocc_nh
+#,Alternative Specific Constants,,,,
+util_non_hh,Non-Household Vehicle Constant,"1",0,0,0,0,coef_non_hh
+util_van1,Van ASC alt 1,"(body_type_1 == 'Van')",coef_van,0,0,0,0
+util_van2,Van ASC alt 2,"(body_type_2 == 'Van')",0,coef_van,0,0,0
+util_van3,Van ASC alt 3,"(body_type_3 == 'Van')",0,0,coef_van,0,0
+util_van4,Van ASC alt 4,"(body_type_4 == 'Van')",0,0,0,coef_van,0
+util_suv1,SUV ASC alt 1,"(body_type_1 == 'SUV')",coef_suv,0,0,0,0
+util_suv2,SUV ASC alt 2,"(body_type_2 == 'SUV')",0,coef_suv,0,0,0
+util_suv3,SUV ASC alt 3,"(body_type_3 == 'SUV')",0,0,coef_suv,0,0
+util_suv4,SUV ASC alt 4,"(body_type_4 == 'SUV')",0,0,0,coef_suv,0
+util_pu1,Pickup ASC alt 1,"(body_type_1 == 'Pickup')",coef_pu,0,0,0,0
+util_pu2,Pickup ASC alt 2,"(body_type_2 == 'Pickup')",0,coef_pu,0,0,0
+util_pu3,Pickup ASC alt 3,"(body_type_3 == 'Pickup')",0,0,coef_pu,0,0
+util_pu4,Pickup ASC alt 4,"(body_type_4 == 'Pickup')",0,0,0,coef_pu,0
+util_mc1,Motorcycle ASC alt 1,"(body_type_1 == 'Motorcycle')",coef_mc,0,0,0,0
+util_mc2,Motorcycle ASC alt 2,"(body_type_2 == 'Motorcycle')",0,coef_mc,0,0,0
+util_mc3,Motorcycle ASC alt 3,"(body_type_3 == 'Motorcycle')",0,0,coef_mc,0,0
+util_mc4,Motorcycle ASC alt 4,"(body_type_4 == 'Motorcycle')",0,0,0,coef_mc,0
+util_dsl1,Diesel ASC alt 1,"(fuel_type_1 == 'Diesel')",coef_dsl,0,0,0,0
+util_dsl2,Diesel ASC alt 2,"(fuel_type_2 == 'Diesel')",0,coef_dsl,0,0,0
+util_dsl3,Diesel ASC alt 3,"(fuel_type_3 == 'Diesel')",0,0,coef_dsl,0,0
+util_dsl4,Diesel ASC alt 4,"(fuel_type_4 == 'Diesel')",0,0,0,coef_dsl,0
+util_hyb1,Hybrid ASC alt 1,"(fuel_type_1 == 'Hybrid')",coef_hyb,0,0,0,0
+util_hyb2,Hybrid ASC alt 2,"(fuel_type_2 == 'Hybrid')",0,coef_hyb,0,0,0
+util_hyb3,Hybrid ASC alt 3,"(fuel_type_3 == 'Hybrid')",0,0,coef_hyb,0,0
+util_hyb4,Hybrid ASC alt 4,"(fuel_type_4 == 'Hybrid')",0,0,0,coef_hyb,0
+util_pev1,PEV ASC alt 1,"(fuel_type_1 == 'PEV')",coef_pev,0,0,0,0
+util_pev2,PEV ASC alt 2,"(fuel_type_2 == 'PEV')",0,coef_pev,0,0,0
+util_pev3,PEV ASC alt 3,"(fuel_type_3 == 'PEV')",0,0,coef_pev,0,0
+util_pev4,PEV ASC alt 4,"(fuel_type_4 == 'PEV')",0,0,0,coef_pev,0
+util_bev1,BEV ASC alt 1,"(fuel_type_1 == 'BEV')",coef_bev,0,0,0,0
+util_bev2,BEV ASC alt 2,"(fuel_type_2 == 'BEV')",0,coef_bev,0,0,0
+util_bev3,BEV ASC alt 3,"(fuel_type_3 == 'BEV')",0,0,coef_bev,0,0
+util_bev4,BEV ASC alt 4,"(fuel_type_4 == 'BEV')",0,0,0,coef_bev,0
+util_age2_1,Age 1 alt 1,"(age_1 == 2)",coef_age2,0,0,0,0
+util_age2_2,Age 1 alt 2,"(age_2 == 2)",0,coef_age2,0,0,0
+util_age2_3,Age 1 alt 3,"(age_3 == 2)",0,0,coef_age2,0,0
+util_age2_4,Age 1 alt 4,"(age_4 == 2)",0,0,0,coef_age2,0
+util_age3_1,Age 3 alt 1,"(age_1 == 3)",coef_age3,0,0,0,0
+util_age3_2,Age 3 alt 2,"(age_2 == 3)",0,coef_age3,0,0,0
+util_age3_3,Age 3 alt 3,"(age_3 == 3)",0,0,coef_age3,0,0
+util_age3_4,Age 4 alt 4,"(age_4 == 3)",0,0,0,coef_age3,0
+util_age4_1,Age 4 alt 1,"(age_1 == 4)",coef_age4,0,0,0,0
+util_age4_2,Age 4 alt 2,"(age_2 == 4)",0,coef_age4,0,0,0
+util_age4_3,Age 4 alt 3,"(age_3 == 4)",0,0,coef_age4,0,0
+util_age4_4,Age 3 alt 4,"(age_4 == 4)",0,0,0,coef_age4,0
+util_age5_1,Age 5 alt 1,"(age_1 == 5)",coef_age5,0,0,0,0
+util_age5_2,Age 5 alt 2,"(age_2 == 5)",0,coef_age5,0,0,0
+util_age5_3,Age 5 alt 3,"(age_3 == 5)",0,0,coef_age5,0,0
+util_age5_4,Age 5 alt 4,"(age_4 == 5)",0,0,0,coef_age5,0
+util_age6_1,Age 6 alt 1,"(age_1 == 6)",coef_age6,0,0,0,0
+util_age6_2,Age 6 alt 2,"(age_2 == 6)",0,coef_age6,0,0,0
+util_age6_3,Age 6 alt 3,"(age_3 == 6)",0,0,coef_age6,0,0
+util_age6_4,Age 6 alt 4,"(age_4 == 6)",0,0,0,coef_age6,0
+util_age7_1,Age 7 alt 1,"(age_1 == 7)",coef_age7,0,0,0,0
+util_age7_2,Age 7 alt 2,"(age_2 == 7)",0,coef_age7,0,0,0
+util_age7_3,Age 7 alt 3,"(age_3 == 7)",0,0,coef_age7,0,0
+util_age7_4,Age 7 alt 4,"(age_4 == 7)",0,0,0,coef_age7,0
+util_age8_1,Age 8 alt 1,"(age_1 == 8)",coef_age8,0,0,0,0
+util_age8_2,Age 8 alt 2,"(age_2 == 8)",0,coef_age8,0,0,0
+util_age8_3,Age 8 alt 3,"(age_3 == 8)",0,0,coef_age8,0,0
+util_age8_4,Age 8 alt 4,"(age_4 == 8)",0,0,0,coef_age8,0
+util_age9_1,Age 9 alt 1,"(age_1 == 9)",coef_age9,0,0,0,0
+util_age9_2,Age 9 alt 2,"(age_2 == 9)",0,coef_age9,0,0,0
+util_age9_3,Age 9 alt 3,"(age_3 == 9)",0,0,coef_age9,0,0
+util_age9_4,Age 9 alt 4,"(age_4 == 9)",0,0,0,coef_age9,0
+util_age10_1,Age 10 alt 1,"(age_1 == 10)",coef_age10,0,0,0,0
+util_age10_2,Age 10 alt 2,"(age_2 == 10)",0,coef_age10,0,0,0
+util_age10_3,Age 10 alt 3,"(age_3 == 10)",0,0,coef_age10,0,0
+util_age10_4,Age 10 alt 4,"(age_4 == 10)",0,0,0,coef_age10,0
+util_age11_1,Age 11 alt 1,"(age_1 == 11)",coef_age11,0,0,0,0
+util_age11_2,Age 11 alt 2,"(age_2 == 11)",0,coef_age11,0,0,0
+util_age11_3,Age 11 alt 3,"(age_3 == 11)",0,0,coef_age11,0,0
+util_age11_4,Age 11 alt 4,"(age_4 == 11)",0,0,0,coef_age11,0
+util_age12_1,Age 12 alt 1,"(age_1 == 12)",coef_age12,0,0,0,0
+util_age12_2,Age 12 alt 2,"(age_2 == 12)",0,coef_age12,0,0,0
+util_age12_3,Age 12 alt 3,"(age_3 == 12)",0,0,coef_age12,0,0
+util_age12_4,Age 12 alt 4,"(age_4 == 12)",0,0,0,coef_age12,0
+util_age13_1,Age 13 alt 1,"(age_1 == 13)",coef_age13,0,0,0,0
+util_age13_2,Age 13 alt 2,"(age_2 == 13)",0,coef_age13,0,0,0
+util_age13_3,Age 13 alt 3,"(age_3 == 13)",0,0,coef_age13,0,0
+util_age13_4,Age 13 alt 4,"(age_4 == 13)",0,0,0,coef_age13,0
+util_age14_1,Age 14 alt 1,"(age_1 == 14)",coef_age14,0,0,0,0
+util_age14_2,Age 14 alt 2,"(age_2 == 14)",0,coef_age14,0,0,0
+util_age14_3,Age 14 alt 3,"(age_3 == 14)",0,0,coef_age14,0,0
+util_age14_4,Age 14 alt 4,"(age_4 == 14)",0,0,0,coef_age14,0
+util_age15_1,Age 15 alt 1,"(age_1 == 15)",coef_age15,0,0,0,0
+util_age15_2,Age 15 alt 2,"(age_2 == 15)",0,coef_age15,0,0,0
+util_age15_3,Age 15 alt 3,"(age_3 == 15)",0,0,coef_age15,0,0
+util_age15_4,Age 15 alt 4,"(age_4 == 15)",0,0,0,coef_age15,0
+util_age16_1,Age 16 alt 1,"(age_1 == 16)",coef_age16,0,0,0,0
+util_age16_2,Age 16 alt 2,"(age_2 == 16)",0,coef_age16,0,0,0
+util_age16_3,Age 16 alt 3,"(age_3 == 16)",0,0,coef_age16,0,0
+util_age16_4,Age 16 alt 4,"(age_4 == 16)",0,0,0,coef_age16,0
+util_age17_1,Age 17 alt 1,"(age_1 == 17)",coef_age17,0,0,0,0
+util_age17_2,Age 17 alt 2,"(age_2 == 17)",0,coef_age17,0,0,0
+util_age17_3,Age 17 alt 3,"(age_3 == 17)",0,0,coef_age17,0,0
+util_age17_4,Age 17 alt 4,"(age_4 == 17)",0,0,0,coef_age17,0
+util_age18_1,Age 18 alt 1,"(age_1 == 18)",coef_age18,0,0,0,0
+util_age18_2,Age 18 alt 2,"(age_2 == 18)",0,coef_age18,0,0,0
+util_age18_3,Age 18 alt 3,"(age_3 == 18)",0,0,coef_age18,0,0
+util_age18_4,Age 18 alt 4,"(age_4 == 18)",0,0,0,coef_age18,0
+util_age19_1,Age 19 alt 1,"(age_1 == 19)",coef_age19,0,0,0,0
+util_age19_2,Age 19 alt 2,"(age_2 == 19)",0,coef_age19,0,0,0
+util_age19_3,Age 19 alt 3,"(age_3 == 19)",0,0,coef_age19,0,0
+util_age19_4,Age 19 alt 4,"(age_4 == 19)",0,0,0,coef_age19,0
+util_age20_1,Age 20 alt 1,"(age_1 == 20)",coef_age20,0,0,0,0
+util_age20_2,Age 20 alt 2,"(age_2 == 20)",0,coef_age20,0,0,0
+util_age20_3,Age 20 alt 3,"(age_3 == 20)",0,0,coef_age20,0,0
+util_age20_4,Age 20 alt 4,"(age_4 == 20)",0,0,0,coef_age20,0

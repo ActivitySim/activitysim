@@ -10,13 +10,21 @@ from activitysim.core.util import reindex
 logger = logging.getLogger(__name__)
 
 
-RANDOM_CHANNELS = ["households", "persons", "tours", "joint_tour_participants", "trips"]
+RANDOM_CHANNELS = [
+    "households",
+    "persons",
+    "tours",
+    "joint_tour_participants",
+    "trips",
+    "vehicles",
+]
 TRACEABLE_TABLES = [
     "households",
     "persons",
     "tours",
     "joint_tour_participants",
     "trips",
+    "vehicles",
 ]
 
 CANONICAL_TABLE_INDEX_NAMES = {
@@ -26,6 +34,7 @@ CANONICAL_TABLE_INDEX_NAMES = {
     "joint_tour_participants": "participant_id",
     "trips": "trip_id",
     "land_use": "zone_id",
+    "vehicles": "vehicle_id",
 }
 
 # unfortunately the two places this is needed (joint_tour_participation and estimation.infer

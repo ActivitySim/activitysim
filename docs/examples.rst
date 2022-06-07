@@ -850,7 +850,7 @@ The multiprocessing example also writes outputs to the output folder.
 The default multiprocessed example is configured to run with two processors and chunking training: ``num_processes: 2``,
 ``chunk_size: 0``, and ``chunk_training_mode: training``.  Additional more performant configurations are included and
 commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example
-- ``example_mtc_full`` - was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.
+- ``example_gondor_full`` - was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.
 The default setup runs with ``chunk_training_mode: training`` since no chunk cache file is present. To run the example
 significantly faster, try ``chunk_training_mode: disabled`` if the machine has sufficient RAM, or try
 ``chunk_training_mode: production``.  To configure ``chunk_training_mode: production``, first configure chunking as

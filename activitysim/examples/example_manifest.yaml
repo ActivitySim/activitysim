@@ -23,10 +23,10 @@
     - example_gondor/configs_mp
     - example_gondor/output
 
-- name: example_mtc_full
-  description: Full 1475-zone dataset for the MTC region with 2.8M households and 7.5M persons
-  # activitysim create -e example_mtc_full -d test_example_mtc_full
-  # cd test_example_mtc_full
+- name: example_gondor_full
+  description: Gondor example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
+  # activitysim create -e example_gondor_full -d test_example_gondor_full
+  # cd test_example_gondor_full
   # activitysim run -c configs_mp -c configs -o output -d data
   # cd ..
   include:
@@ -62,7 +62,7 @@
     - example_arnor/README.MD
 
 - name: example_arnor_full
-  description: Full 1475-zone dataset for Gondor with 2.8M households and 7.5M persons with extended models
+  description: Arnor example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
   # activitysim create -e example_arnor_full -d test_example_arnor_full
   # cd test_example_arnor_full
   # activitysim run -c configs_mp -c configs_extended/configs -c configs -o output -d data
@@ -140,7 +140,7 @@
     - example_gondor/output
 
 - name: example_2_zone
-  description: 2 zone system test example based on TM1
+  description: 2 zone system test example based on Gondor
   # activitysim create -e example_2_zone -d test_example_2_zone
   # cd test_example_2_zone
   # activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
@@ -176,7 +176,7 @@
       773c89369f748e26309786b42aa4c62b5dd329a931214dd63a11007001de3829
 
 - name: example_3_zone
-  description: 3 zone system test example based on TM1
+  description: 3 zone system test example based on Gondor
   # activitysim create -e example_3_zone -d test_example_3_zone
   # cd test_example_3_zone
   # activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_static.yaml

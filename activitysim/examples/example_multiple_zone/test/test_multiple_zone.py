@@ -22,7 +22,7 @@ def example_path(dirname):
 
 
 def mtc_example_path(dirname):
-    resource = os.path.join('examples', 'example_mtc', dirname)
+    resource = os.path.join('examples', 'example_gondor', dirname)
     return pkg_resources.resource_filename('activitysim', resource)
 
 
@@ -87,7 +87,7 @@ def test_2_zone_mp(data):
 
 def test_3_zone(data):
     # python simulation.py -c configs_3_zone -c ../configs_3_zone -c \
-    # ../../example_mtc/configs -d ../data_3 -o output -s settings_mp
+    # ../../example_gondor/configs -d ../data_3 -o output -s settings_mp
     run_test(zone='3', multiprocess=False)
 
 

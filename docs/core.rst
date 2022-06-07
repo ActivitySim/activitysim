@@ -430,7 +430,7 @@ In the output directory, add a new summarize directory, which must contain:
 * ``topsheet.yaml``: configuration for calculated statistics in the ‘At-a-Glance’ table at the top of the dashboard
 * The ``/output/summarize`` directory may also contain one or more .geojson files to support map-based visualizations in the dashboard.
 
-At present, example versions of all of the items above are located in the MTC example model: ``/activitysim/examples/example_mtc``. Complete documentation for configuring dashboards is available in the `SimWrapper Docs <https://simwrapper.github.io/docs/simwrapper-intro>`_.
+At present, example versions of all of the items above are located in the Gondor example model: ``/activitysim/examples/example_gondor``. Complete documentation for configuring dashboards is available in the `SimWrapper Docs <https://simwrapper.github.io/docs/simwrapper-intro>`_.
 
 
 Configure the Summarize Model

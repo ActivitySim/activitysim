@@ -1,15 +1,15 @@
-- name: example_mtc
-  description: 25-zone example for the MTC region
-  # activitysim create -e example_mtc -d test_example_mtc
+- name: example_gondor
+  description: 25-zone example for the Gondor model
+  # activitysim create -e example_gondor -d test_example_mtc
   # cd test_example_mtc
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/data
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/output
-    - example_mtc/README.MD
+    - example_gondor/data
+    - example_gondor/configs
+    - example_gondor/configs_mp
+    - example_gondor/output
+    - example_gondor/README.MD
 
 - name: example_test
   description: data and configs for the ActivitySim test system
@@ -18,10 +18,10 @@
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/data
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/output
+    - example_gondor/data
+    - example_gondor/configs
+    - example_gondor/configs_mp
+    - example_gondor/output
 
 - name: example_mtc_full
   description: Full 1475-zone dataset for the MTC region with 2.8M households and 7.5M persons
@@ -30,9 +30,9 @@
   # activitysim run -c configs_mp -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/output
+    - example_gondor/configs
+    - example_gondor/configs_mp
+    - example_gondor/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
       04bddb2dd6b829a2ce25a27369d3276143fa9a354989ebd30ed9bba92f8e9bfb
@@ -46,35 +46,35 @@
       data/land_use.csv
       fac71207925a34c32b956632fe375814e42860624a99f88401c42317af0fc203
 
-- name: example_mtc_extended
-  description: 25-zone example for the MTC region with extended models
-  # activitysim create -e example_mtc_extended -d test_example_mtc_extended
-  # cd test_example_mtc_extended
+- name: example_arnor
+  description: 25-zone Gondor example with extended models
+  # activitysim create -e example_arnor -d test_example_arnor
+  # cd test_example_arnor
   # activitysim run -c configs_extended/configs -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/data
-    - example_mtc_extended/configs
+    - example_gondor/data
+    - example_arnor/configs
       configs_extended
-    - example_mtc/configs
-    - example_mtc_extended/configs_mp
-    - example_mtc_extended/output
-    - example_mtc_extended/README.MD
+    - example_gondor/configs
+    - example_arnor/configs_mp
+    - example_arnor/output
+    - example_arnor/README.MD
 
-- name: example_mtc_full_extended
-  description: Full 1475-zone dataset for the MTC region with 2.8M households and 7.5M persons with extended models
-  # activitysim create -e example_mtc_full_extended -d test_example_mtc_full_extended
-  # cd test_example_mtc_full_extended
+- name: example_arnor_full
+  description: Full 1475-zone dataset for Gondor with 2.8M households and 7.5M persons with extended models
+  # activitysim create -e example_arnor_full -d test_example_arnor_full
+  # cd test_example_arnor_full
   # activitysim run -c configs_mp -c configs_extended/configs -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/data
-    - example_mtc/configs
-    - example_mtc_extended/configs
+    - example_gondor/data
+    - example_gondor/configs
+    - example_arnor/configs
       configs_extended
-    - example_mtc_extended/configs_mp
-    - example_mtc_extended/output
-    - example_mtc_extended/README.MD
+    - example_arnor/configs_mp
+    - example_arnor/output
+    - example_arnor/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/households.csv
@@ -91,10 +91,10 @@
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/data
-    - example_mtc/output
+    - example_gondor/configs
+    - example_gondor/configs_mp
+    - example_gondor/data
+    - example_gondor/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data/skims.omx
       579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
@@ -115,13 +115,13 @@
   # activitysim run -c configs_estimation/configs -c configs -o output -d data_test
   # cd ..
   include:
-    - example_mtc/configs
+    - example_gondor/configs
     - example_estimation/configs
       configs_estimation
     - example_estimation/data_test
-    - example_mtc/data/skims.omx
+    - example_gondor/data/skims.omx
       data_test/skims.omx
-    - example_mtc/output
+    - example_gondor/output
 
 - name: example_estimation_sf
   description: Estimation mode San Francisco MTC dataset with 190 zones, 2k households and 8k persons
@@ -130,14 +130,14 @@
   # activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
   # cd ..
   include:
-    - example_mtc/configs
+    - example_gondor/configs
     - example_estimation/configs
       configs_estimation
     - example_estimation/data_sf
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data_sf/skims.omx
       579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
-    - example_mtc/output
+    - example_gondor/output
 
 - name: example_2_zone
   description: 2 zone system test example based on TM1
@@ -146,7 +146,7 @@
   # activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
   # cd ..
   include:
-    - example_mtc/configs
+    - example_gondor/configs
     - example_multiple_zone/configs_2_zone
     - example_multiple_zone/data_2
     - example_multiple_zone/output_2
@@ -186,7 +186,7 @@
   # activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    - example_mtc/configs
+    - example_gondor/configs
     - example_multiple_zone/configs_3_zone
     - example_multiple_zone/configs_local
     - example_multiple_zone/data_3
@@ -645,11 +645,11 @@
   description: 90-TAZ (includes univ) 1-zone test example for the SANDAG region
   # activitysim create -e example_sandag_1_zone -d test_example_sandag_1_zone
   # cd test_example_sandag_1_zone
-  # activitysim run -c configs_1_zone -c example_mtc/configs -d data_1 -o output_1 -s settings_mp.yaml
+  # activitysim run -c configs_1_zone -c example_gondor/configs -d data_1 -o output_1 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/../example_mtc/configs
-      example_mtc
+    - example_sandag/../example_gondor/configs
+      example_gondor
     - example_sandag/configs_1_zone
     - example_sandag/data_1
     - example_sandag/output_1
@@ -658,11 +658,11 @@
   description: full 1-zone example for the SANDAG region
   # activitysim create -e example_sandag_1_zone_full -d test_example_sandag_1_zone_full
   # cd test_example_sandag_1_zone_full
-  # activitysim run -c configs_1_zone -c example_mtc/configs -d data_1 -o output_1 -s settings_mp.yaml
+  # activitysim run -c configs_1_zone -c example_gondor/configs -d data_1 -o output_1 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/../example_mtc/configs
-      example_mtc
+    - example_sandag/../example_gondor/configs
+      example_gondor
     - example_sandag/configs_1_zone
     - example_sandag/data_1
     - example_sandag/output_1
@@ -763,12 +763,12 @@
   description: 90-TAZ 609-MAZ (includes univ) 3-zone test example for the SANDAG region
   # activitysim create -e example_sandag_3_zone -d test_example_sandag_3_zone
   # cd test_example_sandag_3_zone
-  # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
+  # activitysim run -c configs_3_zone -c example_gondor/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
     - example_sandag/data_3
-    - example_sandag/../example_mtc/configs
-      example_mtc
+    - example_sandag/../example_gondor/configs
+      example_gondor
     - example_sandag/configs_3_zone
     - example_sandag/configs_skip_accessibility
     - example_sandag/output_3
@@ -777,12 +777,12 @@
   description: full 3-zone example for the SANDAG region
   # activitysim create -e example_sandag_3_zone_full -d test_example_sandag_3_zone_full
   # cd test_example_sandag_3_zone_full
-  # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
+  # activitysim run -c configs_3_zone -c example_gondor/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
     - example_sandag/data_3
-    - example_sandag/../example_mtc/configs
-      example_mtc
+    - example_sandag/../example_gondor/configs
+      example_gondor
     - example_sandag/configs_3_zone
     - example_sandag/configs_skip_accessibility
     - example_sandag/output_3

@@ -20,9 +20,9 @@ jobs:
 
     - stage: Examples
       name: "MTC Example"
-      env: TEST_SUITE=activitysim/examples/example_mtc/test
+      env: TEST_SUITE=activitysim/examples/example_gondor/test
     - name: "MTC Extended Example"
-      env: TEST_SUITE=activitysim/examples/example_mtc_extended/test
+      env: TEST_SUITE=activitysim/examples/example_arnor/test
     - name: "Multizone Example"
       env: TEST_SUITE=activitysim/examples/example_multiple_zone/test
     - name: "Marin Example"

@@ -12,13 +12,13 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | Example                         | Purpose                                                   | Zone Systems | Status               |
 +=================================+===========================================================+==============+======================+
-| :ref:`example_mtc`              | Primary MTC travel model one example                      | 1            | Mature               |
+| :ref:`example_gondor`           | Original ActivitySim Example, derived from MTC TM1        | 1            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_mtc_extended`     | example_mtc with additional optional models               | 1            | In development       |
+| :ref:`example_arnor`            | Gondor example with additional optional models            | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_estimation`       | Estimation example with example_mtc                       | 1            | Mature               |
+| :ref:`example_estimation`       | Estimation example with example_gondor                    | 1            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_multiple_zones`   | 2 or 3 zone system example using example_mtc data         | 2 or 3       | Simple test example  |
+| :ref:`example_multiple_zones`   | 2 or 3 zone system example using Gondor data              | 2 or 3       | Simple test example  |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_marin`            | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -40,10 +40,10 @@ This page describes the example models included with ActivitySim.  The current e
 
 .. _example_mtc :
 
-example_mtc
------------
+example_gondor
+--------------
 
-The initial example implemented in ActivitySim was example_mtc.  This section described the example_mtc
+The initial example implemented in ActivitySim was example_gondor.  This section described the example_gondor
 model design, how to setup and run the example, and how to review outputs. The default configuration of the
 example is limited to a small sample of households and zones so that it can be run quickly and require
 less than 1 GB of RAM.  The full scale example can be configured and run as well.
@@ -51,7 +51,7 @@ less than 1 GB of RAM.  The full scale example can be configured and run as well
 Model Design
 ~~~~~~~~~~~~
 
-The example_mtc example is based on the
+The example_gondor example is based on (but has evolved away from) the
 `Bay Area Metro Travel Model One <https://github.com/BayAreaMetro/travel-model-one>`__ (TM1).
 TM1 has its roots in a wide array of analytical approaches, including discrete
 choice forms (multinomial and nested logit models), activity duration models, time-use models,
@@ -244,7 +244,7 @@ transit line-haul modes, and ride hail with taxi, single TNC (Transportation Net
 Sub-models
 ^^^^^^^^^^
 
-The general design of the example_mtc model is presented below.  Long-term choices that relate to
+The general design of the example_gondor model is presented below.  Long-term choices that relate to
 the usual workplace/university/school for each worker and student, household car ownership, and the
 availability of free parking at workplaces are first.
 
@@ -281,12 +281,12 @@ can be aggregated into travel demand matrices for network loading.
 Setup
 ~~~~~
 
-The following describes the example_mtc model setup.
+The following describes the example_gondor model setup.
 
 
 Folder and File Setup
 
-The example_mtc has the following root folder/file setup:
+The example_gondor has the following root folder/file setup:
 
   * configs - settings, expressions files, etc.
   * configs_mp - override settings for the multiprocess configuration
@@ -295,7 +295,7 @@ The example_mtc has the following root folder/file setup:
 
 Inputs
 ^^^^^^
-In order to run example_mtc, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file and the ``configs\network_los.yaml`` file:
+In order to run example_gondor, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file and the ``configs\network_los.yaml`` file:
 
 * input_table_list: the input CSV tables from MTC travel model one (see below for column definitions):
 
@@ -478,7 +478,7 @@ Area types
   The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
   Cube to OMX using the ``other_resources\scripts\mtc_tm1_omx_export.s`` script.
 
-  The example_mtc inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and
+  The example_mtc_sf inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and
   skim inputs for a subset of user-defined zones.
 
 .. index:: configuration
@@ -546,8 +546,8 @@ Included in the ``configs`` folder are the model specification files that store 
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
-columns indicates the number of non-mandatory tours by purpose.  The  set of files for the example_mtc are below.  The
-:ref:`example_arc`, :ref:`example_semcog`, and :ref:`example_mtc_extended` examples added additional submodels.
+columns indicates the number of non-mandatory tours by purpose.  The  set of files for the example_gondor are below.  The
+:ref:`example_arc`, :ref:`example_semcog`, and :ref:`example_arnor` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -809,7 +809,7 @@ To run the example, do the following:
 
 ::
 
-  activitysim create --example example_mtc --destination my_test_example
+  activitysim create --example example_gondor --destination my_test_example
 
 * Run the example
 
@@ -1057,14 +1057,14 @@ only be activated when writing logsums for a small set of households for model e
 | mode_choice_logsum                | mode choice logsum                    |
 +-----------------------------------+---------------------------------------+
 
-.. _example_mtc_extended :
+.. _example_arnor :
 
-example_mtc_extended
---------------------
+example_arnor
+-------------
 
-example_mtc_extended contains additional models that were developed to enhance ActivitySim's modeling
-capabilities, but are not part of travel model one that example_mtc was developed from. This example inherets
-the data and configuration files from example_mtc. The current list of additional models included
+example_arnor contains additional models that were developed to enhance ActivitySim's modeling
+capabilities. This example inherets
+the data and configuration files from example_gondor. The current list of additional models included
 in this example are:
 
 * :ref:`vehicle_type_choice`: Selects a vehicle type for each household vehicle. Runs after auto_ownership.
@@ -1413,7 +1413,7 @@ example_arc
 
 
 The example_arc added a :ref:`trip_scheduling_choice`, :ref:`trip_departure_choice`, and :ref:`parking_location_choice`
-submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc`
+submodel.  These submodel specification files are below, and are in addition to the :ref:`example_gondor`
 submodel :ref:`sub-model-spec-files`.
 
 .. _arc-sub-model-spec-files:
@@ -1455,7 +1455,7 @@ example_semcog
 
 
 The example_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
-and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
+and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_gondor`
 submodel :ref:`sub-model-spec-files`.  These submodels were added to example_semcog as extensions, which is a way for users to add 
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
 the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
@@ -1504,7 +1504,7 @@ example_psrc
 
 
 The example_psrc is a two zone system (MAZs and TAZs) implementation of the
-example_mtc model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).
+example_gondor model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).
 
 Example
 ~~~~~~~
@@ -1523,7 +1523,7 @@ example_sandag
 
 
 The example_sandag is a three zone system (MAZs, TAZs, and TAPs) implementation of the
-example_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).
+example_gondor model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).
 
 Example
 ~~~~~~~

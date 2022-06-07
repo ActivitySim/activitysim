@@ -83,7 +83,7 @@
     python ../activitysim/examples/scan_examples_for_errors.py .
     ```
 
-00. Test the notebooks in `activitysim/examples/example_mtc/notebooks`.
+00. Test the notebooks in `activitysim/examples/example_gondor/notebooks`.
     There are also demo notebooks for estimation, but their functionality  
     is completely tested in the unit tests run previously.
 

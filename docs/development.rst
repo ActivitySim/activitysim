@@ -330,7 +330,7 @@ Examples
 Generally speaking, there are two types of ActivitySim examples: test examples and agency examples.
 
 * Test examples - these are the core ActivitySim maintained and tested examples developed to date.  The current test
-  examples are :ref:`example_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.
+  examples are :ref:`example_gondor`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`example_marin`.
   These examples are owned and maintained by the project.
 * Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
   are :ref:`example_arc`, :ref:`example_semcog`, :ref:`example_psrc`, :ref:`example_sandag`, and :ref:`example_sandag_xborder`.  These examples can be
@@ -425,7 +425,7 @@ When a new version of the code is pushed to develop:
   * If the agency example previous ran without error or future warnings (i.e. deprecation warnings and is therefore up-to-date), then the developer will be responsible for updating the agency example so it passes the tests
   * If the agency example previously threw errors or future warnings (i.e. is not up-to-date), then the developer will not update the example and the responsibility will fall to the agency to update it when they have time.  This will not preclude development from advancing since the agency specific test can fail while the other tests continue to pass.  If the agency example is not updated within an agreed upon time frame, then the example is removed from the test system.
 
-To help understand this case, the addition of support for representative logsums to :ref:`example_mtc` is discussed.  Example_mtc was selected as the test case for development of this feature because this feature could be implemented and tested against this example, which is the primary example to date.  With the new feature configured for this example, the automatic test system was run to ensure all the existing test examples pass their tests.  The automatic test system was also run to ensure all the cropped agency examples passed their tests, but since not of them include this new feature in their configuration, the test results were the same and therefore the tests passed.  
+To help understand this case, the addition of support for representative logsums to :ref:`example_gondor` is discussed.  Example_mtc was selected as the test case for development of this feature because this feature could be implemented and tested against this example, which is the primary example to date.  With the new feature configured for this example, the automatic test system was run to ensure all the existing test examples pass their tests.  The automatic test system was also run to ensure all the cropped agency examples passed their tests, but since not of them include this new feature in their configuration, the test results were the same and therefore the tests passed.
 
 When an agency wants to update their example:
 

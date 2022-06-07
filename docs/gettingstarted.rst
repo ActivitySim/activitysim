@@ -156,7 +156,7 @@ To setup and run the primary example (see :ref:`examples`), do the following:
 
 * Open a command prompt
 * Activate the conda environment with ActivitySim installed (i.e. ``conda activate asim``)
-* Type ``activitysim create -e example_mtc -d test_example_mtc`` to copy the very small MTC example to a new test_example_mtc directory
+* Type ``activitysim create -e example_gondor -d test_example_gondor`` to copy the very small Gondor example to a new test_example_gondor directory
 * Change to the test_example_mtc directory
 * Type ``activitysim run -c configs -o output -d data`` to run the example
 * Review the outputs in the output directory
@@ -177,13 +177,13 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 * Open a conda prompt and activate the conda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
-* Navigate to the ``examples/example_mtc/notebooks`` folder and select a notebook to learn more:
+* Navigate to the ``examples/example_gondor/notebooks`` folder and select a notebook to learn more:
 
-  * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/getting_started.ipynb/>`__
-  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/>`__
-  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
-  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/adding_tncs.ipynb/>`__
-  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/memory_usage.ipynb/>`__
+  * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_gondor/notebooks/getting_started.ipynb/>`__
+  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_gondor/notebooks/summarizing_results.ipynb/>`__
+  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_gondor/notebooks/change_in_auto_ownership.ipynb/>`__
+  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_gondor/notebooks/adding_tncs.ipynb/>`__
+  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_gondor/notebooks/memory_usage.ipynb/>`__
 
 Hardware
 --------

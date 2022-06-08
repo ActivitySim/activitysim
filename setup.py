@@ -48,5 +48,6 @@ setup(
         "sharrow >= 2.0",
         "xarray >= 0.21",
         "simwrapper > 1.7",
+        "pypyr >= 5.3",
     ],
 )

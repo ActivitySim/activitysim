@@ -38,7 +38,7 @@ This page describes the example models included with ActivitySim.  The current e
    contains example commands to create and run several versions of the examples.  See also :ref:`adding_agency_examples` for more
    information on agency example models.
 
-.. _example_mtc :
+.. _example_gondor :
 
 example_gondor
 --------------
@@ -65,7 +65,7 @@ individual decision-makers.
 Space
 ^^^^^
 
-TM1 uses the 1454 TAZ zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
+The Gondor model uses the 1454 TAZ zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
 which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the
 original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
@@ -297,7 +297,7 @@ Inputs
 ^^^^^^
 In order to run example_gondor, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file and the ``configs\network_los.yaml`` file:
 
-* input_table_list: the input CSV tables from MTC travel model one (see below for column definitions):
+* input_table_list: the input CSV tables for Gondor (see below for column definitions):
 
     * households - Synthetic population household records for a subset of zones.
     * persons - Synthetic population person records for a subset of zones.
@@ -306,7 +306,7 @@ In order to run example_gondor, you first need the input files in the ``data`` f
 * taz_skims: skims.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).
 
 These files are used in the tests as well.  The full set
-of MTC TM1 households, persons, and OMX skims are on the ActivitySim `resources repository <https://github.com/rsginc/activitysim_resources>`__.
+of Gondor households, persons, and OMX skims are on the ActivitySim `resources repository <https://github.com/rsginc/activitysim_resources>`__.
 
 Additional details on these files is available in the original `Travel Model 1 repository <https://github.com/BayAreaMetro/modeling-website/wiki/DataDictionary>`_,
 although many of the files described there are not used in ActivitySim.
@@ -475,7 +475,7 @@ Area types
   OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__ or
   `HDFView <https://www.hdfgroup.org/downloads/hdfview>`__.
 
-  The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
+  The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted for the Gondor example from
   Cube to OMX using the ``other_resources\scripts\mtc_tm1_omx_export.s`` script.
 
   The example_mtc_sf inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and

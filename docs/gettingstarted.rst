@@ -157,7 +157,7 @@ To setup and run the primary example (see :ref:`examples`), do the following:
 * Open a command prompt
 * Activate the conda environment with ActivitySim installed (i.e. ``conda activate asim``)
 * Type ``activitysim create -e example_gondor -d test_example_gondor`` to copy the very small Gondor example to a new test_example_gondor directory
-* Change to the test_example_mtc directory
+* Change to the test_example_gondor directory
 * Type ``activitysim run -c configs -o output -d data`` to run the example
 * Review the outputs in the output directory
 
@@ -165,7 +165,7 @@ To setup and run the primary example (see :ref:`examples`), do the following:
    Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.  
    ActivitySim model runs can be configured with settings file inheritance to avoid duplicating settings across model configurations.  See :ref:`cli` for more information.
 
-Additional examples, including the full scale MTC regional demand model, estimation integration examples, multiple zone system examples, 
+Additional examples, including the full scale Gondor regional demand model, estimation integration examples, multiple zone system examples,
 and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
 the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.  See :ref:`examples` for more information.
 
@@ -197,7 +197,7 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 * The desired runtimes
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
-data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
+data access time in order to minimize runtime.  For example, the example Gondor model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
 

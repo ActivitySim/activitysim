@@ -350,8 +350,8 @@ Furthermore, multiple versions of these examples can exist, and be used for vari
   questions related to runtime, such as improvements to methods indifferent to the size of the population and number of
   zones.
 * Other - a specific route/path through the code for testing.  For example, the estimation example tests the estimation
-  mode functionality.  The estimation example is a version of the example mtc example - it inherits most settings from
-  example mtc and includes additional settings for reading in survey files and producing estimation data bundles.
+  mode functionality.  The estimation example is a version of the example Gondor example - it inherits most settings from
+  Gondor and includes additional settings for reading in survey files and producing estimation data bundles.
 
 Regardless of the type or version, all functioning examples are described in a common list stored in
 `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_.
@@ -425,7 +425,7 @@ When a new version of the code is pushed to develop:
   * If the agency example previous ran without error or future warnings (i.e. deprecation warnings and is therefore up-to-date), then the developer will be responsible for updating the agency example so it passes the tests
   * If the agency example previously threw errors or future warnings (i.e. is not up-to-date), then the developer will not update the example and the responsibility will fall to the agency to update it when they have time.  This will not preclude development from advancing since the agency specific test can fail while the other tests continue to pass.  If the agency example is not updated within an agreed upon time frame, then the example is removed from the test system.
 
-To help understand this case, the addition of support for representative logsums to :ref:`example_gondor` is discussed.  Example_mtc was selected as the test case for development of this feature because this feature could be implemented and tested against this example, which is the primary example to date.  With the new feature configured for this example, the automatic test system was run to ensure all the existing test examples pass their tests.  The automatic test system was also run to ensure all the cropped agency examples passed their tests, but since not of them include this new feature in their configuration, the test results were the same and therefore the tests passed.
+To help understand this case, the addition of support for representative logsums to :ref:`example_gondor` is discussed.  Example_gondor was selected as the test case for development of this feature because this feature could be implemented and tested against this example, which is the primary example to date.  With the new feature configured for this example, the automatic test system was run to ensure all the existing test examples pass their tests.  The automatic test system was also run to ensure all the cropped agency examples passed their tests, but since not of them include this new feature in their configuration, the test results were the same and therefore the tests passed.
 
 When an agency wants to update their example:
 

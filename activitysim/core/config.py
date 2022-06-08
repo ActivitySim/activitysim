@@ -669,6 +669,14 @@ def filter_warnings():
         message="`np.object` is a deprecated alias",
     )
 
+    # Numba triggers a DeprecationWarning from numpy about np.MachAr
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        module="numpy",
+        message=".np.MachAr. is deprecated",
+    )
+
     # beginning pandas version 1.3, various places emit a PerformanceWarning that is
     # caught in the "strict" filter above, but which are currently unavoidable for complex models.
     # These warning are left as warnings as an invitation for future enhancement.

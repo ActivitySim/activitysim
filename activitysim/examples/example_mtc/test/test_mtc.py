@@ -2,10 +2,10 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
-import pkg_resources
 
 import pandas as pd
 import pandas.testing as pdt
+import pkg_resources
 
 from activitysim.core import inject
 
@@ -15,7 +15,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def run_test_mtc(multiprocess=False, chunkless=False):
+def run_test_mtc(multiprocess=False, chunkless=False, recode=False):
     def example_path(dirname):
         resource = os.path.join("examples", "example_mtc", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -58,6 +58,17 @@ def run_test_mtc(multiprocess=False, chunkless=False):
             "-o",
             test_path("output"),
         ]
+    elif recode:
+        run_args = [
+            "-c",
+            test_path("configs_recode"),
+            "-c",
+            example_path("configs"),
+            "-d",
+            example_path("data"),
+            "-o",
+            test_path("output"),
+        ]
     else:
         run_args = [
             "-c",
@@ -87,8 +98,13 @@ def test_mtc_mp():
     run_test_mtc(multiprocess=True)
 
 
+def test_mtc_recode():
+    run_test_mtc(recode=True)
+
+
 if __name__ == "__main__":
 
     run_test_mtc(multiprocess=False)
     run_test_mtc(multiprocess=True)
     run_test_mtc(multiprocess=False, chunkless=True)
+    run_test_mtc(recode=True)

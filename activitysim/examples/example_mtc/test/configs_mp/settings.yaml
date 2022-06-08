@@ -29,3 +29,6 @@ output_tables:
   sort: True
   tables:
     - trips
+
+recode_pipeline_columns: False
+offset_preprocessing: False

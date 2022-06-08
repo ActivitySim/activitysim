@@ -15,7 +15,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def run_test_mtc(multiprocess=False, chunkless=False, recode=False):
+def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=False):
     def example_path(dirname):
         resource = os.path.join("examples", "example_mtc", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -69,6 +69,17 @@ def run_test_mtc(multiprocess=False, chunkless=False, recode=False):
             "-o",
             test_path("output"),
         ]
+    elif sharrow:
+        run_args = [
+            "-c",
+            test_path("configs_sharrow"),
+            "-c",
+            example_path("configs"),
+            "-d",
+            example_path("data"),
+            "-o",
+            test_path("output"),
+        ]
     else:
         run_args = [
             "-c",
@@ -102,9 +113,14 @@ def test_mtc_recode():
     run_test_mtc(recode=True)
 
 
+def test_mtc_sharrow():
+    run_test_mtc(sharrow=True)
+
+
 if __name__ == "__main__":
 
     run_test_mtc(multiprocess=False)
     run_test_mtc(multiprocess=True)
     run_test_mtc(multiprocess=False, chunkless=True)
     run_test_mtc(recode=True)
+    run_test_mtc(sharrow=True)

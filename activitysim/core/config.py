@@ -673,7 +673,7 @@ def filter_warnings():
     warnings.filterwarnings(
         "ignore",
         category=DeprecationWarning,
-        module="numpy",
+        module="numba",
         message=".np.MachAr. is deprecated",
     )
 

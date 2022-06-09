@@ -68,10 +68,6 @@ def compute_logsums(choosers,
         choosers['in_period'] = network_los.skim_time_period_label(choosers[in_period_col])
         choosers['out_period'] = network_los.skim_time_period_label(choosers[out_period_col])
     elif ('in_period' not in choosers.columns) and ('out_period' not in choosers.columns):
-<<<<<<< Updated upstream
-        choosers['in_period'] = network_los.skim_time_period_label(model_settings['IN_PERIOD'])
-        choosers['out_period'] = network_los.skim_time_period_label(model_settings['OUT_PERIOD'])
-=======
         if type(model_settings['IN_PERIOD']) is dict and type(model_settings['OUT_PERIOD']) is dict:
             if tour_purpose in model_settings['IN_PERIOD'] and tour_purpose in model_settings['OUT_PERIOD']:
                 choosers['in_period'] = network_los.skim_time_period_label(model_settings['IN_PERIOD'][tour_purpose])
@@ -79,23 +75,18 @@ def compute_logsums(choosers,
         else:
             choosers['in_period'] = network_los.skim_time_period_label(model_settings['IN_PERIOD'])
             choosers['out_period'] = network_los.skim_time_period_label(model_settings['OUT_PERIOD'])
->>>>>>> Stashed changes
     else:
         logger.error("Choosers table already has columns 'in_period' and 'out_period'.")
 
     if duration_col is not None:
         choosers['duration'] = choosers[duration_col]
     elif 'duration' not in choosers.columns:
-<<<<<<< Updated upstream
-        choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
-=======
         if type(model_settings['IN_PERIOD']) is dict and type(model_settings['OUT_PERIOD']) is dict:
             if tour_purpose in model_settings['IN_PERIOD'] and tour_purpose in model_settings['OUT_PERIOD']:
                 choosers['duration'] = model_settings['IN_PERIOD'][tour_purpose] - \
                          model_settings['OUT_PERIOD'][tour_purpose]
         else:
             choosers['duration'] = model_settings['IN_PERIOD'] - model_settings['OUT_PERIOD']
->>>>>>> Stashed changes
     else:
         logger.error("Choosers table already has column 'duration'.")
 

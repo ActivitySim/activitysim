@@ -445,15 +445,6 @@ def eval_utilities(spec, choosers, locals_d=None, trace_label=None,
                 # Cause all warnings to always be triggered.
                 warnings.simplefilter("always")
                 if expr.startswith('@'):
-                    tilde_idx = expr.find('~')
-                    if (tilde_idx > -1):
-                        if expr[tilde_idx + 1: tilde_idx + 3] != 'df':
-                            logger.warning(
-                                "Found a `~` operator in an expression being "
-                                "evaluated by the Python `eval()` rather than "
-                                "Pandas. This is probably a mistake since Python "
-                                "will evaluate `~False` as -1 and `~True` as -2."
-                            )
                     expression_value = eval(expr[1:], globals_dict, locals_dict)
 
                 else:

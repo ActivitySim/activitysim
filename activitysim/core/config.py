@@ -333,6 +333,12 @@ def log_file_path(file_name, prefix=True):
 
     output_dir = inject.get_injectable('output_dir')
 
+    # - check if running asv and if so, log to commit-specific subfolder
+    asv_commit = os.environ.get('ASV_COMMIT', None)
+    if asv_commit:
+        output_dir = os.path.join(output_dir, f'log-{asv_commit}')
+        os.makedirs(output_dir, exist_ok=True)
+
     # - check for optional log subfolder
     if os.path.exists(os.path.join(output_dir, 'log')):
         output_dir = os.path.join(output_dir, 'log')
@@ -377,7 +383,7 @@ class SettingsFileNotFound(Exception):
         return repr(f"Settings file '{self.file_name}' not found in {self.configs_dir}")
 
 
-def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_list=None):
+def read_settings_file(file_name, mandatory=True, include_stack=False, configs_dir_list=None):
     """
 
     look for first occurence of yaml file named <file_name> in directories in configs_dir list,
@@ -396,7 +402,7 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
     file_name
     mandatory: booelan
         if true, raise SettingsFileNotFound exception if no settings file, otherwise return empty dict
-    include_stack: boolean
+    include_stack: boolean or list
         only used for recursive calls to provide list of files included so far to detect cycles
 
     Returns: dict
@@ -422,7 +428,10 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
 
     inheriting = False
     settings = {}
-    source_file_paths = include_stack.copy()
+    if isinstance(include_stack, list):
+        source_file_paths = include_stack.copy()
+    else:
+        source_file_paths = []
     for dir in configs_dir_list:
         file_path = os.path.join(dir, file_name)
         if os.path.exists(file_path):
@@ -480,7 +489,6 @@ def read_settings_file(file_name, mandatory=True, include_stack=[], configs_dir_
                 assert os.path.join(dir, inherit_file_name) not in source_file_paths, \
                     f"circular inheritance of {inherit_file_name}: {source_file_paths}: "
                 # make a recursive call to switch inheritance chain to specified file
-                configs_dir_list = None
 
                 logger.debug("inheriting additional settings for %s from %s" % (file_name, inherit_file_name))
                 s, source_file_paths = \

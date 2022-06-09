@@ -30,6 +30,18 @@ LOGGING_CONF_FILE_NAME = 'logging.yaml'
 logger = logging.getLogger(__name__)
 
 
+class ElapsedTimeFormatter(logging.Formatter):
+    def format(self, record):
+        duration_milliseconds = record.relativeCreated
+        hours, rem = divmod(duration_milliseconds / 1000, 3600)
+        minutes, seconds = divmod(rem, 60)
+        if hours:
+            record.elapsedTime = ("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+        else:
+            record.elapsedTime = ("{:0>2}:{:05.2f}".format(int(minutes), seconds))
+        return super(ElapsedTimeFormatter, self).format(record)
+
+
 def extend_trace_label(trace_label, extension):
     if trace_label:
         trace_label = "%s.%s" % (trace_label, extension)
@@ -63,9 +75,15 @@ def log_runtime(model_name, start_time=None, timing=None):
 
     process_name = multiprocessing.current_process().name
 
-    # only log runtime for locutor
-    if config.setting('multiprocess', False) and not inject.get_injectable('locutor', False):
-        return
+    if config.setting('multiprocess', False):
+        # when benchmarking, log timing for each processes in its own log
+        if config.setting('benchmarking', False):
+            header = "component_name,duration"
+            with config.open_log_file(f'timing_log.{process_name}.csv', 'a', header) as log_file:
+                print(f"{model_name},{timing}", file=log_file)
+        # only continue to log runtime in global timing log for locutor
+        if not inject.get_injectable('locutor', False):
+            return
 
     header = "process_name,model_name,seconds,minutes"
     with config.open_log_file('timing_log.csv', 'a', header) as log_file:

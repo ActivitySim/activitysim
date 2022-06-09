@@ -39,11 +39,6 @@ using conda Prompt (on Windows) or the terminal (macOS or Linux)::
 
   conda create -n asim python=3.9 activitysim -c conda-forge --override-channels
 
-.. note::
-   If this command fails in July 2021, it may be because ActivitySim
-   has not yet been fully integrated into the conda-forge repository.
-   See "Alternative Installation Methods" below for a workaround using pip.
-
 This command will create the environment and install all the dependencies
 required for running ActivitySim.  It is only necessary to create the environment
 once per machine, you do not need to (re)create the environment for each session.
@@ -74,13 +69,7 @@ tools for certain development tasks::
   conda install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
 To create an environment containing all these optional dependencies at once, you
-<<<<<<< Updated upstream
-can run the shortcut command::
-
-  conda env create activitysim/ASIM -n asim
-=======
 can run the shortcut command
->>>>>>> Stashed changes
 
 ::
 

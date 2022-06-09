@@ -1,0 +1,21 @@
+Label,Description,Expression,no_pass,pass
+util_ft,Full-time worker,@df.pemploy==PEMPLOY_FULL,0,coef_ft_pass
+util_pt,Part-time worker,@df.pemploy==PEMPLOY_PART,0,coef_pt_pass
+util_un,University/College,@df.ptype==PTYPE_SCHOOL,0,coef_un_pass
+util_nw,Non-working adult,@df.ptype==PTYPE_NONWORK,0,coef_nw_pass
+util_rt,Retired,@df.ptype==PTYPE_RETIRED,0,coef_rt_pass
+util_inc1,0-$9k,"@df.income.between(0, 9000)",0,coef_inc1_pass
+util_inc2,$10-$24k,"@df.income.between(10000, 24000)",0,coef_inc2_pass
+util_inc3,$25-$34k,"@df.income.between(25000,34000)",0,coef_inc3_pass
+util_inc4,$35-$49k,"@df.income.between(35000,49000)",0,coef_inc4_pass
+util_inc10,$250k+,@df.income >= 250000,0,coef_inc10_pass
+#util_na20,NAICS 20 (mining/utilities/construct),@df.industry_naics=='20',0,coef_na20_pas
+#util_na30,NAICS 30 (manufacturing,@df.industry_naics=='30',0,coef_na30_pas
+#util_na50,NAICS 50 (Info/Fin/insur/real estate/prof/sci/tech/manage/admin),@df.industry_naics=='50',0,coef_na50_pas
+#util_na70,NAICS 70 (Entertain/accom),@df.industry_naics=='70',0,coef_na70_pas
+#util_na80,NAICS 80 (Other services),@df.industry_naics=='80',0,coef_na80_pas
+#util_publ,NAICS 90 (Public admin),@df.industry_naics=='90',0,coef_publ_pas
+#approximate measure for the time being,,,,
+util_wrkamt,Auto minus transit time (work),@df.work_auto_savings * -1,0,coef_wrkamt_pas
+util_subs,Subsidy offered,@df.transit_pass_subsidy,0,coef_subs_pas
+utils_pass_asc,Constant,1,0,coef_pass_asc

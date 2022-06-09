@@ -1,0 +1,7 @@
+Description,Target,Expression
+#,, annotate persons table after school_location model has run
+,distance_to_school,"np.where(persons.school_zone_id>=0,skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, 'DIST'),np.nan)"
+#,, this uses the free flow travel time in both directions. MTC TM1 was MD and MD
+temp auto_time_to_school,_auto_time_to_school,"skim_dict.lookup(persons.home_zone_id, persons.school_zone_id, ('SOV_TIME', 'MD'))"
+temp auto_time_return,_auto_time_return,"skim_dict.lookup(persons.school_zone_id, persons.home_zone_id, ('SOV_TIME', 'MD'))"
+free flow roundtrip_auto_time_to_school,roundtrip_auto_time_to_school,"np.where(persons.school_zone_id>=0,_auto_time_to_school + _auto_time_return,0)"

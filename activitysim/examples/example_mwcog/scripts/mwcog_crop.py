@@ -9,7 +9,11 @@ import numpy as np
 
 MAZ_OFFSET = 0
 
-MAZ_LIST = [1, 2, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 53, 54, 55, 56, 57, 58, 59, 60, 181, 182, 184, 185, 186, 187, 188, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 298, 365, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 383, 384]
+MAZ_LIST = [1, 2, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
+            32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 49, 50, 53, 54, 55, 56, 57, 58, 59, 60,
+            181, 182, 184, 185, 186, 187, 188, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203,
+            204, 205, 206, 207, 208, 209, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292,
+            298, 365, 370, 371, 372, 373, 374, 375, 376, 377, 378, 379, 380, 381, 383, 384]
 
 
 segments = {
@@ -66,7 +70,7 @@ def patch_maz(df, maz_offset):
 
 def read_csv(file_name):
     df = pd.read_csv(input_path(file_name))
-    #if MAZ_OFFSET:
+    # if MAZ_OFFSET:
     #    df = patch_maz(df, MAZ_OFFSET)
     print(f"read {file_name} {df.shape}")
     return df
@@ -100,7 +104,7 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
     else:
         indexes = zones.index.tolist()  # index of TAZ in skim (zero-based, no mapping)
     labels = zones.values  # TAZ zone_ids in omx index order
-    
+
     # create
     if num_outfiles == 1:
         omx_out = [omx.open_file(output_path(f"{omx_file_name}.omx"), 'w')]
@@ -122,7 +126,7 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
         iskim += 1
 
     omx_in.close()
-    
+
     for omx_file in omx_out:
         omx_file.close()
 
@@ -168,7 +172,7 @@ if check_geography:
     # ### FATAL ###
     if not land_use.maz.isin(maz.MAZ).all():
         print(f"land_use.MAZ not in maz.MAZ\n{land_use.maz[~land_use.maz.isin(maz.maz)]}")
-        #raise RuntimeError(f"land_use.MAZ not in maz.MAZ")
+        # raise RuntimeError(f"land_use.MAZ not in maz.MAZ")
 
     if not maz.MAZ.isin(land_use.maz).all():
         print(f"maz.MAZ not in land_use.MAZ\n{maz.maz[~maz.maz.isin(land_use.maz)]}")
@@ -186,7 +190,7 @@ if check_geography:
 
 land_use = read_csv(LAND_USE)
 
-#land_use.maz = land_use.maz.astype(int)
+# land_use.maz = land_use.maz.astype(int)
 
 ur_land_use = land_use.copy()
 
@@ -237,7 +241,7 @@ if os.path.exists("maz_to_maz_walk.csv"):
     maz_maz_walk = read_csv("maz_to_maz_walk.csv").sort_values(['OMAZ', 'DMAZ'])
     maz_maz_walk = maz_maz_walk[maz_maz_walk["OMAZ"].isin(land_use["maz"]) & maz_maz_walk["DMAZ"].isin(land_use["maz"])]
     to_csv(maz_maz_walk, "maz_to_maz_walk.csv")
-    
+
 if os.path.exists("maz_to_maz_bike.csv"):
     maz_maz_bike = read_csv("maz_to_maz_bike.csv").sort_values(['OMAZ', 'DMAZ'])
     maz_maz_bike = maz_maz_bike[maz_maz_bike["OMAZ"].isin(land_use["maz"]) & maz_maz_bike["DMAZ"].isin(land_use["maz"])]
@@ -271,4 +275,4 @@ if os.path.exists(SUBZONE):
 # skims
 
 crop_omx('taz_skims', taz.TAZ, num_outfiles=(4 if segment_name == 'full' else 1))
-#crop_omx('tap_skims', taps.TAP, num_outfiles=1)
+# crop_omx('tap_skims', taps.TAP, num_outfiles=1)

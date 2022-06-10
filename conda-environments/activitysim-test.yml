@@ -23,6 +23,6 @@ dependencies:
 - coveralls
 - pycodestyle
 - pytest-regressions
-- sharrow >= 2.0
+- sharrow >= 2.2
 - xarray >= 0.21
 - simwrapper > 1.7

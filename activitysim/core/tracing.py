@@ -692,6 +692,9 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     if choosers.index.name == 'person_id' and 'persons' in traceable_table_ids:
         slicer_column_name = choosers.index.name
         targets = traceable_table_ids['persons']
+    elif choosers.index.name == 'household_id' and 'households' in traceable_table_ids:
+        slicer_column_name = choosers.index.name
+        targets = traceable_table_ids['households']
     elif 'household_id' in choosers.columns and 'households' in traceable_table_ids:
         slicer_column_name = 'household_id'
         targets = traceable_table_ids['households']

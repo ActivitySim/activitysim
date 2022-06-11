@@ -24,6 +24,7 @@ from . import non_mandatory_scheduling
 from . import non_mandatory_tour_frequency
 from . import parking_location_choice
 from . import stop_frequency
+from . import school_escorting
 from . import tour_mode_choice
 from . import tour_od_choice
 from . import tour_scheduling_probabilistic

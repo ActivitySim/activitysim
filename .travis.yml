@@ -108,4 +108,4 @@ script:
 - pycodestyle activitysim
 # run specific TEST_SUITE job on travis to avoid job max time
 - travis_wait 50 py.test $TEST_SUITE --cov activitysim --cov-report term-missing --durations=0
-- coveralls
+- coveralls || echo "coveralls failed"

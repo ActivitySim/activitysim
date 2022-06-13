@@ -29,6 +29,14 @@ logger = logging.getLogger(__name__)
 
 _FLOWS = {}
 
+if os.environ.get('TRAVIS') == 'true':
+    # The multithreaded dask scheduler causes problems on travis.
+    # Here, we detect if this code is running on Travis, and if so, we
+    # change the default scheduler to single-threaded.  This should not
+    # be particularly problematic, as only tiny test cases are run on Travis.
+    import dask
+    dask.config.set(scheduler='single-threaded')  # overwrite default with threaded scheduler
+
 
 @contextlib.contextmanager
 def logtime(tag, tag2=""):

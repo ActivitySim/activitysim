@@ -21,12 +21,12 @@ jobs:
           - os: ubuntu-latest
             label: linux-64
             prefix: /usr/share/miniconda3/envs/asim-test
-            TRAVIS_PYTHON_VERSION: 3.9
+            python-version: 3.9
 
           - os: windows-latest
             label: win-64
             prefix: C:\Miniconda3\envs\asim-test
-            TRAVIS_PYTHON_VERSION: 3.9
+            python-version: 3.9
 
     defaults:
       run:
@@ -44,6 +44,7 @@ jobs:
             miniforge-version: latest
             activate-environment: asim-test
             use-mamba: true
+            python-version: ${{ matrix.python-version }}
 
       - name: Set cache date for year and month
         run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
@@ -51,11 +52,11 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ${{ matrix.prefix }}
-          key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/activitysim-test.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
-        run: mamba env update -n asim-test -f conda-environments/activitysim-test.yml
+        run: mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
@@ -75,7 +76,3 @@ jobs:
       - name: Test with pytest
         run: |
           python -m pytest --pyargs activitysim.core
-
-      - name: Run tests
-        shell: bash -l {0}
-        run: pytest ./tests

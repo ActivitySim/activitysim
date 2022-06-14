@@ -60,8 +60,12 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install activitysim
+        # installing without dependencies is faster, we trust that all needed dependencies
+        # are in the conda environment defined above.  Also, this avoids pip getting
+        # confused and reinstalling tables (pytables).
         run: |
-          python -m pip install -e .
+          python -m pip install -e . --no-deps
+          
 
       - name: Conda checkup
         run: |

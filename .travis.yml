@@ -8,6 +8,7 @@ env:
 cache:
   directories:
     - activitysim/examples/example_mtc/test/output/cache
+    - activitysim/examples/example_arc/test/output/cache
 
 jobs:
   include:

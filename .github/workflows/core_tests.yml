@@ -77,6 +77,18 @@ jobs:
           # stop the build if there are problems
           pycodestyle .
 
-      - name: Test with pytest
+      - name: Test activitysim.core
         run: |
           python -m pytest --pyargs activitysim.core
+
+      - name: Test activitysim.abm.models
+        run: |
+          python -m pytest --pyargs activitysim.abm.models
+
+      - name: Test activitysim.abm.test
+        run: |
+          python -m pytest --pyargs activitysim.abm.test
+
+      - name: Test activitysim.cli
+        run: |
+          python -m pytest --pyargs activitysim.cli

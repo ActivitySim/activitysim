@@ -164,7 +164,6 @@ run-legacy:
       payload:
         inherit_settings: True
         recode_pipeline_columns: False
-        offset_preprocessing: False
         cache_dir: cache
         households_sample_size: '{main_n_households}'
         trace_hh_id: '{trace_hh_id}'

@@ -29,4 +29,3 @@ output_tables:
 
 sharrow: require
 recode_pipeline_columns: True
-offset_preprocessing: True

@@ -2,10 +2,10 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
-import pkg_resources
 
 import pandas as pd
 import pandas.testing as pdt
+import pkg_resources
 
 from activitysim.core import inject
 
@@ -15,7 +15,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def test_arc():
+def _test_arc(recode=False, sharrow=False):
     def example_path(dirname):
         resource = os.path.join("examples", "example_arc", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -34,12 +34,30 @@ def test_arc():
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
-    subprocess.run(
-        [
-            "coverage",
-            "run",
-            "-a",
-            file_path,
+    if recode:
+        run_args = [
+            "-c",
+            test_path("configs_recode"),
+            "-c",
+            example_path("configs"),
+            "-d",
+            example_path("data"),
+            "-o",
+            test_path("output"),
+        ]
+    elif sharrow:
+        run_args = [
+            "-c",
+            test_path("configs_sharrow"),
+            "-c",
+            example_path("configs"),
+            "-d",
+            example_path("data"),
+            "-o",
+            test_path("output"),
+        ]
+    else:
+        run_args = [
             "-c",
             test_path("configs"),
             "-c",
@@ -48,13 +66,27 @@ def test_arc():
             example_path("data"),
             "-o",
             test_path("output"),
-        ],
-        check=True,
-    )
+        ]
+
+    subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
 
     regress()
 
 
+def test_arc():
+    _test_arc()
+
+
+def test_arc_recode():
+    _test_arc(recode=True)
+
+
+def test_arc_sharrow():
+    _test_arc(sharrow=True)
+
+
 if __name__ == "__main__":
 
-    test_arc()
+    _test_arc()
+    _test_arc(recode=True)
+    _test_arc(sharrow=True)

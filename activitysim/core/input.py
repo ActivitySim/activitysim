@@ -167,6 +167,11 @@ def read_from_table_info(table_info):
                 df[colname] = df[colname].apply(remapper.get)
                 if keep_columns:
                     keep_columns.append(f"_original_{colname}")
+                if tablename == 'land_use' and colname == canonical_index_col:
+                    # We need to keep track if we have recoded the land_use
+                    # table's index to zero-based, as we need to disable offset
+                    # processing for legacy skim access.
+                    config.override_setting("offset_preprocessing", True)
             else:
                 source_table, lookup_col = recode_instruction.split(".")
                 parent_table = inject.get_table(source_table)

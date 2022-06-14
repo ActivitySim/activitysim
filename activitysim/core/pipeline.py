@@ -425,6 +425,14 @@ def load_checkpoint(checkpoint_name):
         # register it as an orca table
         rewrap(table_name, df)
         loaded_tables[table_name] = df
+        if table_name == 'land_use' and '_original_zone_id' in df.columns:
+            # The presence of _original_zone_id indicates this table index was
+            # decoded to zero-based, so we need to disable offset
+            # processing for legacy skim access.
+            # TODO: this "magic" column name should be replaced with a mechanism
+            #       to write and recover particular settings from the pipeline
+            #       store, but we don't have that mechanism yet
+            config.override_setting("offset_preprocessing", True)
 
     # register for tracing in order that tracing.register_traceable_table wants us to register them
     traceable_tables = inject.get_injectable("traceable_tables", [])

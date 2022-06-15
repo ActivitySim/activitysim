@@ -50,7 +50,7 @@ def run_test(zone, multiprocess=False):
         regress_tours_df = pd.read_csv(
             test_path(f"regress/final_{zone}_zone_tours.csv")
         )
-        tours_df = pd.read_csv(test_path(f"output/final_{zone}_zone_tours.csv"))
+        tours_df = pd.read_csv(test_path(f"output_{zone}/final_{zone}_zone_tours.csv"))
         tours_df.to_csv(
             test_path(f"regress/final_{zone}_zone_tours_last_run.csv"), index=False
         )
@@ -61,7 +61,7 @@ def run_test(zone, multiprocess=False):
         regress_trips_df = pd.read_csv(
             test_path(f"regress/final_{zone}_zone_trips.csv")
         )
-        trips_df = pd.read_csv(test_path(f"output/final_{zone}_zone_trips.csv"))
+        trips_df = pd.read_csv(test_path(f"output_{zone}/final_{zone}_zone_trips.csv"))
         trips_df.to_csv(
             test_path(f"regress/final_{zone}_zone_trips_last_run.csv"), index=False
         )
@@ -86,7 +86,7 @@ def run_test(zone, multiprocess=False):
         "-d",
         example_path(f"data_{zone}"),
         "-o",
-        test_path("output"),
+        test_path(f"output_{zone}"),
     ]
 
     if multiprocess:

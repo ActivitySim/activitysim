@@ -240,7 +240,8 @@ def _interaction_simulate(
         skims=None, locals_d=None, sample_size=None,
         trace_label=None, trace_choice_name=None,
         log_alt_losers=False,
-        estimator=None):
+        estimator=None,
+        choose_individual_max_utility=False):
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -379,9 +380,6 @@ def _interaction_simulate(
     probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'probs', probs)
 
-    del utilities
-    chunk.log_df(trace_label, 'utilities', None)
-
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
@@ -390,7 +388,12 @@ def _interaction_simulate(
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
     positions, rands = \
-        logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+        logit.make_choices(probs, utilities=utilities, trace_label=trace_label, trace_choosers=choosers,
+                           choose_individual_max_utility=choose_individual_max_utility)
+
+    del utilities
+    chunk.log_df(trace_label, 'utilities', None)
+
     chunk.log_df(trace_label, 'positions', positions)
     chunk.log_df(trace_label, 'rands', rands)
 
@@ -420,7 +423,8 @@ def interaction_simulate(
         log_alt_losers=False,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None,
-        estimator=None):
+        estimator=None,
+        choose_individual_max_utility=False):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -486,7 +490,8 @@ def interaction_simulate(
                                         trace_label=chunk_trace_label,
                                         trace_choice_name=trace_choice_name,
                                         log_alt_losers=log_alt_losers,
-                                        estimator=estimator)
+                                        estimator=estimator,
+                                        choose_individual_max_utility=choose_individual_max_utility)
 
         result_list.append(choices)
 

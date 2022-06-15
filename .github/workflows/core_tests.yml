@@ -106,7 +106,7 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-    name: ${{ matrix.label }}
+    name: example_mtc-${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -144,6 +144,12 @@ jobs:
         run: |
           mamba info -a
           mamba list
+
+      - uses: actions/cache@v2
+        with:
+          path: activitysim/examples/example_mtc/test/output/cache
+          key: example_mtc-${{ matrix.label }}-${{ hashFiles('activitysim/examples/example_mtc') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache-example_mtc
 
       - name: Test activitysim.core
         run: |

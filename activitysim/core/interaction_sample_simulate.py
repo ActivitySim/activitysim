@@ -22,7 +22,7 @@ def _interaction_sample_simulate(
         want_logsums,
         skims, locals_d,
         trace_label, trace_choice_name,
-        estimator):
+        estimator, choose_individual_max_utility):
 
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -215,9 +215,6 @@ def _interaction_sample_simulate(
         logsums = logit.utils_to_logsums(utilities_df, allow_zero_probs=allow_zero_probs)
         chunk.log_df(trace_label, 'logsums', logsums)
 
-    del utilities_df
-    chunk.log_df(trace_label, 'utilities_df', None)
-
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
@@ -232,7 +229,11 @@ def _interaction_sample_simulate(
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
     positions, rands = \
-        logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+        logit.make_choices(probs, utilities_df, trace_label=trace_label, trace_choosers=choosers,
+                           choose_individual_max_utility=choose_individual_max_utility)
+
+    del utilities_df
+    chunk.log_df(trace_label, 'utilities_df', None)
 
     chunk.log_df(trace_label, 'positions', positions)
     chunk.log_df(trace_label, 'rands', rands)
@@ -287,7 +288,7 @@ def interaction_sample_simulate(
         want_logsums=False,
         skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
         trace_label=None, trace_choice_name=None,
-        estimator=None):
+        estimator=None, choose_individual_max_utility=False):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -357,7 +358,7 @@ def interaction_sample_simulate(
             want_logsums,
             skims, locals_d,
             chunk_trace_label, trace_choice_name,
-            estimator)
+            estimator, choose_individual_max_utility)
 
         result_list.append(choices)
 

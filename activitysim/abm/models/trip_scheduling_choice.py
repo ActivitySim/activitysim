@@ -261,7 +261,8 @@ def run_trip_scheduling_choice(spec, tours, skims, locals_dict,
                 locals_d=locals_dict,
                 trace_label=chunk_trace_label,
                 trace_choice_name='trip_schedule_stage_1',
-                estimator=None
+                estimator=None,
+                choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
             )
 
             assert len(choices.index) == len(choosers.index)

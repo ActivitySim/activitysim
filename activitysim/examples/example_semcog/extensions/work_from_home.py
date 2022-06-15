@@ -87,7 +87,8 @@ def work_from_home(
             chunk_size=chunk_size,
             trace_label=trace_label,
             trace_choice_name='work_from_home',
-            estimator=estimator)
+            estimator=estimator,
+            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
         if iterations_target_percent is not None:
             choices_for_filter = choices[choosers[iterations_chooser_filter]]

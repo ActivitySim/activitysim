@@ -314,7 +314,8 @@ def joint_tour_participation(
         trace_label=trace_label,
         trace_choice_name='participation',
         custom_chooser=participants_chooser,
-        estimator=estimator)
+        estimator=estimator,
+        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
     # choice is boolean (participate or not)
     choice_col = model_settings.get('participation_choice', 'participate')

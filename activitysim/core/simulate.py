@@ -1425,7 +1425,8 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
                                 want_logsums=False,
                                 estimator=None,
                                 trace_label=None,
-                                trace_choice_name=None):
+                                trace_choice_name=None,
+                                choose_individual_max_utility=False):
     """
     chunk_by_chunk_id wrapper for simple_simulate
     """
@@ -1443,7 +1444,8 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
             want_logsums=want_logsums,
             estimator=estimator,
             trace_label=chunk_trace_label,
-            trace_choice_name=trace_choice_name)
+            trace_choice_name=trace_choice_name,
+            choose_individual_max_utility=choose_individual_max_utility)
 
         result_list.append(choices)
 

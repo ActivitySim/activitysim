@@ -69,7 +69,8 @@ def transit_pass_ownership(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='transit_pass_ownership',
-        estimator=estimator)
+        estimator=estimator,
+        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
     if estimator:
         estimator.write_choices(choices)

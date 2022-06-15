@@ -60,7 +60,8 @@ def mode_choice_simulate(
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
         estimator=estimator,
-        trace_column_names=trace_column_names)
+        trace_column_names=trace_column_names,
+        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
     # for consistency, always return dataframe, whether or not logsums were requested
     if isinstance(choices, pd.Series):

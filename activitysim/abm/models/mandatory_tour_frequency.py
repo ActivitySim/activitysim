@@ -96,7 +96,8 @@ def mandatory_tour_frequency(persons_merged,
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='mandatory_tour_frequency',
-        estimator=estimator)
+        estimator=estimator,
+        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)

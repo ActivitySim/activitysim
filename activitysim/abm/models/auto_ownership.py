@@ -57,7 +57,8 @@ def auto_ownership_simulate(households,
         trace_label=trace_label,
         trace_choice_name='auto_ownership',
         log_alt_losers=log_alt_losers,
-        estimator=estimator)
+        estimator=estimator,
+        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
     if estimator:
         estimator.write_choices(choices)

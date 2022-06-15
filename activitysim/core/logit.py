@@ -303,7 +303,6 @@ def make_choices(probs, utilities=None, nest_spec=None, trace_label=None, trace_
         rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
         return choices, rands
 
-
     # probs should sum to 1 across each row
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \

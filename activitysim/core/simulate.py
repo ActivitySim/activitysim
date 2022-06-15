@@ -887,7 +887,8 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
              log_alt_losers=False,
              want_logsums=False, trace_label=None,
-             trace_choice_name=None, trace_column_names=None):
+             trace_choice_name=None, trace_column_names=None,
+             choose_individual_max_utility=False):
     """
     Run a simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -922,6 +923,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         This is the column label to be used in trace file csv dump of choices
     trace_column_names: str or list of str
         chooser columns to include when tracing expression_values
+    choose_individual_max_utility: bool
+        apply frozen randomness at the individual utility level
 
     Returns
     -------
@@ -949,25 +952,29 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
 
-    probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
-    chunk.log_df(trace_label, "probs", probs)
-
-    del utilities
-    chunk.log_df(trace_label, 'utilities', None)
-
-    if have_trace_targets:
-        # report these now in case make_choices throws error on bad_choices
-        tracing.trace_df(probs, '%s.probs' % trace_label,
-                         column_labels=['alternative', 'probability'])
-
-    if custom_chooser:
-        choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,
-                                        trace_label=trace_label)
+    if choose_individual_max_utility:
+        choices = logit.make_choices_ru_frozen_mnl(utilities, trace_label=trace_label)
+        rands = pd.Series([0, 0, 0])  # TODO: fix me, bring back up
     else:
-        choices, rands = logit.make_choices(probs, trace_label=trace_label)
+        probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+        chunk.log_df(trace_label, "probs", probs)
 
-    del probs
-    chunk.log_df(trace_label, 'probs', None)
+        del utilities
+        chunk.log_df(trace_label, 'utilities', None)
+
+        if have_trace_targets:
+            # report these now in case make_choices throws error on bad_choices
+            tracing.trace_df(probs, '%s.probs' % trace_label,
+                             column_labels=['alternative', 'probability'])
+
+        if custom_chooser:
+            choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,
+                                            trace_label=trace_label)
+        else:
+            choices, rands = logit.make_choices(probs, trace_label=trace_label)
+
+        del probs
+        chunk.log_df(trace_label, 'probs', None)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -1318,7 +1325,8 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                            want_logsums=want_logsums,
                            estimator=estimator,
                            trace_label=trace_label,
-                           trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
+                           trace_choice_name=trace_choice_name, trace_column_names=trace_column_names,
+                           choose_individual_max_utility=choose_individual_max_utility)
     else:
         if choose_individual_max_utility:
             choices = eval_nl_fixed_ru(choosers, spec, nest_spec, locals_d, custom_chooser,

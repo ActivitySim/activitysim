@@ -221,6 +221,7 @@ def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alter
         next_level_alts = nest_alternatives_by_name[choice_this_level]
     raise ValueError("This should never happen - no alternative found")
 
+
 # Note: this is relatively slow due to the apply.
 # It could *maybe* be sped up by using the fact that the nesting structure is the same for all rows: Add ev1(0,1) to
 # all entries (as is currently being done). Then, at each level, pick the maximum of the available composite
@@ -242,6 +243,18 @@ def make_choices_ru_frozen(nested_utilities, nest_spec, trace_label=None, trace_
     )
     assert not choices.isnull().any(), "No choice for XXX - implement reporting"
     choices = pd.Series(choices, index=nest_utils_for_choice.index)
+    return choices
+
+
+# TODO: integrate with nested impl above
+# TODO: make everything in nested and here numpy from beginning to make choices consistent with previous impl (
+#  want column index and not alternative name)
+def make_choices_ru_frozen_mnl(utilities, trace_label=None):
+    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen_mnl')
+    utilities_incl_unobs = add_ev1_random(utilities)
+    choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
+    assert not np.isnan(choices).any(), "No choice for XXX - implement reporting"
+    choices = pd.Series(choices, index=utilities_incl_unobs.index)
     return choices
 
 

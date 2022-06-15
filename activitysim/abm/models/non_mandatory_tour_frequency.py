@@ -231,7 +231,8 @@ def non_mandatory_tour_frequency(persons, persons_merged,
             chunk_size=chunk_size,
             trace_label='non_mandatory_tour_frequency.%s' % segment_name,
             trace_choice_name='non_mandatory_tour_frequency',
-            estimator=estimator)
+            estimator=estimator,
+            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
         if estimator:
             estimator.write_choices(choices)

@@ -968,7 +968,8 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,
                                         trace_label=trace_label)
     else:
-        choices, rands = logit.make_choices(probs, utilities=utilities, trace_label=trace_label)
+        choices, rands = logit.make_choices(probs, utilities=utilities, trace_label=trace_label,
+                                            choose_individual_max_utility=choose_individual_max_utility)
 
     del utilities
     chunk.log_df(trace_label, 'utilities', None)

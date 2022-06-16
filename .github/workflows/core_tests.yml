@@ -94,7 +94,7 @@ jobs:
           python -m pytest --pyargs activitysim.cli
 
 
-  example_mtc:
+  example_models:
     needs: foundation
     strategy:
       matrix:
@@ -103,10 +103,18 @@ jobs:
             label: linux-64
             prefix: /usr/share/miniconda3/envs/asim-test
             python-version: 3.9
+            region: mtc
+            hashed: hashFiles('activitysim/examples/example_mtc')
+          - os: ubuntu-latest
+            label: linux-64
+            prefix: /usr/share/miniconda3/envs/asim-test
+            python-version: 3.9
+            region: arc
+            hashed: hashFiles('activitysim/examples/example_arc')
     defaults:
       run:
         shell: bash -l {0}
-    name: example_mtc-${{ matrix.label }}
+    name: example_${{ matrix.region }}-${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
@@ -147,10 +155,11 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: activitysim/examples/example_mtc/test/output/cache
-          key: example_mtc-${{ matrix.label }}-${{ hashFiles('activitysim/examples/example_mtc') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache-example_mtc
+          path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
+          key: example_${{ matrix.region }}-${{ matrix.label }}-${{ matrix.hashed }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache-example
 
       - name: Test activitysim.core
         run: |
-          python -m pytest activitysim/examples/example_mtc/test --durations=0
+          python -m pytest activitysim/examples/example_${{ matrix.region }}/test --durations=0
+

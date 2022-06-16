@@ -157,7 +157,7 @@ jobs:
           key: example_${{ matrix.region }}-${{ matrix.label }}-${{ hashFiles('activitysim/examples/example_${{ matrix.region }}') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache-example
 
-      - name: Test activitysim.core
+      - name: Test example_${{ matrix.region }}
         run: |
           python -m pytest activitysim/examples/example_${{ matrix.region }}/test --durations=0
 

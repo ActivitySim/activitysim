@@ -104,13 +104,11 @@ jobs:
             prefix: /usr/share/miniconda3/envs/asim-test
             python-version: 3.9
             region: mtc
-            hashed: hashFiles('activitysim/examples/example_mtc')
           - os: ubuntu-latest
             label: linux-64
             prefix: /usr/share/miniconda3/envs/asim-test
             python-version: 3.9
             region: arc
-            hashed: hashFiles('activitysim/examples/example_arc')
     defaults:
       run:
         shell: bash -l {0}
@@ -156,7 +154,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
-          key: example_${{ matrix.region }}-${{ matrix.label }}-${{ matrix.hashed }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          key: example_${{ matrix.region }}-${{ matrix.label }}-${{ hashFiles('activitysim/examples/example_${{ matrix.region }}') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache-example
 
       - name: Test activitysim.core

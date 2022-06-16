@@ -12,6 +12,7 @@ from . import logit
 from . import tracing
 from . import chunk
 from .simulate import set_skim_wrapper_targets
+from .logit import inverse_ev1_cdf
 
 
 from . import interaction_simulate
@@ -27,7 +28,9 @@ def make_sample_choices(
         alternatives,
         sample_size, alternative_count, alt_col_name,
         allow_zero_probs,
-        trace_label):
+        trace_label,
+        utilities=None,
+        choose_individual_max_utility=False):
     """
 
     Parameters
@@ -62,96 +65,134 @@ def make_sample_choices(
             # remove from sample
             probs = probs[~zero_probs]
             choosers = choosers[~zero_probs]
+            # TODO [janzill Jun2022]: do we want this for consistency?
+            #  might need this in other places too?
+            if utilities is not None:
+                utilities = utilities[~zero_probs]
 
-    cum_probs_array = probs.values.cumsum(axis=1)
-    chunk.log_df(trace_label, 'cum_probs_array', cum_probs_array)
+    if choose_individual_max_utility:
+        assert isinstance(utilities, pd.DataFrame)
+        assert utilities.shape == (len(choosers), alternative_count)
+        choice_dimension = (len(choosers), alternative_count, sample_size)
 
-    # alt probs in convenient layout to return prob of chose alternative
-    # (same layout as cum_probs_arr)
-    alt_probs_array = probs.values.flatten()
-    chunk.log_df(trace_label, 'alt_probs_array', alt_probs_array)
+        rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count*sample_size)
+        rands = rands.reshape(choice_dimension)
+        rands = inverse_ev1_cdf(rands)
+        chunk.log_df(trace_label, 'rands', rands)
 
-    # get sample_size rands for each chooser
-    rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
+        utilities = utilities.to_numpy()  # this should be much cleaner once xarray changes are implemented
+        utilities = np.repeat(utilities[:, :, None], sample_size, axis=2)
+        utilities += rands
 
-    # transform as we iterate over alternatives
-    # reshape so rands[i] is in broadcastable (2-D) shape for cum_probs_arr
-    # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
-    rands = rands.T.reshape(sample_size, -1, 1)
-    chunk.log_df(trace_label, 'rands', rands)
+        del rands
+        chunk.log_df(trace_label, 'rands', None)
 
-    # the alternative value chosen
-    # WHY SHOULD CHOICES COL HAVE TO BE TYPE INT???
-    # choices_array = np.empty([sample_size, len(choosers)]).astype(int)
-    choices_array = np.empty([sample_size, len(choosers)]).astype(alternatives.index.dtype)
-    # chunk log these later after we populate them...
+        # this gives us (len(choosers), sample_size) dimensional array, with values the chosen alternative
+        choices_array = np.argmax(utilities, axis=1)
 
-    # the probability of the chosen alternative
-    choice_probs_array = np.empty([sample_size, len(choosers)])
-    # chunk log these later after we populate them...
+        choosers_index_rep = np.tile(np.arange(0, choices_array.shape[0]), sample_size)
+        choices_flattened = choices_array.flatten(order='F')
 
-    alts = np.tile(alternatives.index.values, len(choosers))
-    chunk.log_df(trace_label, 'alts', alts)
+        # choices_flattened are 0-based index into alternatives, need to map to alternative values given by
+        #  alternatives.index.values (they are in this order by construction)
+        # explode to one row per chooser.index, alt_zone_id
+        choices_df = pd.DataFrame({
+            alt_col_name: alternatives.index.values[choices_flattened],
+            'rand': np.zeros_like(choosers_index_rep),  # TODO [janzill June2022]: zero out for now
+            'prob': probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F'),
+            # repeat is wrong here - we do not want 1,1,2,2,3,3, etc, but 1,2,3,1,2,3 by construction
+            choosers.index.name: np.tile(choosers.index.values, sample_size)
+        })
+    else:
+        cum_probs_array = probs.values.cumsum(axis=1)
+        chunk.log_df(trace_label, 'cum_probs_array', cum_probs_array)
 
-    # FIXME - do this all at once rather than iterate?
-    for i in range(sample_size):
+        # alt probs in convenient layout to return prob of chose alternative
+        # (same layout as cum_probs_arr)
+        alt_probs_array = probs.values.flatten()
+        chunk.log_df(trace_label, 'alt_probs_array', alt_probs_array)
 
-        # FIXME - do this in numpy, not pandas?
+        # get sample_size rands for each chooser
+        rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
 
-        # rands for this alt in broadcastable shape
-        r = rands[i]
+        # transform as we iterate over alternatives
+        # reshape so rands[i] is in broadcastable (2-D) shape for cum_probs_arr
+        # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
+        rands = rands.T.reshape(sample_size, -1, 1)
+        chunk.log_df(trace_label, 'rands', rands)
 
-        # position of first occurrence of positive value
-        positions = np.argmax(cum_probs_array > r, axis=1)
+        # the alternative value chosen
+        # WHY SHOULD CHOICES COL HAVE TO BE TYPE INT???
+        # choices_array = np.empty([sample_size, len(choosers)]).astype(int)
+        choices_array = np.empty([sample_size, len(choosers)]).astype(alternatives.index.dtype)
+        # chunk log these later after we populate them...
 
-        # FIXME - leave positions as numpy array, not pandas series?
-        # positions is series with the chosen alternative represented as a column index in probs
-        # which is an integer between zero and num alternatives in the alternative sample
-        positions = pd.Series(positions, index=probs.index)
+        # the probability of the chosen alternative
+        choice_probs_array = np.empty([sample_size, len(choosers)])
+        # chunk log these later after we populate them...
 
-        # need to get from an integer offset into the alternative sample to the alternative index
-        # that is, we want the index value of the row that is offset by <position> rows into the
-        # tranche of this choosers alternatives created by cross join of alternatives and choosers
+        alts = np.tile(alternatives.index.values, len(choosers))
+        chunk.log_df(trace_label, 'alts', alts)
 
-        # offsets is the offset into model_design df of first row of chooser alternatives
-        offsets = np.arange(len(positions)) * alternative_count
+        # FIXME - do this all at once rather than iterate?
+        for i in range(sample_size):
 
-        # choices and choice_probs have one element per chooser and is in same order as choosers
-        choices_array[i] = np.take(alts, positions + offsets)
-        choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
+            # FIXME - do this in numpy, not pandas?
 
-        del positions
-        del offsets
+            # rands for this alt in broadcastable shape
+            r = rands[i]
 
-    chunk.log_df(trace_label, 'choices_array', choices_array)
-    chunk.log_df(trace_label, 'choice_probs_array', choice_probs_array)
+            # position of first occurrence of positive value
+            positions = np.argmax(cum_probs_array > r, axis=1)
 
-    del alts
-    chunk.log_df(trace_label, 'alts', None)
-    del cum_probs_array
-    chunk.log_df(trace_label, 'cum_probs_array', None)
-    del alt_probs_array
-    chunk.log_df(trace_label, 'alt_probs_array', None)
+            # FIXME - leave positions as numpy array, not pandas series?
+            # positions is series with the chosen alternative represented as a column index in probs
+            # which is an integer between zero and num alternatives in the alternative sample
+            positions = pd.Series(positions, index=probs.index)
 
-    # explode to one row per chooser.index, alt_zone_id
-    choices_df = pd.DataFrame(
-        {alt_col_name: choices_array.flatten(order='F'),
-         'rand': rands.flatten(order='F'),
-         'prob': choice_probs_array.flatten(order='F'),
-         choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
-         })
+            # need to get from an integer offset into the alternative sample to the alternative index
+            # that is, we want the index value of the row that is offset by <position> rows into the
+            # tranche of this choosers alternatives created by cross join of alternatives and choosers
 
-    chunk.log_df(trace_label, 'choices_df', choices_df)
+            # offsets is the offset into model_design df of first row of chooser alternatives
+            offsets = np.arange(len(positions)) * alternative_count
 
-    del choices_array
-    chunk.log_df(trace_label, 'choices_array', None)
-    del rands
-    chunk.log_df(trace_label, 'rands', None)
-    del choice_probs_array
-    chunk.log_df(trace_label, 'choice_probs_array', None)
+            # choices and choice_probs have one element per chooser and is in same order as choosers
+            choices_array[i] = np.take(alts, positions + offsets)
+            choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
 
-    # handing this off to caller
-    chunk.log_df(trace_label, 'choices_df', None)
+            del positions
+            del offsets
+
+        chunk.log_df(trace_label, 'choices_array', choices_array)
+        chunk.log_df(trace_label, 'choice_probs_array', choice_probs_array)
+
+        del alts
+        chunk.log_df(trace_label, 'alts', None)
+        del cum_probs_array
+        chunk.log_df(trace_label, 'cum_probs_array', None)
+        del alt_probs_array
+        chunk.log_df(trace_label, 'alt_probs_array', None)
+
+        # explode to one row per chooser.index, alt_zone_id
+        choices_df = pd.DataFrame(
+            {alt_col_name: choices_array.flatten(order='F'),
+             'rand': rands.flatten(order='F'),
+             'prob': choice_probs_array.flatten(order='F'),
+             choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
+             })
+
+        chunk.log_df(trace_label, 'choices_df', choices_df)
+
+        del choices_array
+        chunk.log_df(trace_label, 'choices_array', None)
+        del rands
+        chunk.log_df(trace_label, 'rands', None)
+        del choice_probs_array
+        chunk.log_df(trace_label, 'choice_probs_array', None)
+
+        # handing this off to caller
+        chunk.log_df(trace_label, 'choices_df', None)
 
     return choices_df
 
@@ -163,7 +204,8 @@ def _interaction_sample(
         log_alt_losers=False,
         skims=None,
         locals_d=None,
-        trace_label=None):
+        trace_label=None,
+        choose_individual_max_utility=False):
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -314,8 +356,8 @@ def _interaction_sample(
                                  trace_label=trace_label, trace_choosers=choosers)
     chunk.log_df(trace_label, 'probs', probs)
 
-    del utilities
-    chunk.log_df(trace_label, 'utilities', None)
+    #del utilities
+    #chunk.log_df(trace_label, 'utilities', None)
 
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
@@ -342,9 +384,14 @@ def _interaction_sample(
             choosers, probs, alternatives,
             sample_size, alternative_count, alt_col_name,
             allow_zero_probs=allow_zero_probs,
-            trace_label=trace_label)
+            trace_label=trace_label,
+            utilities=utilities,
+            choose_individual_max_utility=choose_individual_max_utility)
 
     chunk.log_df(trace_label, 'choices_df', choices_df)
+
+    del utilities
+    chunk.log_df(trace_label, 'utilities', None)
 
     del probs
     chunk.log_df(trace_label, 'probs', None)
@@ -395,7 +442,7 @@ def interaction_sample(
         allow_zero_probs=False,
         log_alt_losers=False,
         skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
-        trace_label=None):
+        trace_label=None, choose_individual_max_utility=False):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -476,7 +523,8 @@ def interaction_sample(
                                       log_alt_losers=log_alt_losers,
                                       skims=skims,
                                       locals_d=locals_d,
-                                      trace_label=chunk_trace_label)
+                                      trace_label=chunk_trace_label,
+                                      choose_individual_max_utility=choose_individual_max_utility)
 
         if choices.shape[0] > 0:
             # might not be any if allow_zero_probs

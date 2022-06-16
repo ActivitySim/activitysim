@@ -106,7 +106,7 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-    name: example_${{ matrix.region }}-${{ env.label }}
+    name: example_${{ matrix.region }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2

@@ -94,7 +94,88 @@ jobs:
           python -m pytest --pyargs activitysim.cli
 
 
-  example_models:
+  cross-platform:
+    # also test foundation cross platforms, but do not require a successful
+    # completion before starting regional model tests
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            label: macOS
+            prefix: /Users/runner/miniconda3/envs/my-env
+            python-version: 3.9
+
+          - os: windows-latest
+            label: win-64
+            prefix: C:\Miniconda3\envs\asim-test
+            python-version: 3.9
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Mambaforge
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+            miniforge-variant: Mambaforge
+            miniforge-version: latest
+            activate-environment: asim-test
+            use-mamba: true
+            python-version: ${{ matrix.python-version }}
+
+      - name: Set cache date for year and month
+        run: echo "DATE=$(date +'%Y%m')" >> $GITHUB_ENV
+
+      - uses: actions/cache@v2
+        with:
+          path: ${{ matrix.prefix }}
+          key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+        id: cache
+
+      - name: Update environment
+        run: mamba env update -n asim-test -f conda-environments/github-actions-tests.yml
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Install activitysim
+        # installing without dependencies is faster, we trust that all needed dependencies
+        # are in the conda environment defined above.  Also, this avoids pip getting
+        # confused and reinstalling tables (pytables).
+        run: |
+          python -m pip install -e . --no-deps
+
+      - name: Conda checkup
+        run: |
+          mamba info -a
+          mamba list
+
+      - name: Lint with pycodestyle
+        run: |
+          # stop the build if there are problems
+          pycodestyle .
+
+      - name: Test activitysim.core
+        run: |
+          python -m pytest --pyargs activitysim.core
+
+      - name: Test activitysim.abm.models
+        run: |
+          python -m pytest --pyargs activitysim.abm.models
+
+      - name: Test activitysim.abm.test
+        run: |
+          python -m pytest --pyargs activitysim.abm.test
+
+      - name: Test activitysim.cli
+        run: |
+          python -m pytest --pyargs activitysim.cli
+
+
+  regional_models:
     needs: foundation
     env:
       mamba-env-prefix: /usr/share/miniconda3/envs/asim-test
@@ -102,7 +183,17 @@ jobs:
       label: linux-64
     strategy:
       matrix:
-        region: [mtc, arc, psrc, marin, mtc_extended, sandag, sandag_xborder, semcog, multiple_zone]
+        region:
+          - mtc
+          - arc
+          - psrc
+          - marin
+          - mtc_extended
+          - sandag
+          - sandag_xborder
+          - semcog
+          - multiple_zone
+      fail-fast: false
     defaults:
       run:
         shell: bash -l {0}

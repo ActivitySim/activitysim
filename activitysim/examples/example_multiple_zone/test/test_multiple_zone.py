@@ -28,9 +28,9 @@ def mtc_example_path(dirname):
 
 def build_data():
     # FIXME this irks travis
-    # subprocess.check_call(['coverage', 'run', example_path('scripts/two_zone_example_data.py')])
-    # subprocess.check_call(['coverage', 'run', example_path('scripts/three_zone_example_data.py')])
-    pass
+    if os.environ.get('TRAVIS') != 'true':
+        subprocess.check_call(['coverage', 'run', example_path('scripts/two_zone_example_data.py')])
+        subprocess.check_call(['coverage', 'run', example_path('scripts/three_zone_example_data.py')])
 
 
 @pytest.fixture(scope="module")

@@ -225,10 +225,13 @@ jobs:
           mamba info -a
           mamba list
 
+      - name: Define Inputs
+        run: echo "REGION_DEFS=activitysim/examples/example_${{ matrix.region }}/** " >> $GITHUB_ENV
+
       - uses: actions/cache@v2
         with:
           path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
-          key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles('activitysim/examples/example_' + matrix.region + '/**') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache-example
 
       - name: Test example_${{ matrix.region }}

@@ -17,23 +17,12 @@ jobs:
 
     strategy:
       matrix:
-        include:
-          - os: ubuntu-latest
-            label: linux-64
-            prefix: /usr/share/miniconda3/envs/asim-test
-            python-version: 3.9
-
-          - os: windows-latest
-            label: win-64
-            prefix: C:\Miniconda3\envs\asim-test
-            python-version: 3.9
-
+        python-version: [3.9]
     defaults:
       run:
         shell: bash -l {0}
-
-    name: ${{ matrix.label }}
-    runs-on: ${{ matrix.os }}
+    name: linux-64-py${{ matrix.python-version }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -51,8 +40,8 @@ jobs:
 
       - uses: actions/cache@v2
         with:
-          path: ${{ matrix.prefix }}
-          key: ${{ matrix.label }}-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          path: /usr/share/miniconda3/envs/asim-test
+          key: linux-64-conda-${{ hashFiles('conda-environments/github-actions-tests.yml') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache
 
       - name: Update environment
@@ -65,7 +54,6 @@ jobs:
         # confused and reinstalling tables (pytables).
         run: |
           python -m pip install -e . --no-deps
-          
 
       - name: Conda checkup
         run: |
@@ -97,6 +85,7 @@ jobs:
   cross-platform:
     # also test foundation cross platforms, but do not require a successful
     # completion before starting regional model tests
+    needs: foundation
     strategy:
       matrix:
         include:
@@ -239,7 +228,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
-          key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles('activitysim/examples/example_${{ matrix.region }}/**') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles('activitysim/examples/example_' + matrix.region + '/**') }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache-example
 
       - name: Test example_${{ matrix.region }}

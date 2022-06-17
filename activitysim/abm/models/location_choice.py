@@ -109,7 +109,8 @@ def _location_sample(
         model_settings,
         alt_dest_col_name,
         chunk_size, chunk_tag,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
     """
     select a sample of alternative locations.
 
@@ -161,7 +162,9 @@ def _location_sample(
         locals_d=locals_d,
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility
+    )
 
     return choices
 
@@ -174,7 +177,8 @@ def location_sample(
         estimator,
         model_settings,
         chunk_size, chunk_tag,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -198,7 +202,8 @@ def location_sample(
         model_settings,
         alt_dest_col_name,
         chunk_size, chunk_tag,
-        trace_label)
+        trace_label,
+        choose_individual_max_utility)
 
     return choices
 
@@ -264,7 +269,8 @@ def location_presample(
         estimator,
         model_settings,
         chunk_size, chunk_tag,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
 
@@ -302,7 +308,8 @@ def location_presample(
         model_settings,
         DEST_TAZ,
         chunk_size,  chunk_tag,
-        trace_label)
+        trace_label,
+        choose_individual_max_utility)
 
     # print(f"taz_sample\n{taz_sample}")
     #            dest_TAZ      prob  pick_count
@@ -329,7 +336,8 @@ def run_location_sample(
         estimator,
         model_settings,
         chunk_size, chunk_tag,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
     """
     select a sample of alternative locations.
 
@@ -372,7 +380,8 @@ def run_location_sample(
             model_settings,
             chunk_size,
             chunk_tag=f'{chunk_tag}.presample',
-            trace_label=trace_label)
+            trace_label=trace_label,
+            choose_individual_max_utility=choose_individual_max_utility)
 
     else:
 
@@ -385,7 +394,8 @@ def run_location_sample(
             model_settings,
             chunk_size,
             chunk_tag=f'{chunk_tag}.sample',
-            trace_label=trace_label)
+            trace_label=trace_label,
+            choose_individual_max_utility=choose_individual_max_utility)
 
     return choices
 
@@ -463,7 +473,7 @@ def run_location_simulate(
         estimator,
         model_settings,
         chunk_size, chunk_tag,
-        trace_label):
+        trace_label, choose_individual_max_utility):
     """
     run location model on location_sample annotated with mode_choice logsum
     to select a dest zone from sample alternatives
@@ -529,7 +539,7 @@ def run_location_simulate(
         trace_label=trace_label,
         trace_choice_name=model_settings['DEST_CHOICE_COLUMN_NAME'],
         estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
+        choose_individual_max_utility=choose_individual_max_utility
     )
 
     if not want_logsums:
@@ -551,7 +561,8 @@ def run_location_choice(
         estimator,
         model_settings,
         chunk_size, chunk_tag,
-        trace_hh_id, trace_label
+        trace_hh_id, trace_label,
+        choose_individual_max_utility,
         ):
     """
     Run the three-part location choice algorithm to generate a location choice for each chooser
@@ -614,7 +625,8 @@ def run_location_choice(
                 model_settings,
                 chunk_size,
                 chunk_tag,  # run_location_sample will add appropriate suffix for sample or presample
-                trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+                trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name),
+                choose_individual_max_utility=choose_individual_max_utility)
 
         # - location_logsums
         location_sample_df = \
@@ -639,7 +651,8 @@ def run_location_choice(
                 estimator,
                 model_settings,
                 chunk_size, chunk_tag=f'{chunk_tag}.simulate',
-                trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
+                trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name),
+                choose_individual_max_utility=choose_individual_max_utility)
 
         if estimator:
             if trace_hh_id:
@@ -783,7 +796,8 @@ def iterate_location_choice(
             model_settings=model_settings,
             chunk_size=chunk_size, chunk_tag=chunk_tag,
             trace_hh_id=trace_hh_id,
-            trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration))
+            trace_label=tracing.extend_trace_label(trace_label, 'i%s' % iteration),
+            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
         # choices_df is a pandas DataFrame with columns 'choice' and (optionally) 'logsum'
         if choices_df is None:

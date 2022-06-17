@@ -58,7 +58,8 @@ def _destination_sample(
         estimator,
         chunk_size,
         chunk_tag,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
     """
 
     Note: trips with no viable destination receive no sample rows
@@ -109,8 +110,9 @@ def _destination_sample(
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size, chunk_tag=chunk_tag,
-        trace_label=trace_label
-        )
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility
+    )
 
     return choices
 
@@ -124,7 +126,8 @@ def destination_sample(
         skim_hotel,
         estimator,
         chunk_size,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     chunk_tag = 'trip_destination.sample'
 
@@ -142,7 +145,9 @@ def destination_sample(
         estimator,
         chunk_size,
         chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility
+    )
 
     return choices
 
@@ -362,7 +367,8 @@ def destination_presample(
         network_los,
         estimator,
         chunk_size, trace_hh_id,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
     chunk_tag = 'trip_destination.presample'  # distinguish from trip_destination.sample
@@ -400,7 +406,8 @@ def destination_presample(
         estimator,
         chunk_size,
         chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility)
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_sample = choose_MAZ_for_TAZ(taz_sample, size_term_matrix, trips, network_los, alt_dest_col_name, trace_label)
@@ -419,7 +426,8 @@ def trip_destination_sample(
         skim_hotel,
         estimator,
         chunk_size, trace_hh_id,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
     """
 
     Returns
@@ -463,7 +471,8 @@ def trip_destination_sample(
             network_los,
             estimator,
             chunk_size, trace_hh_id,
-            trace_label)
+            trace_label,
+            choose_individual_max_utility)
 
     else:
         choices = destination_sample(
@@ -475,7 +484,8 @@ def trip_destination_sample(
             skim_hotel,
             estimator,
             chunk_size,
-            trace_label)
+            trace_label,
+            choose_individual_max_utility)
 
     return choices
 
@@ -654,7 +664,8 @@ def trip_destination_simulate(
         skim_hotel,
         estimator,
         chunk_size, trace_hh_id,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
     """
     Chose destination from destination_sample (with od_logsum and dp_logsum columns added)
 
@@ -700,7 +711,7 @@ def trip_destination_simulate(
         trace_label=trace_label,
         trace_choice_name='trip_dest',
         estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
+        choose_individual_max_utility=choose_individual_max_utility
     )
 
     if not want_logsums:
@@ -750,7 +761,8 @@ def choose_trip_destination(
         skim_hotel=skim_hotel,
         estimator=estimator,
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility)
 
     dropped_trips = ~trips.index.isin(destination_sample.index.unique())
     if dropped_trips.any():
@@ -788,7 +800,8 @@ def choose_trip_destination(
         skim_hotel=skim_hotel,
         estimator=estimator,
         chunk_size=chunk_size, trace_hh_id=trace_hh_id,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility)
 
     dropped_trips = ~trips.index.isin(destinations.index)
     if dropped_trips.any():
@@ -1041,7 +1054,8 @@ def run_trip_destination(
                     size_term_matrix, skim_hotel,
                     estimator,
                     chunk_size, trace_hh_id,
-                    trace_label=tracing.extend_trace_label(nth_trace_label, primary_purpose))
+                    trace_label=tracing.extend_trace_label(nth_trace_label, primary_purpose),
+                    choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
                 choices_list.append(choices)
                 if want_sample_table:

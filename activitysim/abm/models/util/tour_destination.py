@@ -77,7 +77,8 @@ def _destination_sample(
         alt_dest_col_name,
         chunk_size,
         chunk_tag,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     model_spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
                                            segment_name=spec_segment_name, estimator=estimator)
@@ -110,7 +111,8 @@ def _destination_sample(
         locals_d=locals_d,
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility)
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
@@ -126,7 +128,8 @@ def destination_sample(
         network_los,
         destination_size_terms,
         estimator,
-        chunk_size, trace_label):
+        chunk_size, trace_label,
+        choose_individual_max_utility):
 
     chunk_tag = 'tour_destination.sample'
 
@@ -153,7 +156,8 @@ def destination_sample(
         model_settings,
         alt_dest_col_name,
         chunk_size, chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility)
 
     return choices
 
@@ -393,7 +397,8 @@ def destination_presample(
         network_los,
         destination_size_terms,
         estimator,
-        chunk_size, trace_label):
+        chunk_size, trace_label,
+        choose_individual_max_utility):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
     chunk_tag = 'tour_destination.presample'
@@ -425,7 +430,9 @@ def destination_presample(
         model_settings,
         DEST_TAZ,
         chunk_size, chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility
+    )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
@@ -444,7 +451,8 @@ def run_destination_sample(
         network_los,
         destination_size_terms,
         estimator,
-        chunk_size, trace_label):
+        chunk_size, trace_label,
+        choose_individual_max_utility):
 
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
     chooser_columns = model_settings['SIMULATE_CHOOSER_COLUMNS']
@@ -475,7 +483,9 @@ def run_destination_sample(
             network_los,
             destination_size_terms,
             estimator,
-            chunk_size, trace_label)
+            chunk_size, trace_label,
+            choose_individual_max_utility
+        )
 
     else:
         choices = destination_sample(
@@ -485,7 +495,9 @@ def run_destination_sample(
             network_los,
             destination_size_terms,
             estimator,
-            chunk_size, trace_label)
+            chunk_size, trace_label,
+            choose_individual_max_utility
+        )
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
@@ -693,7 +705,9 @@ def run_tour_destination(
                 segment_destination_size_terms,
                 estimator,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(segment_trace_label, 'sample'))
+                trace_label=tracing.extend_trace_label(segment_trace_label, 'sample'),
+                choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
+            )
 
         # - destination_logsums
         tour_purpose = segment_name  # tour_purpose is segment_name
@@ -721,7 +735,9 @@ def run_tour_destination(
                 destination_size_terms=segment_destination_size_terms,
                 estimator=estimator,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(segment_trace_label, 'simulate'))
+                trace_label=tracing.extend_trace_label(segment_trace_label, 'simulate'),
+                choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
+            )
 
         choices_list.append(choices)
 

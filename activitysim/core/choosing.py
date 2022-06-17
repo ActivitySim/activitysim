@@ -30,11 +30,7 @@ def choice_maker(pr, rn, out=None):
 
 @njit
 def sample_choices_maker(
-    prob_array,
-    random_array,
-    alts_array,
-    out_choices=None,
-    out_choice_probs=None,
+    prob_array, random_array, alts_array, out_choices=None, out_choice_probs=None,
 ):
     """
     Random sample of alternatives.
@@ -91,11 +87,7 @@ def sample_choices_maker(
 
 @njit
 def _sample_choices_maker_preserve_ordering(
-    prob_array,
-    random_array,
-    alts_array,
-    out_choices=None,
-    out_choice_probs=None,
+    prob_array, random_array, alts_array, out_choices=None, out_choice_probs=None,
 ):
     """
     Random sample of alternatives.
@@ -154,11 +146,7 @@ def _sample_choices_maker_preserve_ordering(
 
 
 def sample_choices_maker_preserve_ordering(
-    prob_array,
-    random_array,
-    alts_array,
-    out_choices=None,
-    out_choice_probs=None,
+    prob_array, random_array, alts_array, out_choices=None, out_choice_probs=None,
 ):
     """
     Make sample choices.
@@ -176,7 +164,7 @@ def sample_choices_maker_preserve_ordering(
     out_choices : array[alts_array.dtype]
     out_choice_probs : array[float]
     """
-    if alts_array.dtype.kind != 'i':
+    if alts_array.dtype.kind != "i":
         # when the alternatives array is not integers (which is unusual, but
         # does happen in the OD choice model) we need to choose integers in
         # numba and then convert those back to whatever dtype the alternatives are

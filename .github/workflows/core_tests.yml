@@ -91,7 +91,7 @@ jobs:
         include:
           - os: macos-latest
             label: macOS
-            prefix: /Users/runner/miniconda3/envs/my-env
+            prefix: /Users/runner/miniconda3/envs/asim-test
             python-version: 3.9
 
           - os: windows-latest

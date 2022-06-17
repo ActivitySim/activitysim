@@ -115,7 +115,8 @@ def _od_sample(
         alt_od_col_name,
         chunk_size,
         chunk_tag,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     model_spec = simulate.spec_for_segment(model_settings,
                                            spec_id='SAMPLE_SPEC',
@@ -172,7 +173,8 @@ def _od_sample(
         locals_d=locals_d,
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label,
+        choose_individual_max_utility=choose_individual_max_utility)
 
     return choices
 
@@ -477,7 +479,8 @@ def od_presample(
         destination_size_terms,
         estimator,
         chunk_size,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     trace_label = tracing.extend_trace_label(trace_label, 'presample')
     chunk_tag = 'tour_od.presample'
@@ -507,7 +510,8 @@ def od_presample(
         alt_od_col_name,
         chunk_size,
         chunk_tag,
-        trace_label)
+        trace_label,
+        choose_individual_max_utility)
 
     orig_MAZ_dest_TAZ_sample[ORIG_MAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[0].astype(int)
     orig_MAZ_dest_TAZ_sample[DEST_TAZ] = orig_MAZ_dest_TAZ_sample[alt_od_col_name].str.split('_').str[1].astype(int)
@@ -582,7 +586,8 @@ def run_od_sample(
         destination_size_terms,
         estimator,
         chunk_size,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     model_spec = simulate.spec_for_segment(model_settings, spec_id='SAMPLE_SPEC',
                                            segment_name=spec_segment_name, estimator=estimator)
@@ -616,7 +621,9 @@ def run_od_sample(
             destination_size_terms,
             estimator,
             chunk_size,
-            trace_label)
+            trace_label,
+            choose_individual_max_utility
+        )
 
     else:
         choices = od_sample(
@@ -626,7 +633,9 @@ def run_od_sample(
             network_los,
             destination_size_terms,
             estimator,
-            chunk_size, trace_label)
+            chunk_size, trace_label,
+            choose_individual_max_utility
+        )
 
     return choices
 
@@ -782,7 +791,8 @@ def run_od_simulate(
         destination_size_terms,
         estimator,
         chunk_size,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
     """
     run simulate OD choices on tour_od_sample annotated with mode_choice
     logsum to select a tour OD from sample alternatives
@@ -854,7 +864,7 @@ def run_od_simulate(
         trace_label=trace_label,
         trace_choice_name='origin_destination',
         estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        choose_individual_max_utility=choose_individual_max_utility)
 
     if not want_logsums:
         choices = choices.to_frame('choice')
@@ -872,7 +882,8 @@ def run_tour_od(
         model_settings,
         network_los,
         estimator,
-        chunk_size, trace_hh_id, trace_label):
+        chunk_size, trace_hh_id, trace_label,
+        choose_individual_max_utility):
 
     size_term_calculator = SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
     preprocessor_settings = model_settings.get('preprocessor', None)
@@ -923,7 +934,9 @@ def run_tour_od(
                 estimator,
                 chunk_size=chunk_size,
                 trace_label=tracing.extend_trace_label(
-                    trace_label, 'sample.%s' % segment_name))
+                    trace_label, 'sample.%s' % segment_name),
+                choose_individual_max_utility=choose_individual_max_utility
+            )
 
         if model_settings['ORIG_FILTER'] == 'original_MAZ > 0':
             pass
@@ -962,7 +975,8 @@ def run_tour_od(
                 destination_size_terms=segment_destination_size_terms,
                 estimator=estimator,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name))
+                trace_label=tracing.extend_trace_label(trace_label, 'simulate.%s' % segment_name),
+                choose_individual_max_utility=choose_individual_max_utility)
 
         choices_list.append(choices)
         if estimator:

@@ -93,7 +93,8 @@ def tour_od_choice(
         model_settings,
         network_los,
         estimator,
-        chunk_size, trace_hh_id, trace_label)
+        chunk_size, trace_hh_id, trace_label,
+        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
     if estimator:
         assert estimator.want_unsampled_alternatives

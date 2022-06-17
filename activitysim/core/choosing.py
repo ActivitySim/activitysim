@@ -90,7 +90,7 @@ def sample_choices_maker(
 
 
 @njit
-def sample_choices_maker_preserve_ordering(
+def _sample_choices_maker_preserve_ordering(
     prob_array,
     random_array,
     alts_array,
@@ -151,3 +151,52 @@ def sample_choices_maker_preserve_ordering(
                 s += 1
 
     return out_choices, out_choice_probs
+
+
+def sample_choices_maker_preserve_ordering(
+    prob_array,
+    random_array,
+    alts_array,
+    out_choices=None,
+    out_choice_probs=None,
+):
+    """
+    Make sample choices.
+
+    Parameters
+    ----------
+    prob_array : array[float]
+    random_array : array[float]
+    alts_array : array
+    out_choices : array[alts_array.dtype], optional
+    out_choice_probs : array[float], optional
+
+    Returns
+    -------
+    out_choices : array[alts_array.dtype]
+    out_choice_probs : array[float]
+    """
+    if alts_array.dtype.kind != 'i':
+        # when the alternatives array is not integers (which is unusual, but
+        # does happen in the OD choice model) we need to choose integers in
+        # numba and then convert those back to whatever dtype the alternatives are
+        out_choices_, out_choice_probs = _sample_choices_maker_preserve_ordering(
+            prob_array,
+            random_array,
+            np.arange(alts_array.size),
+            out_choices=None,
+            out_choice_probs=out_choice_probs,
+        )
+        if out_choices is not None:
+            out_choices[:] = alts_array[out_choices_]
+        else:
+            out_choices = alts_array[out_choices_]
+        return out_choices, out_choice_probs
+
+    return _sample_choices_maker_preserve_ordering(
+        prob_array,
+        random_array,
+        alts_array,
+        out_choices=out_choices,
+        out_choice_probs=out_choice_probs,
+    )

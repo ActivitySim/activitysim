@@ -228,10 +228,21 @@ jobs:
       - name: Define Inputs
         run: echo "REGION_DEFS=activitysim/examples/example_${{ matrix.region }}/** " >> $GITHUB_ENV
 
+      - name: Get a random number
+        run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
+
       - uses: actions/cache@v2
+        # store the regional model's cache directory in github actions cache
+        # this will (almost) never hit on primary key due to the random number
+        # but will pull the most recent cache from restore-keys... and then
+        # update the cache with additional compiled flows as needed.
+        # Hoping this will result in fewer re-compiles on tests and faster
+        # testing overall
         with:
           path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
-          key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+          key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}-${{ env.RANDOM_SUFFIX }}
+          restore-keys: |
+            example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
         id: cache-example
 
       - name: Test example_${{ matrix.region }}

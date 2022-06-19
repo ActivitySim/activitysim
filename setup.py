@@ -35,7 +35,7 @@ setup(
     },
     install_requires=[
         "pyarrow >= 2.0",
-        "numpy >= 1.16.1,<=1.21",
+        "numpy >= 1.16.1",
         "openmatrix >= 0.3.4.1",
         "pandas >= 1.1.0",
         "pyyaml >= 5.1",
@@ -43,7 +43,7 @@ setup(
         "cytoolz >= 0.8.1",
         "psutil >= 4.1",
         "requests >= 2.7",
-        "numba >= 0.51.2",
+        "numba >= 0.55.2",
         "orca >= 1.6",
         "sharrow >= 2.0",
         "xarray >= 0.21",

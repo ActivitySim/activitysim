@@ -4,7 +4,7 @@ channels:
 - conda-forge
 dependencies:
 - pip
-- numpy >= 1.16.1,<=1.21
+- numpy >= 1.16.1
 - pandas >= 1.1.0
 - pyarrow >= 2.0
 - openmatrix >= 0.3.4.1
@@ -13,7 +13,7 @@ dependencies:
 - cytoolz >= 0.8.1
 - psutil >= 4.1
 - requests >= 2.7
-- numba >= 0.51.2
+- numba >= 0.55.2
 - orca >= 1.6
 - pypyr >= 5.3
 - pytest

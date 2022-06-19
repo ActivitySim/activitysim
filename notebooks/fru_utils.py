@@ -554,7 +554,6 @@ def get_stuff(do_these_purposes=None):
         nested_probs_list.append(nested_probs)
         base_probs_list.append(base_probs)
 
-
     choices_df_asim = pd.concat(choices_list)
 
     # update trips table with choices (and potionally logssums)
@@ -579,4 +578,5 @@ def get_stuff(do_these_purposes=None):
 
     print("Done")
 
-    return trips_df, raw_util_list, nest_list, nu_list, nest_spec_list, nested_probs_list, base_probs_list
+    return trips_df, raw_util_list, nest_list, nu_list, nest_spec_list, nested_probs_list, base_probs_list, \
+           dict(list(zip(list(range(len(alts))), alts)))

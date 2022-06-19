@@ -297,12 +297,6 @@ def make_choices(probs, utilities=None, nest_spec=None, trace_label=None, trace_
     """
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
 
-    if choose_individual_max_utility:
-        choices = make_choices_ru_frozen(utilities, nest_spec, trace_label)
-        # TODO: rands
-        rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
-        return choices, rands
-
     # probs should sum to 1 across each row
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \
@@ -315,6 +309,12 @@ def make_choices(probs, utilities=None, nest_spec=None, trace_label=None, trace_
                            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
                            msg="probabilities do not add up to 1",
                            trace_choosers=trace_choosers)
+
+    if choose_individual_max_utility:
+        choices = make_choices_ru_frozen(utilities, nest_spec, trace_label)
+        # TODO: rands - log all zeros for now
+        rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
+        return choices, rands
 
     rands = pipeline.get_rn_generator().random_for_df(probs)
 

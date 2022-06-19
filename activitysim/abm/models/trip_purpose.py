@@ -108,8 +108,9 @@ def choose_intermediate_trip_purpose(
 
     choices, rands = logit.make_choices(
         choosers[purpose_cols],
-        trace_label=trace_label, trace_choosers=choosers,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
+        trace_label=trace_label, trace_choosers=choosers
+        # [janzill Jun2022]: don't change for probs tables
+        #choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
     )
 
     if have_trace_targets:

@@ -248,10 +248,7 @@ def make_scheduling_choices(
     if trace_hh_id and tracing.has_trace_targets(choosers_df):
         tracing.trace_df(chooser_probs, '%s.chooser_probs' % trace_label)
 
-    raw_choices, rands = logit.make_choices(chooser_probs, trace_label=trace_label, trace_choosers=choosers,
-                                            choose_individual_max_utility=config.setting(
-                                                "freeze_unobserved_utilities", False)
-                                            )
+    raw_choices, rands = logit.make_choices(chooser_probs, trace_label=trace_label, trace_choosers=choosers)  # no fru
 
     chunk.log_df(trace_label, "choices", raw_choices)
     chunk.log_df(trace_label, "rands", rands)

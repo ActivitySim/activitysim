@@ -965,8 +965,10 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
                          column_labels=['alternative', 'probability'])
 
     if custom_chooser:
+        # TODO [janzill Jun2022]: is this used somewhere outside Asim such that adding utilities would be a breaking
+        #  change?
         choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,
-                                        trace_label=trace_label)
+                                        trace_label=trace_label, utilities=utilities)
     else:
         choices, rands = logit.make_choices(probs, utilities=utilities, trace_label=trace_label,
                                             choose_individual_max_utility=choose_individual_max_utility)

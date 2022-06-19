@@ -275,9 +275,6 @@ def choose_tour_leg_pattern(trip_segment,
 
     chunk.log_df(trace_label, 'probs', probs)
 
-    del utilities_df
-    chunk.log_df(trace_label, 'utilities_df', None)
-
     if have_trace_targets:
         tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
                          column_labels=['alternative', 'probability'])
@@ -286,11 +283,14 @@ def choose_tour_leg_pattern(trip_segment,
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
     positions, rands = \
-        logit.make_choices(probs, trace_label=trace_label, trace_choosers=trip_segment,
+        logit.make_choices(probs, utilities=utilities_df, trace_label=trace_label, trace_choosers=trip_segment,
                            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
     chunk.log_df(trace_label, 'positions', positions)
     chunk.log_df(trace_label, 'rands', rands)
+
+    del utilities_df
+    chunk.log_df(trace_label, 'utilities_df', None)
 
     del probs
     chunk.log_df(trace_label, 'probs', None)

@@ -25,7 +25,8 @@ def mode_choice_simulate(
         trace_label,
         trace_choice_name,
         trace_column_names=None,
-        estimator=None):
+        estimator=None,
+        choose_individual_max_utility=False):
     """
     common method for  both tour_mode_choice and trip_mode_choice
 
@@ -61,7 +62,7 @@ def mode_choice_simulate(
         trace_choice_name=trace_choice_name,
         estimator=estimator,
         trace_column_names=trace_column_names,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        choose_individual_max_utility=choose_individual_max_utility)
 
     # for consistency, always return dataframe, whether or not logsums were requested
     if isinstance(choices, pd.Series):
@@ -145,6 +146,8 @@ def run_tour_mode_choice_simulate(
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
         trace_column_names=trace_column_names,
-        estimator=estimator)
+        estimator=estimator,
+        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
+    )
 
     return choices

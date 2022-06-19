@@ -194,7 +194,8 @@ def trip_mode_choice(
             logsum_column_name=logsum_column_name,
             trace_label=segment_trace_label,
             trace_choice_name='trip_mode_choice',
-            estimator=estimator)
+            estimator=estimator,
+            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
 
         if trace_hh_id:
             # trace the coefficients
@@ -243,6 +244,8 @@ def trip_mode_choice(
 
     tracing.print_summary('trip_mode_choice choices',
                           trips_df[mode_column_name], value_counts=True)
+
+    print(mode_column_name)
 
     assert not trips_df[mode_column_name].isnull().any()
 

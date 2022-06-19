@@ -143,9 +143,11 @@ def mode_choice_for_trip(choose_individual_max_utility, trip_id_to_check, num_sa
     choices.rename(columns={'logsum': logsum_column_name,
                             'choice': mode_column_name},
                    inplace=True)
-    if not choose_individual_max_utility:
-        alts = spec.columns
-        choices[mode_column_name] = choices[mode_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
+
+    # THIS SHOULD NOW BE CONSISTENT
+    #if not choose_individual_max_utility:
+    alts = spec.columns
+    choices[mode_column_name] = choices[mode_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
 
     finalise = True
     if finalise:
@@ -304,9 +306,11 @@ def run_trip_mode_choice(do_these_purposes=None, choose_individual_max_utility=T
         choices.rename(columns={'logsum': logsum_column_name,
                                 'choice': mode_column_name},
                        inplace=True)
-        if not choose_individual_max_utility:
-            alts = spec.columns
-            choices[mode_column_name] = choices[mode_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
+
+        # SHOULD NOW BE CONSISTENT
+        #if not choose_individual_max_utility:
+        alts = spec.columns
+        choices[mode_column_name] = choices[mode_column_name].map(dict(list(zip(list(range(len(alts))), alts))))
         ################
         choices_list.append(choices)
     choices_df_asim = pd.concat(choices_list)

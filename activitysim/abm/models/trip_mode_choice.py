@@ -245,8 +245,6 @@ def trip_mode_choice(
     tracing.print_summary('trip_mode_choice choices',
                           trips_df[mode_column_name], value_counts=True)
 
-    print(mode_column_name)
-
     assert not trips_df[mode_column_name].isnull().any()
 
     pipeline.replace_table("trips", trips_df)

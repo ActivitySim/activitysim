@@ -745,7 +745,8 @@ def choose_trip_destination(
         size_term_matrix, skim_hotel,
         estimator,
         chunk_size, trace_hh_id,
-        trace_label):
+        trace_label,
+        choose_individual_max_utility):
 
     logger.info("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
 

@@ -578,7 +578,8 @@ def run_destination_simulate(
         network_los,
         destination_size_terms,
         estimator,
-        chunk_size, trace_label):
+        chunk_size, trace_label,
+        choose_individual_max_utility):
     """
     run destination_simulate on tour_destination_sample
     annotated with mode_choice logsum to select a destination from sample alternatives
@@ -645,7 +646,7 @@ def run_destination_simulate(
         trace_label=trace_label,
         trace_choice_name='destination',
         estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        choose_individual_max_utility=choose_individual_max_utility)
 
     if not want_logsums:
         # for consistency, always return a dataframe with canonical column name

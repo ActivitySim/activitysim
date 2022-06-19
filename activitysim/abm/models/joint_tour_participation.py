@@ -175,7 +175,9 @@ def participants_chooser(probs, choosers, spec, trace_label):
             print(unsatisfied_candidates.head(20))
             assert False
 
-        choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+        choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers,
+                                            choose_individual_max_utility=config.setting(
+                                                "freeze_unobserved_utilities", False))
         participate = (choices == PARTICIPATE_CHOICE)
 
         # satisfaction indexed by tour_id

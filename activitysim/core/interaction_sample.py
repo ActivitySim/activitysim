@@ -25,7 +25,7 @@ DUMP = False
 
 
 def make_sample_choices_utility_based(
-        choosers, utilities,
+        choosers, utilities, probs,
         alternatives,
         sample_size, alternative_count, alt_col_name,
         allow_zero_probs,
@@ -59,7 +59,7 @@ def make_sample_choices_utility_based(
     choices_df = pd.DataFrame({
         alt_col_name: alternatives.index.values[choices_flattened],
         'rand': np.zeros_like(choosers_index_rep),  # TODO [janzill June2022]: zero out for now
-        #'prob': probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F'),
+        'prob': probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F'),
         # repeat is wrong here - we do not want 1,1,2,2,3,3, etc, but 1,2,3,1,2,3 by construction
         choosers.index.name: np.tile(choosers.index.values, sample_size)
     })
@@ -355,13 +355,22 @@ def _interaction_sample(
     # sample size 0 is for estimation mode - see below
     if config.setting("freeze_unobserved_utilities", False) and (sample_size != 0):
 
+        # TODO: calc probs afterwards and merge to keep memory usage down?
+        probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
+                                     trace_label=trace_label, trace_choosers=choosers)
+        probs = probs.astype(np.float32)
+        chunk.log_df(trace_label, 'probs', probs)
+
         choices_df = make_sample_choices_utility_based(
-            choosers, utilities, alternatives,
+            choosers, utilities, probs,
+            alternatives,
             sample_size, alternative_count, alt_col_name,
             allow_zero_probs=allow_zero_probs,
             trace_label=trace_label)
 
         chunk.log_df(trace_label, 'choices_df', choices_df)
+
+        # Now we need to attach probs - memory preserving to do this after making choices
 
         del utilities
         chunk.log_df(trace_label, 'utilities', None)
@@ -405,9 +414,6 @@ def _interaction_sample(
 
         chunk.log_df(trace_label, 'choices_df', choices_df)
 
-        # - NARROW
-        choices_df['prob'] = choices_df['prob'].astype(np.float32)
-
         del probs
         chunk.log_df(trace_label, 'probs', None)
 
@@ -444,7 +450,7 @@ def _interaction_sample(
     chunk.log_df(trace_label, 'choices_df', choices_df)
 
     # - NARROW
-    # choices_df['prob'] = choices_df['prob'].astype(np.float32)
+    choices_df['prob'] = choices_df['prob'].astype(np.float32)
     assert (choices_df['pick_count'].max() < 4294967295) or (choices_df.empty)
     choices_df['pick_count'] = choices_df['pick_count'].astype(np.uint32)
 

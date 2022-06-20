@@ -144,7 +144,6 @@ def run_tour_mode_choice_simulate(
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,
         trace_column_names=trace_column_names,
-        estimator=estimator
-    )
+        estimator=estimator)
 
     return choices

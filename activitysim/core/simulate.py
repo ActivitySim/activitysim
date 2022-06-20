@@ -1075,6 +1075,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
                 name_mapping=name_mapping,
                 choosers=choosers,
                 spec=spec,
+                nest_spec=nest_spec,
                 trace_label=trace_label
             )
         else:
@@ -1145,7 +1146,7 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
             choices, rands = custom_chooser(probs=base_probabilities, choosers=choosers, spec=spec,
                                             trace_label=trace_label)
         else:
-            choices, rands = logit.make_choices(base_probabilities,nest_spec=nest_spec, trace_label=trace_label)
+            choices, rands = logit.make_choices(base_probabilities, trace_label=trace_label)
 
         del base_probabilities
         chunk.log_df(trace_label, 'base_probabilities', None)

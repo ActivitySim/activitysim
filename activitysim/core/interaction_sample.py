@@ -25,68 +25,57 @@ DUMP = False
 
 
 def make_sample_choices_utility_based(
-        choosers, utilities, probs,
-        alternatives,
-        sample_size, alternative_count, alt_col_name,
-        allow_zero_probs,
-        trace_label):
+        choosers,
+        utilities,
+        sample_size,
+        alternative_count,
+        allow_zero_probs
+):
 
     assert isinstance(utilities, pd.DataFrame)
     assert utilities.shape == (len(choosers), alternative_count)
-    choice_dimension = (len(choosers), alternative_count, sample_size)
+    #choice_dimension = (len(choosers), alternative_count, sample_size)
 
-    rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count*sample_size)
-    rands = rands.reshape(choice_dimension)
-    rands = inverse_ev1_cdf(rands)
-    chunk.log_df(trace_label, 'rands', rands)
+    # TODO [janzill Jun2022]: THIS NEEDS for loop for memory like previous method, an array of dimension
+    #   (len(choosers), alternative_count, sample_size) can get very large
+    choices = np.zeros_like(utilities, dtype=np.uint32)
+    zero_dim_index = np.arange(utilities.shape[0])
 
-    # # use rands
-    #utilities = utilities.to_numpy()  # this should be much cleaner once xarray changes are implemented
-    #utilities = np.repeat(utilities[:, :, None], sample_size, axis=2)
-    #utilities += rands
-    rands += np.repeat(utilities.to_numpy()[:, :, None], sample_size, axis=2)
+    for i in range(sample_size):
+        rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)  # * sample_size
+        #rands = rands.reshape(choice_dimension)
+        rands = inverse_ev1_cdf(rands)
+        #chunk.log_df(trace_label, 'rands', rands)
 
-    # this gives us (len(choosers), sample_size) dimensional array, with values the chosen alternative
-    choices_array = np.argmax(rands, axis=1)
-    chunk.log_df(trace_label, 'choices_array', choices_array)
+        ## # use rands
+        ##utilities = utilities.to_numpy()  # this should be much cleaner once xarray changes are implemented
+        ##utilities = np.repeat(utilities[:, :, None], sample_size, axis=2)
+        ##utilities += rands
+        #rands += np.repeat(utilities.to_numpy()[:, :, None], sample_size, axis=2)
+        rands += utilities
 
-    del rands
-    chunk.log_df(trace_label, 'rands', None)
+        # NOT ANYMORE: this gives us (len(choosers), sample_size) dimensional array, with values the chosen alternative
+        #  NOW: len(choosers) dimensional array
+        #choices_array = np.argmax(rands, axis=1)
+        #chunk.log_df(trace_label, 'choices_array', choices_array)
 
-    choosers_index_rep = np.tile(np.arange(0, choices_array.shape[0]), sample_size)
-    chunk.log_df(trace_label, 'choosers_index_rep', choosers_index_rep)
+        choices[zero_dim_index, np.argmax(rands, axis=1)] += 1
 
-    choices_flattened = choices_array.flatten(order='F')
-    chunk.log_df(trace_label, 'choices_flattened', choices_flattened)
+        #choosers_index_rep = np.tile(np.arange(0, choices_array.shape[0]), sample_size)
+        #choices_flattened = choices_array.flatten(order='F')
+        #probs_selection = probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F')
 
-    probs_selection = probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F')
-    chunk.log_df(trace_label, 'probs_selection', probs_selection)
-
-    # choices_flattened are 0-based index into alternatives, need to map to alternative values given by
-    #  alternatives.index.values (they are in this order by construction)
-    # explode to one row per chooser.index, alt_zone_id
-    choices_df = pd.DataFrame({
-        alt_col_name: alternatives.index.values[choices_flattened],
-        'rand': np.zeros_like(choosers_index_rep),  # TODO [janzill June2022]: zero out for now
-        'prob': probs_selection,
-        # repeat is wrong here - we do not want 1,1,2,2,3,3, etc, but 1,2,3,1,2,3 by construction
-        choosers.index.name: np.tile(choosers.index.values, sample_size)
-    })
-    chunk.log_df(trace_label, 'choices_df', choices_df)
-
-    del probs_selection
-    chunk.log_df(trace_label, 'probs_selection', None)
-    del choices_array
-    chunk.log_df(trace_label, 'choices_array', None)
-    del choosers_index_rep
-    chunk.log_df(trace_label, 'choosers_index_rep', None)
-    del choices_flattened
-    chunk.log_df(trace_label, 'choices_flattened', None)
-
-    # handing this off to caller
-    chunk.log_df(trace_label, 'choices_df', None)
-
-    return choices_df
+        # # choices_flattened are 0-based index into alternatives, need to map to alternative values given by
+        # #  alternatives.index.values (they are in this order by construction)
+        # # explode to one row per chooser.index, alt_zone_id
+        # choices_df = pd.DataFrame({
+        #     alt_col_name: alternatives.index.values[choices_flattened],
+        #     'rand': np.zeros_like(choosers_index_rep),  # zero out for now
+        #     'prob': probs_selection,
+        #     # repeat is wrong here - we do not want 1,1,2,2,3,3, etc, but 1,2,3,1,2,3 by construction
+        #     choosers.index.name: np.tile(choosers.index.values, sample_size)
+        # })
+    return choices
 
 
 def make_sample_choices(
@@ -374,28 +363,41 @@ def _interaction_sample(
 
     tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
 
-
     # sample size 0 is for estimation mode - see below
     if config.setting("freeze_unobserved_utilities", False) and (sample_size != 0):
 
-        # TODO: calc probs afterwards and merge to keep memory usage down?
-        probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
-                                     trace_label=trace_label, trace_choosers=choosers)
-        probs = probs.astype(np.float32)
-        chunk.log_df(trace_label, 'probs', probs)
-
-        choices_df = make_sample_choices_utility_based(
-            choosers, utilities, probs,
-            alternatives,
-            sample_size, alternative_count, alt_col_name,
-            allow_zero_probs=allow_zero_probs,
-            trace_label=trace_label)
-
-        chunk.log_df(trace_label, 'choices_df', choices_df)
+        choices_array = make_sample_choices_utility_based(
+            choosers, utilities, sample_size, alternative_count, allow_zero_probs
+        )
+        chunk.log_df(trace_label, 'choices_array', choices_array)
 
         del utilities
         chunk.log_df(trace_label, 'utilities', None)
 
+        # choices array has same dim as utilities, with values indicating number of counts per chooser and alternative
+        # let's turn the nonzero values into a dataframe
+        i, j = np.non_zero(choices_array)
+        chunk.log_df(trace_label, 'i', i)
+        chunk.log_df(trace_label, 'j', j)
+
+        probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
+                                     trace_label=trace_label, trace_choosers=choosers)
+        chunk.log_df(trace_label, 'probs', probs)
+
+        choices_df = pd.DataFrame({
+            alt_col_name: alternatives.index.values[j],
+            "pick_count": choices_array[i, j],
+            "prob": probs[i, j],
+            choosers.index.name: choosers.index.values[i]
+        })
+        chunk.log_df(trace_label, 'choices_df', choices_df)
+
+        del choices_array
+        chunk.log_df(trace_label, 'choices_array', None)
+        del i
+        chunk.log_df(trace_label, 'i', None)
+        del j
+        chunk.log_df(trace_label, 'j', None)
         del probs
         chunk.log_df(trace_label, 'probs', None)
     else:
@@ -440,25 +442,27 @@ def _interaction_sample(
         del probs
         chunk.log_df(trace_label, 'probs', None)
 
-    # pick_count and pick_dup
-    # pick_count is number of duplicate picks
-    # pick_dup flag is True for all but first of duplicates
-    pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
+        # pick_count and pick_dup
+        # pick_count is number of duplicate picks
+        # pick_dup flag is True for all but first of duplicates
+        pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
 
-    # number each item in each group from 0 to the length of that group - 1.
-    choices_df['pick_count'] = pick_group.cumcount(ascending=True)
-    # flag duplicate rows after first
-    choices_df['pick_dup'] = choices_df['pick_count'] > 0
-    # add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)
-    choices_df['pick_count'] += pick_group.cumcount(ascending=False) + 1
+        # number each item in each group from 0 to the length of that group - 1.
+        choices_df['pick_count'] = pick_group.cumcount(ascending=True)
+        # flag duplicate rows after first
+        choices_df['pick_dup'] = choices_df['pick_count'] > 0
+        # add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)
+        choices_df['pick_count'] += pick_group.cumcount(ascending=False) + 1
 
-    # drop the duplicates
-    choices_df = choices_df[~choices_df['pick_dup']]
-    del choices_df['pick_dup']
+        # drop the duplicates
+        choices_df = choices_df[~choices_df['pick_dup']]
+        del choices_df['pick_dup']
+
+        # set index after groupby so we can trace on it
+        choices_df.set_index(choosers.index.name, inplace=True)
+
+
     chunk.log_df(trace_label, 'choices_df', choices_df)
-
-    # set index after groupby so we can trace on it
-    choices_df.set_index(choosers.index.name, inplace=True)
 
     tracing.dump_df(DUMP, choices_df, trace_label, 'choices_df')
 
@@ -469,8 +473,9 @@ def _interaction_sample(
                          column_labels=['sample_alt', 'alternative'])
 
     # don't need this after tracing
-    del choices_df['rand']
-    chunk.log_df(trace_label, 'choices_df', choices_df)
+    if not config.setting("freeze_unobserved_utilities", False):
+        del choices_df['rand']
+        chunk.log_df(trace_label, 'choices_df', choices_df)
 
     # - NARROW
     choices_df['prob'] = choices_df['prob'].astype(np.float32)

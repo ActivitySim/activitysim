@@ -744,7 +744,12 @@ class TransitVirtualPathBuilder(object):
                         self.trace_df(probs, trace_label, 'probs')
                     else:
 
-                        choices, rands = logit.make_choices(probs, allow_bad_probs=True, trace_label=trace_label)
+                        if config.setting("freeze_unobserved_utilities", False):
+                            choices, rands = logit.make_choices_utility_based(
+                                utilities_df, allow_bad_probs=True, trace_label=trace_label
+                            )
+                        else:
+                            choices, rands = logit.make_choices(probs, allow_bad_probs=True, trace_label=trace_label)
 
                         chunk.log_df(trace_label, "rands", rands)
                         del rands

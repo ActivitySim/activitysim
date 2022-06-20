@@ -40,18 +40,27 @@ def make_sample_choices_utility_based(
     rands = inverse_ev1_cdf(rands)
     chunk.log_df(trace_label, 'rands', rands)
 
-    utilities = utilities.to_numpy()  # this should be much cleaner once xarray changes are implemented
-    utilities = np.repeat(utilities[:, :, None], sample_size, axis=2)
-    utilities += rands
+    # # use rands
+    #utilities = utilities.to_numpy()  # this should be much cleaner once xarray changes are implemented
+    #utilities = np.repeat(utilities[:, :, None], sample_size, axis=2)
+    #utilities += rands
+    rands += np.repeat(utilities.to_numpy()[:, :, None], sample_size, axis=2)
+
+    # this gives us (len(choosers), sample_size) dimensional array, with values the chosen alternative
+    choices_array = np.argmax(rands, axis=1)
+    chunk.log_df(trace_label, 'choices_array', choices_array)
 
     del rands
     chunk.log_df(trace_label, 'rands', None)
 
-    # this gives us (len(choosers), sample_size) dimensional array, with values the chosen alternative
-    choices_array = np.argmax(utilities, axis=1)
-
     choosers_index_rep = np.tile(np.arange(0, choices_array.shape[0]), sample_size)
+    chunk.log_df(trace_label, 'choosers_index_rep', choosers_index_rep)
+
     choices_flattened = choices_array.flatten(order='F')
+    chunk.log_df(trace_label, 'choices_flattened', choices_flattened)
+
+    probs_selection = probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F')
+    chunk.log_df(trace_label, 'probs_selection', probs_selection)
 
     # choices_flattened are 0-based index into alternatives, need to map to alternative values given by
     #  alternatives.index.values (they are in this order by construction)
@@ -59,10 +68,24 @@ def make_sample_choices_utility_based(
     choices_df = pd.DataFrame({
         alt_col_name: alternatives.index.values[choices_flattened],
         'rand': np.zeros_like(choosers_index_rep),  # TODO [janzill June2022]: zero out for now
-        'prob': probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F'),
+        'prob': probs_selection,
         # repeat is wrong here - we do not want 1,1,2,2,3,3, etc, but 1,2,3,1,2,3 by construction
         choosers.index.name: np.tile(choosers.index.values, sample_size)
     })
+    chunk.log_df(trace_label, 'choices_df', choices_df)
+
+    del probs_selection
+    chunk.log_df(trace_label, 'probs_selection', None)
+    del choices_array
+    chunk.log_df(trace_label, 'choices_array', None)
+    del choosers_index_rep
+    chunk.log_df(trace_label, 'choosers_index_rep', None)
+    del choices_flattened
+    chunk.log_df(trace_label, 'choices_flattened', None)
+
+    # handing this off to caller
+    chunk.log_df(trace_label, 'choices_df', None)
+
     return choices_df
 
 
@@ -370,11 +393,11 @@ def _interaction_sample(
 
         chunk.log_df(trace_label, 'choices_df', choices_df)
 
-        # Now we need to attach probs - memory preserving to do this after making choices
-
         del utilities
         chunk.log_df(trace_label, 'utilities', None)
 
+        del probs
+        chunk.log_df(trace_label, 'probs', None)
     else:
         # convert to probabilities (utilities exponentiated and normalized to probs)
         # probs is same shape as utilities, one row per chooser and one column for alternative

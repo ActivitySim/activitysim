@@ -87,8 +87,7 @@ def joint_tour_frequency(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='joint_tour_frequency',
-        estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        estimator=estimator)
 
     # convert indexes to alternative names
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)

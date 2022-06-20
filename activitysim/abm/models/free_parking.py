@@ -68,8 +68,7 @@ def free_parking(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='free_parking_at_work',
-        estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        estimator=estimator)
 
     free_parking_alt = model_settings['FREE_PARKING_ALT']
     choices = (choices == free_parking_alt)

@@ -194,8 +194,7 @@ def trip_mode_choice(
             logsum_column_name=logsum_column_name,
             trace_label=segment_trace_label,
             trace_choice_name='trip_mode_choice',
-            estimator=estimator,
-            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+            estimator=estimator)
 
         if trace_hh_id:
             # trace the coefficients

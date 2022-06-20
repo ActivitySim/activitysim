@@ -143,8 +143,7 @@ def stop_frequency(
             chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(trace_label, segment_name),
             trace_choice_name='stops',
-            estimator=estimator,
-            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+            estimator=estimator)
 
         # convert indexes to alternative names
         choices = pd.Series(segment_spec.columns[choices.values], index=choices.index)

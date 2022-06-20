@@ -75,8 +75,7 @@ def telecommute_frequency(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='telecommute_frequency',
-        estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        estimator=estimator)
 
     choices = pd.Series(model_spec.columns[choices.values], index=choices.index)
 

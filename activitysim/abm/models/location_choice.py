@@ -538,8 +538,7 @@ def run_location_simulate(
         chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name=model_settings['DEST_CHOICE_COLUMN_NAME'],
-        estimator=estimator,
-        choose_individual_max_utility=choose_individual_max_utility
+        estimator=estimator
     )
 
     if not want_logsums:

@@ -432,8 +432,7 @@ def interaction_simulate(
         log_alt_losers=False,
         skims=None, locals_d=None, sample_size=None, chunk_size=0,
         trace_label=None, trace_choice_name=None,
-        estimator=None,
-        choose_individual_max_utility=False):
+        estimator=None):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -499,8 +498,7 @@ def interaction_simulate(
                                         trace_label=chunk_trace_label,
                                         trace_choice_name=trace_choice_name,
                                         log_alt_losers=log_alt_losers,
-                                        estimator=estimator,
-                                        choose_individual_max_utility=choose_individual_max_utility)
+                                        estimator=estimator)
 
         result_list.append(choices)
 

@@ -863,8 +863,8 @@ def run_od_simulate(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='origin_destination',
-        estimator=estimator,
-        choose_individual_max_utility=choose_individual_max_utility)
+        estimator=estimator
+    )
 
     if not want_logsums:
         choices = choices.to_frame('choice')

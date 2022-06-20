@@ -645,8 +645,8 @@ def run_destination_simulate(
         chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name='destination',
-        estimator=estimator,
-        choose_individual_max_utility=choose_individual_max_utility)
+        estimator=estimator
+    )
 
     if not want_logsums:
         # for consistency, always return a dataframe with canonical column name

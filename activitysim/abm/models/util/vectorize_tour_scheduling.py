@@ -600,8 +600,7 @@ def _schedule_tours(
         locals_d=locals_d,
         chunk_size=0,
         trace_label=tour_trace_label,
-        estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
+        estimator=estimator
     )
     chunk.log_df(tour_trace_label, 'choices', choices)
 

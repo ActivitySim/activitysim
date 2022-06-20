@@ -710,8 +710,7 @@ def trip_destination_simulate(
         chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name='trip_dest',
-        estimator=estimator,
-        choose_individual_max_utility=choose_individual_max_utility
+        estimator=estimator
     )
 
     if not want_logsums:

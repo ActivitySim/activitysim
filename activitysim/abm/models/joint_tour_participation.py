@@ -108,7 +108,7 @@ def get_tour_satisfaction(candidates, participate):
     return satisfaction
 
 
-def participants_chooser(probs, choosers, spec, trace_label, utilities):
+def participants_chooser(probs, choosers, spec, trace_label):
     """
     custom alternative to logit.make_choices for simulate.simple_simulate
 
@@ -175,10 +175,7 @@ def participants_chooser(probs, choosers, spec, trace_label, utilities):
             print(unsatisfied_candidates.head(20))
             assert False
 
-        choices, rands = logit.make_choices(
-            probs, utilities=utilities, trace_label=trace_label, trace_choosers=choosers,
-            choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
-        )
+        choices, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
         participate = (choices == PARTICIPATE_CHOICE)
 
         # satisfaction indexed by tour_id
@@ -317,8 +314,7 @@ def joint_tour_participation(
         trace_label=trace_label,
         trace_choice_name='participation',
         custom_chooser=participants_chooser,
-        estimator=estimator,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        estimator=estimator)
 
     # choice is boolean (participate or not)
     choice_col = model_settings.get('participation_choice', 'participate')

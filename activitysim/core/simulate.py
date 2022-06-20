@@ -887,8 +887,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
              log_alt_losers=False,
              want_logsums=False, trace_label=None,
-             trace_choice_name=None, trace_column_names=None,
-             choose_individual_max_utility=False):
+             trace_choice_name=None, trace_column_names=None):
     """
     Run a simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -952,32 +951,37 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         tracing.trace_df(utilities, '%s.utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
 
-    #if choose_individual_max_utility:
-    #    choices = logit.make_choices_ru_frozen_mnl(utilities, trace_label=trace_label)
-    #    rands = pd.Series([0, 0, 0])  # TODO: fix me, bring back up
-    #else:
-    probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
-    chunk.log_df(trace_label, "probs", probs)
+    if config.setting("freeze_unobserved_utilities", False):
+        if custom_chooser:
+            # TODO JAN: ADD HERE - need to figure out what to do with custom chooser though. leave out for now,
+            #  we only need to fix up joit_tour_participation for now
+            raise "Not implemented yet"
 
-    if have_trace_targets:
-        # report these now in case make_choices throws error on bad_choices
-        tracing.trace_df(probs, '%s.probs' % trace_label,
-                         column_labels=['alternative', 'probability'])
+        choices = logit.make_choices_utility_based(utilities, trace_label=trace_label)
+        rands = pd.Series([0, 0, 0])  # TODO: fix me, bring back up
 
-    if custom_chooser:
-        # TODO [janzill Jun2022]: is this used somewhere outside Asim such that adding utilities would be a breaking
-        #  change?
-        choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec,
-                                        trace_label=trace_label, utilities=utilities)
+        del utilities
+        chunk.log_df(trace_label, 'utilities', None)
+
     else:
-        choices, rands = logit.make_choices(probs, utilities=utilities, trace_label=trace_label,
-                                            choose_individual_max_utility=choose_individual_max_utility)
+        probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
+        chunk.log_df(trace_label, "probs", probs)
 
-    del utilities
-    chunk.log_df(trace_label, 'utilities', None)
+        if have_trace_targets:
+            # report these now in case make_choices throws error on bad_choices
+            tracing.trace_df(probs, '%s.probs' % trace_label,
+                             column_labels=['alternative', 'probability'])
 
-    del probs
-    chunk.log_df(trace_label, 'probs', None)
+        del utilities
+        chunk.log_df(trace_label, 'utilities', None)
+
+        if custom_chooser:
+            choices, rands = custom_chooser(probs=probs, choosers=choosers, spec=spec, trace_label=trace_label)
+        else:
+            choices, rands = logit.make_choices(probs, trace_label=trace_label)
+
+        del probs
+        chunk.log_df(trace_label, 'probs', None)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -1189,75 +1193,106 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
 
-    # exponentiated utilities of leaves and nests
-    nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
-    # TODO [janzill Jun2022: combine with nested_exp_utilities somehow?]
-    # utilities of leaves and nests
-    nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
-    chunk.log_df(trace_label, "nested_utilities", nested_utilities)
+    if config.setting("freeze_unobserved_utilities", False):
+        if custom_chooser:
+            # TODO JAN: ADD HERE - need to figure out what to do with custom chooser though. leave out for now,
+            #  we only need to fix up joit_tour_participation for now
+            raise "Not implemented yet"
 
-    del raw_utilities
-    chunk.log_df(trace_label, 'raw_utilities', None)
+        # TODO [janzill Jun2022]: combine with nested_exp_utilities?
+        # utilities of leaves and nests
+        nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
+        chunk.log_df(trace_label, "nested_utilities", nested_utilities)
 
-    if have_trace_targets:
-        tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
-                         column_labels=['alternative', 'utility'])
+        # TODO [janzill Jun2022]: this can be done from utils directly, but use existing methodology for prototype
+        if want_logsums:
+            # logsum of nest root
+            # exponentiated utilities of leaves and nests
+            nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+            chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
+            logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
+            chunk.log_df(trace_label, "logsums", logsums)
 
-    # probabilities of alternatives relative to siblings sharing the same nest
-    nested_probabilities = \
-        compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label=trace_label)
-    chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
+        # TODO: index of choices for nested utilities is different than unnested - this needs to be consistent for
+        #  turning indexes into alternative names to keep code changes to minimum for now
+        name_mapping = raw_utilities.columns.values
 
-    if want_logsums:
-        # logsum of nest root
-        logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
-        chunk.log_df(trace_label, "logsums", logsums)
+        del raw_utilities
+        chunk.log_df(trace_label, 'raw_utilities', None)
 
-    del nested_exp_utilities
-    chunk.log_df(trace_label, 'nested_exp_utilities', None)
+        choices = logit.make_choices_utility_based(
+            nested_utilities,
+            name_mapping=name_mapping,
+            nest_spec=nest_spec,
+            trace_label=trace_label
+        )
+        rands = pd.Series([0, 0, 0])  # TODO: fix me, bring back up
 
-    if have_trace_targets:
-        tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
-                         column_labels=['alternative', 'probability'])
+        del(nested_utilities)
+        chunk.log_df(trace_label, "nested_utilities", None)
 
-    # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
-    base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
-    chunk.log_df(trace_label, "base_probabilities", base_probabilities)
-
-    del nested_probabilities
-    chunk.log_df(trace_label, 'nested_probabilities', None)
-
-    if have_trace_targets:
-        tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
-                         column_labels=['alternative', 'probability'])
-
-    # note base_probabilities could all be zero since we allowed all probs for nests to be zero
-    # check here to print a clear message but make_choices will raise error if probs don't sum to 1
-    BAD_PROB_THRESHOLD = 0.001
-    no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
-
-    if no_choices.any():
-
-        logit.report_bad_choices(
-            no_choices, base_probabilities,
-            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
-            trace_choosers=choosers,
-            msg="base_probabilities do not sum to one")
-
-    if custom_chooser:
-        choices, rands = custom_chooser(probs=base_probabilities, choosers=choosers, spec=spec,
-                                        trace_label=trace_label)
     else:
-        choices, rands = logit.make_choices(base_probabilities, utilities=nested_utilities, nest_spec=nest_spec,
-        trace_label=trace_label, choose_individual_max_utility=choose_individual_max_utility)
+        # exponentiated utilities of leaves and nests
+        nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
+        chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
-    del(nested_utilities)
-    chunk.log_df(trace_label, "nested_utilities", None)
+        del raw_utilities
+        chunk.log_df(trace_label, 'raw_utilities', None)
 
-    del base_probabilities
-    chunk.log_df(trace_label, 'base_probabilities', None)
+        if have_trace_targets:
+            tracing.trace_df(nested_exp_utilities, '%s.nested_exp_utilities' % trace_label,
+                             column_labels=['alternative', 'utility'])
+
+        # probabilities of alternatives relative to siblings sharing the same nest
+        nested_probabilities = \
+            compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label=trace_label)
+        chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
+
+        if want_logsums:
+            # logsum of nest root
+            logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
+            chunk.log_df(trace_label, "logsums", logsums)
+
+        del nested_exp_utilities
+        chunk.log_df(trace_label, 'nested_exp_utilities', None)
+
+        if have_trace_targets:
+            tracing.trace_df(nested_probabilities, '%s.nested_probabilities' % trace_label,
+                             column_labels=['alternative', 'probability'])
+
+        # global (flattened) leaf probabilities based on relative nest coefficients (in spec order)
+        base_probabilities = compute_base_probabilities(nested_probabilities, nest_spec, spec)
+        chunk.log_df(trace_label, "base_probabilities", base_probabilities)
+
+        del nested_probabilities
+        chunk.log_df(trace_label, 'nested_probabilities', None)
+
+        if have_trace_targets:
+            tracing.trace_df(base_probabilities, '%s.base_probabilities' % trace_label,
+                             column_labels=['alternative', 'probability'])
+
+        # note base_probabilities could all be zero since we allowed all probs for nests to be zero
+        # check here to print a clear message but make_choices will raise error if probs don't sum to 1
+        BAD_PROB_THRESHOLD = 0.001
+        no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
+
+        if no_choices.any():
+
+            logit.report_bad_choices(
+                no_choices, base_probabilities,
+                trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
+                trace_choosers=choosers,
+                msg="base_probabilities do not sum to one")
+
+        if custom_chooser:
+            choices, rands = custom_chooser(probs=base_probabilities, choosers=choosers, spec=spec,
+                                            trace_label=trace_label)
+        else:
+            choices, rands = logit.make_choices(base_probabilities,nest_spec=nest_spec, trace_label=trace_label)
+
+        del base_probabilities
+        chunk.log_df(trace_label, 'base_probabilities', None)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label,
@@ -1280,9 +1315,7 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                      log_alt_losers=False,
                      want_logsums=False,
                      estimator=None,
-                     trace_label=None, trace_choice_name=None, trace_column_names=None,
-                     choose_individual_max_utility=False
-                     ):
+                     trace_label=None, trace_choice_name=None, trace_column_names=None):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -1337,25 +1370,14 @@ def _simple_simulate(choosers, spec, nest_spec, skims=None, locals_d=None,
                            want_logsums=want_logsums,
                            estimator=estimator,
                            trace_label=trace_label,
-                           trace_choice_name=trace_choice_name, trace_column_names=trace_column_names,
-                           choose_individual_max_utility=choose_individual_max_utility)
+                           trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
     else:
-        ##make_choices now carries choose_individual_max_utility -> incorporate there
-        #if choose_individual_max_utility:
-        #    choices = eval_nl_fixed_ru(choosers, spec, nest_spec, locals_d, custom_chooser,
-        #                      log_alt_losers=log_alt_losers,
-        #                      want_logsums=want_logsums,
-        #                      estimator=estimator,
-        #                      trace_label=trace_label,
-        #                      trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
-        #else:
         choices = eval_nl(choosers, spec, nest_spec, locals_d,  custom_chooser,
                           log_alt_losers=log_alt_losers,
                           want_logsums=want_logsums,
                           estimator=estimator,
                           trace_label=trace_label,
-                          trace_choice_name=trace_choice_name, trace_column_names=trace_column_names,
-                          choose_individual_max_utility=choose_individual_max_utility)
+                          trace_choice_name=trace_choice_name, trace_column_names=trace_column_names)
 
     return choices
 
@@ -1378,8 +1400,7 @@ def simple_simulate(choosers, spec, nest_spec,
                     log_alt_losers=False,
                     want_logsums=False,
                     estimator=None,
-                    trace_label=None, trace_choice_name=None, trace_column_names=None,
-                    choose_individual_max_utility=False):
+                    trace_label=None, trace_choice_name=None, trace_column_names=None):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -1405,8 +1426,7 @@ def simple_simulate(choosers, spec, nest_spec,
             estimator=estimator,
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
-            trace_column_names=trace_column_names,
-            choose_individual_max_utility=choose_individual_max_utility)
+            trace_column_names=trace_column_names)
 
         result_list.append(choices)
 
@@ -1427,8 +1447,7 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
                                 want_logsums=False,
                                 estimator=None,
                                 trace_label=None,
-                                trace_choice_name=None,
-                                choose_individual_max_utility=False):
+                                trace_choice_name=None):
     """
     chunk_by_chunk_id wrapper for simple_simulate
     """
@@ -1446,8 +1465,7 @@ def simple_simulate_by_chunk_id(choosers, spec, nest_spec,
             want_logsums=want_logsums,
             estimator=estimator,
             trace_label=chunk_trace_label,
-            trace_choice_name=trace_choice_name,
-            choose_individual_max_utility=choose_individual_max_utility)
+            trace_choice_name=trace_choice_name)
 
         result_list.append(choices)
 

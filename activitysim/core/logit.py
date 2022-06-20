@@ -272,36 +272,52 @@ def make_choices_ru_frozen(utilities, alt_order_array, nest_spec=None, trace_lab
     return choices
 
 
-def make_choices(probs, utilities=None, nest_spec=None, trace_label=None, trace_choosers=None, allow_bad_probs=False,
-                 choose_individual_max_utility=False):
+# TODO: memory usage
+def make_choices_utility_based(
+        utilities,
+        # for nested: need mapping of index to alternative name to "fake" indexes if I want to keep with current
+        #  structure, OR need to make returning names optional. sharrow impl will make our life so much easier
+        name_mapping=None,
+        nest_spec=None,
+        trace_label=None,
+        trace_choosers=None,
+        allow_bad_probs=False,
+):
+    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_utility_based')
+
+    # TODO: index of choices for nested utilities is different than unnested - this needs to be consistent for
+    #  turning indexes into alternative names to keep code changes to minimum for now
+    choices = make_choices_ru_frozen(utilities, name_mapping, nest_spec, trace_label)
+    # TODO: rands - log all zeros for now
+    rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
+    return choices, rands
+
+
+def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=False):
     """
     Make choices for each chooser from among a set of alternatives.
-
     Parameters
     ----------
     probs : pandas.DataFrame
         Rows for choosers and columns for the alternatives from which they
         are choosing. Values are expected to be valid probabilities across
         each row, e.g. they should sum to 1.
-
     trace_choosers : pandas.dataframe
         the choosers df (for interaction_simulate) to facilitate the reporting of hh_id
         by report_bad_choices because it can't deduce hh_id from the interaction_dataset
         which is indexed on index values from alternatives df
-
     Returns
     -------
     choices : pandas.Series
         Maps chooser IDs (from `probs` index) to a choice, where the choice
         is an index into the columns of `probs`.
-
     rands : pandas.Series
         The random numbers used to make the choices (for debugging, tracing)
-
     """
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices')
 
     # probs should sum to 1 across each row
+
     BAD_PROB_THRESHOLD = 0.001
     bad_probs = \
         probs.sum(axis=1).sub(np.ones(len(probs.index))).abs() \
@@ -313,14 +329,6 @@ def make_choices(probs, utilities=None, nest_spec=None, trace_label=None, trace_
                            trace_label=tracing.extend_trace_label(trace_label, 'bad_probs'),
                            msg="probabilities do not add up to 1",
                            trace_choosers=trace_choosers)
-
-    if choose_individual_max_utility:
-        # TODO: index of choices for nested utilities is different than unnested - this needs to be consistent for
-        #  turning indexes into alternative names; use probs.columns for now.
-        choices = make_choices_ru_frozen(utilities, probs.columns.values, nest_spec, trace_label)
-        # TODO: rands - log all zeros for now
-        rands = pd.Series(np.zeros_like(utilities.index.values), index=utilities.index)
-        return choices, rands
 
     rands = pipeline.get_rn_generator().random_for_df(probs)
 

@@ -922,8 +922,6 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
         This is the column label to be used in trace file csv dump of choices
     trace_column_names: str or list of str
         chooser columns to include when tracing expression_values
-    choose_individual_max_utility: bool
-        apply frozen randomness at the individual utility level
 
     Returns
     -------
@@ -994,8 +992,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
             log_alt_losers=False,
             want_logsums=False, trace_label=None,
-            trace_choice_name=None, trace_column_names=None,
-            choose_individual_max_utility=False):
+            trace_choice_name=None, trace_column_names=None):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
     specific data, e.g. there are no interactions with alternative
@@ -1051,7 +1048,6 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
     if have_trace_targets:
         tracing.trace_df(raw_utilities, '%s.raw_utilities' % trace_label,
                          column_labels=['alternative', 'utility'])
-
 
     if config.setting("freeze_unobserved_utilities", False):
         if custom_chooser:

@@ -436,7 +436,7 @@ class Nest(object):
         self.coefficient = 0
 
     def print(self):
-        print("Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s " %
+        print("Nest name: %s level: %s coefficient: %s product_of_coefficients: %s ancestors: %s" %
               (self.name, self.level, self.coefficient, self.product_of_coefficients, self.ancestors))
 
     @property

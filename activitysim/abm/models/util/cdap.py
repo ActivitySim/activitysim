@@ -637,7 +637,7 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
         return pd.Series(dtype='float64')
 
     if config.setting("freeze_unobserved_utilities", False):
-        idx_choices, rands = logit.make_choices(utils, trace_label=trace_label)
+        idx_choices, rands = logit.make_choices_utility_based(utils, trace_label=trace_label)
     else:
         probs = logit.utils_to_probs(utils, trace_label=trace_label)
 

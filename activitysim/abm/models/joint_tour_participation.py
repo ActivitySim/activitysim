@@ -212,6 +212,109 @@ def participants_chooser(probs, choosers, spec, trace_label):
     return choices, rands
 
 
+def participants_chooser_utility_based(utilities, choosers, spec, trace_label):
+    """
+    custom alternative to logit.make_choices for simulate.simple_simulate
+
+    Choosing participants for mixed tours is trickier than adult or child tours becuase we
+    need at least one adult and one child participant in a mixed tour. We call logit.make_choices
+    and then check to see if the tour statisfies this requirement, and rechoose for any that
+    fail until all are satisfied.
+
+    In principal, this shold always occur eventually, but we fail after MAX_ITERATIONS,
+    just in case there is some failure in program logic (haven't seen this occur.)
+
+    Parameters
+    ----------
+    utilities : pandas.DataFrame
+        Rows for choosers and columns for the alternatives from which they
+        are choosing.
+    choosers : pandas.dataframe
+        simple_simulate choosers df
+    spec : pandas.DataFrame
+        simple_simulate spec df
+        We only need spec so we can know the column index of the 'participate' alternative
+        indicating that the participant has been chosen to participate in the tour
+    trace_label : str
+
+    Returns - same as logit.make_choices
+    -------
+    choices, rands
+        choices, rands as returned by logit.make_choices (in same order as probs)
+
+    """
+
+    assert utilities.index.equals(choosers.index)
+
+    # choice is boolean (participate or not)
+    model_settings = config.read_model_settings('joint_tour_participation.yaml')
+
+    choice_col = model_settings.get('participation_choice', 'participate')
+    assert choice_col in spec.columns, \
+        "couldn't find participation choice column '%s' in spec"
+    PARTICIPATE_CHOICE = spec.columns.get_loc(choice_col)
+    MAX_ITERATIONS = model_settings.get('max_participation_choice_iterations', 5000)
+
+    trace_label = tracing.extend_trace_label(trace_label, 'participants_chooser')
+
+    candidates = choosers.copy()
+    choices_list = []
+    rands_list = []
+
+    num_tours_remaining = len(candidates.tour_id.unique())
+    logger.info('%s %s joint tours to satisfy.', trace_label, num_tours_remaining,)
+
+    iter = 0
+    while candidates.shape[0] > 0:
+
+        iter += 1
+
+        if iter > MAX_ITERATIONS:
+            logger.warning('%s max iterations exceeded (%s).', trace_label, MAX_ITERATIONS)
+            diagnostic_cols = ['tour_id', 'household_id', 'composition', 'adult']
+            unsatisfied_candidates = candidates[diagnostic_cols].join(utilities)
+            tracing.write_csv(unsatisfied_candidates,
+                              file_name='%s.UNSATISFIED' % trace_label, transpose=False)
+            print(unsatisfied_candidates.head(20))
+            assert False
+
+        choices, rands = logit.make_choices_utility_based(utilities, trace_label=trace_label, trace_choosers=choosers)
+        participate = (choices == PARTICIPATE_CHOICE)
+
+        # satisfaction indexed by tour_id
+        tour_satisfaction = get_tour_satisfaction(candidates, participate)
+        num_tours_satisfied_this_iter = tour_satisfaction.sum()
+
+        if num_tours_satisfied_this_iter > 0:
+
+            num_tours_remaining -= num_tours_satisfied_this_iter
+
+            satisfied = reindex(tour_satisfaction, candidates.tour_id)
+
+            choices_list.append(choices[satisfied])
+            rands_list.append(rands[satisfied])
+
+            # remove candidates of satisfied tours
+            utilities = utilities[~satisfied]
+            candidates = candidates[~satisfied]
+
+        logger.debug(f"{trace_label} iteration {iter} : "
+                     f"{num_tours_satisfied_this_iter} joint tours satisfied {num_tours_remaining} remaining")
+
+    choices = pd.concat(choices_list)
+    rands = pd.concat(rands_list).reindex(choosers.index)
+
+    # reindex choices and rands to match probs and v index
+    choices = choices.reindex(choosers.index)
+    rands = rands.reindex(choosers.index)
+    assert choices.index.equals(choosers.index)
+    assert rands.index.equals(choosers.index)
+
+    logger.info('%s %s iterations to satisfy all joint tours.', trace_label, iter,)
+
+    return choices, rands
+
+
 def annotate_jtp(model_settings, trace_label):
 
     # - annotate persons
@@ -305,6 +408,13 @@ def joint_tour_participation(
     household_chunk_ids = pd.Series(range(len(unique_household_ids)), index=unique_household_ids)
     candidates['chunk_id'] = reindex(household_chunk_ids, candidates.household_id)
 
+
+    # TODO: loads of code duplication, could make this implicit and get rid of it
+    if config.setting("freeze_unobserved_utilities", False):
+        custom_chooser = participants_chooser_utility_based
+    else:
+        custom_chooser = participants_chooser
+
     choices = simulate.simple_simulate_by_chunk_id(
         choosers=candidates,
         spec=model_spec,
@@ -313,7 +423,7 @@ def joint_tour_participation(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='participation',
-        custom_chooser=participants_chooser,
+        custom_chooser=custom_chooser,
         estimator=estimator)
 
     # choice is boolean (participate or not)

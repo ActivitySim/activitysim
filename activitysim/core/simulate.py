@@ -951,11 +951,9 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
 
     if config.setting("freeze_unobserved_utilities", False):
         if custom_chooser:
-            # TODO JAN: ADD HERE - need to figure out what to do with custom chooser though. leave out for now,
-            #  we only need to fix up joint_tour_participation for now
-            raise "Not implemented yet"
-
-        choices, rands = logit.make_choices_utility_based(utilities, trace_label=trace_label)
+            choices, rands = custom_chooser(utilities=utilities, choosers=choosers, spec=spec, trace_label=trace_label)
+        else:
+            choices, rands = logit.make_choices_utility_based(utilities, trace_label=trace_label)
 
         del utilities
         chunk.log_df(trace_label, 'utilities', None)
@@ -1050,11 +1048,6 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
                          column_labels=['alternative', 'utility'])
 
     if config.setting("freeze_unobserved_utilities", False):
-        if custom_chooser:
-            # TODO JAN: ADD HERE - need to figure out what to do with custom chooser though. leave out for now,
-            #  we only need to fix up joit_tour_participation for now
-            raise "Not implemented yet"
-
         # TODO [janzill Jun2022]: combine with nested_exp_utilities?
         # utilities of leaves and nests
         nested_utilities = compute_nested_utilities(raw_utilities, nest_spec)
@@ -1076,12 +1069,21 @@ def eval_nl(choosers, spec, nest_spec, locals_d, custom_chooser, estimator,
         del raw_utilities
         chunk.log_df(trace_label, 'raw_utilities', None)
 
-        choices, rands = logit.make_choices_utility_based(
-            nested_utilities,
-            name_mapping=name_mapping,
-            nest_spec=nest_spec,
-            trace_label=trace_label
-        )
+        if custom_chooser:
+            choices, rands = custom_chooser(
+                utilities=nested_utilities,
+                name_mapping=name_mapping,
+                choosers=choosers,
+                spec=spec,
+                trace_label=trace_label
+            )
+        else:
+            choices, rands = logit.make_choices_utility_based(
+                nested_utilities,
+                name_mapping=name_mapping,
+                nest_spec=nest_spec,
+                trace_label=trace_label
+            )
 
         del(nested_utilities)
         chunk.log_df(trace_label, "nested_utilities", None)

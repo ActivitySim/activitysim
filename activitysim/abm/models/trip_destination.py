@@ -110,7 +110,7 @@ def _destination_sample(
         locals_d=locals_dict,
         chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label
-    )
+        )
 
     return choices
 

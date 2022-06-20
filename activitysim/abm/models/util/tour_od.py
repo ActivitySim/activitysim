@@ -853,8 +853,7 @@ def run_od_simulate(
         chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name='origin_destination',
-        estimator=estimator
-    )
+        estimator=estimator)
 
     if not want_logsums:
         choices = choices.to_frame('choice')
@@ -922,7 +921,8 @@ def run_tour_od(
                 segment_destination_size_terms,
                 estimator,
                 chunk_size=chunk_size,
-                trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+                trace_label=tracing.extend_trace_label(
+                    trace_label, 'sample.%s' % segment_name))
 
         if model_settings['ORIG_FILTER'] == 'original_MAZ > 0':
             pass

@@ -380,7 +380,7 @@ def _interaction_sample(
 
         # choices array has same dim as utilities, with values indicating number of counts per chooser and alternative
         # let's turn the nonzero values into a dataframe
-        i, j = np.non_zero(choices_array)
+        i, j = np.nonzero(choices_array)
         chunk.log_df(trace_label, 'i', i)
         chunk.log_df(trace_label, 'j', j)
 

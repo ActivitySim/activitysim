@@ -267,9 +267,11 @@ def _interaction_sample_simulate(
 
     chunk.log_df(trace_label, 'choices', choices)
 
-    if allow_zero_probs and zero_probs.any():
-        # FIXME this is kind of gnarly, patch choice for zero_probs
-        choices.loc[zero_probs] = zero_prob_choice_val
+    # TODO [janzill Jun2022]: Also for utility based choices?
+    if not config.setting("freeze_unobserved_utilities", False):
+        if allow_zero_probs and zero_probs.any():
+            # FIXME this is kind of gnarly, patch choice for zero_probs
+            choices.loc[zero_probs] = zero_prob_choice_val
 
     if have_trace_targets:
         tracing.trace_df(choices, tracing.extend_trace_label(trace_label, 'choices'),

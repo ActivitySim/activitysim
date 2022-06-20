@@ -109,7 +109,8 @@ def _destination_sample(
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size, chunk_tag=chunk_tag,
-        trace_label=trace_label)
+        trace_label=trace_label
+    )
 
     return choices
 
@@ -698,8 +699,7 @@ def trip_destination_simulate(
         chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name='trip_dest',
-        estimator=estimator
-    )
+        estimator=estimator)
 
     if not want_logsums:
         # for consistency, always return a dataframe with canonical column name

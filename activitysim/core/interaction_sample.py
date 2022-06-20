@@ -391,7 +391,7 @@ def _interaction_sample(
         choices_df = pd.DataFrame({
             alt_col_name: alternatives.index.values[j],
             "pick_count": choices_array[i, j],
-            "prob": probs[i, j],
+            "prob": probs.to_numpy()[i, j],
             choosers.index.name: choosers.index.values[i]
         })
         chunk.log_df(trace_label, 'choices_df', choices_df)
@@ -462,9 +462,8 @@ def _interaction_sample(
         choices_df = choices_df[~choices_df['pick_dup']]
         del choices_df['pick_dup']
 
-        # set index after groupby so we can trace on it
-        choices_df.set_index(choosers.index.name, inplace=True)
-
+    # set index after groupby so we can trace on it
+    choices_df.set_index(choosers.index.name, inplace=True)
 
     chunk.log_df(trace_label, 'choices_df', choices_df)
 

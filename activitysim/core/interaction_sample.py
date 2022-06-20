@@ -36,49 +36,18 @@ def make_sample_choices_utility_based(
     assert utilities.shape == (len(choosers), alternative_count)
     #choice_dimension = (len(choosers), alternative_count, sample_size)
 
-    # TODO [janzill Jun2022]: THIS NEEDS for loop for memory like previous method, an array of dimension
+    # Note [janzill Jun2022]: this needs for loop for memory like previous method, an array of dimension
     #   (len(choosers), alternative_count, sample_size) can get very large
     choices = np.zeros_like(utilities, dtype=np.uint32)
     zero_dim_index = np.arange(utilities.shape[0])
-    #print(f"shape of choices = {choices.shape}, index shape = {zero_dim_index.shape}", flush=True)
 
+    utils_array = utilities.to_numpy()  # TODO [janzill Jun2022]: once or for each?
     for i in range(sample_size):
         rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)  # * sample_size
-        #rands = rands.reshape(choice_dimension)
         rands = inverse_ev1_cdf(rands)
-        #print(f"shape of rands = {rands.shape}", flush=True)
-
-        ## # use rands
-        ##utilities = utilities.to_numpy()  # this should be much cleaner once xarray changes are implemented
-        ##utilities = np.repeat(utilities[:, :, None], sample_size, axis=2)
-        ##utilities += rands
-        #rands += np.repeat(utilities.to_numpy()[:, :, None], sample_size, axis=2)
-        rands += utilities.to_numpy()  # TODO [janzill Jun2022]: once or for each?
-
-        #print(f"shape of rands which are now utils = {rands.shape}; values are {rands}", flush=True)
-        #print(f"argmaxs are {np.argmax(rands, axis=1)}", flush=True)
-
-        # NOT ANYMORE: this gives us (len(choosers), sample_size) dimensional array, with values the chosen alternative
-        #  NOW: len(choosers) dimensional array
-        #choices_array = np.argmax(rands, axis=1)
-        #chunk.log_df(trace_label, 'choices_array', choices_array)
-
+        rands += utils_array
         choices[zero_dim_index, np.argmax(rands, axis=1)] += 1
 
-        #choosers_index_rep = np.tile(np.arange(0, choices_array.shape[0]), sample_size)
-        #choices_flattened = choices_array.flatten(order='F')
-        #probs_selection = probs.to_numpy()[choosers_index_rep, choices_flattened].flatten(order='F')
-
-        # # choices_flattened are 0-based index into alternatives, need to map to alternative values given by
-        # #  alternatives.index.values (they are in this order by construction)
-        # # explode to one row per chooser.index, alt_zone_id
-        # choices_df = pd.DataFrame({
-        #     alt_col_name: alternatives.index.values[choices_flattened],
-        #     'rand': np.zeros_like(choosers_index_rep),  # zero out for now
-        #     'prob': probs_selection,
-        #     # repeat is wrong here - we do not want 1,1,2,2,3,3, etc, but 1,2,3,1,2,3 by construction
-        #     choosers.index.name: np.tile(choosers.index.values, sample_size)
-        # })
     return choices
 
 

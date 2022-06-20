@@ -106,7 +106,9 @@ def choose_intermediate_trip_purpose(
         print(choosers[probs_cols])
         estimator.write_table(choosers[probs_cols], 'probs', append=True)
 
-    choices, rands = logit.make_choices(choosers[purpose_cols], trace_label=trace_label, trace_choosers=choosers)
+    choices, rands = logit.make_choices(
+        choosers[purpose_cols],
+        trace_label=trace_label, trace_choosers=choosers)
 
     if have_trace_targets:
         tracing.trace_df(choices, '%s.choices' % trace_label, columns=[None, 'trip_purpose'])

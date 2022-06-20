@@ -636,14 +636,14 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
     if len(utils.index) == 0:
         return pd.Series(dtype='float64')
 
-    probs = logit.utils_to_probs(utils, trace_label=trace_label)
+    if config.setting("freeze_unobserved_utilities", False):
+        idx_choices, rands = logit.make_choices(utils, trace_label=trace_label)
+    else:
+        probs = logit.utils_to_probs(utils, trace_label=trace_label)
 
-    # select an activity pattern alternative for each household based on probability
-    # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
-    idx_choices, rands = logit.make_choices(
-        probs, utilities=utils, trace_label=trace_label,
-        choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False)
-    )
+        # select an activity pattern alternative for each household based on probability
+        # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
+        idx_choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
@@ -656,8 +656,9 @@ def household_activity_choices(indiv_utils, interaction_coefficients, hhsize,
 
         tracing.trace_df(utils, '%s.hhsize%d_utils' % (trace_label, hhsize),
                          column_labels=['expression', 'household'])
-        tracing.trace_df(probs, '%s.hhsize%d_probs' % (trace_label, hhsize),
-                         column_labels=['expression', 'household'])
+        if not config.setting("freeze_unobserved_utilities", False):
+            tracing.trace_df(probs, '%s.hhsize%d_probs' % (trace_label, hhsize),
+                             column_labels=['expression', 'household'])
         tracing.trace_df(choices, '%s.hhsize%d_activity_choices' % (trace_label, hhsize),
                          column_labels=['expression', 'household'])
         tracing.trace_df(rands, '%s.hhsize%d_rands' % (trace_label, hhsize),
@@ -765,7 +766,7 @@ def extra_hh_member_choices(persons, cdap_fixed_relative_proportions, locals_d,
     # select an activity pattern alternative for each person based on probability
     # idx_choices is a series (indexed on _persons_index_ ) with the chosen alternative represented
     # as the integer (0 based) index of the chosen column from probs
-    idx_choices, rands = logit.make_choices(probs, trace_label=trace_label)  # no fru for prob tables
+    idx_choices, rands = logit.make_choices(probs, trace_label=trace_label)
 
     # convert choice from column index to activity name
     choices = pd.Series(probs.columns[idx_choices].values, index=probs.index)

@@ -268,32 +268,41 @@ def choose_tour_leg_pattern(trip_segment,
         tracing.trace_df(utilities_df, tracing.extend_trace_label(trace_label, 'utilities'),
                          column_labels=['alternative', 'utility'])
 
-    # convert to probabilities (utilities exponentiated and normalized to probs)
-    # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(utilities_df,
-                                 trace_label=trace_label, trace_choosers=trip_segment)
+    if config.setting("freeze_unobserved_utilities", False):
+        # make choices
+        # positions is series with the chosen alternative represented as a column index in probs
+        # which is an integer between zero and num alternatives in the alternative sample
+        positions, rands = logit.make_choices_utility_based(
+            utilities_df, trace_label=trace_label, trace_choosers=trip_segment
+        )
 
-    chunk.log_df(trace_label, 'probs', probs)
+        del utilities_df
+        chunk.log_df(trace_label, 'utilities_df', None)
+    else:
+        # convert to probabilities (utilities exponentiated and normalized to probs)
+        # probs is same shape as utilities, one row per chooser and one column for alternative
+        probs = logit.utils_to_probs(utilities_df,
+                                     trace_label=trace_label, trace_choosers=trip_segment)
 
-    if have_trace_targets:
-        tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
-                         column_labels=['alternative', 'probability'])
+        chunk.log_df(trace_label, 'probs', probs)
 
-    # make choices
-    # positions is series with the chosen alternative represented as a column index in probs
-    # which is an integer between zero and num alternatives in the alternative sample
-    positions, rands = \
-        logit.make_choices(probs, utilities=utilities_df, trace_label=trace_label, trace_choosers=trip_segment,
-                           choose_individual_max_utility=config.setting("freeze_unobserved_utilities", False))
+        if have_trace_targets:
+            tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
+                             column_labels=['alternative', 'probability'])
+
+        del utilities_df
+        chunk.log_df(trace_label, 'utilities_df', None)
+
+        # make choices
+        # positions is series with the chosen alternative represented as a column index in probs
+        # which is an integer between zero and num alternatives in the alternative sample
+        positions, rands = logit.make_choices(probs, trace_label=trace_label, trace_choosers=trip_segment)
+
+        del probs
+        chunk.log_df(trace_label, 'probs', None)
 
     chunk.log_df(trace_label, 'positions', positions)
     chunk.log_df(trace_label, 'rands', rands)
-
-    del utilities_df
-    chunk.log_df(trace_label, 'utilities_df', None)
-
-    del probs
-    chunk.log_df(trace_label, 'probs', None)
 
     # shouldn't have chosen any of the dummy pad utilities
     assert positions.max() < max_sample_count

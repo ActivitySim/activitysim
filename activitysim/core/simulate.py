@@ -954,7 +954,7 @@ def eval_mnl(choosers, spec, locals_d, custom_chooser, estimator,
     if config.setting("freeze_unobserved_utilities", False):
         if custom_chooser:
             # TODO JAN: ADD HERE - need to figure out what to do with custom chooser though. leave out for now,
-            #  we only need to fix up joit_tour_participation for now
+            #  we only need to fix up joint_tour_participation for now
             raise "Not implemented yet"
 
         choices, rands = logit.make_choices_utility_based(utilities, trace_label=trace_label)

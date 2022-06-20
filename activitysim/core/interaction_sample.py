@@ -375,9 +375,6 @@ def _interaction_sample(
         )
         chunk.log_df(trace_label, 'choices_array', choices_array)
 
-        del utilities
-        chunk.log_df(trace_label, 'utilities', None)
-
         # choices array has same dim as utilities, with values indicating number of counts per chooser and alternative
         # let's turn the nonzero values into a dataframe
         i, j = np.nonzero(choices_array)
@@ -387,6 +384,9 @@ def _interaction_sample(
         probs = logit.utils_to_probs(utilities, allow_zero_probs=allow_zero_probs,
                                      trace_label=trace_label, trace_choosers=choosers)
         chunk.log_df(trace_label, 'probs', probs)
+
+        del utilities
+        chunk.log_df(trace_label, 'utilities', None)
 
         choices_df = pd.DataFrame({
             alt_col_name: alternatives.index.values[j],

@@ -244,13 +244,13 @@ def _interaction_sample_simulate(
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
         positions, rands = \
-            logit.make_choices(probs, utilities_df, trace_label=trace_label, trace_choosers=choosers)
+            logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
+
+        del probs
+        chunk.log_df(trace_label, 'probs', None)
 
     chunk.log_df(trace_label, 'positions', positions)
     chunk.log_df(trace_label, 'rands', rands)
-
-    del probs
-    chunk.log_df(trace_label, 'probs', None)
 
     # shouldn't have chosen any of the dummy pad utilities
     assert positions.max() < max_sample_count

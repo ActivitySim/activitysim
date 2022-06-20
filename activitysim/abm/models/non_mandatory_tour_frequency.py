@@ -111,8 +111,7 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
         choices, rands = logit.make_choices(
             choosers[PROBABILITY_COLUMNS],
             trace_label=tour_type_trace_label,
-            trace_choosers=choosers
-        )
+            trace_choosers=choosers)
 
         # - extend tour_count (0-based prob alternative choice equals magnitude of extension)
         if choices.any():

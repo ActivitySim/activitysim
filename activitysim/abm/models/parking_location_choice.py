@@ -124,8 +124,7 @@ def parking_destination_simulate(
         locals_d=locals_dict,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='parking_loc'
-    )
+        trace_choice_name='parking_loc')
 
     # drop any failed zero_prob destinations
     if (parking_locations == NO_DESTINATION).any():

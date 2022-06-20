@@ -161,8 +161,7 @@ def _location_sample(
         locals_d=locals_d,
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
-        trace_label=trace_label
-    )
+        trace_label=trace_label)
 
     return choices
 
@@ -529,8 +528,7 @@ def run_location_simulate(
         chunk_size=chunk_size, chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name=model_settings['DEST_CHOICE_COLUMN_NAME'],
-        estimator=estimator
-    )
+        estimator=estimator)
 
     if not want_logsums:
         # for consistency, always return a dataframe with canonical column name

@@ -199,6 +199,10 @@ def _interaction_sample_simulate(
         index=choosers.index)
     chunk.log_df(trace_label, 'utilities_df', utilities_df)
 
+    if want_logsums:
+        logsums = logit.utils_to_logsums(utilities_df, allow_zero_probs=allow_zero_probs)
+        chunk.log_df(trace_label, 'logsums', logsums)
+
     del padded_utilities
     chunk.log_df(trace_label, 'padded_utilities', None)
 
@@ -213,10 +217,6 @@ def _interaction_sample_simulate(
             utilities_df, trace_label=trace_label, trace_choosers=choosers
         )
 
-        if want_logsums:
-            logsums = logit.utils_to_logsums(utilities_df, allow_zero_probs=allow_zero_probs)
-            chunk.log_df(trace_label, 'logsums', logsums)
-
         del utilities_df
         chunk.log_df(trace_label, 'utilities_df', None)
 
@@ -226,10 +226,6 @@ def _interaction_sample_simulate(
         probs = logit.utils_to_probs(utilities_df, allow_zero_probs=allow_zero_probs,
                                      trace_label=trace_label, trace_choosers=choosers)
         chunk.log_df(trace_label, 'probs', probs)
-
-        if want_logsums:
-            logsums = logit.utils_to_logsums(utilities_df, allow_zero_probs=allow_zero_probs)
-            chunk.log_df(trace_label, 'logsums', logsums)
 
         del utilities_df
         chunk.log_df(trace_label, 'utilities_df', None)

@@ -265,7 +265,6 @@ def make_choices_ru_frozen_mnl(utilities):
 def make_choices_ru_frozen(utilities, alt_order_array, nest_spec=None, trace_label=None):
     trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen_mnl')
     if nest_spec is None:
-        assert (alt_order_array == utilities.columns.values).all()
         choices = make_choices_ru_frozen_mnl(utilities)
     else:
         choices = make_choices_ru_frozen_nl(utilities, alt_order_array, nest_spec)

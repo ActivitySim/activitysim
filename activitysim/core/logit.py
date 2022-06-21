@@ -183,13 +183,14 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
 
     return probs
 
-
-def inverse_ev1_cdf(x, location=0.0, scale=1.0):
+# OPTIMISE for runtime in interaction_sample - do not need scale nor location
+def inverse_ev1_cdf(x): #, location=0.0, scale=1.0):
     # quantile function of EV1
     # let's follow https://en.wikipedia.org/wiki/Gumbel_distribution (and biogeme and larch convention) where the scale
     # is proportional to variance (not variance^{-1}). this means nested scales are between 0 and 1.
     # x can be number or np array or pd df for vecops
-    return location - scale * np.log(-np.log(x))
+    #return location - scale * np.log(-np.log(x))
+    return -np.log(-np.log(x))
 
 
 # def add_ev1_random(df, nest_spec):

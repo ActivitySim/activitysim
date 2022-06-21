@@ -44,9 +44,7 @@ def make_sample_choices_utility_based(
     utils_array = utilities.to_numpy()  # TODO [janzill Jun2022]: once or for each?
     for i in range(sample_size):
         rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)
-        rands = inverse_ev1_cdf(rands)
-        rands += utils_array
-        choices[zero_dim_index, np.argmax(rands, axis=1)] += 1
+        choices[zero_dim_index, np.argmax(inverse_ev1_cdf(rands) + utils_array, axis=1)] += 1
 
     return choices
 

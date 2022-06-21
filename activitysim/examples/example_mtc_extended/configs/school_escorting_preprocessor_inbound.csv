@@ -126,26 +126,18 @@ Absolute deviation inbound distance child123 Chauffer 2,abs_dev_dist_in_child123
 Preferred departure time to school - child 1,_pref_depart_time_to_school1,"reindex(tours[(tours.tour_type == 'school') & (tours.tour_num == 1)].set_index('person_id').start, df.child_id1)"
 Preferred departure time to school - child 2,_pref_depart_time_to_school2,"reindex(tours[(tours.tour_type == 'school') & (tours.tour_num == 1)].set_index('person_id').start, df.child_id2)"
 Preferred departure time to school - child 3,_pref_depart_time_to_school3,"reindex(tours[(tours.tour_type == 'school') & (tours.tour_num == 1)].set_index('person_id').start, df.child_id3)"
-,_return_min_taking_outbound_child1_pe,"(_pref_depart_time_to_school1 * mins_per_time_bin) + time_home_to_school1 + time_school_to_home1"
-,_return_min_taking_outbound_child2_pe,"(_pref_depart_time_to_school2 * mins_per_time_bin) + time_home_to_school2 + time_school_to_home2"
-,_return_min_taking_outbound_child3_pe,"(_pref_depart_time_to_school3 * mins_per_time_bin) + time_home_to_school3 + time_school_to_home3"
+,return_min_taking_outbound_child1_pe,"(_pref_depart_time_to_school1 * mins_per_time_bin) + time_home_to_school1 + time_school_to_home1"
+,return_min_taking_outbound_child2_pe,"(_pref_depart_time_to_school2 * mins_per_time_bin) + time_home_to_school2 + time_school_to_home2"
+,return_min_taking_outbound_child3_pe,"(_pref_depart_time_to_school3 * mins_per_time_bin) + time_home_to_school3 + time_school_to_home3"
 finding latest time chauffer 1 returns from outbound pure escort tour,outbound_pe_return_time_home_chauf1,-1
-,outbound_pe_return_time_home_chauf1,"np.where((df.chauf1_outbound == 2) & (_return_min_taking_outbound_child1_pe > outbound_pe_return_time_home_chauf1), _return_min_taking_outbound_child1_pe, outbound_pe_return_time_home_chauf1)"
-,outbound_pe_return_time_home_chauf1,"np.where((df.chauf2_outbound == 2) & (_return_min_taking_outbound_child2_pe > outbound_pe_return_time_home_chauf1), _return_min_taking_outbound_child2_pe, outbound_pe_return_time_home_chauf1)"
-,outbound_pe_return_time_home_chauf1,"np.where((df.chauf3_outbound == 2) & (_return_min_taking_outbound_child3_pe > outbound_pe_return_time_home_chauf1), _return_min_taking_outbound_child3_pe, outbound_pe_return_time_home_chauf1)"
+,outbound_pe_return_time_home_chauf1,"np.where((df.chauf1_outbound == 2) & (return_min_taking_outbound_child1_pe > outbound_pe_return_time_home_chauf1), return_min_taking_outbound_child1_pe, outbound_pe_return_time_home_chauf1)"
+,outbound_pe_return_time_home_chauf1,"np.where((df.chauf2_outbound == 2) & (return_min_taking_outbound_child2_pe > outbound_pe_return_time_home_chauf1), return_min_taking_outbound_child2_pe, outbound_pe_return_time_home_chauf1)"
+,outbound_pe_return_time_home_chauf1,"np.where((df.chauf3_outbound == 2) & (return_min_taking_outbound_child3_pe > outbound_pe_return_time_home_chauf1), return_min_taking_outbound_child3_pe, outbound_pe_return_time_home_chauf1)"
 finding latest time chauffer 2 returns from outbound pure escort tour,outbound_pe_return_time_home_chauf2,-1
-,outbound_pe_return_time_home_chauf2,"np.where((df.chauf1_outbound == 2) & (_return_min_taking_outbound_child1_pe > outbound_pe_return_time_home_chauf2), _return_min_taking_outbound_child1_pe, outbound_pe_return_time_home_chauf2)"
-,outbound_pe_return_time_home_chauf2,"np.where((df.chauf2_outbound == 2) & (_return_min_taking_outbound_child2_pe > outbound_pe_return_time_home_chauf2), _return_min_taking_outbound_child2_pe, outbound_pe_return_time_home_chauf2)"
-,outbound_pe_return_time_home_chauf2,"np.where((df.chauf3_outbound == 2) & (_return_min_taking_outbound_child3_pe > outbound_pe_return_time_home_chauf2), _return_min_taking_outbound_child3_pe, outbound_pe_return_time_home_chauf2)"
-#,,
-,_return_min_taking_outbound_child1_rs,"(_pref_depart_time_to_school1 * mins_per_time_bin) + time_home_to_school1 + time_school_to_home1"
-,_return_min_taking_outbound_child2_rs,"(_pref_depart_time_to_school2 * mins_per_time_bin) + time_home_to_school2 + time_school_to_home2"
-,_return_min_taking_outbound_child3_rs,"(_pref_depart_time_to_school3 * mins_per_time_bin) + time_home_to_school3 + time_school_to_home3"
-finding latest time chauffer 1 returns from outbound ride share tour,outbound_rs_return_time_home_chauf1,-1
-,outbound_rs_return_time_home_chauf1,"np.where((df.chauf1_outbound == 2) & (_return_min_taking_outbound_child1_rs > outbound_rs_return_time_home_chauf1), _return_min_taking_outbound_child1_rs, outbound_rs_return_time_home_chauf1)"
-,outbound_rs_return_time_home_chauf1,"np.where((df.chauf2_outbound == 2) & (_return_min_taking_outbound_child2_rs > outbound_rs_return_time_home_chauf1), _return_min_taking_outbound_child2_rs, outbound_rs_return_time_home_chauf1)"
-,outbound_rs_return_time_home_chauf1,"np.where((df.chauf3_outbound == 2) & (_return_min_taking_outbound_child3_rs > outbound_rs_return_time_home_chauf1), _return_min_taking_outbound_child3_rs, outbound_rs_return_time_home_chauf1)"
-finding latest time chauffer 2 returns from outbound ride share tour,outbound_rs_return_time_home_chauf2,-1
-,outbound_rs_return_time_home_chauf2,"np.where((df.chauf1_outbound == 2) & (_return_min_taking_outbound_child1_rs > outbound_rs_return_time_home_chauf2), _return_min_taking_outbound_child1_rs, outbound_pe_return_time_home_chauf2)"
-,outbound_rs_return_time_home_chauf2,"np.where((df.chauf2_outbound == 2) & (_return_min_taking_outbound_child2_rs > outbound_rs_return_time_home_chauf2), _return_min_taking_outbound_child2_rs, outbound_pe_return_time_home_chauf2)"
-,outbound_rs_return_time_home_chauf2,"np.where((df.chauf3_outbound == 2) & (_return_min_taking_outbound_child3_rs > outbound_rs_return_time_home_chauf2), _return_min_taking_outbound_child3_rs, outbound_pe_return_time_home_chauf2)"
+,outbound_pe_return_time_home_chauf2,"np.where((df.chauf1_outbound == 4) & (return_min_taking_outbound_child1_pe > outbound_pe_return_time_home_chauf2), return_min_taking_outbound_child1_pe, outbound_pe_return_time_home_chauf2)"
+,outbound_pe_return_time_home_chauf2,"np.where((df.chauf2_outbound == 4) & (return_min_taking_outbound_child2_pe > outbound_pe_return_time_home_chauf2), return_min_taking_outbound_child2_pe, outbound_pe_return_time_home_chauf2)"
+,outbound_pe_return_time_home_chauf2,"np.where((df.chauf3_outbound == 4) & (return_min_taking_outbound_child3_pe > outbound_pe_return_time_home_chauf2), return_min_taking_outbound_child3_pe, outbound_pe_return_time_home_chauf2)"
+finding latest time chauffer 1 returns from outbound ride share tour,outbound_rs_return_time_home_chauf1,pref_depart_time_chauf1
+finding latest time chauffer 2 returns from outbound ride share tour,outbound_rs_return_time_home_chauf2,pref_depart_time_chauf2
+return time of outbound school escoring tour - chauffeur 1,return_bin_outbound_school_escorting1,"np.where(df.nrs1_outbound > 0, pref_depart_time_chauf1, outbound_pe_return_time_home_chauf1 / mins_per_time_bin)"
+return time of outbound school escoring tour - chauffeur 2,return_bin_outbound_school_escorting2,"np.where(df.nrs2_outbound > 0, pref_depart_time_chauf2, outbound_pe_return_time_home_chauf2 / mins_per_time_bin)"

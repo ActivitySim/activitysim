@@ -120,3 +120,19 @@ Preferred return time from school - child 2,pref_return_time_school2,"reindex(to
 Preferred return time from school - child 3,pref_return_time_school3,"reindex(tours[(tours.tour_type == 'school') & (tours.tour_num == 1)].set_index('person_id').end, df.child_id3)"
 Preferred return time from work / univ - chauffer 1,pref_return_time_chauf1,"reindex(tours[(tours.tour_category == 'mandatory') & (tours.tour_num == 1)].set_index('person_id').end, df.chauf_id1)"
 Preferred return time from work / univ - chauffer 2,pref_return_time_chauf2,"reindex(tours[(tours.tour_category == 'mandatory') & (tours.tour_num == 1)].set_index('person_id').end, df.chauf_id2)"
+# overlapping time windows from inbound escorting,,
+# ,_return_min_taking_inbound_child1_pe,"(_pref_depart_time_to_school1 * mins_per_time_bin) + time_home_to_school1 + time_school_to_home1"
+# ,_return_min_taking_inbound_child2_pe,"(_pref_depart_time_to_school2 * mins_per_time_bin) + time_home_to_school2 + time_school_to_home2"
+# ,_return_min_taking_inbound_child3_pe,"(_pref_depart_time_to_school3 * mins_per_time_bin) + time_home_to_school3 + time_school_to_home3"
+# finding earliest time chauffer 1 returns from inbound pure escort tour,inbound_pe_return_time_home_chauf1,-1
+# ,inbound_pe_return_time_home_chauf1,"np.where((df.chauf1_inbound == 2) & (_return_min_taking_inbound_child1_pe > inbound_pe_return_time_home_chauf1), _return_min_taking_inbound_child1_pe, inbound_pe_return_time_home_chauf1)"
+# ,inbound_pe_return_time_home_chauf1,"np.where((df.chauf2_inbound == 2) & (_return_min_taking_inbound_child2_pe > inbound_pe_return_time_home_chauf1), _return_min_taking_inbound_child2_pe, inbound_pe_return_time_home_chauf1)"
+# ,inbound_pe_return_time_home_chauf1,"np.where((df.chauf3_inbound == 2) & (_return_min_taking_inbound_child3_pe > inbound_pe_return_time_home_chauf1), _return_min_taking_inbound_child3_pe, inbound_pe_return_time_home_chauf1)"
+# finding earliest time chauffer 2 returns from inbound pure escort tour,inbound_pe_return_time_home_chauf2,-1
+# ,inbound_pe_return_time_home_chauf2,"np.where((df.chauf1_inbound == 2) & (_return_min_taking_inbound_child1_pe > inbound_pe_return_time_home_chauf2), _return_min_taking_inbound_child1_pe, inbound_pe_return_time_home_chauf2)"
+# ,inbound_pe_return_time_home_chauf2,"np.where((df.chauf2_inbound == 2) & (_return_min_taking_inbound_child2_pe > inbound_pe_return_time_home_chauf2), _return_min_taking_inbound_child2_pe, inbound_pe_return_time_home_chauf2)"
+# ,inbound_pe_return_time_home_chauf2,"np.where((df.chauf3_inbound == 2) & (_return_min_taking_inbound_child3_pe > inbound_pe_return_time_home_chauf2), _return_min_taking_inbound_child3_pe, inbound_pe_return_time_home_chauf2)"
+# finding latest time chauffer 1 returns from inbound ride share tour,inbound_rs_return_time_home_chauf1,pref_depart_time_chauf1
+# finding latest time chauffer 2 returns from inbound ride share tour,inbound_rs_return_time_home_chauf2,pref_depart_time_chauf2
+# return time of inbound school escoring tour - chauffeur 1,return_bin_inbound_school_escorting1,"np.where(df.nrs1_inbound > 0, pref_depart_time_chauf1, inbound_pe_return_time_home_chauf1)"
+# return time of inbound school escoring tour - chauffeur 2,return_bin_inbound_school_escorting2,"np.where(df.nrs2_inbound > 0, pref_depart_time_chauf2, inbound_pe_return_time_home_chauf2)"

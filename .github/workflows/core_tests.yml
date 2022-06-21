@@ -225,36 +225,32 @@ jobs:
           mamba info -a
           mamba list
 
-      - name: Define Inputs
-        run: echo "REGION_DEFS=activitysim/examples/example_${{ matrix.region }}/** " >> $GITHUB_ENV
-
-      - name: Get a random number
-        run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
-
-      - uses: actions/cache@v2
-        # store the regional model's cache directory in github actions cache
-        # this will (almost) never hit on primary key due to the random number
-        # but will pull the most recent cache from restore-keys... and then
-        # update the cache with additional compiled flows as needed.
-        # Hoping this will result in fewer re-compiles on tests and faster
-        # testing overall
-        with:
-          path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
-          key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}-${{ env.RANDOM_SUFFIX }}
-          restore-keys: |
-            example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
-        id: cache-example
+      # TODO: Cache sharrow compiled flows?  The contents of __pycache__ appear to
+      #       be ignored, so this is not working as expected right now
+      #
+      #  - name: Define Inputs
+      #    run: echo "REGION_DEFS=activitysim/examples/example_${{ matrix.region }}/** " >> $GITHUB_ENV
+      #
+      #  - name: Get a random number
+      #    run: echo "RANDOM_SUFFIX=${RANDOM}${RANDOM}" >> $GITHUB_ENV
+      #
+      #  - uses: actions/cache@v2
+      #    # store the regional model's cache directory in github actions cache
+      #    # this will (almost) never hit on primary key due to the random number
+      #    # but will pull the most recent cache from restore-keys... and then
+      #    # update the cache with additional compiled flows as needed.
+      #    # Hoping this will result in fewer re-compiles on tests and faster
+      #    # testing overall
+      #    with:
+      #      path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
+      #      key: example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}-${{ env.RANDOM_SUFFIX }}
+      #      restore-keys: |
+      #        example_${{ matrix.region }}-${{ env.label }}-${{ hashFiles(env.REGION_DEFS) }}-${{ env.DATE }}-${{ env.CACHE_NUMBER }}
+      #    id: cache-example
 
       - name: Test example_${{ matrix.region }}
         run: |
           python -m pytest activitysim/examples/example_${{ matrix.region }}/test --durations=0
-
-      - name: 'Upload Cache Artifact'
-        uses: actions/upload-artifact@v3
-        with:
-          name: example_${{ matrix.region }}-saved-cache
-          path: activitysim/examples/example_${{ matrix.region }}/test/output/cache
-          retention-days: 2
 
   estimation_mode:
     needs: foundation

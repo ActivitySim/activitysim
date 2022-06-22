@@ -124,6 +124,17 @@ run-compile:
 ################################################################################
 run-sharrow:
 
+- description: write configs_sh_chunktrain
+  name: pypyr.steps.filewriteyaml
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_sh_chunktrain/settings.yaml"
+      payload:
+        inherit_settings: True
+        households_sample_size: 10000
+        num_processes: 4
+        chunk_training_mode: '{chunk_training_mode}'
+
 - description: write configs_sh
   name: pypyr.steps.filewriteyaml
   in:
@@ -142,8 +153,16 @@ run-sharrow:
         num_processes: '{multiprocess}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
-        chunk_training_mode: '{chunk_training_mode}'
+        chunk_training_mode: '{chunk_application_mode}'
         disable_zarr: '{disable_zarr}'
+
+- description: Run activitysim to chunk-train sharrow-enabled model
+  name: activitysim.workflows.steps.run_subprocess
+  in:
+    pre_config_dirs: [configs_sh_chunktrain, configs_sh]
+    output_dir: 'output-{tag}/output-sharrow'
+    cwd: "{workspace}/{example_name}"
+    label: "{example_name} -- sharrow chunk training run"
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.run_subprocess
@@ -155,6 +174,17 @@ run-sharrow:
 
 ################################################################################
 run-legacy:
+
+- description: write configs_legacy_chunktrain
+  name: pypyr.steps.filewriteyaml
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_legacy_chunktrain/settings.yaml"
+      payload:
+        inherit_settings: True
+        households_sample_size: 10000
+        num_processes: 4
+        chunk_training_mode: '{chunk_training_mode}'
 
 - description: write.configs_legacy
   name: pypyr.steps.filewriteyaml
@@ -174,7 +204,15 @@ run-legacy:
         num_processes: '{multiprocess}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
-        chunk_training_mode: '{chunk_training_mode}'
+        chunk_training_mode: '{chunk_application_mode}'
+
+- description: Run activitysim to chunk-train legacy model
+  name: activitysim.workflows.steps.run_subprocess
+  in:
+    pre_config_dirs: [configs_legacy_chunktrain, configs_legacy]
+    output_dir: 'output-{tag}/output-legacy'
+    cwd: "{workspace}/{example_name}"
+    label: "{example_name} -- legacy chunk training run"
 
 - description: Run activitysim to evaluate legacy model
   name: activitysim.workflows.steps.run_subprocess
@@ -231,7 +269,7 @@ run-reference:
         num_processes: '{multiprocess}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
-        chunk_training_mode: '{chunk_training_mode}'
+        chunk_training_mode: '{chunk_application_mode}'
 
 - description: Run activitysim to evaluate reference model
   name: activitysim.workflows.steps.run_subprocess

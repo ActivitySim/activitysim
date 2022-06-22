@@ -72,10 +72,10 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/land_use.csv
       data/land_use.csv
 
-- name: example_mtc_sf
+- name: prototype_mtc_sf
   description: San Francisco MTC dataset with 190 zones, 400k households and 900k persons
-  # activitysim create -e example_mtc_sf -d test_example_mtc_sf
-  # cd test_example_mtc_sf
+  # activitysim create -e prototype_mtc_sf -d test_prototype_mtc_sf
+  # cd test_prototype_mtc_sf
   # activitysim run -c configs -o output -d data
   # cd ..
   include:

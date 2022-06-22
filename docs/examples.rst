@@ -478,7 +478,7 @@ Area types
   The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted for the prototype from
   Cube to OMX using the ``other_resources\scripts\mtc_tm1_omx_export.s`` script.
 
-  The example_mtc_sf inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and
+  The prototype_mtc_sf inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and
   skim inputs for a subset of user-defined zones.
 
 .. index:: configuration

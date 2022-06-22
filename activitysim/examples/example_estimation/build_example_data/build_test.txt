@@ -12,7 +12,7 @@ BUILD_DIR=$ESTIMATION_DIR/build_example_data
 #    TAG=test
 #    BUILD_DATA=$MTC_EXAMPLE_DIR/data
 
-# build example using example_mtc_sf data set (190 zones)
+# build example using prototype_mtc_sf data set (190 zones)
 # data not in activitysim repo/distro
    TAG=sf
    BUILD_DATA=$MTC_SF_DATA_DIR

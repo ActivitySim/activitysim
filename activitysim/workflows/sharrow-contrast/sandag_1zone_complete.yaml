@@ -8,8 +8,8 @@ steps:
       example_name: example_sandag_1_zone_full
       multiprocess: 4
       chunk_size: 40_000_000_000  # 40 GB
-      create: True
-      compile: True
+      create: False
+      compile: False
       sharrow: True
       legacy: False
       reference: False
@@ -20,9 +20,10 @@ steps:
       compile_n_households: 10000
       main_n_households: 100000
       config_dirs:
-      - configs_1_zone
-      - example_mtc/configs
+        - configs_1_zone
+        - example_mtc/configs
       data_dir: data_1
+      settings_file: settings_mp.yaml
       instrument: False
       memory_profile: True
       trace_hh_id:

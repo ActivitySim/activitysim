@@ -33,6 +33,7 @@ def run_activitysim_as_subprocess(
     config_dirs=("configs",),
     data_dir="data",
     output_dir="output",
+    settings_file=None,
     resume_after=None,
     fast=True,
     conda_prefix=None,
@@ -52,6 +53,8 @@ def run_activitysim_as_subprocess(
         flags.append(f" -r {resume_after}")
     if fast:
         flags.append("--fast")
+    if settings_file:
+        flags.append(f"-s {settings_file}")
     flags = " ".join(flags)
     cfgs = " ".join(f"-c {c}" for c in pre_config_dirs + config_dirs)
     args = f"activitysim run {cfgs} -d {data_dir} -o {output_dir} {flags}"

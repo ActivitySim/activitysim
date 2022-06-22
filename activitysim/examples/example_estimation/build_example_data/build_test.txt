@@ -4,11 +4,11 @@ MTC_SF_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1_sf/data
 MTC_FULL_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data
 
 EXAMPLES_DIR=$ACTIVITYSIM_BASE_DIR/activitysim/examples
-MTC_EXAMPLE_DIR=$EXAMPLES_DIR/example_gondor
+MTC_EXAMPLE_DIR=$EXAMPLES_DIR/prototype_mtc
 ESTIMATION_DIR=$EXAMPLES_DIR/example_estimation
 BUILD_DIR=$ESTIMATION_DIR/build_example_data
 
-# build example using example_gondor test data set (25 zones)
+# build example using prototype_mtc test data set (25 zones)
 #    TAG=test
 #    BUILD_DATA=$MTC_EXAMPLE_DIR/data
 
@@ -72,7 +72,7 @@ cp $BUILD_OUTPUT/trace/school_location*university*.csv $BUILD_DIR/scratch/$TAG/b
 cp $BUILD_OUTPUT/log/activitysim.log $BUILD_DIR/scratch/$TAG/build
 
 TAG=sf
-python simulation.py -c override_configs -c configs -c ../example_gondor/configs -d data_$TAG -o output_$TAG
+python simulation.py -c override_configs -c configs -c ../prototype_mtc/configs -d data_$TAG -o output_$TAG
 
 
 EST_OUTPUT=output_$TAG

@@ -30,7 +30,7 @@ def test_create_list():
     cp = subprocess.run(['activitysim', 'create', '--list'], capture_output=True)
 
     assert 'Available examples' in str(cp.stdout)
-    assert "name: example_gondor" in str(cp.stdout)
+    assert "name: prototype_mtc" in str(cp.stdout)
     assert "name: example_test" in str(cp.stdout)
 
 

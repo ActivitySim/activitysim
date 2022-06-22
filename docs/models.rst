@@ -348,8 +348,8 @@ Maintenance costs were not varied by vehicle year. (According to
 there was no consistent relationship between vehicle age and maintenance costs.)
 
 Using the above methodology, the average auto operating costs of vehicles output from :ref:`example_arnor` was 18.4 cents.
-This value is very close to the auto operating cost of 18.3 cents used in :ref:`example_gondor`.
-Non-household vehicles in example_arnor use the auto operating cost of 18.3 cents used in example_gondor.
+This value is very close to the auto operating cost of 18.3 cents used in :ref:`prototype_mtc`.
+Non-household vehicles in example_arnor use the auto operating cost of 18.3 cents used in prototype_mtc.
 Users are encouraged to make their own assumptions and calculate auto operating costs as they see fit.
 
 The distribution of fuel type probabilities included in :ref:`example_arnor` are computed directly from the National Household Travel Survey data
@@ -471,7 +471,7 @@ from previously scheduled tours. This model uses person :ref:`time_windows`.
 
 
 .. note::
-   For ``example_gondor``, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
+   For ``prototype_mtc``, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
 
 
 If ``tour_departure_and_duration_segments.csv`` is included in the configs, then the model
@@ -705,7 +705,7 @@ In :ref:`example_arnor`, three occupancy levels are used: 1, 2, and 3.5.  The au
 for occupancy level 1 is used in the drive alone mode and drive to transit modes. Occupancy levels 2 and 3.5 are used for shared
 ride 2 and shared ride 3+ auto operating costs, respectively.  Auto operating costs are selected in the mode choice pre-processors by selecting the allocated
 vehicle type data from the vehicles table. If the allocated vehicle type was the non-household vehicle, the auto operating costs uses
-the previous default value from :ref:`example_gondor`. All trips and atwork subtours use the auto operating cost of the parent tour.  Functionality
+the previous default value from :ref:`prototype_mtc`. All trips and atwork subtours use the auto operating cost of the parent tour.  Functionality
 was added in tour and atwork subtour mode choice to annotate the tour table and create a ``selected_vehicle`` which denotes the actual vehicle used.
 If the tour mode does not include a vehicle, then the ``selected_vehicle`` entry is left blank.
 

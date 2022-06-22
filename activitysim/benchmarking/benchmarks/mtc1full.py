@@ -3,7 +3,7 @@ from activitysim.benchmarking.componentwise import (
     template_setup_cache,
 )
 
-EXAMPLE_NAME = "example_gondor_full"
+EXAMPLE_NAME = "prototype_mtc_full"
 CONFIGS_DIRS = ("configs",)
 DYNAMIC_CONFIG_DIR = "bench_configs"
 DATA_DIR = "data"

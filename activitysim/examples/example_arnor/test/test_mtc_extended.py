@@ -22,7 +22,7 @@ def test_arnor():
         return pkg_resources.resource_filename('activitysim', resource)
 
     def example_mtc_path(dirname):
-        resource = os.path.join('examples', 'example_gondor', dirname)
+        resource = os.path.join('examples', 'prototype_mtc', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def test_path(dirname):

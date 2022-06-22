@@ -19,8 +19,8 @@ jobs:
     - env: TEST_SUITE=activitysim/core
 
     - stage: Examples
-      name: "Gondor Example"
-      env: TEST_SUITE=activitysim/examples/example_gondor/test
+      name: "Prototype MTC"
+      env: TEST_SUITE=activitysim/examples/prototype_mtc/test
     - name: "Arnor Example"
       env: TEST_SUITE=activitysim/examples/example_arnor/test
     - name: "Multizone Example"

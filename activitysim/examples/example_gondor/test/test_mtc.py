@@ -18,7 +18,7 @@ def teardown_function(func):
 def run_test_mtc(multiprocess=False, chunkless=False):
 
     def example_path(dirname):
-        resource = os.path.join('examples', 'example_gondor', dirname)
+        resource = os.path.join('examples', 'prototype_mtc', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def test_path(dirname):

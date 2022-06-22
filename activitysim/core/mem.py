@@ -282,7 +282,7 @@ def shared_memory_size(data_buffers=None):
         if isinstance(data_buffer, str) and data_buffer.startswith("sh.Dataset:"):
             from sharrow import Dataset
 
-            shared_size += Dataset.preload_shared_memory_size(data_buffer[11:])
+            shared_size += Dataset.shm.preload_shared_memory_size(data_buffer[11:])
             continue
         try:
             obj = data_buffer.get_obj()

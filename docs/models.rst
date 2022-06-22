@@ -335,7 +335,7 @@ The *vehicle_type_choice.yaml* file contains the following model specific option
   different scenario years.
 * Optional additional settings that work the same in other models are constants, expression preprocessor, and annotate tables.
 
-Input vehicle type data included in :ref:`example_arnor` came from a variety of sources. The number of vehicle makes, models, MPG, and
+Input vehicle type data included in :ref:`prototype_mtc_extended` came from a variety of sources. The number of vehicle makes, models, MPG, and
 electric vehicle range was sourced from the Enivornmental Protection Agency (EPA).  Additional data on vehicle costs were derived from the
 National Household Travel Survey. Auto operating costs in the vehicle type data file were a sum of fuel costs and maintenance costs.
 Fuel costs were calculated from MPG assuming a $3.00 cost for a gallon of gas. When MPG was not available to calculate fuel costs,
@@ -347,12 +347,12 @@ Maintenance costs were not varied by vehicle year. (According to
 `data from the U.S. Bureau of Labor Statistics <https://www.bls.gov/opub/btn/volume-3/pdf/americans-aging-autos.pdf>`_,
 there was no consistent relationship between vehicle age and maintenance costs.)
 
-Using the above methodology, the average auto operating costs of vehicles output from :ref:`example_arnor` was 18.4 cents.
+Using the above methodology, the average auto operating costs of vehicles output from :ref:`prototype_mtc_extended` was 18.4 cents.
 This value is very close to the auto operating cost of 18.3 cents used in :ref:`prototype_mtc`.
-Non-household vehicles in example_arnor use the auto operating cost of 18.3 cents used in prototype_mtc.
+Non-household vehicles in prototype_mtc_extended use the auto operating cost of 18.3 cents used in prototype_mtc.
 Users are encouraged to make their own assumptions and calculate auto operating costs as they see fit.
 
-The distribution of fuel type probabilities included in :ref:`example_arnor` are computed directly from the National Household Travel Survey data
+The distribution of fuel type probabilities included in :ref:`prototype_mtc_extended` are computed directly from the National Household Travel Survey data
 and include the entire US. Therefore, there is "lumpiness" in probabilities due to poor statistics in the data for some vehicle types.
 The user is encouraged to adjust the probabilities to their modeling region and "smooth" them for more consistent results.
 
@@ -701,7 +701,7 @@ A vehicle is selected for each occupancy level set by the user such that differe
 characteristics. The output of the vehicle allocation model is appended to the tour table with column names ``vehicle_occup_{occupancy}`` and the values are
 the vehicle type selected.
 
-In :ref:`example_arnor`, three occupancy levels are used: 1, 2, and 3.5.  The auto operating cost
+In :ref:`prototype_mtc_extended`, three occupancy levels are used: 1, 2, and 3.5.  The auto operating cost
 for occupancy level 1 is used in the drive alone mode and drive to transit modes. Occupancy levels 2 and 3.5 are used for shared
 ride 2 and shared ride 3+ auto operating costs, respectively.  Auto operating costs are selected in the mode choice pre-processors by selecting the allocated
 vehicle type data from the vehicles table. If the allocated vehicle type was the non-household vehicle, the auto operating costs uses

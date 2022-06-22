@@ -1,0 +1,13 @@
+
+SPEC: tour_scheduling_atwork.csv
+COEFFICIENTS: tour_scheduling_atwork_coefficients.csv
+
+preprocessor:
+  SPEC: tour_scheduling_atwork_preprocessor
+  DF: df
+#  TABLES:
+#    - land_use
+#    - tours
+
+CONSTANTS:
+  time_cap: 30

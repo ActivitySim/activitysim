@@ -1,0 +1,8 @@
+Description,Target,Expression
+destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, joint_tours.destination) < setting('cbd_threshold')) * 1"
+#,, this uses the free flow travel time in both directions. MTC TM1 was MD and MD
+temp auto_time_to_destination,_auto_time_to_destination,"skim_dict.lookup(joint_tours.origin, joint_tours.destination, ('SOV_TIME', 'MD'))"
+temp auto_time_return,_auto_time_return,"skim_dict.lookup(joint_tours.destination, joint_tours.origin, ('SOV_TIME', 'MD'))"
+free flow roundtrip_auto_time,roundtrip_auto_time,"_auto_time_to_destination + _auto_time_return"
+#"number of joint tours that this joint tours point_person participates in",,
+,num_person_joint_tours,"reindex_i(joint_tour_participants.groupby('person_id').size(), joint_tours.person_id)"

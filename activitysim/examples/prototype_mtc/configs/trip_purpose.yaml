@@ -1,0 +1,10 @@
+
+
+PROBS_SPEC: trip_purpose_probs.csv
+
+preprocessor:
+  SPEC: trip_purpose_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - persons
+    - tours

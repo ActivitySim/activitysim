@@ -14,7 +14,7 @@ This page describes the example models included with ActivitySim.  The current e
 +=================================+===========================================================+==============+======================+
 | :ref:`prototype_mtc`            | Original ActivitySim Example, derived from MTC TM1        | 1            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_arnor`            | Prototype MTC example with additional optional models     | 1            | In development       |
+| :ref:`prototype_mtc_extended`   | Prototype MTC example with additional optional models     | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_estimation`       | Estimation example with prototype_mtc                     | 1            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -547,7 +547,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-:ref:`example_arc`, :ref:`example_semcog`, and :ref:`example_arnor` examples added additional submodels.
+:ref:`example_arc`, :ref:`example_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -1057,12 +1057,12 @@ only be activated when writing logsums for a small set of households for model e
 | mode_choice_logsum                | mode choice logsum                    |
 +-----------------------------------+---------------------------------------+
 
-.. _example_arnor :
+.. _prototype_mtc_extended :
 
-example_arnor
--------------
+prototype_mtc_extended
+----------------------
 
-example_arnor contains additional models that were developed to enhance ActivitySim's modeling
+prototype_mtc_extended contains additional models that were developed to enhance ActivitySim's modeling
 capabilities. This example inherets
 the data and configuration files from prototype_mtc. The current list of additional models included
 in this example are:

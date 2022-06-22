@@ -46,35 +46,35 @@
       data/land_use.csv
       fac71207925a34c32b956632fe375814e42860624a99f88401c42317af0fc203
 
-- name: example_arnor
+- name: prototype_mtc_extended
   description: 25-zone prototype MTC example with extended models
-  # activitysim create -e example_arnor -d test_example_arnor
-  # cd test_example_arnor
+  # activitysim create -e prototype_mtc_extended -d test_prototype_mtc_extended
+  # cd test_prototype_mtc_extended
   # activitysim run -c configs_extended/configs -c configs -o output -d data
   # cd ..
   include:
     - prototype_mtc/data
-    - example_arnor/configs
+    - prototype_mtc_extended/configs
       configs_extended
     - prototype_mtc/configs
-    - example_arnor/configs_mp
-    - example_arnor/output
-    - example_arnor/README.MD
+    - prototype_mtc_extended/configs_mp
+    - prototype_mtc_extended/output
+    - prototype_mtc_extended/README.MD
 
-- name: example_arnor_full
-  description: Arnor example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
-  # activitysim create -e example_arnor_full -d test_example_arnor_full
-  # cd test_example_arnor_full
+- name: prototype_mtc_extended_full
+  description: Prototype MTC example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
+  # activitysim create -e prototype_mtc_extended_full -d test_prototype_mtc_extended_full
+  # cd test_prototype_mtc_extended_full
   # activitysim run -c configs_mp -c configs_extended/configs -c configs -o output -d data
   # cd ..
   include:
     - prototype_mtc/data
     - prototype_mtc/configs
-    - example_arnor/configs
+    - prototype_mtc_extended/configs
       configs_extended
-    - example_arnor/configs_mp
-    - example_arnor/output
-    - example_arnor/README.MD
+    - prototype_mtc_extended/configs_mp
+    - prototype_mtc_extended/output
+    - prototype_mtc_extended/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/households.csv

@@ -11,18 +11,6 @@
     - prototype_mtc/output
     - prototype_mtc/README.MD
 
-- name: example_test
-  description: data and configs for the ActivitySim test system
-  # activitysim create -e example_test -d test_example_test
-  # cd test_example_test
-  # activitysim run -c configs -o output -d data
-  # cd ..
-  include:
-    - prototype_mtc/data
-    - prototype_mtc/configs
-    - prototype_mtc/configs_mp
-    - prototype_mtc/output
-
 - name: prototype_mtc_full
   description: Prototype MTC example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
   # activitysim create -e prototype_mtc_full -d test_prototype_mtc_full

@@ -8,6 +8,7 @@ import math
 import multiprocessing
 import os
 import threading
+import warnings
 from contextlib import contextmanager
 
 import numpy as np
@@ -852,7 +853,11 @@ class ChunkSizer(object):
                 )
                 estimated_number_of_chunks = None
 
-                assert chunk_training_mode() != MODE_PRODUCTION
+                if chunk_training_mode() == MODE_PRODUCTION:
+                    warnings.warn(
+                        "ActivitySim is running with a chunk_training_mode of "
+                        f"'production' but initial_row_size is zero in {self.trace_label}"
+                    )
 
         # cum_rows is out of phase with cum_overhead
         # since we won't know observed_chunk_size until AFTER yielding the chunk

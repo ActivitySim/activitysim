@@ -11,6 +11,7 @@ from activitysim.core import inject
 from activitysim.core import expressions
 from activitysim.core import los
 
+import activitysim.abm.tables.tours as tables_tours
 from activitysim.core.util import reindex
 
 import pandas as pd
@@ -83,83 +84,6 @@ def construct_alternatives(choosers, model_settings):
     return alts
 
 
-def run_school_escorting(choosers, households, model_settings, alts, trace_label, chunk_size, trace_hh_id):
-
-    nest_spec = config.get_logit_model_settings(model_settings)
-    constants = config.get_model_constants(model_settings)
-    locals_dict = {}
-    locals_dict.update(constants)
-
-    warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
-
-    # for stage in ['outbound', 'inbound', 'outbound_cond']:
-    for stage in ['outbound', 'inbound']:
-        stage_trace_label = trace_label + '_' + stage
-        estimator = estimation.manager.begin_estimation('school_escorting_' + stage)
-
-        model_spec_raw = simulate.read_model_spec(file_name=model_settings[stage.upper() + '_SPEC'])
-        coefficients_df = simulate.read_model_coefficients(file_name=model_settings[stage.upper() + '_COEFFICIENTS'])
-        model_spec = simulate.eval_coefficients(model_spec_raw, coefficients_df, estimator)
-
-        locals_dict.update(coefficients_df)
-
-        logger.info("Running %s with %d households", stage_trace_label, len(choosers))
-
-        preprocessor_settings = model_settings.get('preprocessor_' + stage, None)
-        if preprocessor_settings:
-            expressions.assign_columns(
-                df=choosers,
-                model_settings=preprocessor_settings,
-                locals_dict=locals_dict,
-                trace_label=stage_trace_label)
-
-        if estimator:
-            estimator.write_model_settings(model_settings, model_settings_file_name)
-            estimator.write_spec(model_settings)
-            estimator.write_coefficients(coefficients_df, model_settings)
-            estimator.write_choosers(choosers)
-
-        choosers.to_csv('school_escorting_choosers_' + stage + '.csv')
-
-        log_alt_losers = config.setting('log_alt_losers', False)
-
-        choices = interaction_simulate(
-            choosers=choosers,
-            alternatives=alts,
-            spec=model_spec,
-            log_alt_losers=log_alt_losers,
-            locals_d=locals_dict,
-            chunk_size=chunk_size,
-            trace_label=stage_trace_label,
-            trace_choice_name='school_escorting_' + 'stage',
-            estimator=estimator)
-
-        if estimator:
-            estimator.write_choices(choices)
-            choices = estimator.get_survey_values(choices, 'households', 'school_escorting_' + stage)
-            estimator.write_override_choices(choices)
-            estimator.end_estimation()
-
-        # no need to reindex as we used all households
-        escorting_choice = 'school_escorting_' + stage
-        households[escorting_choice] = choices
-        # also adding to choosers table
-        choosers[escorting_choice] = choices
-
-        stage_alts = alts.copy()
-
-
-        # should this tracing be done for every step? - I think so...
-        tracing.print_summary(escorting_choice, households[escorting_choice], value_counts=True)
-
-        if trace_hh_id:
-            tracing.trace_df(households,
-                             label=escorting_choice,
-                             warn_if_empty=True)
-
-    return households
-
-
 def add_prev_choices_to_choosers(choosers, choices, alts, stage):
     # adding choice details to chooser table
     escorting_choice = 'school_escorting_' + stage
@@ -175,22 +99,6 @@ def add_prev_choices_to_choosers(choosers, choices, alts, stage):
         right_on=stage_alts.index.name).set_index('household_id')
 
     return choosers
-
-
-def determine_child_order_specific_attributes(row):
-    child_order = row['child_order']
-    first_child_num = str(child_order[0] + 1)
-
-    # origin is just the home zone id
-    row['origin'] = row['school_origin_child' + first_child_num]
-    row['destination'] = row['school_destination_child' + first_child_num]
-    row['start'] = row['school_start_child' + first_child_num]
-
-    time_home_to_school = row['time_home_to_school' + first_child_num]
-    # FIXME hardcoded mins per time bin
-    row['end'] = row['start'] + int(time_home_to_school / 30)
-
-    return row
 
 
 def add_school_escorting_type_to_tours_table(escort_bundles, tours):
@@ -210,33 +118,78 @@ def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     return tours
 
 
-def create_pure_escort_tours(bundles, tours):
+def determine_child_order_specific_attributes(row):
+    child_order = row['child_order']
+    first_child_num = str(child_order[0] + 1)
+
+    # origin is just the home zone id
+    row['origin'] = row['school_origin_child' + first_child_num]
+    row['destination'] = row['school_destination_child' + first_child_num]
+    row['start'] = row['school_start_child' + first_child_num]
+
+    time_home_to_school = row['time_home_to_school' + first_child_num]
+    # FIXME hardcoded mins per time bin
+    row['end'] = row['start'] + int(time_home_to_school * 2 / 30)
+
+    return row
+
+
+def create_pure_school_escort_tours(tours):
     # creating home to school tour for chauffers making pure escort tours
     # ride share tours are already created since they go off the mandatory tour
 
     # FIXME: can I just move all of this logic to a csv and annotate??
+    bundles = pipeline.get_table('escort_bundles')
+    persons = pipeline.get_table('persons')
     pe_tours = bundles[bundles['escort_type'] == 'pure_escort']
 
     pe_tours = pe_tours.apply(lambda row: determine_child_order_specific_attributes(row), axis=1)
 
     pe_tours['person_id'] = pe_tours['chauf_id']
-    pe_tours['tour_type_count'] = 1
-    pe_tours['tour_type_num'] = 1
-    pe_tours['tour_num'] = 1
+    # FIXME should probably put this when creating the bundles table
+    # assert pe_tours['persons_id'].isin(persons.index), \
+    #     f"Chauffer ID(s) not present in persons table {pe_tours.loc[~pe_tours['person_id'].isin(persons.index), 'person_id']}"
+    pe_tours = pe_tours[pe_tours['person_id'].isin(persons.index)]
+
     pe_tours['tour_category'] = 'non_mandatory'
     pe_tours['number_of_participants'] = 1
     pe_tours['tour_type'] = 'escort'
-    # FIXME will have to calculate all these after
-    pe_tours['tour_count'] = 1
-    pe_tours['tdd'] = -1
-    pe_tours['duration'] = pe_tours['end'] - pe_tours['start']
+    # FIXME join tdd from tdd_alts
+    pe_tours['tdd'] = pd.NA
     pe_tours['duration'] = pe_tours['end'] - pe_tours['start']
     pe_tours['school_esc_outbound'] = np.where(pe_tours['direction'] == 'outbound', 'pure_escort', pd.NA)
     pe_tours['school_esc_inbound'] = np.where(pe_tours['direction'] == 'inbound', 'pure_escort', pd.NA)
 
-    pe_tours = pe_tours[tours.columns]
+    # FIXME placeholder index
+    pe_tours['tour_id'] = list(range(len(pe_tours)))
+    pe_tours.set_index('tour_id', inplace=True)
 
-    return pe_tours
+    pe_tours.to_csv('pure_escort_tours.csv')
+
+    for col in tours.columns:
+        if col not in pe_tours.columns:
+            pe_tours[col] = pd.NA
+            print(col)
+
+    tours = pd.concat([tours, pe_tours[tours.columns]])
+
+    grouped = tours.groupby(['person_id', 'tour_type'])
+    tours['tour_type_num'] = grouped.cumcount() + 1
+    tours['tour_type_count'] = tours['tour_type_num'] + grouped.cumcount(ascending=False)
+
+    grouped = tours.groupby('person_id')
+    tours['tour_num'] = grouped.cumcount() + 1
+    tours['tour_count'] = tours['tour_num'] + grouped.cumcount(ascending=False)
+
+    tours.sort_values(by=['household_id', 'person_id', 'tour_num'], inplace=True)
+
+    pipeline.replace_table("tours", tours)
+    # since new trips were added inbetween other trips on the tour, the trip_id's changed
+    # resetting random number generator for trips... does this have unintended consequences?
+    pipeline.get_rn_generator().drop_channel('tours')
+    pipeline.get_rn_generator().add_channel('tours', tours)
+
+    return tours
 
 
 def create_school_escorting_bundles_table(choosers, tours, stage):
@@ -284,8 +237,9 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     bundles['chauf_num'] = np.where(bundles['chauf_type_num'] <= 2, 1, 2)
     bundles['escort_type'] = np.where(bundles['chauf_type_num'].isin([1,3]), 'ride_share', 'pure_escort')
 
-    school_dist_cols = ['dist_home_to_school' + str(i) for i in range(1,4)]
-    bundles['child_order'] = list(bundles[school_dist_cols].values.argsort())
+    # FIXME this is just pulled from the pre-processor... would break if removed or renamed in pre-processor
+    school_time_cols = ['time_home_to_school' + str(i) for i in range(1,4)]
+    bundles['child_order'] = list(bundles[school_time_cols].values.argsort())
 
     # getting chauffer mandatory times
     bundles['first_mand_tour_start_time'] = reindex(tours[(tours.tour_type == 'work') & (tours.tour_num == 1)].set_index('person_id').start, bundles['chauf_id'])
@@ -314,13 +268,6 @@ def school_escorting(households,
     model_settings_file_name = 'school_escorting.yaml'
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    # model_spec_raw = simulate.read_model_spec(file_name=model_settings['OUTBOUND_SPEC'])
-    # coefficients_df = simulate.read_model_coefficients(file_name=model_settings['OUTBOUND_COEFFICIENTS'])
-    # model_spec = simulate.eval_coefficients(model_spec_raw, coefficients_df, estimator)
-
-    # nest_spec = config.get_logit_model_settings(model_settings)
-    # constants = config.get_model_constants(model_settings)
-
     persons = persons.to_frame()
     households = households.to_frame()
     households_merged = households_merged.to_frame()
@@ -330,8 +277,6 @@ def school_escorting(households,
 
     households_merged, participant_columns = determine_escorting_paricipants(
         households_merged, persons, model_settings)
-
-    # households = run_school_escorting(choosers, households, model_settings, alts, trace_label, chunk_size, trace_hh_id)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -430,8 +375,9 @@ def school_escorting(households,
     tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
 
     # FIXME should this be called after non-mandatory tour creation?
-    pure_escort_tours = create_pure_escort_tours(escort_bundles, tours)
-    pure_escort_tours.to_csv('pure_escort_tours.csv')
+    # pure_escort_tours = create_pure_escort_tours(escort_bundles, tours)
+    # pure_escort_tours.to_csv('pure_escort_tours.csv')
 
     pipeline.replace_table("households", households)
     pipeline.replace_table("tours", tours)
+    pipeline.replace_table("escort_bundles", escort_bundles)

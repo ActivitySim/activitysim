@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 
 import pandas as pd
 from pypyr.context import Context
@@ -8,6 +9,12 @@ from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 
+
+def _as_int(x):
+    if x.dtype.kind == 'i':
+        return x
+    else:
+        return x.astype(np.int)
 
 @workstep(updates_context=True)
 def attach_skim_data(
@@ -43,14 +50,14 @@ def attach_skim_data(
         ):
             offset = zone_ids[0]
             looks = [
-                tableset[tablename][otaz_col].rename("otaz") - offset,
-                tableset[tablename][dtaz_col].rename("dtaz") - offset,
+                _as_int(tableset[tablename][otaz_col].rename("otaz") - offset),
+                _as_int(tableset[tablename][dtaz_col].rename("dtaz") - offset),
             ]
         else:
             remapper = dict(zip(zone_ids, pd.RangeIndex(len(zone_ids))))
             looks = [
-                tableset[tablename][otaz_col].rename("otaz").apply(remapper.get),
-                tableset[tablename][dtaz_col].rename("dtaz").apply(remapper.get),
+                _as_int(tableset[tablename][otaz_col].rename("otaz").apply(remapper.get)),
+                _as_int(tableset[tablename][dtaz_col].rename("dtaz").apply(remapper.get)),
             ]
         if "time_period" in skim_subset.dims:
             if time_col is None:

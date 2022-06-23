@@ -37,6 +37,7 @@ steps:
       trace_hh_id:
       trace_od:
       chunk_method: hybrid_uss
+      chunk_training: False
       chunk_training_mode: training
       machine_name:
       disable_zarr: False
@@ -101,7 +102,7 @@ run-compile:
   name: pypyr.steps.filewriteyaml
   in:
     fileWriteYaml:
-      path: "{workspace}/{example_name}/configs_sh_compile/settings.yaml"
+      path: "{workspace}/{example_name}/configs_sh_compile/{settings_file}"
       payload:
         inherit_settings: True
         sharrow: test
@@ -112,6 +113,7 @@ run-compile:
         trace_od:
         instrument: '{instrument}'
         disable_zarr: '{disable_zarr}'
+        multiprocess: False
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.run
@@ -127,6 +129,7 @@ run-sharrow:
 
 - description: write configs_sh_chunktrain
   name: pypyr.steps.filewriteyaml
+  run: chunk_training
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh_chunktrain/{settings_file}"
@@ -159,9 +162,10 @@ run-sharrow:
 
 - description: Run activitysim to chunk-train sharrow-enabled model
   name: activitysim.workflows.steps.run_subprocess
+  run: chunk_training
   in:
     pre_config_dirs: [configs_sh_chunktrain, configs_sh]
-    output_dir: 'output-{tag}/output-sharrow'
+    output_dir: 'output-{tag}/output-sharrow-training'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- sharrow chunk training run"
 
@@ -178,9 +182,10 @@ run-legacy:
 
 - description: write configs_legacy_chunktrain
   name: pypyr.steps.filewriteyaml
+  run: chunk_training
   in:
     fileWriteYaml:
-      path: "{workspace}/{example_name}/configs_legacy_chunktrain/settings.yaml"
+      path: "{workspace}/{example_name}/configs_legacy_chunktrain/{settings_file}"
       payload:
         inherit_settings: True
         households_sample_size: 10000
@@ -191,7 +196,7 @@ run-legacy:
   name: pypyr.steps.filewriteyaml
   in:
     fileWriteYaml:
-      path: "{workspace}/{example_name}/configs_legacy/settings.yaml"
+      path: "{workspace}/{example_name}/configs_legacy/{settings_file}"
       payload:
         inherit_settings: True
         recode_pipeline_columns: False
@@ -209,9 +214,10 @@ run-legacy:
 
 - description: Run activitysim to chunk-train legacy model
   name: activitysim.workflows.steps.run_subprocess
+  run: chunk_training
   in:
     pre_config_dirs: [configs_legacy_chunktrain, configs_legacy]
-    output_dir: 'output-{tag}/output-legacy'
+    output_dir: 'output-{tag}/output-legacy-training'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- legacy chunk training run"
 

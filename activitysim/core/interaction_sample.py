@@ -13,7 +13,6 @@ from . import tracing
 from . import chunk
 from . import config
 from .simulate import set_skim_wrapper_targets
-from .logit import inverse_ev1_cdf
 
 
 from . import interaction_simulate
@@ -43,8 +42,13 @@ def make_sample_choices_utility_based(
 
     utils_array = utilities.to_numpy()  # TODO [janzill Jun2022]: once or for each?
     for i in range(sample_size):
-        rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)
-        choices[zero_dim_index, np.argmax(inverse_ev1_cdf(rands) + utils_array, axis=1)] += 1
+        #rands = pipeline.get_rn_generator().random_for_df(utilities, n=alternative_count)
+        #choices[zero_dim_index, np.argmax(inverse_ev1_cdf(rands) + utils_array, axis=1)] += 1
+        choices[
+            zero_dim_index,
+            np.argmax(pipeline.get_rn_generator().gumbel_for_df(utilities, n=alternative_count) + utils_array, axis=1)
+        ] += 1
+
 
     return choices
 

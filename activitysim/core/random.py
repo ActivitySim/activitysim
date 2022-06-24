@@ -196,6 +196,8 @@ class SimpleChannel(object):
 
         df_row_states = self.row_states.loc[df.index]
 
+        # https://numpy.org/doc/stable/reference/random/generator.html
+        # np.random.default_rng()
         prng = np.random.RandomState()
         for row in df_row_states.itertuples():
 
@@ -244,6 +246,47 @@ class SimpleChannel(object):
         generators = self._generators_for_df(df)
 
         rands = np.asanyarray([prng.rand(n) for prng in generators])
+        # update offset for rows we handled
+        self.row_states.loc[df.index, 'offset'] += n
+        return rands
+
+    def gumbel_for_df(self, df, step_name, n=1):
+        """
+        Return n floating point gumbel-distributed numbers for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        n : int
+            number of rands desired per df row
+
+        Returns
+        -------
+        rands : 2-D ndarray
+            array the same length as df, with n floats in range [0, 1) for each df row
+        """
+
+        assert self.step_name
+        assert self.step_name == step_name
+
+        # - reminder: prng must be called when yielded as generated sequence, not serialized
+        generators = self._generators_for_df(df)
+
+        rands = np.asanyarray([prng.gumbel(size=n) for prng in generators])
         # update offset for rows we handled
         self.row_states.loc[df.index, 'offset'] += n
         return rands
@@ -600,6 +643,42 @@ class Random(object):
 
         channel = self.get_channel_for_df(df)
         rands = channel.random_for_df(df, self.step_name, n)
+        return rands
+
+    def gumbel_for_df(self, df, n=1):
+        """
+        Return a single floating point gumbel for each row in df
+        using the appropriate random channel for each row.
+
+        Subsequent calls (in the same step) will return the next rand for each df row
+
+        The resulting array will be the same length (and order) as df
+        This method is designed to support alternative selection from a probability array
+
+        The columns in df are ignored; the index name and values are used to determine
+        which random number sequence to to use.
+
+        We assume that we can identify the channel to used based on the name of df.index
+        This channel should have already been registered by a call to add_channel (q.v.)
+
+        If "true pseudo random" behavior is desired (i.e. NOT repeatable) the set_base_seed
+        method (q.v.) may be used to globally reseed all random streams.
+
+        Parameters
+        ----------
+        df : pandas.DataFrame
+            df with index name and values corresponding to a registered channel
+
+        n : int
+            number of rands desired (default 1)
+
+        Returns
+        -------
+        choices : 1-D ndarray the same length as df
+            a single float in range [0, 1) for each row in df
+        """
+        channel = self.get_channel_for_df(df)
+        rands = channel.gumbel_for_df(df, self.step_name, n)
         return rands
 
     def normal_for_df(self, df, mu=0, sigma=1, broadcast=False):

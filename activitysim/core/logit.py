@@ -183,31 +183,10 @@ def utils_to_probs(utils, trace_label=None, exponentiated=False, allow_zero_prob
 
     return probs
 
-# OPTIMISE for runtime in interaction_sample - do not need scale nor location
-def inverse_ev1_cdf(x): #, location=0.0, scale=1.0):
-    # quantile function of EV1
-    # let's follow https://en.wikipedia.org/wiki/Gumbel_distribution (and biogeme and larch convention) where the scale
-    # is proportional to variance (not variance^{-1}). this means nested scales are between 0 and 1.
-    # x can be number or np array or pd df for vecops
-    #return location - scale * np.log(-np.log(x))
-    return -np.log(-np.log(x))
 
-
-# def add_ev1_random(df, nest_spec):
-#     # TODO: generalise to logit for nest_spec==None by adding one rand (scale=1) to all columns
-#     nest_utils_for_choice = df.copy()
-#     for n in each_nest(nest_spec):
-#         if n.level == 1:
-#             continue  # skip the root level, not needed
-#         uniform_rands = pipeline.get_rn_generator().random_for_df(nest_utils_for_choice)
-#         rands = inverse_ev1_cdf(uniform_rands)
-#         nest_utils_for_choice.loc[:, n.name] += rands[:, 0]  # inverse_ev1_cdf of single-row df adds dimension
-#     return nest_utils_for_choice
 def add_ev1_random(df):
     nest_utils_for_choice = df.copy()
-    uniform_rands = pipeline.get_rn_generator().random_for_df(nest_utils_for_choice, n=df.shape[1])
-    rands = inverse_ev1_cdf(uniform_rands)
-    nest_utils_for_choice += rands
+    nest_utils_for_choice += pipeline.get_rn_generator().gumbel_for_df(nest_utils_for_choice, n=df.shape[1])
     return nest_utils_for_choice
 
 

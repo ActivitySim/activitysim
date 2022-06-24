@@ -202,6 +202,8 @@ def choose_from_tree(nest_utils, all_alternatives, logit_nest_groups, nest_alter
     raise ValueError("This should never happen - no alternative found")
 
 
+# TODO [janzill Jun2022]: make everything in nested and here numpy from beginning to make choices consistent with
+#  previous impl (want column index and not alternative name)
 # Note: this is relatively slow due to the apply.
 # It could *maybe* be sped up by using the fact that the nesting structure is the same for all rows: Add ev1(0,1) to
 # all entries (as is currently being done). Then, at each level, pick the maximum of the available composite
@@ -226,15 +228,10 @@ def make_choices_ru_frozen_nl(nested_utilities, alt_order_array, nest_spec):
     # In order for choice indexing to be consistent with MNL and cumsum MC choices, we need to index in the order
     #  alternatives were originally created before adding nest nodes that are not elemental alternatives
     choices = choices.map({v: k for k, v in enumerate(alt_order_array)})
-    ## the following is wrong, the order might be changed
-    #choices = choices.map({v: k for k, v in enumerate(nest_utils_for_choice.columns)})
 
     return choices
 
 
-# TODO [janzill Jun2022]: integrate with nested impl above
-# TODO [janzill Jun2022]: make everything in nested and here numpy from beginning to make choices consistent with
-#  previous impl (want column index and not alternative name)
 def make_choices_ru_frozen_mnl(utilities):
     utilities_incl_unobs = add_ev1_random(utilities)
     choices = np.argmax(utilities_incl_unobs.to_numpy(), axis=1)
@@ -242,8 +239,9 @@ def make_choices_ru_frozen_mnl(utilities):
     choices = pd.Series(choices, index=utilities_incl_unobs.index)
     return choices
 
+
 def make_choices_ru_frozen(utilities, alt_order_array, nest_spec=None, trace_label=None):
-    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen_mnl')
+    trace_label = tracing.extend_trace_label(trace_label, 'make_choices_ru_frozen')
     if nest_spec is None:
         choices = make_choices_ru_frozen_mnl(utilities)
     else:

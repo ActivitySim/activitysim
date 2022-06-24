@@ -129,7 +129,7 @@ run-sharrow:
 
 - description: write configs_sh_chunktrain
   name: pypyr.steps.filewriteyaml
-  run: chunk_training
+  run: '{chunk_training}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_sh_chunktrain/{settings_file}"
@@ -162,7 +162,7 @@ run-sharrow:
 
 - description: Run activitysim to chunk-train sharrow-enabled model
   name: activitysim.workflows.steps.run_subprocess
-  run: chunk_training
+  run: '{chunk_training}'
   in:
     pre_config_dirs: [configs_sh_chunktrain, configs_sh]
     output_dir: 'output-{tag}/output-sharrow-training'
@@ -182,7 +182,7 @@ run-legacy:
 
 - description: write configs_legacy_chunktrain
   name: pypyr.steps.filewriteyaml
-  run: chunk_training
+  run: '{chunk_training}'
   in:
     fileWriteYaml:
       path: "{workspace}/{example_name}/configs_legacy_chunktrain/{settings_file}"
@@ -214,7 +214,7 @@ run-legacy:
 
 - description: Run activitysim to chunk-train legacy model
   name: activitysim.workflows.steps.run_subprocess
-  run: chunk_training
+  run: '{chunk_training}'
   in:
     pre_config_dirs: [configs_legacy_chunktrain, configs_legacy]
     output_dir: 'output-{tag}/output-legacy-training'

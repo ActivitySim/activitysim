@@ -7,14 +7,15 @@ steps:
     defaults:
       example_name: example_sandag_1_zone_full
       multiprocess: 4
-      chunk_size: 40_000_000_000  # 40 GB
+      chunk_size: 30_000_000_000  # 40 GB
+      chunk_training: True
       create: False
       compile: False
       sharrow: True
       legacy: False
       reference: False
       workspace: workspace
-      tag: '2022-06-1ZoneSys'
+      tag: '2022-06-1ZoneSys-B'
       resume_after:
       fast: False
       compile_n_households: 10000

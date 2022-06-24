@@ -24,6 +24,7 @@ def directory_prep(
     sharrow=True,
     legacy=True,
     reference=True,
+    chunk_training=None,
 ):
     archive_dir = f"{workspace}/{example_name}/output-{tag}"
     os.makedirs(archive_dir, exist_ok=True)
@@ -31,8 +32,12 @@ def directory_prep(
         _prep_dir(f"{archive_dir}/output-compile")
     if sharrow:
         _prep_dir(f"{archive_dir}/output-sharrow")
+        if chunk_training:
+            _prep_dir(f"{archive_dir}/output-sharrow-training")
     if legacy:
         _prep_dir(f"{archive_dir}/output-legacy")
+        if chunk_training:
+            _prep_dir(f"{archive_dir}/output-legacy-training")
     if reference:
         _prep_dir(f"{archive_dir}/output-reference")
     return dict(

@@ -1,19 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import sys
-import os
-import logging
 import argparse
+import logging
+import os
+import sys
 import warnings
 
 import numpy as np
 
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import mem
-from activitysim.core import chunk
+from activitysim.core import chunk, config, inject, mem, pipeline, tracing
 
 logger = logging.getLogger(__name__)
 

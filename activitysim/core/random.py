@@ -286,7 +286,10 @@ class SimpleChannel(object):
         # - reminder: prng must be called when yielded as generated sequence, not serialized
         generators = self._generators_for_df(df)
 
-        rands = np.asanyarray([prng.gumbel(size=n) for prng in generators])
+        # this is up to 20% faster for large arrays, like for destination choice
+        #rands = np.asanyarray([prng.gumbel(size=n) for prng in generators])
+        rands = np.asanyarray([-np.log(-np.log(prng.rand(n))) for prng in generators])
+
         # update offset for rows we handled
         self.row_states.loc[df.index, 'offset'] += n
         return rands

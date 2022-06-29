@@ -1,0 +1,68 @@
+
+# Specify the tables to be created, their variables, and which vary
+# Single values are constants
+# Lists are either ordered or varying.
+# Ordered lists must all have same length and will essentially be mapped to eachother (e.g., hhinccat1 = hinc)
+# Varying lists are specified in VARY_ON by name,
+# and will generate the cartesian product (i.e., all possible non-repeating combinations)
+
+# Example result for households below:
+#hhid   veh hinccat1    hinc    hworkers    persons hht  bldgsz
+# 1     0   1           14000   1           2       1    2
+# 2     1   1           14000   1           2       1    2
+# 3     2   1           14000   1           2       1    2
+# 4     0   2           67000   1           2       1    2
+# 5     1   2           67000   1           2       1    2
+# 6     2   2           67000   1           2       1    2
+# ....
+
+#Note: parameters in ALL CAPS are required by the program, except VARY_ON is optional and empty list is implied.
+
+CREATE_TABLES:
+    HOUSEHOLDS:
+        VARIABLES:
+            hinccat1: [1, 2, 3]          # Income categories
+            hinc: [14000, 67000, 120000] # Median income within each quartile
+            hworkers: 1                  # Two workers
+            veh: [0, 1, 2]               # Household vehicles
+            persons: 2                   # Two persons
+            hht: 1                       # Married-couple family household
+            bldgsz: 2                    # Building size - Single family detached
+        # Specify the columns that vary
+        VARY_ON:
+            - veh
+
+    PERSONS:
+        VARIABLES:
+            pnum: [1, 2]                # Person number
+            age: [35, 55]               # 36,37 years old
+            sex: [2, 1]                 # Female, Male
+            military: 4                 # Not military
+            pemploy: [1, 3]             # Full-time and unemployed
+            pstudent: 3                 # Not attending school
+            ptype: [1, 4]               # Person type, full-time and non-working adult
+            educ: 13                    # Bachelor's
+            grade: 0                    # Not attending
+            weeks: [1, 0]               # 50-52 weeks, none
+            hours: [35, 0]              # Hours per week
+            timeFactorWork: 1           # mean
+            timeFactorNonWork: 1        # mean
+            DAP: ["M", "N"]             # Mandatory, Non-mandatory
+
+    TOURS:
+        VARIABLES:
+            person_num: [1, 2, 2]       # person number
+            tour_num: [1, 1, 1]         # Tour number
+            purpose: ["work", "shopping", 'othdiscr']  # purpose
+        JOIN_ON:
+            person_num: pnum            # Specifies which variable to join the tours on
+
+### 2 or 3 zone system
+zone_system: 2
+
+### zone to zone crosswalk file
+# maz: maz_taz.csv
+
+### Destination sample size
+# sample_size:
+

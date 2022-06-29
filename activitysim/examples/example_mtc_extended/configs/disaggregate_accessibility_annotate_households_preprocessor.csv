@@ -1,0 +1,3 @@
+Description,Target,Expression
+remove impossible auto combo,households_df,"households_df[((households_df.autonomous_vehicles == 0) & (households_df.autos == 0)) | (households_df.autos > 0)]"
+placeholder subzone?,walk_subzone,0

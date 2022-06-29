@@ -1,0 +1,9 @@
+Description,Target,Expression
+non-motorized and walk tran and tnc set to null,selected_vehicle,np.nan
+tours using sov option,selected_vehicle,"np.where(df.tour_mode.isin(['DRIVEALONEFREE','DRIVEALONEPAY','DRIVE_LOC','DRIVE_LRF','DRIVE_EXP','DRIVE_HVY','DRIVE_COM']), df.vehicle_occup_1, selected_vehicle)"
+tours using sr2 option,selected_vehicle,"np.where(df.tour_mode.isin(['SHARED2FREE','SHARED2PAY']), df.vehicle_occup_2, selected_vehicle)"
+tours using sr3 option,selected_vehicle,"np.where(df.tour_mode.isin(['SHARED3FREE','SHARED3PAY']), df['vehicle_occup_3.5'], selected_vehicle)"
+parent tour vehicle,_parent_selected_vehicle,"reindex(df.selected_vehicle, df.parent_tour_id) if 'selected_vehicle' in df.columns else np.nan"
+assign parent tour vehicle to atwork subtours,selected_vehicle,"np.where(df.tour_category == 'atwork', _parent_selected_vehicle, selected_vehicle)"
+is non-driving tour,_is_non_driving_tour,"df.tour_mode.isin(['WALK','BIKE','WALK_LOC','WALK_LRF','WALK_EXP','WALK_HVY','WALK_COM','TAXI','TNC_SINGLE','TNC_SHARED'])"
+atwork subtours whose parent tour did not use a vehicle use non_hh_veh,selected_vehicle,"np.where(~_is_non_driving_tour & (df.tour_category == 'atwork') & pd.isna(selected_vehicle),'non_hh_veh', selected_vehicle)"

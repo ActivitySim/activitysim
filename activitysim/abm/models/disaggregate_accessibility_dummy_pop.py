@@ -1,5 +1,6 @@
 import pandas as pd
 import yaml
+import json
 import collections, os
 from itertools import product
 from activitysim.core import expressions
@@ -21,17 +22,18 @@ def read_table_settings(model_settings):
     # Check if setup properly
     assert 'CREATE_TABLES' in model_settings.keys()
     assert all([True for k, v in model_settings['CREATE_TABLES'].items() if 'VARIABLES' in v.keys()])
-    assert all([True for x in ['PERSONS', 'HOUSEHOLDS', 'TOURS', 'BLAH'] if x in model_settings['CREATE_TABLES'].keys()])
+    assert all([True for x in ['PERSONS', 'HOUSEHOLDS', 'TOURS'] if x in model_settings['CREATE_TABLES'].keys()])
 
     table_params = {}
-    vary_on = {}
+    mapped_fields = {}
     for name, table in model_settings['CREATE_TABLES'].items():
-        table_params[name.lower()] = table['VARIABLES']
-        vary_on[name.lower()] = table.get('VARY_ON', [])
+        # Ensure table variables are all lists
+        table_params[name.lower()] = {k: (v if isinstance(v, list) else [v]) for k, v in table['VARIABLES'].items()}
+        mapped_fields[name.lower()] = table.get('MAPPED_FIELDS', [])
 
     join_on = dict(model_settings['CREATE_TABLES']['TOURS']['JOIN_ON'])
 
-    return table_params, vary_on, join_on
+    return table_params, mapped_fields, join_on
 
 
 def named_product(**d):
@@ -41,21 +43,27 @@ def named_product(**d):
         yield dict(zip(names, res))
 
 
-def generate_replicates(table_name, vars, varying):
-    static_vars = {k: v for k, v in vars.items() if k not in varying}
-    vary_vars = {k: v for k, v in vars.items() if k in varying}
-    static_df = pd.DataFrame(static_vars)
+def generate_replicates(vars, mapped):
+    """
+    Generates replicates finding the cartesian product of the non-mapped field variables.
+    The mapped fields are then annotated after replication
+    """
 
-    # Create replicated table based on varying columns, using the static dataframe index as a varying column
-    rep = pd.DataFrame(named_product(index=static_df.index, **vary_vars)).set_index('index')
+    # Generate replicates
+    rep = pd.DataFrame(named_product(**vars))
 
-    # Join the replicated data back to the data frame
-    return rep.join(static_df).reset_index(drop=True)
+    # Applying mapped variables
+    if len(mapped) > 0:
+        for mapped_from, mapped_to_pair in mapped.items():
+            name, mapped_to = list(mapped_to_pair.items())[0]
+            rep[name] = rep[mapped_from].map(mapped_to)
+
+    return rep
 
 
 def create_dummy_pop(land_use_df, model_settings):
     # Get table settings
-    table_params, vary_on, tours_join_on = read_table_settings(model_settings)
+    table_params, mapped_fields, tours_join_on = read_table_settings(model_settings)
 
     # Add in the zone variables
     # TODO need to implement the crosswalk join downstream for 3 zone
@@ -63,10 +71,13 @@ def create_dummy_pop(land_use_df, model_settings):
 
     # Add zones to households dicts as vary_on variable
     table_params['households'] = {**table_params['households'], **zones}
-    vary_on['households'].extend(zones.keys())
+    # vary_on['households'].extend(zones.keys())
+    # json.loads(json.dumps(mapped_fields))
 
     # Separate out the mapped data from the varying data and create base replicate tables
-    replicated = {k: generate_replicates(k, td, vary_on[k]) for k, td in table_params.items()}
+    # replicated = {k: generate_replicates(k, td, vary_on[k]) for k, td in table_params.items()}
+    # replicated = {k: pd.DataFrame(named_product(**td)) for k, td in table_params.items()}
+    replicated = {k: generate_replicates(td, mapped_fields[k]) for k, td in table_params.items()}
 
     # Create hhid
     replicated['households']['hhid'] = replicated['households'].index + 1
@@ -90,53 +101,6 @@ def create_dummy_pop(land_use_df, model_settings):
     return replicated
 
 
-def create_tours(self):
-
-    # Extract previously created households_df and person_df
-    persons_df = self.output['persons']
-    households_df = self.output['households']
-
-    # create individual tours
-    indivTours_df = pd.DataFrame.from_dict(self.model_settings['base_tables']['indivTours'])
-
-    # duplicate for all persons
-    perid_list = sorted(persons_df["PERID"].tolist())
-    indivTours_df = self.replicate_df_for_variable(indivTours_df, "PERID", perid_list)
-
-    # merge person file
-    indivTours_df = pd.merge(left=indivTours_df, right=persons_df, on="PERID", how="outer").drop(
-        columns=["person_num_y"])
-    indivTours_df = indivTours_df.rename(columns={"HHID_x": "HHID", "person_num_x": "person_num"})
-
-    # keep mandatory tours for FT workers and non-mandatory tours for PT workers
-    indivTours_df = indivTours_df[
-        ((indivTours_df.pemploy == 1) & (indivTours_df.tour_category == "MANDATORY")) |
-        ((indivTours_df.pemploy == 2) & (indivTours_df.tour_category == "INDIVIDUAL_NON_MANDATORY"))]
-
-    # merge households file so that we can set origin zone
-    indivTours_df = pd.merge(left=indivTours_df, right=households_df, on="HHID", how="outer")
-    #print(indivTours_df.columns)
-    indivTours_df["orig_taz"] = indivTours_df["TAZ"]
-    indivTours_df["orig_walk_segment"] = 0
-    indivTours_df["avAvailable"] = indivTours_df["AV_AVAIL"]
-
-    # drop households and person variable fields
-    indivTours_df = indivTours_df.drop(
-        columns=["join_key", "AGE", "SEX", "pemploy", "pstudent", "TAZ", "HINC", "hworkers", "PERSONS", "HHT",
-                 "hinccat1"])
-    indivTours_df = indivTours_df.rename(
-        columns={"HHID": "hh_id", "ptype": "person_type", "PERID": "person_id"})
-    indivTours_df = indivTours_df.sort_values(by=["person_id"])
-
-    # reorder columns
-    self.indivTours_df = indivTours_df[
-        ["hh_id", "person_id", "person_num", "person_type", "tour_id", "tour_category",
-         "tour_purpose", "dest_taz", "dest_walk_segment", "start_hour", "end_hour", "tour_mode", "atWork_freq",
-         "num_ob_stops", "num_ib_stops",
-         "avAvailable"]]
-
-    self.output.update({'indivTours': indivTours_df})
-
 def save_output(self):
     for name, model in self.output.items():
         outfile = "{}_{}.csv".format(self.OUTPUT_PREFIX, name)
@@ -145,12 +109,13 @@ def save_output(self):
 
 
 if __name__ == "__main__":
-    config_dir = 'C:/gitclones/activitysim-SANDAG/activitysim/examples/example_mtc_extended/configs/disaggregate_accessibility.yaml'
-    data_dir = 'C:/gitclones/activitysim-SANDAG/activitysim/examples/example_mtc/data'
+    config_dir = 'C:/gitclones/activitysim-disagg_accessibilities/activitysim/examples/example_mtc_extended/configs/disaggregate_accessibility.yaml'
+    data_dir = 'C:/gitclones/activitysim-disagg_accessibilities/activitysim/examples/example_mtc/data'
 
     # Model Settings
     with open(config_dir, 'r') as file:
-        model_settings = ordered_load(file)
+        #model_settings = ordered_load(file)
+        model_settings = yaml.load(file, Loader=yaml.SafeLoader)
 
     # Setup input parameters for testing
     land_use_df = pd.read_csv(os.path.join(data_dir, 'land_use.csv'))

@@ -124,6 +124,7 @@ run-compile:
     output_dir: 'output-{tag}/output-compile'
     cwd: "{workspace}/{example_name}"
     label: "{example_name} -- sharrow compile"
+    settings_file: "{settings_file}"
 
 
 ################################################################################

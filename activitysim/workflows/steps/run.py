@@ -28,6 +28,7 @@ def run_activitysim(
     output_dir="output",
     resume_after=None,
     fast=True,
+    settings_file=None,
 ) -> None:
     if isinstance(pre_config_dirs, str):
         pre_config_dirs = [pre_config_dirs]
@@ -42,6 +43,8 @@ def run_activitysim(
         flags.append(f" -r {resume_after}")
     if fast:
         flags.append("--fast")
+    if settings_file:
+        flags.append(f" -s {settings_file}")
     flags = " ".join(flags)
     cfgs = " ".join(f"-c {c}" for c in pre_config_dirs + config_dirs)
     args = f"run {cfgs} -d {data_dir} -o {output_dir} {flags}"

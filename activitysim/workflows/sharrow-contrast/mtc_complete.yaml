@@ -5,32 +5,34 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_sandag_1_zone_full
+      example_name: example_mtc_full
       multiprocess: 4
-      chunk_size_minimum_gb: 30
+      chunk_size: 30_000_000_000  # 30 GB
       chunk_training: True
       create: False
-      compile: True
+      compile: False
       sharrow: True
-      legacy: False
-      reference: False
+      legacy: True
+      reference: True
       workspace: workspace
-      tag: '2022-07'
+      tag: '2022-06-complete'
       resume_after:
       fast: False
-      compile_n_households: 2000
+      compile_n_households: 10000
       main_n_households: 0  # complete data
       config_dirs:
-        - configs_1_zone
-        - example_mtc/configs
-      data_dir: data_1
-      settings_file: settings_mp.yaml
+      - configs_mp
+      - configs
+      data_dir: data
       instrument: False
       memory_profile: True
       trace_hh_id:
       trace_od:
       distance_skim: DIST
       household_income: income
+      workplace_zone_agg:
+        caption: Workplaces by County
+        district_id: county_id
 
 - name: activitysim.workflows.steps.pype
   in:

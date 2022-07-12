@@ -55,7 +55,9 @@ steps:
       import os
       os.makedirs(f"{workspace}", exist_ok=True)
 
-- activitysim.workflows.steps.make_tag
+- activitysim.workflows.steps.contrast.contrast_setup
+
+- activitysim.workflows.steps.chunk_sizing
 
 - name: activitysim.workflows.steps.create
   run: '{create}'

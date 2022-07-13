@@ -55,6 +55,7 @@ steps:
         legacy: '{legacy}'
         reference: '{reference}'
         disable_zarr: True
+        memory_profile: True
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess'
         resume_after: '{resume_after}'
@@ -72,8 +73,9 @@ steps:
         create: False
         compile: '{compile}'
         sharrow: '{sharrow}'
-        legacy: False
+        legacy: '{legacy}'
         reference: False
+        memory_profile: True
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess-Zarr'
         resume_after: '{resume_after}'

@@ -1,3 +1,12 @@
+#
+#  mtc_chunked
+#
+#   This workflow runs the Prototype MTC model using full skims (1454 zones),
+#   in a chunked multi-process runner.  Chunking is complicated and recommended
+#   only when running without chunking is infeasible due to excessive memory
+#   usage.
+#
+
 context_parser: pypyr.parser.keyvaluepairs
 steps:
 
@@ -6,6 +15,7 @@ steps:
   in:
     defaults:
       example_name: example_mtc_full
+      workflow_name: sharrow-contrast/mtc_chunked
       multiprocess: 4
       chunk_size: 30_000_000_000  # 30 GB
       chunk_training: True

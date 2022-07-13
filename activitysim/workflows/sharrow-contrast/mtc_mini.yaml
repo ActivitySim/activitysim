@@ -1,3 +1,11 @@
+#
+#  mtc_mini
+#
+#   This workflow runs the Prototype MTC model using mini skims (25 zones),
+#   in a single process runner.  It is for mainly for rapid testing of the code
+#   and specification files for errors, not for policy analysis.
+#
+
 context_parser: pypyr.parser.keyvaluepairs
 steps:
 
@@ -6,6 +14,7 @@ steps:
   in:
     defaults:
       example_name: example_mtc
+      workflow_name: sharrow-contrast/mtc_mini
       workspace: workspace
       create: True
       compile: False

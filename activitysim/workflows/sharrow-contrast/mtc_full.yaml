@@ -1,3 +1,13 @@
+#
+#  mtc_full
+#
+#   This workflow runs the Prototype MTC model using full skims (1454 zones),
+#   in a single process runner.  It is well suited for conducting timing and
+#   memory usage studies, as well as smaller model quality and validation
+#   studies. For running the full population, consider running in multiprocess
+#   mode with the `mtc_mp` workflow.
+#
+
 context_parser: pypyr.parser.keyvaluepairs
 steps:
 
@@ -6,6 +16,7 @@ steps:
   in:
     defaults:
       example_name: example_mtc_full
+      workflow_name: sharrow-contrast/mtc_full
       workspace: workspace
       create: True
       compile: True

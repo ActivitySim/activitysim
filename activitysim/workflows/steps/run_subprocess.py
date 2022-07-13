@@ -141,19 +141,11 @@ def run_activitysim_as_subprocess(
         ]
         args = "bash -c '" + joiner.join(script) + "'"
 
-    process = _stream_subprocess(
-        args=args,
-        cwd=cwd,
-        env=env,
-    )
+    process = _stream_subprocess(args=args, cwd=cwd, env=env,)
 
     # don't swallow any error, because it's the Step swallow decorator
     # responsibility to decide to ignore or not.
     if process.returncode:
         raise subprocess.CalledProcessError(
-            process.returncode,
-            process.args,
-            process.stdout,
-            process.stderr,
+            process.returncode, process.args, process.stdout, process.stderr,
         )
-

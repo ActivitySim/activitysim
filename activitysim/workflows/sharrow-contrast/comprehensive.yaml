@@ -101,3 +101,23 @@ steps:
         multiprocess: '{multiprocess}'
         compile_n_households: '{compile_n_households}'
         main_n_households: '{main_n_households_multiprocess}'
+
+- name: activitysim.workflows.steps.pype
+  description: Prototype ARC Model, Single Process
+  skip: false
+  in:
+    pype:
+      name: sharrow-contrast/arc_full
+      args:
+        workspace: '{workspace}'
+        create: False
+        compile: '{compile}'
+        sharrow: '{sharrow}'
+        legacy: '{legacy}'
+        reference: '{reference}'
+        memory_profile: True
+        reference_asim_version: "{reference_asim_version}"
+        tag: '{tag}-SingleProcess'
+        resume_after: '{resume_after}'
+        compile_n_households: '{compile_n_households}'
+        main_n_households: '{main_n_households_singleprocess}'

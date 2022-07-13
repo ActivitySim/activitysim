@@ -7,19 +7,19 @@ steps:
     defaults:
       example_name: example_mtc_full
       workspace: workspace
-      multiprocess: 4
+      multiprocess: 8
       chunk_size: 0
       create: True
       compile: False
-      sharrow: True
-      legacy: True
+      sharrow: False
+      legacy: False
       reference: True
       reference_asim_version: "1.0.4"
-      tag: '2022-06-MP'
-      resume_after: _
+      tag: '2022-07-MP-100'
+      resume_after:
       fast: False
-      compile_n_households: 1000
-      main_n_households: 40000
+      compile_n_households: 2000
+      main_n_households: 100000
       config_dirs:
       - configs_mp
       - configs

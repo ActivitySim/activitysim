@@ -112,6 +112,7 @@ run-compile:
         trace_od:
         instrument: '{instrument}'
         disable_zarr: '{disable_zarr}'
+        multiprocess: False
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.run

@@ -25,6 +25,32 @@ def _get_formatted(context, key, default):
     return out
 
 
+def _stream_subprocess(args, cwd, env):
+    with TemporaryFile() as outputstream:
+        process = subprocess.Popen(
+            args=args,
+            shell=True,
+            stdout=outputstream,
+            stderr=subprocess.STDOUT,
+            cwd=cwd,
+            env=env,
+        )
+        while process.poll() is None:
+            where = outputstream.tell()
+            lines = outputstream.read()
+            if not lines:
+                # Adjust the sleep interval to your needs
+                sleep(0.25)
+                # make sure pointing to the last place we read
+                outputstream.seek(where)
+            else:
+                # Windows adds an extra carriage return and then chokes on
+                # it when displaying (or, as it were, not displaying) the
+                # output.  So we give Windows a little helping hand.
+                print(lines.decode().replace("\r\n", "\n"), end="")
+    return process
+
+
 @workstep
 def run_activitysim_as_subprocess(
     label=None,
@@ -113,42 +139,15 @@ def run_activitysim_as_subprocess(
             f'conda activate "{conda_prefix}"',
             args,
         ]
-        process = subprocess.Popen(
-            args="bash -c '" + joiner.join(script) + "'",
-            shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            cwd=cwd,
-            env=env,
-        )
-        stream_process(process, label)
-    else:
-        with TemporaryFile() as outputstream:
-            process = subprocess.Popen(
-                args=args,
-                shell=True,
-                stdout=outputstream,
-                stderr=subprocess.STDOUT,
-                cwd=cwd,
-                env=env,
-            )
-            while process.poll() is None:
-                where = outputstream.tell()
-                lines = outputstream.read()
-                if not lines:
-                    # Adjust the sleep interval to your needs
-                    sleep(0.25)
-                    # make sure pointing to the last place we read
-                    outputstream.seek(where)
-                else:
-                    # Windows adds an extra carriage return and then chokes on
-                    # it when displaying (or, as it were, not displaying) the
-                    # output.  So we give Windows a little helping hand.
-                    print(lines.decode().replace("\r\n", "\n"), end="")
+        args = "bash -c '" + joiner.join(script) + "'"
 
-    # stream_process(process, label)
+    process = _stream_subprocess(
+        args=args,
+        cwd=cwd,
+        env=env,
+    )
 
-    # don't swallow the error, because it's the Step swallow decorator
+    # don't swallow any error, because it's the Step swallow decorator
     # responsibility to decide to ignore or not.
     if process.returncode:
         raise subprocess.CalledProcessError(
@@ -158,17 +157,3 @@ def run_activitysim_as_subprocess(
             process.stderr,
         )
 
-    # # Clear all saved state from ORCA
-    # import orca
-    # orca.clear_cache()
-    # orca.clear_all()
-    #
-    # # Re-inject everything from ActivitySim
-    # from ...core.inject import reinject_decorated_tables
-    # reinject_decorated_tables(steps=True)
-    #
-    # # Call the run program inside this process
-    # from activitysim.cli.main import prog
-    # with chdir(cwd):
-    #     namespace = prog().parser.parse_args(shlex.split(args))
-    #     namespace.afunc(namespace)

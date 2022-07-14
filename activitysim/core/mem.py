@@ -177,7 +177,7 @@ def log_global_hwm():
         )
 
 
-def trace_memory_info(event, trace_ticks=0):
+def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False):
 
     global MEM_TICK
 
@@ -185,6 +185,14 @@ def trace_memory_info(event, trace_ticks=0):
     if trace_ticks and (tick - MEM_TICK < trace_ticks):
         return
     MEM_TICK = tick
+
+    if force_garbage_collect:
+        was_disabled = not gc.isenabled()
+        if was_disabled:
+            gc.enable()
+        gc.collect()
+        if was_disabled:
+            gc.disable()
 
     process_name = multiprocessing.current_process().name
     pid = os.getpid()

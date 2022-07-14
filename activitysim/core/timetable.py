@@ -123,6 +123,54 @@ def _available_run_length(
     return available_run_length
 
 
+@nb.njit
+def _available_run_length_2(
+    window_row_id_values,
+    windows,
+    person_to_row,
+
+    before,
+    periods,
+    time_ix_mapper,
+):
+    num_rows = window_row_id_values.shape[0]
+    num_cols = windows.shape[1]
+    _time_col_ix_map = np.arange(num_cols)
+    available_run_length = np.zeros(num_rows, dtype=np.int32)
+    available = np.ones(num_cols, dtype=np.int8)
+    available[0] = 0
+    available[-1] = 0
+    for row in range(num_rows):
+
+        row_ix = person_to_row[window_row_id_values[row]]
+        window_row = windows[row_ix]
+        for j in range(1, num_cols-1):
+            if window_row[j] != I_MIDDLE:
+                available[j] = 1
+            else:
+                available[j] = 0
+
+        _time_col_ix = time_ix_mapper[periods[row]]  # scalar
+        if before:
+            mask = (_time_col_ix_map < _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where(
+                (1 - available) * mask, _time_col_ix_map, 0
+            ).max()
+            available_run_length[row] = _time_col_ix - first_unavailable - 1
+        else:
+            # ones after specified time, zeroes before
+            mask = (_time_col_ix_map > _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where(
+                (1 - available) * mask, _time_col_ix_map, num_cols
+            ).min()
+            available_run_length[row] = first_unavailable - _time_col_ix - 1
+    return available_run_length
+
+
+
+
 def tour_map(persons, tours, tdd_alts, persons_id_col="person_id"):
 
     sigil = {
@@ -555,50 +603,31 @@ class TimeTable(object):
 
         trace_label = "tt.adjacent_window_run_length"
         with chunk.chunk_log(trace_label):
-
-            # time_col_ixs = self.time_ix.apply_to(periods).to_numpy()
-            # chunk.log_df(trace_label, 'time_col_ixs', time_col_ixs)
-
-            # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
-            available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
-            chunk.log_df(trace_label, "available", available)
-
-            # padding periods not available
-            available[:, 0] = 0
-            available[:, -1] = 0
-
-            available_run_length = _available_run_length(
-                available,
+            available_run_length = _available_run_length_2(
+                window_row_ids.values,
+                self.windows,
+                self.window_row_ix._mapper,
                 before,
                 periods.to_numpy(),
                 self.time_ix._mapper,
             )
 
-            # # column idxs of windows
-            # num_rows, num_cols = available.shape
-            # time_col_ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
-            # # 0 1 2 3 4 5...
-            # # 0 1 2 3 4 5...
-            # # 0 1 2 3 4 5...
-            # chunk.log_df(trace_label, 'time_col_ix_map', time_col_ix_map)
-            # # START MYSTERY RAM
+            # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
+            # available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
+            # chunk.log_df(trace_label, "available", available)
             #
-            # if before:
-            #     # ones after specified time, zeroes before
-            #     mask = (time_col_ix_map < time_col_ixs.reshape(num_rows, 1)) * 1
-            #     # index of first unavailable window after time
-            #     first_unavailable = np.where((1-available)*mask, time_col_ix_map, 0).max(axis=1)
-            #     available_run_length = time_col_ixs - first_unavailable - 1
-            # else:
-            #     # ones after specified time, zeroes before
-            #     mask = (time_col_ix_map > time_col_ixs.reshape(num_rows, 1)) * 1
-            #     # index of first unavailable window after time
-            #     first_unavailable = np.where((1 - available) * mask, time_col_ix_map, num_cols).min(axis=1)
-            #     available_run_length = first_unavailable - time_col_ixs - 1
+            # # padding periods not available
+            # available[:, 0] = 0
+            # available[:, -1] = 0
             #
-            # # END MYSTERY RAM
-            # chunk.log_df(trace_label, 'mask', mask)
-            # chunk.log_df(trace_label, 'first_unavailable', first_unavailable)
+            # available_run_length = _available_run_length(
+            #     available,
+            #     before,
+            #     periods.to_numpy(),
+            #     self.time_ix._mapper,
+            # )
+            #
+            # max_available_run_length = available_run_length.max()
             chunk.log_df(trace_label, "available_run_length", available_run_length)
 
         return pd.Series(available_run_length, index=window_row_ids.index)

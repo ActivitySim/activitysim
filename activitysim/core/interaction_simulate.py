@@ -601,67 +601,139 @@ def _interaction_simulate(
     alt_index_id = estimator.get_alt_id() if estimator else None
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
-    interaction_df = logit.interaction_dataset(
-        choosers,
-        alternatives,
-        sample_size,
-        alt_index_id=alt_index_id,
-        chooser_index_id=chooser_index_id,
-    )
-    chunk.log_df(trace_label, "interaction_df", interaction_df)
+    sharrow_enabled = config.setting("sharrow", False)
 
-    if skims is not None:
-        simulate.set_skim_wrapper_targets(interaction_df, skims)
+    if sharrow_enabled and skims is None and not have_trace_targets and sample_size == len(alternatives):
+        # no need to create the merged interaction dataset
+        # TODO: can we still do this if skims is not None?
 
-    # evaluate expressions from the spec multiply by coefficients and sum
-    # spec is df with one row per spec expression and one col with utility coefficient
-    # column names of model_design match spec index values
-    # utilities has utility value for element in the cross product of choosers and alternatives
-    # interaction_utilities is a df with one utility column and one row per row in model_design
-    if have_trace_targets:
-        trace_rows, trace_ids = tracing.interaction_trace_rows(
-            interaction_df, choosers, sample_size
-        )
-
-        tracing.trace_df(
-            interaction_df[trace_rows],
-            tracing.extend_trace_label(trace_label, "interaction_df"),
-            slicer="NONE",
-            transpose=False,
-        )
-    else:
+        # TODO: re-enable tracing for sharrow so have_trace_targets can be True
         trace_rows = trace_ids = None
 
-    interaction_utilities, trace_eval_results = eval_interaction_utilities(
-        spec,
-        interaction_df,
-        locals_d,
-        trace_label,
-        trace_rows,
-        estimator=estimator,
-        log_alt_losers=log_alt_losers,
-    )
-    chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
-
-    # print(f"interaction_df {interaction_df.shape}")
-    # print(f"interaction_utilities {interaction_utilities.shape}")
-
-    del interaction_df
-    chunk.log_df(trace_label, "interaction_df", None)
-
-    if have_trace_targets:
-        tracing.trace_interaction_eval_results(
-            trace_eval_results,
-            trace_ids,
-            tracing.extend_trace_label(trace_label, "eval"),
+        interaction_utilities, trace_eval_results = eval_interaction_utilities(
+            spec,
+            choosers,
+            locals_d,
+            trace_label,
+            trace_rows,
+            estimator=estimator,
+            log_alt_losers=log_alt_losers,
+            extra_data=alternatives,
         )
 
-        tracing.trace_df(
-            interaction_utilities[trace_rows],
-            tracing.extend_trace_label(trace_label, "interaction_utils"),
-            slicer="NONE",
-            transpose=False,
+        # set this index here as this is how later code extracts the chosen alt id's
+        interaction_utilities.index = np.tile(alternatives.index, len(choosers))
+
+        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+        # mem.trace_memory_info(f"{trace_label}.init interaction_utilities sh", force_garbage_collect=True)
+        if sharrow_enabled == "test" or True:
+            interaction_utilities_sh, trace_eval_results_sh = (
+                interaction_utilities,
+                trace_eval_results,
+            )
+        else:
+            interaction_utilities_sh = trace_eval_results_sh = None
+
+    else:
+        interaction_utilities_sh = trace_eval_results_sh = None
+
+    if not sharrow_enabled or (sharrow_enabled == "test"):
+
+        interaction_df = logit.interaction_dataset(
+            choosers,
+            alternatives,
+            sample_size,
+            alt_index_id=alt_index_id,
+            chooser_index_id=chooser_index_id,
         )
+        chunk.log_df(trace_label, "interaction_df", interaction_df)
+
+        if skims is not None:
+            simulate.set_skim_wrapper_targets(interaction_df, skims)
+
+        # evaluate expressions from the spec multiply by coefficients and sum
+        # spec is df with one row per spec expression and one col with utility coefficient
+        # column names of model_design match spec index values
+        # utilities has utility value for element in the cross product of choosers and alternatives
+        # interaction_utilities is a df with one utility column and one row per row in model_design
+        if have_trace_targets:
+            trace_rows, trace_ids = tracing.interaction_trace_rows(
+                interaction_df, choosers, sample_size
+            )
+
+            tracing.trace_df(
+                interaction_df[trace_rows],
+                tracing.extend_trace_label(trace_label, "interaction_df"),
+                slicer="NONE",
+                transpose=False,
+            )
+        else:
+            trace_rows = trace_ids = None
+
+        interaction_utilities, trace_eval_results = eval_interaction_utilities(
+            spec,
+            interaction_df,
+            locals_d,
+            trace_label,
+            trace_rows,
+            estimator=estimator,
+            log_alt_losers=log_alt_losers,
+        )
+        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+        # mem.trace_memory_info(f"{trace_label}.init interaction_utilities", force_garbage_collect=True)
+
+        # print(f"interaction_df {interaction_df.shape}")
+        # print(f"interaction_utilities {interaction_utilities.shape}")
+
+        del interaction_df
+        chunk.log_df(trace_label, "interaction_df", None)
+
+        if have_trace_targets:
+            tracing.trace_interaction_eval_results(
+                trace_eval_results,
+                trace_ids,
+                tracing.extend_trace_label(trace_label, "eval"),
+            )
+
+            tracing.trace_df(
+                interaction_utilities[trace_rows],
+                tracing.extend_trace_label(trace_label, "interaction_utils"),
+                slicer="NONE",
+                transpose=False,
+            )
+
+    if sharrow_enabled == "test":
+        try:
+            if interaction_utilities_sh is not None:
+                np.testing.assert_allclose(
+                    interaction_utilities_sh.values.reshape(
+                        interaction_utilities.values.shape
+                    ),
+                    interaction_utilities.values,
+                    rtol=1e-2,
+                    atol=0,
+                    err_msg="utility not aligned",
+                    verbose=True,
+                )
+        except AssertionError as err:
+            print(err)
+            misses = np.where(
+                ~np.isclose(
+                    interaction_utilities_sh.values,
+                    interaction_utilities.values,
+                    rtol=1e-2,
+                    atol=0,
+                )
+            )
+            _sh_util_miss1 = interaction_utilities_sh.values[
+                tuple(m[0] for m in misses)
+            ]
+            _u_miss1 = interaction_utilities.values[tuple(m[0] for m in misses)]
+            diff = _sh_util_miss1 - _u_miss1
+            if len(misses[0]) > interaction_utilities_sh.values.size * 0.01:
+                print("big problem")
+                print(misses)
+                raise
 
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative

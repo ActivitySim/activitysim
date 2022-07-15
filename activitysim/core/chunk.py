@@ -1050,6 +1050,10 @@ def chunk_log(trace_label, chunk_tag=None, base=False):
     # a ChunkSizer class object without actually chunking. This
     # avoids breaking the assertion below.
 
+    if chunk_training_mode() == MODE_CHUNKLESS:
+        yield
+        return
+
     assert base == (len(CHUNK_SIZERS) == 0)
 
     trace_label = f"{trace_label}.chunk_log"
@@ -1083,6 +1087,16 @@ def chunk_log_skip():
 def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None):
 
     # generator to iterate over choosers
+
+    if chunk_training_mode() == MODE_CHUNKLESS:
+        # The adaptive chunking logic is expensive and sometimes results
+        # in needless data copying.  So we short circuit it entirely
+        # when chunking is disabled.
+        logger.info(
+            f"Running chunkless with {len(choosers)} choosers"
+        )
+        yield 0, choosers, trace_label
+        return
 
     chunk_tag = chunk_tag or trace_label
 
@@ -1165,6 +1179,20 @@ def adaptive_chunked_choosers_and_alts(
         chunk of alternatives for chooser chunk
     """
 
+    if chunk_training_mode() == MODE_CHUNKLESS:
+        # The adaptive chunking logic is expensive and sometimes results
+        # in needless data copying.  So we short circuit it entirely
+        # when chunking is disabled.
+        logger.info(
+            f"Running chunkless with {len(choosers)} choosers"
+        )
+        yield 0, choosers, alternatives, trace_label
+        return
+
+    check_assertions = False
+    # set to True if debugging is needed; there are many expensive assertions
+    # to check data quality in here
+
     chunk_tag = chunk_tag or trace_label
 
     num_choosers = len(choosers.index)
@@ -1172,13 +1200,15 @@ def adaptive_chunked_choosers_and_alts(
     assert num_choosers > 0
 
     # alternatives index should match choosers (except with duplicate repeating alt rows)
-    assert choosers.index.equals(
-        alternatives.index[~alternatives.index.duplicated(keep="first")]
-    )
+    if check_assertions:
+        assert choosers.index.equals(
+            alternatives.index[~alternatives.index.duplicated(keep="first")]
+        )
 
     last_repeat = alternatives.index != np.roll(alternatives.index, -1)
 
-    assert (num_choosers == 1) or choosers.index.equals(alternatives.index[last_repeat])
+    if check_assertions:
+        assert (num_choosers == 1) or choosers.index.equals(alternatives.index[last_repeat])
 
     logger.info(
         f"{trace_label} Running adaptive_chunked_choosers_and_alts "
@@ -1216,12 +1246,13 @@ def adaptive_chunked_choosers_and_alts(
             alt_end = alt_chunk_ends[offset + rows_per_chunk]
             alternative_chunk = alternatives[alt_offset:alt_end]
 
-            assert len(chooser_chunk.index) == len(
-                np.unique(alternative_chunk.index.values)
-            )
-            assert (
-                chooser_chunk.index == np.unique(alternative_chunk.index.values)
-            ).all()
+            if check_assertions:
+                assert len(chooser_chunk.index) == len(
+                    np.unique(alternative_chunk.index.values)
+                )
+                assert (
+                    chooser_chunk.index == np.unique(alternative_chunk.index.values)
+                ).all()
 
             logger.info(
                 f"Running chunk {i} of {estimated_number_of_chunks or '?'} "
@@ -1250,6 +1281,16 @@ def adaptive_chunked_choosers_by_chunk_id(
     # (the presumption is that choosers has multiple rows with the same chunk_id that
     # all have to be included in the same chunk)
     # FIXME - we pathologically know name of chunk_id col in households table
+
+    if chunk_training_mode() == MODE_CHUNKLESS:
+        # The adaptive chunking logic is expensive and sometimes results
+        # in needless data copying.  So we short circuit it entirely
+        # when chunking is disabled.
+        logger.info(
+            f"Running chunkless with {len(choosers)} choosers"
+        )
+        yield 0, choosers, trace_label
+        return
 
     chunk_tag = chunk_tag or trace_label
 

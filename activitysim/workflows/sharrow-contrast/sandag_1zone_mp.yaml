@@ -15,7 +15,7 @@ steps:
       settings_file: settings_mp.yaml
       chunk_size_pct_of_available: 0.75
       chunk_size_minimum_gb: 40
-      create: False
+      create: True
       compile: True
       sharrow: True
       legacy: False

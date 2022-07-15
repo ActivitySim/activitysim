@@ -55,7 +55,7 @@ steps:
       import os
       os.makedirs(f"{workspace}", exist_ok=True)
 
-- activitysim.workflows.steps.make_tag
+- activitysim.workflows.steps.contrast.contrast_setup
 
 - name: activitysim.workflows.steps.create
   run: '{create}'
@@ -146,7 +146,7 @@ run-sharrow:
         instrument: '{instrument}'
         memory_profile: '{memory_profile}'
         chunk_size: '{chunk_size}'
-        num_processes: '{multiprocess}'
+        num_processes: '{num_processes}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_training_mode}'
@@ -178,7 +178,7 @@ run-legacy:
         instrument: '{instrument}'
         memory_profile: '{memory_profile}'
         chunk_size: '{chunk_size}'
-        num_processes: '{multiprocess}'
+        num_processes: '{num_processes}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_training_mode}'
@@ -235,7 +235,7 @@ run-reference:
         trace_od: '{trace_od}'
         resume_after: '{resume_after_ref}'
         chunk_size: '{chunk_size}'
-        num_processes: '{multiprocess}'
+        num_processes: '{num_processes}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_training_mode}'

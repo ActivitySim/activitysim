@@ -44,14 +44,15 @@ def contrast_setup(
         out["reference_asim_version"] = reference
         out["reference"] = True
     out["relabel_tablesets"] = {"reference": f"v{reference_asim_version}"}
+    multiprocess = int(multiprocess)
     out["is_multiprocess"] = (multiprocess > 1) or (multiprocess < 0)
     if multiprocess >= 0:
-        out["num_processes"] = int(multiprocess)
+        out["num_processes"] = multiprocess
     else:
         # when negative, count the number of cpu cores, and run on all
         # cores except the absolute value of `multiprocess`, so e.g.
         # if -2, then run on all cores except 2 (but at least 1).
-        out["num_processes"] = multiprocessing.cpu_count() + int(multiprocess)
+        out["num_processes"] = multiprocessing.cpu_count() + multiprocess
         if out["num_processes"] < 1:
             out["num_processes"] = 1
 

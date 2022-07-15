@@ -28,8 +28,12 @@ def chunk_sizing(
     if chunk_size is None:
 
         if chunk_size_pct_of_available is not None:
+            if chunk_size_pct_of_available > 1:
+                chunk_size_pct_of_available /= 100
             chunk_size = int(available_ram * chunk_size_pct_of_available)
         elif chunk_size_pct_of_total is not None:
+            if chunk_size_pct_of_total > 1:
+                chunk_size_pct_of_total /= 100
             chunk_size = int(total_ram * chunk_size_pct_of_total)
 
         min_chunk_size = int(chunk_size_minimum_gb * 1e9)

@@ -22,7 +22,7 @@ steps:
       create: True
       compile: True
       sharrow: True
-      legacy: True
+      legacy: False
       reference: False
       reference_asim_version: "1.0.4"
       tag:
@@ -138,7 +138,6 @@ run-sharrow:
       payload:
         inherit_settings: True
         households_sample_size: 10000
-        num_processes: 4
         chunk_training_mode: '{chunk_training_mode}'
 
 - description: write configs_sh
@@ -156,7 +155,7 @@ run-sharrow:
         instrument: '{instrument}'
         memory_profile: '{memory_profile}'
         chunk_size: '{chunk_size}'
-        num_processes: '{multiprocess}'
+        num_processes: '{num_processes}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_application_mode}'
@@ -191,7 +190,6 @@ run-legacy:
       payload:
         inherit_settings: True
         households_sample_size: 10000
-        num_processes: 4
         chunk_training_mode: '{chunk_training_mode}'
 
 - description: write.configs_legacy
@@ -209,7 +207,7 @@ run-legacy:
         instrument: '{instrument}'
         memory_profile: '{memory_profile}'
         chunk_size: '{chunk_size}'
-        num_processes: '{multiprocess}'
+        num_processes: '{num_processes}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_application_mode}'
@@ -275,7 +273,7 @@ run-reference:
         trace_od: '{trace_od}'
         resume_after: '{resume_after_ref}'
         chunk_size: '{chunk_size}'
-        num_processes: '{multiprocess}'
+        num_processes: '{num_processes}'
         multiprocess: '{is_multiprocess}'
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_application_mode}'

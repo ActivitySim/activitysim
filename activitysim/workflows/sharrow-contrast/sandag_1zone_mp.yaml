@@ -10,6 +10,7 @@ steps:
   in:
     defaults:
       example_name: example_sandag_1_zone_full
+      workflow_name: sharrow-contrast/sandag_1zone_mp
       workspace: workspace
       multiprocess: -4
       settings_file: settings_mp.yaml

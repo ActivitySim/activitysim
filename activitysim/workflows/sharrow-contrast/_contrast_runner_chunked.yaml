@@ -16,6 +16,7 @@ steps:
   in:
     defaults:
       example_name: example_mtc
+      workflow_name: sharrow-contrast
       workspace: workspace
       multiprocess: 0
       chunk_size: 0
@@ -45,8 +46,8 @@ steps:
 
 - name: activitysim.workflows.steps.title
   in:
-    label: "activitysim workflow: contrast {example_name}"
-    formatting: bold blue
+    label: "activitysim workflow {workflow_name}"
+    formatting: bold cyan
 
 - name: activitysim.workflows.steps.py
   in:

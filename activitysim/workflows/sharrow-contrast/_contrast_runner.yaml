@@ -68,21 +68,25 @@ steps:
   run: '{compile}'
   in:
     call: run-compile
+  swallow: True
 
 - name: pypyr.steps.call
   run: '{sharrow}'
   in:
     call: run-sharrow
+  swallow: True
 
 - name: pypyr.steps.call
   run: '{legacy}'
   in:
     call: run-legacy
+  swallow: True
 
 - name: pypyr.steps.call
   run: '{reference}'
   in:
     call: run-reference
+  swallow: True
 
 - activitysim.workflows.steps.contrast.composite_log
 

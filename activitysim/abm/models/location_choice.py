@@ -150,6 +150,7 @@ def _location_sample(
     # here since presumably we want this when called for either sample or presample
     log_alt_losers = config.setting('log_alt_losers', False)
 
+    print(choosers)
     choices = interaction_sample(
         choosers,
         alternatives,
@@ -748,7 +749,11 @@ def iterate_location_choice(
     sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
     want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
-    persons_merged_df = persons_merged.to_frame()
+    # Check if already a dataframe
+    # persons_merged_df = persons_merged.to_frame()
+    households_df, persons_df, persons_merged_df = [tab if isinstance(tab, pd.DataFrame)
+                                                    else tab.to_frame()
+                                                    for tab in [households, persons, persons_merged]]
 
     persons_merged_df = persons_merged_df[persons_merged[chooser_filter_column]]
 

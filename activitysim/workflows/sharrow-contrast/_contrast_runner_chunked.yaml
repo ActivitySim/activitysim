@@ -19,7 +19,8 @@ steps:
       workflow_name: sharrow-contrast
       workspace: workspace
       multiprocess: 0
-      chunk_size: 0
+      chunk_size:
+      chunk_size_pct_of_available: 0.75
       create: True
       compile: True
       sharrow: True

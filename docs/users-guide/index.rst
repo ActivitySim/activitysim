@@ -1,5 +1,9 @@
-===========
-ActivitySim
+.. ActivitySim documentation master file, created by
+   sphinx-quickstart on Tue May 26 14:13:47 2016.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Users Guide
 ===========
 
 The mission of the ActivitySim project is to create and maintain advanced, open-source,
@@ -13,9 +17,18 @@ the consortium. All member agencies help make decisions about development priori
 and benefit from contributions of other agency partners.  Additional information about
 the development and management of the ActivitySim is on the `project site <http://www.activitysim.org>`__.
 
-.. toctree::
-   :maxdepth: 1
 
-   users-guide/index
-   dev-guide/index
+Contents
+--------
+
+.. toctree::
+   :maxdepth: 3
+
+   ../gettingstarted
+   cli-tools
+   ../examples
+   ../cli
+   ../estimation
+   ../howitworks
+
 

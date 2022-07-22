@@ -1,0 +1,29 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+    "setuptools_scm[toml]>=3.4",
+    "setuptools_scm_git_archive",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+fallback_version = "999"
+write_to = "activitysim/_generated_version.py"
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+float_to_top = true
+default_section = "THIRDPARTY"
+known_first_party = "activitysim"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-v --nbmake --disable-warnings"
+testpaths = [
+    "activitysim/abm/test",
+    "activitysim/cli/test",
+    "activitysim/core/test",
+    "activitysim/abm/models/util/test",
+]

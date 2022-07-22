@@ -1,6 +1,6 @@
-===========
-ActivitySim
-===========
+
+Developers
+==========
 
 The mission of the ActivitySim project is to create and maintain advanced, open-source,
 activity-based travel behavior modeling software based on best software development
@@ -13,9 +13,18 @@ the consortium. All member agencies help make decisions about development priori
 and benefit from contributions of other agency partners.  Additional information about
 the development and management of the ActivitySim is on the `project site <http://www.activitysim.org>`__.
 
-.. toctree::
-   :maxdepth: 1
 
-   users-guide/index
-   dev-guide/index
+Contents
+--------
+
+.. toctree::
+   :maxdepth: 3
+
+   install
+   using-sharrow
+   workflows
+   ../development
+   ../models
+   ../core
+   ../benchmarking
 

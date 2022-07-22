@@ -15,16 +15,16 @@ steps:
     defaults:
       example_name: example_mtc
       workflow_name: sharrow-contrast/mtc_mini
-      workspace: workspace
+      workspace: workspace  # this is the directory where model runs are stored
       create: True
-      compile: False
+      compile: True
       sharrow: True
       legacy: True
-      reference: False
-      tag: '2022-06'
+      reference: True
+      tag:
       resume_after:
       fast: False
-      compile_n_households: 1000
+      compile_n_households: 5000
       main_n_households: 100000
       config_dirs: configs
       data_dir: data

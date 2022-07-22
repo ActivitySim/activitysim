@@ -22,7 +22,7 @@ steps:
       reference_asim_version: "1.0.4"
       tag:
       compile_n_households: 2000
-      main_n_households_singleprocess: 25000
+      main_n_households_singleprocess: 100000
       main_n_households_multiprocess: 0
       multiprocess: -4
       resume_after:

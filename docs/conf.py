@@ -12,10 +12,10 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
+import sys
 
-import sphinx_rtd_theme
+# import sphinx_rtd_theme
 
 # -- Get Package Version --------------------------------------------------
 import activitysim
@@ -40,6 +40,9 @@ extensions = [
     "sphinx.ext.mathjax",
     "numpydoc",
     "sphinx.ext.autosummary",
+    "myst_parser",
+    "sphinxarg.ext",
+    # "sphinxcontrib.autodoc_pydantic",
 ]
 
 numpydoc_show_class_members = False
@@ -48,7 +51,11 @@ numpydoc_show_class_members = False
 templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".txt": "markdown",
+    ".md": "markdown",
+}
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -112,7 +119,7 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -120,7 +127,7 @@ html_theme = "sphinx_rtd_theme"
 # html_theme_options = {}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -283,7 +290,5 @@ texinfo_documents = [
 html_static_path = ["_static"]
 
 html_context = {
-    "css_files": [
-        "_static/theme_overrides.css",  # override wide tables in RTD theme
-    ],
+    "css_files": ["_static/theme_overrides.css",],  # override wide tables in RTD theme
 }

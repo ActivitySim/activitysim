@@ -20,12 +20,12 @@ steps:
       multiprocess: 8
       chunk_size: 0
       create: True
-      compile: False
-      sharrow: False
-      legacy: False
+      compile: True
+      sharrow: True
+      legacy: True
       reference: True
       reference_asim_version: "1.0.4"
-      tag: '2022-07-MP-100'
+      tag:
       resume_after:
       fast: False
       compile_n_households: 2000

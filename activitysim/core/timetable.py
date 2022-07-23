@@ -1,18 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import range
-from builtins import object
-
 import logging
+from builtins import object, range
 
+import numba as nb
 import numpy as np
 import pandas as pd
 import xarray as xr
-import numba as nb
 
-from activitysim.core import pipeline
-from activitysim.core import chunk
+from activitysim.core import chunk, pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -54,11 +51,7 @@ C_START_END = str(I_START_END)
 
 @nb.njit
 def _fast_tour_available(
-    tdds,
-    tdd_footprints,
-    window_row_ids,
-    window_row_ix__mapper,
-    self_windows,
+    tdds, tdd_footprints, window_row_ids, window_row_ix__mapper, self_windows,
 ):
     """
 
@@ -94,10 +87,7 @@ def _fast_tour_available(
 
 @nb.njit
 def _available_run_length(
-    available,
-    before,
-    periods,
-    time_ix_mapper,
+    available, before, periods, time_ix_mapper,
 ):
     num_rows = available.shape[0]
     num_cols = available.shape[1]
@@ -125,13 +115,7 @@ def _available_run_length(
 
 @nb.njit
 def _available_run_length_2(
-    window_row_id_values,
-    windows,
-    person_to_row,
-
-    before,
-    periods,
-    time_ix_mapper,
+    window_row_id_values, windows, person_to_row, before, periods, time_ix_mapper,
 ):
     num_rows = window_row_id_values.shape[0]
     num_cols = windows.shape[1]
@@ -144,7 +128,7 @@ def _available_run_length_2(
 
         row_ix = person_to_row[window_row_id_values[row]]
         window_row = windows[row_ix]
-        for j in range(1, num_cols-1):
+        for j in range(1, num_cols - 1):
             if window_row[j] != I_MIDDLE:
                 available[j] = 1
             else:
@@ -167,8 +151,6 @@ def _available_run_length_2(
             ).min()
             available_run_length[row] = first_unavailable - _time_col_ix - 1
     return available_run_length
-
-
 
 
 def tour_map(persons, tours, tdd_alts, persons_id_col="person_id"):

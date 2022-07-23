@@ -112,7 +112,7 @@ run-compile:
         sharrow: test
         chunk_training_mode: disabled
         households_sample_size: '{compile_n_households}'
-        cache_dir: cache
+        cache_dir: cache_sharrow
         trace_hh_id:
         trace_od:
         instrument: '{instrument}'
@@ -139,7 +139,7 @@ run-sharrow:
       payload:
         inherit_settings: True
         sharrow: require
-        cache_dir: cache
+        cache_dir: cache_sharrow
         households_sample_size: '{main_n_households}'
         trace_hh_id:
         trace_od:
@@ -171,7 +171,7 @@ run-legacy:
       payload:
         inherit_settings: True
         recode_pipeline_columns: False
-        cache_dir: cache
+        cache_dir: cache_legacy
         households_sample_size: '{main_n_households}'
         trace_hh_id: '{trace_hh_id}'
         trace_od: '{trace_od}'

@@ -749,10 +749,12 @@ def iterate_location_choice(
     want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
     # Check if already a dataframe
+    def check_to_frame(tab):
+        return tab if isinstance(tab, pd.DataFrame) else tab.to_frame()
+    # households_df, persons_df, persons_merged_df = [check_to_frame(tab) for tab in [households, persons, persons_merged]]
+
     # persons_merged_df = persons_merged.to_frame()
-    households_df, persons_df, persons_merged_df = [tab if isinstance(tab, pd.DataFrame)
-                                                    else tab.to_frame()
-                                                    for tab in [households, persons, persons_merged]]
+    persons_merged_df = check_to_frame(persons_merged)
 
     persons_merged_df = persons_merged_df[persons_merged[chooser_filter_column]]
 
@@ -809,7 +811,9 @@ def iterate_location_choice(
         if 'MODELED_SIZE_TABLE' in model_settings:
             inject.add_table(model_settings['MODELED_SIZE_TABLE'], spc.modeled_size)
 
-    persons_df = persons.to_frame()
+    # persons_df = persons.to_frame()
+    persons_df = check_to_frame(persons)
+
 
     # add the choice values to the dest_choice_column in persons dataframe
     # We only chose school locations for the subset of persons who go to school
@@ -849,7 +853,9 @@ def iterate_location_choice(
     # - annotate households table
     if 'annotate_households' in model_settings:
 
-        households_df = households.to_frame()
+        # households_df = households.to_frame()
+        households_df = check_to_frame(households)
+
         expressions.assign_columns(
             df=households_df,
             model_settings=model_settings.get('annotate_households'),

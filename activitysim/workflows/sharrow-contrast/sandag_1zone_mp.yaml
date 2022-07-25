@@ -19,9 +19,9 @@ steps:
       create: True
       compile: True
       sharrow: True
-      legacy: False
+      legacy: True
       reference: False
-      tag: '2022-07-1zone-MP'
+      tag:
       resume_after:
       fast: False
       compile_n_households: 1000

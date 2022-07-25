@@ -150,7 +150,6 @@ def _location_sample(
     # here since presumably we want this when called for either sample or presample
     log_alt_losers = config.setting('log_alt_losers', False)
 
-    print(choosers)
     choices = interaction_sample(
         choosers,
         alternatives,

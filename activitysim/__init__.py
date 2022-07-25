@@ -13,4 +13,4 @@ except ImportError:
 
         __version__ = setuptools_scm.get_version("../", relative_to=__file__)
     except ImportError:
-        __version__ = None
+        __version__ = "999"

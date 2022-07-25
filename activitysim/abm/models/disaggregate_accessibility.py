@@ -181,8 +181,13 @@ class ProtoPop:
             left_on=self.params['households']['zone_col'],
             right_on=self.model_settings['zones'])
 
+        perid = self.params['persons']['index_col']
+        persons_merged.set_index(perid, inplace=True, drop=False)
+
         # Store in pipeline
         inject.add_table('persons_merged', persons_merged)
+        pipeline.get_rn_generator().add_channel('persons_merged', persons_merged)
+        # pipeline.get_rn_generator().drop_channel('persons_merged')
 
 
 def disaggregate_location_choice(network_los, chunk_size, trace_hh_id, locutor):
@@ -239,7 +244,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id, loc
 
     # Run location choice
     disaggregate_location_choice(network_los, chunk_size, trace_hh_id, locutor)
-
 
 # def save_output(self):
 #     OUTPUT_PREFIX = 'accessibilities'

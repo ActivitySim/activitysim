@@ -118,13 +118,13 @@ annotate_proto_tables:
       TABLES:
         - households
 
-#  - tablename: households
-#    annotate:
-#      SPEC: annotate_proto_households
-#      DF: households
-#      TABLES:
-#        - persons
-#        - land_use
+  - tablename: households
+    annotate: 
+      SPEC: annotate_proto_households
+      DF: households
+      TABLES:
+        - persons
+        - land_use
 
   - tablename: households
     annotate:

@@ -1,5 +1,2 @@
 Description,Target,Expression
-home zone,home_zone_id,households.zone_id
-#,,
-income_in_thousands,income_in_thousands,(households.income / 1000).clip(lower=0)
-income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[INCOME_SEGMENT_LOW, INCOME_SEGMENT_MED, INCOME_SEGMENT_HIGH, INCOME_SEGMENT_VERYHIGH]).astype(int)"
+auto ownership,auto_ownership,"np.where(households.veh > 0, 1, 0)"

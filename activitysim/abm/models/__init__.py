@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 from . import accessibility
+from . import disaggregate_accessibility
 from . import atwork_subtour_destination
 from . import atwork_subtour_frequency
 from . import atwork_subtour_mode_choice

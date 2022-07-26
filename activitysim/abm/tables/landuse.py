@@ -34,3 +34,22 @@ def land_use():
 
 
 inject.broadcast("land_use", "households", cast_index=True, onto_on="home_zone_id")
+
+
+@inject.table()
+def land_use_taz():
+
+    df = read_input_table("land_use_taz")
+
+    if not df.index.is_monotonic_increasing:
+        df = df.sort_index()
+
+    logger.info("loaded land_use_taz %s" % (df.shape,))
+    buffer = io.StringIO()
+    df.info(buf=buffer)
+    logger.debug("land_use_taz.info:\n" + buffer.getvalue())
+
+    # replace table function with dataframe
+    inject.add_table("land_use_taz", df)
+
+    return df

@@ -424,6 +424,7 @@ def eval_utilities(
     estimator=None,
     trace_column_names=None,
     log_alt_losers=False,
+    zone_layer=None,
 ):
     """
 
@@ -486,7 +487,7 @@ def eval_utilities(
         if locals_d is not None:
             locals_dict.update(locals_d)
         sh_util, sh_flow = apply_flow(
-            spec, choosers, locals_dict, trace_label, sharrow_enabled == "require"
+            spec, choosers, locals_dict, trace_label, sharrow_enabled == "require", zone_layer=zone_layer,
         )
         utilities = sh_util
         timelogger.mark("sharrow flow", True, logger, trace_label)

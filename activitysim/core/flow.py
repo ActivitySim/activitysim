@@ -124,7 +124,7 @@ def only_simple(x, exclude_keys=()):
     return y
 
 
-def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None):
+def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None, zone_layer=None):
     global _FLOWS
     extra_vars = only_simple(local_d)
     orig_col_name = local_d.get("orig_col_name", None)
@@ -156,6 +156,7 @@ def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None):
         parking_col_name=parking_col_name,
         size_term_mapping=size_term_mapping,
         interacts=interacts,
+        zone_layer=zone_layer,
     )
     return flow
 
@@ -517,14 +518,21 @@ def skims_mapping(
     timeframe="tour",
     stop_col_name=None,
     parking_col_name=None,
+    zone_layer=None,
 ):
     logger.info(f"loading skims_mapping")
     logger.info(f"- orig_col_name: {orig_col_name}")
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
     skim_dataset = inject.get_injectable("skim_dataset")
-    odim = "omaz" if "omaz" in skim_dataset.dims else "otaz"
-    ddim = "dmaz" if "dmaz" in skim_dataset.dims else "dtaz"
+    if zone_layer == "maz" or zone_layer is None:
+        odim = "omaz" if "omaz" in skim_dataset.dims else "otaz"
+        ddim = "dmaz" if "dmaz" in skim_dataset.dims else "dtaz"
+    elif zone_layer == "taz":
+        odim = "otaz"
+        ddim = "dtaz"
+    else:
+        raise ValueError(f"unknown zone layer {zone_layer!r}")
     if (
         orig_col_name is not None
         and dest_col_name is not None
@@ -667,6 +675,7 @@ def new_flow(
     parking_col_name=None,
     size_term_mapping=None,
     interacts=None,
+    zone_layer=None,
 ):
 
     with logtime(f"setting up flow {trace_label}"):
@@ -687,6 +696,7 @@ def new_flow(
             timeframe,
             stop_col_name,
             parking_col_name=parking_col_name,
+            zone_layer=zone_layer,
         )
         if size_term_mapping is None:
             size_term_mapping = {}
@@ -865,7 +875,7 @@ def size_terms_on_flow(locals_d):
 
 
 def apply_flow(
-    spec, choosers, locals_d=None, trace_label=None, required=False, interacts=None
+    spec, choosers, locals_d=None, trace_label=None, required=False, interacts=None, zone_layer=None,
 ):
     if sh is None:
         return None, None
@@ -874,7 +884,7 @@ def apply_flow(
     with logtime("apply_flow"):
         try:
             flow = get_flow(
-                spec, locals_d, trace_label, choosers=choosers, interacts=interacts
+                spec, locals_d, trace_label, choosers=choosers, interacts=interacts, zone_layer=zone_layer,
             )
         except ValueError as err:
             if "unable to rewrite" in str(err):

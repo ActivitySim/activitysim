@@ -27,6 +27,7 @@ def eval_interaction_utilities(
     estimator=None,
     log_alt_losers=False,
     extra_data=None,
+    zone_layer=None,
 ):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
@@ -124,7 +125,7 @@ def eval_interaction_utilities(
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
             sh_util, sh_flow = apply_flow(
-                spec, df, locals_d, trace_label, interacts=extra_data
+                spec, df, locals_d, trace_label, interacts=extra_data, zone_layer=zone_layer,
             )
             if sh_util is not None:
                 chunk.log_df(trace_label, "sh_util", sh_util)

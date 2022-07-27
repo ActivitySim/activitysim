@@ -183,6 +183,7 @@ class ProtoPop:
 
         perid = self.params['persons']['index_col']
         persons_merged.set_index(perid, inplace=True, drop=False)
+        self.proto_pop['persons_merged'] = persons_merged
 
         # Store in pipeline
         inject.add_table('persons_merged', persons_merged)
@@ -190,7 +191,7 @@ class ProtoPop:
         # pipeline.get_rn_generator().drop_channel('persons_merged')
 
 
-def disaggregate_location_choice(network_los, chunk_size, trace_hh_id, locutor):
+def disaggregate_location_choice(segment_vars, network_los, chunk_size, trace_hh_id, locutor):
     """
     Generalized workplace/school_location choice to produce output for accessibilities
 
@@ -201,19 +202,99 @@ def disaggregate_location_choice(network_los, chunk_size, trace_hh_id, locutor):
     persons = pipeline.get_table('persons')
     households = pipeline.get_table('households')
 
-    for _label in ['workplace_location', 'school_location']:
-        model_settings = config.read_model_settings(_label + '.yaml')
-        estimator = estimation.manager.begin_estimation(_label)
-        if estimator:
-            location_choice.write_estimation_specs(estimator, model_settings, _label + '.yaml')
 
-        location_choice.iterate_location_choice(
-            model_settings,
-            persons_merged, persons, households,
-            network_los,
-            estimator,
-            chunk_size, trace_hh_id, locutor, _label
-        )
+    logsums = {}
+
+    # outer segment loop here
+    for segment_name, choosers in persons_merged.groupby(segment_vars):
+
+        for trace_label in ['workplace_location', 'school_location']:
+            model_settings = config.read_model_settings(trace_label + '.yaml')
+
+            # Get model params
+            estimator = estimation.manager.begin_estimation(trace_label)
+            if estimator:
+                location_choice.write_estimation_specs(estimator, model_settings, trace_label + '.yaml')
+
+            shadow_price_calculator = shadow_pricing.load_shadow_price_calculator(model_settings)
+
+            # size_term and shadow price adjustment - one row per zone
+            dest_size_terms = shadow_price_calculator.dest_size_terms(segment_name)
+
+            assert dest_size_terms.index.is_monotonic_increasing, \
+                f"shadow_price_calculator.dest_size_terms({segment_name}) not monotonic_increasing"
+
+            if choosers.shape[0] == 0:
+                logger.info(f"{trace_label} skipping segment {segment_name}: no choosers")
+                continue
+
+            # no chunking in this case?
+            chunk_tag = trace_label
+
+            # TODO Need to get logsums of all alternatives, not the selected values
+            # logsums[_label] = \
+            #     location_choice.iterate_location_choice(
+            #         model_settings,
+            #         persons_merged, persons, households,
+            #         network_los,
+            #         estimator,
+            #         chunk_size, trace_hh_id, locutor, _label
+            #     )
+
+            # - location_sample
+            location_sample_df = \
+                location_choice.run_location_sample(
+                    segment_name,
+                    choosers,
+                    network_los,
+                    dest_size_terms,
+                    estimator,
+                    model_settings,
+                    chunk_size,
+                    chunk_tag,
+                    trace_label=tracing.extend_trace_label(trace_label, 'sample.%s' % segment_name))
+
+            # - location_logsums
+            location_sample_df = \
+                location_choice.run_location_logsums(
+                    segment_name,
+                    choosers,
+                    network_los,
+                    location_sample_df,
+                    model_settings,
+                    chunk_size, chunk_tag=f'{chunk_tag}.logsums',
+                    trace_label=tracing.extend_trace_label(trace_label, 'logsums.%s' % segment_name))
+
+
+        # Nonmandatory destination
+        # location_sample_df = \
+        #     run_destination_sample(
+        #         spec_segment_name,
+        #         choosers,
+        #         persons_merged,
+        #         model_settings,
+        #         network_los,
+        #         segment_destination_size_terms,
+        #         estimator,
+        #         chunk_size=chunk_size,
+        #         trace_label=tracing.extend_trace_label(segment_trace_label, 'sample'))
+        #
+        # # - destination_logsums
+        # tour_purpose = segment_name  # tour_purpose is segment_name
+        # location_sample_df = \
+        #     run_destination_logsums(
+        #         tour_purpose,
+        #         persons_merged,
+        #         location_sample_df,
+        #         model_settings,
+        #         network_los,
+        #         chunk_size=chunk_size,
+        #         trace_label=tracing.extend_trace_label(segment_trace_label, 'logsums'))
+
+        logsums[trace_label] = location_sample_df
+        # TEST
+        base_dir = 'C:/gitclones/activitysim-disagg_accessibilities/activitysim/examples/example_mtc_accessibilities'
+        logsums[trace_label].to_csv(os.path.join(base_dir, 'output', trace_label + '.csv'))
 
         if estimator:
             estimator.end_estimation()
@@ -234,6 +315,14 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id, loc
     # Synthesize the proto-population
     PP = ProtoPop(land_use_df, model_settings)
 
+    # Segment vars
+    segment_vars = []
+    for v in ['persons', 'households']:
+        segment_vars.extend(list(PP.params[v]['variables'].keys()))
+        # Drop zone and index vars
+        _id = PP.model_settings['zones'] + [PP.params[v]['index_col'], PP.params[v]['zone_col']]
+        segment_vars = list(set(segment_vars).difference(set(filter(None, _id))))
+
     # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
     # this can now be called as a stand alone model step instead, add_size_tables
@@ -243,7 +332,7 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id, loc
         shadow_pricing.add_size_tables()
 
     # Run location choice
-    disaggregate_location_choice(network_los, chunk_size, trace_hh_id, locutor)
+    disaggregate_location_choice(segment_vars, network_los, chunk_size, trace_hh_id, locutor)
 
 # def save_output(self):
 #     OUTPUT_PREFIX = 'accessibilities'
@@ -254,8 +343,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id, loc
 
 
 if __name__ == "__main__":
-
-
     # FOR TESTING
     base_dir = 'C:/gitclones/activitysim-disagg_accessibilities/activitysim/examples'
     acc_configs = os.path.join(base_dir, 'example_mtc_accessibilities/configs/disaggregate_accessibility.yaml')

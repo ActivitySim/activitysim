@@ -748,6 +748,7 @@ def iterate_location_choice(
     sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
     want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
 
+    ##### NEEDED TO PASS DISAGGREGATE ACCESSIBILITIES DATAFRAMES ###
     # Check if already a dataframe
     def check_to_frame(tab):
         return tab if isinstance(tab, pd.DataFrame) else tab.to_frame()

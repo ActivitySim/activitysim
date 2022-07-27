@@ -59,23 +59,13 @@ input_table_list:
     recode_columns:
       zone_id: zero-based
     keep_columns:
-      #- TAZ
-#      - construc
-#      - manufac
-#      - TCU
-#      - wholesl
       - retail
-#      - FIRE
       - service
-#      - private
-#      - govt
       - emp
       - pop
       - hshld
       - univ
       - acres
-#      - otherEmp
-#      - district
       - PARKTOT
       - PARKLNG
       - PROPFREE

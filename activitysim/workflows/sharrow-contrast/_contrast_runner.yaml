@@ -113,7 +113,7 @@ run-compile:
         chunk_training_mode: disabled
         households_sample_size: '{compile_n_households}'
         cache_dir: cache_sharrow
-        trace_hh_id:
+        trace_hh_id: '{trace_hh_id}'
         trace_od:
         instrument: '{instrument}'
         disable_zarr: '{disable_zarr}'

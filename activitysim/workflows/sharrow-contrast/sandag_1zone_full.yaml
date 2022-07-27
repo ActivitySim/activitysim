@@ -5,14 +5,14 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_sandag_1_zone
+      example_name: example_sandag_1_zone_full
       workspace: workspace
       create: True
       compile: True
       sharrow: True
       legacy: True
       reference: False
-      tag: '2022-06-1zone'
+      tag: '2022-07-1zone-1process'
       resume_after:
       fast: False
       compile_n_households: 10000
@@ -30,6 +30,8 @@ steps:
         district_id: county_id
       distance_skim: DIST
       household_income: income
+      chunk_training: True
+      chunk_training_mode: training
 
 - name: activitysim.workflows.steps.pype
   in:

@@ -115,6 +115,7 @@ def _location_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    zone_layer=None,
 ):
     """
     select a sample of alternative locations.
@@ -180,6 +181,7 @@ def _location_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer=zone_layer,
     )
 
     return choices
@@ -347,6 +349,7 @@ def location_presample(
         chunk_size,
         chunk_tag,
         trace_label,
+        zone_layer="taz",
     )
 
     # print(f"taz_sample\n{taz_sample}")

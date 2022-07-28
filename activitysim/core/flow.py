@@ -531,8 +531,21 @@ def skims_mapping(
     elif zone_layer == "taz":
         odim = "otaz"
         ddim = "dtaz"
+        if "omaz" in skim_dataset.dims:
+            # strip out all MAZ-specific features of the skim_dataset
+            dropdims = ["omaz", "dmaz"]
+            skim_dataset = skim_dataset.drop_dims(dropdims, errors="ignore")
+            for dd in dropdims:
+                if f"dim_redirection_{dd}" in skim_dataset.attrs:
+                    del skim_dataset.attrs[f"dim_redirection_{dd}"]
+            for attr_name in list(skim_dataset.attrs):
+                if attr_name.startswith("blend"):
+                    del skim_dataset.attrs[attr_name]
+
     else:
         raise ValueError(f"unknown zone layer {zone_layer!r}")
+    if zone_layer:
+        logger.info(f"- zone_layer: {zone_layer}")
     if (
         orig_col_name is not None
         and dest_col_name is not None
@@ -836,12 +849,15 @@ def new_flow(
                 readme += f"\n            - {i}: {v}"
 
         logger.info(f"setting up sharrow flow {trace_label}")
+        extra_hash_data = ()
+        if zone_layer:
+            extra_hash_data += (zone_layer,)
         return flow_tree.setup_flow(
             defs,
             cache_dir=cache_dir,
             readme=readme[1:],  # remove leading newline
             flow_library=_FLOWS,
-            # extra_hash_data=(orig_col_name, dest_col_name),
+            extra_hash_data=extra_hash_data,
             hashing_level=0,
         )
 

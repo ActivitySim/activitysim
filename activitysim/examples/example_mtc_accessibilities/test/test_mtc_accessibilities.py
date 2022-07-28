@@ -45,7 +45,7 @@ def test_mtc_accessibilities():
                     '-d', example_mtc_path('data'),
                     '-o', test_path('output')], check=True)
 
-    # regress()
+    regress()
 
 
 if __name__ == '__main__':

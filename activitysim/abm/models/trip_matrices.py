@@ -119,6 +119,11 @@ def write_trip_matrices(network_los):
         orig_vals = aggregate_trips.index.get_level_values("otaz")
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
+        land_use_taz = pipeline.get_table("land_use_taz")
+        if '_original_TAZ' in land_use_taz.columns:
+            orig_vals = orig_vals.map(land_use_taz['_original_TAZ'])
+            dest_vals = dest_vals.map(land_use_taz['_original_TAZ'])
+
         zone_index = pd.Index(network_los.get_tazs(), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)

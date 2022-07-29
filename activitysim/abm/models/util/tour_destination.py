@@ -83,6 +83,7 @@ def _destination_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    zone_layer=None,
 ):
 
     model_spec = simulate.spec_for_segment(
@@ -129,6 +130,7 @@ def _destination_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer=zone_layer,
     )
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
@@ -506,6 +508,7 @@ def destination_presample(
         chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer='taz',
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total

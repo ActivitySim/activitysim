@@ -59,6 +59,7 @@ def _destination_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    zone_layer=None,
 ):
     """
 
@@ -125,6 +126,7 @@ def _destination_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer=zone_layer,
     )
 
     return choices
@@ -476,6 +478,7 @@ def destination_presample(
         chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer='taz',
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total

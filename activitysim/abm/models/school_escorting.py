@@ -19,6 +19,7 @@ import numpy as np
 import warnings
 
 from .util import estimation
+from .util import school_escort_tours_trips
 
 
 logger = logging.getLogger(__name__)
@@ -118,78 +119,49 @@ def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     return tours
 
 
-def determine_child_order_specific_attributes(row):
-    child_order = row['child_order']
-    first_child_num = str(child_order[0] + 1)
+def create_bundle_attributes(row):
+    escortee_str = ''
+    escortee_num_str = ''
+    school_dests_str = ''
+    school_starts_str = ''
+    school_ends_str = ''
+    school_tour_ids_str = ''
+    num_escortees = 0
 
-    # origin is just the home zone id
-    row['origin'] = row['school_origin_child' + first_child_num]
-    row['destination'] = row['school_destination_child' + first_child_num]
-    row['start'] = row['school_start_child' + first_child_num]
+    for child_num in row['child_order']:
+        child_num = str(child_num)
+        child_id = int(row['bundle_child' + child_num])
 
-    time_home_to_school = row['time_home_to_school' + first_child_num]
-    # FIXME hardcoded mins per time bin
-    row['end'] = row['start'] + int(time_home_to_school * 2 / 30)
+        if child_id > 0:
+            num_escortees += 1
+            school_dest = str(int(row['school_destination_child' + child_num]))
+            school_start = str(int(row['school_start_child' + child_num]))
+            school_end = str(int(row['school_end_child' + child_num]))
+            school_tour_id = str(int(row['school_tour_id_child' + child_num]))
 
+            if escortee_str == '':
+                escortee_str = str(child_id)
+                escortee_num_str = str(child_num)
+                school_dests_str = school_dest
+                school_starts_str = school_start
+                school_ends_str = school_end
+                school_tour_ids_str = school_tour_id
+            else:
+                escortee_str = escortee_str + '_' + str(child_id)
+                escortee_num_str = escortee_num_str + '_' + str(child_num)
+                school_dests_str = school_dests_str + '_' + school_dest
+                school_starts_str =  school_starts_str + '_' + school_start
+                school_ends_str = school_ends_str + '_' + school_end
+                school_tour_ids_str = school_tour_ids_str + '_' + school_tour_id
+
+    row['escortees'] = escortee_str
+    row['escortee_nums'] = escortee_num_str
+    row['num_escortees'] = num_escortees
+    row['school_destinations'] = school_dests_str
+    row['school_starts'] = school_starts_str
+    row['school_ends'] = school_ends_str
+    row['school_tour_ids'] = school_tour_ids_str
     return row
-
-
-def create_pure_school_escort_tours(tours):
-    # creating home to school tour for chauffers making pure escort tours
-    # ride share tours are already created since they go off the mandatory tour
-
-    # FIXME: can I just move all of this logic to a csv and annotate??
-    bundles = pipeline.get_table('escort_bundles')
-    persons = pipeline.get_table('persons')
-    pe_tours = bundles[bundles['escort_type'] == 'pure_escort']
-
-    pe_tours = pe_tours.apply(lambda row: determine_child_order_specific_attributes(row), axis=1)
-
-    pe_tours['person_id'] = pe_tours['chauf_id']
-    # FIXME should probably put this when creating the bundles table
-    # assert pe_tours['persons_id'].isin(persons.index), \
-    #     f"Chauffer ID(s) not present in persons table {pe_tours.loc[~pe_tours['person_id'].isin(persons.index), 'person_id']}"
-    pe_tours = pe_tours[pe_tours['person_id'].isin(persons.index)]
-
-    pe_tours['tour_category'] = 'non_mandatory'
-    pe_tours['number_of_participants'] = 1
-    pe_tours['tour_type'] = 'escort'
-    # FIXME join tdd from tdd_alts
-    pe_tours['tdd'] = pd.NA
-    pe_tours['duration'] = pe_tours['end'] - pe_tours['start']
-    pe_tours['school_esc_outbound'] = np.where(pe_tours['direction'] == 'outbound', 'pure_escort', pd.NA)
-    pe_tours['school_esc_inbound'] = np.where(pe_tours['direction'] == 'inbound', 'pure_escort', pd.NA)
-
-    # FIXME placeholder index
-    pe_tours['tour_id'] = list(range(len(pe_tours)))
-    pe_tours.set_index('tour_id', inplace=True)
-
-    pe_tours.to_csv('pure_escort_tours.csv')
-
-    for col in tours.columns:
-        if col not in pe_tours.columns:
-            pe_tours[col] = pd.NA
-            print(col)
-
-    tours = pd.concat([tours, pe_tours[tours.columns]])
-
-    grouped = tours.groupby(['person_id', 'tour_type'])
-    tours['tour_type_num'] = grouped.cumcount() + 1
-    tours['tour_type_count'] = tours['tour_type_num'] + grouped.cumcount(ascending=False)
-
-    grouped = tours.groupby('person_id')
-    tours['tour_num'] = grouped.cumcount() + 1
-    tours['tour_count'] = tours['tour_num'] + grouped.cumcount(ascending=False)
-
-    tours.sort_values(by=['household_id', 'person_id', 'tour_num'], inplace=True)
-
-    pipeline.replace_table("tours", tours)
-    # since new trips were added inbetween other trips on the tour, the trip_id's changed
-    # resetting random number generator for trips... does this have unintended consequences?
-    pipeline.get_rn_generator().drop_channel('tours')
-    pipeline.get_rn_generator().add_channel('tours', tours)
-
-    return tours
 
 
 def create_school_escorting_bundles_table(choosers, tours, stage):
@@ -200,15 +172,14 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     choosers = choosers.loc[choosers.index.repeat(choosers['nbundles'])]
 
     bundles = pd.DataFrame()
-    bundles.index = choosers.index
+    # bundles.index = choosers.index
     bundles['household_id'] = choosers['household_id']
+    bundles['home_zone_id'] = choosers['home_zone_id']
     bundles['direction'] = 'outbound' if 'outbound' in stage else 'inbound'
-    bundles['bundle_num'] = choosers.groupby('household_id').cumcount() + 1
+    bundles['bundle_num'] = bundles.groupby('household_id').cumcount() + 1
 
     # initialize values
     bundles['chauf_type_num'] = 0
-    # bundles['first_school_start'] = 999
-    # bundles['first_school_start'] = -999
 
     # getting bundle school start times and locations
     school_tours = tours[(tours.tour_type == 'school') & (tours.tour_num == 1)]
@@ -217,6 +188,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     school_ends = school_tours.set_index('person_id').end
     school_destinations = school_tours.set_index('person_id').destination
     school_origins = school_tours.set_index('person_id').origin
+    school_tour_ids = school_tours.reset_index().set_index('person_id').tour_id
 
     for child_num in range(1,4):
         i = str(child_num)
@@ -228,9 +200,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
         bundles['school_origin_child' + i] = reindex(school_origins, bundles['bundle_child' + i])
         bundles['school_start_child' + i] = reindex(school_starts, bundles['bundle_child' + i])
         bundles['school_end_child' + i] = reindex(school_ends, bundles['bundle_child' + i])
-
-        # bundles['first_school_start'] = np.where(bundles['school_start_child' + i] < bundles['first_school_start'], bundles['school_start_child' + i], bundles['first_school_start'])
-        # bundles['first_school_end'] = np.where(bundles['school_end_child' + i] > bundles['first_school_end'], bundles['school_end_child' + i], bundles['first_school_end'])
+        bundles['school_tour_id_child' + i] = reindex(school_tour_ids, bundles['bundle_child' + i])
 
     # FIXME assumes only two chauffeurs
     bundles['chauf_id'] = np.where(bundles['chauf_type_num'] <= 2, choosers['chauf_id1'], choosers['chauf_id2']).astype(int)
@@ -239,14 +209,26 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
 
     # FIXME this is just pulled from the pre-processor... would break if removed or renamed in pre-processor
     school_time_cols = ['time_home_to_school' + str(i) for i in range(1,4)]
-    bundles['child_order'] = list(bundles[school_time_cols].values.argsort())
+    bundles['outbound_order'] = list(bundles[school_time_cols].values.argsort() + 1)
+    bundles['inbound_order'] = list((-1 * bundles[school_time_cols]).values.argsort() + 1) # inbound gets reverse order
+    bundles['child_order'] = np.where(
+        bundles['direction'] == 'outbound',
+        bundles['outbound_order'] ,
+        bundles['inbound_order']
+    )
+
+    bundles = bundles.apply(lambda row: create_bundle_attributes(row), axis=1)
 
     # getting chauffer mandatory times
-    bundles['first_mand_tour_start_time'] = reindex(tours[(tours.tour_type == 'work') & (tours.tour_num == 1)].set_index('person_id').start, bundles['chauf_id'])
-    bundles['first_mand_tour_end_time'] = reindex(tours[(tours.tour_type == 'work') & (tours.tour_num == 1)].set_index('person_id').end, bundles['chauf_id'])
+    mandatory_escort_tours = tours[(tours.tour_type == 'work') & (tours.tour_num == 1)]
+    bundles['first_mand_tour_start_time'] = reindex(mandatory_escort_tours.set_index('person_id').start, bundles['chauf_id'])
+    bundles['first_mand_tour_end_time'] = reindex(mandatory_escort_tours.set_index('person_id').end, bundles['chauf_id'])
+    bundles['first_mand_tour_id'] = reindex(mandatory_escort_tours.reset_index().set_index('person_id').tour_id, bundles['chauf_id'])
+    bundles['first_mand_tour_dest'] = reindex(mandatory_escort_tours.reset_index().set_index('person_id').destination, bundles['chauf_id'])
 
     bundles['Alt'] = choosers['Alt']
     bundles['Description'] = choosers['Description']
+    # bundles.set_index('bundle_id', inplace=True)
 
     return bundles
 
@@ -369,15 +351,19 @@ def school_escorting(households,
             escort_bundles.append(bundles)
 
     escort_bundles = pd.concat(escort_bundles)
+    escort_bundles['bundle_id'] = escort_bundles['household_id'] * 100 + escort_bundles.groupby('household_id').cumcount() + 1
+    escort_bundles['chauf_tour_id'] = np.where(escort_bundles['escort_type'] == 'ride_share', escort_bundles['first_mand_tour_id'], escort_bundles.bundle_id.values)
+    escort_bundles.set_index('bundle_id', inplace=True)
     escort_bundles.sort_values(by=['household_id', 'direction'], ascending=[True, False], inplace=True)
     escort_bundles.to_csv('escort_bundles.csv')
 
     tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
 
-    # FIXME should this be called after non-mandatory tour creation?
-    # pure_escort_tours = create_pure_escort_tours(escort_bundles, tours)
-    # pure_escort_tours.to_csv('pure_escort_tours.csv')
+    school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(escort_bundles)
+    school_escort_trips = school_escort_tours_trips.create_school_escort_trips(escort_bundles)
 
     pipeline.replace_table("households", households)
     pipeline.replace_table("tours", tours)
     pipeline.replace_table("escort_bundles", escort_bundles)
+    pipeline.replace_table("school_escort_tours", school_escort_tours)
+    pipeline.replace_table("school_escort_trips", school_escort_trips)

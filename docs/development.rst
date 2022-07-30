@@ -333,7 +333,7 @@ Generally speaking, there are two types of ActivitySim examples: test examples a
   examples are :ref:`prototype_mtc`, :ref:`example_estimation`, :ref:`example_multiple_zones`, and :ref:`prototype_marin`.
   These examples are owned and maintained by the project.
 * Agency examples - these are agency partner model implementations currently being setup.  The current agency examples
-  are :ref:`prototype_arc`, :ref:`example_semcog`, :ref:`placeholder_psrc`, :ref:`example_sandag`, and :ref:`example_sandag_xborder`.  These examples can be
+  are :ref:`prototype_arc`, :ref:`prototype_semcog`, :ref:`placeholder_psrc`, :ref:`example_sandag`, and :ref:`example_sandag_xborder`.  These examples can be
   configured in ways different from the test examples, include new inputs and expressions, and may include new planned
   software components for contribution to ActivitySim.  These examples are owned by the agency.
 
@@ -406,9 +406,9 @@ Running the Test System
 The automatic TravisCI test system runs the test examples and the cropped agency examples.  Examples of the testing 
 resources for each agency example that need to be up-to-date are:
 
-* `scripts folder (including crop script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/example_semcog/scripts>`_
-* `test folder (including test script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/example_semcog/test>`_
-* `regress folder (including expected outputs) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/example_semcog/test/regress>`_
+* `scripts folder (including crop script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/prototype_semcog/scripts>`_
+* `test folder (including test script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/prototype_semcog/test>`_
+* `regress folder (including expected outputs) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/prototype_semcog/test/regress>`_
 
 For the time being, running the full scale examples is done manually since it involves getting and running several large examples that take many hours to run.  The entire system could be fully automated, and either run in the cloud or on a local server.
 

@@ -118,12 +118,12 @@ the coefficient adjustment at each iteration is:
 ``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
 
 The main interface to the work from home model is the 
-:py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
+:py:func:`~activitysim.examples.prototype_semcog.extensions.work_from_home` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.work_from_home
+.. automodule:: activitysim.examples.prototype_semcog.extensions.work_from_home
    :members:
 
 .. _school_location:
@@ -248,12 +248,12 @@ person :ref:`transit_pass_ownership` model and the tour and trip mode choice mod
 via fare discount adjustments.
 
 The main interface to the transit pass subsidy model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_subsidy` function.  This
+:py:func:`~activitysim.examples.prototype_semcog.extensions.transit_pass_subsidy` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_subsidy
+.. automodule:: activitysim.examples.prototype_semcog.extensions.transit_pass_subsidy
    :members:
 
 .. _transit_pass_ownership:
@@ -268,12 +268,12 @@ result of this model can be used to condition downstream models such as the tour
 mode choice models via fare discount adjustments.
 
 The main interface to the transit pass ownership model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This
+:py:func:`~activitysim.examples.prototype_semcog.extensions.transit_pass_ownership` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
+.. automodule:: activitysim.examples.prototype_semcog.extensions.transit_pass_ownership
    :members:
 
 .. _auto_ownership:
@@ -375,12 +375,12 @@ level of telecommuting. The model alternatives are the frequency of telecommutin
 days per week (0 days, 1 day, 2 to 3 days, 4+ days).
 
 The main interface to the work from home model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.telecommute_frequency` function.  This
+:py:func:`~activitysim.examples.prototype_semcog.extensions.telecommute_frequency` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
+.. automodule:: activitysim.examples.prototype_semcog.extensions.telecommute_frequency
    :members:
 
 .. _freeparking:

@@ -488,35 +488,35 @@
       data/final_accessibility.csv
       949994345c9965054be260589fd64079e4032d2e4079e46b9eb9c758a40527c3
 
-- name: example_semcog
+- name: prototype_semcog
   description: 67 zone test example for the SEMCOG region
-  # activitysim create -e example_semcog -d test_example_semcog
-  # cd test_example_semcog
+  # activitysim create -e prototype_semcog -d test_prototype_semcog
+  # cd test_prototype_semcog
   # python simulation.py -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/data
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - prototype_semcog/extensions
+    - prototype_semcog/data
+    - prototype_semcog/configs
+    - prototype_semcog/configs_mp
+    - prototype_semcog/output
+    - prototype_semcog/README.MD
+    - prototype_semcog/simulation.py
 
-- name: example_semcog_z500
+- name: prototype_semcog_z500
   description: 500 zone intermediate size example for the SEMCOG region
-  # activitysim create -e example_semcog_z500 -d test_example_semcog_z500
-  # cd test_example_semcog_z500
+  # activitysim create -e prototype_semcog_z500 -d test_prototype_semcog_z500
+  # cd test_prototype_semcog_z500
   # python simulation.py -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/data
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - prototype_semcog/extensions
+    - prototype_semcog/data
+    - prototype_semcog/configs
+    - prototype_semcog/configs_mp
+    - prototype_semcog/output
+    - prototype_semcog/README.MD
+    - prototype_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/skims.omx
       data/skims.omx
       7c824032940d1006e731d715bcee8771572e03558eef40ca1ca5f820bfc071ca
@@ -530,20 +530,20 @@
       data/land_use.csv
       d4ddb6f5fc7cd844e3e9149d03d32c841c5cb641a77aea9174045ddb85f27a3a
 
-- name: example_semcog_full
+- name: prototype_semcog_full
   description: 2899 zone full size example for the SEMCOG region
-  # activitysim create -e example_semcog_full -d test_example_semcog_full
-  # cd test_example_semcog_full
+  # activitysim create -e prototype_semcog_full -d test_prototype_semcog_full
+  # cd test_prototype_semcog_full
   # python simulation.py -c configs_mp -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/data
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - prototype_semcog/extensions
+    # prototype_semcog/data  # data loaded from activitysim_resources
+    - prototype_semcog/configs
+    - prototype_semcog/configs_mp
+    - prototype_semcog/output
+    - prototype_semcog/README.MD
+    - prototype_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims.omx
       data/skims.omx
       efa1f87395df354ccfad7cfe4e67ace96c7ac04fa0290e5e6f8e2593fc0ba6a3

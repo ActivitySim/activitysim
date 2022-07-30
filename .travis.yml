@@ -30,7 +30,7 @@ jobs:
     - name: "ARC Example"
       env: TEST_SUITE=activitysim/examples/prototype_arc/test
     - name: "SEMCOG Example"
-      env: TEST_SUITE=activitysim/examples/example_semcog/test
+      env: TEST_SUITE=activitysim/examples/prototype_semcog/test
     - name: "PSRC Example"
       env: TEST_SUITE=activitysim/examples/placeholder_psrc/test
     - name: "SANDAG Example"

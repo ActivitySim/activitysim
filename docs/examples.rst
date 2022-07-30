@@ -24,9 +24,9 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_arc`            | ARC agency example                                        | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_semcog`           | SEMCOG agency example                                     | 1            | In development       |
+| :ref:`prototype_semcog`         | SEMCOG agency example                                     | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | In development       |
+| :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | Future development   |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_sandag`           | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -547,7 +547,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-:ref:`prototype_arc`, :ref:`example_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
+:ref:`prototype_arc`, :ref:`prototype_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -1444,19 +1444,19 @@ Example
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
 for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
-.. _example_semcog :
+.. _prototype_semcog :
 
-example_semcog
---------------
+prototype_semcog
+----------------
 
 .. note::
 
   This example is in development
 
 
-The example_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
+The prototype_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
 and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
-submodel :ref:`sub-model-spec-files`.  These submodels were added to example_semcog as extensions, which is a way for users to add 
+submodel :ref:`sub-model-spec-files`.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
 submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
 the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
 in order to load the extensions folder.
@@ -1490,7 +1490,7 @@ Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
-for running example_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+for running prototype_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
 .. _placeholder_psrc :

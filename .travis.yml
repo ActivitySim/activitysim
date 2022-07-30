@@ -36,7 +36,7 @@ jobs:
     - name: "SANDAG Example"
       env: TEST_SUITE=activitysim/examples/example_sandag/test
     - name: "SANDAG Cross-Border Example"
-      env: TEST_SUITE=activitysim/examples/example_sandag_xborder/test
+      env: TEST_SUITE=activitysim/examples/prototype_sandag_xborder/test
 
     - stage: Estimation Mode
       name: "Larch Test"

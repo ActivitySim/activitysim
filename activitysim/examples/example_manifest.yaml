@@ -832,30 +832,30 @@
       data_3/tap_lines.csv
       0e1b2c532e5e85b48e2ac77b2836be7ec0cc7cba79907c6f5fb11d2ba171230a
 
-- name: example_sandag_xborder
+- name: prototype_sandag_xborder
   description: SANDAG cross border travel model
-  # activitysim create -e example_sandag_xborder -d test_example_sandag_xborder
-  # cd test_example_sandag_xborder
+  # activitysim create -e prototype_sandag_xborder -d test_prototype_sandag_xborder
+  # cd test_prototype_sandag_xborder
   # python simulation.py
   # cd ..
   include:
-    - example_sandag_xborder/configs
-    - example_sandag_xborder/data
-    - example_sandag_xborder/extensions
-    - example_sandag_xborder/output
-    - example_sandag_xborder/simulation.py
+    - prototype_sandag_xborder/configs
+    - prototype_sandag_xborder/data
+    - prototype_sandag_xborder/extensions
+    - prototype_sandag_xborder/output
+    - prototype_sandag_xborder/simulation.py
 
-- name: example_sandag_xborder_full
+- name: prototype_sandag_xborder_full
   description: full scale SANDAG cross border travel model
-  # activitysim create -e example_sandag_xborder_full -d test_example_sandag_xborder_full
-  # cd test_example_sandag_xborder_full
+  # activitysim create -e prototype_sandag_xborder_full -d test_prototype_sandag_xborder_full
+  # cd test_prototype_sandag_xborder_full
   # python simulation.py
   # cd ..
   include:
-    - example_sandag_xborder/configs
-    - example_sandag_xborder/extensions
-    - example_sandag_xborder/output
-    - example_sandag_xborder/simulation.py
+    - prototype_sandag_xborder/configs
+    - prototype_sandag_xborder/extensions
+    - prototype_sandag_xborder/output
+    - prototype_sandag_xborder/simulation.py
     - https://raw.githubusercontent.com/ActivitySim/activitysim_resources/master/sandag_xborder/households_xborder.csv
       data/households_xborder.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/maz_maz_walk.csv

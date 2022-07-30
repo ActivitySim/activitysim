@@ -18,7 +18,7 @@ def teardown_function(func):
 def test_sandag_xborder():
 
     def example_path(dirname):
-        resource = os.path.join('examples', 'example_sandag_xborder', dirname)
+        resource = os.path.join('examples', 'prototype_sandag_xborder', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def test_path(dirname):

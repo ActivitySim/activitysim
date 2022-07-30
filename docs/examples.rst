@@ -22,7 +22,7 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_marin`            | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_arc`              | ARC agency example                                        | 1            | In development       |
+| :ref:`prototype_arc`            | ARC agency example                                        | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_semcog`           | SEMCOG agency example                                     | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -547,7 +547,7 @@ Python/pandas/numpy expressions, alternatives, and other settings used by each m
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
 columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
-:ref:`example_arc`, :ref:`example_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
+:ref:`prototype_arc`, :ref:`example_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -1402,17 +1402,17 @@ file to include as it can considerably reduce runtimes.
   tap_lines: tap_lines.csv
 
 
-.. _example_arc :
+.. _prototype_arc :
 
-example_arc
------------
+prototype_arc
+-------------
 
 .. note::
 
   This example is in development
 
 
-The example_arc added a :ref:`trip_scheduling_choice`, :ref:`trip_departure_choice`, and :ref:`parking_location_choice`
+The prototype_arc added a :ref:`trip_scheduling_choice`, :ref:`trip_departure_choice`, and :ref:`parking_location_choice`
 submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
 submodel :ref:`sub-model-spec-files`.
 
@@ -1442,7 +1442,7 @@ Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
-for running example_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _example_semcog :
 

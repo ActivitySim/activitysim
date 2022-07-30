@@ -574,7 +574,7 @@ def _schedule_tours(
     if not RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
         # Note: Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
         # and he was using logsum_tour_purpose as selector, although logically it should be the spec_segment
-        # It just happened to work for example_arc.mandatory_tour_scheduling because, in that model, (unlike semcog)
+        # It just happened to work for prototype_arc.mandatory_tour_scheduling because, in that model, (unlike semcog)
         # logsum_tour_purpose and spec_segments are aligned (both logsums and spec are segmented on work, school, univ)
         # In any case, I don't see any benefit to doing this here - at least not for any existing implementations
         # but if we do, it will require passing spec_segment to schedule_tours  and _schedule_tours

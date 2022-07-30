@@ -18,7 +18,7 @@ def teardown_function(func):
 def test_arc():
 
     def example_path(dirname):
-        resource = os.path.join('examples', 'example_arc', dirname)
+        resource = os.path.join('examples', 'prototype_arc', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def test_path(dirname):

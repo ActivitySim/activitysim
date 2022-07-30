@@ -28,7 +28,7 @@ jobs:
     - name: "Marin Example"
       env: TEST_SUITE=activitysim/examples/example_marin/test
     - name: "ARC Example"
-      env: TEST_SUITE=activitysim/examples/example_arc/test
+      env: TEST_SUITE=activitysim/examples/prototype_arc/test
     - name: "SEMCOG Example"
       env: TEST_SUITE=activitysim/examples/example_semcog/test
     - name: "PSRC Example"

@@ -560,29 +560,29 @@
       data/land_use.csv
       8f9146993bff315afc6ada52182cb3ea719a6a1ed07095b51535bc7c026285f6
 
-- name: example_arc
+- name: prototype_arc
   description: 36 zone test example for the ARC region
-  # activitysim create -e example_arc -d test_example_arc
-  # cd test_example_arc
+  # activitysim create -e prototype_arc -d test_prototype_arc
+  # cd test_prototype_arc
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_arc/data
-    - example_arc/configs
-    - example_arc/output
-    - example_arc/README.MD
+    - prototype_arc/data
+    - prototype_arc/configs
+    - prototype_arc/output
+    - prototype_arc/README.MD
 
-- name: example_arc_fulton
+- name: prototype_arc_fulton
   description: 1296 zone fulton county example for the ARC region
-  # activitysim create -e example_arc_fulton -d test_example_arc_fulton
-  # cd test_example_arc_fulton
+  # activitysim create -e prototype_arc_fulton -d test_prototype_arc_fulton
+  # cd test_prototype_arc_fulton
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_arc/data
-    - example_arc/configs
-    - example_arc/output
-    - example_arc/README.MD
+    - prototype_arc/data
+    - prototype_arc/configs
+    - prototype_arc/output
+    - prototype_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/skims.omx
       data/skims.omx
       335be57a0b89eac8b51874cc5d8a2c0a0b19472f7ac77c99fd8afd54f223712b
@@ -596,17 +596,17 @@
       data/land_use.csv
       09a8c0cd0771c4ec3713940fc3d5b9e9443cc104668f7403c2caefb75c4fbb08
 
-- name: example_arc_full
+- name: prototype_arc_full
   description: 5922 zone full example for the ARC region
-  # activitysim create -e example_arc_full -d test_example_arc_full
-  # cd test_example_arc_full
+  # activitysim create -e prototype_arc_full -d test_prototype_arc_full
+  # cd test_prototype_arc_full
   # activitysim run -c configs -o output -d data -s settings_mp.yaml
   # cd ..
   include:
-    - example_arc/data
-    - example_arc/configs
-    - example_arc/output
-    - example_arc/README.MD
+    # - prototype_arc/data  # data is provided below
+    - prototype_arc/configs
+    - prototype_arc/output
+    - prototype_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims.omx
       data/skims.omx
       55af7b893f13b5275fd7d9721a07f3e09d98a2660fa5fa6f5ff99f8fa8ffbcdf

@@ -1,11 +1,17 @@
+import glob
 import logging
+import os
 
 import numpy as np
+import openmatrix
 import pandas as pd
+import sharrow as sh
 import xarray as xr
 from sharrow import array_decode
 
+from . import config
 from . import flow as __flow
+from . import inject
 
 logger = logging.getLogger(__name__)
 
@@ -146,8 +152,7 @@ class DatasetWrapper:
         if self.time_key:
             logger.info(f"vectorize lookup for time_period={self.time_key}")
             time_period_idxs = pd.Series(
-                np.vectorize(self.time_map.get)(df[self.time_key]),
-                index=df.index,
+                np.vectorize(self.time_map.get)(df[self.time_key]), index=df.index,
             )
             return time_period_idxs
 
@@ -191,8 +196,7 @@ class DatasetWrapper:
             else:
                 logger.info(f"vectorize lookup for time_period={self.time_key}")
                 positions["time_period"] = pd.Series(
-                    np.vectorize(self.time_map.get)(df[self.time_key]),
-                    index=df.index,
+                    np.vectorize(self.time_map.get)(df[self.time_key]), index=df.index,
                 )
 
         if POSITIONS_AS_DICT:
@@ -279,10 +283,7 @@ class DatasetWrapper:
         """
         assert self.df is not None, "Call set_df first"
 
-        s = np.maximum(
-            self.lookup(key),
-            self.lookup(key, True),
-        )
+        s = np.maximum(self.lookup(key), self.lookup(key, True),)
 
         return pd.Series(s, index=self.df.index)
 
@@ -301,3 +302,398 @@ class DatasetWrapper:
             A Series of impedances values from the single Skim with specified key, indexed byt orig/dest pair
         """
         return self.lookup(key)
+
+
+def _should_invalidate_cache_file(cache_filename, *source_filenames):
+    """
+    Check if a cache file should be invalidated.
+
+    It should be invalidated if any source file has a modification time
+    more recent than the cache file modification time.
+
+    Parameters
+    ----------
+    cache_filename : Path-like
+    source_filenames : Collection[Path-like]
+
+    Returns
+    -------
+    bool
+    """
+    from stat import ST_MTIME
+
+    try:
+        stat0 = os.stat(cache_filename)
+    except FileNotFoundError:
+        # cache file does not even exist
+        return True
+    for i in source_filenames:
+        stat1 = os.stat(i)
+        if stat0[ST_MTIME] < stat1[ST_MTIME]:
+            return True
+    return False
+
+
+def _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag):
+    """
+    Open an xarray dataset from a backing store if possible.
+
+    Parameters
+    ----------
+    backing : str
+        What kind of memory backing to use.  Memmaps always start
+        with "memmap:" and then have a file system location, so
+        if this pattern does not apply the backing is not a memmap,
+        and instead the backing string is used as the key to find
+        the data in ephemeral shared memory.
+    omx_file_paths : Collection[Path-like]
+        These are the original source files.  If the file modification
+        time for any of these files is more recent than the memmap,
+        the memmap files are invalid and will be deleted so they
+        can be rebuilt.
+    skim_tag : str
+        For error message reporting only
+
+    Returns
+    -------
+    xarray.Dataset or None
+    """
+    out = None
+    if backing.startswith("memmap:"):
+        # when working with a memmap, check if the memmap file on disk
+        # needs to be invalidated, because the source skims have been
+        # modified more recently.
+        if not _should_invalidate_cache_file(backing[7:], *omx_file_paths):
+            try:
+                out = sh.Dataset.shm.from_shared_memory(backing, mode="r")
+            except FileNotFoundError as err:
+                logger.info(f"skim dataset {skim_tag!r} not found {err!s}")
+                logger.info(f"loading skim dataset {skim_tag!r} from original sources")
+                out = None
+            else:
+                logger.info(f"using skim_dataset from shared memory")
+        else:
+            sh.Dataset.shm.delete_shared_memory_files(backing)
+    else:
+        # when working in ephemeral shared memory, assume that if that data
+        # is loaded then it is good to use without further checks.
+        try:
+            out = sh.Dataset.shm.from_shared_memory(backing, mode="r")
+        except FileNotFoundError as err:
+            logger.info(f"skim dataset {skim_tag!r} not found {err!s}")
+            logger.info(f"loading skim dataset {skim_tag!r} from original sources")
+            out = None
+    return out
+
+
+def _dedupe_time_periods(network_los_preload):
+    raw_time_periods = network_los_preload.los_settings["skim_time_periods"]["labels"]
+    # deduplicate time period names
+    time_periods = []
+    for t in raw_time_periods:
+        if t not in time_periods:
+            time_periods.append(t)
+    return time_periods
+
+
+def _apply_digital_encoding(dataset, digital_encodings):
+    """
+    Apply digital encoding to compress skims with minimal information loss.
+
+    Parameters
+    ----------
+    dataset : xarray.Dataset
+    digital_encodings : Collection[Dict]
+        A collection of digital encoding instructions.  To apply the same
+        encoding for multiple variables, the Dict should have a 'regex' key
+        that gives a regular expressing to match.  Otherwise, see
+        sharrow's digital_encoding for other details.
+
+    Returns
+    -------
+    dataset : xarray.Dataset
+        As modified
+    """
+    if digital_encodings:
+        import re
+
+        # apply once, before saving to zarr, will stick around in cache
+        for encoding in digital_encodings:
+            logger.info(f"applying zarr digital-encoding: {encoding}")
+            regex = encoding.pop("regex", None)
+            joint_dict = encoding.pop("joint_dict", None)
+            if joint_dict:
+                joins = []
+                for k in dataset.variables:
+                    assert isinstance(k, str)  # variable names should be strings
+                    if re.match(regex, k):
+                        joins.append(k)
+                dataset = dataset.digital_encoding.set(
+                    joins, joint_dict=joint_dict, **encoding
+                )
+            elif regex:
+                if "name" in encoding:
+                    raise ValueError(
+                        "cannot give both name and regex for digital_encoding"
+                    )
+                for k in dataset.variables:
+                    assert isinstance(k, str)  # variable names should be strings
+                    if re.match(regex, k):
+                        dataset = dataset.digital_encoding.set(k, **encoding)
+            else:
+                dataset = dataset.digital_encoding.set(**encoding)
+    return dataset
+
+
+def _scan_for_unused_names(tokens):
+    """
+    Scan all spec files to find unused skim variable names.
+
+    Parameters
+    ----------
+    tokens : Collection[str]
+
+    Returns
+    -------
+    Set[str]
+    """
+    configs_dir_list = inject.get_injectable("configs_dir")
+    configs_dir_list = (
+        [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
+    )
+    assert isinstance(configs_dir_list, list)
+
+    for directory in configs_dir_list:
+        logger.debug(f"scanning for unused skims in {directory}")
+        filenames = glob.glob(os.path.join(directory, "*.csv"))
+        for filename in filenames:
+            with open(filename, "rt") as f:
+                content = f.read()
+            missing_tokens = set()
+            for t in tokens:
+                if t not in content:
+                    missing_tokens.add(t)
+            tokens = missing_tokens
+            if not tokens:
+                return tokens
+    return tokens
+
+
+def _drop_unused_names(dataset):
+    logger.info(f"scanning for unused skims")
+    tokens = set(dataset.variables.keys()) - set(dataset.coords.keys())
+    unused_tokens = _scan_for_unused_names(tokens)
+    if unused_tokens:
+        baggage = dataset.digital_encoding.baggage(None)
+        unused_tokens -= baggage
+        # retain sparse matrix tables
+        unused_tokens = set(i for i in unused_tokens if not i.startswith("_s_"))
+        # retain lookup tables
+        unused_tokens = set(i for i in unused_tokens if not i.startswith("_digitized_"))
+        logger.info(f"dropping unused skims: {unused_tokens}")
+        dataset = dataset.drop_vars(unused_tokens)
+    else:
+        logger.info(f"no unused skims found")
+    return dataset
+
+
+def _load_sparse_maz_skims(dataset, network_los_preload, land_use, remapper):
+    from ..core.los import THREE_ZONE, TWO_ZONE
+
+    if network_los_preload.zone_system in [TWO_ZONE, THREE_ZONE]:
+
+        # maz
+        maz2taz_file_name = network_los_preload.setting("maz")
+        maz_taz = pd.read_csv(config.data_file_path(maz2taz_file_name, mandatory=True))
+        maz_taz = maz_taz[["MAZ", "TAZ"]].set_index("MAZ").sort_index()
+
+        # MAZ alignment is ensured here, so no re-alignment check is
+        # needed below for TWO_ZONE or THREE_ZONE systems
+        try:
+            pd.testing.assert_index_equal(
+                maz_taz.index, land_use.index, check_names=False
+            )
+        except AssertionError:
+            if remapper is not None:
+                maz_taz.index = maz_taz.index.map(remapper.get)
+                maz_taz = maz_taz.sort_index()
+                assert maz_taz.index.equals(
+                    land_use.to_frame().sort_index().index
+                ), f"maz-taz lookup index does not match index of land_use table"
+            else:
+                raise
+
+        dataset.redirection.set(
+            maz_taz, map_to="otaz", name="omaz", map_also={"dtaz": "dmaz"},
+        )
+
+        maz_to_maz_tables = network_los_preload.setting("maz_to_maz.tables")
+        maz_to_maz_tables = (
+            [maz_to_maz_tables]
+            if isinstance(maz_to_maz_tables, str)
+            else maz_to_maz_tables
+        )
+
+        max_blend_distance = network_los_preload.setting(
+            "maz_to_maz.max_blend_distance", default={}
+        )
+        if isinstance(max_blend_distance, int):
+            max_blend_distance = {"DEFAULT": max_blend_distance}
+
+        for file_name in maz_to_maz_tables:
+
+            df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+            if remapper is not None:
+                df.OMAZ = df.OMAZ.map(remapper.get)
+                df.DMAZ = df.DMAZ.map(remapper.get)
+            for colname in df.columns:
+                if colname in ["OMAZ", "DMAZ"]:
+                    continue
+                max_blend_distance_i = max_blend_distance.get("DEFAULT", None)
+                max_blend_distance_i = max_blend_distance.get(
+                    colname, max_blend_distance_i
+                )
+                dataset.redirection.sparse_blender(
+                    colname,
+                    df.OMAZ,
+                    df.DMAZ,
+                    df[colname],
+                    max_blend_distance=max_blend_distance_i,
+                    index=land_use.index,
+                )
+
+    return dataset
+
+
+@inject.injectable(cache=True)
+def skim_dataset():
+    from ..core.los import ONE_ZONE, THREE_ZONE, TWO_ZONE
+
+    # TODO:SHARROW: taz and maz are the same
+    skim_tag = "taz"
+    network_los_preload = inject.get_injectable("network_los_preload", None)
+    if network_los_preload is None:
+        raise ValueError("missing network_los_preload")
+
+    # find which OMX files are to be used.
+    omx_file_paths = config.expand_input_file_list(
+        network_los_preload.omx_file_names(skim_tag),
+    )
+    zarr_file = network_los_preload.zarr_file_name(skim_tag)
+
+    if config.setting("disable_zarr", False):
+        # we can disable the zarr optimizations by setting the `disable_zarr`
+        # flag in the master config file to True
+        zarr_file = None
+
+    if zarr_file is not None:
+        zarr_file = os.path.join(config.get_cache_dir(), zarr_file)
+
+    max_float_precision = network_los_preload.skim_max_float_precision(skim_tag)
+
+    skim_digital_encoding = network_los_preload.skim_digital_encoding(skim_tag)
+    zarr_digital_encoding = network_los_preload.zarr_pre_encoding(skim_tag)
+
+    # The backing can be plain shared_memory, or a memmap
+    backing = network_los_preload.skim_backing_store(skim_tag)
+    if backing == "memmap":
+        # if memmap is given without a path, create a cache file
+        mmap_file = os.path.join(
+            config.get_cache_dir(), f"sharrow_dataset_{skim_tag}.mmap"
+        )
+        backing = f"memmap:{mmap_file}"
+
+    land_use = inject.get_table("land_use")
+
+    if f"_original_{land_use.index.name}" in land_use.to_frame():
+        land_use_zone_ids = land_use.to_frame()[f"_original_{land_use.index.name}"]
+        remapper = dict(zip(land_use_zone_ids, land_use_zone_ids.index))
+    else:
+        remapper = None
+
+    d = _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag)
+
+    if d is None:
+        time_periods = _dedupe_time_periods(network_los_preload)
+        if zarr_file:
+            logger.info(f"looking for zarr skims at {zarr_file}")
+        if zarr_file and os.path.exists(zarr_file):
+            # TODO: check if the OMX skims or sparse MAZ are modified more
+            #       recently than the cached ZARR versions; if so do not use
+            #       the ZARR
+            logger.info(f"found zarr skims, loading them")
+            d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(
+                max_float_precision
+            )
+        else:
+            if zarr_file:
+                logger.info(f"did not find zarr skims, loading omx")
+            d = sh.dataset.from_omx_3d(
+                [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
+                time_periods=time_periods,
+                max_float_precision=max_float_precision,
+            )
+            # load sparse MAZ skims, if any
+            d = _load_sparse_maz_skims(d, network_los_preload, land_use, remapper)
+
+            if zarr_file:
+                try:
+                    import zarr
+
+                    # ensure zarr is available before we do all this work
+                except ModuleNotFoundError:
+                    logger.warning(
+                        "the 'zarr' package is not installed, "
+                        "cannot cache skims to zarr"
+                    )
+                else:
+                    if zarr_digital_encoding:
+                        d = _apply_digital_encoding(d, zarr_digital_encoding)
+                    logger.info(f"writing zarr skims to {zarr_file}")
+                    d.to_zarr_with_attr(zarr_file)
+        d = _drop_unused_names(d)
+        # apply non-zarr dependent digital encoding
+        d = _apply_digital_encoding(d, skim_digital_encoding)
+
+    # check alignment of TAZs that it matches land_use table
+    logger.info(f"checking skims alignment with land_use")
+    try:
+        land_use_zone_id = land_use[f"_original_{land_use.index.name}"]
+    except KeyError:
+        land_use_zone_id = land_use.index
+
+    if network_los_preload.zone_system == ONE_ZONE:
+        # check TAZ alignment for ONE_ZONE system.
+        # other systems use MAZ for most lookups, which dynamically
+        # resolves to TAZ inside the Dataset code.
+        if d["otaz"].attrs.get("preprocessed") != "zero-based-contiguous":
+            try:
+                np.testing.assert_array_equal(land_use_zone_id, d.otaz)
+            except AssertionError as err:
+                logger.info(f"otaz realignment required\n{err}")
+                d = d.reindex(otaz=land_use_zone_id)
+            else:
+                logger.info(f"otaz alignment ok")
+            d["otaz"] = land_use.index.to_numpy()
+            d["otaz"].attrs["preprocessed"] = "zero-based-contiguous"
+        else:
+            np.testing.assert_array_equal(land_use.index, d.otaz)
+
+        if d["dtaz"].attrs.get("preprocessed") != "zero-based-contiguous":
+            try:
+                np.testing.assert_array_equal(land_use_zone_id, d.dtaz)
+            except AssertionError as err:
+                logger.info(f"dtaz realignment required\n{err}")
+                d = d.reindex(dtaz=land_use_zone_id)
+            else:
+                logger.info(f"dtaz alignment ok")
+            d["dtaz"] = land_use.index.to_numpy()
+            d["dtaz"].attrs["preprocessed"] = "zero-based-contiguous"
+        else:
+            np.testing.assert_array_equal(land_use.index, d.dtaz)
+
+    if d.shm.is_shared_memory:
+        return d
+    else:
+        logger.info(f"writing skims to shared memory")
+        return d.shm.to_shared_memory(backing, mode="r")

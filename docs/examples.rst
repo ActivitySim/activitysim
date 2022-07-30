@@ -26,7 +26,7 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_semcog`           | SEMCOG agency example                                     | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_psrc`             | PSRC agency example                                       | 2            | In development       |
+| :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_sandag`           | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -1493,24 +1493,24 @@ See example commands in `example_manifest.yaml <https://github.com/ActivitySim/a
 for running example_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
-.. _example_psrc :
+.. _placeholder_psrc :
 
-example_psrc
-------------
+placeholder_psrc
+----------------
 
 .. note::
 
-  This example is in development
+  This example is a placeholder model used only for code development and debugging, and is not suitable for policy analysis
 
 
-The example_psrc is a two zone system (MAZs and TAZs) implementation of the
+The placeholder_psrc is a two zone system (MAZs and TAZs) implementation of the
 prototype_mtc model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).
 
 Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
-for running example_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _example_sandag :
 

@@ -6,7 +6,7 @@ activitysim run -c configs_1_zone -c prototype_mtc/configs -d data_1 -o output_1
 ###
 ### 2 Zone
 ###
-activitysim run -c configs_2_zone -c example_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml
+activitysim run -c configs_2_zone -c placeholder_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml
 
 ###
 ### 3 Zone

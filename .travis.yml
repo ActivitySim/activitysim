@@ -32,7 +32,7 @@ jobs:
     - name: "SEMCOG Example"
       env: TEST_SUITE=activitysim/examples/example_semcog/test
     - name: "PSRC Example"
-      env: TEST_SUITE=activitysim/examples/example_psrc/test
+      env: TEST_SUITE=activitysim/examples/placeholder_psrc/test
     - name: "SANDAG Example"
       env: TEST_SUITE=activitysim/examples/example_sandag/test
     - name: "SANDAG Cross-Border Example"

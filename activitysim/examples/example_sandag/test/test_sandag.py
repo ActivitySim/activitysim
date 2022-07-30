@@ -27,7 +27,7 @@ def mtc_example_path(dirname):
 
 
 def psrc_example_path(dirname):
-    resource = os.path.join('examples', 'example_psrc', dirname)
+    resource = os.path.join('examples', 'placeholder_psrc', dirname)
     return pkg_resources.resource_filename('activitysim', resource)
 
 

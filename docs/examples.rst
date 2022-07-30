@@ -28,7 +28,7 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | Future development   |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`placeholder_sandag`           | SANDAG agency example                                     | 3            | In development       |
+| :ref:`placeholder_sandag`       | SANDAG agency example                                     | 3            | Future development   |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_sandag_xborder` | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -872,9 +872,16 @@ Configuring chunking
 To configure chunking, ActivitySim must first be trained to determine reasonable chunking settings given the
 model setup and machine.  The steps to configure chunking are:
 
-* Run the full scale model with ``chunk_training_mode: training``.  Set ``num_processors`` to about 80% of the available physical processors and ``chunk_size`` to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file in the output\cache directory for reuse.
-* The ``households_sample_size`` for training chunking should be at least 1 / num_processors to provide sufficient data for training and the ``chunk_method: hybrid_uss`` typically performs best.
-* Run the full scale model with ``chunk_training_mode: production``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
+* Run the full scale model with ``chunk_training_mode: training``.
+  Set ``num_processors`` to about 80% of the available physical processors
+  and ``chunk_size`` to about 80% of the available RAM.  This will run the model
+  and create the ``chunk_cache.csv`` file in the output\cache directory for reuse.
+* The ``households_sample_size`` for training chunking should be at least 1 / num_processors
+  to provide sufficient data for training and the ``chunk_method: hybrid_uss``
+  typically performs best.
+* Run the full scale model with ``chunk_training_mode: production``.  Experiment
+  with different ``num_processors`` and ``chunk_size`` settings depending on desired
+  runtimes and machine resources.
 
 See :ref:`chunk_size` for more information.  Users can run ``chunk_training_mode: disabled`` if the machine has an abundance of RAM for the model setup.
 
@@ -1097,12 +1104,46 @@ system for non-motorized travel, and optionally a transit access points (TAPs) z
 
 ActivitySim supports models with multiple zone systems.  The three versions of multiple zone systems are one-zone, two-zone, and three-zone.
 
-  * **One-zone**: This version is based on TM1 and supports only TAZs. All origins and destinations are represented at the TAZ level, and all skims including auto, transit, and non-motorized times and costs are also represented at the TAZ level.
-  * **Two-zone**: This version is similar to many DaySim models. It uses microzones (MAZs) for origins and destinations, and TAZs for specification of auto and transit times and costs. Impedance for walk or bike all-the-way from the origin to the destination can be specified at the MAZ level for close together origins and destinations, and at the TAZ level for further origins and destinations. Users can also override transit walk access and egress times with times specified in the MAZ file by transit mode.  Careful pre-calculation of the assumed transit walk access and egress time by MAZ and transit mode is required depending on the network scenario.
-  * **Three-zone**: This version is based on the SANDAG generation of CT-RAMP models. Origins and destinations are represented at the MAZ level. Impedance for walk or bike all-the-way from the origin to the destination can be specified at the MAZ level for close together origins and destinations, and at the TAZ level for further origins and destinations, just like the two-zone system. TAZs are used for auto times and costs. The difference between this system and the two-zone system is that transit times and costs are represented between Transit Access Points (TAPs), which are essentially dummy zones that represent transit stops or clusters of stops. Transit skims are built between TAPs, since there are typically too many MAZs to build skims between them. Often multiple sets of TAP to TAP skims (local bus only, all modes, etc.) are created and input to the demand model for consideration.  Walk access and egress times are also calculated between the MAZ and the TAP, and total transit path utilities are assembled from their respective components - from MAZ to first boarding TAP, from first boarding to final alighting TAP, and from alighting TAP to destination MAZ. This assembling is done via the :ref:`transit_virtual_path_builder` (TVPB), which considers all possible combinations of nearby boarding and alighting TAPs for each origin destination MAZ pair.
+  * **One-zone**: This version is based on TM1 and supports only TAZs. All origins and
+    destinations are represented at the TAZ level, and all skims including auto, transit,
+    and non-motorized times and costs are also represented at the TAZ level.
+  * **Two-zone**: This version is similar to many DaySim models. It uses microzones (MAZs)
+    for origins and destinations, and TAZs for specification of auto and transit times and
+    costs. Impedance for walk or bike all-the-way from the origin to the destination can
+    be specified at the MAZ level for close together origins and destinations, and at
+    the TAZ level for further origins and destinations. Users can also override transit
+    walk access and egress times with times specified in the MAZ file by transit mode.
+    Careful pre-calculation of the assumed transit walk access and egress time by MAZ
+    and transit mode is required depending on the network scenario.
+  * **Three-zone**: This version is based on the SANDAG generation of CT-RAMP models.
+    Origins and destinations are represented at the MAZ level. Impedance for walk or
+    bike all-the-way from the origin to the destination can be specified at the MAZ
+    level for close together origins and destinations, and at the TAZ level for further
+    origins and destinations, just like the two-zone system. TAZs are used for auto
+    times and costs. The difference between this system and the two-zone system is that
+    transit times and costs are represented between Transit Access Points (TAPs), which
+    are essentially dummy zones that represent transit stops or clusters of stops.
+    Transit skims are built between TAPs, since there are typically too many MAZs to
+    build skims between them. Often multiple sets of TAP to TAP skims (local bus only,
+    all modes, etc.) are created and input to the demand model for consideration.  Walk
+    access and egress times are also calculated between the MAZ and the TAP, and total
+    transit path utilities are assembled from their respective components - from MAZ to
+    first boarding TAP, from first boarding to final alighting TAP, and from alighting
+    TAP to destination MAZ. This assembling is done via the
+    :ref:`transit_virtual_path_builder` (TVPB), which considers all possible
+    combinations of nearby boarding and alighting TAPs for each origin destination MAZ
+    pair.
 
-Regions that have an interest in more precise transit forecasts may wish to adopt the three-zone approach, while other regions may adopt the one or two-zone approach.  The microzone version requires coding households and land use at the microzone level.  Typically an all-streets network is used for representation of non-motorized impedances. This requires a routable all-streets network, with centroids and connectors for microzones.  If the three-zone system is adopted, procedures need to be developed to code TAPs from transit stops and populate the all-street network with TAP centroids and centroid connectors.  A model with transit virtual path building takes longer to run than a traditional
-TAZ only model, but it provides a much richer framework for transit modeling.
+Regions that have an interest in more precise transit forecasts may wish to adopt the
+three-zone approach, while other regions may adopt the one or two-zone approach.  The
+microzone version requires coding households and land use at the microzone level.
+Typically an all-streets network is used for representation of non-motorized impedances.
+This requires a routable all-streets network, with centroids and connectors for
+microzones.  If the three-zone system is adopted, procedures need to be developed to
+code TAPs from transit stops and populate the all-street network with TAP centroids
+and centroid connectors.  A model with transit virtual path building takes longer to
+run than a traditional TAZ only model, but it provides a much richer framework for
+transit modeling.
 
 .. note::
    The two and three zone system test examples are simple test examples developed from the TM1 example.  To develop the two zone system
@@ -1154,16 +1195,28 @@ Two Zone
 
 In ``settings.yaml``:
 
-* ``want_dest_choice_presampling`` - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.
+* ``want_dest_choice_presampling`` - enable presampling for multizone systems, which
+  means first select a TAZ using the sampling model and then select a microzone within
+  the TAZ based on the microzone share of TAZ size term.
 
 In ``network_los.yaml``:
 
-The additional two zone system settings and inputs are described and illustrated below.  No additional utility expression files or expression revisions are required beyond the one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is available using the existing skim expressions.  Users can specify mode utilities using MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.
+The additional two zone system settings and inputs are described and illustrated below.
+No additional utility expression files or expression revisions are required beyond the
+one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is
+available using the existing skim expressions.  Users can specify mode utilities using
+MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.
 
 * ``zone_system`` - set to 2 for two zone system
 * ``maz`` -  MAZ data file, with MAZ ID, TAZ, and land use and other MAZ attributes
-* ``maz_to_maz:tables`` - list of MAZ to MAZ impedance tables.  These tables are read as pandas DataFrames and the columns are exposed to expressions.
-* ``maz_to_maz:max_blend_distance`` - in order to avoid cliff effects, the lookup of MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and origin TAZ to destination TAZ impedance up to a max distance.  The blending formula is below.  This requires specifying a distance TAZ skim and distance columns from the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the same so the blending can happen on-the-fly or else a value of 0 is returned.
+* ``maz_to_maz:tables`` - list of MAZ to MAZ impedance tables.  These tables are read
+  as pandas DataFrames and the columns are exposed to expressions.
+* ``maz_to_maz:max_blend_distance`` - in order to avoid cliff effects, the lookup of
+  MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and
+  origin TAZ to destination TAZ impedance up to a max distance.  The blending formula
+  is below.  This requires specifying a distance TAZ skim and distance columns from
+  the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the
+  same so the blending can happen on-the-fly or else a value of 0 is returned.
 
 ::
 
@@ -1541,7 +1594,14 @@ prototype_sandag_xborder
   This example is in development
 
 
-The prototype_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that generates cross-border activities for a tour-based population of Mexican residents. In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for each border crossing station (Port of Entry). Because the model is tour-based, there are no household or person-level attributes in the synthetic population. The principal difference between this and the standard 3-zone implementation is that since household do not have a default tour origin (home zones), a tour OD choice model is required to assign tour origins and destinations simultaneously.
+The prototype_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that
+generates cross-border activities for a tour-based population of Mexican residents.
+In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for
+each border crossing station (Port of Entry). Because the model is tour-based, there
+are no household or person-level attributes in the synthetic population. The
+principal difference between this and the standard 3-zone implementation is that
+since household do not have a default tour origin (home zones), a tour OD choice
+model is required to assign tour origins and destinations simultaneously.
 
 Example
 ~~~~~~~

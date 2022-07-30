@@ -28,7 +28,7 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | Future development   |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_sandag`           | SANDAG agency example                                     | 3            | In development       |
+| :ref:`placeholder_sandag`           | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_sandag_xborder` | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -1512,24 +1512,24 @@ Example
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
-.. _example_sandag :
+.. _placeholder_sandag :
 
-example_sandag
---------------
+placeholder_sandag
+------------------
 
 .. note::
 
   This example is in development
 
 
-The example_sandag is a three zone system (MAZs, TAZs, and TAPs) implementation of the
+The placeholder_sandag is a multi-part model, containing one-, two-, and three- zone system (MAZs, TAZs, and TAPs) implementation of the
 prototype_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).
 
 Example
 ~~~~~~~
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+for running placeholder_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_sandag_xborder :
 

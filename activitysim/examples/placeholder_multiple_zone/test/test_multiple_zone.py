@@ -17,7 +17,7 @@ def teardown_function(func):
 
 
 def example_path(dirname):
-    resource = os.path.join('examples', 'example_multiple_zone', dirname)
+    resource = os.path.join('examples', 'placeholder_multiple_zone', dirname)
     return pkg_resources.resource_filename('activitysim', resource)
 
 

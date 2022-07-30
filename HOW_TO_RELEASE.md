@@ -60,8 +60,8 @@
     regular test suite takes some time to run, between about half an hour and 
     two hours depending on the specs of your machine.
     ```sh
-    python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-    python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+    python activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+    python activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
     pytest .
     ```
  

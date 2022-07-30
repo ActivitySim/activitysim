@@ -266,7 +266,7 @@ BLDGSZ,HHID,HHT,MAZ,NOC,PERSONS,PUMA5,SERIALNO,TENURE,UNITTYPE,VEHICL,bucketBin,
 ##### data/maz_to_maz_walk.csv
 ###
 
-# these files are wrong - they were simply copied from the example_multiple_zone 2-zone example data for MTC
+# these files are wrong - they were simply copied from the placeholder_multiple_zone 2-zone example data for MTC
 
 ###
 ### tour_scheduling_work.csv

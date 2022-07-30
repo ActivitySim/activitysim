@@ -24,7 +24,7 @@ jobs:
     - name: "Prototype MTC (Extended)"
       env: TEST_SUITE=activitysim/examples/prototype_mtc_extended/test
     - name: "Multizone Example"
-      env: TEST_SUITE=activitysim/examples/example_multiple_zone/test
+      env: TEST_SUITE=activitysim/examples/placeholder_multiple_zone/test
     - name: "Marin Example"
       env: TEST_SUITE=activitysim/examples/prototype_marin/test
     - name: "ARC Example"
@@ -94,10 +94,10 @@ install:
 script:
 # This is the "default" script used for each test suite, unless overridden with a "script" in the jobs above.
 # build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
-- python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-- python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
-- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+- python activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+- python activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
 # pycodestyle
 - pycodestyle activitysim
 # run specific TEST_SUITE job on travis to avoid job max time

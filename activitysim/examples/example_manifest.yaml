@@ -219,37 +219,37 @@
       data_3/taz_skims.omx
       d3f89e29878d3384318b15db26bfddb48d63c9a8d5187aa02797178cfead0394
 
-- name: example_marin
+- name: prototype_marin
   description: Marin TM2 work tour mode choice cropped to Downtown SF for testing
-  # activitysim create -e example_marin -d test_example_marin
-  # cd test_example_marin
+  # activitysim create -e prototype_marin -d test_prototype_marin
+  # cd test_prototype_marin
   # activitysim run -c configs -d data -o output
   # cd ..
-  # activitysim create -e example_marin -d test_example_marin_mp
-  # cd test_example_marin_mp
+  # activitysim create -e prototype_marin -d test_prototype_marin_mp
+  # cd test_prototype_marin_mp
   # activitysim run -c configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
-    - example_marin/configs
-    - example_marin/data
-    - example_marin/output
-    - example_marin/README.MD
+    - prototype_marin/configs
+    - prototype_marin/data
+    - prototype_marin/output
+    - prototype_marin/README.MD
 
-- name: example_marin_sf
+- name: prototype_marin_sf
   description: Marin TM2 work tour mode choice cropped to marin and sf counties for testing (2054 MAZ
-  # activitysim create -e example_marin_sf -d test_example_marin_sf
-  # cd test_example_marin_sf
+  # activitysim create -e prototype_marin_sf -d test_prototype_marin_sf
+  # cd test_prototype_marin_sf
   # activitysim run -c configs -d data -o output
   # cd ..
-  # activitysim create -e example_marin_sf -d test_example_marin_sf_mp
-  # cd test_example_marin_sf_mp
+  # activitysim create -e prototype_marin_sf -d test_prototype_marin_sf_mp
+  # cd test_prototype_marin_sf_mp
   # activitysim run -c configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
-    - example_marin/configs
-    - example_marin/data
-    - example_marin/output
-    - example_marin/README.MD
+    - prototype_marin/configs
+    - prototype_marin/data
+    - prototype_marin/output
+    - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_AM.omx
       data/highway_skims_AM.omx
       2d5d21266a0cd29f174858bc2c47a26067c7af35e12793a78a3dc673df9f13df
@@ -318,10 +318,10 @@
   # activitysim run -c configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
-    - example_marin/configs
-    - example_marin/data
-    - example_marin/output
-    - example_marin/README.MD
+    - prototype_marin/configs
+    - prototype_marin/data
+    - prototype_marin/output
+    - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_AM.omx
       data/highway_skims_AM.omx
       e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855

@@ -26,7 +26,7 @@ jobs:
     - name: "Multizone Example"
       env: TEST_SUITE=activitysim/examples/example_multiple_zone/test
     - name: "Marin Example"
-      env: TEST_SUITE=activitysim/examples/example_marin/test
+      env: TEST_SUITE=activitysim/examples/prototype_marin/test
     - name: "ARC Example"
       env: TEST_SUITE=activitysim/examples/prototype_arc/test
     - name: "SEMCOG Example"

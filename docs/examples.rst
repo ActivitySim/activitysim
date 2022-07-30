@@ -20,7 +20,7 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_multiple_zones`   | 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_marin`            | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
+| :ref:`prototype_marin`          | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_arc`            | ARC agency example                                        | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -1110,7 +1110,7 @@ TAZ only model, but it provides a much richer framework for transit modeling.
    TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed
    so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for
    initial development, these examples were insufficient for validation and performance testing of the new software. As a result,
-   the :ref:`example_marin` example was created.
+   the :ref:`prototype_marin` example was created.
 
 Example simple test configurations and inputs for two and three-zone system models are described below.
 
@@ -1353,10 +1353,10 @@ number of TAZs based on impedance and size, the model selects a microzone for ea
 on the microzone share of TAZ size.  Presampling significantly reduces runtime while producing
 similar results.
 
-.. _example_marin :
+.. _prototype_marin :
 
-example_marin
--------------
+prototype_marin
+---------------
 
 To finalize development and verification of the multiple zone system and transit virtual path building components, the
 `Transportation Authority of Marin County <https://www.tam.ca.gov/>`__ version of MTC travel model two (TM2) work
@@ -1367,7 +1367,7 @@ has essentially the same configuration as the simpler three zone example above.
 Example
 ~~~~~~~
 
-To run example_marin, do the following:
+To run prototype_marin, do the following:
 
 * Activate the correct conda environment if needed
 * Create a local copy of the example

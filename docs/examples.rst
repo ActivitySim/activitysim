@@ -7,7 +7,31 @@
 Examples
 ========
 
-This page describes the example models included with ActivitySim.  The current examples are:
+This page describes the example models included with ActivitySim. There are three
+basic types of example model:
+
+* "production" examples are calibrated and validated by the relevant agency, and
+  are intended to be replicas of an "official" travel model used by that agency,
+  although generally we expect agencies to maintain independent repositories and
+  not rely on the Consortium maintained version as a single source for the model.
+  At this time there are no production examples in the consortium's collection,
+  but we expect that to change soon.
+* "prototype" examples are not representative of any "official" travel model
+  used by the relevant agency, but they are viewed as "ok" models by the
+  consortium: they are usually at least loosely calibrated and/or validated, and
+  typically contain at least some components or parameters specialized for the
+  relevant region. They may be in-development models that are not quite finished,
+  or consortium maintained models that are derived from but now different from
+  the official model of some region. They should not be used in place of
+  "official" models for policy analysis in any given region, but could serve as
+  a donor model for new users who want to implement ActivitySim somewhere new
+  (subject to all the caveats that go along with transferring models).
+* "placeholder" examples are computational testbeds that technically run but
+  have not been calibrated nor validated in any meaningful way. These examples
+  are early stage development models used for testing purposes, and users are
+  strongly cautioned not to use them for any policy or planning purpose.
+
+The current examples are:
 
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | Example                         | Purpose                                                   | Zone Systems | Status               |
@@ -18,7 +42,7 @@ This page describes the example models included with ActivitySim.  The current e
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`example_estimation`       | Estimation example with prototype_mtc                     | 1            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_multiple_zones`   | 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
+| :ref:`placeholder_multiple_zone`| 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_marin`          | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
@@ -1091,10 +1115,10 @@ for examples that illustrate running ActivitySim in estimation mode and using la
 
 .. index:: multiple_zone_systems
 .. _multiple_zone_systems :
-.. _example_multiple_zones :
+.. _placeholder_multiple_zone :
 
-example_multiple_zones
-----------------------
+placeholder_multiple_zone
+-------------------------
 
 In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
 than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
@@ -1166,10 +1190,10 @@ To run the two zone and three zone system examples, do the following:
 ::
 
   # simple two zone example
-  activitysim create -e example_2_zone -d test_example_2_zone
+  activitysim create -e placeholder_2_zone -d test_placeholder_2_zone
 
   # simple three zone example
-  activitysim create -e example_3_zone -d test_example_3_zone
+  activitysim create -e placeholder_3_zone -d test_placeholder_3_zone
 
 
 * Change to the example directory
@@ -1414,7 +1438,7 @@ prototype_marin
 To finalize development and verification of the multiple zone system and transit virtual path building components, the
 `Transportation Authority of Marin County <https://www.tam.ca.gov/>`__ version of MTC travel model two (TM2) work
 tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.
-The complete runnable setup is available from the ActivitySim command line interface as `example_3_marin_full`.  This example
+The complete runnable setup is available from the ActivitySim command line interface as `prototype_3_marin_full`.  This example
 has essentially the same configuration as the simpler three zone example above.
 
 Example
@@ -1428,7 +1452,7 @@ To run prototype_marin, do the following:
 ::
 
   # Marin TM2 work tour mode choice for the MTC region
-  activitysim create -e example_3_marin_full -d test_example_3_marin_full
+  activitysim create -e prototype_3_marin_full -d test_prototype_3_marin_full
 
 * Change to the example directory
 * Run the example

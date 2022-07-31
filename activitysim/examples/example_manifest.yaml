@@ -1,7 +1,7 @@
 - name: prototype_mtc
   description: 25-zone example extracted from the prototype MTC model
-  # activitysim create -e prototype_mtc -d test_example_mtc
-  # cd test_example_mtc
+  # activitysim create -e prototype_mtc -d test_prototype_mtc
+  # cd test_prototype_mtc
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
@@ -127,10 +127,10 @@
       579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
     - prototype_mtc/output
 
-- name: example_2_zone
+- name: placeholder_2_zone
   description: 2 zone system test example based on prototype MTC
-  # activitysim create -e example_2_zone -d test_example_2_zone
-  # cd test_example_2_zone
+  # activitysim create -e placeholder_2_zone -d test_placeholder_2_zone
+  # cd test_placeholder_2_zone
   # activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
   # cd ..
   include:
@@ -163,14 +163,14 @@
       data_2/taz_skims.omx
       773c89369f748e26309786b42aa4c62b5dd329a931214dd63a11007001de3829
 
-- name: example_3_zone
+- name: placeholder_3_zone
   description: 3 zone system test example based on prototype MTC
-  # activitysim create -e example_3_zone -d test_example_3_zone
-  # cd test_example_3_zone
+  # activitysim create -e placeholder_3_zone -d test_placeholder_3_zone
+  # cd test_placeholder_3_zone
   # activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_static.yaml
   # cd ..
-  # activitysim create -e example_3_zone -d test_example_3_zone_mp
-  # cd test_example_3_zone_mp
+  # activitysim create -e placeholder_3_zone -d test_placeholder_3_zone_mp
+  # cd test_placeholder_3_zone_mp
   # activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
@@ -311,10 +311,10 @@
       data/work_tours.csv
       a88082ead7ace00f1b2d8ed3997aa3d27c0bc36c9deeee8b8e4c6cf85d6a7004
 
-- name: example_3_marin_full
+- name: prototype_3_marin_full
   description: Marin TM2 work tour mode choice for the 9 county MTC region
-  # activitysim create -e example_3_marin_full -d test_example_3_marin_full
-  # cd test_example_3_marin_full
+  # activitysim create -e prototype_3_marin_full -d test_prototype_3_marin_full
+  # cd test_prototype_3_marin_full
   # activitysim run -c configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
@@ -398,8 +398,8 @@
 
 - name: placeholder_psrc_seattle
   description: 781-TAZ 8400-MAZ example for the PSRC region, with 336,725 Households
-  # activitysim create -e placeholder_psrc_seattle -d test_example_seattle
-  # cd test_example_seattle
+  # activitysim create -e placeholder_psrc_seattle -d test_placeholder_seattle
+  # cd test_placeholder_seattle
   # activitysim run -c configs -o output -d data
   # cd ..
   include:

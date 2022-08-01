@@ -39,7 +39,7 @@ steps:
       trace_hh_id:
       trace_od:
       chunk_method: hybrid_uss
-      chunk_training: False
+      chunk_training: True
       chunk_training_mode: training
       machine_name:
       disable_zarr: False

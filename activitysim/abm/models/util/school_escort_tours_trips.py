@@ -6,9 +6,9 @@ import warnings
 
 
 def determine_chauf_outbound_flag(row, i):
-    if (row['direction'] == 'outbound'):
+    if (row['school_escort_direction'] == 'outbound'):
         outbound = True
-    elif (row['direction'] == 'inbound') & (i == 0) & (row['escort_type'] == 'pure_escort'):
+    elif (row['school_escort_direction'] == 'inbound') & (i == 0) & (row['escort_type'] == 'pure_escort'):
         # chauf is going to pick up the first child
         outbound = True
     else:
@@ -18,12 +18,12 @@ def determine_chauf_outbound_flag(row, i):
 
 
 def create_chauf_trip_table(row):
-    dropoff = True if row['direction'] == 'outbound' else False
+    dropoff = True if row['school_escort_direction'] == 'outbound' else False
 
     row['person_id'] = row['chauf_id']
     row['destination'] = row['school_destinations'].split('_')
 
-    participants = []        
+    participants = []
     school_escort_trip_num = []
     outbound = []
     purposes = []
@@ -60,10 +60,10 @@ def create_chauf_escort_trips(bundles):
     chauf_trip_bundles = bundles.apply(lambda row: create_chauf_trip_table(row), axis=1)
     chauf_trip_bundles['tour_id'] = bundles['chauf_tour_id'].astype(int)
 
-    # departure time is the first school start in the outbound direction and the last school end in the inbound direction
+    # departure time is the first school start in the outbound school_escort_direction and the last school end in the inbound school_escort_direction
     starts = chauf_trip_bundles['school_starts'].str.split('_', expand=True).astype(float)
     ends = chauf_trip_bundles['school_ends'].str.split('_', expand=True).astype(float)
-    chauf_trip_bundles['depart'] = np.where(chauf_trip_bundles['direction'] == 'outbound', starts.min(axis=1), ends.max(axis=1))
+    chauf_trip_bundles['depart'] = np.where(chauf_trip_bundles['school_escort_direction'] == 'outbound', starts.min(axis=1), ends.max(axis=1))
 
     # create a new trip for each escortee destination
     chauf_trips = chauf_trip_bundles.explode(['destination', 'escort_participants', 'school_escort_trip_num', 'outbound', 'purpose']).reset_index()
@@ -79,15 +79,20 @@ def create_chauf_escort_trips(bundles):
     # outbound trips start at home
     first_outbound_trips = ((chauf_trips['outbound'] == True) & (chauf_trips['school_escort_trip_num'] == 1))
     chauf_trips.loc[first_outbound_trips, 'origin'] = chauf_trips.loc[first_outbound_trips, 'home_zone_id']
-    
+    # inbound school escort ride sharing trips start at work
+    first_rs_inb = ((chauf_trips['outbound'] == False) & (chauf_trips['school_escort_trip_num'] == 1) & (chauf_trips['escort_type'] == 'ride_share'))
+    chauf_trips.loc[first_rs_inb, 'origin'] = chauf_trips.loc[first_rs_inb, 'first_mand_tour_dest']
 
-    chauf_trips['primary_purpose'] = np.where(chauf_trips['escort_type'] == 'pure_escort', 'escort', 'work')
+    assert all(~chauf_trips['origin'].isna()), f"Missing trip origins for {chauf_trips[chauf_trips['origin'].isna()]}"
 
-    chauf_trips['trip_id'] = chauf_trips['tour_id'].astype(int) * 10 + chauf_trips.groupby('tour_id').cumcount()
+    chauf_trips['primary_purpose'] = np.where(chauf_trips['escort_type'] == 'pure_escort', 'escort', chauf_trips['first_mand_tour_purpose'])
+    assert all(~chauf_trips['primary_purpose'].isna()), f"Missing tour purpose for {chauf_trips[chauf_trips['primary_purpose'].isna()]}"
 
-    trip_cols = ['trip_id', 'household_id', 'person_id', 'tour_id', 'destination', 'depart', 'escort_participants',
-                 'school_escort_trip_num', 'outbound', 'trip_num', 'primary_purpose', 'purpose', 'direction', 'home_zone_id']
-    chauf_trips = chauf_trips[trip_cols]
+    chauf_trips['trip_id'] = chauf_trips['tour_id'].astype('int64') * 10 + chauf_trips.groupby('tour_id').cumcount()
+
+    # trip_cols = ['trip_id', 'household_id', 'person_id', 'tour_id', 'destination', 'depart', 'escort_participants',
+    #              'school_escort_trip_num', 'outbound', 'trip_num', 'primary_purpose', 'purpose', 'school_escort_direction', 'home_zone_id']
+    # chauf_trips = chauf_trips[trip_cols]
 
     chauf_trips.loc[chauf_trips['purpose'] == 'home', 'trip_num'] = 999  # trips home are always last
     chauf_trips.sort_values(by=['household_id', 'tour_id', 'outbound', 'trip_num'], ascending=[True, True, False, True], inplace=True)
@@ -100,7 +105,7 @@ def create_child_escorting_stops(row, escortee_num):
     if escortee_num > (len(escortees) - 1):
         # this bundle does not have this many escortees
         return row
-    dropoff = True if row['direction'] == 'outbound' else False
+    dropoff = True if row['school_escort_direction'] == 'outbound' else False
     
     row['person_id'] = int(escortees[escortee_num])
     row['tour_id'] = row['school_tour_ids'].split('_')[escortee_num]
@@ -158,8 +163,8 @@ def create_escortee_trips(bundles):
     # departure time is the first school start in the outbound direction and the last school end in the inbound direction
     starts = escortee_trips['school_starts'].str.split('_', expand=True).astype(float)
     ends = escortee_trips['school_ends'].str.split('_', expand=True).astype(float)
-    escortee_trips['outbound'] = np.where(escortee_trips['direction'] == 'outbound', True, False)
-    escortee_trips['depart'] = np.where(escortee_trips['direction'] == 'outbound', starts.min(axis=1), ends.max(axis=1))
+    escortee_trips['outbound'] = np.where(escortee_trips['school_escort_direction'] == 'outbound', True, False)
+    escortee_trips['depart'] = np.where(escortee_trips['school_escort_direction'] == 'outbound', starts.min(axis=1), ends.max(axis=1)).astype(int)
     escortee_trips['primary_purpose'] = 'school'
 
     # create a new trip for each escortee destination
@@ -169,101 +174,98 @@ def create_escortee_trips(bundles):
     outbound_trip_num = -1 * (escortee_trips.groupby(['tour_id', 'outbound']).cumcount(ascending=False) + 1)
     inbound_trip_num = 100 + escortee_trips.groupby(['tour_id', 'outbound']).cumcount(ascending=True)
     escortee_trips['trip_num'] = np.where(escortee_trips.outbound == True, outbound_trip_num, inbound_trip_num)
+    escortee_trips['trip_count'] = escortee_trips['trip_num'] + escortee_trips.groupby(['tour_id', 'outbound']).trip_num.transform('count')
 
     # FIXME placeholders
-    escortee_trips['trip_id'] = escortee_trips['tour_id'].astype(int) + 100 * escortee_trips.groupby('tour_id')['trip_num'].transform('count')
+    escortee_trips['trip_id'] = escortee_trips['tour_id'].astype('int64') * 10 + escortee_trips.groupby('tour_id')['trip_num'].cumcount()
 
-    trip_cols = ['trip_id', 'household_id', 'person_id', 'tour_id', 'destination', 'depart', 'escort_participants',
-                'school_escort_trip_num', 'outbound', 'primary_purpose', 'purpose', 'direction', 'trip_num', 'home_zone_id']
-    escortee_trips = escortee_trips[trip_cols]
+    # trip_cols = ['trip_id', 'household_id', 'person_id', 'tour_id', 'destination', 'depart', 'escort_participants',
+    #             'school_escort_trip_num', 'outbound', 'primary_purpose', 'purpose', 'school_escort_direction', 'trip_num', 'home_zone_id']
+    # escortee_trips = escortee_trips[trip_cols]
 
-    for col in escortee_trips.columns:
-        if '_id' in col:
-            escortee_trips[col] = escortee_trips[col].astype(int)
+    id_cols = ['household_id', 'person_id', 'tour_id']
+    escortee_trips[id_cols] = escortee_trips[id_cols].astype(int)
+    # for col in escortee_trips.columns:
+    #     if col in ['trip_id', 'household_id', 'person_id', 'tour_id']:
+    #         escortee_trips[col] = escortee_trips[col].astype(int)
 
     escortee_trips.loc[escortee_trips['purpose'] == 'home', 'trip_num'] = 999  # trips home are always last
     escortee_trips.sort_values(by=['household_id', 'tour_id', 'outbound', 'trip_num'], ascending=[True, True, False, True], inplace=True)
-
+    escortee_trips['origin'] = escortee_trips.groupby('tour_id')['destination'].shift()
+    # first trips on tour start from home (except for atwork subtours, but school escorting doesn't happen on those tours)
+    escortee_trips['origin'] = np.where(escortee_trips['origin'].isna(), escortee_trips['home_zone_id'], escortee_trips['origin'])
+    
     return escortee_trips
 
 
-# def merge_school_escorting_trips(chauf_trips, escortee_trips, trips, tours):
-#     # create filters to remove trips that were created or are not unallowed
-#     # primary tour destination trip for chauf is replaced
-#     no_chauf_primary_dest = (~(trips.tour_id.isin(chauf_trips.tour_id)
-#         & (trips['outbound'] == True)
-#         & (trips['trip_num'] == trips['trip_count'])
-#         & (trips['primary_purpose'] == 'escort')
-#     ))
-
-#     # outbound escortee trips to primary school destination
-#     outbound_school_escorting_tours = tours[~tours.school_esc_outbound.isna()]
-#     no_escortee_out_primary_dest = (~(trips.tour_id.isin(outbound_school_escorting_tours.index)
-#         & (trips['outbound'] == True)
-#         & (trips['trip_num'] == trips['trip_count'])
-#         & (trips['purpose'] == 'school')
-#     ))
-    
-#     # inbound escortee trips to home
-#     inbound_school_escorting_tours = tours[~tours.school_esc_inbound.isna()]
-#     no_escortee_inb_home = (~(trips.tour_id.isin(inbound_school_escorting_tours.index)
-#         & (trips['outbound'] == False)
-#         & (trips['trip_num'] == trips['trip_count'])
-#         & (trips['purpose'] == 'home')
-#     ))
-
-#     cut_trips = trips[
-#         no_chauf_primary_dest & no_escortee_out_primary_dest & no_escortee_inb_home
-#     ]
-#     cut_trips.reset_index(inplace=True)
-
-#     all_trips = pd.concat([chauf_trips, escortee_trips, cut_trips])
-
-#     all_trips.loc[all_trips['purpose'] == 'home', 'trip_num'] = 999  # trips home are always last
-#     all_trips.sort_values(by=['household_id', 'tour_id', 'outbound', 'trip_num'], ascending=[True, True, False, True], inplace=True)
-
-#     # recomputing trip statistics
-#     all_trips['trip_num'] = all_trips.groupby(['tour_id', 'outbound']).cumcount() + 1
-#     all_trips['trip_count'] = all_trips.groupby(['tour_id', 'outbound'])['trip_num'].transform('count')
-#     # all tours start at home
-#     first_trips = ((all_trips['outbound'] == True) & (all_trips['trip_num'] == 1))
-#     all_trips.loc[first_trips, 'origin'] = all_trips.loc[first_trips, 'home_zone_id']
-#     all_trips['origin'] = np.where(all_trips['origin'].isna(), all_trips.groupby('tour_id')['destination'].shift(), all_trips['origin'])
-
-#     # participants aren't in the car until the subsequent trip in the inbound direction
-#     # all_trips['escort_participants'] = np.where(all_trips['outbound'] == False, all_trips.groupby('tour_id')['escort_participants'].shift(), all_trips['escort_participants'])
-#     all_trips.set_index('trip_id', inplace=True)
-
-#     return all_trips
-
 def create_school_escort_trips(escort_bundles):
     chauf_trips = create_chauf_escort_trips(escort_bundles)
+    assert all(chauf_trips.trip_id > 0), f"Negative trip_id's {chauf_trips[chauf_trips.trip_id < 0]}"
     escortee_trips = create_escortee_trips(escort_bundles)
+    assert all(escortee_trips.trip_id > 0), f"Negative trip_id's {escortee_trips[escortee_trips.trip_id < 0]}"
     school_escort_trips = pd.concat([chauf_trips, escortee_trips], axis=0)
+
+    school_escort_trips['failed'] = False  # for better merge with trips created in stop frequency
+    school_escort_trips.set_index('trip_id', inplace=True)
+
+    assert school_escort_trips.index.is_unique, f"Non-unique trip_id's set as index {school_escort_trips[school_escort_trips.index.duplicated(keep=False)]}"
+    assert all(school_escort_trips.index > 0), f"Negative trip_id's {school_escort_trips[school_escort_trips.index < 0]}"
+
     return school_escort_trips
     
 
+def add_pure_escort_tours(tours, school_escort_tours):
+    missing_cols = [col for col in tours.columns if col not in school_escort_tours.columns]
+    assert len(missing_cols) == 0, f'missing columns {missing_cols} in school_escort_tours'
 
-# def create_school_escort_trips():
+    tours_to_add = school_escort_tours[~school_escort_tours.index.isin(tours.index)]
+    tours = pd.concat([tours, tours_to_add[tours.columns]])
+    return tours
 
-#     # start with creating outbound chauffer trips
-#     bundles = pipeline.get_table('escort_bundles')
-#     tours = pipeline.get_table('tours')
-#     trips = pipeline.get_table('trips')
 
-#     bundles.to_csv('escort_bundles.csv')
-#     tours.to_csv('tours.csv')
-#     trips.to_csv('trips.csv')
+def add_school_escort_trips_to_pipeline():
+    school_escort_trips = pipeline.get_table('school_escort_trips')
+    tours = pipeline.get_table('tours')
+    trips = pipeline.get_table('trips')
+    
+    # want to remove stops if school escorting takes place on that half tour so we can replace them with the actual stops
+    out_se_tours = tours[tours['school_esc_outbound'].isin(['pure_escort', 'ride_share'])]
+    inb_se_tours = tours[tours['school_esc_inbound'].isin(['pure_escort', 'ride_share'])]
+    # removing outbound stops
+    trips = trips[~(trips.tour_id.isin(out_se_tours.index) & (trips['outbound'] == True))]
+    # removing inbound stops
+    trips = trips[~(trips.tour_id.isin(inb_se_tours.index) & (trips['outbound'] == False))]
 
-#     chauf_trips = create_chauf_escort_trips(bundles, trips, tours)
-#     escortee_trips = create_escortee_trips(bundles, trips, tours)
-#     trips = merge_school_escorting_trips(chauf_trips, escortee_trips, trips, tours)
+    # don't want to double count the non-escort half-tour of chauffeurs doing pure escort
+    inb_chauf_pe_tours = tours[(tours['school_esc_inbound'] == 'pure_escort') & (tours.primary_purpose == 'escort')]
+    out_chauf_pe_tours = tours[(tours['school_esc_outbound'] == 'pure_escort') & (tours.primary_purpose == 'escort')]
+    school_escort_trips = school_escort_trips[~(school_escort_trips.tour_id.isin(inb_chauf_pe_tours.index) & (school_escort_trips['outbound'] == True))]
+    school_escort_trips = school_escort_trips[~(school_escort_trips.tour_id.isin(out_chauf_pe_tours.index) & (school_escort_trips['outbound'] == False))]
 
-#     pipeline.replace_table("trips", trips)
-#     pipeline.replace_table("escort_bundles", bundles)
-#     # since new trips were created, we need to reset the random number generator
-#     pipeline.get_rn_generator().drop_channel('trips')
-#     pipeline.get_rn_generator().add_channel('trips', trips)
+    trips = pd.concat([trips, school_escort_trips[list(trips.columns) + ['escort_participants', 'school_escort_direction']]])
+    # sorting by escorting order as determining when creating the school escort trips
+    trips.sort_values(by=['household_id', 'tour_id', 'outbound', 'trip_num'], ascending=[True, True, False, True], inplace=True)
+    grouped = trips.groupby(['tour_id', 'outbound'])
+    trips['trip_num'] = trips.groupby(['tour_id', 'outbound']).cumcount() + 1
+    trips['trip_count'] = trips['trip_num'] + grouped.cumcount(ascending=False)
+
+    # ensuring data types
+    trips['outbound'] = trips['outbound'].astype(bool)
+    print(trips[trips['origin'].isna()]) 
+    trips['origin'] = trips['origin'].astype(int)
+    trips['destination'] = trips['destination'].astype(int)
+
+    assert trips.index.is_unique, f"Non-unique trip_id's set as index {trips[trips.index.duplicated(keep=False)]}"
+
+    # replace trip table and pipeline and register with the random number generator
+    pipeline.replace_table("trips", trips)
+    pipeline.get_rn_generator().drop_channel('trips')
+    pipeline.get_rn_generator().add_channel('trips', trips)
+
+    # FIXME need to update stop frequency in tours table
+    
+    return trips
+
 
 
 def create_pure_school_escort_tours(bundles):
@@ -297,40 +299,18 @@ def create_pure_school_escort_tours(bundles):
     # FIXME join tdd from tdd_alts
     pe_tours['tdd'] = pd.NA
     pe_tours['duration'] = pe_tours['end'] - pe_tours['start']
-    pe_tours['school_esc_outbound'] = np.where(pe_tours['direction'] == 'outbound', 'pure_escort', pd.NA)
-    pe_tours['school_esc_inbound'] = np.where(pe_tours['direction'] == 'inbound', 'pure_escort', pd.NA)
+    pe_tours['school_esc_outbound'] = np.where(pe_tours['school_escort_direction'] == 'outbound', 'pure_escort', pd.NA)
+    pe_tours['school_esc_inbound'] = np.where(pe_tours['school_escort_direction'] == 'inbound', 'pure_escort', pd.NA)
 
-    # FIXME need consistent tour ids
     pe_tours['tour_id'] = pe_tours['chauf_tour_id'].astype(int)
     pe_tours.set_index('tour_id', inplace=True)
 
-    # for col in tours.columns:
-    #     if col not in pe_tours.columns:
-    #         pe_tours[col] = pd.NA
-    #         print(col)
+    grouped = pe_tours.groupby(['person_id', 'tour_type'])
+    pe_tours['tour_type_num'] = grouped.cumcount() + 1
+    pe_tours['tour_type_count'] = pe_tours['tour_type_num'] + grouped.cumcount(ascending=False)
 
-    # pe_tours[tours.columns].to_csv('pure_escort_tours.csv')
-    pe_tours.to_csv('pure_escort_tours.csv')
-
-    # tours = pd.concat([tours, pe_tours[tours.columns]])
-
-    # # tours = pe_tours[tours.columns]
-
-    # grouped = tours.groupby(['person_id', 'tour_type'])
-    # tours['tour_type_num'] = grouped.cumcount() + 1
-    # tours['tour_type_count'] = tours['tour_type_num'] + grouped.cumcount(ascending=False)
-
-    # grouped = tours.groupby('person_id')
-    # tours['tour_num'] = grouped.cumcount() + 1
-    # tours['tour_count'] = tours['tour_num'] + grouped.cumcount(ascending=False)
-
-    # tours.sort_values(by=['household_id', 'person_id', 'tour_num'], inplace=True)
-
-    # assert tours.index.is_unique, "Non-unique tour_id's!!"
-
-    # pipeline.replace_table("tours", tours)
-    # # since new tours were created, we need to reset the random number generator
-    # pipeline.get_rn_generator().drop_channel('tours')
-    # pipeline.get_rn_generator().add_channel('tours', tours)
+    grouped = pe_tours.groupby('person_id')
+    pe_tours['tour_num'] = grouped.cumcount() + 1
+    pe_tours['tour_count'] = pe_tours['tour_num'] + grouped.cumcount(ascending=False)
 
     return pe_tours

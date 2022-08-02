@@ -105,16 +105,20 @@ def add_prev_choices_to_choosers(choosers, choices, alts, stage):
 def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     school_tour = ((tours.tour_type == 'school') & (tours.tour_num == 1))
 
-    for direction in ['outbound', 'inbound']:
+    for school_escort_direction in ['outbound', 'inbound']:
         for escort_type in ['ride_share', 'pure_escort']:
             bundles = escort_bundles[
-                (escort_bundles.direction == direction)
+                (escort_bundles.school_escort_direction == school_escort_direction)
                 & (escort_bundles.escort_type == escort_type)
             ]
+            # Setting for child school tours
+            # FIXME need to get number of children from model spec
             for child_num in range(1,4):
                 i = str(child_num)
                 filter = (school_tour & tours['person_id'].isin(bundles['bundle_child' + i]))
-                tours.loc[filter, 'school_esc_' + direction] = escort_type
+                tours.loc[filter, 'school_esc_' + school_escort_direction] = escort_type
+            
+            tours.loc[bundles.chauf_tour_id, 'school_esc_' + school_escort_direction] = escort_type
 
     return tours
 
@@ -165,8 +169,6 @@ def create_bundle_attributes(row):
 
 
 def create_school_escorting_bundles_table(choosers, tours, stage):
-    choosers.to_csv('school_escorting_tour_choosers_' + stage + '.csv')
-
     # making a table of bundles
     choosers = choosers.reset_index()
     choosers = choosers.loc[choosers.index.repeat(choosers['nbundles'])]
@@ -175,7 +177,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     # bundles.index = choosers.index
     bundles['household_id'] = choosers['household_id']
     bundles['home_zone_id'] = choosers['home_zone_id']
-    bundles['direction'] = 'outbound' if 'outbound' in stage else 'inbound'
+    bundles['school_escort_direction'] = 'outbound' if 'outbound' in stage else 'inbound'
     bundles['bundle_num'] = bundles.groupby('household_id').cumcount() + 1
 
     # initialize values
@@ -212,7 +214,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     bundles['outbound_order'] = list(bundles[school_time_cols].values.argsort() + 1)
     bundles['inbound_order'] = list((-1 * bundles[school_time_cols]).values.argsort() + 1) # inbound gets reverse order
     bundles['child_order'] = np.where(
-        bundles['direction'] == 'outbound',
+        bundles['school_escort_direction'] == 'outbound',
         bundles['outbound_order'] ,
         bundles['inbound_order']
     )
@@ -225,6 +227,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     bundles['first_mand_tour_end_time'] = reindex(mandatory_escort_tours.set_index('person_id').end, bundles['chauf_id'])
     bundles['first_mand_tour_id'] = reindex(mandatory_escort_tours.reset_index().set_index('person_id').tour_id, bundles['chauf_id'])
     bundles['first_mand_tour_dest'] = reindex(mandatory_escort_tours.reset_index().set_index('person_id').destination, bundles['chauf_id'])
+    bundles['first_mand_tour_purpose'] = reindex(mandatory_escort_tours.reset_index().set_index('person_id').tour_type, bundles['chauf_id'])
 
     bundles['Alt'] = choosers['Alt']
     bundles['Description'] = choosers['Description']
@@ -291,8 +294,6 @@ def school_escorting(households,
             choosers = add_prev_choices_to_choosers(
                 choosers, choices, alts, school_escorting_stages[stage_num-1])
 
-        choosers.to_csv('school_escorting_choosers_' + stage + '.csv')
-
         locals_dict.update(coefficients_df)
 
         logger.info("Running %s with %d households", stage_trace_label, len(choosers))
@@ -310,8 +311,6 @@ def school_escorting(households,
             estimator.write_spec(model_settings)
             estimator.write_coefficients(coefficients_df, model_settings)
             estimator.write_choosers(choosers)
-
-        choosers.to_csv('school_escorting_choosers_' + stage + '.csv')
 
         log_alt_losers = config.setting('log_alt_losers', False)
 
@@ -354,16 +353,19 @@ def school_escorting(households,
     escort_bundles['bundle_id'] = escort_bundles['household_id'] * 100 + escort_bundles.groupby('household_id').cumcount() + 1
     escort_bundles['chauf_tour_id'] = np.where(escort_bundles['escort_type'] == 'ride_share', escort_bundles['first_mand_tour_id'], escort_bundles.bundle_id.values)
     escort_bundles.set_index('bundle_id', inplace=True)
-    escort_bundles.sort_values(by=['household_id', 'direction'], ascending=[True, False], inplace=True)
-    escort_bundles.to_csv('escort_bundles.csv')
-
-    tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
+    escort_bundles.sort_values(by=['household_id', 'school_escort_direction'], ascending=[True, False], inplace=True)
 
     school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(escort_bundles)
     school_escort_trips = school_escort_tours_trips.create_school_escort_trips(escort_bundles)
 
+    tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
+    tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
+
     pipeline.replace_table("households", households)
     pipeline.replace_table("tours", tours)
+    pipeline.get_rn_generator().drop_channel('tours')
+    pipeline.get_rn_generator().add_channel('tours', tours)
     pipeline.replace_table("escort_bundles", escort_bundles)
+    # save school escorting tours and trips in pipeline so we can overwrite results from downstream models
     pipeline.replace_table("school_escort_tours", school_escort_tours)
     pipeline.replace_table("school_escort_trips", school_escort_trips)

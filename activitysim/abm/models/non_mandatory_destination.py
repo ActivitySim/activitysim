@@ -14,6 +14,7 @@ from activitysim.core.util import assign_in_place
 
 from .util import tour_destination
 from .util import estimation
+from .util import annotate
 
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,9 @@ def non_mandatory_tour_destination(
         assign_in_place(tours, non_mandatory_tours[[logsum_column_name]])
 
     pipeline.replace_table("tours", tours)
+
+    if model_settings.get('annotate_tours'):
+        annotate.annotate_tours(model_settings, trace_label)
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)

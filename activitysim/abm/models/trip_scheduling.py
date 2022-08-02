@@ -18,6 +18,7 @@ from activitysim.core.util import reindex
 
 from activitysim.abm.models.util.trip import failed_trip_cohorts
 from activitysim.abm.models.util.trip import cleanup_failed_trips
+from .util.school_escort_tours_trips import create_school_escort_trips
 
 from activitysim.abm.models.util import estimation
 from .util import probabilistic_scheduling as ps
@@ -487,3 +488,4 @@ def trip_scheduling(
     assert not trips_df.depart.isnull().any()
 
     pipeline.replace_table("trips", trips_df)
+

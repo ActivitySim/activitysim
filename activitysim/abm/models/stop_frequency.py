@@ -4,6 +4,7 @@ import logging
 
 import numpy as np
 import pandas as pd
+from activitysim.abm.models.util import school_escort_tours_trips
 
 from activitysim.core import simulate
 from activitysim.core import tracing
@@ -227,3 +228,6 @@ def stop_frequency(
                          label="stop_frequency.tours_merged",
                          slicer='person_id',
                          columns=None)
+    
+    if pipeline.is_table('school_escort_trips'):
+        school_escort_tours_trips.add_school_escort_trips_to_pipeline()

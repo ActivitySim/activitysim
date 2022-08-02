@@ -16,6 +16,7 @@ from activitysim.core import logit
 from activitysim.core import expressions
 
 from .util import estimation
+from .util import annotate
 
 from .util.overlap import person_max_window
 from .util.tour_frequency import process_non_mandatory_tours
@@ -337,6 +338,9 @@ def non_mandatory_tour_frequency(persons, persons_merged,
 
     tracing.register_traceable_table('tours', non_mandatory_tours)
     pipeline.get_rn_generator().add_channel('tours', non_mandatory_tours)
+
+    if model_settings.get('annotate_tours'):
+        annotate.annotate_tours(model_settings, trace_label)
 
     expressions.assign_columns(
         df=persons,

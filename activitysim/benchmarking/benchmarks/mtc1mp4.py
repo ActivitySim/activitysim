@@ -7,7 +7,7 @@ import multiprocessing
 import numpy as np
 
 PRETTY_NAME = "MTC1_MP4"
-EXAMPLE_NAME = "example_mtc_full"
+EXAMPLE_NAME = "prototype_mtc_full"
 NUM_PROCESSORS = int(np.clip(multiprocessing.cpu_count() - 2, 2, 4))
 CONFIGS_DIRS = ("configs_mp", "configs")
 DYNAMIC_CONFIG_DIR = "bench_configs_mp"

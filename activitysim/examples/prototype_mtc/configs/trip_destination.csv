@@ -1,0 +1,19 @@
+Label,Description,Expression,work,univ,school,escort,shopping,eatout,othmaint,social,othdiscr,atwork
+local_dist_od,,_od_DIST@od_skims['DIST'],1,1,1,1,1,1,1,1,1,1
+local_dist_dp,,_dp_DIST@dp_skims['DIST'],1,1,1,1,1,1,1,1,1,1
+util_size_term,size term,"@np.log1p(size_terms.get(df.dest_taz, df.purpose))",coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one
+util_no_attractions,no attractions,"@size_terms.get(df.dest_taz, df.purpose) == 0",coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE
+util_stop_zone_CDB_are_type,#stop zone CBD area type,"@reindex(land_use.area_type, df.dest_taz) < setting('cbd_threshold')",,,,,,,,,,
+util_distance_inbound,distance (calibration adjustment individual - inbound),@(~df.is_joint & ~df.outbound) * (_od_DIST + _dp_DIST),coef_util_distance_work_outbound,coef_util_distance_univ,coef_util_distance_school,coef_util_distance_escort,coef_util_distance_shopping,coef_util_distance_eatout,coef_util_distance_othmaint,coef_util_distance_social,coef_util_distance_othdiscr,coef_util_distance_atwork
+util_distance_outbound,distance (calibration adjustment individual - outbound),@(~df.is_joint & df.outbound) * (_od_DIST + _dp_DIST),coef_util_distance_work_inbound,coef_util_distance_univ,coef_util_distance_school,coef_util_distance_escort,coef_util_distance_shopping,coef_util_distance_eatout,coef_util_distance_othmaint,coef_util_distance_social,coef_util_distance_othdiscr,coef_util_distance_atwork
+util_distance_joint,distance (calibration adjustment joint),@df.is_joint * (_od_DIST + _dp_DIST),,,,coef_distance_joint,coef_distance_joint,coef_distance_joint,coef_distance_joint,coef_distance_joint,coef_distance_joint,
+util_prox_home_outbound,stop proximity to home (outbound),@df.outbound * _od_DIST,coef_prox_home_outbound_work,,,,,,,,,
+util_prox_home_inbound,stop proximity to home (inbound),@~df.outbound * _dp_DIST,coef_prox_home_inbound_work,,,,,,,,,
+util_prox_dest_outbound,stop proximity to main destination (outbound),@df.outbound * _dp_DIST,coef_prox_dest_outbound_work,,,,,,,,,
+util_prox_dest_inbound,stop proximity to main destination (inbound),@~df.outbound * _od_DIST,,,,,,,,,,
+#,,,,,,,,,,,,
+util_sample_of_alternatives_correction_factor,"Sample of alternatives correction factor","@np.minimum(np.log(df.pick_count/df.prob), 60)",coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one,coef_one
+util_mode_choice_logsum_os,Mode choice logsum from origin to stop,od_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum
+util_stop_not_accessible_by_this_tour_mode,Can't access stop zone by this tour mode,(od_logsum < -100),coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE
+util_mode_choice_logsum_sd,Mode choice logsum from stop to destination,dp_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum,coef_mode_choice_logsum
+util_dest_not_accessible_by_this_tour_mode,Can't access destination zone by this tour mode,(dp_logsum < -100),coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE,coef_UNAVAILABLE

@@ -19,24 +19,24 @@ jobs:
     - env: TEST_SUITE=activitysim/core
 
     - stage: Examples
-      name: "MTC Example"
-      env: TEST_SUITE=activitysim/examples/example_mtc/test
-    - name: "MTC Extended Example"
-      env: TEST_SUITE=activitysim/examples/example_mtc_extended/test
+      name: "Prototype MTC"
+      env: TEST_SUITE=activitysim/examples/prototype_mtc/test
+    - name: "Prototype MTC (Extended)"
+      env: TEST_SUITE=activitysim/examples/prototype_mtc_extended/test
     - name: "Multizone Example"
-      env: TEST_SUITE=activitysim/examples/example_multiple_zone/test
+      env: TEST_SUITE=activitysim/examples/placeholder_multiple_zone/test
     - name: "Marin Example"
-      env: TEST_SUITE=activitysim/examples/example_marin/test
+      env: TEST_SUITE=activitysim/examples/prototype_marin/test
     - name: "ARC Example"
-      env: TEST_SUITE=activitysim/examples/example_arc/test
+      env: TEST_SUITE=activitysim/examples/prototype_arc/test
     - name: "SEMCOG Example"
-      env: TEST_SUITE=activitysim/examples/example_semcog/test
+      env: TEST_SUITE=activitysim/examples/prototype_semcog/test
     - name: "PSRC Example"
-      env: TEST_SUITE=activitysim/examples/example_psrc/test
+      env: TEST_SUITE=activitysim/examples/placeholder_psrc/test
     - name: "SANDAG Example"
-      env: TEST_SUITE=activitysim/examples/example_sandag/test
+      env: TEST_SUITE=activitysim/examples/placeholder_sandag/test
     - name: "SANDAG Cross-Border Example"
-      env: TEST_SUITE=activitysim/examples/example_sandag_xborder/test
+      env: TEST_SUITE=activitysim/examples/prototype_sandag_xborder/test
 
     - stage: Estimation Mode
       name: "Larch Test"
@@ -94,12 +94,12 @@ install:
 script:
 # This is the "default" script used for each test suite, unless overridden with a "script" in the jobs above.
 # build 2 and 3 zone test data twice since the Python test code on Linux sees these as different locations
-- python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-- python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
-- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+- python activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+- python activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+- python /home/travis/miniconda/envs/asimtest/lib/python$TRAVIS_PYTHON_VERSION/site-packages/activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
 # pycodestyle
 - pycodestyle activitysim
 # run specific TEST_SUITE job on travis to avoid job max time
 - travis_wait 50 py.test $TEST_SUITE --cov activitysim --cov-report term-missing --durations=0
-- coveralls
+# coveralls # disable coveralls service, which errors frequently

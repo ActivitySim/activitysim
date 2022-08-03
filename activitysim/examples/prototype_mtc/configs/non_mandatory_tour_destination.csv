@@ -1,0 +1,10 @@
+Description,Expression,escort,escortkids,escortnokids,shopping,eatout,othmaint,social,othdiscr
+"Distance, piecewise linear from 0 to 1 miles","@skims['DIST'].clip(0,1)",coef_escort_dist_0_2,coef_escort_dist_0_2,coef_escort_dist_0_2,0,coef_eatout_dist_0_2,0,coef_eatout_dist_0_2,coef_othdiscr_dist_0_2
+"Distance, piecewise linear from 1 to 2 miles","@(skims['DIST']-1).clip(0,1)",coef_escort_dist_0_2,coef_escort_dist_0_2,coef_escort_dist_0_2,0,coef_eatout_dist_0_2,0,coef_eatout_dist_0_2,coef_othdiscr_dist_0_2
+"Distance, piecewise linear from 2 to 5 miles","@(skims['DIST']-2).clip(0,3)",coef_escort_dist_2_5,coef_escort_dist_2_5,coef_escort_dist_2_5,coef_shopping_dist_2_5,coef_eatout_dist_2_5,coef_othmaint_dist_2_5,coef_social_dist_2_5,coef_othdiscr_dist_2_5
+"Distance, piecewise linear from 5 to 15 miles","@(skims['DIST']-5).clip(0,10)",coef_escort_dist_5_plus,coef_escort_dist_5_plus,coef_escort_dist_5_plus,coef_shopping_dist_5_plus,coef_eatout_dist_5_plus,coef_othmaint_dist_5_plus,coef_social_dist_5_plus,coef_othdiscr_dist_5_plus
+"Distance, piecewise linear for 15+ miles",@(skims['DIST']-15.0).clip(0),coef_escort_dist_5_plus,coef_escort_dist_5_plus,coef_escort_dist_5_plus,coef_shopping_dist_5_plus,coef_eatout_dist_5_plus,coef_othmaint_dist_5_plus,coef_social_dist_5_plus,coef_othdiscr_dist_5_plus
+Size variable,@df['size_term'].apply(np.log1p),1,1,1,1,1,1,1,1
+No attractions,@df['size_term']==0,-999,-999,-999,-999,-999,-999,-999,-999
+Mode choice logsum,mode_choice_logsum,coef_mode_logsum,coef_mode_logsum,coef_mode_logsum,coef_mode_logsum,coef_mode_logsum,coef_mode_logsum,coef_mode_logsum,coef_mode_logsum
+Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1,1,1,1,1,1,1,1

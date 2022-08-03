@@ -30,15 +30,14 @@ def test_create_list():
     cp = subprocess.run(['activitysim', 'create', '--list'], capture_output=True)
 
     assert 'Available examples' in str(cp.stdout)
-    assert "name: example_mtc" in str(cp.stdout)
-    assert "name: example_test" in str(cp.stdout)
+    assert "name: prototype_mtc" in str(cp.stdout)
 
 
 def test_create_copy():
 
     target = os.path.join(os.path.dirname(__file__), 'test_example')
     cp = subprocess.run(['activitysim', 'create',
-                         '--example', 'example_test',
+                         '--example', 'prototype_mtc',
                          '--destination', target], capture_output=True)
 
     assert 'copying data ...' in str(cp.stdout)

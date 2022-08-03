@@ -3,13 +3,14 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
+import shlex
 import subprocess
 import traceback
-import shlex
-from asv.console import log
+
 from asv import util
-from asv.commands.run import Run
 from asv.commands import common_args
+from asv.commands.run import Run
+from asv.console import log
 
 
 def _do_build(args):

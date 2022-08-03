@@ -1,26 +1,34 @@
-import os
-import pandas as pd
-import openmatrix as omx
-import numpy as np
-
 import argparse
+import os
+
+import numpy as np
+import openmatrix as omx
+import pandas as pd
 
 MAZ_OFFSET = 0
 
 segments = {
-    'test': (100, 135),  # arbitrary but has univ
-    'fulton': (0, 1296),
-    'full': (0, 5922),
+    "test": (100, 135),  # arbitrary but has univ
+    "fulton": (0, 1296),
+    "full": (0, 5922),
 }
 
-parser = argparse.ArgumentParser(description='crop PSRC raw_data')
-parser.add_argument('segment_name', metavar='segment_name', type=str, nargs=1,
-                    help=f"geography segmentation (e.g. full)")
+parser = argparse.ArgumentParser(description="crop PSRC raw_data")
+parser.add_argument(
+    "segment_name",
+    metavar="segment_name",
+    type=str,
+    nargs=1,
+    help=f"geography segmentation (e.g. full)",
+)
 
-parser.add_argument('-c', '--check_geography',
-                    default=False,
-                    action='store_true',
-                    help='check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file')
+parser.add_argument(
+    "-c",
+    "--check_geography",
+    default=False,
+    action="store_true",
+    help="check consistency of MAZ, TAZ zone_ids and foreign keys & write orphan_households file",
+)
 
 args = parser.parse_args()
 
@@ -31,8 +39,8 @@ check_geography = args.check_geography
 assert segment_name in segments.keys(), f"Unknown seg: {segment_name}"
 zone_min, zone_max = segments[segment_name]
 
-input_dir = './data_raw'
-output_dir = f'./data_{segment_name}'
+input_dir = "./data_raw"
+output_dir = f"./data_{segment_name}"
 
 
 print(f"check_geography {check_geography}")
@@ -51,7 +59,17 @@ def output_path(file_name):
 
 
 def integerize_id_columns(df, table_name):
-    columns = ['MAZ', 'OMAZ', 'DMAZ', 'TAZ', 'zone_id', 'household_id', 'HHID', 'maz', 'taz']
+    columns = [
+        "MAZ",
+        "OMAZ",
+        "DMAZ",
+        "TAZ",
+        "zone_id",
+        "household_id",
+        "HHID",
+        "maz",
+        "taz",
+    ]
     for c in df.columns:
         if c in columns:
             print(f"converting {table_name}.{c} to int")
@@ -92,9 +110,11 @@ if check_geography:
 # land_use
 #
 land_use = read_csv("land_use.csv")
-land_use = land_use[(land_use["zone_id"] >= zone_min) & (land_use["zone_id"] <= zone_max)]
-integerize_id_columns(land_use, 'land_use')
-land_use = land_use.sort_values('zone_id')
+land_use = land_use[
+    (land_use["zone_id"] >= zone_min) & (land_use["zone_id"] <= zone_max)
+]
+integerize_id_columns(land_use, "land_use")
+land_use = land_use.sort_values("zone_id")
 
 # move index col to front
 land_use.insert(0, "zone_id", land_use.pop("zone_id"))
@@ -106,7 +126,7 @@ to_csv(land_use, "land_use.csv")
 #
 households = read_csv("households.csv")
 households = households[households["maz"].isin(land_use.zone_id)]
-integerize_id_columns(households, 'households')
+integerize_id_columns(households, "households")
 
 to_csv(households, "households.csv")
 
@@ -115,14 +135,14 @@ to_csv(households, "households.csv")
 #
 persons = read_csv("persons.csv")
 persons = persons[persons["household_id"].isin(households.household_id)]
-integerize_id_columns(persons, 'persons')
+integerize_id_columns(persons, "persons")
 
 to_csv(persons, "persons.csv")
 
 #
 # skims
 #
-omx_infile_name = 'skims.omx'
+omx_infile_name = "skims.omx"
 skim_data_type = np.float32
 
 omx_in = omx.open_file(input_path(omx_infile_name))
@@ -130,21 +150,23 @@ print(f"omx_in shape {omx_in.shape()}")
 
 
 assert not omx_in.listMappings()
-zone = land_use.sort_values('zone_id')[['zone_id']]
+zone = land_use.sort_values("zone_id")[["zone_id"]]
 zone.index = zone.zone_id - 1
 zone_indexes = zone.index.tolist()  # index of TAZ in skim (zero-based, no mapping)
 zone_labels = zone.zone_id.tolist()  # TAZ zone_ids in omx index order
 
 
 # create
-num_outfiles = 4 if segment_name == 'full' else 1
+num_outfiles = 4 if segment_name == "full" else 1
 if num_outfiles == 1:
-    omx_out = [omx.open_file(output_path(f"skims.omx"), 'w')]
+    omx_out = [omx.open_file(output_path(f"skims.omx"), "w")]
 else:
-    omx_out = [omx.open_file(output_path(f"skims{i+1}.omx"), 'w') for i in range(num_outfiles)]
+    omx_out = [
+        omx.open_file(output_path(f"skims{i+1}.omx"), "w") for i in range(num_outfiles)
+    ]
 
 for omx_file in omx_out:
-    omx_file.create_mapping('ZONE', zone_labels)
+    omx_file.create_mapping("ZONE", zone_labels)
 
 iskim = 0
 for mat_name in omx_in.list_matrices():

@@ -4,11 +4,12 @@ import io
 import json
 import os
 import tempfile
-import zlib
 import traceback
-from asv.plugins.snakeviz import SnakevizGui
+import zlib
+
 from asv.commands import Command
 from asv.console import log
+from asv.plugins.snakeviz import SnakevizGui
 
 
 def benchmark_snakeviz(json_record, benchmark=None):

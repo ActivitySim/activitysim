@@ -2,12 +2,10 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import inject
-
+from activitysim.core import inject, tracing
 
 logger = logging.getLogger(__name__)
 
@@ -122,11 +120,11 @@ def p2p_time_window_overlap(p1_ids, p2_ids):
     row_ids = row_ids[target_rows]
     run_length = run_length[target_rows]
 
-    df = pd.DataFrame({'row_ids': row_ids, 'run_length': run_length})
+    df = pd.DataFrame({"row_ids": row_ids, "run_length": run_length})
 
     # groupby index of row_ids match the numpy row indexes of timetable.pairwise_available ndarray
     # but there may be missing values of any no-overlap persons pairs
-    max_overlap = df.groupby('row_ids').run_length.max()
+    max_overlap = df.groupby("row_ids").run_length.max()
     # fill in any missing values to align with input arrays
     input_row_ids = np.arange(len(p1_ids))
     max_overlap = max_overlap.reindex(input_row_ids).fillna(0)
@@ -139,23 +137,28 @@ def p2p_time_window_overlap(p1_ids, p2_ids):
 
 def person_pairs(persons):
 
-    p = persons[['household_id', 'adult']].reset_index()
-    p2p = pd.merge(p, p, left_on='household_id', right_on='household_id', how='outer')
+    p = persons[["household_id", "adult"]].reset_index()
+    p2p = pd.merge(p, p, left_on="household_id", right_on="household_id", how="outer")
 
     # we desire well known non-contingent column names
-    p2p.rename(columns={
-        '%s_x' % persons.index.name: 'person1',
-        '%s_y' % persons.index.name: 'person2',
-    }, inplace=True)
+    p2p.rename(
+        columns={
+            "%s_x" % persons.index.name: "person1",
+            "%s_y" % persons.index.name: "person2",
+        },
+        inplace=True,
+    )
 
     p2p = p2p[p2p.person1 < p2p.person2]
 
     # index is meaningless, but might as well be tidy
     p2p.reset_index(drop=True, inplace=True)
 
-    p2p['p2p_type'] = (p2p.adult_x * 1 + p2p.adult_y * 1).map({0: 'cc', 1: 'ac', 2: 'aa'})
+    p2p["p2p_type"] = (p2p.adult_x * 1 + p2p.adult_y * 1).map(
+        {0: "cc", 1: "ac", 2: "aa"}
+    )
 
-    p2p = p2p[['household_id', 'person1', 'person2', 'p2p_type']]
+    p2p = p2p[["household_id", "person1", "person2", "p2p_type"]]
 
     return p2p
 
@@ -164,16 +167,19 @@ def hh_time_window_overlap(households, persons):
 
     p2p = person_pairs(persons)
 
-    p2p['max_overlap'] = p2p_time_window_overlap(p2p.person1, p2p.person2)
+    p2p["max_overlap"] = p2p_time_window_overlap(p2p.person1, p2p.person2)
 
-    hh_overlap = \
-        p2p.groupby(['household_id', 'p2p_type']).max_overlap.max().unstack(level=-1, fill_value=0)
+    hh_overlap = (
+        p2p.groupby(["household_id", "p2p_type"])
+        .max_overlap.max()
+        .unstack(level=-1, fill_value=0)
+    )
 
     # fill in missing households (in case there were no overlaps)
     hh_overlap = hh_overlap.reindex(households.index).fillna(0).astype(np.int8)
 
     # make sure we have all p2p_types (if there were none to unstack, then column will be missing)
-    for c in ['aa', 'cc', 'ac']:
+    for c in ["aa", "cc", "ac"]:
         if c not in hh_overlap.columns:
             hh_overlap[c] = 0
 
@@ -184,18 +190,28 @@ def person_time_window_overlap(persons):
 
     p2p = person_pairs(persons)
 
-    p2p['max_overlap'] = p2p_time_window_overlap(p2p.person1, p2p.person2)
+    p2p["max_overlap"] = p2p_time_window_overlap(p2p.person1, p2p.person2)
 
-    p_overlap = pd.concat([
-        p2p[['person1', 'p2p_type', 'max_overlap']].rename(columns={'person1': 'person_id'}),
-        p2p[['person2', 'p2p_type', 'max_overlap']].rename(columns={'person2': 'person_id'})
-    ]).groupby(['person_id', 'p2p_type']).max_overlap.max()
+    p_overlap = (
+        pd.concat(
+            [
+                p2p[["person1", "p2p_type", "max_overlap"]].rename(
+                    columns={"person1": "person_id"}
+                ),
+                p2p[["person2", "p2p_type", "max_overlap"]].rename(
+                    columns={"person2": "person_id"}
+                ),
+            ]
+        )
+        .groupby(["person_id", "p2p_type"])
+        .max_overlap.max()
+    )
 
     # unstack to create columns for each p2p_type (aa, cc, and ac)
     p_overlap = p_overlap.unstack(level=-1, fill_value=0)
 
     # make sure we have columns for all p2p_types (in case there were none of a p2ptype to unstack)
-    for c in ['aa', 'cc', 'ac']:
+    for c in ["aa", "cc", "ac"]:
         if c not in p_overlap.columns:
             p_overlap[c] = 0
 
@@ -221,11 +237,11 @@ def person_max_window(persons):
     row_ids = row_ids[target_rows]
     run_length = run_length[target_rows]
 
-    df = pd.DataFrame({'row_ids': row_ids, 'run_length': run_length})
+    df = pd.DataFrame({"row_ids": row_ids, "run_length": run_length})
 
     # groupby index of row_ids match the numpy row indexes of timetable.pairwise_available ndarray
     # but there may be missing values of any no-overlap persons pairs
-    max_overlap = df.groupby('row_ids').run_length.max()
+    max_overlap = df.groupby("row_ids").run_length.max()
     # fill in any missing values to align with input arrays
     input_row_ids = np.arange(persons.shape[0])
     max_window = max_overlap.reindex(input_row_ids).fillna(0)

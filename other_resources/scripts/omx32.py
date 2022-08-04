@@ -1,17 +1,18 @@
-import os
-import pandas as pd
-import openmatrix as omx
-import numpy as np
-
 import argparse
+import os
 
+import numpy as np
+import openmatrix as omx
+import pandas as pd
 
-parser = argparse.ArgumentParser(description='crop PSRC raw_data')
-parser.add_argument('input', metavar='input_file_name', type=str, nargs=1,
-                    help=f"input omx file")
+parser = argparse.ArgumentParser(description="crop PSRC raw_data")
+parser.add_argument(
+    "input", metavar="input_file_name", type=str, nargs=1, help=f"input omx file"
+)
 
-parser.add_argument('output', metavar='output_file_name', type=str, nargs=1,
-                    help=f"output omx file")
+parser.add_argument(
+    "output", metavar="output_file_name", type=str, nargs=1, help=f"output omx file"
+)
 
 args = parser.parse_args()
 
@@ -25,10 +26,10 @@ output_file_name = args.output[0]
 #
 skim_data_type = np.float32
 
-omx_in = omx.open_file(input_file_name, 'r')
+omx_in = omx.open_file(input_file_name, "r")
 print(f"omx_in shape {omx_in.shape()}")
 
-omx_out = omx.open_file(output_file_name, 'w')
+omx_out = omx.open_file(output_file_name, "w")
 
 for mapping_name in omx_in.listMappings():
     offset_map = omx_in.mapentries(mapping_name)

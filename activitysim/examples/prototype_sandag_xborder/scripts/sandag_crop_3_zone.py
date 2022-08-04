@@ -2,28 +2,38 @@
 # crop marin tvpb example data processing to one county
 # Ben Stabler, ben.stabler@rsginc.com, 09/17/20
 
-import os
-import pandas as pd
-import openmatrix as omx
 import argparse
-import numpy as np
 import glob
+import os
+
+import numpy as np
+import openmatrix as omx
+import pandas as pd
 
 MAZ_OFFSET = 100000
 
 segments = {
-    'cropped': {'MAZ': np.arange(MAZ_OFFSET + 500, MAZ_OFFSET + 1080)},
-    'full': {},
+    "cropped": {"MAZ": np.arange(MAZ_OFFSET + 500, MAZ_OFFSET + 1080)},
+    "full": {},
 }
 
-parser = argparse.ArgumentParser(description='crop SANDAG 3 zone raw_data')
-parser.add_argument('-s', '--segment_name', metavar='segment_name', type=str, nargs=1,
-                    help=f"geography segmentation (e.g. full)")
+parser = argparse.ArgumentParser(description="crop SANDAG 3 zone raw_data")
+parser.add_argument(
+    "-s",
+    "--segment_name",
+    metavar="segment_name",
+    type=str,
+    nargs=1,
+    help=f"geography segmentation (e.g. full)",
+)
 
-parser.add_argument('-c', '--check_geography',
-                    default=False,
-                    action='store_true',
-                    help='check consistency of MAZ, TAZ, TAP zone_ids and foreign keys & write orphan_households file')
+parser.add_argument(
+    "-c",
+    "--check_geography",
+    default=False,
+    action="store_true",
+    help="check consistency of MAZ, TAZ, TAP zone_ids and foreign keys & write orphan_households file",
+)
 
 args = parser.parse_args()
 
@@ -31,8 +41,8 @@ segment_name = args.segment_name[0]
 
 assert segment_name in segments.keys(), f"Unknown seg: {segment_name}"
 
-input_dir = '../data_raw'
-output_dir = f'../data_{segment_name}'
+input_dir = "../data_raw"
+output_dir = f"../data_{segment_name}"
 
 print(f"segment_name {segment_name}")
 
@@ -54,7 +64,7 @@ def output_path(file_name):
 
 def patch_maz(df, maz_offset):
     for c in df.columns:
-        if c in ['MAZ', 'OMAZ', 'DMAZ', 'mgra', 'orig_mgra', 'dest_mgra']:
+        if c in ["MAZ", "OMAZ", "DMAZ", "mgra", "orig_mgra", "dest_mgra"]:
             df[c] += maz_offset
     return df
 
@@ -91,12 +101,15 @@ def crop_omx(omx_file_name, zones, num_outfiles=1):
 
     # create
     if num_outfiles == 1:
-        omx_out = [omx.open_file(output_path(f"{omx_file_name}.omx"), 'w')]
+        omx_out = [omx.open_file(output_path(f"{omx_file_name}.omx"), "w")]
     else:
-        omx_out = [omx.open_file(output_path(f"{omx_file_name}{i + 1}.omx"), 'w') for i in range(num_outfiles)]
+        omx_out = [
+            omx.open_file(output_path(f"{omx_file_name}{i + 1}.omx"), "w")
+            for i in range(num_outfiles)
+        ]
 
     for omx_file in omx_out:
-        omx_file.create_mapping('ZONE', labels)
+        omx_file.create_mapping("ZONE", labels)
 
     iskim = 0
     for mat_name in omx_in.list_matrices():
@@ -132,7 +145,7 @@ ur_land_use = land_use.copy()
 slicer = segments[segment_name]
 for slice_col, slice_values in slicer.items():
     # print(f"slice {slice_col}: {slice_values}")
-    poe_mask = land_use['poe_id'] > -1  # preserve mazs with poe data
+    poe_mask = land_use["poe_id"] > -1  # preserve mazs with poe data
     slice_mask = land_use[slice_col].isin(slice_values)
     land_use = land_use[(poe_mask) | (slice_mask)]
 
@@ -141,7 +154,7 @@ to_csv(land_use, LAND_USE)
 
 
 # TAZ
-taz = pd.DataFrame({'TAZ': sorted(ur_land_use.TAZ.unique())})
+taz = pd.DataFrame({"TAZ": sorted(ur_land_use.TAZ.unique())})
 taz = taz[taz.TAZ.isin(land_use["TAZ"])]
 # to_csv(taz, TAZ)
 
@@ -157,18 +170,21 @@ taz = taz[taz.TAZ.isin(land_use["TAZ"])]
 # to_csv(taps, "tap.csv")
 
 # maz to tap
-maz_tap_walk = read_csv("maz_tap_walk.csv").sort_values(['MAZ', 'TAP'])
+maz_tap_walk = read_csv("maz_tap_walk.csv").sort_values(["MAZ", "TAP"])
 maz_tap_walk = maz_tap_walk[maz_tap_walk["MAZ"].isin(land_use["MAZ"])]
 to_csv(maz_tap_walk, "maz_tap_walk.csv")
 
 # maz to maz
-maz_maz_walk = read_csv("maz_maz_walk.csv").sort_values(['OMAZ', 'DMAZ'])
-maz_maz_walk = maz_maz_walk[maz_maz_walk["OMAZ"].isin(land_use["MAZ"]) & maz_maz_walk["DMAZ"].isin(land_use["MAZ"])]
+maz_maz_walk = read_csv("maz_maz_walk.csv").sort_values(["OMAZ", "DMAZ"])
+maz_maz_walk = maz_maz_walk[
+    maz_maz_walk["OMAZ"].isin(land_use["MAZ"])
+    & maz_maz_walk["DMAZ"].isin(land_use["MAZ"])
+]
 to_csv(maz_maz_walk, "maz_maz_walk.csv")
 
 # taps and tap_lines
 tap_lines = read_csv("tap_lines.csv")
-tap_lines = tap_lines[tap_lines['TAP'].isin(maz_tap_walk["TAP"])]
+tap_lines = tap_lines[tap_lines["TAP"].isin(maz_tap_walk["TAP"])]
 to_csv(tap_lines, "tap_lines.csv")
 
 taps = read_csv("taps.csv")
@@ -191,8 +207,8 @@ to_csv(persons, "persons.csv")
 # drive skims
 for omx_fpath in glob.glob(input_path("*traffic*xborder*.omx")):
     print(omx_fpath)
-    omx_fname = omx_fpath.replace("\\", '/').split('/')[-1].split(".omx")[0]
+    omx_fname = omx_fpath.replace("\\", "/").split("/")[-1].split(".omx")[0]
     crop_omx(omx_fname, taz.TAZ)
 
 # transit skims
-crop_omx('transit_skims_xborder', taps.TAP)
+crop_omx("transit_skims_xborder", taps.TAP)

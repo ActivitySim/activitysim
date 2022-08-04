@@ -34,18 +34,17 @@ def assert_frames_equal(actual, expected, use_close=False):
     else:
         comp = npt.assert_equal
 
-    assert (isinstance(actual, pd.DataFrame) and
-            isinstance(expected, pd.DataFrame)), \
-        'Inputs must both be pandas DataFrames.'
+    assert isinstance(actual, pd.DataFrame) and isinstance(
+        expected, pd.DataFrame
+    ), "Inputs must both be pandas DataFrames."
 
     for i, exp_row in expected.iterrows():
-        assert i in actual.index, 'Expected row {!r} not found.'.format(i)
+        assert i in actual.index, "Expected row {!r} not found.".format(i)
 
         act_row = actual.loc[i]
 
         for j, exp_item in exp_row.items():
-            assert j in act_row.index, \
-                'Expected column {!r} not found.'.format(j)
+            assert j in act_row.index, "Expected column {!r} not found.".format(j)
 
             act_item = act_row[j]
 
@@ -53,7 +52,8 @@ def assert_frames_equal(actual, expected, use_close=False):
                 comp(act_item, exp_item)
             except AssertionError as e:
                 raise AssertionError(
-                    str(e) + '\n\nColumn: {!r}\nRow: {!r}'.format(j, i))
+                    str(e) + "\n\nColumn: {!r}\nRow: {!r}".format(j, i)
+                )
 
 
 def assert_index_equal(left, right):
@@ -70,5 +70,8 @@ def assert_index_equal(left, right):
     left_diff = left.difference(right)
     right_diff = right.difference(left)
     if len(left_diff) > 0 or len(right_diff) > 0:
-        raise AssertionError("keys not in left [{0}], keys not in right [{1}]".format(
-            left_diff, right_diff))
+        raise AssertionError(
+            "keys not in left [{0}], keys not in right [{1}]".format(
+                left_diff, right_diff
+            )
+        )

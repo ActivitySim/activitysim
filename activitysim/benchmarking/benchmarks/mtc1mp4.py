@@ -1,10 +1,11 @@
-from activitysim.benchmarking.componentwise import (
-    template_setup_cache,
-    template_component_timings_mp,
-)
-
 import multiprocessing
+
 import numpy as np
+
+from activitysim.benchmarking.componentwise import (
+    template_component_timings_mp,
+    template_setup_cache,
+)
 
 PRETTY_NAME = "MTC1_MP4"
 EXAMPLE_NAME = "prototype_mtc_full"

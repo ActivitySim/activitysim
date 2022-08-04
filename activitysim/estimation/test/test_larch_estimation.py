@@ -1,8 +1,9 @@
 import os
-import pandas as pd
-import pytest
 import subprocess
 import tempfile
+
+import pandas as pd
+import pytest
 
 from activitysim.cli.create import get_example
 
@@ -43,7 +44,9 @@ def est_data():
 
 def _regression_check(dataframe_regression, df, basename=None):
     dataframe_regression.check(
-        df.select_dtypes("number").drop(columns=["holdfast"], errors='ignore').clip(-9e9, 9e9),
+        df.select_dtypes("number")
+        .drop(columns=["holdfast"], errors="ignore")
+        .clip(-9e9, 9e9),
         # pandas 1.3 handles int8 dtypes as actual numbers, so holdfast needs to be dropped manually
         # we're dropping it not adding to the regression check so older pandas will also work.
         basename=basename,
@@ -55,23 +58,26 @@ def _regression_check(dataframe_regression, df, basename=None):
     )
 
 
-@pytest.mark.parametrize("name,method", [
-    ("free_parking", "BHHH"),
-    ("mandatory_tour_frequency", "SLSQP"),
-    ("joint_tour_frequency", "SLSQP"),
-    ("joint_tour_composition", "SLSQP"),
-    ("joint_tour_participation", "SLSQP"),
-    ("mandatory_tour_frequency", "BHHH"),
-    ("atwork_subtour_frequency", "SLSQP"),
-    ("auto_ownership", "BHHH"),
-    ("trip_mode_choice", "SLSQP"),
-])
+@pytest.mark.parametrize(
+    "name,method",
+    [
+        ("free_parking", "BHHH"),
+        ("mandatory_tour_frequency", "SLSQP"),
+        ("joint_tour_frequency", "SLSQP"),
+        ("joint_tour_composition", "SLSQP"),
+        ("joint_tour_participation", "SLSQP"),
+        ("mandatory_tour_frequency", "BHHH"),
+        ("atwork_subtour_frequency", "SLSQP"),
+        ("auto_ownership", "BHHH"),
+        ("trip_mode_choice", "SLSQP"),
+    ],
+)
 def test_simple_simulate(est_data, num_regression, dataframe_regression, name, method):
     from activitysim.estimation.larch import component_model
 
     m = component_model(name)
     m.load_data()
-    m.doctor(repair_ch_av='-')
+    m.doctor(repair_ch_av="-")
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method=method, options={"maxiter": 1000})
     num_regression.check(
@@ -82,27 +88,33 @@ def test_simple_simulate(est_data, num_regression, dataframe_regression, name, m
     _regression_check(dataframe_regression, m.pf)
 
 
-@pytest.mark.parametrize("name,method", [
-    ("workplace_location", "SLSQP"),
-    ("school_location", "SLSQP"),
-    ("non_mandatory_tour_destination", "SLSQP"),
-    ("atwork_subtour_destination", "BHHH"),
-    ("trip_destination", "SLSQP"),
-])
+@pytest.mark.parametrize(
+    "name,method",
+    [
+        ("workplace_location", "SLSQP"),
+        ("school_location", "SLSQP"),
+        ("non_mandatory_tour_destination", "SLSQP"),
+        ("atwork_subtour_destination", "BHHH"),
+        ("trip_destination", "SLSQP"),
+    ],
+)
 def test_location_model(est_data, num_regression, dataframe_regression, name, method):
     from activitysim.estimation.larch import component_model, update_size_spec
 
     m, data = component_model(name, return_data=True)
     m.load_data()
     loglike_prior = m.loglike()
-    r = m.maximize_loglike(method=method, options={'maxiter': 1000})
+    r = m.maximize_loglike(method=method, options={"maxiter": 1000})
     num_regression.check(
         {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename=f"test_loc_{name}_loglike",
     )
     _regression_check(dataframe_regression, m.pf)
     size_spec = update_size_spec(
-        m, data, result_dir=None, output_file=None,
+        m,
+        data,
+        result_dir=None,
+        output_file=None,
     )
     dataframe_regression.check(
         size_spec,
@@ -113,19 +125,22 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     )
 
 
-@pytest.mark.parametrize("name,method", [
-    ("non_mandatory_tour_scheduling", "SLSQP"),
-    ("joint_tour_scheduling", "SLSQP"),
-    ("atwork_subtour_scheduling", "SLSQP"),
-    ("mandatory_tour_scheduling_work", "SLSQP"),
-    ("mandatory_tour_scheduling_school", "SLSQP"),
-])
+@pytest.mark.parametrize(
+    "name,method",
+    [
+        ("non_mandatory_tour_scheduling", "SLSQP"),
+        ("joint_tour_scheduling", "SLSQP"),
+        ("atwork_subtour_scheduling", "SLSQP"),
+        ("mandatory_tour_scheduling_work", "SLSQP"),
+        ("mandatory_tour_scheduling_school", "SLSQP"),
+    ],
+)
 def test_scheduling_model(est_data, num_regression, dataframe_regression, name, method):
     from activitysim.estimation.larch import component_model, update_size_spec
 
     m, data = component_model(name, return_data=True)
     m.load_data()
-    m.doctor(repair_ch_av='-')
+    m.doctor(repair_ch_av="-")
     loglike_prior = m.loglike()
     r = m.maximize_loglike(method=method)
     num_regression.check(
@@ -163,7 +178,10 @@ def test_workplace_location(est_data, num_regression, dataframe_regression):
     )
     _regression_check(dataframe_regression, m.pf)
     size_spec = update_size_spec(
-        m, data, result_dir=None, output_file=None,
+        m,
+        data,
+        result_dir=None,
+        output_file=None,
     )
     dataframe_regression.check(
         size_spec,
@@ -185,7 +203,10 @@ def test_school_location(est_data, num_regression, dataframe_regression):
     )
     _regression_check(dataframe_regression, m.pf)
     size_spec = update_size_spec(
-        m, data, result_dir=None, output_file=None,
+        m,
+        data,
+        result_dir=None,
+        output_file=None,
     )
     dataframe_regression.check(
         size_spec,
@@ -208,7 +229,9 @@ def test_cdap_model(est_data, num_regression, dataframe_regression):
     _regression_check(dataframe_regression, m.pf)
 
 
-def test_nonmand_and_joint_tour_dest_choice(est_data, num_regression, dataframe_regression):
+def test_nonmand_and_joint_tour_dest_choice(
+    est_data, num_regression, dataframe_regression
+):
     from activitysim.estimation.larch import component_model
 
     modelname = ("non_mandatory_tour_destination", "joint_tour_destination")
@@ -225,8 +248,10 @@ def test_nonmand_and_joint_tour_dest_choice(est_data, num_regression, dataframe_
 
 
 def test_tour_and_subtour_mode_choice(est_data, num_regression, dataframe_regression):
-    from activitysim.estimation.larch.mode_choice import tour_mode_choice_model, \
-        atwork_subtour_mode_choice_model
+    from activitysim.estimation.larch.mode_choice import (
+        atwork_subtour_mode_choice_model,
+        tour_mode_choice_model,
+    )
 
     m = tour_mode_choice_model()
     s = atwork_subtour_mode_choice_model()

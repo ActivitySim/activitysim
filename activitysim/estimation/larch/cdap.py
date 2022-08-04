@@ -63,7 +63,7 @@ def apply_replacements(expression, prefix, tokens):
         The modified expression
     """
     for i in tokens:
-        expression = re.sub(fr"\b{i}\b", f"{prefix}_{i}", expression)
+        expression = re.sub(rf"\b{i}\b", f"{prefix}_{i}", expression)
     return expression
 
 

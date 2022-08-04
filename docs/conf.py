@@ -57,8 +57,8 @@ source_suffix = ".rst"
 master_doc = "index"
 
 # General information about the project.
-project = u"ActivitySim"
-copyright = u"contributing authors"
+project = "ActivitySim"
+copyright = "contributing authors"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -211,8 +211,8 @@ latex_documents = [
     (
         "index",
         "ActivitySim.tex",
-        u"ActivitySim Documentation",
-        u"contributing authors",
+        "ActivitySim Documentation",
+        "contributing authors",
         "manual",
     ),
 ]
@@ -243,7 +243,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ("index", "activitysim", u"ActivitySim Documentation", [u"contributing authors"], 1)
+    ("index", "activitysim", "ActivitySim Documentation", ["contributing authors"], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -259,8 +259,8 @@ texinfo_documents = [
     (
         "index",
         "ActivitySim",
-        u"ActivitySim Documentation",
-        u"contributing authors",
+        "ActivitySim Documentation",
+        "contributing authors",
         "ActivitySim",
         "One line description of project.",
         "Miscellaneous",

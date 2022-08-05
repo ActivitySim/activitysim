@@ -1,0 +1,116 @@
+Description,Output,Expression
+# These summaries are checked by test module
+,households_count,persons_merged[['household_id']].nunique().rename('households')
+,trips_by_mode_count,trips_merged.groupby('trip_mode')[['number_of_participants']].sum().T
+
+# Calculate total VMT by summing auto_distance from tours_merged
+# (auto_distance is calculated by an expression in summarize_preprocessor.csv)
+# Initially save as a temporary variable so it can be reused
+,_total_vmt,trips_merged[['auto_distance']].sum()
+# Then save to CSV
+,total_vmt,_total_vmt.rename('vmt')
+
+# Calculate vmt per capita
+# (All outputs to CSV have to be a Pandas Series or DataFrame)
+,vmt_per_capita,"pd.Series(_total_vmt / len(persons_merged), name='vmt_per_capita')"
+
+# Calculate vmt per capita by home taz
+,_vmt_per_home_taz,trips_merged.groupby('home_zone_id').auto_distance.sum()
+,_person_per_home_taz,persons_merged.groupby('home_zone_id').size()
+,_vmt_per_capita_by_home_taz,(_vmt_per_home_taz/_person_per_home_taz).fillna(0)
+,vmt_per_capita_by_home_taz,_vmt_per_capita_by_home_taz.rename('vmt_per_capita_by_home_taz').reset_index()
+
+# Calculate vmt per capita by work taz
+,_vmt_per_work_taz,trips_merged.groupby('workplace_zone_id').auto_distance.sum()
+,_person_per_work_taz,persons_merged.groupby('workplace_zone_id').size()
+,vmt_per_capita_by_work_taz,(_vmt_per_work_taz/_person_per_work_taz).fillna(0).rename('vmt_per_capita_by_work_taz').reset_index()
+
+# Count persons
+,persons_count,persons_merged[['household_id']].count().rename('persons')
+
+# Count person-tours
+,person_tours,"trips_merged[['tour_id', 'number_of_participants']].drop_duplicates()[['number_of_participants']].sum().rename('tours')"
+
+# Count person-trips
+,person_trips,trips_merged[['number_of_participants']].sum().rename('trips')
+
+# Count tours
+,tours_count,tours_merged.reset_index()[['tour_id']].count().rename('tours')
+
+# Count trips
+,trips_count,trips_merged.reset_index()[['trip_id']].count().rename('trips')
+
+# Count tours per household
+,_tours,"trips_merged[['tour_id', 'number_of_participants']].drop_duplicates()['number_of_participants'].sum()"
+,_households,persons_merged['household_id'].nunique()
+,tours_per_household_count,"pd.Series(_tours / _households, name='tours_per_household')"
+
+# Count trips per household
+,_trips,trips_merged['number_of_participants'].sum()
+,trips_per_household_count,"pd.Series(_trips / _households, name='trips_per_household')"
+
+# Count trips by major mode
+#,trips_by_major_mode_count,trips_merged.groupby('major_trip_mode')[['number_of_participants']].sum().T
+
+# Count trips by income category and major mode
+,_trips_with_income,"pd.merge(trips_merged, persons_merged['income_category'], left_on='person_id', right_index=True)"
+,trip_by_income_category_major_mode,"_trips_with_income.groupby(['income_category', 'major_trip_mode']).size().unstack(-1).reset_index()"
+
+# Count trips by purpose
+,trips_by_purpose_count,trips_merged.groupby('primary_purpose_trip')[['number_of_participants']].sum().T
+
+# Count trips by purpose and departure time
+,trip_purpose_by_time_of_day,"trips_merged.groupby(['depart','primary_purpose_trip'])['number_of_participants'].sum().unstack(-1).reset_index()"
+
+# Count trips with each combination of tour mode and trip mode (for Sankey)
+,tour_mode_to_trip_mode,"trips_merged.groupby(['tour_mode','trip_mode']).size().rename('trips').reset_index()"
+
+# Count work tours by time of day
+,_work_tours,trips_merged[trips_merged['tour_type'] == 'work']
+,work_tours_tod_count,_work_tours.groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
+
+# Count school tours by time of day
+,_school_tours,trips_merged[trips_merged['tour_type'] == 'school']
+,school_tours_tod_count,_school_tours.groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
+
+# Count non-manditory tours by time of day
+,_non_mandatory_tours,trips_merged[trips_merged.tour_category == 'non_mandatory']
+,non_mandatory_tours_tod_count,_non_mandatory_tours.groupby('tour_id').depart.min().reset_index().groupby('depart').size().sort_index().rename('tours').reset_index()
+
+# TAZ population density quintiles
+,_taz_pop_dens,land_use.TOTPOP/land_use.TOTACRE
+,taz_population_density_quintiles,"quantiles(_taz_pop_dens, 5, '{rank}').rename('pop_dens_quintile').reset_index()"
+
+# Calculate share of taz population that is low income by decile
+# (Output deciles by specifying '{rank}' as the label format in the quantile function)
+,_low_income_pop_by_taz,persons_merged[persons_merged.income < 50000].groupby('home_zone_id').size()
+,_total_pop_by_taz,persons_merged.groupby('home_zone_id').size()
+,_proportion_low_income_by_taz,"_low_income_pop_by_taz / _total_pop_by_taz"
+,_proportion_low_income_deciles,"quantiles(_proportion_low_income_by_taz, 10, '{rank}')"
+,low_income_share_by_taz_deciles,"_proportion_low_income_deciles.rename('low_income_share_by_taz_deciles').reset_index()"
+
+# Count persons by income category
+# (income_category is calculated by an expression in summarize_preprocessor.csv)
+#,persons_by_income_category,persons_merged.groupby('income_category')[['income_category']].count().T
+
+# Calculate vmt per capita quintiles by taz
+# (Output quintiles by specifying '{rank}' as the label format in the quantile function)
+,_vmt_per_capita_quintiles,"quantiles(_vmt_per_capita_by_home_taz, 5, '{rank}')"
+,vmt_per_capita_by_home_taz_quintiles,"_vmt_per_capita_quintiles.rename('vmt_per_capita_by_home_taz_quintiles').reset_index()"
+
+# Counts of non-motorized trips by 0.25-mile distance bins
+,_non_motorized_distances,(trips_merged.walk_distance + trips_merged.bike_distance)
+,_non_motorized_trips,trips_merged.major_trip_mode == 'Non-Motorized'
+,_non_motorized_trip_distances,_non_motorized_distances[_non_motorized_trips]
+,_counts_of_non_motorized_trips_by_distance_bin,"spaced_intervals(_non_motorized_trip_distances, 0, 0.25).value_counts()"
+,non_motorized_trip_distance_bins,"_counts_of_non_motorized_trips_by_distance_bin.sort_index().rename('trips').reset_index()"
+
+# Counts of trips by income and travel time category
+#,trips_by_income_and_travel_time_category,"trips_merged.groupby(['trip_income_category','total_time_category']).size().rename('trips').unstack(-2).reset_index()"
+
+
+
+
+
+
+

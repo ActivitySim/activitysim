@@ -12,7 +12,7 @@ class CLI:
                                  version=self.version)
 
         # print help if no subcommand is provided
-        self.parser.set_defaults(func=lambda x: self.parser.print_help())
+        self.parser.set_defaults(afunc=lambda x: self.parser.print_help())
 
         self.subparsers = self.parser.add_subparsers(title='subcommands',
                                                      help='available subcommand options')
@@ -20,8 +20,8 @@ class CLI:
     def add_subcommand(self, name, args_func, exec_func, description):
         subparser = self.subparsers.add_parser(name, description=description)
         args_func(subparser)
-        subparser.set_defaults(func=exec_func)
+        subparser.set_defaults(afunc=exec_func)
 
     def execute(self):
         args = self.parser.parse_args()
-        args.func(args)
+        args.afunc(args)

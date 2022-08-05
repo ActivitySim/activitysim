@@ -1,5 +1,5 @@
 Description,Target,Expression
-#,, annotate households table after import
+#,,annotate households table after import
 ,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
 #,,FIXME households.income can be negative  - so we clip?
 income_in_thousands,income_in_thousands,(households.income / 1000).clip(lower=0)

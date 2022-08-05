@@ -32,6 +32,7 @@ Contents
    estimation
    howitworks
    development
+   benchmarking
 
 
 Indices and tables

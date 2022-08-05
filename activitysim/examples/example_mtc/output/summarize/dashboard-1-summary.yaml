@@ -1,0 +1,108 @@
+version: 1
+
+header:
+  tab: Topsheet
+  title: ActivitySim Topsheet
+  description: "Some example metrics that people find generally useful."
+
+layout:
+  topsheetRow:
+    - title: "At-a-Glance"
+      type: "topsheet"
+      props:
+        configFile: "topsheet.yaml"
+
+  row0:
+    - title: "Trip Mode Share"
+      # description: "Add a subtitle"
+      info: "You can additional descriptive text for each chart element."
+      type: "pie"
+      width: 1
+      props:
+        dataset: "trips_by_mode_count.csv"
+        useLastRow: true
+
+    - title: "Trip Purpose"
+      # description: ""
+      info: "You can add additional descriptive text for each chart element."
+      type: "pie"
+      width: 1
+      props:
+        dataset: "trips_by_purpose_count.csv"
+        useLastRow: true
+
+    - title: "Trip Purpose by Time of Day"
+      description: "Trip counts stacked by puropse"
+      info: "You can add additional descriptive text for each chart element."
+      type: "area"
+      width: 1
+      props:
+        dataset: "trip_purpose_by_time_of_day.csv"
+        x: "depart"
+
+  row1:
+    - title: "VMT / Capita"
+      # description: ""
+      info: "You can add additional descriptive text for each chart element."
+      type: "map"
+      width: 2
+      height: 8
+      props:
+        boundaries: 'taz1454.geojson'
+        boundariesJoinCol: 'TAZ1454'
+        boundariesLabels: 'TAZ'
+        dataset: 'vmt_per_capita_by_home_taz.csv'
+        datasetJoinCol: 'home_zone_id'
+        datasetValue: 'vmt_per_capita_by_home_taz'
+
+    - title: "VMT / Employee"
+     # description: ""
+      type: "map"
+      width: 2
+      height: 8
+      props:
+        boundaries: 'taz1454.geojson'
+        boundariesJoinCol: 'TAZ1454'
+        boundariesLabels: 'TAZ'
+        dataset: 'vmt_per_capita_by_work_taz.csv'
+        datasetJoinCol: 'workplace_zone_id'
+        datasetValue: 'vmt_per_capita_by_work_taz'
+
+  row2:
+    - title: "Work Tours by Departure Time"
+      type: "bar"
+      props:
+        dataset: "work_tours_tod_count.csv"
+        x: "depart"
+        xAxisTitle: "Time of Day"
+        columns: ['tours']
+        yAxisTitle: "Tours"
+        legendTitles: ['Work Tours']
+
+    - title: "School Tours by Departure Time"
+      type: "bar"
+      props:
+        dataset: "school_tours_tod_count.csv"
+        x: "depart"
+        xAxisTitle: "Time of Day"
+        columns: ['tours']
+        yAxisTitle: "Tours"
+        legendTitles: ['School Tours']
+
+    - title: "Non-Mandatory Tours by Departure Time"
+      type: "bar"
+      props:
+        dataset: "non_mandatory_tours_tod_count.csv"
+        x: "depart"
+        xAxisTitle: "Time of Day"
+        columns: ['tours']
+        yAxisTitle: "Tours"
+        legendTitles: ['Non-Mandatory Tours']
+
+  row3:
+    - title: "Relationships Between Tour Modes and Trip Modes"
+      description: "Tour modes <---> Trip modes"
+      type: sankey
+      height: 8
+      props:
+        csv: tour_mode_to_trip_mode.csv

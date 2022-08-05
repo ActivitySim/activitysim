@@ -46,6 +46,44 @@
       data/land_use.csv
       fac71207925a34c32b956632fe375814e42860624a99f88401c42317af0fc203
 
+- name: example_mtc_extended
+  description: 25-zone example for the MTC region with extended models
+  # activitysim create -e example_mtc_extended -d test_example_mtc_extended
+  # cd test_example_mtc_extended
+  # activitysim run -c configs_extended/configs -c configs -o output -d data
+  # cd ..
+  include:
+    - example_mtc/data
+    - example_mtc_extended/configs
+      configs_extended
+    - example_mtc/configs
+    - example_mtc_extended/configs_mp
+    - example_mtc_extended/output
+    - example_mtc_extended/README.MD
+
+- name: example_mtc_full_extended
+  description: Full 1475-zone dataset for the MTC region with 2.8M households and 7.5M persons with extended models
+  # activitysim create -e example_mtc_full_extended -d test_example_mtc_full_extended
+  # cd test_example_mtc_full_extended
+  # activitysim run -c configs_mp -c configs_extended/configs -c configs -o output -d data
+  # cd ..
+  include:
+    - example_mtc/data
+    - example_mtc/configs
+    - example_mtc_extended/configs
+      configs_extended
+    - example_mtc_extended/configs_mp
+    - example_mtc_extended/output
+    - example_mtc_extended/README.MD
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
+      data/skims.omx
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/land_use.csv
+      data/land_use.csv
+
 - name: example_mtc_sf
   description: San Francisco MTC dataset with 190 zones, 400k households and 900k persons
   # activitysim create -e example_mtc_sf -d test_example_mtc_sf

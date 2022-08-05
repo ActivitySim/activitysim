@@ -58,6 +58,13 @@ def add_run_args(parser, multiprocess=True):
                         type=int,
                         metavar='BYTES',
                         help='chunk size')
+    parser.add_argument('--chunk_training_mode',
+                        type=str,
+                        help='chunk training mode, one of [training, adaptive, production, disabled]')
+    parser.add_argument('--households_sample_size',
+                        type=int,
+                        metavar='N',
+                        help='households sample size')
 
     if multiprocess:
         parser.add_argument('-m', '--multiprocess',
@@ -130,6 +137,10 @@ def handle_standard_args(args, multiprocess=True):
 
     if args.chunk_size:
         config.override_setting('chunk_size', int(args.chunk_size))
+    if args.chunk_training_mode is not None:
+        config.override_setting('chunk_training_mode', args.chunk_training_mode)
+    if args.households_sample_size is not None:
+        config.override_setting('households_sample_size', args.households_sample_size)
 
     for injectable in ['configs_dir', 'data_dir', 'output_dir']:
         validate_injectable(injectable)

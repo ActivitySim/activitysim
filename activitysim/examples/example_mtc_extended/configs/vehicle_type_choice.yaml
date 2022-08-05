@@ -1,0 +1,111 @@
+# vehicle_type_choice.yaml
+
+SPEC: vehicle_type_choice_op4.csv
+COEFFICIENTS: vehicle_type_choice_op4_coefficients.csv
+ALTS: vehicle_type_choice_op4_alternatives.csv
+
+# SPEC: vehicle_type_choice_op2.csv
+# COEFFICIENTS: vehicle_type_choice_op2_coefficients.csv
+# ALTS: vehicle_type_choice_op2_alternatives.csv
+# # probs must have body_type and vehicle_year columns
+# # probs spec has vehicle age calculated from FLEET_YEAR
+# PROBS_SPEC: vehicle_type_choice_op2_fuel_type_probs.csv
+
+LOGIT_TYPE: MNL
+
+# options: simple_simulate or interaction_simulate
+# if interaction_simulate, will build alteratives from combinatorial_alts below
+# if simple_simulate, alternatives need to be specified in the columns of the model spec
+SIMULATION_TYPE: interaction_simulate
+
+# additional vehicle_type_data merged to the alternatives for use in utility expressions
+# need to have columns body_type, fuel_type, and vehicle_year
+# entries in the data need to match the combinations in combinatorial_alts below
+VEHICLE_TYPE_DATA_FILE: vehicle_type_data.csv
+
+# age is computed as (1 + FLEET_YEAR - vehicle_year)
+FLEET_YEAR: 2017
+
+# if PROBS_SPEC is supplied, auto operating cost will not be
+#  merged until after a fuel type is selected
+COLS_TO_INCLUDE_IN_VEHICLE_TABLE:
+  - auto_operating_cost
+  - Range
+  - MPG
+
+# If PROBS_SPEC is supplied, fuel_type will be ignored
+combinatorial_alts:
+  body_type:
+    - Car
+    - Van
+    - SUV
+    - Pickup
+    - Motorcycle
+  age:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    - 8
+    - 9
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+    - 17
+    - 18
+    - 19
+    - 20
+  fuel_type:
+    - Gas
+    - Diesel
+    - Hybrid
+    - PEV
+    - BEV
+
+# will write out the created vehicle_type_model_alternatives.csv file
+#  to the base configs directory. Helpful for debugging alternaties.
+WRITE_OUT_ALTS_FILE: False
+
+preprocessor:
+  SPEC: vehicle_type_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - vehicles
+    - persons
+    - households
+
+# annotate_persons:
+#   SPEC: annotate_persons_vehicle_type
+#   DF: persons
+#   TABLES:
+#     - vehicles
+#
+# annotate_households:
+#   SPEC: annotate_households_vehicle_type
+#   DF: households
+#   TABLES:
+#     - persons
+#     - vehicles
+#
+# annotate_vehicles:
+#   SPEC: annotate_households_vehicle_type
+#   DF: vehicles
+#   TABLES:
+
+CONSTANTS:
+  # Select region for model and input the MSA population
+  # Expressions for CBSA values are implemented for:
+  #   San Francisco (SFO), San Diego (SAN), Atlanta (ATL),
+  #   Seattle (SEA), Detroit (DET), Minneapolis (MSP),
+  #   Washington DC (DCA), Oregon (OREG), Ohio (OHIO)
+  CBSA: SFO
+  MSA_POP: 3320000
+  CHARGERS_PER_CAP: 0.000721205

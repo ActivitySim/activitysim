@@ -142,10 +142,10 @@ jobs:
           mamba info -a
           mamba list
 
-      - name: Lint with pycodestyle
+      - name: Lint with Black
         run: |
           # stop the build if there are problems
-          pycodestyle .
+          black --check --diff .
 
       - name: Test activitysim.core
         run: |

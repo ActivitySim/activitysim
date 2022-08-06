@@ -430,7 +430,7 @@ In the output directory, add a new summarize directory, which must contain:
 * ``topsheet.yaml``: configuration for calculated statistics in the ‘At-a-Glance’ table at the top of the dashboard
 * The ``/output/summarize`` directory may also contain one or more .geojson files to support map-based visualizations in the dashboard.
 
-At present, example versions of all of the items above are located in the MTC example model: ``/activitysim/examples/example_mtc``. Complete documentation for configuring dashboards is available in the `SimWrapper Docs <https://simwrapper.github.io/docs/simwrapper-intro>`_.
+At present, example versions of all of the items above are located in the prototype MTC example model: ``/activitysim/examples/prototype_mtc``. Complete documentation for configuring dashboards is available in the `SimWrapper Docs <https://simwrapper.github.io/docs/simwrapper-intro>`_.
 
 
 Configure the Summarize Model
@@ -438,7 +438,7 @@ Configure the Summarize Model
 
 Summary Expressions
 ^^^^^^^^^^^^^^^^^^^
-Example configuration files for the summarize model step (as listed above) are included in MTC example. These files will need to be adjusted to produce customized SimWrapper dashboards. These files are structured as standard ActivitySim expression (CSV) and configuration (YAML) files. More detailed information about configuration of the summarize model step is available in the Models documentation.
+Example configuration files for the summarize model step (as listed above) are included in prototype MTC example. These files will need to be adjusted to produce customized SimWrapper dashboards. These files are structured as standard ActivitySim expression (CSV) and configuration (YAML) files. More detailed information about configuration of the summarize model step is available in the Models documentation.
 
 You may wish to manipulate the default expression files to suit your particular needs. Expression files are formatted as CSVs and structured according to ActivitySim conventions with three columns:
 
@@ -471,7 +471,7 @@ The ``label_format`` parameter uses f-string formatting to specify how bins shou
 
 By default, bins are labeled with their extents using the following f-string: ``'{left:,.2f} - {right:,.2f}'``. The ``'{rank}'`` option demonstrated above would label each bin with its ordinal rank. Numeric labels are converted to numeric data types, if possible.
 
-Examples of each summarize function are included in the ``summarize.csv`` expression file for the MTC example. Consult the docstrings for each function in the ``/activitysim/abm/models/summarize.py`` module for complete specification of parameters.
+Examples of each summarize function are included in the ``summarize.csv`` expression file for the prototype MTC example. Consult the docstrings for each function in the ``/activitysim/abm/models/summarize.py`` module for complete specification of parameters.
 
 Preprocessing
 ^^^^^^^^^^^^^
@@ -503,7 +503,7 @@ Binning during the preprocessing stage uses the same convenience functions avail
           - High Income ($75k-$100k)
           - Very High Income (>$100k)
 
-Example uses of each binning function are included in the ``summarize.yaml`` configuration file in the MTC example.
+Example uses of each binning function are included in the ``summarize.yaml`` configuration file in the prototype MTC example.
 
 Table columns can also be aggregated, or "remapped," during the preprocessing stage. Aggregations are specified in the configuration YAML using a key-value  structure:
 
@@ -538,7 +538,7 @@ Table columns can also be aggregated, or "remapped," during the preprocessing st
           TNC_SHARED: Ride Hail
 
 
-Trip-level skim data are also made available in the preprocessing stage by attaching columns to the ``trips_merged`` table based on expressions in ``summarize_preprocessor.csv``. This process uses skim wrappers indexed by origin, destination, and time of day to gather distance, time, and cost data and each trip, enabling calculation of variables such as vehicle miles traveled (VMT). Preprocessing expressions are interpreted with standard ActivitySim annotation methods, including definition of scalar and vector temporary variables based on underscores and capitalization. The preprocessor expressions included in the MTC example demonstrate calculation of a number of skim-based variables involving distance, time, and cost. The system for joining skim data to trips is currently configured for the one-zone MTC example model and will need to be generalized for multi-zone systems in future work.
+Trip-level skim data are also made available in the preprocessing stage by attaching columns to the ``trips_merged`` table based on expressions in ``summarize_preprocessor.csv``. This process uses skim wrappers indexed by origin, destination, and time of day to gather distance, time, and cost data and each trip, enabling calculation of variables such as vehicle miles traveled (VMT). Preprocessing expressions are interpreted with standard ActivitySim annotation methods, including definition of scalar and vector temporary variables based on underscores and capitalization. The preprocessor expressions included in the prototype MTC example demonstrate calculation of a number of skim-based variables involving distance, time, and cost. The system for joining skim data to trips is currently configured for the one-zone MTC example model and will need to be generalized for multi-zone systems in future work.
 
 
 Install and Run Simwrapper

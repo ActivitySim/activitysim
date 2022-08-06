@@ -1,7 +1,6 @@
 import pandas as pd
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import tracing
+
+from activitysim.core import inject, pipeline, tracing
 
 
 @inject.step()

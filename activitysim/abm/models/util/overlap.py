@@ -2,12 +2,10 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import inject
-
+from activitysim.core import inject, tracing
 
 logger = logging.getLogger(__name__)
 

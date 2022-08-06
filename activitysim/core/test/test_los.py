@@ -4,14 +4,12 @@
 import os
 
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
+import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-
-from .. import inject
-from .. import los
+from .. import inject, los
 
 
 def teardown_function(func):

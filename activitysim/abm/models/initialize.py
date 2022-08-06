@@ -1,23 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
-import warnings
 import os
+import warnings
+
 import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import expressions
-from activitysim.core import chunk
-from activitysim.core import mem
-
-from activitysim.core.steps.output import write_data_dictionary
-from activitysim.core.steps.output import write_tables
-from activitysim.core.steps.output import track_skim_usage
-
 from activitysim.abm.tables import shadow_pricing
+from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing
+from activitysim.core.steps.output import (
+    track_skim_usage,
+    write_data_dictionary,
+    write_tables,
+)
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility

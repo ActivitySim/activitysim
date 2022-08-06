@@ -4,11 +4,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import expressions
+from activitysim.core import config, expressions, inject, simulate, tracing
 
 from . import estimation
 from . import vectorize_tour_scheduling as vts

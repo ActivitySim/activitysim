@@ -3,20 +3,20 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk
-from activitysim.core import config
-from activitysim.core import expressions
-from activitysim.core import inject
-from activitysim.core import logit
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import tracing
-
 from activitysim.abm.models.util.trip import get_time_windows
-from activitysim.core import interaction_simulate
+from activitysim.core import (
+    chunk,
+    config,
+    expressions,
+    inject,
+    interaction_simulate,
+    logit,
+    pipeline,
+    simulate,
+    tracing,
+)
 from activitysim.core.simulate import set_skim_wrapper_targets
 from activitysim.core.util import reindex
-
 
 logger = logging.getLogger(__name__)
 

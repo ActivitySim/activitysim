@@ -5,6 +5,7 @@ import os
 
 import numpy as np
 import pandas as pd
+
 from activitysim.abm.models.trip_matrices import annotate_trips
 from activitysim.core import config, expressions, inject, pipeline
 

@@ -15,10 +15,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from . import config
-from . import mem
-from . import tracing
-from . import util
+from . import config, mem, tracing, util
 from .util import GB
 
 logger = logging.getLogger(__name__)

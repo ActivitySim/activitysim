@@ -2,14 +2,15 @@
 # See full license in LICENSE.txt.
 
 from builtins import range
+
 import numpy as np
 import pandas as pd
 import pandas.testing as pdt
 import pytest
 from numpy.testing import assert_array_equal
 
-from .. import timetable as tt
 from .. import chunk
+from .. import timetable as tt
 
 
 @pytest.fixture
@@ -150,8 +151,9 @@ def test_basic(persons, tdd_alts):
                 17,  # START + MIDDLE + END collides with same
             ]
         )
-        assert_array_equal(
-            timetable.tour_available(person_ids, tdds), [True, True, False, False]
+        pdt.assert_series_equal(
+            timetable.tour_available(person_ids, tdds),
+            pd.Series([True, True, False, False], index=person_ids.index),
         )
 
         # assigning overlapping trip END,START should convert END to START_END

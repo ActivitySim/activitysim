@@ -1,21 +1,21 @@
+import importlib
+import itertools
+import logging
+import os
+import re
+from pathlib import Path
+
+import larch
 import numpy as np
 import pandas as pd
-import re
-import itertools
-from larch import P, X, DataFrames, Model
+import yaml
+from larch import DataFrames, Model, P, X
+from larch.log import logger_name
 from larch.model.model_group import ModelGroup
 from larch.util import Dict
-import larch
-import os
-import yaml
-import importlib
-import logging
-from larch.log import logger_name
-from pathlib import Path
 
 from ...abm.models.util import cdap
 from .general import apply_coefficients, explicit_value_parameters
-
 
 _logger = logging.getLogger(logger_name)
 
@@ -63,7 +63,7 @@ def apply_replacements(expression, prefix, tokens):
         The modified expression
     """
     for i in tokens:
-        expression = re.sub(fr"\b{i}\b", f"{prefix}_{i}", expression)
+        expression = re.sub(rf"\b{i}\b", f"{prefix}_{i}", expression)
     return expression
 
 

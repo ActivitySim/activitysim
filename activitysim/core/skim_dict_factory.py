@@ -2,18 +2,15 @@
 # See full license in LICENSE.txt.
 # from builtins import int
 
-import os
-import multiprocessing
 import logging
-import numpy as np
-import openmatrix as omx
+import multiprocessing
+import os
 from abc import ABC, abstractmethod
 
-from activitysim.core import util
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import skim_dictionary
+import numpy as np
+import openmatrix as omx
+
+from activitysim.core import config, inject, skim_dictionary, tracing, util
 
 logger = logging.getLogger(__name__)
 

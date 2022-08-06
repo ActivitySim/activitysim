@@ -4,14 +4,9 @@ import os
 
 import pandas as pd
 import pandas.testing as pdt
+from test_multi_zone import example_path, regress_3_zone, setup_dirs
 
-from activitysim.core import pipeline
-from activitysim.core import inject
-from activitysim.core import mp_tasks
-
-from test_multi_zone import example_path
-from test_multi_zone import setup_dirs
-from test_multi_zone import regress_3_zone
+from activitysim.core import inject, mp_tasks, pipeline
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 100

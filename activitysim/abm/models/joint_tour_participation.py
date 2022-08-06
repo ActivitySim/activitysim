@@ -4,24 +4,21 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import logit
-from activitysim.core import expressions
-from activitysim.core import chunk
-
-from activitysim.core.util import assign_in_place
+from activitysim.abm.models.util.canonical_ids import MAX_PARTICIPANT_PNUM
+from activitysim.core import (
+    chunk,
+    config,
+    expressions,
+    inject,
+    logit,
+    pipeline,
+    simulate,
+    tracing,
+)
+from activitysim.core.util import assign_in_place, reindex
 
 from .util import estimation
-
-from activitysim.core.util import reindex
 from .util.overlap import person_time_window_overlap
-
-from activitysim.abm.models.util.canonical_ids import MAX_PARTICIPANT_PNUM
-
 
 logger = logging.getLogger(__name__)
 

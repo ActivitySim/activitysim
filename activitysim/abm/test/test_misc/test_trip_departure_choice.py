@@ -5,6 +5,7 @@ import pytest
 import activitysim.abm.models.trip_departure_choice as tdc
 from activitysim.abm.models.util.trip import get_time_windows
 from activitysim.core import los
+
 from .setup_utils import setup_dirs
 
 

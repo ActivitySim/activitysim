@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 df = pd.read_csv(f"trip_mode_coefficients_p.csv", comment="#")
 

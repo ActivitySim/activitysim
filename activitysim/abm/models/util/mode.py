@@ -1,12 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import pandas as pd
 import logging
 
-from activitysim.core import simulate
-from activitysim.core import config
-from activitysim.core import expressions
-from activitysim.core import tracing
+import pandas as pd
+
+from activitysim.core import config, expressions, simulate, tracing
 
 """
 At this time, these utilities are mostly for transforming the mode choice

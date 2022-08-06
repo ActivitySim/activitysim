@@ -2,23 +2,20 @@
 # See full license in LICENSE.txt.
 
 import datetime
-
 import gc
 import glob
 import logging
 import multiprocessing
 import os
 import platform
-import psutil
 import threading
 import time
 
 import numpy as np
 import pandas as pd
+import psutil
 
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import util
+from activitysim.core import config, inject, util
 
 logger = logging.getLogger(__name__)
 

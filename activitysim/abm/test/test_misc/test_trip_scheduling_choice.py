@@ -5,6 +5,7 @@ import pytest
 from activitysim.abm.models import trip_scheduling_choice as tsc
 from activitysim.abm.tables.skims import skim_dict
 from activitysim.core import los
+
 from .setup_utils import setup_dirs
 
 

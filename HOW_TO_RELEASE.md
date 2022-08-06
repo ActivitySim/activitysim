@@ -60,8 +60,8 @@
     regular test suite takes some time to run, between about half an hour and 
     two hours depending on the specs of your machine.
     ```sh
-    python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-    python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+    python activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+    python activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
     pytest .
     ```
  
@@ -83,7 +83,7 @@
     python ../activitysim/examples/scan_examples_for_errors.py .
     ```
 
-00. Test the notebooks in `activitysim/examples/example_mtc/notebooks`.
+00. Test the notebooks in `activitysim/examples/prototype_mtc/notebooks`.
     There are also demo notebooks for estimation, but their functionality  
     is completely tested in the unit tests run previously.
 

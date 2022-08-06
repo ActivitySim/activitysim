@@ -2,18 +2,15 @@
 # See full license in LICENSE.txt.
 
 import os.path
-import yaml
 
 import pandas as pd
 import pandas.testing as pdt
 import pytest
+import yaml
+
+from activitysim.core import chunk, config, inject, simulate
 
 from .. import cdap
-
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import config
-from activitysim.core import chunk
 
 
 @pytest.fixture(scope="module")

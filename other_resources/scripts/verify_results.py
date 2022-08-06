@@ -4,8 +4,8 @@
 # C:\projects\activitysim\verification>python compare_results.py
 #############################################################
 
-import pandas as pd
 import openmatrix as omx
+import pandas as pd
 
 #############################################################
 # INPUTS

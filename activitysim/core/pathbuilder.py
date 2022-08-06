@@ -1,27 +1,26 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import range
-
 import logging
 import warnings
+from builtins import range
+
 import numpy as np
 import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import inject
-from activitysim.core import config
-from activitysim.core import chunk
-from activitysim.core import logit
-from activitysim.core import simulate
-from activitysim.core import los
-from activitysim.core import pathbuilder_cache
-
-from activitysim.core.util import reindex
-
-from activitysim.core import expressions
-from activitysim.core import assign
-
+from activitysim.core import (
+    assign,
+    chunk,
+    config,
+    expressions,
+    inject,
+    logit,
+    los,
+    pathbuilder_cache,
+    simulate,
+    tracing,
+)
 from activitysim.core.pathbuilder_cache import memo
+from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
 

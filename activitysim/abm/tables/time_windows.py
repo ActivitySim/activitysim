@@ -6,8 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-from activitysim.core import config
+from activitysim.core import config, inject
 from activitysim.core import timetable as tt
 
 logger = logging.getLogger(__name__)

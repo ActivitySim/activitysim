@@ -1,17 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import os.path
 import logging
 import logging.config
+import os.path
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from .. import config
-from .. import assign
-from .. import tracing
-from .. import inject
+from .. import assign, config, inject, tracing
 
 
 def setup_function():

@@ -1,18 +1,17 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import sys
-import os
 import logging
-import yaml
+import os
+import sys
 
 import numpy as np
 import pandas as pd
-
-from activitysim.abm.models.util import tour_frequency as tf
-from activitysim.core.util import reindex
+import yaml
 
 from activitysim.abm.models.util import canonical_ids as cid
+from activitysim.abm.models.util import tour_frequency as tf
+from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

@@ -1,8 +1,8 @@
-import os
-import sys
 import json
+import os
 import shutil
 import subprocess
+import sys
 
 ASV_CONFIG = {
     # The version of the config file format.  Do not change, unless
@@ -77,7 +77,7 @@ def make_asv_argparser(parser):
     Most of this work is handed off to the airspeed velocity library.
     """
     try:
-        from asv.commands import common_args, Command, util, command_order
+        from asv.commands import Command, command_order, common_args, util
     except ImportError:
         return
 
@@ -139,7 +139,7 @@ def make_asv_argparser(parser):
         )
         common_args.add_global_arguments(subparser)
 
-    from ..benchmarking.latest import Latest, Batch
+    from ..benchmarking.latest import Batch, Latest
 
     subparser = Latest.setup_arguments(subparsers)
     subparser.add_argument(
@@ -186,8 +186,8 @@ def benchmark(args):
         print("airspeed velocity is not installed")
         print("try `conda install asv -c conda-forge` if you want to run benchmarks")
         sys.exit(1)
-    from asv.console import log
     from asv import util
+    from asv.console import log
 
     log.enable(args.verbose)
 

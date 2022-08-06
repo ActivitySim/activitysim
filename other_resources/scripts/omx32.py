@@ -1,10 +1,9 @@
-import os
-import pandas as pd
-import openmatrix as omx
-import numpy as np
-
 import argparse
+import os
 
+import numpy as np
+import openmatrix as omx
+import pandas as pd
 
 parser = argparse.ArgumentParser(description="crop PSRC raw_data")
 parser.add_argument(

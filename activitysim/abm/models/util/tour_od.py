@@ -2,19 +2,23 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from orca import orca
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import logit
-from activitysim.core import los
-from activitysim.core import expressions
-
+from activitysim.abm.tables.size_terms import tour_destination_size_terms
+from activitysim.core import (
+    config,
+    expressions,
+    inject,
+    logit,
+    los,
+    pipeline,
+    simulate,
+    tracing,
+)
+from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
 
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -241,6 +245,11 @@ def od_sample(
     choices[dest_col_name] = choices[alt_od_col_name].str.split("_").str[1].astype(int)
 
     return choices
+
+
+def map_maz_to_taz(s, network_los):
+    maz_to_taz = network_los.maz_taz_df[["MAZ", "TAZ"]].set_index("MAZ").TAZ
+    return s.map(maz_to_taz)
 
 
 def map_maz_to_ext_taz(s):

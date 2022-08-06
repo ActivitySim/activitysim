@@ -2,8 +2,8 @@
 # See full license in LICENSE.txt.
 
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
+import pandas as pd
 import pandas.testing as pdt
 import pytest
 

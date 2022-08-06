@@ -2,12 +2,11 @@
 # See full license in LICENSE.txt.
 
 import os
+import sys
 
 import numpy as np
-import pandas as pd
 import openmatrix as omx
-
-import sys
+import pandas as pd
 
 # currently hdf5 written with python3 works with both p2.7 and p3,
 # but reading hdf5 built with p2.7 (tables==3.4.4) p3 throws a ValueError reading land_use_taz:

@@ -1,8 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import object
-
 import logging
+from builtins import object
 
 import numpy as np
 import pandas as pd

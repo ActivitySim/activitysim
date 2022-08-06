@@ -4,8 +4,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config
-from activitysim.core import inject
+from activitysim.core import config, inject
 
 # FIXME
 # warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)

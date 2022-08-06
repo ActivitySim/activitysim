@@ -1,18 +1,18 @@
+import itertools
+import logging
+import os
+import re
+from pathlib import Path
+from typing import Mapping
+
 import numpy as np
 import pandas as pd
-import re
-import os
 import yaml
-import itertools
-from typing import Mapping
-from larch import P, X, DataFrames, Model
+from larch import DataFrames, Model, P, X
+from larch.log import logger_name
 from larch.model.abstract_model import AbstractChoiceModel
 from larch.model.tree import NestingTree
 from larch.util import Dict
-from pathlib import Path
-
-import logging
-from larch.log import logger_name
 
 _logger = logging.getLogger(logger_name)
 
@@ -142,15 +142,12 @@ def linear_utility_from_spec(spec, x_col, p_col, ignore_x=(), segment_id=None):
             raise ValueError("segment_id must be given if p_col is a dict")
         partial_utility = {}
         for seg_p_col, segval in p_col.items():
-            partial_utility[seg_p_col] = (
-                linear_utility_from_spec(
-                    spec,
-                    x_col,
-                    seg_p_col,
-                    ignore_x,
-                )
-                * X(f"{segment_id}=={str_repr(segval)}")
-            )
+            partial_utility[seg_p_col] = linear_utility_from_spec(
+                spec,
+                x_col,
+                seg_p_col,
+                ignore_x,
+            ) * X(f"{segment_id}=={str_repr(segval)}")
         return sum(partial_utility.values())
     parts = []
     for i in spec.index:

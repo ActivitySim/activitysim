@@ -1,13 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import os.path
 import logging
-import pytest
+import os.path
 
 import pandas as pd
+import pytest
 
-from .. import tracing
-from .. import inject
+from .. import inject, tracing
 
 
 def close_handlers():

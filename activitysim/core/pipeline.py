@@ -1,27 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import next
-from builtins import map
-from builtins import object
-
-import os
-import logging
 import datetime as dt
+import logging
+import os
+from builtins import map, next, object
 
 import pandas as pd
-
 from orca import orca
 
-from . import inject
-from . import config
-from . import random
-from . import tracing
-from . import mem
-
-
-from . import util
+from . import config, inject, mem, random, tracing, util
 from .tracing import print_elapsed_time
-
 
 logger = logging.getLogger(__name__)
 

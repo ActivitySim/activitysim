@@ -4,18 +4,14 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import inject
-
-from activitysim.core.util import assign_in_place
-
-from activitysim.abm.models.trip_purpose import run_trip_purpose
 from activitysim.abm.models.trip_destination import run_trip_destination
-
-from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
-from activitysim.abm.models.util.trip import cleanup_failed_trips
+from activitysim.abm.models.trip_purpose import run_trip_purpose
+from activitysim.abm.models.util.trip import (
+    cleanup_failed_trips,
+    flag_failed_trip_leg_mates,
+)
+from activitysim.core import config, inject, pipeline, tracing
+from activitysim.core.util import assign_in_place
 
 from .util import estimation
 

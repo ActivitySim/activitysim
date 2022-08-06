@@ -5,14 +5,17 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import logit
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import chunk
-from activitysim.core import pipeline
-from activitysim.core import expressions
-from activitysim.core import simulate
+from activitysim.core import (
+    chunk,
+    config,
+    expressions,
+    inject,
+    logit,
+    pipeline,
+    simulate,
+    tracing,
+)
+
 from .util import estimation
 
 logger = logging.getLogger(__name__)

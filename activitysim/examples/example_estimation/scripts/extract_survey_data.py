@@ -1,9 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import sys
-import os
 import logging
+import os
+import sys
 
 import numpy as np
 import pandas as pd

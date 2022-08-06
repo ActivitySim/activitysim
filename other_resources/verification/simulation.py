@@ -1,18 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import sys
 import logging
+import sys
 
 import pandas as pd
 
-from activitysim.core import mem
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import mp_tasks
-from activitysim.core import chunk
+from activitysim.core import chunk, config, inject, mem, mp_tasks, pipeline, tracing
 
 # from activitysim import abm
 

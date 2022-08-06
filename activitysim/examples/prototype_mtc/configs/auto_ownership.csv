@@ -1,0 +1,30 @@
+Label,Description,Expression,cars0,cars1,cars2,cars3,cars4
+util_drivers_2,2 Adults (age 16+),num_drivers==2,,coef_cars1_drivers_2,coef_cars2_drivers_2,coef_cars3_drivers_2,coef_cars4_drivers_2
+util_drivers_3,3 Adults (age 16+),num_drivers==3,,coef_cars1_drivers_3,coef_cars2_drivers_3,coef_cars3_drivers_3,coef_cars4_drivers_3
+util_drivers_4_up,4+ Adults (age 16+),num_drivers>3,,coef_cars1_drivers_4_up,coef_cars2_drivers_4_up,coef_cars3_drivers_4_up,coef_cars4_drivers_4_up
+util_persons_16_17,Persons age 16-17,num_children_16_to_17,,coef_cars1_persons_16_17,coef_cars2_persons_16_17,coef_cars34_persons_16_17,coef_cars34_persons_16_17
+util_persons_18_24,Persons age 18-24,num_college_age,,coef_cars1_persons_18_24,coef_cars2_persons_18_24,coef_cars34_persons_18_24,coef_cars34_persons_18_24
+util_persons_25_34,Persons age 35-34,num_young_adults,,coef_cars1_persons_25_34,coef_cars2_persons_25_34,coef_cars34_persons_25_34,coef_cars34_persons_25_34
+util_presence_children_0_4,Presence of children age 0-4,num_young_children>0,,coef_cars1_presence_children_0_4,coef_cars234_presence_children_0_4,coef_cars234_presence_children_0_4,coef_cars234_presence_children_0_4
+util_presence_children_5_17,Presence of children age 5-17,(num_children_5_to_15+num_children_16_to_17)>0,,coef_cars1_presence_children_5_17,coef_cars2_presence_children_5_17,coef_cars34_presence_children_5_17,coef_cars34_presence_children_5_17
+util_num_workers_clip_3,"Number of workers, capped at 3",@df.num_workers.clip(upper=3),,coef_cars1_num_workers_clip_3,coef_cars2_num_workers_clip_3,coef_cars3_num_workers_clip_3,coef_cars4_num_workers_clip_3
+util_hh_income_0_30k,"Piecewise Linear household income, $0-30k","@df.income_in_thousands.clip(0, 30)",,coef_cars1_hh_income_0_30k,coef_cars2_hh_income_0_30k,coef_cars3_hh_income_0_30k,coef_cars4_hh_income_0_30k
+util_hh_income_30_75k,"Piecewise Linear household income, $30-75k","@(df.income_in_thousands-30).clip(0, 45)",,coef_cars1_hh_income_30_up,coef_cars2_hh_income_30_up,coef_cars3_hh_income_30_up,coef_cars4_hh_income_30_up
+util_hh_income_75k_up,"Piecewise Linear household income, $75k+, capped at $125k","@(df.income_in_thousands-75).clip(0, 50)",,coef_cars1_hh_income_30_up,coef_cars2_hh_income_30_up,coef_cars3_hh_income_30_up,coef_cars4_hh_income_30_up
+util_density_0_10_no_workers,"Density index up to 10, if 0 workers","@(df.num_workers==0)*df.density_index.clip(0, 10)",,coef_cars1_density_0_10_no_workers,coef_cars2_density_0_10_no_workers,coef_cars34_density_0_10_no_workers,coef_cars34_density_0_10_no_workers
+util_density_10_up_no_workers,"Density index in excess of 10, if 0 workers",@(df.num_workers==0)*(df.density_index-10).clip(0),,coef_cars1_density_10_up_no_workers,coef_cars2_density_10_up_no_workers,coef_cars34_density_10_up_no_workers,coef_cars34_density_10_up_no_workers
+util_density_0_10_workers,"Density index up to 10, if 1+ workers","@(df.num_workers>0)*df.density_index.clip(0, 10)",,coef_cars1_density_0_10_no_workers,coef_cars2_density_0_10_no_workers,coef_cars34_density_0_10_no_workers,coef_cars34_density_0_10_no_workers
+util_density_10_up_workers,"Density index in excess of 10, if 1+ workers",@(df.num_workers>0)*(df.density_index-10).clip(0),,coef_cars1_density_10_up_workers,coef_cars2_density_10_up_no_workers,coef_cars34_density_10_up_no_workers,coef_cars34_density_10_up_no_workers
+util_asc,Constants,1,,coef_cars1_asc,coef_cars2_asc,coef_cars3_asc,coef_cars4_asc
+util_asc_san_francisco,San Francisco county,@df.county_id == ID_SAN_FRANCISCO,,coef_cars1_asc_san_francisco,coef_cars2_asc_san_francisco,coef_cars34_asc_san_francisco,coef_cars34_asc_san_francisco
+util_asc_solano,Solano county,@df.county_id == ID_SOLANO,,coef_cars1_asc_county,coef_cars2_asc_county,coef_cars34_asc_county,coef_cars34_asc_county
+util_asc_napa,Napa county,@df.county_id == ID_NAPA,,coef_cars1_asc_county,coef_cars2_asc_county,coef_cars34_asc_county,coef_cars34_asc_county
+util_asc_sonoma,Sonoma county,@df.county_id == ID_SONOMA,,coef_cars1_asc_county,coef_cars2_asc_county,coef_cars34_asc_county,coef_cars34_asc_county
+util_asc_marin,Marin county,@df.county_id == ID_MARIN,,coef_cars1_asc_marin,coef_cars234_asc_marin,coef_cars234_asc_marin,coef_cars234_asc_marin
+util_retail_auto_no_workers,"Retail accessibility (0.66*PK + 0.34*OP) by auto, if 0 workers",(num_workers==0)*(0.66*auPkRetail+0.34*auOpRetail),,coef_retail_auto_no_workers,coef_retail_auto_no_workers,coef_retail_auto_no_workers,coef_retail_auto_no_workers
+util_retail_auto_workers,"Retail accessibility (0.66*PK + 0.34*OP) by auto, if 1+ workers",(num_workers>0)*(0.66*auPkRetail+0.34*auOpRetail),,coef_retail_auto_workers,coef_retail_auto_workers,coef_retail_auto_workers,coef_retail_auto_workers
+util_retail_transit_no_workers,"Retail accessibility (0.66*PK + 0.34*OP) by transit, if 0 workers",(num_workers==0)*(0.66*trPkRetail+0.34*trOpRetail),,coef_retail_transit_no_workers,coef_retail_transit_no_workers,coef_retail_transit_no_workers,coef_retail_transit_no_workers
+util_retail_transit_workers,"Retail accessibility (0.66*PK + 0.34*OP) by transit, if 1+ workers",(num_workers>0)*(0.66*trPkRetail+0.34*trOpRetail),,coef_retail_transit_workers,coef_retail_transit_workers,coef_retail_transit_workers,coef_retail_transit_workers
+util_retail_non_motor_no_workers,"Retail accessibility by non-motorized, if 0 workers",(num_workers==0)*nmRetail,,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor
+util_retail_non_motor_workers,"Retail accessibility by non-motorized, if 1+ workers",(num_workers>0)*nmRetail,,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor,coef_retail_non_motor
+util_auto_time_saving_per_worker,Auto time savings per worker to work,"@np.where(df.num_workers > 0, df.hh_work_auto_savings_ratio / df.num_workers, 0)",,coef_cars1_auto_time_saving_per_worker,coef_cars2_auto_time_saving_per_worker,coef_cars3_auto_time_saving_per_worker,coef_cars4_auto_time_saving_per_worker

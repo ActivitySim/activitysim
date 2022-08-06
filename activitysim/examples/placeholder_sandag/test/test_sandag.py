@@ -40,7 +40,7 @@ def data():
     build_data()
 
 
-def run_test(zone, multiprocess=False):
+def run_test(zone, multiprocess=False, sharrow=False):
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
 
@@ -50,31 +50,35 @@ def run_test(zone, multiprocess=False):
         regress_tours_df = pd.read_csv(
             test_path(f"regress/final_{zone}_zone_tours.csv")
         )
-        tours_df = pd.read_csv(test_path(f"output/final_{zone}_zone_tours.csv"))
+        tours_df = pd.read_csv(test_path(f"output_{zone}/final_{zone}_zone_tours.csv"))
         tours_df.to_csv(
             test_path(f"regress/final_{zone}_zone_tours_last_run.csv"), index=False
         )
-        print(f"regress tours")
-        pdt.assert_frame_equal(tours_df, regress_tours_df, rtol=1e-03)
+        print("regress tours")
+        pdt.assert_frame_equal(
+            tours_df, regress_tours_df, rtol=1e-03, check_dtype=False
+        )
 
         # ## regress trips
         regress_trips_df = pd.read_csv(
             test_path(f"regress/final_{zone}_zone_trips.csv")
         )
-        trips_df = pd.read_csv(test_path(f"output/final_{zone}_zone_trips.csv"))
+        trips_df = pd.read_csv(test_path(f"output_{zone}/final_{zone}_zone_trips.csv"))
         trips_df.to_csv(
             test_path(f"regress/final_{zone}_zone_trips_last_run.csv"), index=False
         )
-        print(f"regress trips")
-        pdt.assert_frame_equal(trips_df, regress_trips_df, rtol=1e-03)
+        print("regress trips")
+        pdt.assert_frame_equal(
+            trips_df, regress_trips_df, rtol=1e-03, check_dtype=False
+        )
 
     # run test
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
     if zone == "2":
-        base_configs = psrc_example_path(f"configs")
+        base_configs = psrc_example_path("configs")
     else:
-        base_configs = mtc_example_path(f"configs")
+        base_configs = mtc_example_path("configs")
 
     run_args = [
         "-c",
@@ -86,11 +90,14 @@ def run_test(zone, multiprocess=False):
         "-d",
         example_path(f"data_{zone}"),
         "-o",
-        test_path("output"),
+        test_path(f"output_{zone}"),
     ]
 
     if multiprocess:
         run_args = run_args + ["-s", "settings_mp.yaml"]
+
+    if sharrow:
+        run_args = ["-c", test_path("configs_sharrow")] + run_args
 
     subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
 
@@ -103,6 +110,13 @@ def test_1_zone(data):
 
 def test_1_zone_mp(data):
     run_test(zone="1", multiprocess=True)
+
+
+def test_1_zone_sharrow(data):
+    # Run both single and MP in one test function
+    # guarantees that compile happens in single
+    run_test(zone="1", multiprocess=False, sharrow=True)
+    run_test(zone="1", multiprocess=True, sharrow=True)
 
 
 def test_2_zone(data):
@@ -127,6 +141,8 @@ if __name__ == "__main__":
     build_data()
     run_test(zone="1", multiprocess=False)
     run_test(zone="1", multiprocess=True)
+    run_test(zone="1", multiprocess=False, sharrow=True)
+    run_test(zone="1", multiprocess=True, sharrow=True)
 
     run_test(zone="2", multiprocess=False)
     run_test(zone="2", multiprocess=True)

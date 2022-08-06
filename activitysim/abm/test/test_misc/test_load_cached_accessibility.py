@@ -86,7 +86,7 @@ def test_load_cached_accessibility():
 
         accessibility_df = pipeline.get_table("accessibility")
 
-    assert "auPkRetail" in accessibility_df
+        assert "auPkRetail" in accessibility_df
 
     finally:
         pipeline.close_pipeline()

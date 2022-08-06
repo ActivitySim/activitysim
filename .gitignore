@@ -74,3 +74,4 @@ _test_est
 
 **/__sharrowcache__
 **/output/
+**/_generated_version.py

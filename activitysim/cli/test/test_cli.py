@@ -38,7 +38,14 @@ def test_create_copy():
 
     target = os.path.join(os.path.dirname(__file__), "test_example")
     cp = subprocess.run(
-        ["activitysim", "create", "--example", "prototype_mtc", "--destination", target],
+        [
+            "activitysim",
+            "create",
+            "--example",
+            "prototype_mtc",
+            "--destination",
+            target,
+        ],
         capture_output=True,
     )
 

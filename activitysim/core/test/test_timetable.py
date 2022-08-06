@@ -151,9 +151,8 @@ def test_basic(persons, tdd_alts):
                 17,  # START + MIDDLE + END collides with same
             ]
         )
-        pdt.assert_series_equal(
-            timetable.tour_available(person_ids, tdds),
-            pd.Series([True, True, False, False], index=person_ids.index),
+        assert_array_equal(
+            timetable.tour_available(person_ids, tdds), [True, True, False, False]
         )
 
         # assigning overlapping trip END,START should convert END to START_END

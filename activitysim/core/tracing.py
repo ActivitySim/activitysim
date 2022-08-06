@@ -26,6 +26,7 @@ LOGGING_CONF_FILE_NAME = "logging.yaml"
 
 logger = logging.getLogger(__name__)
 
+timing_notes = set()
 
 class ElapsedTimeFormatter(logging.Formatter):
     def format(self, record):

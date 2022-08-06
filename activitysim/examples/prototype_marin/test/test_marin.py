@@ -16,7 +16,6 @@ def teardown_function(func):
 
 
 def test_marin():
-
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_marin", dirname)
         return pkg_resources.resource_filename("activitysim", resource)

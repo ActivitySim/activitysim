@@ -1,7 +1,8 @@
-import os
-from pyinstrument import Profiler
 import importlib
+import os
 import webbrowser
+
+from pyinstrument import Profiler
 
 
 def run_instrument(bench_name, component_name, out_file=None):

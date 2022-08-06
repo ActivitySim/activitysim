@@ -413,7 +413,7 @@ def load_checkpoint(checkpoint_name):
         # register it as an orca table
         rewrap(table_name, df)
         loaded_tables[table_name] = df
-        if table_name == 'land_use' and '_original_zone_id' in df.columns:
+        if table_name == "land_use" and "_original_zone_id" in df.columns:
             # The presence of _original_zone_id indicates this table index was
             # decoded to zero-based, so we need to disable offset
             # processing for legacy skim access.

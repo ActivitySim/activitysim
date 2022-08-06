@@ -21,13 +21,8 @@ from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
 
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.interaction_sample import interaction_sample
-
-from . import trip, logsums as logsum
-
-from activitysim.abm.tables.size_terms import tour_destination_size_terms
-
+from . import logsums as logsum
+from . import trip
 
 logger = logging.getLogger(__name__)
 DUMP = False

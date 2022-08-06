@@ -47,7 +47,7 @@ def make_tag(
     out["is_multiprocess"] = multiprocess > 1
     out["num_processes"] = int(multiprocess)
 
-    if chunk_training_mode and chunk_training_mode != 'disabled':
+    if chunk_training_mode and chunk_training_mode != "disabled":
         out["chunk_application_mode"] = "production"
     else:
         out["chunk_application_mode"] = chunk_training_mode

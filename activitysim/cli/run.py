@@ -190,9 +190,9 @@ def run(args):
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (
+        from activitysim import (  # register abm steps and other abm-specific injectables
             abm,
-        )  # register abm steps and other abm-specific injectables
+        )
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables

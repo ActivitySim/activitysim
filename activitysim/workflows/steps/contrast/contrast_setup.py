@@ -1,5 +1,5 @@
-import time
 import multiprocessing
+import time
 
 from ..progression import reset_progress_step
 from ..wrapping import workstep

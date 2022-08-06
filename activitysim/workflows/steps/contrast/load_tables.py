@@ -1,11 +1,14 @@
 import os
-from pypyr.context import Context
-from ..progression import reset_progress_step
-from ..error_handler import error_logging
-from ..wrapping import workstep
 from pathlib import Path
+
+from pypyr.context import Context
+
 from activitysim.standalone.compare import load_final_tables
 from activitysim.standalone.utils import chdir
+
+from ..error_handler import error_logging
+from ..progression import reset_progress_step
+from ..wrapping import workstep
 
 #     databases = context.get_formatted('databases')
 #     # the various different output directories to process, for example:

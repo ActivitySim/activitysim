@@ -1,9 +1,11 @@
 import logging
-import pandas as pd
+
 import altair as alt
+import pandas as pd
 import xmle
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
+
 from ..error_handler import error_logging
 from ..progression import reset_progress_step
 

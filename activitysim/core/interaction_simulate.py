@@ -603,7 +603,12 @@ def _interaction_simulate(
 
     sharrow_enabled = config.setting("sharrow", False)
 
-    if sharrow_enabled and skims is None and not have_trace_targets and sample_size == len(alternatives):
+    if (
+        sharrow_enabled
+        and skims is None
+        and not have_trace_targets
+        and sample_size == len(alternatives)
+    ):
         # no need to create the merged interaction dataset
         # TODO: can we still do this if skims is not None?
 

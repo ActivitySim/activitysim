@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 
 timing_notes = set()
 
+
 class ElapsedTimeFormatter(logging.Formatter):
     def format(self, record):
         duration_milliseconds = record.relativeCreated

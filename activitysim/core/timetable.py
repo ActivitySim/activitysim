@@ -51,7 +51,11 @@ C_START_END = str(I_START_END)
 
 @nb.njit
 def _fast_tour_available(
-    tdds, tdd_footprints, window_row_ids, window_row_ix__mapper, self_windows,
+    tdds,
+    tdd_footprints,
+    window_row_ids,
+    window_row_ix__mapper,
+    self_windows,
 ):
     """
 
@@ -87,7 +91,10 @@ def _fast_tour_available(
 
 @nb.njit
 def _available_run_length(
-    available, before, periods, time_ix_mapper,
+    available,
+    before,
+    periods,
+    time_ix_mapper,
 ):
     num_rows = available.shape[0]
     num_cols = available.shape[1]
@@ -115,7 +122,12 @@ def _available_run_length(
 
 @nb.njit
 def _available_run_length_2(
-    window_row_id_values, windows, person_to_row, before, periods, time_ix_mapper,
+    window_row_id_values,
+    windows,
+    person_to_row,
+    before,
+    periods,
+    time_ix_mapper,
 ):
     num_rows = window_row_id_values.shape[0]
     num_cols = windows.shape[1]

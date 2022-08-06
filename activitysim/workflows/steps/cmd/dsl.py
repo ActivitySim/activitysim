@@ -1,8 +1,8 @@
 """pypyr step yaml definition for commands - domain specific language."""
+import logging
 import os
 import shlex
 import subprocess
-import logging
 import sys
 import time
 

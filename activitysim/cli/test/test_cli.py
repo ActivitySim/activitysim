@@ -1,9 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
-import subprocess
 import shutil
+import subprocess
 import sys
+
 import pytest
 
 if sys.version_info < (3, 7):

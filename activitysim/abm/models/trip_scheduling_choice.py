@@ -3,17 +3,18 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk
-from activitysim.core import config
-from activitysim.core import expressions
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import tracing
-
 from activitysim.abm.models.util.trip import (
     generate_alternative_sizes,
     get_time_windows,
+)
+from activitysim.core import (
+    chunk,
+    config,
+    expressions,
+    inject,
+    pipeline,
+    simulate,
+    tracing,
 )
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
 

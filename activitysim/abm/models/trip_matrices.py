@@ -3,15 +3,11 @@
 
 import logging
 
+import numpy as np
 import openmatrix as omx
 import pandas as pd
-import numpy as np
 
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import expressions
-from activitysim.core import los
+from activitysim.core import config, expressions, inject, los, pipeline
 
 logger = logging.getLogger(__name__)
 

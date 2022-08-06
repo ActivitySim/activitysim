@@ -1,15 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
-import yaml
-import pytest
-import pandas as pd
 
-from activitysim.core import inject
+import pandas as pd
+import pytest
+import yaml
 
 # Note that the following import statement has the side-effect of registering injectables:
-from activitysim.core import config
-from activitysim.core import input
+from activitysim.core import config, inject, input
 
 
 @pytest.fixture(scope="module")

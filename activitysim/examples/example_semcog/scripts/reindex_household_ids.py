@@ -9,11 +9,10 @@ which causes headaches for activitysim's automatic generation of trip and tour i
 """
 
 import os
+import sys
 
 import numpy as np
 import pandas as pd
-
-import sys
 
 if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")

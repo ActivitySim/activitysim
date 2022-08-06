@@ -1,9 +1,11 @@
 import logging
-import pandas as pd
+
 import altair as alt
+import pandas as pd
 from pypyr.context import Context
-from ..progression import reset_progress_step
+
 from ....standalone.data_dictionary import check_data_dictionary
+from ..progression import reset_progress_step
 from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)

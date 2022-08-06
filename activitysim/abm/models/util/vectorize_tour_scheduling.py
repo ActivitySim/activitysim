@@ -5,24 +5,21 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core import config
-from activitysim.core import tracing
-from activitysim.core import inject
-from activitysim.core import mem
-
-from activitysim.core import chunk
-from activitysim.core import simulate
-from activitysim.core import logit
-from activitysim.core import los
-
+from activitysim.core import (
+    chunk,
+    config,
+    expressions,
+    inject,
+    logit,
+    los,
+    mem,
+    simulate,
+)
 from activitysim.core import timetable as tt
-
-from activitysim.core.util import reindex
-from activitysim.core import expressions
-
+from activitysim.core import tracing
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
-
+from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
 

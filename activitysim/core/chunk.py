@@ -1089,9 +1089,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None)
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
-        logger.info(
-            f"Running chunkless with {len(choosers)} choosers"
-        )
+        logger.info(f"Running chunkless with {len(choosers)} choosers")
         yield 0, choosers, trace_label
         return
 
@@ -1180,9 +1178,7 @@ def adaptive_chunked_choosers_and_alts(
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
-        logger.info(
-            f"Running chunkless with {len(choosers)} choosers"
-        )
+        logger.info(f"Running chunkless with {len(choosers)} choosers")
         yield 0, choosers, alternatives, trace_label
         return
 
@@ -1205,7 +1201,9 @@ def adaptive_chunked_choosers_and_alts(
     last_repeat = alternatives.index != np.roll(alternatives.index, -1)
 
     if check_assertions:
-        assert (num_choosers == 1) or choosers.index.equals(alternatives.index[last_repeat])
+        assert (num_choosers == 1) or choosers.index.equals(
+            alternatives.index[last_repeat]
+        )
 
     logger.info(
         f"{trace_label} Running adaptive_chunked_choosers_and_alts "
@@ -1283,9 +1281,7 @@ def adaptive_chunked_choosers_by_chunk_id(
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
-        logger.info(
-            f"Running chunkless with {len(choosers)} choosers"
-        )
+        logger.info(f"Running chunkless with {len(choosers)} choosers")
         yield 0, choosers, trace_label
         return
 

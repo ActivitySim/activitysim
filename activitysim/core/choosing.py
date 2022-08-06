@@ -30,7 +30,11 @@ def choice_maker(pr, rn, out=None):
 
 @njit
 def sample_choices_maker(
-    prob_array, random_array, alts_array, out_choices=None, out_choice_probs=None,
+    prob_array,
+    random_array,
+    alts_array,
+    out_choices=None,
+    out_choice_probs=None,
 ):
     """
     Random sample of alternatives.
@@ -87,7 +91,11 @@ def sample_choices_maker(
 
 @njit
 def _sample_choices_maker_preserve_ordering(
-    prob_array, random_array, alts_array, out_choices=None, out_choice_probs=None,
+    prob_array,
+    random_array,
+    alts_array,
+    out_choices=None,
+    out_choice_probs=None,
 ):
     """
     Random sample of alternatives.
@@ -146,7 +154,11 @@ def _sample_choices_maker_preserve_ordering(
 
 
 def sample_choices_maker_preserve_ordering(
-    prob_array, random_array, alts_array, out_choices=None, out_choice_probs=None,
+    prob_array,
+    random_array,
+    alts_array,
+    out_choices=None,
+    out_choice_probs=None,
 ):
     """
     Make sample choices.

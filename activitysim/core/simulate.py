@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # ALT_LOSER_UTIL = -900
 #
 
+
 def random_rows(df, n):
 
     # only sample if df has more than n rows

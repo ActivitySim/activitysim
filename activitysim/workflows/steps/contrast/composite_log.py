@@ -1,5 +1,7 @@
-import pandas as pd
 import os
+
+import pandas as pd
+
 from ..progression import reset_progress_step
 from ..wrapping import workstep
 

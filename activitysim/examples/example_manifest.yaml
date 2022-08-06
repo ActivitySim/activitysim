@@ -691,8 +691,8 @@
       data_1/skims6.omx
       e3f7fb1e0b334fc83dc69985dce8b925e3660149c5de5635c7d8464e306074b9
   run_flags:
-    single: "-c configs_1_zone -c example_mtc/configs -d data_1"
-    multi: "-c configs_1_zone -c example_mtc/configs -d data_1 -s settings_mp.yaml"
+    single: "-c configs_1_zone -c prototype_mtc/configs -d data_1"
+    multi: "-c configs_1_zone -c prototype_mtc/configs -d data_1 -s settings_mp.yaml"
 
 - name: placeholder_sandag_2_zone
   description: 90-TAZ 609-MAZ (includes univ) 2-zone test example for the SANDAG region
@@ -873,19 +873,19 @@
     - https://raw.githubusercontent.com/ActivitySim/activitysim_resources/master/sandag_xborder/households_xborder.csv
       data/households_xborder.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/maz_maz_walk.csv
-      data/maz_maz_walk.csv   
+      data/maz_maz_walk.csv
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/maz_tap_walk.csv
-      data/maz_tap_walk.csv  
+      data/maz_tap_walk.csv
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/mazs_xborder.csv
-      data/mazs_xborder.csv  
+      data/mazs_xborder.csv
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/persons_xborder.csv
-      data/persons_xborder.csv 
+      data/persons_xborder.csv
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/tap_lines.csv
-      data/tap_lines.csv 
+      data/tap_lines.csv
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/taps.csv
-      data/taps.csv 
+      data/taps.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/tours_xborder.csv
-      data/tours_xborder.csv   
+      data/tours_xborder.csv
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/transit_skims_xborder.omx
       data/transit_skims_xborder.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_AM.omx
@@ -897,4 +897,4 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_MD.omx
       data/traffic_skims_xborder_MD.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_PM.omx
-      data/traffic_skims_xborder_PM.omx      
+      data/traffic_skims_xborder_PM.omx

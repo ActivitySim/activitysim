@@ -870,8 +870,7 @@
       data/tap_lines.csv 
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/taps.csv
       data/taps.csv 
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/tours_xborder.csv
-      data/tours_xborder.csv   
+    - prototype_sandag_xborder/data/tours_xborder.csv  # the file on activitysim_resources is not consistent with this model
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/transit_skims_xborder.omx
       data/transit_skims_xborder.omx
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_AM.omx

@@ -96,8 +96,6 @@ def eval_interaction_utilities(
 
         timelogger = TimeLogger("interaction_simulate")
 
-        t0 = time.time()
-
         # add df for startswith('@') eval expressions
         locals_d["df"] = df
 
@@ -138,8 +136,6 @@ def eval_interaction_utilities(
         else:
             sh_util, sh_flow = None, None
             timelogger.mark("sharrow flow", False)
-
-        t1 = time.time()
 
         if (
             utilities is None
@@ -351,7 +347,7 @@ def eval_interaction_utilities(
                 # ),
                 dtype=np.float32,
             )
-            sh_utility_fat = sh_utility_fat.sel(chooserindex=trace_rows)
+            sh_utility_fat = sh_utility_fat[trace_rows, :]
             sh_utility_fat = sh_utility_fat.to_dataframe("vals")
             try:
                 sh_utility_fat = sh_utility_fat.unstack("expressions")
@@ -482,7 +478,6 @@ def eval_interaction_utilities(
                         dtype=np.float32,
                     )
                     re_sh_flow_load_ = re_sh_flow_load[re_trace]
-                    # np.dot(re_sh_flow_load_, spec.iloc[:, 0])
 
                     look_for_problems_here = np.where(
                         ~np.isclose(
@@ -897,7 +892,7 @@ def interaction_simulate(
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

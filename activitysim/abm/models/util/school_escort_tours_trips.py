@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import warnings
 
+from activitysim.core.util import reindex
+
 
 def determine_chauf_outbound_flag(row, i):
     if (row['school_escort_direction'] == 'outbound'):
@@ -220,6 +222,7 @@ def add_pure_escort_tours(tours, school_escort_tours):
 
     tours_to_add = school_escort_tours[~school_escort_tours.index.isin(tours.index)]
     tours = pd.concat([tours, tours_to_add[tours.columns]])
+
     return tours
 
 
@@ -251,7 +254,6 @@ def add_school_escort_trips_to_pipeline():
 
     # ensuring data types
     trips['outbound'] = trips['outbound'].astype(bool)
-    print(trips[trips['origin'].isna()]) 
     trips['origin'] = trips['origin'].astype(int)
     trips['destination'] = trips['destination'].astype(int)
 
@@ -267,6 +269,19 @@ def add_school_escort_trips_to_pipeline():
     return trips
 
 
+def recompute_tour_count_statistics():
+    tours = pipeline.get_table('tours')
+
+    grouped = tours.groupby(['person_id', 'tour_type'])
+    tours['tour_type_num'] = grouped.cumcount() + 1
+    tours['tour_type_count'] = tours['tour_type_num'] + grouped.cumcount(ascending=False)
+
+    grouped = tours.groupby('person_id')
+    tours['tour_num'] = grouped.cumcount() + 1
+    tours['tour_count'] = tours['tour_num'] + grouped.cumcount(ascending=False)
+
+    pipeline.replace_table("tours", tours)
+
 
 def create_pure_school_escort_tours(bundles):
     # creating home to school tour for chauffers making pure escort tours
@@ -280,8 +295,10 @@ def create_pure_school_escort_tours(bundles):
     pe_tours['origin'] = pe_tours['home_zone_id']
     # desination is the last dropoff / pickup location
     pe_tours['destination'] = pe_tours['school_destinations'].str.split('_').str[-1].astype(int)
-    # start is the first start time
-    pe_tours['start'] = pe_tours['school_starts'].str.split('_').str[0].astype(int)
+    # start is the first start time for outbound trips or the last school end time for inbound trips
+    starts = pe_tours['school_starts'].str.split('_').str[0].astype(int)
+    ends = pe_tours['school_ends'].str.split('_').str[-1].astype(int)
+    pe_tours['start'] = np.where(pe_tours['school_escort_direction'] == 'outbound', starts, ends)
 
     school_time_cols = ['time_home_to_school' + str(i) for i in range(1,4)]
     # FIXME hard coded mins per time bin, is rounding down appropriate?
@@ -314,3 +331,13 @@ def create_pure_school_escort_tours(bundles):
     pe_tours['tour_count'] = pe_tours['tour_num'] + grouped.cumcount(ascending=False)
 
     return pe_tours
+
+
+def split_out_school_escorting_trips(trips, school_escort_trips):
+        # separate out school escorting trips to exclude them from the model
+        full_trips_index = trips.index
+        se_trips_mask = (trips.index.isin(school_escort_trips.index))
+        se_trips = trips[se_trips_mask]
+        trips = trips[~se_trips_mask]
+        
+        return trips, se_trips, full_trips_index

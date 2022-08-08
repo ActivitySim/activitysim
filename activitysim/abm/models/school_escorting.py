@@ -357,9 +357,14 @@ def school_escorting(households,
 
     school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(escort_bundles)
     school_escort_trips = school_escort_tours_trips.create_school_escort_trips(escort_bundles)
-
+    
     tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
     tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
+
+    # setting number of escortees
+    num_escortees = escort_bundles.drop_duplicates('chauf_tour_id').set_index('chauf_tour_id')['num_escortees']
+    tours.loc[num_escortees.index, 'num_escortees'] = num_escortees
+    # FIXME set tour start times for rideshare
 
     pipeline.replace_table("households", households)
     pipeline.replace_table("tours", tours)

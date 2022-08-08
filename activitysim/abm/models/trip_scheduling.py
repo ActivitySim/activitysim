@@ -485,6 +485,12 @@ def trip_scheduling(
 
     trips_df['depart'] = choices
 
+    if pipeline.is_table('school_escort_trips'):
+        # overwriting purpose for school escort trips if the school escorting model was run
+        school_escort_trips = pipeline.get_table('school_escort_trips')
+        school_escort_trip_departs = reindex(school_escort_trips.depart, trips_df.index)
+        trips_df['depart'] = np.where(trips_df.index.isin(school_escort_trips.index), school_escort_trip_departs, trips_df.depart)
+
     assert not trips_df.depart.isnull().any()
 
     pipeline.replace_table("trips", trips_df)

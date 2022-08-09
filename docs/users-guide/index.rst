@@ -27,8 +27,7 @@ Contents
    ../gettingstarted
    cli-tools
    ../examples
+   configuration
    ../cli
    ../estimation
    ../howitworks
-
-

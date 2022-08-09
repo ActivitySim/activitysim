@@ -35,6 +35,7 @@ dependencies:
 - psutil >= 4.1
 - pyarrow >= 2.0
 - pycodestyle
+- pydantic
 - pydata-sphinx-theme
 - pyinstrument
 - pypyr
@@ -57,4 +58,5 @@ dependencies:
 - zarr
 
 - pip:
+  - autodoc_pydantic
   - -e ..

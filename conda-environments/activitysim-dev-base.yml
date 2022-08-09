@@ -36,6 +36,7 @@ dependencies:
 - psutil >= 4.1
 - pyarrow >= 2.0
 - pycodestyle
+- pydantic
 - pydata-sphinx-theme
 - pyinstrument
 - pypyr
@@ -56,3 +57,6 @@ dependencies:
 - xarray >= 0.21
 - xmle
 - zarr
+
+- pip:
+  - autodoc_pydantic

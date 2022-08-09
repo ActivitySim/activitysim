@@ -43,10 +43,13 @@ extensions = [
     "sphinx.ext.autosummary",
     "myst_parser",
     "sphinxarg.ext",
-    # "sphinxcontrib.autodoc_pydantic",
+    "sphinxcontrib.autodoc_pydantic",
 ]
 
 numpydoc_show_class_members = False
+autosummary_generate = True
+autodoc_pydantic_model_signature_prefix = "settings"
+autodoc_pydantic_model_show_json = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

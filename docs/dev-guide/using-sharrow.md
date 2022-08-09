@@ -9,26 +9,41 @@ This page will walk through an exercise of running a model with `sharrow`.
 We'll assume that activitysim and sharrow have been installed in editable
 mode, per the [developer install instructions](install.md).
 
-The code to implement `sharrow` in `activitysim` is in pull request 
-[#542](https://github.com/ActivitySim/activitysim/pull/542). 
+The code to implement `sharrow` in `activitysim` is in the
+[sharrow-black](https://github.com/camsys/activitysim/tree/sharrow-black) branch
+of the [camsys/activitysim](https://github.com/camsys/activitysim) repository.
+If you have checked out from this repository directly, you can just switch to
+the correct branch:
 
 ```sh
 cd activitysim
-gh pr checkout 542  # use `gh auth login` first if needed
+git switch sharrow-black
 cd ..
 ```
+
+If your local Git repository is configured with only the main ActivitySim
+parent repo as its remote, you can find the code in
+[PR #579](https://github.com/ActivitySim/activitysim/pull/579), accessible on the
+command line using the `gh` tool:
+
+```sh
+cd activitysim
+gh pr checkout 579  # use `gh auth login` first if needed
+cd ..
+```
+
 
 ## Prototype MTC Examples
 
 Testing with sharrow requires two steps: test mode and production mode.
 
-In test mode, the code is run to compile all the spec files and 
+In test mode, the code is run to compile all the spec files and
 ascertain whether the functions are working correctly.  Production mode
-can then just run the pre-compiled functions with sharrow, which is much 
+can then just run the pre-compiled functions with sharrow, which is much
 faster.
 
 You can run both, plus the ActivitySim in "legacy" mode that does not use sharrow,
-as well as a reference implementation (version 1.0.4), all together using the 
+as well as a reference implementation (version 1.0.4), all together using the
 "mini" dataset for testing in one workflow.
 
 ```sh
@@ -42,7 +57,7 @@ Alternatively, you can use the full size skims.  To test this model with
 activitysim workflow sharrow-contrast/mtc_full
 ```
 
-To use the full synthetic population as well, run the multiprocess workflow: 
+To use the full synthetic population as well, run the multiprocess workflow:
 
 ```sh
 activitysim workflow sharrow-contrast/mtc_mp
@@ -55,5 +70,4 @@ Lastly, a comprehensive performance testing suite on the prototype MTC model
 activitysim workflow sharrow-contrast/mtc_comprehensive
 ```
 
-All these performance tests assume you have suffient RAM to run without chunking.
-
+All these performance tests assume you have sufficient RAM to run without chunking.

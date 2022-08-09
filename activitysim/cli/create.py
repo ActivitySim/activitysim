@@ -200,6 +200,8 @@ def download_asset(url, target_path, sha256=None):
             f"   expected checksum {sha256}\n"
             f"   computed checksum {computed_sha256}"
         )
+    elif not sha256:
+        print(f"   computed checksum {computed_sha256}")
 
 
 def sha256_checksum(filename, block_size=65536):

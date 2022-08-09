@@ -868,9 +868,7 @@
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/mazs_xborder.csv
       data/mazs_xborder.csv
       2d481ec20f69204fc02a259d2d7c4e3d955d6a83b13d7bae920c9c7f8e28c517
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/persons_xborder.csv
-      data/persons_xborder.csv
-      bcbed2af325bf26390610c98ce1ae2f68a3c00381c0311f6e4baf14e16fa5085
+    - prototype_sandag_xborder/data/persons_xborder.csv  # this matches the local tours_xborder, see below
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/tap_lines.csv
       data/tap_lines.csv 
       750745a33f39963f0c3e4efa6135ff89fb7dd49f58f17cdbd90d62e7057fea01

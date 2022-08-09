@@ -20,3 +20,5 @@ component.
     Settings
     InputTable
     NetworkSettings
+    TAZ_Settings
+    ZarrDigitalEncoding

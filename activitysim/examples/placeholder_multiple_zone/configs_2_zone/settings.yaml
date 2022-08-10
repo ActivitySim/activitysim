@@ -64,6 +64,11 @@ input_table_list:
       - TOPOLOGY
       - TERMINAL
       - access_dist_transit
+  - tablename: land_use_taz
+    filename: taz.csv
+    index_col: TAZ
+    recode_columns:
+      TAZ: zero-based
 
 #resume_after: initialize_landuse
 

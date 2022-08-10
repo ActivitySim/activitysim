@@ -6,11 +6,9 @@ import numpy as np
 import openmatrix
 import pandas as pd
 import sharrow as sh
-import xarray as xr
-from sharrow import array_decode
 
 from . import config
-from . import flow as __flow
+from . import flow as __flow  # noqa, keep this here for side effects?
 from . import inject
 
 logger = logging.getLogger(__name__)
@@ -152,7 +150,8 @@ class DatasetWrapper:
         if self.time_key:
             logger.info(f"vectorize lookup for time_period={self.time_key}")
             time_period_idxs = pd.Series(
-                np.vectorize(self.time_map.get)(df[self.time_key]), index=df.index,
+                np.vectorize(self.time_map.get)(df[self.time_key]),
+                index=df.index,
             )
             return time_period_idxs
 
@@ -196,7 +195,8 @@ class DatasetWrapper:
             else:
                 logger.info(f"vectorize lookup for time_period={self.time_key}")
                 positions["time_period"] = pd.Series(
-                    np.vectorize(self.time_map.get)(df[self.time_key]), index=df.index,
+                    np.vectorize(self.time_map.get)(df[self.time_key]),
+                    index=df.index,
                 )
 
         if POSITIONS_AS_DICT:
@@ -283,7 +283,10 @@ class DatasetWrapper:
         """
         assert self.df is not None, "Call set_df first"
 
-        s = np.maximum(self.lookup(key), self.lookup(key, True),)
+        s = np.maximum(
+            self.lookup(key),
+            self.lookup(key, True),
+        )
 
         return pd.Series(s, index=self.df.index)
 
@@ -371,7 +374,7 @@ def _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag):
                 logger.info(f"loading skim dataset {skim_tag!r} from original sources")
                 out = None
             else:
-                logger.info(f"using skim_dataset from shared memory")
+                logger.info("using skim_dataset from shared memory")
         else:
             sh.Dataset.shm.delete_shared_memory_files(backing)
     else:
@@ -480,7 +483,7 @@ def _scan_for_unused_names(tokens):
 
 
 def _drop_unused_names(dataset):
-    logger.info(f"scanning for unused skims")
+    logger.info("scanning for unused skims")
     tokens = set(dataset.variables.keys()) - set(dataset.coords.keys())
     unused_tokens = _scan_for_unused_names(tokens)
     if unused_tokens:
@@ -493,7 +496,7 @@ def _drop_unused_names(dataset):
         logger.info(f"dropping unused skims: {unused_tokens}")
         dataset = dataset.drop_vars(unused_tokens)
     else:
-        logger.info(f"no unused skims found")
+        logger.info("no unused skims found")
     return dataset
 
 
@@ -519,12 +522,15 @@ def _load_sparse_maz_skims(dataset, network_los_preload, land_use, remapper):
                 maz_taz = maz_taz.sort_index()
                 assert maz_taz.index.equals(
                     land_use.to_frame().sort_index().index
-                ), f"maz-taz lookup index does not match index of land_use table"
+                ), "maz-taz lookup index does not match index of land_use table"
             else:
                 raise
 
         dataset.redirection.set(
-            maz_taz, map_to="otaz", name="omaz", map_also={"dtaz": "dmaz"},
+            maz_taz,
+            map_to="otaz",
+            name="omaz",
+            map_also={"dtaz": "dmaz"},
         )
 
         maz_to_maz_tables = network_los_preload.setting("maz_to_maz.tables")
@@ -567,7 +573,7 @@ def _load_sparse_maz_skims(dataset, network_los_preload, land_use, remapper):
 
 @inject.injectable(cache=True)
 def skim_dataset():
-    from ..core.los import ONE_ZONE, THREE_ZONE, TWO_ZONE
+    from ..core.los import ONE_ZONE
 
     # TODO:SHARROW: taz and maz are the same
     skim_tag = "taz"
@@ -621,13 +627,13 @@ def skim_dataset():
             # TODO: check if the OMX skims or sparse MAZ are modified more
             #       recently than the cached ZARR versions; if so do not use
             #       the ZARR
-            logger.info(f"found zarr skims, loading them")
+            logger.info("found zarr skims, loading them")
             d = sh.dataset.from_zarr_with_attr(zarr_file).max_float_precision(
                 max_float_precision
             )
         else:
             if zarr_file:
-                logger.info(f"did not find zarr skims, loading omx")
+                logger.info("did not find zarr skims, loading omx")
             d = sh.dataset.from_omx_3d(
                 [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
                 time_periods=time_periods,
@@ -638,7 +644,7 @@ def skim_dataset():
 
             if zarr_file:
                 try:
-                    import zarr
+                    import zarr  # noqa
 
                     # ensure zarr is available before we do all this work
                 except ModuleNotFoundError:
@@ -656,7 +662,7 @@ def skim_dataset():
         d = _apply_digital_encoding(d, skim_digital_encoding)
 
     # check alignment of TAZs that it matches land_use table
-    logger.info(f"checking skims alignment with land_use")
+    logger.info("checking skims alignment with land_use")
     try:
         land_use_zone_id = land_use[f"_original_{land_use.index.name}"]
     except KeyError:
@@ -673,7 +679,7 @@ def skim_dataset():
                 logger.info(f"otaz realignment required\n{err}")
                 d = d.reindex(otaz=land_use_zone_id)
             else:
-                logger.info(f"otaz alignment ok")
+                logger.info("otaz alignment ok")
             d["otaz"] = land_use.index.to_numpy()
             d["otaz"].attrs["preprocessed"] = "zero-based-contiguous"
         else:
@@ -686,7 +692,7 @@ def skim_dataset():
                 logger.info(f"dtaz realignment required\n{err}")
                 d = d.reindex(dtaz=land_use_zone_id)
             else:
-                logger.info(f"dtaz alignment ok")
+                logger.info("dtaz alignment ok")
             d["dtaz"] = land_use.index.to_numpy()
             d["dtaz"].attrs["preprocessed"] = "zero-based-contiguous"
         else:
@@ -695,5 +701,5 @@ def skim_dataset():
     if d.shm.is_shared_memory:
         return d
     else:
-        logger.info(f"writing skims to shared memory")
+        logger.info("writing skims to shared memory")
         return d.shm.to_shared_memory(backing, mode="r")

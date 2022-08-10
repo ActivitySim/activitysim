@@ -5,7 +5,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_sandag_1_zone
+      example_name: placeholder_sandag_1_zone
       workspace: workspace
       create: True
       compile: True

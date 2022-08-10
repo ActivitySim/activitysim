@@ -5,7 +5,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_sandag_1_zone_full
+      example_name: placeholder_sandag_1_zone_full
       multiprocess: 4
       chunk_size_minimum_gb: 30
       chunk_training: True

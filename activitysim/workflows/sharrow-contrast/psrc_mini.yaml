@@ -5,7 +5,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_psrc
+      example_name: placeholder_psrc
       workspace: workspace
       create: True
       compile: True

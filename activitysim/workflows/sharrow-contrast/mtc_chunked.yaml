@@ -14,7 +14,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_mtc_full
+      example_name: prototype_mtc_full
       workflow_name: sharrow-contrast/mtc_chunked
       multiprocess: 4
       chunk_size: 30_000_000_000  # 30 GB

@@ -673,18 +673,6 @@ def skim_dataset():
                 time_periods=time_periods,
                 max_float_precision=max_float_precision,
             )
-            # load sparse MAZ skims, if any
-            d = load_sparse_maz_skims(
-                d,
-                land_use.index,
-                remapper,
-                zone_system=network_los_preload.zone_system,
-                maz2taz_file_name=network_los_preload.setting("maz"),
-                maz_to_maz_tables=network_los_preload.setting("maz_to_maz.tables"),
-                max_blend_distance=network_los_preload.setting(
-                    "maz_to_maz.max_blend_distance", default={}
-                ),
-            )
 
             if zarr_file:
                 try:
@@ -701,6 +689,24 @@ def skim_dataset():
                         d = _apply_digital_encoding(d, zarr_digital_encoding)
                     logger.info(f"writing zarr skims to {zarr_file}")
                     d.to_zarr_with_attr(zarr_file)
+
+        # load sparse MAZ skims, if any
+        # these are processed after the ZARR stuff as the GCXS sparse array
+        # is not yet compatible with ZARR directly.
+        # see https://github.com/pydata/sparse/issues/222
+        #  or https://github.com/zarr-developers/zarr-python/issues/424
+        d = load_sparse_maz_skims(
+            d,
+            land_use.index,
+            remapper,
+            zone_system=network_los_preload.zone_system,
+            maz2taz_file_name=network_los_preload.setting("maz"),
+            maz_to_maz_tables=network_los_preload.setting("maz_to_maz.tables"),
+            max_blend_distance=network_los_preload.setting(
+                "maz_to_maz.max_blend_distance", default={}
+            ),
+        )
+
         d = _drop_unused_names(d)
         # apply non-zarr dependent digital encoding
         d = _apply_digital_encoding(d, skim_digital_encoding)

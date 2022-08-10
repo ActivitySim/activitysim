@@ -1,20 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import logging
 import os
 import shutil
 
-import logging
-
+import pandas as pd
 import yaml
 
-import pandas as pd
-
-from activitysim.core import config
-from activitysim.core import simulate
-
-from activitysim.core.util import reindex
 from activitysim.abm.models.util import canonical_ids as cid
+from activitysim.core import config, simulate
+from activitysim.core.util import reindex
 
 logger = logging.getLogger("estimation")
 

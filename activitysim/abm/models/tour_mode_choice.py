@@ -2,27 +2,25 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from orca import orca
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import expressions
-from activitysim.core import simulate
-from activitysim.core import logit
+from activitysim.core import (
+    config,
+    expressions,
+    inject,
+    logit,
+    los,
+    pipeline,
+    simulate,
+    tracing,
+)
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.util import assign_in_place, reindex
 
-from activitysim.core import los
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
-
-from activitysim.core import los
-
+from .util import estimation, trip
 from .util.mode import run_tour_mode_choice_simulate
-from .util import trip
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 

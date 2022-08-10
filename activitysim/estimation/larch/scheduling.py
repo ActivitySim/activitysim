@@ -1,21 +1,22 @@
 import os
+from pathlib import Path
+from typing import Collection
+
 import numpy as np
 import pandas as pd
 import yaml
-from typing import Collection
+from larch import DataFrames, Model, P, X
 from larch.util import Dict
-from pathlib import Path
 
 from .general import (
-    remove_apostrophes,
-    construct_nesting_tree,
-    linear_utility_from_spec,
-    explicit_value_parameters,
     apply_coefficients,
+    construct_nesting_tree,
     cv_to_ca,
+    explicit_value_parameters,
+    linear_utility_from_spec,
+    remove_apostrophes,
     str_repr,
 )
-from larch import Model, DataFrames, P, X
 
 
 def schedule_choice_model(

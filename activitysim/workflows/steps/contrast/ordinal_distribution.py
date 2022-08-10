@@ -1,7 +1,9 @@
 import logging
-import pandas as pd
+
 import altair as alt
+import pandas as pd
 from pypyr.context import Context
+
 from ..progression import reset_progress_step
 from ..wrapping import workstep
 

@@ -3,15 +3,11 @@
 
 import logging
 
+import numpy as np
 import openmatrix as omx
 import pandas as pd
-import numpy as np
 
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import expressions
-from activitysim.core import los
+from activitysim.core import config, expressions, inject, los, pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +38,7 @@ def write_trip_matrices(network_los):
         # this might legitimately happen if they comment out some steps to debug but still want write_tables
         # this saves them the hassle of remembering to comment out this step
         logger.warning(
-            f"write_trip_matrices returning empty-handed because there is no trips table"
+            "write_trip_matrices returning empty-handed because there is no trips table"
         )
         return
 
@@ -120,9 +116,9 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
         land_use_taz = pipeline.get_table("land_use_taz")
-        if '_original_TAZ' in land_use_taz.columns:
-            orig_vals = orig_vals.map(land_use_taz['_original_TAZ'])
-            dest_vals = dest_vals.map(land_use_taz['_original_TAZ'])
+        if "_original_TAZ" in land_use_taz.columns:
+            orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
+            dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
 
         zone_index = pd.Index(network_los.get_tazs(), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)

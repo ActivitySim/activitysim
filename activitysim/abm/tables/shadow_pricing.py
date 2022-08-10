@@ -1,22 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import logging
-import time
-import multiprocessing
 import ctypes
-
+import logging
+import multiprocessing
+import time
 from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-from activitysim.core import util
-from activitysim.core import config
-from activitysim.core import tracing
-
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-
+from activitysim.core import config, inject, tracing, util
 
 logger = logging.getLogger(__name__)
 

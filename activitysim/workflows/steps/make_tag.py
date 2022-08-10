@@ -26,14 +26,6 @@ def make_tag(
     contrast = sharrow and legacy
 
     flags = []
-    from activitysim.cli.create import EXAMPLES
-
-    run_flags = EXAMPLES.get(example_name, {}).get("run_flags", {})
-    if isinstance(run_flags, str):
-        flags.append(run_flags)
-    elif run_flags:
-        flags.append(run_flags.get("multi" if mp else "single"))
-
     if resume_after:
         flags.append(f" -r {resume_after}")
     if fast:
@@ -47,7 +39,7 @@ def make_tag(
     out["is_multiprocess"] = multiprocess > 1
     out["num_processes"] = int(multiprocess)
 
-    if chunk_training_mode and chunk_training_mode != 'disabled':
+    if chunk_training_mode and chunk_training_mode != "disabled":
         out["chunk_application_mode"] = "production"
     else:
         out["chunk_application_mode"] = chunk_training_mode

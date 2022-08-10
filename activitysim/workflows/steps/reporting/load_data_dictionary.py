@@ -1,6 +1,8 @@
 import os
-from ..wrapping import workstep
+
 import yaml
+
+from ..wrapping import workstep
 
 
 @workstep("data_dictionary")

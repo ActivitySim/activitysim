@@ -13,7 +13,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_mtc
+      example_name: prototype_mtc
       workflow_name: sharrow-contrast/mtc_mini
       workspace: workspace  # this is the directory where model runs are stored
       create: True

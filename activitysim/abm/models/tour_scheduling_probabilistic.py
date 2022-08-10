@@ -6,19 +6,11 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import logit
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import chunk
-from activitysim.core import pipeline
-
+from activitysim.abm.models.util import estimation
+from activitysim.core import chunk, config, inject, logit, pipeline, tracing
 from activitysim.core.util import reindex
 
-from activitysim.abm.models.util import estimation
-
 from .util import probabilistic_scheduling as ps
-
 
 logger = logging.getLogger(__name__)
 

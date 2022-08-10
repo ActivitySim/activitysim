@@ -1,0 +1,67 @@
+Description,Target,Expression
+#,, annotate persons table after import
+age_0_to_5,age_0_to_5,"persons.age.between(0,5)"
+age_6_to_12,age_6_to_12,"persons.age.between(6,12)"
+age_16_to_19,age_16_to_19,"persons.age.between(16, 19)"
+age_16_p,age_16_p,persons.age >= 16
+adult,adult,persons.age >= 18
+male,male,persons.sex == 1
+female,female,persons.sex == 2
+,esr,persons.ESR.fillna(0)
+,wkhp,persons.WKHP.fillna(0)
+,wkw,persons.WKW.fillna(0)
+,schg,persons.SCHG.fillna(0)
+,mil,persons.MIL.fillna(0)
+employment status type,pemploy,np.zeros(len(persons))
+,pemploy,"np.where(persons.age < 16, PEMPLOY_CHILD, PEMPLOY_PART)"
+,pemploy,"np.where((persons['age'] >= 16) & ((esr == 3) | (esr == 6)), PEMPLOY_NOT, pemploy)"
+,pemploy,"np.where((persons.age>=16)&((esr != 3)&(esr != 6))&(wkhp >= 35) & (wkw >= 1) & (wkw <= 4), PEMPLOY_FULL, pemploy)"
+student category,pstudent,np.zeros(len(persons))
+,pstudent,"np.where((pemploy == 1) & (persons.age >= 16), PSTUDENT_NOT, pstudent)"
+,pstudent,"np.where((pemploy == 1) & (persons.age < 16), PSTUDENT_GRADE_OR_HIGH, pstudent)"
+,pstudent,"np.where((schg < 1) & (persons.age >= 16), PSTUDENT_NOT, pstudent)"
+,pstudent,"np.where((schg < 1) & (persons.age < 16), PSTUDENT_GRADE_OR_HIGH, pstudent)"
+,pstudent,"np.where((schg >= 15) & (persons.age >= 16) & (pemploy != 1), PSTUDENT_UNIVERSITY, pstudent)"
+,pstudent,"np.where((schg >= 15) & (persons.age < 16) & (pemploy != 1), PSTUDENT_GRADE_OR_HIGH, pstudent)"
+,pstudent,"np.where((persons.age <= 19) & (pemploy != 1) & (schg >=1) & (schg<=14), PSTUDENT_GRADE_OR_HIGH, pstudent)"
+,pstudent,"np.where((persons.age > 19) & (pemploy != 1) & (schg >=1) & (schg<=14),  PSTUDENT_UNIVERSITY, pstudent)"
+,pstudent,"np.where(pstudent == 0, 3, pstudent)"
+person type,ptype,np.zeros(len(persons))
+,ptype,"np.where((pemploy == 1),  PTYPE_FULL, PTYPE_NONWORK)"
+,ptype,"np.where((pstudent == 3) & (pemploy == 2), PTYPE_PART, ptype)"
+,ptype,"np.where((pstudent == 3) & (persons['age'] >= 65) & ((pemploy == 3) | (pemploy == 4)), PTYPE_RETIRED, ptype)"
+,ptype,"np.where((pstudent == 3) & (persons['age'] < 6) & ((pemploy == 3) | (pemploy == 4)), PTYPE_PRESCHOOL, ptype)"
+,ptype,"np.where((pstudent == 3) & (persons['age'] >= 6) & (persons['age'] <= 64) & ((pemploy == 3) | (pemploy == 4)), PTYPE_NONWORK, ptype)"
+,ptype,"np.where((pstudent == 2)  & ((pemploy == 2)  | (pemploy == 3) | (pemploy == 4)), PTYPE_UNIVERSITY, ptype)"
+,ptype,"np.where((pstudent == 1) & (persons['age'] < 6)  & ((pemploy == 2)  | (pemploy == 3) | (pemploy == 4)), PTYPE_PRESCHOOL, ptype)"
+,ptype,"np.where((pstudent == 1) & (persons['age'] >= 16)  & ((pemploy == 2)  | (pemploy == 3) | (pemploy == 4)), PTYPE_DRIVING, ptype)"
+,ptype,"np.where((pstudent == 1) & (persons['age'] >= 6) & (persons['age'] < 16)  & ((pemploy == 2)  | (pemploy == 3) | (pemploy == 4)), PTYPE_SCHOOL, ptype)"
+presence of non_worker other than self in household,has_non_worker,"other_than(persons.household_id, ptype == PTYPE_NONWORK)"
+presence of retiree other than self in household,has_retiree,"other_than(persons.household_id, ptype == PTYPE_RETIRED)"
+presence of preschooler other than self in household,has_preschool_kid,"other_than(persons.household_id, ptype == PTYPE_PRESCHOOL)"
+presence of driving_kid other than self in household,has_driving_kid,"other_than(persons.household_id, ptype == PTYPE_DRIVING)"
+presence of school_kid other than self in household,has_school_kid,"other_than(persons.household_id, ptype == PTYPE_SCHOOL)"
+presence of full_time worker other than self in household (independent of person type),has_full_time,"other_than(persons.household_id, pemploy==PEMPLOY_FULL)"
+presence of part_time worker other than self in household (independent of person type),has_part_time,"other_than(persons.household_id, pemploy==PEMPLOY_PART)"
+presence of university student other than self in household,has_university,"other_than(persons.household_id, ptype == PTYPE_UNIVERSITY)"
+student_is_employed,student_is_employed,"np.where(((ptype == PTYPE_UNIVERSITY) | (ptype == PTYPE_DRIVING)) & ((pemploy == PEMPLOY_FULL) | (pemploy == PEMPLOY_PART)), True, False)"
+nonstudent_to_school,nonstudent_to_school,"np.where(((ptype ==  PTYPE_FULL) | (ptype ==   PTYPE_PART) | (ptype ==  PTYPE_NONWORK) | (ptype ==  PTYPE_RETIRED))  & ((pstudent == PSTUDENT_GRADE_OR_HIGH) | (pstudent ==  PSTUDENT_UNIVERSITY)), True, False)"
+is_student,is_student,"np.where((pstudent == PSTUDENT_GRADE_OR_HIGH) | (pstudent == PSTUDENT_UNIVERSITY), True, False)"
+preschool age can go to preschool,is_student,"np.where((pstudent == PSTUDENT_GRADE_OR_HIGH) | (pstudent == PSTUDENT_UNIVERSITY) & (persons.age > GRADE_SCHOOL_MIN_AGE), True, is_student)"
+is_gradeschool,is_gradeschool,(pstudent == PSTUDENT_GRADE_OR_HIGH) & (persons.age <= GRADE_SCHOOL_MAX_AGE)
+is_highschool,is_highschool,(pstudent == PSTUDENT_GRADE_OR_HIGH) & (persons.age > GRADE_SCHOOL_MAX_AGE)
+is_university,is_university,pstudent == PSTUDENT_UNIVERSITY
+school_segment gradeschool,school_segment,"np.where(is_gradeschool, SCHOOL_SEGMENT_GRADE, SCHOOL_SEGMENT_NONE)"
+school_segment highschool,school_segment,"np.where(is_highschool, SCHOOL_SEGMENT_HIGH, school_segment)"
+school_segment university,school_segment,"np.where(is_university, SCHOOL_SEGMENT_UNIV, school_segment).astype(np.int8)"
+#,,
+is_worker,is_worker,"np.where((pemploy == PEMPLOY_FULL) |( pemploy == PEMPLOY_PART), True, False)"
+#,,
+home_zone_id,home_zone_id,"reindex(households.home_zone_id, persons.household_id)"
+hh_child,hh_child,"reindex(households.children, persons.household_id)"
+person number,PNUM,persons.member_id
+income,income,"reindex(households.HINCP, persons.household_id)"
+income_in_thousands,income_in_thousands,(income / 1000).clip(lower=0)
+income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60, 100, np.inf], labels=[1, 2, 3, 4]).astype(int)"
+is_fulltime_worker,is_fulltime_worker,"((age_16_p) & (wkhp >=35) & (wkw>=1) & (wkw<=4) & (~esr.isin([3,6])))"
+is_parttime_worker,is_parttime_worker,"((age_16_p) & (~esr.isin([3,6])) & (is_fulltime_worker == False))"

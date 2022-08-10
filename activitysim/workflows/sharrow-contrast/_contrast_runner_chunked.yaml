@@ -1,4 +1,4 @@
-# activitysim workflow example_runner example_name=example_mtc
+# activitysim workflow example_runner example_name=prototype_mtc
 
 context_parser: pypyr.parser.keyvaluepairs
 
@@ -15,7 +15,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: example_mtc
+      example_name: prototype_mtc
       workflow_name: sharrow-contrast
       workspace: workspace
       multiprocess: 0
@@ -39,7 +39,7 @@ steps:
       trace_hh_id:
       trace_od:
       chunk_method: hybrid_uss
-      chunk_training: False
+      chunk_training: True
       chunk_training_mode: training
       machine_name:
       disable_zarr: False

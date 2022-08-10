@@ -1,21 +1,22 @@
 import os
+from pathlib import Path
+from typing import Collection
+
 import numpy as np
 import pandas as pd
 import yaml
-from typing import Collection
+from larch import DataFrames, Model, P, X
 from larch.util import Dict
-from pathlib import Path
 
 from .general import (
-    remove_apostrophes,
-    construct_nesting_tree,
-    linear_utility_from_spec,
-    explicit_value_parameters,
     apply_coefficients,
     clean_values,
+    construct_nesting_tree,
+    explicit_value_parameters,
+    linear_utility_from_spec,
+    remove_apostrophes,
 )
-from .simple_simulate import simple_simulate_data, construct_availability
-from larch import Model, DataFrames, P, X
+from .simple_simulate import construct_availability, simple_simulate_data
 
 
 def mode_choice_model(

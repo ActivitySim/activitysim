@@ -7,6 +7,7 @@ dependencies:
 - python=3.9
 - pip
 - asv  # for benchmarking
+- black
 - bump2version  # for making a release
 - coveralls
 - cytoolz >= 0.8.1
@@ -18,6 +19,7 @@ dependencies:
 - gh
 - git
 - ipykernel  # so this env will appear in jupyter as a selection
+- isort
 - jupyterlab
 - larch >= 5.5.8
 - matplotlib
@@ -35,6 +37,7 @@ dependencies:
 - psutil >= 4.1
 - pyarrow >= 2.0
 - pycodestyle
+- pydantic
 - pydata-sphinx-theme
 - pyinstrument
 - pypyr
@@ -57,4 +60,5 @@ dependencies:
 - zarr
 
 - pip:
+  - autodoc_pydantic
   - -e ..

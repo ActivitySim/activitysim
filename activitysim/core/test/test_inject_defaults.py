@@ -4,10 +4,8 @@ import os
 
 import pytest
 
-from .. import inject
-
 # Note that the following import statement has the side-effect of registering injectables:
-from .. import config
+from .. import config, inject
 
 
 def teardown_function(func):

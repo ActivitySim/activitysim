@@ -5,8 +5,8 @@
 
 import os
 
-import pandas as pd
 import openmatrix as omx
+import pandas as pd
 
 
 def read_manifest(manifest_file_name):
@@ -33,11 +33,14 @@ def omx_getMatrix(omx_file_name, omx_key):
     with omx.open_file(omx_file_name, "r") as omx_file:
 
         if omx_key not in omx_file.list_matrices():
-            print "Source matrix with key '%s' not found in file '%s" % (
-                omx_key,
-                omx_file,
+            print(
+                "Source matrix with key '%s' not found in file '%s"
+                % (
+                    omx_key,
+                    omx_file,
+                )
             )
-            print omx_file.list_matrices()
+            print(omx_file.list_matrices())
             raise RuntimeError(
                 "Source matrix with key '%s' not found in file '%s"
                 % (
@@ -71,19 +74,25 @@ with omx.open_file(dest_file_name, "a") as dest_omx:
         else:
             dest_key = row.skim_key1
 
-        print "Reading '%s' from '%s' in %s" % (
-            dest_key,
-            row.source_key,
-            source_file_name,
+        print(
+            "Reading '%s' from '%s' in %s"
+            % (
+                dest_key,
+                row.source_key,
+                source_file_name,
+            )
         )
         with omx.open_file(source_file_name, "r") as source_omx:
 
             if row.source_key not in source_omx.list_matrices():
-                print "Source matrix with key '%s' not found in file '%s" % (
-                    row.source_key,
-                    source_file_name,
+                print(
+                    "Source matrix with key '%s' not found in file '%s"
+                    % (
+                        row.source_key,
+                        source_file_name,
+                    )
                 )
-                print source_omx.list_matrices()
+                print(source_omx.list_matrices())
                 raise RuntimeError(
                     "Source matrix with key '%s' not found in file '%s"
                     % (
@@ -95,7 +104,7 @@ with omx.open_file(dest_file_name, "a") as dest_omx:
             data = source_omx[row.source_key]
 
             if dest_key in dest_omx.list_matrices():
-                print "deleting existing dest key '%s'" % (dest_key,)
+                print("deleting existing dest key '%s'" % (dest_key,))
                 dest_omx.removeNode(dest_omx.root.data, dest_key)
 
             dest_omx[dest_key] = data

@@ -4,7 +4,6 @@ import logging
 
 from activitysim.core import inject
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -1,11 +1,12 @@
 import logging
-import pytest
 import os
+
 import pandas as pd
+import pytest
 
 # import models is necessary to initalize the model steps with orca
 from activitysim.abm import models
-from activitysim.core import pipeline, config
+from activitysim.core import config, pipeline
 
 
 # Used by conftest.py initialize_pipeline method

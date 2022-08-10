@@ -4,18 +4,12 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core import config, inject, pipeline, simulate, tracing
 from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import assign_in_place
 
-from .util import tour_destination
-from .util import estimation
+from .util import estimation, tour_destination
 
 logger = logging.getLogger(__name__)
 DUMP = False

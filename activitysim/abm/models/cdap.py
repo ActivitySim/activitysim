@@ -4,17 +4,10 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import expressions
-
+from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
 from activitysim.core.util import reindex
 
-from .util import cdap
-from .util import estimation
+from .util import cdap, estimation
 
 logger = logging.getLogger(__name__)
 

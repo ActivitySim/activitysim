@@ -1,13 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
+
+from activitysim.abm.models.util.canonical_ids import set_trip_index
 from activitysim.core import config, inject
 from activitysim.core.util import assign_in_place, reindex
-from activitysim.abm.models.util.canonical_ids import set_trip_index
-
 
 logger = logging.getLogger(__name__)
 

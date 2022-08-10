@@ -2,7 +2,6 @@
 # See full license in LICENSE.txt.
 
 import logging
-import os
 import time
 import warnings
 from builtins import range
@@ -10,11 +9,15 @@ from collections import OrderedDict
 from datetime import timedelta
 
 import numpy as np
-import orca
 import pandas as pd
 
 from . import assign, chunk, config, logit, pathbuilder, pipeline, tracing, util
-from .simulate_consts import *
+from .simulate_consts import (
+    ALT_LOSER_UTIL,
+    SPEC_DESCRIPTION_NAME,
+    SPEC_EXPRESSION_NAME,
+    SPEC_LABEL_NAME,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -318,7 +321,7 @@ def get_segment_coefficients(model_settings, segment_name):
             FutureWarning,
         )
     else:
-        raise RuntimeError(f"No COEFFICIENTS setting in model_settings")
+        raise RuntimeError("No COEFFICIENTS setting in model_settings")
 
     if legacy:
         constants = config.get_model_constants(model_settings)
@@ -487,7 +490,12 @@ def eval_utilities(
         if locals_d is not None:
             locals_dict.update(locals_d)
         sh_util, sh_flow = apply_flow(
-            spec, choosers, locals_dict, trace_label, sharrow_enabled == "require", zone_layer=zone_layer,
+            spec,
+            choosers,
+            locals_dict,
+            trace_label,
+            sharrow_enabled == "require",
+            zone_layer=zone_layer,
         )
         utilities = sh_util
         timelogger.mark("sharrow flow", True, logger, trace_label)
@@ -1466,7 +1474,7 @@ def simple_simulate(
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1517,7 +1525,7 @@ def simple_simulate_by_chunk_id(
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1697,7 +1705,7 @@ def simple_simulate_logsums(
 
         result_list.append(logsums)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         logsums = pd.concat(result_list)

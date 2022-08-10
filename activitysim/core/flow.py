@@ -1,41 +1,40 @@
 import contextlib
 import glob
-import hashlib
 import logging
 import os
-import re
 import time
 from datetime import timedelta
 from numbers import Number
 from stat import ST_MTIME
-from typing import Mapping
 
 import numpy as np
-import openmatrix
 import pandas as pd
-from orca import orca
-
-try:
-    import sharrow as sh
-except ModuleNotFoundError:
-    sh = None
 
 from .. import __version__
 from ..core import tracing
 from . import config, inject
 from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
 
+try:
+    import sharrow as sh
+except ModuleNotFoundError:
+    sh = None
+
+
 logger = logging.getLogger(__name__)
 
 _FLOWS = {}
 
-if os.environ.get('TRAVIS') == 'true':
+if os.environ.get("TRAVIS") == "true":
     # The multithreaded dask scheduler causes problems on travis.
     # Here, we detect if this code is running on Travis, and if so, we
     # change the default scheduler to single-threaded.  This should not
     # be particularly problematic, as only tiny test cases are run on Travis.
     import dask
-    dask.config.set(scheduler='single-threaded')  # overwrite default with threaded scheduler
+
+    dask.config.set(
+        scheduler="single-threaded"
+    )  # overwrite default with threaded scheduler
 
 
 @contextlib.contextmanager
@@ -124,7 +123,9 @@ def only_simple(x, exclude_keys=()):
     return y
 
 
-def get_flow(spec, local_d, trace_label=None, choosers=None, interacts=None, zone_layer=None):
+def get_flow(
+    spec, local_d, trace_label=None, choosers=None, interacts=None, zone_layer=None
+):
     global _FLOWS
     extra_vars = only_simple(local_d)
     orig_col_name = local_d.get("orig_col_name", None)
@@ -238,7 +239,7 @@ def skims_mapping(
     parking_col_name=None,
     zone_layer=None,
 ):
-    logger.info(f"loading skims_mapping")
+    logger.info("loading skims_mapping")
     logger.info(f"- orig_col_name: {orig_col_name}")
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
@@ -297,10 +298,10 @@ def skims_mapping(
                 relationships=(
                     f"df._orig_col_name -> odt_skims.{odim}",
                     f"df._dest_col_name -> odt_skims.{ddim}",
-                    f"df.trip_period -> odt_skims.time_period",
+                    "df.trip_period -> odt_skims.time_period",
                     f"df._dest_col_name -> dot_skims.{odim}",
                     f"df._orig_col_name -> dot_skims.{ddim}",
-                    f"df.trip_period -> dot_skims.time_period",
+                    "df.trip_period -> dot_skims.time_period",
                     f"df._orig_col_name -> od_skims.{odim}",
                     f"df._dest_col_name -> od_skims.{ddim}",
                 ),
@@ -316,16 +317,16 @@ def skims_mapping(
                 relationships=(
                     f"df._orig_col_name -> odt_skims.{odim}",
                     f"df._dest_col_name -> odt_skims.{ddim}",
-                    f"df.out_period      @  odt_skims.time_period",
+                    "df.out_period      @  odt_skims.time_period",
                     f"df._dest_col_name -> dot_skims.{odim}",
                     f"df._orig_col_name -> dot_skims.{ddim}",
-                    f"df.in_period       @  dot_skims.time_period",
+                    "df.in_period       @  dot_skims.time_period",
                     f"df._orig_col_name -> odr_skims.{odim}",
                     f"df._dest_col_name -> odr_skims.{ddim}",
-                    f"df.in_period       @  odr_skims.time_period",
+                    "df.in_period       @  odr_skims.time_period",
                     f"df._dest_col_name -> dor_skims.{odim}",
                     f"df._orig_col_name -> dor_skims.{ddim}",
-                    f"df.out_period      @  dor_skims.time_period",
+                    "df.out_period      @  dor_skims.time_period",
                     f"df._orig_col_name -> od_skims.{odim}",
                     f"df._dest_col_name -> od_skims.{ddim}",
                 ),
@@ -345,16 +346,16 @@ def skims_mapping(
                 f"df._stop_col_name -> dp_skims.{ddim}",
                 f"df._orig_col_name -> odt_skims.{odim}",
                 f"df._dest_col_name -> odt_skims.{ddim}",
-                f"df.trip_period     -> odt_skims.time_period",
+                "df.trip_period     -> odt_skims.time_period",
                 f"df._dest_col_name -> dot_skims.{odim}",
                 f"df._orig_col_name -> dot_skims.{ddim}",
-                f"df.trip_period     -> dot_skims.time_period",
+                "df.trip_period     -> dot_skims.time_period",
                 f"df._dest_col_name -> dpt_skims.{odim}",
                 f"df._stop_col_name  -> dpt_skims.{ddim}",
-                f"df.trip_period     -> dpt_skims.time_period",
+                "df.trip_period     -> dpt_skims.time_period",
                 f"df._stop_col_name    -> pdt_skims.{odim}",
                 f"df._dest_col_name -> pdt_skims.{ddim}",
-                f"df.trip_period     -> pdt_skims.time_period",
+                "df.trip_period     -> pdt_skims.time_period",
             ),
         )
     elif parking_col_name is not None:  # parking location
@@ -378,16 +379,16 @@ def skims_mapping(
                 f"df._dest_col_name -> pd_skims.{ddim}",
                 f"df._orig_col_name -> odt_skims.{odim}",
                 f"df._dest_col_name -> odt_skims.{ddim}",
-                f"df.trip_period    -> odt_skims.time_period",
+                "df.trip_period    -> odt_skims.time_period",
                 f"df._dest_col_name -> dot_skims.{odim}",
                 f"df._orig_col_name -> dot_skims.{ddim}",
-                f"df.trip_period    -> dot_skims.time_period",
+                "df.trip_period    -> dot_skims.time_period",
                 f"df._orig_col_name -> opt_skims.{odim}",
                 f"df._park_col_name -> opt_skims.{ddim}",
-                f"df.trip_period    -> opt_skims.time_period",
+                "df.trip_period    -> opt_skims.time_period",
                 f"df._park_col_name -> pdt_skims.{odim}",
                 f"df._dest_col_name -> pdt_skims.{ddim}",
-                f"df.trip_period    -> pdt_skims.time_period",
+                "df.trip_period    -> pdt_skims.time_period",
             ),
         )
     else:
@@ -514,15 +515,6 @@ def new_flow(
         flow_tree.add_items(size_term_mapping)
         flow_tree.extra_vars = extra_vars
 
-        # logger.info(f"initializing sharrow shared data {trace_label}")
-        # pool = sh.SharedData(
-        #     chooser_cols,
-        #     **skims_mapping_,
-        #     **size_term_mapping,
-        #     extra_vars=extra_vars,
-        #     alias_main="df",
-        # )
-
         # - eval spec expressions
         if isinstance(spec.index, pd.MultiIndex):
             # spec MultiIndex with expression and label
@@ -562,7 +554,7 @@ def new_flow(
         for (expr, label) in zip(exprs, labels):
             readme += f"\n            - {label}: {expr}"
         if extra_vars:
-            readme += f"\n        extra_vars:"
+            readme += "\n        extra_vars:"
             for i, v in extra_vars.items():
                 readme += f"\n            - {i}: {v}"
 
@@ -601,15 +593,21 @@ def size_terms_on_flow(locals_d):
         locals_d["size_array"] = dict(
             size_terms=a,
             relationships=(
-                f"df._dest_col_name -> size_terms.stoptaz",
-                f"df.purpose_index_num -> size_terms.purpose_index",
+                "df._dest_col_name -> size_terms.stoptaz",
+                "df.purpose_index_num -> size_terms.purpose_index",
             ),
         )
     return locals_d
 
 
 def apply_flow(
-    spec, choosers, locals_d=None, trace_label=None, required=False, interacts=None, zone_layer=None,
+    spec,
+    choosers,
+    locals_d=None,
+    trace_label=None,
+    required=False,
+    interacts=None,
+    zone_layer=None,
 ):
     if sh is None:
         return None, None
@@ -618,7 +616,12 @@ def apply_flow(
     with logtime("apply_flow"):
         try:
             flow = get_flow(
-                spec, locals_d, trace_label, choosers=choosers, interacts=interacts, zone_layer=zone_layer,
+                spec,
+                locals_d,
+                trace_label,
+                choosers=choosers,
+                interacts=interacts,
+                zone_layer=zone_layer,
             )
         except ValueError as err:
             if "unable to rewrite" in str(err):

@@ -3,15 +3,13 @@
 
 import os.path
 
-import numpy.testing as npt
 import numpy as np
+import numpy.testing as npt
 import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from .. import inject
-
-from .. import simulate
+from .. import inject, simulate
 
 
 @pytest.fixture(scope="module")

@@ -1,18 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import range
-from builtins import object
-
-import logging
 import hashlib
+import logging
+from builtins import object, range
 
 import numpy as np
 import pandas as pd
+
 from activitysim.core.util import reindex
 
 from .tracing import print_elapsed_time
-
 
 logger = logging.getLogger(__name__)
 

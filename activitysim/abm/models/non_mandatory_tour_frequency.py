@@ -5,18 +5,18 @@ import logging
 import numpy as np
 import pandas as pd
 
+from activitysim.core import (
+    config,
+    expressions,
+    inject,
+    logit,
+    pipeline,
+    simulate,
+    tracing,
+)
 from activitysim.core.interaction_simulate import interaction_simulate
 
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import simulate
-from activitysim.core import logit
-from activitysim.core import expressions
-
 from .util import estimation
-
 from .util.overlap import person_max_window
 from .util.tour_frequency import process_non_mandatory_tours
 

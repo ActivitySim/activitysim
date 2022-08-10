@@ -1,14 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import os
 import logging
-import pytest
+import os
 
+import pytest
 import tables
 
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import inject
+from activitysim.core import inject, pipeline, tracing
 
 from .extensions import steps
 

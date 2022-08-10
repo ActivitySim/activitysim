@@ -2,18 +2,10 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from activitysim.core import assign
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import chunk
-from activitysim.core import mem
-
-from activitysim.core import los
+from activitysim.core import assign, chunk, config, inject, los, mem, pipeline, tracing
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 logger = logging.getLogger(__name__)

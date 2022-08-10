@@ -25,21 +25,8 @@ LOGGING_CONF_FILE_NAME = "logging.yaml"
 
 
 logger = logging.getLogger(__name__)
+
 timing_notes = set()
-
-
-class ElapsedTimeFormatter(logging.Formatter):
-    def format(self, record):
-        duration_milliseconds = record.relativeCreated
-        hours, rem = divmod(duration_milliseconds / 1000, 3600)
-        minutes, seconds = divmod(rem, 60)
-        if hours:
-            record.elapsedTime = "{:0>2}:{:0>2}:{:05.2f}".format(
-                int(hours), int(minutes), seconds
-            )
-        else:
-            record.elapsedTime = "{:0>2}:{:05.2f}".format(int(minutes), seconds)
-        return super(ElapsedTimeFormatter, self).format(record)
 
 
 class ElapsedTimeFormatter(logging.Formatter):

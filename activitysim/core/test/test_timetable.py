@@ -2,14 +2,15 @@
 # See full license in LICENSE.txt.
 
 from builtins import range
+
 import numpy as np
 import pandas as pd
 import pandas.testing as pdt
 import pytest
 from numpy.testing import assert_array_equal
 
-from .. import timetable as tt
 from .. import chunk
+from .. import timetable as tt
 
 
 @pytest.fixture

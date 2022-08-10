@@ -1,23 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import os
 import logging
-import pkg_resources
+import os
 
-import openmatrix as omx
 import numpy as np
 import numpy.testing as npt
-
+import openmatrix as omx
 import pandas as pd
 import pandas.testing as pdt
+import pkg_resources
 import pytest
 import yaml
 
-from activitysim.core import random
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import inject
-from activitysim.core import config
+from activitysim.core import config, inject, pipeline, random, tracing
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -34,7 +29,7 @@ SKIP_FULL_RUN = False
 
 
 def example_path(dirname):
-    resource = os.path.join("examples", "example_mtc", dirname)
+    resource = os.path.join("examples", "prototype_mtc", dirname)
     return pkg_resources.resource_filename("activitysim", resource)
 
 

@@ -1,10 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
+
 import pytest
 
 from activitysim.core import inject
-
 
 # The following import statement has the side-effect of registering injectables:
 from .. import __init__

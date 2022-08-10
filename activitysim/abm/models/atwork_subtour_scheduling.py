@@ -2,22 +2,16 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
+from activitysim.core import config, expressions, inject, pipeline, simulate
 from activitysim.core import timetable as tt
-from activitysim.core import expressions
-
-from .util.vectorize_tour_scheduling import vectorize_subtour_scheduling
+from activitysim.core import tracing
+from activitysim.core.util import assign_in_place
 
 from .util import estimation
-
-from activitysim.core.util import assign_in_place
+from .util.vectorize_tour_scheduling import vectorize_subtour_scheduling
 
 logger = logging.getLogger(__name__)
 

@@ -2,10 +2,12 @@
 # See full license in LICENSE.txt.
 
 
-import pytest
 import os
+
 import pandas as pd
 import pandas.testing as pdt
+import pytest
+
 from ..tour_frequency import process_mandatory_tours
 
 

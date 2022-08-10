@@ -1,0 +1,69 @@
+LOGIT_TYPE: NL
+
+tvpb_mode_path_types:
+
+NESTS:
+  name: root
+  coefficient: coef_nest_root
+  alternatives:
+      - name: AUTO
+        coefficient: coef_nest_AUTO
+        alternatives:
+            - DRIVEALONE
+            - SHARED2
+            - SHARED3
+      - name: NONMOTORIZED
+        coefficient: coef_nest_NONMOTORIZED
+        alternatives:
+          - WALK
+
+SPEC: tour_mode_choice.csv
+COEFFICIENTS: tour_mode_choice_coefficients.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coefficients_template.csv
+
+CONSTANTS:
+    orig_col_name: origin
+    dest_col_name: destination
+    wait_time_col_regex: '_wait_[0-9]+$'
+
+use_TVPB_constants: False
+
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - tours
+
+# to reduce memory needs filter chooser table to these fields
+LOGSUM_CHOOSER_COLUMNS:
+  - tour_type
+  - hhsize
+  - density_index
+  - age
+  - age_16_p
+  - age_16_to_19
+  - auto_ownership
+  - number_of_participants
+  - tour_category
+  - num_workers
+  - value_of_time
+  - free_parking_at_work
+  - income_segment
+  - demographic_segment
+  - c_ivt_for_segment
+  - c_cost_for_segment
+  - pass_type
+  - start
+  - end
+  - duration
+  - is_university
+  - primary_purpose
+  - person_id
+  - household_id
+
+CHOICE_COL_NAME: tour_mode
+MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum
+COMPUTE_TRIP_MODE_CHOICE_LOGSUMS: True
+

@@ -1,25 +1,19 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import range
-
-import logging
-import os
-import itertools
-import multiprocessing
 import gc as _gc
-import psutil
+import itertools
+import logging
+import multiprocessing
+import os
 import time
-
+from builtins import range
 from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
+import psutil
 
-from activitysim.core import util
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import simulate
-from activitysim.core import tracing
+from activitysim.core import config, inject, simulate, tracing, util
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,9 @@
 import os
-import pandas as pd
-import pytest
 import subprocess
 import tempfile
+
+import pandas as pd
+import pytest
 
 from activitysim.cli.create import get_example
 
@@ -248,8 +249,8 @@ def test_nonmand_and_joint_tour_dest_choice(
 
 def test_tour_and_subtour_mode_choice(est_data, num_regression, dataframe_regression):
     from activitysim.estimation.larch.mode_choice import (
-        tour_mode_choice_model,
         atwork_subtour_mode_choice_model,
+        tour_mode_choice_model,
     )
 
     m = tour_mode_choice_model()

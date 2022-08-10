@@ -97,8 +97,6 @@ def eval_interaction_utilities(
 
         timelogger = TimeLogger("interaction_simulate")
 
-        t0 = time.time()
-
         # add df for startswith('@') eval expressions
         locals_d["df"] = df
 
@@ -125,7 +123,12 @@ def eval_interaction_utilities(
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
             sh_util, sh_flow = apply_flow(
-                spec, df, locals_d, trace_label, interacts=extra_data, zone_layer=zone_layer,
+                spec,
+                df,
+                locals_d,
+                trace_label,
+                interacts=extra_data,
+                zone_layer=zone_layer,
             )
             if sh_util is not None:
                 chunk.log_df(trace_label, "sh_util", sh_util)
@@ -139,8 +142,6 @@ def eval_interaction_utilities(
         else:
             sh_util, sh_flow = None, None
             timelogger.mark("sharrow flow", False)
-
-        t1 = time.time()
 
         if (
             utilities is None
@@ -352,7 +353,7 @@ def eval_interaction_utilities(
                 # ),
                 dtype=np.float32,
             )
-            sh_utility_fat = sh_utility_fat.sel(chooserindex=trace_rows)
+            sh_utility_fat = sh_utility_fat[trace_rows, :]
             sh_utility_fat = sh_utility_fat.to_dataframe("vals")
             try:
                 sh_utility_fat = sh_utility_fat.unstack("expressions")
@@ -483,7 +484,6 @@ def eval_interaction_utilities(
                         dtype=np.float32,
                     )
                     re_sh_flow_load_ = re_sh_flow_load[re_trace]
-                    # np.dot(re_sh_flow_load_, spec.iloc[:, 0])
 
                     look_for_problems_here = np.where(
                         ~np.isclose(
@@ -604,7 +604,12 @@ def _interaction_simulate(
 
     sharrow_enabled = config.setting("sharrow", False)
 
-    if sharrow_enabled and skims is None and not have_trace_targets and sample_size == len(alternatives):
+    if (
+        sharrow_enabled
+        and skims is None
+        and not have_trace_targets
+        and sample_size == len(alternatives)
+    ):
         # no need to create the merged interaction dataset
         # TODO: can we still do this if skims is not None?
 
@@ -893,7 +898,7 @@ def interaction_simulate(
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

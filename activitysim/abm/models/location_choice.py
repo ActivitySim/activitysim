@@ -2,29 +2,27 @@
 # See full license in LICENSE.txt.
 import logging
 
-# import multiprocessing
-
 import pandas as pd
-import numpy as np
-
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import mem
-from activitysim.core import expressions
-from activitysim.core import los
-from activitysim.core import logit
-
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.interaction_sample import interaction_sample
-
-from .util import logsums as logsum
-from .util import estimation
-from .util import tour_destination
 
 from activitysim.abm.tables import shadow_pricing
+from activitysim.core import (
+    config,
+    expressions,
+    inject,
+    los,
+    pipeline,
+    simulate,
+    tracing,
+)
+from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+
+from .util import estimation
+from .util import logsums as logsum
+from .util import tour_destination
+
+# import multiprocessing
+
 
 """
 The school/workplace location model predicts the zones in which various people will

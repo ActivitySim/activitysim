@@ -1,267 +1,291 @@
-import os
+from typing import Union
 
-import yaml
+try:
+    from pydantic import BaseModel as PydanticBase
+except ModuleNotFoundError:
 
-NO_DEFAULT = "< NO DEFAULT >"
-
-
-class IsA:
-    """
-    Decorator for a class attribute that validates type and optionally provides defaults.
-    """
-
-    def __init__(
-        self,
-        *required_types,
-        coerce=False,
-        default=NO_DEFAULT,
-        doc=None,
-        type_descrip=None,
-    ):
-        """
-        Decorator for class attribute that validates type and optional defaults
-
-        Parameters
-        ----------
-        required_types : Tuple[type]
-        coerce : bool, default False
-            Whether to coerce input values to the correct type, as possible.
-        default : Any, optional
-            A default value that will be used for this attribute. If not
-            provided, then a value must be assigned explictly to this
-            class attribute or an exception is raised.
-        doc : str
-            Docstring for class attribute.
-        """
-        assert len(required_types)
-        self.required_types = required_types
-        self.coerce = coerce
-        self.default = default
-        self.type_descrip = type_descrip or ", ".join(
-            str(getattr(i, "__name__", i)) for i in required_types
-        )
-        if doc:
-            if "\n" in doc:
-                self.__doc__ = doc
-            else:
-                self.__doc__ = f"{self.type_descrip}: {doc}"
-
-    def __set_name__(self, owner, name):
-        # self : IsA
-        # owner : parent class that will have `self` as a member
-        # name : the name of the attribute that `self` will be
-        self.public_name = name
-        self.private_name = "_" + name
-
-    def __get__(self, obj, objtype=None):
-        # self : IsA
-        # obj : instance of parent class that has `self` as a member
-        # objtype : class of `obj`
-        if obj is None:
-            return self
-        v = getattr(obj, self.private_name, self.default)
-        if v == NO_DEFAULT:
-            try:
-                f = obj._frozen
-            except AttributeError:
-                pass
-            else:
-                if f:
-                    raise ValueError(
-                        f"{self.public_name!r} is not set and has no default"
-                    )
-        return v
-
-    def __set__(self, obj, value):
-        # self : IsA
-        # obj : instance of parent class that has `self` as a member
-        # value : the new value that is trying to be assigned
-        if value is not None and not isinstance(value, self.required_types):
-            if self.coerce:
-                try:
-                    value = self.required_types[0](value)
-                except Exception as err:
-                    raise AttributeError(
-                        f"for {self.public_name!r} can't coerce {type(value)}"
-                    ) from err
-            else:
-                raise AttributeError(
-                    f"can't set {self.public_name!r} with {type(value)}, must be {self.type_descrip}"
-                )
-        setattr(obj, self.private_name, value)
-
-    def __delete__(self, obj):
-        # self : IsA
-        # obj : instance of parent class that has `self` as a member
-        delattr(obj, self.private_name)
-
-    def validate(self, obj):
+    class PydanticBase:
         pass
 
 
-class IsPath(IsA):
-    def __init__(
-        self,
-        *,
-        coerce=True,
-        default=NO_DEFAULT,
-        doc=None,
-        create=False,
-        exists=False,
-        isdir=False,
-    ):
-        super(IsPath, self).__init__(str, coerce=coerce, default=default, doc=doc)
-        self._create = create
-        self._exists = exists
-        self._isdir = isdir
+class InputTable(PydanticBase):
+    """
+    The features that define an input table to be read by ActivitySim.
+    """
 
-    def __set__(self, obj, value):
-        # self : Path
-        # obj : instance of parent class that has `self` as a member
-        # value : the new value that is trying to be assigned
-        if value is not None and not isinstance(value, self.required_types):
-            if self.coerce:
-                try:
-                    value = self.required_types[0](value)
-                except Exception as err:
-                    raise AttributeError(
-                        f"for {self.public_name} can't coerce {type(value)}"
-                    ) from err
-            else:
-                raise AttributeError(f"can't set {self.public_name} with {type(value)}")
-        if self._exists and not os.path.exists(value):
-            raise FileNotFoundError(value)
-        if self._isdir and not os.path.isdir(value):
-            raise NotADirectoryError(value)
-        setattr(obj, self.private_name, value)
+    tablename: str
+    """Name of the injected table"""
+
+    filename: str = None
+    """
+    Name of the CSV or HDF5 file to read.
+
+    If not provided, defaults to `input_store`
+    """
+
+    index_col: str = None
+    """table column to use for the index"""
+
+    rename_columns: dict[str, str] = None
+    """dictionary of column name mappings"""
+
+    keep_columns: list[str] = None
+    """
+    columns to keep once read in to memory.
+
+    Save only the columns needed for modeling or analysis to save on memory
+    and file I/O
+    """
+
+    h5_tablename: str = None
+    """table name if reading from HDF5 and different from `tablename`"""
 
 
-class IsSubconfig(IsA):
-    def __init__(
-        self,
-        *required_types,
-        coerce=True,
-        default=NO_DEFAULT,
-        doc=None,
-    ):
-        super().__init__(dict, *required_types, coerce=coerce, default=default, doc=doc)
+class Settings(PydanticBase):
+    """
+    The overall settings for the ActivitySim model system.
 
-    def __set__(self, obj, value):
-        # self : Path
-        # obj : instance of parent class that has `self` as a member
-        # value : the new value that is trying to be assigned
-        if value is not None and not isinstance(value, self.required_types[1:]):
-            if self.coerce:
-                try:
-                    value = self.required_types[1](**value)
-                except Exception as err:
-                    raise AttributeError(
-                        f"for {self.public_name} can't coerce {type(value)}"
-                    ) from err
-            else:
-                raise AttributeError(f"can't set {self.public_name} with {type(value)}")
-        setattr(obj, self.private_name, value)
+    The input for these settings is typically stored in one main YAML file,
+    usually called ``settings.yaml``.
+
+    Note that this implementation is presently used only for generating
+    documentation, but future work may migrate the settings implementation to
+    actually use this pydantic code to validate the settings before running
+    the model.
+    """
+
+    models: list[str]
+    """
+    list of model steps to run - auto ownership, tour frequency, etc.
+
+    See :ref:`model_steps` for more details about each step.
+    """
+
+    resume_after: str = None
+    """to resume running the data pipeline after the last successful checkpoint"""
+
+    input_table_list: list[InputTable]
+    """list of table names, indices, and column re-maps for each table in `input_store`"""
+
+    input_store: str = None
+    """HDF5 inputs file"""
+
+    create_input_store: bool = False
+    """
+    Write the inputs as read in back to an HDF5 store.
+
+    If enabled, this writes the store to the outputs folder to use for subsequent
+    model runs, as reading HDF5 can be faster than reading CSV files."""
+
+    households_sample_size: int = None
+    """
+    Number of households to sample and simulate
+
+    If omitted or set to 0, ActivitySim will simulate all households.
+    """
+    trace_hh_id: Union[int, list] = None
+    """
+    Trace household id(s)
+
+    If omitted, no tracing is written out
+    """
+
+    trace_od: list[int] = None
+    """
+    Trace origin, destination pair in accessibility calculation
+
+    If omitted, no tracing is written out.
+    """
+
+    chunk_training_mode: str = None
+    """
+    The method to use for chunk training.
+
+    Valid values include {disabled, training, production, adaptive}.
+    See :ref:`chunk_size` for more details.
+    """
+
+    chunk_size: int = None
+    """
+    Approximate amount of RAM to allocate to ActivitySim for batch processing.
+
+    See :ref:`chunk_size` for more details.
+    """
+
+    chunk_method: str = None
+    """
+    Memory use measure to use for chunking.
+
+    See :ref:`chunk_size`.
+    """
+
+    checkpoints: Union[bool, list] = True
+    """
+    When to write checkpoint (intermediate table states) to disk.
+
+    If True, checkpoints are written at each step. If False, no intermediate
+    checkpoints will be written before the end of run.  Or, provide an explicit
+    list of models to checkpoint.
+    """
+
+    check_for_variability: bool = False
+    """
+    Debugging feature to find broken model specifications.
+
+    Enabling this check does not alter valid results but slows down model runs.
+    """
+
+    log_alt_losers: bool = False
+    """
+    Write out expressions when all alternatives are unavailable.
+
+    This can be useful for model development to catch errors in specifications.
+    Enabling this check does not alter valid results but slows down model runs.
+    """
+
+    use_shadow_pricing: bool = False
+    """turn shadow_pricing on and off for work and school location"""
+
+    output_tables: list[str] = None
+    """list of output tables to write to CSV or HDF5"""
+
+    want_dest_choice_sample_tables: bool = False
+    """turn writing of sample_tables on and off for all models"""
+
+    cleanup_pipeline_after_run: bool = False
+    """
+    Cleans up pipeline after successful run.
+
+    This will clean up pipeline only after successful runs, by creating a
+    single-checkpoint pipeline file, and deleting any subprocess pipelines.
+    """
+
+    sharrow: Union[bool, str] = False
+    """
+    Set the sharrow operating mode.
+
+    .. versionadded:: 1.2
+
+    * `false` - Do not use sharrow.  This is the default if no value is given.
+    * `true` - Use sharrow optimizations when possible, but fall back to
+      legacy `pandas.eval` systems when any error is encountered.  This is the
+      preferred mode for running with sharrow if reliability is more important
+      than performance.
+    * `require` - Use sharrow optimizations, and raise an error if they fail
+      unexpectedly.  This is the preferred mode for running with sharrow
+      if performance is a concern.
+    * `test` - Run every relevant calculation using both sharrow and legacy
+      systems, and compare them to ensure the results match.  This is the slowest
+      mode of operation, but useful for development and debugging.
+    """
 
 
-class Configuration:
-    def __setattr__(self, name, value):
-        if name[0] == "_" and name[-1] != "_":
-            super().__setattr__(name, value)
-        else:
-            if not hasattr(self, name):
-                try:
-                    frozen = self._frozen
-                except AttributeError:
-                    pass
-                else:
-                    if frozen:
-                        raise ValueError(f"cannot set attribute {name!r}")
-            super().__setattr__(name, value)
+class ZarrDigitalEncoding(PydanticBase):
+    """Digital encoding instructions for skim tables.
 
-    def __init__(self, **kwargs):
-        self._frozen = False
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        self._frozen = True
-        for k in dir(self):
-            if k[:2] == "__" and k[-2:] == "__":
-                continue
-            try:
-                setattr(self, k, getattr(self, k))
-            except Exception:
-                raise  # TypeError(f"missing required keyword {k!r}")
+    .. versionadded:: 1.2
+    """
 
-    def __getitem__(self, item):
-        return getattr(self, item)
+    regex: str
+    """A regular expression for matching skim matrix names.
 
-    def __setitem__(self, key, value):
-        setattr(self, key, value)
+    All skims with names that match under typical regular expression rules
+    for Python will be processed together.
+    """
 
-    def __repr__(self):
-        return f"<{self.__class__.__name__}>"
+    joint_dict: str
+    """The name of the joint dictionary for this group.
 
-    @classmethod
-    def load(cls, *filenames, **kwargs):
-        """
-        Read one or more yaml files, aggregating the results.
-
-        At the top level, all files must be mappings, or all lists.
-
-        Parameters
-        ----------
-        *filenames : str
-            Path names for files to load.
-        **kwargs
-            Other keyword arguments are passed to Dict.load() and are common
-            across all loaded files.
-
-        Returns
-        -------
-        Dict or List
-        """
-        if len(filenames) == 0:
-            raise ValueError("must give at least one filename")
-        staged = []
-
-        for filename in filenames:
-            with open(filename, "r", encoding=encoding) as f:
-                try:
-                    content = yaml.safe_load(f)
-                    if isinstance(content, Mapping):
-                        staged.append(content)
-                    else:
-                        raise ValueError(f"error in reading {filename!r}")
-                except Exception as err:
-                    from io import StringIO
-
-                    buffer = StringIO()
-                    yaml_check(filename, logger=lambda x: buffer.write(f"{x}\n"))
-                    raise ValueError(buffer.getvalue()) from err
-
-        result = staged[0]
-        for s in staged[1:]:
-            result.update(s)
-        return result
+    This must be a unique name for this set of skims, and a new array
+    will be added to the Dataset with this name.  It will be an integer-
+    type array indicating the position of each element in the jointly
+    encoded dictionary."""
 
 
-class _SubConfigurationDemo(Configuration):
-    key1 = IsA(str)
-    key2 = IsA(int)
+class TAZ_Settings(PydanticBase):
+    """
+    Complex settings for TAZ skims that are not just OMX file(s).
+
+    .. versionadded:: 1.2
+    """
+
+    omx: str = None
+    """The filename of the data stored in OMX format.
+
+    This is treated as a fallback for the raw input data, if ZARR format data
+    is not available.
+    """
+
+    zarr: str = None
+    """The filename of the data stored in ZARR format.
+
+    Reading ZARR data can be much faster than reading OMX format data, so if
+    this filename is given, the ZARR file format is preferred if it exists. If
+    it does not exist, then OMX data is read in and then ZARR data is written
+    out for future usage.
+
+    .. versionadded:: 1.2
+    """
+
+    zarr_digital_encoding: list[ZarrDigitalEncoding] = None
+    """
+    A list of encodings to apply before saving skims in ZARR format.
+
+    .. versionadded:: 1.2
+    """
 
 
-class _ConfigurationDemo(Configuration):
+class NetworkSettings(PydanticBase):
+    """
+    Network level of service and skims settings
 
-    data_dir = IsPath(
-        default="/tmp",
-        doc="Path to data directory.",
-        exists=True,
-    )
+    The input for these settings is typically stored in one YAML file,
+    usually called ``network_los.yaml``.
+    """
 
-    output_dir = IsPath(
-        doc="Path to model outputs directory.",
-        create=True,
-    )
+    zone_system: int
+    """Which zone system type is used.
 
-    ii = IsA(int, default=1)
-    ff = IsA(float, default=0.0)
-    kk = IsSubconfig(_SubConfigurationDemo)
+    * 1 - TAZ only.
+    * 2 - MAZ and TAZ.
+    * 3 - MAZ, TAZ, and TAP
+    """
+
+    taz_skims: Union[str, TAZ_Settings] = None
+    """Instructions for how to load and pre-process skim matrices.
+
+    If given as a string, it is interpreted as the location for OMX file(s),
+    either as a single file or as a glob-matching pattern for multiple files.
+    The time period for the matrix must be represented at the end of the matrix
+    name and be seperated by a double_underscore (e.g. `BUS_IVT__AM` indicates base
+    skim BUS_IVT with a time period of AM.
+
+    Alternatively, this can be given as a nested dictionary defined via the
+    TAZ_Settings class, which allows for ZARR transformation and pre-processing.
+    """
+
+    skim_time_periods: dict
+    """time period upper bound values and labels
+
+    * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
+    * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
+    * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
+    * ``labels`` - Labels to define names for aggregate periods for skims and assignment
+    """
+
+    read_skim_cache: bool = False
+    """Read cached skims (using numpy memmap) from output directory.
+
+    Reading from memmap is much faster than omx, but the memmap is a huge
+    uncompressed file.
+    """
+
+    write_skim_cache: bool = False
+    """Write memmapped cached skims to output directory.
+
+    This is needed if you want to use the cached skims to speed up subsequent
+    runs.
+    """
+
+    cache_dir: str = None
+    """alternate dir to read/write cache files (defaults to output_dir)"""

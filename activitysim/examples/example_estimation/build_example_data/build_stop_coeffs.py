@@ -1,8 +1,7 @@
 #  python ~/work/activitysim/activitysim/examples/example_estimation/build_example_data/build_stop_coeffs.py
 
-import pandas as pd
 import numpy as np
-
+import pandas as pd
 
 FIRST_RUN = True
 

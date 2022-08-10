@@ -1,16 +1,17 @@
 import os
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import yaml
+from larch import DataFrames, Model
 from larch.util import Dict
-from larch import Model, DataFrames
 
 from .general import (
-    remove_apostrophes,
-    dict_of_linear_utility_from_spec,
     apply_coefficients,
     construct_nesting_tree,
+    dict_of_linear_utility_from_spec,
+    remove_apostrophes,
 )
 
 

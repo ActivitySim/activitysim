@@ -1,0 +1,4 @@
+Label,Description,Expression,utility
+util_drive_available,walk available,@df.drive_time.isna() * C_UNAVAILABLE,1
+util_drive_time,drive time,"@np.where(df.demographic_segment==C_HIGH_INCOME_SEGMENT_ID, c_ivt_high_income, c_ivt_low_income) * c_drive * df.drive_time",1
+util_drive_cost,drive cost,"@np.where(df.demographic_segment==C_HIGH_INCOME_SEGMENT_ID, c_cost_high_income, c_cost_low_income) * df.DIST * c_auto_operating_cost_per_mile",1

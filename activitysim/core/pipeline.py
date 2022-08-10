@@ -1,27 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import next
-from builtins import map
-from builtins import object
-
-import os
-import logging
 import datetime as dt
+import logging
+import os
+from builtins import map, next, object
 
 import pandas as pd
-
 from orca import orca
 
-from . import inject
-from . import config
-from . import random
-from . import tracing
-from . import mem
-
-
-from . import util
+from . import config, inject, mem, random, tracing, util
 from .tracing import print_elapsed_time
-
 
 logger = logging.getLogger(__name__)
 
@@ -425,7 +413,7 @@ def load_checkpoint(checkpoint_name):
         # register it as an orca table
         rewrap(table_name, df)
         loaded_tables[table_name] = df
-        if table_name == 'land_use' and '_original_zone_id' in df.columns:
+        if table_name == "land_use" and "_original_zone_id" in df.columns:
             # The presence of _original_zone_id indicates this table index was
             # decoded to zero-based, so we need to disable offset
             # processing for legacy skim access.

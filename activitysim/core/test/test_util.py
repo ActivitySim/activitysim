@@ -6,10 +6,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from ..util import reindex
-from ..util import other_than
-from ..util import quick_loc_series
-from ..util import quick_loc_df
+from ..util import other_than, quick_loc_df, quick_loc_series, reindex
 
 
 @pytest.fixture(scope="module")

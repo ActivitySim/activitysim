@@ -3,12 +3,8 @@
 
 import logging
 
-from activitysim.core import los
-from activitysim.core import inject
-from activitysim.core import config
-
+from activitysim.core import config, inject, los
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
-
 
 logger = logging.getLogger(__name__)
 

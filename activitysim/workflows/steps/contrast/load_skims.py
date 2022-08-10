@@ -1,16 +1,19 @@
-import os
-from pypyr.context import Context
-from ..progression import reset_progress_step
-from ..error_handler import error_logging
-from ..wrapping import workstep
-from pathlib import Path
-from activitysim.standalone.utils import chdir
+import glob
 import logging
-import yaml
+import os
+from pathlib import Path
+
+import numpy as np
 import openmatrix
 import sharrow as sh
-import numpy as np
-import glob
+import yaml
+from pypyr.context import Context
+
+from activitysim.standalone.utils import chdir
+
+from ..error_handler import error_logging
+from ..progression import reset_progress_step
+from ..wrapping import workstep
 
 logger = logging.getLogger(__name__)
 

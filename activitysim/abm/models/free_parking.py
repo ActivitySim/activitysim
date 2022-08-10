@@ -2,12 +2,7 @@
 # See full license in LICENSE.txt.
 import logging
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import expressions
+from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
 
 from .util import estimation
 

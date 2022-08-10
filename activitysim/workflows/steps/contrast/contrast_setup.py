@@ -1,5 +1,5 @@
-import time
 import multiprocessing
+import time
 
 from ..progression import reset_progress_step
 from ..wrapping import workstep
@@ -26,14 +26,6 @@ def contrast_setup(
     contrast = sharrow and legacy
 
     flags = []
-    from activitysim.cli.create import EXAMPLES
-
-    # run_flags = EXAMPLES.get(example_name, {}).get("run_flags", {})
-    # if isinstance(run_flags, str):
-    #     flags.append(run_flags)
-    # elif run_flags:
-    #     flags.append(run_flags.get("multi" if mp else "single"))
-
     if resume_after:
         flags.append(f" -r {resume_after}")
     if fast:

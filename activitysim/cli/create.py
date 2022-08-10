@@ -1,13 +1,14 @@
+import glob
+import hashlib
 import logging
 import os
-import sys
-import requests
 import shutil
-import glob
-import pkg_resources
-import yaml
-import hashlib
+import sys
 from pathlib import Path
+
+import pkg_resources
+import requests
+import yaml
 
 PACKAGE = "activitysim"
 EXAMPLES_DIR = "examples"

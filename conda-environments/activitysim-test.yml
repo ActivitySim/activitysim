@@ -21,7 +21,7 @@ dependencies:
 - pytest
 - pytest-cov
 - coveralls
-- pycodestyle
+- black
 - pytest-regressions
 - sharrow >= 2.2
 - xarray >= 0.21

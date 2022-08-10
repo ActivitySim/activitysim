@@ -5,13 +5,11 @@ import os.path
 
 import numpy as np
 import pandas as pd
-
 import pandas.testing as pdt
 import pytest
 
+from .. import inject, logit
 from ..simulate import eval_variables
-from .. import logit
-from .. import inject
 
 
 def setup_function():

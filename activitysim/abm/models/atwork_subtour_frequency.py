@@ -2,18 +2,12 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import expressions
+from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
 
 from .util import estimation
-
 from .util.tour_frequency import process_atwork_subtours
 
 logger = logging.getLogger(__name__)

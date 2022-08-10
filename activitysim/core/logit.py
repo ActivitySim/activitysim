@@ -1,15 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import object
-
 import logging
+from builtins import object
 
 import numpy as np
 import pandas as pd
 
-from . import tracing
-from . import pipeline
-from . import config
+from . import config, pipeline, tracing
 from .choosing import choice_maker
 
 logger = logging.getLogger(__name__)

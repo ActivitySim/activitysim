@@ -1,16 +1,11 @@
-import sys
 import os
+import sys
 
 
 def prog():
 
-    from activitysim.cli import CLI
-    from activitysim.cli import run
-    from activitysim.cli import create
-    from activitysim.cli import benchmark
-    from activitysim import workflows
-
-    from activitysim import __version__, __doc__
+    from activitysim import __doc__, __version__, workflows
+    from activitysim.cli import CLI, benchmark, create, run
 
     asim = CLI(version=__version__, description=__doc__)
     asim.add_subcommand(

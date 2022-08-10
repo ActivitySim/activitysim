@@ -2,7 +2,7 @@ name: ActivitySim Docs
 
 on:
   push:
-    branches: [ main, develop, with-sharrow-ga ]
+    branches: [ main, develop, sharrow-black ]
   workflow_dispatch:
 
 jobs:

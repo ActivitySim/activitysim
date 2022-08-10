@@ -1,12 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-from activitysim.core import config
-
+from activitysim.core import config, inject
 
 logger = logging.getLogger(__name__)
 

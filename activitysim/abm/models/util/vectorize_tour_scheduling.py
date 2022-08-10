@@ -5,24 +5,11 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core import config
-from activitysim.core import tracing
-from activitysim.core import inject
-from activitysim.core import mem
-
-from activitysim.core import chunk
-from activitysim.core import simulate
-from activitysim.core import logit
-from activitysim.core import los
-
+from activitysim.core import chunk, config, expressions, inject, los, simulate
 from activitysim.core import timetable as tt
-
+from activitysim.core import tracing
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
-from activitysim.core import expressions
-
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
-
 
 logger = logging.getLogger(__name__)
 
@@ -182,7 +169,7 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
     tdd_segments = inject.get_injectable("tdd_alt_segments", None)
     alt_tdd_periods = None
 
-    logger.info(f"tdd_alt_segments specified for representative logsums")
+    logger.info("tdd_alt_segments specified for representative logsums")
 
     with chunk.chunk_log(tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")):
 
@@ -275,8 +262,8 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
             dedupe_columns = ["out_period", "in_period", "duration"]
 
             logger.warning(
-                f"No tdd_alt_segments for representative logsums so fallback to "
-                f"deduping tdd_alts by time_period and duration"
+                "No tdd_alt_segments for representative logsums so fallback to "
+                "deduping tdd_alts by time_period and duration"
             )
 
             # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
@@ -355,7 +342,7 @@ def compute_logsums(
             f"from {len(alt_tdd)} to {len(deduped_alt_tdds)} compared to USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS"
         )
 
-        t0 = tracing.print_elapsed_time()
+        tracing.print_elapsed_time()
 
         # - compute logsums for the alt_tdd_periods
         deduped_alt_tdds["logsums"] = _compute_logsums(
@@ -714,7 +701,7 @@ def _schedule_tours(
     if not RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
         # Note: Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
         # and he was using logsum_tour_purpose as selector, although logically it should be the spec_segment
-        # It just happened to work for example_arc.mandatory_tour_scheduling because, in that model, (unlike semcog)
+        # It just happened to work for prototype_arc.mandatory_tour_scheduling because, in that model, (unlike semcog)
         # logsum_tour_purpose and spec_segments are aligned (both logsums and spec are segmented on work, school, univ)
         # In any case, I don't see any benefit to doing this here - at least not for any existing implementations
         # but if we do, it will require passing spec_segment to schedule_tours  and _schedule_tours
@@ -828,7 +815,7 @@ def schedule_tours(
 
         result_list.append(choices)
 
-        chunk.log_df(tour_trace_label, f"result_list", result_list)
+        chunk.log_df(tour_trace_label, "result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

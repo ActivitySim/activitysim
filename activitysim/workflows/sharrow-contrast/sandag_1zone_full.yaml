@@ -19,7 +19,7 @@ steps:
       main_n_households: 100000
       config_dirs:
       - configs_1_zone
-      - example_mtc/configs
+      - prototype_mtc/configs
       data_dir: data_1
       instrument: False
       memory_profile: True

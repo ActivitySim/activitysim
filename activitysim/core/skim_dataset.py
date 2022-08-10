@@ -500,28 +500,64 @@ def _drop_unused_names(dataset):
     return dataset
 
 
-def _load_sparse_maz_skims(dataset, network_los_preload, land_use, remapper):
+def load_sparse_maz_skims(
+    dataset,
+    land_use_index,
+    remapper,
+    zone_system,
+    maz2taz_file_name,
+    maz_to_maz_tables=(),
+    max_blend_distance=None,
+    data_file_resolver=None,
+):
+    """
+    Load sparse MAZ data on top of TAZ skim data.
+
+    Parameters
+    ----------
+    dataset : xarray.Dataset
+        The existing dataset at TAZ resolution only.
+    land_use_index : pandas.Index
+        The index of the land use table.  For two and three zone systems,
+        these index values should be MAZ identifiers.
+    remapper : dict, optional
+        A dictionary mapping where the keys are the original (nominal) zone
+        id's, and the values are the recoded (typically zero-based contiguous)
+        zone id's.  Recoding improves runtime efficiency.
+    zone_system : int
+        Currently 1, 2 and 3 are supported.
+    maz2taz_file_name : str
+    maz_to_maz_tables : Collection[]
+    max_blend_distance : optional
+    data_file_resolver : function
+
+    Returns
+    -------
+    xarray.Dataset
+    """
     from ..core.los import THREE_ZONE, TWO_ZONE
 
-    if network_los_preload.zone_system in [TWO_ZONE, THREE_ZONE]:
+    if data_file_resolver is None:
+        data_file_resolver = config.data_file_path
+
+    if zone_system in [TWO_ZONE, THREE_ZONE]:
 
         # maz
-        maz2taz_file_name = network_los_preload.setting("maz")
-        maz_taz = pd.read_csv(config.data_file_path(maz2taz_file_name, mandatory=True))
+        maz_taz = pd.read_csv(data_file_resolver(maz2taz_file_name, mandatory=True))
         maz_taz = maz_taz[["MAZ", "TAZ"]].set_index("MAZ").sort_index()
 
         # MAZ alignment is ensured here, so no re-alignment check is
         # needed below for TWO_ZONE or THREE_ZONE systems
         try:
             pd.testing.assert_index_equal(
-                maz_taz.index, land_use.index, check_names=False
+                maz_taz.index, land_use_index, check_names=False
             )
         except AssertionError:
             if remapper is not None:
                 maz_taz.index = maz_taz.index.map(remapper.get)
                 maz_taz = maz_taz.sort_index()
                 assert maz_taz.index.equals(
-                    land_use.to_frame().sort_index().index
+                    land_use_index.sort_values()
                 ), "maz-taz lookup index does not match index of land_use table"
             else:
                 raise
@@ -533,22 +569,20 @@ def _load_sparse_maz_skims(dataset, network_los_preload, land_use, remapper):
             map_also={"dtaz": "dmaz"},
         )
 
-        maz_to_maz_tables = network_los_preload.setting("maz_to_maz.tables")
         maz_to_maz_tables = (
             [maz_to_maz_tables]
             if isinstance(maz_to_maz_tables, str)
             else maz_to_maz_tables
         )
 
-        max_blend_distance = network_los_preload.setting(
-            "maz_to_maz.max_blend_distance", default={}
-        )
+        if max_blend_distance is None:
+            max_blend_distance = {}
         if isinstance(max_blend_distance, int):
             max_blend_distance = {"DEFAULT": max_blend_distance}
 
         for file_name in maz_to_maz_tables:
 
-            df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+            df = pd.read_csv(data_file_resolver(file_name, mandatory=True))
             if remapper is not None:
                 df.OMAZ = df.OMAZ.map(remapper.get)
                 df.DMAZ = df.DMAZ.map(remapper.get)
@@ -565,7 +599,7 @@ def _load_sparse_maz_skims(dataset, network_los_preload, land_use, remapper):
                     df.DMAZ,
                     df[colname],
                     max_blend_distance=max_blend_distance_i,
-                    index=land_use.index,
+                    index=land_use_index,
                 )
 
     return dataset
@@ -640,7 +674,17 @@ def skim_dataset():
                 max_float_precision=max_float_precision,
             )
             # load sparse MAZ skims, if any
-            d = _load_sparse_maz_skims(d, network_los_preload, land_use, remapper)
+            d = load_sparse_maz_skims(
+                d,
+                land_use.index,
+                remapper,
+                zone_system=network_los_preload.zone_system,
+                maz2taz_file_name=network_los_preload.setting("maz"),
+                maz_to_maz_tables=network_los_preload.setting("maz_to_maz.tables"),
+                max_blend_distance=network_los_preload.setting(
+                    "maz_to_maz.max_blend_distance", default={}
+                ),
+            )
 
             if zarr_file:
                 try:

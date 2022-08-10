@@ -12,17 +12,11 @@ input_table_list:
       np: hhsize
       nwrkrs_esr: num_workers
     keep_columns:
-      #- household_id
       - home_zone_id
       - hhsize
       - num_workers
       - hincp
-      #- hhincAdj
-      #- adjinc
-      #- veh
       - hht
-      #- bld
-      #- type
   - tablename: persons
     filename: persons.csv
     # The index column is set before keep_columns,
@@ -32,25 +26,16 @@ input_table_list:
       maz: home_zone_id
       sporder: PNUM
     keep_columns:
-      #- person_id
       - household_id
       - home_zone_id
       - PNUM
       - agep
-      #- employed
       - pecasOcc
       - sex
       - esr
       - wkw
       - wkhp
-      #-mil
       - schg
-      #-schl
-      #-indp02
-      #-indp07
-      #-occp02
-      #-occp10
-      #-n
   - tablename: land_use
     filename: land_use.csv
     # The index column is set before keep_columns,
@@ -149,8 +134,8 @@ models:
   - track_skim_usage
   - write_trip_matrices
   - write_tables
-  
-# resume_after: 
+
+# resume_after:
 
 multiprocess: False
 fail_fast: True
@@ -204,7 +189,7 @@ output_tables:
         origin: land_use.zone_id
         destination: land_use.zone_id
     - joint_tour_participants
-    
+
 #trace_od: [100,10]
 trace_hh_id:
 # trace_hh_id: 2

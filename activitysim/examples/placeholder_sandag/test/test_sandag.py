@@ -97,7 +97,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
         run_args = run_args + ["-s", "settings_mp.yaml"]
 
     if sharrow:
-        run_args = ["-c", test_path("configs_sharrow")] + run_args
+        run_args = ["-c", test_path(f"configs_{zone}_sharrow")] + run_args
 
     subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
 
@@ -127,6 +127,13 @@ def test_2_zone_mp(data):
     run_test(zone="2", multiprocess=True)
 
 
+def test_2_zone_sharrow(data):
+    # Run both single and MP in one test function
+    # guarantees that compile happens in single
+    run_test(zone="2", multiprocess=False, sharrow=True)
+    run_test(zone="2", multiprocess=True, sharrow=True)
+
+
 def test_3_zone(data):
     run_test(zone="3", multiprocess=False)
 
@@ -146,6 +153,8 @@ if __name__ == "__main__":
 
     run_test(zone="2", multiprocess=False)
     run_test(zone="2", multiprocess=True)
+    run_test(zone="2", multiprocess=False, sharrow=True)
+    run_test(zone="2", multiprocess=True, sharrow=True)
 
     run_test(zone="3", multiprocess=False)
     run_test(zone="3", multiprocess=True)

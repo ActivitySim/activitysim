@@ -73,13 +73,15 @@ def determine_mandatory_tour_flavors(mtf_settings, model_spec, default_flavors):
 
     if provided_flavors is not None:
         if mandatory_tour_flavors != provided_flavors:
-            logger.warning(f"Specified tour flavors {provided_flavors} do not match alternative file flavors {mandatory_tour_flavors}")
+            logger.warning("Specified tour flavors do not match alternative file flavors")
+            logger.warning(f"{provided_flavors} does not equal {mandatory_tour_flavors}")
         # use provided flavors if provided
         return provided_flavors
 
     if not valid_flavors:
         # if flavors could not be parsed correctly and no flavors provided, return the default
-        logger.warning(f"Could not determine alts from alt file and no flavors were provided.  Using defaults: {default_flavors}")
+        logger.warning("Could not determine alts from alt file and no flavors were provided.")
+        logger.warning(f"Using defaults: {default_flavors}")
         return default_flavors
 
     return mandatory_tour_flavors
@@ -97,17 +99,18 @@ def determine_non_mandatory_tour_max_extension(model_settings, extension_probs, 
 
     if (max_extension >= 0) & isinstance(max_extension, int):
         return max_extension
-    
+
     return default_max_extension
 
 
 def determine_flavors_from_alts_file(alts, provided_flavors, default_flavors, max_extension=0):
     try:
-        flavors = {c : int(alts[c].max() + max_extension) for c in alts.columns if all(alts[c].astype(str).str.isnumeric())}
-        valid_flavors = all([(isinstance(flavor, str) & isinstance(num, int) & (num > 0)) for flavor, num in flavors.items()])
-    except:
+        flavors = {c: int(alts[c].max() + max_extension) for c in alts.columns
+                   if all(alts[c].astype(str).str.isnumeric())}
+        valid_flavors = all([(isinstance(flavor, str) & (num > 0)) for flavor, num in flavors.items()])
+    except ValueError:
         valid_flavors = False
-    
+
     if provided_flavors is not None:
         if flavors != provided_flavors:
             logger.warning(f"Specified tour flavors {provided_flavors} do not match alternative file flavors {flavors}")
@@ -116,9 +119,10 @@ def determine_flavors_from_alts_file(alts, provided_flavors, default_flavors, ma
 
     if not valid_flavors:
         # if flavors could not be parsed correctly and no flavors provided, return the default
-        logger.warning(f"Could not determine alts from alt file and no flavors were provided.  Using defaults: {default_flavors}")
+        logger.warning("Could not determine alts from alt file and no flavors were provided.")
+        logger.warning(f"Using defaults: {default_flavors}")
         return default_flavors
-    
+
     return flavors
 
 
@@ -134,12 +138,13 @@ def canonical_tours():
     # ---- non_mandatory_channels
     nm_model_settings_file_name = 'non_mandatory_tour_frequency.yaml'
     nm_model_settings = config.read_model_settings(nm_model_settings_file_name)
-    nm_alts =  simulate.read_model_alts('non_mandatory_tour_frequency_alternatives.csv', set_index=None)
+    nm_alts = simulate.read_model_alts('non_mandatory_tour_frequency_alternatives.csv', set_index=None)
 
     # first need to determine max extension
     ext_probs_f = config.config_file_path('non_mandatory_tour_frequency_extension_probs.csv')
     extension_probs = pd.read_csv(ext_probs_f, comment='#')
-    max_extension = determine_non_mandatory_tour_max_extension(nm_model_settings, extension_probs, default_max_extension=2)
+    max_extension = determine_non_mandatory_tour_max_extension(
+        nm_model_settings, extension_probs, default_max_extension=2)
 
     provided_nm_tour_flavors = nm_model_settings.get('NON_MANDATORY_TOUR_FLAVORS', None)
     default_nm_tour_flavors = {'escort': 2 + max_extension,
@@ -148,7 +153,6 @@ def canonical_tours():
                                'othdiscr': 1 + max_extension,
                                'eatout': 1 + max_extension,
                                'social': 1 + max_extension}
-
 
     non_mandatory_tour_flavors = determine_flavors_from_alts_file(
             nm_alts, provided_nm_tour_flavors, default_nm_tour_flavors, max_extension)
@@ -164,7 +168,8 @@ def canonical_tours():
     mtf_model_spec = simulate.read_model_spec(file_name=mtf_model_settings['SPEC'])
     default_mandatory_tour_flavors = {'work': 2, 'school': 2}
 
-    mandatory_tour_flavors = determine_mandatory_tour_flavors(mtf_model_settings, mtf_model_spec, default_mandatory_tour_flavors)
+    mandatory_tour_flavors = determine_mandatory_tour_flavors(
+        mtf_model_settings, mtf_model_spec, default_mandatory_tour_flavors)
     mandatory_channels = enumerate_tour_types(mandatory_tour_flavors)
 
     logger.info(f"Mandatory tour flavors used are {mandatory_tour_flavors}")
@@ -172,12 +177,13 @@ def canonical_tours():
     # ---- atwork_subtour_channels
     atwork_model_settings_file_name = 'atwork_subtour_frequency.yaml'
     atwork_model_settings = config.read_model_settings(atwork_model_settings_file_name)
-    atwork_alts =  simulate.read_model_alts('atwork_subtour_frequency_alternatives.csv', set_index=None)
+    atwork_alts = simulate.read_model_alts('atwork_subtour_frequency_alternatives.csv', set_index=None)
 
     provided_atwork_flavors = atwork_model_settings.get('ATWORK_SUBTOUR_FLAVORS', None)
     default_atwork_flavors = {'eat': 1, 'business': 2, 'maint': 1}
 
-    atwork_subtour_flavors = determine_flavors_from_alts_file(atwork_alts, provided_atwork_flavors, default_atwork_flavors)
+    atwork_subtour_flavors = determine_flavors_from_alts_file(
+        atwork_alts, provided_atwork_flavors, default_atwork_flavors)
     atwork_subtour_channels = enumerate_tour_types(atwork_subtour_flavors)
 
     logger.info(f"Atwork subtour flavors used are {atwork_subtour_flavors}")
@@ -192,11 +198,12 @@ def canonical_tours():
     # ---- joint_tour_channels
     jtf_model_settings_file_name = 'joint_tour_frequency.yaml'
     jtf_model_settings = config.read_model_settings(jtf_model_settings_file_name)
-    alts =  simulate.read_model_alts('joint_tour_frequency_alternatives.csv', set_index=None)
+    jtf_alts = simulate.read_model_alts('joint_tour_frequency_alternatives.csv', set_index=None)
     provided_joint_flavors = jtf_model_settings.get('JOINT_TOUR_FLAVORS', None)
 
     default_joint_flavors = {'shopping': 2, 'othmaint': 2, 'othdiscr': 2, 'eatout': 2, 'social': 2}
-    joint_tour_flavors = determine_flavors_from_alts_file(alts, provided_joint_flavors, default_joint_flavors)
+    joint_tour_flavors = determine_flavors_from_alts_file(
+        jtf_alts, provided_joint_flavors, default_joint_flavors)
     logger.info(f"Joint tour flavors used are {joint_tour_flavors}")
 
     joint_tour_channels = enumerate_tour_types(joint_tour_flavors)
@@ -280,13 +287,13 @@ def determine_max_trips_per_leg(default_max_trips_per_leg=4):
     provided_max_trips_per_leg = model_settings.get('MAX_TRIPS_PER_LEG', None)
 
     # determine flavors from alternative file
-    alts =  simulate.read_model_alts('stop_frequency_alternatives.csv', set_index=None)
-    try: 
+    alts = simulate.read_model_alts('stop_frequency_alternatives.csv', set_index=None)
+    try:
         trips_per_leg = [int(alts[c].max()) for c in alts.columns if all(alts[c].astype(str).str.isnumeric())]
         max_trips_per_leg = max(trips_per_leg) + 1  # adding one for additional trip home or to primary dest
         if (max_trips_per_leg > 1):
             valid_max_trips = True
-    except:
+    except ValueError:
         valid_max_trips = False
 
     if provided_max_trips_per_leg is not None:
@@ -296,13 +303,12 @@ def determine_max_trips_per_leg(default_max_trips_per_leg=4):
 
     if valid_max_trips:
         return max_trips_per_leg
-    
+
     return default_max_trips_per_leg
 
 
 def set_trip_index(trips, tour_id_column='tour_id'):
-
-    # max number of trips per leg (inbound or outbound) of tour 
+    # max number of trips per leg (inbound or outbound) of tour
     #  = stops + 1 for primary half-tour destination
     max_trips_per_leg = determine_max_trips_per_leg()
 

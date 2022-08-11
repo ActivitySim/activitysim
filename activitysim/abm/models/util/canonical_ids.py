@@ -141,7 +141,7 @@ def determine_flavors_from_alts_file(
             if all(alts[c].astype(str).str.isnumeric())
         }
         valid_flavors = all(
-            [(isinstance(flavor, str) & (num > 0)) for flavor, num in flavors.items()]
+            [(isinstance(flavor, str) & (num >= 0)) for flavor, num in flavors.items()]
         )
     except ValueError:
         valid_flavors = False

@@ -11,6 +11,11 @@ import pytest
 from ..tour_frequency import process_mandatory_tours
 
 
+@pytest.fixture(scope="module")
+def configs_dir():
+    return os.path.join(os.path.dirname(__file__), "configs")
+
+
 def mandatory_tour_frequency_alternatives():
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
     f = os.path.join(configs_dir, "mandatory_tour_frequency_alternatives.csv")

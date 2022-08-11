@@ -202,12 +202,22 @@ run-reference:
     env_prefix: "{workspace}/env/asim-ref-{reference_asim_version}"
     asim_version: '{reference_asim_version}'
 
+- name: activitysim.workflows.steps.py
+  in:
+    label: Identify first config dir
+    py: |
+      if isinstance(config_dirs, str):
+        first_config_dir = config_dirs
+      else:
+        first_config_dir = config_dirs[0]
+      save('first_config_dir')
+
 - description: Copy required reference settings
   name: activitysim.workflows.steps.copy_files
   in:
     source_glob:
-      - "{workspace}/{example_name}/configs/legacy-{reference_asim_version}/*.yaml"
-      - "{workspace}/{example_name}/configs/legacy-{reference_asim_version}/*.csv"
+      - "{workspace}/{example_name}/{first_config_dir}/legacy-{reference_asim_version}/*.yaml"
+      - "{workspace}/{example_name}/{first_config_dir}/legacy-{reference_asim_version}/*.csv"
     dest_dir: "{workspace}/{example_name}/configs_reference"
 
 - name: activitysim.workflows.steps.py

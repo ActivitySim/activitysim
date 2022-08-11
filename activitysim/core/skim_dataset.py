@@ -695,17 +695,19 @@ def skim_dataset():
         # is not yet compatible with ZARR directly.
         # see https://github.com/pydata/sparse/issues/222
         #  or https://github.com/zarr-developers/zarr-python/issues/424
-        d = load_sparse_maz_skims(
-            d,
-            land_use.index,
-            remapper,
-            zone_system=network_los_preload.zone_system,
-            maz2taz_file_name=network_los_preload.setting("maz"),
-            maz_to_maz_tables=network_los_preload.setting("maz_to_maz.tables"),
-            max_blend_distance=network_los_preload.setting(
-                "maz_to_maz.max_blend_distance", default={}
-            ),
-        )
+        maz2taz_file_name = network_los_preload.setting("maz", None)
+        if maz2taz_file_name:
+            d = load_sparse_maz_skims(
+                d,
+                land_use.index,
+                remapper,
+                zone_system=network_los_preload.zone_system,
+                maz2taz_file_name=network_los_preload.setting("maz"),
+                maz_to_maz_tables=network_los_preload.setting("maz_to_maz.tables"),
+                max_blend_distance=network_los_preload.setting(
+                    "maz_to_maz.max_blend_distance", default={}
+                ),
+            )
 
         d = _drop_unused_names(d)
         # apply non-zarr dependent digital encoding

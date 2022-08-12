@@ -188,7 +188,7 @@ def determine_flavors_from_alts_file(
         valid_flavors = all(
             [(isinstance(flavor, str) & (num >= 0)) for flavor, num in flavors.items()]
         )
-    except ValueError:
+    except (ValueError, AttributeError):
         valid_flavors = False
 
     if provided_flavors is not None:
@@ -234,7 +234,7 @@ def canonical_tours():
         logger.warning(
             f"non_mandatory_tour_frequency_extension_probs.csv file not found"
         )
-        extension_probs = None
+        extension_probs = pd.DataFrame()
     max_extension = determine_non_mandatory_tour_max_extension(
         nm_model_settings, extension_probs, default_max_extension=2
     )

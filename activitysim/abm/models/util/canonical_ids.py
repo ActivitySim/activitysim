@@ -225,10 +225,10 @@ def canonical_tours():
     nm_alts = read_alts_file("non_mandatory_tour_frequency_alternatives.csv")
 
     # first need to determine max extension
-    ext_probs_f = config.config_file_path(
-        "non_mandatory_tour_frequency_extension_probs.csv"
-    )
     try:
+        ext_probs_f = config.config_file_path(
+            "non_mandatory_tour_frequency_extension_probs.csv"
+        )
         extension_probs = pd.read_csv(ext_probs_f, comment="#")
     except RuntimeError:
         logger.warning(f"Extension probabilities file not found: {ext_probs_f}")

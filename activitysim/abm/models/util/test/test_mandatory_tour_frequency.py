@@ -16,6 +16,13 @@ def configs_dir():
     return os.path.join(os.path.dirname(__file__), "configs")
 
 
+def setup_function():
+    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
+    inject.add_injectable("configs_dir", configs_dir)
+    output_dir = os.path.join(os.path.dirname(__file__), "output")
+    inject.add_injectable("output_dir", output_dir)
+
+
 def mandatory_tour_frequency_alternatives():
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
     f = os.path.join(configs_dir, "mandatory_tour_frequency_alternatives.csv")

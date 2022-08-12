@@ -59,8 +59,21 @@ def enumerate_tour_types(tour_flavors):
 
 
 def parse_tour_flavor_from_columns(columns, tour_flavor):
-    # determines the max number from columns if column name contains tour flavor
+    """
+    determines the max number from columns if column name contains tour flavor
+    example: columns={'work1', 'work2'} -> 2
 
+    Parameters
+    ----------
+    columns : list of str
+    tour_flavor : str
+        string subset that you want to find in columns
+
+    Returns
+    -------
+    int
+        max int found in columns with tour_flavor
+    """
     # below produces a list of numbers present in each column containing the tour flavor string
     tour_numbers = [(re.findall(r"\d+", col)) for col in columns if tour_flavor in col]
 
@@ -134,6 +147,29 @@ def determine_non_mandatory_tour_max_extension(
 def determine_flavors_from_alts_file(
     alts, provided_flavors, default_flavors, max_extension=0
 ):
+    """
+    determines the max number from alts for each column containing numbers
+    example: alts={'index': ['alt1', 'alt2'], 'escort': [1, 2], 'othdisc': [3, 4]}
+             yelds -> {'escort': 2, 'othdisc': 4}
+
+    will return provided flavors if available
+    else, return default flavors if alts can't be groked
+
+    Parameters
+    ----------
+    alts : pd.DataFrame
+    provided_flavors : dict
+        tour flavors provided by user in the model yaml
+    default_flavors : dict
+        default tour flavors to fall back on
+    max_extension : int
+        scale to increase number of tours accross all alternatives
+
+    Returns
+    -------
+    dict
+        tour flavors
+    """
     try:
         flavors = {
             c: int(alts[c].max() + max_extension)

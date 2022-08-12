@@ -8,6 +8,8 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
+from activitysim.core import inject
+
 from ..tour_frequency import process_mandatory_tours
 
 

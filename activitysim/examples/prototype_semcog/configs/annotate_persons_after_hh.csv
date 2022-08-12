@@ -1,0 +1,22 @@
+Description,Target,Expression
+#,, annotate persons table after annotate_households
+#,, adults get full hh_value_of_time and children get 60%
+,_hh_vot,"reindex(households.hh_value_of_time, persons.household_id)"
+,value_of_time,"_hh_vot.where(persons.age>=18, _hh_vot * 0.667)"
+,_hh_income,"reindex(households.HINCP, persons.household_id)"
+,_num_adults,"reindex(households.num_adults, persons.household_id)"
+,_num_predrive_child,"reindex(households.num_predrive_child, persons.household_id)"
+,_num_nonworker_adults,"reindex(households.num_nonworker_adults, persons.household_id)"
+,_num_full_time_workers,"reindex(households.num_fullTime_workers, persons.household_id)"
+Income less than 25K,is_income_less25K,(_hh_income)<25000
+Income 25K to 60K,is_income_25K_to_60K,((_hh_income)>=25000) & ((_hh_income)<60000)
+Income 60K to 120K,is_income_60K_to_120K, ((_hh_income)>=60000) & ((_hh_income)<120000)
+Income greater than 60K,is_income_greater60K,((_hh_income)>=60000)
+Income greater than 120K,is_income_greater120K,((_hh_income)>=120000)
+Presence of nonworker in HHs,is_non_worker_in_HH,_num_nonworker_adults>0
+all the adults in the HH are full time workers,is_all_adults_full_time_workers,(_num_adults) == (_num_full_time_workers)
+Presence of predrive child in HHs,is_pre_drive_child_in_HH,_num_predrive_child>0
+,_has_young_children,"reindex(households.num_young_children, persons.household_id)"
+,_has_children_6_to_12,"reindex(households.num_children_6_to_12, persons.household_id)"
+has_young_children,has_young_children,_has_young_children>0
+has_children_6_to_12,has_children_6_to_12,_has_children_6_to_12>0

@@ -5,6 +5,7 @@ bundles:
   - school_location
   - workplace_location
   - auto_ownership
+  - vehicle_type_choice
   - free_parking
   - cdap
   - mandatory_tour_frequency
@@ -100,6 +101,7 @@ model_estimation_table_types:
   school_location: interaction_sample_simulate
   workplace_location:  interaction_sample_simulate
   auto_ownership: simple_simulate
+  vehicle_type_choice: interaction_simulate
   free_parking: simple_simulate
   cdap: cdap_simulate
   mandatory_tour_frequency: simple_simulate

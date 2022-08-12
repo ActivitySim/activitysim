@@ -58,6 +58,15 @@ def enumerate_tour_types(tour_flavors):
     return channels
 
 
+def read_alts_file(file_name, set_index=None):
+    try:
+        alts = simulate.read_model_alts(file_name, set_index=set_index)
+    except RuntimeError:
+        logger.warning(f"Could not find file {file_name} to determine tour flavors.")
+        return None
+    return alts
+
+
 def parse_tour_flavor_from_columns(columns, tour_flavor):
     """
     determines the max number from columns if column name contains tour flavor
@@ -213,15 +222,17 @@ def canonical_tours():
     # ---- non_mandatory_channels
     nm_model_settings_file_name = "non_mandatory_tour_frequency.yaml"
     nm_model_settings = config.read_model_settings(nm_model_settings_file_name)
-    nm_alts = simulate.read_model_alts(
-        "non_mandatory_tour_frequency_alternatives.csv", set_index=None
-    )
+    nm_alts = read_alts_file("non_mandatory_tour_frequency_alternatives.csv")
 
     # first need to determine max extension
     ext_probs_f = config.config_file_path(
         "non_mandatory_tour_frequency_extension_probs.csv"
     )
-    extension_probs = pd.read_csv(ext_probs_f, comment="#")
+    try:
+        extension_probs = pd.read_csv(ext_probs_f, comment="#")
+    except RuntimeError:
+        logger.warning(f"Extension probabilities file not found: {ext_probs_f}")
+        extension_probs = None
     max_extension = determine_non_mandatory_tour_max_extension(
         nm_model_settings, extension_probs, default_max_extension=2
     )
@@ -261,9 +272,7 @@ def canonical_tours():
     # ---- atwork_subtour_channels
     atwork_model_settings_file_name = "atwork_subtour_frequency.yaml"
     atwork_model_settings = config.read_model_settings(atwork_model_settings_file_name)
-    atwork_alts = simulate.read_model_alts(
-        "atwork_subtour_frequency_alternatives.csv", set_index=None
-    )
+    atwork_alts = read_alts_file("atwork_subtour_frequency_alternatives.csv")
 
     provided_atwork_flavors = atwork_model_settings.get("ATWORK_SUBTOUR_FLAVORS", None)
     default_atwork_flavors = {"eat": 1, "business": 2, "maint": 1}
@@ -287,9 +296,7 @@ def canonical_tours():
     # ---- joint_tour_channels
     jtf_model_settings_file_name = "joint_tour_frequency.yaml"
     jtf_model_settings = config.read_model_settings(jtf_model_settings_file_name)
-    jtf_alts = simulate.read_model_alts(
-        "joint_tour_frequency_alternatives.csv", set_index=None
-    )
+    jtf_alts = read_alts_file("joint_tour_frequency_alternatives.csv")
     provided_joint_flavors = jtf_model_settings.get("JOINT_TOUR_FLAVORS", None)
 
     default_joint_flavors = {
@@ -390,8 +397,8 @@ def determine_max_trips_per_leg(default_max_trips_per_leg=4):
     provided_max_trips_per_leg = model_settings.get("MAX_TRIPS_PER_LEG", None)
 
     # determine flavors from alternative file
-    alts = simulate.read_model_alts("stop_frequency_alternatives.csv", set_index=None)
     try:
+        alts = read_alts_file("stop_frequency_alternatives.csv")
         trips_per_leg = [
             int(alts[c].max())
             for c in alts.columns
@@ -402,7 +409,7 @@ def determine_max_trips_per_leg(default_max_trips_per_leg=4):
         )  # adding one for additional trip home or to primary dest
         if max_trips_per_leg > 1:
             valid_max_trips = True
-    except ValueError:
+    except (ValueError, RuntimeError):
         valid_max_trips = False
 
     if provided_max_trips_per_leg is not None:

@@ -293,7 +293,7 @@ def tour_mode_choice_simulate(
     # mtctm1 school tour_type includes univ, which has different coefficients from elementary and HS
     # we should either add this column when tours created or add univ to tour_types
     not_university = (primary_tours_merged.tour_type != "school") | ~(
-        primary_tours_merged.is_university
+        primary_tours_merged.is_university.astype(bool)
         if "is_university" in primary_tours_merged.columns
         else False
     )

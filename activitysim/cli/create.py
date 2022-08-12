@@ -250,6 +250,8 @@ def download_asset(url, target_path, sha256=None, link=True):
             os.path.dirname(os.path.normpath(original_target_path)),
             exist_ok=True,
         )
+    elif not sha256:
+        print(f"   computed checksum {computed_sha256}")
 
         # check if the original_target_path exists and if so check if it is the correct file
         if os.path.isfile(os.path.normpath(original_target_path)):

@@ -29,7 +29,7 @@ setup(
     entry_points={"console_scripts": ["activitysim=activitysim.cli.main:main"]},
     install_requires=[
         "pyarrow >= 2.0",
-        "numpy >= 1.16.1,<=1.21",
+        "numpy >= 1.22",
         "openmatrix >= 0.3.4.1",
         "pandas >= 1.1.0",
         "pyyaml >= 5.1",
@@ -37,7 +37,7 @@ setup(
         "cytoolz >= 0.8.1",
         "psutil >= 4.1",
         "requests >= 2.7",
-        "numba >= 0.51.2",
+        "numba >= 0.56",
         "orca >= 1.6",
         "simwrapper > 1.7",
     ],

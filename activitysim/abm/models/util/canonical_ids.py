@@ -231,7 +231,9 @@ def canonical_tours():
         )
         extension_probs = pd.read_csv(ext_probs_f, comment="#")
     except RuntimeError:
-        logger.warning(f"Extension probabilities file not found: {ext_probs_f}")
+        logger.warning(
+            f"non_mandatory_tour_frequency_extension_probs.csv file not found"
+        )
         extension_probs = None
     max_extension = determine_non_mandatory_tour_max_extension(
         nm_model_settings, extension_probs, default_max_extension=2

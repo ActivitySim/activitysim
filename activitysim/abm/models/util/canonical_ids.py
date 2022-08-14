@@ -63,7 +63,16 @@ def read_alts_file(file_name, set_index=None):
         alts = simulate.read_model_alts(file_name, set_index=set_index)
     except RuntimeError:
         logger.warning(f"Could not find file {file_name} to determine tour flavors.")
-        return None
+        return pd.DataFrame()
+    return alts
+
+
+def read_spec_file(file_name, set_index=None):
+    try:
+        alts = simulate.read_model_alts(file_name, set_index=set_index)
+    except RuntimeError:
+        logger.warning(f"Could not find file {file_name} to determine tour flavors.")
+        return pd.DataFrame()
     return alts
 
 
@@ -187,8 +196,8 @@ def determine_flavors_from_alts_file(
         }
         valid_flavors = all(
             [(isinstance(flavor, str) & (num >= 0)) for flavor, num in flavors.items()]
-        )
-    except ValueError:
+        ) & (len(flavors) > 0)
+    except (ValueError, AttributeError):
         valid_flavors = False
 
     if provided_flavors is not None:
@@ -225,14 +234,16 @@ def canonical_tours():
     nm_alts = read_alts_file("non_mandatory_tour_frequency_alternatives.csv")
 
     # first need to determine max extension
-    ext_probs_f = config.config_file_path(
-        "non_mandatory_tour_frequency_extension_probs.csv"
-    )
     try:
+        ext_probs_f = config.config_file_path(
+            "non_mandatory_tour_frequency_extension_probs.csv"
+        )
         extension_probs = pd.read_csv(ext_probs_f, comment="#")
     except RuntimeError:
-        logger.warning(f"Extension probabilities file not found: {ext_probs_f}")
-        extension_probs = None
+        logger.warning(
+            f"non_mandatory_tour_frequency_extension_probs.csv file not found"
+        )
+        extension_probs = pd.DataFrame()
     max_extension = determine_non_mandatory_tour_max_extension(
         nm_model_settings, extension_probs, default_max_extension=2
     )
@@ -259,7 +270,8 @@ def canonical_tours():
     # ---- mandatory_channels
     mtf_model_settings_file_name = "mandatory_tour_frequency.yaml"
     mtf_model_settings = config.read_model_settings(mtf_model_settings_file_name)
-    mtf_model_spec = simulate.read_model_spec(file_name=mtf_model_settings["SPEC"])
+    mtf_spec = mtf_model_settings.get("SPEC", "mandatory_tour_frequency.csv")
+    mtf_model_spec = read_spec_file(file_name=mtf_spec)
     default_mandatory_tour_flavors = {"work": 2, "school": 2}
 
     mandatory_tour_flavors = determine_mandatory_tour_flavors(

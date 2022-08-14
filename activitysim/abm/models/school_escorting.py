@@ -24,6 +24,10 @@ from .util import school_escort_tours_trips
 
 logger = logging.getLogger(__name__)
 
+# setting global defaults for max number of escortees and escortees in model
+NUM_ESCORTEES = 3
+NUM_CHAPERONES = 2
+
 
 def determine_escorting_paricipants(choosers, persons, model_settings):
     """
@@ -33,8 +37,8 @@ def determine_escorting_paricipants(choosers, persons, model_settings):
     and escortees are selected youngest to oldest.
     """
 
-    num_chaperones = model_settings['NUM_CHAPERONES']
-    num_escortees = model_settings['NUM_ESCORTEES']
+    NUM_ESCORTEES = model_settings['NUM_ESCORTEES']
+    NUM_CHAPERONES = model_settings['NUM_CHAPERONES']
 
     # is this cut correct?
     escortees = persons[persons.is_student & (persons.age < 16) & (persons.cdap_activity == 'M')]
@@ -60,13 +64,13 @@ def determine_escorting_paricipants(choosers, persons, model_settings):
         'age', ascending=True).groupby('household_id').cumcount() + 1
 
     participant_columns = []
-    for i in range(1, num_chaperones+1):
+    for i in range(1, NUM_CHAPERONES + 1):
         choosers['chauf_id'+str(i)] = chaperones[chaperones['chaperone_num'] == i] \
             .reset_index() \
             .set_index('household_id') \
             .reindex(choosers.index)['person_id']
         participant_columns.append('chauf_id'+str(i))
-    for i in range(1, num_escortees+1):
+    for i in range(1, NUM_ESCORTEES + 1):
         choosers['child_id'+str(i)] = escortees[escortees['escortee_num'] == i] \
             .reset_index() \
             .set_index('household_id') \

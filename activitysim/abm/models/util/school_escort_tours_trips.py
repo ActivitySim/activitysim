@@ -5,7 +5,7 @@ import numpy as np
 import warnings
 
 from activitysim.core.util import reindex
-
+from ..school_escorting import NUM_CHAPERONES, NUM_ESCORTEES
 
 def determine_chauf_outbound_flag(row, i):
     if (row['school_escort_direction'] == 'outbound'):
@@ -237,7 +237,7 @@ def add_school_escorting_type_to_tours_table(escort_bundles, tours):
             ]
             # Setting for child school tours
             # FIXME need to get number of children from model spec
-            for child_num in range(1,4):
+            for child_num in range(1, NUM_ESCORTEES + 1):
                 i = str(child_num)
                 filter = (school_tour & tours['person_id'].isin(bundles['bundle_child' + i]))
                 tours.loc[filter, 'school_esc_' + school_escort_direction] = escort_type
@@ -257,7 +257,7 @@ def process_tours_after_escorting_model(escort_bundles, tours):
 
     # set same start / end time for tours if they are bundled together
     # FIXME num escortees
-    tour_segment_id_cols = ['school_tour_id_child' + str(i) for i in range(1, 4)] + ['chauf_tour_id']
+    tour_segment_id_cols = ['school_tour_id_child' + str(i) for i in range(1, NUM_ESCORTEES + 1)] + ['chauf_tour_id']
 
     for id_col in tour_segment_id_cols:
         out_segment_bundles = escort_bundles[(escort_bundles[id_col] > 1) & (escort_bundles.school_escort_direction == 'outbound')].set_index(id_col)
@@ -365,7 +365,7 @@ def create_pure_school_escort_tours(bundles):
     pe_tours['tour_category'] = 'non_mandatory'
     pe_tours['number_of_participants'] = 1
     pe_tours['tour_type'] = 'escort'
-    pe_tours['tdd'] = pd.NA
+    pe_tours['tdd'] = pd.NA  # will be set later when second half is scheduled
     pe_tours['school_esc_outbound'] = np.where(pe_tours['school_escort_direction'] == 'outbound', 'pure_escort', pd.NA)
     pe_tours['school_esc_inbound'] = np.where(pe_tours['school_escort_direction'] == 'inbound', 'pure_escort', pd.NA)
 

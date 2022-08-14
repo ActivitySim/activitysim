@@ -102,27 +102,6 @@ def add_prev_choices_to_choosers(choosers, choices, alts, stage):
     return choosers
 
 
-def add_school_escorting_type_to_tours_table(escort_bundles, tours):
-    school_tour = ((tours.tour_type == 'school') & (tours.tour_num == 1))
-
-    for school_escort_direction in ['outbound', 'inbound']:
-        for escort_type in ['ride_share', 'pure_escort']:
-            bundles = escort_bundles[
-                (escort_bundles.school_escort_direction == school_escort_direction)
-                & (escort_bundles.escort_type == escort_type)
-            ]
-            # Setting for child school tours
-            # FIXME need to get number of children from model spec
-            for child_num in range(1,4):
-                i = str(child_num)
-                filter = (school_tour & tours['person_id'].isin(bundles['bundle_child' + i]))
-                tours.loc[filter, 'school_esc_' + school_escort_direction] = escort_type
-            
-            tours.loc[bundles.chauf_tour_id, 'school_esc_' + school_escort_direction] = escort_type
-
-    return tours
-
-
 def create_bundle_attributes(row):
     escortee_str = ''
     escortee_num_str = ''
@@ -263,7 +242,6 @@ def school_escorting(households,
     households_merged, participant_columns = determine_escorting_paricipants(
         households_merged, persons, model_settings)
 
-    nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
     locals_dict = {}
     locals_dict.update(constants)
@@ -359,13 +337,10 @@ def school_escorting(households,
     school_escort_trips = school_escort_tours_trips.create_school_escort_trips(escort_bundles)
     
     tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
-    tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
 
-    # setting number of escortees
-    num_escortees = escort_bundles.drop_duplicates('chauf_tour_id').set_index('chauf_tour_id')['num_escortees']
-    tours.loc[num_escortees.index, 'num_escortees'] = num_escortees
-    # FIXME set tour start times for rideshare
+    tours = school_escort_tours_trips.process_tours_after_escorting_model(escort_bundles, tours)
 
+    # update pipeline
     pipeline.replace_table("households", households)
     pipeline.replace_table("tours", tours)
     pipeline.get_rn_generator().drop_channel('tours')

@@ -226,6 +226,51 @@ def add_pure_escort_tours(tours, school_escort_tours):
     return tours
 
 
+def add_school_escorting_type_to_tours_table(escort_bundles, tours):
+    school_tour = ((tours.tour_type == 'school') & (tours.tour_num == 1))
+
+    for school_escort_direction in ['outbound', 'inbound']:
+        for escort_type in ['ride_share', 'pure_escort']:
+            bundles = escort_bundles[
+                (escort_bundles.school_escort_direction == school_escort_direction)
+                & (escort_bundles.escort_type == escort_type)
+            ]
+            # Setting for child school tours
+            # FIXME need to get number of children from model spec
+            for child_num in range(1,4):
+                i = str(child_num)
+                filter = (school_tour & tours['person_id'].isin(bundles['bundle_child' + i]))
+                tours.loc[filter, 'school_esc_' + school_escort_direction] = escort_type
+            
+            tours.loc[bundles.chauf_tour_id, 'school_esc_' + school_escort_direction] = escort_type
+
+    return tours
+
+
+def process_tours_after_escorting_model(escort_bundles, tours):
+    # adding indicators to tours that include school escorting
+    tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
+
+    # setting number of escortees on tour
+    num_escortees = escort_bundles.drop_duplicates('chauf_tour_id').set_index('chauf_tour_id')['num_escortees']
+    tours.loc[num_escortees.index, 'num_escortees'] = num_escortees
+
+    # set same start / end time for tours if they are bundled together
+    # FIXME num escortees
+    tour_segment_id_cols = ['school_tour_id_child' + str(i) for i in range(1, 4)] + ['chauf_tour_id']
+
+    for id_col in tour_segment_id_cols:
+        out_segment_bundles = escort_bundles[(escort_bundles[id_col] > 1) & (escort_bundles.school_escort_direction == 'outbound')].set_index(id_col)
+        starts = out_segment_bundles['school_starts'].str.split('_').str[0].astype(int) # first start
+        tours.loc[starts.index, 'start'] = starts
+
+        inb_segment_bundles = escort_bundles[(escort_bundles[id_col] > 1) & (escort_bundles.school_escort_direction == 'inbound')].set_index(id_col)
+        ends = inb_segment_bundles['school_ends'].str.split('_').str[-1].astype(int) # last end
+        tours.loc[ends.index, 'end'] = ends
+
+    return tours
+
+
 def add_school_escort_trips_to_pipeline():
     school_escort_trips = pipeline.get_table('school_escort_trips')
     tours = pipeline.get_table('tours')
@@ -300,9 +345,9 @@ def create_pure_school_escort_tours(bundles):
     ends = pe_tours['school_ends'].str.split('_').str[-1].astype(int)
     pe_tours['start'] = np.where(pe_tours['school_escort_direction'] == 'outbound', starts, ends)
 
-    school_time_cols = ['time_home_to_school' + str(i) for i in range(1,4)]
-    # FIXME hard coded mins per time bin, is rounding down appropriate?
-    pe_tours['end'] = pe_tours['start'] + (pe_tours[school_time_cols].sum(axis=1) / 30).astype(int)
+    # just set end to start time -- non-escort half of tour is determined downstream
+    pe_tours['end'] = pe_tours['start']
+    pe_tours['duration'] = pe_tours['end'] - pe_tours['start']
 
     pe_tours['person_id'] = pe_tours['chauf_id']
     # FIXME should probably put this when creating the bundles table
@@ -313,14 +358,17 @@ def create_pure_school_escort_tours(bundles):
     pe_tours['tour_category'] = 'non_mandatory'
     pe_tours['number_of_participants'] = 1
     pe_tours['tour_type'] = 'escort'
-    # FIXME join tdd from tdd_alts
     pe_tours['tdd'] = pd.NA
-    pe_tours['duration'] = pe_tours['end'] - pe_tours['start']
     pe_tours['school_esc_outbound'] = np.where(pe_tours['school_escort_direction'] == 'outbound', 'pure_escort', pd.NA)
     pe_tours['school_esc_inbound'] = np.where(pe_tours['school_escort_direction'] == 'inbound', 'pure_escort', pd.NA)
 
     pe_tours['tour_id'] = pe_tours['chauf_tour_id'].astype(int)
     pe_tours.set_index('tour_id', inplace=True)
+
+    pe_tours = pe_tours.sort_values(by=['household_id', 'person_id', 'start'])
+
+    # finding what the next start time for that person for scheduling
+    pe_tours['next_pure_escort_start'] = pe_tours.groupby('person_id')['start'].shift(-1).fillna(0)
 
     grouped = pe_tours.groupby(['person_id', 'tour_type'])
     pe_tours['tour_type_num'] = grouped.cumcount() + 1

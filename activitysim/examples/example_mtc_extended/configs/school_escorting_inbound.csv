@@ -39,9 +39,12 @@ util_time_span13,Chauffeur 1 and Child 3 - time span for this alternative must n
 util_time_span21,Chauffeur 2 and Child 1 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf1 == 3) | (chauf1 == 4)) & (return_bin_outbound_school_escorting2 > pref_depart_time_school1),coef_unavail
 util_time_span22,Chauffeur 2 and Child 2 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf2 == 3) | (chauf2 == 4)) & (return_bin_outbound_school_escorting2 > pref_depart_time_school2),coef_unavail
 util_time_span23,Chauffeur 2 and Child 3 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf3 == 3) | (chauf3 == 4)) & (return_bin_outbound_school_escorting2 > pref_depart_time_school3),coef_unavail
-# ,test,,
-util_no_pe_if_mandatory_pattern1,Availability Chauffeur 1 - Can't take pure escort if they have a mandatory tour,(npe1 >= 1) & (cdap_chauf1 == 'M'),coef_unavail
-util_no_pe_if_mandatory_pattern2,Availability Chauffeur 2 - Can't take pure escort if they have a mandatory tour,(npe2 >= 1) & (cdap_chauf2 == 'M'),coef_unavail
+util_avail_pe_during_mand_child1_chauf1,Availability pure escort tour must take place before mandatory tour - Child 1 and Chauffeur 1,(bundle1 > 0) & (chauf1 == 2) & (cdap_chauf1 == 'M') & (pref_depart_time_chauf1 >= pref_depart_time_school1),coef_unavail
+util_avail_pe_during_mand_child1_chauf2,Availability pure escort tour must take place before mandatory tour - Child 1 and Chauffeur 2,(bundle1 > 0) & (chauf1 == 4) & (cdap_chauf2 == 'M') & (pref_depart_time_chauf2 >= pref_depart_time_school1),coef_unavail
+util_avail_pe_during_mand_child2_chauf1,Availability pure escort tour must take place before mandatory tour - Child 2 and Chauffeur 1,(bundle2 > 0) & (chauf2 == 2) & (cdap_chauf1 == 'M') & (pref_depart_time_chauf1 >= pref_depart_time_school2),coef_unavail
+util_avail_pe_during_mand_child2_chauf2,Availability pure escort tour must take place before mandatory tour - Child 2 and Chauffeur 2,(bundle2 > 0) & (chauf2 == 4) & (cdap_chauf2 == 'M') & (pref_depart_time_chauf2 >= pref_depart_time_school2),coef_unavail
+util_avail_pe_during_mand_child3_chauf1,Availability pure escort tour must take place before mandatory tour - Child 3 and Chauffeur 1,(bundle3 > 0) & (chauf3 == 2) & (cdap_chauf1 == 'M') & (pref_depart_time_chauf1 >= pref_depart_time_school3),coef_unavail
+util_avail_pe_during_mand_child3_chauf2,Availability pure escort tour must take place before mandatory tour - Child 3 and Chauffeur 2,(bundle3 > 0) & (chauf3 == 4) & (cdap_chauf2 == 'M') & (pref_depart_time_chauf2 >= pref_depart_time_school3),coef_unavail
 # ,No escorting,,
 util_child1_age_16p_noes,Child 1 age 16 years or older - No escort,(bundle1 == 0) & (child_id1 > 0) & (age_child1 > 15),coef_child_age_16p_noes
 util_child2_age_16p_noes,Child 2 age 16 years or older - No escort,(bundle2 == 0) & (child_id2 > 0) & (age_child2 > 15),coef_child_age_16p_noes

@@ -309,7 +309,14 @@ def add_school_escort_trips_to_pipeline():
     pipeline.get_rn_generator().drop_channel('trips')
     pipeline.get_rn_generator().add_channel('trips', trips)
 
-    # FIXME need to update stop frequency in tours table
+    # updating stop frequency in tours tabel to be consistent
+    num_outbound_stops = (trips[trips.outbound == True].groupby('tour_id')['trip_num'].count() - 1)
+    num_inbound_stops = (trips[trips.outbound == False].groupby('tour_id')['trip_num'].count() - 1)
+    stop_freq = num_outbound_stops.astype(str) + 'out_' + num_inbound_stops.astype(str) + 'in'
+    tours.loc[stop_freq.index, 'stop_frequency'] = stop_freq
+
+    # no need to reset random number generator since no tours added
+    pipeline.replace_table("tours", tours)
     
     return trips
 

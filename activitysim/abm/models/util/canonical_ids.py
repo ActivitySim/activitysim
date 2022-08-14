@@ -196,7 +196,7 @@ def determine_flavors_from_alts_file(
         }
         valid_flavors = all(
             [(isinstance(flavor, str) & (num >= 0)) for flavor, num in flavors.items()]
-        )
+        ) & (len(flavors) > 0)
     except (ValueError, AttributeError):
         valid_flavors = False
 

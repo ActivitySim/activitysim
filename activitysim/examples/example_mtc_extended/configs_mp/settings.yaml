@@ -56,6 +56,7 @@ models:
   - cdap_simulate
   - mandatory_tour_frequency
   - mandatory_tour_scheduling
+  - school_escorting
   - joint_tour_frequency
   - joint_tour_composition
   - joint_tour_participation

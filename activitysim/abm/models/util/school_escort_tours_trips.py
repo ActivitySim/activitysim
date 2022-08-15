@@ -136,15 +136,6 @@ def create_chauf_escort_trips(bundles):
         ~chauf_trips["primary_purpose"].isna()
     ), f"Missing tour purpose for {chauf_trips[chauf_trips['primary_purpose'].isna()]}"
 
-    chauf_trips["trip_id"] = (
-        chauf_trips["tour_id"].astype("int64") * 10
-        + chauf_trips.groupby("tour_id").cumcount()
-    )
-
-    # trip_cols = ['trip_id', 'household_id', 'person_id', 'tour_id', 'destination', 'depart', 'escort_participants',
-    #              'school_escort_trip_num', 'outbound', 'trip_num', 'primary_purpose', 'purpose', 'school_escort_direction', 'home_zone_id']
-    # chauf_trips = chauf_trips[trip_cols]
-
     chauf_trips.loc[
         chauf_trips["purpose"] == "home", "trip_num"
     ] = 999  # trips home are always last
@@ -253,14 +244,6 @@ def create_escortee_trips(bundles):
         ["tour_id", "outbound"]
     ).trip_num.transform("count")
 
-    # Can't assign a true trip id yet because they are numbered based on the number of stops in each direction.
-    # This isn't decided until after the stop frequency model runs.
-    # Creating this temporary school_escort_trip_id column to match them downstream
-    escortee_trips["school_escort_trip_id"] = (
-        escortee_trips["tour_id"].astype("int64") * 10
-        + escortee_trips.groupby("tour_id")["trip_num"].cumcount()
-    )
-
     id_cols = ["household_id", "person_id", "tour_id"]
     escortee_trips[id_cols] = escortee_trips[id_cols].astype("int64")
 
@@ -287,6 +270,15 @@ def create_school_escort_trips(escort_bundles):
     chauf_trips = create_chauf_escort_trips(escort_bundles)
     escortee_trips = create_escortee_trips(escort_bundles)
     school_escort_trips = pd.concat([chauf_trips, escortee_trips], axis=0)
+
+    # Can't assign a true trip id yet because they are numbered based on the number of stops in each direction.
+    # This isn't decided until after the stop frequency model runs.
+    # Creating this temporary school_escort_trip_id column to match them downstream
+    school_escort_trips["school_escort_trip_id"] = (
+        school_escort_trips["tour_id"].astype("int64") * 10
+        + school_escort_trips.groupby("tour_id")["trip_num"].cumcount()
+    )
+
     return school_escort_trips
 
 

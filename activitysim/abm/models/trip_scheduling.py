@@ -18,7 +18,7 @@ from activitysim.core.util import reindex
 
 from activitysim.abm.models.util.trip import failed_trip_cohorts
 from activitysim.abm.models.util.trip import cleanup_failed_trips
-from .util.school_escort_tours_trips import create_school_escort_trips
+from .util.school_escort_tours_trips import split_out_school_escorting_trips
 
 from activitysim.abm.models.util import estimation
 from .util import probabilistic_scheduling as ps
@@ -388,6 +388,11 @@ def trip_scheduling(
     trips_df = trips.to_frame()
     tours = tours.to_frame()
 
+    if pipeline.is_table('school_escort_trips'):
+        school_escort_trips = pipeline.get_table('school_escort_trips')
+        # separate out school escorting trips to exclude them from the model and estimation data bundle
+        trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(trips_df, school_escort_trips)
+
     # add columns 'tour_hour', 'earliest', 'latest' to trips
     set_tour_hour(trips_df, tours)
 
@@ -486,11 +491,15 @@ def trip_scheduling(
     trips_df['depart'] = choices
 
     if pipeline.is_table('school_escort_trips'):
-        # overwriting purpose for school escort trips if the school escorting model was run
-        school_escort_trips = pipeline.get_table('school_escort_trips')
-        school_escort_trip_departs = reindex(school_escort_trips.depart, trips_df.index)
-        trips_df['depart'] = np.where(trips_df.index.isin(school_escort_trips.index), school_escort_trip_departs, trips_df.depart)
+        # setting destination for school escort trips
+        se_trips_df['depart'] = reindex(school_escort_trips.depart, se_trips_df.index)
+        # merge trips back together
+        trips_df = pd.concat([trips_df, se_trips_df])
+        # want to preserve the original order, but first need to remove trips that were dropped
+        new_full_trips_index = full_trips_index[full_trips_index.isin(trips_df.index)]
+        trips_df = trips_df.reindex(new_full_trips_index)
 
+    trips_df.to_csv('trip_scheduling_trips.csv')
     assert not trips_df.depart.isnull().any()
 
     pipeline.replace_table("trips", trips_df)

@@ -503,6 +503,51 @@
     - prototype_semcog/README.MD
     - prototype_semcog/simulation.py
 
+- name: example_mwcog
+  description: 53 zone test example for the MWCOG region
+  # activitysim create -e example_mwcog -d test_example_mwcog
+  # cd test_example_mwcog
+  # python simulation.py -c configs -o output -d data
+  # cd ..
+  include:
+    - example_mwcog/extensions
+    - example_mwcog/data
+    - example_mwcog/configs
+    - example_mwcog/configs_mp
+    - example_mwcog/output
+    - example_mwcog/README.MD
+    - example_mwcog/simulation.py
+    
+- name: example_mwcog_full
+  description: Full test example for the MWCOG region
+  # activitysim create -e example_mwcog_full -d test_example_mwcog_full
+  # cd test_example_mwcog_full
+  # python simulation.py -c configs_mp -c configs -o output -d data
+  # cd ..
+  include:
+    - example_mwcog/extensions
+    - example_mwcog/data
+    - example_mwcog/configs
+    - example_mwcog/configs_mp
+    - example_mwcog/output
+    - example_mwcog/README.MD
+    - example_mwcog/simulation.py
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mwcog_data_full/skims.omx
+      data/skims.omx
+      8e83a2c19cd52a80cedab2e5a56d8f3d3c2ac0b8464f018bc1ab4beb1fc0fa02
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mwcog_data_full/combined_synthetic_hh_2018.csv
+      data/combined_synthetic_hh_2018.csv
+      a904ac91505c7e21999e5bb790ea599dcc4657d30463600038a8ec25be1575c8
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mwcog_data_full/combined_synthetic_per_2018.csv
+      data/combined_synthetic_per_2018.csv
+      b5d29a29ab04c36e142456a25397c0eca28dd9fade46f5a3ca986a79f42bdd07
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mwcog_data_full/land_use.csv
+      data/land_use.csv
+      cf7d7aec7854204a3a938d03b9f9acc8d9e33865a453cf8283b93ea762c07a9b
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mwcog_data_full/LU_taz3722_rnd91a_2018_adj_enrollment.csv
+      data/LU_taz3722_rnd91a_2018_adj_enrollment.csv
+      9cec393becd718175168b6638e4b0e7f70510ea4c53079819e21eee8bfbbd455
+
 - name: prototype_semcog_z500
   description: 500 zone intermediate size example for the SEMCOG region
   # activitysim create -e prototype_semcog_z500 -d test_prototype_semcog_z500

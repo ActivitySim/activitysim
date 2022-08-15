@@ -1,0 +1,33 @@
+inherit_settings: True
+
+# EXAMPLE_HAS_WARNINGS
+strict: False
+
+# number of households to simulate
+households_sample_size:  10
+# simulate all households
+# households_sample_size: 0
+
+chunk_size: 0
+
+# - shadow pricing global switches
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+
+# global switch to turn on or off presampling of destination alternatives at TAZ level (multizone models only)
+want_dest_choice_presampling: True
+
+# - tracing
+# trace household id; comment out or leave empty for no trace
+trace_hh_id:
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+# trace_od: [5, 11]
+trace_od:
+

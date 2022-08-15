@@ -896,7 +896,7 @@
       87544b59488c4ca654ae8d9756dfb3a8226b85faa21e631339d86fae5dc60feb
 
 - name: prototype_mwcog
-  description: 53 zone test example for the SEMCOG region
+  description: 53 zone test example for the MWCOG region
   # activitysim create -e prototype_mwcog -d test_prototype_mwcog
   # cd test_prototype_mwcog
   # python simulation.py -c configs -o output -d data
@@ -909,3 +909,4 @@
     - prototype_mwcog/output
     - prototype_mwcog/README.MD
     - prototype_mwcog/simulation.py
+ 

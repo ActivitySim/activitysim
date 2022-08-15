@@ -77,7 +77,11 @@ def read_spec_file(file_name, set_index=None):
 
 def add_school_escort_tour_flavors(non_mandatory_tour_flavors):
 
-    if pipeline.is_table("school_escort_tours"):
+    print("models: ", config.setting("models"))
+
+    if pipeline.is_table("school_escort_tours") | (
+        "school_escorting" in config.setting("models")
+    ):
         # school escort tours are included, need to extend escort tours
         # max number of excort tours is now to have one pickup and dropoff for each child
         from ..school_escorting import NUM_ESCORTEES
@@ -277,7 +281,7 @@ def canonical_tours():
     non_mandatory_tour_flavors = determine_flavors_from_alts_file(
         nm_alts, provided_nm_tour_flavors, default_nm_tour_flavors, max_extension
     )
-    # FIXME add additional tours for school escorting only if model is included in run list:
+    # add additional escort tour flavors for school escorting model
     non_mandatory_tour_flavors = add_school_escort_tour_flavors(
         non_mandatory_tour_flavors
     )

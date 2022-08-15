@@ -298,7 +298,7 @@ def add_pure_escort_tours(tours, school_escort_tours):
 
     assert all(
         tours.index == canonical_ids.set_tour_index(tours).index
-    ), "tour_id's do not match!"
+    ), "tour_id's do not match. Was school_escorting model included during model run start?"
 
     return tours
 

@@ -243,7 +243,9 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     bundles = bundles.apply(lambda row: create_bundle_attributes(row), axis=1)
 
     # getting chauffer mandatory times
-    mandatory_escort_tours = tours[(tours.tour_type == "work") & (tours.tour_num == 1)]
+    mandatory_escort_tours = tours[
+        (tours.tour_category == "mandatory") & (tours.tour_num == 1)
+    ]
     bundles["first_mand_tour_start_time"] = reindex(
         mandatory_escort_tours.set_index("person_id").start, bundles["chauf_id"]
     )

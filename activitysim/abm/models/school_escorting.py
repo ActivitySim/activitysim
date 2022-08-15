@@ -21,7 +21,6 @@ import warnings
 from .util import estimation
 from .util import school_escort_tours_trips
 
-
 logger = logging.getLogger(__name__)
 
 # setting global defaults for max number of escortees and escortees in model
@@ -78,15 +77,6 @@ def determine_escorting_paricipants(choosers, persons, model_settings):
         participant_columns.append('child_id'+str(i))
 
     return choosers, participant_columns
-
-
-def construct_alternatives(choosers, model_settings):
-    """
-    Constructing alternatives for school escorting
-    """
-    # FIXME: just reading alts right now instead of constructing
-    alts = simulate.read_model_alts(model_settings['ALTS'], set_index='Alt')
-    return alts
 
 
 def add_prev_choices_to_choosers(choosers, choices, alts, stage):
@@ -241,7 +231,7 @@ def school_escorting(households,
     households_merged = households_merged.to_frame()
     tours = tours.to_frame()
 
-    alts = construct_alternatives(households_merged, model_settings)
+    alts = simulate.read_model_alts(model_settings['ALTS'], set_index='Alt')
 
     households_merged, participant_columns = determine_escorting_paricipants(
         households_merged, persons, model_settings)
@@ -332,18 +322,24 @@ def school_escorting(households,
             escort_bundles.append(bundles)
 
     escort_bundles = pd.concat(escort_bundles)
-    escort_bundles['bundle_id'] = escort_bundles['household_id'] * 100 + escort_bundles.groupby('household_id').cumcount() + 1
-    escort_bundles['chauf_tour_id'] = np.where(escort_bundles['escort_type'] == 'ride_share', escort_bundles['first_mand_tour_id'], escort_bundles.bundle_id.values)
-    escort_bundles.set_index('bundle_id', inplace=True)
+    escort_bundles['bundle_id'] = escort_bundles['household_id'] * 10 + escort_bundles.groupby('household_id').cumcount() + 1
+    # escort_bundles['chauf_tour_id'] = np.where(escort_bundles['escort_type'] == 'ride_share', escort_bundles['first_mand_tour_id'], escort_bundles.bundle_id.values)
+    # escort_bundles.set_index('bundle_id', inplace=True)
     escort_bundles.sort_values(by=['household_id', 'school_escort_direction'], ascending=[True, False], inplace=True)
 
     school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(escort_bundles)
+    chauf_tour_id_map = {v: k for k, v in school_escort_tours['bundle_id'].to_dict().items()} 
+    escort_bundles['chauf_tour_id'] = np.where(
+        escort_bundles['escort_type'] == 'ride_share',
+        escort_bundles['first_mand_tour_id'],
+        escort_bundles['bundle_id'].map(chauf_tour_id_map)
+    )
+
+    tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
+    tours = school_escort_tours_trips.process_tours_after_escorting_model(escort_bundles, tours)
+    
     school_escort_trips = school_escort_tours_trips.create_school_escort_trips(escort_bundles)
     
-    tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
-
-    tours = school_escort_tours_trips.process_tours_after_escorting_model(escort_bundles, tours)
-
     # update pipeline
     pipeline.replace_table("households", households)
     pipeline.replace_table("tours", tours)

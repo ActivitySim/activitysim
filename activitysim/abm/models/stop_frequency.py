@@ -230,4 +230,4 @@ def stop_frequency(
                          columns=None)
     
     if pipeline.is_table('school_escort_trips'):
-        school_escort_tours_trips.add_school_escort_trips_to_pipeline()
+        school_escort_tours_trips.merge_school_escort_trips_into_pipeline()

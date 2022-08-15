@@ -1,11 +1,14 @@
-from activitysim.core import pipeline
-
+import logging
 import pandas as pd
 import numpy as np
 import warnings
 
-from activitysim.core.util import reindex
-from ..school_escorting import NUM_CHAPERONES, NUM_ESCORTEES
+from activitysim.abm.models.util import canonical_ids
+from activitysim.core import pipeline
+
+from ..school_escorting import NUM_ESCORTEES
+
+logger = logging.getLogger(__name__)
 
 def determine_chauf_outbound_flag(row, i):
     if (row['school_escort_direction'] == 'outbound'):
@@ -69,6 +72,9 @@ def create_chauf_escort_trips(bundles):
 
     # create a new trip for each escortee destination
     chauf_trips = chauf_trip_bundles.explode(['destination', 'escort_participants', 'school_escort_trip_num', 'outbound', 'purpose']).reset_index()
+
+    # setting trip id through the trip_num column
+    # technically these will not be stable 
 
     # numbering trips such that outbound escorting trips must come first and inbound trips must come last
     outbound_trip_num = -1 * (chauf_trips.groupby(['tour_id', 'outbound']).cumcount(ascending=False) + 1)
@@ -173,23 +179,19 @@ def create_escortee_trips(bundles):
     escortee_trips = escortee_trips.explode(['destination', 'escort_participants', 'school_escort_trip_num', 'purpose']).reset_index()
 
     # numbering trips such that outbound escorting trips must come first and inbound trips must come last
+    # this comes in handy when merging trips to others in the tour decided downstream
     outbound_trip_num = -1 * (escortee_trips.groupby(['tour_id', 'outbound']).cumcount(ascending=False) + 1)
     inbound_trip_num = 100 + escortee_trips.groupby(['tour_id', 'outbound']).cumcount(ascending=True)
     escortee_trips['trip_num'] = np.where(escortee_trips.outbound == True, outbound_trip_num, inbound_trip_num)
     escortee_trips['trip_count'] = escortee_trips['trip_num'] + escortee_trips.groupby(['tour_id', 'outbound']).trip_num.transform('count')
 
-    # FIXME placeholders
-    escortee_trips['trip_id'] = escortee_trips['tour_id'].astype('int64') * 10 + escortee_trips.groupby('tour_id')['trip_num'].cumcount()
-
-    # trip_cols = ['trip_id', 'household_id', 'person_id', 'tour_id', 'destination', 'depart', 'escort_participants',
-    #             'school_escort_trip_num', 'outbound', 'primary_purpose', 'purpose', 'school_escort_direction', 'trip_num', 'home_zone_id']
-    # escortee_trips = escortee_trips[trip_cols]
+    # Can't assign a true trip id yet because they are numbered based on the number of stops in each direction.
+    # This isn't decided until after the stop frequency model runs.
+    # Creating this temporary school_escort_trip_id column to match them downstream
+    escortee_trips['school_escort_trip_id'] = escortee_trips['tour_id'].astype('int64') * 10 + escortee_trips.groupby('tour_id')['trip_num'].cumcount()
 
     id_cols = ['household_id', 'person_id', 'tour_id']
-    escortee_trips[id_cols] = escortee_trips[id_cols].astype(int)
-    # for col in escortee_trips.columns:
-    #     if col in ['trip_id', 'household_id', 'person_id', 'tour_id']:
-    #         escortee_trips[col] = escortee_trips[col].astype(int)
+    escortee_trips[id_cols] = escortee_trips[id_cols].astype('int64')
 
     escortee_trips.loc[escortee_trips['purpose'] == 'home', 'trip_num'] = 999  # trips home are always last
     escortee_trips.sort_values(by=['household_id', 'tour_id', 'outbound', 'trip_num'], ascending=[True, True, False, True], inplace=True)
@@ -202,26 +204,22 @@ def create_escortee_trips(bundles):
 
 def create_school_escort_trips(escort_bundles):
     chauf_trips = create_chauf_escort_trips(escort_bundles)
-    assert all(chauf_trips.trip_id > 0), f"Negative trip_id's {chauf_trips[chauf_trips.trip_id < 0]}"
     escortee_trips = create_escortee_trips(escort_bundles)
-    assert all(escortee_trips.trip_id > 0), f"Negative trip_id's {escortee_trips[escortee_trips.trip_id < 0]}"
     school_escort_trips = pd.concat([chauf_trips, escortee_trips], axis=0)
-
-    school_escort_trips['failed'] = False  # for better merge with trips created in stop frequency
-    school_escort_trips.set_index('trip_id', inplace=True)
-
-    assert school_escort_trips.index.is_unique, f"Non-unique trip_id's set as index {school_escort_trips[school_escort_trips.index.duplicated(keep=False)]}"
-    assert all(school_escort_trips.index > 0), f"Negative trip_id's {school_escort_trips[school_escort_trips.index < 0]}"
-
     return school_escort_trips
     
 
 def add_pure_escort_tours(tours, school_escort_tours):
     missing_cols = [col for col in tours.columns if col not in school_escort_tours.columns]
     assert len(missing_cols) == 0, f'missing columns {missing_cols} in school_escort_tours'
+    if len(missing_cols) > 0:
+        logger.warning(f"Columns {missing_cols} are missing from school escort tours")
+        school_escort_tours[missing_cols] = pd.NA
 
     tours_to_add = school_escort_tours[~school_escort_tours.index.isin(tours.index)]
     tours = pd.concat([tours, tours_to_add[tours.columns]])
+
+    assert all(tours.index == canonical_ids.set_tour_index(tours).index), "tour_id's do not match!"
 
     return tours
 
@@ -271,7 +269,7 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     return tours
 
 
-def add_school_escort_trips_to_pipeline():
+def merge_school_escort_trips_into_pipeline():
     school_escort_trips = pipeline.get_table('school_escort_trips')
     tours = pipeline.get_table('tours')
     trips = pipeline.get_table('trips')
@@ -290,7 +288,10 @@ def add_school_escort_trips_to_pipeline():
     school_escort_trips = school_escort_trips[~(school_escort_trips.tour_id.isin(inb_chauf_pe_tours.index) & (school_escort_trips['outbound'] == True))]
     school_escort_trips = school_escort_trips[~(school_escort_trips.tour_id.isin(out_chauf_pe_tours.index) & (school_escort_trips['outbound'] == False))]
 
-    trips = pd.concat([trips, school_escort_trips[list(trips.columns) + ['escort_participants', 'school_escort_direction']]])
+    # for better merge with trips created in stop frequency
+    school_escort_trips['failed'] = False
+
+    trips = pd.concat([trips, school_escort_trips[list(trips.columns) + ['escort_participants', 'school_escort_direction', 'school_escort_trip_id']]])
     # sorting by escorting order as determining when creating the school escort trips
     trips.sort_values(by=['household_id', 'tour_id', 'outbound', 'trip_num'], ascending=[True, True, False, True], inplace=True)
     grouped = trips.groupby(['tour_id', 'outbound'])
@@ -300,14 +301,27 @@ def add_school_escort_trips_to_pipeline():
     # ensuring data types
     trips['outbound'] = trips['outbound'].astype(bool)
     trips['origin'] = trips['origin'].astype(int)
-    trips['destination'] = trips['destination'].astype(int)
+    trips['destination'] = trips['destination'].astype(int)    
 
-    assert trips.index.is_unique, f"Non-unique trip_id's set as index {trips[trips.index.duplicated(keep=False)]}"
+    # updating trip_id now that we have all trips
+    trips = canonical_ids.set_trip_index(trips)
+    school_escort_trip_id_map = {v: k for k, v in trips.loc[~trips['school_escort_trip_id'].isna(), 'school_escort_trip_id'].to_dict().items()} 
+
+    school_escort_trips['trip_id'] = np.where(
+        school_escort_trips['school_escort_trip_id'].isin(school_escort_trip_id_map.keys()),
+        school_escort_trips['school_escort_trip_id'].map(school_escort_trip_id_map),
+        school_escort_trips['school_escort_trip_id']
+    )
+    school_escort_trips.set_index('trip_id', inplace=True)
+
+    # can drop school_escort_trip_id column now since it has been replaced
+    trips.drop(columns='school_escort_trip_id', inplace=True)
 
     # replace trip table and pipeline and register with the random number generator
     pipeline.replace_table("trips", trips)
     pipeline.get_rn_generator().drop_channel('trips')
     pipeline.get_rn_generator().add_channel('trips', trips)
+    pipeline.replace_table("school_escort_trips", school_escort_trips)
 
     # updating stop frequency in tours tabel to be consistent
     num_outbound_stops = (trips[trips.outbound == True].groupby('tour_id')['trip_num'].count() - 1)
@@ -338,10 +352,6 @@ def recompute_tour_count_statistics():
 def create_pure_school_escort_tours(bundles):
     # creating home to school tour for chauffers making pure escort tours
     # ride share tours are already created since they go off the mandatory tour
-
-    # FIXME: can I just move all of this logic to a csv and annotate??
-    # bundles = pipeline.get_table('escort_bundles')
-    persons = pipeline.get_table('persons')
     pe_tours = bundles[bundles['escort_type'] == 'pure_escort']
 
     pe_tours['origin'] = pe_tours['home_zone_id']
@@ -357,10 +367,6 @@ def create_pure_school_escort_tours(bundles):
     pe_tours['duration'] = pe_tours['end'] - pe_tours['start']
 
     pe_tours['person_id'] = pe_tours['chauf_id']
-    # FIXME should probably put this when creating the bundles table
-    assert all(pe_tours['person_id'].isin(persons.index)), \
-        f"Chauffer ID(s) not present in persons table {pe_tours.loc[~pe_tours['person_id'].isin(persons.index), 'person_id']}"
-    # pe_tours = pe_tours[pe_tours['person_id'].isin(persons.index)]
 
     pe_tours['tour_category'] = 'non_mandatory'
     pe_tours['number_of_participants'] = 1
@@ -368,9 +374,6 @@ def create_pure_school_escort_tours(bundles):
     pe_tours['tdd'] = pd.NA  # will be set later when second half is scheduled
     pe_tours['school_esc_outbound'] = np.where(pe_tours['school_escort_direction'] == 'outbound', 'pure_escort', pd.NA)
     pe_tours['school_esc_inbound'] = np.where(pe_tours['school_escort_direction'] == 'inbound', 'pure_escort', pd.NA)
-
-    pe_tours['tour_id'] = pe_tours['chauf_tour_id'].astype(int)
-    pe_tours.set_index('tour_id', inplace=True)
 
     pe_tours = pe_tours.sort_values(by=['household_id', 'person_id', 'start'])
 
@@ -384,6 +387,8 @@ def create_pure_school_escort_tours(bundles):
     grouped = pe_tours.groupby('person_id')
     pe_tours['tour_num'] = grouped.cumcount() + 1
     pe_tours['tour_count'] = pe_tours['tour_num'] + grouped.cumcount(ascending=False)
+
+    pe_tours = canonical_ids.set_tour_index(pe_tours)
 
     return pe_tours
 

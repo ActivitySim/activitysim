@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import re
 
-from activitysim.core.util import reindex
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
@@ -74,6 +73,19 @@ def read_spec_file(file_name, set_index=None):
         logger.warning(f"Could not find file {file_name} to determine tour flavors.")
         return pd.DataFrame()
     return alts
+
+
+def add_school_escort_tour_flavors(non_mandatory_tour_flavors):
+    
+    if pipeline.is_table('school_escort_tours'):
+        # school escort tours are included, need to extend escort tours
+        # max number of excort tours is now to have one pickup and dropoff for each child
+        from ..school_escorting import NUM_ESCORTEES
+        non_mandatory_tour_flavors['escort'] = non_mandatory_tour_flavors['escort'] + 2 * NUM_ESCORTEES
+        logger.info(f'Adding {2 * NUM_ESCORTEES} escort tour flavors for school escorting')
+
+    return non_mandatory_tour_flavors
+
 
 
 def parse_tour_flavor_from_columns(columns, tour_flavor):
@@ -262,7 +274,7 @@ def canonical_tours():
         nm_alts, provided_nm_tour_flavors, default_nm_tour_flavors, max_extension
     )
     # FIXME add additional tours for school escorting only if model is included in run list:
-    # non_mandatory_tour_flavors['escort'] = non_mandatory_tour_flavors['escort'] + 3
+    non_mandatory_tour_flavors = add_school_escort_tour_flavors(non_mandatory_tour_flavors)
     non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)
 
     logger.info(f"Non-Mandatory tour flavors used are {non_mandatory_tour_flavors}")
@@ -416,9 +428,8 @@ def determine_max_trips_per_leg(default_max_trips_per_leg=4):
             for c in alts.columns
             if all(alts[c].astype(str).str.isnumeric())
         ]
-        max_trips_per_leg = (
-            max(trips_per_leg) + 1
-        )  # adding one for additional trip home or to primary dest
+        # adding one for additional trip home or to primary dest
+        max_trips_per_leg = (max(trips_per_leg) + 1)  
         if max_trips_per_leg > 1:
             valid_max_trips = True
     except (ValueError, RuntimeError):

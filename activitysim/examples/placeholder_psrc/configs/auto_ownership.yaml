@@ -1,0 +1,17 @@
+
+SPEC: auto_ownership.csv
+COEFFICIENTS: auto_ownership_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+
+CONSTANTS:
+  ID_SAN_FRANCISCO: 1
+  ID_SAN_MATEO: 2
+  ID_SANTA_CLARA: 3
+  ID_ALAMEDA: 4
+  ID_CONTRA_COSTA: 5
+  ID_SOLANO: 6
+  ID_NAPA: 7
+  ID_SONOMA: 8
+  ID_MARIN: 9

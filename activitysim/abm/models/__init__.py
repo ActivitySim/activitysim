@@ -1,38 +1,42 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from . import accessibility
-from . import atwork_subtour_destination
-from . import atwork_subtour_frequency
-from . import atwork_subtour_mode_choice
-from . import atwork_subtour_scheduling
-from . import auto_ownership
-from . import cdap
-from . import free_parking
-from . import initialize
-from . import initialize_tours
-from . import initialize_los
-from . import joint_tour_composition
-from . import joint_tour_destination
-from . import joint_tour_frequency
-from . import joint_tour_participation
-from . import joint_tour_scheduling
-from . import location_choice
-from . import mandatory_scheduling
-from . import mandatory_tour_frequency
-from . import non_mandatory_destination
-from . import non_mandatory_scheduling
-from . import non_mandatory_tour_frequency
-from . import parking_location_choice
-from . import stop_frequency
-from . import tour_mode_choice
-from . import tour_od_choice
-from . import tour_scheduling_probabilistic
-from . import trip_destination
-from . import trip_mode_choice
-from . import trip_purpose
-from . import trip_purpose_and_destination
-from . import trip_scheduling
-from . import trip_departure_choice
-from . import trip_scheduling_choice
-from . import trip_matrices
-from . import summarize
+from . import (
+    accessibility,
+    atwork_subtour_destination,
+    atwork_subtour_frequency,
+    atwork_subtour_mode_choice,
+    atwork_subtour_scheduling,
+    auto_ownership,
+    cdap,
+    free_parking,
+    initialize,
+    initialize_los,
+    initialize_tours,
+    joint_tour_composition,
+    joint_tour_destination,
+    joint_tour_frequency,
+    joint_tour_participation,
+    joint_tour_scheduling,
+    location_choice,
+    mandatory_scheduling,
+    mandatory_tour_frequency,
+    non_mandatory_destination,
+    non_mandatory_scheduling,
+    non_mandatory_tour_frequency,
+    parking_location_choice,
+    stop_frequency,
+    summarize,
+    tour_mode_choice,
+    tour_od_choice,
+    tour_scheduling_probabilistic,
+    trip_departure_choice,
+    trip_destination,
+    trip_matrices,
+    trip_mode_choice,
+    trip_purpose,
+    trip_purpose_and_destination,
+    trip_scheduling,
+    trip_scheduling_choice,
+    vehicle_allocation,
+    vehicle_type_choice,
+)

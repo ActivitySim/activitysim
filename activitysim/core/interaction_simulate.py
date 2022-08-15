@@ -1,29 +1,24 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import zip
-
 import logging
+from builtins import zip
+from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-from collections import OrderedDict
 
-from . import logit
-from . import tracing
-from . import config
-from . import simulate
-from . import chunk
-
-from . import simulate
+from . import chunk, config, logit, simulate, tracing
 
 logger = logging.getLogger(__name__)
 
 DUMP = False
 
-ALT_CHOOSER_ID = '_chooser_id'
+ALT_CHOOSER_ID = "_chooser_id"
 
 
-def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, estimator=None, log_alt_losers=False):
+def eval_interaction_utilities(
+    spec, df, locals_d, trace_label, trace_rows, estimator=None, log_alt_losers=False
+):
     """
     Compute the utilities for a single-alternative spec evaluated in the context of df
 
@@ -67,13 +62,13 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
     with chunk.chunk_log(trace_label):
 
-        assert(len(spec.columns) == 1)
+        assert len(spec.columns) == 1
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
         locals_d = locals_d.copy() if locals_d is not None else {}
 
         # add df for startswith('@') eval expressions
-        locals_d['df'] = df
+        locals_d["df"] = df
 
         def to_series(x):
             if np.isscalar(x):
@@ -90,14 +85,14 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
         else:
             trace_eval_results = None
 
-        check_for_variability = config.setting('check_for_variability')
+        check_for_variability = config.setting("check_for_variability")
 
         # need to be able to identify which variables causes an error, which keeps
         # this from being expressed more parsimoniously
 
-        utilities = pd.DataFrame({'utility': 0.0}, index=df.index)
+        utilities = pd.DataFrame({"utility": 0.0}, index=df.index)
 
-        chunk.log_df(trace_label, 'eval.utilities', utilities)
+        chunk.log_df(trace_label, "eval.utilities", utilities)
 
         no_variability = has_missing_vals = 0
 
@@ -115,8 +110,11 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
             # bug - location choice has df index_name zone_id but should be person_id????
             if df.index.name is None:
                 chooser_id = estimator.get_chooser_id()
-                assert chooser_id in df.columns, \
-                    "Expected to find choose_id column '%s' in interaction dataset" % (chooser_id, )
+                assert (
+                    chooser_id in df.columns
+                ), "Expected to find choose_id column '%s' in interaction dataset" % (
+                    chooser_id,
+                )
                 assert df.index.name is None
                 expression_values_df[chooser_id] = df[chooser_id]
 
@@ -131,10 +129,10 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
             try:
 
                 # - allow temps of form _od_DIST@od_skim['DIST']
-                if expr.startswith('_'):
+                if expr.startswith("_"):
 
-                    target = expr[:expr.index('@')]
-                    rhs = expr[expr.index('@') + 1:]
+                    target = expr[: expr.index("@")]
+                    rhs = expr[expr.index("@") + 1 :]
                     v = to_series(eval(rhs, globals(), locals_d))
 
                     # update locals to allows us to ref previously assigned targets
@@ -148,13 +146,16 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                     # they have a non-zero dummy coefficient to avoid being removed from spec as NOPs
                     continue
 
-                if expr.startswith('@'):
+                if expr.startswith("@"):
                     v = to_series(eval(expr[1:], globals(), locals_d))
                 else:
                     v = df.eval(expr)
 
                 if check_for_variability and v.std() == 0:
-                    logger.info("%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], expr))
+                    logger.info(
+                        "%s: no variability (%s) in: %s"
+                        % (trace_label, v.iloc[0], expr)
+                    )
                     no_variability += 1
 
                 # FIXME - how likely is this to happen? Not sure it is really a problem?
@@ -164,10 +165,13 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
                 if estimator:
                     # in case we modified expression_values_df index
-                    expression_values_df.insert(loc=len(expression_values_df.columns), column=label,
-                                                value=v.values if isinstance(v, pd.Series) else v)
+                    expression_values_df.insert(
+                        loc=len(expression_values_df.columns),
+                        column=label,
+                        value=v.values if isinstance(v, pd.Series) else v,
+                    )
 
-                utility = (v * coefficient).astype('float')
+                utility = (v * coefficient).astype("float")
 
                 if log_alt_losers:
 
@@ -176,9 +180,13 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
 
                     if (max_utils_by_chooser < simulate.ALT_LOSER_UTIL).any():
 
-                        losers = max_utils_by_chooser[max_utils_by_chooser < simulate.ALT_LOSER_UTIL]
-                        logger.warning(f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
-                                       f"with prohibitive utilities for all alternatives for expression: {expr}")
+                        losers = max_utils_by_chooser[
+                            max_utils_by_chooser < simulate.ALT_LOSER_UTIL
+                        ]
+                        logger.warning(
+                            f"{trace_label} - {len(losers)} choosers of {len(max_utils_by_chooser)} "
+                            f"with prohibitive utilities for all alternatives for expression: {expr}"
+                        )
 
                         # loser_df = df[df[ALT_CHOOSER_ID].isin(losers.index)]
                         # print(f"\nloser_df\n{loser_df}\n")
@@ -197,50 +205,68 @@ def eval_interaction_utilities(spec, df, locals_d, trace_label, trace_rows, esti
                     assert expr not in trace_eval_results
 
                     trace_eval_results[expr] = v[trace_rows]
-                    k = 'partial utility (coefficient = %s) for %s' % (coefficient, expr)
+                    k = "partial utility (coefficient = %s) for %s" % (
+                        coefficient,
+                        expr,
+                    )
                     trace_eval_results[k] = v[trace_rows] * coefficient
 
                 del v
                 # chunk.log_df(trace_label, 'v', None)
 
             except Exception as err:
-                logger.exception(f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}")
+                logger.exception(
+                    f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
+                )
                 raise err
 
         if estimator:
-            estimator.log("eval_interaction_utilities write_interaction_expression_values %s" % trace_label)
+            estimator.log(
+                "eval_interaction_utilities write_interaction_expression_values %s"
+                % trace_label
+            )
             estimator.write_interaction_expression_values(expression_values_df)
             del expression_values_df
 
         if no_variability > 0:
-            logger.warning("%s: %s columns have no variability" % (trace_label, no_variability))
+            logger.warning(
+                "%s: %s columns have no variability" % (trace_label, no_variability)
+            )
 
         if has_missing_vals > 0:
-            logger.warning("%s: %s columns have missing values" % (trace_label, has_missing_vals))
+            logger.warning(
+                "%s: %s columns have missing values" % (trace_label, has_missing_vals)
+            )
 
         if trace_eval_results is not None:
-            trace_eval_results['total utility'] = utilities.utility[trace_rows]
+            trace_eval_results["total utility"] = utilities.utility[trace_rows]
 
             trace_eval_results = pd.DataFrame.from_dict(trace_eval_results)
             trace_eval_results.index = df[trace_rows].index
 
             # add df columns to trace_results
             trace_eval_results = pd.concat([df[trace_rows], trace_eval_results], axis=1)
-            chunk.log_df(trace_label, 'eval.trace_eval_results', trace_eval_results)
+            chunk.log_df(trace_label, "eval.trace_eval_results", trace_eval_results)
 
-        chunk.log_df(trace_label, 'v', None)
-        chunk.log_df(trace_label, 'eval.utilities', None)  # out of out hands...
-        chunk.log_df(trace_label, 'eval.trace_eval_results', None)
+        chunk.log_df(trace_label, "v", None)
+        chunk.log_df(trace_label, "eval.utilities", None)  # out of out hands...
+        chunk.log_df(trace_label, "eval.trace_eval_results", None)
 
     return utilities, trace_eval_results
 
 
 def _interaction_simulate(
-        choosers, alternatives, spec,
-        skims=None, locals_d=None, sample_size=None,
-        trace_label=None, trace_choice_name=None,
-        log_alt_losers=False,
-        estimator=None):
+    choosers,
+    alternatives,
+    spec,
+    skims=None,
+    locals_d=None,
+    sample_size=None,
+    trace_label=None,
+    trace_choice_name=None,
+    log_alt_losers=False,
+    estimator=None,
+):
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -289,22 +315,28 @@ def _interaction_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
+    trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
     have_trace_targets = tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
-        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
-        tracing.trace_df(alternatives, tracing.extend_trace_label(trace_label, 'alternatives'),
-                         slicer='NONE', transpose=False)
+        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
+        tracing.trace_df(
+            alternatives,
+            tracing.extend_trace_label(trace_label, "alternatives"),
+            slicer="NONE",
+            transpose=False,
+        )
 
     if len(spec.columns) > 1:
-        raise RuntimeError('spec must have only one column')
+        raise RuntimeError("spec must have only one column")
 
     sample_size = sample_size or len(alternatives)
 
     if sample_size > len(alternatives):
-        logger.debug("clipping sample size %s to len(alternatives) %s" %
-                     (sample_size, len(alternatives)))
+        logger.debug(
+            "clipping sample size %s to len(alternatives) %s"
+            % (sample_size, len(alternatives))
+        )
         sample_size = min(sample_size, len(alternatives))
 
     # if using skims, copy index into the dataframe, so it will be
@@ -319,9 +351,14 @@ def _interaction_simulate(
     alt_index_id = estimator.get_alt_id() if estimator else None
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
-    interaction_df = logit.interaction_dataset(choosers, alternatives, sample_size,
-                                               alt_index_id=alt_index_id, chooser_index_id=chooser_index_id)
-    chunk.log_df(trace_label, 'interaction_df', interaction_df)
+    interaction_df = logit.interaction_dataset(
+        choosers,
+        alternatives,
+        sample_size,
+        alt_index_id=alt_index_id,
+        chooser_index_id=chooser_index_id,
+    )
+    chunk.log_df(trace_label, "interaction_df", interaction_df)
 
     if skims is not None:
         simulate.set_skim_wrapper_targets(interaction_df, skims)
@@ -332,67 +369,91 @@ def _interaction_simulate(
     # utilities has utility value for element in the cross product of choosers and alternatives
     # interaction_utilities is a df with one utility column and one row per row in model_design
     if have_trace_targets:
-        trace_rows, trace_ids \
-            = tracing.interaction_trace_rows(interaction_df, choosers, sample_size)
+        trace_rows, trace_ids = tracing.interaction_trace_rows(
+            interaction_df, choosers, sample_size
+        )
 
-        tracing.trace_df(interaction_df[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_df'),
-                         slicer='NONE', transpose=False)
+        tracing.trace_df(
+            interaction_df[trace_rows],
+            tracing.extend_trace_label(trace_label, "interaction_df"),
+            slicer="NONE",
+            transpose=False,
+        )
     else:
         trace_rows = trace_ids = None
-
-    interaction_utilities, trace_eval_results \
-        = eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
-                                     estimator=estimator,
-                                     log_alt_losers=log_alt_losers)
-    chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
+    interaction_utilities, trace_eval_results = eval_interaction_utilities(
+        spec,
+        interaction_df,
+        locals_d,
+        trace_label,
+        trace_rows,
+        estimator=estimator,
+        log_alt_losers=log_alt_losers,
+    )
+    chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
     # print(f"interaction_df {interaction_df.shape}")
     # print(f"interaction_utilities {interaction_utilities.shape}")
 
     del interaction_df
-    chunk.log_df(trace_label, 'interaction_df', None)
+    chunk.log_df(trace_label, "interaction_df", None)
 
     if have_trace_targets:
-        tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
-                                               tracing.extend_trace_label(trace_label, 'eval'))
+        tracing.trace_interaction_eval_results(
+            trace_eval_results,
+            trace_ids,
+            tracing.extend_trace_label(trace_label, "eval"),
+        )
 
-        tracing.trace_df(interaction_utilities[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_utils'),
-                         slicer='NONE', transpose=False)
+        tracing.trace_df(
+            interaction_utilities[trace_rows],
+            tracing.extend_trace_label(trace_label, "interaction_utils"),
+            slicer="NONE",
+            transpose=False,
+        )
 
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
         interaction_utilities.values.reshape(len(choosers), sample_size),
-        index=choosers.index)
-    chunk.log_df(trace_label, 'utilities', utilities)
+        index=choosers.index,
+    )
+    chunk.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utils'),
-                         column_labels=['alternative', 'utility'])
+        tracing.trace_df(
+            utilities,
+            tracing.extend_trace_label(trace_label, "utils"),
+            column_labels=["alternative", "utility"],
+        )
 
-    tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
+    tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
-    probs = logit.utils_to_probs(utilities, trace_label=trace_label, trace_choosers=choosers)
-    chunk.log_df(trace_label, 'probs', probs)
+    probs = logit.utils_to_probs(
+        utilities, trace_label=trace_label, trace_choosers=choosers
+    )
+    chunk.log_df(trace_label, "probs", probs)
 
     del utilities
-    chunk.log_df(trace_label, 'utilities', None)
+    chunk.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(probs, tracing.extend_trace_label(trace_label, 'probs'),
-                         column_labels=['alternative', 'probability'])
+        tracing.trace_df(
+            probs,
+            tracing.extend_trace_label(trace_label, "probs"),
+            column_labels=["alternative", "probability"],
+        )
 
     # make choices
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
-    positions, rands = \
-        logit.make_choices(probs, trace_label=trace_label, trace_choosers=choosers)
-    chunk.log_df(trace_label, 'positions', positions)
-    chunk.log_df(trace_label, 'rands', rands)
+    positions, rands = logit.make_choices(
+        probs, trace_label=trace_label, trace_choosers=choosers
+    )
+    chunk.log_df(trace_label, "positions", positions)
+    chunk.log_df(trace_label, "rands", rands)
 
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
@@ -404,23 +465,36 @@ def _interaction_simulate(
 
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
-    chunk.log_df(trace_label, 'choices', choices)
+    chunk.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
-        tracing.trace_df(choices, tracing.extend_trace_label(trace_label, 'choices'),
-                         columns=[None, trace_choice_name])
-        tracing.trace_df(rands, tracing.extend_trace_label(trace_label, 'rands'),
-                         columns=[None, 'rand'])
+        tracing.trace_df(
+            choices,
+            tracing.extend_trace_label(trace_label, "choices"),
+            columns=[None, trace_choice_name],
+        )
+        tracing.trace_df(
+            rands,
+            tracing.extend_trace_label(trace_label, "rands"),
+            columns=[None, "rand"],
+        )
 
     return choices
 
 
 def interaction_simulate(
-        choosers, alternatives, spec,
-        log_alt_losers=False,
-        skims=None, locals_d=None, sample_size=None, chunk_size=0,
-        trace_label=None, trace_choice_name=None,
-        estimator=None):
+    choosers,
+    alternatives,
+    spec,
+    log_alt_losers=False,
+    skims=None,
+    locals_d=None,
+    sample_size=None,
+    chunk_size=0,
+    trace_label=None,
+    trace_choice_name=None,
+    estimator=None,
+):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -471,26 +545,31 @@ def interaction_simulate(
         choices are simulated in the standard Monte Carlo fashion
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'interaction_simulate')
+    trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
 
     assert len(choosers) > 0
 
     result_list = []
-    for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label):
+    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
+        choosers, chunk_size, trace_label
+    ):
 
-        choices = _interaction_simulate(chooser_chunk, alternatives, spec,
-                                        skims=skims,
-                                        locals_d=locals_d,
-                                        sample_size=sample_size,
-                                        trace_label=chunk_trace_label,
-                                        trace_choice_name=trace_choice_name,
-                                        log_alt_losers=log_alt_losers,
-                                        estimator=estimator)
+        choices = _interaction_simulate(
+            chooser_chunk,
+            alternatives,
+            spec,
+            skims=skims,
+            locals_d=locals_d,
+            sample_size=sample_size,
+            trace_label=chunk_trace_label,
+            trace_choice_name=trace_choice_name,
+            log_alt_losers=log_alt_losers,
+            estimator=estimator,
+        )
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f'result_list', result_list)
+        chunk.log_df(trace_label, f"result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

@@ -523,7 +523,9 @@ def create_pure_school_escort_tours(bundles):
 
     tdd_alts = inject.get_injectable("tdd_alts")
     tdd_alts["tdd"] = tdd_alts.index
-    pe_tours["tdd"] = pd.merge(pe_tours, tdd_alts, on=["start", "end"])["tdd"]
+    pe_tours["tdd"] = pd.merge(pe_tours, tdd_alts, how='left', on=["start", "end"])["tdd"]
+    # since this is an injectable, we want to leave it how we found it
+    # not removing tdd created here will caues problems downstream
     tdd_alts.drop(columns="tdd", inplace=True)
 
     pe_tours["person_id"] = pe_tours["chauf_id"]

@@ -341,6 +341,7 @@ def canonical_tours():
         school_escort_flavors = {"escort": 2 * num_escortees}
         school_escort_channels = enumerate_tour_types(school_escort_flavors)
         school_escort_channels = ["se_%s" % c for c in school_escort_channels]
+        logger.info(f"School escort tour flavors used are {school_escort_flavors}")
 
         sub_channels = sub_channels + school_escort_channels
 

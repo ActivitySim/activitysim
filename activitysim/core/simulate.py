@@ -1209,6 +1209,8 @@ def eval_nl(
     if have_trace_targets:
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
+    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
+
     raw_utilities = eval_utilities(
         spec,
         choosers,
@@ -1218,6 +1220,7 @@ def eval_nl(
         have_trace_targets=have_trace_targets,
         estimator=estimator,
         trace_column_names=trace_column_names,
+        spec_sh=spec_sh,
     )
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1591,21 +1594,25 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     return logsums
 
 
-def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
+def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
     """
-    like eval_nl except return logsums instead of making choices
+    Compute TVPB logsums and attach those values to the choosers.
+
+    Also generate a modified spec that uses the replacement value instead of
+    regenerating the logsums dynamically inline.
+
+    Parameters
+    ----------
+    choosers
+    spec
+    locals_d
 
     Returns
     -------
-    logsums : pandas.Series
-        Index will be that of `choosers`, values will be nest logsum based on spec column values
+    choosers
+    spec
+
     """
-
-    trace_label = tracing.extend_trace_label(trace_label, "eval_nl_logsums")
-    have_trace_targets = tracing.has_trace_targets(choosers)
-
-    logit.validate_nest_spec(nest_spec, trace_label)
-
     spec_sh = spec.copy()
 
     def _replace_in_level(multiindex, level_name, *args, **kwargs):
@@ -1662,6 +1669,26 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
             PRELOAD_tvpb_logsum_dot_WTW=PRELOAD_tvpb_logsum_dot_WTW,
             PRELOAD_tvpb_logsum_dot_WTD=PRELOAD_tvpb_logsum_dot_WTD,
         )
+
+    return choosers, spec_sh
+
+
+def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
+    """
+    like eval_nl except return logsums instead of making choices
+
+    Returns
+    -------
+    logsums : pandas.Series
+        Index will be that of `choosers`, values will be nest logsum based on spec column values
+    """
+
+    trace_label = tracing.extend_trace_label(trace_label, "eval_nl_logsums")
+    have_trace_targets = tracing.has_trace_targets(choosers)
+
+    logit.validate_nest_spec(nest_spec, trace_label)
+
+    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
 
     # trace choosers
     if have_trace_targets:

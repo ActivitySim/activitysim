@@ -759,6 +759,13 @@ class Network_LOS(object):
                     _name=key,
                 )
             )
+        elif dim3.dtype.kind == "i":
+            ss = tap_skim.dataset.at(
+                otap=otap.values,
+                dtap=dtap.values,
+                time_period=tap_skim.dataset.time_period.values[dim3],
+                _name=key,
+            )
         else:
             ss = tap_skim.dataset.at(
                 otap=otap.values,

@@ -517,7 +517,7 @@ def create_pure_school_escort_tours(bundles):
         pe_tours["school_escort_direction"] == "outbound", starts, ends
     )
 
-    # just set end to start time -- non-escort half of tour is determined downstream
+    # just set end equal to start time -- non-escort half of tour is determined downstream
     pe_tours["end"] = pe_tours["start"]
     pe_tours["duration"] = pe_tours["end"] - pe_tours["start"]
 

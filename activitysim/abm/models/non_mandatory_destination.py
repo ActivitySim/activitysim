@@ -22,11 +22,8 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def non_mandatory_tour_destination(
-        tours,
-        persons_merged,
-        network_los,
-        chunk_size,
-        trace_hh_id):
+    tours, persons_merged, network_los, chunk_size, trace_hh_id
+):
 
     """
     Given the tour generation from the above, each tour needs to have a
@@ -34,36 +31,54 @@ def non_mandatory_tour_destination(
     person that's making the tour)
     """
 
-    trace_label = 'non_mandatory_tour_destination'
-    model_settings_file_name = 'non_mandatory_tour_destination.yaml'
+    trace_label = "non_mandatory_tour_destination"
+    model_settings_file_name = "non_mandatory_tour_destination.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    logsum_column_name = model_settings.get('DEST_CHOICE_LOGSUM_COLUMN_NAME')
+    logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
     want_logsums = logsum_column_name is not None
 
-    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
-    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
+    sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
+    want_sample_table = (
+        config.setting("want_dest_choice_sample_tables")
+        and sample_table_name is not None
+    )
 
     tours = tours.to_frame()
 
     persons_merged = persons_merged.to_frame()
 
     # choosers are tours - in a sense tours are choosing their destination
-    non_mandatory_tours = tours[tours.tour_category == 'non_mandatory']
+    non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]
 
-    # - if no mandatory_tours
+    # separating out pure escort school tours
+    # they already have their destination set
+    if pipeline.is_table("school_escort_tours"):
+        nm_tour_index = non_mandatory_tours.index
+        pure_school_escort_tours = non_mandatory_tours[
+            (non_mandatory_tours["school_esc_outbound"] == "pure_escort")
+            | (non_mandatory_tours["school_esc_inbound"] == "pure_escort")
+        ]
+        non_mandatory_tours = non_mandatory_tours[
+            ~non_mandatory_tours.index.isin(pure_school_escort_tours.index)
+        ]
+
     if non_mandatory_tours.shape[0] == 0:
         tracing.no_results(trace_label)
         return
 
-    estimator = estimation.manager.begin_estimation('non_mandatory_tour_destination')
+    estimator = estimation.manager.begin_estimation("non_mandatory_tour_destination")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
-        estimator.write_spec(model_settings, tag='SPEC')
+        estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
-        estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
-        estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
+        estimator.write_table(
+            inject.get_injectable("size_terms"), "size_terms", append=False
+        )
+        estimator.write_table(
+            inject.get_table("land_use").to_frame(), "landuse", append=False
+        )
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(
@@ -74,25 +89,44 @@ def non_mandatory_tour_destination(
         model_settings,
         network_los,
         estimator,
-        chunk_size, trace_hh_id, trace_label)
+        chunk_size,
+        trace_hh_id,
+        trace_label,
+    )
 
     if estimator:
         estimator.write_choices(choices_df.choice)
-        choices_df.choice = estimator.get_survey_values(choices_df.choice, 'tours', 'destination')
+        choices_df.choice = estimator.get_survey_values(
+            choices_df.choice, "tours", "destination"
+        )
         estimator.write_override_choices(choices_df.choice)
         estimator.end_estimation()
 
-    non_mandatory_tours['destination'] = choices_df.choice
+    non_mandatory_tours["destination"] = choices_df.choice
 
-    assign_in_place(tours, non_mandatory_tours[['destination']])
+    non_mandatory_tours.to_csv("tours_before_merge.csv")
+
+    # merging back in school escort tours and preserving index
+    if pipeline.is_table("school_escort_tours"):
+        non_mandatory_tours = pd.concat(
+            [pure_school_escort_tours, non_mandatory_tours]
+        ).set_index(nm_tour_index)
+
+    non_mandatory_tours.to_csv("tours_after_merge.csv")
+
+    assign_in_place(tours, non_mandatory_tours[["destination"]])
 
     if want_logsums:
-        non_mandatory_tours[logsum_column_name] = choices_df['logsum']
+        non_mandatory_tours[logsum_column_name] = choices_df["logsum"]
         assign_in_place(tours, non_mandatory_tours[[logsum_column_name]])
+
+    assert all(
+        ~tours["destination"].isna()
+    ), f"Tours are missing destination: {tours[tours['destination'].isna()]}"
 
     pipeline.replace_table("tours", tours)
 
-    if model_settings.get('annotate_tours'):
+    if model_settings.get("annotate_tours"):
         annotate.annotate_tours(model_settings, trace_label)
 
     if want_sample_table:
@@ -101,9 +135,11 @@ def non_mandatory_tour_destination(
         pipeline.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
-        tracing.trace_df(tours[tours.tour_category == 'non_mandatory'],
-                         label="non_mandatory_tour_destination",
-                         slicer='person_id',
-                         index_label='tour',
-                         columns=None,
-                         warn_if_empty=True)
+        tracing.trace_df(
+            tours[tours.tour_category == "non_mandatory"],
+            label="non_mandatory_tour_destination",
+            slicer="person_id",
+            index_label="tour",
+            columns=None,
+            warn_if_empty=True,
+        )

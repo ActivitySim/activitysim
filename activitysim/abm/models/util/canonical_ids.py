@@ -75,27 +75,6 @@ def read_spec_file(file_name, set_index=None):
     return alts
 
 
-def add_school_escort_tour_flavors(non_mandatory_tour_flavors):
-
-    print("models: ", config.setting("models"))
-
-    if pipeline.is_table("school_escort_tours") | (
-        "school_escorting" in config.setting("models")
-    ):
-        # school escort tours are included, need to extend escort tours
-        # max number of excort tours is now to have one pickup and dropoff for each child
-        from ..school_escorting import NUM_ESCORTEES
-
-        non_mandatory_tour_flavors["escort"] = (
-            non_mandatory_tour_flavors["escort"] + 2 * NUM_ESCORTEES
-        )
-        logger.info(
-            f"Adding {2 * NUM_ESCORTEES} escort tour flavors for school escorting"
-        )
-
-    return non_mandatory_tour_flavors
-
-
 def parse_tour_flavor_from_columns(columns, tour_flavor):
     """
     determines the max number from columns if column name contains tour flavor
@@ -281,10 +260,6 @@ def canonical_tours():
     non_mandatory_tour_flavors = determine_flavors_from_alts_file(
         nm_alts, provided_nm_tour_flavors, default_nm_tour_flavors, max_extension
     )
-    # add additional escort tour flavors for school escorting model
-    non_mandatory_tour_flavors = add_school_escort_tour_flavors(
-        non_mandatory_tour_flavors
-    )
     non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)
 
     logger.info(f"Non-Mandatory tour flavors used are {non_mandatory_tour_flavors}")
@@ -355,12 +330,28 @@ def canonical_tours():
         + joint_tour_channels
     )
 
+    # ---- school escort channels
+    # only include if model is run
+    if pipeline.is_table("school_escort_tours") | (
+        "school_escorting" in config.setting("models")
+    ):
+        se_model_settings_file_name = "school_escorting.yaml"
+        se_model_settings = config.read_model_settings(se_model_settings_file_name)
+        num_escortees = se_model_settings.get("NUM_ESCORTEES", 3)
+        school_escort_flavors = {'escort': 2 * num_escortees}
+        school_escort_channels = enumerate_tour_types(school_escort_flavors)
+        school_escort_channels = ["se_%s" % c for c in school_escort_channels]
+
+        sub_channels = sub_channels + school_escort_channels
+    
+    print(sub_channels)
+
     sub_channels.sort()
 
     return sub_channels
 
 
-def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
+def set_tour_index(tours, parent_tour_num_col=None, is_joint=False, is_school_escrting=False):
     """
     The new index values are stable based on the person_id, tour_type, and tour_num.
     The existing index is ignored and replaced.
@@ -402,6 +393,9 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
     if is_joint:
         tours["tour_id"] = "j_" + tours["tour_id"]
 
+    if is_school_escrting:
+        tours['tour_id'] = "se_" + tours['tour_id']
+
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(
         to_replace=possible_tours, value=list(range(possible_tours_count))
@@ -412,9 +406,9 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
 
     tours.tour_id = (tours.person_id * possible_tours_count) + tours.tour_id
 
-    # if tours.tour_id.duplicated().any():
-    #     print("\ntours.tour_id not unique\n%s" % tours[tours.tour_id.duplicated(keep=False)])
-    #     print(tours[tours.tour_id.duplicated(keep=False)][['survey_tour_id', 'tour_type', 'tour_category']])
+    if tours.tour_id.duplicated().any():
+        print("\ntours.tour_id not unique\n%s" % tours[tours.tour_id.duplicated(keep=False)])
+        print(tours[tours.tour_id.duplicated(keep=False)][['survey_tour_id', 'tour_type', 'tour_category']])
     assert not tours.tour_id.duplicated().any()
 
     tours.set_index("tour_id", inplace=True, verify_integrity=True)

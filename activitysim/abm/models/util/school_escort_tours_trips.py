@@ -296,10 +296,6 @@ def add_pure_escort_tours(tours, school_escort_tours):
     tours_to_add = school_escort_tours[~school_escort_tours.index.isin(tours.index)]
     tours = pd.concat([tours, tours_to_add[tours.columns]])
 
-    assert all(
-        tours.index == canonical_ids.set_tour_index(tours).index
-    ), "tour_id's do not match. Was school_escorting model included during model run start?"
-
     return tours
 
 
@@ -489,7 +485,7 @@ def merge_school_escort_trips_into_pipeline():
 
 def recompute_tour_count_statistics():
     tours = pipeline.get_table("tours")
-
+    
     grouped = tours.groupby(["person_id", "tour_type"])
     tours["tour_type_num"] = grouped.cumcount() + 1
     tours["tour_type_count"] = tours["tour_type_num"] + grouped.cumcount(
@@ -554,7 +550,7 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["tour_num"] = grouped.cumcount() + 1
     pe_tours["tour_count"] = pe_tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pe_tours = canonical_ids.set_tour_index(pe_tours)
+    pe_tours = canonical_ids.set_tour_index(pe_tours, is_school_escrting=True)
 
     return pe_tours
 

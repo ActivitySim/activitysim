@@ -338,20 +338,20 @@ def canonical_tours():
         se_model_settings_file_name = "school_escorting.yaml"
         se_model_settings = config.read_model_settings(se_model_settings_file_name)
         num_escortees = se_model_settings.get("NUM_ESCORTEES", 3)
-        school_escort_flavors = {'escort': 2 * num_escortees}
+        school_escort_flavors = {"escort": 2 * num_escortees}
         school_escort_channels = enumerate_tour_types(school_escort_flavors)
         school_escort_channels = ["se_%s" % c for c in school_escort_channels]
 
         sub_channels = sub_channels + school_escort_channels
-    
-    print(sub_channels)
 
     sub_channels.sort()
 
     return sub_channels
 
 
-def set_tour_index(tours, parent_tour_num_col=None, is_joint=False, is_school_escrting=False):
+def set_tour_index(
+    tours, parent_tour_num_col=None, is_joint=False, is_school_escorting=False
+):
     """
     The new index values are stable based on the person_id, tour_type, and tour_num.
     The existing index is ignored and replaced.
@@ -393,8 +393,8 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False, is_school_es
     if is_joint:
         tours["tour_id"] = "j_" + tours["tour_id"]
 
-    if is_school_escrting:
-        tours['tour_id'] = "se_" + tours['tour_id']
+    if is_school_escorting:
+        tours["tour_id"] = "se_" + tours["tour_id"]
 
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(
@@ -407,8 +407,15 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False, is_school_es
     tours.tour_id = (tours.person_id * possible_tours_count) + tours.tour_id
 
     if tours.tour_id.duplicated().any():
-        print("\ntours.tour_id not unique\n%s" % tours[tours.tour_id.duplicated(keep=False)])
-        print(tours[tours.tour_id.duplicated(keep=False)][['survey_tour_id', 'tour_type', 'tour_category']])
+        print(
+            "\ntours.tour_id not unique\n%s"
+            % tours[tours.tour_id.duplicated(keep=False)]
+        )
+        print(
+            tours[tours.tour_id.duplicated(keep=False)][
+                ["survey_tour_id", "tour_type", "tour_category"]
+            ]
+        )
     assert not tours.tour_id.duplicated().any()
 
     tours.set_index("tour_id", inplace=True, verify_integrity=True)

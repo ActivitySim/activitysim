@@ -437,3 +437,18 @@ def school_escorting(
     # save school escorting tours and trips in pipeline so we can overwrite results from downstream models
     pipeline.replace_table("school_escort_tours", school_escort_tours)
     pipeline.replace_table("school_escort_trips", school_escort_trips)
+
+    # updating timetable object with pure escort tours so joint tours do not schedule ontop
+    timetable = inject.get_injectable("timetable")
+
+    # Need to do this such that only one person is in nth_tours
+    # thus, looping through tour_category and tour_num
+    for tour_category in tours.tour_category.unique():
+        for tour_num, nth_tours in tours[tours.tour_category == tour_category].groupby(
+            "tour_num", sort=True
+        ):
+            timetable.assign(
+                window_row_ids=nth_tours["person_id"], tdds=nth_tours["tdd"]
+            )
+
+    timetable.replace_table()

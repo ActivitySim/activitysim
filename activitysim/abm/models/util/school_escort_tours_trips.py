@@ -5,6 +5,7 @@ import warnings
 
 from activitysim.abm.models.util import canonical_ids
 from activitysim.core import pipeline
+from activitysim.core import inject
 
 from ..school_escorting import NUM_ESCORTEES
 
@@ -485,7 +486,7 @@ def merge_school_escort_trips_into_pipeline():
 
 def recompute_tour_count_statistics():
     tours = pipeline.get_table("tours")
-    
+
     grouped = tours.groupby(["person_id", "tour_type"])
     tours["tour_type_num"] = grouped.cumcount() + 1
     tours["tour_type_count"] = tours["tour_type_num"] + grouped.cumcount(
@@ -520,12 +521,16 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["end"] = pe_tours["start"]
     pe_tours["duration"] = pe_tours["end"] - pe_tours["start"]
 
+    tdd_alts = inject.get_injectable("tdd_alts")
+    tdd_alts["tdd"] = tdd_alts.index
+    pe_tours["tdd"] = pd.merge(pe_tours, tdd_alts, on=["start", "end"])["tdd"]
+    tdd_alts.drop(columns="tdd", inplace=True)
+
     pe_tours["person_id"] = pe_tours["chauf_id"]
 
     pe_tours["tour_category"] = "non_mandatory"
     pe_tours["number_of_participants"] = 1
     pe_tours["tour_type"] = "escort"
-    pe_tours["tdd"] = pd.NA  # will be set later when second half is scheduled
     pe_tours["school_esc_outbound"] = np.where(
         pe_tours["school_escort_direction"] == "outbound", "pure_escort", pd.NA
     )
@@ -550,7 +555,7 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["tour_num"] = grouped.cumcount() + 1
     pe_tours["tour_count"] = pe_tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pe_tours = canonical_ids.set_tour_index(pe_tours, is_school_escrting=True)
+    pe_tours = canonical_ids.set_tour_index(pe_tours, is_school_escorting=True)
 
     return pe_tours
 

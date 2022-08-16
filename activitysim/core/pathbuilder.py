@@ -55,7 +55,7 @@ def compute_utilities(
             f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers"
         )
 
-        locals_dict = {"np": np, "los": network_los}
+        locals_dict = {"np": np, "los": network_los, "disable_sharrow": True}
         locals_dict.update(model_constants)
 
         # we don't grok coefficients, but allow them to use constants in spec alt columns
@@ -1267,6 +1267,16 @@ class TransitVirtualPathLogsumWrapper(object):
         skim: Skim
              The skim object
         """
+        if self.cache_choices and path_type in self.cache:
+            # restore out of cache if all logsums are available in cache
+            # this can happen if the tvpb is called twice for the same thing in a spec
+            # do we want to allow this?  alternatively the onus can be on the
+            # spec writer not to use them twice
+            cached = self.cache.get(path_type)
+            if self.df.index[0] in cached.index:
+                recalled_logsums = cached.reindex(self.df.index).logsum
+                if not recalled_logsums.isna().any():
+                    return recalled_logsums
 
         assert self.df is not None, "Call set_df first"
         assert (
@@ -1287,6 +1297,15 @@ class TransitVirtualPathLogsumWrapper(object):
         tod = self.df[self.tod_key]
         segment = self.df[self.segment_key]
 
+        # TVPB uses original zone id's, so if remapping has been applied we need
+        # to undo that here.
+        land_use = inject.get_table("land_use")
+        if "_original_zone_id" in land_use.columns:
+            orig = land_use["_original_zone_id"].iloc[orig]
+            orig.index = self.df.index
+            dest = land_use["_original_zone_id"].iloc[dest]
+            dest.index = self.df.index
+
         logsum_df = self.tvpb.get_tvpb_logsum(
             path_type,
             orig,
@@ -1305,7 +1324,7 @@ class TransitVirtualPathLogsumWrapper(object):
             assert not orig.index.duplicated().any()
 
             # we only need to cache taps and path_set
-            choices_df = logsum_df[["atap", "btap", "path_set"]]
+            choices_df = logsum_df[["atap", "btap", "path_set", "logsum"]]
 
             if path_type in self.cache:
                 assert (

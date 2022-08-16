@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-from activitysim.core import config, inject, simulate, tracing, util
+from activitysim.core import config, inject, simulate, util
 
 logger = logging.getLogger(__name__)
 
@@ -400,13 +400,19 @@ class TapTapUidCalculator(object):
 
             if name in df:
                 # if there is a column, use it
-                uid = uid * cardinality + np.asanyarray(df[name].map(ordinalizer))
+                if name == "tod" and df[name].dtype.kind == "i":
+                    # when time of day is an integer, assume it is already ordinalized
+                    ticker = np.asanyarray(df[name])
+                else:
+                    ticker = np.asanyarray(df[name].map(ordinalizer))
+                uid = uid * cardinality + ticker
             else:
                 # otherwise it should be in scalar_attributes
                 assert (
                     name in scalar_attributes
                 ), f"attribute '{name}' not found in df.columns or scalar_attributes."
-                uid = uid * cardinality + ordinalizer.at[scalar_attributes[name]]
+                ticker = ordinalizer.at[scalar_attributes[name]]
+                uid = uid * cardinality + ticker
 
         return uid
 

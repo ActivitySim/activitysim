@@ -2,22 +2,13 @@
 # See full license in LICENSE.txt.
 
 import logging
-import os
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import (
-    config,
-    inject,
-    mem,
-    pathbuilder,
-    skim_dataset,
-    skim_dictionary,
-    tracing,
-    util,
-)
+from activitysim.core import skim_dataset  # noqa: F401
+from activitysim.core import config, inject, pathbuilder, skim_dictionary, tracing, util
 from activitysim.core.skim_dict_factory import MemMapSkimFactory, NumpyArraySkimFactory
 from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
 
@@ -455,14 +446,17 @@ class Network_LOS(object):
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
-            assert "tap" not in self.skim_dicts
-            tap_skim_dict = self.create_skim_dict("tap")
-            self.skim_dicts["tap"] = tap_skim_dict
-            # make sure skim has all tap_ids
-            assert not (
-                tap_skim_dict.offset_mapper.map(self.tap_df["TAP"].values)
-                == NOT_IN_SKIM_ZONE_ID
-            ).any()
+            if not config.setting("sharrow", False):
+                assert "tap" not in self.skim_dicts
+                tap_skim_dict = self.create_skim_dict("tap")
+                self.skim_dicts["tap"] = tap_skim_dict
+                # make sure skim has all tap_ids
+                assert not (
+                    tap_skim_dict.offset_mapper.map(self.tap_df["TAP"].values)
+                    == NOT_IN_SKIM_ZONE_ID
+                ).any()
+            else:
+                self.skim_dicts["tap"] = self.get_skim_dict("tap")
 
     def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """
@@ -680,6 +674,11 @@ class Network_LOS(object):
                     if f"dim_redirection_{dd}" in skim_dataset.attrs:
                         del skim_dataset.attrs[f"dim_redirection_{dd}"]
                 return SkimDataset(skim_dataset)
+        elif sharrow_enabled and skim_tag in ("tap"):
+            tap_dataset = inject.get_injectable("tap_dataset")
+            from .skim_dataset import SkimDataset
+
+            return SkimDataset(tap_dataset)
         else:
             assert (
                 skim_tag in self.skim_dicts
@@ -748,9 +747,28 @@ class Network_LOS(object):
         -------
             Numpy.ndarray: list of tap skim values for odt tuples
         """
+        tap_skim = self.get_skim_dict("tap")
 
-        s = self.get_skim_dict("tap").lookup_3d(otap, dtap, dim3, key)
-        return s
+        if isinstance(dim3, str):
+            ss = (
+                tap_skim.dataset[[key]]
+                .sel(time_period=dim3)
+                .at(
+                    otap=otap.values,
+                    dtap=dtap.values,
+                    _name=key,
+                )
+            )
+        else:
+            ss = tap_skim.dataset.at(
+                otap=otap.values,
+                dtap=dtap.values,
+                time_period=dim3,
+                _name=key,
+            )
+
+        # s = tap_skim.lookup_3d(otap, dtap, dim3, key)
+        return ss.values
 
     def skim_time_period_label(self, time_period):
         """

@@ -605,12 +605,10 @@ def load_sparse_maz_skims(
     return dataset
 
 
-@inject.injectable(cache=True)
-def skim_dataset():
+def _skim_dataset(skim_tag="taz"):
     from ..core.los import ONE_ZONE
 
     # TODO:SHARROW: taz and maz are the same
-    skim_tag = "taz"
     network_los_preload = inject.get_injectable("network_los_preload", None)
     if network_los_preload is None:
         raise ValueError("missing network_los_preload")
@@ -670,6 +668,11 @@ def skim_dataset():
                 logger.info("did not find zarr skims, loading omx")
             d = sh.dataset.from_omx_3d(
                 [openmatrix.open_file(f, mode="r") for f in omx_file_paths],
+                index_names=(
+                    ("otap", "dtap", "time_period")
+                    if skim_tag == "tap"
+                    else ("otaz", "dtaz", "time_period")
+                ),
                 time_periods=time_periods,
                 max_float_precision=max_float_precision,
             )
@@ -690,35 +693,39 @@ def skim_dataset():
                     logger.info(f"writing zarr skims to {zarr_file}")
                     d.to_zarr_with_attr(zarr_file)
 
-        # load sparse MAZ skims, if any
-        # these are processed after the ZARR stuff as the GCXS sparse array
-        # is not yet compatible with ZARR directly.
-        # see https://github.com/pydata/sparse/issues/222
-        #  or https://github.com/zarr-developers/zarr-python/issues/424
-        maz2taz_file_name = network_los_preload.setting("maz", None)
-        if maz2taz_file_name:
-            d = load_sparse_maz_skims(
-                d,
-                land_use.index,
-                remapper,
-                zone_system=network_los_preload.zone_system,
-                maz2taz_file_name=network_los_preload.setting("maz"),
-                maz_to_maz_tables=network_los_preload.setting("maz_to_maz.tables"),
-                max_blend_distance=network_los_preload.setting(
-                    "maz_to_maz.max_blend_distance", default={}
-                ),
-            )
+        if skim_tag in ("taz", "maz"):
+            # load sparse MAZ skims, if any
+            # these are processed after the ZARR stuff as the GCXS sparse array
+            # is not yet compatible with ZARR directly.
+            # see https://github.com/pydata/sparse/issues/222
+            #  or https://github.com/zarr-developers/zarr-python/issues/424
+            maz2taz_file_name = network_los_preload.setting("maz", None)
+            if maz2taz_file_name:
+                d = load_sparse_maz_skims(
+                    d,
+                    land_use.index,
+                    remapper,
+                    zone_system=network_los_preload.zone_system,
+                    maz2taz_file_name=network_los_preload.setting("maz"),
+                    maz_to_maz_tables=network_los_preload.setting("maz_to_maz.tables"),
+                    max_blend_distance=network_los_preload.setting(
+                        "maz_to_maz.max_blend_distance", default={}
+                    ),
+                )
 
         d = _drop_unused_names(d)
         # apply non-zarr dependent digital encoding
         d = _apply_digital_encoding(d, skim_digital_encoding)
 
-    # check alignment of TAZs that it matches land_use table
-    logger.info("checking skims alignment with land_use")
-    try:
-        land_use_zone_id = land_use[f"_original_{land_use.index.name}"]
-    except KeyError:
-        land_use_zone_id = land_use.index
+    if skim_tag in ("taz", "maz"):
+        # check alignment of TAZs that it matches land_use table
+        logger.info("checking skims alignment with land_use")
+        try:
+            land_use_zone_id = land_use[f"_original_{land_use.index.name}"]
+        except KeyError:
+            land_use_zone_id = land_use.index
+    else:
+        land_use_zone_id = None
 
     if network_los_preload.zone_system == ONE_ZONE:
         # check TAZ alignment for ONE_ZONE system.
@@ -755,3 +762,13 @@ def skim_dataset():
     else:
         logger.info("writing skims to shared memory")
         return d.shm.to_shared_memory(backing, mode="r")
+
+
+@inject.injectable(cache=True)
+def skim_dataset():
+    return _skim_dataset()
+
+
+@inject.injectable(cache=True)
+def tap_dataset():
+    return _skim_dataset("tap")

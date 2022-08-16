@@ -428,6 +428,7 @@ def eval_utilities(
     trace_column_names=None,
     log_alt_losers=False,
     zone_layer=None,
+    spec_sh=None,
 ):
     """
 
@@ -482,6 +483,15 @@ def eval_utilities(
     sh_flow = None
     utilities = None
 
+    if spec_sh is None:
+        spec_sh = spec
+
+    if locals_d is not None and "disable_sharrow" in locals_d:
+        sharrow_enabled = False
+
+    # if locals_d is not None and 'tvpb_logsum_odt' in locals_d:
+    #     sharrow_enabled = False
+
     if sharrow_enabled:
         from .flow import apply_flow  # import inside func to prevent circular imports
 
@@ -490,7 +500,7 @@ def eval_utilities(
         if locals_d is not None:
             locals_dict.update(locals_d)
         sh_util, sh_flow = apply_flow(
-            spec,
+            spec_sh,
             choosers,
             locals_dict,
             trace_label,
@@ -1596,6 +1606,63 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
+    spec_sh = spec.copy()
+
+    def _replace_in_level(multiindex, level_name, *args, **kwargs):
+        y = multiindex.levels[multiindex.names.index(level_name)].str.replace(
+            *args, **kwargs
+        )
+        return re_spec.set_levels(y, level=level_name)
+
+    # Preprocess TVPB logsums outside sharrow
+    if "tvpb_logsum_odt" in locals_d:
+        PRELOAD_tvpb_logsum_odt_WTW = locals_d["tvpb_logsum_odt"]["WTW"]
+        PRELOAD_tvpb_logsum_odt_DTW = locals_d["tvpb_logsum_odt"]["DTW"]
+        re_spec = spec_sh.index
+        re_spec = _replace_in_level(
+            re_spec,
+            "Expression",
+            r"tvpb_logsum_odt\['WTW'\]",
+            "df.PRELOAD_tvpb_logsum_odt_WTW",
+            regex=True,
+        )
+        re_spec = _replace_in_level(
+            re_spec,
+            "Expression",
+            r"tvpb_logsum_odt\['DTW'\]",
+            "df.PRELOAD_tvpb_logsum_odt_DTW",
+            regex=True,
+        )
+        spec_sh.index = re_spec
+        choosers = choosers.assign(
+            PRELOAD_tvpb_logsum_odt_WTW=PRELOAD_tvpb_logsum_odt_WTW,
+            PRELOAD_tvpb_logsum_odt_DTW=PRELOAD_tvpb_logsum_odt_DTW,
+        )
+
+    if "tvpb_logsum_dot" in locals_d:
+        PRELOAD_tvpb_logsum_dot_WTW = locals_d["tvpb_logsum_dot"]["WTW"]
+        PRELOAD_tvpb_logsum_dot_WTD = locals_d["tvpb_logsum_dot"]["WTD"]
+        re_spec = spec_sh.index
+        re_spec = _replace_in_level(
+            re_spec,
+            "Expression",
+            r"tvpb_logsum_dot\['WTW'\]",
+            "df.PRELOAD_tvpb_logsum_dot_WTW",
+            regex=True,
+        )
+        re_spec = _replace_in_level(
+            re_spec,
+            "Expression",
+            r"tvpb_logsum_dot\['WTD'\]",
+            "df.PRELOAD_tvpb_logsum_dot_WTD",
+            regex=True,
+        )
+        spec_sh.index = re_spec
+        choosers = choosers.assign(
+            PRELOAD_tvpb_logsum_dot_WTW=PRELOAD_tvpb_logsum_dot_WTW,
+            PRELOAD_tvpb_logsum_dot_WTD=PRELOAD_tvpb_logsum_dot_WTD,
+        )
+
     # trace choosers
     if have_trace_targets:
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
@@ -1606,6 +1673,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         locals_d,
         trace_label=trace_label,
         have_trace_targets=have_trace_targets,
+        spec_sh=spec_sh,
     )
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 

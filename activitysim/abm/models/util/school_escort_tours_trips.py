@@ -336,7 +336,6 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     tours.loc[num_escortees.index, "num_escortees"] = num_escortees
 
     # set same start / end time for tours if they are bundled together
-    # FIXME num escortees
     tour_segment_id_cols = [
         "school_tour_id_child" + str(i) for i in range(1, NUM_ESCORTEES + 1)
     ] + ["chauf_tour_id"]
@@ -359,6 +358,16 @@ def process_tours_after_escorting_model(escort_bundles, tours):
             inb_segment_bundles["school_ends"].str.split("_").str[-1].astype(int)
         )  # last end
         tours.loc[ends.index, "end"] = ends
+
+    # updating tdd to match start and end times
+    tdd_alts = inject.get_injectable("tdd_alts")
+    tdd_alts["tdd"] = tdd_alts.index
+    tours.drop(columns='tdd', inplace=True)
+
+    tours["tdd"] = pd.merge(tours.reset_index(), tdd_alts, how='left', on=["start", "end"]).set_index('tour_id')["tdd"].astype(int)
+    # since this is an injectable, we want to leave it how we found it
+    # not removing tdd created here will caues problems downstream
+    tdd_alts.drop(columns="tdd", inplace=True)
 
     return tours
 
@@ -520,13 +529,7 @@ def create_pure_school_escort_tours(bundles):
     # just set end equal to start time -- non-escort half of tour is determined downstream
     pe_tours["end"] = pe_tours["start"]
     pe_tours["duration"] = pe_tours["end"] - pe_tours["start"]
-
-    tdd_alts = inject.get_injectable("tdd_alts")
-    tdd_alts["tdd"] = tdd_alts.index
-    pe_tours["tdd"] = pd.merge(pe_tours, tdd_alts, how='left', on=["start", "end"])["tdd"]
-    # since this is an injectable, we want to leave it how we found it
-    # not removing tdd created here will caues problems downstream
-    tdd_alts.drop(columns="tdd", inplace=True)
+    pe_tours['tdd'] = pd.NA  # updated with full tours table
 
     pe_tours["person_id"] = pe_tours["chauf_id"]
 

@@ -310,7 +310,7 @@ jobs:
   develop-docbuild:
     needs: foundation
     if: (${{ github.ref_name }} == "develop") or (${{ github.ref_name }} == "infrastructure")
-    name: ubuntu-latest py3.9
+    name: develop-docbuild
     runs-on: ubuntu-latest
     defaults:
       run:

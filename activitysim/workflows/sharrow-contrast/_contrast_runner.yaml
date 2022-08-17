@@ -414,6 +414,43 @@ reporting:
     filter: workplace_zone_id >= 0
     size_label: n_workers
 
+- name: activitysim.workflows.steps.contrast.transform_data
+  in:
+    tablename: households
+    column: '{household_income}'
+    out: income_tertile
+    qcut:
+      q: 3
+      labels:
+        - low
+        - mid
+        - high
+
+- name: activitysim.workflows.steps.contrast.join_table_data
+  in:
+    caption: Join Income to Persons
+    tablename: persons
+    from_tablename: households
+    columns: income_tertile
+    on: household_id
+
+- name: activitysim.workflows.steps.contrast.trip_distance
+  in:
+    caption: Workplace Distance by Income
+    caption_level: 3
+    dist_bins: 20
+    dist_skim_name: 'distance_to_work'
+    tablename: persons
+    grouping: income_tertile
+
+- name: activitysim.workflows.steps.contrast.trip_distance
+  in:
+    caption: School Distance by Income
+    caption_level: 3
+    dist_bins: 20
+    dist_skim_name: 'distance_to_school'
+    tablename: persons
+    grouping: income_tertile
 
 #### Auto Ownership ####
 
@@ -428,18 +465,6 @@ reporting:
     out: hhsize_to5
     clip:
       upper: 5
-
-- name: activitysim.workflows.steps.contrast.transform_data
-  in:
-    tablename: households
-    column: '{household_income}'
-    out: income_tertile
-    qcut:
-      q: 3
-      labels:
-        - low
-        - mid
-        - high
 
 - name: activitysim.workflows.steps.contrast.nominal_choice
   in:

@@ -18,6 +18,7 @@ def trip_distance(
     title=None,
     max_dist=None,
     relabel_tablesets=None,
+    tablename="trips",
 ):
     """
 
@@ -49,7 +50,7 @@ def trip_distance(
 
     distances = {}
     for key, tableset in tablesets.items():
-        distances[key] = tableset["trips"][dist_skim_name]
+        distances[key] = tableset[tablename][dist_skim_name]
 
     if dist_bins is not None:
         result = pd.concat(distances, names=["source"])
@@ -60,7 +61,7 @@ def trip_distance(
 
     data = {}
     for key, tableset in tablesets.items():
-        data[key] = tableset["trips"].assign(**{"distance": distances[key]})
+        data[key] = tableset[tablename].assign(**{"distance": distances[key]})
 
     d = {}
     for key, dat in data.items():

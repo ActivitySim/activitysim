@@ -25,6 +25,7 @@ def attach_skim_data(
     otaz_col,
     dtaz_col,
     time_col=None,
+    rename_skim_vars=None,
 ) -> dict:
     if isinstance(skim_vars, str):
         skim_vars = [skim_vars]
@@ -79,6 +80,10 @@ def attach_skim_data(
             lookr = {i: look[i].values for i in look.columns}
             out = skims[key].iat(**lookr, _names=skim_vars).to_dataframe()
             out = out.set_index(tablesets[key][tablename].index)
+        if rename_skim_vars is not None:
+            if isinstance(rename_skim_vars, str):
+                rename_skim_vars = [rename_skim_vars]
+            out = out.rename(columns=dict(zip(skim_vars, rename_skim_vars)))
         tablesets[key][tablename] = tablesets[key][tablename].assign(**out)
 
     return dict(tablesets=tablesets)

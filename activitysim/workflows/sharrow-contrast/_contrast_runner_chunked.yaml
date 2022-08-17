@@ -31,7 +31,7 @@ steps:
       resume_after:
       fast: False
       compile_n_households: 1000
-      train_n_households: 100000
+      train_n_households: 20000
       main_n_households: 100000
       config_dirs: configs
       data_dir: data
@@ -146,6 +146,7 @@ run-sharrow:
         inherit_settings: True
         chunk_training_mode: '{chunk_training_mode}'
         households_sample_size: '{train_n_households}'
+        num_processes: 2
 
 - description: write configs_sh
   name: pypyr.steps.filewriteyaml
@@ -198,6 +199,7 @@ run-legacy:
         inherit_settings: True
         chunk_training_mode: '{chunk_training_mode}'
         households_sample_size: '{train_n_households}'
+        num_processes: 2
 
 - description: write.configs_legacy
   name: pypyr.steps.filewriteyaml

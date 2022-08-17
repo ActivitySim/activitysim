@@ -749,8 +749,10 @@ class Network_LOS(object):
         """
         tap_skim = self.get_skim_dict("tap")
 
-        if isinstance(dim3, str):
-            ss = (
+        if isinstance(tap_skim, skim_dictionary.SkimDict):
+            return tap_skim.lookup_3d(otap, dtap, dim3, key)
+        elif isinstance(dim3, str):
+            s = (
                 tap_skim.dataset[[key]]
                 .sel(time_period=dim3)
                 .at(
@@ -760,22 +762,21 @@ class Network_LOS(object):
                 )
             )
         elif dim3.dtype.kind == "i":
-            ss = tap_skim.dataset.at(
+            s = tap_skim.dataset.at(
                 otap=otap.values,
                 dtap=dtap.values,
                 time_period=tap_skim.dataset.time_period.values[dim3],
                 _name=key,
             )
         else:
-            ss = tap_skim.dataset.at(
+            s = tap_skim.dataset.at(
                 otap=otap.values,
                 dtap=dtap.values,
                 time_period=dim3,
                 _name=key,
             )
 
-        # s = tap_skim.lookup_3d(otap, dtap, dim3, key)
-        return ss.values
+        return s.values
 
     def skim_time_period_label(self, time_period):
         """

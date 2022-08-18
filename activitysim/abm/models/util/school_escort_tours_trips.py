@@ -358,20 +358,24 @@ def process_tours_after_escorting_model(escort_bundles, tours):
         )  # last end
         tours.loc[ends.index, "end"] = ends
 
-    bad_end_times = (tours['start'] > tours['end'])
-    tours.loc[bad_end_times, 'end'] = tours.loc[bad_end_times, 'start']
+    bad_end_times = tours["start"] > tours["end"]
+    tours.loc[bad_end_times, "end"] = tours.loc[bad_end_times, "start"]
 
     # updating tdd to match start and end times
     tdd_alts = inject.get_injectable("tdd_alts")
     tdd_alts["tdd"] = tdd_alts.index
-    tours.drop(columns='tdd', inplace=True)
+    tours.drop(columns="tdd", inplace=True)
 
-    tours["tdd"] = pd.merge(tours.reset_index(), tdd_alts, how='left', on=["start", "end"]).set_index('tour_id')["tdd"]
+    tours["tdd"] = pd.merge(
+        tours.reset_index(), tdd_alts, how="left", on=["start", "end"]
+    ).set_index("tour_id")["tdd"]
     # since this is an injectable, we want to leave it how we found it
     # not removing tdd created here will caues problems downstream
     tdd_alts.drop(columns="tdd", inplace=True)
 
-    assert all(~tours.tdd.isna()), f"Tours have missing tdd values: {tours[tours.tdd.isna()][['tour_type', 'start', 'end', 'tdd']]}"
+    assert all(
+        ~tours.tdd.isna()
+    ), f"Tours have missing tdd values: {tours[tours.tdd.isna()][['tour_type', 'start', 'end', 'tdd']]}"
 
     return tours
 
@@ -533,7 +537,7 @@ def create_pure_school_escort_tours(bundles):
     # just set end equal to start time -- non-escort half of tour is determined downstream
     pe_tours["end"] = pe_tours["start"]
     pe_tours["duration"] = pe_tours["end"] - pe_tours["start"]
-    pe_tours['tdd'] = pd.NA  # updated with full tours table
+    pe_tours["tdd"] = pd.NA  # updated with full tours table
 
     pe_tours["person_id"] = pe_tours["chauf_id"]
 

@@ -19,7 +19,9 @@ jobs:
     - env: TEST_SUITE=activitysim/core
 
     - stage: Examples
-      name: "Prototype MTC"
+      name: "MWCOG Example"
+      env: TEST_SUITE=activitysim/examples/prototype_mwcog/test
+    - name: "Prototype MTC"
       env: TEST_SUITE=activitysim/examples/prototype_mtc/test
     - name: "Prototype MTC (Extended)"
       env: TEST_SUITE=activitysim/examples/prototype_mtc_extended/test
@@ -37,8 +39,7 @@ jobs:
       env: TEST_SUITE=activitysim/examples/placeholder_sandag/test
     - name: "SANDAG Cross-Border Example"
       env: TEST_SUITE=activitysim/examples/prototype_sandag_xborder/test
-    - name: "MWCOG Example"
-      env: TEST_SUITE=activitysim/examples/prototype_mwcog/test
+    
 
     - stage: Estimation Mode
       name: "Larch Test"

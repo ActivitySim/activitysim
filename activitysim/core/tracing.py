@@ -22,9 +22,9 @@ from . import config
 
 
 # Configurations
-ASIM_LOGGER = 'activitysim'
-CSV_FILE_TYPE = 'csv'
-LOGGING_CONF_FILE_NAME = 'logging.yaml'
+ASIM_LOGGER = "activitysim"
+CSV_FILE_TYPE = "csv"
+LOGGING_CONF_FILE_NAME = "logging.yaml"
 
 
 logger = logging.getLogger(__name__)
@@ -36,9 +36,11 @@ class ElapsedTimeFormatter(logging.Formatter):
         hours, rem = divmod(duration_milliseconds / 1000, 3600)
         minutes, seconds = divmod(rem, 60)
         if hours:
-            record.elapsedTime = ("{:0>2}:{:0>2}:{:05.2f}".format(int(hours), int(minutes), seconds))
+            record.elapsedTime = "{:0>2}:{:0>2}:{:05.2f}".format(
+                int(hours), int(minutes), seconds
+            )
         else:
-            record.elapsedTime = ("{:0>2}:{:05.2f}".format(int(minutes), seconds))
+            record.elapsedTime = "{:0>2}:{:05.2f}".format(int(minutes), seconds)
         return super(ElapsedTimeFormatter, self).format(record)
 
 
@@ -75,18 +77,20 @@ def log_runtime(model_name, start_time=None, timing=None):
 
     process_name = multiprocessing.current_process().name
 
-    if config.setting('multiprocess', False):
+    if config.setting("multiprocess", False):
         # when benchmarking, log timing for each processes in its own log
-        if config.setting('benchmarking', False):
+        if config.setting("benchmarking", False):
             header = "component_name,duration"
-            with config.open_log_file(f'timing_log.{process_name}.csv', 'a', header) as log_file:
+            with config.open_log_file(
+                f"timing_log.{process_name}.csv", "a", header
+            ) as log_file:
                 print(f"{model_name},{timing}", file=log_file)
         # only continue to log runtime in global timing log for locutor
-        if not inject.get_injectable('locutor', False):
+        if not inject.get_injectable("locutor", False):
             return
 
     header = "process_name,model_name,seconds,minutes"
-    with config.open_log_file('timing_log.csv', 'a', header) as log_file:
+    with config.open_log_file("timing_log.csv", "a", header) as log_file:
         print(f"{process_name},{model_name},{seconds},{minutes}", file=log_file)
 
 
@@ -104,10 +108,10 @@ def delete_output_files(file_type, ignore=None, subdir=None):
     Nothing
     """
 
-    output_dir = inject.get_injectable('output_dir')
+    output_dir = inject.get_injectable("output_dir")
 
     subdir = [subdir] if subdir else None
-    directories = subdir or ['', 'log', 'trace']
+    directories = subdir or ["", "log", "trace"]
 
     for subdir in directories:
 
@@ -144,12 +148,16 @@ def delete_trace_files():
     -------
     Nothing
     """
-    delete_output_files(CSV_FILE_TYPE, subdir='trace')
-    delete_output_files(CSV_FILE_TYPE, subdir='log')
+    delete_output_files(CSV_FILE_TYPE, subdir="trace")
+    delete_output_files(CSV_FILE_TYPE, subdir="log")
 
-    active_log_files = [h.baseFilename for h in logger.root.handlers if isinstance(h, logging.FileHandler)]
+    active_log_files = [
+        h.baseFilename
+        for h in logger.root.handlers
+        if isinstance(h, logging.FileHandler)
+    ]
 
-    delete_output_files('log', ignore=active_log_files)
+    delete_output_files("log", ignore=active_log_files)
 
 
 def config_logger(basic=False):
@@ -167,7 +175,9 @@ def config_logger(basic=False):
     if basic:
         log_config_file = None
     else:
-        log_config_file = config.config_file_path(LOGGING_CONF_FILE_NAME, mandatory=False)
+        log_config_file = config.config_file_path(
+            LOGGING_CONF_FILE_NAME, mandatory=False
+        )
 
     if log_config_file:
         try:
@@ -178,8 +188,8 @@ def config_logger(basic=False):
             raise e
 
         try:
-            config_dict = config_dict['logging']
-            config_dict.setdefault('version', 1)
+            config_dict = config_dict["logging"]
+            config_dict.setdefault("version", 1)
             logging.config.dictConfig(config_dict)
         except Exception as e:
             print(f"Unable to config logging as specified in {log_config_file}")
@@ -222,7 +232,9 @@ def print_summary(label, df, describe=False, value_counts=False):
 
     if value_counts:
         n = 10
-        logger.info("%s top %s value counts:\n%s" % (label, n, df.value_counts().nlargest(n)))
+        logger.info(
+            "%s top %s value counts:\n%s" % (label, n, df.value_counts().nlargest(n))
+        )
 
     if describe:
         logger.info("%s summary:\n%s" % (label, df.describe()))
@@ -230,10 +242,12 @@ def print_summary(label, df, describe=False, value_counts=False):
 
 def initialize_traceable_tables():
 
-    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
     if len(traceable_table_ids) > 0:
-        logger.debug(f"initialize_traceable_tables resetting table_ids for {list(traceable_table_ids.keys())}")
-    inject.add_injectable('traceable_table_ids', {})
+        logger.debug(
+            f"initialize_traceable_tables resetting table_ids for {list(traceable_table_ids.keys())}"
+        )
+    inject.add_injectable("traceable_table_ids", {})
 
 
 def register_traceable_table(table_name, df):
@@ -254,7 +268,7 @@ def register_traceable_table(table_name, df):
 
     logger.debug(f"register_traceable_table {table_name}")
 
-    traceable_tables = inject.get_injectable('traceable_tables', [])
+    traceable_tables = inject.get_injectable("traceable_tables", [])
     if table_name not in traceable_tables:
         logger.error("table '%s' not in traceable_tables" % table_name)
         return
@@ -264,19 +278,26 @@ def register_traceable_table(table_name, df):
         logger.error("Can't register table '%s' without index name" % table_name)
         return
 
-    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
-    traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
+    traceable_table_indexes = inject.get_injectable("traceable_table_indexes", {})
 
-    if idx_name in traceable_table_indexes and traceable_table_indexes[idx_name] != table_name:
-        logger.error("table '%s' index name '%s' already registered for table '%s'" %
-                     (table_name, idx_name, traceable_table_indexes[idx_name]))
+    if (
+        idx_name in traceable_table_indexes
+        and traceable_table_indexes[idx_name] != table_name
+    ):
+        logger.error(
+            "table '%s' index name '%s' already registered for table '%s'"
+            % (table_name, idx_name, traceable_table_indexes[idx_name])
+        )
         return
 
     # update traceable_table_indexes with this traceable_table's idx_name
     if idx_name not in traceable_table_indexes:
         traceable_table_indexes[idx_name] = table_name
-        logger.debug("adding table %s.%s to traceable_table_indexes" % (table_name, idx_name))
-        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
+        logger.debug(
+            "adding table %s.%s to traceable_table_indexes" % (table_name, idx_name)
+        )
+        inject.add_injectable("traceable_table_indexes", traceable_table_indexes)
 
     # add any new indexes associated with trace_hh_id to traceable_table_ids
 
@@ -285,12 +306,15 @@ def register_traceable_table(table_name, df):
         return
 
     new_traced_ids = []
-    if table_name == 'households':
+    if table_name == "households":
         if trace_hh_id not in df.index:
             logger.warning("trace_hh_id %s not in dataframe" % trace_hh_id)
             new_traced_ids = []
         else:
-            logger.info("tracing household id %s in %s households" % (trace_hh_id, len(df.index)))
+            logger.info(
+                "tracing household id %s in %s households"
+                % (trace_hh_id, len(df.index))
+            )
             new_traced_ids = [trace_hh_id]
     else:
 
@@ -298,9 +322,11 @@ def register_traceable_table(table_name, df):
         ref_col = next((c for c in traceable_table_indexes if c in df.columns), None)
 
         if ref_col is None:
-            logger.error("can't find a registered table to slice table '%s' index name '%s'"
-                         " in traceable_table_indexes: %s" %
-                         (table_name, idx_name, traceable_table_indexes))
+            logger.error(
+                "can't find a registered table to slice table '%s' index name '%s'"
+                " in traceable_table_indexes: %s"
+                % (table_name, idx_name, traceable_table_indexes)
+            )
             return
 
         # get traceable_ids for ref_col table
@@ -312,8 +338,10 @@ def register_traceable_table(table_name, df):
         traced_df = df[df[ref_col].isin(ref_col_traced_ids)]
         new_traced_ids = traced_df.index.tolist()
         if len(new_traced_ids) == 0:
-            logger.warning("register %s: no rows with %s in %s." %
-                           (table_name, ref_col, ref_col_traced_ids))
+            logger.warning(
+                "register %s: no rows with %s in %s."
+                % (table_name, ref_col, ref_col_traced_ids)
+            )
 
     # update the list of trace_ids for this table
     prior_traced_ids = traceable_table_ids.get(table_name, [])
@@ -321,15 +349,21 @@ def register_traceable_table(table_name, df):
     if new_traced_ids:
         assert not set(prior_traced_ids) & set(new_traced_ids)
         traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
-        inject.add_injectable('traceable_table_ids', traceable_table_ids)
+        inject.add_injectable("traceable_table_ids", traceable_table_ids)
 
-    logger.debug("register %s: added %s new ids to %s existing trace ids" %
-                 (table_name, len(new_traced_ids), len(prior_traced_ids)))
-    logger.debug("register %s: tracing new ids %s in %s" %
-                 (table_name, new_traced_ids, table_name))
+    logger.debug(
+        "register %s: added %s new ids to %s existing trace ids"
+        % (table_name, len(new_traced_ids), len(prior_traced_ids))
+    )
+    logger.debug(
+        "register %s: tracing new ids %s in %s"
+        % (table_name, new_traced_ids, table_name)
+    )
 
 
-def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=None, transpose=True):
+def write_df_csv(
+    df, file_path, index_label=None, columns=None, column_labels=None, transpose=True
+):
 
     need_header = not os.path.isfile(file_path)
 
@@ -338,7 +372,7 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
 
     if not transpose:
         want_index = isinstance(df.index, pd.MultiIndex) or df.index.name is not None
-        df.to_csv(file_path, mode='a', index=want_index, header=need_header)
+        df.to_csv(file_path, mode="a", index=want_index, header=need_header)
         return
 
     df_t = df.transpose() if df.index.name in df else df.reset_index().transpose()
@@ -351,24 +385,33 @@ def write_df_csv(df, file_path, index_label=None, columns=None, column_labels=No
         if column_labels is None:
             column_labels = [None, None]
         if column_labels[0] is None:
-            column_labels[0] = 'label'
+            column_labels[0] = "label"
         if column_labels[1] is None:
-            column_labels[1] = 'value'
+            column_labels[1] = "value"
 
         if len(df_t.columns) == len(column_labels) - 1:
-            column_label_row = ','.join(column_labels)
+            column_label_row = ",".join(column_labels)
         else:
-            column_label_row = \
-                column_labels[0] + ',' \
-                + ','.join([column_labels[1] + '_' + str(i+1) for i in range(len(df_t.columns))])
+            column_label_row = (
+                column_labels[0]
+                + ","
+                + ",".join(
+                    [
+                        column_labels[1] + "_" + str(i + 1)
+                        for i in range(len(df_t.columns))
+                    ]
+                )
+            )
 
-        with open(file_path, mode='a') as f:
-            f.write(column_label_row + '\n')
+        with open(file_path, mode="a") as f:
+            f.write(column_label_row + "\n")
 
-    df_t.to_csv(file_path, mode='a', index=True, header=False)
+    df_t.to_csv(file_path, mode="a", index=True, header=False)
 
 
-def write_series_csv(series, file_path, index_label=None, columns=None, column_labels=None):
+def write_series_csv(
+    series, file_path, index_label=None, columns=None, column_labels=None
+):
 
     if isinstance(columns, str):
         series = series.rename(columns)
@@ -380,10 +423,12 @@ def write_series_csv(series, file_path, index_label=None, columns=None, column_l
         series.index.name = index_label
 
     need_header = not os.path.isfile(file_path)
-    series.to_csv(file_path, mode='a', index=True, header=need_header)
+    series.to_csv(file_path, mode="a", index=True, header=need_header)
 
 
-def write_csv(df, file_name, index_label=None, columns=None, column_labels=None, transpose=True):
+def write_csv(
+    df, file_name, index_label=None, columns=None, column_labels=None, transpose=True
+):
     """
     Print write_csv
 
@@ -406,12 +451,12 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     assert len(file_name) > 0
 
-    if not file_name.endswith('.%s' % CSV_FILE_TYPE):
-        file_name = '%s.%s' % (file_name, CSV_FILE_TYPE)
+    if not file_name.endswith(".%s" % CSV_FILE_TYPE):
+        file_name = "%s.%s" % (file_name, CSV_FILE_TYPE)
 
     file_path = config.trace_file_path(file_name)
 
-    if os.name == 'nt':
+    if os.name == "nt":
         abs_path = os.path.abspath(file_path)
         if len(abs_path) > 255:
             msg = f"path length ({len(abs_path)}) may exceed Windows maximum length unless LongPathsEnabled: {abs_path}"
@@ -422,7 +467,9 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
 
     if isinstance(df, pd.DataFrame):
         # logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
-        write_df_csv(df, file_path, index_label, columns, column_labels, transpose=transpose)
+        write_df_csv(
+            df, file_path, index_label, columns, column_labels, transpose=transpose
+        )
     elif isinstance(df, pd.Series):
         # logger.debug("dumping %s element series to %s" % (df.shape[0], file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
@@ -431,8 +478,10 @@ def write_csv(df, file_name, index_label=None, columns=None, column_labels=None,
         # logger.debug("dumping %s element dict to %s" % (df.shape[0], file_name))
         write_series_csv(df, file_path, index_label, columns, column_labels)
     else:
-        logger.error("write_csv object for file_name '%s' of unexpected type: %s" %
-                     (file_name, type(df)))
+        logger.error(
+            "write_csv object for file_name '%s' of unexpected type: %s"
+            % (file_name, type(df))
+        )
 
 
 def slice_ids(df, ids, column=None):
@@ -494,7 +543,7 @@ def get_trace_target(df, slicer, column=None):
     target_ids = None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
 
     # special do-not-slice code for dumping entire df
-    if slicer == 'NONE':
+    if slicer == "NONE":
         return target_ids, column
 
     if slicer is None:
@@ -502,16 +551,18 @@ def get_trace_target(df, slicer, column=None):
 
     if isinstance(df, pd.DataFrame):
         # always slice by household id if we can
-        if 'household_id' in df.columns:
-            slicer = 'household_id'
+        if "household_id" in df.columns:
+            slicer = "household_id"
         if slicer in df.columns:
             column = slicer
 
     if column is None and df.index.name != slicer:
-        raise RuntimeError("bad slicer '%s' for df with index '%s'" % (slicer, df.index.name))
+        raise RuntimeError(
+            "bad slicer '%s' for df with index '%s'" % (slicer, df.index.name)
+        )
 
-    traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
-    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    traceable_table_indexes = inject.get_injectable("traceable_table_indexes", {})
+    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
 
     if df.empty:
         target_ids = None
@@ -519,8 +570,8 @@ def get_trace_target(df, slicer, column=None):
         # maps 'person_id' to 'persons', etc
         table_name = traceable_table_indexes[slicer]
         target_ids = traceable_table_ids.get(table_name, [])
-    elif slicer == 'zone_id':
-        target_ids = inject.get_injectable('trace_od', [])
+    elif slicer == "zone_id":
+        target_ids = inject.get_injectable("trace_od", [])
 
     return target_ids, column
 
@@ -571,10 +622,10 @@ def hh_id_for_chooser(id, choosers):
         scalar household_id or series of household_ids
     """
 
-    if choosers.index.name == 'household_id':
+    if choosers.index.name == "household_id":
         hh_id = id
-    elif 'household_id' in choosers.columns:
-        hh_id = choosers.loc[id]['household_id']
+    elif "household_id" in choosers.columns:
+        hh_id = choosers.loc[id]["household_id"]
     else:
         print(": hh_id_for_chooser: nada:\n%s" % choosers.columns)
         hh_id = None
@@ -596,7 +647,7 @@ def trace_id_for_chooser(id, choosers):
     """
 
     hh_id = None
-    for column_name in ['household_id', 'person_id']:
+    for column_name in ["household_id", "person_id"]:
         if choosers.index.name == column_name:
             hh_id = id
             break
@@ -612,12 +663,22 @@ def trace_id_for_chooser(id, choosers):
 
 def dump_df(dump_switch, df, trace_label, fname):
     if dump_switch:
-        trace_label = extend_trace_label(trace_label, 'DUMP.%s' % fname)
-        trace_df(df, trace_label, index_label=df.index.name, slicer='NONE', transpose=False)
+        trace_label = extend_trace_label(trace_label, "DUMP.%s" % fname)
+        trace_df(
+            df, trace_label, index_label=df.index.name, slicer="NONE", transpose=False
+        )
 
 
-def trace_df(df, label, slicer=None, columns=None,
-             index_label=None, column_labels=None, transpose=True, warn_if_empty=False):
+def trace_df(
+    df,
+    label,
+    slicer=None,
+    columns=None,
+    index_label=None,
+    column_labels=None,
+    transpose=True,
+    warn_if_empty=False,
+):
     """
     Slice dataframe by traced household or person id dataframe and write to CSV
 
@@ -652,12 +713,20 @@ def trace_df(df, label, slicer=None, columns=None,
 
     if warn_if_empty and df.shape[0] == 0 and target_ids != []:
         column_name = column or slicer
-        logger.warning("slice_canonically: no rows in %s with %s == %s"
-                       % (label, column_name, target_ids))
+        logger.warning(
+            "slice_canonically: no rows in %s with %s == %s"
+            % (label, column_name, target_ids)
+        )
 
     if df.shape[0] > 0:
-        write_csv(df, file_name=label, index_label=(index_label or slicer), columns=columns,
-                  column_labels=column_labels, transpose=transpose)
+        write_csv(
+            df,
+            file_name=label,
+            index_label=(index_label or slicer),
+            columns=columns,
+            column_labels=column_labels,
+            transpose=transpose,
+        )
 
 
 def interaction_trace_rows(interaction_df, choosers, sample_size=None):
@@ -687,24 +756,26 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     # slicer column name and id targets to use for chooser id added to model_design dataframe
     # currently we only ever slice by person_id, but that could change, so we check here...
 
-    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
+    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
 
-    if choosers.index.name == 'person_id' and 'persons' in traceable_table_ids:
+    if choosers.index.name == "person_id" and "persons" in traceable_table_ids:
         slicer_column_name = choosers.index.name
-        targets = traceable_table_ids['persons']
-    elif choosers.index.name == 'household_id' and 'households' in traceable_table_ids:
+        targets = traceable_table_ids["persons"]
+    elif choosers.index.name == "household_id" and "households" in traceable_table_ids:
         slicer_column_name = choosers.index.name
-        targets = traceable_table_ids['households']
-    elif 'household_id' in choosers.columns and 'households' in traceable_table_ids:
-        slicer_column_name = 'household_id'
-        targets = traceable_table_ids['households']
-    elif 'person_id' in choosers.columns and 'persons' in traceable_table_ids:
-        slicer_column_name = 'person_id'
-        targets = traceable_table_ids['persons']
+        targets = traceable_table_ids["households"]
+    elif "household_id" in choosers.columns and "households" in traceable_table_ids:
+        slicer_column_name = "household_id"
+        targets = traceable_table_ids["households"]
+    elif "person_id" in choosers.columns and "persons" in traceable_table_ids:
+        slicer_column_name = "person_id"
+        targets = traceable_table_ids["persons"]
     else:
         print(choosers.columns)
-        raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
-                           % choosers.index.name)
+        raise RuntimeError(
+            "interaction_trace_rows don't know how to slice index '%s'"
+            % choosers.index.name
+        )
 
     if sample_size is None:
         # if sample size not constant, we count on either
@@ -723,11 +794,11 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
         if slicer_column_name == choosers.index.name:
             trace_rows = np.in1d(choosers.index, targets)
             trace_ids = np.asanyarray(choosers[trace_rows].index)
-        elif slicer_column_name == 'person_id':
-            trace_rows = np.in1d(choosers['person_id'], targets)
+        elif slicer_column_name == "person_id":
+            trace_rows = np.in1d(choosers["person_id"], targets)
             trace_ids = np.asanyarray(choosers[trace_rows].person_id)
-        elif slicer_column_name == 'household_id':
-            trace_rows = np.in1d(choosers['household_id'], targets)
+        elif slicer_column_name == "household_id":
+            trace_rows = np.in1d(choosers["household_id"], targets)
             trace_ids = np.asanyarray(choosers[trace_rows].household_id)
         else:
             assert False
@@ -776,7 +847,7 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
         return
 
     # write out the raw dataframe
-    file_path = config.trace_file_path('%s.raw.csv' % label)
+    file_path = config.trace_file_path("%s.raw.csv" % label)
     trace_results.to_csv(file_path, mode="a", index=True, header=True)
 
     # if there are multiple targets, we want them in separate tables for readability
@@ -790,14 +861,16 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
         # # remove the slicer (person_id or hh_id) column?
         # del df_target[slicer_column_name]
 
-        target_label = '%s.%s.%s' % (label, slicer_column_name, target)
+        target_label = "%s.%s.%s" % (label, slicer_column_name, target)
 
-        trace_df(df_target,
-                 label=target_label,
-                 slicer="NONE",
-                 transpose=True,
-                 column_labels=['expression', None],
-                 warn_if_empty=False)
+        trace_df(
+            df_target,
+            label=target_label,
+            slicer="NONE",
+            transpose=True,
+            column_labels=["expression", None],
+            warn_if_empty=False,
+        )
 
 
 def no_results(trace_label):
@@ -821,20 +894,22 @@ def deregister_traceable_table(table_name):
     -------
     Nothing
     """
-    traceable_tables = inject.get_injectable('traceable_tables', [])
-    traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
-    traceable_table_indexes = inject.get_injectable('traceable_table_indexes', {})
+    traceable_tables = inject.get_injectable("traceable_tables", [])
+    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
+    traceable_table_indexes = inject.get_injectable("traceable_table_indexes", {})
 
     if table_name not in traceable_tables:
         logger.error("table '%s' not in traceable_tables" % table_name)
 
     else:
         traceable_table_ids = {
-            k: v for k, v in traceable_table_ids.items() if k != table_name}
-        traceable_table_indexes = OrderedDict({
-            k: v for k, v in traceable_table_indexes.items() if v != table_name})
+            k: v for k, v in traceable_table_ids.items() if k != table_name
+        }
+        traceable_table_indexes = OrderedDict(
+            {k: v for k, v in traceable_table_indexes.items() if v != table_name}
+        )
 
-        inject.add_injectable('traceable_table_ids', traceable_table_ids)
-        inject.add_injectable('traceable_table_indexes', traceable_table_indexes)
+        inject.add_injectable("traceable_table_ids", traceable_table_ids)
+        inject.add_injectable("traceable_table_indexes", traceable_table_indexes)
 
     return

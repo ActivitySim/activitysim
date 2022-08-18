@@ -5,8 +5,8 @@ from activitysim.benchmarking.componentwise import (
 
 from .sandag_example import *
 
-EXAMPLE_NAME = "example_sandag_1_zone"
-CONFIGS_DIRS = ("configs_1_zone", "example_mtc/configs")
+EXAMPLE_NAME = "placeholder_sandag_1_zone"
+CONFIGS_DIRS = ("configs_1_zone", "prototype_mtc/configs")
 DYNAMIC_CONFIG_DIR = "bench_configs"
 DATA_DIR = "data_1"
 OUTPUT_DIR = "output_1"

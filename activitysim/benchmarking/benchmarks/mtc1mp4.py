@@ -1,13 +1,14 @@
-from activitysim.benchmarking.componentwise import (
-    template_setup_cache,
-    template_component_timings_mp,
-)
-
 import multiprocessing
+
 import numpy as np
 
+from activitysim.benchmarking.componentwise import (
+    template_component_timings_mp,
+    template_setup_cache,
+)
+
 PRETTY_NAME = "MTC1_MP4"
-EXAMPLE_NAME = "example_mtc_full"
+EXAMPLE_NAME = "prototype_mtc_full"
 NUM_PROCESSORS = int(np.clip(multiprocessing.cpu_count() - 2, 2, 4))
 CONFIGS_DIRS = ("configs_mp", "configs")
 DYNAMIC_CONFIG_DIR = "bench_configs_mp"

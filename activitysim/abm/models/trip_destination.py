@@ -1,42 +1,35 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import range
-
 import logging
+from builtins import range
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import chunk
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import los
-from activitysim.core import assign
-from activitysim.core import expressions
-
-from activitysim.core.tracing import print_elapsed_time
-
-from activitysim.core.util import reindex
-from activitysim.core.util import assign_in_place
-
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
-
+from activitysim.abm.models.util.trip import (
+    cleanup_failed_trips,
+    flag_failed_trip_leg_mates,
+)
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-
-from activitysim.core.skim_dictionary import DataFrameMatrix
-
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core import (
+    assign,
+    chunk,
+    config,
+    expressions,
+    inject,
+    los,
+    pipeline,
+    simulate,
+    tracing,
+)
 from activitysim.core.interaction_sample import interaction_sample
+from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.core.pathbuilder import TransitVirtualPathBuilder
+from activitysim.core.skim_dictionary import DataFrameMatrix
+from activitysim.core.tracing import print_elapsed_time
+from activitysim.core.util import assign_in_place, reindex
 
 from .util import estimation
-from .util.school_escort_tours_trips import split_out_school_escorting_trips
-
-from activitysim.abm.models.util.trip import cleanup_failed_trips
-from activitysim.abm.models.util.trip import flag_failed_trip_leg_mates
-
 
 logger = logging.getLogger(__name__)
 

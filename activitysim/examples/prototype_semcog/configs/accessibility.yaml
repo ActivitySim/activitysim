@@ -1,0 +1,13 @@
+
+# columns from land_use table to add to df
+land_use_columns: ['e05_retail', 'tot_emp']
+
+CONSTANTS:
+  # dispersion parameters
+  dispersion_parameter_automobile: -0.05
+  dispersion_parameter_transit: -0.05
+  dispersion_parameter_walk: -1.00
+  # maximum walk distance in miles
+  maximum_walk_distance: 3.0
+  # perceived minute of in-vehicle time for every minute of out-of-vehicle time
+  out_of_vehicle_time_weight: 2.0

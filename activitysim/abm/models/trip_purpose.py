@@ -6,15 +6,18 @@ from operator import index
 import numpy as np
 import pandas as pd
 
-from activitysim.core import logit
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import chunk
-from activitysim.core import pipeline
-from activitysim.core import expressions
-from activitysim.core import simulate
-from activitysim.core.util import reindex
+from activitysim.core import (
+    chunk,
+    config,
+    expressions,
+    inject,
+    logit,
+    pipeline,
+    simulate,
+    tracing,
+    reindex,
+)
+
 from .util import estimation
 from .util.school_escort_tours_trips import split_out_school_escorting_trips
 

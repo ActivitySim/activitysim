@@ -4,13 +4,10 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import pipeline
+from activitysim.core import config, expressions, inject, pipeline, simulate
 from activitysim.core import timetable as tt
-from activitysim.core import simulate
-from activitysim.core import expressions
+from activitysim.core import tracing
+from activitysim.core.util import assign_in_place
 
 from .util import estimation
 from .util.tour_scheduling import run_tour_scheduling

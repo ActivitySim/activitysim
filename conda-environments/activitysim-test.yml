@@ -20,6 +20,6 @@ dependencies:
 - pytest
 - pytest-cov
 - coveralls
-- pycodestyle
+- black
 - pytest-regressions
 - simwrapper > 1.7

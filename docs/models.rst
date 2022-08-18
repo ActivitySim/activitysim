@@ -118,12 +118,12 @@ the coefficient adjustment at each iteration is:
 ``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
 
 The main interface to the work from home model is the 
-:py:func:`~activitysim.examples.example_semcog.extensions.work_from_home` function.  This 
+:py:func:`~activitysim.examples.prototype_semcog.extensions.work_from_home` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``work_from_home`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.work_from_home
+.. automodule:: activitysim.examples.prototype_semcog.extensions.work_from_home
    :members:
 
 .. _school_location:
@@ -248,12 +248,12 @@ person :ref:`transit_pass_ownership` model and the tour and trip mode choice mod
 via fare discount adjustments.
 
 The main interface to the transit pass subsidy model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_subsidy` function.  This
+:py:func:`~activitysim.examples.prototype_semcog.extensions.transit_pass_subsidy` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``transit_pass_subsidy`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_subsidy
+.. automodule:: activitysim.examples.prototype_semcog.extensions.transit_pass_subsidy
    :members:
 
 .. _transit_pass_ownership:
@@ -268,12 +268,12 @@ result of this model can be used to condition downstream models such as the tour
 mode choice models via fare discount adjustments.
 
 The main interface to the transit pass ownership model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.transit_pass_ownership` function.  This
+:py:func:`~activitysim.examples.prototype_semcog.extensions.transit_pass_ownership` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.transit_pass_ownership
+.. automodule:: activitysim.examples.prototype_semcog.extensions.transit_pass_ownership
    :members:
 
 .. _auto_ownership:
@@ -335,7 +335,7 @@ The *vehicle_type_choice.yaml* file contains the following model specific option
   different scenario years.
 * Optional additional settings that work the same in other models are constants, expression preprocessor, and annotate tables.
 
-Input vehicle type data included in :ref:`example_mtc_extended` came from a variety of sources. The number of vehicle makes, models, MPG, and
+Input vehicle type data included in :ref:`prototype_mtc_extended` came from a variety of sources. The number of vehicle makes, models, MPG, and
 electric vehicle range was sourced from the Enivornmental Protection Agency (EPA).  Additional data on vehicle costs were derived from the
 National Household Travel Survey. Auto operating costs in the vehicle type data file were a sum of fuel costs and maintenance costs.
 Fuel costs were calculated from MPG assuming a $3.00 cost for a gallon of gas. When MPG was not available to calculate fuel costs,
@@ -347,12 +347,12 @@ Maintenance costs were not varied by vehicle year. (According to
 `data from the U.S. Bureau of Labor Statistics <https://www.bls.gov/opub/btn/volume-3/pdf/americans-aging-autos.pdf>`_,
 there was no consistent relationship between vehicle age and maintenance costs.)
 
-Using the above methodology, the average auto operating costs of vehicles output from :ref:`example_mtc_extended` was 18.4 cents.
-This value is very close to the auto operating cost of 18.3 cents used in :ref:`example_mtc`.
-Non-household vehicles in example_mtc_extended use the auto operating cost of 18.3 cents used in example_mtc.
+Using the above methodology, the average auto operating costs of vehicles output from :ref:`prototype_mtc_extended` was 18.4 cents.
+This value is very close to the auto operating cost of 18.3 cents used in :ref:`prototype_mtc`.
+Non-household vehicles in prototype_mtc_extended use the auto operating cost of 18.3 cents used in prototype_mtc.
 Users are encouraged to make their own assumptions and calculate auto operating costs as they see fit.
 
-The distribution of fuel type probabilities included in :ref:`example_mtc_extended` are computed directly from the National Household Travel Survey data
+The distribution of fuel type probabilities included in :ref:`prototype_mtc_extended` are computed directly from the National Household Travel Survey data
 and include the entire US. Therefore, there is "lumpiness" in probabilities due to poor statistics in the data for some vehicle types.
 The user is encouraged to adjust the probabilities to their modeling region and "smooth" them for more consistent results.
 
@@ -375,12 +375,12 @@ level of telecommuting. The model alternatives are the frequency of telecommutin
 days per week (0 days, 1 day, 2 to 3 days, 4+ days).
 
 The main interface to the work from home model is the
-:py:func:`~activitysim.examples.example_semcog.extensions.telecommute_frequency` function.  This
+:py:func:`~activitysim.examples.prototype_semcog.extensions.telecommute_frequency` function.  This
 function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``telecommute_frequency`` | Skims Keys: NA
 
-.. automodule:: activitysim.examples.example_semcog.extensions.telecommute_frequency
+.. automodule:: activitysim.examples.prototype_semcog.extensions.telecommute_frequency
    :members:
 
 .. _freeparking:
@@ -471,7 +471,7 @@ from previously scheduled tours. This model uses person :ref:`time_windows`.
 
 
 .. note::
-   For ``example_mtc``, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
+   For ``prototype_mtc``, the modeled time periods for all submodels are hourly from 3 am to 3 am the next day, and any times before 5 am are shifted to time period 5, and any times after 11 pm are shifted to time period 23.
 
 
 If ``tour_departure_and_duration_segments.csv`` is included in the configs, then the model
@@ -701,11 +701,11 @@ A vehicle is selected for each occupancy level set by the user such that differe
 characteristics. The output of the vehicle allocation model is appended to the tour table with column names ``vehicle_occup_{occupancy}`` and the values are
 the vehicle type selected.
 
-In :ref:`example_mtc_extended`, three occupancy levels are used: 1, 2, and 3.5.  The auto operating cost
+In :ref:`prototype_mtc_extended`, three occupancy levels are used: 1, 2, and 3.5.  The auto operating cost
 for occupancy level 1 is used in the drive alone mode and drive to transit modes. Occupancy levels 2 and 3.5 are used for shared
 ride 2 and shared ride 3+ auto operating costs, respectively.  Auto operating costs are selected in the mode choice pre-processors by selecting the allocated
 vehicle type data from the vehicles table. If the allocated vehicle type was the non-household vehicle, the auto operating costs uses
-the previous default value from :ref:`example_mtc`. All trips and atwork subtours use the auto operating cost of the parent tour.  Functionality
+the previous default value from :ref:`prototype_mtc`. All trips and atwork subtours use the auto operating cost of the parent tour.  Functionality
 was added in tour and atwork subtour mode choice to annotate the tour table and create a ``selected_vehicle`` which denotes the actual vehicle used.
 If the tour mode does not include a vehicle, then the ``selected_vehicle`` entry is left blank.
 

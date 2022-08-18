@@ -23,7 +23,7 @@ dependencies:
 - pytest
 - pytest-cov
 - coveralls
-- pycodestyle
+- black
 - pytest-regressions
 - xarray
 - sharrow

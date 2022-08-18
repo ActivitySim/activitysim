@@ -1,0 +1,24 @@
+Description,Target,Expression
+,_P_OVERLAPS,person_time_window_overlap(persons)
+,time_window_overlap_adult,"reindex(_P_OVERLAPS.aa, participants.person_id)/2.25"
+,time_window_overlap_child,"reindex(_P_OVERLAPS.cc, participants.person_id)/2.25"
+,time_window_overlap_adult_child,"reindex(_P_OVERLAPS.ac, participants.person_id)/2.25"
+logTimeWindowOverlapAdult,log_time_window_overlap_adult,np.log1p(time_window_overlap_adult)
+logTimeWindowOverlapChild,log_time_window_overlap_child,np.log1p(time_window_overlap_child)
+logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time_window_overlap_adult_child)
+#,,
+,person_is_full,participants.ptype == PTYPE_FULL
+,person_is_part,participants.ptype == PTYPE_PART
+,person_is_univ,participants.ptype == PTYPE_UNIVERSITY
+,person_is_nonwork,participants.ptype == PTYPE_NONWORK
+,person_is_driving,participants.ptype == PTYPE_DRIVING
+,person_is_school,participants.ptype == PTYPE_SCHOOL
+,person_is_preschool,participants.ptype == PTYPE_PRESCHOOL
+,tour_type_is_eat,participants.tour_type=='eat'
+,tour_type_is_disc,participants.tour_type=='disc'
+,tour_composition_is_adults,participants.composition=='adults'
+,tour_composition_is_children,participants.composition=='children'
+,tour_composition_is_mixed,participants.composition=='mixed'
+,home_is_suburban,~(participants.home_is_urban | participants.home_is_rural)
+,high_income,participants.income_in_thousands > 60
+,more_cars_than_workers,participants.auto_ownership > participants.num_workers

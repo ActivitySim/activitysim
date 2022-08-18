@@ -1,0 +1,277 @@
+# read trips table post preprocessor and run expressions to code
+# additional data fields, with one data fields for each matrix specified below
+
+preprocessor:
+  SPEC: write_trip_matrices_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+
+# divide trip counts by household expansion factor
+HH_EXPANSION_WEIGHT_COL: sample_rate  # added when households read in
+
+# save preprocessed trips table to pipeline if desired
+SAVE_TRIPS_TABLE: False
+
+MATRICES:
+  - file_name: trips_ea.omx
+    tables:
+      - name: DRIVEALONEFREE_EA
+        data_field: DRIVEALONEFREE_EA
+      - name: DRIVEALONEPAY_EA
+        data_field: DRIVEALONEPAY_EA
+      - name: SHARED2FREE_EA
+        data_field: SHARED2FREE_EA
+      - name: SHARED2PAY_EA
+        data_field: SHARED2PAY_EA
+      - name: SHARED3FREE_EA
+        data_field: SHARED3FREE_EA
+      - name: SHARED3PAY_EA
+        data_field: SHARED3PAY_EA
+      - name: WALK_EA
+        data_field: WALK_EA
+      - name: BIKE_EA
+        data_field: BIKE_EA
+      - name: WALK_LOC_WALK_EA
+        data_field: WALK_LOC_WALK_EA
+      - name: WALK_LRF_WALK_EA
+        data_field: WALK_LRF_WALK_EA
+      - name: WALK_EXP_WALK_EA
+        data_field: WALK_EXP_WALK_EA
+      - name: WALK_HVY_WALK_EA
+        data_field: WALK_HVY_WALK_EA
+      - name: WALK_COM_WALK_EA
+        data_field: WALK_COM_WALK_EA
+      - name: DRIVE_LOC_WALK_EA
+        data_field: DRIVE_LOC_WALK_EA
+      - name: DRIVE_LRF_WALK_EA
+        data_field: DRIVE_LRF_WALK_EA
+      - name: DRIVE_EXP_WALK_EA
+        data_field: DRIVE_EXP_WALK_EA
+      - name: DRIVE_HVY_WALK_EA
+        data_field: DRIVE_HVY_WALK_EA
+      - name: DRIVE_COM_WALK_EA
+        data_field: DRIVE_COM_WALK_EA
+      - name: WALK_LOC_DRIVE_EA
+        data_field: WALK_LOC_DRIVE_EA
+      - name: WALK_LRF_DRIVE_EA
+        data_field: WALK_LRF_DRIVE_EA
+      - name: WALK_EXP_DRIVE_EA
+        data_field: WALK_EXP_DRIVE_EA
+      - name: WALK_DRIVE_HVY_EA
+        data_field: WALK_DRIVE_HVY_EA
+      - name: WALK_COM_DRIVE_EA
+        data_field: WALK_COM_DRIVE_EA
+  - file_name: trips_am.omx
+    tables:
+      - name: DRIVEALONEFREE_AM
+        data_field: DRIVEALONEFREE_AM
+      - name: DRIVEALONEPAY_AM
+        data_field: DRIVEALONEPAY_AM
+      - name: SHARED2FREE_AM
+        data_field: SHARED2FREE_AM
+      - name: SHARED2PAY_AM
+        data_field: SHARED2PAY_AM
+      - name: SHARED3FREE_AM
+        data_field: SHARED3FREE_AM
+      - name: SHARED3PAY_AM
+        data_field: SHARED3PAY_AM
+      - name: WALK_AM
+        data_field: WALK_AM
+      - name: BIKE_AM
+        data_field: BIKE_AM
+      - name: WALK_LOC_WALK_AM
+        data_field: WALK_LOC_WALK_AM
+      - name: WALK_LRF_WALK_AM
+        data_field: WALK_LRF_WALK_AM
+      - name: WALK_EXP_WALK_AM
+        data_field: WALK_EXP_WALK_AM
+      - name: WALK_HVY_WALK_AM
+        data_field: WALK_HVY_WALK_AM
+      - name: WALK_COM_WALK_AM
+        data_field: WALK_COM_WALK_AM
+      - name: DRIVE_LOC_WALK_AM
+        data_field: DRIVE_LOC_WALK_AM
+      - name: DRIVE_LRF_WALK_AM
+        data_field: DRIVE_LRF_WALK_AM
+      - name: DRIVE_EXP_WALK_AM
+        data_field: DRIVE_EXP_WALK_AM
+      - name: DRIVE_HVY_WALK_AM
+        data_field: DRIVE_HVY_WALK_AM
+      - name: DRIVE_COM_WALK_AM
+        data_field: DRIVE_COM_WALK_AM
+      - name: WALK_LOC_DRIVE_AM
+        data_field: WALK_LOC_DRIVE_AM
+      - name: WALK_LRF_DRIVE_AM
+        data_field: WALK_LRF_DRIVE_AM
+      - name: WALK_EXP_DRIVE_AM
+        data_field: WALK_EXP_DRIVE_AM
+      - name: WALK_DRIVE_HVY_AM
+        data_field: WALK_DRIVE_HVY_AM
+      - name: WALK_COM_DRIVE_AM
+        data_field: WALK_COM_DRIVE_AM
+  - file_name: trips_md.omx
+    tables:
+      - name: DRIVEALONEFREE_MD
+        data_field: DRIVEALONEFREE_MD
+      - name: DRIVEALONEPAY_MD
+        data_field: DRIVEALONEPAY_MD
+      - name: SHARED2FREE_MD
+        data_field: SHARED2FREE_MD
+      - name: SHARED2PAY_MD
+        data_field: SHARED2PAY_MD
+      - name: SHARED3FREE_MD
+        data_field: SHARED3FREE_MD
+      - name: SHARED3PAY_MD
+        data_field: SHARED3PAY_MD
+      - name: WALK_MD
+        data_field: WALK_MD
+      - name: BIKE_MD
+        data_field: BIKE_MD
+      - name: WALK_LOC_WALK_MD
+        data_field: WALK_LOC_WALK_MD
+      - name: WALK_LRF_WALK_MD
+        data_field: WALK_LRF_WALK_MD
+      - name: WALK_EXP_WALK_MD
+        data_field: WALK_EXP_WALK_MD
+      - name: WALK_HVY_WALK_MD
+        data_field: WALK_HVY_WALK_MD
+      - name: WALK_COM_WALK_MD
+        data_field: WALK_COM_WALK_MD
+      - name: DRIVE_LOC_WALK_MD
+        data_field: DRIVE_LOC_WALK_MD
+      - name: DRIVE_LRF_WALK_MD
+        data_field: DRIVE_LRF_WALK_MD
+      - name: DRIVE_EXP_WALK_MD
+        data_field: DRIVE_EXP_WALK_MD
+      - name: DRIVE_HVY_WALK_MD
+        data_field: DRIVE_HVY_WALK_MD
+      - name: DRIVE_COM_WALK_MD
+        data_field: DRIVE_COM_WALK_MD
+      - name: WALK_LOC_DRIVE_MD
+        data_field: WALK_LOC_DRIVE_MD
+      - name: WALK_LRF_DRIVE_MD
+        data_field: WALK_LRF_DRIVE_MD
+      - name: WALK_EXP_DRIVE_MD
+        data_field: WALK_EXP_DRIVE_MD
+      - name: WALK_DRIVE_HVY_MD
+        data_field: WALK_DRIVE_HVY_MD
+      - name: WALK_COM_DRIVE_MD
+        data_field: WALK_COM_DRIVE_MD
+  - file_name: trips_pm.omx
+    tables:
+      - name: DRIVEALONEFREE_PM
+        data_field: DRIVEALONEFREE_PM
+      - name: DRIVEALONEPAY_PM
+        data_field: DRIVEALONEPAY_PM
+      - name: SHARED2FREE_PM
+        data_field: SHARED2FREE_PM
+      - name: SHARED2PAY_PM
+        data_field: SHARED2PAY_PM
+      - name: SHARED3FREE_PM
+        data_field: SHARED3FREE_PM
+      - name: SHARED3PAY_PM
+        data_field: SHARED3PAY_PM
+      - name: WALK_PM
+        data_field: WALK_PM
+      - name: BIKE_PM
+        data_field: BIKE_PM
+      - name: WALK_LOC_WALK_PM
+        data_field: WALK_LOC_WALK_PM
+      - name: WALK_LRF_WALK_PM
+        data_field: WALK_LRF_WALK_PM
+      - name: WALK_EXP_WALK_PM
+        data_field: WALK_EXP_WALK_PM
+      - name: WALK_HVY_WALK_PM
+        data_field: WALK_HVY_WALK_PM
+      - name: WALK_COM_WALK_PM
+        data_field: WALK_COM_WALK_PM
+      - name: DRIVE_LOC_WALK_PM
+        data_field: DRIVE_LOC_WALK_PM
+      - name: DRIVE_LRF_WALK_PM
+        data_field: DRIVE_LRF_WALK_PM
+      - name: DRIVE_EXP_WALK_PM
+        data_field: DRIVE_EXP_WALK_PM
+      - name: DRIVE_HVY_WALK_PM
+        data_field: DRIVE_HVY_WALK_PM
+      - name: DRIVE_COM_WALK_PM
+        data_field: DRIVE_COM_WALK_PM
+      - name: WALK_LOC_DRIVE_PM
+        data_field: WALK_LOC_DRIVE_PM
+      - name: WALK_LRF_DRIVE_PM
+        data_field: WALK_LRF_DRIVE_PM
+      - name: WALK_EXP_DRIVE_PM
+        data_field: WALK_EXP_DRIVE_PM
+      - name: WALK_DRIVE_HVY_PM
+        data_field: WALK_DRIVE_HVY_PM
+      - name: WALK_COM_DRIVE_PM
+        data_field: WALK_COM_DRIVE_PM
+  - file_name: trips_ev.omx
+    tables:
+      - name: DRIVEALONEFREE_EV
+        data_field: DRIVEALONEFREE_EV
+      - name: DRIVEALONEPAY_EV
+        data_field: DRIVEALONEPAY_EV
+      - name: SHARED2FREE_EV
+        data_field: SHARED2FREE_EV
+      - name: SHARED2PAY_EV
+        data_field: SHARED2PAY_EV
+      - name: SHARED3FREE_EV
+        data_field: SHARED3FREE_EV
+      - name: SHARED3PAY_EV
+        data_field: SHARED3PAY_EV
+      - name: WALK_EV
+        data_field: WALK_EV
+      - name: BIKE_EV
+        data_field: BIKE_EV
+      - name: WALK_LOC_WALK_EV
+        data_field: WALK_LOC_WALK_EV
+      - name: WALK_LRF_WALK_EV
+        data_field: WALK_LRF_WALK_EV
+      - name: WALK_EXP_WALK_EV
+        data_field: WALK_EXP_WALK_EV
+      - name: WALK_HVY_WALK_EV
+        data_field: WALK_HVY_WALK_EV
+      - name: WALK_COM_WALK_EV
+        data_field: WALK_COM_WALK_EV
+      - name: DRIVE_LOC_WALK_EV
+        data_field: DRIVE_LOC_WALK_EV
+      - name: DRIVE_LRF_WALK_EV
+        data_field: DRIVE_LRF_WALK_EV
+      - name: DRIVE_EXP_WALK_EV
+        data_field: DRIVE_EXP_WALK_EV
+      - name: DRIVE_HVY_WALK_EV
+        data_field: DRIVE_HVY_WALK_EV
+      - name: DRIVE_COM_WALK_EV
+        data_field: DRIVE_COM_WALK_EV
+      - name: WALK_LOC_DRIVE_EV
+        data_field: WALK_LOC_DRIVE_EV
+      - name: WALK_LRF_DRIVE_EV
+        data_field: WALK_LRF_DRIVE_EV
+      - name: WALK_EXP_DRIVE_EV
+        data_field: WALK_EXP_DRIVE_EV
+      - name: WALK_DRIVE_HVY_EV
+        data_field: WALK_DRIVE_HVY_EV
+      - name: WALK_COM_DRIVE_EV
+        data_field: WALK_COM_DRIVE_EV
+
+CONSTANTS:
+  time_periods:
+    EA:
+      first_hour: 3
+      last_hour: 5
+    AM:
+      first_hour: 6
+      last_hour: 9
+    MD:
+      first_hour: 10
+      last_hour: 14
+    PM:
+      first_hour: 15
+      last_hour: 18
+    EV:
+      first_hour: 19
+      last_hour: 2
+  # SHARED2 and SHARED3 Occupancies
+  OCC_SHARED2: 2.0
+  OCC_SHARED3: 3.33

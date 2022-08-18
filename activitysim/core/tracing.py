@@ -1,25 +1,22 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import next
-from builtins import range
-
-import multiprocessing  # for process name
-import os
 import logging
 import logging.config
+import multiprocessing  # for process name
+import os
 import sys
 import time
-import yaml
+from builtins import next, range
 from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
+import yaml
 
 from activitysim.core import inject
 
 from . import config
-
 
 # Configurations
 ASIM_LOGGER = "activitysim"

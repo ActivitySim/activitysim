@@ -104,15 +104,11 @@ def non_mandatory_tour_destination(
 
     non_mandatory_tours["destination"] = choices_df.choice
 
-    non_mandatory_tours.to_csv("tours_before_merge.csv")
-
     # merging back in school escort tours and preserving index
     if pipeline.is_table("school_escort_tours"):
         non_mandatory_tours = pd.concat(
             [pure_school_escort_tours, non_mandatory_tours]
         ).set_index(nm_tour_index)
-
-    non_mandatory_tours.to_csv("tours_after_merge.csv")
 
     assign_in_place(tours, non_mandatory_tours[["destination"]])
 

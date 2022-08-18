@@ -499,7 +499,6 @@ def trip_scheduling(
         new_full_trips_index = full_trips_index[full_trips_index.isin(trips_df.index)]
         trips_df = trips_df.reindex(new_full_trips_index)
 
-    trips_df.to_csv('trip_scheduling_trips.csv')
     assert not trips_df.depart.isnull().any()
 
     pipeline.replace_table("trips", trips_df)

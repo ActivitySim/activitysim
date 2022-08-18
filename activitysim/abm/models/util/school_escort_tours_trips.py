@@ -310,7 +310,6 @@ def add_school_escorting_type_to_tours_table(escort_bundles, tours):
                 & (escort_bundles.escort_type == escort_type)
             ]
             # Setting for child school tours
-            # FIXME need to get number of children from model spec
             for child_num in range(1, NUM_ESCORTEES + 1):
                 i = str(child_num)
                 filter = school_tour & tours["person_id"].isin(
@@ -359,15 +358,20 @@ def process_tours_after_escorting_model(escort_bundles, tours):
         )  # last end
         tours.loc[ends.index, "end"] = ends
 
+    bad_end_times = (tours['start'] > tours['end'])
+    tours.loc[bad_end_times, 'end'] = tours.loc[bad_end_times, 'start']
+
     # updating tdd to match start and end times
     tdd_alts = inject.get_injectable("tdd_alts")
     tdd_alts["tdd"] = tdd_alts.index
     tours.drop(columns='tdd', inplace=True)
 
-    tours["tdd"] = pd.merge(tours.reset_index(), tdd_alts, how='left', on=["start", "end"]).set_index('tour_id')["tdd"].astype(int)
+    tours["tdd"] = pd.merge(tours.reset_index(), tdd_alts, how='left', on=["start", "end"]).set_index('tour_id')["tdd"]
     # since this is an injectable, we want to leave it how we found it
     # not removing tdd created here will caues problems downstream
     tdd_alts.drop(columns="tdd", inplace=True)
+
+    assert all(~tours.tdd.isna()), f"Tours have missing tdd values: {tours[tours.tdd.isna()][['tour_type', 'start', 'end', 'tdd']]}"
 
     return tours
 

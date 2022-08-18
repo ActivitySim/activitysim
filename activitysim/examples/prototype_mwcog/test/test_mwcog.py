@@ -17,7 +17,7 @@ def teardown_function(func):
 
 def test_mwcog():
     def example_path(dirname):
-        resource = os.path.join("examples", "placeholder_mwcog", dirname)
+        resource = os.path.join("examples", "prototype_mwcog", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
 
     def test_path(dirname):

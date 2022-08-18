@@ -15,10 +15,10 @@ from activitysim.core import (
     pipeline,
     simulate,
     tracing,
-    reindex,
 )
 
 from .util import estimation
+from activitysim.core.util import reindex
 from .util.school_escort_tours_trips import split_out_school_escorting_trips
 
 logger = logging.getLogger(__name__)

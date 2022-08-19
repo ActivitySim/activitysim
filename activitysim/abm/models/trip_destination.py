@@ -29,6 +29,7 @@ from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
 
+from .util.school_escort_tours_trips import split_out_school_escorting_trips
 from .util import estimation
 
 logger = logging.getLogger(__name__)

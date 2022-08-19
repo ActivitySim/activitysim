@@ -32,16 +32,21 @@ def determine_escorting_paricipants(choosers, persons, model_settings):
     """
     Determining which persons correspond to chauffer 1..n and escortee 1..n.
     Chauffers are those with the highest weight given by:
-     weight = 100 * person type +  10*gender + 1*(age > 25)
+    weight = 100 * person type +  10 * gender + 1*(age > 25)
     and escortees are selected youngest to oldest.
+
     """
 
     NUM_ESCORTEES = model_settings["NUM_ESCORTEES"]
     NUM_CHAPERONES = model_settings["NUM_CHAPERONES"]
 
+    ptype_col = model_settings.get("PERSONTYPE_COLUMN", "ptype")
+    sex_col = model_settings.get("GENDER_COLUMN", "sex")
+    age_col = model_settings.get("AGE_COLUMN", "age")
+
     # is this cut correct?
     escortees = persons[
-        persons.is_student & (persons.age < 16) & (persons.cdap_activity == "M")
+        persons.is_student & (persons[age_col] < 16) & (persons.cdap_activity == "M")
     ]
     households_with_escortees = escortees["household_id"]
 
@@ -51,13 +56,13 @@ def determine_escorting_paricipants(choosers, persons, model_settings):
 
     # can we move all of these to a config file?
     chaperones = persons[
-        (persons.age > 18) & persons.household_id.isin(households_with_escortees)
+        (persons[age_col] > 18) & persons.household_id.isin(households_with_escortees)
     ]
 
     chaperones["chaperone_weight"] = (
-        (persontype_weight * chaperones["ptype"])
-        + (gender_weight * np.where(chaperones["sex"] == 1, 1, 0))
-        + (age_weight * np.where(chaperones["age"] > 25, 1, 0))
+        (persontype_weight * chaperones[ptype_col])
+        + (gender_weight * np.where(chaperones[sex_col] == 1, 1, 2))
+        + (age_weight * np.where(chaperones[age_col] > 25, 1, 0))
     )
 
     chaperones["chaperone_num"] = (
@@ -115,6 +120,9 @@ def add_prev_choices_to_choosers(choosers, choices, alts, stage):
 
 
 def create_bundle_attributes(row):
+    """
+    Parse a bundle to determine escortee numbers and tour info.
+    """
     escortee_str = ""
     escortee_num_str = ""
     school_dests_str = ""
@@ -160,6 +168,25 @@ def create_bundle_attributes(row):
 
 
 def create_school_escorting_bundles_table(choosers, tours, stage):
+    """
+    Creates a table that has one row for every school escorting bundle.
+    Additional calculations are performed to help facilitate tour and
+    trip creation including escortee order, times, etc.
+
+    Parameters
+    ----------
+    choosers : pd.DataFrame
+        households pre-processed for the school escorting model
+    tours : pd.Dataframe
+        mandatory tours
+    stage : str
+        inbound or outbound_cond
+
+    Returns
+    -------
+    bundles : pd.DataFrame
+        one school escorting bundle per row
+    """
     # making a table of bundles
     choosers = choosers.reset_index()
     choosers = choosers.loc[choosers.index.repeat(choosers["nbundles"])]
@@ -228,8 +255,11 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
         bundles["chauf_type_num"].isin([1, 3]), "ride_share", "pure_escort"
     )
 
-    # FIXME this is just pulled from the pre-processor... would break if removed or renamed in pre-processor
-    school_time_cols = ["time_home_to_school" + str(i) for i in range(1, 4)]
+    # This is just pulled from the pre-processor. Will break if removed or renamed in pre-processor
+    # I think this is still a better implmentation than re-calculating here...
+    school_time_cols = [
+        "time_home_to_school" + str(i) for i in range(1, NUM_ESCORTEES + 1)
+    ]
     bundles["outbound_order"] = list(bundles[school_time_cols].values.argsort() + 1)
     bundles["inbound_order"] = list(
         (-1 * bundles[school_time_cols]).values.argsort() + 1
@@ -267,7 +297,6 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
 
     bundles["Alt"] = choosers["Alt"]
     bundles["Description"] = choosers["Description"]
-    # bundles.set_index('bundle_id', inplace=True)
 
     return bundles
 
@@ -277,10 +306,27 @@ def school_escorting(
     households, households_merged, persons, tours, chunk_size, trace_hh_id
 ):
     """
+    school escorting model
+
     The school escorting model determines whether children are dropped-off at or
     picked-up from school, simultaneously with the driver responsible for
     chauffeuring the children, which children are bundled together on half-tours,
     and the type of tour (pure escort versus rideshare).
+
+    Run iteratively for an outbound choice, an inbound choice, and an outbound choice
+    conditional on the inbound choice. The choices for inbound and outbound conditional
+    are used to create school escort tours and trips.
+
+    Updates / adds the following tables to the pipeline:
+
+    ::
+
+        - households with school escorting choice
+        - tours including pure school escorting
+        - school_escort_tours which contains only pure school escort tours
+        - school_escort_trips
+        - timetable to avoid joint tours scheduled over school escort tours
+
     """
     trace_label = "school_escorting_simulate"
     model_settings_file_name = "school_escorting.yaml"
@@ -301,10 +347,7 @@ def school_escorting(
     locals_dict = {}
     locals_dict.update(constants)
 
-    warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
-
     school_escorting_stages = ["outbound", "inbound", "outbound_cond"]
-    # school_escorting_stages = ['outbound', 'inbound']
     escort_bundles = []
     for stage_num, stage in enumerate(school_escorting_stages):
         stage_trace_label = trace_label + "_" + stage
@@ -379,7 +422,7 @@ def school_escorting(
         escorting_choice = "school_escorting_" + stage
         households[escorting_choice] = choices
 
-        # should this tracing be done for every step? - I think so...
+        # tracing each step -- outbound, inbound, outbound_cond
         tracing.print_summary(
             escorting_choice, households[escorting_choice], value_counts=True
         )
@@ -433,7 +476,7 @@ def school_escorting(
     pipeline.replace_table("tours", tours)
     pipeline.get_rn_generator().drop_channel("tours")
     pipeline.get_rn_generator().add_channel("tours", tours)
-    pipeline.replace_table("escort_bundles", escort_bundles)
+    # pipeline.replace_table("escort_bundles", escort_bundles)
     # save school escorting tours and trips in pipeline so we can overwrite results from downstream models
     pipeline.replace_table("school_escort_tours", school_escort_tours)
     pipeline.replace_table("school_escort_trips", school_escort_trips)

@@ -1101,6 +1101,7 @@ in this example are:
 * :ref:`vehicle_type_choice`: Selects a vehicle type for each household vehicle. Runs after auto_ownership.
 * :ref:`vehicle_allocation`: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
   auto operating costs are modified to reflect the allocated vehicle option.
+* :ref:`school_escorting`: Explicitly models school drop-off / pick-up of students to and from school.
 
 
 .. _example_estimation :

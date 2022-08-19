@@ -333,7 +333,7 @@ def canonical_tours():
     # ---- school escort channels
     # only include if model is run
     if pipeline.is_table("school_escort_tours") | (
-        "school_escorting" in config.setting("models")
+        "school_escorting" in config.setting("models", default=[])
     ):
         se_model_settings_file_name = "school_escorting.yaml"
         se_model_settings = config.read_model_settings(se_model_settings_file_name)

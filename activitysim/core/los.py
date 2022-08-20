@@ -9,6 +9,7 @@ import pandas as pd
 
 from activitysim.core import skim_dataset  # noqa: F401
 from activitysim.core import config, inject, pathbuilder, skim_dictionary, tracing, util
+from activitysim.core.cleaning import recode_based_on_table
 from activitysim.core.skim_dict_factory import MemMapSkimFactory, NumpyArraySkimFactory
 from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
 
@@ -272,6 +273,14 @@ class Network_LOS(object):
                 by="MAZ"
             )  # only fields we need
 
+            # recode MAZs if needed
+            self.maz_taz_df["MAZ"] = recode_based_on_table(
+                self.maz_taz_df["MAZ"], "land_use"
+            )
+            self.maz_taz_df["TAZ"] = recode_based_on_table(
+                self.maz_taz_df["TAZ"], "land_use_taz"
+            )
+
             self.maz_ceiling = self.maz_taz_df.MAZ.max() + 1
 
             # maz_to_maz_df
@@ -320,6 +329,9 @@ class Network_LOS(object):
 
                 file_name = maz_to_tap_settings["table"]
                 df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+
+                # recode MAZs if needed
+                df["MAZ"] = recode_based_on_table(df["MAZ"], "land_use")
 
                 # trim tap set
                 # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
@@ -832,7 +844,11 @@ class Network_LOS(object):
         if self.zone_system == ONE_ZONE:
             tazs = inject.get_table("land_use").index.values
         else:
-            tazs = self.maz_taz_df.TAZ.unique()
+            land_use_taz = inject.get_table("land_use_taz").to_frame()
+            if "_original_TAZ" in land_use_taz:
+                tazs = land_use_taz["_original_TAZ"].values
+            else:
+                tazs = self.maz_taz_df.TAZ.unique()
         assert isinstance(tazs, np.ndarray)
         return tazs
 

@@ -96,6 +96,7 @@ steps:
       groups: reporting
       success: report-save
       failure: report-save
+  swallow: False
 
 ################################################################################
 run-compile:
@@ -114,7 +115,7 @@ run-compile:
         households_sample_size: '{compile_n_households}'
         cache_dir: cache_sharrow
         trace_hh_id: '{trace_hh_id}'
-        trace_od:
+        trace_od: '{trace_od}'
         instrument: '{instrument}'
         disable_zarr: '{disable_zarr}'
         multiprocess: False
@@ -141,8 +142,8 @@ run-sharrow:
         sharrow: require
         cache_dir: cache_sharrow
         households_sample_size: '{main_n_households}'
-        trace_hh_id:
-        trace_od:
+        trace_hh_id: '{trace_hh_id}'
+        trace_od: '{trace_od}'
         instrument: '{instrument}'
         memory_profile: '{memory_profile}'
         chunk_size: '{chunk_size}'

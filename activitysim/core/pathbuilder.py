@@ -920,17 +920,6 @@ class TransitVirtualPathBuilder(object):
         del transit_df
         chunk.log_df(trace_label, "transit_df", None)
 
-        # re-idx path_df to account for MAZ renumbering
-        land_use = inject.get_table("land_use").to_frame()
-        land_use_index = land_use.index
-        if f"_original_{land_use_index.name}" in land_use:
-            land_use_zone_ids = land_use[f"_original_{land_use_index.name}"]
-            # TODO use offsets here instead of maps when possible
-            remapper = dict(zip(land_use_zone_ids, land_use_zone_ids.index))
-            path_df["idx"] = path_df["omaz"].map(remapper.get) * len(
-                land_use
-            ) + path_df["dmaz"].map(remapper.get)
-
         if units == "utility":
 
             # logsums
@@ -1307,15 +1296,6 @@ class TransitVirtualPathLogsumWrapper(object):
         dest = self.df[self.dest_key].astype("int")
         tod = self.df[self.tod_key]
         segment = self.df[self.segment_key]
-
-        # TVPB uses original zone id's, so if remapping has been applied we need
-        # to undo that here.
-        land_use = inject.get_table("land_use")
-        if "_original_zone_id" in land_use.columns:
-            orig = land_use["_original_zone_id"].iloc[orig]
-            orig.index = self.df.index
-            dest = land_use["_original_zone_id"].iloc[dest]
-            dest.index = self.df.index
 
         logsum_df = self.tvpb.get_tvpb_logsum(
             path_type,

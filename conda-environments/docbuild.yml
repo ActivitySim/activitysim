@@ -28,6 +28,7 @@ dependencies:
 - myst-parser
 - sphinx-argparse
 - pydantic
+- larch
 
 - pip:
   - autodoc_pydantic

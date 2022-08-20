@@ -603,6 +603,7 @@ def _interaction_simulate(
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
     sharrow_enabled = config.setting("sharrow", False)
+    interaction_utilities = None
 
     if (
         sharrow_enabled
@@ -643,7 +644,11 @@ def _interaction_simulate(
     else:
         interaction_utilities_sh = trace_eval_results_sh = None
 
-    if not sharrow_enabled or (sharrow_enabled == "test"):
+    if (
+        not sharrow_enabled
+        or (sharrow_enabled == "test")
+        or interaction_utilities is None
+    ):
 
         interaction_df = logit.interaction_dataset(
             choosers,

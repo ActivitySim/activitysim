@@ -156,7 +156,12 @@ def _od_sample(
         )
         sample_size = 0
 
-    locals_d = {"skims": skims}
+    locals_d = {
+        "skims": skims,
+        "timeframe": "timeless",
+        "orig_col_name": ORIG_TAZ,
+        "dest_col_name": DEST_TAZ,
+    }
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
@@ -191,6 +196,7 @@ def _od_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer="taz",
     )
 
     return choices
@@ -993,6 +999,9 @@ def run_od_simulate(
 
     locals_d = {
         "skims": skims,
+        "timeframe": "timeless",
+        "orig_col_name": origin_col_name,
+        "dest_col_name": dest_col_name,
     }
     if constants is not None:
         locals_d.update(constants)

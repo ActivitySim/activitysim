@@ -3,7 +3,6 @@ import shlex
 from pypyr.errors import KeyNotInContextError
 
 from ...standalone.utils import chdir
-from .cmd import run_step as _run_cmd
 from .progression import reset_progress_step
 from .wrapping import workstep
 
@@ -26,6 +25,7 @@ def run_activitysim(
     config_dirs=("configs",),
     data_dir="data",
     output_dir="output",
+    ext_dirs=None,
     resume_after=None,
     fast=True,
     settings_file=None,
@@ -38,6 +38,12 @@ def run_activitysim(
         config_dirs = [config_dirs]
     else:
         config_dirs = list(config_dirs)
+    if isinstance(ext_dirs, str):
+        ext_dirs = [ext_dirs]
+    elif ext_dirs is None:
+        ext_dirs = []
+    else:
+        ext_dirs = list(ext_dirs)
     flags = []
     if resume_after:
         flags.append(f" -r {resume_after}")
@@ -47,7 +53,8 @@ def run_activitysim(
         flags.append(f" -s {settings_file}")
     flags = " ".join(flags)
     cfgs = " ".join(f"-c {c}" for c in pre_config_dirs + config_dirs)
-    args = f"run {cfgs} -d {data_dir} -o {output_dir} {flags}"
+    exts = " ".join(f"-e {e}" for e in ext_dirs)
+    args = f"run {cfgs} {exts} -d {data_dir} -o {output_dir} {flags}"
     if label is None:
         label = f"activitysim {args}"
 

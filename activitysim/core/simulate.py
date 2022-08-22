@@ -1623,52 +1623,48 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
 
     # Preprocess TVPB logsums outside sharrow
     if "tvpb_logsum_odt" in locals_d:
-        PRELOAD_tvpb_logsum_odt_WTW = locals_d["tvpb_logsum_odt"]["WTW"]
-        PRELOAD_tvpb_logsum_odt_DTW = locals_d["tvpb_logsum_odt"]["DTW"]
-        re_spec = spec_sh.index
-        re_spec = _replace_in_level(
-            re_spec,
-            "Expression",
-            r"tvpb_logsum_odt\['WTW'\]",
-            "df.PRELOAD_tvpb_logsum_odt_WTW",
-            regex=True,
-        )
-        re_spec = _replace_in_level(
-            re_spec,
-            "Expression",
-            r"tvpb_logsum_odt\['DTW'\]",
-            "df.PRELOAD_tvpb_logsum_odt_DTW",
-            regex=True,
-        )
-        spec_sh.index = re_spec
-        choosers = choosers.assign(
-            PRELOAD_tvpb_logsum_odt_WTW=PRELOAD_tvpb_logsum_odt_WTW,
-            PRELOAD_tvpb_logsum_odt_DTW=PRELOAD_tvpb_logsum_odt_DTW,
-        )
+        tvpb = locals_d["tvpb_logsum_odt"]
+        path_types = tvpb.tvpb.network_los.setting(
+            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
+        ).keys()
+        assignments = {}
+        for path_type in ["WTW", "DTW"]:
+            if path_type not in path_types:
+                continue
+            preloaded = locals_d["tvpb_logsum_odt"][path_type]
+            re_spec = spec_sh.index
+            re_spec = _replace_in_level(
+                re_spec,
+                "Expression",
+                rf"tvpb_logsum_odt\['{path_type}'\]",
+                f"df.PRELOAD_tvpb_logsum_odt_{path_type}",
+                regex=True,
+            )
+            spec_sh.index = re_spec
+            assignments[f"PRELOAD_tvpb_logsum_odt_{path_type}"] = preloaded
+        choosers = choosers.assign(**assignments)
 
     if "tvpb_logsum_dot" in locals_d:
-        PRELOAD_tvpb_logsum_dot_WTW = locals_d["tvpb_logsum_dot"]["WTW"]
-        PRELOAD_tvpb_logsum_dot_WTD = locals_d["tvpb_logsum_dot"]["WTD"]
-        re_spec = spec_sh.index
-        re_spec = _replace_in_level(
-            re_spec,
-            "Expression",
-            r"tvpb_logsum_dot\['WTW'\]",
-            "df.PRELOAD_tvpb_logsum_dot_WTW",
-            regex=True,
-        )
-        re_spec = _replace_in_level(
-            re_spec,
-            "Expression",
-            r"tvpb_logsum_dot\['WTD'\]",
-            "df.PRELOAD_tvpb_logsum_dot_WTD",
-            regex=True,
-        )
-        spec_sh.index = re_spec
-        choosers = choosers.assign(
-            PRELOAD_tvpb_logsum_dot_WTW=PRELOAD_tvpb_logsum_dot_WTW,
-            PRELOAD_tvpb_logsum_dot_WTD=PRELOAD_tvpb_logsum_dot_WTD,
-        )
+        tvpb = locals_d["tvpb_logsum_dot"]
+        path_types = tvpb.tvpb.network_los.setting(
+            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
+        ).keys()
+        assignments = {}
+        for path_type in ["WTW", "WTD"]:
+            if path_type not in path_types:
+                continue
+            preloaded = locals_d["tvpb_logsum_dot"][path_type]
+            re_spec = spec_sh.index
+            re_spec = _replace_in_level(
+                re_spec,
+                "Expression",
+                rf"tvpb_logsum_dot\['{path_type}'\]",
+                f"df.PRELOAD_tvpb_logsum_dot_{path_type}",
+                regex=True,
+            )
+            spec_sh.index = re_spec
+            assignments[f"PRELOAD_tvpb_logsum_dot_{path_type}"] = preloaded
+        choosers = choosers.assign(**assignments)
 
     return choosers, spec_sh
 

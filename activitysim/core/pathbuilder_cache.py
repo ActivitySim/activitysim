@@ -97,7 +97,20 @@ class TVPBCache(object):
         """
         if os.path.isfile(self.cache_path):
             logger.debug(f"deleting cache {self.cache_path}")
-            os.unlink(self.cache_path)
+            try:
+                os.unlink(self.cache_path)
+            except PermissionError:
+                # windows may complain if the cache was not completely closed
+                # in an earlier run, so let's just cache in a new file
+                n = 0
+                while True:
+                    n += 1
+                    candidate = os.path.join(
+                        config.get_cache_dir(), f"{self.cache_tag}.{n}.mmap"
+                    )
+                    if not os.path.isfile(candidate):
+                        self.cache_tag = f"{self.cache_tag}.{n}"
+                        break
 
     def write_static_cache(self, data):
 

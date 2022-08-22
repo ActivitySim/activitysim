@@ -33,6 +33,7 @@ steps:
       main_n_households: 100000
       config_dirs: configs
       data_dir: data
+      ext_dirs:
       instrument: False
       memory_profile: False
       trace_hh_id:
@@ -55,6 +56,24 @@ steps:
       import os
       os.makedirs(f"{workspace}", exist_ok=True)
 
+- name: activitysim.workflows.steps.py
+  in:
+    label: Detect if debugging
+    py: |
+      def is_debug():
+          import sys
+          gettrace = getattr(sys, 'gettrace', None)
+          if gettrace is None:
+              return False
+          else:
+              v = gettrace()
+              if v is None:
+                  return False
+              else:
+                  return True
+      should_swallow_errors = not is_debug()
+      save('should_swallow_errors')
+
 - activitysim.workflows.steps.contrast.contrast_setup
 
 - name: activitysim.workflows.steps.create
@@ -68,25 +87,25 @@ steps:
   run: '{compile}'
   in:
     call: run-compile
-  swallow: True
+  swallow: False
 
 - name: pypyr.steps.call
   run: '{sharrow}'
   in:
     call: run-sharrow
-  swallow: True
+  swallow: '{should_swallow_errors}'
 
 - name: pypyr.steps.call
   run: '{legacy}'
   in:
     call: run-legacy
-  swallow: True
+  swallow: '{should_swallow_errors}'
 
 - name: pypyr.steps.call
   run: '{reference}'
   in:
     call: run-reference
-  swallow: True
+  swallow: '{should_swallow_errors}'
 
 - activitysim.workflows.steps.contrast.composite_log
 

@@ -71,6 +71,15 @@ def add_run_args(parser, multiprocess=True):
         "Can make single process runs faster, "
         "but will cause thrashing on MP runs.",
     )
+    parser.add_argument(
+        "-e",
+        "--ext",
+        type=str,
+        action="append",
+        metavar="PATH",
+        help="Package of extension modules to load. Use of this option is not "
+        "generally secure.",
+    )
 
     if multiprocess:
         parser.add_argument(
@@ -117,6 +126,19 @@ def handle_standard_args(args, multiprocess=True):
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
+
+    if args.ext:
+        import importlib
+
+        for e in args.ext:
+            basepath, extpath = os.path.split(e)
+            if basepath:
+                sys.path.insert(0, basepath)
+            try:
+                importlib.import_module(e)
+            finally:
+                if basepath:
+                    del sys.path[0]
 
     # settings_file_name should be cached or else it gets squashed by config.py
     if args.settings_file:
@@ -190,9 +212,8 @@ def run(args):
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+        # register abm steps and other abm-specific injectables
+        from activitysim import abm  # noqa: F401
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
@@ -338,7 +359,7 @@ def run(args):
 
 if __name__ == "__main__":
 
-    from activitysim import abm  # register injectables
+    from activitysim import abm  # register injectables  # noqa: F401
 
     parser = argparse.ArgumentParser()
     add_run_args(parser)

@@ -17,7 +17,7 @@ steps:
       example_name: placeholder_sandag_3_zone
       workspace: workspace
       create: True
-      compile: False
+      compile: True
       sharrow: True
       legacy: True
       reference: False

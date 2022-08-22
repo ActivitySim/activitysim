@@ -32,7 +32,7 @@ def test_mwcog():
         # compare_cols = []
         pdt.assert_frame_equal(final_trips_df, regress_trips_df)
 
-    file_path = os.path.join(os.path.dirname(__file__), "..\simulation.py")
+    file_path = os.path.join(os.path.dirname(__file__), ".." + os.sep + "simulation.py")
 
     subprocess.run(
         [

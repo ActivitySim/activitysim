@@ -19,26 +19,26 @@ jobs:
     - env: TEST_SUITE=activitysim/core
 
     - stage: Examples
-      name: "MWCOG Example"
+      name: "Prototype MTC"
+      env: TEST_SUITE=activitysim/examples/prototype_mtc/test
+    - name: "Prototype MTC (Extended)"
+      env: TEST_SUITE=activitysim/examples/prototype_mtc_extended/test
+    - name: "Multizone Example"
+      env: TEST_SUITE=activitysim/examples/placeholder_multiple_zone/test
+    - name: "Marin Example"
+      env: TEST_SUITE=activitysim/examples/prototype_marin/test
+    - name: "ARC Example"
+      env: TEST_SUITE=activitysim/examples/prototype_arc/test
+    - name: "SEMCOG Example"
+      env: TEST_SUITE=activitysim/examples/prototype_semcog/test
+    - name: "PSRC Example"
+      env: TEST_SUITE=activitysim/examples/placeholder_psrc/test
+    - name: "SANDAG Example"
+      env: TEST_SUITE=activitysim/examples/placeholder_sandag/test
+    - name: "SANDAG Cross-Border Example"
+      env: TEST_SUITE=activitysim/examples/prototype_sandag_xborder/test
+    - name: "MWCOG Example"
       env: TEST_SUITE=activitysim/examples/prototype_mwcog/test
-    #- name: "Prototype MTC"
-    #  env: TEST_SUITE=activitysim/examples/prototype_mtc/test
-    #- name: "Prototype MTC (Extended)"
-    #  env: TEST_SUITE=activitysim/examples/prototype_mtc_extended/test
-    #- name: "Multizone Example"
-    #  env: TEST_SUITE=activitysim/examples/placeholder_multiple_zone/test
-    #- name: "Marin Example"
-    #  env: TEST_SUITE=activitysim/examples/prototype_marin/test
-    #- name: "ARC Example"
-    #  env: TEST_SUITE=activitysim/examples/prototype_arc/test
-    #- name: "SEMCOG Example"
-    #  env: TEST_SUITE=activitysim/examples/prototype_semcog/test
-    #- name: "PSRC Example"
-    #  env: TEST_SUITE=activitysim/examples/placeholder_psrc/test
-    #- name: "SANDAG Example"
-    #  env: TEST_SUITE=activitysim/examples/placeholder_sandag/test
-    #- name: "SANDAG Cross-Border Example"
-    #  env: TEST_SUITE=activitysim/examples/prototype_sandag_xborder/test
     
 
     - stage: Estimation Mode

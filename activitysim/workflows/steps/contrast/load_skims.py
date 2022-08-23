@@ -26,10 +26,13 @@ def load_skims_per_settings(
     skim_settings = settings["taz_skims"]
     if isinstance(skim_settings, str):
         skims_omx_fileglob = skim_settings
+        skims_filenames = glob.glob(os.path.join(data_dir, skims_omx_fileglob))
+    elif isinstance(skim_settings, list):
+        skims_filenames = [os.path.join(data_dir, i) for i in skim_settings]
     else:
         skims_omx_fileglob = skim_settings.get("omx", None)
         skims_omx_fileglob = skim_settings.get("files", skims_omx_fileglob)
-    skims_filenames = glob.glob(os.path.join(data_dir, skims_omx_fileglob))
+        skims_filenames = glob.glob(os.path.join(data_dir, skims_omx_fileglob))
     index_names = ("otaz", "dtaz", "time_period")
     indexes = None
     time_period_breaks = settings.get("skim_time_periods", {}).get("periods")

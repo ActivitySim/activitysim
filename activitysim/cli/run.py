@@ -132,13 +132,16 @@ def handle_standard_args(args, multiprocess=True):
 
         for e in args.ext:
             basepath, extpath = os.path.split(e)
-            if basepath:
-                sys.path.insert(0, basepath)
+            if not basepath:
+                basepath = "."
+            sys.path.insert(0, basepath)
             try:
                 importlib.import_module(e)
+            except ImportError as err:
+                logger.exception("ImportError")
+                raise
             finally:
-                if basepath:
-                    del sys.path[0]
+                del sys.path[0]
 
     # settings_file_name should be cached or else it gets squashed by config.py
     if args.settings_file:

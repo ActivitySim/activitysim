@@ -1,17 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import gc as _gc
 import itertools
 import logging
 import multiprocessing
 import os
-import time
 from builtins import range
 from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
-import psutil
 
 from activitysim.core import config, inject, simulate, util
 
@@ -30,37 +27,38 @@ MEMO_STACK = []
 
 @contextmanager
 def memo(tag, console=False, disable_gc=True):
-    t0 = time.time()
-
-    MEMO_STACK.append(tag)
-
-    gc_was_enabled = _gc.isenabled()
-    if gc_was_enabled:
-        _gc.collect()
-        if disable_gc:
-            _gc.disable()
-
-    previous_mem = psutil.Process().memory_info().rss
-    try:
-        yield
-    finally:
-        elapsed_time = time.time() - t0
-
-        current_mem = psutil.Process().memory_info().rss
-        marginal_mem = current_mem - previous_mem
-        mem_str = f"net {util.GB(marginal_mem)} ({util.INT(marginal_mem)}) total {util.GB(current_mem)}"
-
-        if gc_was_enabled and disable_gc:
-            _gc.enable()
-        if _gc.isenabled():
-            _gc.collect()
-
-        if console:
-            print(f"MEMO {tag} Time: {util.SEC(elapsed_time)} Memory: {mem_str} ")
-        else:
-            logger.debug(f"MEM  {tag} {mem_str} in {util.SEC(elapsed_time)}")
-
-        MEMO_STACK.pop()
+    yield  # make this a noop for performance
+    # t0 = time.time()
+    #
+    # MEMO_STACK.append(tag)
+    #
+    # gc_was_enabled = _gc.isenabled()
+    # if gc_was_enabled:
+    #     _gc.collect()
+    #     if disable_gc:
+    #         _gc.disable()
+    #
+    # previous_mem = psutil.Process().memory_info().rss
+    # try:
+    #     yield
+    # finally:
+    #     elapsed_time = time.time() - t0
+    #
+    #     current_mem = psutil.Process().memory_info().rss
+    #     marginal_mem = current_mem - previous_mem
+    #     mem_str = f"net {util.GB(marginal_mem)} ({util.INT(marginal_mem)}) total {util.GB(current_mem)}"
+    #
+    #     if gc_was_enabled and disable_gc:
+    #         _gc.enable()
+    #     if _gc.isenabled():
+    #         _gc.collect()
+    #
+    #     if console:
+    #         print(f"MEMO {tag} Time: {util.SEC(elapsed_time)} Memory: {mem_str} ")
+    #     else:
+    #         logger.debug(f"MEM  {tag} {mem_str} in {util.SEC(elapsed_time)}")
+    #
+    #     MEMO_STACK.pop()
 
 
 class TVPBCache(object):

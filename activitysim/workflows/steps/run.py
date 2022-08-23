@@ -53,8 +53,8 @@ def run_activitysim(
         flags.append(f" -s {settings_file}")
     flags = " ".join(flags)
     cfgs = " ".join(f"-c {c}" for c in pre_config_dirs + config_dirs)
-    exts = " ".join(f"-e {e}" for e in ext_dirs)
-    args = f"run {cfgs} {exts} -d {data_dir} -o {output_dir} {flags}"
+    exts = "".join(f" -e {e}" for e in ext_dirs)
+    args = f"run {cfgs}{exts} -d {data_dir} -o {output_dir} {flags}"
     if label is None:
         label = f"activitysim {args}"
 

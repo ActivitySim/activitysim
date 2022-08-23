@@ -43,6 +43,7 @@ steps:
       machine_name:
       disable_zarr: False
       settings_file: settings.yaml
+      report_skip: []
 
 - name: activitysim.workflows.steps.title
   in:
@@ -416,11 +417,13 @@ reporting:
       workplace_zone_agg:
 
 - name: activitysim.workflows.steps.reporting.section_title
+  skip: !py "'work location' in report_skip"
   run: '{workplace_zone_agg}'
   in:
     title: Workplace Location
 
 - name: activitysim.workflows.steps.contrast.district_to_district
+  skip: !py "'work location' in report_skip"
   run: '{workplace_zone_agg}'
   in:
     tablename: persons
@@ -455,6 +458,7 @@ reporting:
     on: household_id
 
 - name: activitysim.workflows.steps.contrast.trip_distance
+  skip: !py "'work location' in report_skip"
   in:
     caption: Workplace Distance by Income
     caption_level: 3
@@ -464,6 +468,7 @@ reporting:
     grouping: income_tertile
 
 - name: activitysim.workflows.steps.contrast.trip_distance
+  skip: !py "'school location' in report_skip"
   in:
     caption: School Distance by Income
     caption_level: 3
@@ -475,10 +480,12 @@ reporting:
 #### Auto Ownership ####
 
 - name: activitysim.workflows.steps.reporting.section_title
+  skip: !py "'auto ownership' in report_skip"
   in:
     title: Auto Ownership
 
 - name: activitysim.workflows.steps.contrast.transform_data
+  skip: !py "'auto ownership' in report_skip"
   in:
     tablename: households
     column: hhsize
@@ -487,6 +494,7 @@ reporting:
       upper: 5
 
 - name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'auto ownership' in report_skip"
   in:
     caption: Household Auto Ownership Counts by Household Size
     caption_level: 3
@@ -504,6 +512,7 @@ reporting:
     axis_label: "# of Households"
 
 - name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'auto ownership' in report_skip"
   in:
     caption: Household Auto Ownership Shares by Household Size
     caption_level: 3
@@ -522,10 +531,12 @@ reporting:
 #### CDAP ####
 
 - name: activitysim.workflows.steps.reporting.section_title
+  skip: !py "'cdap' in report_skip"
   in:
     title: Coordinated Daily Activity Pattern
 
 - name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'cdap' in report_skip"
   in:
     caption: Coordinated Daily Activity Pattern by Person Type
     caption_level: 3
@@ -554,6 +565,7 @@ reporting:
     axis_label: Tour Mode Share
 
 - name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'tour mode by composition' in report_skip"
   in:
     caption: Tour Mode Choice by Composition
     caption_level: 3

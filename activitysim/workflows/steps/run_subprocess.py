@@ -1,16 +1,11 @@
 import logging
 import os
-import shlex
 import subprocess
-import sys
 from tempfile import TemporaryFile
 from time import sleep
 
 from pypyr.errors import KeyNotInContextError
 
-from ...standalone.utils import chdir
-from .cmd import run_step as _run_cmd
-from .cmd.dsl import stream_process
 from .progression import reset_progress_step
 from .wrapping import workstep
 
@@ -59,6 +54,7 @@ def run_activitysim_as_subprocess(
     config_dirs=("configs",),
     data_dir="data",
     output_dir="output",
+    ext_dirs=None,
     settings_file=None,
     resume_after=None,
     fast=True,
@@ -74,6 +70,12 @@ def run_activitysim_as_subprocess(
         config_dirs = [config_dirs]
     else:
         config_dirs = list(config_dirs)
+    if isinstance(ext_dirs, str):
+        ext_dirs = [ext_dirs]
+    elif ext_dirs is None:
+        ext_dirs = []
+    else:
+        ext_dirs = list(ext_dirs)
     flags = []
     if resume_after:
         flags.append(f" -r {resume_after}")
@@ -83,7 +85,8 @@ def run_activitysim_as_subprocess(
         flags.append(f"-s {settings_file}")
     flags = " ".join(flags)
     cfgs = " ".join(f"-c {c}" for c in pre_config_dirs + config_dirs)
-    args = f"activitysim run {cfgs} -d {data_dir} -o {output_dir} {flags}"
+    exts = "".join(f" -e {e}" for e in ext_dirs)
+    args = f"activitysim run {cfgs}{exts} -d {data_dir} -o {output_dir} {flags}"
     if label is None:
         label = f"{args}"
     else:

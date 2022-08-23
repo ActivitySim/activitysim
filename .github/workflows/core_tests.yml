@@ -81,7 +81,6 @@ jobs:
         run: |
           python -m pytest --pyargs activitysim.cli
 
-
   cross-platform:
     # also test foundation cross platforms, but do not require a successful
     # completion before starting regional model tests
@@ -162,7 +161,6 @@ jobs:
       - name: Test activitysim.cli
         run: |
           python -m pytest --pyargs activitysim.cli
-
 
   regional_models:
     needs: foundation

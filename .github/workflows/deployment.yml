@@ -1,4 +1,4 @@
-name: Build and Upload ActivitySim to PyPI
+name: ActivitySim to PyPI
 
 on:
   release:

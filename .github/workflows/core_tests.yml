@@ -1,4 +1,4 @@
-name: core-tests
+name: Core Testing
 
 on:
   push:
@@ -307,7 +307,7 @@ jobs:
 
   develop-docbuild:
     needs: foundation
-    if: (${{ github.ref_name }} == "develop") or (${{ github.ref_name }} == "infrastructure")
+    if: github.ref_name == 'develop'
     name: develop-docbuild
     runs-on: ubuntu-latest
     defaults:
@@ -334,7 +334,7 @@ jobs:
           auto-update-conda: false
       - name: Install activitysim
         run: |
-          python -m pip install -e .
+          python -m pip install .
       - name: Conda checkup
         run: |
           conda info -a
@@ -352,4 +352,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Token is created automatically by Github Actions, no other config needed
           publish_dir: ./docs/_build/html
-          destination_dir: ${{ github.ref_name }}
+          destination_dir: develop

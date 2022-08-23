@@ -1,4 +1,4 @@
-name: Build and Upload xarray to PyPI
+name: Test to PyPI
 
 on:
   push:

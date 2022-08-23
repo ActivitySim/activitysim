@@ -44,7 +44,7 @@ jobs:
           make clean
           make html
       - name: Push to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3.5.9
+        uses: peaceiris/actions-gh-pages@v3.8.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # Token is created automatically by Github Actions, no other config needed

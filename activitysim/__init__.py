@@ -1,6 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from ._generated_version import version as __version__
 
-__version__ = "1.1.0"
 __doc__ = "Activity-Based Travel Modeling"

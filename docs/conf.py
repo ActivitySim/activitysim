@@ -73,7 +73,7 @@ copyright = "contributing authors"
 # built documents.
 #
 # The short X.Y version.
-version = activitysim.__version__
+version = ".".join(str(i) for i in activitysim.__version_tuple__[:3])
 # The full version, including alpha/beta/rc tags.
 release = activitysim.__version__
 
@@ -125,8 +125,16 @@ html_theme = "pydata_sphinx_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
+GITHUB_REPOSITORY_OWNER = os.environ.get("GITHUB_REPOSITORY_OWNER", "camsys")
 html_theme_options = {
     "footer_items": ["version-date", "sphinx-version"],
+    "switcher": {
+        "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/infrastructure/_static/switcher.json",
+    },
+    "switcher": {
+        "version_match": version,
+    },
+    "navbar_end": ["version-switcher"],
 }
 
 # Add any paths that contain custom themes here, relative to this directory.

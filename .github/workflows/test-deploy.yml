@@ -16,16 +16,18 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - uses: actions/setup-python@v4
         name: Install Python
         with:
           python-version: "3.9"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install build setuptools setuptools-scm wheel twine check-manifest
+      - name: Build tarball and wheels
+        run: |
+          git clean -xdf
+          python -m build --sdist --wheel .
       - name: Check built artifacts
         run: |
           python -m twine check dist/*

@@ -129,7 +129,7 @@ GITHUB_REPOSITORY_OWNER = os.environ.get("GITHUB_REPOSITORY_OWNER", "camsys")
 html_theme_options = {
     "footer_items": ["version-date", "sphinx-version"],
     "switcher": {
-        "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/infrastructure/_static/switcher.json",
+        "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/activitysim/infrastructure/_static/switcher.json",
     },
     "switcher": {
         "version_match": version,

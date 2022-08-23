@@ -1,0 +1,16 @@
+[
+    {
+        "name": "1.1 (Released)",
+        "version": "1.1.1",
+        "url": "https://camsys.github.io/activitysim/infrastructure/index.html"
+    },
+    {
+        "name": "Latest Dev",
+        "version": "1.2.dev",
+        "url": "https://camsys.github.io/activitysim/bleed/index.html"
+    },
+    {
+        "version": "1.0.4",
+        "url": "https://activitysim.github.io/activitysim/index.html"
+    }
+]

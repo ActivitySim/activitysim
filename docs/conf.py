@@ -15,8 +15,6 @@
 import os
 import sys
 
-import sphinx_rtd_theme
-
 # -- Get Package Version --------------------------------------------------
 import activitysim
 
@@ -40,15 +38,25 @@ extensions = [
     "sphinx.ext.mathjax",
     "numpydoc",
     "sphinx.ext.autosummary",
+    "myst_parser",
+    "sphinxarg.ext",
+    "sphinxcontrib.autodoc_pydantic",
 ]
 
 numpydoc_show_class_members = False
+autosummary_generate = True
+autodoc_pydantic_model_signature_prefix = "settings"
+autodoc_pydantic_model_show_json = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
 # The suffix of source filenames.
-source_suffix = ".rst"
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".txt": "markdown",
+    ".md": "markdown",
+}
 
 # The encoding of source files.
 # source_encoding = 'utf-8-sig'
@@ -65,7 +73,7 @@ copyright = "contributing authors"
 # built documents.
 #
 # The short X.Y version.
-version = activitysim.__version__
+version = ".".join(str(i) for i in activitysim.__version_tuple__[:3])
 # The full version, including alpha/beta/rc tags.
 release = activitysim.__version__
 
@@ -112,19 +120,27 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinx_rtd_theme"
+html_theme = "pydata_sphinx_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+GITHUB_REPOSITORY_OWNER = os.environ.get("GITHUB_REPOSITORY_OWNER", "camsys")
+html_theme_options = {
+    "footer_items": ["version-date", "sphinx-version"],
+    "switcher": {
+        "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/activitysim/infrastructure/_static/switcher.json",
+        "version_match": version,
+    },
+    "navbar_end": ["version-switcher"],
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+# html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-# html_title = None
+html_title = f"ActivitySim {release}"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -150,7 +166,7 @@ html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-# html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = "%b %d, %Y"
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
@@ -284,6 +300,6 @@ html_static_path = ["_static"]
 
 html_context = {
     "css_files": [
-        "_static/theme_overrides.css",  # override wide tables in RTD theme
-    ],
+        "_static/theme_overrides.css",
+    ],  # override wide tables in RTD theme
 }

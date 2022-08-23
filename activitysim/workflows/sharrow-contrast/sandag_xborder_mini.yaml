@@ -34,8 +34,14 @@ steps:
       memory_profile: False
       trace_hh_id:
       trace_od:
-      distance_skim: DIST
-      household_income: income
+      distance_skim: SOV_NT_M_DIST
+      household_income:
+      report_skip:
+        - auto ownership
+        - cdap
+        - tour mode by composition
+        - work location
+        - school location
 
 - name: activitysim.workflows.steps.pype
   in:

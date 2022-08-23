@@ -133,8 +133,6 @@ html_theme_options = {
     "footer_items": ["version-date", "sphinx-version"],
     "switcher": {
         "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/activitysim/infrastructure/_static/switcher.json",
-    },
-    "switcher": {
         "version_match": version,
     },
     "navbar_end": ["version-switcher"],

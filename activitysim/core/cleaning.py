@@ -29,7 +29,11 @@ def recode_to_zero_based(values, mapping):
 
 
 def recode_based_on_table(values, tablename):
-    base_df = inject.get_table(tablename).to_frame()
+    try:
+        base_df = inject.get_table(tablename).to_frame()
+    except KeyError:
+        # the basis table is missing, do nothing
+        return values
     if base_df.index.name and f"_original_{base_df.index.name}" in base_df:
         source_ids = base_df[f"_original_{base_df.index.name}"]
         if (

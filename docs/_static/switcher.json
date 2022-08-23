@@ -1,0 +1,12 @@
+[
+    {
+        "name": "v1.1.1 (stable)",
+        "version": "1.1.1",
+        "url": "https://camsys.github.io/infrastructure/index.html"
+    },
+    {
+        "name": "Latest Dev",
+        "version": "1.2.dev",
+        "url": "https://camsys.github.io/bleeding/index.html"
+    }
+]

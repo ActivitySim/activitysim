@@ -1,3 +1,15 @@
+# This file allows running ActivitySim as a Python module from the command line.
+# For example:
+#
+#   python -m activitysim run ...
+#
+# This style of calling ActivitySim permits developers to more easily ensure
+# they are calling the correct version that has been installed with the
+# particular Python executable invoked, especially for debugging.  It also can
+# be configured to invoke differ configurations automatically (like engaging the
+# threadstopper options to prevent multithread thrashing). It is probably not
+# needed by typical users with only one installed version.
+
 import os
 import sys
 

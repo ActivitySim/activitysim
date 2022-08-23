@@ -76,7 +76,7 @@ copyright = "contributing authors"
 # built documents.
 #
 # The short X.Y version.
-version = activitysim.__version__
+version = ".".join(str(i) for i in activitysim.__version_tuple__[:3])
 # The full version, including alpha/beta/rc tags.
 release = activitysim.__version__
 
@@ -128,14 +128,24 @@ html_theme = "pydata_sphinx_theme"
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-# html_theme_options = {}
+GITHUB_REPOSITORY_OWNER = os.environ.get("GITHUB_REPOSITORY_OWNER", "camsys")
+html_theme_options = {
+    "footer_items": ["version-date", "sphinx-version"],
+    "switcher": {
+        "json_url": f"https://{GITHUB_REPOSITORY_OWNER}.github.io/activitysim/infrastructure/_static/switcher.json",
+    },
+    "switcher": {
+        "version_match": version,
+    },
+    "navbar_end": ["version-switcher"],
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-# html_title = None
+html_title = f"ActivitySim {release}"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 # html_short_title = None
@@ -161,7 +171,7 @@ html_theme = "pydata_sphinx_theme"
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
-# html_last_updated_fmt = '%b %d, %Y'
+html_last_updated_fmt = "%b %d, %Y"
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.

@@ -18,4 +18,3 @@ the development and management of the ActivitySim is on the `project site <http:
 
    users-guide/index
    dev-guide/index
-

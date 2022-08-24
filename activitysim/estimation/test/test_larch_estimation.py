@@ -255,7 +255,7 @@ def test_tour_and_subtour_mode_choice(est_data, num_regression, dataframe_regres
 
     m = tour_mode_choice_model()
     s = atwork_subtour_mode_choice_model()
-    m.extend(s)  # join the atwork subtour model to the master group
+    m.extend(s)  # join the atwork subtour model to the main group
     m.load_data()
     m.doctor(repair_ch_av="-")
     loglike_prior = m.loglike()

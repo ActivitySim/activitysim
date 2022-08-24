@@ -68,7 +68,7 @@ jobs:
           github_token: $GH_TOKEN  # Set in the settings page of the repository, as a secure variable
           keep_history: true
           on:
-            branch: master
+            branch: main
     - name: "PyPI Deployment"
       script: skip     # do not want to rerun any tests
       deploy:
@@ -77,7 +77,7 @@ jobs:
           password: "$PYPI_AUTH_TOKEN"  # Set in the settings page of the repository, as a secure variable
           skip_existing: true
           on:
-            branch: [ master ]
+            branch: [ main ]
 
 python:
   - '3.9'

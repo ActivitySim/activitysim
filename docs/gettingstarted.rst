@@ -189,11 +189,11 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 * Type ``jupyter notebook`` to launch the web-based notebook manager
 * Navigate to the ``examples/prototype_mtc/notebooks`` folder and select a notebook to learn more:
 
-  * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/>`__
-  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/summarizing_results.ipynb/>`__
-  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
-  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/adding_tncs.ipynb/>`__
-  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/memory_usage.ipynb/>`__
+  * `Getting started <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/>`__
+  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/summarizing_results.ipynb/>`__
+  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
+  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/adding_tncs.ipynb/>`__
+  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/memory_usage.ipynb/>`__
 
 Hardware
 --------

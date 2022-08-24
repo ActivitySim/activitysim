@@ -109,9 +109,9 @@ This will run the benchmarks only on the "HEAD" commit of the main activitysim g
 repository.  To run on some other historical commit[s] from the git history, you can
 specify an individual commit or a range, in the same way you would do so for the
 `git log` command. For example, to run benchmarks on the commits to develop since
-it was branched off master, run::
+it was branched off main, run::
 
-    activitysim benchmark run master..develop
+    activitysim benchmark run main..develop
 
 or to run only on the latest commit in develop, run::
 
@@ -209,7 +209,7 @@ Publishing to Github Pages
 Publishing the standard airspeed velocity content to GitHub pages is a built-in
 feature of the command line tool, available to users who have write-access to the
 asim-benchmarks GitHub repository.  Be sure you have all the relevant branches
-tracked locally (especially master and develop) and then run::
+tracked locally (especially main and develop) and then run::
 
     activitysim benchmark gh-pages
 

@@ -58,7 +58,7 @@ The current examples are:
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
-   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
    contains example commands to create and run several versions of the examples.  See also :ref:`adding_agency_examples` for more
    information on agency example models.
 
@@ -800,7 +800,7 @@ The example should run in a few minutes since it runs a small sample of househol
 
 .. note::
 
-  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/master/other_resources/scripts>`__.
+  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/main/other_resources/scripts>`__.
   This script takes many of the same arguments as the ``activitysim run`` command, including paths to
   ``--config``, ``--data``, and ``--output`` directories. The script looks for these folders in the current
   working directory by default.
@@ -1469,7 +1469,7 @@ Example ARC Sub-Model Specification Files
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_semcog :
@@ -1517,7 +1517,7 @@ Example SEMCOG Sub-Model Specification Files
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
@@ -1537,7 +1537,7 @@ prototype_mtc model design.  It uses PSRC zones, land use, synthetic population,
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _placeholder_sandag :
@@ -1556,7 +1556,7 @@ prototype_mtc model design.  It uses SANDAG zones, land use, synthetic populatio
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_sandag_xborder :
@@ -1581,5 +1581,5 @@ model is required to assign tour origins and destinations simultaneously.
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

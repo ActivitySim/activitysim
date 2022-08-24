@@ -31,7 +31,7 @@ def recode_to_zero_based(values, mapping):
 def recode_based_on_table(values, tablename):
     try:
         base_df = inject.get_table(tablename).to_frame()
-    except KeyError:
+    except (KeyError, RuntimeError):
         # the basis table is missing, do nothing
         return values
     if base_df.index.name and f"_original_{base_df.index.name}" in base_df:

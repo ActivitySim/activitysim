@@ -94,14 +94,10 @@ CREATE_TABLES:
             person_num: pnum            # Specifies which person variable to join the tours on
 
 
-
 ### 2 or 3 zone system
 zones:
     - zone_id
     # - county_id
-
-
-
     
     
 # Include any annotations for persons, households, land_use, or tours.
@@ -140,6 +136,14 @@ annotate_proto_tables:
       DF: persons
       TABLES:
         - households
+        
+  # - tablename: persons
+    # annotate: 
+      # SPEC: annotate_proto_persons
+      # DF: persons
+      # TABLES:
+        # - households
+        # - land_use
 
 
 

@@ -1,18 +1,15 @@
-import itertools
 import logging
 import os
-import re
 from pathlib import Path
 from typing import Mapping
 
 import numpy as np
 import pandas as pd
-import yaml
-from larch import DataFrames, Model, P, X
+from larch import DataFrames, Model, P, X  # noqa: F401
 from larch.log import logger_name
 from larch.model.abstract_model import AbstractChoiceModel
 from larch.model.tree import NestingTree
-from larch.util import Dict
+from larch.util import Dict  # noqa: F401
 
 _logger = logging.getLogger(logger_name)
 
@@ -490,7 +487,9 @@ def clean_values(
     return values
 
 
-def update_coefficients(model, data, result_dir=Path("."), output_file=None, relabel_coef=None):
+def update_coefficients(
+    model, data, result_dir=Path("."), output_file=None, relabel_coef=None
+):
     if isinstance(data, pd.DataFrame):
         coefficients = data.copy()
     else:

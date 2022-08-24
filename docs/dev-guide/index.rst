@@ -1,4 +1,6 @@
 
+.. _devguide:
+
 Developers
 ==========
 
@@ -25,4 +27,3 @@ Contents
    ../models
    ../core
    ../benchmarking
-

@@ -24,7 +24,7 @@ jobs:
     name: linux-64-py${{ matrix.python-version }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Mambaforge
         uses: conda-incubator/setup-miniconda@v2
@@ -106,7 +106,7 @@ jobs:
     name: ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Mambaforge
         uses: conda-incubator/setup-miniconda@v2
@@ -189,7 +189,7 @@ jobs:
     name: ${{ matrix.region }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Mambaforge
         uses: conda-incubator/setup-miniconda@v2
@@ -264,7 +264,7 @@ jobs:
     name: estimation_mode_test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Mambaforge
         uses: conda-incubator/setup-miniconda@v2
@@ -316,7 +316,7 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
       - name: Set up Python 3.9

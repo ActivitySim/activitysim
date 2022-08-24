@@ -844,11 +844,16 @@ class Network_LOS(object):
         if self.zone_system == ONE_ZONE:
             tazs = inject.get_table("land_use").index.values
         else:
-            land_use_taz = inject.get_table("land_use_taz").to_frame()
-            if "_original_TAZ" in land_use_taz:
-                tazs = land_use_taz["_original_TAZ"].values
-            else:
+            try:
+                land_use_taz = inject.get_table("land_use_taz").to_frame()
+            except (RuntimeError, KeyError):
+                # land_use_taz is missing, use fallback
                 tazs = self.maz_taz_df.TAZ.unique()
+            else:
+                if "_original_TAZ" in land_use_taz:
+                    tazs = land_use_taz["_original_TAZ"].values
+                else:
+                    tazs = self.maz_taz_df.TAZ.unique()
         assert isinstance(tazs, np.ndarray)
         return tazs
 

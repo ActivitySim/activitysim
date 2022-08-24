@@ -341,6 +341,11 @@ jobs:
           conda list
           echo ${{ github.repository }}
           echo ${{ github.ref_name }}
+      - name: localize version switcher
+        run: |
+          python .github/workflows/localize-base-urls.py docs/_static/switcher.json
+          git update-index --assume-unchanged docs/_static/switcher.json
+          cat docs/_static/switcher.json
       - name: Build the docs
         run: |
           cd docs

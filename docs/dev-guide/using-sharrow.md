@@ -3,6 +3,20 @@
 
 This page will walk through an exercise of running a model with `sharrow`.
 
+## How it Works
+
+Sharrow accelerates ActivitySim in part by using numba to create optimized and
+pre-compiled versions of utility specification files, and caching those bits
+of code to disk.
+
+```{important}
+Running the compiler needs to be done in single-process mode, otherwise the
+various process all do the compiling and compete to write to the same cache
+location on disk, which is likely to fail.  You can safely run in
+multiprocessing mode after all the compilation for all model components is
+complete.
+```
+
 
 ## Getting the Code
 

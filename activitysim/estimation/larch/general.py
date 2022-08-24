@@ -490,13 +490,22 @@ def clean_values(
     return values
 
 
-def update_coefficients(model, data, result_dir=Path("."), output_file=None):
+def update_coefficients(model, data, result_dir=Path("."), output_file=None, relabel_coef=None):
     if isinstance(data, pd.DataFrame):
         coefficients = data.copy()
     else:
         coefficients = data.coefficients.copy()
-    est_names = [j for j in coefficients.index if j in model.pf.index]
-    coefficients.loc[est_names, "value"] = model.pf.loc[est_names, "value"]
+    if relabel_coef is not None and len(relabel_coef):
+        for j in coefficients.index:
+            if j in model.pf.index:
+                coefficients.loc[j, "value"] = model.pf.loc[j, "value"]
+            else:
+                j_ = relabel_coef.get(j, None)
+                if j_ is not None and j_ in model.pf.index:
+                    coefficients.loc[j, "value"] = model.pf.loc[j_, "value"]
+    else:
+        est_names = [j for j in coefficients.index if j in model.pf.index]
+        coefficients.loc[est_names, "value"] = model.pf.loc[est_names, "value"]
     if output_file is not None:
         os.makedirs(result_dir, exist_ok=True)
         coefficients.reset_index().to_csv(

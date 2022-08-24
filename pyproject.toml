@@ -9,6 +9,7 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools_scm]
 fallback_version = "999"
 write_to = "activitysim/_generated_version.py"
+version_scheme = "python-simplified-semver"
 
 [tool.isort]
 profile = "black"

@@ -1,10 +1,12 @@
 name: ActivitySim Branch Docs
+# This workflow is provided as a service for forks to build branch-specific documentation.
 
 on: push
 
 jobs:
   docbuild:
-    if: "contains(github.event.head_commit.message, '[makedocs]') && (github.repository_owner != 'ActivitySim')"
+    if: "contains(github.event.head_commit.message, '[makedocs]') && (github.repository_owner != 'ActivitySim') && (github.ref_name != 'develop')"
+    # develop branch docs are built at the end of the core test workflow, regardless of repository owner or commit message flags
     name: ubuntu-latest py3.9
     runs-on: ubuntu-latest
     defaults:

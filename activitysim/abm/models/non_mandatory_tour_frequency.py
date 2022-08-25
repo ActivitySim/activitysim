@@ -253,7 +253,7 @@ def non_mandatory_tour_frequency(persons, persons_merged,
     no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
     # need to reindex as we only handled persons with cdap_activity in ['M', 'N']
     persons['non_mandatory_tour_frequency'] = \
-        choices.reindex(persons.index).fillna(no_tours_alt).astype(np.int8)
+        choices.reindex(persons.index).fillna(no_tours_alt).astype(np.int16)
 
     """
     We have now generated non-mandatory tour frequencies, but they are attributes of the person table

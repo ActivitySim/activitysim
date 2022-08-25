@@ -59,6 +59,15 @@ def create_chauf_trip_table(row):
         # kids aren't in car until after they are picked up, inserting empty car for first trip
         participants = [""] + participants
 
+    if dropoff & (row["escort_type"] == "ride_share"):
+        # adding trip to work
+        outbound.append(True)
+        school_escort_trip_num.append(i + 2)
+        purposes.append(row["first_mand_tour_purpose"])
+        row["destination"].append(row["first_mand_tour_dest"])
+        # kids have already been dropped off
+        participants = participants + [""]
+
     row["escort_participants"] = participants
     row["school_escort_trip_num"] = school_escort_trip_num
     row["outbound"] = outbound
@@ -439,7 +448,7 @@ def merge_school_escort_trips_into_pipeline():
             ],
         ]
     )
-    # sorting by escorting order as determining when creating the school escort trips
+    # sorting by escorting order as determined when creating the school escort trips
     trips.sort_values(
         by=["household_id", "tour_id", "outbound", "trip_num"],
         ascending=[True, True, False, True],

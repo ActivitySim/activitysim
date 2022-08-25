@@ -1373,6 +1373,13 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
         trips_df = pd.concat([trips_df, se_trips_df])
         trips_df["destination"] = trips_df["destination"].astype(int)
         trips_df = trips_df.reindex(full_trips_index)
+        # Origin is previous destination
+        # (leaving first origin alone as it's already set correctly)
+        trips_df["origin"] = np.where(
+            (trips_df["trip_num"] == 1) & (trips_df["outbound"] == True),
+            trips_df["origin"],
+            trips_df.groupby("tour_id")["destination"].shift(),
+        ).astype(int)
 
     pipeline.replace_table("trips", trips_df)
 

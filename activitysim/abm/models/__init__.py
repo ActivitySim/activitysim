@@ -16,6 +16,7 @@ from . import joint_tour_destination
 from . import joint_tour_frequency
 from . import joint_tour_participation
 from . import joint_tour_scheduling
+from . import joint_tour_frequency_composition
 from . import location_choice
 from . import mandatory_scheduling
 from . import mandatory_tour_frequency

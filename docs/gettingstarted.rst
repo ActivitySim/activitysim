@@ -15,13 +15,21 @@ Installation
 ------------
 
 1. It is recommended that you install and use a *conda* package manager
-for your system. One easy way to do so is by using `Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
+for your system. One easy way to do so is by using
+`Mambaforge <https://github.com/conda-forge/miniforge#mambaforge>`__.
+Mamba is a free open source cross-platform package manager that runs on
+Windows, OS X and Linux and is fully compatible with conda packages.  It is
+also usually substantially faster than conda itself.
+
+Alternatively, if you prefer a package installer backed by corporate tech
+support available (for a fee) as necessary, you can install
+`Anaconda 64bit Python 3 <https://www.anaconda.com/distribution/>`__,
 although you should consult the `terms of service <https://www.anaconda.com/terms-of-service>`__
 for this product and ensure you qualify since businesses and
-governments with over 200 employees do not qualify for free usage.  If you prefer
-a completely free open source *conda* tool, you can download and install the
-appropriate version of `Miniforge <https://github.com/conda-forge/miniforge#miniforge3>`__.  If desired, 
-select 'add miniforge3 to the system PATH environment variable' so typing 'conda' on the command line will work.
+governments with over 200 employees do not qualify for free usage.
+If you're using `conda` instead of `mamba`, just replace every call to
+`mamba` below with `conda`, as they share the same user interface and most
+command formats.
 
 2. If you access the internet from behind a firewall, then you may need to
 configure your proxy server. To do so, create a `.condarc` file in your
@@ -37,7 +45,7 @@ home installation folder, such as:
 3. Create a conda environment (basically a Python install just for this project)
 using conda Prompt (on Windows) or the terminal (macOS or Linux)::
 
-  conda create -n asim python=3.9 activitysim -c conda-forge --override-channels
+  mamba create -n asim python=3.9 activitysim -c conda-forge --override-channels
 
 This command will create the environment and install all the dependencies
 required for running ActivitySim.  It is only necessary to create the environment
@@ -45,35 +53,35 @@ once per machine, you do not need to (re)create the environment for each session
 If you would also like to install other tools or optional dependencies, it is
 possible to do so by adding additional libraries to this command.  For example::
 
-  conda create -n asim python=3.9 activitysim jupyterlab larch -c conda-forge --override-channels
+  mamba create -n asim python=3.9 activitysim jupyterlab larch -c conda-forge --override-channels
 
 This example installs a specific version of Python, version 3.9.  A similar
 approach can be used to install specific versions of other libraries as well,
 including ActivitySim, itself. For example::
 
-  conda create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
+  mamba create -n asim python=3.9 activitysim=1.0.2 -c conda-forge --override-channels
 
 Additional libraries can also be installed later.  You may want to consider these
 tools for certain development tasks::
 
   # packages for testing
-  conda install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge --override-channels -n asim
+  mamba install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge --override-channels -n asim
 
   # packages for building documentation
-  conda install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
+  mamba install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
 
   # packages for estimation integration
-  conda install larch -c conda-forge --override-channels -n asim
+  mamba install larch -c conda-forge --override-channels -n asim
 
   # packages for example notebooks
-  conda install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
+  mamba install jupyterlab matplotlib geopandas descartes -c conda-forge --override-channels -n asim
 
 To create an environment containing all these optional dependencies at once, you
 can run the shortcut command
 
 ::
 
-  conda env create activitysim/ASIM -n asim
+  mamba env create activitysim/ASIM -n asim
 
 4. To use the **asim** environment, you need to activate it
 
@@ -82,7 +90,9 @@ can run the shortcut command
   conda activate asim
 
 The activation of the correct environment needs to be done every time you
-start a new session (e.g. opening a new conda Prompt window).
+start a new session (e.g. opening a new conda Prompt window).  Note that
+the *activate* and *deactivate* commands to start and stop using environments
+are called as `conda` even if you are otherwise using `mamba`.
 
 Alternative Installation Methods
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,7 +103,7 @@ required dependencies installed correctly.  If you can use conda for
 the dependencies, you can get most of the libraries you need from there::
 
   # required packages for running ActivitySim
-  conda install cytoolz numpy pandas psutil pyarrow numba pytables pyyaml openmatrix requests -c conda-forge
+  mamba install cytoolz numpy pandas psutil pyarrow numba pytables pyyaml openmatrix requests -c conda-forge
 
   # required for ActivitySim version 1.0.1 and earlier
   pip install zbox
@@ -102,14 +112,14 @@ And then simply install just activitysim with pip.
 
 ::
 
-  pip install activitysim
+  python -m pip install activitysim
 
 If you are using a firewall you may need to add ``--trusted-host pypi.python.org --proxy=myproxy.org:8080`` to this command.
 
 For development work, can also install ActivitySim directly from source. Clone
 the ActivitySim repository, and then from within that directory run::
 
-  pip install . -e
+  python -m pip install . -e
 
 The "-e" will install in editable mode, so any changes you make to the ActivitySim
 code will also be reflected in your installation.
@@ -118,7 +128,7 @@ Installing from source is easier if you have all the necessary dependencies alre
 installed in a development conda environment.  Developers can create an
 environment that has all the optional dependencies preinstalled by running::
 
-  conda env create activitysim/ASIM-DEV
+  mamba env create activitysim/ASIM-DEV
 
 If you prefer to use a different environment name than `ASIM-DEV`, just
 append `--name OTHERNAME` to the command. Then all that's left to do is install
@@ -179,11 +189,11 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 * Type ``jupyter notebook`` to launch the web-based notebook manager
 * Navigate to the ``examples/prototype_mtc/notebooks`` folder and select a notebook to learn more:
 
-  * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/>`__
-  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/summarizing_results.ipynb/>`__
-  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
-  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/adding_tncs.ipynb/>`__
-  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/memory_usage.ipynb/>`__
+  * `Getting started <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/>`__
+  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/summarizing_results.ipynb/>`__
+  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
+  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/adding_tncs.ipynb/>`__
+  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/prototype_mtc/notebooks/memory_usage.ipynb/>`__
 
 Hardware
 --------

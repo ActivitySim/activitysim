@@ -1,5 +1,8 @@
-===========
-ActivitySim
+.. ActivitySim documentation users guide
+
+.. _userguide:
+
+Users Guide
 ===========
 
 The mission of the ActivitySim project is to create and maintain advanced, open-source,
@@ -13,31 +16,16 @@ the consortium. All member agencies help make decisions about development priori
 and benefit from contributions of other agency partners.  Additional information about
 the development and management of the ActivitySim is on the `project site <http://www.activitysim.org>`__.
 
-.. grid:: 2
 
-    .. grid-item-card::
-
-        :fa:`book` |nbsp| |nbsp| :ref:`User's Guide <userguide>`
-
-        ^^^
-
-        Start here to learn about using ActivitySim, including how to install,
-        the software, and how to configure and run models.
-
-    .. grid-item-card::
-
-        :fa:`terminal` |nbsp| |nbsp| :ref:`Developer's Guide <devguide>`
-
-        ^^^
-
-        Start here to learn about developing ActivitySim, including creating
-        model components, or changing the codebase.
+Contents
+--------
 
 .. toctree::
-   :hidden:
+   :maxdepth: 3
 
-   users-guide/index
-   dev-guide/index
-
-.. |nbsp| unicode:: 0xA0
-   :trim:
+   ../gettingstarted
+   ../examples
+   configuration
+   ../cli
+   ../estimation
+   ../howitworks

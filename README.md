@@ -1,7 +1,7 @@
 ActivitySim
 ===========
 
-[![Build Status](https://travis-ci.com/ActivitySim/activitysim.svg?branch=master)](https://travis-ci.org/github/ActivitySim/activitysim)[![Coverage Status](https://coveralls.io/repos/github/ActivitySim/activitysim/badge.svg?branch=master)](https://coveralls.io/github/ActivitySim/activitysim?branch=master)
+[![Build Status](https://travis-ci.com/ActivitySim/activitysim.svg?branch=main)](https://travis-ci.org/github/ActivitySim/activitysim)[![Coverage Status](https://coveralls.io/repos/github/ActivitySim/activitysim/badge.svg?branch=main)](https://coveralls.io/github/ActivitySim/activitysim?branch=main)
 
 The mission of the ActivitySim project is to create and maintain advanced, open-source, 
 activity-based travel behavior modeling software based on best software development 

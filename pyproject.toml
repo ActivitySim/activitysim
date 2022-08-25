@@ -1,0 +1,34 @@
+[build-system]
+requires = [
+    "setuptools>=42,<64",
+    "wheel",
+    "setuptools_scm[toml]>=7.0",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+fallback_version = "999"
+write_to = "activitysim/_generated_version.py"
+version_scheme = "python-simplified-semver"
+
+[tool.isort]
+profile = "black"
+skip_gitignore = true
+float_to_top = true
+default_section = "THIRDPARTY"
+known_first_party = "activitysim"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-v --nbmake --disable-warnings --ignore=activitysim/estimation/test"
+testpaths = [
+    "activitysim/abm/test",
+    "activitysim/cli/test",
+    "activitysim/core/test",
+    "activitysim/abm/models/util/test",
+]
+filterwarnings = [
+    "ignore::tables.NaturalNameWarning",
+]
+log_cli = true
+tb = "native"

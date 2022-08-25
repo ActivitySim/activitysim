@@ -1,10 +1,9 @@
-# Environment for testing in travis
-# usage: $ conda env create --file=activitysim-test.yml
-name: asimtest
+# Environment for testing in GitHub Actions
+name: asim-test
 channels:
 - conda-forge
 dependencies:
-- python=${TRAVIS_PYTHON_VERSION}
+- pip
 - black
 - coveralls
 - cytoolz >= 0.8.1

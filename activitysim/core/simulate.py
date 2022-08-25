@@ -1212,7 +1212,7 @@ def eval_nl(
     choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
 
     raw_utilities = eval_utilities(
-        spec,
+        spec_sh,
         choosers,
         locals_d,
         log_alt_losers=log_alt_losers,
@@ -1691,7 +1691,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     raw_utilities = eval_utilities(
-        spec,
+        spec_sh,
         choosers,
         locals_d,
         trace_label=trace_label,

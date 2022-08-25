@@ -1315,7 +1315,7 @@ class TransitVirtualPathLogsumWrapper(object):
             assert not orig.index.duplicated().any()
 
             # we only need to cache taps and path_set
-            choices_df = logsum_df[["atap", "btap", "path_set", "logsum"]]
+            choices_df = logsum_df[["atap", "btap", "path_set"]]
 
             if path_type in self.cache:
                 assert (

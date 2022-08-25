@@ -693,6 +693,8 @@
       placeholder_psrc
     - placeholder_sandag/configs_2_zone
     - placeholder_sandag/data_2
+    - placeholder_sandag/data_3/maz_to_maz_bike.csv
+      data_2/maz_to_maz_bike.csv
     - placeholder_sandag/output_2
 
 - name: placeholder_sandag_2_zone_full

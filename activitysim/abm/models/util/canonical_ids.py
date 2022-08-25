@@ -55,9 +55,9 @@ def canonical_tours():
     # - non_mandatory_channels
     MAX_EXTENSION = 2
     non_mandatory_tour_flavors = {'escort': 2 + MAX_EXTENSION,
-                                  'shopping': 1 + MAX_EXTENSION,
-                                  'othmaint': 1 + MAX_EXTENSION,
-                                  'othdiscr': 1 + MAX_EXTENSION,
+                                  'shopping': 2 + MAX_EXTENSION,
+                                  'othmaint': 2 + MAX_EXTENSION,
+                                  'othdiscr': 2 + MAX_EXTENSION,
                                   'eatout': 1 + MAX_EXTENSION,
                                   'social': 1 + MAX_EXTENSION}
     non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)

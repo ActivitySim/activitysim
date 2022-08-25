@@ -179,6 +179,18 @@ class Settings(PydanticBase):
       mode of operation, but useful for development and debugging.
     """
 
+    disable_zarr: bool = False
+    """
+    Disable the use of zarr format skims.
+
+    By default, if sharrow is enabled (any setting other than false), ActivitySim
+    currently loads data from zarr format skims if a zarr location is provided,
+    and data is found there.  If no data is found there, then original OMX skim
+    data is loaded, any transformations or encodings are applied, and then this
+    data is written out to a zarr file at that location.  Setting this option to
+    True will disable the use of zarr.
+    """
+
 
 class ZarrDigitalEncoding(PydanticBase):
     """Digital encoding instructions for skim tables.

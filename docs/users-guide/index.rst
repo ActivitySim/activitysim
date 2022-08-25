@@ -1,5 +1,7 @@
 .. ActivitySim documentation users guide
 
+.. _userguide:
+
 Users Guide
 ===========
 

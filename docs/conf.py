@@ -18,11 +18,6 @@ import sys
 # -- Get Package Version --------------------------------------------------
 import activitysim
 
-# import sphinx_rtd_theme
-
-
-print("package version: " + activitysim.__version__)
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -42,10 +37,12 @@ extensions = [
     "numpydoc",
     "sphinx.ext.autosummary",
     "myst_parser",
+    "sphinx_design",
     "sphinxarg.ext",
     "sphinxcontrib.autodoc_pydantic",
 ]
 
+myst_enable_extensions = ["colon_fence"]
 numpydoc_show_class_members = False
 autosummary_generate = True
 autodoc_pydantic_model_signature_prefix = "settings"
@@ -308,8 +305,6 @@ texinfo_documents = [
 # -- Table width fix for Read the Docs Sphinx theme -----------------------
 html_static_path = ["_static"]
 
-html_context = {
-    "css_files": [
-        "_static/theme_overrides.css",
-    ],  # override wide tables in RTD theme
-}
+html_css_files = [
+    "theme_overrides.css",
+]

@@ -6,7 +6,7 @@ from . import inject
 
 def recode_to_zero_based(values, mapping):
     values = np.asarray(values)
-    zone_ids = pd.Index(mapping, dtype=np.int)
+    zone_ids = pd.Index(mapping, dtype=np.int32)
     if (
         zone_ids.is_monotonic_increasing
         and zone_ids[-1] == len(zone_ids) + zone_ids[0] - 1

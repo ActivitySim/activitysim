@@ -13,7 +13,7 @@ def _as_int(x):
     if x.dtype.kind == "i":
         return x
     else:
-        return x.astype(np.int)
+        return x.astype(np.int32)
 
 
 @workstep(updates_context=True)

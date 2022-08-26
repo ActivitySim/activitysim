@@ -1,0 +1,54 @@
+annotate_tables:
+  - tablename: land_use
+    column_map:
+        MAZ_ORIGINAL: zone_id
+        CountyID: county_id
+        DistID: DISTRICT
+        HH: TOTHH
+        POP: TOTPOP
+        ACRES: TOTACRE
+        emp_total: TOTEMP
+    annotate:
+      SPEC: annotate_landuse
+      DF: land_use
+  - tablename: accessibility
+    column_map:
+        column_1: nonmandatory_auto_accessibility
+        column_2: nonmandatory_transit_accessibility
+        column_3: nonmandatory_nm_accessibility
+        column_4: nonmandatory_sov0_accessibility
+        column_5: nonmandatory_sov1_accessibility
+        column_6: nonmandatory_sov2_accessibility
+        column_7: nonmandatory_hov0_accessibility
+        column_8: nonmandatory_hov1_accessibility
+        column_9: nonmandatory_hov2_accessibility
+        column_10: shop_hov_insufficient_accessibility
+        column_11: shop_hov_sufficient_accessibility
+        column_12: shop_hov_oversufficient_accessibility
+        column_13: maint_hov_insufficient_accessibility
+        column_14: maint_hov_sufficient_accessibility
+        column_15: maint_hov_oversufficient_accessibility
+        column_16: eat_hov_insufficient_accessibility
+        column_17: eat_hov_sufficient_accessibility
+        column_18: eat_hov_oversufficient_accessibility
+        column_19: visit_hov_insufficient_accessibility
+        column_20: visit_hov_sufficient_accessibility
+        column_21: visit_hov_oversufficient_accessibility
+        column_22: discr_hov_insufficient_accessibility
+        column_23: discr_hov_sufficient_accessibility
+        column_24: discr_hov_oversufficient_accessibility
+        column_25: escort_hov_insufficient_accessibility
+        column_26: escort_hov_sufficient_accessibility
+        column_27: escort_hov_oversufficient_accessibility
+        column_28: shop_sov_insufficient_accessibility
+        column_29: shop_sov_sufficient_accessibility
+        column_30: shop_sov_oversufficient_accessibility
+        column_31: maint_sov_insufficient_accessibility
+        column_32: maint_sov_sufficient_accessibility
+        column_33: maint_sov_oversufficient_accessibility
+        column_40: discr_sov_insufficient_accessibility
+        column_41: discr_sov_sufficient_accessibility
+        column_42: discr_sov_oversufficient_accessibility
+        column_45: total_emp_accessibility
+        column_47: hh_walktransit_accessibility
+        mgra : zone_id

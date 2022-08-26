@@ -1,0 +1,18 @@
+Description,Target,Expression
+#,, annotate households table after import
+,_PERSON_COUNT,"lambda query, persons, households: persons.query(query).groupby('household_id').size().reindex(households.index).fillna(0).astype(np.int8)"
+number of non_workers,num_non_workers,households.hhsize - households.num_workers
+number of drivers,num_drivers,"_PERSON_COUNT('16 <= age', persons, households)"
+num_adults,num_adults,"_PERSON_COUNT('adult', persons, households)"
+num_children,num_children,"_PERSON_COUNT('~adult', persons, households)"
+num_young_children,num_young_children,"_PERSON_COUNT('age <= 5', persons, households)"
+num_children_6_to_15,num_children_6_to_15,"_PERSON_COUNT('6 <= age <= 15', persons, households)"
+num_children_16_to_17,num_children_16_to_17,"_PERSON_COUNT('16 <= age <= 17', persons, households)"
+num_college_age,num_college_age,"_PERSON_COUNT('18 <= age <= 24', persons, households)"
+# get definition from travel model two
+num_young_adults,num_young_adults,"_PERSON_COUNT('18 <= age <= 24', persons, households)"
+num_young_retirees,num_young_retirees,"_PERSON_COUNT('65 <= age <= 79', persons, households)"
+num_old_retirees,num_old_retirees,"_PERSON_COUNT('80 <= age', persons, households)"
+num_persons_18_to_35,num_persons_18_to_35,"_PERSON_COUNT('18 <= age <= 35', persons, households)"
+num_persons_65_plus,num_persons_65_plus,"_PERSON_COUNT('65 <= age', persons, households)"
+num_highschool_graduates,num_highschool_graduates,"_PERSON_COUNT('9 <= education_attainment', persons, households)"

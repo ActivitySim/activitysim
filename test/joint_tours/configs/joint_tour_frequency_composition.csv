@@ -1,0 +1,99 @@
+Label,Description,Expression,Coefficient
+,Constant for shopping tour,@df.shopping,0
+,Constant for Maintenance tour,@df.othmaint,-1.477
+,Constant for eating out tour,@df.eatout,0.5796
+,Constant for visiting tour,@df.social,-1.0037
+,Constant for discretionary tour,@df.othdiscr,-1.1195
+,Constant for 2 shopping tour,@df.shopping==2,-13.70946409
+,1 Shopping and 1 Maintenance Tour,@((df.shopping==1) & (df.othmaint==1)),-12.13684801
+,1 Shopping and 1 Eating Out Tour,@((df.shopping==1) & (df.eatout==1)),-12.79892713
+,1 Shopping and 1 Visiting Tour,@((df.shopping==1) & (df.social==1)),-12.22077221
+,1 Shopping and 1 Discretionary Tour,@((df.shopping==1) & (df.othdiscr==1)),-12.57867869
+,Constant for 2 Maintenance tour,@df.othmaint==2,-13.43572169
+,1 Maintenance and 1 Eating Out Tour,@((df.othmaint==1) & (df.eatout==1)),-12.18915033
+,1 Maintenance and 1 Visiting Tour,@((df.othmaint==1) & (df.social==1)),-11.81267905
+,1 Maintenance and 1 Discretionary Tour,@((df.othmaint==1) & (df.othdiscr==1)),-12.28867197
+,Constant for 2 eating out tour,@df.eatout==2,-13.15388273
+,1 Eating Out and 1 Visiting Tour,@((df.eatout==1) & (df.social==1)),-13.15388273
+,1 Eating Out and 1 Discretionary Tour,@((df.eatout==1) & (df.othdiscr==1)),-12.56102569
+,Constant for 2 visiting tour,@df.social==2,-13.15388273
+,1 Visiting and 1 Discretionary Tour,@((df.social==1) & (df.othdiscr==1)),-12.37222202
+,Constant for 2 discretionary tour,othdiscr==2,-13.23532342
+,Number of Active Full time workers /Shopping,num_travel_active_full_time_workers * shopping,0.09864381
+,Number of Active Non-workers /Shopping,num_travel_active_non_workers * shopping,0.393630718
+,Number of Active Pre- Driving Age School Children /Shopping,num_travel_active_pre_driving_age_school_kids * shopping,-0.313021042
+,Number of Active Preschool Children /Shopping,num_travel_active_pre_school_kids * shopping,-1.213950718
+,Number of Active Non-workers /Maintenance,num_travel_active_non_workers * othmaint,0.322738327
+,Number of Active Retirees /Maintenance,num_travel_active_retirees * othmaint,0.298632515
+,Number of Active Driving Age School Children /Maintenance,num_travel_active_driving_age_students * othmaint,0.503901856
+,Number of Active Preschool Children /Maintenance,num_travel_active_pre_school_kids * othmaint,-1.160523204
+,Number of Active Full time workers /Eating Out,num_travel_active_full_time_workers * eatout,-0.305934663
+,Number of Active University Students /Eating Out,num_travel_active_university_students * eatout,-0.65706029
+,Number of Active Retirees /Eating Out,num_travel_active_retirees * eatout,-0.391710731
+,Number of Active Pre- Driving Age School Children /Eating Out,num_travel_active_pre_driving_age_school_kids * eatout,-0.25140082
+,Number of Active Preschool Children /Eating Out,num_travel_active_pre_school_kids * eatout,-1.700731169
+,Number of Active Pre- Driving Age School Children /Visiting,num_travel_active_pre_driving_age_school_kids * social,0.162335324
+,Number of Active Preschool Children /Visiting,num_travel_active_pre_school_kids * social,-0.96955678
+,Number of Active Part time workers /Discretionary,num_travel_active_part_time_workers * othdiscr,0.217898126
+,Number of Active University Students /Discretionary,num_travel_active_university_students * othdiscr,-0.610578234
+,Number of Active Driving Age School Children /Discretionary,num_travel_active_driving_age_students * othdiscr,0.359485499
+,Number of Active Preschool Children /Discretionary,num_travel_active_pre_school_kids * othdiscr,-1.244458661
+,HH has more autos than workers/ Maintenance,(auto_ownership > num_workers) * othmaint,-0.336188392
+,Income > $100k /Maintenance,(income>100000) * othmaint,-0.475730683
+,"Income Less than $29,999 / Eating Out",(income<30000) * eatout,-1.282190776
+,"Income Between $30,000 to $59,999 / Eating Out",((income>=30000) & (income<60000)) * othmaint,-0.275046208
+,"Income Less than $29,999 / Discretionary",(income<30000) * othdiscr,-0.352579013
+,"Income Between $30,000 to $59,999 / Discretionary",((income>=30000) & (income<60000)) * othdiscr,-0.191735343
+,Shopping HOV accessibility for 2 Tours,((autos<num_workers)*shop_hov_insufficient_accessibility+(autos==num_workers)*shop_hov_sufficient_accessibility+(autos>num_workers)*shop_hov_oversufficient_accessibility)*(num_joint_tours==2)*shopping,0.039513822
+,Maintenance HOV Accessibility,((autos<num_workers)*maint_hov_insufficient_accessibility+(autos==num_workers)*maint_hov_sufficient_accessibility+(autos>num_workers)*maint_hov_oversufficient_accessibility)*othmaint,0.128132691
+,Discretionary HOV Accessibility,((autos<num_workers)*discr_hov_insufficient_accessibility+(autos==num_workers)*discr_hov_sufficient_accessibility+(autos>num_workers)*discr_hov_oversufficient_accessibility)*othdiscr,0.089590553
+,Constant for Children Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),-5.374907972
+,Constant for Children Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==2)+(df.purpose2==6)*(df.party2==2),-5.144798184
+,Constant for Children Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==2)+(df.purpose2==7)*(df.party2==2),-4.09806907
+,Constant for Children Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==2)+(df.purpose2==8)*(df.party2==2),-4.09806907
+,Constant for Children Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==2)+(df.purpose2==9)*(df.party2==2),-4.09806907
+,Constant for Mixed Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),0.575879495
+,Constant for Mixed Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==3)+(df.purpose2==6)*(df.party2==3),0.515873866
+,Constant for Mixed Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==3)+(df.purpose2==7)*(df.party2==3),0.168592084
+,Constant for Mixed Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==3)+(df.purpose2==8)*(df.party2==3),0.078060666
+,Constant for Mixed Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==3)+(df.purpose2==9)*(df.party2==3),0.856042068
+,Number of Active Full time workers /Adult Party,num_travel_active_full_time_workers * (party1==1) + num_travel_active_full_time_workers * (party2==1),0.599335502
+,Number of Active Part time workers /Adult Party,num_travel_active_part_time_workers * (party1==1) + num_travel_active_part_time_workers * (party2==1),1.113944272
+,Number of Active University Students /Adult Party,num_travel_active_university_students * (party1==1) + num_travel_active_university_students * (party2==1),0.231138167
+,Number of Active Non-workers /Adult Party,num_travel_active_non_workers * (party1==1) + num_travel_active_non_workers * (party2==1),0.341446999
+,Number of Active Retirees /Adult Party,num_travel_active_retirees * (party1==1) + num_travel_active_retirees * (party2==1),0.657220801
+,Number of Active Driving Age School Children /Children Party,num_travel_active_driving_age_students * (party1==1) + num_travel_active_driving_age_students * (party2==1),0.580109231
+,Number of Active Pre- Driving Age School Children /Children Party,num_travel_active_pre_driving_age_school_kids * (party1==2) + num_travel_active_pre_driving_age_school_kids * (party2==2),0.580109231
+,Number of Active Part time workers /Mixed Party,num_travel_active_part_time_workers * (party1==2) + num_travel_active_part_time_workers * (party2==2),0.522327137
+,Number of Active Driving Age School Children /Mixed Party,num_travel_active_driving_age_students * (party1==3) + num_travel_active_driving_age_students * (party2==3),0.216908669
+,Number of Active Pre- Driving Age School Children /Mixed Party,num_travel_active_pre_driving_age_school_kids * (party1==3) + num_travel_active_pre_driving_age_school_kids * (party2==3),0.31440104
+,Number of Active Preschool Children /Mixed Party,num_travel_active_pre_school_kids * (party1==3) + num_travel_active_pre_school_kids * (party2==3),0.897670235
+,HH has no autos / Mixed Party,@(df.autos==0)*(df.party1==3)+(df.autos==0)*(df.party2==3),-2.920728233
+,HH has less autos than workers/ Mixed Party,@(df.autos<df.num_workers)*(df.party1==3)+(df.autos<df.num_workers)*(df.party2==3),-0.546339245
+,Income more than $100k /Child Party,@(df.income>100000)*(df.party1==2)+(df.income>100000)*(df.party2==2),-1.189112151
+,Income more than $100k /Mixed Party,@(df.income>100000)*(df.party1==3)+(df.income>100000)*(df.party2==3),-0.303217156
+,Log of max window overlaps between adults,@df.log_time_window_overlap_adult*((df.party1==1)+(df.party2==1)),2.96902119
+,Log of max window overlaps between children,@df.log_time_window_overlap_child*((df.party1==2)+(df.party2==2)),4.673601828
+,Log of max window overlaps between adult & child,@df.log_time_window_overlap_adult_child*((df.party1==3)+(df.party2==3)),3.523795377
+,Not more than 1 travel active adult in HH,@(df.num_travel_active_adults < 2)*(((df.party1==1)+(df.party2==1))>0),-999
+,Not more than 1 travel active child in HH,@(df.num_travel_active_children < 2)*(((df.party1==2)+(df.party2==2))>0),-999
+,No travel-active pair adult-child in HH ,@((df.num_travel_active_adults*df.num_travel_active_children) ==0)*(((df.party1==3)+(df.party2==3))>0),-999
+,Adjustment for Children Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),0.407745781
+,Adjustment for Children Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==2)+(df.purpose2==6)*(df.party2==2),0.284925252
+,Adjustment for Children Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==2)+(df.purpose2==7)*(df.party2==2),0
+,Adjustment for Children Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==2)+(df.purpose2==8)*(df.party2==2),0.966264444
+,Adjustment for Children Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==2)+(df.purpose2==9)*(df.party2==2),0.144740532
+,Adjustment for Mixed Party/ Shopping Tour,@(df.purpose1==5)*(df.party1==2)+(df.purpose2==5)*(df.party2==2),0.681178558
+,Adjustment for Mixed Party/ Maintenance Tour,@(df.purpose1==6)*(df.party1==3)+(df.purpose2==6)*(df.party2==3),0.476324741
+,Adjustment for Mixed Party/ Eating Out Tour,@(df.purpose1==7)*(df.party1==3)+(df.purpose2==7)*(df.party2==3),0.827297043
+,Adjustment for Mixed Party/ Visiting Tour,@(df.purpose1==8)*(df.party1==3)+(df.purpose2==8)*(df.party2==3),0.691826384
+,Adjustment for Mixed Party/ Discretionary Tour,@(df.purpose1==9)*(df.party1==3)+(df.purpose2==9)*(df.party2==3),0.697808415
+,Adjustment for shopping tour,shopping,0
+,Adjustment for Maintenance tour,othmaint,0.06575155
+,Adjustment for eating out tour,eatout,0.0643679
+,Adjustment for visiting tour,social,0.00785518
+,Adjustment for discretionary tour,othdiscr,0.076075677
+,Adjustment for share of 2 Joint Tours,num_joint_tours==2,-1.214059893
+,TM2 Adjustment for Children Party,@(df.party1==2)+(df.party2==2),0
+,TM2 Adjustment for Mixed Party,@(df.party1==3)+(df.party2==3),0
+,TM2 adjustment for share of 2 Joint Tours,num_joint_tours==2,-0.5

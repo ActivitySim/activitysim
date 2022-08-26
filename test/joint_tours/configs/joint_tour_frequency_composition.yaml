@@ -1,0 +1,14 @@
+LOGIT_TYPE: MNL
+
+SPEC: joint_tour_frequency_composition.csv
+COEFFICIENTS: joint_tour_frequency_composition_coeffs.csv
+
+preprocessor:
+  SPEC: joint_tour_frequency_composition_annotate_households_preprocessor.csv
+  DF: households
+  TABLES:
+    - persons
+
+ALTS_PREPROCESSOR:
+  SPEC: joint_tour_frequency_composition_annotate_alt_preprocessor.csv
+  DF: alt_tdd

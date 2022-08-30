@@ -1,44 +1,4 @@
-from ez_setup import use_setuptools
+#!/usr/bin/env python
+from setuptools import setup
 
-use_setuptools()  # nopep8
-
-import os
-import re
-
-from setuptools import find_packages, setup
-
-with open(os.path.join("activitysim", "__init__.py")) as f:
-    info = re.search(r"__.*", f.read(), re.S)
-    exec(info[0])
-
-setup(
-    name="activitysim",
-    version=__version__,
-    description=__doc__,
-    author="contributing authors",
-    author_email="ben.stabler@rsginc.com",
-    license="BSD-3",
-    url="https://github.com/activitysim/activitysim",
-    classifiers=[
-        "Development Status :: 5 - Production/Stable",
-        "Programming Language :: Python :: 3.8",
-        "License :: OSI Approved :: BSD License",
-    ],
-    packages=find_packages(exclude=["*.tests"]),
-    include_package_data=True,
-    entry_points={"console_scripts": ["activitysim=activitysim.cli.main:main"]},
-    install_requires=[
-        "pyarrow >= 2.0",
-        "numpy >= 1.16.1,<=1.21",
-        "openmatrix >= 0.3.4.1",
-        "pandas >= 1.1.0",
-        "pyyaml >= 5.1",
-        "tables >= 3.5.1",
-        "cytoolz >= 0.8.1",
-        "psutil >= 4.1",
-        "requests >= 2.7",
-        "numba >= 0.51.2",
-        "orca >= 1.6",
-        "simwrapper > 1.7",
-    ],
-)
+setup(use_scm_version={"fallback_version": "1999"})

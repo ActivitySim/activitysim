@@ -27,10 +27,13 @@ def mtc_example_path(dirname):
 
 
 def build_data():
-    # FIXME this irks travis
-    # subprocess.check_call(['coverage', 'run', example_path('scripts/two_zone_example_data.py')])
-    # subprocess.check_call(['coverage', 'run', example_path('scripts/three_zone_example_data.py')])
-    pass
+    if os.environ.get("TRAVIS") != "true":
+        subprocess.check_call(
+            ["coverage", "run", example_path("scripts/two_zone_example_data.py")]
+        )
+        subprocess.check_call(
+            ["coverage", "run", example_path("scripts/three_zone_example_data.py")]
+        )
 
 
 @pytest.fixture(scope="module")
@@ -52,7 +55,7 @@ def run_test(zone, multiprocess=False):
         tours_df.to_csv(
             test_path(f"regress/final_tours_{zone}_zone_last_run.csv"), index=False
         )
-        print(f"regress tours")
+        print("regress tours")
         pdt.assert_frame_equal(tours_df, regress_tours_df, rtol=1e-03)
 
         # regress trips
@@ -63,7 +66,7 @@ def run_test(zone, multiprocess=False):
         trips_df.to_csv(
             test_path(f"regress/final_trips_{zone}_zone_last_run.csv"), index=False
         )
-        print(f"regress trips")
+        print("regress trips")
         pdt.assert_frame_equal(trips_df, regress_trips_df, rtol=1e-03)
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
@@ -74,7 +77,7 @@ def run_test(zone, multiprocess=False):
         "-c",
         example_path(f"configs_{zone}_zone"),
         "-c",
-        mtc_example_path(f"configs"),
+        mtc_example_path("configs"),
         "-d",
         example_path(f"data_{zone}"),
         "-o",

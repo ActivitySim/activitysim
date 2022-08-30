@@ -552,7 +552,7 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
         non_se_trips_df["depart"] = reindex(trips_df.depart, non_se_trips_df.index)
         # merge trips back together
         full_trips_df = pd.concat([non_se_trips_df, se_trips_df])
-        full_trips_df['depart'] = full_trips_df['depart'].astype(int)
+        full_trips_df["depart"] = full_trips_df["depart"].astype(int)
         # want to preserve the original order, but first need to remove trips that were dropped
         new_full_trips_index = full_trips_index[
             full_trips_index.isin(trips_df.index)

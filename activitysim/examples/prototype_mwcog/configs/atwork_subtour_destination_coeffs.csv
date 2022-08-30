@@ -1,0 +1,17 @@
+coefficient_name,value,constrain
+coef_dist_atwork,0.487260901,F
+coef_dist_squared_atwork,-0.007463552,F
+coef_dist_cubed_atwork,2.78E-05,F
+coef_dist_logged_atwork,-5.322821417,F
+coef_dist_female_atwork,-0.033246111,F
+coef_dist_zero_auto_atwork,-0.135191524,F
+coef_calib_0_1_dist_atwork,-0.755322501,T
+coef_calib_1_3_dist_atwork,-0.283854352,
+coef_calib_3_6_dist_atwork,0.964729369,
+coef_calib_6_10_dist_atwork,1.476441427,
+coef_calib_10_15_dist_atwork,1.189974447,
+coef_calib_15_pl_dist_atwork,0.626309631,
+coef_size_variable_atwork,1,T
+coef_no_attractions_atwork_size_variable_is_0,-999,T
+coef_mode_choice_logsum_atwork,0.424,F
+coef_sample_of_alternatives_correction_factor,1,T

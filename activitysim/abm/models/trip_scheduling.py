@@ -412,6 +412,7 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
         trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
             trips_df, school_escort_trips
         )
+        non_se_trips_df = trips_df
 
     # add columns 'tour_hour', 'earliest', 'latest' to trips
     set_tour_hour(trips_df, tours)
@@ -508,6 +509,13 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
 
     trips_df = trips.to_frame()
 
+    if pipeline.is_table("school_escort_trips"):
+        # separate out school escorting trips to exclude them from the model and estimation data bundle
+        trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
+            trips_df, school_escort_trips
+        )
+        non_se_trips_df = trips_df
+
     choices = pd.concat(choices_list)
     choices = choices.reindex(trips_df.index)
 
@@ -541,11 +549,16 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
     if pipeline.is_table("school_escort_trips"):
         # setting destination for school escort trips
         se_trips_df["depart"] = reindex(school_escort_trips.depart, se_trips_df.index)
+        non_se_trips_df["depart"] = reindex(trips_df.depart, non_se_trips_df.index)
         # merge trips back together
-        trips_df = pd.concat([trips_df, se_trips_df])
+        full_trips_df = pd.concat([non_se_trips_df, se_trips_df])
+        full_trips_df['depart'] = full_trips_df['depart'].astype(int)
         # want to preserve the original order, but first need to remove trips that were dropped
-        new_full_trips_index = full_trips_index[full_trips_index.isin(trips_df.index)]
-        trips_df = trips_df.reindex(new_full_trips_index)
+        new_full_trips_index = full_trips_index[
+            full_trips_index.isin(trips_df.index)
+            | full_trips_index.isin(se_trips_df.index)
+        ]
+        trips_df = full_trips_df.reindex(new_full_trips_index)
 
     assert not trips_df.depart.isnull().any()
 

@@ -82,7 +82,15 @@ def cleanup_failed_trips(trips):
             ascending=False
         )
 
-        assign_in_place(trips, patch_trips[["trip_num", "trip_count"]])
+        # origin needs to match the previous destination
+        # (leaving first origin alone as it's already set correctly)
+        patch_trips["origin"] = np.where(
+            (patch_trips["trip_num"] == 1) & (patch_trips["outbound"] == True),
+            patch_trips["origin"],
+            patch_trips.groupby("tour_id")["destination"].shift(),
+        ).astype(int)
+
+        assign_in_place(trips, patch_trips[["trip_num", "trip_count", "origin"]])
 
         del trips["patch"]
 

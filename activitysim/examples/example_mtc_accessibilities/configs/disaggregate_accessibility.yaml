@@ -19,7 +19,7 @@ CREATE_TABLES:
         index_col: household_id
         zone_col: home_zone_id
         rename_columns:
-          zone_id: home_zone_id
+            zone_id: home_zone_id
         VARIABLES:
             hinccat1: [1, 2, 3]          # Income categories
             hworkers: 1                  # Household workers
@@ -83,13 +83,20 @@ CREATE_TABLES:
         index_col: tour_id
         VARIABLES:
             person_num: [1, 2, 2]       # person number
-            tour_num: 1                 # Tour number
+            tour_num: 1                 # Tour number, 1 tour per person
+            purpose: [1, 2, 3]
         mapped_fields:
-            person_num:
-                purpose:  # purpose
+            purpose:
+                tour_type:
                     1: "work"
                     2: "shopping"
                     3: "othdiscr"
+                tour_category:  # tour purpose category, mandatory/non-mandatory
+                    1: "mandatory"
+                    2: "non_mandatory"
+                    3: "non_mandatory"
+        filter_rows: # list any matching conditions as pandas expression
+            - ~((df.tour_type == "work") & (df.person_num == 1))
         JOIN_ON:
             person_num: pnum            # Specifies which person variable to join the tours on
 

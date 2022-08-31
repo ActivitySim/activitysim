@@ -496,7 +496,7 @@ def run_disaggregate_accessibility(args):
 if __name__ == "__main__":
     # FOR TESTING PROTO-POP
     base_dir = 'C:/gitclones/activitysim-disagg_accessibilities/activitysim/examples'
-    acc_configs = os.path.join(base_dir, 'example_mtc_accessibilities/configs/disaggregate_accessibility.yaml')
+    acc_configs = os.path.join(base_dir, 'prototype_mtc_accessibilities/configs/disaggregate_accessibility.yaml')
     data_dir = os.path.join(base_dir, 'example_mtc/data')
 
     # Model Settings

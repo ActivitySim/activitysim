@@ -15,7 +15,7 @@ def disaggregate_accessibility():
         return pkg_resources.resource_filename('activitysim', resource)
 
     def extended_path(dirname):
-        resource = os.path.join('examples', 'example_mtc_accessibilities', dirname)
+        resource = os.path.join('examples', 'prototype_mtc_accessibilities', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     parser = argparse.ArgumentParser()

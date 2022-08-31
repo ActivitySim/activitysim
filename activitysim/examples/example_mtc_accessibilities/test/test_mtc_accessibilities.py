@@ -9,7 +9,6 @@ import pandas.testing as pdt
 
 from activitysim.core import inject
 
-
 def teardown_function(func):
     inject.clear_cache()
     inject.reinject_decorated_tables()
@@ -31,15 +30,15 @@ def test_mtc_accessibilities():
     def regress():
         regress_trips_df = pd.read_csv(test_path('regress/final_trips.csv'))
         final_trips_df = pd.read_csv(test_path('output/final_trips.csv'))
-
-        # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,
-        # destination,origin,destination_logsum,depart,trip_mode,mode_choice_logsum
-        # compare_cols = []
         pdt.assert_frame_equal(final_trips_df, regress_trips_df)
 
-    file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
+    sim_file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
+    acc_file_path = os.path.join(os.path.dirname(__file__), 'disaggregate_accessibility_model.py')
 
-    subprocess.run(['coverage', 'run', '-a', file_path,
+    # TODO run disagg accessibilities then run the model. Or run as a model step?
+    subprocess.run(['run', '-a', acc_file_path], check=True)
+
+    subprocess.run(['coverage', 'run', '-a', sim_file_path,
                     '-c', test_path('configs'), '-c', example_path('configs'),
                     '-c', example_mtc_path('configs'),
                     '-d', example_mtc_path('data'),
@@ -49,4 +48,5 @@ def test_mtc_accessibilities():
 
 
 if __name__ == '__main__':
+    # TODO NOT WORKING YET
     test_mtc_accessibilities()

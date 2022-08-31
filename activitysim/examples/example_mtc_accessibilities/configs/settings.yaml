@@ -181,6 +181,7 @@ checkpoints: True
 models:
   - initialize_landuse
 #  - compute_disaggregate_accessibility
+#  - initialize_disaggregate_accessibility
   - initialize_households
 #  - compute_accessibility
   - school_location

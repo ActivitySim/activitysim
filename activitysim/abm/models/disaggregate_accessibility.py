@@ -371,6 +371,10 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     return
 
 
+@inject.step()
+def initialize_disaggregate_acessibility():
+    pass
+
 # Modified 'run' function from activitysim.cli.run to override the models list in settings.yaml with MODELS list above
 # and run only the compute_disaggregate_accessibility step but retain all other main model settings.
 # This enables it to be run as either a model step, or a one-off model.

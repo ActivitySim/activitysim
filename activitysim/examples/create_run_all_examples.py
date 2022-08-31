@@ -6,7 +6,7 @@
 runnable_line_signature = "  # "  # yes, hacky for now
 examples_file_name = "example_manifest.yaml"
 
-example_file = open(examples_file_name, 'r')
+example_file = open(examples_file_name, "r")
 lines = example_file.readlines()
 for line in lines:
     if runnable_line_signature in line:

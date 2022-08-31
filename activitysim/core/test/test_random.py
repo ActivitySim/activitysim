@@ -1,8 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import numpy as np
-import pandas as pd
 import numpy.testing as npt
+import pandas as pd
 import pytest
 
 from activitysim.core import random
@@ -14,7 +14,7 @@ def test_basic():
 
     rng.set_base_seed(0)
 
-    rng.begin_step('test_step')
+    rng.begin_step("test_step")
 
     global_rng = rng.get_global_rng()
 
@@ -34,25 +34,31 @@ def test_basic():
 def test_channel():
 
     channels = {
-        'households': 'household_id',
-        'persons': 'person_id',
+        "households": "household_id",
+        "persons": "person_id",
     }
     rng = random.Random()
 
-    persons = pd.DataFrame({
-        "household_id": [1, 1, 2, 2, 2],
-    }, index=[1, 2, 3, 4, 5])
-    persons.index.name = 'person_id'
+    persons = pd.DataFrame(
+        {
+            "household_id": [1, 1, 2, 2, 2],
+        },
+        index=[1, 2, 3, 4, 5],
+    )
+    persons.index.name = "person_id"
 
-    households = pd.DataFrame({
-        "data": [1, 1, 2, 2, 2],
-    }, index=[1, 2, 3, 4, 5])
-    households.index.name = 'household_id'
+    households = pd.DataFrame(
+        {
+            "data": [1, 1, 2, 2, 2],
+        },
+        index=[1, 2, 3, 4, 5],
+    )
+    households.index.name = "household_id"
 
-    rng.begin_step('test_step')
+    rng.begin_step("test_step")
 
-    rng.add_channel('persons', persons)
-    rng.add_channel('households', households)
+    rng.add_channel("persons", persons)
+    rng.add_channel("households", households)
 
     rands = rng.random_for_df(persons)
 
@@ -67,9 +73,9 @@ def test_channel():
     test1_expected_rands2 = [0.9105223, 0.5718418, 0.7222742, 0.9062284, 0.3929369]
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands2)
 
-    rng.end_step('test_step')
+    rng.end_step("test_step")
 
-    rng.begin_step('test_step2')
+    rng.begin_step("test_step2")
 
     rands = rng.random_for_df(households)
     expected_rands = [0.417278, 0.2994774, 0.8653719, 0.4429748, 0.5101697]
@@ -84,21 +90,31 @@ def test_channel():
     expected_choices = [3, 1, 4, 3, 3, 2, 2, 1, 4, 2]
     npt.assert_almost_equal(choices, expected_choices)
 
-    rng.end_step('test_step2')
+    rng.end_step("test_step2")
 
-    rng.begin_step('test_step3')
+    rng.begin_step("test_step3")
 
     rands = rng.random_for_df(households, n=2)
 
-    expected_rands = [0.3157928, 0.3321823, 0.5194067, 0.9340083, 0.9002048, 0.8754209,
-                      0.3898816, 0.4101094, 0.7351484, 0.1741092]
+    expected_rands = [
+        0.3157928,
+        0.3321823,
+        0.5194067,
+        0.9340083,
+        0.9002048,
+        0.8754209,
+        0.3898816,
+        0.4101094,
+        0.7351484,
+        0.1741092,
+    ]
 
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), expected_rands)
 
-    rng.end_step('test_step3')
+    rng.end_step("test_step3")
 
     # if we use the same step name a second time, we should get the same results as before
-    rng.begin_step('test_step')
+    rng.begin_step("test_step")
 
     rands = rng.random_for_df(persons)
 
@@ -108,4 +124,4 @@ def test_channel():
     rands = rng.random_for_df(persons)
     npt.assert_almost_equal(np.asanyarray(rands).flatten(), test1_expected_rands2)
 
-    rng.end_step('test_step')
+    rng.end_step("test_step")

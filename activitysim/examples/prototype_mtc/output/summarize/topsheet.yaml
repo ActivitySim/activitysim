@@ -1,0 +1,59 @@
+# Topsheet Test
+# title: Key Performance Indicators
+
+# Input files -------------------------
+files:
+  tours:
+    file: "tours_count.csv"
+  trips:
+    file: "trips_count.csv"
+  households:
+    file: "households_count.csv"
+  persons:
+    file: "persons_count.csv"
+  tours_per_household:
+    file: "tours_per_household_count.csv"
+  trips_per_household:
+    file: "trips_per_household_count.csv"
+  total_vmt:
+    file: "total_vmt.csv"
+  vmt_per_capita:
+    file: "vmt_per_capita.csv"
+
+# Calculations ------------------------
+calculations:
+  tours: '{tours.tours}'
+  trips: '{trips.trips}'
+  households: '{households.households}'
+  persons: '{persons.persons}'
+  tours_per_household: '{tours_per_household.tours_per_household}'
+  trips_per_household: '{trips_per_household.trips_per_household}'
+  total_vmt: '{total_vmt.vmt}'
+  vmt_per_capita: '{vmt_per_capita.vmt_per_capita}'
+
+# Table rows
+outputs:
+  - title: Total Tours
+    # style: { font-weight: bold, color: purple }
+    value: tours
+
+  - title: Total Trips
+    value: trips
+
+  - title: Total Households
+    value: households
+
+  - title: Total Persons
+    value: persons
+
+  - title: Tours / Household
+    value: tours_per_household
+
+  - title: Trips / Household
+    value: trips_per_household
+
+  - title: Total VMT
+    value: total_vmt
+
+  - title: VMT / Capita
+    value: vmt_per_capita

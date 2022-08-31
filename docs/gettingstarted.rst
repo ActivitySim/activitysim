@@ -39,11 +39,6 @@ using conda Prompt (on Windows) or the terminal (macOS or Linux)::
 
   conda create -n asim python=3.9 activitysim -c conda-forge --override-channels
 
-.. note::
-   If this command fails in July 2021, it may be because ActivitySim
-   has not yet been fully integrated into the conda-forge repository.
-   See "Alternative Installation Methods" below for a workaround using pip.
-
 This command will create the environment and install all the dependencies
 required for running ActivitySim.  It is only necessary to create the environment
 once per machine, you do not need to (re)create the environment for each session.
@@ -161,8 +156,8 @@ To setup and run the primary example (see :ref:`examples`), do the following:
 
 * Open a command prompt
 * Activate the conda environment with ActivitySim installed (i.e. ``conda activate asim``)
-* Type ``activitysim create -e example_mtc -d test_example_mtc`` to copy the very small MTC example to a new test_example_mtc directory
-* Change to the test_example_mtc directory
+* Type ``activitysim create -e prototype_mtc -d test_prototype_mtc`` to copy the very small prototype_mtc example to a new test_prototype_mtc directory
+* Change to the test_prototype_mtc directory
 * Type ``activitysim run -c configs -o output -d data`` to run the example
 * Review the outputs in the output directory
 
@@ -170,7 +165,7 @@ To setup and run the primary example (see :ref:`examples`), do the following:
    Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.  
    ActivitySim model runs can be configured with settings file inheritance to avoid duplicating settings across model configurations.  See :ref:`cli` for more information.
 
-Additional examples, including the full scale MTC regional demand model, estimation integration examples, multiple zone system examples, 
+Additional examples, including the full scale prototype MTC regional demand model, estimation integration examples, multiple zone system examples,
 and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
 the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.  See :ref:`examples` for more information.
 
@@ -182,13 +177,13 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 * Open a conda prompt and activate the conda environment with ActivitySim installed
 * If needed, ``conda install jupyterlab`` so you can run jupyter notebooks
 * Type ``jupyter notebook`` to launch the web-based notebook manager
-* Navigate to the ``examples/example_mtc/notebooks`` folder and select a notebook to learn more:
+* Navigate to the ``examples/prototype_mtc/notebooks`` folder and select a notebook to learn more:
 
-  * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/getting_started.ipynb/>`__
-  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/summarizing_results.ipynb/>`__
-  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
-  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/adding_tncs.ipynb/>`__
-  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_mtc/notebooks/memory_usage.ipynb/>`__
+  * `Getting started <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/getting_started.ipynb/>`__
+  * `Summarizing results <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/summarizing_results.ipynb/>`__
+  * `Testing a change in auto ownership <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/change_in_auto_ownership.ipynb/>`__
+  * `Adding TNCs <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/adding_tncs.ipynb/>`__
+  * `Memory usage <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/prototype_mtc/notebooks/memory_usage.ipynb/>`__
 
 Hardware
 --------
@@ -202,7 +197,7 @@ The computing hardware required to run a model implemented in the ActivitySim fr
 * The desired runtimes
 
 ActivitySim framework models use a significant amount of RAM since they store data in-memory to reduce
-data access time in order to minimize runtime.  For example, the example MTC Travel Model One model has 2.7 million
+data access time in order to minimize runtime.  For example, the prototype MTC example model has 2.7 million
 households, 7.5 million people, 1475 zones, 826 network skims and has been run between one hour and one day depending
 on the amount of RAM and number of processors allocated.  See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
 

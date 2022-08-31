@@ -1,38 +1,26 @@
-- name: example_mtc
-  description: 25-zone example for the MTC region
-  # activitysim create -e example_mtc -d test_example_mtc
-  # cd test_example_mtc
+- name: prototype_mtc
+  description: 25-zone example extracted from the prototype MTC model
+  # activitysim create -e prototype_mtc -d test_prototype_mtc
+  # cd test_prototype_mtc
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/data
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/output
-    - example_mtc/README.MD
+    - prototype_mtc/data
+    - prototype_mtc/configs
+    - prototype_mtc/configs_mp
+    - prototype_mtc/output
+    - prototype_mtc/README.MD
 
-- name: example_test
-  description: data and configs for the ActivitySim test system
-  # activitysim create -e example_test -d test_example_test
-  # cd test_example_test
-  # activitysim run -c configs -o output -d data
-  # cd ..
-  include:
-    - example_mtc/data
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/output
-
-- name: example_mtc_full
-  description: Full 1475-zone dataset for the MTC region with 2.8M households and 7.5M persons
-  # activitysim create -e example_mtc_full -d test_example_mtc_full
-  # cd test_example_mtc_full
+- name: prototype_mtc_full
+  description: Prototype MTC example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
+  # activitysim create -e prototype_mtc_full -d test_prototype_mtc_full
+  # cd test_prototype_mtc_full
   # activitysim run -c configs_mp -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/output
+    - prototype_mtc/configs
+    - prototype_mtc/configs_mp
+    - prototype_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
       data/skims.omx
       04bddb2dd6b829a2ce25a27369d3276143fa9a354989ebd30ed9bba92f8e9bfb
@@ -46,17 +34,55 @@
       data/land_use.csv
       fac71207925a34c32b956632fe375814e42860624a99f88401c42317af0fc203
 
-- name: example_mtc_sf
+- name: prototype_mtc_extended
+  description: 25-zone prototype MTC example with extended models
+  # activitysim create -e prototype_mtc_extended -d test_prototype_mtc_extended
+  # cd test_prototype_mtc_extended
+  # activitysim run -c configs_extended/configs -c configs -o output -d data
+  # cd ..
+  include:
+    - prototype_mtc/data
+    - prototype_mtc_extended/configs
+      configs_extended
+    - prototype_mtc/configs
+    - prototype_mtc_extended/configs_mp
+    - prototype_mtc_extended/output
+    - prototype_mtc_extended/README.MD
+
+- name: prototype_mtc_extended_full
+  description: Prototype MTC example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons
+  # activitysim create -e prototype_mtc_extended_full -d test_prototype_mtc_extended_full
+  # cd test_prototype_mtc_extended_full
+  # activitysim run -c configs_mp -c configs_extended/configs -c configs -o output -d data
+  # cd ..
+  include:
+    - prototype_mtc/data
+    - prototype_mtc/configs
+    - prototype_mtc_extended/configs
+      configs_extended
+    - prototype_mtc_extended/configs_mp
+    - prototype_mtc_extended/output
+    - prototype_mtc_extended/README.MD
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/skims.omx
+      data/skims.omx
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/households.csv
+      data/households.csv
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/persons.csv
+      data/persons.csv
+    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_full/land_use.csv
+      data/land_use.csv
+
+- name: prototype_mtc_sf
   description: San Francisco MTC dataset with 190 zones, 400k households and 900k persons
-  # activitysim create -e example_mtc_sf -d test_example_mtc_sf
-  # cd test_example_mtc_sf
+  # activitysim create -e prototype_mtc_sf -d test_prototype_mtc_sf
+  # cd test_prototype_mtc_sf
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_mtc/configs
-    - example_mtc/configs_mp
-    - example_mtc/data
-    - example_mtc/output
+    - prototype_mtc/configs
+    - prototype_mtc/configs_mp
+    - prototype_mtc/data
+    - prototype_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data/skims.omx
       579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
@@ -77,13 +103,13 @@
   # activitysim run -c configs_estimation/configs -c configs -o output -d data_test
   # cd ..
   include:
-    - example_mtc/configs
+    - prototype_mtc/configs
     - example_estimation/configs
       configs_estimation
     - example_estimation/data_test
-    - example_mtc/data/skims.omx
+    - prototype_mtc/data/skims.omx
       data_test/skims.omx
-    - example_mtc/output
+    - prototype_mtc/output
 
 - name: example_estimation_sf
   description: Estimation mode San Francisco MTC dataset with 190 zones, 2k households and 8k persons
@@ -92,26 +118,26 @@
   # activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
   # cd ..
   include:
-    - example_mtc/configs
+    - prototype_mtc/configs
     - example_estimation/configs
       configs_estimation
     - example_estimation/data_sf
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data_sf/skims.omx
       579d6007266db3b055d0f9e4814004f4d5ccfae27a36e40f4881e3662bc3d3f1
-    - example_mtc/output
+    - prototype_mtc/output
 
-- name: example_2_zone
-  description: 2 zone system test example based on TM1
-  # activitysim create -e example_2_zone -d test_example_2_zone
-  # cd test_example_2_zone
+- name: placeholder_2_zone
+  description: 2 zone system test example based on prototype MTC
+  # activitysim create -e placeholder_2_zone -d test_placeholder_2_zone
+  # cd test_placeholder_2_zone
   # activitysim run -c configs_2_zone -c configs -d data_2 -o output_2
   # cd ..
   include:
-    - example_mtc/configs
-    - example_multiple_zone/configs_2_zone
-    - example_multiple_zone/data_2
-    - example_multiple_zone/output_2
+    - prototype_mtc/configs
+    - placeholder_multiple_zone/configs_2_zone
+    - placeholder_multiple_zone/data_2
+    - placeholder_multiple_zone/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/households.csv
       data_2/households.csv
       0e247da9105b152730573e782e7b5f1d62040e3b381f683286fe1bb22f949529
@@ -137,22 +163,22 @@
       data_2/taz_skims.omx
       773c89369f748e26309786b42aa4c62b5dd329a931214dd63a11007001de3829
 
-- name: example_3_zone
-  description: 3 zone system test example based on TM1
-  # activitysim create -e example_3_zone -d test_example_3_zone
-  # cd test_example_3_zone
+- name: placeholder_3_zone
+  description: 3 zone system test example based on prototype MTC
+  # activitysim create -e placeholder_3_zone -d test_placeholder_3_zone
+  # cd test_placeholder_3_zone
   # activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_static.yaml
   # cd ..
-  # activitysim create -e example_3_zone -d test_example_3_zone_mp
-  # cd test_example_3_zone_mp
+  # activitysim create -e placeholder_3_zone -d test_placeholder_3_zone_mp
+  # cd test_placeholder_3_zone_mp
   # activitysim run -c configs_3_zone -c configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    - example_mtc/configs
-    - example_multiple_zone/configs_3_zone
-    - example_multiple_zone/configs_local
-    - example_multiple_zone/data_3
-    - example_multiple_zone/output_3
+    - prototype_mtc/configs
+    - placeholder_multiple_zone/configs_3_zone
+    - placeholder_multiple_zone/configs_local
+    - placeholder_multiple_zone/data_3
+    - placeholder_multiple_zone/output_3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/households.csv
       data_3/households.csv
       0e247da9105b152730573e782e7b5f1d62040e3b381f683286fe1bb22f949529
@@ -193,37 +219,37 @@
       data_3/taz_skims.omx
       d3f89e29878d3384318b15db26bfddb48d63c9a8d5187aa02797178cfead0394
 
-- name: example_marin
+- name: prototype_marin
   description: Marin TM2 work tour mode choice cropped to Downtown SF for testing
-  # activitysim create -e example_marin -d test_example_marin
-  # cd test_example_marin
+  # activitysim create -e prototype_marin -d test_prototype_marin
+  # cd test_prototype_marin
   # activitysim run -c configs -d data -o output
   # cd ..
-  # activitysim create -e example_marin -d test_example_marin_mp
-  # cd test_example_marin_mp
+  # activitysim create -e prototype_marin -d test_prototype_marin_mp
+  # cd test_prototype_marin_mp
   # activitysim run -c configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
-    - example_marin/configs
-    - example_marin/data
-    - example_marin/output
-    - example_marin/README.MD
+    - prototype_marin/configs
+    - prototype_marin/data
+    - prototype_marin/output
+    - prototype_marin/README.MD
 
-- name: example_marin_sf
+- name: prototype_marin_sf
   description: Marin TM2 work tour mode choice cropped to marin and sf counties for testing (2054 MAZ
-  # activitysim create -e example_marin_sf -d test_example_marin_sf
-  # cd test_example_marin_sf
+  # activitysim create -e prototype_marin_sf -d test_prototype_marin_sf
+  # cd test_prototype_marin_sf
   # activitysim run -c configs -d data -o output
   # cd ..
-  # activitysim create -e example_marin_sf -d test_example_marin_sf_mp
-  # cd test_example_marin_sf_mp
+  # activitysim create -e prototype_marin_sf -d test_prototype_marin_sf_mp
+  # cd test_prototype_marin_sf_mp
   # activitysim run -c configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
-    - example_marin/configs
-    - example_marin/data
-    - example_marin/output
-    - example_marin/README.MD
+    - prototype_marin/configs
+    - prototype_marin/data
+    - prototype_marin/output
+    - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_AM.omx
       data/highway_skims_AM.omx
       2d5d21266a0cd29f174858bc2c47a26067c7af35e12793a78a3dc673df9f13df
@@ -285,17 +311,17 @@
       data/work_tours.csv
       a88082ead7ace00f1b2d8ed3997aa3d27c0bc36c9deeee8b8e4c6cf85d6a7004
 
-- name: example_3_marin_full
+- name: prototype_3_marin_full
   description: Marin TM2 work tour mode choice for the 9 county MTC region
-  # activitysim create -e example_3_marin_full -d test_example_3_marin_full
-  # cd test_example_3_marin_full
+  # activitysim create -e prototype_3_marin_full -d test_prototype_3_marin_full
+  # cd test_prototype_3_marin_full
   # activitysim run -c configs -d data -o output -s settings_mp.yaml
   # cd ..
   include:
-    - example_marin/configs
-    - example_marin/data
-    - example_marin/output
-    - example_marin/README.MD
+    - prototype_marin/configs
+    - prototype_marin/data
+    - prototype_marin/output
+    - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_AM.omx
       data/highway_skims_AM.omx
       e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
@@ -357,32 +383,32 @@
       data/work_tours.csv
       4d5accd2ed87faa70551cd0763b2a84a630f7dbdeeb09959c8300178cebedc8c
 
-- name: example_psrc
+- name: placeholder_psrc
   description: 27-TAZ 487-MAZ example for the PSRC region, with 14871 Households
-  # activitysim create -e example_psrc -d test_example_psrc
-  # cd test_example_psrc
+  # activitysim create -e placeholder_psrc -d test_placeholder_psrc
+  # cd test_placeholder_psrc
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_psrc/configs
-    - example_psrc/configs_skip_accessibility
-    - example_psrc/data
-    - example_psrc/output
-    - example_psrc/README.MD
+    - placeholder_psrc/configs
+    - placeholder_psrc/configs_skip_accessibility
+    - placeholder_psrc/data
+    - placeholder_psrc/output
+    - placeholder_psrc/README.MD
 
-- name: example_psrc_seattle
+- name: placeholder_psrc_seattle
   description: 781-TAZ 8400-MAZ example for the PSRC region, with 336,725 Households
-  # activitysim create -e example_psrc_seattle -d test_example_seattle
-  # cd test_example_seattle
+  # activitysim create -e placeholder_psrc_seattle -d test_placeholder_seattle
+  # cd test_placeholder_seattle
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_psrc/configs
-    - example_psrc/configs_skip_accessibility
-    - example_psrc/configs_accessibility
-    - example_psrc/data
-    - example_psrc/output
-    - example_psrc/README.MD
+    - placeholder_psrc/configs
+    - placeholder_psrc/configs_skip_accessibility
+    - placeholder_psrc/configs_accessibility
+    - placeholder_psrc/data
+    - placeholder_psrc/output
+    - placeholder_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/skims.omx
       data/skims.omx
       bbbdc70d4eceb71d3be0d025a21fb83d18a69a1806bad9cb85d66dba136b07df
@@ -408,23 +434,23 @@
       data/maz_to_maz_bike.csv
       6c11e712abe91d6112f9bd85a7a5a01f4ce7642d44c86c3352c978ef1bb00b20
 
-- name: example_psrc_full
+- name: placeholder_psrc_full
   description: 3444-TAZ 43589-MAZ example for the PSRC region
-  # activitysim create -e example_psrc_full -d test_example_psrc_full
-  # cd test_example_psrc_full
+  # activitysim create -e placeholder_psrc_full -d test_placeholder_psrc_full
+  # cd test_placeholder_psrc_full
   # activitysim run -c configs -o output -d data -s settings_mp.yaml
   # cd ..
-  # activitysim create -e example_psrc_full -d test_example_psrc_full_skip_access
-  # cd test_example_psrc_full_skip_access
+  # activitysim create -e placeholder_psrc_full -d test_placeholder_psrc_full_skip_access
+  # cd test_placeholder_psrc_full_skip_access
   # activitysim run -c configs_skip_accessibility -c configs -o output -d data -s settings_mp.yaml
   # cd ..
   include:
-    - example_psrc/configs
-    - example_psrc/configs_skip_accessibility
-    - example_psrc/configs_accessibility
-    - example_psrc/data
-    - example_psrc/output
-    - example_psrc/README.MD
+    - placeholder_psrc/configs
+    - placeholder_psrc/configs_skip_accessibility
+    - placeholder_psrc/configs_accessibility
+    - placeholder_psrc/data
+    - placeholder_psrc/output
+    - placeholder_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims.omx
       data/skims.omx
       7e3746501632b1912ce4cc642f7401bf70141f121a71ba63d444e8d42197a4f7
@@ -462,35 +488,35 @@
       data/final_accessibility.csv
       949994345c9965054be260589fd64079e4032d2e4079e46b9eb9c758a40527c3
 
-- name: example_semcog
+- name: prototype_semcog
   description: 67 zone test example for the SEMCOG region
-  # activitysim create -e example_semcog -d test_example_semcog
-  # cd test_example_semcog
+  # activitysim create -e prototype_semcog -d test_prototype_semcog
+  # cd test_prototype_semcog
   # python simulation.py -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/data
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - prototype_semcog/extensions
+    - prototype_semcog/data
+    - prototype_semcog/configs
+    - prototype_semcog/configs_mp
+    - prototype_semcog/output
+    - prototype_semcog/README.MD
+    - prototype_semcog/simulation.py
 
-- name: example_semcog_z500
+- name: prototype_semcog_z500
   description: 500 zone intermediate size example for the SEMCOG region
-  # activitysim create -e example_semcog_z500 -d test_example_semcog_z500
-  # cd test_example_semcog_z500
+  # activitysim create -e prototype_semcog_z500 -d test_prototype_semcog_z500
+  # cd test_prototype_semcog_z500
   # python simulation.py -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/data
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - prototype_semcog/extensions
+    - prototype_semcog/data
+    - prototype_semcog/configs
+    - prototype_semcog/configs_mp
+    - prototype_semcog/output
+    - prototype_semcog/README.MD
+    - prototype_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_z500/skims.omx
       data/skims.omx
       7c824032940d1006e731d715bcee8771572e03558eef40ca1ca5f820bfc071ca
@@ -504,20 +530,20 @@
       data/land_use.csv
       d4ddb6f5fc7cd844e3e9149d03d32c841c5cb641a77aea9174045ddb85f27a3a
 
-- name: example_semcog_full
+- name: prototype_semcog_full
   description: 2899 zone full size example for the SEMCOG region
-  # activitysim create -e example_semcog_full -d test_example_semcog_full
-  # cd test_example_semcog_full
+  # activitysim create -e prototype_semcog_full -d test_prototype_semcog_full
+  # cd test_prototype_semcog_full
   # python simulation.py -c configs_mp -c configs -o output -d data
   # cd ..
   include:
-    - example_semcog/extensions
-    - example_semcog/data
-    - example_semcog/configs
-    - example_semcog/configs_mp
-    - example_semcog/output
-    - example_semcog/README.MD
-    - example_semcog/simulation.py
+    - prototype_semcog/extensions
+    # prototype_semcog/data  # data loaded from activitysim_resources
+    - prototype_semcog/configs
+    - prototype_semcog/configs_mp
+    - prototype_semcog/output
+    - prototype_semcog/README.MD
+    - prototype_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims.omx
       data/skims.omx
       efa1f87395df354ccfad7cfe4e67ace96c7ac04fa0290e5e6f8e2593fc0ba6a3
@@ -534,29 +560,29 @@
       data/land_use.csv
       8f9146993bff315afc6ada52182cb3ea719a6a1ed07095b51535bc7c026285f6
 
-- name: example_arc
+- name: prototype_arc
   description: 36 zone test example for the ARC region
-  # activitysim create -e example_arc -d test_example_arc
-  # cd test_example_arc
+  # activitysim create -e prototype_arc -d test_prototype_arc
+  # cd test_prototype_arc
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_arc/data
-    - example_arc/configs
-    - example_arc/output
-    - example_arc/README.MD
+    - prototype_arc/data
+    - prototype_arc/configs
+    - prototype_arc/output
+    - prototype_arc/README.MD
 
-- name: example_arc_fulton
+- name: prototype_arc_fulton
   description: 1296 zone fulton county example for the ARC region
-  # activitysim create -e example_arc_fulton -d test_example_arc_fulton
-  # cd test_example_arc_fulton
+  # activitysim create -e prototype_arc_fulton -d test_prototype_arc_fulton
+  # cd test_prototype_arc_fulton
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - example_arc/data
-    - example_arc/configs
-    - example_arc/output
-    - example_arc/README.MD
+    - prototype_arc/data
+    - prototype_arc/configs
+    - prototype_arc/output
+    - prototype_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_fulton/skims.omx
       data/skims.omx
       335be57a0b89eac8b51874cc5d8a2c0a0b19472f7ac77c99fd8afd54f223712b
@@ -570,17 +596,17 @@
       data/land_use.csv
       09a8c0cd0771c4ec3713940fc3d5b9e9443cc104668f7403c2caefb75c4fbb08
 
-- name: example_arc_full
+- name: prototype_arc_full
   description: 5922 zone full example for the ARC region
-  # activitysim create -e example_arc_full -d test_example_arc_full
-  # cd test_example_arc_full
+  # activitysim create -e prototype_arc_full -d test_prototype_arc_full
+  # cd test_prototype_arc_full
   # activitysim run -c configs -o output -d data -s settings_mp.yaml
   # cd ..
   include:
-    - example_arc/data
-    - example_arc/configs
-    - example_arc/output
-    - example_arc/README.MD
+    # - prototype_arc/data  # data is provided below
+    - prototype_arc/configs
+    - prototype_arc/output
+    - prototype_arc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/arc_data_full/skims.omx
       data/skims.omx
       55af7b893f13b5275fd7d9721a07f3e09d98a2660fa5fa6f5ff99f8fa8ffbcdf
@@ -603,31 +629,31 @@
       data/land_use.csv
       36383b4c9dacdd7dd10c84b4479aa9f53ced23e155b6d354c468decc6710c80e
 
-- name: example_sandag_1_zone
+- name: placeholder_sandag_1_zone
   description: 90-TAZ (includes univ) 1-zone test example for the SANDAG region
-  # activitysim create -e example_sandag_1_zone -d test_example_sandag_1_zone
-  # cd test_example_sandag_1_zone
-  # activitysim run -c configs_1_zone -c example_mtc/configs -d data_1 -o output_1 -s settings_mp.yaml
+  # activitysim create -e placeholder_sandag_1_zone -d test_placeholder_sandag_1_zone
+  # cd test_placeholder_sandag_1_zone
+  # activitysim run -c configs_1_zone -c prototype_mtc/configs -d data_1 -o output_1 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/../example_mtc/configs
-      example_mtc
-    - example_sandag/configs_1_zone
-    - example_sandag/data_1
-    - example_sandag/output_1
+    - placeholder_sandag/../prototype_mtc/configs
+      prototype_mtc
+    - placeholder_sandag/configs_1_zone
+    - placeholder_sandag/data_1
+    - placeholder_sandag/output_1
 
-- name: example_sandag_1_zone_full
+- name: placeholder_sandag_1_zone_full
   description: full 1-zone example for the SANDAG region
-  # activitysim create -e example_sandag_1_zone_full -d test_example_sandag_1_zone_full
-  # cd test_example_sandag_1_zone_full
-  # activitysim run -c configs_1_zone -c example_mtc/configs -d data_1 -o output_1 -s settings_mp.yaml
+  # activitysim create -e placeholder_sandag_1_zone_full -d test_placeholder_sandag_1_zone_full
+  # cd test_placeholder_sandag_1_zone_full
+  # activitysim run -c configs_1_zone -c prototype_mtc/configs -d data_1 -o output_1 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/../example_mtc/configs
-      example_mtc
-    - example_sandag/configs_1_zone
-    - example_sandag/data_1
-    - example_sandag/output_1
+    - placeholder_sandag/../prototype_mtc/configs
+      prototype_mtc
+    - placeholder_sandag/configs_1_zone
+    - placeholder_sandag/data_1
+    - placeholder_sandag/output_1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/households.csv
       data_1/households.csv
       2b0b19a1a0b00901e80a533fc6418a4dbeb3d0b017d9feadae71324f9145dcec
@@ -656,31 +682,31 @@
       data_1/skims6.omx
       e3f7fb1e0b334fc83dc69985dce8b925e3660149c5de5635c7d8464e306074b9
 
-- name: example_sandag_2_zone
+- name: placeholder_sandag_2_zone
   description: 90-TAZ 609-MAZ (includes univ) 2-zone test example for the SANDAG region
-  # activitysim create -e example_sandag_2_zone -d test_example_sandag_2_zone
-  # cd test_example_sandag_2_zone
-  # activitysim run -c configs_2_zone -c example_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml
+  # activitysim create -e placeholder_sandag_2_zone -d test_placeholder_sandag_2_zone
+  # cd test_placeholder_sandag_2_zone
+  # activitysim run -c configs_2_zone -c placeholder_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/../example_psrc/configs
-      example_psrc
-    - example_sandag/configs_2_zone
-    - example_sandag/data_2
-    - example_sandag/output_2
+    - placeholder_sandag/../placeholder_psrc/configs
+      placeholder_psrc
+    - placeholder_sandag/configs_2_zone
+    - placeholder_sandag/data_2
+    - placeholder_sandag/output_2
 
-- name: example_sandag_2_zone_full
+- name: placeholder_sandag_2_zone_full
   description: full 2-zone example for the SANDAG region
-  # activitysim create -e example_sandag_2_zone_full -d test_example_sandag_2_zone_full
-  # cd test_example_sandag_2_zone_full
-  # activitysim run -c configs_2_zone -c example_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml
+  # activitysim create -e placeholder_sandag_2_zone_full -d test_placeholder_sandag_2_zone_full
+  # cd test_placeholder_sandag_2_zone_full
+  # activitysim run -c configs_2_zone -c placeholder_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/../example_psrc/configs
-      example_psrc
-    - example_sandag/configs_2_zone
-    - example_sandag/data_2
-    - example_sandag/output_2
+    - placeholder_sandag/../placeholder_psrc/configs
+      placeholder_psrc
+    - placeholder_sandag/configs_2_zone
+    - placeholder_sandag/data_2
+    - placeholder_sandag/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/households.csv
       data_2/households.csv
       4afe40dfbdb89f17cd150fd5b32245364d538cdebb91fd323e18c6f570d1a087
@@ -721,33 +747,33 @@
       data_2/skims6.omx
       77a82afa09ee1f4c48aa7928e96756525d170402ca99da04cdf676e45cb6fbcf
 
-- name: example_sandag_3_zone
+- name: placeholder_sandag_3_zone
   description: 90-TAZ 609-MAZ (includes univ) 3-zone test example for the SANDAG region
-  # activitysim create -e example_sandag_3_zone -d test_example_sandag_3_zone
-  # cd test_example_sandag_3_zone
-  # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
+  # activitysim create -e placeholder_sandag_3_zone -d test_placeholder_sandag_3_zone
+  # cd test_placeholder_sandag_3_zone
+  # activitysim run -c configs_3_zone -c prototype_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/data_3
-    - example_sandag/../example_mtc/configs
-      example_mtc
-    - example_sandag/configs_3_zone
-    - example_sandag/configs_skip_accessibility
-    - example_sandag/output_3
+    - placeholder_sandag/data_3
+    - placeholder_sandag/../prototype_mtc/configs
+      prototype_mtc
+    - placeholder_sandag/configs_3_zone
+    - placeholder_sandag/configs_skip_accessibility
+    - placeholder_sandag/output_3
 
-- name: example_sandag_3_zone_full
+- name: placeholder_sandag_3_zone_full
   description: full 3-zone example for the SANDAG region
-  # activitysim create -e example_sandag_3_zone_full -d test_example_sandag_3_zone_full
-  # cd test_example_sandag_3_zone_full
-  # activitysim run -c configs_3_zone -c example_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
+  # activitysim create -e placeholder_sandag_3_zone_full -d test_placeholder_sandag_3_zone_full
+  # cd test_placeholder_sandag_3_zone_full
+  # activitysim run -c configs_3_zone -c prototype_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    - example_sandag/data_3
-    - example_sandag/../example_mtc/configs
-      example_mtc
-    - example_sandag/configs_3_zone
-    - example_sandag/configs_skip_accessibility
-    - example_sandag/output_3
+    - placeholder_sandag/data_3
+    - placeholder_sandag/../prototype_mtc/configs
+      prototype_mtc
+    - placeholder_sandag/configs_3_zone
+    - placeholder_sandag/configs_skip_accessibility
+    - placeholder_sandag/output_3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims1.omx
       data_3/taz_skims1.omx
       5b56d0e79ec671e37f8c71f7fedd741d7bf32d2bced866ab1f03f3973fccce8c
@@ -806,55 +832,65 @@
       data_3/tap_lines.csv
       0e1b2c532e5e85b48e2ac77b2836be7ec0cc7cba79907c6f5fb11d2ba171230a
 
-- name: example_sandag_xborder
+- name: prototype_sandag_xborder
   description: SANDAG cross border travel model
-  # activitysim create -e example_sandag_xborder -d test_example_sandag_xborder
-  # cd test_example_sandag_xborder
+  # activitysim create -e prototype_sandag_xborder -d test_prototype_sandag_xborder
+  # cd test_prototype_sandag_xborder
   # python simulation.py
   # cd ..
   include:
-    - example_sandag_xborder/configs
-    - example_sandag_xborder/data
-    - example_sandag_xborder/extensions
-    - example_sandag_xborder/output
-    - example_sandag_xborder/simulation.py
+    - prototype_sandag_xborder/configs
+    - prototype_sandag_xborder/data
+    - prototype_sandag_xborder/extensions
+    - prototype_sandag_xborder/output
+    - prototype_sandag_xborder/simulation.py
 
-- name: example_sandag_xborder_full
+- name: prototype_sandag_xborder_full
   description: full scale SANDAG cross border travel model
-  # activitysim create -e example_sandag_xborder_full -d test_example_sandag_xborder_full
-  # cd test_example_sandag_xborder_full
+  # activitysim create -e prototype_sandag_xborder_full -d test_prototype_sandag_xborder_full
+  # cd test_prototype_sandag_xborder_full
   # python simulation.py
   # cd ..
   include:
-    - example_sandag_xborder/configs
-    - example_sandag_xborder/extensions
-    - example_sandag_xborder/output
-    - example_sandag_xborder/simulation.py
+    - prototype_sandag_xborder/configs
+    - prototype_sandag_xborder/extensions
+    - prototype_sandag_xborder/output
+    - prototype_sandag_xborder/simulation.py
     - https://raw.githubusercontent.com/ActivitySim/activitysim_resources/master/sandag_xborder/households_xborder.csv
       data/households_xborder.csv
+      d5eacdab200955de06bd70761c648624734740a05738e9ab387502654283acdd
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/maz_maz_walk.csv
-      data/maz_maz_walk.csv   
+      data/maz_maz_walk.csv
+      027bb92325cd3d19a68c0608d8f909b075a857d4a2793dd6b75a183d371bc1e0
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/maz_tap_walk.csv
-      data/maz_tap_walk.csv  
+      data/maz_tap_walk.csv
+      a5ba44307843ed3dd73448abe61b585d3c4f6a795414f4035cb14f2606a89c8b
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/mazs_xborder.csv
-      data/mazs_xborder.csv  
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/persons_xborder.csv
-      data/persons_xborder.csv 
+      data/mazs_xborder.csv
+      2d481ec20f69204fc02a259d2d7c4e3d955d6a83b13d7bae920c9c7f8e28c517
+    - prototype_sandag_xborder/data/persons_xborder.csv  # this matches the local tours_xborder, see below
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/tap_lines.csv
       data/tap_lines.csv 
+      750745a33f39963f0c3e4efa6135ff89fb7dd49f58f17cdbd90d62e7057fea01
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/taps.csv
-      data/taps.csv 
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/tours_xborder.csv
-      data/tours_xborder.csv   
+      data/taps.csv
+      9a6a29eb17079583e0c235525a58d301ab93f2b3a3bce537b142c85a0ad46606
+    - prototype_sandag_xborder/data/tours_xborder.csv  # the file on activitysim_resources is not consistent with this model
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/transit_skims_xborder.omx
       data/transit_skims_xborder.omx
+      8d5544cc6b543c6b45e77968efca8d62b7ec8b03bd30bdc5e46cd291b4e6b8d3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_AM.omx
       data/traffic_skims_xborder_AM.omx
+      b7f675e78d0d5f214b9ee4d5a4bb91a66692be1776f474381b8a024e3fcbf4a5
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_EA.omx
       data/traffic_skims_xborder_EA.omx
+      3d4978cba03c1fe5013bcc624b75e90456fe2ac723ca031ce0a1a50c758c3a92
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_EV.omx
       data/traffic_skims_xborder_EV.omx
+      3826807fbbf5a62b97a70022ea6979cd9d16129e326e5570159221db1cbc4584
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_MD.omx
       data/traffic_skims_xborder_MD.omx
+      9a83cf893e459019328aab726c4bd0fdcd38a2b5ecb88e0aa4a880b6104bbd3a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_PM.omx
-      data/traffic_skims_xborder_PM.omx      
+      data/traffic_skims_xborder_PM.omx
+      87544b59488c4ca654ae8d9756dfb3a8226b85faa21e631339d86fae5dc60feb

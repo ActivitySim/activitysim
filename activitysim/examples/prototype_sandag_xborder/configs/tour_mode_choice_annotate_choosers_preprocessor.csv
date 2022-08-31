@@ -1,0 +1,11 @@
+Description,Target,Expression
+list of POE wait time columns,_WAIT_PERIOD_COLS,land_use.filter(regex=wait_time_col_regex).columns.tolist()
+pedestrian crossing wait time column name for each tour,_PED_WAIT_PERIOD_COLS,'ped_wait_' + df.start.astype(str)
+standard crossing wait time column name for each tour,_STD_WAIT_PERIOD_COLS,'std_wait_' + df.start.astype(str)
+ready crossing wait time column name for each tour,_READY_WAIT_PERIOD_COLS,'ready_wait_' + df.start.astype(str)
+sentri crossing wait time column name for each tour,_SENTRI_WAIT_PERIOD_COLS,'sentri_wait_' + df.start.astype(str)
+unpivot (a.k.a melt) the POE wait time data,_LONG_WAIT_PERIOD_TIMES,"land_use[land_use['poe_id'].notnull()].reset_index().melt(id_vars='zone_id', value_vars=_WAIT_PERIOD_COLS, var_name='wait_type_period', value_name='time').set_index(['zone_id','wait_type_period'])"
+,std_wait,"_LONG_WAIT_PERIOD_TIMES.reindex([df[orig_col_name], _STD_WAIT_PERIOD_COLS])['time'].values"
+,ready_wait,"_LONG_WAIT_PERIOD_TIMES.reindex([df[orig_col_name], _READY_WAIT_PERIOD_COLS])['time'].values"
+,sentri_wait,"_LONG_WAIT_PERIOD_TIMES.reindex([df[orig_col_name], _SENTRI_WAIT_PERIOD_COLS])['time'].values"
+,ped_wait,"_LONG_WAIT_PERIOD_TIMES.reindex([df[orig_col_name], _PED_WAIT_PERIOD_COLS])['time'].values"

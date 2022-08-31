@@ -1,0 +1,10 @@
+Label,Description,Expression,atwork
+local_dist,local_dist,_DIST@skims['DIST'],1
+util_dist,util_dist,@_DIST,coef_dist_atwork
+util_dist_squared,util_dist_squared,"@(_DIST).clip(0,20)**2",coef_dist_squared_atwork
+util_dist_cubed,util_dist_cubed,"@(_DIST).clip(0,20)**3",coef_dist_cubed_atwork
+util_dist_logged,util_dist_logged,@(_DIST).apply(np.log1p),coef_dist_logged_atwork
+# util_size_variable_atwork,Size variable atwork,@df['atwork'].apply(np.log1p),coef_size_variable_atwork
+# util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",atwork==0,coef_no_attractions_atwork_size_variable_is_0
+util_size_variable_atwork,Size variable atwork,@df['size_term'].apply(np.log1p),coef_size_variable_atwork
+util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",size_term==0,coef_no_attractions_atwork_size_variable_is_0

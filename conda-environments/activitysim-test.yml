@@ -6,7 +6,7 @@ channels:
 dependencies:
 - python=${TRAVIS_PYTHON_VERSION}
 - pip
-- numpy >= 1.16.1
+- numpy >= 1.16.1,<=1.21
 - pandas >= 1.1.0
 - pyarrow >= 2.0
 - openmatrix >= 0.3.4.1
@@ -20,5 +20,6 @@ dependencies:
 - pytest
 - pytest-cov
 - coveralls
-- pycodestyle
+- black
 - pytest-regressions
+- simwrapper > 1.7

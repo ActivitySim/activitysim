@@ -91,7 +91,7 @@ def test_simple_simulate(est_data, num_regression, dataframe_regression, name, m
 
 
 @pytest.mark.parametrize(
-    "name,method",
+    "name,method,rtol",
     [
         ("workplace_location", "SLSQP", None),
         ("school_location", "SLSQP", None),

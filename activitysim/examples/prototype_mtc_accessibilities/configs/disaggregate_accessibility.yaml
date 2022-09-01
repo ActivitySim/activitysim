@@ -156,6 +156,3 @@ annotate_proto_tables:
 
 ### zone to zone crosswalk file
 # maz: maz_taz.csv
-
-### Destination sample size
-# sample_size:

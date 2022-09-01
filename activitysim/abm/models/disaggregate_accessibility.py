@@ -6,26 +6,22 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import mem
-from activitysim.core import chunk
+from activitysim.core import (inject,
+                              tracing,
+                              config,
+                              pipeline,
+                              mem,
+                              chunk)
 
-from activitysim.cli.run import handle_standard_args
-from activitysim.cli.run import cleanup_output_files
-
-from activitysim.abm.models import location_choice
-from activitysim.abm.models.util import tour_destination
+from activitysim.cli.run import (handle_standard_args, cleanup_output_files)
+from activitysim.abm.models import (location_choice, initialize)
+from activitysim.abm.models.util import (tour_destination, estimation)
 from activitysim.abm.tables import shadow_pricing
-from activitysim.abm.models.util import estimation
 from activitysim.core.expressions import assign_columns
-
 
 logger = logging.getLogger(__name__)
 INJECTABLES = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name']
-MODELS = ['initialize_landuse', 'compute_disaggregate_accessibility']
+MODELS = ['initialize_landuse', 'compute_disaggregate_accessibility', 'write_tables']
 
 
 # TODO enable preprocessing so the tables are filterable by row?
@@ -304,7 +300,6 @@ def disaggregate_location_choice(network_los, chunk_size, trace_hh_id):
                     chunk_size=chunk_size,
                     trace_label=tracing.extend_trace_label(segment_trace_label, 'logsums'))
 
-            print(persons_merged, alt_logsums)
             # Merge onto persons
             if alt_logsums is not None:
                 logsums[trace_label + "_accessibilities"] = \
@@ -368,12 +363,45 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Inject accessibilities into pipeline
     [inject.add_table(k, df) for k, df in logsums.items()]
 
+    # Override output tables to include accessibilities
+    new_settings = inject.get_injectable("settings")
+    if 'disaggregate_accessibility' in new_settings.get('output_tables')['tables']:
+        new_settings['output_tables']['tables'] = list(logsums.keys())
+    else:
+        new_settings['output_tables']['tables'] = []
+    inject.add_injectable("settings", new_settings)
+
     return
 
 
 @inject.step()
-def initialize_disaggregate_acessibility():
-    pass
+def initialize_disaggregate_accessibility():
+    """
+    This step initializes pre-computed disaggregate accessibilities and merges it onto the full synthetic population.
+    """
+    trace_label = "initialize_disaggregate_accessibilities"
+
+    with chunk.chunk_log(trace_label, base=True):
+
+        chunk.log_rss(f"{trace_label}.inside-yield")
+
+        households = inject.get_table("households").to_frame()
+        assert not households._is_view
+        chunk.log_df(trace_label, "households", households)
+        del households
+        chunk.log_df(trace_label, "households", None)
+
+        persons = inject.get_table("persons").to_frame()
+        assert not persons._is_view
+        chunk.log_df(trace_label, "persons", persons)
+        del persons
+        chunk.log_df(trace_label, "persons", None)
+
+        model_settings = config.read_model_settings(
+            "disaggregate_accessibility.yaml", mandatory=True
+        )
+        initialize.annotate_tables(model_settings, trace_label)
+
 
 # Modified 'run' function from activitysim.cli.run to override the models list in settings.yaml with MODELS list above
 # and run only the compute_disaggregate_accessibility step but retain all other main model settings.
@@ -460,19 +488,19 @@ def run_disaggregate_accessibility(args):
             logger.info('run single process simulation')
 
             pipeline.run(models=MODELS, resume_after=None)
-            destination_models = ['workplace_location', 'school_location', 'non_mandatory_tour_destination']
-
-            # workplace, school, etc.
-            if 'acc_to_csv' in args and args.acc_to_csv:
-                for acc_name in destination_models:
-                    acc_name += '_accessibilities'
-                    if pipeline.is_table(acc_name):
-                        acc_model = pipeline.get_table(acc_name)
-                        outpath = os.path.join(args.output, "{}.csv".format(acc_name))
-                        acc_model.to_csv(outpath, index=True)
-                        print("Wrote {} lines to {}".format(len(acc_model), outpath))
-                    else:
-                        print("No data in {}, skipping".format(acc_name))
+            # accessibility_models = ['workplace_location', 'school_location', 'non_mandatory_tour_destination']
+            #
+            # # workplace, school, etc.
+            # if 'acc_to_csv' in args and args.acc_to_csv:
+            #     for acc_name in accessibility_models:
+            #         acc_name += '_accessibilities'
+            #         if pipeline.is_table(acc_name):
+            #             acc_model = pipeline.get_table(acc_name)
+            #             outpath = os.path.join(args.output, "{}.csv".format(acc_name))
+            #             acc_model.to_csv(outpath, index=True)
+            #             print("Wrote {} lines to {}".format(len(acc_model), outpath))
+            #         else:
+            #             print("No data in {}, skipping".format(acc_name))
 
             if config.setting('cleanup_pipeline_after_run', False):
                 pipeline.cleanup_pipeline()  # has side effect of closing open pipeline

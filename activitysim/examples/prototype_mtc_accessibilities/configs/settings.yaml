@@ -180,10 +180,10 @@ checkpoints: True
 
 models:
   - initialize_landuse
-#  - compute_disaggregate_accessibility
-#  - initialize_disaggregate_accessibility
+  - compute_disaggregate_accessibility
+  # - initialize_disaggregate_accessibility
   - initialize_households
-#  - compute_accessibility
+  - compute_accessibility
   - school_location
   - workplace_location
   #- auto_ownership_simulate
@@ -224,6 +224,7 @@ output_tables:
   tables:
     - checkpoints
     - accessibility
+    - disaggregate_accessibility
     - land_use
     - households
     - persons

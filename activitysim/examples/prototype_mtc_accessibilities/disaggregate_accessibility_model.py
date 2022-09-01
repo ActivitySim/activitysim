@@ -11,7 +11,7 @@ def disaggregate_accessibility():
         return pkg_resources.resource_filename('activitysim', resource)
 
     def base_path(dirname):
-        resource = os.path.join('examples', 'example_mtc', dirname)
+        resource = os.path.join('examples', 'prototype_mtc', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def extended_path(dirname):
@@ -23,10 +23,9 @@ def disaggregate_accessibility():
     args = parser.parse_args()
 
     # add in the arguments
-    args.config = [base_path('configs'), extended_path('configs')]
+    args.config = [extended_path('configs'), base_path('configs')]
     args.output = extended_path('output')
     args.data = base_path('data')
-    args.acc_to_csv = True
 
     run_disaggregate_accessibility(args)
 

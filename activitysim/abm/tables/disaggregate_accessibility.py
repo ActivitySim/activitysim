@@ -8,35 +8,86 @@ from activitysim.core import inject
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
+#
+# # households = inject.get_table("households").to_frame()
+# # assert not households._is_view
+# # chunk.log_df(trace_label, "households", households)
+# # del households
+# # chunk.log_df(trace_label, "households", None)
+# #
+# # persons = inject.get_table("persons").to_frame()
+# # assert not persons._is_view
+# # chunk.log_df(trace_label, "persons", persons)
+# # del persons
+# # chunk.log_df(trace_label, "persons", None)
+#
+# persons_merged = inject.get_table("persons_merged").to_frame()
+# assert not persons_merged._is_view
+# chunk.log_df(trace_label, "persons_merged", persons_merged)
+# del persons_merged
+# chunk.log_df(trace_label, "persons_merged", None)
+#
+# model_settings = config.read_model_settings(
+#     "disaggregate_accessibility.yaml", mandatory=True
+# )
+# initialize.annotate_tables(model_settings, trace_label)
+#
+#
+# # Merge
+
+def read_disaggregate_accessibility(table_name):
+    """
+    Generic disaggregate accessibility table import function to recycle within table specific injection function calls.
+    If '*destination model*_accessibilities' is in input_tables list, then read it in.
+    """
+    df = read_input_table(table_name, required=False)
+    inject.add_table(table_name, df)
+    return df
 
 
 @inject.table()
-def accessibility(land_use):
+def workplace_location_accessibility(table_name='workplace_location_accessibility'):
     """
-    If 'accessibility' is in input_tables list, then read it in,
-    otherwise create skeleton table with same index as landuse.
-
-    This allows loading of pre-computed accessibility table, which is particularly useful
-    for single-process small household sample runs when there are many zones in landuse
-
-    skeleton table only required if multiprocessing wants to slice accessibility,
-    otherwise it will simply be replaced when accessibility model is run
+    This allows loading of pre-computed accessibility table.
     """
+    df = read_disaggregate_accessibility(table_name)
+    return df
 
-    accessibility_df = read_input_table("accessibility", required=False)
+@inject.table()
+def school_location_accessibility(table_name='school_location_accessibility'):
+    """
+    This allows loading of pre-computed accessibility table
+    """
+    df = read_disaggregate_accessibility(table_name)
+    return df
 
-    if accessibility_df is None:
-        accessibility_df = pd.DataFrame(index=land_use.index)
-        logger.debug(
-            "created placeholder accessibility table %s" % (accessibility_df.shape,)
-        )
-    else:
-        assert accessibility_df.sort_index().index.equals(
-            land_use.to_frame().sort_index().index
-        ), f"loaded accessibility table index does not match index of land_use table"
-        logger.info("loaded land_use %s" % (accessibility_df.shape,))
+@inject.table()
+def non_mandatory_tour_destination_accessibility(table_name='non_mandatory_tour_destination_accessibility'):
+    """
+    This allows loading of pre-computed accessibility table
+    """
+    df = read_disaggregate_accessibility(table_name)
+    return df
 
-    # replace table function with dataframe
-    inject.add_table("accessibility", accessibility_df)
-
-    return accessibility_df
+# @inject.table()
+# def disaggregate_accessibility():
+#     """
+#     If '*destination model*_accessibilities' is in input_tables list, then read it in.
+#     This allows loading of pre-computed accessibility table.
+#     """
+#
+#     def import_table(table_name):
+#         df = read_input_table(table_name, required=False)
+#
+#         # replace table function with dataframe
+#         inject.add_table(table_name, df)
+#
+#         return df
+#
+#     accessibility_tables = ['workplace_location_accessibilities',
+#                             'school_location_accessibilities',
+#                             'non_mandatory_tour_destination_accessibilities']
+#
+#     accessibilities = {k: import_table(k) for k in accessibility_tables}
+#
+#     return accessibilities

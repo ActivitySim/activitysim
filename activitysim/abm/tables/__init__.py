@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 from . import (
     accessibility,
+    disaggregate_accessibility,
     households,
     landuse,
     persons,

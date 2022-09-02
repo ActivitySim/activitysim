@@ -90,7 +90,10 @@ def run_disaggregate_accessibility(args):
     t0 = tracing.print_elapsed_time()
 
     INJECTABLES = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name']
-    MODELS = ['initialize_landuse', 'compute_disaggregate_accessibility', 'write_tables']
+    MODELS = ['initialize_landuse',
+              'compute_disaggregate_accessibility',
+              # 'initialize_disaggregate_accessibility',
+              'write_tables']
 
     try:
         # if config.setting('multiprocess', False):

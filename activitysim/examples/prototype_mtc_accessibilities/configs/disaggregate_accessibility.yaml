@@ -156,3 +156,10 @@ annotate_proto_tables:
 
 ### zone to zone crosswalk file
 # maz: maz_taz.csv
+
+initialize_tables:
+  - tablename: non_mandatory_tour_destination_accessibilities
+    filename: disaggregate_accessibilities/non_mandatory_tour_destination_accessibilities.csv
+  - tablename: workplace_location_accessibilities
+    filename: disaggregate_accessibilities/workplace_location_accessibilities.csv
+

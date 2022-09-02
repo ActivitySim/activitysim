@@ -332,15 +332,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Synthesize the proto-population
     proto = ProtoPop(land_use_df, model_settings)
 
-    # Segment vars
-    segment_vars = []
-    for v in ['persons', 'households']:
-        segment_vars.extend(list(proto.params[v]['variables'].keys()))
-        # Drop zone and index vars
-        _id = proto.model_settings['zones'] + [proto.params[v]['index_col'], proto.params[v]['zone_col']]
-        segment_vars = list(set(segment_vars).difference(set(filter(None, _id))))
-    segment_vars.extend(['pick_count', 'mode_choice_logsum'])
-
     # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
     # this can now be called as a standalone model step instead, add_size_tables
@@ -352,8 +343,18 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Run location choice
     logsums = disaggregate_location_choice(network_los, chunk_size, trace_hh_id)
 
-    # Clean up to keep only our target vars
-    logsums = {k: v[segment_vars] for k, v in logsums.items()}
+    if model_settings.get('trim_output', False):
+        # Segment vars
+        segment_vars = []
+        for v in ['persons', 'households']:
+            segment_vars.extend(list(proto.params[v]['variables'].keys()))
+            # Drop zone and index vars
+            _id = proto.model_settings['zones'] + [proto.params[v]['index_col'], proto.params[v]['zone_col']]
+            segment_vars = list(set(segment_vars).difference(set(filter(None, _id))))
+        segment_vars.extend(['alt_dest', 'pick_count', 'mode_choice_logsum'])
+
+        # Clean up to keep only our target vars
+        logsums = {k: v[segment_vars] for k, v in logsums.items()}
 
     # Inject accessibilities into pipeline
     [inject.add_table(k, df) for k, df in logsums.items()]
@@ -363,55 +364,33 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     new_settings['output_tables']['tables'] = list(logsums.keys())
     new_settings['output_tables']['prefix'] = ""
 
-    # if 'disaggregate_accessibility' in new_settings.get('output_tables')['tables']:
-    #     new_settings['output_tables']['tables'] = list(logsums.keys())
-    #     new_settings['output_tables']['prefix'] = ""
-    # else:
-    #     new_settings['output_tables']['tables'] = []
     inject.add_injectable("settings", new_settings)
 
     return
 
-
+# TODO Not working yet
 @inject.step()
 def initialize_disaggregate_accessibility():
     """
     This step initializes pre-computed disaggregate accessibilities and merges it onto the full synthetic population.
+    Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
+
     """
     trace_label = "initialize_disaggregate_accessibilities"
+
+    model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
 
     with chunk.chunk_log(trace_label, base=True):
 
         chunk.log_rss(f"{trace_label}.inside-yield")
 
-        # Load disaggregate accessibilities
+        # TODO 1) load tables, 2) merge with full pop, this can be done on the injection side in tables/disaggregate_accessibility
+        # Load disaggregate accessibilities and merge
+        # {k: inject.get_table(k).to_frame() for k in model_settings.get('initialize_tables')}
+
+    return
 
 
-        # households = inject.get_table("households").to_frame()
-        # assert not households._is_view
-        # chunk.log_df(trace_label, "households", households)
-        # del households
-        # chunk.log_df(trace_label, "households", None)
-        #
-        # persons = inject.get_table("persons").to_frame()
-        # assert not persons._is_view
-        # chunk.log_df(trace_label, "persons", persons)
-        # del persons
-        # chunk.log_df(trace_label, "persons", None)
-
-        persons_merged = inject.get_table("persons_merged").to_frame()
-        assert not persons_merged._is_view
-        chunk.log_df(trace_label, "persons_merged", persons_merged)
-        del persons_merged
-        chunk.log_df(trace_label, "persons_merged", None)
-
-
-        model_settings = config.read_model_settings(
-            "disaggregate_accessibility.yaml", mandatory=True
-        )
-        initialize.annotate_tables(model_settings, trace_label)
-
-        # Merge
 
 
 @inject.step()

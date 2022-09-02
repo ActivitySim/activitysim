@@ -655,6 +655,8 @@ class MazSkimDict(SkimDict):
             skim_info.offset_map = recode_based_on_table(
                 taz_skim_dict.skim_info.offset_map, "land_use_taz"
             )
+        else:
+            skim_info = taz_skim_dict.skim_info
 
         super().__init__(skim_tag, skim_info, taz_skim_dict.skim_data)
         assert (

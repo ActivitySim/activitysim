@@ -7,8 +7,6 @@ from builtins import object, range
 import numpy as np
 import pandas as pd
 
-from activitysim.core.util import quick_loc_series
-
 logger = logging.getLogger(__name__)
 
 NOT_IN_SKIM_ZONE_ID = -1
@@ -125,9 +123,6 @@ class OffsetMapper(object):
         if self.offset_series is not None:
             assert self.offset_int is None
             assert isinstance(self.offset_series, pd.Series)
-
-            # FIXME - turns out it is faster to use series.map if zone_ids is a series
-            # offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
 
             if isinstance(zone_ids, np.ndarray):
                 zone_ids = pd.Series(zone_ids)
@@ -637,7 +632,31 @@ class MazSkimDict(SkimDict):
 
         self.network_los = network_los
 
-        super().__init__(skim_tag, taz_skim_dict.skim_info, taz_skim_dict.skim_data)
+        from activitysim.core.cleaning import (
+            recode_based_on_table,
+            should_recode_based_on_table,
+        )
+
+        if should_recode_based_on_table("land_use_taz"):
+            from .skim_dict_factory import SkimInfo
+
+            skim_info = SkimInfo(None, network_los)
+            skim_info.skim_tag = taz_skim_dict.skim_info.skim_tag
+            skim_info.dtype_name = network_los.skim_dtype_name
+            skim_info.omx_manifest = taz_skim_dict.skim_info.omx_manifest
+            skim_info.omx_shape = taz_skim_dict.skim_info.omx_shape
+            skim_info.num_skims = taz_skim_dict.skim_info.num_skims
+            skim_info.skim_data_shape = taz_skim_dict.skim_info.skim_data_shape
+            skim_info.offset_map_name = taz_skim_dict.skim_info.offset_map_name
+            skim_info.omx_keys = taz_skim_dict.skim_info.omx_keys
+            skim_info.base_keys = taz_skim_dict.skim_info.base_keys
+            skim_info.block_offsets = taz_skim_dict.skim_info.block_offsets
+
+            skim_info.offset_map = recode_based_on_table(
+                taz_skim_dict.skim_info.offset_map, "land_use_taz"
+            )
+
+        super().__init__(skim_tag, skim_info, taz_skim_dict.skim_data)
         assert (
             self.offset_mapper is not None
         )  # should have been set with _init_offset_mapper

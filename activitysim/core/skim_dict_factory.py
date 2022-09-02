@@ -5,12 +5,12 @@
 import logging
 import multiprocessing
 import os
-from abc import ABC, abstractmethod
+from abc import ABC
 
 import numpy as np
 import openmatrix as omx
 
-from activitysim.core import config, inject, skim_dictionary, tracing, util
+from activitysim.core import config, inject, skim_dictionary, util
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +87,8 @@ class SkimInfo(object):
         self.base_keys = None
         self.block_offsets = None
 
-        self.load_skim_info(skim_tag)
+        if skim_tag:
+            self.load_skim_info(skim_tag)
 
     def load_skim_info(self, skim_tag):
         """

@@ -693,6 +693,9 @@
       placeholder_psrc
     - placeholder_sandag/configs_2_zone
     - placeholder_sandag/data_2
+    - placeholder_sandag/data_3/maz_to_maz_bike.csv
+      data_2/maz_to_maz_bike.csv
+      # the original data for data_2 was corrupted, but there's no need to store this file twice in the repo
     - placeholder_sandag/output_2
 
 - name: placeholder_sandag_2_zone_full
@@ -870,7 +873,7 @@
       2d481ec20f69204fc02a259d2d7c4e3d955d6a83b13d7bae920c9c7f8e28c517
     - prototype_sandag_xborder/data/persons_xborder.csv  # this matches the local tours_xborder, see below
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/tap_lines.csv
-      data/tap_lines.csv 
+      data/tap_lines.csv
       750745a33f39963f0c3e4efa6135ff89fb7dd49f58f17cdbd90d62e7057fea01
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/taps.csv
       data/taps.csv

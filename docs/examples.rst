@@ -56,6 +56,8 @@ The current examples are:
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_sandag_xborder` | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| :ref:`prototype_mwcog`          | MWCOG agency example                                      | 2            | In development       |
++---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
    The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
@@ -1583,3 +1585,16 @@ Example
 
 See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+
+.. _prototype_mwcog :
+
+prototype_mwcog
+---------------
+
+The prototype_mwcog is a one zone system (TAZs only).
+
+Example
+~~~~~~~
+
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running prototype_mwcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

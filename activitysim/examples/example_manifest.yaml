@@ -695,6 +695,7 @@
     - placeholder_sandag/data_2
     - placeholder_sandag/data_3/maz_to_maz_bike.csv
       data_2/maz_to_maz_bike.csv
+      # the original data for data_2 was corrupted, but there's no need to store this file twice in the repo
     - placeholder_sandag/output_2
 
 - name: placeholder_sandag_2_zone_full
@@ -898,3 +899,18 @@
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_PM.omx
       data/traffic_skims_xborder_PM.omx
       87544b59488c4ca654ae8d9756dfb3a8226b85faa21e631339d86fae5dc60feb
+
+- name: prototype_mwcog
+  description: 53 zone test example for the MWCOG region
+  # activitysim create -e prototype_mwcog -d test_prototype_mwcog
+  # cd test_prototype_mwcog
+  # python simulation.py -c configs -o output -d data
+  # cd ..
+  include:
+    - prototype_mwcog/extensions
+    - prototype_mwcog/data
+    - prototype_mwcog/configs
+    - prototype_mwcog/configs_mp
+    - prototype_mwcog/output
+    - prototype_mwcog/README.MD
+    - prototype_mwcog/simulation.py

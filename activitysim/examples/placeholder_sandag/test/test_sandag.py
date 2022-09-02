@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
+import shutil
 import subprocess
 
 import pandas as pd
@@ -32,7 +33,10 @@ def psrc_example_path(dirname):
 
 
 def build_data():
-    pass
+    shutil.copy(
+        example_path(os.path.join("data_3", "maz_to_maz_bike.csv")),
+        example_path(os.path.join("data_2", "maz_to_maz_bike.csv")),
+    )
 
 
 @pytest.fixture(scope="module")

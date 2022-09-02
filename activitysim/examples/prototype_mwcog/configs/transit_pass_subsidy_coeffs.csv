@@ -1,0 +1,10 @@
+coefficient_name,coefficient_name,value,constrain
+coef_ft,Full-time worker,1.882665664,F
+coef_pt,Part-time worker,1.360746182,F
+coef_un,University/College,2.026985147,F
+coef_na70,NAICS 70 (Entertain/accom),-0.659568416,F
+coef_na80,NAICS 80 (Other services),-0.352588858,F
+coef_publ,NAICS 90 (Public admin),0.864991571,F
+coef_tr_hh_emp,Transit accessibility to households,0.049608562,F
+coef_pkcost,Daily parking cost (dollars),0.060145818,F
+coef_sub_asc,Constant,-5.138015944,F

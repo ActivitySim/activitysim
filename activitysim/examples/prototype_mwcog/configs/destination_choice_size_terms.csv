@@ -1,0 +1,26 @@
+model_selector,segment,HH,TOTEMP,INDEMP,RETEMP,OTHEMP,OFFEMP,K_8,G9_12,COLLEGE,Park_Acres,GC_Acres
+workplace,work_low,0,0,1,2.3131,2.2566,1,0,0,0,0,0
+workplace,work_med,0,0,0.2828,0.5745,1.3069,1,0,0,0,0,0
+workplace,work_high,0,0,0.3528,0.2593,0.81,1,0,0,0,0,0
+workplace,work_veryhigh,0,0,0.1523,0.1345,0.81,1,0,0,0,0,0
+school,university,0,0,0,0,0,0,0,0,1,0,0
+school,gradeschool,0,0,0,0,0,0,1,0,0,0,0
+school,highschool,0,0,0,0,0,0,0,1,0,0,0
+non_mandatory,escort,0.3564,0,0.4562,0.2672,0.7392,0.0876,1,0.5518,0,0,0
+non_mandatory,shopping,0,0,0,1,0,0.6418,0,0,0,0,0
+non_mandatory,eatout,0.0286,0,0,1,0.0877,0,0,0,0,0,0
+non_mandatory,othmaint,0.1122,0,0.0183,1,0.5016,0.2158,0,0,0,0,0
+non_mandatory,social,1,0,0,0.3833,0,0,0,0,0,0,0
+non_mandatory,othdiscr,0.3429,0,0,0.268,1,0.268,0,0,0,0.3429,1.6185
+atwork,atwork,0,0,0,1,0,0.5399,0,0,0,0,0
+trip,work,0,1,1,1,1,1,0,0,0,0,0
+trip,escort,0.001,0,0,0.225,0,0,0.465,0.166,0,0,0
+trip,shopping,0.001,0,0,0.999,0,0,0,0,0,0,0
+trip,eatout,0,0,0,0.742,0,0,0,0,0,0,0
+trip,othmaint,0.001,0,0,0.481,0,0,0,0,0,0,0
+trip,social,0.001,0,0,0.521,0,0,0,0,0,0,0
+trip,othdiscr,0.252,0,0,0.212,0.165,0.165,0,0.098,0,0,0
+trip,univ,0,0,0,0,0,0,0,0,1,0,0
+# not needed as school is not chosen as an intermediate trip destination,,,,,,,,,,0,0,0
+#trip,gradeschool,0,0,0,0,0,0,0,0,0,0,0
+#trip,highschool,0,0,0,0,0,0,1,1,0,0,0

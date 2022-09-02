@@ -1,0 +1,6 @@
+
+SPEC: auto_ownership.csv
+COEFFICIENTS: auto_ownership_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL

@@ -96,5 +96,5 @@ util_escort_tour_duration_constants_11_to_13_hours,Escort Tour Duration Constant
 util_escort_tour_duration_constants_14_to_18_hours,Escort Tour Duration Constants -- 14 to 18 hours,(tour_type == 'escort') & (duration > 13) & (duration < 19),coef_escort_tour_duration_constants_14_to_18_hours
 # Including terms for school escorting,,,
 util_outbound_school_escort_tour_start,Outbound school escort tours must match the start time of the escort tour,is_outbound_school_escort_tour & (start != school_escort_tour_start),coef_unavailable
-util_outbound_school_escort_tour_next_start,Outbound school escort tours must end before next escort tour start,is_outbound_school_escort_tour & (end >= school_escort_tour_next_start) & (school_escort_tour_next_start > 0),coef_unavailable
+util_outbound_school_escort_tour_next_start,Outbound school escort tours must end before next escort tour start,is_outbound_school_escort_tour & (end > school_escort_tour_next_start) & (school_escort_tour_next_start > 0),coef_unavailable
 util_inbound_school_escort_tour_end,Inbound school escort tours must match the end time of the escort tour,is_inbound_school_escort_tour & (end != school_escort_tour_end),coef_unavailable

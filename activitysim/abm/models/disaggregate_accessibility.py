@@ -1,30 +1,25 @@
 import yaml
 import collections
 import os
+import sys
 import itertools
 import logging
-import numpy as np
 import pandas as pd
+import subprocess
+import pkg_resources
 
 from activitysim.core import (inject,
                               tracing,
                               config,
                               pipeline,
-                              mem,
                               chunk)
 
-from activitysim.cli.run import (handle_standard_args, cleanup_output_files)
 from activitysim.abm.models import (location_choice, initialize)
 from activitysim.abm.models.util import (tour_destination, estimation)
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
-INJECTABLES = ['data_dir', 'configs_dir', 'output_dir', 'settings_file_name']
-MODELS = ['initialize_landuse', 'compute_disaggregate_accessibility', 'write_tables']
-
-
-# TODO enable preprocessing so the tables are filterable by row?
 
 
 # Generic helper functions
@@ -365,10 +360,14 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
 
     # Override output tables to include accessibilities
     new_settings = inject.get_injectable("settings")
-    if 'disaggregate_accessibility' in new_settings.get('output_tables')['tables']:
-        new_settings['output_tables']['tables'] = list(logsums.keys())
-    else:
-        new_settings['output_tables']['tables'] = []
+    new_settings['output_tables']['tables'] = list(logsums.keys())
+    new_settings['output_tables']['prefix'] = ""
+
+    # if 'disaggregate_accessibility' in new_settings.get('output_tables')['tables']:
+    #     new_settings['output_tables']['tables'] = list(logsums.keys())
+    #     new_settings['output_tables']['prefix'] = ""
+    # else:
+    #     new_settings['output_tables']['tables'] = []
     inject.add_injectable("settings", new_settings)
 
     return
@@ -385,147 +384,50 @@ def initialize_disaggregate_accessibility():
 
         chunk.log_rss(f"{trace_label}.inside-yield")
 
-        households = inject.get_table("households").to_frame()
-        assert not households._is_view
-        chunk.log_df(trace_label, "households", households)
-        del households
-        chunk.log_df(trace_label, "households", None)
+        # Load disaggregate accessibilities
 
-        persons = inject.get_table("persons").to_frame()
-        assert not persons._is_view
-        chunk.log_df(trace_label, "persons", persons)
-        del persons
-        chunk.log_df(trace_label, "persons", None)
+
+        # households = inject.get_table("households").to_frame()
+        # assert not households._is_view
+        # chunk.log_df(trace_label, "households", households)
+        # del households
+        # chunk.log_df(trace_label, "households", None)
+        #
+        # persons = inject.get_table("persons").to_frame()
+        # assert not persons._is_view
+        # chunk.log_df(trace_label, "persons", persons)
+        # del persons
+        # chunk.log_df(trace_label, "persons", None)
+
+        persons_merged = inject.get_table("persons_merged").to_frame()
+        assert not persons_merged._is_view
+        chunk.log_df(trace_label, "persons_merged", persons_merged)
+        del persons_merged
+        chunk.log_df(trace_label, "persons_merged", None)
+
 
         model_settings = config.read_model_settings(
             "disaggregate_accessibility.yaml", mandatory=True
         )
         initialize.annotate_tables(model_settings, trace_label)
 
+        # Merge
 
-# Modified 'run' function from activitysim.cli.run to override the models list in settings.yaml with MODELS list above
-# and run only the compute_disaggregate_accessibility step but retain all other main model settings.
-# This enables it to be run as either a model step, or a one-off model.
-# example model run is in examples/example_mtc_accessibility/disaggregate_accessibility_model.py
-def run_disaggregate_accessibility(args):
-    """
-    Run the models. Specify a project folder using the '--working_dir' option,
-    or point to the config, data, and output folders directly with
-    '--config', '--data', and '--output'. Both '--config' and '--data' can be
-    specified multiple times. Directories listed first take precedence.
 
-    returns:
-        int: sys.exit exit code
-    """
+@inject.step()
+def disaggregate_accessibility_subprocess():
+    run_file = os.path.join('abm', 'models', 'disaggregate_accessibility_run.py')
+    run_file = pkg_resources.resource_filename('activitysim', run_file)
 
-    # register abm steps and other abm-specific injectables
-    # by default, assume we are running activitysim.abm
-    # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
-    # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
-    if not inject.is_injectable('preload_injectables'):
-        from activitysim import abm  # register abm steps and other abm-specific injectables
+    subprocess.run(['coverage', 'run', '-a', run_file] + sys.argv[1:], check=True, shell=True)
+    # subprocess.Popen(['python', '-u', __file__] + sys.argv[1:], stdout=sys.stdout, stderr=subprocess.PIPE)
 
-    tracing.config_logger(basic=True)
-    handle_standard_args(args)  # possibly update injectables
-
-    # cleanup
-    cleanup_output_files()
-
-    tracing.config_logger(basic=False)  # update using possibly new logging configs
-    config.filter_warnings()
-    logging.captureWarnings(capture=True)
-
-    # directories
-    for k in ['configs_dir', 'settings_file_name', 'data_dir', 'output_dir']:
-        logger.info('SETTING %s: %s' % (k, inject.get_injectable(k, None)))
-
-    log_settings = inject.get_injectable('log_settings', {})
-    for k in log_settings:
-        logger.info('SETTING %s: %s' % (k, config.setting(k)))
-
-    # OMP_NUM_THREADS: openmp
-    # OPENBLAS_NUM_THREADS: openblas
-    # MKL_NUM_THREADS: mkl
-    for env in ['MKL_NUM_THREADS', 'OMP_NUM_THREADS', 'OPENBLAS_NUM_THREADS']:
-        logger.info(f"ENV {env}: {os.getenv(env)}")
-
-    np_info_keys = [
-        'atlas_blas_info',
-        'atlas_blas_threads_info',
-        'atlas_info',
-        'atlas_threads_info',
-        'blas_info',
-        'blas_mkl_info',
-        'blas_opt_info',
-        'lapack_info',
-        'lapack_mkl_info',
-        'lapack_opt_info',
-        'mkl_info']
-
-    for cfg_key in np_info_keys:
-        info = np.__config__.get_info(cfg_key)
-        if info:
-            for info_key in ['libraries']:
-                if info_key in info:
-                    logger.info(f"NUMPY {cfg_key} {info_key}: {info[info_key]}")
-
-    t0 = tracing.print_elapsed_time()
-
-    try:
-        # if config.setting('multiprocess', False):
-        #     logger.info('run multiprocess simulation')
-        #
-        #     from activitysim.core import mp_tasks
-        #     injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-        #     mp_tasks.run_multiprocess(injectables)
-        #
-        #     assert not pipeline.is_open()
-        #
-        #     if config.setting('cleanup_pipeline_after_run', False):
-        #         pipeline.cleanup_pipeline()
-        #
-        # else:
-            logger.info('run single process simulation')
-
-            pipeline.run(models=MODELS, resume_after=None)
-            # accessibility_models = ['workplace_location', 'school_location', 'non_mandatory_tour_destination']
-            #
-            # # workplace, school, etc.
-            # if 'acc_to_csv' in args and args.acc_to_csv:
-            #     for acc_name in accessibility_models:
-            #         acc_name += '_accessibilities'
-            #         if pipeline.is_table(acc_name):
-            #             acc_model = pipeline.get_table(acc_name)
-            #             outpath = os.path.join(args.output, "{}.csv".format(acc_name))
-            #             acc_model.to_csv(outpath, index=True)
-            #             print("Wrote {} lines to {}".format(len(acc_model), outpath))
-            #         else:
-            #             print("No data in {}, skipping".format(acc_name))
-
-            if config.setting('cleanup_pipeline_after_run', False):
-                pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
-            else:
-                pipeline.close_pipeline()
-
-            mem.log_global_hwm()  # main process
-    except Exception:
-        # log time until error and the error traceback
-        tracing.print_elapsed_time('all models until this error', t0)
-        logger.exception('activitysim run encountered an unrecoverable error')
-        raise
-
-    chunk.consolidate_logs()
-    mem.consolidate_logs()
-
-    tracing.print_elapsed_time('all models', t0)
-
-    return 0
 
 if __name__ == "__main__":
     # FOR TESTING PROTO-POP
     base_dir = 'C:/gitclones/activitysim-disagg_accessibilities/activitysim/examples'
     acc_configs = os.path.join(base_dir, 'prototype_mtc_accessibilities/configs/disaggregate_accessibility.yaml')
-    data_dir = os.path.join(base_dir, 'example_mtc/data')
+    data_dir = os.path.join(base_dir, 'prototype_mtc/data')
 
     # Model Settings
     with open(acc_configs, 'r') as file:
@@ -536,3 +438,5 @@ if __name__ == "__main__":
     land_use_df = land_use_df.rename(columns={'TAZ': 'zone_id'}).set_index('zone_id')
 
     PP = ProtoPop(land_use_df, model_settings, pipeline=False)
+
+

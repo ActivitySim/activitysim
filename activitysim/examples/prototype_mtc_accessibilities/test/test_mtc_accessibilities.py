@@ -33,7 +33,6 @@ def test_mtc_accessibilities():
         pdt.assert_frame_equal(final_trips_df, regress_trips_df)
 
     sim_file_path = os.path.join(os.path.dirname(__file__), 'simulation.py')
-    acc_file_path = os.path.join(os.path.dirname(__file__), 'disaggregate_accessibility_model.py')
 
     # TODO run disagg accessibilities then run the model. Or run as a model step?
     # subprocess.run(['run', '-a', acc_file_path], check=True)

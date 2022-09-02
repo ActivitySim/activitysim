@@ -83,6 +83,10 @@ input_table_list:
       - COLLPTE
       - TOPOLOGY
       - TERMINAL
+  # - tablename: disaggregate_accessibility
+    # filename: land_use.csv
+
+
 
 # convert input CSVs to HDF5 format and save to outputs directory
 # create_input_store: True
@@ -179,9 +183,9 @@ checkpoints: True
 
 
 models:
-  - initialize_landuse
-  - compute_disaggregate_accessibility
+  - disaggregate_accessibility_subprocess
   # - initialize_disaggregate_accessibility
+  - initialize_landuse
   - initialize_households
   - compute_accessibility
   - school_location

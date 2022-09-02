@@ -3,6 +3,7 @@
 import os
 import shutil
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -51,9 +52,16 @@ def run_test(zone, multiprocess=False, sharrow=False):
     def regress(zone):
 
         # ## regress tours
-        regress_tours_df = pd.read_csv(
-            test_path(f"regress/final_{zone}_zone_tours.csv")
-        )
+        if sharrow and os.path.isfile(
+            test_path(f"regress/final_{zone}_zone_tours_sh.csv")
+        ):
+            regress_tours_df = pd.read_csv(
+                test_path(f"regress/final_{zone}_zone_tours_sh.csv")
+            )
+        else:
+            regress_tours_df = pd.read_csv(
+                test_path(f"regress/final_{zone}_zone_tours.csv")
+            )
         tours_df = pd.read_csv(test_path(f"output_{zone}/final_{zone}_zone_tours.csv"))
         tours_df.to_csv(
             test_path(f"regress/final_{zone}_zone_tours_last_run.csv"), index=False
@@ -64,9 +72,16 @@ def run_test(zone, multiprocess=False, sharrow=False):
         )
 
         # ## regress trips
-        regress_trips_df = pd.read_csv(
-            test_path(f"regress/final_{zone}_zone_trips.csv")
-        )
+        if sharrow and os.path.isfile(
+            test_path(f"regress/final_{zone}_zone_trips_sh.csv")
+        ):
+            regress_trips_df = pd.read_csv(
+                test_path(f"regress/final_{zone}_zone_trips_sh.csv")
+            )
+        else:
+            regress_trips_df = pd.read_csv(
+                test_path(f"regress/final_{zone}_zone_trips.csv")
+            )
         trips_df = pd.read_csv(test_path(f"output_{zone}/final_{zone}_zone_trips.csv"))
         trips_df.to_csv(
             test_path(f"regress/final_{zone}_zone_trips_last_run.csv"), index=False
@@ -103,7 +118,37 @@ def run_test(zone, multiprocess=False, sharrow=False):
     if sharrow:
         run_args = ["-c", test_path(f"configs_{zone}_sharrow")] + run_args
 
-    subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    try:
+        subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    except FileNotFoundError:
+        subprocess.run([sys.executable, file_path] + run_args, check=True)
+        from tempfile import TemporaryFile
+        from time import sleep
+
+        with TemporaryFile() as outputstream:
+            env = os.environ.copy()
+            pythonpath = env.pop("PYTHONPATH", None)
+            process = subprocess.Popen(
+                args=[sys.executable, file_path] + run_args,
+                shell=True,
+                stdout=outputstream,
+                stderr=subprocess.STDOUT,
+                cwd=os.getcwd(),
+                env=env,
+            )
+            while process.poll() is None:
+                where = outputstream.tell()
+                lines = outputstream.read()
+                if not lines:
+                    # Adjust the sleep interval to your needs
+                    sleep(0.25)
+                    # make sure pointing to the last place we read
+                    outputstream.seek(where)
+                else:
+                    # Windows adds an extra carriage return and then chokes on
+                    # it when displaying (or, as it were, not displaying) the
+                    # output.  So we give Windows a little helping hand.
+                    print(lines.decode().replace("\r\n", "\n"), end="")
 
     regress(zone)
 
@@ -146,6 +191,13 @@ def test_3_zone_mp(data):
     run_test(zone="3", multiprocess=True)
 
 
+def test_3_zone_sharrow(data):
+    # Run both single and MP in one test function
+    # guarantees that compile happens in single
+    run_test(zone="3", multiprocess=False, sharrow=True)
+    run_test(zone="3", multiprocess=True, sharrow=True)
+
+
 if __name__ == "__main__":
 
     # call each test explicitly so we get a pass/fail for each
@@ -162,3 +214,5 @@ if __name__ == "__main__":
 
     run_test(zone="3", multiprocess=False)
     run_test(zone="3", multiprocess=True)
+    run_test(zone="3", multiprocess=False, sharrow=True)
+    run_test(zone="3", multiprocess=True, sharrow=True)

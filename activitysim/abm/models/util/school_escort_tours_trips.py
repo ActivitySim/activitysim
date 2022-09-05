@@ -212,7 +212,7 @@ def create_child_escorting_stops(row, escortee_num):
 def create_escortee_trips(bundles):
 
     escortee_trips = []
-    for escortee_num in range(0, bundles.num_escortees.max() + 1):
+    for escortee_num in range(0, int(bundles.num_escortees.max()) + 1):
         escortee_bundles = bundles.apply(
             lambda row: create_child_escorting_stops(row, escortee_num), axis=1
         )

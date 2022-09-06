@@ -451,7 +451,9 @@ class Network_LOS(object):
                 assert not (
                     maz_skim_dict.offset_mapper.map(self.maz_taz_df["MAZ"].values)
                     == NOT_IN_SKIM_ZONE_ID
-                ).any()
+                ).any(), (
+                    "every MAZ in the MAZ-to-TAZ mapping must map to a TAZ that exists"
+                )
             else:
                 self.skim_dicts["maz"] = self.get_skim_dict("maz")
                 # TODO:SHARROW: make sure skim has all maz_ids

@@ -1273,7 +1273,7 @@ class TransitVirtualPathLogsumWrapper(object):
             # do we want to allow this?  alternatively the onus can be on the
             # spec writer not to use them twice
             cached = self.cache.get(path_type)
-            if self.df.index[0] in cached.index:
+            if "logsum" in cached and self.df.index[0] in cached.index:
                 recalled_logsums = cached.reindex(self.df.index).logsum
                 if not recalled_logsums.isna().any():
                     return recalled_logsums
@@ -1318,11 +1318,21 @@ class TransitVirtualPathLogsumWrapper(object):
             choices_df = logsum_df[["atap", "btap", "path_set"]]
 
             if path_type in self.cache:
-                assert (
+                if (
                     len(self.cache.get(path_type).index.intersection(logsum_df.index))
                     == 0
-                )
-                choices_df = pd.concat([self.cache.get(path_type), choices_df])
+                ):
+                    choices_df = pd.concat([self.cache.get(path_type), choices_df])
+                else:
+                    intersect = self.cache.get(path_type).index.intersection(
+                        logsum_df.index
+                    )
+                    choices_df = pd.concat(
+                        [
+                            self.cache.get(path_type),
+                            choices_df.loc[~choices_df.index.isin(intersect)],
+                        ]
+                    )
 
             self.cache[path_type] = choices_df
 

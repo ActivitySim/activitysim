@@ -4,6 +4,8 @@
 import argparse
 import sys
 
+import extensions  # noqa: F401
+
 from activitysim.cli.run import add_run_args, run
 
 if __name__ == "__main__":

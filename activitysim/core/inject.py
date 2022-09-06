@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import warnings
 
 from orca import orca
 
@@ -26,6 +27,31 @@ def step():
         assert not _DECORATED_STEPS.get(name, False), (
             "step '%s' already decorated." % name
         )
+        if _DECORATED_STEPS.get(name, False):
+            warnings.warn(
+                f"step {name!r} already exists, ignoring default implementation."
+            )
+        else:
+            _DECORATED_STEPS[name] = func
+            orca.add_step(name, func)
+
+        return func
+
+    return decorator
+
+
+def custom_step():
+    """
+    This decorator allows custom steps to potentially overload existing steps.
+    """
+
+    def decorator(func):
+        name = func.__name__
+
+        logger.debug("inject step %s" % name)
+
+        if _DECORATED_STEPS.get(name, False):
+            warnings.warn(f"step {name!r} already exists, overwriting it.")
         _DECORATED_STEPS[name] = func
 
         orca.add_step(name, func)

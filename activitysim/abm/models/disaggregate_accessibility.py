@@ -4,9 +4,9 @@ import os
 import sys
 import itertools
 import logging
-import pandas as pd
 import subprocess
 import pkg_resources
+import pandas as pd
 
 from activitysim.core import (inject,
                               tracing,
@@ -14,13 +14,12 @@ from activitysim.core import (inject,
                               pipeline,
                               chunk)
 
-from activitysim.abm.models import (location_choice, initialize)
+from activitysim.abm.models import location_choice
 from activitysim.abm.models.util import (tour_destination, estimation)
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
-
 
 # Generic helper functions
 def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.OrderedDict):
@@ -194,26 +193,21 @@ class ProtoPop:
         pipeline.get_rn_generator().add_channel('persons_merged', persons_merged)
         # pipeline.get_rn_generator().drop_channel('persons_merged')
 
+def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
+    logsums = {}
+    persons_merged = pipeline.get_table('persons_merged').sort_index(inplace=False)
 
-def disaggregate_location_choice(network_los, chunk_size, trace_hh_id):
-    """
-    Generalized location choice to produce output for accessibilities
-    """
+    for model_name in ['workplace_location', 'school_location', 'non_mandatory_tour_destination']:
+        trace_label = tracing.extend_trace_label(model_name, 'accessibilities')
+        model_settings = config.read_model_settings(model_name + '.yaml')
 
-    # Work/School location choice
-    def fixed_location(persons_merged, network_los, chunk_size, trace_hh_id):
-        logsums = {}
+        estimator = estimation.manager.begin_estimation(trace_label)
+        if estimator:
+            location_choice.write_estimation_specs(estimator, model_settings, model_name + '.yaml')
 
-        for model_name in ['workplace_location', 'school_location']:
-            trace_label = tracing.extend_trace_label(model_name, 'accessibilities')
-            model_settings = config.read_model_settings(model_name + '.yaml')
+        if model_name is not 'non_mandatory_tour_destination':
             shadow_price_calculator = shadow_pricing.load_shadow_price_calculator(model_settings)
-
-            estimator = estimation.manager.begin_estimation(trace_label)
-            if estimator:
-                location_choice.write_estimation_specs(estimator, model_settings, model_name + '.yaml')
-
-            choices_df, alt_logsums = location_choice.run_location_choice(
+            _logsums, _ = location_choice.run_location_choice(
                 persons_merged,
                 network_los,
                 shadow_price_calculator=shadow_price_calculator,
@@ -227,93 +221,34 @@ def disaggregate_location_choice(network_los, chunk_size, trace_hh_id):
                 trace_label=trace_label)
 
             # Merge onto persons
-            if alt_logsums is not None:
-                logsums[model_name + "_accessibilities"] = persons_merged.join(alt_logsums)
+            if _logsums is not None:
+                logsums[model_name + "_accessibilities"] = persons_merged.join(_logsums)
+        else:
+            tours = pipeline.get_table('tours')
+            tours = tours[tours.tour_category == 'non_mandatory']
 
-        return logsums
+            _logsums, _ = tour_destination.run_tour_destination(
+                tours,
+                persons_merged,
+                want_logsums=True,
+                want_sample_table=True,
+                model_settings=model_settings,
+                network_los=network_los,
+                estimator=estimator,
+                chunk_size=chunk_size,
+                trace_hh_id=trace_hh_id,
+                trace_label=trace_label,
+                skip_choice=True
+            )
 
-    # Non-mandatory tour destination
-    def non_mandatory_location(persons_merged, network_los, chunk_size, trace_hh_id):
-        logsums = {}
-        trace_label = 'non_mandatory_tour_destination'
-        model_settings = config.read_model_settings(trace_label + '.yaml')
-        size_term_calculator = tour_destination.SizeTermCalculator(model_settings['SIZE_TERM_SELECTOR'])
-        tours = pipeline.get_table('tours')
-        tours = tours[tours.tour_category == 'non_mandatory']
-        chooser_segment_column = model_settings.get('CHOOSER_SEGMENT_COLUMN_NAME', None)
-
-        # maps segment names to compact (integer) ids
-        # segments = model_settings['SEGMENTS']
-        segments = set(tours[chooser_segment_column])
-
-        if chooser_segment_column is None:
-            assert len(segments) == 1, \
-                f"CHOOSER_SEGMENT_COLUMN_NAME not specified in model_settings to slice SEGMENTS: {segments}"
-
-        for segment_name in segments:
-            segment_trace_label = tracing.extend_trace_label(trace_label, segment_name)
-
-            if chooser_segment_column is not None:
-                choosers = tours[tours[chooser_segment_column] == segment_name]
-            else:
-                choosers = tours.copy()
-
-            # Note: size_term_calculator omits zones with impossible alternatives (where dest size term is zero)
-            segment_destination_size_terms = size_term_calculator.dest_size_terms_df(segment_name, segment_trace_label)
-
-            estimator = estimation.manager.begin_estimation(trace_label)
-            if estimator:
-                estimator.write_coefficients(model_settings=model_settings)
-                # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
-                estimator.write_spec(model_settings, tag='SPEC')
-                estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
-                estimator.write_table(inject.get_injectable('size_terms'), 'size_terms', append=False)
-                estimator.write_table(inject.get_table('land_use').to_frame(), 'landuse', append=False)
-                estimator.write_model_settings(model_settings, trace_label + '.yaml')
-
-            location_sample_df = \
-                tour_destination.run_destination_sample(
-                    segment_name,
-                    choosers,
-                    persons_merged,
-                    model_settings,
-                    network_los,
-                    segment_destination_size_terms,
-                    estimator,
-                    chunk_size=chunk_size,
-                    trace_label=tracing.extend_trace_label(segment_trace_label, 'sample'))
-
-            # - destination_logsums
-            tour_purpose = segment_name  # tour_purpose is segment_name
-            # location_sample_df = \
-            alt_logsums = tour_destination.run_destination_logsums(
-                    tour_purpose,
-                    persons_merged,
-                    location_sample_df,
-                    model_settings,
-                    network_los,
-                    chunk_size=chunk_size,
-                    trace_label=tracing.extend_trace_label(segment_trace_label, 'logsums'))
-
-            # Merge onto persons
-            if alt_logsums is not None:
+            # Merge onto persons & tours
+            if _logsums is not None:
+                tour_logsums = tours.merge(_logsums['logsums'].to_frame(), left_index=True, right_index=True)
+                keep_cols = set(tour_logsums.columns).difference(persons_merged.columns)
                 logsums[trace_label + "_accessibilities"] = \
-                    persons_merged.merge(alt_logsums, left_index=True, right_on='person_id')
-
-            return logsums
-
-    # interaction_sample expects chooser index to be monotonic increasing
-    persons_merged = pipeline.get_table('persons_merged').sort_index(inplace=False)
-
-    # Create handy kwargs
-    kw = ['persons_merged', 'network_los', 'chunk_size', 'trace_hh_id']
-    kwargs = {n: v for n, v in locals().items() if n in kw}
-
-    logsums = fixed_location(**kwargs)
-    logsums = {**logsums, **non_mandatory_location(**kwargs)}
+                    persons_merged.merge(tour_logsums[keep_cols], left_on="person_id", right_on='person_id')
 
     return logsums
-
 
 @inject.step()
 def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
@@ -341,7 +276,8 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         shadow_pricing.add_size_tables()
 
     # Run location choice
-    logsums = disaggregate_location_choice(network_los, chunk_size, trace_hh_id)
+    # logsums = disaggregate_location_choice(network_los, chunk_size, trace_hh_id)
+    logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
 
     if model_settings.get('trim_output', False):
         # Segment vars

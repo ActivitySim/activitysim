@@ -461,18 +461,6 @@ def eval_utilities(
     # skim_dataset = inject.get_injectable('skim_dataset')
     sharrow_enabled = config.setting("sharrow", False)
 
-    if trace_label and (
-        # TODO: make this smarter
-        # trace_label.startswith("trip_mode_choice") # uses '.isin(I_RIDE_HAIL_MODES)'
-        # or
-        trace_label.startswith("joint_tour_composition")
-        or trace_label.startswith("stop_frequency.social")
-        or trace_label.startswith("stop_frequency.shopping")
-        or trace_label.startswith("stop_frequency.eatout")
-        # or trace_label.startswith("trip_destination")
-    ):
-        sharrow_enabled = False
-
     expression_values = None
 
     t0 = time.time()

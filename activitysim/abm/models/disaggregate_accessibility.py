@@ -304,7 +304,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
 
     return
 
-# TODO Not working yet
 @inject.step()
 def initialize_disaggregate_accessibility():
     """

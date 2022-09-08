@@ -24,13 +24,11 @@ def disaggregate_accessibility():
     args = parser.parse_args()
 
     # add in the arguments
-    args.config = [base_path('configs'), extended_path('configs')]
+    args.config = [extended_path('configs'), base_path('configs')]
     args.output = extended_path('output')
     args.data = base_path('data')
-    args.acc_to_csv = True
 
     run_disaggregate_accessibility(args)
-
 
 if __name__ == "__main__":
     disaggregate_accessibility()

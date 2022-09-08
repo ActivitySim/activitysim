@@ -2,9 +2,9 @@ import argparse
 import os
 import pkg_resources
 
-# from activitysim.abm.models.disaggregate_accessibility import run_disaggregate_accessibility
 from activitysim.cli.run import add_run_args
 from activitysim.abm.models.disaggregate_accessibility_run import run_disaggregate_accessibility
+
 
 def disaggregate_accessibility():
     def model_path(filename):

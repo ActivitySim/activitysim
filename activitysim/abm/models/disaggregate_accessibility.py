@@ -226,7 +226,6 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             # Merge onto persons
             if _logsums is not None and len(_logsums.index) > 0:
                 keep_cols = set(_logsums.columns).difference(persons_merged.columns)
-                # logsums[model_name + "_accessibilities"] = persons_merged.join(_logsums[keep_cols])
                 logsums[model_name + "_accessibilities"] = persons_merged.merge(_logsums[keep_cols], on='person_id')
 
         else:
@@ -252,7 +251,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
                 tour_logsums = tours.merge(_logsums['logsums'].to_frame(), left_index=True, right_index=True)
                 keep_cols = set(tour_logsums.columns).difference(persons_merged.columns)
                 logsums[model_name + "_accessibilities"] = \
-                    persons_merged.merge(tour_logsums[keep_cols], left_on="person_id", right_on='person_id')
+                    persons_merged.merge(tour_logsums[keep_cols], on='person_id')
 
     return logsums
 

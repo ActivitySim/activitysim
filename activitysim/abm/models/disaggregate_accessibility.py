@@ -200,7 +200,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
     for model_name in ['workplace_location', 'school_location', 'non_mandatory_tour_destination']:
         trace_label = tracing.extend_trace_label(model_name, 'accessibilities')
         model_settings = config.read_model_settings(model_name + '.yaml')
-
+        model_settings['SAMPLE_SIZE'] = 0
         estimator = estimation.manager.begin_estimation(trace_label)
         if estimator:
             location_choice.write_estimation_specs(estimator, model_settings, model_name + '.yaml')
@@ -324,9 +324,6 @@ def initialize_disaggregate_accessibility():
         # {k: inject.get_table(k).to_frame() for k in model_settings.get('initialize_tables')}
 
     return
-
-
-
 
 @inject.step()
 def disaggregate_accessibility_subprocess():

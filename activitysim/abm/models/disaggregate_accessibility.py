@@ -154,6 +154,7 @@ class ProtoPop:
         for tablename, df in self.proto_pop.items():
             inject.add_table(tablename, df)
             pipeline.get_rn_generator().add_channel(tablename, df)
+            tracing.register_traceable_table(tablename, df)
             # pipeline.get_rn_generator().drop_channel(tablename)
 
     def annotate_tables(self):
@@ -196,11 +197,12 @@ class ProtoPop:
 def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
     logsums = {}
     persons_merged = pipeline.get_table('persons_merged').sort_index(inplace=False)
+    disagg_model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
 
     for model_name in ['workplace_location', 'school_location', 'non_mandatory_tour_destination']:
         trace_label = tracing.extend_trace_label(model_name, 'accessibilities')
         model_settings = config.read_model_settings(model_name + '.yaml')
-        model_settings['SAMPLE_SIZE'] = 0
+        model_settings['SAMPLE_SIZE'] = disagg_model_settings.get('SAMPLE_SIZE')
         estimator = estimation.manager.begin_estimation(trace_label)
         if estimator:
             location_choice.write_estimation_specs(estimator, model_settings, model_name + '.yaml')
@@ -218,11 +220,13 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
                 chunk_size=chunk_size,
                 chunk_tag=trace_label,
                 trace_hh_id=trace_hh_id,
-                trace_label=trace_label)
+                trace_label=trace_label,
+                skip_choice=True)
 
             # Merge onto persons
             if _logsums is not None:
-                logsums[model_name + "_accessibilities"] = persons_merged.join(_logsums)
+                keep_cols = set(_logsums.columns).difference(persons_merged.columns)
+                logsums[model_name + "_accessibilities"] = persons_merged.join(_logsums[keep_cols])
         else:
             tours = pipeline.get_table('tours')
             tours = tours[tours.tour_category == 'non_mandatory']
@@ -245,7 +249,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             if _logsums is not None:
                 tour_logsums = tours.merge(_logsums['logsums'].to_frame(), left_index=True, right_index=True)
                 keep_cols = set(tour_logsums.columns).difference(persons_merged.columns)
-                logsums[trace_label + "_accessibilities"] = \
+                logsums[model_name + "_accessibilities"] = \
                     persons_merged.merge(tour_logsums[keep_cols], left_on="person_id", right_on='person_id')
 
     return logsums
@@ -276,7 +280,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         shadow_pricing.add_size_tables()
 
     # Run location choice
-    # logsums = disaggregate_location_choice(network_los, chunk_size, trace_hh_id)
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
 
     if model_settings.get('trim_output', False):
@@ -295,11 +298,10 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Inject accessibilities into pipeline
     [inject.add_table(k, df) for k, df in logsums.items()]
 
-    # Override output tables to include accessibilities
+    # Override output tables to include accessibilities in write_table
     new_settings = inject.get_injectable("settings")
-    new_settings['output_tables']['tables'] = list(logsums.keys())
-    new_settings['output_tables']['prefix'] = ""
-
+    new_settings['output_tables']['tables'] = ['households', 'persons', 'tours'] + list(logsums.keys())
+    new_settings['output_tables']['prefix'] = "proto_"
     inject.add_injectable("settings", new_settings)
 
     return
@@ -311,6 +313,7 @@ def initialize_disaggregate_accessibility():
     Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
 
     """
+    # TODO NOT WORKING YET....
     trace_label = "initialize_disaggregate_accessibilities"
 
     model_settings = config.read_model_settings('disaggregate_accessibility.yaml')

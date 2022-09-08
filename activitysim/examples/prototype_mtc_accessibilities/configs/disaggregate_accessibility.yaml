@@ -1,3 +1,6 @@
+# Sampling size. 0 = no limit
+SAMPLE_SIZE: 1
+
 
 # Specify the tables to be created and  their variables.
 # Single values are constants
@@ -105,7 +108,6 @@ CREATE_TABLES:
 zones:
     - zone_id
     # - county_id
-    
     
 # Include any annotations for persons, households, land_use, or tours.
 # The purpose of a separate annotation setup is that annotation expressions for the main model

@@ -25,7 +25,7 @@ def _interaction_sample_simulate(
     trace_label,
     trace_choice_name,
     estimator,
-    skip_choice
+    skip_choice=False
 ):
 
     """

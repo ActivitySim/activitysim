@@ -662,7 +662,7 @@ def run_destination_simulate(
     estimator,
     chunk_size,
     trace_label,
-    skip_choice
+    skip_choice=False
 ):
     """
     run destination_simulate on tour_destination_sample
@@ -766,7 +766,7 @@ def run_tour_destination(
     chunk_size,
     trace_hh_id,
     trace_label,
-    skip_choice
+    skip_choice=False
 ):
 
     size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])

@@ -24,7 +24,8 @@ def disaggregate_accessibility():
     args = parser.parse_args()
 
     # add in the arguments
-    args.config = [extended_path('configs'), base_path('configs')]
+    # args.config = [extended_path('configs'), base_path('configs')]
+    args.config = [extended_path('configs_mp'), extended_path('configs'), base_path('configs')]
     args.output = extended_path('output')
     args.data = base_path('data')
 

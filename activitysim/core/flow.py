@@ -14,6 +14,13 @@ from .. import __version__
 from ..core import tracing
 from . import config, inject
 from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
+from .timetable import (
+    sharrow_tt_adjacent_window_after,
+    sharrow_tt_adjacent_window_before,
+    sharrow_tt_previous_tour_begins,
+    sharrow_tt_previous_tour_ends,
+    sharrow_tt_remaining_periods_available,
+)
 
 try:
     import sharrow as sh
@@ -126,7 +133,6 @@ def only_simple(x, exclude_keys=()):
 def get_flow(
     spec, local_d, trace_label=None, choosers=None, interacts=None, zone_layer=None
 ):
-    global _FLOWS
     extra_vars = only_simple(local_d)
     orig_col_name = local_d.get("orig_col_name", None)
     dest_col_name = local_d.get("dest_col_name", None)
@@ -145,6 +151,10 @@ def get_flow(
             stop_col_name = local_d["dp_skims"].dest_key
     local_d = size_terms_on_flow(local_d)
     size_term_mapping = local_d.get("size_array", {})
+    if "tt" in local_d:
+        aux_vars = local_d["tt"].export_for_numba()
+    else:
+        aux_vars = {}
     flow = new_flow(
         spec,
         extra_vars,
@@ -158,7 +168,9 @@ def get_flow(
         size_term_mapping=size_term_mapping,
         interacts=interacts,
         zone_layer=zone_layer,
+        aux_vars=aux_vars,
     )
+    flow.tree.aux_vars = aux_vars
     return flow
 
 
@@ -408,6 +420,7 @@ def new_flow(
     size_term_mapping=None,
     interacts=None,
     zone_layer=None,
+    aux_vars=None,
 ):
 
     with logtime(f"setting up flow {trace_label}"):
@@ -514,6 +527,14 @@ def new_flow(
         flow_tree.add_items(skims_mapping_)
         flow_tree.add_items(size_term_mapping)
         flow_tree.extra_vars = extra_vars
+        flow_tree.extra_funcs = (
+            sharrow_tt_remaining_periods_available,
+            sharrow_tt_previous_tour_begins,
+            sharrow_tt_previous_tour_ends,
+            sharrow_tt_adjacent_window_after,
+            sharrow_tt_adjacent_window_before,
+        )
+        flow_tree.aux_vars = aux_vars
 
         # - eval spec expressions
         if isinstance(spec.index, pd.MultiIndex):

@@ -72,6 +72,25 @@ def eval_interaction_utilities(
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
+    # # extract expressions and labels from spec.index
+    # if isinstance(spec.index, pd.MultiIndex):
+    #     exprs = spec.index.get_level_values(simulate.SPEC_EXPRESSION_NAME)
+    #     labels = spec.index.get_level_values(simulate.SPEC_LABEL_NAME)
+    # else:
+    #     exprs = spec.index
+    #     labels = spec.index
+    #
+    # # rewrite tt.xxx from spec expression to use numba accelerated versions
+    # updated_exprs = []
+    # for e in exprs:
+    #     e = e.replace("tt.adjacent_window_before(", "tt_adjacent_window_before(tt, ")
+    #     e = e.replace("tt.adjacent_window_after(", "tt_adjacent_window_after(tt, ")
+    #     e = e.replace("tt.previous_tour_ends(", "tt_previous_tour_ends(tt, ")
+    #     e = e.replace("tt.previous_tour_begins(", "tt_previous_tour_begins(tt, ")
+    #     e = e.replace("tt.remaining_periods_available(", "tt_remaining_periods_available(tt, ")
+    #     updated_exprs.append(e)
+    # exprs = updated_exprs
+    #
     # from .flow import apply_flow
     # from . import inject
     # skim_dataset = inject.get_injectable('skim_dataset')
@@ -91,6 +110,15 @@ def eval_interaction_utilities(
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
         locals_d = locals_d.copy() if locals_d is not None else {}
 
+        # # add numba accelerated versions of timetable functions to locals_d
+        # locals_d.update(
+        #     tt_adjacent_window_before=timetable.tt_adjacent_window_before,
+        #     tt_adjacent_window_after=timetable.tt_adjacent_window_after,
+        #     tt_previous_tour_ends=timetable.tt_previous_tour_ends,
+        #     tt_previous_tour_begins=timetable.tt_previous_tour_begins,
+        #     tt_remaining_periods_available=timetable.tt_remaining_periods_available,
+        # )
+
         utilities = None
 
         from .flow import TimeLogger
@@ -100,22 +128,65 @@ def eval_interaction_utilities(
         # add df for startswith('@') eval expressions
         locals_d["df"] = df
 
-        if sharrow_enabled and not {"tt"} & set(
-            locals_d.keys()
-        ):  # timetables not yet compatible
+        if sharrow_enabled:
 
             from .flow import apply_flow
 
+            spec_sh = spec.copy()
+
+            def replace_in_index_level(mi, level, *repls):
+                if isinstance(mi, pd.MultiIndex):
+                    level = mi._get_level_number(level)
+                    content = list(mi.levels[level])
+                    new_content = []
+                    for i in content:
+                        for repl in repls:
+                            i = i.replace(*repl)
+                        new_content.append(i)
+                    return mi.set_levels(new_content, level=level)
+                else:
+                    new_content = []
+                    for i in mi:
+                        for repl in repls:
+                            i = i.replace(*repl)
+                        new_content.append(i)
+                    return new_content
+
+            spec_sh.index = replace_in_index_level(
+                spec_sh.index,
+                simulate.SPEC_EXPRESSION_NAME,
+                (
+                    "tt.adjacent_window_before(",
+                    "sharrow_tt_adjacent_window_before(tt_windows, tt_row_mapper, tt_col_mapper, ",
+                ),
+                (
+                    "tt.adjacent_window_after(",
+                    "sharrow_tt_adjacent_window_after(tt_windows, tt_row_mapper, tt_col_mapper, ",
+                ),
+                (
+                    "tt.previous_tour_ends(",
+                    "sharrow_tt_previous_tour_ends(tt_windows, tt_row_mapper, tt_col_mapper, ",
+                ),
+                (
+                    "tt.previous_tour_begins(",
+                    "sharrow_tt_previous_tour_begins(tt_windows, tt_row_mapper, tt_col_mapper, ",
+                ),
+                (
+                    "tt.remaining_periods_available(",
+                    "sharrow_tt_remaining_periods_available(tt_windows, tt_row_mapper, ",
+                ),
+            )
+
             # need to zero out any coefficients on temp vars
-            if isinstance(spec.index, pd.MultiIndex):
-                exprs = spec.index.get_level_values(simulate.SPEC_EXPRESSION_NAME)
-                labels = spec.index.get_level_values(simulate.SPEC_LABEL_NAME)
+            if isinstance(spec_sh.index, pd.MultiIndex):
+                exprs = spec_sh.index.get_level_values(simulate.SPEC_EXPRESSION_NAME)
+                labels = spec_sh.index.get_level_values(simulate.SPEC_LABEL_NAME)
             else:
-                exprs = spec.index
-                labels = spec.index
+                exprs = spec_sh.index
+                labels = spec_sh.index
             for n, (expr, label) in enumerate(zip(exprs, labels)):
                 if expr.startswith("_") and "@" in expr:
-                    spec.iloc[n, 0] = 0.0
+                    spec_sh.iloc[n, 0] = 0.0
 
             for i1, i2 in zip(exprs, labels):
                 logger.debug(f"        - expr: {i1}: {i2}")
@@ -123,7 +194,7 @@ def eval_interaction_utilities(
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
             sh_util, sh_flow = apply_flow(
-                spec,
+                spec_sh,
                 df,
                 locals_d,
                 trace_label,
@@ -487,7 +558,9 @@ def eval_interaction_utilities(
 
                     look_for_problems_here = np.where(
                         ~np.isclose(
-                            re_sh_flow_load_,
+                            re_sh_flow_load_[
+                                :, ~spec.index.get_level_values(0).str.startswith("_")
+                            ],
                             retrace_eval_data_.values.astype(np.float32),
                         )
                     )

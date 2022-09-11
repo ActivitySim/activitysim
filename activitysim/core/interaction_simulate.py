@@ -300,7 +300,7 @@ def eval_interaction_utilities(
                     if expr.startswith("@"):
                         v = to_series(eval(expr[1:], globals(), locals_d))
                     else:
-                        v = df.eval(expr)
+                        v = df.eval(expr, resolvers=[locals_d])
 
                     if check_for_variability and v.std() == 0:
                         logger.info(
@@ -514,7 +514,23 @@ def eval_interaction_utilities(
                 diff = _sh_util_miss1 - _u_miss1
                 if len(misses[0]) > sh_util.size * 0.01:
                     print("big problem")
-                    print(misses)
+                    if "nan location mismatch" in str(err):
+                        print("nan location mismatch sh_util")
+                        print(np.where(np.isnan(sh_util)))
+                        print("nan location mismatch legacy util")
+                        print(np.where(np.isnan(utilities.values)))
+                    print("misses =>", misses)
+                    j = 0
+                    while j < len(misses[0]):
+                        print(
+                            f"miss {j} {tuple(m[j] for m in misses)}:",
+                            sh_util[tuple(m[j] for m in misses)],
+                            "!=",
+                            utilities.values[tuple(m[j] for m in misses)],
+                        )
+                        j += 1
+                        if j > 10:
+                            break
 
                     re_trace = misses[0]
                     retrace_eval_data = {}

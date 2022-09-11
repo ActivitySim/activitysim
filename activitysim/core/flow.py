@@ -590,6 +590,7 @@ def new_flow(
             flow_library=_FLOWS,
             extra_hash_data=extra_hash_data,
             hashing_level=0,
+            boundscheck=False,
         )
 
 

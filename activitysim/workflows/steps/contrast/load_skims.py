@@ -74,26 +74,28 @@ def load_skims_per_settings(
     from activitysim.core.skim_dataset import load_sparse_maz_skims
 
     zone_system = int(settings.get("zone_system"))
-    maz2taz_file_name = settings.get("maz")
-    maz_to_maz = settings.get("maz_to_maz", {})
-    maz_to_maz_tables = maz_to_maz.get("tables", ())
-    max_blend_distance = maz_to_maz.get("max_blend_distance", {})
 
-    maz2taz = pd.read_csv(os.path.join(data_dir, maz2taz_file_name), index_col=0)
-    maz2taz = maz2taz.rename_axis("MAZ")
-    maz2taz = maz2taz.reset_index()
-    remapper = dict(zip(maz2taz.MAZ, maz2taz.index))
+    if zone_system > 1:
+        maz2taz_file_name = settings.get("maz")
+        maz_to_maz = settings.get("maz_to_maz", {})
+        maz_to_maz_tables = maz_to_maz.get("tables", ())
+        max_blend_distance = maz_to_maz.get("max_blend_distance", {})
 
-    result = load_sparse_maz_skims(
-        result,
-        maz2taz.index,
-        remapper,
-        zone_system,
-        maz2taz_file_name,
-        maz_to_maz_tables=maz_to_maz_tables,
-        max_blend_distance=max_blend_distance,
-        data_file_resolver=lambda f, mandatory=True: os.path.join(data_dir, f),
-    )
+        maz2taz = pd.read_csv(os.path.join(data_dir, maz2taz_file_name), index_col=0)
+        maz2taz = maz2taz.rename_axis("MAZ")
+        maz2taz = maz2taz.reset_index()
+        remapper = dict(zip(maz2taz.MAZ, maz2taz.index))
+
+        result = load_sparse_maz_skims(
+            result,
+            maz2taz.index,
+            remapper,
+            zone_system,
+            maz2taz_file_name,
+            maz_to_maz_tables=maz_to_maz_tables,
+            max_blend_distance=max_blend_distance,
+            data_file_resolver=lambda f, mandatory=True: os.path.join(data_dir, f),
+        )
 
     return result
 

@@ -166,8 +166,16 @@ def cleanup_output_files():
 
     tracing.delete_trace_files()
 
+    csv_ignore = []
+    if config.setting("memory_profile", False):
+        # memory profiling is opened potentially before `cleanup_output_files`
+        # is called, but we want to leave any (newly created) memory profiling
+        # log files that may have just been created.
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        csv_ignore.append(mem_prof_log)
+
     tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
+    tracing.delete_output_files("csv", ignore=csv_ignore)
     tracing.delete_output_files("txt")
     tracing.delete_output_files("yaml")
     tracing.delete_output_files("prof")
@@ -190,9 +198,8 @@ def run(args):
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+        # register abm steps and other abm-specific injectables
+        from activitysim import abm  # noqa: F401, F811
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
@@ -225,13 +232,13 @@ def run(args):
         if "steps" in run_list:
             assert not config.setting(
                 "models"
-            ), f"Don't expect 'steps' in run_list and 'models' as stand-alone setting!"
+            ), "Don't expect 'steps' in run_list and 'models' as stand-alone setting!"
             config.override_setting("models", run_list["steps"])
 
         if "resume_after" in run_list:
             assert not config.setting(
                 "resume_after"
-            ), f"Don't expect 'resume_after' both in run_list and as stand-alone setting!"
+            ), "Don't expect 'resume_after' both in run_list and as stand-alone setting!"
             config.override_setting("resume_after", run_list["resume_after"])
 
     # If you provide a resume_after argument to pipeline.run
@@ -338,7 +345,7 @@ def run(args):
 
 if __name__ == "__main__":
 
-    from activitysim import abm  # register injectables
+    from activitysim import abm  # noqa: F401  # register injectables
 
     parser = argparse.ArgumentParser()
     add_run_args(parser)

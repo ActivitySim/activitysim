@@ -191,8 +191,16 @@ def cleanup_output_files():
 
     tracing.delete_trace_files()
 
+    csv_ignore = []
+    if config.setting("memory_profile", False):
+        # memory profiling is opened potentially before `cleanup_output_files`
+        # is called, but we want to leave any (newly created) memory profiling
+        # log files that may have just been created.
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        csv_ignore.append(mem_prof_log)
+
     tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
+    tracing.delete_output_files("csv", ignore=csv_ignore)
     tracing.delete_output_files("txt")
     tracing.delete_output_files("yaml")
     tracing.delete_output_files("prof")

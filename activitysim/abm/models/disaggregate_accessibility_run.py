@@ -17,7 +17,7 @@ from activitysim.cli.run import (handle_standard_args,
 
 logger = logging.getLogger(__name__)
 
-# Modified 'run' function from activitysim.cli.run to override the models list in settings.yaml with MODELS list above
+# Modified 'run' function from activitysim.cli.run to override the models list in settings.yaml with MODELS list
 # and run only the disaggregate_accessibility step but retain all other main model settings.
 
 # This must be in a separate file or else it will not properly call the injection decorators
@@ -96,19 +96,19 @@ def run_disaggregate_accessibility(args):
               'write_tables']
 
     try:
-        # if config.setting('multiprocess', False):
-        #     logger.info('run multiprocess simulation')
-        #
-        #     from activitysim.core import mp_tasks
-        #     injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-        #     mp_tasks.run_multiprocess(injectables)
-        #
-        #     assert not pipeline.is_open()
-        #
-        #     if config.setting('cleanup_pipeline_after_run', False):
-        #         pipeline.cleanup_pipeline()
-        #
-        # else:
+        if config.setting('multiprocess', False):
+            logger.info('run multiprocess simulation')
+
+            from activitysim.core import mp_tasks
+            injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+            mp_tasks.run_multiprocess(injectables)
+
+            assert not pipeline.is_open()
+
+            if config.setting('cleanup_pipeline_after_run', False):
+                pipeline.cleanup_pipeline()
+
+        else:
             logger.info('run single process simulation')
 
             pipeline.run(models=MODELS, resume_after=None)

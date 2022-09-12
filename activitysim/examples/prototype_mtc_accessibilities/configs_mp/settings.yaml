@@ -44,14 +44,16 @@ trace_od:
 models:
   ### mp_initialize step
   - initialize_landuse
+  - initialize_proto_population
+  - compute_disaggregate_accessibility
   - initialize_households
   ### mp_accessibility step
   - compute_accessibility
   ### mp_households step
   - school_location
   - workplace_location
-  - auto_ownership_simulate
-  - vehicle_type_choice
+  #- auto_ownership_simulate
+  #- vehicle_type_choice
   - free_parking
   - cdap_simulate
   - mandatory_tour_frequency
@@ -64,7 +66,7 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
-  - vehicle_allocation
+  #- vehicle_allocation
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
   - atwork_subtour_destination
@@ -84,11 +86,12 @@ models:
 multiprocess_steps:
   - name: mp_initialize
     begin: initialize_landuse
-  - name: mp_accessibility
-    begin: compute_accessibility
+  - name: mp_disaggregate_accessibility
+    begin: compute_disaggregate_accessibility
     slice:
       tables:
-        - accessibility
+        - households
+        - persons
       # don't slice any tables not explicitly listed above in slice.tables
       except: True
   - name: mp_households

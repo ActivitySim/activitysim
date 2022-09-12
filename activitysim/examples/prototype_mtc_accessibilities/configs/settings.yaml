@@ -169,7 +169,7 @@ trace_od:
 
 # to resume after last successful checkpoint, specify resume_after: _
 #resume_after: trip_destination
-resume_after:
+#resume_after: trip_purpose_and_destination #compute_disaggregate_accessibility
 
 checkpoints: True
 # if checkpoints is False, no intermediate checkpoints will be written before the end of run
@@ -183,14 +183,16 @@ checkpoints: True
 
 
 models:
-  - disaggregate_accessibility_subprocess
-  # - initialize_disaggregate_accessibility
   - initialize_landuse
+  - initialize_proto_population
+  - compute_disaggregate_accessibility
+  # # - disaggregate_accessibility_subprocess
+  # # - initialize_disaggregate_accessibility
   - initialize_households
   - compute_accessibility
   - school_location
   - workplace_location
-  #- auto_ownership_simulate
+  - auto_ownership_simulate
   #- vehicle_type_choice
   - free_parking
   - cdap_simulate

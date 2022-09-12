@@ -8,7 +8,7 @@ ActivitySim includes a :ref:`cli` for creating examples and running the model.  
 more information.
 
 .. note::
-   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
+   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
    contains example commands to create and run several versions of the examples.
 
 Create

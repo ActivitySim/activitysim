@@ -1143,7 +1143,7 @@ def adaptive_chunked_choosers_and_alts(
     rows_per_chunk : int
 
     Yields
-    -------
+    ------
     i : int
         one-based index of current chunk
     num_chunks : int

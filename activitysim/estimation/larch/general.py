@@ -48,7 +48,7 @@ def cv_to_ca(alt_values, dtype="float64", required_labels=None):
     x_ca_tall = alt_values.stack()
 
     # Set the last level index name to 'altid'
-    x_ca_tall.index.rename("altid", -1, inplace=True)
+    x_ca_tall.index.rename("altid", level=-1, inplace=True)
     c_, v_, a_ = x_ca_tall.index.names
 
     # case and alt id's should be integers.

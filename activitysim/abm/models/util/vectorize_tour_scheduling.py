@@ -307,8 +307,13 @@ def compute_logsums(
     # - in_period and out_period
     assert "out_period" not in alt_tdd
     assert "in_period" not in alt_tdd
+
+    # FIXME:MEMORY
+    #  These two lines each generate a massive array of strings,
+    #  using a bunch of RAM and slowing things down.
     alt_tdd["out_period"] = network_los.skim_time_period_label(alt_tdd["start"])
     alt_tdd["in_period"] = network_los.skim_time_period_label(alt_tdd["end"])
+
     alt_tdd["duration"] = alt_tdd["end"] - alt_tdd["start"]
 
     # outside chunk_log context because we extend log_df call for alt_tdd made by our only caller _schedule_tours

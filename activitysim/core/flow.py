@@ -422,6 +422,61 @@ def new_flow(
     zone_layer=None,
     aux_vars=None,
 ):
+    """
+    Setup a new sharrow flow.
+
+    Parameters
+    ----------
+    spec : pandas.DataFrame
+        The spec, as usual for ActivitySim. The index should either be a basic
+        single-level index containing the expressions to be evaluated, or a
+        MultiIndex with at least "Expression" and "Label" levels.
+    extra_vars : Mapping
+        Extra values that are available to expressions and which are written
+        explicitly into compiled code (and cannot be changed later).
+    orig_col_name : str
+        The column from the choosers table that gives the origin zone index,
+        used to attach values from skims.
+    dest_col_name : str
+        The column from the choosers table that gives the destination zone index,
+        used to attach values from skims.
+    trace_label : str
+        A descriptive label
+    timeframe : {"tour", "timeless", "timeless_directional", "trip"}, default "tour"
+        A framework for how to treat the time and directionality of skims that
+        will be attached.
+    choosers : pandas.DataFrame
+        Attributes of the choosers, possibly interacted with attributes of the
+        alternatives.  Generally this flow can and will be re-used by swapping
+        out the `choosers` for a new dataframe with the same columns and
+        different rows.
+    stop_col_name : str
+        The column from the choosers table that gives the stop zone index in
+        trip destination choice, used to attach values from skims.
+    parking_col_name : str
+        The column from the choosers table that gives the parking zone index,
+        used to attach values from skims.
+    size_term_mapping : Mapping
+        Size term arrays.
+    interacts : pd.DataFrame, optional
+        An unmerged interaction dataset, giving attributes of the alternatives
+        that are not conditional on the chooser.  Use this when the choice model
+        has some variables that are conditional on the chooser (and included in
+        the `choosers` dataframe, and some variables that are conditional on the
+        alternative but not the chooser, and when every chooser has the same set
+        of possible alternatives.
+    zone_layer : {'taz', 'maz'}, default 'taz'
+        Specify which zone layer of the skims is to be used.  You cannot use the
+        'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
+        a two- or three-zone model (e.g. for destination pre-sampling).
+    aux_vars : Mapping
+        Extra values that are available to expressions and which are written
+        only by reference into compiled code (and thus can be changed later).
+
+    Returns
+    -------
+    sharrow.Flow
+    """
 
     with logtime(f"setting up flow {trace_label}"):
         if choosers is None:

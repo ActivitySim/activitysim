@@ -7,6 +7,7 @@ import logging
 import subprocess
 import pkg_resources
 import pandas as pd
+from orca import orca
 
 from activitysim.core import (inject,
                               tracing,
@@ -226,7 +227,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             # Merge onto persons
             if _logsums is not None and len(_logsums.index) > 0:
                 keep_cols = list(set(_logsums.columns).difference(persons_merged.columns))
-                logsums[model_name + "_accessibilities"] = persons_merged.merge(_logsums[keep_cols], on='person_id')
+                logsums[model_name] = persons_merged.merge(_logsums[keep_cols], on='person_id')
 
         else:
             tours = pipeline.get_table('tours')
@@ -250,10 +251,21 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             if _logsums is not None and len(_logsums.index) > 0:
                 tour_logsums = tours.merge(_logsums['logsums'].to_frame(), left_index=True, right_index=True)
                 keep_cols = list(set(tour_logsums.columns).difference(persons_merged.columns))
-                logsums[model_name + "_accessibilities"] = \
+                logsums[model_name] = \
                     persons_merged.merge(tour_logsums[keep_cols], on='person_id')
 
     return logsums
+
+@inject.step()
+def initialize_proto_population():
+    print('INITIALIZE PROTO-POPULATION FOR DISAGGREGATE ACCESSIBILITY MODEL')
+
+    # Synthesize the proto-population
+    model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
+    land_use_df = pipeline.get_table('land_use')
+    ProtoPop(land_use_df, model_settings)
+
+    return
 
 @inject.step()
 def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
@@ -264,13 +276,8 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     """
     print('RUNNING DISAGGREGATE ACCESSIBILITY MODEL')
 
-    model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
-
-    # Initialize land_use
-    land_use_df = pipeline.get_table('land_use')
-
     # Synthesize the proto-population
-    proto = ProtoPop(land_use_df, model_settings)
+    model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
 
     # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
@@ -283,26 +290,25 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Run location choice
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
 
-    if model_settings.get('trim_output', False):
-        # Segment vars
-        segment_vars = []
-        for v in ['persons', 'households']:
-            segment_vars.extend(list(proto.params[v]['variables'].keys()))
-            # Drop zone and index vars
-            _id = proto.model_settings['zones'] + [proto.params[v]['index_col'], proto.params[v]['zone_col']]
-            segment_vars = list(set(segment_vars).difference(set(filter(None, _id))))
-        segment_vars.extend(['alt_dest', 'pick_count', 'mode_choice_logsum'])
+    # Cleanup pipeline
+    [pipeline.drop_table(x) for x in ['school_destination_size', 'workplace_destination_size', 'tours']]
+    [pipeline.get_rn_generator().drop_channel(x) for x in ['persons', 'households']]
 
-        # Clean up to keep only our target vars
-        logsums = {k: v[segment_vars] for k, v in logsums.items()}
+    orca._TABLE_CACHE.clear()
+    for name, func in inject._DECORATED_TABLES.items():
+        if name not in ['land_use']:
+            logger.debug("reinject decorated table %s" % name)
+            orca.add_table(name, func)
+
+    # Append key names
+    logsums = {k + '_accessibilities': v for k, v in logsums.items()}
 
     # Inject accessibilities into pipeline
     [inject.add_table(k, df) for k, df in logsums.items()]
 
     # Override output tables to include accessibilities in write_table
     new_settings = inject.get_injectable("settings")
-    new_settings['output_tables']['tables'] = ['households', 'persons', 'tours'] + list(logsums.keys())
-    new_settings['output_tables']['prefix'] = "proto_"
+    new_settings['output_tables']['tables'] += list(logsums.keys())
     inject.add_injectable("settings", new_settings)
 
     return
@@ -335,8 +341,6 @@ def disaggregate_accessibility_subprocess():
     run_file = pkg_resources.resource_filename('activitysim', run_file)
 
     subprocess.run(['coverage', 'run', '-a', run_file] + sys.argv[1:], check=True, shell=True)
-    # subprocess.Popen(['python', '-u', __file__] + sys.argv[1:], stdout=sys.stdout, stderr=subprocess.PIPE)
-
 
 if __name__ == "__main__":
     # FOR TESTING PROTO-POP

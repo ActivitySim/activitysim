@@ -1,4 +1,11 @@
 # Environment for building docs
+#
+#   This conda environment is used to build the documentation.  It includes a
+#   number of dependencies needed for the documentation only, and not to run or
+#   test ActivitySim itself.  Note that ActivitySim itself is *not* installed
+#   in this environment, you must install it separately after using this recipe,
+#   which allows you to install the specific version you want.
+
 name: docbuild
 channels:
 - conda-forge
@@ -43,4 +50,3 @@ dependencies:
 
 - pip:
   - autodoc_pydantic
-  - -e ..

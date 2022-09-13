@@ -3,6 +3,10 @@ SPEC: atwork_subtour_destination.csv
 SAMPLE_SPEC:  atwork_subtour_destination_sample.csv
 COEFFICIENTS: atwork_subtour_destination_coeffs.csv
 
+SIZE_TERM_SELECTOR: atwork
+SEGMENTS: 
+  - atwork
+ORIG_ZONE_ID: workplace_zone_id
 
 SAMPLE_SIZE: 30
 

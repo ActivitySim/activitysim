@@ -22,4 +22,7 @@ output_tables:
   prefix: final_
   sort: True
   tables:
+    - households
+    - persons
+    - tours
     - trips

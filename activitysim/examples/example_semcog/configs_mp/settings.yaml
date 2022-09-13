@@ -25,6 +25,7 @@ models:
   ### mp_initialize step
   - initialize_landuse
   - initialize_households
+  ### mp_accessibility step
   - compute_accessibility
   ### mp_households step
   - school_location
@@ -65,6 +66,8 @@ models:
   - write_data_dictionary
   - write_tables
   - write_trip_matrices
+
+
 multiprocess_steps:  
   - name: mp_initialize
     begin: initialize_landuse
@@ -74,6 +77,7 @@ multiprocess_steps:
     slice:
       tables:
         - accessibility
+      except: True
   # - name: mp_initialize_hh
   #   begin: initialize_households
   #   num_processes: 1

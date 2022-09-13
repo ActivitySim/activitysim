@@ -3,7 +3,7 @@
 # e.g. depart_alt_base = 5 means first column (column 0) represents period 5
 DEPART_ALT_BASE: 1
 
-MAX_ITERATIONS: 100
+MAX_ITERATIONS: 50
 
 #FAILFIX: drop_and_cleanup
 FAILFIX: choose_most_initial

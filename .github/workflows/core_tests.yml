@@ -178,7 +178,7 @@ jobs:
           - prototype_mtc_extended
           - placeholder_sandag
           - prototype_sandag_xborder
-          - prototype_semcog
+          - example_semcog
           - prototype_mwcog
           - placeholder_multiple_zone
       fail-fast: false

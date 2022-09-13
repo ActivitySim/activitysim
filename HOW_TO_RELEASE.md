@@ -133,3 +133,7 @@
 00. Change the default redirect page for the ActivitySim documentation to point
     to the newly released documentation.  The redirect page can be edited
     [here](https://github.com/ActivitySim/activitysim/blob/gh-pages/index.html).
+
+00. Add the new release to the `switch.json` file. Don't delete the references
+    for existing old documentation.  The switcher can be edited
+    [here](https://github.com/ActivitySim/activitysim/blob/gh-pages/switcher.json).

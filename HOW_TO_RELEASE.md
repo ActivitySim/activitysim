@@ -129,3 +129,7 @@
     conda deactivate
     conda env remove -n TEMP-ASIM-DEV
     ```
+
+00. Change the default redirect page for the ActivitySim documentation to point
+    to the newly released documentation.  The redirect page can be edited
+    [here](https://github.com/ActivitySim/activitysim/blob/gh-pages/index.html).

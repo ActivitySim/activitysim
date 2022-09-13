@@ -514,10 +514,10 @@
     - example_semcog/configs
     - example_semcog/configs_mp
     - example_semcog/output
-    - example_semcog/README.MD
+    - example_semcog/README.MD # FIXME: skim paths need to be updated
     - example_semcog/simulation.py
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims.omx
-      data/skims.omx # FIXME: skim paths need to be updated
+      data/skims.omx
       efa1f87395df354ccfad7cfe4e67ace96c7ac04fa0290e5e6f8e2593fc0ba6a3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/semcog_data_full/skims2.omx
       data/skims2.omx

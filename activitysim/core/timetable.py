@@ -1021,13 +1021,16 @@ def tt_remaining_periods_available(tt, window_row_ids, starts, ends):
         number periods available indexed by window_row_ids.index
     """
 
-    return _remaining_periods_available(
+    result = _remaining_periods_available(
         tt.windows,
         tt.window_row_ix._mapper,
         window_row_ids.values,
         starts.values,
         ends.values,
     )
+    if isinstance(window_row_ids, pd.Series):
+        result = pd.Series(result, index=window_row_ids.index)
+    return result
 
 
 @nb.njit

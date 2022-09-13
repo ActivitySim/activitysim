@@ -87,4 +87,4 @@ def test_semcog_mp():
 if __name__ == "__main__":
     run_test_semcog(multiprocess=False)
     # FIXME: not yet passing due to unstable pd.sample() in extensions
-    run_test_semcog(multiprocess=True)  
+    run_test_semcog(multiprocess=True)

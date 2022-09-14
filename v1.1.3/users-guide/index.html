@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Users Guide &#8212; ActivitySim 1.1.3</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/theme_overrides.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/design-tabs.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Getting Started" href="../gettingstarted.html" />
+    <link rel="prev" title="ActivitySim" href="../index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+<a class="navbar-brand" href="../index.html">
+<p class="title">ActivitySim</p>
+</a>
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  Users Guide
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../dev-guide/index.html">
+  Developers
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <div class="dropdown" id="version_switcher">
+    <button type="button" class="btn btn-primary btn-sm navbar-btn dropdown-toggle" id="version_switcher_button" data-toggle="dropdown">
+        1.1.3  <!-- this text may get changed later by javascript -->
+        <span class="caret"></span>
+    </button>
+    <div id="version_switcher_menu" class="dropdown-menu list-group-flush py-0" aria-labelledby="version_switcher_button">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+</div>
+
+<!-- NOTE: this JS must live here (not in our global JS file) because it relies
+     on being processed by Jinja before it is run (specifically for replacing
+     variables users-guide/index and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.1.3'}.
+-->
+
+<script type="text/javascript">
+// Check if corresponding page path exists in other version of docs
+// and, if so, go there instead of the homepage of the other docs version
+function checkPageExistsAndRedirect(event) {
+    const currentFilePath = "users-guide/index.html",
+          tryUrl = event.target.getAttribute("href");
+    let otherDocsHomepage = tryUrl.replace(currentFilePath, "");
+    $.ajax({
+        type: 'HEAD',
+        url: tryUrl,
+        // if the page exists, go there
+        success: function() {
+            location.href = tryUrl;
+        }
+    }).fail(function() {
+        location.href = otherDocsHomepage;
+    });
+    // this prevents the browser from following the href of the clicked node
+    // (which is fine because this function takes care of redirecting)
+    return false;
+}
+
+// Populate the version switcher from the JSON config file
+(function () {
+    $.getJSON("https://activitysim.github.io/activitysim/switcher.json", function(data, textStatus, jqXHR) {
+        const currentFilePath = "users-guide/index.html";
+        // create links to the corresponding page in the other docs versions
+        $.each(data, function(index, entry) {
+            // if no custom name specified (e.g., "latest"), use version string
+            if (!("name" in entry)) {
+                entry.name = entry.version;
+            }
+            // create the node
+            const node = document.createElement("a");
+            node.setAttribute("class", "list-group-item list-group-item-action py-1");
+            node.textContent = `${entry.name}`;
+            node.setAttribute("href", `${entry.url}${currentFilePath}`);
+            // on click, AJAX calls will check if the linked page exists before
+            // trying to redirect, and if not, will redirect to the homepage
+            // for that version of the docs.
+            node.onclick = checkPageExistsAndRedirect;
+            // Add dataset values for the version and name in case people want
+            // to apply CSS styling based on this information.
+            node.dataset["versionName"] = entry.name;
+            node.dataset["version"] = entry.version;
+
+            $("#version_switcher_menu").append(node);
+            // replace dropdown button text with the preferred display name of
+            // this version, rather than using sphinx's 1.1.3 variable.
+            // also highlight the dropdown entry for the currently-viewed
+            // version's entry
+            if (entry.version == "1.1.3") {
+                node.classList.add("active");
+                let btn = document.getElementById("version_switcher_button");
+                btn.innerText = btn.dataset["activeVersionName"] = entry.name;
+                btn.dataset["activeVersion"] = entry.version;
+            }
+        });
+    });
+})();
+</script>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <!-- Only show if we have sidebars configured, else just a small margin  -->
+            <div class="col-12 col-md-3 bd-sidebar">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../gettingstarted.html">
+   Getting Started
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../examples.html">
+   Examples
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="configuration.html">
+   Configuration
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_generated/activitysim.core.configuration.Settings.html">
+     activitysim.core.configuration.Settings
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_generated/activitysim.core.configuration.InputTable.html">
+     activitysim.core.configuration.InputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_generated/activitysim.core.configuration.NetworkSettings.html">
+     activitysim.core.configuration.NetworkSettings
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_generated/activitysim.core.configuration.TAZ_Settings.html">
+     activitysim.core.configuration.TAZ_Settings
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_generated/activitysim.core.configuration.ZarrDigitalEncoding.html">
+     activitysim.core.configuration.ZarrDigitalEncoding
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../cli.html">
+   Command Line Interface
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../estimation.html">
+   Estimation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../howitworks.html">
+   How the System Works
+  </a>
+ </li>
+</ul>
+
+  </div>
+</nav>
+              </div>
+              <div class="sidebar-end-items">
+              </div>
+            </div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
+
+<nav id="bd-toc-nav">
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#contents">
+   Contents
+  </a>
+ </li>
+</ul>
+
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="users-guide">
+<span id="userguide"></span><h1>Users Guide<a class="headerlink" href="#users-guide" title="Permalink to this headline">#</a></h1>
+<p>The mission of the ActivitySim project is to create and maintain advanced, open-source,
+activity-based travel behavior modeling software based on best software development
+practices for distribution at no charge to the public.</p>
+<p>The ActivitySim project is led by a consortium of Metropolitan Planning Organizations
+(MPOs) and other transportation planning agencies, which provides technical direction
+and resources to support project development. New member agencies are welcome to join
+the consortium. All member agencies help make decisions about development priorities
+and benefit from contributions of other agency partners.  Additional information about
+the development and management of the ActivitySim is on the <a class="reference external" href="http://www.activitysim.org">project site</a>.</p>
+<section id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">#</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#installation">Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#alternative-installation-methods">Alternative Installation Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#run-the-primary-example">Run the Primary Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#try-the-notebooks">Try the Notebooks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../gettingstarted.html#hardware">Hardware</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../gettingstarted.html#mkl-settings">MKL Settings</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-mtc">prototype_mtc</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#model-design">Model Design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#setup">Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#running-the-example">Running the example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-mtc-extended">prototype_mtc_extended</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#example-estimation">example_estimation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#placeholder-multiple-zone">placeholder_multiple_zone</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id9">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#settings">Settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id10">Outputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#presampling">Presampling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-marin">prototype_marin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id13">Example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id14">Settings</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-arc">prototype_arc</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#example-arc-sub-model-specification-files">Example ARC Sub-Model Specification Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id16">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-semcog">prototype_semcog</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#example-semcog-sub-model-specification-files">Example SEMCOG Sub-Model Specification Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id19">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#placeholder-psrc">placeholder_psrc</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id22">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#placeholder-sandag">placeholder_sandag</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id25">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-sandag-xborder">prototype_sandag_xborder</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id28">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../examples.html#prototype-mwcog">prototype_mwcog</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../examples.html#id31">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="_generated/activitysim.core.configuration.Settings.html">activitysim.core.configuration.Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_generated/activitysim.core.configuration.InputTable.html">activitysim.core.configuration.InputTable</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_generated/activitysim.core.configuration.NetworkSettings.html">activitysim.core.configuration.NetworkSettings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_generated/activitysim.core.configuration.TAZ_Settings.html">activitysim.core.configuration.TAZ_Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="_generated/activitysim.core.configuration.ZarrDigitalEncoding.html">activitysim.core.configuration.ZarrDigitalEncoding</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">Command Line Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#create">Create</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../cli.html#module-activitysim.cli.create">API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../cli.html#run">Run</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../cli.html#settings-file-inheritance">Settings File Inheritance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../cli.html#id2">API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../estimation.html">Estimation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../estimation.html#workflow">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../estimation.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../estimation.html#settings">Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../estimation.html#estimation-notebooks">Estimation Notebooks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../estimation.html#module-activitysim.estimation.larch.general">General API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../estimation.html#module-activitysim.estimation.larch.auto_ownership">Models API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../howitworks.html">How the System Works</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#execution-flow">Execution Flow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#initialization">Initialization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#initialize-households">Initialize Households</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#school-location">School Location</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#finishing-up">Finishing Up</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#additional-notes">Additional Notes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#creating-new-tables">Creating New Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#vectorized-3d-skim-indexing">Vectorized 3D Skim Indexing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#accessibilities-model">Accessibilities Model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#multiprocessing">Multiprocessing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#mutliprocessing-configuration">Mutliprocessing Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#shared-data">Shared Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#outputs">Outputs</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../howitworks.html#data-schema">Data Schema</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#data-tables">Data Tables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#id3">Data Schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../howitworks.html#skims">Skims</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="../index.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">ActivitySim</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="../gettingstarted.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Getting Started</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <!-- This will display the version of the docs -->
+<p class="last-updated">
+ActivitySim 1.1.3, documentation last updated Sep 14, 2022.<br/>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

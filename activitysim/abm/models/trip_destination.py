@@ -922,10 +922,10 @@ class SkimHotel(object):
 
     def sample_skims(self, presample):
 
-        o = self.model_settings['TRIP_ORIGIN']
-        d = self.model_settings['ALT_DEST_COL_NAME']
-        n = self.model_settings.get('PRIMARY_ORIGIN', None)
-        p = self.model_settings['PRIMARY_DEST']
+        o = self.model_settings["TRIP_ORIGIN"]
+        d = self.model_settings["ALT_DEST_COL_NAME"]
+        n = self.model_settings.get("PRIMARY_ORIGIN", None)
+        p = self.model_settings["PRIMARY_DEST"]
 
         if presample:
             assert not (self.zone_system == los.ONE_ZONE)
@@ -938,15 +938,30 @@ class SkimHotel(object):
             "dp_skims": skim_dict.wrap(d, p),
             "op_skims": skim_dict.wrap(o, p),
             "nd_skims": skim_dict.wrap(n, d),
-
-            "odt_skims": skim_dict.wrap_3d(orig_key=o, dest_key=d, dim3_key='trip_period'),
-            "dot_skims": skim_dict.wrap_3d(orig_key=d, dest_key=o, dim3_key='trip_period'),
-            "dpt_skims": skim_dict.wrap_3d(orig_key=d, dest_key=p, dim3_key='trip_period'),
-            "pdt_skims": skim_dict.wrap_3d(orig_key=p, dest_key=d, dim3_key='trip_period'),
-            "opt_skims": skim_dict.wrap_3d(orig_key=o, dest_key=p, dim3_key='trip_period'),
-            "pot_skims": skim_dict.wrap_3d(orig_key=p, dest_key=o, dim3_key='trip_period'),
-            "ndt_skims": skim_dict.wrap_3d(orig_key=n, dest_key=d, dim3_key='trip_period'),
-            "dnt_skims": skim_dict.wrap_3d(orig_key=d, dest_key=n, dim3_key='trip_period')
+            "odt_skims": skim_dict.wrap_3d(
+                orig_key=o, dest_key=d, dim3_key="trip_period"
+            ),
+            "dot_skims": skim_dict.wrap_3d(
+                orig_key=d, dest_key=o, dim3_key="trip_period"
+            ),
+            "dpt_skims": skim_dict.wrap_3d(
+                orig_key=d, dest_key=p, dim3_key="trip_period"
+            ),
+            "pdt_skims": skim_dict.wrap_3d(
+                orig_key=p, dest_key=d, dim3_key="trip_period"
+            ),
+            "opt_skims": skim_dict.wrap_3d(
+                orig_key=o, dest_key=p, dim3_key="trip_period"
+            ),
+            "pot_skims": skim_dict.wrap_3d(
+                orig_key=p, dest_key=o, dim3_key="trip_period"
+            ),
+            "ndt_skims": skim_dict.wrap_3d(
+                orig_key=n, dest_key=d, dim3_key="trip_period"
+            ),
+            "dnt_skims": skim_dict.wrap_3d(
+                orig_key=d, dest_key=n, dim3_key="trip_period"
+            ),
         }
 
         return skims

@@ -45,39 +45,39 @@ models:
   ### mp_initialize step
   - initialize_landuse
   - initialize_proto_population
+  # - initialize_households
   ### mp_accessibility step
   - compute_disaggregate_accessibility
-  - initialize_households
-  - compute_accessibility
-  ### mp_households step
-  - school_location
-  - workplace_location
+  # - compute_accessibility
+  ## mp_households step
+  # - school_location
+  # - workplace_location
   #- auto_ownership_simulate
   #- vehicle_type_choice
-  - free_parking
-  - cdap_simulate
-  - mandatory_tour_frequency
-  - mandatory_tour_scheduling
-  - joint_tour_frequency
-  - joint_tour_composition
-  - joint_tour_participation
-  - joint_tour_destination
-  - joint_tour_scheduling
-  - non_mandatory_tour_frequency
-  - non_mandatory_tour_destination
-  - non_mandatory_tour_scheduling
+  # - free_parking
+  # - cdap_simulate
+  # - mandatory_tour_frequency
+  # - mandatory_tour_scheduling
+  # - joint_tour_frequency
+  # - joint_tour_composition
+  # - joint_tour_participation
+  # - joint_tour_destination
+  # - joint_tour_scheduling
+  # - non_mandatory_tour_frequency
+  # - non_mandatory_tour_destination
+  # - non_mandatory_tour_scheduling
   #- vehicle_allocation
-  - tour_mode_choice_simulate
-  - atwork_subtour_frequency
-  - atwork_subtour_destination
-  - atwork_subtour_scheduling
-  - atwork_subtour_mode_choice
-  - stop_frequency
-  - trip_purpose
-  - trip_destination
-  - trip_purpose_and_destination
-  - trip_scheduling
-  - trip_mode_choice
+  # - tour_mode_choice_simulate
+  # - atwork_subtour_frequency
+  # - atwork_subtour_destination
+  # - atwork_subtour_scheduling
+  # - atwork_subtour_mode_choice
+  # - stop_frequency
+  # - trip_purpose
+  # - trip_destination
+  # - trip_purpose_and_destination
+  # - trip_scheduling
+  # - trip_mode_choice
   ### mp_summarize step
   - write_data_dictionary
   - write_trip_matrices
@@ -94,13 +94,19 @@ multiprocess_steps:
         - proto_persons
         - proto_tours
         - proto_persons_merged
-      # don't slice any tables not explicitly listed above in slice.tables
-      except: True
-  - name: mp_households
-    begin: school_location
-    slice:
-      tables:
-        - households
-        - persons
+      # #except: True
+  # - name: mp_accessibility
+    # begin: compute_accessibility
+    # slice:
+      # tables:
+        # - accessibility
+      #don't slice any tables not explicitly listed above in slice.tables
+      # except: True
+  # - name: mp_households
+    # begin: school_location
+    # slice:
+      # tables:
+        # - households
+        # - persons
   - name: mp_summarize
     begin: write_data_dictionary

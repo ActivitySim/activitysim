@@ -278,6 +278,11 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
         shadow_pricing.add_size_tables(model_settings.get('suffixes'))
 
+    # Register tables in this step, necessary for multiprocessing
+    for tablename in [x for x in inject._DECORATED_TABLES if 'proto_' in x]:
+        df = inject.get_table(tablename).to_frame()
+        pipeline.get_rn_generator().add_channel(tablename, df)
+
     # Run location choice
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
 

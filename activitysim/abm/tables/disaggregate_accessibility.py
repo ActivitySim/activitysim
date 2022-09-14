@@ -65,7 +65,7 @@ def proto_persons_merged(proto_persons, households, land_use):
 
 
 @inject.table()
-def proto_households(households_sample_size, override_hh_ids, trace_hh_id):
+def proto_households(trace_hh_id):
 
     df = pd.DataFrame()
     logger.info("loaded proto_households %s" % (df.shape,))
@@ -79,12 +79,25 @@ def proto_households(households_sample_size, override_hh_ids, trace_hh_id):
     return df
 
 
-# this is a common merge so might as well define it once here and use it
 @inject.table()
-def proto_households_merged(proto_households, land_use):
-    return inject.merge_tables(
-        proto_households.name, tables=[proto_households, land_use]
-    )
+def proto_tours(trace_hh_id):
+    df = pd.DataFrame()
+    logger.info("loaded proto_tours %s" % (df.shape,))
+    # replace table function with dataframe
+    inject.add_table("proto_tours", df)
+    pipeline.get_rn_generator().add_channel("proto_tours", df)
+    tracing.register_traceable_table("proto_tours", df)
+    if trace_hh_id:
+        tracing.trace_df(df, "raw.proto_tours", warn_if_empty=True)
+
+    return df
+
+# this is a common merge so might as well define it once here and use it
+# @inject.table()
+# def proto_households_merged(proto_households, land_use):
+#     return inject.merge_tables(
+#         proto_households.name, tables=[proto_households, land_use]
+#     )
 
 
 inject.broadcast("proto_households", "proto_persons", cast_index=True, onto_on="household_id")

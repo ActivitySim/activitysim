@@ -8,9 +8,8 @@ import numpy as np
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
-from activitysim.core import simulate
 from activitysim.core import inject
-from activitysim.core import expressions
+from activitysim.core import logit
 
 # from .util import estimation
 
@@ -44,7 +43,6 @@ def resample_school_zones(
     univ_enrollment_col_name = model_settings["LANDUSE_UNIV_ENROL_COL_NAME"]
     landuse_univ_code_col_name = model_settings["LANDUSE_UNIV_CODE_COL_NAME"]
     allowed_univ_codes = model_settings["UNIV_CODES_TO_OVERRIDE"]
-    random_state_offset = model_settings["RANDOM_STATE"]
 
     if original_zone_col_name is not None:
         choosers[original_zone_col_name] = pd.NA
@@ -75,16 +73,22 @@ def resample_school_zones(
                 choosers_to_override, col_to_override
             ]
 
-        # override school id based on university enrollment alone
-        random_states = choosers_to_override.index.values + random_state_offset
-        choosers.loc[
-            choosers_to_override, col_to_override
-        ] = univ_land_use.zone_id.sample(
-            n=num_choosers_to_override,
-            weights=univ_land_use[univ_enrollment_col_name],
-            replace=True,
-            random_state=random_states,
-        ).to_numpy()
+        # constructing probabilities based on the university enrollement size
+        # format is columns for each parking zone alternative and indexed by choosers
+        # probabilities are the same for each row
+        probs = (
+            univ_land_use[univ_enrollment_col_name]
+            / univ_land_use[univ_enrollment_col_name].sum()
+        ).to_frame()
+        probs.set_index(univ_land_use.zone_id, inplace=True)
+        probs = probs.T
+        probs = probs.loc[np.repeat(probs.index, num_choosers_to_override)]
+        probs.set_index(choosers[choosers_to_override].index, inplace=True)
+
+        # making stable choices using ActivitySim's random number generator
+        choices, rands = logit.make_choices(probs)
+        choices = choices.map(pd.Series(probs.columns))
+        choosers.loc[choosers_to_override, "univ_parking_zone_id"] = choices
 
     return choosers
 
@@ -179,7 +183,6 @@ def trip_destination_univ_zone_override(
         True,
         False,
     )
-    print(choosers["is_primary_trip"].value_counts())
     choosers = choosers[
         ~(choosers["is_primary_trip"]) & (choosers["purpose"] == univ_purpose)
     ]

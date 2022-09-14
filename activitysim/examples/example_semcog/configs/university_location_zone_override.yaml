@@ -4,9 +4,6 @@
 # this column name is used to select major university students in downstream models (stop_freq)
 ORIGINAL_ZONE_COL_NAME: original_school_zone_id
 
-# Random state integer to use when sampling
-RANDOM_STATE: 42
-
 LANDUSE_UNIV_ENROL_COL_NAME: Univ_Enrollment
 # Colunn in the landuse file containing the university codes
 LANDUSE_UNIV_CODE_COL_NAME: University_Name

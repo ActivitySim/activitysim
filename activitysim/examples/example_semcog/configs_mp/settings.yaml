@@ -78,9 +78,6 @@ multiprocess_steps:
       tables:
         - accessibility
       except: True
-  # - name: mp_initialize_hh
-  #   begin: initialize_households
-  #   num_processes: 1
   - name: mp_households
     begin: school_location
     slice:

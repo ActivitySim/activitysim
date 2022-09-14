@@ -23,6 +23,3 @@ LANDUSE_PARKING_SPACES_COL_NAME: parking_spaces
 # landuse column containing the university the parking spaces belong to
 # codes should match the codes in LANDUSE_UNIV_CODE_COL_NAME
 LANDUSE_PARKING_UNIV_CODE_COL_NAME: University_Name
-
- # Random state integer to use when sampling
-RANDOM_STATE: 42

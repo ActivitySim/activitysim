@@ -8,9 +8,8 @@ import numpy as np
 from activitysim.core import tracing
 from activitysim.core import config
 from activitysim.core import pipeline
-from activitysim.core import simulate
 from activitysim.core import inject
-from activitysim.core import expressions
+from activitysim.core import logit
 
 # from .util import estimation
 
@@ -45,8 +44,6 @@ def closest_parking_zone_xwalk(univ_zones, parking_zones, network_los):
             closest_zones.append(univ_zone)
         else:
             # find nearest zone from distance skim
-            print(univ_zone, parking_zones.to_numpy())
-            print(skim_dict.lookup(univ_zone, parking_zones.to_numpy(), "DIST"))
             parking_zone_idx = np.argmin(
                 skim_dict.lookup(univ_zone, parking_zones.to_numpy(), "DIST")
             )
@@ -79,7 +76,6 @@ def parking_location_choice_at_university(
 
     univ_codes_col = model_settings["LANDUSE_UNIV_CODE_COL_NAME"]
     univ_codes = model_settings["UNIV_CODES_THAT_REQUIRE_PARKING"]
-    random_state_offset = model_settings["RANDOM_STATE"]
 
     parking_spaces_col = model_settings["LANDUSE_PARKING_SPACES_COL_NAME"]
     parking_univ_code_col = model_settings["LANDUSE_PARKING_UNIV_CODE_COL_NAME"]
@@ -100,12 +96,10 @@ def parking_location_choice_at_university(
 
     # grabbing all trips and tours that have a destination on a campus and selected tour mode
     trip_choosers = trips[trips["destination"].isin(all_univ_zones)]
-    print(trip_choosers.destination.value_counts())
     tour_choosers = tours[
         tours.index.isin(trip_choosers["tour_id"])
         & tours.tour_mode.isin(parking_tour_modes)
     ]
-    print(tour_choosers)
 
     # removing trips that did not have the right tour mode.  (Faster than merging tour mode first?)
     trip_choosers = trip_choosers[trip_choosers.tour_id.isin(tour_choosers.index)]
@@ -142,16 +136,22 @@ def parking_location_choice_at_university(
         parking_tours = tour_choosers.index.isin(univ_trip_choosers.tour_id)
         num_parking_tours = parking_tours.sum()
 
-        # parking location is sampled based on the number of parking spaces
-        random_states = tour_choosers[parking_tours].index.values + random_state_offset
-        tour_choosers.loc[
-            parking_tours, "univ_parking_zone_id"
-        ] = parking_univ_zones.zone_id.sample(
-            n=num_parking_tours,
-            weights=parking_univ_zones[parking_spaces_col],
-            replace=True,
-            random_state=random_states,
-        ).to_numpy()
+        # constructing probabilities based on the number of parking spaces
+        # format is columns for each parking zone alternative and indexed by choosers
+        # probabilities are the same for each row
+        probs = (
+            parking_univ_zones[parking_spaces_col]
+            / parking_univ_zones[parking_spaces_col].sum()
+        ).to_frame()
+        probs.set_index(parking_univ_zones.zone_id, inplace=True)
+        probs = probs.T
+        probs = probs.loc[np.repeat(probs.index, num_parking_tours)]
+        probs.set_index(tour_choosers[parking_tours].index, inplace=True)
+
+        # making stable choices using ActivitySim's random number generator
+        choices, rands = logit.make_choices(probs)
+        choices = choices.map(pd.Series(probs.columns))
+        tour_choosers.loc[parking_tours, "univ_parking_zone_id"] = choices
 
         # for tours that have purpose specified in model setting, set parking location to
         # nearest parking lot

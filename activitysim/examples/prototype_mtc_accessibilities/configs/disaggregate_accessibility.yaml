@@ -18,7 +18,7 @@ SAMPLE_SIZE: 1
 
 #Note: parameters in ALL CAPS below are required by the program for synthesis
 CREATE_TABLES:
-    HOUSEHOLDS:
+    PROTO_HOUSEHOLDS:
         index_col: household_id
         zone_col: home_zone_id
         rename_columns:
@@ -48,7 +48,7 @@ CREATE_TABLES:
                 2: 2
                 3: 3
                     
-    PERSONS:
+    PROTO_PERSONS:
         index_col: person_id
         VARIABLES:
             pnum: [1, 2]                # Person number
@@ -82,7 +82,7 @@ CREATE_TABLES:
                     1: "M"
                     2: "N"
 
-    TOURS:
+    PROTO_TOURS:
         index_col: tour_id
         VARIABLES:
             person_num: [1, 2, 2]       # person number
@@ -116,35 +116,42 @@ zones:
 # Of course, users can also just reference existing configs if they work, but they must be referenced here too.
 
 annotate_proto_tables:
-  - tablename: persons
+  - tablename: proto_persons
     annotate:
       SPEC: annotate_persons
-      DF: persons
+      DF: proto_persons
       TABLES:
-        - households
-
-  - tablename: households
+        - proto_households
+  - tablename: proto_households
     annotate: 
       SPEC: annotate_proto_households
-      DF: households
+      DF: proto_households
       TABLES:
-        - persons
+        - proto_persons
         - land_use
 
-  - tablename: households
+  - tablename: proto_households
     annotate:
       SPEC: annotate_households
-      DF: households
+      DF: proto_households
       TABLES:
-        - persons
+        - proto_persons
         - land_use
 
-  - tablename: persons
+  - tablename: proto_persons
     annotate:
       SPEC: annotate_persons_after_hh
-      DF: persons
+      DF: proto_persons
       TABLES:
+        - proto_households
+
+suffixes: # Update reference tables in expression files with 'proto_' suffix
+    SUFFIX: proto_
+    ROOTS:
+        - persons
         - households
+        - tours
+        - persons_merged
         
   # - tablename: persons
     # annotate: 

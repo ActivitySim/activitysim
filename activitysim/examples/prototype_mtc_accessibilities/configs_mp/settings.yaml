@@ -45,9 +45,9 @@ models:
   ### mp_initialize step
   - initialize_landuse
   - initialize_proto_population
+  ### mp_accessibility step
   - compute_disaggregate_accessibility
   - initialize_households
-  ### mp_accessibility step
   - compute_accessibility
   ### mp_households step
   - school_location
@@ -90,8 +90,10 @@ multiprocess_steps:
     begin: compute_disaggregate_accessibility
     slice:
       tables:
-        - households
-        - persons
+        - proto_households 
+        - proto_persons
+        - proto_tours
+        - proto_persons_merged
       # don't slice any tables not explicitly listed above in slice.tables
       except: True
   - name: mp_households

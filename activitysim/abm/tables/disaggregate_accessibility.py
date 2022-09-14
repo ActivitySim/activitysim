@@ -4,36 +4,10 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import inject
+from activitysim.core import inject, pipeline, tracing
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
-#
-# # households = inject.get_table("households").to_frame()
-# # assert not households._is_view
-# # chunk.log_df(trace_label, "households", households)
-# # del households
-# # chunk.log_df(trace_label, "households", None)
-# #
-# # persons = inject.get_table("persons").to_frame()
-# # assert not persons._is_view
-# # chunk.log_df(trace_label, "persons", persons)
-# # del persons
-# # chunk.log_df(trace_label, "persons", None)
-#
-# persons_merged = inject.get_table("persons_merged").to_frame()
-# assert not persons_merged._is_view
-# chunk.log_df(trace_label, "persons_merged", persons_merged)
-# del persons_merged
-# chunk.log_df(trace_label, "persons_merged", None)
-#
-# model_settings = config.read_model_settings(
-#     "disaggregate_accessibility.yaml", mandatory=True
-# )
-# initialize.annotate_tables(model_settings, trace_label)
-#
-#
-# # Merge
 
 def read_disaggregate_accessibility(table_name):
     """
@@ -69,25 +43,54 @@ def non_mandatory_tour_destination_accessibility(table_name='non_mandatory_tour_
     df = read_disaggregate_accessibility(table_name)
     return df
 
-# @inject.table()
-# def disaggregate_accessibility():
-#     """
-#     If '*destination model*_accessibilities' is in input_tables list, then read it in.
-#     This allows loading of pre-computed accessibility table.
-#     """
-#
-#     def import_table(table_name):
-#         df = read_input_table(table_name, required=False)
-#
-#         # replace table function with dataframe
-#         inject.add_table(table_name, df)
-#
-#         return df
-#
-#     accessibility_tables = ['workplace_location_accessibilities',
-#                             'school_location_accessibilities',
-#                             'non_mandatory_tour_destination_accessibilities']
-#
-#     accessibilities = {k: import_table(k) for k in accessibility_tables}
-#
-#     return accessibilities
+@inject.table()
+def proto_persons(households, trace_hh_id):
+    df = pd.DataFrame()
+    # df = inject.get_table('persons')
+    logger.info("loaded proto_persons %s" % (df.shape,))
+    # replace table function with dataframe
+    inject.add_table("proto_persons", df)
+    pipeline.get_rn_generator().add_channel("proto_persons", df)
+    tracing.register_traceable_table("proto_persons", df)
+    return df
+
+
+# another common merge for persons
+@inject.table()
+def proto_persons_merged(proto_persons, households, land_use):
+
+    return inject.merge_tables(
+        proto_persons.name, tables=[proto_persons, households, land_use]
+    )
+
+
+@inject.table()
+def proto_households(households_sample_size, override_hh_ids, trace_hh_id):
+
+    df = pd.DataFrame()
+    logger.info("loaded proto_households %s" % (df.shape,))
+    # replace table function with dataframe
+    inject.add_table("proto_households", df)
+    pipeline.get_rn_generator().add_channel("proto_households", df)
+    tracing.register_traceable_table("proto_households", df)
+    if trace_hh_id:
+        tracing.trace_df(df, "raw.proto_households", warn_if_empty=True)
+
+    return df
+
+
+# this is a common merge so might as well define it once here and use it
+@inject.table()
+def proto_households_merged(proto_households, land_use):
+    return inject.merge_tables(
+        proto_households.name, tables=[proto_households, land_use]
+    )
+
+
+inject.broadcast("proto_households", "proto_persons", cast_index=True, onto_on="household_id")
+
+# this would be accessibility around the household location - be careful with
+# this one as accessibility at some other location can also matter
+inject.broadcast("workplace_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
+inject.broadcast("school_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
+inject.broadcast("non_mandatory_tour_destination_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")

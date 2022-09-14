@@ -7,13 +7,15 @@ import logging
 import subprocess
 import pkg_resources
 import pandas as pd
+from collections import Iterable
 from orca import orca
 
 from activitysim.core import (inject,
                               tracing,
                               config,
                               pipeline,
-                              chunk)
+                              chunk,
+                              util)
 
 from activitysim.abm.models import location_choice
 from activitysim.abm.models.util import (tour_destination, estimation)
@@ -21,27 +23,6 @@ from activitysim.abm.tables import shadow_pricing
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
-
-# Generic helper functions
-def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.OrderedDict):
-    class OrderedLoader(Loader):
-        pass
-
-    def construct_mapping(loader, node):
-        loader.flatten_mapping(node)
-        return object_pairs_hook(loader.construct_pairs(node))
-
-    OrderedLoader.add_constructor(
-        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-        construct_mapping)
-    return yaml.load(stream, OrderedLoader)
-
-
-def named_product(**d):
-    names = d.keys()
-    vals = d.values()
-    for res in itertools.product(*vals):
-        yield dict(zip(names, res))
 
 
 class ProtoPop:
@@ -82,7 +63,7 @@ class ProtoPop:
                      for z in self.model_settings['zones']}
 
         # Add zones to households dicts as vary_on variable
-        params['households']['variables'] = {**params['households']['variables'], **zone_list}
+        params['proto_households']['variables'] = {**params['proto_households']['variables'], **zone_list}
 
         return params
 
@@ -92,7 +73,7 @@ class ProtoPop:
         The mapped fields are then annotated after replication
         """
         # Generate replicates
-        df = pd.DataFrame(named_product(**self.params[table_name]['variables']))
+        df = pd.DataFrame(util.named_product(**self.params[table_name]['variables']))
 
         # Applying mapped variables
         if len(self.params[table_name]['mapped']) > 0:
@@ -109,7 +90,7 @@ class ProtoPop:
 
     def create_proto_pop(self):
         # Separate out the mapped data from the varying data and create base replicate tables
-        klist = ['households', 'persons', 'tours']
+        klist = ['proto_households', 'proto_persons', 'proto_tours']
         households, persons, tours = [self.generate_replicates(k) for k in klist]
 
         # Names
@@ -126,13 +107,13 @@ class ProtoPop:
 
         # Assign persons to households
         rep = pd.DataFrame(
-            named_product(hhid=households[hhid], index=persons.index)
+            util.named_product(hhid=households[hhid], index=persons.index)
         ).set_index('index').rename(columns={'hhid': hhid})
         persons = rep.join(persons).sort_values(hhid).reset_index(drop=True)
         persons[perid] = persons.index + 1
 
         # Assign persons to tours
-        tkey, pkey = list(self.params['tours']['join_on'].items())[0]
+        tkey, pkey = list(self.params['proto_tours']['join_on'].items())[0]
         tours = tours.merge(persons[[pkey, hhid, perid]], left_on=tkey, right_on=pkey)
         tours.index = tours.index.set_names([tourid])
         tours = tours.reset_index().drop(columns=[pkey])
@@ -143,7 +124,7 @@ class ProtoPop:
         tours.set_index(tourid, inplace=True, drop=False)
 
         # Store tables
-        self.proto_pop = {'households': households, 'persons': persons, 'tours': tours}
+        self.proto_pop = {'proto_households': households, 'proto_persons': persons, 'proto_tours': tours}
 
         # Rename any columns. Do this first before any annotating
         for tablename, df in self.proto_pop.items():
@@ -168,14 +149,14 @@ class ProtoPop:
             # pipeline.get_rn_generator().add_channel(tablename, df)
             assign_columns(
                 df=df,
-                model_settings=annotations['annotate'],
+                model_settings={**annotations['annotate'], **self.model_settings['suffixes']},
                 trace_label=tracing.extend_trace_label('ProtoPop.annotate', tablename))
             pipeline.replace_table(tablename, df)
             # pipeline.get_rn_generator().drop_channel(tablename)
 
     def merge_persons(self, land_use_df):
-        persons = pipeline.get_table('persons')
-        households = pipeline.get_table('households')
+        persons = pipeline.get_table('proto_persons')
+        households = pipeline.get_table('proto_households')
 
         # For dropping any extra columns created during merge
         cols_to_use = households.columns.difference(persons.columns)
@@ -183,21 +164,21 @@ class ProtoPop:
         # persons_merged to emulate the persons_merged table in the pipeline
         persons_merged = persons.join(households[cols_to_use]).merge(
             land_use_df,
-            left_on=self.params['households']['zone_col'],
+            left_on=self.params['proto_households']['zone_col'],
             right_on=self.model_settings['zones'])
 
-        perid = self.params['persons']['index_col']
+        perid = self.params['proto_persons']['index_col']
         persons_merged.set_index(perid, inplace=True, drop=True)
-        self.proto_pop['persons_merged'] = persons_merged
+        self.proto_pop['proto_persons_merged'] = persons_merged
 
         # Store in pipeline
-        inject.add_table('persons_merged', persons_merged)
-        pipeline.get_rn_generator().add_channel('persons_merged', persons_merged)
+        inject.add_table('proto_persons_merged', persons_merged)
+        pipeline.get_rn_generator().add_channel('proto_persons_merged', persons_merged)
         # pipeline.get_rn_generator().drop_channel('persons_merged')
 
 def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
     logsums = {}
-    persons_merged = pipeline.get_table('persons_merged').sort_index(inplace=False)
+    persons_merged = pipeline.get_table('proto_persons_merged').sort_index(inplace=False)
     disagg_model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
 
     for model_name in ['workplace_location', 'school_location', 'non_mandatory_tour_destination']:
@@ -208,7 +189,17 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
         if estimator:
             location_choice.write_estimation_specs(estimator, model_settings, model_name + '.yaml')
 
-        if model_name is not 'non_mandatory_tour_destination':
+        # Append table references in settings with "proto_"
+        # This avoids having to make duplicate copies of config files for disagg accessibilities
+        model_settings = util.suffix_tables_in_settings(model_settings)
+
+        # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
+        if model_settings.get('LOGSUM_SETTINGS', None):
+            suffixes = util.concat_suffix_dict(disagg_model_settings.get('suffixes'))
+            suffixes.insert(0, model_settings.get('LOGSUM_SETTINGS'))
+            model_settings['LOGSUM_SETTINGS'] = ' '.join(suffixes)
+
+        if model_name != 'non_mandatory_tour_destination':
             shadow_price_calculator = shadow_pricing.load_shadow_price_calculator(model_settings)
             _logsums, _ = location_choice.run_location_choice(
                 persons_merged,
@@ -230,7 +221,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
                 logsums[model_name] = persons_merged.merge(_logsums[keep_cols], on='person_id')
 
         else:
-            tours = pipeline.get_table('tours')
+            tours = pipeline.get_table('proto_tours')
             tours = tours[tours.tour_category == 'non_mandatory']
 
             _logsums, _ = tour_destination.run_tour_destination(
@@ -285,30 +276,32 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     add_size_tables = model_settings.get('add_size_tables', True)
     if add_size_tables:
         # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-        shadow_pricing.add_size_tables()
+        shadow_pricing.add_size_tables(model_settings.get('suffixes'))
 
     # Run location choice
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
 
-    # Cleanup pipeline
+    # # De-register the channel so it can get re-registered with actual pop tables
+    # [pipeline.get_rn_generator().drop_channel(x) for x in ['persons', 'households']]
     [pipeline.drop_table(x) for x in ['school_destination_size', 'workplace_destination_size', 'tours']]
-    [pipeline.get_rn_generator().drop_channel(x) for x in ['persons', 'households']]
 
-    orca._TABLE_CACHE.clear()
-    for name, func in inject._DECORATED_TABLES.items():
-        if name not in ['land_use']:
-            logger.debug("reinject decorated table %s" % name)
-            orca.add_table(name, func)
-
-    # Append key names
-    logsums = {k + '_accessibilities': v for k, v in logsums.items()}
+    # # Re-initialize
+    # orca._TABLE_CACHE.clear()
+    # for name, func in inject._DECORATED_TABLES.items():
+    #     if name not in ['land_use']:
+    #         logger.debug("reinject decorated table %s" % name)
+    #         orca.add_table(name, func)
 
     # Inject accessibilities into pipeline
+    logsums = {k + '_accessibilities': v for k, v in logsums.items()}
     [inject.add_table(k, df) for k, df in logsums.items()]
 
     # Override output tables to include accessibilities in write_table
     new_settings = inject.get_injectable("settings")
-    new_settings['output_tables']['tables'] += list(logsums.keys())
+    if 'disaggregate_accessibility' in new_settings.get('output_tables').get('tables'):
+        tables = new_settings['output_tables']['tables']
+        new_settings['output_tables']['tables'].remove('disaggregate_accessibility')
+        new_settings['output_tables']['tables'] += logsums.keys()
     inject.add_injectable("settings", new_settings)
 
     return

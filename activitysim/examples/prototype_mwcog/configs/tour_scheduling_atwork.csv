@@ -19,22 +19,22 @@ util_Subtour_purpose_Eatout_Departure_after_1230_pm_Linear,Subtour purpose: Eat-
 util_Subtour_purpose_Eatout_Duration_less_than_0p5_hours_depart_and_arrive_in_the_same_period,Subtour purpose: Eat-out - Duration less than 0.5 hours (depart and arrive in the same period),"@np.where(((df.tour_type == 'eat') & (df.duration<1)), (np.where((df.duration <= 1), np.minimum(1 - df.duration, 47), 0) + np.where((df.duration > 1), np.minimum(df.duration - 1, 47), 0)), 0)",coef_Subtour_purpose_Eatout_Duration_less_than_0p5_hours_depart_and_arrive_in_the_same_period
 util__Departure_constants,# Departure constants,,coef__Departure_constants
 util_Shift_for_every_30_minutes_before_1030_am_Linear,Shift for every 30 minutes before 10:30 am - Linear,"@np.where((df.start<16), (np.where((df.start< 16), np.minimum(16 - df.start, 9), 0) + np.where((df.start> 21), np.minimum(df.start - 21, 11), 0)), 0)",coef_Shift_for_every_30_minutes_before_1030_am_Linear
-util_Before_1100_AM,Before 11:00 AM,@(df.start<17),coef_start_Before_1100_AM
-util_1100_AM_1130_AM,11:00 AM - 11:30 AM,@(df.start==17),coef_start_1100_AM_1130_AM
-util_1130_AM_1200_PM,11:30 AM - 12:00 PM,@(df.start==18),coef_start_1130_AM_1200_PM
-util_1200_AM_1230_PM,12:00 AM - 12:30 PM,@(df.start==19),coef_start_1200_AM_1230_PM
-util_1230_PM_0100_PM,12:30 PM - 01:00 PM,@(df.start==20),coef_start_1230_PM_0100_PM
-util_After_0100_PM,After 01:00 PM,@(df.start>20),coef_start_After_0100_PM
+util_Before_1100_AM_start,Before 11:00 AM,@(df.start<17),coef_start_Before_1100_AM
+util_1100_AM_1130_AM_start,11:00 AM - 11:30 AM,@(df.start==17),coef_start_1100_AM_1130_AM
+util_1130_AM_1200_PM_start,11:30 AM - 12:00 PM,@(df.start==18),coef_start_1130_AM_1200_PM
+util_1200_AM_1230_PM_start,12:00 AM - 12:30 PM,@(df.start==19),coef_start_1200_AM_1230_PM
+util_1230_PM_0100_PM_start,12:30 PM - 01:00 PM,@(df.start==20),coef_start_1230_PM_0100_PM
+util_After_0100_PM_start,After 01:00 PM,@(df.start>20),coef_start_After_0100_PM
 util_Shift_for_every_30_minutes_after_130_pm_Square_Root,Shift for every 30 minutes after 1:30 pm - Square Root,"@np.where((df.start>21), ((np.where((df.start < 16), np.minimum(16 - df.start, 9), 0) + np.where((df.start > 21), np.minimum(df.start - 21, 11), 0))** 0.5), 0)",coef_Shift_for_every_30_minutes_after_130_pm_Square_Root
 util__Arrival_constants,# Arrival constants,,coef__Arrival_constants
 util_Shift_for_every_30_minutes_before_1130_am_Linear,Shift for every 30 minutes before 11:30 am - Linear,"@np.where((df.end<18), (np.where((df.end < 14), np.minimum(14 - df.end, 9), 0) + np.where((df.end > 24), np.minimum(df.end - 24, 10), 0)), 0)",coef_Shift_for_every_30_minutes_before_1130_am_Linear
-util_Before_1200_PM,Before 12:00 PM,@(df.end<19),coef_end_Before_1200_PM
-util_1200_AM_1230_PM,12:00 AM - 12:30 PM,@(df.end==19),coef_end_1200_AM_1230_PM
-util_1230_PM_0100_PM,12:30 PM - 01:00 PM,@(df.end==20),coef_end_1230_PM_0100_PM
-util_0100_PM_0130_PM,01:00 PM - 01:30 PM,@(df.end==21),coef_end_0100_PM_0130_PM
-util_0130_PM_0200_PM,01:30 PM - 02:00 PM,@(df.end==22),coef_end_0130_PM_0200_PM
-util_0200_PM_0230_PM,02:00 PM - 02:30 PM,@(df.end==23),coef_end_0200_PM_0230_PM
-util_After_0230_PM,After 02:30 PM,@(df.end>23),coef_end_After_0230_PM
+util_Before_1200_PM_end,Before 12:00 PM,@(df.end<19),coef_end_Before_1200_PM
+util_1200_AM_1230_PM_end,12:00 AM - 12:30 PM,@(df.end==19),coef_end_1200_AM_1230_PM
+util_1230_PM_0100_PM_end,12:30 PM - 01:00 PM,@(df.end==20),coef_end_1230_PM_0100_PM
+util_0100_PM_0130_PM_end,01:00 PM - 01:30 PM,@(df.end==21),coef_end_0100_PM_0130_PM
+util_0130_PM_0200_PM_end,01:30 PM - 02:00 PM,@(df.end==22),coef_end_0130_PM_0200_PM
+util_0200_PM_0230_PM_end,02:00 PM - 02:30 PM,@(df.end==23),coef_end_0200_PM_0230_PM
+util_After_0230_PM_end,After 02:30 PM,@(df.end>23),coef_end_After_0230_PM
 util_Shift_for_every_30_minutes_after_300_pm_Linear,Shift for every 30 minutes after 3:00 pm - Linear,"@np.where((df.end>24), (np.where((df.end < 14), np.minimum(14 - df.end, 9), 0) + np.where((df.end > 24), np.minimum(df.end - 24, 10), 0)), 0)",coef_Shift_for_every_30_minutes_after_300_pm_Linear
 util__Duration_constants,# Duration constants,,coef__Duration_constants
 util_0_hrs,0 hrs,@(df.duration==0),coef_0_hrs

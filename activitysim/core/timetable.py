@@ -827,40 +827,58 @@ class TimeTable(object):
         -------
             pandas.Series with same index as window_row_ids, and integer max_run_length of
         """
+        result = pd.Series(
+            _max_time_blocks_available_1(
+                self.window_row_ix._mapper, self.windows, np.asarray(window_row_ids)
+            ),
+            index=window_row_ids.index,
+        )
+        return result
 
-        # FIXME consider dedupe/redupe window_row_ids for performance
-        # as this may be called for alts with lots of duplicates (e.g. trip scheduling time pressure calculations)
 
-        # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
-        available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
+@nb.njit
+def _max_time_block_available_1(windows_row):
+    """
 
-        # np.set_printoptions(edgeitems=25, linewidth = 180)
-        # print(f"self.slice_windows_by_row_id(window_row_ids)\n{self.slice_windows_by_row_id(window_row_ids)}")
+    Parameters
+    ----------
+    tt_windows : array[int8], 1 dimension
+        Array of currently scheduled stuff
+    tt_row_mapper : numba.typed.Dict[int,int]
+        Maps value in `window_row_id` to row position in `tt_windows`.
+    window_row_id : int
 
-        # padding periods not available
-        available[:, 0] = 0
-        available[:, -1] = 0
+    Returns
+    -------
 
-        diffs = np.diff(
-            available
-        )  # 1 at start of run of availables, -1 at end, 0 everywhere else
-        start_row_index, starts = np.asarray(
-            diffs > 0
-        ).nonzero()  # indices of run starts
-        end_row_index, ends = np.asarray(diffs < 0).nonzero()  # indices of run ends
-        assert (
-            start_row_index == end_row_index
-        ).all()  # because bounded, expect same number of starts and ends
+    """
+    max_block_avail = 0
+    current_block = 0
+    for i in range(1, windows_row.size - 1):
+        if windows_row[i] != I_MIDDLE:
+            current_block += 1
+        else:
+            current_block = 0
+        if current_block > max_block_avail:
+            max_block_avail = current_block
+    return max_block_avail
 
-        # run_lengths like availability but with run length at start of every run and zeros elsewhere
-        # (row_indices of starts and ends are aligned, so end - start is run_length)
-        run_lengths = np.zeros_like(available)
-        run_lengths[start_row_index, starts] = ends - starts
 
-        # we just want to know the the longest one for each window_row_id
-        max_run_lengths = run_lengths.max(axis=1)
+@nb.njit
+def _max_time_blocks_available_1(tt_window_row_ix, tt_windows, window_row_ids):
+    max_blocks = np.zeros(window_row_ids.size, dtype=np.uint8)
+    # FIXME consider dedupe/redupe window_row_ids for performance
+    # as this may be called for alts with lots of duplicates (e.g. trip scheduling time pressure calculations)
+    for j in range(window_row_ids.size):
+        max_blocks[j] = _max_time_block_available_1(
+            tt_windows[tt_window_row_ix[window_row_ids[j]]]
+        )
+    return max_blocks
 
-        return pd.Series(max_run_lengths, index=window_row_ids.index)
+
+@nb.njit
+def sharrow_tt_max_time_block_available(tt_windows, tt_row_mapper, window_row_id):
+    return _max_time_block_available_1(tt_windows[tt_row_mapper[window_row_id]])
 
 
 def tt_slice_windows_by_row_id(tt_window_row_ix, tt_windows, window_row_ids):
@@ -911,9 +929,9 @@ def sharrow_tt_remaining_periods_available(
 
     Parameters
     ----------
-    windows : array[int8], 2 dimensions
+    tt_windows : array[int8], 2 dimensions
         Array of currently scheduled stuff
-    windows_row_mapper : numba.typed.Dict[int,int]
+    tt_row_mapper : numba.typed.Dict[int,int]
         Maps value in the `window_row_ids` to row positions in `windows`.
     window_row_id : int
         An identifier for which window row to use.

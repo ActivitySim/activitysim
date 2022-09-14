@@ -175,6 +175,10 @@ def eval_interaction_utilities(
                     "tt.remaining_periods_available(",
                     "sharrow_tt_remaining_periods_available(tt_windows, tt_row_mapper, ",
                 ),
+                (
+                    "tt.max_time_block_available(",
+                    "sharrow_tt_max_time_block_available(tt_windows, tt_row_mapper, ",
+                ),
             )
 
             # need to zero out any coefficients on temp vars

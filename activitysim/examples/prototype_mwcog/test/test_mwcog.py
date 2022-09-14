@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -34,11 +35,14 @@ def test_mwcog():
 
     file_path = os.path.join(os.path.dirname(__file__), ".." + os.sep + "simulation.py")
 
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        executable = ["coverage", "run", "-a"]
+    else:
+        executable = [sys.executable]
+
     subprocess.run(
-        [
-            "coverage",
-            "run",
-            "-a",
+        executable
+        + [
             file_path,
             "-c",
             test_path("configs"),

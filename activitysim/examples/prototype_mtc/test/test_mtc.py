@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -92,7 +93,10 @@ def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=Fals
             test_path("output"),
         ]
 
-    subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    else:
+        subprocess.run([sys.executable, file_path] + run_args, check=True)
 
     regress()
 

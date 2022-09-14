@@ -17,6 +17,7 @@ from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
 from .timetable import (
     sharrow_tt_adjacent_window_after,
     sharrow_tt_adjacent_window_before,
+    sharrow_tt_max_time_block_available,
     sharrow_tt_previous_tour_begins,
     sharrow_tt_previous_tour_ends,
     sharrow_tt_remaining_periods_available,
@@ -588,6 +589,7 @@ def new_flow(
             sharrow_tt_previous_tour_ends,
             sharrow_tt_adjacent_window_after,
             sharrow_tt_adjacent_window_before,
+            sharrow_tt_max_time_block_available,
         )
         flow_tree.aux_vars = aux_vars
 
@@ -601,7 +603,12 @@ def new_flow(
             labels = exprs
 
         defs = {}
+        # duplicate labels cause problems for sharrow, so we need to dedupe
+        existing_labels = set()
         for (expr, label) in zip(exprs, labels):
+            while label in existing_labels:
+                label = label + "_"
+            existing_labels.add(label)
             if expr[0] == "@":
                 if label == expr:
                     if expr[1:].isidentifier():

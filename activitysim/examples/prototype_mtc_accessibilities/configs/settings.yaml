@@ -230,7 +230,8 @@ output_tables:
   tables:
     - checkpoints
     - accessibility
-    - disaggregate_accessibility
+    - workplace_location_accessibility
+    - non_mandatory_tour_destination_accessibility
     - land_use
     - households
     - persons

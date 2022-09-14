@@ -298,9 +298,10 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     #         orca.add_table(name, func)
 
     # Inject accessibilities into pipeline
-    logsums = {k + '_accessibilities': v for k, v in logsums.items()}
+    logsums = {k + '_accessibility': v for k, v in logsums.items()}
     [inject.add_table(k, df) for k, df in logsums.items()]
 
+    # TODO MOVE TO WRITE TABLES??? OR JUST DELETE?
     # Override output tables to include accessibilities in write_table
     new_settings = inject.get_injectable("settings")
     if 'disaggregate_accessibility' in new_settings.get('output_tables').get('tables'):

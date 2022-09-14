@@ -1,33 +1,37 @@
 import os
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import yaml
+from larch import DataFrames, Model
 from larch.util import Dict
-from larch import Model, DataFrames
 
 from .general import (
-    remove_apostrophes,
-    dict_of_linear_utility_from_spec,
     apply_coefficients,
     construct_nesting_tree,
+    dict_of_linear_utility_from_spec,
+    remove_apostrophes,
 )
 
 
 def stop_frequency_data(
-        edb_directory="output/estimation_data_bundle/{name}/",
-        settings_file="{name}_model_settings.yaml",
-        chooser_data_file="{name}_values_combined.csv",
-        values_index_col="tour_id",
+    edb_directory="output/estimation_data_bundle/{name}/",
+    settings_file="{name}_model_settings.yaml",
+    chooser_data_file="{name}_values_combined.csv",
+    values_index_col="tour_id",
 ):
-    name = 'stop_frequency'
+    name = "stop_frequency"
     edb_directory = edb_directory.format(name=name)
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+        settings = yaml.load(
+            yf,
+            Loader=yaml.SafeLoader,
+        )
 
-    segments = [i['primary_purpose'] for i in settings['SPEC_SEGMENTS']]
+    segments = [i["primary_purpose"] for i in settings["SPEC_SEGMENTS"]]
 
     master_coef = {}
     prior_segs = []
@@ -35,10 +39,10 @@ def stop_frequency_data(
 
     segment_coef = {}
     for seg_ in settings["SPEC_SEGMENTS"]:
-        seg_purpose = seg_['primary_purpose']
+        seg_purpose = seg_["primary_purpose"]
         seg_subdir = Path(os.path.join(edb_directory, seg_purpose))
-        segment_coef[seg_['primary_purpose']] = pd.read_csv(
-            seg_subdir/seg_['COEFFICIENTS'],
+        segment_coef[seg_["primary_purpose"]] = pd.read_csv(
+            seg_subdir / seg_["COEFFICIENTS"],
             index_col="coefficient_name",
         )
 
@@ -63,14 +67,14 @@ def stop_frequency_data(
     # rewrite revised spec files with common segment_coef names
     for seg in segments:
         seg_subdir = Path(os.path.join(edb_directory, seg))
-        with open(seg_subdir/f"stop_frequency_SPEC.csv", 'rt') as f:
+        with open(seg_subdir / f"stop_frequency_SPEC.csv", "rt") as f:
             spec = f.read()
         for kcoef, v in coef_map[seg].items():
             spec = spec.replace(kcoef, v)
-        with open(seg_subdir/f"stop_frequency_SPEC_.csv", 'wt') as f:
+        with open(seg_subdir / f"stop_frequency_SPEC_.csv", "wt") as f:
             f.write(spec)
 
-    master_coef_df = pd.DataFrame(data=master_coef, index=['value']).T
+    master_coef_df = pd.DataFrame(data=master_coef, index=["value"]).T
     master_coef_df.index.name = "coefficient_name"
 
     seg_coefficients = []
@@ -82,12 +86,16 @@ def stop_frequency_data(
     seg_chooser_data = []
 
     for seg in settings["SPEC_SEGMENTS"]:
-        seg_purpose = seg['primary_purpose']
+        seg_purpose = seg["primary_purpose"]
         seg_subdir = Path(os.path.join(edb_directory, seg_purpose))
-        coeffs_ = pd.read_csv(seg_subdir/seg['COEFFICIENTS'], index_col="coefficient_name")
-        coeffs_.index = pd.Index([f"{i}_{seg_purpose}" for i in coeffs_.index], name="coefficient_name")
+        coeffs_ = pd.read_csv(
+            seg_subdir / seg["COEFFICIENTS"], index_col="coefficient_name"
+        )
+        coeffs_.index = pd.Index(
+            [f"{i}_{seg_purpose}" for i in coeffs_.index], name="coefficient_name"
+        )
         seg_coefficients.append(coeffs_)
-        spec = pd.read_csv(seg_subdir/"stop_frequency_SPEC_.csv")
+        spec = pd.read_csv(seg_subdir / "stop_frequency_SPEC_.csv")
         spec = remove_apostrophes(spec, ["Label"])
         # spec.iloc[:, 3:] = spec.iloc[:, 3:].applymap(lambda x: f"{x}_{seg_purpose}" if not pd.isna(x) else x)
         seg_spec.append(spec)
@@ -103,7 +111,7 @@ def stop_frequency_data(
         seg_alt_codes_to_names.append(alt_codes_to_names)
 
         chooser_data = pd.read_csv(
-            seg_subdir/chooser_data_file.format(name=name),
+            seg_subdir / chooser_data_file.format(name=name),
             index_col=values_index_col,
         )
         seg_chooser_data.append(chooser_data)
@@ -129,7 +137,8 @@ def stop_frequency_model(
     return_data=False,
 ):
     data = stop_frequency_data(
-        edb_directory=edb_directory, values_index_col="tour_id",
+        edb_directory=edb_directory,
+        values_index_col="tour_id",
     )
 
     models = []
@@ -146,33 +155,42 @@ def stop_frequency_model(
         alt_codes = data.alt_codes[n]
 
         from .general import clean_values
+
         chooser_data = clean_values(
             chooser_data,
             alt_names_to_codes=data.alt_names_to_codes[n],
             choice_code="override_choice_code",
         )
 
-        if settings.get('LOGIT_TYPE') == 'NL':
+        if settings.get("LOGIT_TYPE") == "NL":
             tree = construct_nesting_tree(data.alt_names[n], settings["NESTS"])
             m = Model(graph=tree)
         else:
             m = Model()
 
         m.utility_co = dict_of_linear_utility_from_spec(
-            spec, "Label", dict(zip(alt_names, alt_codes)),
+            spec,
+            "Label",
+            dict(zip(alt_names, alt_codes)),
         )
 
         apply_coefficients(coefficients, m)
 
         avail = True
 
-        d = DataFrames(co=chooser_data, av=avail, alt_codes=alt_codes, alt_names=alt_names, )
+        d = DataFrames(
+            co=chooser_data,
+            av=avail,
+            alt_codes=alt_codes,
+            alt_names=alt_names,
+        )
 
         m.dataservice = d
         m.choice_co_code = "override_choice_code"
         models.append(m)
 
     from larch.model.model_group import ModelGroup
+
     models = ModelGroup(models)
 
     if return_data:
@@ -184,7 +202,7 @@ def stop_frequency_model(
     return models
 
 
-def update_segment_coefficients(model, data, result_dir=Path('.'), output_file=None):
+def update_segment_coefficients(model, data, result_dir=Path("."), output_file=None):
     for m, segment_name in zip(model, data.segments):
         coefficient_map = data.coefficient_map[segment_name]
         segment_c = []
@@ -194,10 +212,12 @@ def update_segment_coefficients(model, data, result_dir=Path('.'), output_file=N
                 segment_c.append(c_local)
                 master_c.append(c_master)
         coefficients = data.segment_coefficients[segment_name].copy()
-        coefficients.loc[segment_c, "value"] = model.pf.loc[master_c, "value"].to_numpy()
+        coefficients.loc[segment_c, "value"] = model.pf.loc[
+            master_c, "value"
+        ].to_numpy()
         if output_file is not None:
             os.makedirs(result_dir, exist_ok=True)
             coefficients.reset_index().to_csv(
-                result_dir/output_file.format(segment_name=segment_name),
+                result_dir / output_file.format(segment_name=segment_name),
                 index=False,
             )

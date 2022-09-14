@@ -17,7 +17,7 @@
     cd activitysim
     ```
 
-00. Per project policy, code on the master branch should have been released,
+00. Per project policy, code on the main branch should have been released,
     but if you are *preparing* a release then the code should be on the `develop`
     branch.  Switch to that branch now, and make sure it is synced to the 
     version on GitHub:
@@ -60,8 +60,8 @@
     regular test suite takes some time to run, between about half an hour and 
     two hours depending on the specs of your machine.
     ```sh
-    python activitysim/examples/example_multiple_zone/scripts/two_zone_example_data.py
-    python activitysim/examples/example_multiple_zone/scripts/three_zone_example_data.py
+    python activitysim/examples/placeholder_multiple_zone/scripts/two_zone_example_data.py
+    python activitysim/examples/placeholder_multiple_zone/scripts/three_zone_example_data.py
     pytest .
     ```
  
@@ -83,7 +83,7 @@
     python ../activitysim/examples/scan_examples_for_errors.py .
     ```
 
-00. Test the notebooks in `activitysim/examples/example_mtc/notebooks`.
+00. Test the notebooks in `activitysim/examples/prototype_mtc/notebooks`.
     There are also demo notebooks for estimation, but their functionality  
     is completely tested in the unit tests run previously.
 
@@ -119,7 +119,7 @@
     ```
 
 00. For non-development releases, open a pull request to merge the proposed 
-    release into master. The following command will open a web browser for 
+    release into main. The following command will open a web browser for 
     you to create the pull request.
     ```sh
     gh pr create --web
@@ -127,7 +127,7 @@
     After creating the PR, confirm with the ActivitySim PMC that the release
     is ready before actually merging it.
     
-    Once final approval is granted, merge the PR into master.  The presence
+    Once final approval is granted, merge the PR into main.  The presence
     of the git tags added earlier will trigger automated build steps to
     prepare and deploy the release to pypi and conda-forge.
     
@@ -137,7 +137,7 @@
     ```
     For a development pre-release, include the `--prerelease` argument.
     As the project's policy is that only formally released code is merged
-    to the master branch, any pre-release should also be built against a 
+    to the main branch, any pre-release should also be built against a 
     non-default branch.  For example, to pre-release from the `develop`
     branch:
     ```sh

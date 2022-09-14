@@ -1,21 +1,22 @@
 import os
+from pathlib import Path
+from typing import Collection
+
 import numpy as np
 import pandas as pd
 import yaml
-from typing import Collection
+from larch import DataFrames, Model, P, X
 from larch.util import Dict
-from pathlib import Path
 
 from .general import (
-    remove_apostrophes,
-    construct_nesting_tree,
-    linear_utility_from_spec,
-    explicit_value_parameters,
     apply_coefficients,
+    construct_nesting_tree,
     cv_to_ca,
+    explicit_value_parameters,
+    linear_utility_from_spec,
+    remove_apostrophes,
     str_repr,
 )
-from larch import Model, DataFrames, P, X
 
 
 def schedule_choice_model(
@@ -46,16 +47,25 @@ def schedule_choice_model(
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+        settings = yaml.load(
+            yf,
+            Loader=yaml.SafeLoader,
+        )
 
     try:
-        coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
+        coefficients = _read_csv(
+            coefficients_file,
+            index_col="coefficient_name",
+        )
     except FileNotFoundError:
         # possibly mis-named file is shown in settings
-        coefficients_file = settings.get('COEFFICIENTS', coefficients_file)
-        coefficients = _read_csv(coefficients_file, index_col="coefficient_name",)
+        coefficients_file = settings.get("COEFFICIENTS", coefficients_file)
+        coefficients = _read_csv(
+            coefficients_file,
+            index_col="coefficient_name",
+        )
 
-    spec = _read_csv(spec_file, comment='#')
+    spec = _read_csv(spec_file, comment="#")
     alt_values = _read_csv(alt_values_file)
     chooser_data = _read_csv(chooser_file)
 
@@ -66,7 +76,10 @@ def schedule_choice_model(
     include_settings = settings.get("include_settings")
     if include_settings:
         with open(os.path.join(edb_directory, include_settings), "r") as yf:
-            more_settings = yaml.load(yf, Loader=yaml.SafeLoader, )
+            more_settings = yaml.load(
+                yf,
+                Loader=yaml.SafeLoader,
+            )
         settings.update(more_settings)
 
     CHOOSER_SEGMENT_COLUMN_NAME = settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
@@ -76,28 +89,35 @@ def schedule_choice_model(
         if SEGMENTS is not None:
             SEGMENT_IDS = {i: i for i in SEGMENTS}
 
-    if 'Label' in spec.columns:
-        label_column_name = 'Label'
-    elif 'Expression' in spec.columns:
-        label_column_name = 'Expression'
+    if "Label" in spec.columns:
+        label_column_name = "Label"
+    elif "Expression" in spec.columns:
+        label_column_name = "Expression"
     else:
         raise ValueError("cannot find Label or Expression in spec file")
 
     m = Model()
     if len(spec.columns) == 4 and (
-            [c.lower() for c in spec.columns] == [
-                'label', 'description', 'expression', 'coefficient'
-            ]
+        [c.lower() for c in spec.columns]
+        == ["label", "description", "expression", "coefficient"]
     ):
         m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+            spec,
+            x_col="Label",
+            p_col=spec.columns[-1],
+            ignore_x=("local_dist",),
         )
-    elif len(spec.columns) == 4 \
-            and all(spec.columns[:3] == ['Label', 'Description', 'Expression']) \
-            and len(SEGMENT_IDS) == 1 \
-            and spec.columns[3] == list(SEGMENT_IDS.values())[0]:
+    elif (
+        len(spec.columns) == 4
+        and all(spec.columns[:3] == ["Label", "Description", "Expression"])
+        and len(SEGMENT_IDS) == 1
+        and spec.columns[3] == list(SEGMENT_IDS.values())[0]
+    ):
         m.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=spec.columns[-1], ignore_x=("local_dist",),
+            spec,
+            x_col="Label",
+            p_col=spec.columns[-1],
+            ignore_x=("local_dist",),
         )
     else:
         m.utility_ca = linear_utility_from_spec(
@@ -127,10 +147,10 @@ def schedule_choice_model(
     # else:
     #     x_co["_segment_label"] = size_spec.index[0]
 
-    alt_codes = np.arange(len(x_ca.index.levels[1]))+1
+    alt_codes = np.arange(len(x_ca.index.levels[1])) + 1
     x_ca.index = x_ca.index.set_levels(alt_codes, 1)
-    x_co["override_choice_plus1"] = x_co["override_choice"]+1
-    x_co["model_choice_plus1"] = x_co["model_choice"]+1
+    x_co["override_choice_plus1"] = x_co["override_choice"] + 1
+    x_co["model_choice_plus1"] = x_co["model_choice"] + 1
 
     unavail_coefs = coefficients.query("(constrain == 'T') & (value < -900)").index
     unavail_data = [i.data for i in m.utility_ca if i.param in unavail_coefs]

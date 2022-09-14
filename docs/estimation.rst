@@ -5,7 +5,7 @@ Estimation
 ----------
 
 ActivitySim includes the ability to re-estimate submodels using choice model estimation tools
-such as `larch <https://larch.newman.me/>`__.  To do so, ActivitySim adopts the concept of an estimation 
+such as `larch <https://larch.newman.me/>`__.  To do so, ActivitySim adopts the concept of an estimation
 data bundle (EDB), which is a collection of the necessary data to re-estimate a submodel.  For example, for the auto ownership submodel,
 the EDB consists of the following files:
 
@@ -16,13 +16,13 @@ the EDB consists of the following files:
 
 ActivitySim also includes Jupyter :ref:`estimation_example_notebooks` for estimating submodels with larch, as well as an ``activitysim.estimation.larch`` submodule that transforms EDBs into larch models.  Additional estimation software translators can be added later if desired.
 
-The combination of writing an EDB for a submodel + a larch estimation notebook means users can easily re-estimate submodels. This 
+The combination of writing an EDB for a submodel + a larch estimation notebook means users can easily re-estimate submodels. This
 combination of functionality means:
 
 * There is no duplication of model specifications. ActivitySim owns the specification and larch pivots off of it.  Users code model specifications and utility expressions in ActivitySim so as to facilitate ease of use and eliminate inconsistencies and errors between the code used to estimate the models and the code used to apply the models.
 * The EDB includes all the data and model structure information and the ``activitysim.estimation.larch`` submodule used by the example notebooks transforms the EDB to larch's data model for estimation.
 * Users are able to add zones, alternatives, new chooser data, new taz data, new modes, new coefficients, revise utilities, and revise nesting structures in ActivitySim and larch responds accordingly.
-* Eventually it may be desirable for ActivitySim to automatically write larch estimators (or other types of estimators), but for now the integration is loosely coupled rather than tightly coupled in order to provide flexibility. 
+* Eventually it may be desirable for ActivitySim to automatically write larch estimators (or other types of estimators), but for now the integration is loosely coupled rather than tightly coupled in order to provide flexibility.
 
 Workflow
 ~~~~~~~~
@@ -96,51 +96,51 @@ ActivitySim includes a `Jupyter Notebook <https://jupyter.org>`__ recipe book wi
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Example                             | Notebook                                                                                                                                                                            |
 +=====================================+=====================================================================================================================================================================================+
-| Estimation mode overview            | `01_estimation_mode.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb>`_                     |
+| Estimation mode overview            | `01_estimation_mode.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/01_estimation_mode.ipynb>`_                       |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| School location                     | `02_school_location.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/02_school_location.ipynb>`_                     |
+| School location                     | `02_school_location.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/02_school_location.ipynb>`_                       |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Work location                       | `03_work_location.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/03_work_location.ipynb>`_                         |
+| Work location                       | `03_work_location.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/03_work_location.ipynb>`_                           |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Auto ownership                      | `04_auto_ownership.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/04_auto_ownership.ipynb>`_                       |
+| Auto ownership                      | `04_auto_ownership.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/04_auto_ownership.ipynb>`_                         |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Free parking                        | `05_free_parking.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/05_free_parking.ipynb>`_                           |
+| Free parking                        | `05_free_parking.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/05_free_parking.ipynb>`_                             |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| CDAP                                | `06_cdap.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/06_cdap.ipynb>`_                                           |
+| CDAP                                | `06_cdap.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/06_cdap.ipynb>`_                                             |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Mandatory tour frequency            | `07_mand_tour_freq.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/07_mand_tour_freq.ipynb>`_                       |
+| Mandatory tour frequency            | `07_mand_tour_freq.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/07_mand_tour_freq.ipynb>`_                         |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Work tour scheduling                | `08_work_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/08_work_tour_scheduling.ipynb>`_           |
+| Work tour scheduling                | `08_work_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/08_work_tour_scheduling.ipynb>`_             |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| School tour scheduling              | `09_school_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/09_school_tour_scheduling.ipynb>`_       |
+| School tour scheduling              | `09_school_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/09_school_tour_scheduling.ipynb>`_         |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Joint tour frequency                | `10_joint_tour_freq.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/10_joint_tour_freq.ipynb>`_                     |
+| Joint tour frequency                | `10_joint_tour_freq.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/10_joint_tour_freq.ipynb>`_                       |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Jointatory tour composition         | `11_joint_tour_composition.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/11_joint_tour_composition.ipynb>`_       |
+| Jointatory tour composition         | `11_joint_tour_composition.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/11_joint_tour_composition.ipynb>`_         |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Jointatory tour participation       | `12_joint_tour_participation.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/12_joint_tour_participation.ipynb>`_   |
+| Jointatory tour participation       | `12_joint_tour_participation.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/12_joint_tour_participation.ipynb>`_     |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Joint nonmandatory tour destination | `13_joint_nonmand_tour_dest.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/13_joint_nonmand_tour_dest.ipynb>`_     |
+| Joint nonmandatory tour destination | `13_joint_nonmand_tour_dest.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/13_joint_nonmand_tour_dest.ipynb>`_       |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Joint tour scheduling               | `14_joint_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/14_joint_tour_scheduling.ipynb>`_         |
+| Joint tour scheduling               | `14_joint_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/14_joint_tour_scheduling.ipynb>`_           |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Non mandatory tour frequency        | `15_non_mand_tour_freq.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/15_non_mand_tour_freq.ipynb>`_               |
+| Non mandatory tour frequency        | `15_non_mand_tour_freq.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/15_non_mand_tour_freq.ipynb>`_                 |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Non mandatory tour scheduling       | `16_nonmand_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/16_nonmand_tour_scheduling.ipynb>`_     |
+| Non mandatory tour scheduling       | `16_nonmand_tour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/16_nonmand_tour_scheduling.ipynb>`_       |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Tour mode choice                    | `17_tour_mode_choice.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/17_tour_mode_choice.ipynb>`_                   |
+| Tour mode choice                    | `17_tour_mode_choice.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/17_tour_mode_choice.ipynb>`_                     |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atwork subtour frequency            | `18_atwork_subtour_freq.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/18_atwork_subtour_freq.ipynb>`_             |
+| Atwork subtour frequency            | `18_atwork_subtour_freq.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/18_atwork_subtour_freq.ipynb>`_               |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atwork subtour destination          | `19_atwork_subtour_dest.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/19_atwork_subtour_dest.ipynb>`_             |
+| Atwork subtour destination          | `19_atwork_subtour_dest.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/19_atwork_subtour_dest.ipynb>`_               |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Atwork subtour scheduling           | `20_atwork_subtour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/20_atwork_subtour_scheduling.ipynb>`_ |
+| Atwork subtour scheduling           | `20_atwork_subtour_scheduling.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/20_atwork_subtour_scheduling.ipynb>`_   |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Stop frequency                      | `21_stop_frequency.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/21_stop_frequency.ipynb>`_                       |
+| Stop frequency                      | `21_stop_frequency.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/21_stop_frequency.ipynb>`_                         |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Trip destination                    | `22_trip_dest.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/22_trip_dest.ipynb>`_                                 |
+| Trip destination                    | `22_trip_dest.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/22_trip_dest.ipynb>`_                                   |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Trip mode choice                    | `23_trip_mode_choice.ipynb <https://github.com/activitysim/activitysim/blob/master/activitysim/examples/example_estimation/notebooks/23_trip_mode_choice.ipynb>`_                   |
+| Trip mode choice                    | `23_trip_mode_choice.ipynb <https://github.com/activitysim/activitysim/blob/main/activitysim/examples/example_estimation/notebooks/23_trip_mode_choice.ipynb>`_                     |
 +-------------------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 
 

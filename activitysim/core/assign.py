@@ -1,19 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import zip
-from builtins import object
-
 import logging
+from builtins import object, zip
 from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import util
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import chunk
-from activitysim.core import inject
+from activitysim.core import chunk, config, inject, pipeline, util
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +60,12 @@ def evaluate_constants(expressions, constants):
     return d
 
 
-def read_assignment_spec(file_name,
-                         description_name="Description",
-                         target_name="Target",
-                         expression_name="Expression"):
+def read_assignment_spec(
+    file_name,
+    description_name="Description",
+    target_name="Target",
+    expression_name="Expression",
+):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -98,7 +94,7 @@ def read_assignment_spec(file_name,
     """
 
     try:
-        cfg = pd.read_csv(file_name, comment='#')
+        cfg = pd.read_csv(file_name, comment="#")
     except Exception as e:
         logger.error(f"Error reading spec file: {file_name}")
         logger.error(str(e))
@@ -107,14 +103,18 @@ def read_assignment_spec(file_name,
     # drop null expressions
     # cfg = cfg.dropna(subset=[expression_name])
 
-    cfg.rename(columns={target_name: 'target',
-                        expression_name: 'expression',
-                        description_name: 'description'},
-               inplace=True)
+    cfg.rename(
+        columns={
+            target_name: "target",
+            expression_name: "expression",
+            description_name: "description",
+        },
+        inplace=True,
+    )
 
     # backfill description
-    if 'description' not in cfg.columns:
-        cfg.description = ''
+    if "description" not in cfg.columns:
+        cfg.description = ""
 
     cfg.target = cfg.target.str.strip()
     cfg.expression = cfg.expression.str.strip()
@@ -125,12 +125,14 @@ def read_assignment_spec(file_name,
 class NumpyLogger(object):
     def __init__(self, logger):
         self.logger = logger
-        self.target = ''
-        self.expression = ''
+        self.target = ""
+        self.expression = ""
 
     def write(self, msg):
-        self.logger.warning("numpy: %s expression: %s = %s" %
-                            (msg.rstrip(), str(self.target), str(self.expression)))
+        self.logger.warning(
+            "numpy: %s expression: %s = %s"
+            % (msg.rstrip(), str(self.target), str(self.expression))
+        )
 
 
 def local_utilities():
@@ -144,13 +146,13 @@ def local_utilities():
     """
 
     utility_dict = {
-        'pd': pd,
-        'np': np,
-        'reindex': util.reindex,
-        'reindex_i': util.reindex_i,
-        'setting': config.setting,
-        'other_than': util.other_than,
-        'rng': pipeline.get_rn_generator(),
+        "pd": pd,
+        "np": np,
+        "reindex": util.reindex,
+        "reindex_i": util.reindex_i,
+        "setting": config.setting,
+        "other_than": util.other_than,
+        "rng": pipeline.get_rn_generator(),
     }
 
     utility_dict.update(config.get_global_constants())
@@ -159,19 +161,26 @@ def local_utilities():
 
 
 def is_throwaway(target):
-    return target == '_'
+    return target == "_"
 
 
 def is_temp_scalar(target):
-    return target.startswith('_') and target.isupper()
+    return target.startswith("_") and target.isupper()
 
 
 def is_temp(target):
-    return target.startswith('_')
+    return target.startswith("_")
 
 
-def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
-                     trace_rows=None, trace_label=None, chunk_log=None):
+def assign_variables(
+    assignment_expressions,
+    df,
+    locals_dict,
+    df_alias=None,
+    trace_rows=None,
+    trace_label=None,
+    chunk_log=None,
+):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -216,13 +225,13 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
     np_logger = NumpyLogger(logger)
 
     def is_throwaway(target):
-        return target == '_'
+        return target == "_"
 
     def is_temp_singular(target):
-        return target.startswith('_') and target.isupper()
+        return target.startswith("_") and target.isupper()
 
     def is_temp_series_val(target):
-        return target.startswith('_')
+        return target.startswith("_")
 
     def to_series(x):
         if x is None or np.isscalar(x):
@@ -247,7 +256,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
     if df_alias:
         _locals_dict[df_alias] = df
     else:
-        _locals_dict['df'] = df
+        _locals_dict["df"] = df
     local_keys = list(_locals_dict.keys())
 
     # build a dataframe of eval results for non-temp targets
@@ -261,12 +270,18 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
     for e in zip(assignment_expressions.target, assignment_expressions.expression):
         target, expression = e
 
-        assert isinstance(target, str), \
-            "expected target '%s' for expression '%s' to be string not %s" % \
-            (target, expression, type(target))
+        assert isinstance(
+            target, str
+        ), "expected target '%s' for expression '%s' to be string not %s" % (
+            target,
+            expression,
+            type(target),
+        )
 
         if target in local_keys:
-            logger.warning("assign_variables target obscures local_d name '%s'", str(target))
+            logger.warning(
+                "assign_variables target obscures local_d name '%s'", str(target)
+            )
 
         if trace_label:
             logger.info(f"{trace_label}.assign_variables {target} = {expression}")
@@ -275,14 +290,20 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
             try:
                 x = eval(expression, globals(), _locals_dict)
             except Exception as err:
-                logger.error("assign_variables error: %s: %s", type(err).__name__, str(err))
-                logger.error("assign_variables expression: %s = %s", str(target), str(expression))
+                logger.error(
+                    "assign_variables error: %s: %s", type(err).__name__, str(err)
+                )
+                logger.error(
+                    "assign_variables expression: %s = %s", str(target), str(expression)
+                )
                 raise err
 
             if not is_throwaway(target):
                 _locals_dict[target] = x
                 if trace_assigned_locals is not None:
-                    trace_assigned_locals[uniquify_key(trace_assigned_locals, target)] = x
+                    trace_assigned_locals[
+                        uniquify_key(trace_assigned_locals, target)
+                    ] = x
 
             continue
 
@@ -292,7 +313,7 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
             np_logger.target = str(target)
             np_logger.expression = str(expression)
             saved_handler = np.seterrcall(np_logger)
-            save_err = np.seterr(all='log')
+            save_err = np.seterr(all="log")
 
             # FIXME should whitelist globals for security?
             globals_dict = {}
@@ -307,7 +328,9 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
         #     raise err
 
         except Exception as err:
-            logger.exception(f"assign_variables - {type(err).__name__} ({str(err)}) evaluating: {str(expression)}")
+            logger.exception(
+                f"assign_variables - {type(err).__name__} ({str(err)}) evaluating: {str(expression)}"
+            )
             raise err
 
         if not is_temp_series_val(target):
@@ -337,11 +360,11 @@ def assign_variables(assignment_expressions, df, locals_dict, df_alias=None,
     assert variables, "No non-temp variables were assigned."
 
     if chunk_log:
-        chunk.log_df(trace_label, 'temps', temps)
-        chunk.log_df(trace_label, 'variables', variables)
+        chunk.log_df(trace_label, "temps", temps)
+        chunk.log_df(trace_label, "variables", variables)
         # these are going away - let caller log result df
-        chunk.log_df(trace_label, 'temps', None)
-        chunk.log_df(trace_label, 'variables', None)
+        chunk.log_df(trace_label, "temps", None)
+        chunk.log_df(trace_label, "variables", None)
 
     # we stored result in dict - convert to df
     variables = util.df_from_dict(variables, index=df.index)

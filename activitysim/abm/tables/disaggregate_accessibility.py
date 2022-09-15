@@ -15,6 +15,12 @@ def read_disaggregate_accessibility(table_name):
     If '*destination model*_accessibilities' is in input_tables list, then read it in.
     """
     df = read_input_table(table_name, required=False)
+
+    logger.info("loaded {} %s".format(table_name) % (df.shape,))
+
+    # replace table function with dataframe
+    inject.add_table("land_use", df)
+
     inject.add_table(table_name, df)
     return df
 
@@ -44,14 +50,14 @@ def non_mandatory_tour_destination_accessibility(table_name='non_mandatory_tour_
     return df
 
 @inject.table()
-def proto_persons(households, trace_hh_id):
+def proto_persons():
     df = pd.DataFrame()
     # df = inject.get_table('persons')
-    logger.info("loaded proto_persons %s" % (df.shape,))
+    # logger.info("loaded proto_persons %s" % (df.shape,))
     # replace table function with dataframe
     inject.add_table("proto_persons", df)
-    pipeline.get_rn_generator().add_channel("proto_persons", df)
-    tracing.register_traceable_table("proto_persons", df)
+    # pipeline.get_rn_generator().add_channel("proto_persons", df)
+    # tracing.register_traceable_table("proto_persons", df)
     return df
 
 
@@ -65,30 +71,29 @@ def proto_persons_merged(proto_persons, households, land_use):
 
 
 @inject.table()
-def proto_households(trace_hh_id):
+def proto_households():
+    # df = pd.DataFrame()
+    # # logger.info("loaded proto_households %s" % (df.shape,))
+    # # replace table function with dataframe
+    # inject.add_table("proto_households", df)
+    # # pipeline.get_rn_generator().add_channel("proto_households", df)
+    # tracing.register_traceable_table("proto_households", df)
+    # # if trace_hh_id:
+    # #     tracing.trace_df(df, "raw.proto_households", warn_if_empty=True)
 
-    df = pd.DataFrame()
-    logger.info("loaded proto_households %s" % (df.shape,))
-    # replace table function with dataframe
-    inject.add_table("proto_households", df)
-    pipeline.get_rn_generator().add_channel("proto_households", df)
-    tracing.register_traceable_table("proto_households", df)
-    if trace_hh_id:
-        tracing.trace_df(df, "raw.proto_households", warn_if_empty=True)
-
-    return df
+    return #df
 
 
 @inject.table()
-def proto_tours(trace_hh_id):
+def proto_tours():
     df = pd.DataFrame()
-    logger.info("loaded proto_tours %s" % (df.shape,))
+    # logger.info("loaded proto_tours %s" % (df.shape,))
     # replace table function with dataframe
     inject.add_table("proto_tours", df)
-    pipeline.get_rn_generator().add_channel("proto_tours", df)
-    tracing.register_traceable_table("proto_tours", df)
-    if trace_hh_id:
-        tracing.trace_df(df, "raw.proto_tours", warn_if_empty=True)
+    # pipeline.get_rn_generator().add_channel("proto_tours", df)
+    # tracing.register_traceable_table("proto_tours", df)
+    # if trace_hh_id:
+    #     tracing.trace_df(df, "raw.proto_tours", warn_if_empty=True)
 
     return df
 
@@ -98,12 +103,12 @@ def proto_tours(trace_hh_id):
 #     return inject.merge_tables(
 #         proto_households.name, tables=[proto_households, land_use]
 #     )
-
-
-inject.broadcast("proto_households", "proto_persons", cast_index=True, onto_on="household_id")
-
-# this would be accessibility around the household location - be careful with
-# this one as accessibility at some other location can also matter
-inject.broadcast("workplace_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
-inject.broadcast("school_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
-inject.broadcast("non_mandatory_tour_destination_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
+#
+#
+# inject.broadcast("proto_households", "proto_persons", cast_index=True, onto_on="household_id")
+#
+# # this would be accessibility around the household location - be careful with
+# # this one as accessibility at some other location can also matter
+# inject.broadcast("workplace_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
+# inject.broadcast("school_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
+# inject.broadcast("non_mandatory_tour_destination_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")

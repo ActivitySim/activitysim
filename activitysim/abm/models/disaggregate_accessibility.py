@@ -14,7 +14,6 @@ from activitysim.core import (inject,
                               tracing,
                               config,
                               pipeline,
-                              chunk,
                               util)
 
 from activitysim.abm.models import location_choice
@@ -31,6 +30,7 @@ class ProtoPop:
         self.params = self.read_table_settings(land_use_df)
         self.create_proto_pop()
 
+        # Switch in case someone wants to generate a proto-pop in just python alone
         if pipeline:
             self.inject_tables()
             self.annotate_tables()
@@ -119,9 +119,9 @@ class ProtoPop:
         tours = tours.reset_index().drop(columns=[pkey])
 
         # Set index
-        households.set_index(hhid, inplace=True, drop=False)
-        persons.set_index(perid, inplace=True, drop=False)
-        tours.set_index(tourid, inplace=True, drop=False)
+        households.set_index(hhid, inplace=True, drop=True)
+        persons.set_index(perid, inplace=True, drop=True)
+        tours.set_index(tourid, inplace=True, drop=True)
 
         # Store tables
         self.proto_pop = {'proto_households': households, 'proto_persons': persons, 'proto_tours': tours}
@@ -133,6 +133,10 @@ class ProtoPop:
                 df.rename(columns=colnames, inplace=True)
 
     def inject_tables(self):
+        # Update canonical tables lists
+        inject.add_injectable('traceable_tables',
+                              inject.get_injectable('traceable_tables') + list(self.proto_pop.keys())
+                              )
         for tablename, df in self.proto_pop.items():
             inject.add_table(tablename, df)
             pipeline.get_rn_generator().add_channel(tablename, df)
@@ -162,7 +166,7 @@ class ProtoPop:
         cols_to_use = households.columns.difference(persons.columns)
 
         # persons_merged to emulate the persons_merged table in the pipeline
-        persons_merged = persons.join(households[cols_to_use]).merge(
+        persons_merged = persons.reset_index().join(households[cols_to_use]).merge(
             land_use_df,
             left_on=self.params['proto_households']['zone_col'],
             right_on=self.model_settings['zones'])
@@ -173,7 +177,7 @@ class ProtoPop:
 
         # Store in pipeline
         inject.add_table('proto_persons_merged', persons_merged)
-        pipeline.get_rn_generator().add_channel('proto_persons_merged', persons_merged)
+        # pipeline.get_rn_generator().add_channel('proto_persons_merged', persons_merged)
         # pipeline.get_rn_generator().drop_channel('persons_merged')
 
 def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
@@ -278,10 +282,15 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
         shadow_pricing.add_size_tables(model_settings.get('suffixes'))
 
-    # Register tables in this step, necessary for multiprocessing
-    for tablename in [x for x in inject._DECORATED_TABLES if 'proto_' in x]:
+    # Re-Register tables in this step, necessary for multiprocessing
+    for tablename in ['proto_households', 'proto_persons', 'proto_tours', 'proto_persons_merged']:
         df = inject.get_table(tablename).to_frame()
-        pipeline.get_rn_generator().add_channel(tablename, df)
+        traceables = inject.get_injectable('traceable_tables')
+        if tablename not in traceables:
+            tracing.register_traceable_table(tablename, df)
+            inject.add_injectable('traceable_tables', traceables + [tablename])
+        if tablename not in pipeline.get_rn_generator().channels:
+            pipeline.get_rn_generator().add_channel(tablename, df)
 
     # Run location choice
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
@@ -289,13 +298,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # # De-register the channel so it can get re-registered with actual pop tables
     # [pipeline.get_rn_generator().drop_channel(x) for x in ['persons', 'households']]
     [pipeline.drop_table(x) for x in ['school_destination_size', 'workplace_destination_size', 'tours']]
-
-    # # Re-initialize
-    # orca._TABLE_CACHE.clear()
-    # for name, func in inject._DECORATED_TABLES.items():
-    #     if name not in ['land_use']:
-    #         logger.debug("reinject decorated table %s" % name)
-    #         orca.add_table(name, func)
 
     # Inject accessibilities into pipeline
     logsums = {k + '_accessibility': v for k, v in logsums.items()}
@@ -305,7 +307,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Override output tables to include accessibilities in write_table
     new_settings = inject.get_injectable("settings")
     if 'disaggregate_accessibility' in new_settings.get('output_tables').get('tables'):
-        tables = new_settings['output_tables']['tables']
         new_settings['output_tables']['tables'].remove('disaggregate_accessibility')
         new_settings['output_tables']['tables'] += logsums.keys()
     inject.add_injectable("settings", new_settings)
@@ -321,24 +322,17 @@ def initialize_disaggregate_accessibility():
     """
     # TODO NOT WORKING YET....
     trace_label = "initialize_disaggregate_accessibilities"
-
     model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
-
-    with chunk.chunk_log(trace_label, base=True):
-
-        chunk.log_rss(f"{trace_label}.inside-yield")
-
-        # TODO 1) load tables, 2) merge with full pop, this can be done on the injection side in tables/disaggregate_accessibility
-        # Load disaggregate accessibilities and merge
-        # {k: inject.get_table(k).to_frame() for k in model_settings.get('initialize_tables')}
 
     return
 
 @inject.step()
 def disaggregate_accessibility_subprocess():
-    run_file = os.path.join('abm', 'models', 'disaggregate_accessibility_run.py')
+    """
+    Spins up a sub process, not currently implemented
+    """
+    run_file = os.path.join('abm', 'models', 'disaggregate_accessibility_run.py') # No longer exists
     run_file = pkg_resources.resource_filename('activitysim', run_file)
-
     subprocess.run(['coverage', 'run', '-a', run_file] + sys.argv[1:], check=True, shell=True)
 
 if __name__ == "__main__":

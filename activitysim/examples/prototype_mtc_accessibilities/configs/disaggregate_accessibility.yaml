@@ -1,5 +1,5 @@
 # Sampling size. 0 = no limit
-SAMPLE_SIZE: 1
+SAMPLE_SIZE: 0
 
 
 # Specify the tables to be created and  their variables.

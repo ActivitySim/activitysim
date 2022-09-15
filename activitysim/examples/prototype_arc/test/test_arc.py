@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -24,7 +25,11 @@ def _test_arc(recode=False, sharrow=False):
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress():
-        regress_trips_df = pd.read_csv(test_path("regress/final_trips.csv"))
+        if sharrow:
+            # sharrow results in tiny changes (one trip moving one time period earlier)
+            regress_trips_df = pd.read_csv(test_path("regress/final_trips_sh.csv"))
+        else:
+            regress_trips_df = pd.read_csv(test_path("regress/final_trips.csv"))
         final_trips_df = pd.read_csv(test_path("output/final_trips.csv"))
 
         # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,
@@ -68,7 +73,10 @@ def _test_arc(recode=False, sharrow=False):
             test_path("output"),
         ]
 
-    subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    else:
+        subprocess.run([sys.executable, file_path] + run_args, check=True)
 
     regress()
 

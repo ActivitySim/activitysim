@@ -1,3 +1,3 @@
 inherit_settings: True
-sharrow: test #require
+sharrow: require
 recode_pipeline_columns: True

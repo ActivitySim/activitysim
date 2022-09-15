@@ -16,7 +16,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def test_mwcog():
+def _test_mwcog(sharrow=False):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mwcog", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -40,10 +40,18 @@ def test_mwcog():
     else:
         executable = [sys.executable]
 
+    if sharrow:
+        sh_configs = ["-c", example_path("configs_sharrow")]
+    else:
+        sh_configs = []
+
     subprocess.run(
         executable
         + [
             file_path,
+        ]
+        + sh_configs
+        + [
             "-c",
             test_path("configs"),
             "-c",
@@ -57,6 +65,14 @@ def test_mwcog():
     )
 
     regress()
+
+
+def test_mwcog():
+    _test_mwcog()
+
+
+def test_mwcog_sharrow():
+    _test_mwcog(sharrow=True)
 
 
 if __name__ == "__main__":

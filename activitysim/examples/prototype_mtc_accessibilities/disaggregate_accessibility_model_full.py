@@ -1,9 +1,10 @@
 import argparse
 import os
 import pkg_resources
+import sys
 
-from activitysim.cli.run import add_run_args
-from activitysim.abm.models.disaggregate_accessibility_run import run_disaggregate_accessibility
+from activitysim.cli.run import add_run_args, run
+# from activitysim.abm.models.disaggregate_accessibility_run import run_disaggregate_accessibility
 
 
 def disaggregate_accessibility():
@@ -29,7 +30,8 @@ def disaggregate_accessibility():
     args.output = extended_path('output')
     args.data = base_path('data')
 
-    run_disaggregate_accessibility(args)
+    #run_disaggregate_accessibility(args)
+    sys.exit(run(args))
 
 if __name__ == "__main__":
     disaggregate_accessibility()

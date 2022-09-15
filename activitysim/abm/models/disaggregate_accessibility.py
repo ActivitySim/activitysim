@@ -119,9 +119,9 @@ class ProtoPop:
         tours = tours.reset_index().drop(columns=[pkey])
 
         # Set index
-        households.set_index(hhid, inplace=True, drop=True)
-        persons.set_index(perid, inplace=True, drop=True)
-        tours.set_index(tourid, inplace=True, drop=True)
+        households.set_index(hhid, inplace=True, drop=False)
+        persons.set_index(perid, inplace=True, drop=False)
+        tours.set_index(tourid, inplace=True, drop=False)
 
         # Store tables
         self.proto_pop = {'proto_households': households, 'proto_persons': persons, 'proto_tours': tours}
@@ -166,7 +166,7 @@ class ProtoPop:
         cols_to_use = households.columns.difference(persons.columns)
 
         # persons_merged to emulate the persons_merged table in the pipeline
-        persons_merged = persons.reset_index().join(households[cols_to_use]).merge(
+        persons_merged = persons.join(households[cols_to_use]).merge(
             land_use_df,
             left_on=self.params['proto_households']['zone_col'],
             right_on=self.model_settings['zones'])
@@ -283,14 +283,15 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         shadow_pricing.add_size_tables(model_settings.get('suffixes'))
 
     # Re-Register tables in this step, necessary for multiprocessing
-    for tablename in ['proto_households', 'proto_persons', 'proto_tours', 'proto_persons_merged']:
+    for tablename in ['proto_households', 'proto_persons', 'proto_tours']:
         df = inject.get_table(tablename).to_frame()
         traceables = inject.get_injectable('traceable_tables')
-        if tablename not in traceables:
-            tracing.register_traceable_table(tablename, df)
-            inject.add_injectable('traceable_tables', traceables + [tablename])
         if tablename not in pipeline.get_rn_generator().channels:
             pipeline.get_rn_generator().add_channel(tablename, df)
+        if tablename not in traceables:
+            inject.add_injectable('traceable_tables', traceables + [tablename])
+            tracing.register_traceable_table(tablename, df)
+
 
     # Run location choice
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)

@@ -93,7 +93,6 @@ multiprocess_steps:
         - proto_households 
         - proto_persons
         - proto_tours
-        - proto_persons_merged
       # #except: True
   # - name: mp_accessibility
     # begin: compute_accessibility

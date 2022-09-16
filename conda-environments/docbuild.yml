@@ -18,7 +18,7 @@ dependencies:
 - larch >=5.5.3
 - matplotlib
 - myst-parser
-- numba >= 0.51.2
+- numba >= 0.55.2
 - numpy >= 1.16.1,<=1.21
 - numpydoc
 - openmatrix >= 0.3.4.1
@@ -34,7 +34,7 @@ dependencies:
 - pytest-regressions
 - pyyaml >= 5.1
 - requests >= 2.7
-- sharrow >= 2.2.4
+- sharrow >= 2.3.1
 - simwrapper > 1.7
 - sphinx-argparse
 - sphinx_rtd_theme

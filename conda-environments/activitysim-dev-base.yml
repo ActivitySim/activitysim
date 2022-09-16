@@ -27,7 +27,7 @@ dependencies:
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat
-- numba >= 0.51.2
+- numba >= 0.55.2
 - numexpr
 - numpy >= 1.16.1,<=1.21
 - numpydoc

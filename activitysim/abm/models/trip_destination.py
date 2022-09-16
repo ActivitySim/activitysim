@@ -924,7 +924,7 @@ class SkimHotel(object):
 
         o = self.model_settings["TRIP_ORIGIN"]
         d = self.model_settings["ALT_DEST_COL_NAME"]
-        n = self.model_settings.get("PRIMARY_ORIGIN", None)
+        n = self.model_settings.get("PRIMARY_ORIGIN", 'origin')
         p = self.model_settings["PRIMARY_DEST"]
 
         if presample:

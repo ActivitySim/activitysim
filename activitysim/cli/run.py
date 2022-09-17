@@ -149,6 +149,8 @@ def handle_standard_args(args, multiprocess=True):
             finally:
                 del sys.path[0]
         inject_arg("imported_extensions", args.ext)
+    else:
+        inject_arg("imported_extensions", ())
 
     # settings_file_name should be cached or else it gets squashed by config.py
     if args.settings_file:

@@ -156,7 +156,10 @@ output_tables:
     - households
     - persons
     - tours
-    - trips
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
     - attribute_combinations
 
 output_summaries:

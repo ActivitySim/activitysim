@@ -1607,7 +1607,7 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
         y = multiindex.levels[multiindex.names.index(level_name)].str.replace(
             *args, **kwargs
         )
-        return re_spec.set_levels(y, level=level_name)
+        return multiindex.set_levels(y, level=level_name)
 
     # Preprocess TVPB logsums outside sharrow
     if "tvpb_logsum_odt" in locals_d:
@@ -1619,7 +1619,6 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
         for path_type in ["WTW", "DTW"]:
             if path_type not in path_types:
                 continue
-            preloaded = locals_d["tvpb_logsum_odt"][path_type]
             re_spec = spec_sh.index
             re_spec = _replace_in_level(
                 re_spec,
@@ -1628,9 +1627,12 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
                 f"df.PRELOAD_tvpb_logsum_odt_{path_type}",
                 regex=True,
             )
-            spec_sh.index = re_spec
-            assignments[f"PRELOAD_tvpb_logsum_odt_{path_type}"] = preloaded
-        choosers = choosers.assign(**assignments)
+            if not all(spec_sh.index == re_spec):
+                spec_sh.index = re_spec
+                preloaded = locals_d["tvpb_logsum_odt"][path_type]
+                assignments[f"PRELOAD_tvpb_logsum_odt_{path_type}"] = preloaded
+        if assignments:
+            choosers = choosers.assign(**assignments)
 
     if "tvpb_logsum_dot" in locals_d:
         tvpb = locals_d["tvpb_logsum_dot"]
@@ -1641,7 +1643,6 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
         for path_type in ["WTW", "WTD"]:
             if path_type not in path_types:
                 continue
-            preloaded = locals_d["tvpb_logsum_dot"][path_type]
             re_spec = spec_sh.index
             re_spec = _replace_in_level(
                 re_spec,
@@ -1650,9 +1651,12 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
                 f"df.PRELOAD_tvpb_logsum_dot_{path_type}",
                 regex=True,
             )
-            spec_sh.index = re_spec
-            assignments[f"PRELOAD_tvpb_logsum_dot_{path_type}"] = preloaded
-        choosers = choosers.assign(**assignments)
+            if not all(spec_sh.index == re_spec):
+                spec_sh.index = re_spec
+                preloaded = locals_d["tvpb_logsum_dot"][path_type]
+                assignments[f"PRELOAD_tvpb_logsum_dot_{path_type}"] = preloaded
+        if assignments:
+            choosers = choosers.assign(**assignments)
 
     return choosers, spec_sh
 

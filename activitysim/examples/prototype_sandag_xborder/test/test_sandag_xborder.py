@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -30,23 +31,22 @@ def test_sandag_xborder():
 
     file_path = os.path.join(os.path.dirname(__file__), "../simulation.py")
 
-    subprocess.run(
-        [
-            "coverage",
-            "run",
-            "-a",
-            file_path,
-            "-c",
-            test_path("configs"),
-            "-c",
-            example_path("configs"),
-            "-d",
-            example_path("data"),
-            "-o",
-            test_path("output"),
-        ],
-        check=True,
-    )
+    run_args = [
+        file_path,
+        "-c",
+        test_path("configs"),
+        "-c",
+        example_path("configs"),
+        "-d",
+        example_path("data"),
+        "-o",
+        test_path("output"),
+    ]
+
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        subprocess.run(["coverage", "run", "-a"] + run_args, check=True)
+    else:
+        subprocess.run([sys.executable] + run_args, check=True)
 
     regress()
 

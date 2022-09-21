@@ -237,13 +237,6 @@ def aggregate_size_terms(dest_size_terms, network_los):
     # aggregate MAZ_size_terms to TAZ_size_terms
     #
 
-    # TODO:SHARROW FIX ME
-    sharrow_enabled = config.setting("sharrow", False)
-    if sharrow_enabled:
-        skim_dataset = inject.get_injectable("skim_dataset")
-    else:
-        skim_dataset = None
-
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms

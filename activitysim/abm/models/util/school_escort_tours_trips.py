@@ -194,7 +194,11 @@ def create_child_escorting_stops(row, escortee_num):
             # children in car are the child and those already picked up
             participants.append("_".join(escortees[: escortee_num + i + 1]))
             # going home if last stop, otherwise to next school destination
-            dest = row["home_zone_id"] if is_last_stop else school_dests[escortee_num + i + 1]
+            dest = (
+                row["home_zone_id"]
+                if is_last_stop
+                else school_dests[escortee_num + i + 1]
+            )
             purpose = "home" if is_last_stop else "escort"
 
         # filling arrays

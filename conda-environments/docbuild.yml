@@ -34,7 +34,7 @@ dependencies:
 - pytest-regressions
 - pyyaml >= 5.1
 - requests >= 2.7
-- sharrow >= 2.3.1
+- sharrow >= 2.3.2
 - simwrapper > 1.7
 - sphinx-argparse
 - sphinx_rtd_theme

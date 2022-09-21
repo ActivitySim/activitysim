@@ -1,4 +1,5 @@
 # Environment for building docs
+#  This environment contains the set of dependencies needed to build the documentation.
 name: docbuild
 channels:
 - conda-forge

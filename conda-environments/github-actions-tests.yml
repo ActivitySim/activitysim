@@ -1,4 +1,7 @@
 # Environment for testing in GitHub Actions
+#  This environment contains a minimal set of dependencies needed to run most tests.
+#  It does not install ActivitySim itself (which is done by the test scripts) and
+#  is not meant for use outside the CI tools.
 name: asim-test
 channels:
 - conda-forge

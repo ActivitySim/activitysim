@@ -1,5 +1,10 @@
 # Environment for development
-# usage: $ mamba env create --file=activitysim-dev.yml -n ASIM-SH
+#  This is a set of recommended dependencies for ActivitySim developers.
+#  It includes a variety of tools and packages not necessary for actually
+#  running models, but useful for writing code, running tests and
+#  experiments, etc.
+#
+#  usage: $ mamba env create --file=activitysim-dev.yml -n ASIM-SH
 channels:
 - conda-forge
 - nodefaults
@@ -50,6 +55,7 @@ dependencies:
 - rich
 - ruby  # required for benchmarking pre-commit hooks
 - setuptools_scm
+- sharrow >= 2.3.2
 - simwrapper > 1.7
 - snakeviz  # for profiling
 - sphinx

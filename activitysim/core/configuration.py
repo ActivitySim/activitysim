@@ -1,3 +1,4 @@
+from numbers import Number
 from typing import Union
 
 try:
@@ -78,14 +79,59 @@ class InputTable(PydanticBase):
 
 class OutputTable(PydanticBase):
     tablename: str
+    """The name of the pipeline table to write out."""
+
     decode_columns: dict[str, str] = None
+    """
+    A mapping indicating columns to decode when writing out results.
+
+    Column decoding is the inverse of column recoding, such that the original
+    mapped values are restored.  For example, if TAZ ID's in the zone_id column
+    of the land_use table have been recoded to zero-based, then any output
+    column that gives a TAZ (i.e., household home zones, work or school
+    locations, trip or tour origins and destinations) can and probably should be
+    decoded from zero-based back into nominal TAZ ID's. If every value in the
+    column is to be decoded, simply give the decode instruction in the same
+    manner as the recode instruction, "tablename.fieldname" (often,
+    "land_use.zone_id").
+
+    For some columns, like work or school locations, only non-negative values
+    should be decoded, as negative values indicate an absence of choice.  In
+    these cases, the "tablename.fieldname" can be prefixed with a "nonnegative"
+    filter, seperated by a pipe character (e.g. "nonnegative | land_use.zone_id").
+    """
 
 
 class OutputTables(PydanticBase):
+    """Instructions on how to write out final pipeline tables."""
+
     h5_store: bool = False
+    """Write tables into a single HDF5 store instead of individual CSVs."""
+
     action: str
-    prefix: str
-    tables: list[Union[str, OutputTable]]
+    """Whether to 'include' or 'skip' the enumerated tables in `tables`."""
+
+    prefix: str = "final_"
+    """This prefix is added to the filename of each output table."""
+
+    sort: bool = False
+    """Sort output in each table consistent with well defined column names."""
+
+    tables: list[Union[str, OutputTable]] = None
+    """
+    A list of pipeline tables to include or to skip when writing outputs.
+
+    If `action` is 'skip', the values in this list must all be simple
+    strings giving the names of tables to skip.  Also, no decoding will be
+    applied to any output tables in this case.
+
+    If `action` is 'include', the values in this list can be either simple
+    strings giving the names of tables to include, or :class:`OutputTable`
+    definitions giving a name and decoding instructions.
+
+    If omitted, the all tables are written out and no decoding will be
+    applied to any output tables.
+    """
 
 
 class MultiprocessStepSlice(PydanticBase):
@@ -260,7 +306,7 @@ class Settings(PydanticBase):
     use_shadow_pricing: bool = False
     """turn shadow_pricing on and off for work and school location"""
 
-    output_tables: list[str] = None
+    output_tables: OutputTables = None
     """list of output tables to write to CSV or HDF5"""
 
     want_dest_choice_sample_tables: bool = False
@@ -427,20 +473,85 @@ class ZarrDigitalEncoding(PydanticBase):
     .. versionadded:: 1.2
     """
 
-    regex: str
+    name: str = None
+    """The name of an individual matrix skim to encode.
+
+    Use this setting to encode specific individual skims.  To encode
+    a group of related skims with the same encoding, or together with
+    a joint encoding, use `regex` instead.  You cannot specify both
+    `name` and `regex` at the same time.
+    """
+
+    regex: str = None
     """A regular expression for matching skim matrix names.
 
     All skims with names that match under typical regular expression rules
-    for Python will be processed together.
+    for Python will be processed using the rules defined in this
+    ZarrDigitalEncoding instruction.  To encode one specific skim,
+    use `name` instead. You cannot specify both `name` and `regex` at
+    the same time.
     """
 
-    joint_dict: str
+    joint_dict: str = None
     """The name of the joint dictionary for this group.
 
     This must be a unique name for this set of skims, and a new array
     will be added to the Dataset with this name.  It will be an integer-
     type array indicating the position of each element in the jointly
-    encoded dictionary."""
+    encoded dictionary.
+
+    If the `joint_dict` name is given, then all other instructions in this
+    ZarrDigitalEncoding are ignored, except `regex`.
+    """
+
+    missing_value: Number = None
+    """
+    Use this value to indicate "missing" values.
+
+    For float variables, it is possible to use NaN to represent missing values,
+    but other data types do not have a native missing value, so it will need
+    to be given explicitly.
+    """
+
+    bitwidth: int = None
+    """Number of bits to use in encoded integers, either 8, 16 or 32."""
+
+    min_value: Number = None
+    """
+    Explicitly give the minimum value represented in the array.
+    If not given, it is inferred from the data. It is useful to give
+    these values if the array does not necessarily include all the values that
+    might need to be inserted later.
+    """
+
+    max_value: Number = None
+    """
+    Explicitly give the maximum value represented in the array.
+    If not given, it is inferred from the data. It is useful to give
+    these values if the array does not necessarily include all the values that
+    might need to be inserted later.
+    """
+
+    scale: Number = None
+    """
+    An explicitly defined scaling factor.
+
+    The scaling factor can be inferred from the min and max values if not provided.
+    """
+
+    offset: Number = None
+    """
+    An explicitly defined offset factor.
+
+    The offset factor can be inferred from the min and max values if not provided.
+    """
+
+    by_dict: int = None
+    """
+    Encode by dictionary, using a bitwidth from {8, 16, 32}.
+
+    If given, all arguments other settings for this data are ignored.
+    """
 
 
 class TAZ_Settings(PydanticBase):

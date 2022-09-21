@@ -1,6 +1,14 @@
-# Environment for development
-# Does not install ActivitySim or Sharrow, you must do that yourself
-# usage: $ mamba env create --file=activitysim-dev-basse.yml -n ASIM-DEV
+# Environment for Advanced Development
+#  This is a set of recommended dependencies for ActivitySim developers.
+#  It includes a variety of tools and packages not necessary for actually
+#  running models, but useful for writing code, running tests and
+#  experiments, etc.
+#
+#  This file does not install ActivitySim or Sharrow, you must do that yourself
+#  (so that you can install a preferred branch or fork)
+#
+#  usage: $ mamba env create --file=activitysim-dev-base.yml -n ASIM-DEV
+
 channels:
 - conda-forge
 - nodefaults

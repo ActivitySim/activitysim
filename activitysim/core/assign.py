@@ -7,7 +7,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, pipeline, util
+from activitysim.core import chunk, config, pipeline, util
 
 logger = logging.getLogger(__name__)
 
@@ -352,33 +352,18 @@ def assign_variables(
 
             # FIXME should whitelist globals for security?
             globals_dict = {}
-            try:
-                expr_values = to_series(eval(expression, globals_dict, _locals_dict))
-            except ValueError:
-                # import os
-                # import uuid
-                #
-                # uid = uuid.uuid1()
-                # for k in globals_dict.keys():
-                #     try:
-                #         with open(os.path.join(config.get_cache_dir(), f"dump-{uid}-g-{k}.pkl"), 'wb') as f:
-                #             pickle.dump(globals_dict[k], f)
-                #     except Exception as err:
-                #         logger.error(repr(err))
-                # for k in _locals_dict.keys():
-                #     try:
-                #         with open(os.path.join(config.get_cache_dir(), f"dump-{uid}-l-{k}.pkl"), 'wb') as f:
-                #             pickle.dump(_locals_dict[k], f)
-                #     except Exception as err:
-                #         logger.error(repr(err))
-                raise
+            expr_values = to_series(eval(expression, globals_dict, _locals_dict))
 
             if (
                 sharrow_enabled
                 and np.issubdtype(expr_values.dtype, np.floating)
                 and expr_values.dtype.itemsize < 4
             ):
-                # promote to float32, sharrow is not compatible with float less than 32
+                # promote to float32, numba is not presently compatible with
+                # any float less than 32 (i.e., float16)
+                # see https://github.com/numba/numba/issues/4402
+                # note this only applies to floats, signed and unsigned
+                # integers are readily supported down to 1 byte
                 expr_values = expr_values.astype(np.float32)
 
             np.seterr(**save_err)

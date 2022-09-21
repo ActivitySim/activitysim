@@ -382,7 +382,7 @@ def build_slice_rules(slice_info, pipeline_tables):
     """
 
     slicer_table_names = slice_info["tables"]
-    slicer_table_exceptions = slice_info.get("except", [])
+    slicer_table_exceptions = slice_info.get("exclude", slice_info.get("except", []))
     primary_slicer = slicer_table_names[0]
 
     # - ensure that tables listed in slice_info appear in correct order and before any others

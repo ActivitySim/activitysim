@@ -19,6 +19,10 @@ component.
 
     Settings
     InputTable
+    OutputTable
+    OutputTables
+    MultiprocessStep
+    MultiprocessStepSlice
     NetworkSettings
     TAZ_Settings
     ZarrDigitalEncoding

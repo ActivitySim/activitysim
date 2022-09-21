@@ -27,18 +27,118 @@ class InputTable(PydanticBase):
     """table column to use for the index"""
 
     rename_columns: dict[str, str] = None
-    """dictionary of column name mappings"""
+    """
+    Dictionary of column name mappings.
+
+    This allows for renaming data columns from the original names found in the
+    header of the input file itself, into the names used internally by
+    ActivitySim, in configuration and specification files.
+    """
+
+    recode_columns: dict[str, str] = None
+    """
+    Dictionary of column recoding instructions.
+
+    Certain columns of data, notably TAZ and MAZ id's, are more efficiently
+    stored as the index (offset) position of each value within a fixed array of
+    values, instead of as the value itself.  To recode a column into this offset
+    format, give the value "zero-based" for that column name.  This will replace
+    the named column with a RangeIndex, starting from zero, and will create a
+    lookup column of the original values, which is not used by ActivitySim other
+    than to recode other related variables, or to reconstitute the original
+    labels for a final output table.  This zero-based recoding is typically
+    done for the `zone_id` field in the land_use table, but might also be done
+    elsewhere.
+
+    Alternatively, for columns that contain *references* to recoded data, give
+    the recode instruction as "tablename.fieldname" (often, "land_use.zone_id").
+    This will trigger a remapping of each value according to the stored lookup
+    table for the original values, transforming the values in other columns to
+    be consistent with the recoded zero-based values.  For example, if the
+    `zone_id` field in the land_use table has been recoded to be zero-based,
+    then the home_zone_id in the households table needs to be recoded to match.
+
+    Note that recoding is done after renaming, so the key values in this mapping
+    should correspond to the internally used names and not the original column
+    names that appear in the input file (if they have been renamed).
+    """
 
     keep_columns: list[str] = None
     """
-    columns to keep once read in to memory.
+    Columns to keep once read in to memory.
 
     Save only the columns needed for modeling or analysis to save on memory
-    and file I/O
+    and file I/O.  If not given, all columns in the input file will be read
+    and retained.
     """
 
     h5_tablename: str = None
     """table name if reading from HDF5 and different from `tablename`"""
+
+
+class OutputTable(PydanticBase):
+    tablename: str
+    decode_columns: dict[str, str] = None
+
+
+class OutputTables(PydanticBase):
+    h5_store: bool = False
+    action: str
+    prefix: str
+    tables: list[Union[str, OutputTable]]
+
+
+class MultiprocessStepSlice(PydanticBase):
+    """Instructions on how to slice tables for each subprocess."""
+
+    tables: list[str]
+    """
+    The names of tables that are to be sliced for multiprocessing.
+
+    The index of the first table in the 'tables' list is the primary_slicer.
+    Any other tables listed are dependent tables with either ref_cols to the
+    primary_slicer or with the same index (i.e. having an index with the same
+    name). This cascades, so any tables dependent on the primary_table can in
+    turn have dependent tables that will be sliced by index or ref_col.
+
+    For instance, if the primary_slicer is households, then persons can be
+    sliced because it has a ref_col to (column with the same same name as) the
+    household table index. And the tours table can be sliced since it has a
+    ref_col to persons. Tables can also be sliced by index. For instance the
+    person_windows table can be sliced because it has an index with the same
+    names as the persons table.
+    """
+
+    exclude: Union[bool, str, list[str]]
+    """
+    Optional list of tables not to slice even if they have a sliceable index name.
+
+    Or set to `True` or "*" to exclude all tables not explicitly listed in
+    `tables`.
+    """
+
+
+class MultiprocessStep(PydanticBase):
+    """
+    A contiguous group of model components that are multiprocessed together.
+    """
+
+    name: str
+    """A descriptive name for this multiprocessing step."""
+
+    begin: str
+    """The first component that is part of this multiprocessing step."""
+
+    num_processes: int = None
+    """
+    The number of processes to use in this multiprocessing step.
+
+    If not provided, the default overall number of processes set in the main
+    settings file is used.
+    """
+
+    slice: MultiprocessStepSlice = None
+    """Instructions on how to slice tables for each subprocess."""
 
 
 class Settings(PydanticBase):
@@ -60,6 +160,20 @@ class Settings(PydanticBase):
 
     See :ref:`model_steps` for more details about each step.
     """
+
+    multiprocess: bool = False
+    """Enable multiprocessing for this model."""
+
+    num_processes: int = None
+    """
+    If running in multiprocessing mode, use this number of processes by default.
+
+    If not given or set to 0, the number of processes to use is set to
+    half the number of available CPU cores, plus 1.
+    """
+
+    multiprocess_steps: list[MultiprocessStep]
+    """A list of multiprocess steps."""
 
     resume_after: str = None
     """to resume running the data pipeline after the last successful checkpoint"""
@@ -160,6 +274,9 @@ class Settings(PydanticBase):
     single-checkpoint pipeline file, and deleting any subprocess pipelines.
     """
 
+    cleanup_trace_files_on_resume: bool = False
+    """Clean all trace files when restarting a model from a checkpoint."""
+
     sharrow: Union[bool, str] = False
     """
     Set the sharrow operating mode.
@@ -183,6 +300,8 @@ class Settings(PydanticBase):
     """
     Disable the use of zarr format skims.
 
+    .. versionadded:: 1.2
+
     By default, if sharrow is enabled (any setting other than false), ActivitySim
     currently loads data from zarr format skims if a zarr location is provided,
     and data is found there.  If no data is found there, then original OMX skim
@@ -190,6 +309,116 @@ class Settings(PydanticBase):
     data is written out to a zarr file at that location.  Setting this option to
     True will disable the use of zarr.
     """
+
+    instrument: bool = False
+    """
+    Use `pyinstrument` to profile component performance.
+
+    .. versionadded:: 1.2
+
+    This is generally a developer-only feature and not needed for regular usage
+    of ActivitySim.
+
+    Use of this setting to enable statistical profiling of ActivitySim code,
+    using the `pyinstrument` library (an optional dependency which must also be
+    installed).  A separate profiling session is triggered for each model
+    component. See the pyinstrument
+    `documentation <https://pyinstrument.readthedocs.io/en/latest/how-it-works.html>`__
+    for a description of how this tool works.
+
+    When activated, a "profiling--\\*" directory is created in the output directory
+    of the model, tagged with the date and time of the profiling run.  Profile
+    output is always tagged like this and never overwrites previous profiling
+    outputs, facilitating serial comparisons of runtimes in response to code or
+    configuration changes.
+    """
+
+    memory_profile: bool = False
+    """
+    Generate a memory profile by sampling memory usage from a secondary process.
+
+    .. versionadded:: 1.2
+
+    This is generally a developer-only feature and not needed for regular usage
+    of ActivitySim.
+
+    Using this feature will open a secondary process, whose only job is to poll
+    memory usage for the main ActivitySim process.  The usage is logged to a file
+    with time stamps, so it can be cross-referenced against ActivitySim logs to
+    identify what parts of the code are using RAM.  The profiling is done from
+    a separate process to avoid the profiler itself from significantly slowing
+    the main model core, or (more importantly) generating memory usage on its
+    own that pollutes the collected data.
+    """
+
+    benchmarking: bool = False
+    """
+    Flag this model run as a benchmarking run.
+
+    .. versionadded:: 1.1
+
+    This is generally a developer-only feature and not needed for regular usage
+    of ActivitySim.
+
+    By flagging a model run as a benchmark, certain operations of the model are
+    altered, to ensure valid benchmark readings.  For example, in regular
+    operation, data such as skims are loaded on-demand within the first model
+    component that needs them.  With benchmarking enabled, all data are always
+    pre-loaded before any component is run, to ensure that recorded times are
+    the runtime of the component itself, and not data I/O operations that are
+    neither integral to that component nor necessarily stable over replication.
+    """
+
+    write_raw_tables: bool = False
+    """
+    Dump input tables back to disk immediately after loading them.
+
+    This is generally a developer-only feature and not needed for regular usage
+    of ActivitySim.
+
+    The data tables are written out before any annotation steps, but after
+    initial processing (renaming, filtering columns, recoding).
+    """
+
+    disable_destination_sampling: bool = False
+
+    want_dest_choice_presampling: bool = False
+
+    testing_fail_trip_destination: bool = False
+
+    fail_fast: bool = False
+
+    rotate_logs: bool = False
+
+    offset_preprocessing: bool = False
+    """
+    Flag to indicate whether offset preprocessing has already been done.
+
+    .. versionadded:: 1.2
+
+    This flag is generally set automatically within ActivitySim during a run,
+    and not be a user ahead of time.  The ability to do so is provided as a
+    developer-only feature for testing and development.
+    """
+
+    recode_pipeline_columns: bool = True
+    """
+    Apply recoding instructions on input and final output for pipeline tables.
+
+    .. versionadded:: 1.2
+
+    Recoding instructions can be provided in individual
+    :py:attr:`InputTable.recode_columns` and :py:attr:`OutputTable.decode_columns`
+    settings. This global setting permits disabling all recoding processes
+    simultaneously.
+
+    .. warning::
+
+        Disabling recoding is fine in legacy mode but it is generally not
+        compatible with using :py:attr:`Settings.sharrow`.
+    """
+
+    keep_mem_logs: bool = False
 
 
 class ZarrDigitalEncoding(PydanticBase):
@@ -244,6 +473,10 @@ class TAZ_Settings(PydanticBase):
     A list of encodings to apply before saving skims in ZARR format.
 
     .. versionadded:: 1.2
+
+    Digital encodings transform how data is stored in memory and on disk,
+    potentially reducing storage requirements without fundamentally changing
+    the underlying data.
     """
 
 

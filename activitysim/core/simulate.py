@@ -431,6 +431,7 @@ def eval_utilities(
     spec_sh=None,
 ):
     """
+    Evaluate a utility function as defined in a spec file.
 
     Parameters
     ----------
@@ -441,29 +442,43 @@ def eval_utilities(
     choosers : pandas.DataFrame
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
-        for an evaluation of an expression that begins with @
-    trace_label: str
-    have_trace_targets: boolean - choosers has targets to trace
-    trace_all_rows: boolean - trace all chooser rows, bypassing tracing.trace_targets
+        for an evaluation of an expression that begins with "@".
+    trace_label : str
+    have_trace_targets : bool
+        Indicates if `choosers` has targets to trace
+    trace_all_rows : bool
+        Trace all chooser rows, bypassing tracing.trace_targets
     estimator :
         called to report intermediate table results (used for estimation)
-    trace_column_names: str or list of str
+    trace_column_names: str or list[str]
         chooser columns to include when tracing expression_values
+    log_alt_losers : bool, default False
+        Write out expressions when all alternatives are unavailable.
+        This can be useful for model development to catch errors in
+        specifications. Enabling this check does not alter valid results
+        but slows down model runs.
+    zone_layer : {'taz', 'maz'}, optional
+        Specify which zone layer of the skims is to be used by sharrow.  You
+        cannot use the 'maz' zone layer in a one-zone model, but you can use
+        the 'taz' layer in a two- or three-zone model (e.g. for destination
+        pre-sampling). If not given, the default (lowest available) layer is
+        used.
+    spec_sh : pandas.DataFrame, optional
+        An alternative `spec` modified specifically for use with sharrow.
+        This is meant to give the same result, but allows for some optimizations
+        or preprocessing outside the sharrow framework (e.g. to run the Python
+        based transit virtual path builder and cache relevant values).
 
     Returns
     -------
-
+    utilities : pandas.DataFrame
     """
     start_time = time.time()
 
-    # from .flow import apply_flow # need import here to make injectable available
-    # from . import inject
-    # skim_dataset = inject.get_injectable('skim_dataset')
     sharrow_enabled = config.setting("sharrow", False)
 
     expression_values = None
 
-    t0 = time.time()
     from .flow import TimeLogger
 
     timelogger = TimeLogger("simulate")
@@ -476,9 +491,6 @@ def eval_utilities(
 
     if locals_d is not None and "disable_sharrow" in locals_d:
         sharrow_enabled = False
-
-    # if locals_d is not None and 'tvpb_logsum_odt' in locals_d:
-    #     sharrow_enabled = False
 
     if sharrow_enabled:
         from .flow import apply_flow  # import inside func to prevent circular imports
@@ -500,7 +512,6 @@ def eval_utilities(
     else:
         timelogger.mark("sharrow flow", False)
 
-    t1 = time.time()
     # fixme - restore tracing and _check_for_variability
 
     if utilities is None or estimator or sharrow_enabled == "test":

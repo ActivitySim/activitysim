@@ -69,7 +69,7 @@ util_escort_duration_constant_1_hour_30_minutes,ESCORT - Duration Constant: 1.5h
 util_escort_duration_constant_2_hours,ESCORT - Duration Constant: 2 hrs,@((df.tour_type == 'escort') & (df.duration==4)),coef_escort_duration_constant_2_hours
 util_escort_duration_constant_longer_than_2_hours,ESCORT - Duration Constant: Longer than 2 hrs,@((df.tour_type == 'escort') & (df.duration>4)),coef_escort_duration_constant_longer_than_2_hours
 util_escort_calibration_constant_duration_1,ESCORT - Calibration Constant - Duration = 1,@((df.tour_type == 'escort') & (df.duration==0)),coef_escort_calibration_constant_duration_1
-util_escort_calibration_constant_duration_2,ESCORT - Calibration Constant - Duration = 2,@(((df.tour_type == 'escort') & df.duration==1)),coef_escort_calibration_constant_duration_2
+util_escort_calibration_constant_duration_2,ESCORT - Calibration Constant - Duration = 2,@((df.tour_type == 'escort') & (df.duration==1)),coef_escort_calibration_constant_duration_2
 util_escort_calibration_constant_departure_9,ESCORT - Calibration Constant - Departure = 9,@((df.tour_type == 'escort') & (df.start==9)),coef_escort_calibration_constant_departure_9
 util_escort_calibration_constant_departure_10,ESCORT - Calibration Constant - Departure = 10,@((df.tour_type == 'escort') & (df.start==10)),coef_escort_calibration_constant_departure_10
 util_escort_calibration_constant_departure_23,ESCORT - Calibration Constant - Departure = 23,@((df.tour_type == 'escort') & (df.start==23)),coef_escort_calibration_constant_departure_23

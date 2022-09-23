@@ -13,7 +13,7 @@ steps:
       legacy: True
       reference: True
       reference_asim_version: "1.0.4"
-      tag: '2022-06'
+      tag:
       resume_after: _
       fast: False
       compile_n_households: 1000

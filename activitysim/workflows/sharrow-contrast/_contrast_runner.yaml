@@ -139,6 +139,7 @@ run-compile:
         instrument: '{instrument}'
         disable_zarr: '{disable_zarr}'
         multiprocess: False
+        recode_pipeline_columns: True
 
 - description: Run activitysim to compile and test sharrow-enabled model
   name: activitysim.workflows.steps.run
@@ -172,6 +173,7 @@ run-sharrow:
         chunk_method: '{chunk_method}'
         chunk_training_mode: '{chunk_training_mode}'
         disable_zarr: '{disable_zarr}'
+        recode_pipeline_columns: True
 
 - description: Run activitysim to evaluate sharrow-enabled model
   name: activitysim.workflows.steps.run_subprocess

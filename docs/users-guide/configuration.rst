@@ -13,8 +13,12 @@ component.
 
 .. currentmodule:: activitysim.core.configuration
 
+Top Level Settings
+------------------
+
 .. autosummary::
     :toctree: _generated
+    :template: autopydantic.rst
     :recursive:
 
     Settings
@@ -23,6 +27,16 @@ component.
     OutputTables
     MultiprocessStep
     MultiprocessStepSlice
+
+
+Network Level of Service
+------------------------
+
+.. autosummary::
+    :toctree: _generated
+    :template: autopydantic.rst
+    :recursive:
+
     NetworkSettings
     TAZ_Settings
     ZarrDigitalEncoding

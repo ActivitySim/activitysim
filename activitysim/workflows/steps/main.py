@@ -1,5 +1,4 @@
 """Naive custom loader without any error handling."""
-import contextlib
 import os
 import signal
 import sys
@@ -99,5 +98,6 @@ def main(args):
             # if we are in the debugger, re-raise the error instead of returning
             if sys.gettrace() is not None:
                 raise
+            from pypyr.errors import PipelineNotFoundError
 
-            return 255
+            return 254 if isinstance(e, PipelineNotFoundError) else 255

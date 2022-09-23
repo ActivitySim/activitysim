@@ -301,7 +301,12 @@ def run(args):
     # OMP_NUM_THREADS: openmp
     # OPENBLAS_NUM_THREADS: openblas
     # MKL_NUM_THREADS: mkl
-    for env in ["MKL_NUM_THREADS", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS"]:
+    for env in [
+        "MKL_NUM_THREADS",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMBA_NUM_THREADS",
+    ]:
         logger.info(f"ENV {env}: {os.getenv(env)}")
 
     np_info_keys = [

@@ -48,10 +48,17 @@ def main():
 
     asim = prog()
     try:
-        if len(sys.argv) >= 2 and sys.argv[1] == "workflow":
+        if len(sys.argv) >= 2 and sys.argv[1] in ("workflow", "workflow_"):
             from activitysim import workflows
 
-            sys.exit(workflows.main(sys.argv[2:]))
+            if sys.argv[1] == "workflow_":
+                result = workflows.main(sys.argv[2:])
+                # exit silently on PipelineNotFoundError
+                if result == 254:
+                    result = 0
+                sys.exit(result)
+            else:
+                sys.exit(workflows.main(sys.argv[2:]))
         else:
             sys.exit(asim.execute())
     except Exception:

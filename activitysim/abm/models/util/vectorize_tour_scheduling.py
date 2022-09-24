@@ -973,7 +973,7 @@ def vectorize_tour_scheduling(
                     chunk_size=chunk_size,
                     tour_trace_label=segment_trace_label,
                     tour_chunk_tag=segment_chunk_tag,
-                    sharrow_skip=tour_segment_info["sharrow_skip"],
+                    sharrow_skip=tour_segment_info.get("sharrow_skip"),
                 )
 
                 choice_list.append(choices)
@@ -1003,7 +1003,7 @@ def vectorize_tour_scheduling(
                 chunk_size=chunk_size,
                 tour_trace_label=tour_trace_label,
                 tour_chunk_tag=tour_chunk_tag,
-                sharrow_skip=tour_segments["sharrow_skip"],
+                sharrow_skip=tour_segments.get("sharrow_skip"),
             )
 
             choice_list.append(choices)

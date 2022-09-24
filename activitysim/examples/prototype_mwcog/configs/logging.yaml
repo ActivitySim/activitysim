@@ -29,6 +29,8 @@ logging:
 
     sharrow:
       level: INFO
+      handlers: [console, logfile]
+      propagate: false
 
     blib2to3:
       level: WARN

@@ -1,0 +1,37 @@
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      workspace: workspace
+      reference_asim_version: "1.0.4"
+      tag:
+
+- name: activitysim.workflows.steps.py
+  in:
+    label: Initialize common tag if not given
+    py: |
+      import time
+      if tag is None:
+        tag = time.strftime("%Y-%m-%d-%H%M%S")
+      save('tag')
+
+- name: pypyr.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/mtc_mini
+      args:
+        workspace: '{workspace}'
+        reference_asim_version: '{reference_asim_version}'
+        tag: '{tag}'
+
+- name: pypyr.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/arc_mini
+      args:
+        workspace: '{workspace}'
+        reference_asim_version: '{reference_asim_version}'
+        tag: '{tag}'

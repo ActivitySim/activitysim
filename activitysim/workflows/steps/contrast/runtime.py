@@ -3,7 +3,6 @@ import logging
 import altair as alt
 import pandas as pd
 
-from ....standalone.utils import chdir
 from ..progression import reset_progress_step
 from ..wrapping import workstep
 
@@ -75,7 +74,7 @@ def contrast_runtime(
         ) | alt.Chart(df1).mark_bar().encode(
             color="source",
             x="source",
-            y="sum(seconds)",
+            y=alt.Y("sum(seconds)", title="Total Seconds"),
             tooltip=["source", "sum(seconds)"],
         )
 
@@ -103,7 +102,7 @@ def contrast_runtime(
         ).mark_bar().encode(
             color="source",
             x="source",
-            y="sum(seconds)",
+            y=alt.Y("sum(seconds)", title="Total Seconds"),
             tooltip=["source", "sum(seconds)"],
         )
 
@@ -140,7 +139,7 @@ def contrast_runtime(
         ).mark_bar().encode(
             color="source",
             x=alt.X("source", type="nominal", sort=None),
-            y="sum(seconds)",
+            y=alt.Y("sum(seconds)", title="Total Seconds"),
             tooltip=["source", "sum(seconds)"],
         )
 

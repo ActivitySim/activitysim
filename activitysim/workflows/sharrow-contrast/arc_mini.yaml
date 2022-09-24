@@ -8,13 +8,13 @@ steps:
       example_name: prototype_arc
       workspace: workspace
       create: True
-      compile: False
-      sharrow: False
-      legacy: False
-      reference: False
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: True
       reference_asim_version: "1.0.4"
-      tag: '2022-06'
-      resume_after: _
+      tag:
+      resume_after:
       fast: False
       compile_n_households: 1000
       main_n_households: 1000

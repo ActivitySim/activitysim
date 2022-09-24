@@ -96,6 +96,9 @@ def eval_interaction_utilities(
     # skim_dataset = inject.get_injectable('skim_dataset')
     sharrow_enabled = config.setting("sharrow", False)
 
+    if locals_d is not None and locals_d.get("_sharrow_skip", False):
+        sharrow_enabled = False
+
     # if trace_label.startswith("trip_destination"):
     #     sharrow_enabled = False
 

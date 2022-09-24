@@ -1,4 +1,5 @@
 SPEC: tour_scheduling_nonmandatory.csv
+sharrow_skip: true
 COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
 
 LOGIT_TYPE: MNL
@@ -9,9 +10,9 @@ preprocessor:
   TABLES:
     - land_use
     - joint_tour_participants
-    
+
 SIMULATE_CHOOSER_COLUMNS:
-  
+
   - age
   - is_female
   - adult
@@ -31,4 +32,3 @@ SIMULATE_CHOOSER_COLUMNS:
   - num_non_escort_tours
   - num_add_shop_maint_tours
   - num_add_soc_discr_tours
-  

@@ -597,6 +597,7 @@ def _schedule_tours(
     tour_owner_id_col,
     estimator,
     tour_trace_label,
+    sharrow_skip=False,
 ):
     """
     previous_tour stores values used to add columns that can be used in the spec
@@ -703,6 +704,11 @@ def _schedule_tours(
     if constants is not None:
         locals_d.update(constants)
 
+    if sharrow_skip:
+        locals_d["_sharrow_skip"] = True
+    else:
+        locals_d["_sharrow_skip"] = False
+
     if not RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
         # Note: Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
         # and he was using logsum_tour_purpose as selector, although logically it should be the spec_segment
@@ -766,6 +772,7 @@ def schedule_tours(
     chunk_size,
     tour_trace_label,
     tour_chunk_tag,
+    sharrow_skip=False,
 ):
     """
     chunking wrapper for _schedule_tours
@@ -816,6 +823,7 @@ def schedule_tours(
             tour_owner_id_col,
             estimator,
             tour_trace_label=chunk_trace_label,
+            sharrow_skip=sharrow_skip,
         )
 
         result_list.append(choices)
@@ -965,6 +973,7 @@ def vectorize_tour_scheduling(
                     chunk_size=chunk_size,
                     tour_trace_label=segment_trace_label,
                     tour_chunk_tag=segment_chunk_tag,
+                    sharrow_skip=tour_segment_info["sharrow_skip"],
                 )
 
                 choice_list.append(choices)
@@ -994,6 +1003,7 @@ def vectorize_tour_scheduling(
                 chunk_size=chunk_size,
                 tour_trace_label=tour_trace_label,
                 tour_chunk_tag=tour_chunk_tag,
+                sharrow_skip=tour_segments["sharrow_skip"],
             )
 
             choice_list.append(choices)
@@ -1012,6 +1022,7 @@ def vectorize_subtour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
+    sharrow_skip=False,
 ):
     """
     Like vectorize_tour_scheduling but specifically for atwork subtours
@@ -1110,6 +1121,7 @@ def vectorize_subtour_scheduling(
             chunk_size,
             tour_trace_label,
             tour_chunk_tag,
+            sharrow_skip=sharrow_skip,
         )
 
         choice_list.append(choices)
@@ -1165,6 +1177,7 @@ def vectorize_joint_tour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
+    sharrow_skip=False,
 ):
     """
     Like vectorize_tour_scheduling but specifically for joint tours
@@ -1257,6 +1270,7 @@ def vectorize_joint_tour_scheduling(
             chunk_size,
             tour_trace_label,
             tour_chunk_tag,
+            sharrow_skip=sharrow_skip,
         )
 
         # - update timetables of all joint tour participants

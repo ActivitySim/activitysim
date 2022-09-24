@@ -13,9 +13,9 @@ steps:
       reference: True
       reference_asim_version: "1.0.4"
       tag:
-      compile_n_households: 100
-      main_n_households_singleprocess: 100
-      main_n_households_multiprocess: 1000
+      compile_n_households: 1000
+      main_n_households_singleprocess: 100000
+      main_n_households_multiprocess: 100000
       multiprocess: 8
       resume_after:
 
@@ -110,7 +110,7 @@ steps:
       name: sharrow-contrast/arc_full
       args:
         workspace: '{workspace}'
-        create: False
+        create: '{create}'
         compile: '{compile}'
         sharrow: '{sharrow}'
         legacy: '{legacy}'

@@ -16,8 +16,8 @@ steps:
       tag:
       resume_after: _
       fast: False
-      compile_n_households: 1000
-      main_n_households: 100000
+      compile_n_households: 500
+      main_n_households: 10000
       config_dirs: configs
       data_dir: data
       instrument: False

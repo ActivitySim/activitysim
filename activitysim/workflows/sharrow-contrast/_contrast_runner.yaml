@@ -45,6 +45,20 @@ steps:
       settings_file: settings.yaml
       report_skip: []
 
+- description: Ensure integer types for numbers
+  name: activitysim.workflows.steps.py
+  in:
+    label: Ensure integer types for numbers
+    py: |
+      def int_or_none(i):
+        return int(i) if i is not None else i
+      save(
+        compile_n_households=int_or_none(compile_n_households),
+        main_n_households=int_or_none(main_n_households),
+        multiprocess=int_or_none(multiprocess),
+        chunk_size=int_or_none(chunk_size),
+      )
+
 - name: activitysim.workflows.steps.title
   in:
     label: "activitysim workflow {workflow_name}"

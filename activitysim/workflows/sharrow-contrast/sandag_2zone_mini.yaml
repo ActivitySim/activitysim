@@ -21,7 +21,7 @@ steps:
       sharrow: True
       legacy: True
       reference: False
-      tag: '2022-07-2zone'
+      tag:
       resume_after:
       fast: False
       compile_n_households: 100

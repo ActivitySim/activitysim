@@ -579,7 +579,7 @@
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - prototype_arc/data
+    # prototype_arc/data  # data loaded from activitysim_resources
     - prototype_arc/configs
     - prototype_arc/output
     - prototype_arc/README.MD

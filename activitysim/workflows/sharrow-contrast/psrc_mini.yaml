@@ -5,14 +5,14 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: placeholder_psrc
+      example_name: placeholder_psrc_seattle
       workspace: workspace
       create: True
       compile: True
       sharrow: True
       legacy: True
-      tag: '2022-04'
-      resume_after: _
+      tag:
+      resume_after:
       fast: False
       compile_n_households: 100
       main_n_households: 100000

@@ -1,7 +1,7 @@
 #
 #  mtc_mini
 #
-#   This workflow runs the Prototype MTC model using mini skims (25 zones),
+#   This workflow runs the Prototype MTC model using mini skims (190 zones),
 #   in a single process runner.  It is for mainly for rapid testing of the code
 #   and specification files for errors, not for policy analysis.
 #
@@ -13,7 +13,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: prototype_mtc
+      example_name: prototype_mtc_sf
       workflow_name: sharrow-contrast/mtc_mini
       workspace: workspace  # this is the directory where model runs are stored
       create: True
@@ -24,8 +24,8 @@ steps:
       tag:
       resume_after:
       fast: False
-      compile_n_households: 5000
-      main_n_households: 100000
+      compile_n_households: 500
+      main_n_households: 50000
       config_dirs: configs
       data_dir: data
       instrument: False

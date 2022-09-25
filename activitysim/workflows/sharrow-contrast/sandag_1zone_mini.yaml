@@ -11,11 +11,11 @@ steps:
       compile: True
       sharrow: True
       legacy: True
-      reference: False
-      tag: '2022-06-1zone'
+      reference: True
+      tag:
       resume_after:
       fast: False
-      compile_n_households: 10000
+      compile_n_households: 200
       main_n_households: 100000
       config_dirs:
       - configs_1_zone

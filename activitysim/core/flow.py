@@ -715,7 +715,7 @@ def apply_flow(
                 return None, None
             else:
                 raise
-        with logtime("flow.load", trace_label or ""):
+        with logtime(f"{flow.name}.load", trace_label or ""):
             try:
                 flow_result = flow.dot(
                     coefficients=spec.values.astype(np.float32),

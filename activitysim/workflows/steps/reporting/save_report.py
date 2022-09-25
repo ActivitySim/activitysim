@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 
 from .... import __version__
 from ..wrapping import workstep
@@ -19,6 +20,7 @@ def save_report(
     report,
     html_filename,
     toc_color="forest",
+    copy_filename=None,
 ):
 
     bootstrap_font_family = (
@@ -120,3 +122,6 @@ def save_report(
         toc_color=toc_color,
         branding=f"ActivitySim {version.replace('+', ' +')}",
     )
+    if copy_filename is not None:
+        os.makedirs(os.path.dirname(copy_filename), exist_ok=True)
+        shutil.copy2(html_filename, copy_filename)

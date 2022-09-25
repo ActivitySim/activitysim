@@ -6,7 +6,7 @@ steps:
   in:
     defaults:
       workspace: workspace
-      reference_asim_version: "1.0.4"
+      reference_asim_version: "1.1.3"
       tag:
 
 - name: activitysim.workflows.steps.py
@@ -15,8 +15,11 @@ steps:
     py: |
       import time
       if tag is None:
-        tag = time.strftime("%Y-%m-%d-%H%M%S")
-      save('tag')
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+          tag = "CI"
+        else:
+          tag = time.strftime("%Y-%m-%d-%H%M%S")
+      save("tag")
 
 - name: pypyr.steps.pype
   in:
@@ -31,6 +34,15 @@ steps:
   in:
     pype:
       name: sharrow-contrast/arc_mini
+      args:
+        workspace: '{workspace}'
+        reference_asim_version: '{reference_asim_version}'
+        tag: '{tag}'
+
+- name: pypyr.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/mwcog_mini
       args:
         workspace: '{workspace}'
         reference_asim_version: '{reference_asim_version}'

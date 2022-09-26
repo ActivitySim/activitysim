@@ -1,14 +1,13 @@
 coefficient_name,value,constrain
+coef_unavailable,-999,T
 coef_escorting_tour,-5.0011,F
 coef_discretionary_tour,-2.0687,F
 coef_shopping_tour,-16.7785,F
 coef_maintenance_tour,-3.2583,F
 coef_visiting_or_social_tour,-2.6366,F
 coef_eating_out_tour,-18.1598,F
-coef_total_number_of_tours_is_0_no_prior_tours,-999,T
 coef_total_number_of_tours_is_0_prior_tours,0,T
 coef_total_number_of_tours_is_1_plus,-0.4825,F
-coef_total_number_of_tours_is_4_plus,-999,T
 coef_has_mandatory_tours_and_tour_frequency_is_2_plus,-2.5161,F
 coef_number_of_joint_discretionary_tours,-0.2308,F
 coef_more_than_one_discretionary_tours,-1.1938,F

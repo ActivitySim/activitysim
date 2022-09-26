@@ -1,0 +1,20 @@
+Description,value,coefficient_name
+Number of HH Persons,-0.2827,coef_number_of_hh_persons
+Presence of kids between 5 and 15 (including) years old,0.6823,coef_presence_of_kids_between_5_and_15_including_years_old
+Number of Vehicles,0.1703,coef_number_of_vehicles
+Dummy for female,0.7349,coef_dummy_for_female
+Dummy for all stops made by transit,-0.7,coef_dummy_for_all_stops_made_by_transit
+Number of escort tours tours undertaken by the person,0.9018,coef_number_of_escort_tours_tours_undertaken_by_the_person
+Arrival later than 17:00.,0.389,coef_arrival_later_than_17_00_
+Dummy for the duration of the tour being equal or greater than or equal to 9 hours ,0.8434,coef_dummy_for_the_duration_of_the_tour_being_equal_or_greater_than_or_equal_to_9_hours_
+HH accesibility for inbound tours. Interaction,0.2481,coef_hh_accesibility_for_inbound_tours_interaction
+No stops if tour mode is driveTransit,-999.0,coef_no_stops_if_tour_mode_is_drivetransit
+Alternative specific constant for return  stops,-2.003,coef_alternative_specific_constant_for_return_stops_0out_1in
+Alternative specific constant for return  stops,-3.51,coef_alternative_specific_constant_for_return_stops_0out_2in
+Alternative specific constant for the total number of stops,0.0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
+Alternative specific constant for return  stops,-3.677,coef_alternative_specific_constant_for_return_stops_0out_3in
+Alternative specific constant for outbound stops,-2.628,coef_alternative_specific_constant_for_outbound_stops_1out_0in
+Alternative specific constant for the total number of stops,1.272,coef_alternative_specific_constant_for_the_total_number_of_stops_1out_3in
+Alternative specific constant for outbound stops,-3.741,coef_alternative_specific_constant_for_outbound_stops_2out_0in
+Alternative specific constant for the total number of stops,1.871,coef_alternative_specific_constant_for_the_total_number_of_stops_2out_3in
+Alternative specific constant for outbound stops,-4.981,coef_alternative_specific_constant_for_outbound_stops_3out_0in

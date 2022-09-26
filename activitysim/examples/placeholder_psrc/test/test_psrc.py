@@ -16,7 +16,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def test_psrc():
+def _test_psrc(sharrow=False):
     def example_path(dirname):
         resource = os.path.join("examples", "placeholder_psrc", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -35,7 +35,12 @@ def test_psrc():
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
-    run_args = [
+    if sharrow:
+        run_args = ["-c", test_path("configs_sharrow")]
+    else:
+        run_args = []
+
+    run_args += [
         "-c",
         test_path("configs"),
         "-c",
@@ -52,6 +57,14 @@ def test_psrc():
         subprocess.run([sys.executable, file_path] + run_args, check=True)
 
     regress()
+
+
+def test_psrc():
+    _test_psrc(sharrow=False)
+
+
+def test_psrc_sharrow():
+    _test_psrc(sharrow=True)
 
 
 if __name__ == "__main__":

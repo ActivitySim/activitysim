@@ -1,14 +1,12 @@
+import random
 import yaml
-import collections
 import os
 import sys
-import itertools
 import logging
 import subprocess
 import pkg_resources
 import pandas as pd
-from collections import Iterable
-from orca import orca
+import numpy as np
 
 from activitysim.core import (inject,
                               tracing,
@@ -21,20 +19,88 @@ from activitysim.abm.models.util import (tour_destination, estimation)
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core.expressions import assign_columns
 
+from sklearn.cluster import KMeans
+
 logger = logging.getLogger(__name__)
 
 
+def nearest_node_index(node, nodes):
+    nodes = np.asarray(nodes)
+    deltas = nodes - node
+    dist_2 = np.einsum('ij,ij->i', deltas, deltas)
+    return np.argmin(dist_2)
+
 class ProtoPop:
     def __init__(self, land_use_df, model_settings, pipeline=True):
+        self.proto_pop = {}
+        self.land_use = land_use_df
         self.model_settings = model_settings
         self.params = self.read_table_settings(land_use_df)
         self.create_proto_pop()
+
+        # Random seed
+        random.seed(len(land_use_df.index))
 
         # Switch in case someone wants to generate a proto-pop in just python alone
         if pipeline:
             self.inject_tables()
             self.annotate_tables()
             self.merge_persons(land_use_df)
+
+    def zone_sampler(self, land_use_df, method=None):
+        """      This is a "pre"-sampling method, which selects a sample from the total zones and generates a proto-pop on it.
+        This is particularly useful for multi-zone models where there are many MAZs
+         which would cause memory usage and computation time to explode.
+
+        method:
+            None (default) - Simply sample N zones independent of each other.
+            taz - Sample 1 zone per taz up to the N samples specified.
+            k-means - ? FIXME.NF need to explore further
+        """
+
+        id_col = self.model_settings['zone_id_names'].get('index_col', 'zone_id')
+        zone_cols = self.model_settings['zone_id_names'].get('zone_group_cols')
+
+        method = self.model_settings.get('zone_pre_sample_method')
+        N = self.model_settings.get('zone_pre_sample_size', 0)
+
+        if N == 0 or N > len(land_use_df.index):
+            N = len(land_use_df.index)
+            print('Pre-sample size equals total number of zones. Using default sampling method.')
+            method = None  # If it's a full sample, there's no need to run an aggregator
+
+        if method and method.lower() == 'taz':
+            assert zone_cols is not None
+            # Randomly select one MAZ per TAZ by randomizing the index and then select the first MAZ in each TAZ
+            # Then truncate the sampled indices by N samples and sort it
+            sample_idx = land_use_df.sample(frac=1).reset_index().groupby(zone_cols)[id_col].first()
+            sample_idx = sorted(sample_idx[:N])
+
+        elif method and method.lower() == 'kmeans':
+            # Performs a simple k-means clustering using centroid XY coordinates
+            centroids_df = pipeline.get_table('maz_centroids')
+
+            # Filter only the zones in the land use file (relevant if running scaled model)
+            centroids_df = centroids_df[centroids_df.index.isin(land_use_df.index)]
+            xy_list = list(centroids_df[['X', 'Y']].itertuples(index=False, name=None))
+
+            # Initializer k-means class
+            kmeans = KMeans(
+                init="random",
+                n_clusters=N,
+                n_init=10,
+                max_iter=300,
+                random_state=42
+            )
+
+            # Calculate the k-means cluster points
+            # Find the nearest MAZ for each cluster
+            kmeans_res = kmeans.fit(xy_list)
+            sample_idx = [nearest_node_index(_xy, xy_list) for _xy in kmeans_res.cluster_centers_]
+        else:
+            sample_idx = sorted(random.sample(sorted(land_use_df.index), N))
+
+        return {id_col: sample_idx}
 
     def read_table_settings(self, land_use_df):
         # Check if setup properly
@@ -56,11 +122,11 @@ class ProtoPop:
                 'rename_columns': table.get('rename_columns', [])
             }
 
+        # Set zone_id name if not already specified
+        self.model_settings['zone_id_names'] = self.model_settings.get('zone_id_names', {'index_cols': 'zone_id'})
+
         # Add in the zone variables
-        # TODO need to implement the crosswalk join downstream for 3 zone
-        zone_list = {z: (land_use_df.index.tolist() if z == land_use_df.index.name
-                         else land_use_df[z].tolist())
-                     for z in self.model_settings['zones']}
+        zone_list = self.zone_sampler(land_use_df)
 
         # Add zones to households dicts as vary_on variable
         params['proto_households']['variables'] = {**params['proto_households']['variables'], **zone_list}
@@ -83,8 +149,8 @@ class ProtoPop:
 
         # Perform filter step
         if (len(self.params[table_name]['filter'])) > 0:
-            for filter in self.params[table_name]['filter']:
-                df[eval(filter)].reset_index(drop=True)
+            for filt in self.params[table_name]['filter']:
+                df[eval(filt)].reset_index(drop=True)
 
         return df
 
@@ -150,13 +216,11 @@ class ProtoPop:
             df = pipeline.get_table(tablename)
             assert df is not None
             assert annotations is not None
-            # pipeline.get_rn_generator().add_channel(tablename, df)
             assign_columns(
                 df=df,
                 model_settings={**annotations['annotate'], **self.model_settings['suffixes']},
                 trace_label=tracing.extend_trace_label('ProtoPop.annotate', tablename))
             pipeline.replace_table(tablename, df)
-            # pipeline.get_rn_generator().drop_channel(tablename)
 
     def merge_persons(self, land_use_df):
         persons = pipeline.get_table('proto_persons')
@@ -169,7 +233,7 @@ class ProtoPop:
         persons_merged = persons.join(households[cols_to_use]).merge(
             land_use_df,
             left_on=self.params['proto_households']['zone_col'],
-            right_on=self.model_settings['zones'])
+            right_on=self.model_settings['zone_id_names']['index_col'])
 
         perid = self.params['proto_persons']['index_col']
         persons_merged.set_index(perid, inplace=True, drop=True)
@@ -177,8 +241,7 @@ class ProtoPop:
 
         # Store in pipeline
         inject.add_table('proto_persons_merged', persons_merged)
-        # pipeline.get_rn_generator().add_channel('proto_persons_merged', persons_merged)
-        # pipeline.get_rn_generator().drop_channel('persons_merged')
+
 
 def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
     logsums = {}
@@ -251,6 +314,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 
     return logsums
 
+
 @inject.step()
 def initialize_proto_population():
     print('INITIALIZE PROTO-POPULATION FOR DISAGGREGATE ACCESSIBILITY MODEL')
@@ -261,6 +325,7 @@ def initialize_proto_population():
     ProtoPop(land_use_df, model_settings)
 
     return
+
 
 @inject.step()
 def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
@@ -291,12 +356,12 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         if tablename not in traceables:
             inject.add_injectable('traceable_tables', traceables + [tablename])
             tracing.register_traceable_table(tablename, df)
-
+        del df
 
     # Run location choice
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
 
-    # # De-register the channel so it can get re-registered with actual pop tables
+    # # De-register the channel, so it can get re-registered with actual pop tables
     # [pipeline.get_rn_generator().drop_channel(x) for x in ['persons', 'households']]
     [pipeline.drop_table(x) for x in ['school_destination_size', 'workplace_destination_size', 'tours']]
 
@@ -304,15 +369,15 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     logsums = {k + '_accessibility': v for k, v in logsums.items()}
     [inject.add_table(k, df) for k, df in logsums.items()]
 
-    # TODO MOVE TO WRITE TABLES??? OR JUST DELETE?
     # Override output tables to include accessibilities in write_table
     new_settings = inject.get_injectable("settings")
     if 'disaggregate_accessibility' in new_settings.get('output_tables').get('tables'):
         new_settings['output_tables']['tables'].remove('disaggregate_accessibility')
         new_settings['output_tables']['tables'] += logsums.keys()
-    inject.add_injectable("settings", new_settings)
+        inject.add_injectable("settings", new_settings)
 
     return
+
 
 @inject.step()
 def initialize_disaggregate_accessibility():
@@ -327,14 +392,16 @@ def initialize_disaggregate_accessibility():
 
     return
 
+
 @inject.step()
 def disaggregate_accessibility_subprocess():
     """
     Spins up a sub process, not currently implemented
     """
-    run_file = os.path.join('abm', 'models', 'disaggregate_accessibility_run.py') # No longer exists
+    run_file = os.path.join('abm', 'models', 'disaggregate_accessibility_run.py')  # No longer exists
     run_file = pkg_resources.resource_filename('activitysim', run_file)
     subprocess.run(['coverage', 'run', '-a', run_file] + sys.argv[1:], check=True, shell=True)
+
 
 if __name__ == "__main__":
     # FOR TESTING PROTO-POP
@@ -347,9 +414,7 @@ if __name__ == "__main__":
         # model_settings = ordered_load(file)
         model_settings = yaml.load(file, Loader=yaml.SafeLoader)
 
-    land_use_df = pd.read_csv(os.path.join(data_dir, 'land_use.csv'))
-    land_use_df = land_use_df.rename(columns={'TAZ': 'zone_id'}).set_index('zone_id')
+    lu_df = pd.read_csv(os.path.join(data_dir, 'land_use.csv'))
+    lu_df = lu_df.rename(columns={'TAZ': 'zone_id'}).set_index('zone_id')
 
-    PP = ProtoPop(land_use_df, model_settings, pipeline=False)
-
-
+    PP = ProtoPop(lu_df, model_settings, pipeline=False)

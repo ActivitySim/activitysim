@@ -9,19 +9,34 @@ from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
+@inject.table()
+def maz_centroids():
+    df = read_input_table("maz_centroids")
+
+    # try to make life easy for everybody by keeping everything in canonical order
+    # but as long as coalesce_pipeline doesn't sort tables it coalesces, it might not stay in order
+    # so even though we do this, anyone downstream who depends on it, should look out for themselves...
+    if not df.index.is_monotonic_increasing:
+        df = df.sort_index()
+
+    logger.info("loaded maz_centroids %s" % (df.shape,))
+
+    # replace table function with dataframe
+    inject.add_table("maz_centroids", df)
+
+    return df
+
+# FIXME.NF Not sure how necessary the following injections are since they inject empty placeholders?
 def read_disaggregate_accessibility(table_name):
     """
     Generic disaggregate accessibility table import function to recycle within table specific injection function calls.
     If '*destination model*_accessibilities' is in input_tables list, then read it in.
     """
     df = read_input_table(table_name, required=False)
-
     logger.info("loaded {} %s".format(table_name) % (df.shape,))
-
     # replace table function with dataframe
-    inject.add_table("land_use", df)
-
     inject.add_table(table_name, df)
+
     return df
 
 
@@ -49,54 +64,54 @@ def non_mandatory_tour_destination_accessibility(table_name='non_mandatory_tour_
     df = read_disaggregate_accessibility(table_name)
     return df
 
-@inject.table()
-def proto_persons():
-    df = pd.DataFrame()
-    # df = inject.get_table('persons')
-    # logger.info("loaded proto_persons %s" % (df.shape,))
-    # replace table function with dataframe
-    inject.add_table("proto_persons", df)
-    # pipeline.get_rn_generator().add_channel("proto_persons", df)
-    # tracing.register_traceable_table("proto_persons", df)
-    return df
-
-
-# another common merge for persons
-@inject.table()
-def proto_persons_merged(proto_persons, households, land_use):
-
-    return inject.merge_tables(
-        proto_persons.name, tables=[proto_persons, households, land_use]
-    )
-
-
-@inject.table()
-def proto_households():
-    # df = pd.DataFrame()
-    # # logger.info("loaded proto_households %s" % (df.shape,))
-    # # replace table function with dataframe
-    # inject.add_table("proto_households", df)
-    # # pipeline.get_rn_generator().add_channel("proto_households", df)
-    # tracing.register_traceable_table("proto_households", df)
-    # # if trace_hh_id:
-    # #     tracing.trace_df(df, "raw.proto_households", warn_if_empty=True)
-
-    return #df
-
-
-@inject.table()
-def proto_tours():
-    df = pd.DataFrame()
-    # logger.info("loaded proto_tours %s" % (df.shape,))
-    # replace table function with dataframe
-    inject.add_table("proto_tours", df)
-    # pipeline.get_rn_generator().add_channel("proto_tours", df)
-    # tracing.register_traceable_table("proto_tours", df)
-    # if trace_hh_id:
-    #     tracing.trace_df(df, "raw.proto_tours", warn_if_empty=True)
-
-    return df
-
+# @inject.table()
+# def proto_persons():
+#     df = pd.DataFrame()
+#     # df = inject.get_table('persons')
+#     # logger.info("loaded proto_persons %s" % (df.shape,))
+#     # replace table function with dataframe
+#     inject.add_table("proto_persons", df)
+#     # pipeline.get_rn_generator().add_channel("proto_persons", df)
+#     # tracing.register_traceable_table("proto_persons", df)
+#     return df
+#
+#
+# # another common merge for persons
+# @inject.table()
+# def proto_persons_merged(proto_persons, households, land_use):
+#
+#     return inject.merge_tables(
+#         proto_persons.name, tables=[proto_persons, households, land_use]
+#     )
+#
+#
+# @inject.table()
+# def proto_households():
+#     # df = pd.DataFrame()
+#     # # logger.info("loaded proto_households %s" % (df.shape,))
+#     # # replace table function with dataframe
+#     # inject.add_table("proto_households", df)
+#     # # pipeline.get_rn_generator().add_channel("proto_households", df)
+#     # tracing.register_traceable_table("proto_households", df)
+#     # # if trace_hh_id:
+#     # #     tracing.trace_df(df, "raw.proto_households", warn_if_empty=True)
+#
+#     return #df
+#
+#
+# @inject.table()
+# def proto_tours():
+#     df = pd.DataFrame()
+#     # logger.info("loaded proto_tours %s" % (df.shape,))
+#     # replace table function with dataframe
+#     inject.add_table("proto_tours", df)
+#     # pipeline.get_rn_generator().add_channel("proto_tours", df)
+#     # tracing.register_traceable_table("proto_tours", df)
+#     # if trace_hh_id:
+#     #     tracing.trace_df(df, "raw.proto_tours", warn_if_empty=True)
+#
+#     return df
+#
 # this is a common merge so might as well define it once here and use it
 # @inject.table()
 # def proto_households_merged(proto_households, land_use):
@@ -112,3 +127,4 @@ def proto_tours():
 # inject.broadcast("workplace_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
 # inject.broadcast("school_location_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
 # inject.broadcast("non_mandatory_tour_destination_accessibility", "proto_households", cast_index=True, onto_on="home_zone_id")
+# inject.broadcast("maz_centroids", "land_use", cast_index=True, onto_on="home_zone_id")

@@ -120,7 +120,13 @@ CREATE_TABLES:
 # Of course, users can also just reference existing configs if they work, but they must be referenced here too.
 
 annotate_proto_tables:
-# Annotate using expressions specific to the "proto" households table
+  - tablename: proto_persons
+    annotate:
+      SPEC: annotate_persons
+      DF: proto_persons
+      TABLES:
+        - proto_households
+
   - tablename: proto_households
     annotate:
       SPEC: annotate_proto_households
@@ -128,7 +134,7 @@ annotate_proto_tables:
       TABLES:
         - proto_persons
         - land_use
-        -
+
 # Annotate the proto_households table using the main model annotations files
   - tablename: proto_households
     annotate:

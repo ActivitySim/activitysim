@@ -9,3 +9,5 @@ logTimeWindowOverlapAdultChild,log_time_window_overlap_adult_child,np.log1p(time
 #,,
 ,_JOINT_TOURS,tours[tours.tour_category=='joint']
 ,num_hh_joint_tours,"reindex_i(_JOINT_TOURS.groupby('household_id').size(), participants.household_id)"
+#,,
+,person_is_preschool,participants.ptype == 8

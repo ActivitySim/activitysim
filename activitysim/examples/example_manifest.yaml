@@ -56,7 +56,7 @@
   # activitysim run -c configs_mp -c configs_extended/configs -c configs -o output -d data
   # cd ..
   include:
-    - prototype_mtc/data
+    # prototype_mtc/data   # data loaded from activitysim_resources
     - prototype_mtc/configs
     - prototype_mtc_extended/configs
       configs_extended
@@ -136,7 +136,7 @@
   include:
     - prototype_mtc/configs
     - placeholder_multiple_zone/configs_2_zone
-    - placeholder_multiple_zone/data_2
+    # placeholder_multiple_zone/data_2  # data loaded from activitysim_resources
     - placeholder_multiple_zone/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/households.csv
       data_2/households.csv
@@ -177,7 +177,7 @@
     - prototype_mtc/configs
     - placeholder_multiple_zone/configs_3_zone
     - placeholder_multiple_zone/configs_local
-    - placeholder_multiple_zone/data_3
+    # placeholder_multiple_zone/data_3  # data loaded from activitysim_resources
     - placeholder_multiple_zone/output_3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/households.csv
       data_3/households.csv
@@ -247,7 +247,7 @@
   # cd ..
   include:
     - prototype_marin/configs
-    - prototype_marin/data
+    # prototype_marin/data   # data loaded from activitysim_resources
     - prototype_marin/output
     - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_AM.omx
@@ -319,7 +319,7 @@
   # cd ..
   include:
     - prototype_marin/configs
-    - prototype_marin/data
+    # prototype_marin/data   # data loaded from activitysim_resources
     - prototype_marin/output
     - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_AM.omx
@@ -406,7 +406,7 @@
     - placeholder_psrc/configs
     - placeholder_psrc/configs_skip_accessibility
     - placeholder_psrc/configs_accessibility
-    - placeholder_psrc/data
+    # placeholder_psrc/data  # data loaded from activitysim_resources
     - placeholder_psrc/output
     - placeholder_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/skims.omx
@@ -448,7 +448,7 @@
     - placeholder_psrc/configs
     - placeholder_psrc/configs_skip_accessibility
     - placeholder_psrc/configs_accessibility
-    - placeholder_psrc/data
+    # placeholder_psrc/data  # data loaded from activitysim_resources
     - placeholder_psrc/output
     - placeholder_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims.omx

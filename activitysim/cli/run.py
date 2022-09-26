@@ -140,9 +140,9 @@ def handle_standard_args(args, multiprocess=True):
             basepath, extpath = os.path.split(e)
             if not basepath:
                 basepath = "."
-            sys.path.insert(0, basepath)
+            sys.path.insert(0, os.path.abspath(basepath))
             try:
-                importlib.import_module(e)
+                importlib.import_module(extpath)
             except ImportError as err:
                 logger.exception("ImportError")
                 raise

@@ -184,16 +184,15 @@ checkpoints: True
 
 models:
   - initialize_landuse
-  - initialize_proto_population
+  ## Disaggregate Accessibility steps
+  - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
   - compute_disaggregate_accessibility
-  # # - disaggregate_accessibility_subprocess
-  # # - initialize_disaggregate_accessibility
+  # - initialize_disaggregate_accessibility
   - initialize_households
   - compute_accessibility
   - school_location
   - workplace_location
   - auto_ownership_simulate
-  #- vehicle_type_choice
   - free_parking
   - cdap_simulate
   - mandatory_tour_frequency
@@ -206,7 +205,6 @@ models:
   - non_mandatory_tour_frequency
   - non_mandatory_tour_destination
   - non_mandatory_tour_scheduling
-  #- vehicle_allocation
   - tour_mode_choice_simulate
   - atwork_subtour_frequency
   - atwork_subtour_destination

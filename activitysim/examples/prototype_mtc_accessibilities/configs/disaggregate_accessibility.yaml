@@ -1,6 +1,15 @@
 # Sampling size. 0 = no limit
 SAMPLE_SIZE: 0
 
+### list the zone names in the initialized annotated land use file (meaning, use the final zone names)
+# The index_col is the primary zone, zone_by_cols is optional group zone
+# if primary zone is a microzone in multi zone system. e.g., if MAZ and TAZ, the TAZ is the 'by' col
+zone_id_names:
+    index_col: zone_id
+
+# can be whole integer value or a sample rate (percent of zones)
+# zero or missing defaults to full sample!
+zone_pre_sample_size: 5000
 
 # Specify the tables to be created and  their variables.
 # Single values are constants
@@ -104,11 +113,6 @@ CREATE_TABLES:
             person_num: pnum            # Specifies which person variable to join the tours on
 
 
-### 2 or 3 zone system
-zones:
-    - zone_id
-    # - county_id
-    
 # Include any annotations for persons, households, land_use, or tours.
 # The purpose of a separate annotation setup is that annotation expressions for the main model
 # may require data that aren't in the proto population.
@@ -116,20 +120,16 @@ zones:
 # Of course, users can also just reference existing configs if they work, but they must be referenced here too.
 
 annotate_proto_tables:
-  - tablename: proto_persons
-    annotate:
-      SPEC: annotate_persons
-      DF: proto_persons
-      TABLES:
-        - proto_households
+# Annotate using expressions specific to the "proto" households table
   - tablename: proto_households
-    annotate: 
+    annotate:
       SPEC: annotate_proto_households
       DF: proto_households
       TABLES:
         - proto_persons
         - land_use
-
+        -
+# Annotate the proto_households table using the main model annotations files
   - tablename: proto_households
     annotate:
       SPEC: annotate_households
@@ -138,6 +138,7 @@ annotate_proto_tables:
         - proto_persons
         - land_use
 
+# Annotate the proto_persons table using the main model annotations files
   - tablename: proto_persons
     annotate:
       SPEC: annotate_persons_after_hh

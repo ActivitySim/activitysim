@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core.util import reindex
+from activitysim.core import config
 from activitysim.abm.models.util.canonical_ids import set_tour_index
 
 logger = logging.getLogger(__name__)
@@ -441,7 +442,7 @@ def process_joint_tours_frequency_composition(joint_tour_frequency_composition, 
     This method processes the joint_tour_frequency_composition column that comes out of
     the model of the same name and turns into a DataFrame that represents the
     joint tours that were generated
-    
+
     Parameters
     ----------
     joint_tour_frequency_composition : pandas.Series
@@ -452,7 +453,7 @@ def process_joint_tours_frequency_composition(joint_tour_frequency_composition, 
         and frequency counts for the tours to be generated for that choice
     point_persons : pandas DataFrame
         table with columns for (at least) person_ids and home_zone_id indexed by household_id
-    
+
     Returns
     -------
     tours : DataFrame
@@ -487,7 +488,7 @@ def process_joint_tours_frequency_composition(joint_tour_frequency_composition, 
     3209531              320953      disc                2              2         2           2
     23267026            2326702      shop                1              1         1           1
     17978574            1797857      main                1              1         1           1
-    
+
                    tour_category  tour_category_id  person_id
     3209530                joint                 4     577234
     3209531                joint                 4     577234
@@ -501,7 +502,7 @@ def process_tours_frequency_composition(joint_tour_frequency_composition, joint_
     This method processes the joint_tour_frequency_composition column that comes
     out of the model of the same name and turns into a DataFrame that
     represents the tours that were generated
-    
+
     Parameters
     ----------
     joint_tour_frequency_composition: Series
@@ -519,7 +520,7 @@ def process_tours_frequency_composition(joint_tour_frequency_composition, joint_
         one of 'mandatory', 'non_mandatory', 'atwork', or 'joint'
     parent_col: str
         the name of the index (parent_tour_id for atwork subtours, otherwise person_id)
-    
+
     Returns
     -------
     tours : pandas.DataFrame
@@ -527,7 +528,7 @@ def process_tours_frequency_composition(joint_tour_frequency_composition, joint_
         source code - it has an index which is a unique tour identifier,
         a person_id column, and a tour type column which comes from the
         column names of the alternatives DataFrame supplied above.
-        
+
         tours.tour_type       - tour type (e.g. school, work, shopping, eat)
         tours.composition     - tour composition (e.g. adults, children, mixed)
         tours.tour_type_num   - if there are two 'school' type tours, they will be numbered 1 and 2
@@ -561,7 +562,7 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     This method processes the tour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
     represents the tours that were generated
-    
+
     Parameters
     ----------
     tour_counts: DataFrame
@@ -570,7 +571,7 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
         one (int) column per tour_type, with number of tours to create
     tour_category : str
         one of 'mandatory', 'non_mandatory', 'atwork', or 'joint'
-    
+
     Returns
     -------
     tours : pandas.DataFrame
@@ -578,7 +579,7 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
         source code - it has an index which is a unique tour identifier,
         a person_id column, and a tour type column which comes from the
         column names of the alternatives DataFrame supplied above.
-        
+
         tours.tour_type       - tour type (e.g. school, work, shopping, eat)
         tours.composition     - tour composition (e.g. adults, children, mixed)
         tours.tour_type_num   - if there are two 'school' type tours, they will be numbered 1 and 2
@@ -596,11 +597,27 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     2588676       2         0         0
     2588677       1         1         0
     """
-    tour_type_dict={5:'shopping',6:'othmaint',7:'eatout',8:'social',9:'othdiscr'}
-    tour_comp_dict={1:'adults',2:'children',3:'mixed'}
+    model_settings_file_name = 'joint_tour_frequency_composition.yaml'
+
+    model_settings = config.read_model_settings(model_settings_file_name)
+
+    alts_table_structure = model_settings.get('ALTS_TABLE_STRUCTURE', None)
+    assert alts_table_structure is not None, f"Expected to find ALTS_TABLE_STRUCTURE setting in joint_tour_frequency_composition.yaml"
+
+    tour_type_dict = alts_table_structure.get('PURPOSE', None).get('VALUE_MAP', None)
+    assert tour_type_dict is not None, f"Expected to find PURPOSE.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
+
+    tour_type_cols = alts_table_structure.get('PURPOSE', None).get('COLUMNS', None)
+    assert tour_type_cols is not None, f"Expected to find PURPOSE.COLUMNS setting in ALTS_TABLE_STRUCTURE"
+
+    tour_comp_dict = alts_table_structure.get('COMPOSITION', None).get('VALUE_MAP', None)
+    assert tour_comp_dict is not None, f"Expected to find COMPOSITION.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
+
+    tour_comp_cols = alts_table_structure.get('COMPOSITION', None).get('COLUMNS', None)
+    assert tour_comp_cols is not None, f"Expected to find COMPOSITION.COLUMNS setting in ALTS_TABLE_STRUCTURE"
 
     # reformat with the columns given below
-    tours_purp = tour_counts[['purpose1','purpose2']].stack().reset_index()
+    tours_purp = tour_counts[tour_type_cols].stack().reset_index()
     tours_purp.columns = [parent_col, "tour_id_temp", "tour_type"]
     tours_purp['tour_id_temp'] = range(1, 1+len(tours_purp))
     tours_purp['tour_type'] = tours_purp['tour_type'].map(tour_type_dict)
@@ -613,16 +630,16 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     3     2588677    purpose2           5
     4     2588678    purpose1           6
     5     2588678    purpose2           7
-    
+
     parent_col is the index from non_mandatory_tour_frequency
     tour_type is the column name from non_mandatory_tour_frequency_alts
     tour_type_count is the count value of the tour's chosen alt's tour_type from alts table
     """
-    tours_comp = tour_counts[['party1','party2']].stack().reset_index()
+    tours_comp = tour_counts[tour_comp_cols].stack().reset_index()
     tours_comp.columns = [parent_col, "tour_id_temp", "composition"]
     tours_comp['tour_id_temp'] = range(1, 1+len(tours_comp))
     tours_comp['composition'] = tours_comp['composition'].map(tour_comp_dict)
-
+    
     """
         <parent_col> tour_id_temp  tour_composition
     0     2588676    party1           1
@@ -631,7 +648,7 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     3     2588677    party2           1
     4     2588678    party1           1
     5     2588678    party2           2
-    
+
     parent_col is the index from non_mandatory_tour_frequency
     tour_type is the column name from non_mandatory_tour_frequency_alts
     tour_type_count is the count value of the tour's chosen alt's tour_type from alts table

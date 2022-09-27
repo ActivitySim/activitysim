@@ -4,20 +4,14 @@ import pkg_resources
 import sys
 
 from activitysim.cli.run import add_run_args, run
-# from activitysim.abm.models.disaggregate_accessibility_run import run_disaggregate_accessibility
-
 
 def disaggregate_accessibility():
-    def model_path(filename):
-        resource = os.path.join('abm', 'models', filename)
-        return pkg_resources.resource_filename('activitysim', resource)
-
     def base_path(dirname):
-        resource = os.path.join('examples', 'test_prototype_mtc_full', dirname)
+        resource = os.path.join('examples', 'test_placeholder_sandag_2_zone_full', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     def extended_path(dirname):
-        resource = os.path.join('examples', 'prototype_mtc_accessibilities', dirname)
+        resource = os.path.join('examples', 'placeholder_sandag_2_zone_accessibilities', dirname)
         return pkg_resources.resource_filename('activitysim', resource)
 
     parser = argparse.ArgumentParser()

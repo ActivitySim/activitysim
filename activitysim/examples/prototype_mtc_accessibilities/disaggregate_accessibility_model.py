@@ -6,10 +6,6 @@ import sys
 from activitysim.cli.run import add_run_args, run
 
 def disaggregate_accessibility():
-    def model_path(filename):
-        resource = os.path.join('abm', 'models', filename)
-        return pkg_resources.resource_filename('activitysim', resource)
-
     def base_path(dirname):
         resource = os.path.join('examples', 'prototype_mtc', dirname)
         return pkg_resources.resource_filename('activitysim', resource)

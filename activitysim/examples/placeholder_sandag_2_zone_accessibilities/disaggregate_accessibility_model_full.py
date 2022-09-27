@@ -22,7 +22,7 @@ def disaggregate_accessibility():
     args.config = [extended_path('configs'), base_path('configs_2_zone'), base_path('placeholder_psrc/configs')]
     args.config.insert(0, extended_path('configs_mp')) # separate line to comment out
     args.output = extended_path('output')
-    args.data = base_path('data')
+    args.data = base_path('data_2')
 
     #run_disaggregate_accessibility(args)
     sys.exit(run(args))

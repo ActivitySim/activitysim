@@ -141,7 +141,8 @@ def choose_parking_location(
         model_settings,
         want_sample_table,
         skims,
-        chunk_size, trace_hh_id,
+        chunk_size,
+        trace_hh_id,
         trace_label):
 
     logger.info("choose_parking_location %s with %d trips", trace_label, trips.shape[0])
@@ -149,11 +150,14 @@ def choose_parking_location(
     t0 = print_elapsed_time()
 
     alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    destination_sample = logit.interaction_dataset(trips, alternatives, alt_index_id=alt_dest_col_name)
-    destination_sample.index = np.repeat(trips.index.values, len(alternatives))
-    destination_sample.index.name = trips.index.name
-    destination_sample = destination_sample[[alt_dest_col_name]].copy()
 
+    numchoosers = len(trips)
+    numalts = len(alternatives)
+    sample = np.tile(np.arange(numalts), numchoosers)
+    destination_sample = alternatives.take(sample).copy()
+    destination_sample.index = np.repeat(trips.index.values, numalts)
+    destination_sample.index.name = trips.index.name
+    
     # # - trip_destination_simulate
     destinations = parking_destination_simulate(
         segment_name=segment_name,
@@ -161,7 +165,8 @@ def choose_parking_location(
         destination_sample=destination_sample,
         model_settings=model_settings,
         skims=skims,
-        chunk_size=chunk_size, trace_hh_id=trace_hh_id,
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
         trace_label=trace_label)
 
     if want_sample_table:
@@ -177,10 +182,11 @@ def choose_parking_location(
 
 def run_parking_destination(
         model_settings,
-        trips, land_use,
-        chunk_size, trace_hh_id,
-        trace_label,
-        fail_some_trips_for_testing=False):
+        trips, 
+        alternatives,
+        chunk_size,
+        trace_hh_id,
+        trace_label):
 
     chooser_filter_column = model_settings.get('CHOOSER_FILTER_COLUMN_NAME')
     chooser_segment_column = model_settings.get('CHOOSER_SEGMENT_COLUMN_NAME')
@@ -197,13 +203,6 @@ def run_parking_destination(
 
     skims = wrap_skims(model_settings)
 
-    alt_column_filter_name = model_settings.get('ALTERNATIVE_FILTER_COLUMN_NAME')
-    alternatives = land_use[land_use[alt_column_filter_name]]
-
-    # don't need size terms in alternatives, just TAZ index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
-    alternatives.index.name = parking_location_column_name
-
     choices_list = []
     sample_list = []
     for segment_name, chooser_segment in choosers.groupby(chooser_segment_column):
@@ -218,7 +217,8 @@ def run_parking_destination(
             model_settings,
             want_sample_table,
             skims,
-            chunk_size, trace_hh_id,
+            chunk_size,
+            trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, segment_name))
 
         choices_list.append(choices)
@@ -228,10 +228,6 @@ def run_parking_destination(
 
     if len(choices_list) > 0:
         parking_df = pd.concat(choices_list)
-
-        if fail_some_trips_for_testing:
-            parking_df = parking_df.drop(parking_df.index[0])
-
         assign_in_place(trips, parking_df.to_frame(parking_location_column_name))
         trips[parking_location_column_name] = trips[parking_location_column_name].fillna(-1)
     else:
@@ -259,18 +255,33 @@ def parking_location(
     model_settings = config.read_model_settings('parking_location_choice.yaml')
     alt_destination_col_name = model_settings['ALT_DEST_COL_NAME']
 
-    preprocessor_settings = model_settings.get('PREPROCESSOR', None)
-
     trips_df = trips.to_frame()
     trips_merged_df = trips_merged.to_frame()
+
     land_use_df = land_use.to_frame()
 
-    locals_dict = {
-        'network_los': network_los
-    }
-    locals_dict.update(config.get_model_constants(model_settings))
+    alt_column_filter_name = model_settings.get('ALTERNATIVE_FILTER_COLUMN_NAME')
+    alt_tdd = land_use_df[land_use_df[alt_column_filter_name]]
+    alt_tdd[alt_destination_col_name] = alt_tdd.index
 
+    # alt preprocessor
+    alt_preprocessor_settings = model_settings.get('ALTS_PREPROCESSOR', None)
+    if alt_preprocessor_settings:
+        locals_dict = {}
+
+        alt_tdd = alt_tdd.copy()
+
+        expressions.assign_columns(
+            df=alt_tdd,
+            model_settings=alt_preprocessor_settings,
+            locals_dict=locals_dict,
+            trace_label=trace_label)
+
+    # trips preprocessor
+    preprocessor_settings = model_settings.get('PREPROCESSOR', None)
     if preprocessor_settings:
+        locals_dict = {}
+
         expressions.assign_columns(
             df=trips_merged_df,
             model_settings=preprocessor_settings,
@@ -279,7 +290,8 @@ def parking_location(
 
     parking_locations, save_sample_df = run_parking_destination(
         model_settings,
-        trips_merged_df, land_use_df,
+        trips_merged_df,
+        alt_tdd,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,

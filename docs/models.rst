@@ -103,21 +103,21 @@ Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O
 Work From Home
 --------------
 
-Telecommuting is defined as workers who work from home instead of going 
-to work. It only applies to workers with a regular workplace outside of home. 
-The telecommute model consists of two submodels - this work from home model and a 
-person :ref:`telecommute_frequency` model. This model predicts for all workers whether they 
+Telecommuting is defined as workers who work from home instead of going
+to work. It only applies to workers with a regular workplace outside of home.
+The telecommute model consists of two submodels - this work from home model and a
+person :ref:`telecommute_frequency` model. This model predicts for all workers whether they
 usually work from home.
 
 The work from home model includes the ability to adjust a work from home alternative
-constant to attempt to realize a work from home percent for what-if type analysis.  
-This iterative single process procedure takes as input a number of iterations, a filter on 
-the choosers to use for the calculation, a target work from home percent, a tolerance percent 
-for convergence, and the name of the coefficient to adjust.  An example setup is provided and 
-the coefficient adjustment at each iteration is: 
+constant to attempt to realize a work from home percent for what-if type analysis.
+This iterative single process procedure takes as input a number of iterations, a filter on
+the choosers to use for the calculation, a target work from home percent, a tolerance percent
+for convergence, and the name of the coefficient to adjust.  An example setup is provided and
+the coefficient adjustment at each iteration is:
 ``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
 
-The main interface to the work from home model is the 
+The main interface to the work from home model is the
 :py:func:`~activitysim.abm.models.work_from_home` function.  This
 function is registered as an Inject step in the example Pipeline.
 
@@ -281,11 +281,11 @@ Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys:
 Auto Ownership
 --------------
 
-The auto ownership model selects a number of autos for each household in the simulation. 
+The auto ownership model selects a number of autos for each household in the simulation.
 The primary model components are household demographics, zonal density, and accessibility.
 
-The main interface to the auto ownership model is the 
-:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate` 
+The main interface to the auto ownership model is the
+:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate`
 function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
@@ -293,7 +293,7 @@ Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
 
 .. automodule:: activitysim.abm.models.auto_ownership
    :members:
-   
+
 .. _vehicle_type_choice:
 
 Vehicle Type Choice
@@ -389,12 +389,12 @@ Free Parking Eligibility
 ------------------------
 
 The Free Parking Eligibility model predicts the availability of free parking at a person's
-workplace.  It is applied for people who work in zones that have parking charges, which are 
-generally located in the Central Business Districts. The purpose of the model is to adequately 
-reflect the cost of driving to work in subsequent models, particularly in mode choice. 
+workplace.  It is applied for people who work in zones that have parking charges, which are
+generally located in the Central Business Districts. The purpose of the model is to adequately
+reflect the cost of driving to work in subsequent models, particularly in mode choice.
 
-The main interface to the free parking eligibility model is the 
-:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered 
+The main interface to the free parking eligibility model is the
+:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered
 as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA
@@ -904,7 +904,7 @@ function.  This function is registered as an Inject step in the example Pipeline
 Core Table: ``trips`` | Result Field: ``purpose`` | Skims Keys: NA
 
 .. note::
-   Trip purpose and trip destination choice can be run iteratively together via :ref:`trip_purpose_and_destination`.
+   Trip purpose and trip destination choice can be run iteratively together via :ref:`trip_purpose_and_destination_model`.
 
 
 .. automodule:: activitysim.abm.models.trip_purpose
@@ -916,48 +916,10 @@ Core Table: ``trips`` | Result Field: ``purpose`` | Skims Keys: NA
 Trip Destination Choice
 -----------------------
 
-The trip (or stop) location choice model predicts the location of trips (or stops) along the tour other than the primary
-destination. The stop-location model is structured as a multinomial logit model using a zone
-attraction size variable and route deviation measure as impedance. The alternatives are sampled from
-the full set of zones, subject to availability of a zonal attraction size term. The sampling mechanism
-is also based on accessibility between tour origin and primary destination, and is subject to certain rules
-based on tour mode.
-
-All destinations are available for auto tour modes, so long as there is a positive
-size term for the zone. Intermediate stops on walk tours must be within X miles of both the tour
-origin and primary destination zones. Intermediate stops on bike tours must be within X miles of both
-the tour origin and primary destination zones. Intermediate stops on walk-transit tours must either be
-within X miles walking distance of both the tour origin and primary destination, or have transit access to
-both the tour origin and primary destination. Additionally, only short and long walk zones are
-available destinations on walk-transit tours.
-
-The intermediate stop location choice model works by cycling through stops on tours. The level-of-service
-variables (including mode choice logsums) are calculated as the additional utility between the
-last location and the next known location on the tour. For example, the LOS variable for the first stop
-on the outbound direction of the tour is based on additional impedance between the tour origin and the
-tour primary destination. The LOS variable for the next outbound stop is based on the additional
-impedance between the previous stop and the tour primary destination. Stops on return tour legs work
-similarly, except that the location of the first stop is a function of the additional impedance between the
-tour primary destination and the tour origin. The next stop location is based on the additional
-impedance between the first stop on the return leg and the tour origin, and so on.
-
-Trip location choice for :ref:`multiple_zone_systems` models uses :ref:`presampling` by default.
-
-The main interface to the trip destination choice model is the
-:py:func:`~activitysim.abm.models.trip_destination.trip_destination` function.
-This function is registered as an Inject step in the example Pipeline.
-See :ref:`writing_logsums` for how to write logsums for estimation.
-
-Core Table: ``trips`` | Result Field: ``(trip) destination`` | Skims Keys: ``origin, (tour primary) destination, dest_taz, trip_period``
-
-.. note::
-   Trip purpose and trip destination choice can be run iteratively together via :ref:`trip_purpose_and_destination`.
+See :ref:`Trip Destination <component-trip-destination>`.
 
 
-.. automodule:: activitysim.abm.models.trip_destination
-   :members:
-
-.. _trip_purpose_and_destination:
+.. _trip_purpose_and_destination_model:
 
 Trip Purpose and Destination
 ----------------------------

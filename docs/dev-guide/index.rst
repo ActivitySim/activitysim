@@ -27,5 +27,6 @@ Contents
    workflows
    ../development
    ../models
+   components/index
    ../core
    ../benchmarking

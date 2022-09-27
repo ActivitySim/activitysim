@@ -6,7 +6,7 @@ SAMPLE_SIZE: 0
 # if primary zone is a microzone in multi zone system. e.g., if MAZ and TAZ, the TAZ is the 'by' col
 zone_id_names:
     index_col: zone_id
-    zone_by_cols:
+    zone_group_cols:
         - TAZ
 
 # can be whole integer value or a sample rate (percent of zones)

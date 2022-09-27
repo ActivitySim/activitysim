@@ -369,6 +369,7 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     logsums = {k + '_accessibility': v for k, v in logsums.items()}
     [inject.add_table(k, df) for k, df in logsums.items()]
 
+    # FIXME.NF This doesn't seem to work properly with multiprocessing. Settings get reset after mp step
     # Override output tables to include accessibilities in write_table
     new_settings = inject.get_injectable("settings")
     if 'disaggregate_accessibility' in new_settings.get('output_tables').get('tables'):

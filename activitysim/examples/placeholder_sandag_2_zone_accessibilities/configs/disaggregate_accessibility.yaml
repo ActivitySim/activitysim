@@ -12,7 +12,10 @@ zone_id_names:
 # can be whole integer value or a sample rate (percent of zones)
 # zero or missing defaults to full sample!
 zone_pre_sample_size: 5000
-zone_pre_sample_method: taz  # kmeans not yet fully working
+zone_pre_sample_method: taz
+# none (default) - selects k random mazs
+# 'taz' - selects 1 random maz per taz up to k zones
+# 'kmeans' - finds k kmeans clusters, and matches it to the nearest maz (this is still buggy)
 
 # Specify the tables to be created and  their variables.
 # Single values are constants

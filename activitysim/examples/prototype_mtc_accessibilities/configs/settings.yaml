@@ -229,6 +229,7 @@ output_tables:
     - checkpoints
     - accessibility
     - workplace_location_accessibility
+    - school_location_accessibility
     - non_mandatory_tour_destination_accessibility
     - land_use
     - households

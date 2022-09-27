@@ -230,7 +230,7 @@ class ProtoPop:
         cols_to_use = households.columns.difference(persons.columns)
 
         # persons_merged to emulate the persons_merged table in the pipeline
-        persons_merged = persons.join(households[cols_to_use]).merge(
+        persons_merged = persons.join(households[cols_to_use], on=self.params['proto_households']['index_col']).merge(
             land_use_df,
             left_on=self.params['proto_households']['zone_col'],
             right_on=self.model_settings['zone_id_names']['index_col'])
@@ -268,8 +268,13 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 
         if model_name != 'non_mandatory_tour_destination':
             shadow_price_calculator = shadow_pricing.load_shadow_price_calculator(model_settings)
+            # filter to only workers or students
+            chooser_filter_column = model_settings["CHOOSER_FILTER_COLUMN_NAME"]
+            choosers = persons_merged[persons_merged[chooser_filter_column]]
+
+            # run location choice and return logsums
             _logsums, _ = location_choice.run_location_choice(
-                persons_merged,
+                choosers,
                 network_los,
                 shadow_price_calculator=shadow_price_calculator,
                 want_logsums=True,
@@ -284,7 +289,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 
             # Merge onto persons
             if _logsums is not None and len(_logsums.index) > 0:
-                keep_cols = list(set(_logsums.columns).difference(persons_merged.columns))
+                keep_cols = list(set(_logsums.columns).difference(choosers.columns))
                 logsums[model_name] = persons_merged.merge(_logsums[keep_cols], on='person_id')
 
         else:

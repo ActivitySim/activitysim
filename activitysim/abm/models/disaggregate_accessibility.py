@@ -74,7 +74,7 @@ class ProtoPop:
             # Randomly select one MAZ per TAZ by randomizing the index and then select the first MAZ in each TAZ
             # Then truncate the sampled indices by N samples and sort it
             sample_idx = land_use_df.sample(frac=1).reset_index().groupby(zone_cols)[id_col].first()
-            sample_idx = sorted(sample_idx[:N])
+            sample_idx = sorted(sample_idx)
 
         elif method and method.lower() == 'kmeans':
             # Performs a simple k-means clustering using centroid XY coordinates

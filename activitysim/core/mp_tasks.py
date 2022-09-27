@@ -1430,12 +1430,11 @@ def run_multiprocess(injectables):
 
         inject.get_injectable("skim_dataset")
 
-        t0 = tracing.print_elapsed_time("setup skim_dataset", t0)
+        tracing.print_elapsed_time("setup skim_dataset", t0)
         mem.trace_memory_info("skim_dataset.completed")
-        tracing.log_runtime("mp_setup_skims", start_time=start_time, force=True)
 
     # - mp_setup_skims
-    if not sharrow_enabled:
+    else:  # not sharrow_enabled
         if len(shared_data_buffers) > 0:
             start_time = time.time()
             run_sub_task(
@@ -1447,9 +1446,9 @@ def run_multiprocess(injectables):
                 )
             )
 
-            t0 = tracing.print_elapsed_time("setup shared_data_buffers", t0)
+            tracing.print_elapsed_time("setup shared_data_buffers", t0)
             mem.trace_memory_info("mp_setup_skims.completed")
-            tracing.log_runtime("mp_setup_skims", start_time=start_time, force=True)
+    tracing.log_runtime("mp_setup_skims", start_time=start_time, force=True)
 
     # - for each step in run list
     for step_info in run_list["multiprocess_steps"]:

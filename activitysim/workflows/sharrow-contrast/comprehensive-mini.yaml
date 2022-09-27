@@ -34,19 +34,6 @@ steps:
         else:
           tag = time.strftime("%Y-%m-%d-Comprehensive")
       save("tag")
-#
-#
-#- name: activitysim.workflows.steps.py
-#  description: Generate a tag based on date if tag is not given
-#  in:
-#    label: Initialize common tag if not given
-#    py: |
-#      import time, os
-#      exi = os.path.exists(f'{workspace}/prototype_mtc_sf/output-{tag}-SingleProcess/report-{tag}-SingleProcess.html')
-#      print(f"\n\nEXI={exi}\n\n")
-#      print(f'{workspace}/prototype_mtc_sf/output-{tag}-SingleProcess/report-{tag}-SingleProcess.html')
-#      print("\n\n")
-#
 
 - name: activitysim.workflows.steps.pype
   description: Prototype MTC Model, Single Process, Zarr Disabled
@@ -68,8 +55,6 @@ steps:
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess'
         resume_after: '{resume_after}'
-        compile_n_households: 500
-        main_n_households: 50000
 
 - name: activitysim.workflows.steps.pype
   description: Prototype MTC Model, Single Process
@@ -85,13 +70,11 @@ steps:
         compile: '{compile}'
         sharrow: '{sharrow}'
         legacy: '{legacy}'
-        reference: False
+        reference: False  # Zarr mode incompatible with older versions
         memory_profile: True
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess-Zarr'
         resume_after: '{resume_after}'
-        compile_n_households: 500
-        main_n_households: 50000
 
 - name: activitysim.workflows.steps.pype
   description: Prototype ARC Model, Single Process
@@ -112,8 +95,6 @@ steps:
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess'
         resume_after: '{resume_after}'
-        compile_n_households: 500
-        main_n_households: 50000
 
 - name: activitysim.workflows.steps.pype
   description: Placeholder SANDAG 1-Zone Model, Single Process
@@ -134,8 +115,6 @@ steps:
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess'
         resume_after: '{resume_after}'
-        compile_n_households: 500
-        main_n_households: 50000
 
 - name: activitysim.workflows.steps.pype
   description: Placeholder SANDAG 2-Zone Model, Single Process
@@ -156,8 +135,6 @@ steps:
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess'
         resume_after: '{resume_after}'
-        compile_n_households: 500
-        main_n_households: 50000
 
 - name: activitysim.workflows.steps.pype
   description: Placeholder SANDAG 3-Zone Model, Single Process
@@ -178,8 +155,6 @@ steps:
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess'
         resume_after: '{resume_after}'
-        compile_n_households: 500
-        main_n_households: 50000
 
 - name: activitysim.workflows.steps.pype
   description: Prototype SANDAG Cross-Border Model, Single Process
@@ -200,8 +175,6 @@ steps:
         reference_asim_version: "{reference_asim_version}"
         tag: '{tag}-SingleProcess'
         resume_after: '{resume_after}'
-        compile_n_households: 500
-        main_n_households: 50000
 
 
 - name: activitysim.workflows.steps.pype

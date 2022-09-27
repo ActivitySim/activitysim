@@ -1,11 +1,10 @@
 #
-#  sandag_3zone_mini
+#  sandag_2zone_full
 #
-#   This workflow runs the Placeholder SANDAG model using the 3-Zone system
-#   in a single process runner.  It is for mainly for rapid testing of the code
-#   and specification files for errors, not for policy analysis.
+#   This workflow runs the Placeholder SANDAG model using the 2-Zone system
+#   in a single process runner.
 #
-#   > activitysim workflow sharrow-contrast/sandag_3zone_mini
+#   > activitysim workflow sharrow-contrast/sandag_2zone_full
 
 context_parser: pypyr.parser.keyvaluepairs
 steps:
@@ -14,7 +13,7 @@ steps:
   name: pypyr.steps.default
   in:
     defaults:
-      example_name: placeholder_sandag_3_zone
+      example_name: placeholder_sandag_2_zone_full
       workspace: workspace
       create: True
       compile: True
@@ -24,14 +23,14 @@ steps:
       tag:
       resume_after:
       fast: False
-      compile_n_households: 500
-      main_n_households: 50000
+      compile_n_households: 100
+      main_n_households: 10000
       config_dirs:
-      - configs_3_zone
-      - prototype_mtc/configs
-      data_dir: data_3
+      - configs_2_zone
+      - placeholder_psrc/configs
+      data_dir: data_2
       instrument: False
-      memory_profile: False
+      memory_profile: True
       trace_hh_id:
       trace_od:
       workplace_zone_agg:

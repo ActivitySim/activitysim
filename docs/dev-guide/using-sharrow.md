@@ -47,44 +47,29 @@ cd ..
 ```
 
 
-## Prototype MTC Examples
+## Measuring Performance
 
 Testing with sharrow requires two steps: test mode and production mode.
 
 In test mode, the code is run to compile all the spec files and
-ascertain whether the functions are working correctly.  Production mode
-can then just run the pre-compiled functions with sharrow, which is much
-faster.
+ascertain whether the functions are working correctly.  Test mode is expected
+to be slow, potentially much slower than older versions of ActivitySim,
+especially for models with small populations and zone systems, as the compile
+time is a function of the complexity of the utility functions and *not* a
+function of the number of households or zones. Once the compile and test is
+complete, production mode can then just run the pre-compiled functions with
+sharrow, which is much faster.
 
-You can run both, plus the ActivitySim in "legacy" mode that does not use sharrow,
-as well as a reference implementation (version 1.0.4), all together using the
-"mini" dataset for testing in one workflow.
+It is possible to run test mode and production mode independently using the
+existing `activitysim run` command line tool, pointing that tool to the test
+and production configurations directories as appropriate.
 
-```sh
-activitysim workflow sharrow-contrast/mtc_mini
-```
-
-Alternatively, you can use the full size skims.  To test this model with
-100k households and full skims (1475 zones), you can run the "mtc_full" workflow:
-
-```sh
-activitysim workflow sharrow-contrast/mtc_full
-```
-
-To use the full synthetic population as well, run the multiprocess workflow:
-
-```sh
-activitysim workflow sharrow-contrast/mtc_mp
-```
-
-Lastly, a comprehensive performance testing suite on the prototype MTC model
-(warning: this takes hours!)
-
-```sh
-activitysim workflow sharrow-contrast/mtc_comprehensive
-```
-
-All these performance tests assume you have sufficient RAM to run without chunking.
+To generate a meaningful measure of performance enhancement, it is necessary
+to compare the runtimes in production mode against equivalent runtimes with
+sharrow disabled.  This is facilitated by the `activitysim workflow` command
+line tool, which permits the use of pre-made batches of activitysim runs, as
+well as automatic report generation from the results.  For more details on the
+use of this tool, see [workflows](workflows).
 
 
 ## Sharrow Compatability and Limitations
@@ -94,7 +79,7 @@ are evaluated for each row in a main DataFrame.  In legacy ActivitySim,
 there are two fundamental evaluation modes:
 
 - `pandas.DataFrame.eval`, which is the default, and
-- plain Python `eval`, which is used when the expression is prefixed with an "@" symbol.
+- plain Python `eval`, which is used when the expression is prefixed with an `@` symbol.
 
 Under the `pandas.DataFrame.eval` mode, expressions are evaluated within the context
 of the current main dataframe only. References can be made to other columns
@@ -117,7 +102,7 @@ can write basically any valid Python expression, including calling other functio
 accessing or manipulating table metadata, indexes, or adjacent rows, etc.
 
 Within sharrow, the distinction between these two modes is ignored, as sharrow
-uses a completely different evaluation system routed through numba. The "@" prefix
+uses a completely different evaluation system routed through numba. The `@` prefix
 does not need to be stripped or added anywhere, it is simply ignored. The expression
 can reference other columns of the main dataframe directly or indirectly, so that
 either "income" or "df.income" is a valid reference to that column in the main
@@ -136,8 +121,8 @@ that need to run arbitrary code or join data from other table.
 
 ### Temporary Variables
 
-Temporary variables can be created from "@" mode expressions by adding a variable
-name beginning with an underscore before the "@", e.g. "_stops_on_leg@df.trip_count-1".
+Temporary variables can be created from `@` mode expressions by adding a variable
+name beginning with an underscore before the `@`, e.g. `_stops_on_leg@df.trip_count-1`.
 
 In legacy mode, temporary variables are useful but they can consume substantial
 memory, as the variable is computed and stored for every row in the entire dataframe
@@ -153,7 +138,7 @@ means transitioning a few expressions or parts of expressions into preprocessors
 However, sometimes this is not possible or makes writing the expressions excessively
 complex.  In this case, it is possible to write a toggling expression, where the
 individual expression evaluated is different for sharrow and legacy modes.  The
-special comment string "# sharrow:" splits the expression, with everything before this
+special comment string `# sharrow:` splits the expression, with everything before this
 comment evaluated under the legacy process, and everything after evaluated only
 when sharrow is enabled.
 
@@ -167,3 +152,146 @@ including simple equality checks (e.g. `df.tour_purpose == 'work'`).  Ideally,
 such string operations won't appear in utility specifications at all, or if they
 do appear, they are executed only once and stored in a temporary value for re-use
 as needed.
+
+(digital-encoding)=
+## Digital Encoding
+
+Sharrow is compatible with and able to efficiently use
+[digital encoding](https://activitysim.github.io/sharrow/walkthrough/encoding.html).
+
+Very often, data can be expressed adequately with far less memory than is
+needed to store a standard 32-bit floating point representation.  There are
+two simple ways to reduce the memory footprint for data: fixed point
+encoding, or dictionary encoding.
+
+### Fixed Point Encoding
+
+In fixed point encoding, which is also sometimes called scaled integers,
+data is multiplied by some factor, then rounded to the nearest integer.
+The integer is stored in memory instead of a floating point value, but the
+original value can be (approximately) restored by reversing the process.
+An offset factor can also be applied, so that the domain of values does not
+need to start at zero.
+
+For example, instead of storing matrix table values as 32-bit floating point values,
+they could be multiplied by a scale factor (e.g., 100)
+and then converted to 16-bit integers. This uses half the
+RAM and can still express any value (to two decimal point
+precision) up to positive or negative 327.68.  If the lowest
+values in that range are never needed, it can also be shifted,
+moving both the bottom and top limits by a fixed amount. Then,
+for a particular scale $\mu$ and shift $\xi$ (stored in metadata),
+from any array element $i$ the implied (original) value $x$
+can quickly be recovered by evaluating $(i / \mu) - \xi$.
+
+Fixed point digital encoding can be applied to matrix tables in the skims
+using options in the `network_los.yaml` settings file.  Making transformations
+currently also requires shifting the data from OMX to ZARR file formats;
+future versions of ActivitySim may accept digitally encoded data directly
+from external sources.
+
+To apply the default 16-bit encoding to individual named skim variables in the
+TAZ skims, just give their names under the `zarr-digital-encoding` setting
+like this:
+
+```yaml
+taz_skims:
+    omx: skims.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - name: SOV_TIME
+        - name: HOV2_TIME
+```
+
+If some variables can use less RAM and still be represented adequately with only
+8-bit integers, you can specify the bitwidth as well:
+
+```yaml
+taz_skims:
+    omx: skims.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - name: SOV_TIME
+        - name: HOV2_TIME
+        - name: SOV_TOLL
+          bitwidth: 8
+        - name: HOV2_TOLL
+          bitwidth: 8
+```
+
+If groups of similarly named variables should have the same encoding applied,
+they can be identifed by regular expressions ("regex") instead of explicitly
+giving each name.  For example:
+
+```yaml
+taz_skims:
+    omx: skims.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - regex: .*_TIME
+        - regex: .*_TOLL
+          bitwidth: 8
+```
+
+
+### Dictionary Encoding
+
+For dictionary encoding, a limited number of unique values are stored in a
+lookup array, and then each encoded value is stored as the position of the
+value (or its closest approximation) in the lookup array.  If there are fewer
+than 256 unique values, this can allow the storage of those values to any level
+of precision (even float64 if needed) while using only a single byte per array
+element, plus a small fixed amount of overhead for the dictionary itself.  The
+overhead memory doesn't scale with the dimensions of the array, so this works
+particularly well for models with thousands of zones.
+
+Dictionary encoding can be applied to a single variable in a similar fashion as
+fixed point encoding, giving the dictionary bit width in the `by_dict` setting,
+or as an additional setting value.
+
+```yaml
+taz_skims:
+    omx: skims.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - name: TRANSIT_FARE
+          by_dict: 8
+        - name: TRANSIT_XFERS
+          by_dict: true
+          bitwidth: 8
+```
+
+The most dramatic memory savings can be found when the categorical correlation
+(also known as [Cramér's V](https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V))
+between multiple variables is high.  In this case, we can encode more than one
+matrix table using the same dictionary lookup indexes.  There may be some
+duplication in the lookup table, (e.g. if FARE and XFER are joint encoded,
+and if a FARE of 2.25 can be matched with either 0 or 1 XFER, the 2.25 would
+appear twice in the lookup array for FARE, once for each value of XFER.)
+
+Since it is the lookup *indexes* that scale with the number of zones and consume most
+of the memory for large zone systems, putting multiple variables together into one
+set of indexes can save a ton of memory, so long as the overhead of the lookup array
+does not combinatorially explode (hence the need for categorical correlation).
+
+Practical testing for large zone systems suggest this method of encoding can
+reduce the footprint of some low variance data tables (especially transit data)
+by 95% or more.
+
+Applying joint dictionary encoding requires more than one variable name, so only
+the `regex` form works here. Use wildcards to match on name patterns, or select a
+few specific names by joining them with the pipe operator (|).
+
+```yaml
+taz_skims:
+    omx: skims.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - regex: .*_FARE|.*_WAIT|.*_XFERS
+          joint_dict: true
+        - regex: FERRYTIME|FERRYFARE|FERRYWAIT
+          joint_dict: true
+```
+
+For more details on all the settings available for digital encoding, see
+[ZarrDigitalEncoding](activitysim.core.configuration.network.ZarrDigitalEncoding).

@@ -4,6 +4,11 @@ from .base import Any, PydanticBase, Union
 class ZarrDigitalEncoding(PydanticBase):
     """Digital encoding instructions for skim tables.
 
+    These encoding instructions are used to digitally encode data prior
+    to writing that data back to disk in the `zarr` file format.
+
+    See :ref:`digital-encoding` documentation for details.
+
     .. versionadded:: 1.2
     """
 
@@ -47,8 +52,13 @@ class ZarrDigitalEncoding(PydanticBase):
     to be given explicitly.
     """
 
-    bitwidth: int = None
-    """Number of bits to use in encoded integers, either 8, 16 or 32."""
+    bitwidth: int = 16
+    """Number of bits to use in encoded integers, either 8, 16 or 32.
+
+    For basic fixed point encoding, it is usually sufficient to simply define
+    the target bitwidth, and the `missing value` if applicable.  The other
+    necessary parameters can then be inferred from the data.
+    """
 
     min_value: Union[int, float] = None
     """
@@ -80,11 +90,13 @@ class ZarrDigitalEncoding(PydanticBase):
     The offset factor can be inferred from the min and max values if not provided.
     """
 
-    by_dict: int = None
+    by_dict: Union[int, bool] = None
     """
-    Encode by dictionary, using a bitwidth from {8, 16, 32}.
+    Encode by dictionary, using a bitwidth from {8, 16, 32}, or `True`.
 
-    If given, all arguments other settings for this data are ignored.
+    If given, all arguments other settings for this data are ignored. If given
+    as `True`, the bitwidth setting is not ignored, but everything else still
+    is.
     """
 
 

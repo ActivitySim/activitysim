@@ -17,6 +17,10 @@ POSITIONS_AS_DICT = True
 
 
 class SkimDataset:
+    """
+    A wrapper around xarray.Dataset containing skim data, with time period management.
+    """
+
     def __init__(self, dataset):
         self.dataset = dataset
         self.time_map = {
@@ -108,17 +112,25 @@ class SkimDataset:
 
 
 class DatasetWrapper:
+    """
+    Mimics the SkimWrapper interface to allow legacy code to access data.
+
+    Parameters
+    ----------
+    dataset: Dataset
+    orig_key, dest_key: str
+        name of columns in target dataframe to use as origin and destination
+        lookups, respectively
+    time_key : str, optional
+    time_map : Mapping, optional
+        A mapping from time period index numbers to (more aggregate) time
+        period names.
+    """
+
     def __init__(self, dataset, orig_key, dest_key, time_key=None, *, time_map=None):
         """
+        Mimics the SkimWrapper interface to allow legacy code to access data.
 
-        Parameters
-        ----------
-        skim_dict: SkimDict
-
-        orig_key: str
-            name of column in dataframe to use as implicit orig for lookups
-        dest_key: str
-            name of column in dataframe to use as implicit dest for lookups
         """
         self.dataset = dataset
         self.orig_key = orig_key

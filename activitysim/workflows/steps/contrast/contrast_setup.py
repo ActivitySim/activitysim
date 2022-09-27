@@ -41,12 +41,13 @@ def contrast_setup(
     if multiprocess >= 0:
         out["num_processes"] = multiprocess
     else:
-        # when negative, count the number of cpu cores, and run on all
+        # when negative, count the number of cpu cores, and run on half the
         # cores except the absolute value of `multiprocess`, so e.g.
-        # if -2, then run on all cores except 2 (but at least 1).
-        out["num_processes"] = multiprocessing.cpu_count() + multiprocess
-        if out["num_processes"] < 1:
-            out["num_processes"] = 1
+        # if set to -3 and you have 48 cores, then run on (48/2)-3 = 21
+        # processes (but at least 2).
+        out["num_processes"] = int(multiprocessing.cpu_count() / 2) + multiprocess
+        if out["num_processes"] < 2:
+            out["num_processes"] = 2
 
     if chunk_training_mode and chunk_training_mode != "disabled":
         out["chunk_application_mode"] = "production"

@@ -100,11 +100,14 @@ CREATE_TABLES:
     PROTO_TOURS:
         index_col: tour_id
         VARIABLES:
-            person_num: [1, 2, 2]       # person number
             tour_num: 1                 # Tour number, 1 tour per person
             purpose: [1, 2, 3]
         mapped_fields:
             purpose:
+                person_num: # In this case it was easier to map the person number directly to the purpose
+                    1: 1
+                    2: 2
+                    3: 2
                 tour_type:
                     1: "work"
                     2: "shopping"

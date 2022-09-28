@@ -405,7 +405,7 @@ def skims_mapping(
             ),
         )
     else:
-        return {}
+        raise ValueError("missing orig_col_name or dest_col_name")
 
 
 def new_flow(

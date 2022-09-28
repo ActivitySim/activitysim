@@ -158,6 +158,9 @@ as needed.
 
 Sharrow is compatible with and able to efficiently use
 [digital encoding](https://activitysim.github.io/sharrow/walkthrough/encoding.html).
+These encodings are applied to data either prospectively (i.e. before ActivitySim
+ever sees the skim data), or dynamically within a run using the
+`taz_skims.zarr-digital-encoding` setting in the `network_los.yaml` settings file.
 
 Very often, data can be expressed adequately with far less memory than is
 needed to store a standard 32-bit floating point representation.  There are

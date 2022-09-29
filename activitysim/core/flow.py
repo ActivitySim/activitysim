@@ -405,7 +405,7 @@ def skims_mapping(
             ),
         )
     else:
-        raise ValueError("missing orig_col_name or dest_col_name")
+        return {}  # flows without LOS characteristics are still valid
 
 
 def new_flow(

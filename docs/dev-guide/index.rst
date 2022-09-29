@@ -24,6 +24,7 @@ Contents
 
    install
    using-sharrow
+   skim-dataset
    workflows
    ../development
    ../models

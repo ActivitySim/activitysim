@@ -657,27 +657,37 @@ def new_flow(
 
 
 def size_terms_on_flow(locals_d):
+    """
+    Create size terms to attach to a DataTree based on destination and purpose.
+
+    Parameters
+    ----------
+    locals_d : Mapping[str,Any]
+        The context for the flow.  If it does not contain "size_terms_array"
+        this function does nothing. Otherwise, the instructions for adding
+        the size terms to the DataTree are created in a "size_array" variable
+        in the same context space.
+
+    Returns
+    -------
+    locals_d
+    """
     if "size_terms_array" in locals_d:
-        # skim_dataset = inject.get_injectable('skim_dataset')
-        dest_col_name = locals_d["od_skims"].dest_key
         a = sh.Dataset(
             {
                 "arry": sh.DataArray(
                     locals_d["size_terms_array"],
-                    dims=["stoptaz", "purpose_index"],
+                    dims=["zoneid", "purpose_index"],
                     coords={
-                        "stoptaz": np.arange(
-                            locals_d["size_terms_array"].shape[0]
-                        ),  # TODO: this assumes zero-based array of choices, is this always right?
+                        "zoneid": np.arange(locals_d["size_terms_array"].shape[0]),
                     },
                 )
             }
         )
-        # a = a.reindex(stoptaz=skim_dataset.coords['dtaz'].values) # TODO {ddim}?
         locals_d["size_array"] = dict(
             size_terms=a,
             relationships=(
-                "df._dest_col_name -> size_terms.stoptaz",
+                "df._dest_col_name -> size_terms.zoneid",
                 "df.purpose_index_num -> size_terms.purpose_index",
             ),
         )
@@ -693,6 +703,45 @@ def apply_flow(
     interacts=None,
     zone_layer=None,
 ):
+    """
+    Apply a sharrow flow.
+
+    Parameters
+    ----------
+    spec : pd.DataFrame
+    choosers : pd.DataFrame
+    locals_d : Mapping[str,Any], optional
+        A namespace of local variables to be made available with the
+        expressions in `spec`.
+    trace_label : str, optional
+        A descriptive label used in logging and naming trace files.
+    required : bool, default False
+        Require the spec to be compile-able. If set to true, a problem will
+        the flow will be raised as an error, instead of allowing this function
+        to return with no result (and activitysim will then fall back to the
+        legacy eval system).
+    interacts : pd.DataFrame, optional
+        An unmerged interaction dataset, giving attributes of the alternatives
+        that are not conditional on the chooser.  Use this when the choice model
+        has some variables that are conditional on the chooser (and included in
+        the `choosers` dataframe, and some variables that are conditional on the
+        alternative but not the chooser, and when every chooser has the same set
+        of possible alternatives.
+    zone_layer : {'taz', 'maz'}, default 'taz'
+        Specify which zone layer of the skims is to be used.  You cannot use the
+        'maz' zone layer in a one-zone model, but you can use the 'taz' layer in
+        a two- or three-zone model (e.g. for destination pre-sampling).
+
+    Returns
+    -------
+    flow_result : ndarray
+        The computed dot-product of the utility function and the coefficients.
+    flow : sharrow.Flow
+        The flow object itself.  In typical application you probably don't need
+        it ever again, but having a reference to it available later can be useful
+        in debugging and tracing.  Flows are cached and reused anyway, so it is
+        generally not important to delete this at any point to free resources.
+    """
     if sh is None:
         return None, None
     if locals_d is None:
@@ -709,6 +758,11 @@ def apply_flow(
             )
         except ValueError as err:
             if "unable to rewrite" in str(err):
+                # There has been an error in preparing this flow.
+                # If in `require` mode, we report the error and keep it as an error
+                # Otherwise, we report the error but then swallow it and return
+                # a None result, allowing ActivitySim to fall back to legacy
+                # operating mode for this utility function.
                 logger.error(f"error in apply_flow: {err!s}")
                 if required:
                     raise
@@ -726,6 +780,11 @@ def apply_flow(
                 #  passed out to be seen by the dynamic chunker before they are freed?
             except ValueError as err:
                 if "could not convert" in str(err):
+                    # There has been an error in compiling this flow.
+                    # If in `require` mode, we report the error and keep it as an error
+                    # Otherwise, we report the error but then swallow it and return
+                    # a None result, allowing ActivitySim to fall back to legacy
+                    # operating mode for this utility function.
                     logger.error(f"error in apply_flow: {err!s}")
                     if required:
                         raise
@@ -733,9 +792,11 @@ def apply_flow(
                 raise
             except Exception as err:
                 logger.error(f"error in apply_flow: {err!s}")
-                # index_keys = self.shared_data.meta_match_names_idx.keys()
-                # logger.debug(f"Flow._get_indexes: {index_keys}")
                 raise
             if flow.compiled_recently:
+                # When compile activity is detected, we make a note in the timing log,
+                # which can help explain when a component is unexpectedly slow.
+                # Detecting compilation activity when in production mode is a bug
+                # that should be investigated.
                 tracing.timing_notes.add(f"compiled:{flow.name}")
             return flow_result, flow

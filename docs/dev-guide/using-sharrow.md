@@ -17,7 +17,6 @@ multiprocessing mode after all the compilation for all model components is
 complete.
 ```
 
-
 ## Getting the Code
 
 We'll assume that activitysim and sharrow have been installed in editable
@@ -46,6 +45,12 @@ gh pr checkout 579  # use `gh auth login` first if needed
 cd ..
 ```
 
+## Model Design Requirements
+
+Activating the `sharrow` optimizations also requires using the new
+[`SkimDataset`](skim-datasets) interface for skims instead of the legacy
+[`SkimDict`](activitysim.core.skim_dictionary.SkimDict), and internally
+recoding zones into a zero-based contiguous indexing scheme.
 
 ## Measuring Performance
 

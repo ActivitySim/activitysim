@@ -809,39 +809,6 @@ def _interaction_simulate(
                 transpose=False,
             )
 
-    if sharrow_enabled == "test":
-        try:
-            if interaction_utilities_sh is not None:
-                np.testing.assert_allclose(
-                    interaction_utilities_sh.values.reshape(
-                        interaction_utilities.values.shape
-                    ),
-                    interaction_utilities.values,
-                    rtol=1e-2,
-                    atol=0,
-                    err_msg="utility not aligned",
-                    verbose=True,
-                )
-        except AssertionError as err:
-            print(err)
-            misses = np.where(
-                ~np.isclose(
-                    interaction_utilities_sh.values,
-                    interaction_utilities.values,
-                    rtol=1e-2,
-                    atol=0,
-                )
-            )
-            _sh_util_miss1 = interaction_utilities_sh.values[
-                tuple(m[0] for m in misses)
-            ]
-            _u_miss1 = interaction_utilities.values[tuple(m[0] for m in misses)]
-            diff = _sh_util_miss1 - _u_miss1
-            if len(misses[0]) > interaction_utilities_sh.values.size * 0.01:
-                print("big problem")
-                print(misses)
-                raise
-
     # reshape utilities (one utility column and one row per row in model_design)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(

@@ -6,7 +6,7 @@ import warnings
 
 import pandas as pd
 
-from activitysim.abm.tables import shadow_pricing
+from activitysim.abm.tables import shadow_pricing, disaggregate_accessibility
 from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing
 from activitysim.core.steps.output import (
     track_skim_usage,
@@ -146,6 +146,9 @@ def initialize_households():
         # - preload person_windows
         person_windows = inject.get_table("person_windows").to_frame()
         chunk.log_df(trace_label, "person_windows", person_windows)
+
+        # Initialize disaggregate accessibility. Does nothing if table does not exist.
+        disaggregate_accessibility.initialize_disaggregate_accessibility()
 
 
 @inject.injectable(cache=True)

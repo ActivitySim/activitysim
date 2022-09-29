@@ -10,3 +10,12 @@ ActivitySim 1.2 offers two internal frameworks for managing skim data.
   [xarray.Dataset]() based framework, which mimics the
   [`SkimDict`](activitysim.core.skim_dictionary.SkimDict) interface, and
   adds a number of features optimized specifically for use with `sharrow`.
+  This framework is automatically used when sharrow is enabled, and there
+  is no user configuration to enable it separately.
+
+## Skim Dataset API
+
+```{eval-rst}
+.. automodule:: activitysim.core.skim_dataset
+   :members:
+```

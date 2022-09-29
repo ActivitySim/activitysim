@@ -64,9 +64,6 @@ API
 .. automodule:: activitysim.core.skim_dictionary
    :members:
 
-.. automodule:: activitysim.core.skim_dataset
-   :members:
-
 .. _pipeline_in_detail:
 
 Pipeline

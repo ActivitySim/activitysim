@@ -52,6 +52,71 @@ Activating the `sharrow` optimizations also requires using the new
 [`SkimDict`](activitysim.core.skim_dictionary.SkimDict), and internally
 recoding zones into a zero-based contiguous indexing scheme.
 
+### Zero-based Recoding of Zones
+
+Using sharrow requires recoding zone id's to be zero-based contiguous index
+values, at least for internal usage.  This recoding needs to be written into
+the input table list explicitly.  For example, the following snippet of a
+`settings.yaml` settings file shows the process of recoding zone ids in
+the input files.
+
+```yaml
+input_table_list:
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    recode_columns:
+      zone_id: zero-based
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    recode_columns:
+      home_zone_id: land_use.zone_id
+```
+
+For the `land_use` table, the `zone_id` field is marked for recoding explicitly
+as `zero-based`, which will turn whatever nominal id's appear in that column into
+zero-based index values, as well as store a mapping of the original values that
+is used to recode and decode zone id's when used elsewhere.
+
+The first "elsewhere" recoding is in the households input table, where we will
+map the `home_zone_id` to the new zone id's by pointing the recoding instruction
+at the `land_use.zone_id` field.  If zone id's appear in other input files, they
+need to be recoded in those fields as well, using the same process.
+
+The other places where we need to handle zone id's is in output files.  The
+following snippet of a `settings.yaml` settings file shows how those id's are
+decoded in various output files.  Generally, for columns that are fully populated
+with zone id's (e.g. tour and trip ends) we can apply the `decode_columns` settings
+to reverse the mapping and restore the nominal zone id's globally for the entire
+column of data.  For columns where there is some missing data flagged by negative
+values, the "nonnegative" filter is prepended to the instruction.
+
+```yaml
+output_tables:
+  action: include
+  tables:
+    - tablename: land_use
+      decode_columns:
+        zone_id: land_use.zone_id
+    - tablename: households
+      decode_columns:
+        home_zone_id: land_use.zone_id
+    - tablename: persons
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        school_zone_id: nonnegative | land_use.zone_id
+        workplace_zone_id: nonnegative | land_use.zone_id
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+```
+
 ## Measuring Performance
 
 Testing with sharrow requires two steps: test mode and production mode.

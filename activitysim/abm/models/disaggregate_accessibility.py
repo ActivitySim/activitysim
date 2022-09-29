@@ -1,12 +1,7 @@
 import random
-import yaml
-import os
-import sys
 import logging
-import subprocess
-import pkg_resources
 import pandas as pd
-import numpy as np
+from functools import reduce
 
 from activitysim.core import (inject,
                               tracing,
@@ -23,12 +18,6 @@ from sklearn.cluster import KMeans
 
 logger = logging.getLogger(__name__)
 
-
-def nearest_node_index(node, nodes):
-    nodes = np.asarray(nodes)
-    deltas = nodes - node
-    dist_2 = np.einsum('ij,ij->i', deltas, deltas)
-    return np.argmin(dist_2)
 
 class ProtoPop:
     def __init__(self, land_use_df, model_settings, pipeline=True):
@@ -96,7 +85,7 @@ class ProtoPop:
             # Calculate the k-means cluster points
             # Find the nearest MAZ for each cluster
             kmeans_res = kmeans.fit(xy_list)
-            sample_idx = [nearest_node_index(_xy, xy_list) for _xy in kmeans_res.cluster_centers_]
+            sample_idx = [util.nearest_node_index(_xy, xy_list) for _xy in kmeans_res.cluster_centers_]
         else:
             sample_idx = sorted(random.sample(sorted(land_use_df.index), N))
 
@@ -250,6 +239,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 
     for model_name in ['workplace_location', 'school_location', 'non_mandatory_tour_destination']:
         trace_label = tracing.extend_trace_label(model_name, 'accessibilities')
+        print('Running model {}'.format(trace_label))
         model_settings = config.read_model_settings(model_name + '.yaml')
         model_settings['SAMPLE_SIZE'] = disagg_model_settings.get('SAMPLE_SIZE')
         estimator = estimation.manager.begin_estimation(trace_label)
@@ -322,8 +312,6 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 
 @inject.step()
 def initialize_proto_population():
-    print('INITIALIZE PROTO-POPULATION FOR DISAGGREGATE ACCESSIBILITY MODEL')
-
     # Synthesize the proto-population
     model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
     land_use_df = pipeline.get_table('land_use')
@@ -339,7 +327,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
        as well as each zone in land use file using expressions from accessibility_spec.
 
     """
-    print('RUNNING DISAGGREGATE ACCESSIBILITY MODEL')
 
     # Synthesize the proto-population
     model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
@@ -370,57 +357,27 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # [pipeline.get_rn_generator().drop_channel(x) for x in ['persons', 'households']]
     [pipeline.drop_table(x) for x in ['school_destination_size', 'workplace_destination_size', 'tours']]
 
-    # Inject accessibilities into pipeline
+    # Combined accessibility table
+    # Setup a dict for fixed location accessibilities
+    access_list = []
+    for k, df in logsums.items():
+        if k == 'non_mandatory_tour_destination':
+            # cast non-mandatory purposes to wide
+            df = pd.pivot(df, index='person_id', columns='tour_type', values='logsums')
+            df.columns = ['_'.join([str(x), 'logsums']) for x in df.columns]
+            access_list.append(df)
+        else:
+            access_list.append(df[['logsums']].rename(columns={'logsums': k + '_logsums'}))
+    # Merge to wide data frame
+    access_df = reduce(lambda x, y: pd.merge(x, y, on='person_id', how='outer'), access_list)
+
+    # Merge in the proto pop data and inject it
+    access_df = access_df.join(pipeline.get_table('proto_persons_merged')).sort_index()
+    inject.add_table('proto_disaggregate_accessibility', access_df)
+
+    # Inject separate accessibilities into pipeline
     logsums = {k + '_accessibility': v for k, v in logsums.items()}
     [inject.add_table(k, df) for k, df in logsums.items()]
 
-    # FIXME.NF This doesn't seem to work properly with multiprocessing. Settings get reset after mp step
-    # Override output tables to include accessibilities in write_table
-    new_settings = inject.get_injectable("settings")
-    if 'disaggregate_accessibility' in new_settings.get('output_tables').get('tables'):
-        new_settings['output_tables']['tables'].remove('disaggregate_accessibility')
-        new_settings['output_tables']['tables'] += logsums.keys()
-        inject.add_injectable("settings", new_settings)
-
     return
 
-
-@inject.step()
-def initialize_disaggregate_accessibility():
-    """
-    This step initializes pre-computed disaggregate accessibilities and merges it onto the full synthetic population.
-    Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
-
-    """
-    # TODO NOT WORKING YET....
-    trace_label = "initialize_disaggregate_accessibilities"
-    model_settings = config.read_model_settings('disaggregate_accessibility.yaml')
-
-    return
-
-
-@inject.step()
-def disaggregate_accessibility_subprocess():
-    """
-    Spins up a sub process, not currently implemented
-    """
-    run_file = os.path.join('abm', 'models', 'disaggregate_accessibility_run.py')  # No longer exists
-    run_file = pkg_resources.resource_filename('activitysim', run_file)
-    subprocess.run(['coverage', 'run', '-a', run_file] + sys.argv[1:], check=True, shell=True)
-
-
-if __name__ == "__main__":
-    # FOR TESTING PROTO-POP
-    base_dir = 'C:/gitclones/activitysim-disagg_accessibilities/activitysim/examples'
-    acc_configs = os.path.join(base_dir, 'prototype_mtc_accessibilities/configs/disaggregate_accessibility.yaml')
-    data_dir = os.path.join(base_dir, 'prototype_mtc/data')
-
-    # Model Settings
-    with open(acc_configs, 'r') as file:
-        # model_settings = ordered_load(file)
-        model_settings = yaml.load(file, Loader=yaml.SafeLoader)
-
-    lu_df = pd.read_csv(os.path.join(data_dir, 'land_use.csv'))
-    lu_df = lu_df.rename(columns={'TAZ': 'zone_id'}).set_index('zone_id')
-
-    PP = ProtoPop(lu_df, model_settings, pipeline=False)

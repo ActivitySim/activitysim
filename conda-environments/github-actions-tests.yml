@@ -12,7 +12,7 @@ dependencies:
 - cytoolz >= 0.8.1
 - isort
 - nbmake
-- numba >= 0.55.2
+- numba = 0.55.2  # see https://github.com/conda-forge/numba-feedstock/pull/104
 - numpy >= 1.16.1,<=1.21
 - openmatrix >= 0.3.4.1
 - orca >= 1.6

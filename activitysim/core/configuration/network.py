@@ -1,7 +1,7 @@
 from .base import Any, PydanticBase, Union
 
 
-class ZarrDigitalEncoding(PydanticBase):
+class DigitalEncoding(PydanticBase):
     """Digital encoding instructions for skim tables.
 
     These encoding instructions are used to digitally encode data prior
@@ -26,7 +26,7 @@ class ZarrDigitalEncoding(PydanticBase):
 
     All skims with names that match under typical regular expression rules
     for Python will be processed using the rules defined in this
-    ZarrDigitalEncoding instruction.  To encode one specific skim,
+    DigitalEncoding instruction.  To encode one specific skim,
     use `name` instead. You cannot specify both `name` and `regex` at
     the same time.
     """
@@ -40,7 +40,7 @@ class ZarrDigitalEncoding(PydanticBase):
     encoded dictionary.
 
     If the `joint_dict` name is given, then all other instructions in this
-    ZarrDigitalEncoding are ignored, except `regex`.
+    DigitalEncoding are ignored, except `regex`.
     """
 
     missing_value: Any = None
@@ -125,7 +125,7 @@ class TAZ_Settings(PydanticBase):
     .. versionadded:: 1.2
     """
 
-    zarr_digital_encoding: list[ZarrDigitalEncoding] = None
+    zarr_digital_encoding: list[DigitalEncoding] = None
     """
     A list of encodings to apply before saving skims in ZARR format.
 

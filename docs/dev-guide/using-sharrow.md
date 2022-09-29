@@ -165,7 +165,16 @@ Sharrow is compatible with and able to efficiently use
 [digital encoding](https://activitysim.github.io/sharrow/walkthrough/encoding.html).
 These encodings are applied to data either prospectively (i.e. before ActivitySim
 ever sees the skim data), or dynamically within a run using the
-`taz_skims.zarr-digital-encoding` setting in the `network_los.yaml` settings file.
+`taz_skims.digital-encoding` or `taz_skims.zarr-digital-encoding` settings in
+the `network_los.yaml` settings file.  The only difference between these two
+settings is that the former applies this digital encoding internally every
+time you run the model, while the latter applies it prior to caching encoded
+skims to disk in Zarr format (and then reuses those values without re-encoding
+on subsequent runs with the same data).  Dictionary encoding (especially joint
+dictionary encodings) can take a long time to prepare, so caching the values can
+be useful. As read/write speeds for zarr files are fast, you usually won't
+notice a meaningful performance degradation when caching, so the default is
+generally to use `zarr-digital-encoding`.
 
 Very often, data can be expressed adequately with far less memory than is
 needed to store a standard 32-bit floating point representation.  There are
@@ -302,4 +311,4 @@ taz_skims:
 ```
 
 For more details on all the settings available for digital encoding, see
-[ZarrDigitalEncoding](activitysim.core.configuration.network.ZarrDigitalEncoding).
+[DigitalEncoding](activitysim.core.configuration.network.DigitalEncoding).

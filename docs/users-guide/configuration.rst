@@ -39,4 +39,4 @@ Network Level of Service
 
     NetworkSettings
     TAZ_Settings
-    ZarrDigitalEncoding
+    DigitalEncoding

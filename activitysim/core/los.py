@@ -586,7 +586,7 @@ class Network_LOS(object):
         return self.setting(f"{skim_tag}_skims.max_float_precision", 32)
 
     def skim_digital_encoding(self, skim_tag):
-        return self.setting(f"{skim_tag}_skims.digital_encoding", [])
+        return self.setting(f"{skim_tag}_skims.digital-encoding", [])
 
     def multiprocess(self):
         """

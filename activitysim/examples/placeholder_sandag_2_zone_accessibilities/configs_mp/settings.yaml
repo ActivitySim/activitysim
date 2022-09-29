@@ -45,39 +45,37 @@ models:
   ### mp_initialize step
   - initialize_landuse
   - initialize_proto_population
-  # - initialize_households
-  ### mp_accessibility step
+  ### mp_disaggregate_accessibility step
   - compute_disaggregate_accessibility
-  # - compute_accessibility
+  ### mp_accessibility step
+  - initialize_households
+  - compute_accessibility
   ## mp_households step
-  # - school_location
-  # - workplace_location
-  #- auto_ownership_simulate
-  #- vehicle_type_choice
-  # - free_parking
-  # - cdap_simulate
-  # - mandatory_tour_frequency
-  # - mandatory_tour_scheduling
-  # - joint_tour_frequency
-  # - joint_tour_composition
-  # - joint_tour_participation
-  # - joint_tour_destination
-  # - joint_tour_scheduling
-  # - non_mandatory_tour_frequency
-  # - non_mandatory_tour_destination
-  # - non_mandatory_tour_scheduling
-  #- vehicle_allocation
-  # - tour_mode_choice_simulate
-  # - atwork_subtour_frequency
-  # - atwork_subtour_destination
-  # - atwork_subtour_scheduling
-  # - atwork_subtour_mode_choice
-  # - stop_frequency
-  # - trip_purpose
-  # - trip_destination
-  # - trip_purpose_and_destination
-  # - trip_scheduling
-  # - trip_mode_choice
+  - school_location
+  - workplace_location
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
   ### mp_summarize step
   - write_data_dictionary
   - write_trip_matrices
@@ -100,12 +98,13 @@ multiprocess_steps:
       # tables:
         # - accessibility
       #don't slice any tables not explicitly listed above in slice.tables
-      # except: True
+      # except: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
   # - name: mp_households
     # begin: school_location
     # slice:
       # tables:
         # - households
         # - persons
+        # except: True
   - name: mp_summarize
     begin: write_data_dictionary

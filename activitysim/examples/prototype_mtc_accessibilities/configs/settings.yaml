@@ -186,9 +186,9 @@ models:
   - initialize_landuse
   ## Disaggregate Accessibility steps
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
-  - compute_disaggregate_accessibility
-  # - initialize_disaggregate_accessibility
+  - compute_disaggregate_accessibility # Must happen before initialize_households. Problem w/ shadow_pricing
   - initialize_households
+  - initialize_disaggregate_accessibility  # run after initialize_households to merged onto households
   - compute_accessibility
   - school_location
   - workplace_location
@@ -228,6 +228,7 @@ output_tables:
   tables:
     - checkpoints
     - accessibility
+    - proto_disaggregate_accessibility
     - workplace_location_accessibility
     - school_location_accessibility
     - non_mandatory_tour_destination_accessibility

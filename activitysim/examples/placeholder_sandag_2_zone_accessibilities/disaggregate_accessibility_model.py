@@ -21,9 +21,9 @@ def disaggregate_accessibility():
 
     # add in the arguments
     args.config = [extended_path('configs'), base_path('configs_2_zone'), base_path('placeholder_psrc/configs')]
-    args.config.insert(0, extended_path('configs_mp')) # separate line to comment out
+    # args.config.insert(0, extended_path('configs_mp')) # separate line to comment out
     args.output = extended_path('output')
-    args.data = base_path('data_2')
+    args.data = [extended_path('data'), base_path('data_2')]
 
     # 'activitysim run -c configs_2_zone -c placeholder_psrc/configs -d data_2 -o output_2 -s settings_mp.yaml'
     sys.exit(run(args))

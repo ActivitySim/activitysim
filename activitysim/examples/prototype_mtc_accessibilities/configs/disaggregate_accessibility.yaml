@@ -115,6 +115,21 @@ CREATE_TABLES:
         JOIN_ON:
             person_num: pnum            # Specifies which person variable to join the tours on
 
+# Merge on variables
+# declare the variable and then the 'how': exact, nearest
+# exact - Treats as categorical to be matched exactly.
+# nearest - If continuous, will choose nearest value.
+# NOTE: ONLY ONE NEAREST CAN BE USE AT A TIME.
+# A more complex nearest join will need to use a bespoke algorithm. Perhaps kmeans?
+MERGE_ON:
+  exact:
+    - adult
+    - sex
+    - pemploy
+    - auto_ownership
+    - income_segment
+  nearest:
+    - age
 
 # Include any annotations for persons, households, land_use, or tours.
 # The purpose of a separate annotation setup is that annotation expressions for the main model

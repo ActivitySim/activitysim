@@ -449,3 +449,9 @@ def flatten(lst):
                  yield item
          else:
              yield sublist
+
+def nearest_node_index(node, nodes):
+    nodes = np.asarray(nodes)
+    deltas = nodes - node
+    dist_2 = np.einsum('ij,ij->i', deltas, deltas)
+    return np.argmin(dist_2)

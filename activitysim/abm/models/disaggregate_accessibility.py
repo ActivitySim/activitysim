@@ -20,26 +20,25 @@ logger = logging.getLogger(__name__)
 
 
 class ProtoPop:
-    def __init__(self, land_use_df, model_settings, pipeline=True):
+    def __init__(self, land_use_df, model_settings):
+        # Random seed
+        random.seed(len(land_use_df.index))
+
         self.proto_pop = {}
         self.land_use = land_use_df
         self.model_settings = model_settings
         self.params = self.read_table_settings()
+
         self.create_proto_pop()
+        self.inject_tables()
+        self.annotate_tables()
+        self.merge_persons()
 
-        # Random seed
-        random.seed(len(land_use_df.index))
-
-        # Switch in case someone wants to generate a proto-pop in just python alone
-        if pipeline:
-            self.inject_tables()
-            self.annotate_tables()
-            self.merge_persons()
-
-    def zone_sampler(self, method=None):
-        """      This is a "pre"-sampling method, which selects a sample from the total zones and generates a proto-pop on it.
-        This is particularly useful for multi-zone models where there are many MAZs
-         which would cause memory usage and computation time to explode.
+    def zone_sampler(self):
+        """
+        This is a "pre"-sampling method, which selects a sample from the total zones and generates a proto-pop on it.
+        This is particularly useful for multi-zone models where there are many MAZs.
+        Otherwise it could cause memory usage and computation time to explode.
 
         method:
             None (default) - Simply sample N zones independent of each other.
@@ -51,10 +50,10 @@ class ProtoPop:
         zone_cols = self.model_settings['zone_id_names'].get('zone_group_cols')
 
         method = self.model_settings.get('zone_pre_sample_method')
-        N = self.model_settings.get('zone_pre_sample_size', 0)
+        n = self.model_settings.get('zone_pre_sample_size', 0)
 
-        if N == 0 or N > len(self.land_use.index):
-            N = len(self.land_use.index)
+        if n == 0 or n > len(self.land_use.index):
+            n = len(self.land_use.index)
             print('Pre-sample size equals total number of zones. Using default sampling method.')
             method = None  # If it's a full sample, there's no need to run an aggregator
 
@@ -76,7 +75,7 @@ class ProtoPop:
             # Initializer k-means class
             kmeans = KMeans(
                 init="random",
-                n_clusters=N,
+                n_clusters=n,
                 n_init=10,
                 max_iter=300,
                 random_state=42
@@ -87,7 +86,7 @@ class ProtoPop:
             kmeans_res = kmeans.fit(xy_list)
             sample_idx = [util.nearest_node_index(_xy, xy_list) for _xy in kmeans_res.cluster_centers_]
         else:
-            sample_idx = sorted(random.sample(sorted(self.land_use.index), N))
+            sample_idx = sorted(random.sample(sorted(self.land_use.index), n))
 
         return {id_col: sample_idx}
 
@@ -115,7 +114,7 @@ class ProtoPop:
         self.model_settings['zone_id_names'] = self.model_settings.get('zone_id_names', {'index_cols': 'zone_id'})
 
         # Add in the zone variables
-        zone_list = self.zone_sampler(self.land_use)
+        zone_list = self.zone_sampler()
 
         # Add zones to households dicts as vary_on variable
         params['proto_households']['variables'] = {**params['proto_households']['variables'], **zone_list}
@@ -358,7 +357,7 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     [pipeline.drop_table(x) for x in ['school_destination_size', 'workplace_destination_size', 'tours']]
 
     # Combined accessibility table
-    # Setup a dict for fixed location accessibilities
+    # Setup dict for fixed location accessibilities
     access_list = []
     for k, df in logsums.items():
         if k == 'non_mandatory_tour_destination':
@@ -380,4 +379,3 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     [inject.add_table(k, df) for k, df in logsums.items()]
 
     return
-

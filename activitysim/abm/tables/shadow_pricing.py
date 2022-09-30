@@ -19,9 +19,9 @@ ShadowPriceCalculator and associated utility methods
 
 See docstrings for documentation on:
 
-update_shadow_prices    how shadow_price coefficients are calculated
-synchronize_choices     interprocess communication to compute aggregate modeled_size
-check_fit               convergence criteria for shadow_pric iteration
+update_shadow_prices      how shadow_price coefficients are calculated
+synchronize_modeled_size  interprocess communication to compute aggregate modeled_size
+check_fit                 convergence criteria for shadow_pric iteration
 
 Import concepts and variables:
 
@@ -46,7 +46,7 @@ Artisanal reverse semaphores to synchronize concurrent access to shared data buf
 we use the first two rows of the final column in numpy-wrapped shared data as 'reverse semaphores'
 (they synchronize concurrent access to shared data resource rather than throttling access)
 
-ShadowPriceCalculator.synchronize_choices coordinates access to the global aggregate zone counts
+ShadowPriceCalculator.synchronize_modeled_size coordinates access to the global aggregate zone counts
 (local_modeled_size summed across all sub-processes) using these two semaphores
 (which are really only tuples of indexes of locations in the shared data array.
 """
@@ -122,7 +122,7 @@ class ShadowPriceCalculator(object):
 
         self.segment_ids = model_settings["SEGMENT_IDS"]
 
-        # - modeled_size (set by call to set_choices/synchronize_choices)
+        # - modeled_size (set by call to set_choices/synchronize_modeled_size)
         self.modeled_size = None
 
         if self.use_shadow_pricing:
@@ -256,7 +256,7 @@ class ShadowPriceCalculator(object):
         zone counts are in shared data, we have to coordinate access to the data structure across
         sub-processes.
         Note that all access to self.shared_data has to be protected by acquiring shared_data_lock
-        ShadowPriceCalculator.synchronize_choices coordinates access to the global aggregate
+        ShadowPriceCalculator.synchronize_modeled_size coordinates access to the global aggregate
         zone counts (local_modeled_size summed across all sub-processes).
         * All processes wait (in case we are iterating) until any stragglers from the previous
           iteration have exited the building. (TALLY_CHECKOUT goes to zero)
@@ -328,27 +328,9 @@ class ShadowPriceCalculator(object):
 
     def synchronize_choices(self, local_modeled_size):
         """
-        We have to wait until all processes have computed choices and aggregated them by segment
-        and zone before we can compute global aggregate zone counts (by segment). Since the global
-        zone counts are in shared data, we have to coordinate access to the data structure across
-        sub-processes.
-
-        Note that all access to self.shared_data has to be protected by acquiring shared_data_lock
-
-        ShadowPriceCalculator.synchronize_choices coordinates access to the global aggregate
-        zone counts (local_modeled_size summed across all sub-processes).
-
-        * All processes wait (in case we are iterating) until any stragglers from the previous
-          iteration have exited the building. (TALLY_CHECKOUT goes to zero)
-
-        * Processes then add their local counts into the shared_data and increment TALLY_CHECKIN
-
-        * All processes wait until everybody has checked in (TALLY_CHECKIN == num_processes)
-
-        * Processes make local copy of shared_data and check out (increment TALLY_CHECKOUT)
-
-        * first_in process waits until all processes have checked out, then zeros shared_data
-          and clears semaphores
+        Same thing as the above synchronize_modeled_size method with the small
+        difference of keeping track of the individual choices instead of the 
+        aggregate modeled choices between processes.
 
         Parameters
         ----------
@@ -460,7 +442,6 @@ class ShadowPriceCalculator(object):
             self.modeled_size = modeled_size
         else:
             # - if we are multiprocessing, we have to aggregate across sub-processes
-            # if self.shadow_price_method == "simulation":
             self.choices_synced = self.synchronize_choices(choice_merged)
 
             self.modeled_size = self.synchronize_modeled_size(modeled_size)

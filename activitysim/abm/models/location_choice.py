@@ -973,7 +973,13 @@ def iterate_location_choice(
             spc.write_trace_files(iteration)
 
         if spc.use_shadow_pricing and spc.check_fit(iteration):
-            logging.info("%s converged after iteration %s" % (trace_label, iteration,))
+            logging.info(
+                "%s converged after iteration %s"
+                % (
+                    trace_label,
+                    iteration,
+                )
+            )
             break
 
     # - shadow price table

@@ -783,7 +783,7 @@ class ShadowPriceCalculator(object):
             else:
                 self.sampled_persons = pd.DataFrame()
 
-            print('_________')
+            print("_________")
             print(len(self.sampled_persons))
 
         else:
@@ -1416,4 +1416,3 @@ def shadow_pricing_choice_info():
 #     persons_index_full = persons.index
 
 #     return persons_index_full
-

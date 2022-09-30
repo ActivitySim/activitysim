@@ -329,7 +329,7 @@ class ShadowPriceCalculator(object):
     def synchronize_choices(self, local_modeled_size):
         """
         Same thing as the above synchronize_modeled_size method with the small
-        difference of keeping track of the individual choices instead of the 
+        difference of keeping track of the individual choices instead of the
         aggregate modeled choices between processes.
 
         Parameters

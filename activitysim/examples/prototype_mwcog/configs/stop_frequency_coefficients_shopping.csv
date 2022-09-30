@@ -1,0 +1,93 @@
+Description,value,coefficient_name
+Number of HH Persons,-0.1522,coef_number_of_hh_persons
+Num kids between 5 and 15 (including) years old,0.0482,coef_num_kids_between_5_and_15_including_years_old
+Dummy for female,0.1721,coef_dummy_for_female
+Dummy for all stops made by transit,-0.7,coef_dummy_for_all_stops_made_by_transit
+Dummy for walking to all stops,-1.4908,coef_dummy_for_walking_to_all_stops
+Number of work tours undertaken by the person,-0.548,coef_number_of_work_tours_undertaken_by_the_person
+Number of university tours tours undertaken by the person,-0.6709,coef_number_of_university_tours_tours_undertaken_by_the_person
+Number of maintenace tours tours undertaken by the person,-0.1977,coef_number_of_maintenace_tours_tours_undertaken_by_the_person
+Number of shop tours undertaken by the houshold,-0.0733,coef_number_of_shop_tours_undertaken_by_the_houshold
+Dummy for only adults participate in the tour,0.1902,coef_dummy_for_only_adults_participate_in_the_tour
+Dummy for the duration of the tour being equal or greater than or equal to 9 hours ,0.9056,coef_dummy_for_the_duration_of_the_tour_being_equal_or_greater_than_or_equal_to_9_hours_
+dummy for distance less than 5 Miles,0.3768,coef_dummy_for_distance_less_than_5_miles
+dummy for distance in miles,0.0289,coef_dummy_for_distance_in_miles
+No stops if tour mode is driveTransit,-999,coef_no_stops_if_tour_mode_is_drivetransit
+Alternative specific constant for return  stops,-1.179,coef_alternative_specific_constant_for_return_stops_0out_1in
+Alternative specific constant for return  stops on joint tours,-1.329,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_1in
+Alternative specific constant for return  stops,-2.305,coef_alternative_specific_constant_for_return_stops_0out_2in
+Alternative specific constant for the total number of stops,0,coef_alternative_specific_constant_for_the_total_number_of_stops_0out_2in
+Alternative specific constant for return  stops on joint tours,-2.796,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_2in
+Alternative specific constant for the total number of stops on joint tours,0,coef_alternative_specific_constant_for_the_total_number_of_stops_on_joint_tours_0out_2in
+Alternative specific constant for return  stops,-3.024,coef_alternative_specific_constant_for_return_stops_0out_3in
+Alternative specific constant for return  stops on joint tours,-3.379,coef_alternative_specific_constant_for_return_stops_on_joint_tours_0out_3in
+Alternative specific constant for outbound stops,-1.339,coef_alternative_specific_constant_for_outbound_stops_1out_0in
+Alternative specific constant for outbound stops on joint tours,-1.783,coef_alternative_specific_constant_for_outbound_stops_on_joint_tours_1out_0in
+Alternative specific constant for the total number of stops,0.252,coef_alternative_specific_constant_for_the_total_number_of_stops_1out_3in
+Alternative specific constant for the total number of stops on joint tours,0.518,coef_alternative_specific_constant_for_the_total_number_of_stops_on_joint_tours_1out_3in
+Alternative specific constant for outbound stops,-3.11,coef_alternative_specific_constant_for_outbound_stops_2out_0in
+Alternative specific constant for outbound stops on joint tours,-4.067,coef_alternative_specific_constant_for_outbound_stops_on_joint_tours_2out_0in
+Alternative specific constant for the total number of stops,0.514,coef_alternative_specific_constant_for_the_total_number_of_stops_2out_3in
+Alternative specific constant for the total number of stops on joint tours,1.497,coef_alternative_specific_constant_for_the_total_number_of_stops_on_joint_tours_2out_3in
+Alternative specific constant for outbound stops,-4.487,coef_alternative_specific_constant_for_outbound_stops_3out_0in
+Alternative specific constant for outbound stops on joint tours,-4.998,coef_alternative_specific_constant_for_outbound_stops_on_joint_tours_3out_0in
+Calibrated coefficient for stops 0 out and 1 in,0.017121958,coef_calibration_for_0out_1in
+Calibrated coefficient for stops 0 out and 2 in,0.034817267,coef_calibration_for_0out_2in
+Calibrated coefficient for stops 0 out and 3 in,-0.130330682,coef_calibration_for_0out_3in
+Calibrated coefficient for stops 1 out and 0 in,0.209231,coef_calibration_for_1out_0in
+Calibrated coefficient for stops 1 out and 1 in,0.02414933,coef_calibration_for_1out_1in
+Calibrated coefficient for stops 1 out and 2 in,0.461897472,coef_calibration_for_1out_2in
+Calibrated coefficient for stops 1 out and 3 in,0.158579421,coef_calibration_for_1out_3in
+Calibrated coefficient for stops 2 out and 0 in,0.850102453,coef_calibration_for_2out_0in
+Calibrated coefficient for stops 2 out and 1 in,1.341252395,coef_calibration_for_2out_1in
+Calibrated coefficient for stops 2 out and 2 in,1.18586399,coef_calibration_for_2out_2in
+Calibrated coefficient for stops 2 out and 3 in,-0.041491927,coef_calibration_for_2out_3in
+Calibrated coefficient for stops 3 out and 0 in,1.607200672,coef_calibration_for_3out_0in
+Calibrated coefficient for stops 3 out and 1 in,1.911336809,coef_calibration_for_3out_1in
+Calibrated coefficient for stops 3 out and 2 in,1.065391227,coef_calibration_for_3out_2in
+Calibrated coefficient for stops 3 out and 3 in,1.37891856,coef_calibration_for_3out_3in
+,-0.126,coef_telecommute1_2
+,-0.301,coef_telecommute1_3
+,-0.301,coef_telecommute1_4
+,-0.126,coef_telecommute1_5
+,-0.301,coef_telecommute1_6
+,-0.301,coef_telecommute1_7
+,-0.611,coef_telecommute1_8
+,-0.301,coef_telecommute1_9
+,-0.301,coef_telecommute1_10
+,-0.611,coef_telecommute1_11
+,-0.611,coef_telecommute1_12
+,-0.301,coef_telecommute1_13
+,-0.611,coef_telecommute1_14
+,-0.611,coef_telecommute1_15
+,-0.611,coef_telecommute1_16
+,-0.149,coef_telecommute23_2
+,-0.768,coef_telecommute23_3
+,-0.768,coef_telecommute23_4
+,-0.768,coef_telecommute23_5
+,-0.768,coef_telecommute23_6
+,-0.768,coef_telecommute23_7
+,-0.909,coef_telecommute23_8
+,-0.768,coef_telecommute23_9
+,-0.768,coef_telecommute23_10
+,-0.909,coef_telecommute23_11
+,-0.909,coef_telecommute23_12
+,-0.768,coef_telecommute23_13
+,-0.909,coef_telecommute23_14
+,-0.909,coef_telecommute23_15
+,-0.909,coef_telecommute23_16
+,-0.158,coef_telecommute4p_2
+,-0.473,coef_telecommute4p_3
+,-0.473,coef_telecommute4p_4
+,-0.473,coef_telecommute4p_5
+,-0.473,coef_telecommute4p_6
+,-0.473,coef_telecommute4p_7
+,-1.47,coef_telecommute4p_8
+,-0.473,coef_telecommute4p_9
+,-0.473,coef_telecommute4p_10
+,-1.47,coef_telecommute4p_11
+,-1.47,coef_telecommute4p_12
+,-0.473,coef_telecommute4p_13
+,-1.47,coef_telecommute4p_14
+,-1.47,coef_telecommute4p_15
+,-1.47,coef_telecommute4p_16

@@ -423,7 +423,7 @@ def _each_nest(spec, parent_nest, post_order):
         (post-order means we yield the alternatives sub-tree before current node.)
 
     Yields
-    -------
+    ------
         spec_node : dict
             Nest tree spec dict for this node subtree
         nest : Nest
@@ -493,7 +493,7 @@ def each_nest(nest_spec, type=None, post_order=False):
         (post-order means we yield the alternatives sub-tree before current node.)
 
     Yields
-    -------
+    ------
         nest : Nest
             Nest object with info about the current node (nest or leaf)
     """

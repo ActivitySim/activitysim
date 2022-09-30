@@ -1,0 +1,144 @@
+## ActivitySim
+## See full license in LICENSE.txt.
+
+
+#HHT_NONE: 0
+#HHT_FAMILY_MARRIED: 1
+#HHT_FAMILY_MALE: 2
+#HHT_FAMILY_FEMALE: 3
+#HHT_NONFAMILY_MALE_ALONE: 4
+#HHT_NONFAMILY_MALE_NOTALONE: 5
+#HHT_NONFAMILY_FEMALE_ALONE: 6
+#HHT_NONFAMILY_FEMALE_NOTALONE: 7
+
+# convenience for expression files
+HHT_NONFAMILY: [4, 5, 6, 7]
+HHT_FAMILY: [1, 2, 3]
+
+PSTUDENT_GRADE_OR_HIGH: 1
+PSTUDENT_UNIVERSITY: 2
+PSTUDENT_NOT: 3
+
+GRADE_SCHOOL_MAX_AGE: 14
+GRADE_SCHOOL_MIN_AGE: 5
+
+SCHOOL_SEGMENT_NONE: 0
+SCHOOL_SEGMENT_GRADE: 1
+SCHOOL_SEGMENT_HIGH: 2
+SCHOOL_SEGMENT_UNIV: 3
+
+INCOME_SEGMENT_LOW: 1
+INCOME_SEGMENT_MED: 2
+INCOME_SEGMENT_HIGH: 3
+INCOME_SEGMENT_VERYHIGH: 4
+
+PEMPLOY_FULL: 1
+PEMPLOY_PART: 2
+PEMPLOY_NOT: 3
+PEMPLOY_CHILD: 4
+
+PTYPE_FULL: &ptype_full 1
+PTYPE_PART: &ptype_part 2
+PTYPE_UNIVERSITY: &ptype_university 3
+PTYPE_NONWORK: &ptype_nonwork 4
+PTYPE_RETIRED: &ptype_retired 5
+PTYPE_DRIVING: &ptype_driving 6
+PTYPE_SCHOOL: &ptype_school 7
+PTYPE_PRESCHOOL:  &ptype_preschool 8
+
+# these appear as column headers in non_mandatory_tour_frequency.csv
+PTYPE_NAME:
+  *ptype_full: PTYPE_FULL
+  *ptype_part: PTYPE_PART
+  *ptype_university: PTYPE_UNIVERSITY
+  *ptype_nonwork: PTYPE_NONWORK
+  *ptype_retired: PTYPE_RETIRED
+  *ptype_driving: PTYPE_DRIVING
+  *ptype_school: PTYPE_SCHOOL
+  *ptype_preschool: PTYPE_PRESCHOOL
+
+
+CDAP_ACTIVITY_MANDATORY: M
+CDAP_ACTIVITY_NONMANDATORY: N
+CDAP_ACTIVITY_HOME: H
+
+# Mode Choice
+#CONSTANTS:
+#valueOfTime: 8.00
+# AAA:https://exchange.aaa.com/wp-content/uploads/2018/09/18-0090_2018-Your-Driving-Costs-Brochure_FNL-Lo-5-2.pdf
+costPerMile: 19.26
+costShareSr2: 1.75
+costShareSr3: 2.50
+waitThresh: 10.00
+shortWalk: 0.333
+longWalk: 0.667
+walkSpeed: 3.00
+bikeThresh: 6.00
+bikeSpeed: 12.00
+# RIDEHAIL Settings
+Taxi_baseFare: 2.20
+Taxi_costPerMile: 2.30
+Taxi_costPerMinute: 0.10
+
+TNC_single_baseFare: 2.20
+TNC_single_costPerMile: 1.33
+TNC_single_costPerMinute: 0.24
+TNC_single_costMinimum: 7.20
+TNC_single_waitTime_mean:
+  1: 3.0
+  2: 6.3
+  3: 8.4
+  4: 8.5
+  5: 10.3
+TNC_single_waitTime_sd:
+  1: 0
+  2: 0
+  3: 0
+  4: 0
+  5: 0
+TNC_shared_baseFare: 2.20
+TNC_shared_costPerMile: 0.53
+TNC_shared_costPerMinute: 0.10
+TNC_shared_costMinimum: 3.00
+TNC_shared_IVTFactor: 1.5
+TNC_shared_waitTime_mean:
+  1: 5.0
+  2: 8.0
+  3: 11.0
+  4: 15.0
+  5: 15.0
+TNC_shared_waitTime_sd:
+  1: 0
+  2: 0
+  3: 0
+  4: 0
+  5: 0
+min_waitTime: 0
+max_waitTime: 50
+ivt_cost_multiplier: 0.6  
+topology_bike_multiplier: 20
+topology_trn_multiplier: 2.20
+topology_walk_multiplier: 15
+ridehail_wait_time_multiplier: 1.5
+dacc_ratio_multiplier: 0
+origin_density_index_multiplier: -15
+origin_density_index_max: -15
+#FIXME: Check these 
+ivt_LB_multiplier: 1.0
+ivt_XB_multiplier: 0.9
+ivt_BR_multiplier: 0.9
+ivt_LR_multiplier: 0.9
+ivt_MR_multiplier: 0.8
+ivt_CR_multiplier: 0.7
+ivt_com_multiplier: 0.80
+ivt_hvy_multiplier: 0.80
+short_i_wait_multiplier: 2
+long_i_wait_multiplier: 1
+wacc_multiplier: 2
+wegr_multiplier: 2
+waux_multiplier: 2
+dtim_multiplier: 2
+xwait_multiplier: 2
+dacc_ratio: 0
+drvtrn_distpen_0_multiplier: 270
+drvtrn_distpen_max: 15

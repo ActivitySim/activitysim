@@ -73,3 +73,5 @@ _test_est
 *_local.*
 
 **/output/
+**/_generated_version.py
+docs/**/_generated

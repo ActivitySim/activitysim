@@ -63,13 +63,13 @@ and network skim matrices.  With this design, the Python code, which can be thou
 engine, and the specific model calculations, such as the utilities, are separate.  This helps to avoid 
 modifying the actual Python code when making changes to the models, such as during model calibration. An 
 example of model expressions is found in the example auto ownership model specification file - 
-`auto_ownership.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/auto_ownership.csv>`__. 
+`auto_ownership.csv <https://github.com/activitysim/activitysim/blob/main/example/configs/auto_ownership.csv>`__.
 Refer to the :ref:`expressions` section for more detail.
 
 Many of the models have pre- and post-processor table annotators, which read a CSV file of expression, calculate 
 required additional table fields, and join the fields to the target tables.  An example table annotation expressions 
 file is found in the example configuration files for households for the CDAP model - 
-`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__. 
+`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/main/example/configs/annotate_households_cdap.csv>`__.
 Refer to :ref:`table_annotation` for more information and the :func:`activitysim.abm.models.util.expressions.assign_columns` function.
 
 Choice Models
@@ -153,7 +153,7 @@ Working Together in the Repository
 We use `GitHub Flow <https://guides.github.com/introduction/flow>`__.  The key points to 
 our GitHub workflow are:
 
-* The ``master`` branch contains the latest release version of the ActivitySim resources
+* The ``main`` branch contains the latest release version of the ActivitySim resources
 * The ``develop`` branch contains new features or revisions planned for the next release.
   Generally, developers should not work directly in the ``develop`` branch.
 * Work to implement new features or other revisions is done in an issue/feature branch
@@ -166,8 +166,8 @@ our GitHub workflow are:
   ``develop`` branch.
 * If tests pass for the ``develop`` branch, new features are suitably documented, and on approval of
   `a lazy majority of the PMC <https://github.com/ActivitySim/activitysim/wiki/Governance#actions>`__,
-  a repository administrator can approve a manual pull request to merge ``develop`` into ``master``,
-  and otherwise make a `product release <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__.
+  a repository administrator can approve a manual pull request to merge ``develop`` into ``main``,
+  and otherwise make a `product release <https://github.com/ActivitySim/activitysim/blob/main/HOW_TO_RELEASE.md>`__.
 
 
 Versioning
@@ -211,7 +211,7 @@ To run the tests locally, first make sure the required packages are installed.  
     py.test
 
 These same tests are run by Travis with each push to the repository.  These tests need to pass in order
-to merge the revisions into master.
+to merge the revisions into main.
 
 In some cases, test targets need to be updated to match the new results produced by the code since these 
 are now the correct results.  In order to update the test targets, first determine which tests are 
@@ -255,7 +255,7 @@ Releases
 ~~~~~~~~
 
 With the agreement of the PMC, a project administrator will handle making releases, following the detailed
-steps outlined in the `HOW_TO_RELEASE <https://github.com/ActivitySim/activitysim/blob/master/HOW_TO_RELEASE.md>`__
+steps outlined in the `HOW_TO_RELEASE <https://github.com/ActivitySim/activitysim/blob/main/HOW_TO_RELEASE.md>`__
 document.
 
 
@@ -268,7 +268,7 @@ License
 ~~~~~~~
 
 ActivitySim is provided "as is."  See the 
-`License <https://github.com/ActivitySim/activitysim/blob/master/LICENSE.txt>`__ for more information.
+`License <https://github.com/ActivitySim/activitysim/blob/main/LICENSE.txt>`__ for more information.
 
 Contribution Review Criteria
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -354,7 +354,7 @@ Furthermore, multiple versions of these examples can exist, and be used for vari
   prototype_mtc and includes additional settings for reading in survey files and producing estimation data bundles.
 
 Regardless of the type or version, all functioning examples are described in a common list stored in
-`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_.
+`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_.
 Each item included in this file represents one example, and each includes the following tags:
 
 * *name*: A unique name for the example, used to identify the example when using the `activitysim create` command. The
@@ -385,7 +385,7 @@ The test plan for test examples versus agency examples is different:
 Both types of examples are stored in the ActivitySim repositories for version control and collaborative maintenance.
 There are two storage locations:
 
-* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples>`_,
+* The `activitysim package example folder <https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples>`_,
   which stores the test and agency example setup files, cropped data and cropping script, regression test script,
   expected results, and a change log to track any revisions to the example to get it working for testing.  These
   resources are the resources automatically tested by the TravisCI test system with each revision to the software.
@@ -397,7 +397,7 @@ There are two storage locations:
 This two-part solution allows for the main activitysim repo to remain relatively lightweight, while providing an
 organized and accessible storage solution for the full scale example data.  The ActivitySim command line interface for
 creating and running examples makes uses the
-`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+`example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 to maintain the dictionary of the examples and how to get and run them.
 
 Running the Test System
@@ -406,9 +406,9 @@ Running the Test System
 The automatic TravisCI test system runs the test examples and the cropped agency examples.  Examples of the testing 
 resources for each agency example that need to be up-to-date are:
 
-* `scripts folder (including crop script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/prototype_semcog/scripts>`_
-* `test folder (including test script) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/prototype_semcog/test>`_
-* `regress folder (including expected outputs) <https://github.com/ActivitySim/activitysim/tree/master/activitysim/examples/prototype_semcog/test/regress>`_
+* `scripts folder (including crop script) <https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/prototype_semcog/scripts>`_
+* `test folder (including test script) <https://github.com/ActivitySim/activitysim/main/main/activitysim/examples/prototype_semcog/test>`_
+* `regress folder (including expected outputs) <https://github.com/ActivitySim/activitysim/tree/main/activitysim/examples/prototype_semcog/test/regress>`_
 
 For the time being, running the full scale examples is done manually since it involves getting and running several large examples that take many hours to run.  The entire system could be fully automated, and either run in the cloud or on a local server.
 

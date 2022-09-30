@@ -72,7 +72,14 @@ def size_table_name(model_selector):
 
 class ShadowPriceCalculator(object):
     def __init__(
-        self, model_settings, num_processes, shared_data=None, shared_data_lock=None
+        self,
+        model_settings,
+        num_processes,
+        shared_data=None,
+        shared_data_lock=None,
+        shared_data_choice=None,
+        shared_data_choice_lock=None,
+        shared_sp_choice_df=None,
     ):
         """
 
@@ -147,11 +154,19 @@ class ShadowPriceCalculator(object):
         self.shared_data = shared_data
         self.shared_data_lock = shared_data_lock
 
+        self.shared_data_choice = shared_data_choice
+        self.shared_data_choice_lock = shared_data_choice_lock
+
+        self.shared_sp_choice_df = shared_sp_choice_df
+        self.shared_sp_choice_df = self.shared_sp_choice_df.astype("int")
+        self.shared_sp_choice_df = self.shared_sp_choice_df.set_index("person_id")
+        self.shared_sp_choice_df["choice"] = int(0)
+
         # - load saved shadow_prices (if available) and set max_iterations accordingly
         if self.use_shadow_pricing:
             self.shadow_prices = None
             self.shadow_price_method = self.shadow_settings["SHADOW_PRICE_METHOD"]
-            assert self.shadow_price_method in ["daysim", "ctramp"]
+            assert self.shadow_price_method in ["daysim", "ctramp", "simulation"]
 
             if self.shadow_settings["LOAD_SAVED_SHADOW_PRICES"]:
                 # read_saved_shadow_prices logs error and returns None if file not found
@@ -181,6 +196,24 @@ class ShadowPriceCalculator(object):
         self.num_fail = pd.DataFrame(index=self.desired_size.columns)
         self.max_abs_diff = pd.DataFrame(index=self.desired_size.columns)
         self.max_rel_diff = pd.DataFrame(index=self.desired_size.columns)
+
+        if (
+            self.use_shadow_pricing
+            and self.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+        ):
+
+            assert self.model_selector in ["workplace", "school"]
+
+            if self.model_selector == "workplace":
+                self.total_emp = self.shadow_settings["TOTAL_EMP"]
+                land_use = inject.get_table("land_use").to_frame()
+                self.target = land_use[self.total_emp]
+
+            elif self.model_selector == "school":
+                total_enr = self.shadow_settings["TOTAL_ENORLLMENT"]
+                land_use = inject.get_table("land_use").to_frame()
+                self.target = land_use[total_enr]
+            self.zonal_sample_rate = None
 
     def read_saved_shadow_prices(self, model_settings):
         """
@@ -216,35 +249,25 @@ class ShadowPriceCalculator(object):
 
         return shadow_prices
 
-    def synchronize_choices(self, local_modeled_size):
+    def synchronize_modeled_size(self, local_modeled_size):
         """
         We have to wait until all processes have computed choices and aggregated them by segment
         and zone before we can compute global aggregate zone counts (by segment). Since the global
         zone counts are in shared data, we have to coordinate access to the data structure across
         sub-processes.
-
         Note that all access to self.shared_data has to be protected by acquiring shared_data_lock
-
         ShadowPriceCalculator.synchronize_choices coordinates access to the global aggregate
         zone counts (local_modeled_size summed across all sub-processes).
-
         * All processes wait (in case we are iterating) until any stragglers from the previous
           iteration have exited the building. (TALLY_CHECKOUT goes to zero)
-
         * Processes then add their local counts into the shared_data and increment TALLY_CHECKIN
-
         * All processes wait until everybody has checked in (TALLY_CHECKIN == num_processes)
-
         * Processes make local copy of shared_data and check out (increment TALLY_CHECKOUT)
-
         * first_in process waits until all processes have checked out, then zeros shared_data
           and clears semaphores
-
         Parameters
         ----------
         local_modeled_size : pandas DataFrame
-
-
         Returns
         -------
         global_modeled_size_df : pandas DataFrame
@@ -303,6 +326,95 @@ class ShadowPriceCalculator(object):
 
         return global_modeled_size_df
 
+    def synchronize_choices(self, local_modeled_size):
+        """
+        We have to wait until all processes have computed choices and aggregated them by segment
+        and zone before we can compute global aggregate zone counts (by segment). Since the global
+        zone counts are in shared data, we have to coordinate access to the data structure across
+        sub-processes.
+
+        Note that all access to self.shared_data has to be protected by acquiring shared_data_lock
+
+        ShadowPriceCalculator.synchronize_choices coordinates access to the global aggregate
+        zone counts (local_modeled_size summed across all sub-processes).
+
+        * All processes wait (in case we are iterating) until any stragglers from the previous
+          iteration have exited the building. (TALLY_CHECKOUT goes to zero)
+
+        * Processes then add their local counts into the shared_data and increment TALLY_CHECKIN
+
+        * All processes wait until everybody has checked in (TALLY_CHECKIN == num_processes)
+
+        * Processes make local copy of shared_data and check out (increment TALLY_CHECKOUT)
+
+        * first_in process waits until all processes have checked out, then zeros shared_data
+          and clears semaphores
+
+        Parameters
+        ----------
+        local_modeled_size : pandas DataFrame
+
+
+        Returns
+        -------
+        global_modeled_size_df : pandas DataFrame
+            local copy of shared global_modeled_size data as dataframe
+            with same shape and columns as local_modeled_size
+        """
+
+        # shouldn't be called if we are not multiprocessing
+        assert self.shared_data_choice is not None
+        assert self.num_processes > 1
+
+        def get_tally(t):
+            with self.shared_data_choice_lock:
+                return self.shared_data_choice[t]
+
+        def wait(tally, target):
+            while get_tally(tally) != target:
+                time.sleep(1)
+
+        # - nobody checks in until checkout clears
+        wait(TALLY_CHECKOUT, 0)
+
+        # - add local_modeled_size data, increment TALLY_CHECKIN
+        with self.shared_data_choice_lock:
+            first_in = self.shared_data_choice[TALLY_CHECKIN] == 0
+            # add local data from df to shared data buffer
+            # final column is used for tallys, hence the negative index
+            # Ellipsis expands : to fill available dims so [..., 0:-1] is the whole array except for the tallys
+            self.shared_data_choice[..., 0:-1] += local_modeled_size.values.astype(
+                np.int64
+            )
+            self.shared_data_choice[TALLY_CHECKIN] += 1
+
+        # - wait until everybody else has checked in
+        wait(TALLY_CHECKIN, self.num_processes)
+
+        # - copy shared data, increment TALLY_CHECKIN
+        with self.shared_data_choice_lock:
+            logger.info("copy shared_data")
+            # numpy array with sum of local_modeled_size.values from all processes
+            global_modeled_size_array = self.shared_data_choice[..., 0:-1].copy()
+            self.shared_data_choice[TALLY_CHECKOUT] += 1
+
+        # - first in waits until all other processes have checked out, and cleans tub
+        if first_in:
+            wait(TALLY_CHECKOUT, self.num_processes)
+            with self.shared_data_choice_lock:
+                # zero shared_data, clear TALLY_CHECKIN, and TALLY_CHECKOUT semaphores
+                self.shared_data_choice[:] = 0
+            logger.info("first_in clearing shared_data")
+
+        # convert summed numpy array data to conform to original dataframe
+        global_modeled_size_df = pd.DataFrame(
+            data=global_modeled_size_array,
+            index=local_modeled_size.index,
+            columns=local_modeled_size.columns,
+        )
+
+        return global_modeled_size_df
+
     def set_choices(self, choices, segment_ids):
         """
         aggregate individual location choices to modeled_size by zone and segment
@@ -326,14 +438,32 @@ class ShadowPriceCalculator(object):
 
             modeled_size[seg_name] = segment_choices.value_counts()
 
+        # if self.shadow_price_method == "simulation":
+        choice_merged = pd.merge(
+            self.shared_sp_choice_df,
+            choices,
+            left_index=True,
+            right_index=True,
+            how="left",
+            suffixes=("_x", "_y"),
+        )
+
+        choice_merged["choice_y"] = choice_merged["choice_y"].fillna(0)
+        choice_merged["choice"] = choice_merged["choice_x"] + choice_merged["choice_y"]
+        choice_merged = choice_merged.drop(columns=["choice_x", "choice_y"])
+
         modeled_size = modeled_size.fillna(0).astype(int)
 
         if self.num_processes == 1:
             # - not multiprocessing
+            self.choices_synced = choices
             self.modeled_size = modeled_size
         else:
             # - if we are multiprocessing, we have to aggregate across sub-processes
-            self.modeled_size = self.synchronize_choices(modeled_size)
+            # if self.shadow_price_method == "simulation":
+            self.choices_synced = self.synchronize_choices(choice_merged)
+
+            self.modeled_size = self.synchronize_modeled_size(modeled_size)
 
     def check_fit(self, iteration):
         """
@@ -368,47 +498,116 @@ class ShadowPriceCalculator(object):
         # max percentage of zones allowed to fail
         fail_threshold = self.shadow_settings["FAIL_THRESHOLD"]
 
-        modeled_size = self.modeled_size
-        desired_size = self.desired_size
+        if self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation":
 
-        abs_diff = (desired_size - modeled_size).abs()
+            modeled_size = self.modeled_size
+            desired_size = self.desired_size
 
-        rel_diff = abs_diff / modeled_size
+            abs_diff = (desired_size - modeled_size).abs()
 
-        # ignore zones where desired_size < threshold
-        rel_diff.where(desired_size >= size_threshold, 0, inplace=True)
+            self.rel_diff = abs_diff / modeled_size
 
-        # ignore zones where rel_diff < percent_tolerance
-        rel_diff.where(rel_diff > (percent_tolerance / 100.0), 0, inplace=True)
+            # ignore zones where desired_size < threshold
+            self.rel_diff.where(desired_size >= size_threshold, 0, inplace=True)
 
-        self.num_fail["iter%s" % iteration] = (rel_diff > 0).sum()
-        self.max_abs_diff["iter%s" % iteration] = abs_diff.max()
-        self.max_rel_diff["iter%s" % iteration] = rel_diff.max()
+            # ignore zones where rel_diff < percent_tolerance
+            self.rel_diff.where(
+                self.rel_diff > (percent_tolerance / 100.0), 0, inplace=True
+            )
 
-        total_fails = (rel_diff > 0).values.sum()
+            self.num_fail["iter%s" % iteration] = (self.rel_diff > 0).sum()
+            self.max_abs_diff["iter%s" % iteration] = abs_diff.max()
+            self.max_rel_diff["iter%s" % iteration] = self.rel_diff.max()
 
-        # FIXME - should not count zones where desired_size < threshold? (could calc in init)
-        max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
+            total_fails = (self.rel_diff > 0).values.sum()
 
-        converged = total_fails <= max_fail
+            # FIXME - should not count zones where desired_size < threshold? (could calc in init)
+            max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
 
-        # for c in desired_size:
-        #     print("check_fit %s segment %s" % (self.model_selector, c))
-        #     print("  modeled %s" % (modeled_size[c].sum()))
-        #     print("  desired %s" % (desired_size[c].sum()))
-        #     print("  max abs diff %s" % (abs_diff[c].max()))
-        #     print("  max rel diff %s" % (rel_diff[c].max()))
+            converged = total_fails <= max_fail
 
-        logger.info(
-            "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
-            % (self.model_selector, iteration, converged, max_fail, total_fails)
-        )
+            # for c in desired_size:
+            #     print("check_fit %s segment %s" % (self.model_selector, c))
+            #     print("  modeled %s" % (modeled_size[c].sum()))
+            #     print("  desired %s" % (desired_size[c].sum()))
+            #     print("  max abs diff %s" % (abs_diff[c].max()))
+            #     print("  max rel diff %s" % (self.rel_diff[c].max()))
 
-        # - convergence stats
-        if converged or iteration == self.max_iterations:
-            logger.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
-            logger.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
-            logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
+            logger.info(
+                "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
+                % (self.model_selector, iteration, converged, max_fail, total_fails)
+            )
+
+            # - convergence stats
+            if converged or iteration == self.max_iterations:
+                logger.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
+                logger.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
+                logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
+
+        else:
+            # ignore convergence criteria for zones smaller than target_threshold
+            self.target_threshold = self.shadow_settings["TARGET_THRESHOLD"]
+
+            modeled_size = self.modeled_size
+            desired_size = self.target
+
+            desired_share = self.target / self.target.sum()
+            modeled_share = (
+                self.modeled_size.sum(axis=1) / self.modeled_size.sum().sum()
+            )
+
+            self.rel_diff = desired_share / modeled_share
+
+            # abs_diff = (desired_size - modeled_size.sum(axis=1) * (desired_share/modeled_share)).abs()
+            # abs_diff.to_csv(r'E:\Projects\Clients\SEMCOG\semcog_2zone_rundir\temp\abs_diff.csv')
+            # rel_diff = abs_diff / (modeled_size.sum(axis=1) * (desired_share/modeled_share))
+
+            # ignore zones where desired_size < threshold
+            self.rel_diff.where(desired_size >= self.target_threshold, 0, inplace=True)
+
+            # ignore zones where rel_diff is within percent_tolerance
+            self.rel_diff.where(
+                (self.rel_diff > 1 + (percent_tolerance / 100.0))
+                | (self.rel_diff < 1 - (percent_tolerance / 100.0)),
+                0,
+                inplace=True,
+            )
+            # self.rel_diff.to_csv(r'E:\Projects\Clients\SEMCOG\semcog_2zone_rundir\temp\rel_diff.csv')
+            self.num_fail["iter%s" % iteration] = (self.rel_diff > 0).sum()
+            # self.max_abs_diff["iter%s" % iteration] = abs_diff.max()
+            # self.max_rel_diff["iter%s" % iteration] = rel_diff.max()
+
+            total_fails = (self.rel_diff > 0).values.sum()
+
+            # FIXME - should not count zones where desired_size < threshold? (could calc in init)
+            max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
+            # print('@@_________@@MAX FAIL')
+            # print(np.ceil(max_fail))
+            # print('failing zones:')
+            # print(total_fails)
+            # print('@@_____________@@')
+
+            converged = (total_fails <= np.ceil(max_fail)) | (
+                len(self.choices_synced) == 0
+            )
+
+            # for c in desired_size:
+            #     print("check_fit %s segment %s" % (self.model_selector, c))
+            #     print("  modeled %s" % (modeled_size[c].sum()))
+            #     print("  desired %s" % (desired_size[c].sum()))
+            #     print("  max abs diff %s" % (abs_diff[c].max()))
+            #     print("  max rel diff %s" % (rel_diff[c].max()))
+
+            logger.info(
+                "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
+                % (self.model_selector, iteration, converged, max_fail, total_fails)
+            )
+
+            # - convergence stats
+            if converged or iteration == self.max_iterations:
+                logger.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
+                logger.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
+                logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
 
         return converged
 
@@ -519,6 +718,74 @@ class ShadowPriceCalculator(object):
 
             new_shadow_prices = self.shadow_prices + adjustment
 
+        elif shadow_price_method == "simulation":
+            # - NewMethod
+            """
+            C_j = (emp_j/sum(emp_j))/(workers_j/sum(workers_j))
+
+            if C_j > 1: #under-estimate workers in zone
+
+                shadow_price_j = 0
+
+            elif C_j < 1: #over-estimate workers in zone
+
+                shadow_price_j = -999
+                resimulate n workers from zone j, with n = int(workers_j-emp_j/sum(emp_j*workers_j))
+            """
+
+            desired_share = self.target / self.target.sum()
+            modeled_share = (
+                self.modeled_size.sum(axis=1) / self.modeled_size.sum().sum()
+            )
+            percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
+
+            sprice = desired_share / modeled_share
+            sprice.fillna(0, inplace=True)
+            sprice.replace([np.inf, -np.inf], 0, inplace=True)
+
+            adjustment_ = np.where(sprice <= 1 + percent_tolerance / 100, -999, 0)
+            adjustment = pd.DataFrame(index=self.shadow_prices.index)
+
+            for seg_id in self.shadow_prices.columns:
+                adjustment[seg_id] = adjustment_
+
+            new_shadow_prices = adjustment
+            self.zonal_sample_rate = 1 - sprice
+            overpredicted_zones = new_shadow_prices[
+                new_shadow_prices.iloc[:, 0] == -999
+            ].index
+            zones_outside_tol = self.zonal_sample_rate[
+                self.zonal_sample_rate > percent_tolerance / 100
+            ].index
+            small_zones = self.target[self.target <= self.target_threshold].index
+
+            choices = self.choices_synced[
+                (self.choices_synced.choice.isin(overpredicted_zones))
+                & (self.choices_synced.choice.isin(zones_outside_tol))
+                & ~(self.choices_synced.choice.isin(small_zones))
+            ]
+
+            choices_index = choices.index.name
+            choices = choices.reset_index()
+
+            # handling unlikely cases where there are no more overassigned zones, but a few underassigned zones remain
+            if len(choices) > 0:
+                self.sampled_persons = (
+                    choices.groupby("choice")
+                    .apply(
+                        lambda x: x.sample(
+                            frac=self.zonal_sample_rate.loc[x.name], random_state=1
+                        )
+                    )
+                    .reset_index(drop=True)
+                    .set_index(choices_index)
+                )
+            else:
+                self.sampled_persons = pd.DataFrame()
+
+            print('_________')
+            print(len(self.sampled_persons))
+
         else:
             raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
@@ -544,10 +811,14 @@ class ShadowPriceCalculator(object):
                 size_term_adjustment = self.shadow_prices[segment]
             elif shadow_price_method == "daysim":
                 utility_adjustment = self.shadow_prices[segment]
+            elif shadow_price_method == "simulation":
+                utility_adjustment = self.shadow_prices[segment]
             else:
                 raise RuntimeError(
                     "unknown SHADOW_PRICE_METHOD %s" % shadow_price_method
                 )
+        # added
+        # utility_adjustment.to_csv(r'C:\Projects\SEMCOG\utility_adjustment.csv')
 
         size_terms = pd.DataFrame(
             {
@@ -673,6 +944,126 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     return data_buffers
 
 
+def buffers_for_shadow_pricing_choice(shadow_pricing_choice_info):
+    """
+    Allocate shared_data buffers for multiprocess shadow pricing
+
+    Allocates one buffer per model_selector.
+    Buffer datatype and shape specified by shadow_pricing_info
+
+    buffers are multiprocessing.Array (RawArray protected by a multiprocessing.Lock wrapper)
+    We don't actually use the wrapped version as it slows access down and doesn't provide
+    protection for numpy-wrapped arrays, but it does provide a convenient way to bundle
+    RawArray and an associated lock. (ShadowPriceCalculator uses the lock to coordinate access to
+    the numpy-wrapped RawArray.)
+
+    Parameters
+    ----------
+    shadow_pricing_info : dict
+
+    Returns
+    -------
+        data_buffers : dict {<model_selector> : <shared_data_buffer>}
+        dict of multiprocessing.Array keyed by model_selector
+    """
+
+    dtype = shadow_pricing_choice_info["dtype"]
+    block_shapes = shadow_pricing_choice_info["block_shapes"]
+
+    data_buffers = {}
+
+    for block_key, block_shape in block_shapes.items():
+
+        # buffer_size must be int, not np.int64
+        buffer_size = util.iprod(block_shape)
+
+        csz = buffer_size * np.dtype(dtype).itemsize
+        logger.info(
+            "allocating shared shadow pricing buffer for choices %s %s buffer_size %s bytes %s (%s)"
+            % (block_key, buffer_size, block_shape, csz, util.GB(csz))
+        )
+
+        if np.issubdtype(dtype, np.int64):
+            typecode = ctypes.c_int64
+        else:
+            raise RuntimeError(
+                "buffer_for_shadow_pricing unrecognized dtype %s" % dtype
+            )
+
+        shared_data_buffer = multiprocessing.Array(typecode, buffer_size)
+
+        logger.info("buffer_for_shadow_pricing_choice added block %s" % block_key)
+
+        data_buffers[block_key + "_choice"] = shared_data_buffer
+
+        persons = inject.get_table("persons").to_frame()
+        sp_choice_df = persons.reset_index()["person_id"].to_frame()
+
+        # declare a shared Array with data from sp_choice_df
+        mparr = multiprocessing.Array(ctypes.c_double, sp_choice_df.values.reshape(-1))
+
+        # create a new df based on the shared array
+        shared_sp_choice_df = pd.DataFrame(
+            np.frombuffer(mparr.get_obj()).reshape(sp_choice_df.shape),
+            columns=sp_choice_df.columns,
+        )
+        data_buffers["shadow_price_choice_df"] = shared_sp_choice_df
+
+    return data_buffers
+
+
+def shadow_price_data_from_buffers_choice(
+    data_buffers, shadow_pricing_info, model_selector
+):
+    """
+
+    Parameters
+    ----------
+    data_buffers : dict of {<model_selector> : <multiprocessing.Array>}
+        multiprocessing.Array is simply a convenient way to bundle Array and Lock
+        we extract the lock and wrap the RawArray in a numpy array for convenience in indexing
+        The shared data buffer has shape (<num_zones, <num_segments> + 1)
+        extra column is for reverse semaphores with TALLY_CHECKIN and TALLY_CHECKOUT
+    shadow_pricing_info : dict
+        dict of useful info
+           dtype: sp_dtype,
+           block_shapes : OrderedDict({<model_selector>: <shape tuple>})
+           dict mapping model_selector to block shape (including extra column for semaphores)
+           e.g. {'school': (num_zones, num_segments + 1)
+    model_selector : str
+        location type model_selector (e.g. school or workplace)
+
+    Returns
+    -------
+    shared_data, shared_data_lock
+        shared_data : multiprocessing.Array or None (if single process)
+        shared_data_lock : numpy array wrapping multiprocessing.RawArray or None (if single process)
+    """
+
+    assert type(data_buffers) == dict
+
+    dtype = shadow_pricing_info["dtype"]
+    block_shapes = shadow_pricing_info["block_shapes"]
+
+    if model_selector not in block_shapes:
+        raise RuntimeError(
+            "Model selector %s not in shadow_pricing_info" % model_selector
+        )
+
+    if block_name(model_selector + "_choice") not in data_buffers:
+        raise RuntimeError(
+            "Block %s not in data_buffers" % block_name(model_selector + "_choice")
+        )
+
+    data = data_buffers[block_name(model_selector + "_choice")]
+    shape = (
+        int(len(data) / block_shapes[model_selector][1]),
+        int(block_shapes[model_selector][1]),
+    )
+
+    return np.frombuffer(data.get_obj(), dtype=dtype).reshape(shape), data.get_lock()
+
+
 def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_selector):
     """
 
@@ -747,17 +1138,38 @@ def load_shadow_price_calculator(model_settings):
         shadow_pricing_info = inject.get_injectable("shadow_pricing_info", None)
         assert shadow_pricing_info is not None
 
+        shadow_pricing_choice_info = inject.get_injectable(
+            "shadow_pricing_choice_info", None
+        )
+        assert shadow_pricing_choice_info is not None
+
         # - extract data buffer and reshape as numpy array
         data, lock = shadow_price_data_from_buffers(
             data_buffers, shadow_pricing_info, model_selector
         )
+        data_choice, lock_choice = shadow_price_data_from_buffers_choice(
+            data_buffers, shadow_pricing_choice_info, model_selector
+        )
+        if "shadow_price_choice_df" in data_buffers:
+            shared_sp_choice_df = data_buffers["shadow_price_choice_df"]
+        else:
+            shared_sp_choice_df = None
+
     else:
         assert num_processes == 1
         data = None  # ShadowPriceCalculator will allocate its own data
         lock = None
 
     # - ShadowPriceCalculator
-    spc = ShadowPriceCalculator(model_settings, num_processes, data, lock)
+    spc = ShadowPriceCalculator(
+        model_settings,
+        num_processes,
+        data,
+        lock,
+        data_choice,
+        lock_choice,
+        shared_sp_choice_df,
+    )
 
     return spc
 
@@ -918,6 +1330,53 @@ def get_shadow_pricing_info():
     return shadow_pricing_info
 
 
+def get_shadow_pricing_choice_info():
+    """
+    return dict with info about dtype and shapes of desired and modeled size tables
+
+    block shape is (num_zones, num_segments + 1)
+
+
+    Returns
+    -------
+    shadow_pricing_info: dict
+        dtype: <sp_dtype>,
+        block_shapes: dict {<model_selector>: <block_shape>}
+    """
+
+    persons = inject.get_table("persons")
+    # size_terms = inject.get_injectable("size_terms")
+
+    shadow_settings = config.read_model_settings("shadow_pricing.yaml")
+
+    # shadow_pricing_models is dict of {<model_selector>: <model_name>}
+    shadow_pricing_models = shadow_settings.get("shadow_pricing_models", {})
+
+    blocks = OrderedDict()
+    for model_selector in shadow_pricing_models:
+
+        sp_rows = len(persons)
+        # sp_cols = len(size_terms[size_terms.model_selector == model_selector])
+
+        # extra tally column for TALLY_CHECKIN and TALLY_CHECKOUT semaphores
+        blocks[block_name(model_selector)] = (sp_rows, 2)
+
+    sp_dtype = np.int64
+    # sp_dtype = np.str
+
+    shadow_pricing_choice_info = {
+        "dtype": sp_dtype,
+        "block_shapes": blocks,
+    }
+
+    for k in shadow_pricing_choice_info:
+        logger.debug(
+            "shadow_pricing_choice_info %s: %s" % (k, shadow_pricing_choice_info.get(k))
+        )
+
+    return shadow_pricing_choice_info
+
+
 @inject.injectable(cache=True)
 def shadow_pricing_info():
 
@@ -926,3 +1385,35 @@ def shadow_pricing_info():
     logger.debug("loading shadow_pricing_info injectable")
 
     return get_shadow_pricing_info()
+
+
+@inject.injectable(cache=True)
+def shadow_pricing_choice_info():
+
+    # when multiprocessing with shared data mp_tasks has to call network_los methods
+    # get_shadow_pricing_info() and buffers_for_shadow_pricing()
+    logger.debug("loading shadow_pricing_choice_info injectable")
+
+    return get_shadow_pricing_choice_info()
+
+
+# @inject.table()
+# def get_full_person_index_df():
+
+#     persons = inject.get_table('persons').to_frame()
+#     persons_index = persons.index.name
+#     persons_index_full = persons.reset_index()[persons_index].reset_index().drop(columns=['index'])
+
+#     inject.add_table('persons_index_full', persons_index_full)
+#     #pipeline.get_rn_generator().add_channel('persons_index_full', persons_index_full)
+
+#     return persons_index_full
+
+# @inject.injectable(cache=True)
+# def get_full_person_index():
+
+#     persons = inject.get_table('persons').to_frame()
+#     persons_index_full = persons.index
+
+#     return persons_index_full
+

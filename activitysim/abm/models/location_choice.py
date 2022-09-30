@@ -227,7 +227,7 @@ HOME_MAZ = "home_zone_id"
 DEST_MAZ = "dest_MAZ"
 
 
-def aggregate_size_terms(dest_size_terms, network_los):
+def aggregate_size_terms(dest_size_terms, network_los, model_settings):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
     #
@@ -260,6 +260,19 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
     for c in weighted_average_cols:
         TAZ_size_terms[c] /= TAZ_size_terms["size_term"]  # weighted average
+
+    spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+    if spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation":
+        # allow TAZs with at least one underassigned MAZ in them, therefore with a shadowprice larger than -999, to be selected again
+        TAZ_size_terms["shadow_price_utility_adjustment"] = np.where(
+            TAZ_size_terms["shadow_price_utility_adjustment"] > -999, 0, -999
+        )
+        # now, negative size term means shadow price is -999. Setting size_term to 0 so the prob of that MAZ being selected becomes 0
+        MAZ_size_terms["size_term"] = np.where(
+            MAZ_size_terms["shadow_price_utility_adjustment"] < 0,
+            0,
+            MAZ_size_terms["size_term"],
+        )
 
     if TAZ_size_terms.isna().any(axis=None):
         logger.warning(
@@ -308,7 +321,9 @@ def location_presample(
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
     assert DEST_TAZ != alt_dest_col_name
 
-    MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(dest_size_terms, network_los)
+    MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
+        dest_size_terms, network_los, model_settings
+    )
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
@@ -856,6 +871,7 @@ def iterate_location_choice(
 
     # chooser segmentation allows different sets coefficients for e.g. different income_segments or tour_types
     chooser_segment_column = model_settings["CHOOSER_SEGMENT_COLUMN_NAME"]
+    segment_ids = model_settings["SEGMENT_IDS"]
 
     assert (
         chooser_segment_column in persons_merged_df
@@ -869,11 +885,42 @@ def iterate_location_choice(
 
     for iteration in range(1, max_iterations + 1):
 
+        persons_merged_df_ = persons_merged_df.copy()
+        # print("################################_" + str(iteration))
+
         if spc.use_shadow_pricing and iteration > 1:
             spc.update_shadow_prices()
 
-        choices_df, save_sample_df = run_location_choice(
-            persons_merged_df,
+            if spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation":
+                # filter from the sampled persons
+                persons_merged_df_ = persons_merged_df_[
+                    persons_merged_df_.index.isin(spc.sampled_persons.index)
+                ]
+                # handle cases where a segment has persons but no zones to receive them
+                desired_size_sum = spc.desired_size[
+                    spc.desired_size.index.isin(
+                        spc.shadow_prices[spc.shadow_prices.iloc[:, 0] != -999].index
+                    )
+                ].sum()
+                zero_desired_size_segments = [
+                    i for i in desired_size_sum.index if desired_size_sum[i] == 0
+                ]
+                zero_desired_size_segments_ids = [
+                    segment_ids[key] for key in zero_desired_size_segments
+                ]
+                persons_merged_df_ = persons_merged_df_[
+                    ~persons_merged_df_[chooser_segment_column].isin(
+                        zero_desired_size_segments_ids
+                    )
+                ]
+
+                persons_merged_df_ = persons_merged_df_.sort_index()
+
+                # sample_df["n_" + str(iteration)] = spc.sampled_persons
+                # sample_df.to_csv(r"E:\Projects\Clients\SEMCOG\semcog_2zone_rundir\temp\sample_df" + ".csv")
+
+        choices_df_, save_sample_df = run_location_choice(
+            persons_merged_df_,
             network_los,
             shadow_price_calculator=spc,
             want_logsums=logsum_column_name is not None,
@@ -886,9 +933,34 @@ def iterate_location_choice(
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % iteration),
         )
 
-        # choices_df is a pandas DataFrame with columns 'choice' and (optionally) 'logsum'
-        if choices_df is None:
+        # choices_df is a pandas DataFrame with columns "choice" and (optionally) "logsum"
+        if choices_df_ is None:
             break
+
+        if spc.use_shadow_pricing:
+            # handle simulation method
+            if (
+                spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+                and iteration > 1
+            ):
+                # if a process ends up with no sampled workers in it, hence an empty choice_df_, then choice_df wil be what it was previously
+                if len(choices_df_) == 0:
+                    choices_df = choices_df
+                else:
+                    choices_df = pd.concat([choices_df, choices_df_], axis=0)
+                    choices_df_index = choices_df_.index.name
+                    choices_df = choices_df.reset_index()
+                    # update choices of workers/students
+                    choices_df = choices_df.drop_duplicates(
+                        subset=[choices_df_index], keep="last"
+                    )
+                    choices_df = choices_df.set_index(choices_df_index)
+                    choices_df = choices_df.sort_index()
+            else:
+                choices_df = choices_df_.copy()
+
+        else:
+            choices_df = choices_df_
 
         spc.set_choices(
             choices=choices_df["choice"],
@@ -901,13 +973,7 @@ def iterate_location_choice(
             spc.write_trace_files(iteration)
 
         if spc.use_shadow_pricing and spc.check_fit(iteration):
-            logging.info(
-                "%s converged after iteration %s"
-                % (
-                    trace_label,
-                    iteration,
-                )
-            )
+            logging.info("%s converged after iteration %s" % (trace_label, iteration,))
             break
 
     # - shadow price table

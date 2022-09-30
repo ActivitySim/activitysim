@@ -886,7 +886,6 @@ def iterate_location_choice(
     for iteration in range(1, max_iterations + 1):
 
         persons_merged_df_ = persons_merged_df.copy()
-        # print("################################_" + str(iteration))
 
         if spc.use_shadow_pricing and iteration > 1:
             spc.update_shadow_prices()
@@ -915,9 +914,6 @@ def iterate_location_choice(
                 ]
 
                 persons_merged_df_ = persons_merged_df_.sort_index()
-
-                # sample_df["n_" + str(iteration)] = spc.sampled_persons
-                # sample_df.to_csv(r"E:\Projects\Clients\SEMCOG\semcog_2zone_rundir\temp\sample_df" + ".csv")
 
         choices_df_, save_sample_df = run_location_choice(
             persons_merged_df_,

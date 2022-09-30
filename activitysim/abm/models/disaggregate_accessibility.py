@@ -353,7 +353,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
 
     # # De-register the channel, so it can get re-registered with actual pop tables
-    # [pipeline.get_rn_generator().drop_channel(x) for x in ['persons', 'households']]
     [pipeline.drop_table(x) for x in ['school_destination_size', 'workplace_destination_size', 'tours']]
 
     # Combined accessibility table
@@ -362,16 +361,17 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     for k, df in logsums.items():
         if k == 'non_mandatory_tour_destination':
             # cast non-mandatory purposes to wide
-            df = pd.pivot(df, index='person_id', columns='tour_type', values='logsums')
+            df = pd.pivot(df, index=['household_id', 'person_id'], columns='tour_type', values='logsums')
             df.columns = ['_'.join([str(x), 'logsums']) for x in df.columns]
             access_list.append(df)
         else:
-            access_list.append(df[['logsums']].rename(columns={'logsums': k + '_logsums'}))
-    # Merge to wide data frame
-    access_df = reduce(lambda x, y: pd.merge(x, y, on='person_id', how='outer'), access_list)
+            access_list.append(df[['household_id','logsums']].rename(columns={'logsums': k + '_logsums'}))
+    # Merge to wide data frame. Merged on household_id, logsums are at household level
+    access_df = reduce(lambda x, y: pd.merge(x, y, on='household_id', how='outer'), access_list)
 
     # Merge in the proto pop data and inject it
-    access_df = access_df.join(pipeline.get_table('proto_persons_merged')).sort_index()
+    access_df = access_df.merge(pipeline.get_table('proto_persons_merged').reset_index(),
+                                on='household_id').set_index('person_id').sort_index()
     inject.add_table('proto_disaggregate_accessibility', access_df)
 
     # Inject separate accessibilities into pipeline

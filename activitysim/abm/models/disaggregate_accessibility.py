@@ -24,7 +24,7 @@ class ProtoPop:
         self.proto_pop = {}
         self.land_use = land_use_df
         self.model_settings = model_settings
-        self.params = self.read_table_settings(land_use_df)
+        self.params = self.read_table_settings()
         self.create_proto_pop()
 
         # Random seed
@@ -34,9 +34,9 @@ class ProtoPop:
         if pipeline:
             self.inject_tables()
             self.annotate_tables()
-            self.merge_persons(land_use_df)
+            self.merge_persons()
 
-    def zone_sampler(self, land_use_df, method=None):
+    def zone_sampler(self, method=None):
         """      This is a "pre"-sampling method, which selects a sample from the total zones and generates a proto-pop on it.
         This is particularly useful for multi-zone models where there are many MAZs
          which would cause memory usage and computation time to explode.
@@ -53,8 +53,8 @@ class ProtoPop:
         method = self.model_settings.get('zone_pre_sample_method')
         N = self.model_settings.get('zone_pre_sample_size', 0)
 
-        if N == 0 or N > len(land_use_df.index):
-            N = len(land_use_df.index)
+        if N == 0 or N > len(self.land_use.index):
+            N = len(self.land_use.index)
             print('Pre-sample size equals total number of zones. Using default sampling method.')
             method = None  # If it's a full sample, there's no need to run an aggregator
 
@@ -62,7 +62,7 @@ class ProtoPop:
             assert zone_cols is not None
             # Randomly select one MAZ per TAZ by randomizing the index and then select the first MAZ in each TAZ
             # Then truncate the sampled indices by N samples and sort it
-            sample_idx = land_use_df.sample(frac=1).reset_index().groupby(zone_cols)[id_col].first()
+            sample_idx = self.land_use.sample(frac=1).reset_index().groupby(zone_cols)[id_col].first()
             sample_idx = sorted(sample_idx)
 
         elif method and method.lower() == 'kmeans':
@@ -70,7 +70,7 @@ class ProtoPop:
             centroids_df = pipeline.get_table('maz_centroids')
 
             # Filter only the zones in the land use file (relevant if running scaled model)
-            centroids_df = centroids_df[centroids_df.index.isin(land_use_df.index)]
+            centroids_df = centroids_df[centroids_df.index.isin(self.land_use.index)]
             xy_list = list(centroids_df[['X', 'Y']].itertuples(index=False, name=None))
 
             # Initializer k-means class
@@ -87,11 +87,11 @@ class ProtoPop:
             kmeans_res = kmeans.fit(xy_list)
             sample_idx = [util.nearest_node_index(_xy, xy_list) for _xy in kmeans_res.cluster_centers_]
         else:
-            sample_idx = sorted(random.sample(sorted(land_use_df.index), N))
+            sample_idx = sorted(random.sample(sorted(self.land_use.index), N))
 
         return {id_col: sample_idx}
 
-    def read_table_settings(self, land_use_df):
+    def read_table_settings(self):
         # Check if setup properly
         assert 'CREATE_TABLES' in self.model_settings.keys()
         create_tables = self.model_settings['CREATE_TABLES']
@@ -115,7 +115,7 @@ class ProtoPop:
         self.model_settings['zone_id_names'] = self.model_settings.get('zone_id_names', {'index_cols': 'zone_id'})
 
         # Add in the zone variables
-        zone_list = self.zone_sampler(land_use_df)
+        zone_list = self.zone_sampler(self.land_use)
 
         # Add zones to households dicts as vary_on variable
         params['proto_households']['variables'] = {**params['proto_households']['variables'], **zone_list}
@@ -211,7 +211,7 @@ class ProtoPop:
                 trace_label=tracing.extend_trace_label('ProtoPop.annotate', tablename))
             pipeline.replace_table(tablename, df)
 
-    def merge_persons(self, land_use_df):
+    def merge_persons(self):
         persons = pipeline.get_table('proto_persons')
         households = pipeline.get_table('proto_households')
 
@@ -220,7 +220,7 @@ class ProtoPop:
 
         # persons_merged to emulate the persons_merged table in the pipeline
         persons_merged = persons.join(households[cols_to_use], on=self.params['proto_households']['index_col']).merge(
-            land_use_df,
+            self.land_use,
             left_on=self.params['proto_households']['zone_col'],
             right_on=self.model_settings['zone_id_names']['index_col'])
 

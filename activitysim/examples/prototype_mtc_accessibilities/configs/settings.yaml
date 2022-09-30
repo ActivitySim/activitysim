@@ -188,7 +188,6 @@ models:
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
   - compute_disaggregate_accessibility # Must happen before initialize_households. Problem w/ shadow_pricing
   - initialize_households
-  - initialize_disaggregate_accessibility  # run after initialize_households to merged onto households
   - compute_accessibility
   - school_location
   - workplace_location

@@ -122,19 +122,21 @@ CREATE_TABLES:
             person_num: pnum            # Specifies which person variable to join the tours on
 
 # Merge on variables
-# declare the variable and then the 'how': exact, nearest
-# exact - Treats as categorical to be matched exactly.
-# nearest - If continuous, will choose nearest value.
-# NOTE: ONLY ONE NEAREST CAN BE USE AT A TIME.
-# A more complex nearest join will need to use a bespoke algorithm. Perhaps kmeans?
 MERGE_ON:
-  exact:
-    - adult
+  # Merge method: (default = soft)
+  # - 'hard' joins exactly on the variables, any missing match results in NaN.
+  # - 'soft' joins using classification to match every person to the nearest possible logsum feature.
+  #
+  # Hard join can include one optional 'as-of' variable to join by nearest value in continuous variable (e.g., age)
+  # Classification currently uses KNN but future could use other methods (e.g., knn, random forest, bayes... etc.).
+  # Soft join includes the asof variable with other classification features
+  method: 'soft'
+  by: # These should be categorical variables
     - sex
-    - pemploy
+    - is_worker
     - auto_ownership
     - income_segment
-  nearest:
+  asof:
     - age
 
 

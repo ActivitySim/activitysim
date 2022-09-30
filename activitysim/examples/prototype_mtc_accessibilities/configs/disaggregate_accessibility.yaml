@@ -118,21 +118,10 @@ CREATE_TABLES:
 
 # Merge on variables
 MERGE_ON:
-  # Merge method: (default = soft)
-  # - 'hard' joins exactly on the variables, any missing match results in NaN.
-  # - 'soft' joins using classification to match every person to the nearest possible logsum feature.
-  #
-  # Hard join can include one optional 'as-of' variable to join by nearest value in continuous variable (e.g., age)
-  # Classification currently uses KNN but future could use other methods (e.g., knn, random forest, bayes... etc.).
-  # Soft join includes the asof variable with other classification features
-  method: 'soft'
-  by: # These should be categorical variables
-    - sex
-    - is_worker
+  by: # These should be categorical variables at the household level
+    - home_zone_id
     - auto_ownership
     - income_segment
-  asof:
-    - age
 
 # Include any annotations for persons, households, land_use, or tours.
 # The purpose of a separate annotation setup is that annotation expressions for the main model

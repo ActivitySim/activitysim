@@ -82,7 +82,6 @@ class ShadowPriceCalculator(object):
         shared_sp_choice_df=None,
     ):
         """
-
         Presence of shared_data is used as a flag for multiprocessing
         If we are multiprocessing, shared_data should be a multiprocessing.RawArray buffer
         to aggregate modeled_size across all sub-processes, and shared_data_lock should be
@@ -158,9 +157,10 @@ class ShadowPriceCalculator(object):
         self.shared_data_choice_lock = shared_data_choice_lock
 
         self.shared_sp_choice_df = shared_sp_choice_df
-        self.shared_sp_choice_df = self.shared_sp_choice_df.astype("int")
-        self.shared_sp_choice_df = self.shared_sp_choice_df.set_index("person_id")
-        self.shared_sp_choice_df["choice"] = int(0)
+        if shared_sp_choice_df is not None:
+            self.shared_sp_choice_df = self.shared_sp_choice_df.astype("int")
+            self.shared_sp_choice_df = self.shared_sp_choice_df.set_index("person_id")
+            self.shared_sp_choice_df["choice"] = int(0)
 
         # - load saved shadow_prices (if available) and set max_iterations accordingly
         if self.use_shadow_pricing:
@@ -210,7 +210,7 @@ class ShadowPriceCalculator(object):
                 self.target = land_use[self.total_emp]
 
             elif self.model_selector == "school":
-                total_enr = self.shadow_settings["TOTAL_ENORLLMENT"]
+                total_enr = self.shadow_settings["TOTAL_ENROLLMENT"]
                 land_use = inject.get_table("land_use").to_frame()
                 self.target = land_use[total_enr]
             self.zonal_sample_rate = None
@@ -526,13 +526,6 @@ class ShadowPriceCalculator(object):
 
             converged = total_fails <= max_fail
 
-            # for c in desired_size:
-            #     print("check_fit %s segment %s" % (self.model_selector, c))
-            #     print("  modeled %s" % (modeled_size[c].sum()))
-            #     print("  desired %s" % (desired_size[c].sum()))
-            #     print("  max abs diff %s" % (abs_diff[c].max()))
-            #     print("  max rel diff %s" % (self.rel_diff[c].max()))
-
             logger.info(
                 "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
                 % (self.model_selector, iteration, converged, max_fail, total_fails)
@@ -558,10 +551,6 @@ class ShadowPriceCalculator(object):
 
             self.rel_diff = desired_share / modeled_share
 
-            # abs_diff = (desired_size - modeled_size.sum(axis=1) * (desired_share/modeled_share)).abs()
-            # abs_diff.to_csv(r'E:\Projects\Clients\SEMCOG\semcog_2zone_rundir\temp\abs_diff.csv')
-            # rel_diff = abs_diff / (modeled_size.sum(axis=1) * (desired_share/modeled_share))
-
             # ignore zones where desired_size < threshold
             self.rel_diff.where(desired_size >= self.target_threshold, 0, inplace=True)
 
@@ -572,7 +561,6 @@ class ShadowPriceCalculator(object):
                 0,
                 inplace=True,
             )
-            # self.rel_diff.to_csv(r'E:\Projects\Clients\SEMCOG\semcog_2zone_rundir\temp\rel_diff.csv')
             self.num_fail["iter%s" % iteration] = (self.rel_diff > 0).sum()
             # self.max_abs_diff["iter%s" % iteration] = abs_diff.max()
             # self.max_rel_diff["iter%s" % iteration] = rel_diff.max()
@@ -581,22 +569,10 @@ class ShadowPriceCalculator(object):
 
             # FIXME - should not count zones where desired_size < threshold? (could calc in init)
             max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
-            # print('@@_________@@MAX FAIL')
-            # print(np.ceil(max_fail))
-            # print('failing zones:')
-            # print(total_fails)
-            # print('@@_____________@@')
 
             converged = (total_fails <= np.ceil(max_fail)) | (
                 len(self.choices_synced) == 0
             )
-
-            # for c in desired_size:
-            #     print("check_fit %s segment %s" % (self.model_selector, c))
-            #     print("  modeled %s" % (modeled_size[c].sum()))
-            #     print("  desired %s" % (desired_size[c].sum()))
-            #     print("  max abs diff %s" % (abs_diff[c].max()))
-            #     print("  max rel diff %s" % (rel_diff[c].max()))
 
             logger.info(
                 "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
@@ -783,16 +759,8 @@ class ShadowPriceCalculator(object):
             else:
                 self.sampled_persons = pd.DataFrame()
 
-            print("_________")
-            print(len(self.sampled_persons))
-
         else:
             raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
-
-        # print("\nself.desired_size\n%s" % self.desired_size.head())
-        # print("\nself.modeled_size\n%s" % self.modeled_size.head())
-        # print("\nprevious shadow_prices\n%s" % self.shadow_prices.head())
-        # print("\nnew_shadow_prices\n%s" % new_shadow_prices.head())
 
         self.shadow_prices = new_shadow_prices
 
@@ -817,8 +785,6 @@ class ShadowPriceCalculator(object):
                 raise RuntimeError(
                     "unknown SHADOW_PRICE_METHOD %s" % shadow_price_method
                 )
-        # added
-        # utility_adjustment.to_csv(r'C:\Projects\SEMCOG\utility_adjustment.csv')
 
         size_terms = pd.DataFrame(
             {
@@ -946,25 +912,20 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
 
 def buffers_for_shadow_pricing_choice(shadow_pricing_choice_info):
     """
-    Allocate shared_data buffers for multiprocess shadow pricing
+    Same as above buffers_for_shadow_price function except now we need to store
+    the actual choices for the simulation based shadow pricing method
 
-    Allocates one buffer per model_selector.
-    Buffer datatype and shape specified by shadow_pricing_info
-
-    buffers are multiprocessing.Array (RawArray protected by a multiprocessing.Lock wrapper)
-    We don't actually use the wrapped version as it slows access down and doesn't provide
-    protection for numpy-wrapped arrays, but it does provide a convenient way to bundle
-    RawArray and an associated lock. (ShadowPriceCalculator uses the lock to coordinate access to
-    the numpy-wrapped RawArray.)
-
+    This allocates a multiprocessing.Array that can store the choice for each person
+    and then wraps a dataframe around it.  That means the dataframe can be shared
+    and accessed across all threads.
     Parameters
     ----------
     shadow_pricing_info : dict
-
     Returns
     -------
         data_buffers : dict {<model_selector> : <shared_data_buffer>}
         dict of multiprocessing.Array keyed by model_selector
+          and wrapped in a pandas dataframe
     """
 
     dtype = shadow_pricing_choice_info["dtype"]
@@ -1395,24 +1356,3 @@ def shadow_pricing_choice_info():
     logger.debug("loading shadow_pricing_choice_info injectable")
 
     return get_shadow_pricing_choice_info()
-
-
-# @inject.table()
-# def get_full_person_index_df():
-
-#     persons = inject.get_table('persons').to_frame()
-#     persons_index = persons.index.name
-#     persons_index_full = persons.reset_index()[persons_index].reset_index().drop(columns=['index'])
-
-#     inject.add_table('persons_index_full', persons_index_full)
-#     #pipeline.get_rn_generator().add_channel('persons_index_full', persons_index_full)
-
-#     return persons_index_full
-
-# @inject.injectable(cache=True)
-# def get_full_person_index():
-
-#     persons = inject.get_table('persons').to_frame()
-#     persons_index_full = persons.index
-
-#     return persons_index_full

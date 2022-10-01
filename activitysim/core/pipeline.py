@@ -601,7 +601,7 @@ def intermediate_checkpoint(checkpoint_name=None):
     return checkpoint_name in checkpoints
 
 
-def run(models, resume_after=None):
+def run(models, resume_after=None, memory_sidecar_process=None):
     """
     run the specified list of models, optionally loading checkpoint and resuming after specified
     checkpoint.
@@ -618,6 +618,8 @@ def run(models, resume_after=None):
         list of model_names
     resume_after : str or None
         model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
+    memory_sidecar_process : MemorySidecar, optional
+        Subprocess that monitors memory usage
 
     returns:
         nothing, but with pipeline open
@@ -640,17 +642,24 @@ def run(models, resume_after=None):
 
     # preload any bulky injectables (e.g. skims) not in pipeline
     if inject.get_injectable("preload_injectables", None):
+        if memory_sidecar_process:
+            memory_sidecar_process.set_event("preload_injectables")
         t0 = print_elapsed_time("preload_injectables", t0)
 
     mem.trace_memory_info("pipeline.run after preload_injectables")
 
     t0 = print_elapsed_time()
     for model in models:
+        if memory_sidecar_process:
+            memory_sidecar_process.set_event(model)
         t1 = print_elapsed_time()
         run_model(model)
         mem.trace_memory_info(f"pipeline.run after {model}")
 
         tracing.log_runtime(model_name=model, start_time=t1)
+
+    if memory_sidecar_process:
+        memory_sidecar_process.set_event("finalizing")
 
     # add checkpoint with final tables even if not intermediate checkpointing
     if not intermediate_checkpoint():

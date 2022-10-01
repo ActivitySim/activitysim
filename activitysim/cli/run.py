@@ -222,6 +222,18 @@ def run(args):
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
 
+    if config.setting("memory_profile", False) and not config.setting(
+        "multiprocess", False
+    ):
+        # Memory sidecar is only useful for single process runs
+        # multiprocess runs log memory usage without blocking in the controlling process.
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        from ..core.memory_sidecar import MemorySidecar
+
+        memory_sidecar_process = MemorySidecar(mem_prof_log)
+    else:
+        memory_sidecar_process = None
+
     # legacy support for run_list setting nested 'models' and 'resume_after' settings
     if config.setting("run_list"):
         warnings.warn(
@@ -313,7 +325,11 @@ def run(args):
         else:
             logger.info("run single process simulation")
 
-            pipeline.run(models=config.setting("models"), resume_after=resume_after)
+            pipeline.run(
+                models=config.setting("models"),
+                resume_after=resume_after,
+                memory_sidecar_process=memory_sidecar_process,
+            )
 
             if config.setting("cleanup_pipeline_after_run", False):
                 pipeline.cleanup_pipeline()  # has side effect of closing open pipeline

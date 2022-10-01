@@ -7,7 +7,11 @@ import numpy as np
 import pandas as pd
 
 from activitysim.core import assign, config, inject, simulate, tracing
-from activitysim.core.util import assign_in_place, suffix_expressions_df_str, parse_suffix_args
+from activitysim.core.util import (
+    assign_in_place,
+    suffix_expressions_df_str,
+    parse_suffix_args,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -58,12 +62,13 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     args = parse_suffix_args(expressions_spec_name)
 
     expressions_spec_name = args.filename
-    suffix = model_settings.get('SUFFIX', args.SUFFIX)
-    roots = model_settings.get('ROOTS', args.ROOTS)
+    suffix = model_settings.get("SUFFIX", args.SUFFIX)
+    roots = model_settings.get("ROOTS", args.ROOTS)
 
     assert isinstance(roots, list)
     assert (suffix is not None and roots) or (suffix is None and not roots), (
-        "Expected to find both 'ROOTS' and 'SUFFIX' in %s, missing one" % model_settings_name
+        "Expected to find both 'ROOTS' and 'SUFFIX' in %s, missing one"
+        % model_settings_name
     )
 
     assert expressions_spec_name is not None, (
@@ -82,7 +87,7 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
         config.config_file_path(expressions_spec_name)
     )
 
-    if (suffix is not None and roots):
+    if suffix is not None and roots:
         expressions_spec = suffix_expressions_df_str(expressions_spec, suffix, roots)
 
     assert expressions_spec.shape[0] > 0, (

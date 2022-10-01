@@ -383,9 +383,13 @@ def df_from_dict(values, index=None):
 
     return df
 
+
 # for disaggregate accessibilities
 
-def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.OrderedDict):
+
+def ordered_load(
+    stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.OrderedDict
+):
     class OrderedLoader(Loader):
         pass
 
@@ -394,8 +398,8 @@ def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.O
         return object_pairs_hook(loader.construct_pairs(node))
 
     OrderedLoader.add_constructor(
-        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-        construct_mapping)
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
+    )
     return yaml.load(stream, OrderedLoader)
 
 
@@ -417,33 +421,37 @@ def recursive_replace(obj, search, replace):
     return obj
 
 
-def suffix_tables_in_settings(model_settings,
-                              suffix='proto_',
-                              tables=['persons', 'households', 'tours', 'persons_merged']):
+def suffix_tables_in_settings(
+    model_settings,
+    suffix="proto_",
+    tables=["persons", "households", "tours", "persons_merged"],
+):
     for k in tables:
         model_settings = recursive_replace(model_settings, k, suffix + k)
     return model_settings
 
 
-def suffix_expressions_df_str(df,
-                              suffix='proto_',
-                              tables=['persons', 'households', 'tours', 'persons_merged']):
+def suffix_expressions_df_str(
+    df, suffix="proto_", tables=["persons", "households", "tours", "persons_merged"]
+):
     for k in tables:
-        df['expression'] = df.expression.str.replace(k, suffix + k)
+        df["expression"] = df.expression.str.replace(k, suffix + k)
     return df
 
 
 def parse_suffix_args(args):
     parser = argparse.ArgumentParser()
-    parser.add_argument("filename", help='file name')
-    parser.add_argument('-s', '--SUFFIX', '-s', help='suffix to replace root targets')
-    parser.add_argument('-r', '--ROOTS', nargs='*', help='roots be suffixed', default=[])
+    parser.add_argument("filename", help="file name")
+    parser.add_argument("-s", "--SUFFIX", "-s", help="suffix to replace root targets")
+    parser.add_argument(
+        "-r", "--ROOTS", nargs="*", help="roots be suffixed", default=[]
+    )
     return parser.parse_args(args.split())
 
 
 def concat_suffix_dict(args):
     if isinstance(args, dict):
-        args = sum([['--' + k, v] for k, v in args.items()], [])
+        args = sum([["--" + k, v] for k, v in args.items()], [])
     if isinstance(args, list):
         args = list(flatten(args))
     return args
@@ -461,5 +469,5 @@ def flatten(lst):
 def nearest_node_index(node, nodes):
     nodes = np.asarray(nodes)
     deltas = nodes - node
-    dist_2 = np.einsum('ij,ij->i', deltas, deltas)
+    dist_2 = np.einsum("ij,ij->i", deltas, deltas)
     return np.argmin(dist_2)

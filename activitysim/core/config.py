@@ -462,14 +462,13 @@ def read_settings_file(
             set(configs_dir_list)
         ), f"repeating file names not allowed in config_dir list: {configs_dir_list}"
 
-
     args = util.parse_suffix_args(file_name)
     file_name = args.filename
 
     assert isinstance(args.ROOTS, list)
-    assert (args.SUFFIX is not None and args.ROOTS) or (args.SUFFIX is None and not args.ROOTS), (
-        "Expected to find both 'ROOTS' and 'SUFFIX' in %s, missing one" % args.filename
-    )
+    assert (args.SUFFIX is not None and args.ROOTS) or (
+        args.SUFFIX is None and not args.ROOTS
+    ), ("Expected to find both 'ROOTS' and 'SUFFIX' in %s, missing one" % args.filename)
 
     if not file_name.lower().endswith(".yaml"):
         file_name = "%s.yaml" % (file_name,)
@@ -576,7 +575,7 @@ def read_settings_file(
         raise SettingsFileNotFound(file_name, configs_dir_list)
 
     # Adds proto_ suffix for disaggregate accessibilities
-    if (args.SUFFIX is not None and args.ROOTS):
+    if args.SUFFIX is not None and args.ROOTS:
         settings = util.suffix_tables_in_settings(settings, args.SUFFIX, args.ROOTS)
 
     if include_stack:

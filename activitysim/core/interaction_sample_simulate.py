@@ -25,7 +25,7 @@ def _interaction_sample_simulate(
     trace_label,
     trace_choice_name,
     estimator,
-    skip_choice=False
+    skip_choice=False,
 ):
 
     """
@@ -268,7 +268,7 @@ def _interaction_sample_simulate(
             probs.loc[zero_probs, 0] = 1.0
 
     if skip_choice:
-        return choosers.join(logsums.to_frame('logsums'))
+        return choosers.join(logsums.to_frame("logsums"))
 
     else:
         # make choices
@@ -349,7 +349,7 @@ def interaction_sample_simulate(
     trace_label=None,
     trace_choice_name=None,
     estimator=None,
-    skip_choice=False
+    skip_choice=False,
 ):
 
     """
@@ -437,7 +437,7 @@ def interaction_sample_simulate(
             chunk_trace_label,
             trace_choice_name,
             estimator,
-            skip_choice
+            skip_choice,
         )
 
         result_list.append(choices)

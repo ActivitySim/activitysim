@@ -524,7 +524,7 @@ def run_location_simulate(
     chunk_size,
     chunk_tag,
     trace_label,
-    skip_choice=False
+    skip_choice=False,
 ):
     """
     run location model on location_sample annotated with mode_choice logsum
@@ -595,7 +595,7 @@ def run_location_simulate(
         trace_label=trace_label,
         trace_choice_name=model_settings["DEST_CHOICE_COLUMN_NAME"],
         estimator=estimator,
-        skip_choice=skip_choice
+        skip_choice=skip_choice,
     )
 
     if not want_logsums:
@@ -620,7 +620,7 @@ def run_location_choice(
     chunk_tag,
     trace_hh_id,
     trace_label,
-    skip_choice=False
+    skip_choice=False,
 ):
     """
     Run the three-part location choice algorithm to generate a location choice for each chooser
@@ -719,7 +719,7 @@ def run_location_choice(
             trace_label=tracing.extend_trace_label(
                 trace_label, "simulate.%s" % segment_name
             ),
-            skip_choice=skip_choice
+            skip_choice=skip_choice,
         )
 
         if estimator:

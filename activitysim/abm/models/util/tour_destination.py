@@ -662,7 +662,7 @@ def run_destination_simulate(
     estimator,
     chunk_size,
     trace_label,
-    skip_choice=False
+    skip_choice=False,
 ):
     """
     run destination_simulate on tour_destination_sample
@@ -744,7 +744,7 @@ def run_destination_simulate(
         trace_label=trace_label,
         trace_choice_name="destination",
         estimator=estimator,
-        skip_choice=skip_choice
+        skip_choice=skip_choice,
     )
 
     if not want_logsums:
@@ -766,7 +766,7 @@ def run_tour_destination(
     chunk_size,
     trace_hh_id,
     trace_label,
-    skip_choice=False
+    skip_choice=False,
 ):
 
     size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
@@ -842,7 +842,7 @@ def run_tour_destination(
             estimator=estimator,
             chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "simulate"),
-            skip_choice=skip_choice
+            skip_choice=skip_choice,
         )
 
         choices_list.append(choices)

@@ -1,0 +1,81 @@
+
+ACTIVITYSIM_BASE_DIR=/Users/jeff.doyle/work/activitysim
+MTC_SF_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1_sf/data
+MTC_FULL_DATA_DIR=/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data
+
+EXAMPLES_DIR=$ACTIVITYSIM_BASE_DIR/activitysim/examples
+MTC_EXAMPLE_DIR=$EXAMPLES_DIR/prototype_mtc
+ESTIMATION_DIR=$EXAMPLES_DIR/example_estimation
+BUILD_DIR=$ESTIMATION_DIR/build_example_data
+
+# build example using prototype_mtc test data set (25 zones)
+#    TAG=test
+#    BUILD_DATA=$MTC_EXAMPLE_DIR/data
+
+# build example using prototype_mtc_sf data set (190 zones)
+# data not in activitysim repo/distro
+   TAG=sf
+   BUILD_DATA=$MTC_SF_DATA_DIR
+
+# output dirs for run to create fake survey data
+BUILD_OUTPUT=$BUILD_DIR/output_build_$TAG
+
+# create and populate data and ouput dirs for estimation mode run
+EXAMPLE_DATA=$ESTIMATION_DIR/data_$TAG
+EXAMPLE_OUTPUT=$ESTIMATION_DIR/output_$TAG
+
+# run this to create fake sample data (random seed 1)
+python $ESTIMATION_DIR/simulation.py -d $BUILD_DATA -c $BUILD_DIR/configs_build_example -c $MTC_EXAMPLE_DIR/configs -o $BUILD_OUTPUT
+
+# create $EXAMPLE_DATA
+rm -r $EXAMPLE_DATA
+cp -R $BUILD_DIR/data_template $EXAMPLE_DATA
+
+# create EXAMPLE_OUTPUT
+rm -r $EXAMPLE_OUTPUT
+cp -R $BUILD_DIR/output_template $EXAMPLE_OUTPUT
+
+# copy raw tables to data directory DATA/*.csv
+# need ORIGINAL table data as input data, not downstream tables as some fields (e.g. auto_ownership) change during run
+cp $BUILD_OUTPUT/raw_tables/*.csv $EXAMPLE_DATA/
+
+# might as well use the exact same land_use file
+cp $BUILD_DATA/land_use.csv $EXAMPLE_DATA/
+
+# copy final_tables to DATA/survey_data/*.csv
+cp $BUILD_OUTPUT/final_*.csv $EXAMPLE_DATA/survey_data/
+
+# copy omx to DATA/survey_data/*.csv
+cp $BUILD_DATA/skims.omx $EXAMPLE_DATA/
+
+# create survey_xxx.csv files households, persons, tours, joint_tour_participants
+# $EXAMPLE_DATA/final_xxx.csv -> $EXAMPLE_DATA/survey_xxx.csv
+python $ESTIMATION_DIR/scripts/extract_survey_data.py $EXAMPLE_DATA
+
+# create override_xxx.csv files
+python $ESTIMATION_DIR/scripts/infer.py $EXAMPLE_DATA $MTC_EXAMPLE_DIR/configs
+
+wc -l $EXAMPLE_DATA/households.csv
+wc -l $EXAMPLE_DATA/survey_data/override_households.csv
+
+# verify that it all works by running in estimation mode
+#python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
+
+# or, if you have local overrides to configs:
+#python $ESTIMATION_DIR/simulation.py -c $ESTIMATION_DIR/override_configs -c $ESTIMATION_DIR/configs -c $MTC_EXAMPLE_DIR/configs -d $EXAMPLE_DATA -o $EXAMPLE_OUTPUT
+
+#########
+
+# copy build trace files and log
+rm -r $BUILD_DIR/scratch/$TAG/build/*
+cp $BUILD_OUTPUT/trace/school_location*university*.csv $BUILD_DIR/scratch/$TAG/build
+cp $BUILD_OUTPUT/log/activitysim.log $BUILD_DIR/scratch/$TAG/build
+
+TAG=sf
+python simulation.py -c override_configs -c configs -c ../prototype_mtc/configs -d data_$TAG -o output_$TAG
+
+
+EST_OUTPUT=output_$TAG
+rm -r $BUILD_DIR/scratch/$TAG/est/*
+cp $EST_OUTPUT/trace/school_location*university*.csv $BUILD_DIR/scratch/$TAG/est
+cp $EST_OUTPUT/log/activitysim.log $BUILD_DIR/scratch/$TAG/est

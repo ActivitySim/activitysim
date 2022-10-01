@@ -384,6 +384,7 @@ def df_from_dict(values, index=None):
     return df
 
 # for disaggregate accessibilities
+
 def ordered_load(stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.OrderedDict):
     class OrderedLoader(Loader):
         pass
@@ -404,6 +405,7 @@ def named_product(**d):
     for res in itertools.product(*vals):
         yield dict(zip(names, res))
 
+
 def recursive_replace(obj, search, replace):
     if isinstance(obj, dict):
         for k, v in obj.items():
@@ -414,6 +416,7 @@ def recursive_replace(obj, search, replace):
         obj = replace
     return obj
 
+
 def suffix_tables_in_settings(model_settings,
                               suffix='proto_',
                               tables=['persons', 'households', 'tours', 'persons_merged']):
@@ -421,12 +424,14 @@ def suffix_tables_in_settings(model_settings,
         model_settings = recursive_replace(model_settings, k, suffix + k)
     return model_settings
 
+
 def suffix_expressions_df_str(df,
-                              suffix = 'proto_',
+                              suffix='proto_',
                               tables=['persons', 'households', 'tours', 'persons_merged']):
     for k in tables:
         df['expression'] = df.expression.str.replace(k, suffix + k)
     return df
+
 
 def parse_suffix_args(args):
     parser = argparse.ArgumentParser()
@@ -435,6 +440,7 @@ def parse_suffix_args(args):
     parser.add_argument('-r', '--ROOTS', nargs='*', help='roots be suffixed', default=[])
     return parser.parse_args(args.split())
 
+
 def concat_suffix_dict(args):
     if isinstance(args, dict):
         args = sum([['--' + k, v] for k, v in args.items()], [])
@@ -442,13 +448,15 @@ def concat_suffix_dict(args):
         args = list(flatten(args))
     return args
 
+
 def flatten(lst):
     for sublist in lst:
-         if isinstance(sublist, list):
-             for item in sublist:
-                 yield item
-         else:
-             yield sublist
+        if isinstance(sublist, list):
+            for item in sublist:
+                yield item
+        else:
+            yield sublist
+
 
 def nearest_node_index(node, nodes):
     nodes = np.asarray(nodes)

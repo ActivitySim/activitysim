@@ -420,20 +420,6 @@ class ShadowPriceCalculator(object):
 
             modeled_size[seg_name] = segment_choices.value_counts()
 
-        # if self.shadow_price_method == "simulation":
-        choice_merged = pd.merge(
-            self.shared_sp_choice_df,
-            choices,
-            left_index=True,
-            right_index=True,
-            how="left",
-            suffixes=("_x", "_y"),
-        )
-
-        choice_merged["choice_y"] = choice_merged["choice_y"].fillna(0)
-        choice_merged["choice"] = choice_merged["choice_x"] + choice_merged["choice_y"]
-        choice_merged = choice_merged.drop(columns=["choice_x", "choice_y"])
-
         modeled_size = modeled_size.fillna(0).astype(int)
 
         if self.num_processes == 1:
@@ -442,9 +428,26 @@ class ShadowPriceCalculator(object):
             self.modeled_size = modeled_size
         else:
             # - if we are multiprocessing, we have to aggregate across sub-processes
-            self.choices_synced = self.synchronize_choices(choice_merged)
-
             self.modeled_size = self.synchronize_modeled_size(modeled_size)
+
+            # need to also store individual choices if simulation approach
+            if self.shadow_price_method == "simulation":
+                choice_merged = pd.merge(
+                    self.shared_sp_choice_df,
+                    choices,
+                    left_index=True,
+                    right_index=True,
+                    how="left",
+                    suffixes=("_x", "_y"),
+                )
+
+                choice_merged["choice_y"] = choice_merged["choice_y"].fillna(0)
+                choice_merged["choice"] = (
+                    choice_merged["choice_x"] + choice_merged["choice_y"]
+                )
+                choice_merged = choice_merged.drop(columns=["choice_x", "choice_y"])
+
+                self.choices_synced = self.synchronize_choices(choice_merged)
 
     def check_fit(self, iteration):
         """
@@ -1101,6 +1104,9 @@ def load_shadow_price_calculator(model_settings):
         assert num_processes == 1
         data = None  # ShadowPriceCalculator will allocate its own data
         lock = None
+        data_choice = None
+        lock_choice = None
+        shared_sp_choice_df = None
 
     # - ShadowPriceCalculator
     spc = ShadowPriceCalculator(

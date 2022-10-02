@@ -348,6 +348,9 @@ def run(args):
 
     tracing.print_elapsed_time("all models", t0)
 
+    if memory_sidecar_process:
+        memory_sidecar_process.stop()
+
     return 0
 
 

@@ -763,7 +763,7 @@ def load_shadow_price_calculator(model_settings):
 
 
 @inject.step()
-def add_size_tables(suffixes={"SUFFIX": None, "ROOTS": []}):
+def add_size_tables(suffixes=None):
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 
@@ -799,12 +799,14 @@ def add_size_tables(suffixes={"SUFFIX": None, "ROOTS": []}):
     scale_size_table = shadow_settings.get("SCALE_SIZE_TABLE", False)
 
     # Suffixes for disaggregate accessibilities
-    if suffixes:
-        suffix, roots = suffixes.get("SUFFIX"), suffixes.get("ROOTS", [])
-        assert isinstance(roots, list)
-        assert (suffix is not None and roots) or (
-            suffix is None and not roots
-        ), "Expected to find both 'ROOTS' and 'SUFFIX', missing one"
+    # Set default here incase None is explicitly passed
+    suffixes = {"SUFFIX": None, "ROOTS": []} if not suffixes else suffixes
+
+    suffix, roots = suffixes.get("SUFFIX"), suffixes.get("ROOTS", [])
+    assert isinstance(roots, list)
+    assert (suffix is not None and roots) or (
+        suffix is None and not roots
+    ), "Expected to find both 'ROOTS' and 'SUFFIX', missing one"
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process

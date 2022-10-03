@@ -216,7 +216,7 @@ In total, ActivitySim generates three types of output files for each model with 
   The actual shadow price for each zone and segment after the <iteration> of shadow pricing. This is the file that can be
   used to warm start the shadow pricing mechanism in ActivitySim.
 
-There are three shadow pricing methods in activitysim: ``ctramp``, ``daysim``, and ``simulation``. The first two methods try to match model output with workplace/school location model size terms, while the last method matches model output with actual employment/enrolmment data.
+There are three shadow pricing methods in activitysim: ``ctramp``, ``daysim``, and ``simulation``. The first two methods try to match model output with workplace/school location model size terms, while the last method matches model output with actual employment/enrollmment data.
 
 **shadow_pricing.yaml Attributes**
 
@@ -230,7 +230,7 @@ There are three shadow pricing methods in activitysim: ``ctramp``, ``daysim``, a
 - ``FAIL_THRESHOLD`` percentage of zones exceeding the PERCENT_TOLERANCE considered a failure
 - ``SHADOW_PRICE_METHOD`` [ctramp | daysim | simulation]
 - ``TOTAL_EMP`` total employment column name defined in the land use data
-- ``TOTAL_ENORLLMENT``: total enrolmment colmns name defined in the land use data
+- ``TOTAL_ENORLLMENT`` total enrollmment colmns name defined in the land use data
 - ``DAMPING_FACTOR`` On each iteration, ActivitySim will attempt to adjust the model to match desired size terms. The number is multiplied by adjustment factor to dampen or amplify the ActivitySim calculation. (only for CT-RAMP)
 - ``DAYSIM_ABSOLUTE_TOLERANCE``
 

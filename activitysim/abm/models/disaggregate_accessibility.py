@@ -135,6 +135,13 @@ class ProtoPop:
             **zone_list,
         }
 
+        # Add suffixes if not defined
+        if not self.model_settings.get('suffixes'):
+            self.model_settings['suffixes'] = {
+                'SUFFIX': 'proto_',
+                'ROOTS': ['persons', 'households', 'tours', 'persons_merged']
+             }
+
         return params
 
     def generate_replicates(self, table_name):

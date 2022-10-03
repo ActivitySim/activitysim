@@ -98,26 +98,94 @@ Core Table: ``skims`` | Result Table: ``accessibility`` | Skims Keys: ``O-D, D-O
 .. automodule:: activitysim.abm.models.accessibility
    :members:
 
+
+.. _disaggregate_accessibility:
+
+Disaggregate Accessibility
+--------------
+
+The disaggregate accessibility model is an extension of the base accessibility model.
+While the base accessibility model is based on a mode-specific decay function and uses fixed market
+segments in the population (i.e., income), the disaggregate accessibility model extracts the actual
+destination choice logsums by purpose (i.e., mandatory fixed school/work location and non-mandatory
+tour destinations by purpose) from the actual model calculations using a user-defined proto-population.
+This enables users to include features that may be more critical to destination
+choice than just income (e.g., automobile ownership).
+
+
+Inputs:
+  * disaggregate_accessibility.yaml - Configuration settings for disaggregate accessibility model.
+  * annotate_________.csv [optional] - Users can specify additional annotations specific to disaggregate accessibility. For example, annotating the proto-population tables.
+
+Outputs:
+  * final_disaggregate_accessibility.csv [optional]
+  * final_non_mandatory_tour_destination_accesibility.csv [optional]
+  * final_workplace_location_accessibility.csv [optional]
+  * final_school_location_accessibility.csv [optional]
+  * final_proto_persons.csv [optional]
+  * final_proto_households.csv [optional]
+  * final_proto_tours.csv [optional]
+
+The above tables are created in the model pipeline, but the model will not save
+any outputs unless specified in settings.yaml - output_tables. Users can return
+the proto population tables for inspection, as well as the raw logsum accessibilities
+for mandatory school/work and non-mandatory destinations. The logsums are then merged
+at the household level in final_disaggregate_accessibility.csv, which each tour purpose
+logsums shown as separate columns.
+
+
+**Usage**
+The disaggregate accessibility model is run as a model step in the model list.
+There are two necessary steps:
+
+``- initialize_proto_population`` | ``- compute_disaggregate_accessibility``
+
+The reason the steps must be separate is to enable multiprocessing.
+The proto-population must be fully generated and initialized before activitysim
+slices the tables into separate threads. These steps must also occur before
+initialize_households in order to avoid conflict with the shadow_pricing model.
+
+
+The model steps can be run either as part the activitysim model run, or setup
+to run as a standalone run to pre-computing the accessibility values.
+For standalone implementations, the final_disaggregate_accessibility.csv is read
+into the pipeline and initialized with the initialize_household model step.
+
+
+**Configuration of disaggregate_accessibility.yaml:**
+  * CREATE_TABLES - Users define the variables to be generated for PROTO_HOUSEHOLDS, PROTO_PERSONS, and PROTO_TOURS tables using the following parameters:
+
+    - VARIABLES - The base variable, must be a value or a list. Results in the cartesian product (all non-repeating combinations) of the fields.
+    - mapped_fields [optional] - For non-combinatorial fields, users can map a variable to the fields generated in VARIABLES (e.g., income category bins mapped to median dollar values).
+    - filter_rows [optional] - Users can also filter rows using pandas expressions if specific variable combinations are not desired.
+    - JOIN_ON [required only for PROTO_TOURS] - specify the persons variable to join the tours to (e.g., person_number).
+  * MERGE_ON - User specified fields to merge the proto-population logsums onto the full synthetic population
+  * annotate_proto_tables [optional] - Annotation configurations if users which to modify the proto-population beyond basic generation in the YAML.
+  * SAMPLE_SIZE - The *destination* sample size (0 = all zones), e.g., the number of destination zone alternatives sampled for calculating the destination logsum.
+  * zone_pre_sample_size - The *origin* sample size (0 = all zones), e.g., the number of origins where logsum is calculated. Origins without a logsum will draw from the nearest zone with a logsum. This parameter is useful for systems with a large number of zones with similar accessibility.
+
+
+
 .. _work_from_home:
 
 Work From Home
 --------------
 
-Telecommuting is defined as workers who work from home instead of going 
-to work. It only applies to workers with a regular workplace outside of home. 
-The telecommute model consists of two submodels - this work from home model and a 
-person :ref:`telecommute_frequency` model. This model predicts for all workers whether they 
+Telecommuting is defined as workers who work from home instead of going
+to work. It only applies to workers with a regular workplace outside of home.
+The telecommute model consists of two submodels - this work from home model and a
+person :ref:`telecommute_frequency` model. This model predicts for all workers whether they
 usually work from home.
 
 The work from home model includes the ability to adjust a work from home alternative
-constant to attempt to realize a work from home percent for what-if type analysis.  
-This iterative single process procedure takes as input a number of iterations, a filter on 
-the choosers to use for the calculation, a target work from home percent, a tolerance percent 
-for convergence, and the name of the coefficient to adjust.  An example setup is provided and 
-the coefficient adjustment at each iteration is: 
+constant to attempt to realize a work from home percent for what-if type analysis.
+This iterative single process procedure takes as input a number of iterations, a filter on
+the choosers to use for the calculation, a target work from home percent, a tolerance percent
+for convergence, and the name of the coefficient to adjust.  An example setup is provided and
+the coefficient adjustment at each iteration is:
 ``new_coefficient = log( target_percent / current_percent ) + current_coefficient``.
 
-The main interface to the work from home model is the 
+The main interface to the work from home model is the
 :py:func:`~activitysim.examples.prototype_semcog.extensions.work_from_home` function.  This
 function is registered as an Inject step in the example Pipeline.
 
@@ -281,11 +349,11 @@ Core Table: ``persons`` | Result Field: ``transit_pass_ownership`` | Skims Keys:
 Auto Ownership
 --------------
 
-The auto ownership model selects a number of autos for each household in the simulation. 
+The auto ownership model selects a number of autos for each household in the simulation.
 The primary model components are household demographics, zonal density, and accessibility.
 
-The main interface to the auto ownership model is the 
-:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate` 
+The main interface to the auto ownership model is the
+:py:func:`~activitysim.abm.models.auto_ownership.auto_ownership_simulate`
 function.  This function is registered as an Inject step in the example Pipeline.
 
 Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
@@ -293,7 +361,7 @@ Core Table: ``households`` | Result Field: ``auto_ownership`` | Skims Keys: NA
 
 .. automodule:: activitysim.abm.models.auto_ownership
    :members:
-   
+
 .. _vehicle_type_choice:
 
 Vehicle Type Choice
@@ -389,12 +457,12 @@ Free Parking Eligibility
 ------------------------
 
 The Free Parking Eligibility model predicts the availability of free parking at a person's
-workplace.  It is applied for people who work in zones that have parking charges, which are 
-generally located in the Central Business Districts. The purpose of the model is to adequately 
-reflect the cost of driving to work in subsequent models, particularly in mode choice. 
+workplace.  It is applied for people who work in zones that have parking charges, which are
+generally located in the Central Business Districts. The purpose of the model is to adequately
+reflect the cost of driving to work in subsequent models, particularly in mode choice.
 
-The main interface to the free parking eligibility model is the 
-:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered 
+The main interface to the free parking eligibility model is the
+:py:func:`~activitysim.abm.models.free_parking.free_parking` function.  This function is registered
 as an Inject step in the example Pipeline.
 
 Core Table: ``persons`` | Result Field: ``free_parking_at_work`` | Skims Keys: NA

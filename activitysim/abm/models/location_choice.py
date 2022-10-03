@@ -262,7 +262,9 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
         TAZ_size_terms[c] /= TAZ_size_terms["size_term"]  # weighted average
 
     spc = shadow_pricing.load_shadow_price_calculator(model_settings)
-    if spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation":
+    if spc.use_shadow_pricing and (
+        spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+    ):
         # allow TAZs with at least one underassigned MAZ in them, therefore with a shadowprice larger than -999, to be selected again
         TAZ_size_terms["shadow_price_utility_adjustment"] = np.where(
             TAZ_size_terms["shadow_price_utility_adjustment"] > -999, 0, -999

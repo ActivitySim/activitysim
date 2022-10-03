@@ -10,8 +10,7 @@ income_segment,income_segment,"pd.cut(income_in_thousands, bins=[-np.inf, 30, 60
 ,_MU,setting('distributed_vot_mu')
 ,_SIGMA,setting('distributed_vot_sigma')
 median_value_of_time,median_value_of_time,"income_segment.map({k: v for k, v in setting('household_median_value_of_time').items()})"
-#hh_value_of_time,hh_value_of_time,"rng.lognormal_for_df(df, mu=np.log(median_value_of_time * _MU), sigma=_SIGMA).clip(_MIN_VOT, _MAX_VOT)"
-TEST hh_value_of_time,hh_value_of_time,1
+hh_value_of_time,hh_value_of_time,"rng.lognormal_for_df(df, mu=np.log(median_value_of_time * _MU), sigma=_SIGMA).clip(_MIN_VOT, _MAX_VOT)"
 #,,
 #num_workers was renamed in import,,
 #,num_workers,households.workers

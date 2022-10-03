@@ -71,7 +71,7 @@ def choose_intermediate_trip_purpose(
 
     # probs should sum to 1 across rows
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
-    probs_spec.loc[:, purpose_cols] = probs_spec.loc[:, purpose_cols].div(
+    probs_spec[purpose_cols] = probs_spec[purpose_cols].div(
         sum_probs, axis=0
     )
 

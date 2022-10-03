@@ -431,23 +431,22 @@ class ShadowPriceCalculator(object):
             self.modeled_size = self.synchronize_modeled_size(modeled_size)
 
             # need to also store individual choices if simulation approach
-            if self.shadow_price_method == "simulation":
-                choice_merged = pd.merge(
-                    self.shared_sp_choice_df,
-                    choices,
-                    left_index=True,
-                    right_index=True,
-                    how="left",
-                    suffixes=("_x", "_y"),
-                )
+            choice_merged = pd.merge(
+                self.shared_sp_choice_df,
+                choices,
+                left_index=True,
+                right_index=True,
+                how="left",
+                suffixes=("_x", "_y"),
+            )
 
-                choice_merged["choice_y"] = choice_merged["choice_y"].fillna(0)
-                choice_merged["choice"] = (
-                    choice_merged["choice_x"] + choice_merged["choice_y"]
-                )
-                choice_merged = choice_merged.drop(columns=["choice_x", "choice_y"])
+            choice_merged["choice_y"] = choice_merged["choice_y"].fillna(0)
+            choice_merged["choice"] = (
+                choice_merged["choice_x"] + choice_merged["choice_y"]
+            )
+            choice_merged = choice_merged.drop(columns=["choice_x", "choice_y"])
 
-                self.choices_synced = self.synchronize_choices(choice_merged)
+            self.choices_synced = self.synchronize_choices(choice_merged)
 
     def check_fit(self, iteration):
         """

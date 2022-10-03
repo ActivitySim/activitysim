@@ -224,10 +224,13 @@ There are three shadow pricing methods in activitysim: ``ctramp``, ``daysim``, a
 - ``LOAD_SAVED_SHADOW_PRICES`` global switch to enable/disable loading of saved shadow prices. From the above example, this would be trace.shadow_price_<model>_shadow_prices_<iteration>.csv renamed and stored in the ``data_dir``.
 - ``MAX_ITERATIONS`` If no loaded shadow prices, maximum number of times shadow pricing can be run on each model before proceeding to the next model.
 - ``MAX_ITERATIONS_SAVED`` If loaded shadow prices, maximum number of times shadow pricing can be run.
-- ``SIZE_THRESHOLD`` Ignore zones in failure calculation with fewer choices than specified here.
+- ``SIZE_THRESHOLD`` Ignore zones in failure calculation (ctramp or daysim method) with smaller size term value than size_threshold.
+- ``TARGET_THRESHOLD`` Ignore zones in failure calculation (simulation method) with smaller employment/enrollment than target_threshold.
 - ``PERCENT_TOLERANCE`` Maximum percent difference between modeled and desired size terms
 - ``FAIL_THRESHOLD`` percentage of zones exceeding the PERCENT_TOLERANCE considered a failure
 - ``SHADOW_PRICE_METHOD`` [ctramp | daysim | simulation]
+- ``TOTAL_EMP`` total employment column name defined in the land use data
+- ``TOTAL_ENORLLMENT``: total enrolmment colmns name defined in the land use data
 - ``DAMPING_FACTOR`` On each iteration, ActivitySim will attempt to adjust the model to match desired size terms. The number is multiplied by adjustment factor to dampen or amplify the ActivitySim calculation. (only for CT-RAMP)
 - ``DAYSIM_ABSOLUTE_TOLERANCE``
 

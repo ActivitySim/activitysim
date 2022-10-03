@@ -10,7 +10,7 @@ from activitysim.abm.models.util import tour_destination, estimation
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core.expressions import assign_columns
 
-from sklearn.cluster import KMeans
+# from sklearn.cluster import KMeans
 
 logger = logging.getLogger(__name__)
 

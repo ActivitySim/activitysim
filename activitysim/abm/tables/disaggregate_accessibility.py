@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 import pandas.api.types as ptypes
-from sklearn.naive_bayes import CategoricalNB
+# from sklearn.naive_bayes import CategoricalNB
 
 from activitysim.core import inject, config, pipeline, util, input
 

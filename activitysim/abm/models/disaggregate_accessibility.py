@@ -136,11 +136,11 @@ class ProtoPop:
         }
 
         # Add suffixes if not defined
-        if not self.model_settings.get('suffixes'):
-            self.model_settings['suffixes'] = {
-                'SUFFIX': 'proto_',
-                'ROOTS': ['persons', 'households', 'tours', 'persons_merged']
-             }
+        if not self.model_settings.get("suffixes"):
+            self.model_settings["suffixes"] = {
+                "SUFFIX": "proto_",
+                "ROOTS": ["persons", "households", "tours", "persons_merged"],
+            }
 
         return params
 

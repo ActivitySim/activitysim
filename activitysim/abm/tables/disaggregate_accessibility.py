@@ -99,7 +99,7 @@ def proto_disaggregate_accessibility():
     df = input.read_input_table("proto_disaggregate_accessibility", required=False)
 
     if not df:
-        return None
+        return pd.DataFrame()
 
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
@@ -125,7 +125,7 @@ def initialize_disaggregate_accessibility():
     persons_merged_df = pipeline.get_table("persons_merged")
 
     # If there is no table, skip. We do this first to skip as fast as possible
-    if proto_accessibility_df is None:
+    if proto_accessibility_df.size == 0:
         return
 
     # Extract model settings

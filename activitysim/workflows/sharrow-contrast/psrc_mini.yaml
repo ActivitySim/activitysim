@@ -21,6 +21,8 @@ steps:
       - configs
       data_dir: data
       instrument: False
+      distance_skim: DIST
+      household_income: income_in_thousands
 
 - name: activitysim.workflows.steps.pype
   in:

@@ -206,16 +206,17 @@ for iteration 3 of the school location model will be called ``trace.shadow_price
 In total, ActivitySim generates three types of output files for each model with shadow pricing:
 
 - ``trace.shadow_price_<model>_desired_size.csv``
-  The size terms by zone that shadow pricing is attempting to target. These usually will match the size terms identified
-  in the land_use input file.
+  The size terms by zone that the ctramp and daysim methods are attempting to target. These equal the size term columns in the land use data multiplied by size term coefficients.
 
 - ``trace.shadow_price_<model>_modeled_size_<iteration>.csv``
   These are the modeled size terms after the iteration of shadow pricing identified by the <iteration> number. In other
-  words, these are the predicted choices by zone for the model after the iteration completes.
+  words, these are the predicted choices by zone and segment for the model after the iteration completes.
 
 - ``trace.shadow_price_<model>_shadow_prices_<iteration>.csv``
-  The actual shadow price for each zone and segment after the <iteration> of shadow pricing. This the file that can be
+  The actual shadow price for each zone and segment after the <iteration> of shadow pricing. This is the file that can be
   used to warm start the shadow pricing mechanism in ActivitySim.
+
+There are three shadow pricing methods in activitysim: ``ctramp``, ``daysim``, and ``simulation``. The first two methods try to match model output with workplace/school location model size terms, while the last method matches model output with actual employment/enrolmment data.
 
 **shadow_pricing.yaml Attributes**
 
@@ -225,8 +226,8 @@ In total, ActivitySim generates three types of output files for each model with 
 - ``MAX_ITERATIONS_SAVED`` If loaded shadow prices, maximum number of times shadow pricing can be run.
 - ``SIZE_THRESHOLD`` Ignore zones in failure calculation with fewer choices than specified here.
 - ``PERCENT_TOLERANCE`` Maximum percent difference between modeled and desired size terms
-- ``FAIL_THRESHOLD`` Number of zones exceeding the PERCENT_TOLERANCE considered a failure
-- ``SHADOW_PRICE_METHOD`` [ctramp | daysim]
+- ``FAIL_THRESHOLD`` percentage of zones exceeding the PERCENT_TOLERANCE considered a failure
+- ``SHADOW_PRICE_METHOD`` [ctramp | daysim | simulation]
 - ``DAMPING_FACTOR`` On each iteration, ActivitySim will attempt to adjust the model to match desired size terms. The number is multiplied by adjustment factor to dampen or amplify the ActivitySim calculation. (only for CT-RAMP)
 - ``DAYSIM_ABSOLUTE_TOLERANCE``
 

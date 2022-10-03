@@ -455,6 +455,7 @@ reporting:
     size_label: n_workers
 
 - name: activitysim.workflows.steps.contrast.transform_data
+  skip: !py "household_income is None"
   in:
     tablename: households
     column: '{household_income}'
@@ -467,6 +468,7 @@ reporting:
         - high
 
 - name: activitysim.workflows.steps.contrast.join_table_data
+  skip: !py "household_income is None"
   in:
     caption: Join Income to Persons
     tablename: persons

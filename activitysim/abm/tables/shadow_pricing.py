@@ -799,11 +799,12 @@ def add_size_tables(suffixes={"SUFFIX": None, "ROOTS": []}):
     scale_size_table = shadow_settings.get("SCALE_SIZE_TABLE", False)
 
     # Suffixes for disaggregate accessibilities
-    suffix, roots = suffixes.get("SUFFIX"), suffixes.get("ROOTS", [])
-    assert isinstance(roots, list)
-    assert (suffix is not None and roots) or (
-        suffix is None and not roots
-    ), "Expected to find both 'ROOTS' and 'SUFFIX', missing one"
+    if suffixes:
+        suffix, roots = suffixes.get("SUFFIX"), suffixes.get("ROOTS", [])
+        assert isinstance(roots, list)
+        assert (suffix is not None and roots) or (
+            suffix is None and not roots
+        ), "Expected to find both 'ROOTS' and 'SUFFIX', missing one"
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     # since these are scaled to model size, they have to be created while single-process

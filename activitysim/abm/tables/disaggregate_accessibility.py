@@ -123,11 +123,13 @@ def initialize_disaggregate_accessibility():
 
     # If disaggregate_accessibilities do not exist in the pipeline, it will try loading csv of that name
     proto_accessibility_df = pipeline.get_table("proto_disaggregate_accessibility")
-    persons_merged_df = pipeline.get_table("persons_merged")
 
     # If there is no table, skip. We do this first to skip as fast as possible
     if proto_accessibility_df.size == 0:
         return
+
+    # Get persons merged
+    persons_merged_df = pipeline.get_table("persons_merged")
 
     # Extract model settings
     config.read_model_settings("disaggregate_accessibility.yaml")

@@ -763,7 +763,7 @@ def load_shadow_price_calculator(model_settings):
 
 
 @inject.step()
-def add_size_tables(suffixes=None):
+def add_size_tables(disaggregate_suffixes):
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 
@@ -800,9 +800,9 @@ def add_size_tables(suffixes=None):
 
     # Suffixes for disaggregate accessibilities
     # Set default here incase None is explicitly passed
-    suffixes = {"SUFFIX": None, "ROOTS": []} if not suffixes else suffixes
+    disaggregate_suffixes = {"SUFFIX": None, "ROOTS": []} if not disaggregate_suffixes else disaggregate_suffixes
+    suffix, roots = disaggregate_suffixes.get("SUFFIX"), disaggregate_suffixes.get("ROOTS", [])
 
-    suffix, roots = suffixes.get("SUFFIX"), suffixes.get("ROOTS", [])
     assert isinstance(roots, list)
     assert (suffix is not None and roots) or (
         suffix is None and not roots

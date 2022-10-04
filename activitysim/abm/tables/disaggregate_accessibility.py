@@ -79,6 +79,10 @@ def find_nearest_accessibility_zone(choosers, accessibility_df, method="skims"):
 
     return matched_df.loc[_idx]
 
+@inject.injectable()
+def disaggregate_suffixes():
+    return {"SUFFIX": None, "ROOTS": []}
+
 
 @inject.table()
 def maz_centroids():

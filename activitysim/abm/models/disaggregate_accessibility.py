@@ -1,5 +1,6 @@
 import random
 import logging
+import orca
 import pandas as pd
 from functools import reduce
 
@@ -13,6 +14,18 @@ from activitysim.core.expressions import assign_columns
 # from sklearn.cluster import KMeans
 
 logger = logging.getLogger(__name__)
+
+def read_disaggregate_accessibility_yaml(file_name):
+    '''
+    Adds in default table suffixes 'proto_' if not defined in the settings file
+    '''
+    model_settings = config.read_model_settings(file_name)
+    if not model_settings.get("suffixes"):
+        model_settings["suffixes"] = {
+            "SUFFIX": "proto_",
+            "ROOTS": ["persons", "households", "tours", "persons_merged"],
+        }
+    return model_settings
 
 
 class ProtoPop:
@@ -134,13 +147,6 @@ class ProtoPop:
             **params["proto_households"]["variables"],
             **zone_list,
         }
-
-        # Add suffixes if not defined
-        if not self.model_settings.get("suffixes"):
-            self.model_settings["suffixes"] = {
-                "SUFFIX": "proto_",
-                "ROOTS": ["persons", "households", "tours", "persons_merged"],
-            }
 
         return params
 
@@ -272,13 +278,12 @@ class ProtoPop:
         # Store in pipeline
         inject.add_table("proto_persons_merged", persons_merged)
 
-
 def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
     logsums = {}
     persons_merged = pipeline.get_table("proto_persons_merged").sort_index(
         inplace=False
     )
-    disagg_model_settings = config.read_model_settings(
+    disagg_model_settings = read_disaggregate_accessibility_yaml(
         "disaggregate_accessibility.yaml"
     )
 
@@ -374,7 +379,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 @inject.step()
 def initialize_proto_population():
     # Synthesize the proto-population
-    model_settings = config.read_model_settings("disaggregate_accessibility.yaml")
+    model_settings = read_disaggregate_accessibility_yaml("disaggregate_accessibility.yaml")
     land_use_df = pipeline.get_table("land_use")
     ProtoPop(land_use_df, model_settings)
 
@@ -390,7 +395,7 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     """
 
     # Synthesize the proto-population
-    model_settings = config.read_model_settings("disaggregate_accessibility.yaml")
+    model_settings = read_disaggregate_accessibility_yaml("disaggregate_accessibility.yaml")
 
     # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
@@ -414,12 +419,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Run location choice
     logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
     logsums = {k + "_accessibility": v for k, v in logsums.items()}
-
-    # # De-register the channel, so it can get re-registered with actual pop tables
-    [
-        pipeline.drop_table(x)
-        for x in ["school_destination_size", "workplace_destination_size", "tours"]
-    ]
 
     # Combined accessibility table
     # Setup dict for fixed location accessibilities
@@ -456,5 +455,9 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
 
     # Inject separate accessibilities into pipeline
     [inject.add_table(k, df) for k, df in logsums.items()]
+
+    # De-register the channel, so it can get re-registered with actual pop tables
+    for x in ["school_destination_size", "workplace_destination_size", "tours", "trips"]:
+        pipeline.drop_table(x)
 
     return

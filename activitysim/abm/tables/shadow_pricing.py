@@ -800,8 +800,14 @@ def add_size_tables(disaggregate_suffixes):
 
     # Suffixes for disaggregate accessibilities
     # Set default here incase None is explicitly passed
-    disaggregate_suffixes = {"SUFFIX": None, "ROOTS": []} if not disaggregate_suffixes else disaggregate_suffixes
-    suffix, roots = disaggregate_suffixes.get("SUFFIX"), disaggregate_suffixes.get("ROOTS", [])
+    disaggregate_suffixes = (
+        {"SUFFIX": None, "ROOTS": []}
+        if not disaggregate_suffixes
+        else disaggregate_suffixes
+    )
+    suffix, roots = disaggregate_suffixes.get("SUFFIX"), disaggregate_suffixes.get(
+        "ROOTS", []
+    )
 
     assert isinstance(roots, list)
     assert (suffix is not None and roots) or (

@@ -141,7 +141,7 @@ def initialize_households():
         add_size_tables = model_settings.get("add_size_tables", True)
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            suffixes = inject.get_injectable('disaggregate_suffixes')
+            suffixes = inject.get_injectable("disaggregate_suffixes")
             shadow_pricing.add_size_tables(suffixes)
 
         # - preload person_windows

@@ -15,10 +15,11 @@ from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
 
+
 def read_disaggregate_accessibility_yaml(file_name):
-    '''
+    """
     Adds in default table suffixes 'proto_' if not defined in the settings file
-    '''
+    """
     model_settings = config.read_model_settings(file_name)
     if not model_settings.get("suffixes"):
         model_settings["suffixes"] = {
@@ -278,6 +279,7 @@ class ProtoPop:
         # Store in pipeline
         inject.add_table("proto_persons_merged", persons_merged)
 
+
 def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
     logsums = {}
     persons_merged = pipeline.get_table("proto_persons_merged").sort_index(
@@ -379,7 +381,9 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 @inject.step()
 def initialize_proto_population():
     # Synthesize the proto-population
-    model_settings = read_disaggregate_accessibility_yaml("disaggregate_accessibility.yaml")
+    model_settings = read_disaggregate_accessibility_yaml(
+        "disaggregate_accessibility.yaml"
+    )
     land_use_df = pipeline.get_table("land_use")
     ProtoPop(land_use_df, model_settings)
 
@@ -395,7 +399,9 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     """
 
     # Synthesize the proto-population
-    model_settings = read_disaggregate_accessibility_yaml("disaggregate_accessibility.yaml")
+    model_settings = read_disaggregate_accessibility_yaml(
+        "disaggregate_accessibility.yaml"
+    )
 
     # - initialize shadow_pricing size tables after annotating household and person tables
     # since these are scaled to model size, they have to be created while single-process
@@ -457,7 +463,12 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     [inject.add_table(k, df) for k, df in logsums.items()]
 
     # De-register the channel, so it can get re-registered with actual pop tables
-    for x in ["school_destination_size", "workplace_destination_size", "tours", "trips"]:
+    for x in [
+        "school_destination_size",
+        "workplace_destination_size",
+        "tours",
+        "trips",
+    ]:
         pipeline.drop_table(x)
 
     return

@@ -182,7 +182,8 @@ models:
   - initialize_landuse
   ## Disaggregate Accessibility steps
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
-  - compute_disaggregate_accessibility # Must happen before initialize_households. Problem w/ shadow_pricing
+# FIXME compute_disaggregate_accessibility works but causes results to change. Ok for standalone run but should be fixed
+#  - compute_disaggregate_accessibility # Must happen before initialize_households. Problem w/ shadow_pricing
   - initialize_households
   - compute_accessibility
   - school_location

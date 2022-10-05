@@ -23,8 +23,15 @@ def read_disaggregate_accessibility_yaml(file_name):
     if not model_settings.get("suffixes"):
         model_settings["suffixes"] = {
             "SUFFIX": "proto_",
-            "ROOTS": ["persons", "households", "tours", "persons_merged",
-                      "person_id", "household_id", "tour_id"],
+            "ROOTS": [
+                "persons",
+                "households",
+                "tours",
+                "persons_merged",
+                "person_id",
+                "household_id",
+                "tour_id",
+            ],
         }
     return model_settings
 
@@ -299,7 +306,9 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
         trace_label = tracing.extend_trace_label(model_name, "accessibilities")
         print("Running model {}".format(trace_label))
         model_settings = config.read_model_settings(model_name + ".yaml")
-        model_settings["SAMPLE_SIZE"] = disagg_model_settings.get("DESTINATION_SAMPLE_SIZE")
+        model_settings["SAMPLE_SIZE"] = disagg_model_settings.get(
+            "DESTINATION_SAMPLE_SIZE"
+        )
         estimator = estimation.manager.begin_estimation(trace_label)
         if estimator:
             location_choice.write_estimation_specs(
@@ -309,7 +318,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
         # Append table references in settings with "proto_"
         # This avoids having to make duplicate copies of config files for disagg accessibilities
         model_settings = util.suffix_tables_in_settings(model_settings)
-        model_settings['CHOOSER_ID_COLUMN'] = 'proto_person_id'
+        model_settings["CHOOSER_ID_COLUMN"] = "proto_person_id"
 
         # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
         if model_settings.get("LOGSUM_SETTINGS", None):
@@ -454,7 +463,8 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Merge in the proto pop data and inject it
     access_df = (
         access_df.merge(
-            pipeline.get_table("proto_persons_merged").reset_index(), on="proto_household_id"
+            pipeline.get_table("proto_persons_merged").reset_index(),
+            on="proto_household_id",
         )
         .set_index("proto_person_id")
         .sort_index()
@@ -472,11 +482,15 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         pipeline.drop_table(tablename)
 
     # Drop any prematurely added random number generator channels
-    for ch in [x for x in pipeline.get_rn_generator().channels.keys() if 'proto_' not in x]:
+    for ch in [
+        x for x in pipeline.get_rn_generator().channels.keys() if "proto_" not in x
+    ]:
         pipeline.get_rn_generator().drop_channel(ch)
 
     # Drop any prematurely added traceables
-    for trace in [x for x in inject.get_injectable('traceable_tables') if 'proto_' not in x]:
+    for trace in [
+        x for x in inject.get_injectable("traceable_tables") if "proto_" not in x
+    ]:
         tracing.deregister_traceable_table(trace)
 
     # need to clear any premature tables that were added during the previous run

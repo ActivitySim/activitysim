@@ -120,7 +120,7 @@ def _destination_sample(
     )
 
     # if special person id is passed
-    chooser_id_column = model_settings.get('CHOOSER_ID_COLUMN', 'person_id')
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
@@ -524,7 +524,7 @@ def run_destination_sample(
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
 
     # if special person id is passed
-    chooser_id_column = model_settings.get('CHOOSER_ID_COLUMN', 'person_id')
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
@@ -620,7 +620,7 @@ def run_destination_logsums(
 
     logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
     # if special person id is passed
-    chooser_id_column = model_settings.get('CHOOSER_ID_COLUMN', 'person_id')
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
     chunk_tag = "tour_destination.logsums"
 
@@ -690,7 +690,7 @@ def run_destination_simulate(
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
 
     # if special person id is passed
-    chooser_id_column = model_settings.get('CHOOSER_ID_COLUMN', 'person_id')
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]

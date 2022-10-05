@@ -1,12 +1,11 @@
 import random
 import logging
-import orca
 import pandas as pd
 from functools import reduce
+from orca import orca
 
 from activitysim.core import inject, tracing, config, pipeline, util
-
-from activitysim.abm.models import location_choice
+from activitysim.abm.models import location_choice, initialize
 from activitysim.abm.models.util import tour_destination, estimation
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core.expressions import assign_columns
@@ -24,18 +23,21 @@ def read_disaggregate_accessibility_yaml(file_name):
     if not model_settings.get("suffixes"):
         model_settings["suffixes"] = {
             "SUFFIX": "proto_",
-            "ROOTS": ["persons", "households", "tours", "persons_merged"],
+            "ROOTS": ["persons", "households", "tours", "persons_merged",
+                      "person_id", "household_id", "tour_id"],
         }
     return model_settings
 
 
 class ProtoPop:
-    def __init__(self, land_use_df, model_settings):
+    def __init__(self, model_settings):
+        initialize.initialize_landuse()
+        self.land_use = pipeline.get_table("land_use")
+
         # Random seed
-        random.seed(len(land_use_df.index))
+        random.seed(len(self.land_use.index))
 
         self.proto_pop = {}
-        self.land_use = land_use_df
         self.model_settings = model_settings
         self.params = self.read_table_settings()
 
@@ -59,8 +61,8 @@ class ProtoPop:
         id_col = self.model_settings["zone_id_names"].get("index_col", "zone_id")
         zone_cols = self.model_settings["zone_id_names"].get("zone_group_cols")
 
-        method = self.model_settings.get("zone_pre_sample_method")
-        n = self.model_settings.get("zone_pre_sample_size", 0)
+        method = self.model_settings.get("ORIGIN_SAMPLE_METHOD")
+        n = self.model_settings.get("ORIGIN_SAMPLE_SIZE", 0)
 
         if n == 0 or n > len(self.land_use.index):
             n = len(self.land_use.index)
@@ -297,7 +299,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
         trace_label = tracing.extend_trace_label(model_name, "accessibilities")
         print("Running model {}".format(trace_label))
         model_settings = config.read_model_settings(model_name + ".yaml")
-        model_settings["SAMPLE_SIZE"] = disagg_model_settings.get("SAMPLE_SIZE")
+        model_settings["SAMPLE_SIZE"] = disagg_model_settings.get("DESTINATION_SAMPLE_SIZE")
         estimator = estimation.manager.begin_estimation(trace_label)
         if estimator:
             location_choice.write_estimation_specs(
@@ -307,6 +309,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
         # Append table references in settings with "proto_"
         # This avoids having to make duplicate copies of config files for disagg accessibilities
         model_settings = util.suffix_tables_in_settings(model_settings)
+        model_settings['CHOOSER_ID_COLUMN'] = 'proto_person_id'
 
         # Include the suffix tags to pass onto downstream logsum models (e.g., tour mode choice)
         if model_settings.get("LOGSUM_SETTINGS", None):
@@ -342,7 +345,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             if _logsums is not None and len(_logsums.index) > 0:
                 keep_cols = list(set(_logsums.columns).difference(choosers.columns))
                 logsums[model_name] = persons_merged.merge(
-                    _logsums[keep_cols], on="person_id"
+                    _logsums[keep_cols], on="proto_person_id"
                 )
 
         else:
@@ -372,7 +375,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
                     set(tour_logsums.columns).difference(persons_merged.columns)
                 )
                 logsums[model_name] = persons_merged.merge(
-                    tour_logsums[keep_cols], on="person_id"
+                    tour_logsums[keep_cols], on="proto_person_id"
                 )
 
     return logsums
@@ -384,8 +387,7 @@ def initialize_proto_population():
     model_settings = read_disaggregate_accessibility_yaml(
         "disaggregate_accessibility.yaml"
     )
-    land_use_df = pipeline.get_table("land_use")
-    ProtoPop(land_use_df, model_settings)
+    ProtoPop(model_settings)
 
     return
 
@@ -434,7 +436,7 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
             # cast non-mandatory purposes to wide
             df = pd.pivot(
                 df,
-                index=["household_id", "person_id"],
+                index=["proto_household_id", "proto_person_id"],
                 columns="tour_type",
                 values="logsums",
             )
@@ -442,19 +444,19 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
             access_list.append(df)
         else:
             access_list.append(
-                df[["household_id", "logsums"]].rename(columns={"logsums": k})
+                df[["proto_household_id", "logsums"]].rename(columns={"logsums": k})
             )
     # Merge to wide data frame. Merged on household_id, logsums are at household level
     access_df = reduce(
-        lambda x, y: pd.merge(x, y, on="household_id", how="outer"), access_list
+        lambda x, y: pd.merge(x, y, on="proto_household_id", how="outer"), access_list
     )
 
     # Merge in the proto pop data and inject it
     access_df = (
         access_df.merge(
-            pipeline.get_table("proto_persons_merged").reset_index(), on="household_id"
+            pipeline.get_table("proto_persons_merged").reset_index(), on="proto_household_id"
         )
-        .set_index("person_id")
+        .set_index("proto_person_id")
         .sort_index()
     )
     inject.add_table("proto_disaggregate_accessibility", access_df)
@@ -462,13 +464,33 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Inject separate accessibilities into pipeline
     [inject.add_table(k, df) for k, df in logsums.items()]
 
-    # De-register the channel, so it can get re-registered with actual pop tables
-    for x in [
+    # Drop any tables prematurely created
+    for tablename in [
         "school_destination_size",
         "workplace_destination_size",
-        "tours",
-        "trips",
     ]:
-        pipeline.drop_table(x)
+        pipeline.drop_table(tablename)
+
+    # Drop any prematurely added random number generator channels
+    for ch in [x for x in pipeline.get_rn_generator().channels.keys() if 'proto_' not in x]:
+        pipeline.get_rn_generator().drop_channel(ch)
+
+    # Drop any prematurely added traceables
+    for trace in [x for x in inject.get_injectable('traceable_tables') if 'proto_' not in x]:
+        tracing.deregister_traceable_table(trace)
+
+    # need to clear any premature tables that were added during the previous run
+    _DECORATED_TABLES = inject._DECORATED_TABLES
+    _DECORATED_COLUMNS = inject._DECORATED_COLUMNS
+
+    orca._TABLES.clear()
+    for name, func in _DECORATED_TABLES.items():
+        logger.debug("reinject decorated table %s" % name)
+        orca.add_table(name, func)
+
+    for column_key, args in _DECORATED_COLUMNS.items():
+        table_name, column_name = column_key
+        logger.debug("reinject decorated column %s.%s" % (table_name, column_name))
+        orca.add_column(table_name, column_name, args["func"], cache=args["cache"])
 
     return

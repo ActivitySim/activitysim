@@ -1,15 +1,16 @@
-# Sampling size. 0 = no limit
-SAMPLE_SIZE: 0
-
 ### list the zone names in the initialized annotated land use file (meaning, use the final zone names)
 # The index_col is the primary zone, zone_by_cols is optional group zone
 # if primary zone is a microzone in multi zone system. e.g., if MAZ and TAZ, the TAZ is the 'by' col
 zone_id_names:
     index_col: zone_id
 
+
+# Sampling size. 0 = no limit
+DESTINATION_SAMPLE_SIZE: 0
+
 # can be whole integer value or a sample rate (percent of zones)
 # zero or missing defaults to full sample!
-zone_pre_sample_size: 5000
+ORIGIN_SAMPLE_SIZE: 5000
 
 # Specify the tables to be created and  their variables.
 # Single values are constants
@@ -28,7 +29,7 @@ zone_pre_sample_size: 5000
 #Note: parameters in ALL CAPS below are required by the program for synthesis
 CREATE_TABLES:
     PROTO_HOUSEHOLDS:
-        index_col: household_id
+        index_col: proto_household_id
         zone_col: home_zone_id
         rename_columns:
             zone_id: home_zone_id
@@ -59,7 +60,7 @@ CREATE_TABLES:
                 3: 3
                     
     PROTO_PERSONS:
-        index_col: person_id
+        index_col: proto_person_id
         VARIABLES:
             pnum: [1, 2]                # Person number
             military: 4                 # Not military
@@ -93,7 +94,7 @@ CREATE_TABLES:
                     2: "N"
 
     PROTO_TOURS:
-        index_col: tour_id
+        index_col: proto_tour_id
         VARIABLES:
             tour_num: 1                 # Tour number, 1 tour per person
             purpose: [1, 2, 3]

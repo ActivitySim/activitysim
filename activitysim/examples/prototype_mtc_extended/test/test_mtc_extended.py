@@ -15,7 +15,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def test_prototype_mtc_extended():
+def test_prototype_mtc_extended(multiprocess=False):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc_extended", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -42,12 +42,12 @@ def test_prototype_mtc_extended():
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
-    subprocess.run(
-        [
-            "coverage",
-            "run",
-            "-a",
-            file_path,
+    if multiprocess:
+        run_args = [
+            "-c",
+            test_path("configs_mp"),
+            "-c",
+            example_path("configs_mp"),
             "-c",
             test_path("configs"),
             "-c",
@@ -58,13 +58,33 @@ def test_prototype_mtc_extended():
             example_mtc_path("data"),
             "-o",
             test_path("output"),
-        ],
-        check=True,
-    )
+        ]
+    else:
+        run_args = [
+            "-c",
+            test_path("configs"),
+            "-c",
+            example_path("configs"),
+            "-c",
+            example_mtc_path("configs"),
+            "-d",
+            example_mtc_path("data"),
+            "-o",
+            test_path("output"),
+        ]
+
+    subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
 
     regress()
 
+def test_mtc_extended():
+    test_prototype_mtc_extended(multiprocess=False)
+
+def test_mtc_extended_mp():
+    test_prototype_mtc_extended(multiprocess=True)
 
 if __name__ == "__main__":
-
-    test_prototype_mtc_extended()
+    test_mtc_extended()
+    test_mtc_extended_mp()
+    # test_prototype_mtc_extended()
+    # test_prototype_mtc_extended(multiprocess=True)

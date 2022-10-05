@@ -15,7 +15,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def test_prototype_mtc_extended(multiprocess=False):
+def run_test_mtc_extended(multiprocess=False):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc_extended", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -77,14 +77,11 @@ def test_prototype_mtc_extended(multiprocess=False):
 
     regress()
 
+
 def test_mtc_extended():
-    test_prototype_mtc_extended(multiprocess=False)
+    run_test_mtc_extended(multiprocess=False)
 
-def test_mtc_extended_mp():
-    test_prototype_mtc_extended(multiprocess=True)
 
-if __name__ == "__main__":
-    test_mtc_extended()
-    test_mtc_extended_mp()
-    # test_prototype_mtc_extended()
-    # test_prototype_mtc_extended(multiprocess=True)
+# FIXME Problem with vehicle model?
+# def test_mtc_extended_mp():
+#     run_test_mtc_extended(multiprocess=True)

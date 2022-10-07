@@ -15,6 +15,7 @@ from sklearn.cluster import KMeans
 
 logger = logging.getLogger(__name__)
 
+
 def read_disaggregate_accessibility_yaml(file_name):
     """
     Adds in default table suffixes 'proto_' if not defined in the settings file
@@ -34,10 +35,12 @@ def read_disaggregate_accessibility_yaml(file_name):
             ],
         }
     # Convert decimal sample rate to integer sample size
-    for sample in ['ORIGIN_SAMPLE_SIZE', 'DESTINATION_SAMPLE_SIZE']:
+    for sample in ["ORIGIN_SAMPLE_SIZE", "DESTINATION_SAMPLE_SIZE"]:
         size = model_settings.get(sample, 0)
         if size > 0 and size < 1:
-            model_settings[sample] = round(size * len(pipeline.get_table("land_use").index))
+            model_settings[sample] = round(
+                size * len(pipeline.get_table("land_use").index)
+            )
 
     return model_settings
 
@@ -93,26 +96,26 @@ class ProtoPop:
 
         # Get weights, need to get households first to get persons merged.
         # Note: This will cause empty zones to be excluded. Which is intended, but just know that.
-        zone_weights = self.land_use.TOTPOP.to_frame('weight')
+        zone_weights = self.land_use.TOTPOP.to_frame("weight")
+        zone_weights = zone_weights[zone_weights.weight != 0]
+
         # If more samples than zones, just default to all zones
         if n_samples == 0 or n_samples > len(zone_weights.index):
             n_samples = len(zone_weights.index)
-            print(
-                "WARNING: ORIGIN_SAMPLE_SIZE >= n-zones. Using all zones."
-            )
-            method = 'full'  # If it's a full sample, no need to sample
+            print("WARNING: ORIGIN_SAMPLE_SIZE >= n-zones. Using all zones.")
+            method = "full"  # If it's a full sample, no need to sample
 
-        if method and method == 'full':
+        if method and method == "full":
             sample_idx = self.land_use.index
         elif method and method.lower() == "uniform":
             sample_idx = sorted(random.sample(sorted(self.land_use.index), n_samples))
-        elif method and method.lower() == 'uniform-taz':
+        elif method and method.lower() == "uniform-taz":
             # Randomly select one MAZ per TAZ by randomizing the index and then select the first MAZ in each TAZ
             # Then truncate the sampled indices by N samples and sort it
             sample_idx = (
                 self.land_use.sample(frac=1)
                 .reset_index()
-                .groupby('TAZ')[id_col]
+                .groupby("TAZ")[id_col]
                 .first()
             )
             sample_idx = sorted(sample_idx)
@@ -126,7 +129,11 @@ class ProtoPop:
 
             # Initializer k-means class
             kmeans = KMeans(
-                init="random", n_clusters=n_samples, n_init=10, max_iter=300, #random_state=self.seed
+                init="random",
+                n_clusters=n_samples,
+                n_init=10,
+                max_iter=300,
+                random_state=self.seed,
             )
 
             # Calculate the k-means cluster points
@@ -141,58 +148,75 @@ class ProtoPop:
             # First sample the TAZ then select subzones weighted by the population size
             if self.network_los.zone_system == los.TWO_ZONE:
                 # Join on TAZ and aggregate
-                maz_candidates = zone_weights.merge(self.network_los.maz_taz_df, left_index=True, right_on='MAZ')
-                taz_candidates = maz_candidates.groupby('TAZ').sum().drop(columns='MAZ')
+                maz_candidates = zone_weights.merge(
+                    self.network_los.maz_taz_df, left_index=True, right_on="MAZ"
+                )
+                taz_candidates = maz_candidates.groupby("TAZ").sum().drop(columns="MAZ")
 
                 # Sample TAZs then sample sample 1 MAZ per TAZ for all TAZs, repeat MAZ sampling until no samples left
                 n_samples_remaining = n_samples
                 maz_sample_idx = []
+
                 while len(maz_candidates.index) > 0 and n_samples_remaining > 0:
                     # To ensure that each TAZ gets selected at least once when n > n-TAZs
-                    if n_samples_remaining > len(maz_candidates.groupby('TAZ').size()):
+                    if n_samples_remaining >= len(maz_candidates.groupby("TAZ").size()):
                         # Sample 1 MAZ per TAZ based on weight
                         maz_sample_idx += list(
-                            maz_candidates.groupby('TAZ').sample(n=1,
-                                                                 weights='weight',
-                                                                 replace=False,
-                                                                 #random_state=self.seed
-                                                                 ).MAZ
+                            maz_candidates.groupby("TAZ")
+                            .sample(
+                                n=1,
+                                weights="weight",
+                                replace=False,
+                                random_state=self.seed,
+                            )
+                            .MAZ
                         )
                     else:
                         # If there are more TAZs than samples remaining, then sample from TAZs first, then MAZs
                         # Otherwise we would end up with more samples than we want
                         taz_sample_idx = list(
-                            taz_candidates.sample(n=n_samples_remaining,
-                                                  weights='weight',
-                                                  replace=True,
-                                                  #random_state=self.seed
-                                                  ).index
+                            taz_candidates.sample(
+                                n=n_samples_remaining,
+                                weights="weight",
+                                replace=True,
+                                random_state=self.seed,
+                            ).index
                         )
                         # Now keep only those TAZs and sample MAZs from them
-                        maz_candidates = maz_candidates[maz_candidates.TAZ.isin(taz_sample_idx)]
+                        maz_candidates = maz_candidates[
+                            maz_candidates.TAZ.isin(taz_sample_idx)
+                        ]
                         maz_sample_idx += list(
-                            maz_candidates.groupby('TAZ').sample(n=1,
-                                                                 weights='weight',
-                                                                 replace=False,
-                                                                 #random_state=self.seed
-                                                                 ).MAZ
+                            maz_candidates.groupby("TAZ")
+                            .sample(
+                                n=1,
+                                weights="weight",
+                                replace=False,
+                                random_state=self.seed,
+                            )
+                            .MAZ
                         )
 
                     # Remove selected candidates from weight list
-                    maz_candidates = maz_candidates[~maz_candidates.MAZ.isin(maz_sample_idx)]
+                    maz_candidates = maz_candidates[
+                        ~maz_candidates.MAZ.isin(maz_sample_idx)
+                    ]
                     # Calculate the remaining samples to collect
                     n_samples_remaining = n_samples - len(maz_sample_idx)
-                    n_samples_remaining = 0 if n_samples_remaining < 0 else n_samples_remaining
+                    n_samples_remaining = (
+                        0 if n_samples_remaining < 0 else n_samples_remaining
+                    )
 
                 # The final MAZ list
                 sample_idx = maz_sample_idx
             else:
                 sample_idx = list(
-                    zone_weights.sample(n=n_samples,
-                                        weights='weight',
-                                        replace=True,
-                                        #random_state=self.seed
-                                        ).index
+                    zone_weights.sample(
+                        n=n_samples,
+                        weights="weight",
+                        replace=True,
+                        random_state=self.seed,
+                    ).index
                 )
 
         return {id_col: sorted(sample_idx)}
@@ -548,7 +572,7 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         .sort_index()
     )
 
-    logsums['proto_disaggregate_accessibility'] = access_df
+    logsums["proto_disaggregate_accessibility"] = access_df
 
     # Drop any tables prematurely created
     for tablename in [

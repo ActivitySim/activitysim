@@ -187,8 +187,7 @@ def disaggregate_accessibility(persons, households, land_use, accessibility):
     # because it will get slightly different logsums for households in the same zone.
     # This is because different destination zones were selected. To resolve, get mean by cols.
     right_df = (
-        proto_accessibility_df
-        .groupby(merge_cols)[accessibility_cols]
+        proto_accessibility_df.groupby(merge_cols)[accessibility_cols]
         .mean()
         .sort_values(nearest_cols)
         .reset_index()
@@ -258,8 +257,11 @@ def disaggregate_accessibility(persons, households, land_use, accessibility):
     assert any(merge_df[accessibility_cols].isnull())
 
     # Inject merged accessibilities so that it can be included in persons_merged function
-    inject.add_table('disaggregate_accessibility', merge_df[accessibility_cols])
+    inject.add_table("disaggregate_accessibility", merge_df[accessibility_cols])
 
     return merge_df[accessibility_cols]
 
-inject.broadcast("disaggregate_accessibility", "persons", cast_index=True, onto_on="person_id")
+
+inject.broadcast(
+    "disaggregate_accessibility", "persons", cast_index=True, onto_on="person_id"
+)

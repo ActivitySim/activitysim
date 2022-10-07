@@ -51,7 +51,7 @@ models:
   - initialize_households
   ### mp_accessibility step
   - compute_accessibility
-  ### mp_households step
+  ### mp_simulate step
   - school_location
   - workplace_location
   - auto_ownership_simulate
@@ -104,7 +104,7 @@ multiprocess_steps:
         - accessibility
       # don't slice any tables not explicitly listed above in slice.tables
       except: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
-  - name: mp_households
+  - name: mp_simulate
     begin: school_location
     slice:
       tables:

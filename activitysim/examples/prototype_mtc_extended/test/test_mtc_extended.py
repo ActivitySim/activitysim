@@ -37,10 +37,6 @@ def run_test_mtc_extended(multiprocess=False):
         regress_accessibility_df = pd.read_csv(test_path("regress/final_proto_disaggregate_accessibility.csv"))
         final_accessibiliy_df = pd.read_csv(test_path("output/final_proto_disaggregate_accessibility.csv"))
 
-
-        # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,
-        # destination,origin,destination_logsum,depart,trip_mode,mode_choice_logsum
-        # compare_cols = []
         pdt.assert_frame_equal(final_trips_df, regress_trips_df)
         pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df)
         pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)

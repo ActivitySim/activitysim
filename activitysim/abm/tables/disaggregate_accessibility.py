@@ -137,8 +137,6 @@ def initialize_disaggregate_accessibility():
     persons_merged_df = pipeline.get_table("persons_merged")
 
     # Extract model settings
-    config.read_model_settings("disaggregate_accessibility.yaml")
-
     model_settings = config.read_model_settings("disaggregate_accessibility.yaml")
     merging_params = model_settings.get("MERGE_ON")
     accessibility_cols = [
@@ -179,11 +177,22 @@ def initialize_disaggregate_accessibility():
 
     # Setup and left and right tables. If asof join is used, it must be sorted.
     # Drop duplicate accessibilities once filtered (may expect duplicates on households)
+    # right_df = (
+    #     proto_accessibility_df[merge_cols + accessibility_cols]
+    #     .sort_values(nearest_cols)
+    #     .drop_duplicates()
+    # )
+
+    # Above won't work if sampling is not 100% because it will get slightly different logsums for households
+    # in the same zone. This is because different destination zones were selected. To resolve, get mean by cols.
     right_df = (
-        proto_accessibility_df[merge_cols + accessibility_cols]
+        proto_accessibility_df
+        .groupby(merge_cols)[accessibility_cols]
+        .mean()
         .sort_values(nearest_cols)
-        .drop_duplicates()
+        .reset_index()
     )
+
     left_df = persons_merged_df[merge_cols].sort_values(nearest_cols)
 
     if merging_params.get("method") == "soft":
@@ -244,11 +253,7 @@ def initialize_disaggregate_accessibility():
         merge_df = merge_df.set_index("person_id")
 
     # Check that it was correctly left-joined
-    assert (
-        persons_merged_df[merge_cols]
-        .sort_index()
-        .equals(merge_df[merge_cols].sort_index())
-    )
+    assert all(persons_merged_df[merge_cols] == merge_df[merge_cols])
     assert any(merge_df[accessibility_cols].isnull())
 
     # Drop the temporary ID zone?

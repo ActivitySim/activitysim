@@ -1,19 +1,19 @@
 import random
 import logging
 import pandas as pd
+import numpy as np
 from functools import reduce
 from orca import orca
 
-from activitysim.core import inject, tracing, config, pipeline, util
+from activitysim.core import inject, tracing, config, pipeline, util, los, logit
 from activitysim.abm.models import location_choice, initialize
 from activitysim.abm.models.util import tour_destination, estimation
 from activitysim.abm.tables import shadow_pricing
 from activitysim.core.expressions import assign_columns
 
-# from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans
 
 logger = logging.getLogger(__name__)
-
 
 def read_disaggregate_accessibility_yaml(file_name):
     """
@@ -33,21 +33,34 @@ def read_disaggregate_accessibility_yaml(file_name):
                 "tour_id",
             ],
         }
+    # Convert decimal sample rate to integer sample size
+    for sample in ['ORIGIN_SAMPLE_SIZE', 'DESTINATION_SAMPLE_SIZE']:
+        size = model_settings.get(sample, 0)
+        if size > 0 and size < 1:
+            model_settings[sample] = round(size * len(pipeline.get_table("land_use").index))
+
     return model_settings
 
 
 class ProtoPop:
-    def __init__(self, model_settings):
+    def __init__(self, network_los, chunk_size):
+        # Run necessary inits for later
         initialize.initialize_landuse()
+
+        # Initialization
+        self.proto_pop = {}
         self.land_use = pipeline.get_table("land_use")
+        self.network_los = network_los
+        self.chunk_size = chunk_size
+        self.model_settings = read_disaggregate_accessibility_yaml(
+            "disaggregate_accessibility.yaml"
+        )
 
         # Random seed
-        random.seed(len(self.land_use.index))
+        self.seed = len(self.land_use.index)
 
-        self.proto_pop = {}
-        self.model_settings = model_settings
+        # Generation
         self.params = self.read_table_settings()
-
         self.create_proto_pop()
         self.inject_tables()
         self.annotate_tables()
@@ -59,37 +72,50 @@ class ProtoPop:
         This is particularly useful for multi-zone models where there are many MAZs.
         Otherwise it could cause memory usage and computation time to explode.
 
+        Important to distinguish this zone sampling from the core destination_sample method. The destination method
+        is destination oriented, and essentially weights samples by their size terms in order to sample important
+        destinations. This is irrelevant for accessibility, which is concerned with the accessibility FROM origins
+        to destinations.
+
+        Thus, this sampling approach will weight the zones by their relative population.
+
         method:
             None (default) - Simply sample N zones independent of each other.
             taz - Sample 1 zone per taz up to the N samples specified.
             k-means - ? FIXME.NF need to explore further
         """
 
+        # default_zone_col = 'TAZ' if not (self.network_los.zone_system == los.ONE_ZONE) else 'zone_id'
+        # zone_cols = self.model_settings["zone_id_names"].get("zone_group_cols", default_zone_col)
         id_col = self.model_settings["zone_id_names"].get("index_col", "zone_id")
-        zone_cols = self.model_settings["zone_id_names"].get("zone_group_cols")
-
         method = self.model_settings.get("ORIGIN_SAMPLE_METHOD")
-        n = self.model_settings.get("ORIGIN_SAMPLE_SIZE", 0)
+        n_samples = self.model_settings.get("ORIGIN_SAMPLE_SIZE", 0)
 
-        if n == 0 or n > len(self.land_use.index):
-            n = len(self.land_use.index)
+        # Get weights, need to get households first to get persons merged.
+        # Note: This will cause empty zones to be excluded. Which is intended, but just know that.
+        zone_weights = self.land_use.TOTPOP.to_frame('weight')
+        # If more samples than zones, just default to all zones
+        if n_samples == 0 or n_samples > len(zone_weights.index):
+            n_samples = len(zone_weights.index)
             print(
-                "Pre-sample size equals total number of zones. Using default sampling method."
+                "WARNING: ORIGIN_SAMPLE_SIZE >= n-zones."
             )
-            method = None  # If it's a full sample, there's no need to run an aggregator
+            method = 'full'  # If it's a full sample, no need to sample
 
-        if method and method.lower() == "taz":
-            assert zone_cols is not None
+        if method and method == 'full':
+            sample_idx = self.land_use.index
+        elif method and method.lower() == "uniform":
+            sample_idx = sorted(random.sample(sorted(self.land_use.index), n_samples))
+        elif method and method.lower() == 'uniform-taz':
             # Randomly select one MAZ per TAZ by randomizing the index and then select the first MAZ in each TAZ
             # Then truncate the sampled indices by N samples and sort it
             sample_idx = (
                 self.land_use.sample(frac=1)
                 .reset_index()
-                .groupby(zone_cols)[id_col]
+                .groupby('TAZ')[id_col]
                 .first()
             )
             sample_idx = sorted(sample_idx)
-
         elif method and method.lower() == "kmeans":
             # Performs a simple k-means clustering using centroid XY coordinates
             centroids_df = pipeline.get_table("maz_centroids")
@@ -100,7 +126,7 @@ class ProtoPop:
 
             # Initializer k-means class
             kmeans = KMeans(
-                init="random", n_clusters=n, n_init=10, max_iter=300, random_state=42
+                init="random", n_clusters=n_samples, n_init=10, max_iter=300, #random_state=self.seed
             )
 
             # Calculate the k-means cluster points
@@ -111,9 +137,65 @@ class ProtoPop:
                 for _xy in kmeans_res.cluster_centers_
             ]
         else:
-            sample_idx = sorted(random.sample(sorted(self.land_use.index), n))
+            # Default method.
+            # First sample the TAZ then select subzones weighted by the population size
+            if self.network_los.zone_system == los.TWO_ZONE:
+                # Join on TAZ and aggregate
+                maz_candidates = zone_weights.merge(self.network_los.maz_taz_df, left_index=True, right_on='MAZ')
+                taz_candidates = maz_candidates.groupby('TAZ').sum().drop(columns='MAZ')
 
-        return {id_col: sample_idx}
+                # Sample TAZs then sample sample 1 MAZ per TAZ for all TAZs, repeat MAZ sampling until no samples left
+                n_samples_remaining = n_samples
+                maz_sample_idx = []
+                while len(maz_candidates.index) > 0 and n_samples_remaining > 0:
+                    # To ensure that each TAZ gets selected at least once when n > n-TAZs
+                    if n_samples_remaining > len(maz_candidates.groupby('TAZ').size()):
+                        # Sample 1 MAZ per TAZ based on weight
+                        maz_sample_idx += list(
+                            maz_candidates.groupby('TAZ').sample(n=1,
+                                                                 weights='weight',
+                                                                 replace=False,
+                                                                 #random_state=self.seed
+                                                                 ).MAZ
+                        )
+                    else:
+                        # If there are more TAZs than samples remaining, then sample from TAZs first, then MAZs
+                        # Otherwise we would end up with more samples than we want
+                        taz_sample_idx = list(
+                            taz_candidates.sample(n=n_samples_remaining,
+                                                  weights='weight',
+                                                  replace=True,
+                                                  #random_state=self.seed
+                                                  ).index
+                        )
+                        # Now keep only those TAZs and sample MAZs from them
+                        maz_candidates = maz_candidates[maz_candidates.TAZ.isin(taz_sample_idx)]
+                        maz_sample_idx += list(
+                            maz_candidates.groupby('TAZ').sample(n=1,
+                                                                 weights='weight',
+                                                                 replace=False,
+                                                                 #random_state=self.seed
+                                                                 ).MAZ
+                        )
+
+                    # Remove selected candidates from weight list
+                    maz_candidates = maz_candidates[~maz_candidates.MAZ.isin(maz_sample_idx)]
+                    # Calculate the remaining samples to collect
+                    n_samples_remaining = n_samples - len(maz_sample_idx)
+                    n_samples_remaining = 0 if n_samples_remaining < 0 else n_samples_remaining
+
+                # The final MAZ list
+                sample_idx = maz_sample_idx
+            else:
+                sample_idx = list(
+                    zone_weights.sample(n=n_samples,
+                                        weights='weight',
+                                        replace=True,
+                                        #random_state=self.seed
+                                        ).index
+                )
+
+        return {id_col: sorted(sample_idx)}
 
     def read_table_settings(self):
         # Check if setup properly
@@ -146,7 +228,7 @@ class ProtoPop:
 
         # Set zone_id name if not already specified
         self.model_settings["zone_id_names"] = self.model_settings.get(
-            "zone_id_names", {"index_cols": "zone_id"}
+            "zone_id_names", {"index_col": "zone_id"}
         )
 
         # Add in the zone variables
@@ -391,13 +473,9 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 
 
 @inject.step()
-def initialize_proto_population():
+def initialize_proto_population(network_los, chunk_size):
     # Synthesize the proto-population
-    model_settings = read_disaggregate_accessibility_yaml(
-        "disaggregate_accessibility.yaml"
-    )
-    ProtoPop(model_settings)
-
+    ProtoPop(network_los, chunk_size)
     return
 
 
@@ -469,10 +547,8 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         .set_index("proto_person_id")
         .sort_index()
     )
-    inject.add_table("proto_disaggregate_accessibility", access_df)
 
-    # Inject separate accessibilities into pipeline
-    [inject.add_table(k, df) for k, df in logsums.items()]
+    logsums['proto_disaggregate_accessibility'] = access_df
 
     # Drop any tables prematurely created
     for tablename in [
@@ -495,16 +571,12 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
 
     # need to clear any premature tables that were added during the previous run
     _DECORATED_TABLES = inject._DECORATED_TABLES
-    _DECORATED_COLUMNS = inject._DECORATED_COLUMNS
-
     orca._TABLES.clear()
     for name, func in _DECORATED_TABLES.items():
         logger.debug("reinject decorated table %s" % name)
         orca.add_table(name, func)
 
-    for column_key, args in _DECORATED_COLUMNS.items():
-        table_name, column_name = column_key
-        logger.debug("reinject decorated column %s.%s" % (table_name, column_name))
-        orca.add_column(table_name, column_name, args["func"], cache=args["cache"])
+    # Inject accessibility results into pipeline
+    [inject.add_table(k, df) for k, df in logsums.items()]
 
     return

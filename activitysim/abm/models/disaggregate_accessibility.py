@@ -557,12 +557,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     ]:
         pipeline.drop_table(tablename)
 
-    # Drop any prematurely added random number generator channels
-    # for ch in [
-    #     x for x in pipeline.get_rn_generator().channels.keys() if "proto_" not in x
-    # ]:
-    #     pipeline.get_rn_generator().drop_channel(ch)
-
     for ch in list(pipeline.get_rn_generator().channels.keys()):
         pipeline.get_rn_generator().drop_channel(ch)
 

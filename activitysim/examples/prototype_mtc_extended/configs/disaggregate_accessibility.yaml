@@ -2,7 +2,7 @@
 # can be whole integer value or a sample rate (percent of zones)
 # zero or missing defaults to full sample!
 DESTINATION_SAMPLE_SIZE: 0.5
-ORIGIN_SAMPLE_SIZE: 0.5
+ORIGIN_SAMPLE_SIZE: 5000
 
 # Specify the tables to be created and  their variables.
 # Single values are constants

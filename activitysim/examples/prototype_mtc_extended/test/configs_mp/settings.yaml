@@ -30,3 +30,4 @@ output_tables:
   tables:
     - trips
     - vehicles
+    - proto_disaggregate_accessibility

@@ -34,8 +34,12 @@ def run_test_mtc_extended(multiprocess=False):
         regress_vehicles_df = pd.read_csv(test_path("regress/final_vehicles.csv"))
         final_vehicles_df = pd.read_csv(test_path("output/final_vehicles.csv"))
 
-        regress_accessibility_df = pd.read_csv(test_path("regress/final_proto_disaggregate_accessibility.csv"))
-        final_accessibiliy_df = pd.read_csv(test_path("output/final_proto_disaggregate_accessibility.csv"))
+        regress_accessibility_df = pd.read_csv(
+            test_path("regress/final_proto_disaggregate_accessibility.csv")
+        )
+        final_accessibiliy_df = pd.read_csv(
+            test_path("output/final_proto_disaggregate_accessibility.csv")
+        )
 
         pdt.assert_frame_equal(final_trips_df, regress_trips_df)
         pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df)

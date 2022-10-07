@@ -11,6 +11,7 @@ import pandas as pd
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import config, inject, tracing, util
+from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
@@ -940,7 +941,7 @@ def buffers_for_shadow_pricing_choice(shadow_pricing_choice_info):
 
         data_buffers[block_key + "_choice"] = shared_data_buffer
 
-        persons = inject.get_table("persons").to_frame()
+        persons = read_input_table("persons")
         sp_choice_df = persons.reset_index()["person_id"].to_frame()
 
         # declare a shared Array with data from sp_choice_df
@@ -1291,8 +1292,7 @@ def get_shadow_pricing_choice_info():
         block_shapes: dict {<model_selector>: <block_shape>}
     """
 
-    persons = inject.get_table("persons")
-    # size_terms = inject.get_injectable("size_terms")
+    persons = read_input_table("persons")
 
     shadow_settings = config.read_model_settings("shadow_pricing.yaml")
 
@@ -1302,8 +1302,8 @@ def get_shadow_pricing_choice_info():
     blocks = OrderedDict()
     for model_selector in shadow_pricing_models:
 
+        # each person will have a work or school location choice
         sp_rows = len(persons)
-        # sp_cols = len(size_terms[size_terms.model_selector == model_selector])
 
         # extra tally column for TALLY_CHECKIN and TALLY_CHECKOUT semaphores
         blocks[block_name(model_selector)] = (sp_rows, 2)

@@ -135,7 +135,7 @@ def disaggregate_accessibility(persons, households, land_use, accessibility):
 
     # If there is no table, skip. We do this first to skip as fast as possible
     if proto_accessibility_df.empty:
-        return
+        return pd.DataFrame()
 
     # Get persons merged manually
     persons_merged_df = inject.merge_tables(

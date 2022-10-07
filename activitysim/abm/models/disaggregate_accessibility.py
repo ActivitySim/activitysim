@@ -98,7 +98,7 @@ class ProtoPop:
         if n_samples == 0 or n_samples > len(zone_weights.index):
             n_samples = len(zone_weights.index)
             print(
-                "WARNING: ORIGIN_SAMPLE_SIZE >= n-zones."
+                "WARNING: ORIGIN_SAMPLE_SIZE >= n-zones. Using all zones."
             )
             method = 'full'  # If it's a full sample, no need to sample
 
@@ -558,9 +558,12 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         pipeline.drop_table(tablename)
 
     # Drop any prematurely added random number generator channels
-    for ch in [
-        x for x in pipeline.get_rn_generator().channels.keys() if "proto_" not in x
-    ]:
+    # for ch in [
+    #     x for x in pipeline.get_rn_generator().channels.keys() if "proto_" not in x
+    # ]:
+    #     pipeline.get_rn_generator().drop_channel(ch)
+
+    for ch in list(pipeline.get_rn_generator().channels.keys()):
         pipeline.get_rn_generator().drop_channel(ch)
 
     # Drop any prematurely added traceables
@@ -570,9 +573,8 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         tracing.deregister_traceable_table(trace)
 
     # need to clear any premature tables that were added during the previous run
-    _DECORATED_TABLES = inject._DECORATED_TABLES
     orca._TABLES.clear()
-    for name, func in _DECORATED_TABLES.items():
+    for name, func in inject._DECORATED_TABLES.items():
         logger.debug("reinject decorated table %s" % name)
         orca.add_table(name, func)
 

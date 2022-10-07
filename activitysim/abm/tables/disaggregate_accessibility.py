@@ -1,13 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import os
 
 import numpy as np
 import pandas as pd
 import pandas.api.types as ptypes
 
-# from sklearn.naive_bayes import CategoricalNB
-
+from sklearn.naive_bayes import CategoricalNB
 from activitysim.core import inject, config, pipeline, util, input
 
 logger = logging.getLogger(__name__)
@@ -102,24 +102,28 @@ def maz_centroids():
 
 @inject.table()
 def proto_disaggregate_accessibility():
+
+    # Read existing accessibilities, but is not required to enable model compatibility
     df = input.read_input_table("proto_disaggregate_accessibility", required=False)
 
+    # If no df, return empty dataframe to skip this model
     if not df:
         return pd.DataFrame()
 
+    # Ensure canonical index order
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
 
     logger.info("loaded proto_disaggregate_accessibility %s" % (df.shape,))
 
     # replace table function with dataframe
-    inject.add_table("maz_centroids", df)
+    inject.add_table("proto_disaggregate_accessibility", df)
 
     return df
 
 
-@inject.step()
-def initialize_disaggregate_accessibility():
+@inject.table()
+def disaggregate_accessibility(persons, households, land_use, accessibility):
     """
     This step initializes pre-computed disaggregate accessibility and merges it onto the full synthetic population.
     Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
@@ -130,11 +134,13 @@ def initialize_disaggregate_accessibility():
     proto_accessibility_df = pipeline.get_table("proto_disaggregate_accessibility")
 
     # If there is no table, skip. We do this first to skip as fast as possible
-    if proto_accessibility_df.size == 0:
+    if proto_accessibility_df.empty:
         return
 
-    # Get persons merged
-    persons_merged_df = pipeline.get_table("persons_merged")
+    # Get persons merged manually
+    persons_merged_df = inject.merge_tables(
+        persons.name, tables=[persons, households, land_use, accessibility]
+    )
 
     # Extract model settings
     model_settings = config.read_model_settings("disaggregate_accessibility.yaml")
@@ -176,15 +182,10 @@ def initialize_disaggregate_accessibility():
     assert len(nearest_cols) <= 1
 
     # Setup and left and right tables. If asof join is used, it must be sorted.
-    # Drop duplicate accessibilities once filtered (may expect duplicates on households)
-    # right_df = (
-    #     proto_accessibility_df[merge_cols + accessibility_cols]
-    #     .sort_values(nearest_cols)
-    #     .drop_duplicates()
-    # )
-
-    # Above won't work if sampling is not 100% because it will get slightly different logsums for households
-    # in the same zone. This is because different destination zones were selected. To resolve, get mean by cols.
+    # Drop duplicate accessibilities once filtered (may expect duplicates on households).
+    # Simply dropping duplicate households won't work if sampling is not 100%
+    # because it will get slightly different logsums for households in the same zone.
+    # This is because different destination zones were selected. To resolve, get mean by cols.
     right_df = (
         proto_accessibility_df
         .groupby(merge_cols)[accessibility_cols]
@@ -256,12 +257,9 @@ def initialize_disaggregate_accessibility():
     assert all(persons_merged_df[merge_cols] == merge_df[merge_cols])
     assert any(merge_df[accessibility_cols].isnull())
 
-    # Drop the temporary ID zone?
-    # persons_merged_df.drop(columns='nearest_accessibility_zone_id')
+    # Inject merged accessibilities so that it can be included in persons_merged function
+    inject.add_table('disaggregate_accessibility', merge_df[accessibility_cols])
 
-    # Merge the accessibilities to the persons_merged table and update the pipeline
-    pipeline.replace_table(
-        "persons", persons_merged_df.join(merge_df[accessibility_cols])
-    )
+    return merge_df[accessibility_cols]
 
-    return
+inject.broadcast("disaggregate_accessibility", "persons", cast_index=True, onto_on="person_id")

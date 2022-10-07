@@ -148,9 +148,6 @@ def initialize_households():
         person_windows = inject.get_table("person_windows").to_frame()
         chunk.log_df(trace_label, "person_windows", person_windows)
 
-        # Initialize disaggregate accessibility. Does nothing if table does not exist.
-        disaggregate_accessibility.initialize_disaggregate_accessibility()
-
 
 @inject.injectable(cache=True)
 def preload_injectables():

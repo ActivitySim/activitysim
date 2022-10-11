@@ -22,6 +22,8 @@ want_dest_choice_sample_tables: False
 
 cleanup_pipeline_after_run: True
 
+trace_hh_id:
+
 output_tables:
   h5_store: False
   action: include

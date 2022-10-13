@@ -56,5 +56,4 @@ coef_Duration_Constant_8p5_hours,-0.2743767294042022,F
 coef_Duration_Constant_9_hours,-0.8177669270743325,F
 coef_Duration_Constant_Longer_than_9_hrs,-0.5422856490451977,F
 coef_Duration_Constant_Shift_for_every_30_minutes_more_than_9p5_hrs_Linear,0.21538163084141398,F
-coef_Duration_Constant_Shift_for_every_30_minutes_more_than_9p5_hrs_Squared,0.0,F
 zero_coef,0.0,T

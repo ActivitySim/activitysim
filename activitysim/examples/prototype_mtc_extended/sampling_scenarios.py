@@ -49,7 +49,7 @@ def count_lines_enumrate(file_name):
 
 
 def update_configs(scene, model_settings, config_path):
-        if scene.DESTINATION_SAMPLE_SIZE > 1 or scene.ORIGIN_SAMPLE_SIZE < 0:
+    if scene.DESTINATION_SAMPLE_SIZE > 1 or scene.ORIGIN_SAMPLE_SIZE < 0:
         n_zones = count_lines_enumrate(base_path("data/land_use.csv"))
     else:
         n_zones = 1

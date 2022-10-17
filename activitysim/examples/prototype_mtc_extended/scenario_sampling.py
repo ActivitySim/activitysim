@@ -77,7 +77,9 @@ def copy_output(iter, model_settings):
         shutil.rmtree(extended_path(scene_dir_name))
     os.makedirs(extended_path(scene_dir_name))
 
-    for file in ["log", "final_proto_disaggregate_accessibility.csv"]:
+    files_list = [x for x in os.listdir(extended_path('output')) if 'pipeline' not in x and 'cache' not in x]
+
+    for file in files_list:
         copyargs = {
             "src": extended_path(os.path.join("output", file)),
             "dst": extended_path(os.path.join(scene_dir_name, file)),

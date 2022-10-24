@@ -531,7 +531,7 @@ class Random(object):
         assert len(list(self.channels.keys())) == 0
 
         if seed is None:
-            self.base_seed = np.random.RandomState().randint(_MAX_SEED, dtype = np.uint32)
+            self.base_seed = np.random.RandomState().randint(_MAX_SEED, dtype=np.uint32)
             logger.debug("Set random seed randomly to %s" % self.base_seed)
         else:
             logger.debug("Set random seed base to %s" % seed)

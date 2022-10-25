@@ -219,7 +219,7 @@ class ProtoPop:
                             taz_candidates.sample(
                                 n=n_samples_remaining,
                                 weights="weight",
-                                replace=True,
+                                replace=False,
                                 random_state=self.seed,
                             ).index
                         )

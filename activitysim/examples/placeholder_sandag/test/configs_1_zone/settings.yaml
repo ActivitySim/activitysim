@@ -7,9 +7,6 @@ strict: True
 households_sample_size: 30
 chunk_size: 0
 
-# random seed
-rng_base_seed: null
-
 # - shadow pricing global switches
 use_shadow_pricing: False
 

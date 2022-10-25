@@ -42,19 +42,20 @@ def run_model():
     run(args)
 
 
-def count_lines_enumrate(file_name):
+def count_lines_enumerate(file_name):
     fp = open(file_name, "r")
     line_count = list(enumerate(fp))[-1][0]
     return line_count
 
 
 def update_configs(scene, model_settings, config_path):
-    if scene.DESTINATION_SAMPLE_SIZE > 1 or scene.ORIGIN_SAMPLE_SIZE < 0:
-        n_zones = count_lines_enumrate(base_path("data/land_use.csv"))
-    else:
-        n_zones = 1
-    d_size = round(scene.DESTINATION_SAMPLE_SIZE * n_zones)
-    o_size = round(scene.ORIGIN_SAMPLE_SIZE * n_zones)
+    n_zones = count_lines_enumerate(base_path("data/land_use.csv"))
+
+    d_zones = 1 if scene.DESTINATION_SAMPLE_SIZE > 1 else n_zones
+    o_zones = 1 if scene.ORIGIN_SAMPLE_SIZE > 1 else n_zones
+
+    d_size = round(scene.DESTINATION_SAMPLE_SIZE * d_zones)
+    o_size = round(scene.ORIGIN_SAMPLE_SIZE * o_zones)
     method = scene.ORIGIN_SAMPLE_METHOD
 
     # Update the model settings
@@ -80,11 +81,7 @@ def copy_output(iter, model_settings):
         shutil.rmtree(extended_path(scene_dir_name))
     os.makedirs(extended_path(scene_dir_name))
 
-    files_list = [
-        x
-        for x in os.listdir(extended_path("output"))
-        if "pipeline" not in x and "cache" not in x
-    ]
+    files_list = [x for x in os.listdir(extended_path('output')) if 'pipeline' not in x and 'cache' not in x]
 
     for file in files_list:
         copyargs = {
@@ -111,7 +108,7 @@ def run_scenarios():
         model_settings = update_configs(scene, model_settings, config_path)
         # Run the model
         print(
-            f"Running model {iter} of {scenarios.size}: {chr(10)}"
+            f"Running model {iter} of {len(scenarios.index)}: {chr(10)}"
             + f"{chr(10)}".join(
                 [f"{var}={model_settings[var]}" for var in SAMPLING_PARAMS.keys()]
             )

@@ -2,9 +2,27 @@ shadow_pricing_models:
   school: school_location
   workplace: workplace_location
 
+# apply different targets for each segment specified in destination_size_terms.csv
+school_segmentation_targets:
+  # format is segment: land_use_column
+  university: TOTENR_univ
+  highschool: HSENROLL
+  gradeschool: AGE0519
+
+# if target names are the same, they will be combined together
+workplace_segmentation_targets:
+  # using total employment scaled to remove external workers. see annotate_landuse.csv
+  work_low: TOTEMP_scaled
+  work_med: TOTEMP_scaled
+  work_high: TOTEMP_scaled
+  work_veryhigh: TOTEMP_scaled
+
 # global switch to enable/disable loading of saved shadow prices
 # (ignored if global use_shadow_pricing switch is False)
 LOAD_SAVED_SHADOW_PRICES: False
+
+# write out choices by iteration to trace folder
+WRITE_ITERATION_CHOICES: True
 
 # number of shadow price iterations for cold start
 MAX_ITERATIONS: 10
@@ -18,9 +36,6 @@ MAX_ITERATIONS_SAVED: 1
 SHADOW_PRICE_METHOD: simulation
 
 # --- simulation method settings
-# total employment/enrollment fields in landuse
-TOTAL_EMP: TOTEMP
-TOTAL_ENROLLMENT: TOTENR
 # ignore criteria for zones smaller than size_threshold
 SIZE_THRESHOLD: 10
 # ignore criteria for zones smaller than target_threshold (total employmnet or enrollment)
@@ -31,10 +46,10 @@ PERCENT_TOLERANCE: 5
 FAIL_THRESHOLD: 1
 
 # --- ctramp method settings
-# DAMPING_FACTOR: 1
+DAMPING_FACTOR: 1
 
 # --- daysim method settings
 # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?
-# DAYSIM_ABSOLUTE_TOLERANCE: 50
-# DAYSIM_PERCENT_TOLERANCE: 10
+DAYSIM_ABSOLUTE_TOLERANCE: 50
+DAYSIM_PERCENT_TOLERANCE: 10
 

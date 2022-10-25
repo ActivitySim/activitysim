@@ -54,6 +54,12 @@ ShadowPriceCalculator.synchronize_modeled_size coordinates access to the global 
 TALLY_CHECKIN = (0, -1)
 TALLY_CHECKOUT = (1, -1)
 
+default_segment_to_name_dict = {
+    # model_selector : persons_segment_name
+    "school": "school_segment",
+    "workplace": "income_segment",
+}
+
 
 def size_table_name(model_selector):
     """
@@ -168,6 +174,8 @@ class ShadowPriceCalculator(object):
             self.shadow_prices = None
             self.shadow_price_method = self.shadow_settings["SHADOW_PRICE_METHOD"]
             assert self.shadow_price_method in ["daysim", "ctramp", "simulation"]
+            # ignore convergence criteria for zones smaller than target_threshold
+            self.target_threshold = self.shadow_settings["TARGET_THRESHOLD"]
 
             if self.shadow_settings["LOAD_SAVED_SHADOW_PRICES"]:
                 # read_saved_shadow_prices logs error and returns None if file not found
@@ -197,6 +205,7 @@ class ShadowPriceCalculator(object):
         self.num_fail = pd.DataFrame(index=self.desired_size.columns)
         self.max_abs_diff = pd.DataFrame(index=self.desired_size.columns)
         self.max_rel_diff = pd.DataFrame(index=self.desired_size.columns)
+        self.choices_by_iteration = pd.DataFrame()
 
         if (
             self.use_shadow_pricing
@@ -204,17 +213,41 @@ class ShadowPriceCalculator(object):
         ):
 
             assert self.model_selector in ["workplace", "school"]
+            self.sampled_persons = pd.DataFrame()
+            self.target = {}
+            land_use = inject.get_table("land_use").to_frame()
 
             if self.model_selector == "workplace":
-                self.total_emp = self.shadow_settings["TOTAL_EMP"]
-                land_use = inject.get_table("land_use").to_frame()
-                self.target = land_use[self.total_emp]
+                employment_targets = self.shadow_settings[
+                    "workplace_segmentation_targets"
+                ]
+                assert (
+                    employment_targets is not None
+                ), "Need to supply workplace_segmentation_targets in shadow_pricing.yaml"
+
+                for segment, target in employment_targets.items():
+                    assert (
+                        segment in self.shadow_prices.columns
+                    ), f"{segment} is not in {self.shadow_prices.columns}"
+                    assert (
+                        target in land_use.columns
+                    ), f"{target} is not in {land_use.columns}"
+                    self.target[segment] = land_use[target]
 
             elif self.model_selector == "school":
-                total_enr = self.shadow_settings["TOTAL_ENROLLMENT"]
-                land_use = inject.get_table("land_use").to_frame()
-                self.target = land_use[total_enr]
-            self.zonal_sample_rate = None
+                school_targets = self.shadow_settings["school_segmentation_targets"]
+                assert (
+                    school_targets is not None
+                ), "Need to supply school_segmentation_targets in shadow_pricing.yaml"
+
+                for segment, target in school_targets.items():
+                    assert (
+                        segment in self.shadow_prices.columns
+                    ), f"{segment} is not in {self.shadow_prices.columns}"
+                    assert (
+                        target in land_use.columns
+                    ), f"{target} is not in landuse columns: {land_use.columns}"
+                    self.target[segment] = land_use[target]
 
     def read_saved_shadow_prices(self, model_settings):
         """
@@ -481,6 +514,10 @@ class ShadowPriceCalculator(object):
         percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
         # max percentage of zones allowed to fail
         fail_threshold = self.shadow_settings["FAIL_THRESHOLD"]
+        # option to write out choices by iteration for each person to trace folder
+        write_choices = self.shadow_settings.get("WRITE_ITERATION_CHOICES", False)
+        if write_choices:
+            self.choices_by_iteration[iteration] = self.choices_synced
 
         if self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation":
 
@@ -510,44 +547,45 @@ class ShadowPriceCalculator(object):
 
             converged = total_fails <= max_fail
 
-            logger.info(
-                "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
-                % (self.model_selector, iteration, converged, max_fail, total_fails)
-            )
-
-            # - convergence stats
-            if converged or iteration == self.max_iterations:
-                logger.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
-                logger.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
-                logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
-
         else:
-            # ignore convergence criteria for zones smaller than target_threshold
-            self.target_threshold = self.shadow_settings["TARGET_THRESHOLD"]
+            rel_diff_df = pd.DataFrame(index=self.shadow_prices.index)
+            abs_diff_df = pd.DataFrame(index=self.shadow_prices.index)
+            # checking each segment
+            for segment in self.segment_ids:
+                desired_size = self.target[segment]
+                modeled_size = self.modeled_size[segment]
 
-            modeled_size = self.modeled_size
-            desired_size = self.target
+                # loop over other segments and add to modeled share if they have the same target
+                for other_segment in self.segment_ids:
+                    if (segment != other_segment) & (
+                        self.target[segment].equals(self.target[other_segment])
+                    ):
+                        modeled_size = modeled_size + self.modeled_size[other_segment]
 
-            desired_share = self.target / self.target.sum()
-            modeled_share = (
-                self.modeled_size.sum(axis=1) / self.modeled_size.sum().sum()
-            )
+                # want to match distribution, not absolute numbers so share is computed
+                desired_share = desired_size / desired_size.sum()
+                modeled_share = modeled_size / modeled_size.sum()
 
-            self.rel_diff = desired_share / modeled_share
+                abs_diff_df[segment] = (desired_size - modeled_size).abs()
 
-            # ignore zones where desired_size < threshold
-            self.rel_diff.where(desired_size >= self.target_threshold, 0, inplace=True)
+                rel_diff = desired_share / modeled_share
+                rel_diff = np.where(
+                    # is the desired size below the threshold?
+                    (desired_size <= self.target_threshold)
+                    # is the difference within the tolerance?
+                    | (np.abs(1 - rel_diff) < (percent_tolerance / 100.0)),
+                    0,
+                    rel_diff,
+                )
+                rel_diff_df[segment] = rel_diff
 
-            # ignore zones where rel_diff is within percent_tolerance
-            self.rel_diff.where(
-                (self.rel_diff > 1 + (percent_tolerance / 100.0))
-                | (self.rel_diff < 1 - (percent_tolerance / 100.0)),
-                0,
-                inplace=True,
-            )
+            # relative difference is set to max across segments
+            self.rel_diff = rel_diff_df.max(axis=1)
+            abs_diff = abs_diff_df.max(axis=1)
+
             self.num_fail["iter%s" % iteration] = (self.rel_diff > 0).sum()
-            # self.max_abs_diff["iter%s" % iteration] = abs_diff.max()
-            # self.max_rel_diff["iter%s" % iteration] = rel_diff.max()
+            self.max_abs_diff["iter%s" % iteration] = abs_diff.max()
+            self.max_rel_diff["iter%s" % iteration] = rel_diff.max()
 
             total_fails = (self.rel_diff > 0).values.sum()
 
@@ -555,19 +593,26 @@ class ShadowPriceCalculator(object):
             max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
 
             converged = (total_fails <= np.ceil(max_fail)) | (
-                len(self.choices_synced) == 0
+                (iteration > 1) & (len(self.sampled_persons) == 0)
             )
 
-            logger.info(
-                "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
-                % (self.model_selector, iteration, converged, max_fail, total_fails)
-            )
+        logger.info(
+            "check_fit %s iteration: %s converged: %s max_fail: %s total_fails: %s"
+            % (self.model_selector, iteration, converged, max_fail, total_fails)
+        )
 
-            # - convergence stats
-            if converged or iteration == self.max_iterations:
-                logger.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
-                logger.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
-                logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
+        # - convergence stats
+        if converged or iteration == self.max_iterations:
+            logger.info("\nshadow_pricing max_abs_diff\n%s" % self.max_abs_diff)
+            logger.info("\nshadow_pricing max_rel_diff\n%s" % self.max_rel_diff)
+            logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
+
+            if write_choices:
+                tracing.write_csv(
+                    self.choices_by_iteration,
+                    "%s_choices_by_shadow_price_iteration" % self.model_selector,
+                    transpose=False,
+                )
 
         return converged
 
@@ -692,61 +737,144 @@ class ShadowPriceCalculator(object):
                 shadow_price_j = -999
                 resimulate n workers from zone j, with n = int(workers_j-emp_j/sum(emp_j*workers_j))
             """
-
-            desired_share = self.target / self.target.sum()
-            modeled_share = (
-                self.modeled_size.sum(axis=1) / self.modeled_size.sum().sum()
-            )
             percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
+            sampled_persons = pd.DataFrame()
+            persons_merged = inject.get_table("persons_merged").to_frame()
 
-            sprice = desired_share / modeled_share
-            sprice.fillna(0, inplace=True)
-            sprice.replace([np.inf, -np.inf], 0, inplace=True)
-
-            adjustment_ = np.where(sprice <= 1 + percent_tolerance / 100, -999, 0)
-            adjustment = pd.DataFrame(index=self.shadow_prices.index)
-
-            for seg_id in self.shadow_prices.columns:
-                adjustment[seg_id] = adjustment_
-
-            new_shadow_prices = adjustment
-            self.zonal_sample_rate = 1 - sprice
-            overpredicted_zones = new_shadow_prices[
-                new_shadow_prices.iloc[:, 0] == -999
-            ].index
-            zones_outside_tol = self.zonal_sample_rate[
-                self.zonal_sample_rate > percent_tolerance / 100
-            ].index
-            small_zones = self.target[self.target <= self.target_threshold].index
-
-            choices = self.choices_synced[
-                (self.choices_synced.choice.isin(overpredicted_zones))
-                & (self.choices_synced.choice.isin(zones_outside_tol))
-                & ~(self.choices_synced.choice.isin(small_zones))
-            ]
-
-            choices_index = choices.index.name
-            choices = choices.reset_index()
-
-            # handling unlikely cases where there are no more overassigned zones, but a few underassigned zones remain
-            if len(choices) > 0:
-                self.sampled_persons = (
-                    choices.groupby("choice")
-                    .apply(
-                        lambda x: x.sample(
-                            frac=self.zonal_sample_rate.loc[x.name], random_state=1
-                        )
-                    )
-                    .reset_index(drop=True)
-                    .set_index(choices_index)
+            # need to join the segment to the choices to sample correct persons
+            segment_to_name_dict = self.shadow_settings.get(
+                "", default_segment_to_name_dict
+            )
+            segment_name = segment_to_name_dict[self.model_selector]
+            choices_synced = (
+                self.choices_synced.to_frame()
+                .merge(
+                    persons_merged[segment_name],
+                    how="left",
+                    left_index=True,
+                    right_index=True,
                 )
-            else:
-                self.sampled_persons = pd.DataFrame()
+                .rename(columns={segment_name: "segment"})
+            )
+
+            for segment in self.segment_ids:
+                desired_size = self.target[segment]
+                modeled_size = self.modeled_size[segment]
+
+                # loop over other segments and add to modeled share if they have the same target
+                for other_segment in self.segment_ids:
+                    if (segment != other_segment) & (
+                        self.target[segment].equals(self.target[other_segment])
+                    ):
+                        modeled_size = modeled_size + self.modeled_size[other_segment]
+
+                # want to match distribution, not absolute numbers so share is computed
+                desired_share = desired_size / desired_size.sum()
+                modeled_share = modeled_size / modeled_size.sum()
+
+                sprice = desired_share / modeled_share
+                sprice.fillna(0, inplace=True)
+                sprice.replace([np.inf, -np.inf], 0, inplace=True)
+
+                # shadow prices are set to -999 if overassigned or 0 if the zone still has room for this segment
+                self.shadow_prices[segment] = np.where(
+                    (sprice <= 1 + percent_tolerance / 100), -999, 0
+                )
+
+                zonal_sample_rate = 1 - sprice
+                overpredicted_zones = self.shadow_prices[
+                    self.shadow_prices[segment] == -999
+                ].index
+                zones_outside_tol = zonal_sample_rate[
+                    zonal_sample_rate > percent_tolerance / 100
+                ].index
+                small_zones = desired_size[desired_size <= self.target_threshold].index
+
+                choices = choices_synced[
+                    (choices_synced["choice"].isin(overpredicted_zones))
+                    & (choices_synced["choice"].isin(zones_outside_tol))
+                    & ~(choices_synced["choice"].isin(small_zones))
+                    # sampling only from people in this segment
+                    & (choices_synced["segment"] == self.segment_ids[segment])
+                ]["choice"]
+
+                choices_index = choices.index.name
+                choices = choices.reset_index()
+
+                # handling unlikely cases where there are no more overassigned zones, but a few underassigned zones remain
+                if len(choices) > 0:
+                    current_sample = (
+                        choices.groupby("choice")
+                        .apply(
+                            # FIXME is this sample stable?
+                            lambda x: x.sample(
+                                frac=zonal_sample_rate.loc[x.name], random_state=1
+                            )
+                        )
+                        .reset_index(drop=True)
+                        .set_index(choices_index)
+                    )
+                    if len(sampled_persons) == 0:
+                        sampled_persons = current_sample
+                    else:
+                        sampled_persons = pd.concat([sampled_persons, current_sample])
+
+            self.sampled_persons = sampled_persons
+
+            # desired_share = self.target / self.target.sum()
+            # modeled_share = (
+            #     self.modeled_size.sum(axis=1) / self.modeled_size.sum().sum()
+            # )
+            # percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
+
+            # sprice = desired_share / modeled_share
+            # sprice.fillna(0, inplace=True)
+            # sprice.replace([np.inf, -np.inf], 0, inplace=True)
+
+            # adjustment_ = np.where(sprice <= 1 + percent_tolerance / 100, -999, 0)
+            # adjustment = pd.DataFrame(index=self.shadow_prices.index)
+
+            # for seg_id in self.shadow_prices.columns:
+            #     adjustment[seg_id] = adjustment_
+
+            # new_shadow_prices = adjustment
+            # self.zonal_sample_rate = 1 - sprice
+            # overpredicted_zones = new_shadow_prices[
+            #     new_shadow_prices.iloc[:, 0] == -999
+            # ].index
+            # zones_outside_tol = self.zonal_sample_rate[
+            #     self.zonal_sample_rate > percent_tolerance / 100
+            # ].index
+            # small_zones = self.target[self.target <= self.target_threshold].index
+
+            # choices = self.choices_synced[
+            #     (self.choices_synced.choice.isin(overpredicted_zones))
+            #     & (self.choices_synced.choice.isin(zones_outside_tol))
+            #     & ~(self.choices_synced.choice.isin(small_zones))
+            # ]
+
+            # choices_index = choices.index.name
+            # choices = choices.reset_index()
+
+            # # handling unlikely cases where there are no more overassigned zones, but a few underassigned zones remain
+            # if len(choices) > 0:
+            #     self.sampled_persons = (
+            #         choices.groupby("choice")
+            #         .apply(
+            #             lambda x: x.sample(
+            #                 frac=self.zonal_sample_rate.loc[x.name], random_state=1
+            #             )
+            #         )
+            #         .reset_index(drop=True)
+            #         .set_index(choices_index)
+            #     )
+            # else:
+            #     self.sampled_persons = pd.DataFrame()
 
         else:
             raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
 
-        self.shadow_prices = new_shadow_prices
+        # self.shadow_prices = new_shadow_prices
 
     def dest_size_terms(self, segment):
 

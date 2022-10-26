@@ -14,6 +14,7 @@ SAMPLING_PARAMS = {
     "ORIGIN_SAMPLE_METHOD": [None],  # , 'kmeans']
 }
 
+
 def integer_params(params):
     n_zones = count_lines_enumerate(base_path("data_2/land_use.csv"))
 
@@ -24,6 +25,7 @@ def integer_params(params):
     params.ORIGIN_SAMPLE_SIZE = round(params.ORIGIN_SAMPLE_SIZE * o_zones)
 
     return params
+
 
 def base_path(dirname):
     resource = os.path.join("examples", "placeholder_sandag_2_zone", dirname)
@@ -70,13 +72,17 @@ def update_configs(scene, model_settings, config_path):
 
     return model_settings
 
+
 def make_scene_name(it, params):
     d_samp = params["DESTINATION_SAMPLE_SIZE"]
     o_samp = params["ORIGIN_SAMPLE_SIZE"]
     method = params["ORIGIN_SAMPLE_METHOD"]
 
     scene_name = "scene-{}_dsamp-{}_osamp-{}_method-{}".format(
-        it + START_ITER, d_samp, o_samp, method,
+        it + START_ITER,
+        d_samp,
+        o_samp,
+        method,
     )
 
     return scene_name
@@ -84,22 +90,26 @@ def make_scene_name(it, params):
 
 def copy_output(scene_name, model_settings):
 
-    scene_dir_name = os.path.join('scenarios_output', scene_name)
+    scene_dir_name = os.path.join("scenarios_output", scene_name)
 
     if os.path.exists(extended_path(scene_dir_name)):
         shutil.rmtree(extended_path(scene_dir_name))
     os.makedirs(extended_path(scene_dir_name))
 
-    log = pd.read_csv('scenarios_output/log.csv')
+    log = pd.read_csv("scenarios_output/log.csv")
     filt = (
-            (log.DESTINATION_SAMPLE_SIZE == model_settings["DESTINATION_SAMPLE_SIZE"]) &
-            (log.ORIGIN_SAMPLE_SIZE == model_settings["ORIGIN_SAMPLE_SIZE"]) &
-            (log.ORIGIN_SAMPLE_METHOD == model_settings["ORIGIN_SAMPLE_METHOD"])
+        (log.DESTINATION_SAMPLE_SIZE == model_settings["DESTINATION_SAMPLE_SIZE"])
+        & (log.ORIGIN_SAMPLE_SIZE == model_settings["ORIGIN_SAMPLE_SIZE"])
+        & (log.ORIGIN_SAMPLE_METHOD == model_settings["ORIGIN_SAMPLE_METHOD"])
     )
-    log.loc[filt, 'COMPLETED_ID'] = scene_name
-    log.to_csv('scenarios_output/log.csv', index=False)
+    log.loc[filt, "COMPLETED_ID"] = scene_name
+    log.to_csv("scenarios_output/log.csv", index=False)
 
-    files_list = [x for x in os.listdir(extended_path('output')) if 'pipeline' not in x and 'cache' not in x]
+    files_list = [
+        x
+        for x in os.listdir(extended_path("output"))
+        if "pipeline" not in x and "cache" not in x
+    ]
 
     for file in files_list:
         copyargs = {
@@ -115,26 +125,25 @@ def copy_output(scene_name, model_settings):
     return
 
 
-
 def run_scenarios():
     config_path = extended_path("configs/disaggregate_accessibility.yaml")
     with open(config_path) as file:
         model_settings = yaml.load(file, Loader=yaml.FullLoader)
 
-    if not os.path.exists(extended_path('scenarios_output')):
-        os.makedirs(extended_path('scenarios_output'))
+    if not os.path.exists(extended_path("scenarios_output")):
+        os.makedirs(extended_path("scenarios_output"))
 
-    if os.path.exists(extended_path('scenarios_output/log.csv')):
-        log = pd.read_csv(extended_path('scenarios_output/log.csv'))
+    if os.path.exists(extended_path("scenarios_output/log.csv")):
+        log = pd.read_csv(extended_path("scenarios_output/log.csv"))
         # assert scenarios[['DESTINATION_SAMPLE_SIZE','ORIGIN_SAMPLE_SIZE', 'ORIGIN_SAMPLE_METHOD']].equals(
         #     log[['DESTINATION_SAMPLE_SIZE','ORIGIN_SAMPLE_SIZE', 'ORIGIN_SAMPLE_METHOD']]
         # )
         scenarios = log
     else:
         scenarios = pd.DataFrame(named_product(**SAMPLING_PARAMS))
-        scenarios['COMPLETED_ID'] = ""
-        scenarios['SKIP'] = False
-        scenarios.to_csv(extended_path('scenarios_output/log.csv'), index=False)
+        scenarios["COMPLETED_ID"] = ""
+        scenarios["SKIP"] = False
+        scenarios.to_csv(extended_path("scenarios_output/log.csv"), index=False)
 
     for it, scene in scenarios.iterrows():
         # Update model settings
@@ -142,9 +151,13 @@ def run_scenarios():
 
         # Check if already run
         scene_name = make_scene_name(it, scene)
-        scene_dir_name = extended_path(os.path.join('scenarios_output', scene_name))
+        scene_dir_name = extended_path(os.path.join("scenarios_output", scene_name))
 
-        if any(scenarios.COMPLETED_ID == scene_name) and os.path.exists(scene_dir_name) or scene.SKIP:
+        if (
+            any(scenarios.COMPLETED_ID == scene_name)
+            and os.path.exists(scene_dir_name)
+            or scene.SKIP
+        ):
             continue
 
         # Run the model

@@ -301,7 +301,7 @@ jobs:
           mamba list
 
       - name: Test Random Seed Generation
-        run:
+        run: |
           python -m pytest test/random_seed --durations=0
 
   estimation_mode:

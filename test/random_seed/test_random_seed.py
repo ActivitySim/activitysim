@@ -48,7 +48,7 @@ def run_test_random_seed():
         copy(os.path.join(example_path("configs"), "settings.yaml"), new_configs_dir)
 
         update_settings(new_settings_file, "models", steps_to_run)
-        if rng_base_seed != "":  # Undefined
+        if rng_base_seed != "": # Undefined
             update_settings(new_settings_file, "rng_base_seed", rng_base_seed)
 
     # (run name, rng_base_seed value)
@@ -64,6 +64,7 @@ def run_test_random_seed():
 
     seeds = list(set(runs.values()))
     for seed in seeds:
+        print('Creating config files for random seed = {}'.format(seed))
         create_rng_configs(seed)
 
     outputs = {}

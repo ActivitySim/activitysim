@@ -1,5 +1,3 @@
-print("Running Test")
-
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
@@ -64,9 +62,8 @@ def run_test_random_seed():
         ("Undefined", ""),
     ]
 
-    seeds = list(set(runs.values()))
+    seeds = list(set([run[1] for run in runs]))
     for seed in seeds:
-        print("Creating config files for random seed = {}".format(seed))
         create_rng_configs(seed)
 
     outputs = {}

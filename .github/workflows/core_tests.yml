@@ -302,7 +302,7 @@ jobs:
 
       - name: Test Random Seed Generation
         run: |
-          python -m pytest test/random_seed/test_random_seed.py --durations=0
+          python -m pytest activitysim/test/random_seed/test_random_seed.py --durations=0
 
   estimation_mode:
     needs: foundation

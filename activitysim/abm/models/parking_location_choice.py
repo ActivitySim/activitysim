@@ -297,7 +297,7 @@ def parking_location(
     land_use_df = land_use.to_frame()
 
     locals_dict = {"network_los": network_los}
-    
+
     constants = config.get_model_constants(model_settings)
 
     if constants is not None:

@@ -67,15 +67,6 @@ def read_alts_file(file_name, set_index=None):
     return alts
 
 
-def read_spec_file(file_name, set_index=None):
-    try:
-        alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
-        logger.warning(f"Could not find file {file_name} to determine tour flavors.")
-        return pd.DataFrame()
-    return alts
-
-
 def parse_tour_flavor_from_columns(columns, tour_flavor):
     """
     determines the max number from columns if column name contains tour flavor
@@ -261,8 +252,7 @@ def canonical_tours():
     non_mandatory_tour_flavors = determine_flavors_from_alts_file(
         nm_alts, provided_nm_tour_flavors, default_nm_tour_flavors, max_extension
     )
-    # FIXME add additional tours for school escorting only if model is included in run list:
-    # non_mandatory_tour_flavors['escort'] = non_mandatory_tour_flavors['escort'] + 3
+    # FIXME additional non-mandatory tour flavors are added in school escorting PR
     non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)
 
     logger.info(f"Non-Mandatory tour flavors used are {non_mandatory_tour_flavors}")
@@ -271,7 +261,7 @@ def canonical_tours():
     mtf_model_settings_file_name = "mandatory_tour_frequency.yaml"
     mtf_model_settings = config.read_model_settings(mtf_model_settings_file_name)
     mtf_spec = mtf_model_settings.get("SPEC", "mandatory_tour_frequency.csv")
-    mtf_model_spec = read_spec_file(file_name=mtf_spec)
+    mtf_model_spec = read_alts_file(file_name=mtf_spec)
     default_mandatory_tour_flavors = {"work": 2, "school": 2}
 
     mandatory_tour_flavors = determine_mandatory_tour_flavors(
@@ -442,7 +432,7 @@ def set_trip_index(trips, tour_id_column="tour_id"):
     #  = stops + 1 for primary half-tour destination
     max_trips_per_leg = determine_max_trips_per_leg()
 
-    # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
+    # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = max_trips_per_leg + 1, etc.
     canonical_trip_num = (~trips.outbound * max_trips_per_leg) + trips.trip_num
     trips["trip_id"] = (
         trips[tour_id_column] * (2 * max_trips_per_leg) + canonical_trip_num

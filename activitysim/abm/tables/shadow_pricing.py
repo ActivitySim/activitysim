@@ -746,16 +746,12 @@ class ShadowPriceCalculator(object):
                 "", default_segment_to_name_dict
             )
             segment_name = segment_to_name_dict[self.model_selector]
-            choices_synced = (
-                self.choices_synced.to_frame()
-                .merge(
-                    persons_merged[segment_name],
-                    how="left",
-                    left_index=True,
-                    right_index=True,
-                )
-                .rename(columns={segment_name: "segment"})
-            )
+            choices_synced = self.choices_synced.merge(
+                persons_merged[segment_name],
+                how="left",
+                left_index=True,
+                right_index=True,
+            ).rename(columns={segment_name: "segment"})
 
             for segment in self.segment_ids:
                 desired_size = self.target[segment]
@@ -820,56 +816,6 @@ class ShadowPriceCalculator(object):
                         sampled_persons = pd.concat([sampled_persons, current_sample])
 
             self.sampled_persons = sampled_persons
-
-            # desired_share = self.target / self.target.sum()
-            # modeled_share = (
-            #     self.modeled_size.sum(axis=1) / self.modeled_size.sum().sum()
-            # )
-            # percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
-
-            # sprice = desired_share / modeled_share
-            # sprice.fillna(0, inplace=True)
-            # sprice.replace([np.inf, -np.inf], 0, inplace=True)
-
-            # adjustment_ = np.where(sprice <= 1 + percent_tolerance / 100, -999, 0)
-            # adjustment = pd.DataFrame(index=self.shadow_prices.index)
-
-            # for seg_id in self.shadow_prices.columns:
-            #     adjustment[seg_id] = adjustment_
-
-            # new_shadow_prices = adjustment
-            # self.zonal_sample_rate = 1 - sprice
-            # overpredicted_zones = new_shadow_prices[
-            #     new_shadow_prices.iloc[:, 0] == -999
-            # ].index
-            # zones_outside_tol = self.zonal_sample_rate[
-            #     self.zonal_sample_rate > percent_tolerance / 100
-            # ].index
-            # small_zones = self.target[self.target <= self.target_threshold].index
-
-            # choices = self.choices_synced[
-            #     (self.choices_synced.choice.isin(overpredicted_zones))
-            #     & (self.choices_synced.choice.isin(zones_outside_tol))
-            #     & ~(self.choices_synced.choice.isin(small_zones))
-            # ]
-
-            # choices_index = choices.index.name
-            # choices = choices.reset_index()
-
-            # # handling unlikely cases where there are no more overassigned zones, but a few underassigned zones remain
-            # if len(choices) > 0:
-            #     self.sampled_persons = (
-            #         choices.groupby("choice")
-            #         .apply(
-            #             lambda x: x.sample(
-            #                 frac=self.zonal_sample_rate.loc[x.name], random_state=1
-            #             )
-            #         )
-            #         .reset_index(drop=True)
-            #         .set_index(choices_index)
-            #     )
-            # else:
-            #     self.sampled_persons = pd.DataFrame()
 
         else:
             raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)

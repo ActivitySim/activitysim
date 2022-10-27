@@ -2,21 +2,6 @@ shadow_pricing_models:
   school: school_location
   workplace: workplace_location
 
-# apply different targets for each segment specified in destination_size_terms.csv
-school_segmentation_targets:
-  # format is segment: land_use_column
-  university: TOTENR_univ
-  highschool: HSENROLL
-  gradeschool: AGE0519
-
-# if target names are the same, they will be combined together
-workplace_segmentation_targets:
-  # using total employment scaled to remove external workers. see annotate_landuse.csv
-  work_low: TOTEMP_scaled
-  work_med: TOTEMP_scaled
-  work_high: TOTEMP_scaled
-  work_veryhigh: TOTEMP_scaled
-
 # global switch to enable/disable loading of saved shadow prices
 # (ignored if global use_shadow_pricing switch is False)
 LOAD_SAVED_SHADOW_PRICES: False
@@ -44,6 +29,20 @@ TARGET_THRESHOLD: 20
 PERCENT_TOLERANCE: 5
 # max percentage of zones allowed to fail
 FAIL_THRESHOLD: 1
+# apply different targets for each segment specified in destination_size_terms.csv
+school_segmentation_targets:
+  # format is segment: land_use_column
+  university: TOTENR_univ
+  highschool: HSENROLL
+  gradeschool: AGE0519
+
+# if target names are the same, they will be combined together
+workplace_segmentation_targets:
+  # using total employment scaled to remove external workers. see annotate_landuse.csv
+  work_low: TOTEMP_scaled
+  work_med: TOTEMP_scaled
+  work_high: TOTEMP_scaled
+  work_veryhigh: TOTEMP_scaled
 
 # --- ctramp method settings
 DAMPING_FACTOR: 1

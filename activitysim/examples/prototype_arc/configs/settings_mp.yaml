@@ -6,80 +6,53 @@ input_table_list:
     # so don't put index in keep columns
     index_col: household_id
     rename_columns:
-      maz: zone_id
+      maz: home_zone_id
       np: hhsize
       nwrkrs_esr: num_workers
     keep_columns:
-      #- household_id
-      - zone_id
+      - home_zone_id
       - hhsize
       - num_workers
       - hincp
-      #- hhincAdj
-      #- adjinc
-      #- veh
       - hht
-      #- bld
-      #- type
   - tablename: persons
     filename: persons.csv
     # The index column is set before keep_columns,
     # so don't put index in keep columns
     index_col: person_id
     rename_columns:
-      maz: zone_id
+      maz: home_zone_id
       sporder: PNUM
     keep_columns:
-      #- person_id
       - household_id
-      - zone_id
+      - home_zone_id
       - PNUM
       - agep
-      #- employed
       - pecasOcc
       - sex
       - esr
       - wkw
       - wkhp
-      #-mil
       - schg
-      #-schl
-      #-indp02
-      #-indp07
-      #-occp02
-      #-occp10
-      #-n
   - tablename: land_use
     filename: land_use.csv
     # The index column is set before keep_columns,
     # so don't put index in keep columns
     index_col: zone_id
-#    rename_columns:
-#
     keep_columns:
-      #- TAZ
-#      - construc
-#      - manufac
-#      - TCU
-#      - wholesl
       - retail
-#      - FIRE
       - service
-#      - private
-#      - govt
       - emp
       - pop
       - hshld
       - univ
       - acres
-#      - otherEmp
-#      - district
       - PARKTOT
       - PARKLNG
       - PROPFREE
       - PARKRATE
       - areatype
-#      - county
+      - county
       - CBDFlag
       - N11
       - N21
@@ -108,10 +81,11 @@ input_table_list:
       - I_PCT20TO40
       - I_PCTGT40
       - RetailEmp30
+      - PARKING_ZONE
 
 #input data store and skims
 #input_store: arc_asim.h5
-skims_file: skims.omx
+#skims_file: skims.omx
 
 # - shadow pricing global switches
 
@@ -164,7 +138,7 @@ models:
 #  - track_skim_usage
 #  - write_trip_matrices
   - write_tables
- 
+
 #resume_after: trip_mode_choice
 
 multiprocess: True
@@ -188,7 +162,7 @@ multiprocess_steps:
         - persons
   - name: mp_summarize
     begin: write_tables
-  
+
 output_tables:
   h5_store: False
   action: include
@@ -202,25 +176,25 @@ output_tables:
     - tours
     - trips
     - joint_tour_participants
-    
 
-skim_time_periods:
-    period_minutes: 30
-    periods:
-        - 0
-        - 6
-        - 12
-        - 20
-        - 30
-        - 38
-        - 48
-    labels:
-        - EV
-        - EA
-        - AM
-        - MD
-        - PM
-        - EV
+
+#skim_time_periods:
+#    period_minutes: 30
+#    periods:
+#        - 0
+#        - 6
+#        - 12
+#        - 20
+#        - 30
+#        - 38
+#        - 48
+#    labels:
+#        - EV
+#        - EA
+#        - AM
+#        - MD
+#        - PM
+#        - EV
 
 min_value_of_time: 1
 max_value_of_time: 50

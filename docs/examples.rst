@@ -56,9 +56,11 @@ The current examples are:
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | :ref:`prototype_sandag_xborder` | SANDAG agency example                                     | 3            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| :ref:`prototype_mwcog`          | MWCOG agency example                                      | 2            | In development       |
++---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
-   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
    contains example commands to create and run several versions of the examples.  See also :ref:`adding_agency_examples` for more
    information on agency example models.
 
@@ -506,60 +508,11 @@ Area types
   skim inputs for a subset of user-defined zones.
 
 .. index:: configuration
-.. _configuration:
 
 Configuration
 ^^^^^^^^^^^^^
 
-The ``configs`` folder contains settings, expressions files, and other files required for specifying
-model utilities and form.  The first place to start in the ``configs`` folder is ``settings.yaml``, which
-is the main settings file for the model run.  This file includes:
-
-* ``models`` - list of model steps to run - auto ownership, tour frequency, etc. - see :ref:`model_steps`
-* ``resume_after`` - to resume running the data pipeline after the last successful checkpoint
-* ``input_store`` - HDF5 inputs file
-* ``input_table_list`` - list of table names, indices, and column re-maps for each table in `input_store`
-
-    * ``tablename`` - name of the injected table
-    * ``filename`` - name of the CSV or HDF5 file to read (optional, defaults to `input_store`)
-    * ``index_col`` - table column to use for the index
-    * ``rename_columns`` - dictionary of column name mappings
-    * ``keep_columns`` - columns to keep once read in to memory to save on memory needs and file I/O
-    * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
-
-* ``create_input_store`` - write new `input_data.h5` file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
-* ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
-* ``trace_hh_id`` - trace household id; comment out for no trace
-* ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_training_mode`` - disabled, training, production, or adaptive, see :ref:`chunk_size`.
-* ``chunk_size`` - approximate amount of RAM in GBs to allocate to ActivitySim for batch processing choosers, see :ref:`chunk_size`.
-* ``chunk_method`` - memory use measure such as hybrid_uss, see :ref:`chunk_size`.
-* ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
-* ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
-* ``log_alt_losers`` - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives.  This feature slows down the model run and so it is recommended for debugging purposes only.
-* ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
-* ``output_tables`` - list of output tables to write to CSV or HDF5
-* ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models
-* ``cleanup_pipeline_after_run`` - if true, cleans up pipeline after successful run by creating a single-checkpoint pipeline file and deletes any subprocess pipelines
-* global variables that can be used in expressions tables and Python code such as:
-
-    * ``urban_threshold`` - urban threshold area type max value
-    * ``county_map`` - mapping of county codes to county names
-    * ``household_median_value_of_time`` - various household and person value-of-time model settings
-
-Also in the ``configs`` folder is ``network_los.yaml``, which includes network LOS / skims settings such as:
-
-* ``zone_system`` - 1 (taz), 2 (maz and taz), or 3 (maz, taz, tap)
-* ``taz_skims`` - skim matrices in one OMX file.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM.
-* ``skim_time_periods`` - time period upper bound values and labels
-
-    * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
-    * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
-    * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
-    * ``labels`` - Labels to define names for aggregate periods for skims and assignment
-* ``read_skim_cache`` - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)
-* ``write_skim_cache`` - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
-* ``cache_dir`` - alternate dir to read/write cache files (defaults to output_dir)
+This section has been moved to :ref:`configuration`.
 
 .. _sub-model-spec-files:
 
@@ -849,7 +802,7 @@ The example should run in a few minutes since it runs a small sample of househol
 
 .. note::
 
-  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/master/other_resources/scripts>`__.
+  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/main/other_resources/scripts>`__.
   This script takes many of the same arguments as the ``activitysim run`` command, including paths to
   ``--config``, ``--data``, and ``--output`` directories. The script looks for these folders in the current
   working directory by default.
@@ -1528,7 +1481,7 @@ Example ARC Sub-Model Specification Files
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_semcog :
@@ -1576,7 +1529,7 @@ Example SEMCOG Sub-Model Specification Files
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
@@ -1596,7 +1549,7 @@ prototype_mtc model design.  It uses PSRC zones, land use, synthetic population,
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _placeholder_sandag :
@@ -1615,7 +1568,7 @@ prototype_mtc model design.  It uses SANDAG zones, land use, synthetic populatio
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running placeholder_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 .. _prototype_sandag_xborder :
@@ -1640,5 +1593,18 @@ model is required to assign tour origins and destinations simultaneously.
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
 for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+
+.. _prototype_mwcog :
+
+prototype_mwcog
+---------------
+
+The prototype_mwcog is a one zone system (TAZs only).
+
+Example
+~~~~~~~
+
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running prototype_mwcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

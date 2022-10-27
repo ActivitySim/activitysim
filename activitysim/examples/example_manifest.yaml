@@ -693,6 +693,9 @@
       placeholder_psrc
     - placeholder_sandag/configs_2_zone
     - placeholder_sandag/data_2
+    - placeholder_sandag/data_3/maz_to_maz_bike.csv
+      data_2/maz_to_maz_bike.csv
+      # the original data for data_2 was corrupted, but there's no need to store this file twice in the repo
     - placeholder_sandag/output_2
 
 - name: placeholder_sandag_2_zone_full
@@ -858,29 +861,55 @@
     - prototype_sandag_xborder/simulation.py
     - https://raw.githubusercontent.com/ActivitySim/activitysim_resources/master/sandag_xborder/households_xborder.csv
       data/households_xborder.csv
+      d5eacdab200955de06bd70761c648624734740a05738e9ab387502654283acdd
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/maz_maz_walk.csv
-      data/maz_maz_walk.csv   
+      data/maz_maz_walk.csv
+      027bb92325cd3d19a68c0608d8f909b075a857d4a2793dd6b75a183d371bc1e0
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/maz_tap_walk.csv
-      data/maz_tap_walk.csv  
+      data/maz_tap_walk.csv
+      a5ba44307843ed3dd73448abe61b585d3c4f6a795414f4035cb14f2606a89c8b
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/mazs_xborder.csv
-      data/mazs_xborder.csv  
-    - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/persons_xborder.csv
-      data/persons_xborder.csv 
+      data/mazs_xborder.csv
+      2d481ec20f69204fc02a259d2d7c4e3d955d6a83b13d7bae920c9c7f8e28c517
+    - prototype_sandag_xborder/data/persons_xborder.csv  # this matches the local tours_xborder, see below
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/tap_lines.csv
-      data/tap_lines.csv 
+      data/tap_lines.csv
+      750745a33f39963f0c3e4efa6135ff89fb7dd49f58f17cdbd90d62e7057fea01
     - https://raw.githubusercontent.com/activitysim/activitysim_resources/master/sandag_xborder/taps.csv
-      data/taps.csv 
-    - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/tours_xborder.csv
-      data/tours_xborder.csv   
+      data/taps.csv
+      9a6a29eb17079583e0c235525a58d301ab93f2b3a3bce537b142c85a0ad46606
+    - prototype_sandag_xborder/data/tours_xborder.csv  # the file on activitysim_resources is not consistent with this model
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/transit_skims_xborder.omx
       data/transit_skims_xborder.omx
+      8d5544cc6b543c6b45e77968efca8d62b7ec8b03bd30bdc5e46cd291b4e6b8d3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_AM.omx
       data/traffic_skims_xborder_AM.omx
+      b7f675e78d0d5f214b9ee4d5a4bb91a66692be1776f474381b8a024e3fcbf4a5
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_EA.omx
       data/traffic_skims_xborder_EA.omx
+      3d4978cba03c1fe5013bcc624b75e90456fe2ac723ca031ce0a1a50c758c3a92
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_EV.omx
       data/traffic_skims_xborder_EV.omx
+      3826807fbbf5a62b97a70022ea6979cd9d16129e326e5570159221db1cbc4584
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_MD.omx
       data/traffic_skims_xborder_MD.omx
+      9a83cf893e459019328aab726c4bd0fdcd38a2b5ecb88e0aa4a880b6104bbd3a
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_xborder/traffic_skims_xborder_PM.omx
-      data/traffic_skims_xborder_PM.omx      
+      data/traffic_skims_xborder_PM.omx
+      87544b59488c4ca654ae8d9756dfb3a8226b85faa21e631339d86fae5dc60feb
+
+- name: prototype_mwcog
+  description: 53 zone test example for the MWCOG region
+  # activitysim create -e prototype_mwcog -d test_prototype_mwcog
+  # cd test_prototype_mwcog
+  # python simulation.py -c configs -o output -d data
+  # cd ..
+  include:
+    - prototype_mwcog/extensions
+    - prototype_mwcog/data
+    - prototype_mwcog/configs
+    - prototype_mwcog/configs_mp
+    - prototype_mwcog/output
+    - prototype_mwcog/README.MD
+    - prototype_mwcog/simulation.py
+ 

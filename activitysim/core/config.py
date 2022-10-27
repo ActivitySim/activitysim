@@ -4,7 +4,8 @@ import argparse
 import glob
 import logging
 import os
-import sys
+import struct
+import time
 import warnings
 
 import yaml
@@ -340,13 +341,19 @@ def trace_file_path(file_name):
 
     output_dir = inject.get_injectable("output_dir")
 
-    # - check for optional trace subfolder
-    if os.path.exists(os.path.join(output_dir, "trace")):
-        output_dir = os.path.join(output_dir, "trace")
-    else:
-        file_name = "trace.%s" % (file_name,)
+    # - check for trace subfolder, create it if missing
+    trace_dir = os.path.join(output_dir, "trace")
+    if not os.path.exists(trace_dir):
+        os.makedirs(trace_dir)
 
-    file_path = os.path.join(output_dir, file_name)
+    # construct a unique tail string from the time
+    # this is a convenience for opening multiple similarly named trace files
+    tail = hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:]
+
+    file_parts = file_name.split(".")
+
+    file_path = os.path.join(trace_dir, *file_parts[:-1]) + f"-{tail}.{file_parts[-1]}"
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     return file_path
 
 

@@ -41,13 +41,6 @@ def initialize_pipeline(
         net_los.load_data()
         orca.add_injectable("network_los", net_los)
 
-    # Add an output directory in current working directory if it's not already there
-    try:
-        os.makedirs("output")
-    except FileExistsError:
-        # directory already exists
-        pass
-
     # Add the dataframes to the pipeline
     pipeline.open_pipeline()
     pipeline.add_checkpoint(module)

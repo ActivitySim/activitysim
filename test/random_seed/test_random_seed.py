@@ -68,7 +68,7 @@ def run_test_random_seed():
 
     outputs = {}
 
-    def compare_frames(df1, df2, should_be_equal=True):
+    def check_outputs(df1, df2, should_be_equal=True):
         """
         Compares df1 and df2 and raises an AssertionError if they are unequal when `should_be_equal` is True and equal when `should_be_equal` is False
         """

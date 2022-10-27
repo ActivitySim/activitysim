@@ -1,3 +1,5 @@
+print('Running Test')
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os

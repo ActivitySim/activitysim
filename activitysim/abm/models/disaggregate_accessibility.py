@@ -83,9 +83,24 @@ class ProtoPop:
         Thus, this sampling approach will weight the zones by their relative population.
 
         method:
-            None (default) - Simply sample N zones independent of each other.
-            taz - Sample 1 zone per taz up to the N samples specified.
-            k-means - ? FIXME.NF need to explore further
+            None/Default - Sample zones weighted by population, ensuring at least one TAZ is sampled per MAZ
+                If n-samples > n-tazs then sample 1 MAZ from each TAZ until n-remaining-samples < n-tazs,
+                then sample n-remaining-samples TAZs and sample an MAZ within each of those TAZs.
+                If n-samples < n-tazs, then it proceeds to the above 'then' condition.
+
+            uniform - Unweighted sample of N zones independent of each other.
+
+            uniform-taz - Unweighted sample of 1 zone per taz up to the N samples specified.
+
+            k-means - K-Means clustering is performed on the zone centroids (must be provided as maz_centroids.csv),
+                weighted by population. The clustering yields k XY coordinates weighted by zone population
+                for n-samples = k-clusters specified. Once k new cluster centroids are found, these are then
+                approximated into the nearest available zone centroid and used to calculate accessibilities on.
+
+                By default, the k-means method is run on 10 different initial cluster seeds (n_init) using using
+                "k-means++" seeding algorithm (https://en.wikipedia.org/wiki/K-means%2B%2B). The k-means method
+                runs for max_iter iterations (default=300).
+
         """
 
         # default_zone_col = 'TAZ' if not (self.network_los.zone_system == los.ONE_ZONE) else 'zone_id'
@@ -123,13 +138,39 @@ class ProtoPop:
             # Performs a simple k-means clustering using centroid XY coordinates
             centroids_df = pipeline.get_table("maz_centroids")
 
-            # Filter only the zones in the land use file (relevant if running scaled model)
-            centroids_df = centroids_df[centroids_df.index.isin(self.land_use.index)]
+            # Assert that land_use zone ids is subset of centroid zone ids
+            assert set(self.land_use.index).issubset(set(centroids_df.index))
+
+            # Join the land_use pop on centroids,
+            # this also filter only zones we need (relevant if running scaled model)
+            centroids_df = centroids_df.join(self.land_use.TOTPOP, how="inner")
             xy_list = list(centroids_df[["X", "Y"]].itertuples(index=False, name=None))
+            xy_weights = np.array(centroids_df.TOTPOP)
 
             # Initializer k-means class
+            """
+            init: (default='k-means++')
+                ‘k-means++’ : selects initial cluster centroids using sampling based on an
+                empirical probability distribution of the points’ contribution to the overall inertia. 
+                This technique speeds up convergence, and is theoretically proven to be O(log k) -optimal. 
+                See the description of n_init for more details.
+
+                ‘random’: choose n_clusters observations (rows) at random from data for the initial centroids.
+            
+            n_init: (default=10)
+                Number of time the k-means algorithm will be run with different centroid seeds.
+                The final results will be the best output of n_init consecutive runs in terms of inertia.
+            
+            max_iter: (default=300)
+                Maximum number of iterations of the k-means algorithm for a single run.
+
+            n_clusters (pass n-samples):
+                The number of clusters to form as well as the number of centroids to generate.
+                This is the n-samples we are choosing.
+            """
+
             kmeans = KMeans(
-                init="random",
+                init="k-means++",
                 n_clusters=n_samples,
                 n_init=10,
                 max_iter=300,
@@ -138,7 +179,7 @@ class ProtoPop:
 
             # Calculate the k-means cluster points
             # Find the nearest MAZ for each cluster
-            kmeans_res = kmeans.fit(xy_list)
+            kmeans_res = kmeans.fit(X=xy_list, sample_weight=xy_weights)
             sample_idx = [
                 util.nearest_node_index(_xy, xy_list)
                 for _xy in kmeans_res.cluster_centers_
@@ -178,7 +219,7 @@ class ProtoPop:
                             taz_candidates.sample(
                                 n=n_samples_remaining,
                                 weights="weight",
-                                replace=True,
+                                replace=False,
                                 random_state=self.seed,
                             ).index
                         )

@@ -115,7 +115,7 @@ choice than just income (e.g., automobile ownership).
 
 Inputs:
   * disaggregate_accessibility.yaml - Configuration settings for disaggregate accessibility model.
-  * annotate_________.csv [optional] - Users can specify additional annotations specific to disaggregate accessibility. For example, annotating the proto-population tables.
+  * annotate.csv [optional] - Users can specify additional annotations specific to disaggregate accessibility. For example, annotating the proto-population tables.
 
 Outputs:
   * final_disaggregate_accessibility.csv [optional]
@@ -161,9 +161,17 @@ into the pipeline and initialized with the initialize_household model step.
     - JOIN_ON [required only for PROTO_TOURS] - specify the persons variable to join the tours to (e.g., person_number).
   * MERGE_ON - User specified fields to merge the proto-population logsums onto the full synthetic population
   * annotate_proto_tables [optional] - Annotation configurations if users which to modify the proto-population beyond basic generation in the YAML.
-  * SAMPLE_SIZE - The *destination* sample size (0 = all zones), e.g., the number of destination zone alternatives sampled for calculating the destination logsum.
-  * zone_pre_sample_size - The *origin* sample size (0 = all zones), e.g., the number of origins where logsum is calculated. Origins without a logsum will draw from the nearest zone with a logsum. This parameter is useful for systems with a large number of zones with similar accessibility.
+  * DESTINATION_SAMPLE_SIZE - The *destination* sample size (0 = all zones), e.g., the number of destination zone alternatives sampled for calculating the destination logsum. Decimal values < 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.
+  * ORIGIN_SAMPLE_SIZE - The *origin* sample size (0 = all zones), e.g., the number of origins where logsum is calculated. Origins without a logsum will draw from the nearest zone with a logsum. This parameter is useful for systems with a large number of zones with similar accessibility. Decimal values < 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.
+  * ORIGIN_SAMPLE_METHOD - The method in which origins are sampled. Population weighted sampling can be TAZ-based or "TAZ-agnostic" using KMeans clustering. The potential advantage of KMeans is to provide a more geographically even spread of MAZs sampled that do not rely on TAZ hierarchies. Unweighted sampling is also possible using 'uniform' and 'uniform-taz'.
 
+    - None [Default] - Sample zones weighted by population, ensuring at least one TAZ is sampled per MAZ. If n-samples > n-tazs then sample 1 MAZ from each TAZ until n-remaining-samples < n-tazs, then sample n-remaining-samples TAZs and sample an MAZ within each of those TAZs. If n-samples < n-tazs, then it proceeds to the above 'then' condition.
+
+    - "kmeans" - K-Means clustering is performed on the zone centroids (must be provided as maz_centroids.csv), weighted by population. The clustering yields k XY coordinates weighted by zone population for n-samples = k-clusters specified. Once k new cluster centroids are found, these are then approximated into the nearest available zone centroid and used to calculate accessibilities on. By default, the k-means method is run on 10 different initial cluster seeds (n_init) using using "k-means++" seeding algorithm (https://en.wikipedia.org/wiki/K-means%2B%2B). The k-means method runs for max_iter iterations (default=300).
+
+    - "uniform" - Unweighted sample of N zones independent of each other.
+
+    - "uniform-taz" - Unweighted sample of 1 zone per taz up to the N samples specified.
 
 
 .. _work_from_home:

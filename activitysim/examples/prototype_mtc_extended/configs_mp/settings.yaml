@@ -110,6 +110,5 @@ multiprocess_steps:
       tables:
         - households
         - persons
-      except: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
   - name: mp_summarize
     begin: write_data_dictionary

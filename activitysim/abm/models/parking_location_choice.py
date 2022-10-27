@@ -171,7 +171,6 @@ def choose_parking_location(
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
-    destination_sample = destination_sample[[alt_dest_col_name]].copy()
 
     # # - trip_destination_simulate
     destinations = parking_destination_simulate(
@@ -229,8 +228,6 @@ def run_parking_destination(
     alt_column_filter_name = model_settings.get("ALTERNATIVE_FILTER_COLUMN_NAME")
     alternatives = land_use[land_use[alt_column_filter_name]]
 
-    # don't need size terms in alternatives, just TAZ index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = parking_location_column_name
 
     choices_list = []

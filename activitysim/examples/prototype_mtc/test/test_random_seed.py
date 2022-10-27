@@ -11,28 +11,28 @@ import pkg_resources
 
 from activitysim.core import inject
 
+
 def update_settings(settings_file, key, value):
-    with open(settings_file, 'r') as f:
+    with open(settings_file, "r") as f:
         settings = yaml.safe_load(f)
         f.close()
 
     settings[key] = value
 
-    with open(settings_file, 'w') as f:
+    with open(settings_file, "w") as f:
         yaml.safe_dump(settings, f)
         f.close()
-
 
 
 def run_test_random_seed():
 
     steps_to_run = [
-        'initialize_landuse',
-        'initialize_households',
-        'compute_accessibility',
-        'workplace_location',
-        'write_tables'
-        ]
+        "initialize_landuse",
+        "initialize_households",
+        "compute_accessibility",
+        "workplace_location",
+        "write_tables",
+    ]
 
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc", dirname)
@@ -41,28 +41,25 @@ def run_test_random_seed():
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
 
-    def create_rng_configs(rng_base_seed = None):
-        new_configs_dir = test_path('configs_random_seed_=_{}'.format(rng_base_seed))
-        new_settings_file = os.path.join(new_configs_dir, 'settings.yaml')
+    def create_rng_configs(rng_base_seed=None):
+        new_configs_dir = test_path("configs_random_seed_=_{}".format(rng_base_seed))
+        new_settings_file = os.path.join(new_configs_dir, "settings.yaml")
         os.mkdir(new_configs_dir)
-        copy(
-            os.path.join(example_path('configs'), 'settings.yaml'),
-            new_configs_dir
-        )
+        copy(os.path.join(example_path("configs"), "settings.yaml"), new_configs_dir)
 
-        update_settings(new_settings_file, 'models', steps_to_run)
-        if rng_base_seed != '': #Undefined
-            update_settings(new_settings_file, 'rng_base_seed', rng_base_seed)
+        update_settings(new_settings_file, "models", steps_to_run)
+        if rng_base_seed != "":  # Undefined
+            update_settings(new_settings_file, "rng_base_seed", rng_base_seed)
 
-    #(run name, rng_base_seed value)
+    # (run name, rng_base_seed value)
     runs = [
-        ('0-a', 0),
-        ('0-b', 0),
-        ('1-a', 1),
-        ('1-b', 1),
-        ('None-a', None),
-        ('None-b', None),
-        ('Undefined', '')
+        ("0-a", 0),
+        ("0-b", 0),
+        ("1-a", 1),
+        ("1-b", 1),
+        ("None-a", None),
+        ("None-b", None),
+        ("Undefined", ""),
     ]
 
     seeds = list(set(runs.values()))
@@ -70,7 +67,8 @@ def run_test_random_seed():
         create_rng_configs(seed)
 
     outputs = {}
-    def compare_frames(df1, df2, should_be_equal = True):
+
+    def compare_frames(df1, df2, should_be_equal=True):
         """
         Compares df1 and df2 and raises an AssertionError if they are unequal when `should_be_equal` is True and equal when `should_be_equal` is False
         """
@@ -99,8 +97,10 @@ def run_test_random_seed():
 
         subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
 
-        #Read in output to memory to compare later
-        outputs[name] = pd.read_csv(os.path.join(test_path("output"), "final_persons.csv"))
+        # Read in output to memory to compare later
+        outputs[name] = pd.read_csv(
+            os.path.join(test_path("output"), "final_persons.csv")
+        )
 
     check_outputs("0-a", "0-b", True)
     check_outputs("0-a", "Undefined", True)
@@ -111,6 +111,7 @@ def run_test_random_seed():
     check_outputs("None-a", "1-a", False)
     check_outputs("None-b", "0-a", False)
     check_outputs("None-b", "1-a", False)
+
 
 if __name__ == "__main__":
     run_test_random_seed()

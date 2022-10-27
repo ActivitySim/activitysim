@@ -116,5 +116,9 @@ def run_test_random_seed():
     check_outputs("None-b", "1-a", False)
 
 
+def test_random_seed():
+    run_test_random_seed()
+
+
 if __name__ == "__main__":
     run_test_random_seed()

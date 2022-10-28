@@ -45,7 +45,8 @@ def run_test_random_seed():
         new_configs_dir = test_path("configs_random_seed_=_{}".format(rng_base_seed))
         new_settings_file = os.path.join(new_configs_dir, "settings.yaml")
         os.mkdir(new_configs_dir)
-        copy(os.path.join(example_path("configs"), "settings.yaml"), new_configs_dir)
+        for f in os.listdir(example_path("configs")):
+            copy(os.path.join(example_path("configs"), f), new_configs_dir)
 
         update_settings(new_settings_file, "models", steps_to_run)
         if rng_base_seed != "":  # Undefined

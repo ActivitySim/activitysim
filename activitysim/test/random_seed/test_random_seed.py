@@ -96,7 +96,11 @@ def run_test_random_seed():
             test_path("output"),
         ]
 
-        os.mkdir(test_path("output"))
+        try:
+            os.mkdir(test_path("output"))
+        except FileExistsError:
+            pass
+
         subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
 
         # Read in output to memory to compare later

@@ -60,11 +60,21 @@ class ProtoPop:
         )
 
         # Random seed
-        self.seed = len(self.land_use.index)
+        self.seed = self.model_settings.get("BASE_RANDOM_SEED", 0) + len(
+            self.land_use.index
+        )
 
         # Generation
         self.params = self.read_table_settings()
         self.create_proto_pop()
+        logger.info(
+            "Created a proto-population with %s households across %s origin zones to %s possible destination zones"
+            % (
+                len(self.proto_pop["proto_households"]),
+                len(self.proto_pop["proto_households"].home_zone_id.unique()),
+                self.model_settings["DESTINATION_SAMPLE_SIZE"],
+            )
+        )
         self.inject_tables()
         self.annotate_tables()
         self.merge_persons()
@@ -111,7 +121,9 @@ class ProtoPop:
 
         # Get weights, need to get households first to get persons merged.
         # Note: This will cause empty zones to be excluded. Which is intended, but just know that.
-        zone_weights = self.land_use.TOTPOP.to_frame("weight")
+        zone_weights = self.land_use[
+            self.model_settings["ORIGIN_WEIGHTING_COLUMN"]
+        ].to_frame("weight")
         zone_weights = zone_weights[zone_weights.weight != 0]
 
         # If more samples than zones, just default to all zones
@@ -143,9 +155,14 @@ class ProtoPop:
 
             # Join the land_use pop on centroids,
             # this also filter only zones we need (relevant if running scaled model)
-            centroids_df = centroids_df.join(self.land_use.TOTPOP, how="inner")
+            centroids_df = centroids_df.join(
+                self.land_use[self.model_settings["ORIGIN_WEIGHTING_COLUMN"]],
+                how="inner",
+            )
             xy_list = list(centroids_df[["X", "Y"]].itertuples(index=False, name=None))
-            xy_weights = np.array(centroids_df.TOTPOP)
+            xy_weights = np.array(
+                centroids_df[self.model_settings["ORIGIN_WEIGHTING_COLUMN"]]
+            )
 
             # Initializer k-means class
             """

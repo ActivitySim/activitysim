@@ -4,6 +4,9 @@
 DESTINATION_SAMPLE_SIZE: 0.5
 ORIGIN_SAMPLE_SIZE: 5000
 
+# select origin zones weighted by population (or another landuse variable)
+ORIGIN_WEIGHTING_COLUMN: TOTPOP
+
 # Specify the tables to be created and  their variables.
 # Single values are constants
 # Lists are varying and will generate the cartesian product (i.e., all possible non-repeating combinations)

@@ -63,7 +63,7 @@ def canonical_tours():
     non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)
 
     # - mandatory_channels
-    mandatory_tour_flavors = {'work': 2, 'school': 2, 'university': 2}
+    mandatory_tour_flavors = {'work': 2, 'school': 2}
     mandatory_channels = enumerate_tour_types(mandatory_tour_flavors)
 
     # - atwork_subtour_channels

@@ -243,6 +243,13 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
     )
     MAZ_size_terms[DEST_TAZ] = MAZ_size_terms.index.map(maz_to_taz)
 
+    MAZ_size_terms["avail_MAZ"] = np.where(
+        (MAZ_size_terms.size_term > 0)
+        & (MAZ_size_terms.shadow_price_utility_adjustment > -999),
+        1,
+        0,
+    )
+
     weighted_average_cols = [
         "shadow_price_size_term_adjustment",
         "shadow_price_utility_adjustment",
@@ -267,7 +274,10 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
     ):
         # allow TAZs with at least one underassigned MAZ in them, therefore with a shadowprice larger than -999, to be selected again
         TAZ_size_terms["shadow_price_utility_adjustment"] = np.where(
-            TAZ_size_terms["shadow_price_utility_adjustment"] > -999, 0, -999
+            (TAZ_size_terms["shadow_price_utility_adjustment"] > -999)
+            & (TAZ_size_terms["avail_MAZ"] > 0),
+            0,
+            -999,
         )
         # now, negative size term means shadow price is -999. Setting size_term to 0 so the prob of that MAZ being selected becomes 0
         MAZ_size_terms["size_term"] = np.where(

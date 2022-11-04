@@ -140,6 +140,16 @@ class ShadowPriceCalculator(object):
                     "shadow_settings %s: %s" % (k, self.shadow_settings.get(k))
                 )
 
+        if (
+            self.model_selector not in ["workplace", "school"]
+            and self.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+        ):
+            logger.warning(
+                "Shadow price simulation method is only implemented for workplace and school."
+            )
+            logger.warning(f"Not using shadow pricing for {self.model_selector}")
+            self.use_shadow_pricing = False
+
         # - destination_size_table (desired_size)
         self.desired_size = inject.get_table(
             size_table_name(self.model_selector)
@@ -746,6 +756,10 @@ class ShadowPriceCalculator(object):
                 "", default_segment_to_name_dict
             )
             segment_name = segment_to_name_dict[self.model_selector]
+
+            if type(self.choices_synced) != pd.DataFrame:
+                self.choices_synced = self.choices_synced.to_frame()
+
             choices_synced = self.choices_synced.merge(
                 persons_merged[segment_name],
                 how="left",

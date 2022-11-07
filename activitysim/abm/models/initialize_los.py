@@ -1,26 +1,26 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import multiprocessing
 import os
 import time
-import multiprocessing
-import numba
-
 from contextlib import contextmanager
 
-import pandas as pd
+import numba
 import numpy as np
+import pandas as pd
 
-from activitysim.core import assign
-from activitysim.core import config
-from activitysim.core import simulate
-from activitysim.core import pipeline
-from activitysim.core import tracing
-from activitysim.core import chunk
-from activitysim.core import inject
-from activitysim.core import los
-
-from activitysim.core import pathbuilder
+from activitysim.core import (
+    assign,
+    chunk,
+    config,
+    inject,
+    los,
+    pathbuilder,
+    pipeline,
+    simulate,
+    tracing,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ def initialize_los(network_los):
     FIXME - to instantiate attribute_combinations_df if the pipeline table version were not available.
     """
 
-    trace_label = 'initialize_los'
+    trace_label = "initialize_los"
 
     if network_los.zone_system == los.THREE_ZONE:
 
@@ -90,7 +90,7 @@ def initialize_los(network_los):
         attribute_combinations_df = uid_calculator.scalar_attribute_combinations()
 
         # - write table to pipeline (so we can slice it, when multiprocessing)
-        pipeline.replace_table('attribute_combinations', attribute_combinations_df)
+        pipeline.replace_table("attribute_combinations", attribute_combinations_df)
 
         # clean up any unwanted cache files from previous run
         if network_los.rebuild_tvpb_cache:
@@ -99,7 +99,12 @@ def initialize_los(network_los):
         # if multiprocessing make sure shared cache is filled with np.nan
         # so that initialize_tvpb subprocesses can detect when cache is fully populated
         if network_los.multiprocess():
-            data, lock = tap_cache.get_data_and_lock_from_buffers()  # don't need lock here since single process
+            (
+                data,
+                lock,
+            ) = (
+                tap_cache.get_data_and_lock_from_buffers()
+            )  # don't need lock here since single process
 
             if os.path.isfile(tap_cache.cache_path):
                 # fully populated cache should have been loaded from saved cache
@@ -112,7 +117,9 @@ def initialize_los(network_los):
                     np.copyto(data, np.nan)
 
 
-def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, trace_label):
+def compute_utilities_for_attribute_tuple(
+    network_los, scalar_attributes, data, chunk_size, trace_label
+):
 
     # scalar_attributes is a dict of attribute name/value pairs for this combination
     # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
@@ -121,12 +128,15 @@ def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, 
 
     uid_calculator = network_los.tvpb.uid_calculator
 
-    attributes_as_columns = \
-        network_los.setting('TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attributes_as_columns', [])
-    model_settings = \
-        network_los.setting(f'TVPB_SETTINGS.tour_mode_choice.tap_tap_settings')
-    model_constants = \
-        network_los.setting(f'TVPB_SETTINGS.tour_mode_choice.CONSTANTS').copy()
+    attributes_as_columns = network_los.setting(
+        "TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attributes_as_columns", []
+    )
+    model_settings = network_los.setting(
+        f"TVPB_SETTINGS.tour_mode_choice.tap_tap_settings"
+    )
+    model_constants = network_los.setting(
+        f"TVPB_SETTINGS.tour_mode_choice.CONSTANTS"
+    ).copy()
     model_constants.update(scalar_attributes)
 
     data = data.reshape(uid_calculator.fully_populated_shape)
@@ -138,29 +148,31 @@ def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, 
     # since it is created outside of adaptive_chunked_choosers and so will show up in baseline
     assert not chunk.chunk_logging()  # otherwise we should chunk_log this
 
-    chunk_tag = 'initialize_tvpb'  # all attribute_combinations can use same cached data for row_size calc
+    chunk_tag = "initialize_tvpb"  # all attribute_combinations can use same cached data for row_size calc
 
-    for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag):
+    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
+        choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag
+    ):
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         assert chooser_chunk._is_view  # otherwise copying it is wasteful
         chooser_chunk = chooser_chunk.copy()
-        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
+        chunk.log_df(trace_label, "attribute_chooser_chunk", chooser_chunk)
 
         # add any attribute columns specified as column attributes in settings (the rest will be scalars in locals_dict)
         for attribute_name in attributes_as_columns:
             chooser_chunk[attribute_name] = scalar_attributes[attribute_name]
 
-        chunk.log_df(trace_label, 'attribute_chooser_chunk', chooser_chunk)
+        chunk.log_df(trace_label, "attribute_chooser_chunk", chooser_chunk)
 
-        utilities_df = \
-            pathbuilder.compute_utilities(network_los,
-                                          model_settings=model_settings,
-                                          choosers=chooser_chunk,
-                                          model_constants=model_constants,
-                                          trace_label=trace_label)
+        utilities_df = pathbuilder.compute_utilities(
+            network_los,
+            model_settings=model_settings,
+            choosers=chooser_chunk,
+            model_constants=model_constants,
+            trace_label=trace_label,
+        )
 
-        chunk.log_df(trace_label, 'utilities_df', utilities_df)
+        chunk.log_df(trace_label, "utilities_df", utilities_df)
 
         assert len(utilities_df) == len(chooser_chunk)
         assert len(utilities_df.columns) == data.shape[1]
@@ -169,7 +181,7 @@ def compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, 
         data[chooser_chunk.index.values, :] = utilities_df.values
 
         del chooser_chunk
-        chunk.log_df(trace_label, 'attribute_chooser_chunk', None)
+        chunk.log_df(trace_label, "attribute_chooser_chunk", None)
 
     logger.debug(f"{trace_label} updated utilities")
 
@@ -192,10 +204,12 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
     FIXME - if we did not close this, we could avoid having to reload it from mmap when single-process?
     """
 
-    trace_label = 'initialize_tvpb'
+    trace_label = "initialize_tvpb"
 
     if network_los.zone_system != los.THREE_ZONE:
-        logger.info(f"{trace_label} - skipping step because zone_system is not THREE_ZONE")
+        logger.info(
+            f"{trace_label} - skipping step because zone_system is not THREE_ZONE"
+        )
         return
 
     attribute_combinations_df = attribute_combinations.to_frame()
@@ -209,8 +223,10 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
     if os.path.isfile(tap_cache.cache_path):
         # otherwise should have been deleted by TVPBCache.cleanup in initialize_los step
         assert not network_los.rebuild_tvpb_cache
-        logger.info(f"{trace_label} skipping rebuild of STATIC cache because rebuild_tvpb_cache setting is False"
-                    f" and cache already exists: {tap_cache.cache_path}")
+        logger.info(
+            f"{trace_label} skipping rebuild of STATIC cache because rebuild_tvpb_cache setting is False"
+            f" and cache already exists: {tap_cache.cache_path}"
+        )
         return
 
     if multiprocess:
@@ -220,24 +236,32 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
         data = tap_cache.allocate_data_buffer(shared=False)
         lock = None
 
-    logger.debug(f"{trace_label} processing {len(attribute_combinations_df)} attribute_combinations")
-    logger.debug(f"{trace_label} compute utilities for attribute_combinations_df\n{attribute_combinations_df}")
+    logger.debug(
+        f"{trace_label} processing {len(attribute_combinations_df)} attribute_combinations"
+    )
+    logger.debug(
+        f"{trace_label} compute utilities for attribute_combinations_df\n{attribute_combinations_df}"
+    )
 
-    for offset, scalar_attributes in attribute_combinations_df.to_dict('index').items():
+    for offset, scalar_attributes in attribute_combinations_df.to_dict("index").items():
         # compute utilities for this 'skim' with a single full set of scalar attributes
 
         offset = network_los.tvpb.uid_calculator.get_skim_offset(scalar_attributes)
-        tuple_trace_label = tracing.extend_trace_label(trace_label, f'offset{offset}')
+        tuple_trace_label = tracing.extend_trace_label(trace_label, f"offset{offset}")
 
-        compute_utilities_for_attribute_tuple(network_los, scalar_attributes, data, chunk_size, tuple_trace_label)
+        compute_utilities_for_attribute_tuple(
+            network_los, scalar_attributes, data, chunk_size, tuple_trace_label
+        )
 
         # make sure we populated the entire offset
-        assert not any_uninitialized(data.reshape(uid_calculator.skim_shape)[offset], lock)
+        assert not any_uninitialized(
+            data.reshape(uid_calculator.skim_shape)[offset], lock
+        )
 
-    if multiprocess and not inject.get_injectable('locutor', False):
+    if multiprocess and not inject.get_injectable("locutor", False):
         return
 
-    write_results = not multiprocess or inject.get_injectable('locutor', False)
+    write_results = not multiprocess or inject.get_injectable("locutor", False)
     if write_results:
 
         if multiprocess:
@@ -247,8 +271,10 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
             # FIXME testing entire array is costly in terms of RAM)
 
             while any_uninitialized(data, lock):
-                logger.debug(f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
-                             f" to populate {num_uninitialized(data, lock)} uninitialized data values")
+                logger.debug(
+                    f"{trace_label}.{multiprocessing.current_process().name} waiting for other processes"
+                    f" to populate {num_uninitialized(data, lock)} uninitialized data values"
+                )
                 time.sleep(5)
 
         logger.info(f"{trace_label} writing static cache.")

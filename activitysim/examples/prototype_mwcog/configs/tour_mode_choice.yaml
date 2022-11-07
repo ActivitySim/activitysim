@@ -1,0 +1,114 @@
+LOGIT_TYPE: NL
+#LOGIT_TYPE: MNL
+
+NESTS:
+  name: root
+  coefficient: coef_nest_root
+  alternatives:
+      - name: AUTO
+        coefficient: coef_nest_AUTO
+        alternatives:
+            - DRIVEALONE
+            - SHARED2
+            - SHARED3
+      - name: NONMOTORIZED
+        coefficient: coef_nest_NONMOTORIZED
+        alternatives:
+          - WALK
+          - BIKE
+      - name: TRANSIT
+        coefficient:  coef_nest_TRANSIT
+        alternatives:
+            - name: WALKACCESS
+              coefficient: coef_nest_TRANSIT_WALKACCESS
+              alternatives:
+              - WALK_AB
+              - WALK_BM
+              - WALK_MR
+              - WALK_CR
+            - name: PNRACCESS
+              coefficient: coef_nest_TRANSIT_PNRACCESS
+              alternatives:
+              - PNR_AB
+              - PNR_BM
+              - PNR_MR
+              - PNR_CR
+            - name: KNRACCESS
+              coefficient: coef_nest_TRANSIT_KNRACCESS
+              alternatives:
+              - KNR_AB
+              - KNR_BM
+              - KNR_MR
+              - KNR_CR
+      - name: SCHOOL_BUS
+        coefficient: coef_nest_SCHOOL_BUS
+        alternatives:
+          - SCHOOLBUS
+      - name: RIDEHAIL
+        coefficient: coef_nest_RIDEHAIL
+        alternatives:
+          - TAXI
+          - TNC_SINGLE
+          - TNC_SHARED
+
+SPEC: tour_mode_choice.csv
+COEFFICIENTS: tour_mode_choice_coeffs.csv
+COEFFICIENT_TEMPLATE: tour_mode_choice_coeffs_template.csv
+
+CONSTANTS:   
+  #costPerMile: 19.26 
+  #costShareSr2: 1.75
+  #costShareSr3: 2.50
+  #waitThresh: 10.00
+  walkThresh: 1.50
+  shortWalk: 0.333
+  longWalk: 0.667
+  walkSpeed: 3.00
+  bikeThresh: 6.00
+  bikeSpeed: 12.00
+  maxCbdAreaTypeThresh: 2
+  indivTour: 1.00000
+  walkThresh: 1.50
+  Taxi_waitTime_mean:
+    1: 5.5
+    2: 9.5
+    3: 13.3
+    4: 17.3
+    5: 26.5
+  Taxi_waitTime_sd:
+    1: 0
+    2: 0
+    3: 0
+    4: 0
+    5: 0
+    
+# so far, we can use the same spec as for non-joint tours
+preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+    - tours
+
+nontour_preprocessor:
+  SPEC: tour_mode_choice_annotate_choosers_preprocessor
+  DF: choosers
+  TABLES:
+    - land_use
+
+# to reduce memory needs filter chooser table to these fields
+LOGSUM_CHOOSER_COLUMNS:
+  - tour_type
+  - hhsize
+  - density_index
+  - age
+  - age_16_p
+  - age_16_to_19
+  - auto_ownership
+  - number_of_participants
+  - tour_category
+  - num_workers
+  - value_of_time
+  - free_parking_at_work
+
+MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum

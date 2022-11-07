@@ -8,14 +8,14 @@ ActivitySim includes a :ref:`cli` for creating examples and running the model.  
 more information.
 
 .. note::
-   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
+   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
    contains example commands to create and run several versions of the examples.
 
 Create
 ------
 
 Create an ActivitySim example setup.  See ``activitysim create -h`` for more information.
-More complete examples, including the full scale MTC 
+More complete examples, including the full scale prototype MTC
 regional demand model are available for creation by typing ``activitysim create -l``.  To create 
 these examples, ActivitySim downloads the large input files from 
 the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.

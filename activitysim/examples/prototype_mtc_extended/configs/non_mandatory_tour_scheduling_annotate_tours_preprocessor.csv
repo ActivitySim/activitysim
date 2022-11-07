@@ -1,0 +1,11 @@
+Description,Target,Expression
+destination in central business district,destination_in_cbd,"(reindex(land_use.area_type, non_mandatory_tours.destination) < setting('cbd_threshold')) * 1"
+#,,
+,num_person_joint_tours,"reindex_i(joint_tour_participants.groupby('person_id').size(), non_mandatory_tours.person_id)"
+# included for school escorting model,,
+flag to denote outbound school escort tours,is_outbound_school_escort_tour,"non_mandatory_tours.index.isin(school_escort_tours[school_escort_tours['school_escort_direction'] == 'outbound'].index)"
+flag to denote inbound school escort tours,is_inbound_school_escort_tour,"non_mandatory_tours.index.isin(school_escort_tours[school_escort_tours['school_escort_direction'] == 'inbound'].index)"
+school escort tour start time,school_escort_tour_start,"reindex(school_escort_tours.start, non_mandatory_tours.index)"
+school escort tour next start time,school_escort_tour_next_start,"reindex(school_escort_tours.next_pure_escort_start, non_mandatory_tours.index)"
+school escort tour end time,school_escort_tour_end,"reindex(school_escort_tours.end, non_mandatory_tours.index)"
+

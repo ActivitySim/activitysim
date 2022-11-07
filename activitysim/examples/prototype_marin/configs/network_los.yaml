@@ -1,0 +1,170 @@
+inherit_settings: True
+
+zone_system: 3
+
+skim_dict_factory: NumpyArraySkimFactory
+#skim_dict_factory: MemMapSkimFactory
+
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: True
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: True
+
+# rebuild and overwrite existing tap_tap_utilities cache
+rebuild_tvpb_cache: True
+
+
+# when checkpointing cache. also write a csv version of tvpb cache for tracing
+# (writes csv file when writing/checkpointing cache (i.e. when cached changed) even if rebuild_tvpb_cache is False)
+# (n.b. csv file could be quite large if cache is STATIC!)
+trace_tvpb_cache_as_csv: False
+
+taz_skims:
+  - highway_skims_AM.omx
+  - highway_skims_EA.omx
+  - highway_skims_EV.omx
+  - highway_skims_MD.omx
+  - highway_skims_PM.omx
+
+tap_skims:
+    # we require that skims for all tap_tap sets have unique names
+    # and cso an share a single skim_dict without name collision
+    # e.g. TRN_XWAIT_FAST__AM, TRN_XWAIT_SHORT__AM, TRN_XWAIT_CHEAP__AM
+    - transit_skims_SET1.omx
+    - transit_skims_SET2.omx
+    - transit_skims_SET3.omx
+
+maz: maz_taz.csv
+
+tap: tap.csv
+
+tap_lines: tap_lines.csv
+
+maz_to_maz:
+  tables:
+    - maz_maz_walk.csv
+    - maz_maz_bike.csv
+
+  # maz_to_maz blending distance (missing or 0 means no blending)
+  max_blend_distance:
+    # blend distance of 0 means no blending
+    WALK_DIST: 0
+    BIKE_DIST: 0
+
+
+maz_to_tap:
+  walk:
+    table: maz_tap_walk.csv
+    # if provided, this column will be used (together with tap_lines table) to trim the near tap set
+    # to only include the nearest tap to origin when more than one tap serves the same line
+    tap_line_distance_col: WALK_TRANSIT_DIST
+    max_dist: 1.2
+  drive:
+    table: maz_taz_tap_drive.csv
+    # not trimming because drive_maz_tap utility calculations take into account both drive and walk time and cost
+    # though some sort of trimming appears to have been done as there are not so many of these in marin data
+    #tap_line_distance_col: DDIST
+
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 30
+    periods: [0, 12, 20, 30, 38, 48]
+    labels: &skim_time_period_labels ['EA', 'AM', 'MD', 'PM', 'EV']
+
+demographic_segments: &demographic_segments
+  - &low_income_segment_id 0
+  - &high_income_segment_id 1
+
+
+# transit virtual path builder settings
+TVPB_SETTINGS:
+
+  tour_mode_choice:
+    units: utility
+    path_types:
+      WTW:
+        access: walk
+        egress: walk
+        max_paths_across_tap_sets: 3
+        max_paths_per_tap_set: 1
+        paths_nest_nesting_coefficient: 1
+      DTW:
+        access: drive
+        egress: walk
+        max_paths_across_tap_sets: 3
+        max_paths_per_tap_set: 1
+        paths_nest_nesting_coefficient: 1
+      WTD:
+        access: walk
+        egress: drive
+        max_paths_across_tap_sets: 3
+        max_paths_per_tap_set: 1
+        paths_nest_nesting_coefficient: 1
+    tap_tap_settings:
+      SPEC: tvpb_utility_tap_tap.csv
+      PREPROCESSOR:
+        SPEC: tvpb_utility_tap_tap_annotate_choosers_preprocessor.csv
+        DF: df
+      # FIXME this has to be explicitly specified, since e.g. attribute columns are assigned in expression files
+      attribute_segments:
+        demographic_segment: *demographic_segments
+        tod: *skim_time_period_labels
+        access_mode: ['drive', 'walk']
+      attributes_as_columns:
+        - demographic_segment
+        - tod
+
+    maz_tap_settings:
+      walk:
+        SPEC: tvpb_utility_walk_maz_tap.csv
+        CHOOSER_COLUMNS:
+          #- demographic_segment
+          - WALK_TRANSIT_DIST
+      drive:
+        SPEC: tvpb_utility_drive_maz_tap.csv
+        CHOOSER_COLUMNS:
+          #- demographic_segment
+          - DDIST
+          - DTIME
+          - WDIST
+
+    CONSTANTS:
+      C_LOW_INCOME_SEGMENT_ID: *low_income_segment_id
+      C_HIGH_INCOME_SEGMENT_ID: *high_income_segment_id
+      TVPB_demographic_segments_by_income_segment:
+        1: *low_income_segment_id
+        2: *low_income_segment_id
+        3: *high_income_segment_id
+        4: *high_income_segment_id
+      c_ivt_high_income: -0.016 # use tour constant from TM2
+      c_ivt_low_income: -0.016 # use tour constant from TM2
+      c_cost_high_income: -0.00112
+      c_cost_low_income: -0.00112
+      c_auto_operating_cost_per_mile: 18.29
+      # constants used in maz_tap and tap_tap utility expressions
+      c_drive: 1.5
+      c_walk: 1.7
+      c_fwt: 1.5
+      c_waux: 3.677
+      c_xwt: 2
+      c_xfers1: 30
+      c_xfers2: 45
+      c_xfers3: 47.026
+      # no Express bus alternative-specific constant
+      c_lrt_asc: -17  # LRT alternative-specific constant
+      c_fr_asc: -35  # FR alternative-specific constant
+      c_hr_asc: -22  # Heavy Rail alternative-specific constant
+      c_cr_asc: -15  # Commuter Rail alternative-specific constant
+      c_cr20_40: -20  # Commuter Rail distance 20-40 miles
+      c_cr40plus: -30 # Commuter Rail distance >40 miles
+      c_drvExpress: -26  # drive to EB constant
+      c_drvLRT: 2  # drive to LRT constant
+      c_drvFR: -52  # drive to FR constant
+      c_drvHeavy: -41  # drive to HR constant
+      c_drvCR: -52  # drive to CR constant
+      #"max(IVT/Drive time - 0.3,0)",drvRatio,c_ivt* 6
+      C_UNAVAILABLE: -999
+      c_walkAcc: 3.0783 # walk to tap time
+      c_dtim: 2.5724 # drive to tap time
+

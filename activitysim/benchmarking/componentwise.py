@@ -1,16 +1,17 @@
 import glob
-import os
 import logging
 import logging.handlers
+import os
+import traceback
+
 import numpy as np
 import pandas as pd
 import yaml
-import traceback
 
 from ..cli.create import get_example
-from ..core.pipeline import open_pipeline, run_model
+from ..cli.run import INJECTABLES, config, pipeline
 from ..core import inject, tracing
-from ..cli.run import config, pipeline, INJECTABLES
+from ..core.pipeline import open_pipeline, run_model
 from . import workspace
 
 logger = logging.getLogger(__name__)
@@ -240,9 +241,9 @@ def pre_run(
 
     # register abm steps and other abm-specific injectables
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (
+        from activitysim import (  # register abm steps and other abm-specific injectables
             abm,
-        )  # register abm steps and other abm-specific injectables
+        )
 
     if settings_file_name is not None:
         inject.add_injectable("settings_file_name", settings_file_name)

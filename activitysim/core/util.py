@@ -1,28 +1,30 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import zip
 import logging
 import os
-
+import argparse
+from builtins import zip
 from operator import itemgetter
-
-import numpy as np
-import pandas as pd
 
 import cytoolz as tz
 import cytoolz.curried
+import numpy as np
+import pandas as pd
+import itertools
+import yaml
+import collections
 
 logger = logging.getLogger(__name__)
 
 
-def si_units(x, kind='B', digits=3, shift=1000):
+def si_units(x, kind="B", digits=3, shift=1000):
 
     #       nano micro milli    kilo mega giga tera peta exa  zeta yotta
-    tiers = ['n', 'µ', 'm', '', 'K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+    tiers = ["n", "µ", "m", "", "K", "M", "G", "T", "P", "E", "Z", "Y"]
 
     tier = 3
-    sign = '-' if x < 0 else ''
+    sign = "-" if x < 0 else ""
     x = abs(x)
     if x > 0:
         while x > shift and tier < len(tiers):
@@ -35,18 +37,18 @@ def si_units(x, kind='B', digits=3, shift=1000):
 
 
 def GB(bytes):
-    return si_units(bytes, kind='B', digits=1)
+    return si_units(bytes, kind="B", digits=1)
 
 
 def SEC(seconds):
-    return si_units(seconds, kind='s', digits=2)
+    return si_units(seconds, kind="s", digits=2)
 
 
 def INT(x):
     # format int as camel case (e.g. 1000000 vecomes '1_000_000')
     negative = x < 0
     x = abs(int(x))
-    result = ''
+    result = ""
     while x >= 1000:
         x, r = divmod(x, 1000)
         result = "_%03d%s" % (r, result)
@@ -123,12 +125,12 @@ def left_merge_on_index_and_col(left_df, right_df, join_col, target_col):
     idx_col = right_df.index.name
 
     # SELECT target_col FROM full_sample LEFT JOIN unique_sample on idx_col, join_col
-    merged = \
-        pd.merge(
-            left_df[[join_col]].reset_index(),
-            right_df[[join_col, target_col]].reset_index(),
-            on=[idx_col, join_col],
-            how="left")
+    merged = pd.merge(
+        left_df[[join_col]].reset_index(),
+        right_df[[join_col, target_col]].reset_index(),
+        on=[idx_col, join_col],
+        how="left",
+    )
 
     merged.set_index(idx_col, inplace=True)
 
@@ -171,11 +173,13 @@ def reindex(series1, series2):
     """
 
     # turns out the merge is much faster than the .loc below
-    df = pd.merge(series2.to_frame(name='left'),
-                  series1.to_frame(name='right'),
-                  left_on="left",
-                  right_index=True,
-                  how="left")
+    df = pd.merge(
+        series2.to_frame(name="left"),
+        series1.to_frame(name="right"),
+        left_on="left",
+        right_index=True,
+        how="left",
+    )
     return df.right
 
     # return pd.Series(series1.loc[series2.values].values, index=series2.index)
@@ -213,14 +217,19 @@ def other_than(groups, bools):
 
     """
     counts = groups[bools].value_counts()
-    merge_col = groups.to_frame(name='right')
+    merge_col = groups.to_frame(name="right")
     pipeline = tz.compose(
         tz.curry(pd.Series.fillna, value=False),
-        itemgetter('left'),
+        itemgetter("left"),
         tz.curry(
-            pd.DataFrame.merge, right=merge_col, how='right', left_index=True,
-            right_on='right'),
-        tz.curry(pd.Series.to_frame, name='left'))
+            pd.DataFrame.merge,
+            right=merge_col,
+            how="right",
+            left_index=True,
+            right_on="right",
+        ),
+        tz.curry(pd.Series.to_frame, name="left"),
+    )
     gt0 = pipeline(counts > 0)
     gt1 = pipeline(counts > 1)
 
@@ -283,13 +292,17 @@ def quick_loc_series(loc_list, target_series):
     elif isinstance(loc_list, np.ndarray) or isinstance(loc_list, list):
         left_df = pd.DataFrame({left_on: loc_list})
     else:
-        raise RuntimeError("quick_loc_series loc_list of unexpected type %s" % type(loc_list))
+        raise RuntimeError(
+            "quick_loc_series loc_list of unexpected type %s" % type(loc_list)
+        )
 
-    df = pd.merge(left_df,
-                  target_series.to_frame(name='right'),
-                  left_on=left_on,
-                  right_index=True,
-                  how="left")
+    df = pd.merge(
+        left_df,
+        target_series.to_frame(name="right"),
+        left_on=left_on,
+        right_index=True,
+        how="left",
+    )
 
     # regression test
     # assert list(df.right) == list(target_series.loc[loc_list])
@@ -313,7 +326,7 @@ def assign_in_place(df, df2):
     """
 
     # expect no rows in df2 that are not in df
-    assert (len(df2.index.difference(df.index)) == 0)
+    assert len(df2.index.difference(df.index)) == 0
 
     # update common columns in place
     common_columns = df2.columns.intersection(df.columns)
@@ -331,18 +344,24 @@ def assign_in_place(df, df2):
                 try:
                     df[c] = df[c].astype(old_dtype)
                 except ValueError:
-                    logger.warning("assign_in_place changed dtype %s of column %s to %s" %
-                                   (old_dtype, c, df[c].dtype))
+                    logger.warning(
+                        "assign_in_place changed dtype %s of column %s to %s"
+                        % (old_dtype, c, df[c].dtype)
+                    )
 
             # if both df and df2 column were ints, but result is not
-            if np.issubdtype(old_dtype, np.integer) \
-                    and np.issubdtype(df2[c].dtype, np.integer) \
-                    and not np.issubdtype(df[c].dtype, np.integer):
+            if (
+                np.issubdtype(old_dtype, np.integer)
+                and np.issubdtype(df2[c].dtype, np.integer)
+                and not np.issubdtype(df[c].dtype, np.integer)
+            ):
                 try:
                     df[c] = df[c].astype(old_dtype)
                 except ValueError:
-                    logger.warning("assign_in_place changed dtype %s of column %s to %s" %
-                                   (old_dtype, c, df[c].dtype))
+                    logger.warning(
+                        "assign_in_place changed dtype %s of column %s to %s"
+                        % (old_dtype, c, df[c].dtype)
+                    )
 
     # add new columns (in order they appear in df2)
     new_columns = [c for c in df2.columns if c not in df.columns]
@@ -363,3 +382,92 @@ def df_from_dict(values, index=None):
     #     del values[c]
 
     return df
+
+
+# for disaggregate accessibilities
+
+
+def ordered_load(
+    stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.OrderedDict
+):
+    class OrderedLoader(Loader):
+        pass
+
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
+    )
+    return yaml.load(stream, OrderedLoader)
+
+
+def named_product(**d):
+    names = d.keys()
+    vals = d.values()
+    for res in itertools.product(*vals):
+        yield dict(zip(names, res))
+
+
+def recursive_replace(obj, search, replace):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            obj[k] = recursive_replace(v, search, replace)
+    if isinstance(obj, list):
+        obj = [replace if x == search else x for x in obj]
+    if search == obj:
+        obj = replace
+    return obj
+
+
+def suffix_tables_in_settings(
+    model_settings,
+    suffix="proto_",
+    tables=["persons", "households", "tours", "persons_merged"],
+):
+    for k in tables:
+        model_settings = recursive_replace(model_settings, k, suffix + k)
+    return model_settings
+
+
+def suffix_expressions_df_str(
+    df, suffix="proto_", tables=["persons", "households", "tours", "persons_merged"]
+):
+    for k in tables:
+        df["expression"] = df.expression.str.replace(k, suffix + k)
+    return df
+
+
+def parse_suffix_args(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filename", help="file name")
+    parser.add_argument("-s", "--SUFFIX", "-s", help="suffix to replace root targets")
+    parser.add_argument(
+        "-r", "--ROOTS", nargs="*", help="roots be suffixed", default=[]
+    )
+    return parser.parse_args(args.split())
+
+
+def concat_suffix_dict(args):
+    if isinstance(args, dict):
+        args = sum([["--" + k, v] for k, v in args.items()], [])
+    if isinstance(args, list):
+        args = list(flatten(args))
+    return args
+
+
+def flatten(lst):
+    for sublist in lst:
+        if isinstance(sublist, list):
+            for item in sublist:
+                yield item
+        else:
+            yield sublist
+
+
+def nearest_node_index(node, nodes):
+    nodes = np.asarray(nodes)
+    deltas = nodes - node
+    dist_2 = np.einsum("ij,ij->i", deltas, deltas)
+    return np.argmin(dist_2)

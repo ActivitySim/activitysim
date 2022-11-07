@@ -1,0 +1,115 @@
+
+inherit_settings: True
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+# - ------------------------- production config
+#multiprocess: True
+#strict: False
+#use_shadow_pricing: True
+
+# - full sample - 2875192 households on 64 processor 432 GiB RAM
+#households_sample_size:  0
+#chunk_size:  400_000_000_000
+#num_processes: 60
+
+# - ------------------------- no chunking due to sufficient RAM
+# chunk_training_mode: disabled
+
+# - ------------------------- dev config
+multiprocess: True
+strict: False
+use_shadow_pricing: True
+
+households_sample_size: 0
+chunk_size: 0
+num_processes: 2
+
+# - -------------------------
+
+# not recommended or supported for multiprocessing
+want_dest_choice_sample_tables: False
+
+#read_skim_cache: True
+#write_skim_cache: True
+
+# - tracing
+trace_hh_id:
+trace_od:
+
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_purpose_and_destination
+
+models:
+  ### mp_initialize_proto step (Create the proto tables in single process to be shared across cores)
+  - initialize_proto_population
+  ### mp_disaggregate_accessibility (Slice and run proto tables in multiprocess)
+  - compute_disaggregate_accessibility
+  ### mp_initialize_hhs step
+  - initialize_landuse
+  - initialize_households
+  ### mp_accessibility step
+  - compute_accessibility
+  ### mp_simulate step
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - vehicle_type_choice
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - school_escorting
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - vehicle_allocation
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  ### mp_summarize step
+  - write_data_dictionary
+  - write_trip_matrices
+  - write_tables
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_proto_population
+  - name: mp_disaggregate_accessibility
+    begin: compute_disaggregate_accessibility
+    slice:
+      tables:
+        - proto_households
+        - proto_persons
+        - proto_tours
+  - name: mp_initialize_hhs
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    slice:
+      tables:
+        - accessibility
+      # don't slice any tables not explicitly listed above in slice.tables
+      except: True # This is needed after disaggregate accessibilities, otherwise it will return empty logsums tables
+  - name: mp_simulate
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary

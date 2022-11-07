@@ -1,18 +1,18 @@
 import os
+from typing import Collection
+
 import numpy as np
 import pandas as pd
 import yaml
-from typing import Collection
+from larch import DataFrames, Model, P, X
 from larch.util import Dict
 
-from .simple_simulate import simple_simulate_data
-
 from .general import (
-    remove_apostrophes,
     apply_coefficients,
     dict_of_linear_utility_from_spec,
+    remove_apostrophes,
 )
-from larch import Model, DataFrames, P, X
+from .simple_simulate import simple_simulate_data
 
 
 def auto_ownership_model(
@@ -21,7 +21,9 @@ def auto_ownership_model(
     return_data=False,
 ):
     data = simple_simulate_data(
-        name=name, edb_directory=edb_directory, values_index_col="household_id",
+        name=name,
+        edb_directory=edb_directory,
+        values_index_col="household_id",
     )
     coefficients = data.coefficients
     # coef_template = data.coef_template # not used
@@ -45,12 +47,19 @@ def auto_ownership_model(
     m.initialize_graph(alternative_codes=altcodes, root_id=99)
 
     m.utility_co = dict_of_linear_utility_from_spec(
-        spec, "Label", dict(zip(altnames, altcodes)),
+        spec,
+        "Label",
+        dict(zip(altnames, altcodes)),
     )
 
     apply_coefficients(coefficients, m)
 
-    d = DataFrames(co=chooser_data, av=True, alt_codes=altcodes, alt_names=altnames,)
+    d = DataFrames(
+        co=chooser_data,
+        av=True,
+        alt_codes=altcodes,
+        alt_names=altnames,
+    )
 
     m.dataservice = d
     m.choice_co_code = "override_choice"

@@ -4,16 +4,10 @@ import logging
 
 import numpy as np
 import pandas as pd
+from activitysim.abm.models.util import school_escort_tours_trips
 
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import expressions
-
-from activitysim.core.util import assign_in_place
-from activitysim.core.util import reindex
+from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.core.util import assign_in_place, reindex
 
 from .util import estimation, trip
 
@@ -22,11 +16,8 @@ logger = logging.getLogger(__name__)
 
 @inject.step()
 def stop_frequency(
-        tours, tours_merged,
-        stop_frequency_alts,
-        network_los,
-        chunk_size,
-        trace_hh_id):
+    tours, tours_merged, stop_frequency_alts, network_los, chunk_size, trace_hh_id
+):
     """
     stop frequency model
 
@@ -53,8 +44,8 @@ def stop_frequency(
 
     """
 
-    trace_label = 'stop_frequency'
-    model_settings_file_name = 'stop_frequency.yaml'
+    trace_label = "stop_frequency"
+    model_settings_file_name = "stop_frequency.yaml"
 
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -68,19 +59,18 @@ def stop_frequency(
     constants = config.get_model_constants(model_settings)
 
     # - run preprocessor to annotate tours_merged
-    preprocessor_settings = model_settings.get('preprocessor', None)
+    preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
 
         # hack: preprocessor adds origin column in place if it does not exist already
-        assert 'origin' in tours_merged
-        assert 'destination' in tours_merged
-        od_skim_stack_wrapper = network_los.get_default_skim_dict().wrap('origin', 'destination')
+        assert "origin" in tours_merged
+        assert "destination" in tours_merged
+        od_skim_stack_wrapper = network_los.get_default_skim_dict().wrap(
+            "origin", "destination"
+        )
         skims = [od_skim_stack_wrapper]
 
-        locals_dict = {
-            "od_skims": od_skim_stack_wrapper,
-            'network_los': network_los
-        }
+        locals_dict = {"od_skims": od_skim_stack_wrapper, "network_los": network_los}
         locals_dict.update(constants)
 
         simulate.set_skim_wrapper_targets(tours_merged, skims)
@@ -90,17 +80,23 @@ def stop_frequency(
             df=tours_merged,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
-            trace_label=trace_label)
+            trace_label=trace_label,
+        )
 
         assign_in_place(tours_merged, annotations)
 
-    tracing.print_summary('stop_frequency segments',
-                          tours_merged.primary_purpose, value_counts=True)
+    tracing.print_summary(
+        "stop_frequency segments", tours_merged.primary_purpose, value_counts=True
+    )
 
-    spec_segments = model_settings.get('SPEC_SEGMENTS')
-    assert spec_segments is not None, f"SPEC_SEGMENTS setting not found in model settings: {model_settings_file_name}"
-    segment_col = model_settings.get('SEGMENT_COL')
-    assert segment_col is not None, f"SEGMENT_COL setting not found in model settings: {model_settings_file_name}"
+    spec_segments = model_settings.get("SPEC_SEGMENTS")
+    assert (
+        spec_segments is not None
+    ), f"SPEC_SEGMENTS setting not found in model settings: {model_settings_file_name}"
+    segment_col = model_settings.get("SEGMENT_COL")
+    assert (
+        segment_col is not None
+    ), f"SEGMENT_COL setting not found in model settings: {model_settings_file_name}"
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
@@ -116,20 +112,32 @@ def stop_frequency(
             logging.info(f"{trace_label} skipping empty segment {segment_name}")
             continue
 
-        logging.info(f"{trace_label} running segment {segment_name} with {chooser_segment.shape[0]} chooser rows")
+        logging.info(
+            f"{trace_label} running segment {segment_name} with {chooser_segment.shape[0]} chooser rows"
+        )
 
-        estimator = estimation.manager.begin_estimation(model_name=segment_name, bundle_name='stop_frequency')
+        estimator = estimation.manager.begin_estimation(
+            model_name=segment_name, bundle_name="stop_frequency"
+        )
 
-        segment_spec = simulate.read_model_spec(file_name=segment_settings['SPEC'])
-        assert segment_spec is not None, "spec for segment_type %s not found" % segment_name
+        segment_spec = simulate.read_model_spec(file_name=segment_settings["SPEC"])
+        assert segment_spec is not None, (
+            "spec for segment_type %s not found" % segment_name
+        )
 
-        coefficients_file_name = segment_settings['COEFFICIENTS']
-        coefficients_df = simulate.read_model_coefficients(file_name=coefficients_file_name)
-        segment_spec = simulate.eval_coefficients(segment_spec, coefficients_df, estimator)
+        coefficients_file_name = segment_settings["COEFFICIENTS"]
+        coefficients_df = simulate.read_model_coefficients(
+            file_name=coefficients_file_name
+        )
+        segment_spec = simulate.eval_coefficients(
+            segment_spec, coefficients_df, estimator
+        )
 
         if estimator:
             estimator.write_spec(segment_settings, bundle_directory=False)
-            estimator.write_model_settings(model_settings, model_settings_file_name, bundle_directory=True)
+            estimator.write_model_settings(
+                model_settings, model_settings_file_name, bundle_directory=True
+            )
             estimator.write_coefficients(coefficients_df, segment_settings)
             estimator.write_choosers(chooser_segment)
 
@@ -142,15 +150,18 @@ def stop_frequency(
             locals_d=constants,
             chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(trace_label, segment_name),
-            trace_choice_name='stops',
-            estimator=estimator)
+            trace_choice_name="stops",
+            estimator=estimator,
+        )
 
         # convert indexes to alternative names
         choices = pd.Series(segment_spec.columns[choices.values], index=choices.index)
 
         if estimator:
             estimator.write_choices(choices)
-            choices = estimator.get_survey_values(choices, 'tours', 'stop_frequency')  # override choices
+            choices = estimator.get_survey_values(
+                choices, "tours", "stop_frequency"
+            )  # override choices
             estimator.write_override_choices(choices)
             estimator.end_estimation()
 
@@ -158,30 +169,30 @@ def stop_frequency(
 
     choices = pd.concat(choices_list)
 
-    tracing.print_summary('stop_frequency', choices, value_counts=True)
+    tracing.print_summary("stop_frequency", choices, value_counts=True)
 
     # add stop_frequency choices to tours table
-    assign_in_place(tours, choices.to_frame('stop_frequency'))
+    assign_in_place(tours, choices.to_frame("stop_frequency"))
 
     # FIXME should have added this when tours created?
-    assert 'primary_purpose' not in tours
-    if 'primary_purpose' not in tours.columns:
+    assert "primary_purpose" not in tours
+    if "primary_purpose" not in tours.columns:
         # if not already there, then it will have been added by stop_freq_annotate_tours_preprocessor
-        assign_in_place(tours, tours_merged[['primary_purpose']])
+        assign_in_place(tours, tours_merged[["primary_purpose"]])
 
     pipeline.replace_table("tours", tours)
 
     # create trips table
     trips = trip.initialize_from_tours(tours, stop_frequency_alts)
     pipeline.replace_table("trips", trips)
-    tracing.register_traceable_table('trips', trips)
-    pipeline.get_rn_generator().add_channel('trips', trips)
+    tracing.register_traceable_table("trips", trips)
+    pipeline.get_rn_generator().add_channel("trips", trips)
 
     if estimator:
         # make sure they created trips with the expected tour_ids
-        columns = ['person_id', 'household_id', 'tour_id', 'outbound']
+        columns = ["person_id", "household_id", "tour_id", "outbound"]
 
-        survey_trips = estimation.manager.get_survey_table(table_name='trips')
+        survey_trips = estimation.manager.get_survey_table(table_name="trips")
         different = False
         survey_trips_not_in_trips = survey_trips[~survey_trips.index.isin(trips.index)]
         if len(survey_trips_not_in_trips) > 0:
@@ -193,10 +204,9 @@ def stop_frequency(
             different = True
         assert not different
 
-        survey_trips = \
-            estimation.manager.get_survey_values(trips,
-                                                 table_name='trips',
-                                                 column_names=columns)
+        survey_trips = estimation.manager.get_survey_values(
+            trips, table_name="trips", column_names=columns
+        )
 
         trips_differ = (trips[columns] != survey_trips[columns]).any(axis=1)
 
@@ -206,24 +216,25 @@ def stop_frequency(
             print("differing survey_trips\n%s" % survey_trips[trips_differ])
             print("differing modeled_trips\n%s" % trips[columns][trips_differ])
 
-        assert(not trips_differ.any())
+        assert not trips_differ.any()
 
     if trace_hh_id:
-        tracing.trace_df(tours,
-                         label="stop_frequency.tours",
-                         slicer='person_id',
-                         columns=None)
+        tracing.trace_df(
+            tours, label="stop_frequency.tours", slicer="person_id", columns=None
+        )
 
-        tracing.trace_df(trips,
-                         label="stop_frequency.trips",
-                         slicer='person_id',
-                         columns=None)
+        tracing.trace_df(
+            trips, label="stop_frequency.trips", slicer="person_id", columns=None
+        )
 
-        tracing.trace_df(annotations,
-                         label="stop_frequency.annotations",
-                         columns=None)
+        tracing.trace_df(annotations, label="stop_frequency.annotations", columns=None)
 
-        tracing.trace_df(tours_merged,
-                         label="stop_frequency.tours_merged",
-                         slicer='person_id',
-                         columns=None)
+        tracing.trace_df(
+            tours_merged,
+            label="stop_frequency.tours_merged",
+            slicer="person_id",
+            columns=None,
+        )
+
+    if pipeline.is_table("school_escort_trips"):
+        school_escort_tours_trips.merge_school_escort_trips_into_pipeline()

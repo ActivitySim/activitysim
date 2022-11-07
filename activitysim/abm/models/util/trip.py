@@ -1,13 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
-import pandas as pd
-import numpy as np
 
+import numpy as np
+import pandas as pd
+
+from activitysim.abm.models.util.canonical_ids import set_trip_index
 from activitysim.core import config, inject
 from activitysim.core.util import assign_in_place, reindex
-from activitysim.abm.models.util.canonical_ids import set_trip_index
-
 
 logger = logging.getLogger(__name__)
 
@@ -15,12 +15,14 @@ logger = logging.getLogger(__name__)
 def failed_trip_cohorts(trips, failed):
 
     # outbound trips in a tour with a failed outbound trip
-    bad_outbound_trips = \
-        trips.outbound & (trips.tour_id.isin(trips.tour_id[failed & trips.outbound]))
+    bad_outbound_trips = trips.outbound & (
+        trips.tour_id.isin(trips.tour_id[failed & trips.outbound])
+    )
 
     # inbound trips in a tour with a failed inbound trip
-    bad_inbound_trips = \
-        ~trips.outbound & (trips.tour_id.isin(trips.tour_id[failed & ~trips.outbound]))
+    bad_inbound_trips = ~trips.outbound & (
+        trips.tour_id.isin(trips.tour_id[failed & ~trips.outbound])
+    )
 
     bad_trips = bad_outbound_trips | bad_inbound_trips
 
@@ -32,7 +34,9 @@ def flag_failed_trip_leg_mates(trips_df, col_name):
     set boolean flag column of specified name to identify failed trip leg_mates in place
     """
 
-    failed_trip_leg_mates = failed_trip_cohorts(trips_df, trips_df.failed) & ~trips_df.failed
+    failed_trip_leg_mates = (
+        failed_trip_cohorts(trips_df, trips_df.failed) & ~trips_df.failed
+    )
     trips_df.loc[failed_trip_leg_mates, col_name] = True
 
     # handle outbound and inbound legs independently
@@ -57,10 +61,12 @@ def cleanup_failed_trips(trips):
     """
 
     if trips.failed.any():
-        logger.warning("cleanup_failed_trips dropping %s failed trips" % trips.failed.sum())
+        logger.warning(
+            "cleanup_failed_trips dropping %s failed trips" % trips.failed.sum()
+        )
 
-        trips['patch'] = False
-        flag_failed_trip_leg_mates(trips, 'patch')
+        trips["patch"] = False
+        flag_failed_trip_leg_mates(trips, "patch")
 
         # drop the original failures
         trips = trips[~trips.failed]
@@ -69,16 +75,26 @@ def cleanup_failed_trips(trips):
         patch_trips = trips[trips.patch].sort_index()
 
         # recompute fields dependent on trip_num sequence
-        grouped = patch_trips.groupby(['tour_id', 'outbound'])
-        patch_trips['trip_num'] = grouped.cumcount() + 1
+        grouped = patch_trips.groupby(["tour_id", "outbound"])
+        patch_trips["trip_num"] = grouped.cumcount() + 1
         # FIXME - 'clever' hack to avoid regroup - implementation dependent optimization that could change
-        patch_trips['trip_count'] = patch_trips['trip_num'] + grouped.cumcount(ascending=False)
+        patch_trips["trip_count"] = patch_trips["trip_num"] + grouped.cumcount(
+            ascending=False
+        )
 
-        assign_in_place(trips, patch_trips[['trip_num', 'trip_count']])
+        assign_in_place(trips, patch_trips[["trip_num", "trip_count"]])
 
-        del trips['patch']
+        # origin needs to match the previous destination
+        # (leaving first origin alone as it's already set correctly)
+        trips["origin"] = np.where(
+            (trips["trip_num"] == 1) & (trips["outbound"] == True),
+            trips["origin"],
+            trips.groupby("tour_id")["destination"].shift(),
+        ).astype(int)
 
-    del trips['failed']
+        del trips["patch"]
+
+    del trips["failed"]
 
     return trips
 
@@ -92,20 +108,25 @@ def generate_alternative_sizes(max_duration, max_trips):
     :param max_trips:
     :return:
     """
+
     def np_shift(xs, n, fill_zero=True):
         if n >= 0:
             shift_array = np.concatenate((np.full(n, np.nan), xs[:-n]))
         else:
             shift_array = np.concatenate((xs[-n:], np.full(-n, np.nan)))
-        return np.nan_to_num(shift_array, np.nan).astype(int) if fill_zero else shift_array
+        return (
+            np.nan_to_num(shift_array, np.nan).astype(int) if fill_zero else shift_array
+        )
 
     levels = np.empty([max_trips, max_duration + max_trips])
     levels[0] = np.arange(1, max_duration + max_trips + 1)
 
     for level in np.arange(1, max_trips):
-        levels[level] = np_shift(np.cumsum(np_shift(levels[level - 1], 1)), -1, fill_zero=False)
+        levels[level] = np_shift(
+            np.cumsum(np_shift(levels[level - 1], 1)), -1, fill_zero=False
+        )
 
-    return levels[:, :max_duration+1].astype(int)
+    return levels[:, : max_duration + 1].astype(int)
 
 
 def get_time_windows(residual, level):
@@ -130,9 +151,9 @@ def get_time_windows(residual, level):
 @inject.injectable()
 def stop_frequency_alts():
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
-    file_path = config.config_file_path('stop_frequency_alternatives.csv')
-    df = pd.read_csv(file_path, comment='#')
-    df.set_index('alt', inplace=True)
+    file_path = config.config_file_path("stop_frequency_alternatives.csv")
+    df = pd.read_csv(file_path, comment="#")
+    df.set_index("alt", inplace=True)
     return df
 
 
@@ -142,7 +163,7 @@ def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserv
     tour origin, tour destination.
     """
 
-    OUTBOUND_ALT = 'out'
+    OUTBOUND_ALT = "out"
     assert OUTBOUND_ALT in stop_frequency_alts.columns
 
     # get the actual alternatives for each person - have to go back to the
@@ -171,13 +192,13 @@ def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserv
 
     # reformat with the columns given below
     trips = trips.stack().reset_index()
-    trips.columns = ['tour_temp_index', 'direction', 'trip_count']
+    trips.columns = ["tour_temp_index", "direction", "trip_count"]
 
     # tours legs have one more trip than stop
     trips.trip_count += 1
 
     # prefer direction as boolean
-    trips['outbound'] = trips.direction == OUTBOUND_ALT
+    trips["outbound"] = trips.direction == OUTBOUND_ALT
 
     """
            tour_temp_index direction  trip_count  outbound
@@ -192,12 +213,14 @@ def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserv
     trips = trips.take(np.repeat(trips.index.values, trips.trip_count.values))
     trips = trips.reset_index(drop=True)
 
-    grouped = trips.groupby(['tour_temp_index', 'outbound'])
-    trips['trip_num'] = grouped.cumcount() + 1
+    grouped = trips.groupby(["tour_temp_index", "outbound"])
+    trips["trip_num"] = grouped.cumcount() + 1
 
-    trips['person_id'] = reindex(unique_tours.person_id, trips.tour_temp_index)
-    trips['household_id'] = reindex(unique_tours.household_id, trips.tour_temp_index)
-    trips['primary_purpose'] = reindex(unique_tours.primary_purpose, trips.tour_temp_index)
+    trips["person_id"] = reindex(unique_tours.person_id, trips.tour_temp_index)
+    trips["household_id"] = reindex(unique_tours.household_id, trips.tour_temp_index)
+    trips["primary_purpose"] = reindex(
+        unique_tours.primary_purpose, trips.tour_temp_index
+    )
 
     if addtl_tour_cols_to_preserve is None:
         addtl_tour_cols_to_preserve = []
@@ -205,8 +228,18 @@ def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserv
         trips[col] = reindex(unique_tours[col], trips.tour_temp_index)
 
     # reorder columns and drop 'direction'
-    trips = trips[['person_id', 'household_id', 'tour_temp_index', 'primary_purpose',
-                   'trip_num', 'outbound', 'trip_count'] + addtl_tour_cols_to_preserve]
+    trips = trips[
+        [
+            "person_id",
+            "household_id",
+            "tour_temp_index",
+            "primary_purpose",
+            "trip_num",
+            "outbound",
+            "trip_count",
+        ]
+        + addtl_tour_cols_to_preserve
+    ]
 
     """
       person_id  household_id  tour_temp_index  primary_purpose trip_num  outbound  trip_count
@@ -221,26 +254,31 @@ def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserv
     """
 
     # previously in trip_destination.py
-    tour_destination = reindex(unique_tours.destination, trips.tour_temp_index).astype(np.int64)
+    tour_destination = reindex(unique_tours.destination, trips.tour_temp_index).astype(
+        np.int64
+    )
     tour_origin = reindex(unique_tours.origin, trips.tour_temp_index).astype(np.int64)
-    trips['destination'] = np.where(trips.outbound, tour_destination, tour_origin)
-    trips['origin'] = np.where(trips.outbound, tour_origin, tour_destination)
-    trips['failed'] = False
+    trips["destination"] = np.where(trips.outbound, tour_destination, tour_origin)
+    trips["origin"] = np.where(trips.outbound, tour_origin, tour_destination)
+    trips["failed"] = False
 
     # replace temp tour identifier with tour_id
-    trips['tour_id'] = reindex(unique_tours.tour_id, trips.tour_temp_index)
+    trips["tour_id"] = reindex(unique_tours.tour_id, trips.tour_temp_index)
 
     # trip ids are generated based on unique combination of `tour_id`, `outbound`,
     # and `trip_num`. When pseudo-trips are generated from pseudo-tours for the
     # purposes of computing logsums, `tour_id` won't be unique on `outbound` and
     # `trip_num`, so we use `tour_temp_index` instead. this will only be the case
     # when generating temporary pseudo-trips which won't get saved as outputs.
-    if trips.groupby(['tour_id', 'outbound', 'trip_num'])['person_id'].count().max() > 1:
-        trip_index_tour_id = 'tour_temp_index'
+    if (
+        trips.groupby(["tour_id", "outbound", "trip_num"])["person_id"].count().max()
+        > 1
+    ):
+        trip_index_tour_id = "tour_temp_index"
     else:
-        trip_index_tour_id = 'tour_id'
+        trip_index_tour_id = "tour_id"
 
     set_trip_index(trips, trip_index_tour_id)
-    del trips['tour_temp_index']
+    del trips["tour_temp_index"]
 
     return trips

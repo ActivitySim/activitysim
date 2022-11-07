@@ -462,7 +462,12 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
     """
     return tours
 
-def process_joint_tours_frequency_composition(joint_tour_frequency_composition, joint_tour_frequency_composition_alts, point_persons):
+
+def process_joint_tours_frequency_composition(
+    joint_tour_frequency_composition,
+    joint_tour_frequency_composition_alts,
+    point_persons,
+):
     """
     This method processes the joint_tour_frequency_composition column that comes out of
     the model of the same name and turns into a DataFrame that represents the
@@ -491,17 +496,19 @@ def process_joint_tours_frequency_composition(joint_tour_frequency_composition, 
 
     assert not joint_tour_frequency_composition.isnull().any()
 
-    tours = process_tours_frequency_composition(joint_tour_frequency_composition.dropna(),
-                          joint_tour_frequency_composition_alts,
-                          tour_category='joint',
-                          parent_col='household_id')
+    tours = process_tours_frequency_composition(
+        joint_tour_frequency_composition.dropna(),
+        joint_tour_frequency_composition_alts,
+        tour_category="joint",
+        parent_col="household_id",
+    )
 
     assert not tours.index.duplicated().any()
-    assert point_persons.index.name == 'household_id'
+    assert point_persons.index.name == "household_id"
 
     # - assign a temp point person to tour so we can create stable index
-    tours['person_id'] = reindex(point_persons.person_id, tours.household_id)
-    tours['origin'] = reindex(point_persons.home_zone_id, tours.household_id)
+    tours["person_id"] = reindex(point_persons.person_id, tours.household_id)
+    tours["origin"] = reindex(point_persons.home_zone_id, tours.household_id)
 
     # assign stable (predictable) tour_id
     set_tour_index(tours, is_joint=True)
@@ -522,7 +529,13 @@ def process_joint_tours_frequency_composition(joint_tour_frequency_composition, 
     """
     return tours
 
-def process_tours_frequency_composition(joint_tour_frequency_composition, joint_tour_frequency_composition_alts, tour_category, parent_col='person_id'):
+
+def process_tours_frequency_composition(
+    joint_tour_frequency_composition,
+    joint_tour_frequency_composition_alts,
+    tour_category,
+    parent_col="person_id",
+):
     """
     This method processes the joint_tour_frequency_composition column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -566,7 +579,9 @@ def process_tours_frequency_composition(joint_tour_frequency_composition, joint_
     # get the actual alternatives for each person - have to go back to the
     # non_mandatory_tour_frequency_alts dataframe to get this - the choice
     # above just stored the index values for the chosen alts
-    tour_counts = joint_tour_frequency_composition_alts.loc[joint_tour_frequency_composition]
+    tour_counts = joint_tour_frequency_composition_alts.loc[
+        joint_tour_frequency_composition
+    ]
 
     # assign person ids to the index
     tour_counts.index = joint_tour_frequency_composition.index
@@ -582,7 +597,8 @@ def process_tours_frequency_composition(joint_tour_frequency_composition, joint_
 
     return tours
 
-def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
+
+def create_joint_tours(tour_counts, tour_category, parent_col="person_id"):
     """
     This method processes the tour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -622,30 +638,42 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     2588676       2         0         0
     2588677       1         1         0
     """
-    model_settings_file_name = 'joint_tour_frequency_composition.yaml'
+    model_settings_file_name = "joint_tour_frequency_composition.yaml"
 
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    alts_table_structure = model_settings.get('ALTS_TABLE_STRUCTURE', None)
-    assert alts_table_structure is not None, f"Expected to find ALTS_TABLE_STRUCTURE setting in joint_tour_frequency_composition.yaml"
+    alts_table_structure = model_settings.get("ALTS_TABLE_STRUCTURE", None)
+    assert (
+        alts_table_structure is not None
+    ), f"Expected to find ALTS_TABLE_STRUCTURE setting in joint_tour_frequency_composition.yaml"
 
-    tour_type_dict = alts_table_structure.get('PURPOSE', None).get('VALUE_MAP', None)
-    assert tour_type_dict is not None, f"Expected to find PURPOSE.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
+    tour_type_dict = alts_table_structure.get("PURPOSE", None).get("VALUE_MAP", None)
+    assert (
+        tour_type_dict is not None
+    ), f"Expected to find PURPOSE.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
 
-    tour_type_cols = alts_table_structure.get('PURPOSE', None).get('COLUMNS', None)
-    assert tour_type_cols is not None, f"Expected to find PURPOSE.COLUMNS setting in ALTS_TABLE_STRUCTURE"
+    tour_type_cols = alts_table_structure.get("PURPOSE", None).get("COLUMNS", None)
+    assert (
+        tour_type_cols is not None
+    ), f"Expected to find PURPOSE.COLUMNS setting in ALTS_TABLE_STRUCTURE"
 
-    tour_comp_dict = alts_table_structure.get('COMPOSITION', None).get('VALUE_MAP', None)
-    assert tour_comp_dict is not None, f"Expected to find COMPOSITION.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
+    tour_comp_dict = alts_table_structure.get("COMPOSITION", None).get(
+        "VALUE_MAP", None
+    )
+    assert (
+        tour_comp_dict is not None
+    ), f"Expected to find COMPOSITION.VALUE_MAP setting in ALTS_TABLE_STRUCTURE"
 
-    tour_comp_cols = alts_table_structure.get('COMPOSITION', None).get('COLUMNS', None)
-    assert tour_comp_cols is not None, f"Expected to find COMPOSITION.COLUMNS setting in ALTS_TABLE_STRUCTURE"
+    tour_comp_cols = alts_table_structure.get("COMPOSITION", None).get("COLUMNS", None)
+    assert (
+        tour_comp_cols is not None
+    ), f"Expected to find COMPOSITION.COLUMNS setting in ALTS_TABLE_STRUCTURE"
 
     # reformat with the columns given below
     tours_purp = tour_counts[tour_type_cols].stack().reset_index()
     tours_purp.columns = [parent_col, "tour_id_temp", "tour_type"]
-    tours_purp['tour_id_temp'] = range(1, 1+len(tours_purp))
-    tours_purp['tour_type'] = tours_purp['tour_type'].map(tour_type_dict)
+    tours_purp["tour_id_temp"] = range(1, 1 + len(tours_purp))
+    tours_purp["tour_type"] = tours_purp["tour_type"].map(tour_type_dict)
 
     """
         <parent_col> tour_id_temp  tour_type
@@ -662,9 +690,9 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     """
     tours_comp = tour_counts[tour_comp_cols].stack().reset_index()
     tours_comp.columns = [parent_col, "tour_id_temp", "composition"]
-    tours_comp['tour_id_temp'] = range(1, 1+len(tours_comp))
-    tours_comp['composition'] = tours_comp['composition'].map(tour_comp_dict)
-    
+    tours_comp["tour_id_temp"] = range(1, 1 + len(tours_comp))
+    tours_comp["composition"] = tours_comp["composition"].map(tour_comp_dict)
+
     """
         <parent_col> tour_id_temp  tour_composition
     0     2588676    party1           1
@@ -679,21 +707,20 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     tour_type_count is the count value of the tour's chosen alt's tour_type from alts table
     """
     tours = pd.merge(
-        tours_purp,
-        tours_comp,
-        how = 'left',
-        on = [parent_col,'tour_id_temp']
+        tours_purp, tours_comp, how="left", on=[parent_col, "tour_id_temp"]
     )
 
     tours = tours[(tours.tour_type.notnull()) & (tours.tour_type.notnull())]
 
-    grouped = tours.groupby([parent_col, 'tour_type'])
-    tours['tour_type_num'] = grouped.cumcount() + 1
-    tours['tour_type_count'] = tours['tour_type_num'] + grouped.cumcount(ascending=False)
+    grouped = tours.groupby([parent_col, "tour_type"])
+    tours["tour_type_num"] = grouped.cumcount() + 1
+    tours["tour_type_count"] = tours["tour_type_num"] + grouped.cumcount(
+        ascending=False
+    )
 
     grouped = tours.groupby(parent_col)
-    tours['tour_num'] = grouped.cumcount() + 1
-    tours['tour_count'] = tours['tour_num'] + grouped.cumcount(ascending=False)
+    tours["tour_num"] = grouped.cumcount() + 1
+    tours["tour_count"] = tours["tour_num"] + grouped.cumcount(ascending=False)
 
     """
         <parent_col> tour_type  tour_type_num  tour_type_count tour_num  tour_count
@@ -704,11 +731,11 @@ def create_joint_tours(tour_counts, tour_category, parent_col='person_id'):
     """
 
     # set these here to ensure consistency across different tour categories
-    assert tour_category in ['mandatory', 'non_mandatory', 'atwork', 'joint']
-    tours['tour_category'] = tour_category
+    assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
+    tours["tour_category"] = tour_category
 
     # for joint tours, the correct number will be filled in after participation step
-    tours['number_of_participants'] = 1
+    tours["number_of_participants"] = 1
 
     # index is arbitrary but don't want any duplicates in index
     tours.reset_index(drop=True, inplace=True)

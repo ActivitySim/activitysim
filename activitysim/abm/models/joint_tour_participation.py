@@ -59,11 +59,16 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     # if this happens, participant_id may not be unique
     # channel random seeds will overlap at MAX_PARTICIPANT_PNUM (probably not a big deal)
     # and estimation infer will fail
-    assert candidates.PNUM.max() < MAX_PARTICIPANT_PNUM, \
-        f"max persons.PNUM ({candidates.PNUM.max()}) > MAX_PARTICIPANT_PNUM ({MAX_PARTICIPANT_PNUM})"
-    candidates['participant_id'] = (candidates[joint_tours.index.name] * MAX_PARTICIPANT_PNUM) + candidates.PNUM
-    candidates['participant_id'] = candidates['participant_id'].astype(int)
-    candidates.set_index('participant_id', drop=True, inplace=True, verify_integrity=True)
+    assert (
+        candidates.PNUM.max() < MAX_PARTICIPANT_PNUM
+    ), f"max persons.PNUM ({candidates.PNUM.max()}) > MAX_PARTICIPANT_PNUM ({MAX_PARTICIPANT_PNUM})"
+    candidates["participant_id"] = (
+        candidates[joint_tours.index.name] * MAX_PARTICIPANT_PNUM
+    ) + candidates.PNUM
+    candidates["participant_id"] = candidates["participant_id"].astype(int)
+    candidates.set_index(
+        "participant_id", drop=True, inplace=True, verify_integrity=True
+    )
 
     return candidates
 

@@ -116,7 +116,10 @@ def parking_destination_simulate(
 
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
-    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    spec = simulate.eval_coefficients(spec, coefficients_df, None)
+
+    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
 
     logger.info("Running trip_destination_simulate with %d trips", len(trips))
 
@@ -292,8 +295,14 @@ def parking_location(
     trips_merged_df = trips_merged.to_frame()
     land_use_df = land_use.to_frame()
 
-    locals_dict = {"network_los": network_los}
-    locals_dict.update(config.get_model_constants(model_settings))
+    locals_dict = {
+        'network_los': network_los
+    }
+
+    constants = config.get_model_constants(model_settings)
+    
+    if constants is not None:
+        locals_dict.update(constants)
 
     if preprocessor_settings:
         expressions.assign_columns(

@@ -936,7 +936,7 @@ def household_activity_choices(
         return pd.Series(dtype="float64")
 
     # calculate joint tour utility
-    if add_joint_tour_utility:
+    if add_joint_tour_utility & (hhsize > 1):
         # calculate joint utils
         joint_tour_spec = build_cdap_joint_spec(
             interaction_coefficients,

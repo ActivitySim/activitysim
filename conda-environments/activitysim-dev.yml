@@ -46,7 +46,7 @@ dependencies:
 - rich
 - ruby  # required for benchmarking pre-commit hooks
 - simwrapper > 1.7
-- sklearn >= 1.1.1
+- scikit-learn >= 1.1.1
 - snakeviz  # for profiling
 - sphinx
 - sphinx_rtd_theme

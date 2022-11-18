@@ -85,6 +85,8 @@ def run_test_random_seed():
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
+    # running prototype mtc model through workplace_location with 3 random seed settings, 0, 1, None, and undefined.
+    # final_persons.csv is compared to ensure the same setting returns the same variables and a different setting returns something different.
     for name, seed in runs:
 
         run_args = [

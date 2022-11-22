@@ -189,8 +189,12 @@ def trace_memory_info(event, trace_ticks=0):
     current_process = psutil.Process()
 
     if USS:
-        info = current_process.memory_full_info()
-        uss = info.uss
+        try:
+            info = current_process.memory_full_info()
+            uss = info.uss
+        except (PermissionError, psutil.AccessDenied, RuntimeError):
+            info = current_process.memory_info()
+            uss = 0
     else:
         info = current_process.memory_info()
         uss = 0
@@ -254,8 +258,12 @@ def get_rss(force_garbage_collect=False, uss=False):
             gc.disable()
 
     if uss:
-        info = psutil.Process().memory_full_info()
-        return info.rss, info.uss
+        try:
+            info = psutil.Process().memory_full_info()
+            return info.rss, info.uss
+        except (PermissionError, psutil.AccessDenied, RuntimeError):
+            info = psutil.Process().memory_info()
+            return info.rss, 0
     else:
         info = psutil.Process().memory_info()
         return info.rss, 0

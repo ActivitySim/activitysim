@@ -28,35 +28,41 @@ NUM_ESCORTEES = 3
 NUM_CHAPERONES = 2
 
 
-def determine_escorting_paricipants(choosers, persons, model_settings):
+def determine_escorting_participants(choosers, persons, model_settings):
     """
     Determining which persons correspond to chauffer 1..n and escortee 1..n.
     Chauffers are those with the highest weight given by:
     weight = 100 * person type +  10 * gender + 1*(age > 25)
     and escortees are selected youngest to oldest.
-
     """
-
-    NUM_ESCORTEES = model_settings["NUM_ESCORTEES"]
-    NUM_CHAPERONES = model_settings["NUM_CHAPERONES"]
+    global NUM_ESCORTEES
+    global NUM_CHAPERONES
+    NUM_ESCORTEES = model_settings.get("NUM_ESCORTEES", NUM_ESCORTEES)
+    NUM_CHAPERONES = model_settings.get("NUM_CHAPERONES", NUM_CHAPERONES)
 
     ptype_col = model_settings.get("PERSONTYPE_COLUMN", "ptype")
     sex_col = model_settings.get("GENDER_COLUMN", "sex")
     age_col = model_settings.get("AGE_COLUMN", "age")
 
-    # is this cut correct?
+    escortee_age_cutoff = model_settings.get("ESCORTEE_AGE_CUTOFF", 16)
+    chaperone_age_cutoff = model_settings.get("CHAPERONE_AGE_CUTOFF", 18)
+
     escortees = persons[
-        persons.is_student & (persons[age_col] < 16) & (persons.cdap_activity == "M")
+        persons.is_student
+        & (persons[age_col] < escortee_age_cutoff)
+        & (persons.cdap_activity == "M")
     ]
     households_with_escortees = escortees["household_id"]
 
-    persontype_weight = 100
-    gender_weight = 10
-    age_weight = 1
+    # can specify different weights to determine chaperones
+    persontype_weight = model_settings.get("PERSON_WEIGHT", 100)
+    gender_weight = model_settings.get("PERSON_WEIGHT", 10)
+    age_weight = model_settings.get("AGE_WEIGHT", 1)
 
     # can we move all of these to a config file?
     chaperones = persons[
-        (persons[age_col] > 18) & persons.household_id.isin(households_with_escortees)
+        (persons[age_col] > chaperone_age_cutoff)
+        & persons.household_id.isin(households_with_escortees)
     ]
 
     chaperones["chaperone_weight"] = (
@@ -95,6 +101,21 @@ def determine_escorting_paricipants(choosers, persons, model_settings):
         participant_columns.append("child_id" + str(i))
 
     return choosers, participant_columns
+
+
+def check_alts_consistency(alts):
+    """
+    Checking to ensure that the alternatives file is consistent with
+    the number of chaperones and escortees set in the model settings.
+    """
+    for i in range(1, NUM_ESCORTEES + 1):
+        chauf_col = f"chauf{i}"
+        # The number of chauf columns should equal the number of escortees
+        assert chauf_col in alts.columns, f"Missing {chauf_col} in alternatives file"
+
+        # Each escortee should be able to be escorted by each chaperone with ride hail or pure escort
+        assert alts[chauf_col].max() == (NUM_CHAPERONES * 2)
+    return
 
 
 def add_prev_choices_to_choosers(choosers, choices, alts, stage):
@@ -212,7 +233,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     school_origins = school_tours.set_index("person_id").origin
     school_tour_ids = school_tours.reset_index().set_index("person_id").tour_id
 
-    for child_num in range(1, 4):
+    for child_num in range(1, NUM_ESCORTEES + 1):
         i = str(child_num)
         bundles["bundle_child" + i] = np.where(
             choosers["bundle" + i] == bundles["bundle_num"],
@@ -246,13 +267,27 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
             school_tour_ids, bundles["bundle_child" + i]
         )
 
-    # FIXME assumes only two chauffeurs
-    bundles["chauf_id"] = np.where(
-        bundles["chauf_type_num"] <= 2, choosers["chauf_id1"], choosers["chauf_id2"]
-    ).astype(int)
-    bundles["chauf_num"] = np.where(bundles["chauf_type_num"] <= 2, 1, 2)
+    # each chauffeur option has ride share or pure escort
+    bundles["chauf_num"] = np.ceil(bundles["chauf_type_num"].div(2)).astype(int)
+
+    # getting bundle chauffeur id based on the chauffeur num
+    bundles["chauf_id"] = -1
+    for i in range(1, NUM_CHAPERONES + 1):
+        bundles["chauf_id"] = np.where(
+            bundles["chauf_num"] == i,
+            choosers["chauf_id" + str(i)],
+            bundles["chauf_id"],
+        )
+    bundles["chauf_id"] = bundles["chauf_id"].astype(int)
+    assert (
+        bundles["chauf_id"] > 0
+    ).all(), "Invalid chauf_id's for school escort bundles!"
+
+    # odd chauf_type_num means ride share, even means pure escort
+    # this comes from the way the alternatives file is constructed where chauf_id is
+    # incremented for each possible chauffeur and for each tour type
     bundles["escort_type"] = np.where(
-        bundles["chauf_type_num"].isin([1, 3]), "ride_share", "pure_escort"
+        bundles["chauf_type_num"].mod(2) == 1, "ride_share", "pure_escort"
     )
 
     # This is just pulled from the pre-processor. Will break if removed or renamed in pre-processor
@@ -276,12 +311,12 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     mandatory_escort_tours = tours[
         (tours.tour_category == "mandatory") & (tours.tour_num == 1)
     ]
-    bundles["first_mand_tour_start_time"] = reindex(
-        mandatory_escort_tours.set_index("person_id").start, bundles["chauf_id"]
-    )
-    bundles["first_mand_tour_end_time"] = reindex(
-        mandatory_escort_tours.set_index("person_id").end, bundles["chauf_id"]
-    )
+    # bundles["first_mand_tour_start_time"] = reindex(
+    #     mandatory_escort_tours.set_index("person_id").start, bundles["chauf_id"]
+    # )
+    # bundles["first_mand_tour_end_time"] = reindex(
+    #     mandatory_escort_tours.set_index("person_id").end, bundles["chauf_id"]
+    # )
     bundles["first_mand_tour_id"] = reindex(
         mandatory_escort_tours.reset_index().set_index("person_id").tour_id,
         bundles["chauf_id"],
@@ -339,9 +374,11 @@ def school_escorting(
 
     alts = simulate.read_model_alts(model_settings["ALTS"], set_index="Alt")
 
-    households_merged, participant_columns = determine_escorting_paricipants(
+    households_merged, participant_columns = determine_escorting_participants(
         households_merged, persons, model_settings
     )
+
+    check_alts_consistency(alts)
 
     constants = config.get_model_constants(model_settings)
     locals_dict = {}

@@ -7,6 +7,9 @@ ORIGIN_SAMPLE_SIZE: 5000
 # select origin zones weighted by population (or another landuse variable)
 ORIGIN_WEIGHTING_COLUMN: TOTPOP
 
+# How the nearest sampled zone is found: skims or centroid distance
+NEAREST_METHOD: skims
+
 # Specify the tables to be created and  their variables.
 # Single values are constants
 # Lists are varying and will generate the cartesian product (i.e., all possible non-repeating combinations)
@@ -62,8 +65,6 @@ CREATE_TABLES:
             pstudent: 3                 # Not attending school
             educ: 13                    # Bachelor's
             grade: 0                    # Not attending
-            timeFactorWork: 1           # mean
-            timeFactorNonWork: 1        # mean
         mapped_fields:
             pnum:
                 age:

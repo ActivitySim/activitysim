@@ -153,13 +153,19 @@ into the pipeline and initialized with the initialize_household model step.
 
 
 **Configuration of disaggregate_accessibility.yaml:**
-  * CREATE_TABLES - Users define the variables to be generated for PROTO_HOUSEHOLDS, PROTO_PERSONS, and PROTO_TOURS tables using the following parameters:
+  * CREATE_TABLES - Users define the variables to be generated for PROTO_HOUSEHOLDS, PROTO_PERSONS, and PROTO_TOURS tables. These tables must include all basic fields necessary for running the actual model. Additional fields can be annotated in pre-processing using the annotation settings of this file. The base variables in each table are defined using the following parameters:
 
     - VARIABLES - The base variable, must be a value or a list. Results in the cartesian product (all non-repeating combinations) of the fields.
     - mapped_fields [optional] - For non-combinatorial fields, users can map a variable to the fields generated in VARIABLES (e.g., income category bins mapped to median dollar values).
     - filter_rows [optional] - Users can also filter rows using pandas expressions if specific variable combinations are not desired.
     - JOIN_ON [required only for PROTO_TOURS] - specify the persons variable to join the tours to (e.g., person_number).
-  * MERGE_ON - User specified fields to merge the proto-population logsums onto the full synthetic population
+  * MERGE_ON - User specified fields to merge the proto-population logsums onto the full synthetic population. The proto-population should be designed such that the logsums are able to be joined exactly on these variables specified to the full population. Users specify the to join on using:
+
+    - by: An exact merge will be attempted using these discrete variables.
+    - asof [optional]: The model can peform an "asof" join for continuous variables, which finds the nearest value. This method should not be necessary since synthetic populations are all discrete.
+
+    - method [optional]: Optional join method can be "soft", default is None. For cases where a full inner join is not possible, a Naive Bayes clustering method is fast but discretely constrained method. The proto-population is treated as the "training data" to match the synthetic population value to the best possible proto-population candidate. The Some refinement may be necessary to make this procedure work.
+
   * annotate_proto_tables [optional] - Annotation configurations if users which to modify the proto-population beyond basic generation in the YAML.
   * DESTINATION_SAMPLE_SIZE - The *destination* sample size (0 = all zones), e.g., the number of destination zone alternatives sampled for calculating the destination logsum. Decimal values < 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.
   * ORIGIN_SAMPLE_SIZE - The *origin* sample size (0 = all zones), e.g., the number of origins where logsum is calculated. Origins without a logsum will draw from the nearest zone with a logsum. This parameter is useful for systems with a large number of zones with similar accessibility. Decimal values < 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.

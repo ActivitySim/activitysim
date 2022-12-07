@@ -145,6 +145,7 @@ def disaggregate_accessibility(persons, households, land_use, accessibility):
     # Extract model settings
     model_settings = config.read_model_settings("disaggregate_accessibility.yaml")
     merging_params = model_settings.get("MERGE_ON")
+    nearest_method = model_settings.get('NEAREST_METHOD', 'skims')
     accessibility_cols = [
         x for x in proto_accessibility_df.columns if "accessibility" in x
     ]
@@ -162,7 +163,7 @@ def disaggregate_accessibility(persons, households, land_use, accessibility):
     # Note that from here on the 'home_zone_id' is the matched name
     if "nearest_accessibility_zone_id" not in persons_merged_df.columns:
         persons_merged_df = find_nearest_accessibility_zone(
-            persons_merged_df, proto_accessibility_df
+            persons_merged_df, proto_accessibility_df, nearest_method
         )
 
     # Copy home_zone_id in proto-table to match the temporary 'nearest_zone_id'

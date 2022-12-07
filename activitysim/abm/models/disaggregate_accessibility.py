@@ -147,6 +147,10 @@ class ProtoPop:
             )
             sample_idx = sorted(sample_idx)
         elif method and method.lower() == "kmeans":
+            # Only implemented for 2-zone system for now
+            assert self.network_los.zone_system == los.TWO_ZONE,\
+                'K-Means only implemented for 2-zone systems for now'
+
             # Performs a simple k-means clustering using centroid XY coordinates
             centroids_df = pipeline.get_table("maz_centroids")
 

@@ -145,7 +145,7 @@ def disaggregate_accessibility(persons, households, land_use, accessibility):
     # Extract model settings
     model_settings = config.read_model_settings("disaggregate_accessibility.yaml")
     merging_params = model_settings.get("MERGE_ON")
-    nearest_method = model_settings.get('NEAREST_METHOD', 'skims')
+    nearest_method = model_settings.get("NEAREST_METHOD", "skims")
     accessibility_cols = [
         x for x in proto_accessibility_df.columns if "accessibility" in x
     ]

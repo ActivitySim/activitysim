@@ -65,7 +65,7 @@ def pipeline_file_name(settings):
 
 @inject.injectable()
 def rng_base_seed():
-    return 0
+    return setting("rng_base_seed", 0)
 
 
 @inject.injectable(cache=True)

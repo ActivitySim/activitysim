@@ -5,6 +5,7 @@
 import logging
 import multiprocessing
 import os
+import warnings
 from abc import ABC
 
 import numpy as np
@@ -128,9 +129,10 @@ class SkimInfo(object):
                     ), f"Mismatch shape {self.omx_shape} != {omx_file.shape()}"
 
                 for skim_name in omx_file.listMatrices():
-                    assert (
-                        skim_name not in self.omx_manifest
-                    ), f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                    if skim_name in self.omx_manifest:
+                        warnings.warn(
+                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                        )
                     self.omx_manifest[skim_name] = omx_file_path
 
                 for m in omx_file.listMappings():

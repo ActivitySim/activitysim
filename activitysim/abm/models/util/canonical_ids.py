@@ -5,8 +5,6 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core.util import reindex
-
 logger = logging.getLogger(__name__)
 
 

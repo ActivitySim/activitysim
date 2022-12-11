@@ -146,6 +146,9 @@ def handle_standard_args(args, multiprocess=True):
             except ImportError as err:
                 logger.exception("ImportError")
                 raise
+            except Exception as err:
+                logger.exception(f"Error {err}")
+                raise
             finally:
                 del sys.path[0]
         inject_arg("imported_extensions", args.ext)

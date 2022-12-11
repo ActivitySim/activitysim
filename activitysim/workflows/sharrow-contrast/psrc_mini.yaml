@@ -11,6 +11,7 @@ steps:
       compile: True
       sharrow: True
       legacy: True
+      reference: True
       tag:
       resume_after:
       fast: False

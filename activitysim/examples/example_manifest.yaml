@@ -926,6 +926,7 @@
     # prototype_mwcog/data  # data is provided below
     - prototype_mwcog/configs
     - prototype_mwcog/configs_mp
+    - prototype_mwcog/configs_sharrow
     - prototype_mwcog/output
     - prototype_mwcog/README.MD
     - prototype_mwcog/simulation.py

@@ -635,6 +635,31 @@ def filter_warnings():
 
     warnings.filterwarnings("default", category=PerformanceWarning)
 
+    # pandas 1.5
+    # beginning in pandas version 1.5, a new warning is emitted when a column is set via iloc
+    # from an array of different dtype, the update will eventually be done in-place in future
+    # versions. This is actually the preferred outcome for ActivitySim and no code changes are
+    # needed.
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message=(
+            ".*will attempt to set the values inplace instead of always setting a new array. "
+            "To retain the old behavior, use either.*"
+        ),
+    )
+
+    # beginning in sharrow version 2.5, a CacheMissWarning is emitted when a sharrow
+    # flow cannot be loaded from cache and needs to be compiled.  These are performance
+    # warnings for production runs and totally expected when running test or on new
+    # machines
+    try:
+        from sharrow import CacheMissWarning
+    except ImportError:
+        pass
+    else:
+        warnings.filterwarnings("default", category=CacheMissWarning)
+
 
 def handle_standard_args(parser=None):
 

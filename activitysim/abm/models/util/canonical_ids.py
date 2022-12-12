@@ -1,15 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import re
 
 import numpy as np
 import pandas as pd
-import re
 
-from activitysim.core.util import reindex
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
+from activitysim.core import config, simulate
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +164,7 @@ def determine_flavors_from_alts_file(
     Parameters
     ----------
     alts : pd.DataFrame
-    provided_flavors : dict
+    provided_flavors : dict, optional
         tour flavors provided by user in the model yaml
     default_flavors : dict
         default tour flavors to fall back on

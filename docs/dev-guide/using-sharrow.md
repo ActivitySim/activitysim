@@ -176,18 +176,21 @@ uses a completely different evaluation system routed through numba. The `@` pref
 does not need to be stripped or added anywhere, it is simply ignored. The expression
 can reference other columns of the main dataframe directly or indirectly, so that
 either "income" or "df.income" is a valid reference to that column in the main
-dataframe.  You can also reference other variables, including skims, time tables,
-and constants defined in in the model settings file.  However, you *cannot* write
-any arbitrary Python code.  External functions are not allowed unless they have
+dataframe.  You can also reference other variables, including skims as usual for each component
+and constants defined in in the model settings file.  Within scheduling models,
+references can also be made to the timetable as "tt", accessing that interfaces
+methods to compute presence and length of adjacent and available time windows.
+However, you *cannot* write arbitrary Python code.  External functions are not allowed unless they have
 already been compiled with numba's `njit` wrapper.  Typically, unless specifically
 constructed to be allowed for a model component, cross-referencing, merging or
-reindexing against tables other than the main dataframe is not allowed.
+reindexing against tables other than the main dataframe is not allowed. Such
+customizations will generally require a custom extension.
 
 Sharrow only runs for utility specification files.  ActivitySim also features the
 ability to apply pre-processors and post-processors to annotate tables, which use
 specification files that look very similar to utility specifications.  These
-functions do *not* run through sharrow, and are a great place to relocation expressions
-that need to run arbitrary code or join data from other table.
+functions do *not* run through sharrow, and are a great place to relocate expressions
+that need to run arbitrary code or join data from other tables.
 
 ### Temporary Variables
 
@@ -197,7 +200,7 @@ name beginning with an underscore before the `@`, e.g. `_stops_on_leg@df.trip_co
 In legacy mode, temporary variables are useful but they can consume substantial
 memory, as the variable is computed and stored for every row in the entire dataframe
 before it can be used in other expressions.  In sharrow, temporary variables are
-allocated, used, and freed for each row seperately, so no extra memory is required.
+allocated, used, and freed for each row separately, so no extra memory is required.
 
 ### Switchable Expressions
 
@@ -211,6 +214,19 @@ individual expression evaluated is different for sharrow and legacy modes.  The
 special comment string `# sharrow:` splits the expression, with everything before this
 comment evaluated under the legacy process, and everything after evaluated only
 when sharrow is enabled.
+
+An example of a switching expression is found in the trip destination utilities found
+in several examples:
+
+    `@np.log1p(size_terms.get(df.alt_dest, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])`
+
+Here, `size_terms` is a DataFrameMatrix class instance, a special class written into
+ActivitySim to facilitate reading from a DataFrame as it it were a 2-d array.  As it
+is a special purpose class written in Python, the numba compiler cannot handle it directly.
+Fortunately, sharrow provides an alternative: passing the size terms as a xarray `DataArray`.
+This has a slightly different interface, so the sharrow and legacy evaluation modes require
+different expressions. The switching expression is used to handle the DataFrameMatrix
+on the left (before "# sharrow:") and the DataArray on the right.
 
 ### Performance Considerations
 

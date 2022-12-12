@@ -675,7 +675,7 @@ def size_terms_on_flow(locals_d):
     if "size_terms_array" in locals_d:
         a = sh.Dataset(
             {
-                "arry": sh.DataArray(
+                "sizearray": sh.DataArray(
                     locals_d["size_terms_array"],
                     dims=["zoneid", "purpose_index"],
                     coords={

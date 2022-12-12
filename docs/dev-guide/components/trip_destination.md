@@ -83,7 +83,7 @@ specifications:
     on an array, to access the size terms by alternative zone and trip
     purpose by label simultaneously.  When sharrow is enabled for this model,
     this value also embeds a special linked array accessible as
-    `size_terms['arry']`, which automatically compiles to point to the
+    `size_terms['sizearray']`, which automatically compiles to point to the
     alternative destination zone and the 'purpose_index_num' (an integer
     offset value instead of a label, which should be set in a preprocessor).
 - `size_terms_array` (numpy.ndarray):  A numpy array of size term values,

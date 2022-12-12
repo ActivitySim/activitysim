@@ -61,7 +61,9 @@ def write_trip_matrices(network_los):
     # write matrices by zone system type
     if network_los.zone_system == los.ONE_ZONE:  # taz trips written to taz matrices
         logger.info("aggregating trips one zone...")
-        aggregate_trips = trips_df.groupby(["origin", "destination"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["origin", "destination"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
@@ -101,7 +103,9 @@ def write_trip_matrices(network_los):
         trips_df["dtaz"] = (
             pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
         )
-        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
@@ -146,7 +150,9 @@ def write_trip_matrices(network_los):
         trips_df["dtaz"] = (
             pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
         )
-        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
@@ -181,7 +187,9 @@ def write_trip_matrices(network_los):
         )
 
         logger.info("aggregating trips three zone tap...")
-        aggregate_trips = trips_df.groupby(["btap", "atap"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["btap", "atap"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")

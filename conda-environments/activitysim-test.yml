@@ -10,8 +10,8 @@ dependencies:
 - cytoolz >= 0.8.1
 - isort
 - nbmake
-- numba >= 0.55.2
-- numpy >= 1.16.1,<=1.21
+- numba >= 0.56.4
+- numpy >= 1.16.1
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
 - pandas >= 1.1.0

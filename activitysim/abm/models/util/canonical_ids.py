@@ -58,7 +58,7 @@ def enumerate_tour_types(tour_flavors):
 def read_alts_file(file_name, set_index=None):
     try:
         alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
+    except (RuntimeError, FileNotFoundError):
         logger.warning(f"Could not find file {file_name} to determine tour flavors.")
         return pd.DataFrame()
     return alts

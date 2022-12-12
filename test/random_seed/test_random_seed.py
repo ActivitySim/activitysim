@@ -2,14 +2,12 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
-import yaml
-from shutil import copy
+from shutil import copytree
 
 import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
-
-from activitysim.core import inject
+import yaml
 
 
 def update_settings(settings_file, key, value):
@@ -42,11 +40,9 @@ def run_test_random_seed():
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def create_rng_configs(rng_base_seed=None):
-        new_configs_dir = test_path("configs_random_seed_=_{}".format(rng_base_seed))
+        new_configs_dir = test_path("configs_random_seed__{}".format(rng_base_seed))
         new_settings_file = os.path.join(new_configs_dir, "settings.yaml")
-        os.mkdir(new_configs_dir)
-        for f in os.listdir(example_path("configs")):
-            copy(os.path.join(example_path("configs"), f), new_configs_dir)
+        copytree(example_path("configs"), new_configs_dir)
 
         update_settings(new_settings_file, "models", steps_to_run)
         if rng_base_seed != "":  # Undefined
@@ -91,7 +87,7 @@ def run_test_random_seed():
 
         run_args = [
             "-c",
-            test_path("configs_random_seed_=_{}".format(seed)),
+            test_path("configs_random_seed__{}".format(seed)),
             "-d",
             example_path("data"),
             "-o",

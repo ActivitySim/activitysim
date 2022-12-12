@@ -1,5 +1,11 @@
 # Environment for building docs
-#  This environment contains the set of dependencies needed to build the documentation.
+#
+#   This conda environment is used to build the documentation.  It includes a
+#   number of dependencies needed for the documentation only, and not to run or
+#   test ActivitySim itself.  Note that ActivitySim itself is *not* installed
+#   in this environment, you must install it separately after using this recipe,
+#   which allows you to install the specific version you want.
+
 name: docbuild
 channels:
 - conda-forge
@@ -19,12 +25,12 @@ dependencies:
 - larch >=5.5.3
 - matplotlib
 - myst-parser
-- numba >= 0.55.2
-- numpy >= 1.16.1,<=1.21
+- numba >= 0.56.4
+- numpy >= 1.16.1
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
-- pandas >= 1.1.0,<1.5
+- pandas >= 1.1.0
 - psutil >= 4.1
 - pyarrow >= 2.0
 - pydantic

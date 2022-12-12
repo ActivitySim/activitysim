@@ -31,13 +31,13 @@ dependencies:
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat
-- numba >= 0.55.2
+- numba >= 0.56.4
 - numexpr
-- numpy >= 1.16.1,<=1.21
+- numpy >= 1.16.1
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
-- pandas >= 1.1.0,<1.5
+- pandas >= 1.1.0
 - pre-commit
 - psutil >= 4.1
 - pyarrow >= 2.0

@@ -164,7 +164,7 @@ def determine_flavors_from_alts_file(
     Parameters
     ----------
     alts : pd.DataFrame
-    provided_flavors : dict
+    provided_flavors : dict, optional
         tour flavors provided by user in the model yaml
     default_flavors : dict
         default tour flavors to fall back on

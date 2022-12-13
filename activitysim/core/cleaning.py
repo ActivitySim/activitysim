@@ -1,7 +1,11 @@
+import logging
+
 import numpy as np
 import pandas as pd
 
 from . import inject
+
+logger = logging.getLogger(__name__)
 
 
 def recode_to_zero_based(values, mapping):
@@ -44,6 +48,7 @@ def recode_based_on_table(values, tablename):
         base_df = inject.get_table(tablename).to_frame()
     except (KeyError, RuntimeError):
         # the basis table is missing, do nothing
+        logger.warning(f"unable to recode based on missing {tablename} table")
         return values
     if base_df.index.name and f"_original_{base_df.index.name}" in base_df:
         source_ids = base_df[f"_original_{base_df.index.name}"]
@@ -52,14 +57,17 @@ def recode_based_on_table(values, tablename):
             and base_df.index.start == 0
             and base_df.index.step == 1
         ):
+            logger.info(f"recoding to zero-based values based on {tablename} table")
             return recode_to_zero_based(values, source_ids)
         elif (
             base_df.index.is_monotonic_increasing
             and base_df.index[0] == 0
             and base_df.index[-1] == len(base_df) - 1
         ):
+            logger.info(f"recoding to zero-based values based on {tablename} table")
             return recode_to_zero_based(values, source_ids)
         else:
+            logger.info(f"recoding to mapped values based on {tablename} table")
             remapper = dict(zip(source_ids, base_df.index))
             return np.fromiter((remapper.get(xi) for xi in values), base_df.index.dtype)
     else:

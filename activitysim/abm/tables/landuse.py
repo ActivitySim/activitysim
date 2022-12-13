@@ -3,9 +3,7 @@
 import io
 import logging
 
-import pandas as pd
-
-from activitysim.core import inject
+from activitysim.core import config, inject
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -15,6 +13,15 @@ logger = logging.getLogger(__name__)
 def land_use():
 
     df = read_input_table("land_use")
+
+    sharrow_enabled = config.setting("sharrow", False)
+    if sharrow_enabled:
+        # when using sharrow, the land use file must be organized (either in raw
+        # form or via recoding) so that the index is zero-based and contiguous
+        assert df.index.is_monotonic_increasing
+        assert df.index[0] == 0
+        assert df.index[-1] == len(df.index) - 1
+        assert df.index.dtype.kind == "i"
 
     # try to make life easy for everybody by keeping everything in canonical order
     # but as long as coalesce_pipeline doesn't sort tables it coalesces, it might not stay in order

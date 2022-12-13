@@ -77,6 +77,14 @@ def settings_file_name():
 def settings(settings_file_name):
     settings_dict = read_settings_file(settings_file_name, mandatory=True)
 
+    # basic settings validation for sharrow
+    sharrow_enabled = settings_dict.get("sharrow", False)
+    recode_pipeline_columns = settings_dict.get("recode_pipeline_columns", True)
+    if sharrow_enabled and not recode_pipeline_columns:
+        warnings.warn(
+            "use of `sharrow` setting generally requires `recode_pipeline_columns`"
+        )
+
     return settings_dict
 
 

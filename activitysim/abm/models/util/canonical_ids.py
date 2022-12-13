@@ -227,7 +227,7 @@ def canonical_tours():
             "non_mandatory_tour_frequency_extension_probs.csv"
         )
         extension_probs = pd.read_csv(ext_probs_f, comment="#")
-    except RuntimeError:
+    except (RuntimeError, FileNotFoundError):
         logger.warning(
             f"non_mandatory_tour_frequency_extension_probs.csv file not found"
         )

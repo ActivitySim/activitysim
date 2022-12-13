@@ -392,6 +392,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     add_run_args(parser)
     args = parser.parse_args()
-
-    parser.parse_args(["--sum", "7", "-1", "42"])
     sys.exit(run(args))

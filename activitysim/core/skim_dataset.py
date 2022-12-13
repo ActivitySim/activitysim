@@ -617,7 +617,18 @@ def load_sparse_maz_skims(
     return dataset
 
 
-def _skim_dataset(skim_tag="taz"):
+def load_skim_dataset_to_shared_memory(skim_tag="taz"):
+    """
+    Load skims from disk into shared memory.
+
+    Parameters
+    ----------
+    skim_tag : str, default "taz"
+
+    Returns
+    -------
+    xarray.Dataset
+    """
     from ..core.los import ONE_ZONE
 
     # TODO:SHARROW: taz and maz are the same
@@ -778,9 +789,9 @@ def _skim_dataset(skim_tag="taz"):
 
 @inject.injectable(cache=True)
 def skim_dataset():
-    return _skim_dataset()
+    return load_skim_dataset_to_shared_memory()
 
 
 @inject.injectable(cache=True)
 def tap_dataset():
-    return _skim_dataset("tap")
+    return load_skim_dataset_to_shared_memory("tap")

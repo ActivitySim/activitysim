@@ -507,23 +507,6 @@ class TimeTable(object):
             logger.error(f"{self.window_row_ix._mapper=}")
             raise
 
-        # assert len(window_row_ids) == len(tdds)
-        #
-        # # numpy array with one tdd_footprints_df row for tdds
-        # tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
-        #
-        # # numpy array with one windows row for each person
-        # windows = self.slice_windows_by_row_id(window_row_ids)
-        #
-        # # t0 = tracing.print_elapsed_time("slice_windows_by_row_id", t0, debug=True)
-        #
-        # x = tour_footprints + (windows << I_BIT_SHIFT)
-        #
-        # available = ~np.isin(x, COLLISION_LIST).any(axis=1)
-        # if isinstance(window_row_ids, pd.Series):
-        #     available = pd.Series(available, index=window_row_ids.index)
-        # elif isinstance(window_row_ids, xr.DataArray):
-        #     available = xr.DataArray(available, dims=window_row_ids.dims, coords=window_row_ids.coords)
         return available
 
     def assign(self, window_row_ids, tdds):
@@ -659,22 +642,6 @@ class TimeTable(object):
                 periods.to_numpy(),
             )
 
-            # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
-            # available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
-            # chunk.log_df(trace_label, "available", available)
-            #
-            # # padding periods not available
-            # available[:, 0] = 0
-            # available[:, -1] = 0
-            #
-            # available_run_length = _available_run_length(
-            #     available,
-            #     before,
-            #     periods.to_numpy(),
-            #     self.time_ix._mapper,
-            # )
-            #
-            # max_available_run_length = available_run_length.max()
             chunk.log_df(trace_label, "available_run_length", available_run_length)
 
         return pd.Series(available_run_length, index=window_row_ids.index)

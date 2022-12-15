@@ -1,0 +1,22 @@
+{% set version = os.environ.get("ACTIVITYSIM_VERSION", "0.42.0-0") %}
+
+name: Activitysim
+version: {{ version }}
+
+initialize_by_default: false
+register_python_default: false
+
+license_file: LICENSE.txt
+
+menu_packages: []
+
+installer_type: exe
+
+channels:
+  - conda-forge
+
+specs:
+  - python 3.9.*
+  - conda
+  - activitysim {{ version }}
+  - pip

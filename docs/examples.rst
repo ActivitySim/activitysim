@@ -1055,6 +1055,16 @@ in this example are:
 * :ref:`vehicle_allocation`: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
   auto operating costs are modified to reflect the allocated vehicle option.
 
+The prototype_mtc_extended example also contains changes to test the flexible number of tour and trip ids.
+(Information in why this is important can be found `here <https://github.com/ActivitySim/activitysim/wiki/Project-Meeting-2022.08.09>`__.) 
+The following changes were made to demonstrate this:
+
+* An additional alternative was added to the non-mandatory tour frequency alternatives file containing 2 other discretionary tours.
+* An additional alternative was added to the stop_frequency_alts.csv for 4 outbound stops and 3 inbound stops. This alternative was then
+  included as part of the stop_frequency_othdiscr.csv specification with an added calibration constant to control that alternative.
+  Because an additional trip may now happen in the outbound direction, the trip scheduling probabilities table was extended for the
+  other discretionary tour purpose where the fourth outbound trip rows were copied for the now availabile fifth trip.
+
 
 .. _example_estimation :
 

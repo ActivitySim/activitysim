@@ -907,24 +907,6 @@ def iterate_location_choice(
                 persons_merged_df_ = persons_merged_df_[
                     persons_merged_df_.index.isin(spc.sampled_persons.index)
                 ]
-                # handle cases where a segment has persons but no zones to receive them
-                desired_size_sum = spc.desired_size[
-                    spc.desired_size.index.isin(
-                        spc.shadow_prices[spc.shadow_prices.iloc[:, 0] != -999].index
-                    )
-                ].sum()
-                zero_desired_size_segments = [
-                    i for i in desired_size_sum.index if desired_size_sum[i] == 0
-                ]
-                zero_desired_size_segments_ids = [
-                    segment_ids[key] for key in zero_desired_size_segments
-                ]
-                persons_merged_df_ = persons_merged_df_[
-                    ~persons_merged_df_[chooser_segment_column].isin(
-                        zero_desired_size_segments_ids
-                    )
-                ]
-
                 persons_merged_df_ = persons_merged_df_.sort_index()
 
         choices_df_, save_sample_df = run_location_choice(

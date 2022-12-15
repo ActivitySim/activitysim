@@ -12,6 +12,7 @@ import pandas as pd
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import config, inject, tracing, util
 from activitysim.core.input import read_input_table
+from activitysim.core import logit
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +142,8 @@ class ShadowPriceCalculator(object):
                 )
 
         if (
-            self.model_selector not in ["workplace", "school"]
+            self.use_shadow_pricing
+            and self.model_selector not in ["workplace", "school"]
             and self.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
         ):
             logger.warning(
@@ -685,6 +687,7 @@ class ShadowPriceCalculator(object):
             new_shadow_prices.where(
                 self.modeled_size > 0, self.shadow_prices, inplace=True
             )
+            self.shadow_prices = new_shadow_prices
 
         elif shadow_price_method == "daysim":
             # - Daysim
@@ -732,6 +735,7 @@ class ShadowPriceCalculator(object):
             )
 
             new_shadow_prices = self.shadow_prices + adjustment
+            self.shadow_prices = new_shadow_prices
 
         elif shadow_price_method == "simulation":
             # - NewMethod
@@ -808,22 +812,22 @@ class ShadowPriceCalculator(object):
                     & (choices_synced["segment"] == self.segment_ids[segment])
                 ]["choice"]
 
-                choices_index = choices.index.name
-                choices = choices.reset_index()
+                # segment is converged if all zones are overpredicted / within tolerance
+                # do not want people to be re-simulated if no open zone exists
+                converged = len(overpredicted_zones) == len(self.shadow_prices)
 
-                # handling unlikely cases where there are no more overassigned zones, but a few underassigned zones remain
-                if len(choices) > 0:
-                    current_sample = (
-                        choices.groupby("choice")
-                        .apply(
-                            # FIXME is this sample stable?
-                            lambda x: x.sample(
-                                frac=zonal_sample_rate.loc[x.name], random_state=1
-                            )
-                        )
-                        .reset_index(drop=True)
-                        .set_index(choices_index)
+                # draw persons assigned to overassigned zones to re-simulate if not converged
+                if (len(choices) > 0) & (~converged):
+                    # person's probability of being selected for re-simulation is from the zonal sample rate
+                    sample_rates = choices.map(zonal_sample_rate.to_dict())
+                    probs = pd.DataFrame(
+                        data={'0': 1 - sample_rates, '1': sample_rates},
+                        index=choices.index
                     )
+                    # using ActivitySim's RNG to make choices for repeatability
+                    current_sample, rands = logit.make_choices(probs)
+                    current_sample = current_sample[current_sample == 1]
+
                     if len(sampled_persons) == 0:
                         sampled_persons = current_sample
                     else:
@@ -833,8 +837,6 @@ class ShadowPriceCalculator(object):
 
         else:
             raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
-
-        # self.shadow_prices = new_shadow_prices
 
     def dest_size_terms(self, segment):
 
@@ -1305,9 +1307,19 @@ def add_size_tables():
                         segment_scale_factors[c],
                     )
                 )
+                # FIXME - can get zero size if model_settings["CHOOSER_FILTER_COLUMN_NAME"] not yet determined / initialized to 0
+                # using raw size if scaled size is 0. Is this an acceptable fix?
+                # this is happening for external models where extenal identification is not run yet at this stage
+                if segment_scale_factors[c] <= 0:
+                    logger.warning(
+                        f"scale_factor is <= 0 for {model_selector}:{c}, using raw size instead"
+                    )
+                    segment_scale_factors[c] = 1
 
             # FIXME - should we be rounding?
-            scaled_size = (raw_size * segment_scale_factors).round()
+            # scaled_size = (raw_size * segment_scale_factors).round()
+            # rounding can cause zero probability errors for small sample sizes
+            scaled_size = (raw_size * segment_scale_factors)
         else:
             scaled_size = raw_size
 

@@ -821,8 +821,8 @@ class ShadowPriceCalculator(object):
                     # person's probability of being selected for re-simulation is from the zonal sample rate
                     sample_rates = choices.map(zonal_sample_rate.to_dict())
                     probs = pd.DataFrame(
-                        data={'0': 1 - sample_rates, '1': sample_rates},
-                        index=choices.index
+                        data={"0": 1 - sample_rates, "1": sample_rates},
+                        index=choices.index,
                     )
                     # using ActivitySim's RNG to make choices for repeatability
                     current_sample, rands = logit.make_choices(probs)
@@ -1319,7 +1319,7 @@ def add_size_tables():
             # FIXME - should we be rounding?
             # scaled_size = (raw_size * segment_scale_factors).round()
             # rounding can cause zero probability errors for small sample sizes
-            scaled_size = (raw_size * segment_scale_factors)
+            scaled_size = raw_size * segment_scale_factors
         else:
             scaled_size = raw_size
 

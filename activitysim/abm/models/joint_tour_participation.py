@@ -3,6 +3,7 @@
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.abm.models.util.canonical_ids import MAX_PARTICIPANT_PNUM
 from activitysim.core import (
@@ -65,7 +66,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     candidates["participant_id"] = (
         candidates[joint_tours.index.name] * MAX_PARTICIPANT_PNUM
     ) + candidates.PNUM
-    candidates["participant_id"] = candidates["participant_id"].astype(int)
+    candidates["participant_id"] = candidates["participant_id"].astype(np.uint64)
     candidates.set_index(
         "participant_id", drop=True, inplace=True, verify_integrity=True
     )

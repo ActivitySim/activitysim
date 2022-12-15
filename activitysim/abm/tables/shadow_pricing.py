@@ -1340,7 +1340,7 @@ def add_size_tables(disaggregate_suffixes):
             # FIXME - should we be rounding?
             # scaled_size = (raw_size * segment_scale_factors).round()
             # rounding can cause zero probability errors for small sample sizes
-            scaled_size = (raw_size * segment_scale_factors)
+            scaled_size = raw_size * segment_scale_factors
         else:
             scaled_size = raw_size
 

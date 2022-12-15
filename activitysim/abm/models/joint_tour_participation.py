@@ -65,7 +65,7 @@ def joint_tour_participation_candidates(joint_tours, persons_merged):
     candidates["participant_id"] = (
         candidates[joint_tours.index.name] * MAX_PARTICIPANT_PNUM
     ) + candidates.PNUM
-    candidates["participant_id"] = candidates["participant_id"].astype('uint64')
+    candidates["participant_id"] = candidates["participant_id"].astype("uint64")
     candidates.set_index(
         "participant_id", drop=True, inplace=True, verify_integrity=True
     )

@@ -3,6 +3,7 @@
 import logging
 
 import pandas as pd
+import numpy as np
 
 from activitysim.abm.models.util.canonical_ids import MAX_PARTICIPANT_PNUM
 from activitysim.core import (
@@ -197,7 +198,19 @@ def participants_chooser(probs, choosers, spec, trace_label):
                 transpose=False,
             )
             print(unsatisfied_candidates.head(20))
-            assert False
+
+            if model_settings.get("FORCE_PARTICIPATION", False):
+                logger.warning(
+                    f"Forcing joint tour participation for {num_tours_remaining} tours."
+                )
+                # anybody with probability > 0 is forced to join the joint tour
+                probs[choice_col] = np.where(probs[choice_col] > 0, 1, 0)
+                non_choice_col = [col for col in probs.columns if col != choice_col][0]
+                probs[non_choice_col] = 1 - probs[choice_col]
+            else:
+                raise RuntimeError(
+                    f"{num_tours_remaining} tours could not be satisfied after {iter} iterations"
+                )
 
         choices, rands = logit.make_choices(
             probs, trace_label=trace_label, trace_choosers=choosers
@@ -207,6 +220,13 @@ def participants_chooser(probs, choosers, spec, trace_label):
         # satisfaction indexed by tour_id
         tour_satisfaction = get_tour_satisfaction(candidates, participate)
         num_tours_satisfied_this_iter = tour_satisfaction.sum()
+
+        if (iter > MAX_ITERATIONS) & (
+            num_tours_remaining != num_tours_satisfied_this_iter
+        ):
+            logger.error(
+                f"Still do not satisfy participation for {num_tours_remaining - num_tours_satisfied_this_iter} tours."
+            )
 
         if num_tours_satisfied_this_iter > 0:
 

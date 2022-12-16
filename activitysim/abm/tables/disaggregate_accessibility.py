@@ -24,9 +24,11 @@ def find_nearest_accessibility_zone(choosers, accessibility_df, method="skims"):
         return df[values].T.dot(df[weights]) / df[weights].sum()
 
     def nearest_skim(oz, zones):
+        # need to pass equal # of origins and destinations to skim_dict
+        orig_zones = np.full(shape=len(zones), fill_value=oz, dtype=int)
         return (
             oz,
-            zones[np.argmin([skim_dict.lookup([oz], [az], "DIST") for az in zones])],
+            zones[np.argmin(skim_dict.lookup(orig_zones, zones, "DIST"))],
         )
 
     def nearest_node(oz, zones_df):

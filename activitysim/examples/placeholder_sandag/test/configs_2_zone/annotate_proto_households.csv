@@ -1,0 +1,4 @@
+# This is an example use of annotation for dissaggregate accessibilities
+# But this particular case could probably be handled using variable mapping
+Description,Target,Expression
+auto ownership,auto_ownership,"np.clip(households.veh, 0, 2)"

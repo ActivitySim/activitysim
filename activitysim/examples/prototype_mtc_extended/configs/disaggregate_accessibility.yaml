@@ -33,7 +33,7 @@ CREATE_TABLES:
   PROTO_TOURS: proto_tours_template.csv
 
 ##Note: parameters in ALL CAPS below are required by the program for synthesis
-#CREATE_TABLES:
+# CREATE_TABLES:
 #    # Note: Only one household-member composition is possible through direct definition.
 #    # e.g., you cannot have one household with 2 people and another with 3 people
 #    PROTO_HOUSEHOLDS:
@@ -42,7 +42,7 @@ CREATE_TABLES:
 #        rename_columns:
 #            zone_id: home_zone_id
 #        VARIABLES:
-#            hinccat1: [1, 2, 3, 4]          # Income categories
+#            hinccat1: [1, 2, 3, 4]       # Income categories
 #            hworkers: 1                  # Household workers
 #            veh: [0, 1, 2]               # Household vehicles
 #            persons: 2                   # Two persons household
@@ -66,7 +66,7 @@ CREATE_TABLES:
 #                1: 1
 #                2: 2
 #                3: 3
-#
+
 #    PROTO_PERSONS:
 #        index_col: proto_person_id
 #        VARIABLES:
@@ -98,7 +98,7 @@ CREATE_TABLES:
 #                DAP: # Mandatory, Non-mandatory
 #                    1: "M"
 #                    2: "N"
-#
+
 #    PROTO_TOURS:
 #        index_col: proto_tour_id
 #        VARIABLES:

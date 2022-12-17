@@ -72,6 +72,20 @@ def run_test(zone, multiprocess=False):
         print(f"regress trips")
         pdt.assert_frame_equal(trips_df, regress_trips_df, rtol=1e-03)
 
+        if zone == "2":
+            # also test accessibility for the 2-zone system
+            regress_accessibility_df = pd.read_csv(
+                test_path(
+                    f"regress/final_{zone}_zone_proto_disaggregate_accessibility.csv"
+                )
+            )
+            final_accessibiliy_df = pd.read_csv(
+                test_path(
+                    f"output/final_{zone}_zone_proto_disaggregate_accessibility.csv"
+                )
+            )
+            pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)
+
     # run test
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 

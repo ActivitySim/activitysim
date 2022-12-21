@@ -152,8 +152,11 @@ def update_tour_earliest(trips, outbound_choices):
 
     # set the trips "earliest" column equal to the max outbound departure
     # time for all inbound trips. preserve values that were used for outbound trips
-    tmp_trips["earliest"] = tmp_trips["earliest"].where(
-        tmp_trips["outbound"], tmp_trips["max_outbound_departure"]
+    # FIXME - extra logic added because max_outbound_departure can be NA if previous failed trip was removed
+    tmp_trips["earliest"] = np.where(
+        ~tmp_trips["outbound"] & ~tmp_trips["max_outbound_departure"].isna(),
+        tmp_trips["max_outbound_departure"],
+        tmp_trips["earliest"],
     )
 
     trips["earliest"] = tmp_trips["earliest"].reindex(trips.index)

@@ -687,6 +687,7 @@ class ShadowPriceCalculator(object):
             new_shadow_prices.where(
                 self.modeled_size > 0, self.shadow_prices, inplace=True
             )
+            self.shadow_prices = new_shadow_prices
 
         elif shadow_price_method == "daysim":
             # - Daysim
@@ -734,6 +735,7 @@ class ShadowPriceCalculator(object):
             )
 
             new_shadow_prices = self.shadow_prices + adjustment
+            self.shadow_prices = new_shadow_prices
 
         elif shadow_price_method == "simulation":
             # - NewMethod
@@ -835,8 +837,6 @@ class ShadowPriceCalculator(object):
 
         else:
             raise RuntimeError("unknown SHADOW_PRICE_METHOD %s" % shadow_price_method)
-
-        # self.shadow_prices = new_shadow_prices
 
     def dest_size_terms(self, segment):
 

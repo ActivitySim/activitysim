@@ -43,7 +43,7 @@ def annotate_trips(model_settings, trace_label):
     model_settings : dict
     trace_label : str
     """
-    tours = inject.get_table("trips").to_frame()
+    trips = inject.get_table("trips").to_frame()
     expressions.assign_columns(
         df=trips,
         model_settings=model_settings.get("annotate_trips"),

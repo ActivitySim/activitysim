@@ -20,7 +20,7 @@ from activitysim.core import (
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.util import assign_in_place
 
-from .util import estimation
+from .util import estimation, annotate
 from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
@@ -282,6 +282,9 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
     assert not trips_df[mode_column_name].isnull().any()
 
     pipeline.replace_table("trips", trips_df)
+
+    if model_settings.get("annotate_trips"):
+        annotate.annotate_trips(model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(

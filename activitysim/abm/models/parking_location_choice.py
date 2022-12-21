@@ -116,6 +116,9 @@ def parking_destination_simulate(
 
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    spec = simulate.eval_coefficients(spec, coefficients_df, None)
+
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     logger.info("Running trip_destination_simulate with %d trips", len(trips))
@@ -173,7 +176,6 @@ def choose_parking_location(
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
-    destination_sample = destination_sample[[alt_dest_col_name]].copy()
 
     # # - trip_destination_simulate
     destinations = parking_destination_simulate(
@@ -231,8 +233,6 @@ def run_parking_destination(
     alt_column_filter_name = model_settings.get("ALTERNATIVE_FILTER_COLUMN_NAME")
     alternatives = land_use[land_use[alt_column_filter_name]]
 
-    # don't need size terms in alternatives, just TAZ index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = parking_location_column_name
 
     choices_list = []
@@ -314,7 +314,11 @@ def parking_location(
         model_settings["TRIP_DEPARTURE_PERIOD"] = "trip_period"
 
     locals_dict = {"network_los": network_los}
-    locals_dict.update(config.get_model_constants(model_settings))
+
+    constants = config.get_model_constants(model_settings)
+
+    if constants is not None:
+        locals_dict.update(constants)
 
     if preprocessor_settings:
         expressions.assign_columns(

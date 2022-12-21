@@ -1,0 +1,8 @@
+Description,Target,Expression
+,periods_left,(df.latest - df.earliest)
+# binning the periods differently for inbound and outbound
+,periods_left_min,"np.where(df['outbound'], periods_left.clip(upper=25), periods_left.clip(upper=34))"
+,periods_left_max,"np.where(((periods_left >= 25) & (df['outbound'])) | ((periods_left >= 34) & (~df['outbound'])), 47, periods_left)"
+,tour_purpose,"reindex(tours.tour_type, df.tour_id)"
+,tour_purpose_grouped,"np.where(tour_purpose.isin(['work','school','univ']), 'mand', 'non_mand')"
+,half_tour_stops_remaining_grouped,(df.trip_count - df.trip_num).clip(upper=1)

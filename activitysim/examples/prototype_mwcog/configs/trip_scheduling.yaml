@@ -1,10 +1,27 @@
 
 # int to add to probs column index to get time period it represents.
 # e.g. depart_alt_base = 5 means first column (column 0) represents period 5
-DEPART_ALT_BASE: 1
+DEPART_ALT_BASE: 0
 
 MAX_ITERATIONS: 100
 
 #FAILFIX: drop_and_cleanup
 FAILFIX: choose_most_initial
 
+# --- relative trip scheduling settings
+PROBS_SPEC: trip_scheduling_probs_purpose_stops.csv
+
+scheduling_mode: relative
+
+probs_join_cols: 
+  - periods_left_min
+  - periods_left_max
+  - outbound
+  - tour_purpose_grouped
+  - half_tour_stops_remaining_grouped
+
+preprocessor:
+  SPEC: trip_scheduling_preprocessor
+  DF: choosers
+  TABLES:
+    - tours

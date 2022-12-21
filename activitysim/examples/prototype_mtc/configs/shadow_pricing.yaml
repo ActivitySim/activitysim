@@ -1,7 +1,7 @@
 shadow_pricing_models:
   school: school_location
   workplace: workplace_location
-
+  
 # global switch to enable/disable loading of saved shadow prices
 # (ignored if global use_shadow_pricing switch is False)
 LOAD_SAVED_SHADOW_PRICES: True
@@ -32,3 +32,4 @@ DAMPING_FACTOR: 1
 # FIXME should these be the same as PERCENT_TOLERANCE and FAIL_THRESHOLD above?
 DAYSIM_ABSOLUTE_TOLERANCE: 50
 DAYSIM_PERCENT_TOLERANCE: 10
+  

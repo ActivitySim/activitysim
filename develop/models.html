@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Models &#8212; ActivitySim 1.1.4.dev63+ge11b48ad</title>
+    <title>Models &#8212; ActivitySim 1.1.4.dev94+g1e8164b4</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -889,36 +889,74 @@ logsum : float logsum of choice utilities across alternatives</p>
 <span id="index-1"></span><span id="id7"></span><h2>Shadow Pricing<a class="headerlink" href="#shadow-pricing" title="Permalink to this headline">#</a></h2>
 <p>The shadow pricing calculator used by work and school location choice.</p>
 <p><strong>Turning on and saving shadow prices</strong></p>
-<p>Shadow pricing is activated by setting the <code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> to True in the settings.yaml file. Once this setting has
-been activated, ActivitySim will search for shadow pricing configuration in the shadow_pricing.yaml file. When shadow pricing is
-activated, the shadow pricing outputs will be exported by the tracing engine. As a result, the shadow pricing output files will
-be prepended with <code class="docutils literal notranslate"><span class="pre">trace</span></code> followed by the iteration number the results represent. For example, the shadow pricing outputs
-for iteration 3 of the school location model will be called <code class="docutils literal notranslate"><span class="pre">trace.shadow_price_school_shadow_prices_3.csv</span></code>.</p>
+<p>Shadow pricing is activated by setting the <code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> to True in the settings.yaml file.
+Once this setting has been activated, ActivitySim will search for shadow pricing configuration in
+the shadow_pricing.yaml file. When shadow pricing is activated, the shadow pricing outputs will be
+exported by the tracing engine. As a result, the shadow pricing output files will be prepended with
+<code class="docutils literal notranslate"><span class="pre">trace</span></code> followed by the iteration number the results represent. For example, the shadow pricing
+outputs for iteration 3 of the school location model will be called
+<code class="docutils literal notranslate"><span class="pre">trace.shadow_price_school_shadow_prices_3.csv</span></code>.</p>
 <p>In total, ActivitySim generates three types of output files for each model with shadow pricing:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">trace.shadow_price_&lt;model&gt;_desired_size.csv</span></code>
-The size terms by zone that shadow pricing is attempting to target. These usually will match the size terms identified
-in the land_use input file.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">trace.shadow_price_&lt;model&gt;_modeled_size_&lt;iteration&gt;.csv</span></code>
-These are the modeled size terms after the iteration of shadow pricing identified by the &lt;iteration&gt; number. In other
-words, these are the predicted choices by zone for the model after the iteration completes.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">trace.shadow_price_&lt;model&gt;_shadow_prices_&lt;iteration&gt;.csv</span></code>
-The actual shadow price for each zone and segment after the &lt;iteration&gt; of shadow pricing. This the file that can be
-used to warm start the shadow pricing mechanism in ActivitySim.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace.shadow_price_&lt;model&gt;_desired_size.csv</span></code> The size terms by zone that the ctramp and daysim
+methods are attempting to target. These equal the size term columns in the land use data
+multiplied by size term coefficients.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace.shadow_price_&lt;model&gt;_modeled_size_&lt;iteration&gt;.csv</span></code> These are the modeled size terms after
+the iteration of shadow pricing identified by the &lt;iteration&gt; number. In other words, these are
+the predicted choices by zone and segment for the model after the iteration completes. (Not
+applicable for <code class="docutils literal notranslate"><span class="pre">simulation</span></code> option.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">trace.shadow_price_&lt;model&gt;_shadow_prices_&lt;iteration&gt;.csv</span></code> The actual shadow price for each zone
+and segment after the &lt;iteration&gt; of shadow pricing. This is the file that can be used to warm
+start the shadow pricing mechanism in ActivitySim. (Not applicable for <code class="docutils literal notranslate"><span class="pre">simulation</span></code> option.)</p></li>
 </ul>
+<p>There are three shadow pricing methods in activitysim: <code class="docutils literal notranslate"><span class="pre">ctramp</span></code>, <code class="docutils literal notranslate"><span class="pre">daysim</span></code>, and <code class="docutils literal notranslate"><span class="pre">simulation</span></code>.
+The first two methods try to match model output with workplace/school location model size terms,
+while the last method matches model output with actual employment/enrollmment data.</p>
+<p>The simulation approach operates the following steps.  First, every worker / student will be
+assigned without shadow prices applied. The modeled share and the target share for each zone are
+compared. If the zone is overassigned, a sample of people from the over-assigned zones will be
+selected for re-simulation.  Shadow prices are set to -999 for the next iteration for overassigned
+zones which removes the zone from the set of alternatives in the next iteration. The sampled people
+will then be forced to choose from one of the under-assigned zones that still have the initial
+shadow price of 0. (In this approach, the shadow price variable is really just a switch turning that
+zone on or off for selection in the subsequent iterations. For this reason, warm-start functionality
+for this approach is not applicable.)  This process repeats until the overall convergence criteria
+is met or the maximum number of allowed iterations is reached.</p>
+<p>Because the simulation approach only re-simulates workers / students who were over-assigned in the
+previous iteration, run time is significantly less (~90%) than the CTRAMP or DaySim approaches which
+re-simulate all workers and students at each iteration.</p>
 <p><strong>shadow_pricing.yaml Attributes</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">shadow_pricing_models</span></code> List model_selectors and model_names of models that use shadow pricing. This list identifies which size_terms to preload which must be done in single process mode, so predicted_size tables can be scaled to population)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">LOAD_SAVED_SHADOW_PRICES</span></code> global switch to enable/disable loading of saved shadow prices. From the above example, this would be trace.shadow_price_&lt;model&gt;_shadow_prices_&lt;iteration&gt;.csv renamed and stored in the <code class="docutils literal notranslate"><span class="pre">data_dir</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MAX_ITERATIONS</span></code> If no loaded shadow prices, maximum number of times shadow pricing can be run on each model before proceeding to the next model.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MAX_ITERATIONS_SAVED</span></code> If loaded shadow prices, maximum number of times shadow pricing can be run.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SIZE_THRESHOLD</span></code> Ignore zones in failure calculation with fewer choices than specified here.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">shadow_pricing_models</span></code> List model_selectors and model_names of models that use shadow pricing.
+This list identifies which size_terms to preload which must be done in single process mode, so
+predicted_size tables can be scaled to population</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LOAD_SAVED_SHADOW_PRICES</span></code> global switch to enable/disable loading of saved shadow prices. From
+the above example, this would be trace.shadow_price_&lt;model&gt;_shadow_prices_&lt;iteration&gt;.csv renamed
+and stored in the <code class="docutils literal notranslate"><span class="pre">data_dir</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MAX_ITERATIONS</span></code> If no loaded shadow prices, maximum number of times shadow pricing can be run
+on each model before proceeding to the next model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MAX_ITERATIONS_SAVED</span></code> If loaded shadow prices, maximum number of times shadow pricing can be
+run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SIZE_THRESHOLD</span></code> Ignore zones in failure calculation (ctramp or daysim method) with smaller size
+term value than size_threshold.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TARGET_THRESHOLD</span></code> Ignore zones in failure calculation (simulation method) with smaller
+employment/enrollment than target_threshold.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">PERCENT_TOLERANCE</span></code> Maximum percent difference between modeled and desired size terms</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FAIL_THRESHOLD</span></code> Number of zones exceeding the PERCENT_TOLERANCE considered a failure</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHADOW_PRICE_METHOD</span></code> [ctramp | daysim]</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DAMPING_FACTOR</span></code> On each iteration, ActivitySim will attempt to adjust the model to match desired size terms. The number is multiplied by adjustment factor to dampen or amplify the ActivitySim calculation. (only for CT-RAMP)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DAYSIM_ABSOLUTE_TOLERANCE</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DAYSIM_PERCENT_TOLERANCE</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FAIL_THRESHOLD</span></code> percentage of zones exceeding the PERCENT_TOLERANCE considered a failure</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHADOW_PRICE_METHOD</span></code> [ctramp | daysim | simulation]</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">workplace_segmentation_targets</span></code> dict matching school segment to landuse employment column
+target. Only used as part of simulation option. If mutiple segments list the same target column,
+the segments will be added together for comparison. (Same with the school option below.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">school_segmentation_targets</span></code> dict matching school segment to landuse enrollment column target.
+Only used as part of simulation option.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAMPING_FACTOR</span></code> On each iteration, ActivitySim will attempt to adjust the model to match
+desired size terms. The number is multiplied by adjustment factor to dampen or amplify the
+ActivitySim calculation. (only for CTRAMP)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAYSIM_ABSOLUTE_TOLERANCE</span></code> Absolute tolerance for DaySim option</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DAYSIM_PERCENT_TOLERANCE</span></code> Relative tolerance for DaySim option</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">WRITE_ITERATION_CHOICES</span></code> [True | False ] Writes the choices of each person out to the trace
+folder. Used for debugging or checking itration convergence. WARNING: every person is written for
+each sub-process so the disc space can get large.</p></li>
 </ul>
 <span class="target" id="module-activitysim.abm.tables.shadow_pricing"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.add_size_tables">
@@ -987,6 +1025,44 @@ the numpy-wrapped RawArray.)</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing_choice">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">buffers_for_shadow_pricing_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shadow_pricing_choice_info</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.buffers_for_shadow_pricing_choice" title="Permalink to this definition">#</a></dt>
+<dd><p>Same as above buffers_for_shadow_price function except now we need to store
+the actual choices for the simulation based shadow pricing method</p>
+<p>This allocates a multiprocessing.Array that can store the choice for each person
+and then wraps a dataframe around it.  That means the dataframe can be shared
+and accessed across all threads.
+Parameters
+———-
+shadow_pricing_info : dict
+Returns
+——-</p>
+<blockquote>
+<div><p>data_buffers : dict {&lt;model_selector&gt; : &lt;shared_data_buffer&gt;}
+dict of multiprocessing.Array keyed by model_selector</p>
+<blockquote>
+<div><p>and wrapped in a pandas dataframe</p>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.get_shadow_pricing_choice_info">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">get_shadow_pricing_choice_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_choice_info" title="Permalink to this definition">#</a></dt>
+<dd><p>return dict with info about dtype and shapes of desired and modeled size tables</p>
+<p>block shape is (num_zones, num_segments + 1)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>shadow_pricing_info: dict</dt><dd><p>dtype: &lt;sp_dtype&gt;,
+block_shapes: dict {&lt;model_selector&gt;: &lt;block_shape&gt;}</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info">
 <span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">get_shadow_pricing_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.get_shadow_pricing_info" title="Permalink to this definition">#</a></dt>
 <dd><p>return dict with info about dtype and shapes of desired and modeled size tables</p>
@@ -1027,9 +1103,9 @@ calculation across sub-processes</p>
 <span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">logger</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;Logger</span> <span class="pre">activitysim.abm.tables.shadow_pricing</span> <span class="pre">(WARNING)&gt;</span></em><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.logger" title="Permalink to this definition">#</a></dt>
 <dd><p>ShadowPriceCalculator and associated utility methods</p>
 <p>See docstrings for documentation on:</p>
-<p>update_shadow_prices    how shadow_price coefficients are calculated
-synchronize_choices     interprocess communication to compute aggregate modeled_size
-check_fit               convergence criteria for shadow_pric iteration</p>
+<p>update_shadow_prices      how shadow_price coefficients are calculated
+synchronize_modeled_size  interprocess communication to compute aggregate modeled_size
+check_fit                 convergence criteria for shadow_pric iteration</p>
 <p>Import concepts and variables:</p>
 <dl class="simple">
 <dt>model_selector: str</dt><dd><p>Identifies a specific location choice model (e.g. ‘school’, ‘workplace’)
@@ -1046,6 +1122,39 @@ different utility coefficients in models’s location and location_sample csv ex
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers">
 <span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">shadow_price_data_from_buffers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_buffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>data_buffers</strong><span class="classifier">dict of {&lt;model_selector&gt;</span><span class="classifier">&lt;multiprocessing.Array&gt;}</span></dt><dd><p>multiprocessing.Array is simply a convenient way to bundle Array and Lock
+we extract the lock and wrap the RawArray in a numpy array for convenience in indexing
+The shared data buffer has shape (&lt;num_zones, &lt;num_segments&gt; + 1)
+extra column is for reverse semaphores with TALLY_CHECKIN and TALLY_CHECKOUT</p>
+</dd>
+<dt><strong>shadow_pricing_info</strong><span class="classifier">dict</span></dt><dd><dl class="simple">
+<dt>dict of useful info</dt><dd><p>dtype: sp_dtype,
+block_shapes : OrderedDict({&lt;model_selector&gt;: &lt;shape tuple&gt;})
+dict mapping model_selector to block shape (including extra column for semaphores)
+e.g. {‘school’: (num_zones, num_segments + 1)</p>
+</dd>
+</dl>
+</dd>
+<dt><strong>model_selector</strong><span class="classifier">str</span></dt><dd><p>location type model_selector (e.g. school or workplace)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>shared_data, shared_data_lock</dt><dd><p>shared_data : multiprocessing.Array or None (if single process)
+shared_data_lock : numpy array wrapping multiprocessing.RawArray or None (if single process)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers_choice">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">shadow_price_data_from_buffers_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_buffers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_pricing_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.shadow_price_data_from_buffers_choice" title="Permalink to this definition">#</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
@@ -3830,7 +3939,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev63+ge11b48ad, documentation last updated Dec 21, 2022.<br/>
+ActivitySim 1.1.4.dev94+g1e8164b4, documentation last updated Dec 21, 2022.<br/>
 </p>
     </div>
     

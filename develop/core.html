@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Core Components &#8212; ActivitySim 1.1.4.dev63+ge11b48ad</title>
+    <title>Core Components &#8212; ActivitySim 1.1.4.dev94+g1e8164b4</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -725,6 +725,19 @@ essentially the same tables and results as if the whole simulation had been run 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers">
 <span class="sig-prename descclassname"><span class="pre">activitysim.core.mp_tasks.</span></span><span class="sig-name descname"><span class="pre">allocate_shared_shadow_pricing_buffers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers" title="Permalink to this definition">#</a></dt>
+<dd><p>This is called by the main process to allocate memory buffer to share with subprocs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>multiprocessing.RawArray</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers_choice">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.mp_tasks.</span></span><span class="sig-name descname"><span class="pre">allocate_shared_shadow_pricing_buffers_choice</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.mp_tasks.allocate_shared_shadow_pricing_buffers_choice" title="Permalink to this definition">#</a></dt>
 <dd><p>This is called by the main process to allocate memory buffer to share with subprocs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -5758,7 +5771,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev63+ge11b48ad, documentation last updated Dec 21, 2022.<br/>
+ActivitySim 1.1.4.dev94+g1e8164b4, documentation last updated Dec 21, 2022.<br/>
 </p>
     </div>
     

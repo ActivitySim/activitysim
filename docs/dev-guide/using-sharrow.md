@@ -239,6 +239,24 @@ such string operations won't appear in utility specifications at all, or if they
 do appear, they are executed only once and stored in a temporary value for re-use
 as needed.
 
+### Limited Tracing and Estimation Mode Capabilities
+
+When running sharrow-optimized code, large parts of certain calculations are routed
+through numba to enhance speed and reduce memory footprint.  Many intermediate arrays
+are not created, or are allocated and released by numba in a manner not visible to the
+general Python interpreter.  As a result, in many places the "trace" capabilities of
+ActivitySim are limited.  These capabilities output intermediate calculations in
+extreme detail and are typically only used in debugging and model development, not
+in production model runs that need to be optimized for speed.  Tracing features can
+be re-enabled by switching sharrow off or by using "test" mode, which runs both sharrow
+and legacy evaluations together to confirm they are substantially identical.  In this
+fashion, detailed tracing (albeit slow) remains available for users on all models when
+needed.
+
+Similar constraints apply to estimation mode, as complete estimation mode output
+capabilities are not yet integrated with the sharrow engine.  Estimation mode remains
+fully available when running with sharrow disabled.
+
 (digital-encoding)=
 ## Digital Encoding
 

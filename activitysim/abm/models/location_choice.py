@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import logging
 
+import numpy as np
 import pandas as pd
 
 from activitysim.abm.tables import shadow_pricing
@@ -901,6 +902,8 @@ def iterate_location_choice(
 
     logger.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
+    choices_df = None  # initialize to None, will be populated in first iteration
+
     for iteration in range(1, max_iterations + 1):
 
         persons_merged_df_ = persons_merged_df.copy()
@@ -940,9 +943,7 @@ def iterate_location_choice(
                 and iteration > 1
             ):
                 # if a process ends up with no sampled workers in it, hence an empty choice_df_, then choice_df wil be what it was previously
-                if len(choices_df_) == 0:
-                    choices_df = choices_df
-                else:
+                if len(choices_df_) != 0:
                     choices_df = pd.concat([choices_df, choices_df_], axis=0)
                     choices_df_index = choices_df_.index.name
                     choices_df = choices_df.reset_index()

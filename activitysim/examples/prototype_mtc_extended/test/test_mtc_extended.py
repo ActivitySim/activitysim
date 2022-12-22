@@ -55,16 +55,20 @@ def _test_prototype_mtc_extended(multiprocess=False, sharrow=False):
             "-c",
             test_path("configs"),
         ]
-    run_args = sh_configs + mp_configs + [
-        "-c",
-        example_path("configs"),
-        "-c",
-        example_mtc_path("configs"),
-        "-d",
-        example_mtc_path("data"),
-        "-o",
-        test_path("output"),
-    ]
+    run_args = (
+        sh_configs
+        + mp_configs
+        + [
+            "-c",
+            example_path("configs"),
+            "-c",
+            example_mtc_path("configs"),
+            "-d",
+            example_mtc_path("data"),
+            "-o",
+            test_path("output"),
+        ]
+    )
     if os.environ.get("GITHUB_ACTIONS") == "true":
         subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
     else:

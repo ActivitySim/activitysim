@@ -4,6 +4,7 @@ import logging
 import os
 import time
 from datetime import timedelta
+from functools import partial
 from numbers import Number
 from stat import ST_MTIME
 
@@ -529,6 +530,14 @@ def new_flow(
         if size_term_mapping is None:
             size_term_mapping = {}
 
+        def _apply_filter(_dataset, renames: list):
+            renames_keys = set(i for (i, j) in rename_dataset_cols)
+            ds = _dataset.ensure_integer(renames_keys)
+            for _k, _v in renames:
+                if _k in ds:
+                    ds[_v] = ds[_k]
+            return ds
+
         if interacts is None:
             if choosers is None:
                 logger.info(f"empty flow on {trace_label}")
@@ -536,29 +545,21 @@ def new_flow(
                 logger.info(f"{len(choosers)} chooser rows on {trace_label}")
             flow_tree = sh.DataTree(df=[] if choosers is None else choosers)
             idx_name = choosers.index.name or "index"
-            rename_dataset_cols = {
-                idx_name: "chooserindex",
-            }
+            rename_dataset_cols = [
+                (idx_name, "chooserindex"),
+            ]
             if orig_col_name is not None:
-                rename_dataset_cols[orig_col_name] = "_orig_col_name"
+                rename_dataset_cols.append((orig_col_name, "_orig_col_name"))
             if dest_col_name is not None:
-                rename_dataset_cols[dest_col_name] = "_dest_col_name"
+                rename_dataset_cols.append((dest_col_name, "_dest_col_name"))
             if stop_col_name is not None:
-                rename_dataset_cols[stop_col_name] = "_stop_col_name"
+                rename_dataset_cols.append((stop_col_name, "_stop_col_name"))
             if parking_col_name is not None:
-                rename_dataset_cols[parking_col_name] = "_park_col_name"
+                rename_dataset_cols.append((parking_col_name, "_park_col_name"))
             if primary_origin_col_name is not None:
-                rename_dataset_cols[
-                    primary_origin_col_name
-                ] = "_primary_origin_col_name"
-
-            def _apply_filter(_dataset, renames: dict):
-                ds = _dataset.rename(renames).ensure_integer(renames.values())
-                for _k, _v in renames.items():
-                    ds[_k] = ds[_v]
-                return ds
-
-            from functools import partial
+                rename_dataset_cols.append(
+                    (primary_origin_col_name, "_primary_origin_col_name")
+                )
 
             flow_tree.replacement_filters[flow_tree.root_node_name] = partial(
                 _apply_filter, renames=rename_dataset_cols
@@ -573,42 +574,29 @@ def new_flow(
                 pd.RangeIndex(len(interacts), name="interactindex"),
             )
             flow_tree = sh.DataTree(start=top)
-            rename_dataset_cols = {
-                orig_col_name: "_orig_col_name",
-                dest_col_name: "_dest_col_name",
-            }
+            rename_dataset_cols = []
+            if orig_col_name is not None:
+                rename_dataset_cols.append((orig_col_name, "_orig_col_name"))
+            if dest_col_name is not None:
+                rename_dataset_cols.append((dest_col_name, "_dest_col_name"))
             if stop_col_name is not None:
-                rename_dataset_cols[stop_col_name] = "_stop_col_name"
+                rename_dataset_cols.append((stop_col_name, "_stop_col_name"))
             if parking_col_name is not None:
-                rename_dataset_cols[parking_col_name] = "_park_col_name"
+                rename_dataset_cols.append((parking_col_name, "_park_col_name"))
             if primary_origin_col_name is not None:
-                rename_dataset_cols[
-                    primary_origin_col_name
-                ] = "_primary_origin_col_name"
-            choosers_ = (
-                sh.dataset.construct(choosers)
-                .rename_or_ignore(rename_dataset_cols)
-                .ensure_integer(
-                    [
-                        "_orig_col_name",
-                        "_dest_col_name",
-                        "_stop_col_name",
-                        "_park_col_name",
-                        "_primary_origin_col_name",
-                    ]
+                rename_dataset_cols.append(
+                    (primary_origin_col_name, "_primary_origin_col_name")
                 )
-            )
-            for _k, _v in rename_dataset_cols.items():
-                if _v in choosers_:
-                    choosers_[_k] = choosers_[_v]
+
+            choosers_ = sh.dataset.construct(choosers)
+            choosers_ = _apply_filter(choosers_, rename_dataset_cols)
             flow_tree.add_dataset(
                 "df",
                 choosers_,
                 f"start.chooserindex -> df.{next(iter(choosers_.dims))}",
             )
-            interacts_ = sh.dataset.construct(interacts).rename_or_ignore(
-                rename_dataset_cols
-            )
+            interacts_ = sh.dataset.construct(interacts)
+            interacts_ = _apply_filter(interacts_, rename_dataset_cols)
             flow_tree.add_dataset(
                 "interact_table",
                 interacts_,

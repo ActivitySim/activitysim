@@ -72,28 +72,6 @@ def eval_interaction_utilities(
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
-    # # extract expressions and labels from spec.index
-    # if isinstance(spec.index, pd.MultiIndex):
-    #     exprs = spec.index.get_level_values(simulate.SPEC_EXPRESSION_NAME)
-    #     labels = spec.index.get_level_values(simulate.SPEC_LABEL_NAME)
-    # else:
-    #     exprs = spec.index
-    #     labels = spec.index
-    #
-    # # rewrite tt.xxx from spec expression to use numba accelerated versions
-    # updated_exprs = []
-    # for e in exprs:
-    #     e = e.replace("tt.adjacent_window_before(", "tt_adjacent_window_before(tt, ")
-    #     e = e.replace("tt.adjacent_window_after(", "tt_adjacent_window_after(tt, ")
-    #     e = e.replace("tt.previous_tour_ends(", "tt_previous_tour_ends(tt, ")
-    #     e = e.replace("tt.previous_tour_begins(", "tt_previous_tour_begins(tt, ")
-    #     e = e.replace("tt.remaining_periods_available(", "tt_remaining_periods_available(tt, ")
-    #     updated_exprs.append(e)
-    # exprs = updated_exprs
-    #
-    # from .flow import apply_flow
-    # from . import inject
-    # skim_dataset = inject.get_injectable('skim_dataset')
     sharrow_enabled = config.setting("sharrow", False)
 
     if locals_d is not None and locals_d.get("_sharrow_skip", False):
@@ -112,15 +90,6 @@ def eval_interaction_utilities(
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
         locals_d = locals_d.copy() if locals_d is not None else {}
-
-        # # add numba accelerated versions of timetable functions to locals_d
-        # locals_d.update(
-        #     tt_adjacent_window_before=timetable.tt_adjacent_window_before,
-        #     tt_adjacent_window_after=timetable.tt_adjacent_window_after,
-        #     tt_previous_tour_ends=timetable.tt_previous_tour_ends,
-        #     tt_previous_tour_begins=timetable.tt_previous_tour_begins,
-        #     tt_remaining_periods_available=timetable.tt_remaining_periods_available,
-        # )
 
         utilities = None
 

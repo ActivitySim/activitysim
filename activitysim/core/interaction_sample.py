@@ -60,14 +60,6 @@ def make_sample_choices(
             probs = probs[~zero_probs]
             choosers = choosers[~zero_probs]
 
-    # cum_probs_array = probs.values.cumsum(axis=1)
-    # chunk.log_df(trace_label, 'cum_probs_array', cum_probs_array)
-    #
-    # # alt probs in convenient layout to return prob of chose alternative
-    # # (same layout as cum_probs_arr)
-    # alt_probs_array = probs.values.flatten()
-    # chunk.log_df(trace_label, 'alt_probs_array', alt_probs_array)
-
     # get sample_size rands for each chooser
     rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
 
@@ -76,58 +68,6 @@ def make_sample_choices(
     # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
     # rands = rands.T #.reshape(sample_size, -1, 1)
     chunk.log_df(trace_label, "rands", rands)
-
-    #
-    # # the alternative value chosen
-    # choices_array = np.empty([sample_size, len(choosers)]).astype(int)
-    # # chunk log these later after we populate them...
-    #
-    # # the probability of the chosen alternative
-    # choice_probs_array = np.empty([sample_size, len(choosers)])
-    # # chunk log these later after we populate them...
-    #
-    # alts = np.tile(alternatives.index.values, len(choosers))
-    # chunk.log_df(trace_label, 'alts', alts)
-    #
-    # # FIXME - do this all at once rather than iterate?
-    # for i in range(sample_size):
-    #
-    #     # FIXME - do this in numpy, not pandas?
-    #
-    #     # rands for this alt in broadcastable shape
-    #     r = rands[i]
-    #
-    #     # position of first occurrence of positive value
-    #     positions = np.argmax(cum_probs_array > r, axis=1)
-    #
-    #     # FIXME - leave positions as numpy array, not pandas series?
-    #     # positions is series with the chosen alternative represented as a column index in probs
-    #     # which is an integer between zero and num alternatives in the alternative sample
-    #     positions = pd.Series(positions, index=probs.index)
-    #
-    #     # need to get from an integer offset into the alternative sample to the alternative index
-    #     # that is, we want the index value of the row that is offset by <position> rows into the
-    #     # tranche of this choosers alternatives created by cross join of alternatives and choosers
-    #
-    #     # offsets is the offset into model_design df of first row of chooser alternatives
-    #     offsets = np.arange(len(positions)) * alternative_count
-    #
-    #     # choices and choice_probs have one element per chooser and is in same order as choosers
-    #     choices_array[i] = np.take(alts, positions + offsets)
-    #     choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
-    #
-    #     del positions
-    #     del offsets
-    #
-    # chunk.log_df(trace_label, 'choices_array', choices_array)
-    # chunk.log_df(trace_label, 'choice_probs_array', choice_probs_array)
-    #
-    # del alts
-    # chunk.log_df(trace_label, 'alts', None)
-    # del cum_probs_array
-    # chunk.log_df(trace_label, 'cum_probs_array', None)
-    # del alt_probs_array
-    # chunk.log_df(trace_label, 'alt_probs_array', None)
 
     # TODO: is `sample_choices_maker` more efficient?  The order of samples changes, might change repro-randoms
     from .choosing import sample_choices_maker_preserve_ordering
@@ -140,9 +80,6 @@ def make_sample_choices(
 
     chunk.log_df(trace_label, "choices_array", choices_array)
     chunk.log_df(trace_label, "choice_probs_array", choice_probs_array)
-
-    # np.testing.assert_array_equal(choices_array, choices_array__)
-    # np.testing.assert_array_almost_equal(choice_probs_array, choice_probs_array__)
 
     # explode to one row per chooser.index, alt_zone_id
     choices_df = pd.DataFrame(
@@ -274,39 +211,6 @@ def _interaction_sample(
     interaction_utilities = None
     interaction_utilities_sh = None
     if sharrow_enabled:
-
-        # # TRACE ONLY
-        # from . import inject
-        # traceable_table_ids = inject.get_injectable('traceable_table_ids', {})
-        #
-        # if choosers.index.name == 'person_id' and 'persons' in traceable_table_ids:
-        #     slicer_column_name = choosers.index.name
-        #     targets = traceable_table_ids['persons']
-        # elif 'household_id' in choosers.columns and 'households' in traceable_table_ids:
-        #     slicer_column_name = 'household_id'
-        #     targets = traceable_table_ids['households']
-        # elif 'person_id' in choosers.columns and 'persons' in traceable_table_ids:
-        #     slicer_column_name = 'person_id'
-        #     targets = traceable_table_ids['persons']
-        # else:
-        #     print(choosers.columns)
-        #     raise RuntimeError("interaction_trace_rows don't know how to slice index '%s'"
-        #                        % choosers.index.name)
-        #
-        # if slicer_column_name == choosers.index.name:
-        #     trace_rows = np.in1d(choosers.index, targets)
-        #     trace_ids = np.asanyarray(choosers[trace_rows].index)
-        # elif slicer_column_name == 'person_id':
-        #     trace_rows = np.in1d(choosers['person_id'], targets)
-        #     trace_ids = np.asanyarray(choosers[trace_rows].person_id)
-        # elif slicer_column_name == 'household_id':
-        #     trace_rows = np.in1d(choosers['household_id'], targets)
-        #     trace_ids = np.asanyarray(choosers[trace_rows].household_id)
-        # else:
-        #     assert False
-        #
-        # trace_ids = (slicer_column_name, trace_ids)
-        # # /TRACE ONLY
 
         (
             interaction_utilities,

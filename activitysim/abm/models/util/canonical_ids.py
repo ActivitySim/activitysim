@@ -260,7 +260,7 @@ def canonical_tours():
     mtf_model_settings_file_name = "mandatory_tour_frequency.yaml"
     mtf_model_settings = config.read_model_settings(mtf_model_settings_file_name)
     mtf_spec = mtf_model_settings.get("SPEC", "mandatory_tour_frequency.csv")
-    mtf_model_spec = read_spec_file(file_name=mtf_spec)
+    mtf_model_spec = read_alts_file(file_name=mtf_spec)
     default_mandatory_tour_flavors = {"work": 2, "school": 2}
 
     mandatory_tour_flavors = determine_mandatory_tour_flavors(

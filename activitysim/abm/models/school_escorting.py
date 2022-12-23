@@ -513,7 +513,7 @@ def school_escorting(
     pipeline.replace_table("tours", tours)
     pipeline.get_rn_generator().drop_channel("tours")
     pipeline.get_rn_generator().add_channel("tours", tours)
-    # pipeline.replace_table("escort_bundles", escort_bundles)
+    pipeline.replace_table("escort_bundles", escort_bundles)
     # save school escorting tours and trips in pipeline so we can overwrite results from downstream models
     pipeline.replace_table("school_escort_tours", school_escort_tours)
     pipeline.replace_table("school_escort_trips", school_escort_trips)

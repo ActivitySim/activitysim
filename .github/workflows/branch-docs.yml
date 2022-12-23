@@ -1,0 +1,55 @@
+name: ActivitySim Branch Docs
+# This workflow is provided as a service for forks to build branch-specific documentation.
+
+on: push
+
+jobs:
+  docbuild:
+    if: "contains(github.event.head_commit.message, '[makedocs]') && (github.repository_owner != 'ActivitySim') && (github.ref_name != 'develop')"
+    # develop branch docs are built at the end of the core test workflow, regardless of repository owner or commit message flags
+    name: ubuntu-latest py3.9
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # get all tags, lets setuptools_scm do its thing
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          miniforge-variant: Mambaforge
+          miniforge-version: latest
+          use-mamba: true
+          environment-file: conda-environments/docbuild.yml
+          python-version: 3.9
+          activate-environment: docbuild
+          auto-activate-base: false
+          auto-update-conda: false
+      - name: Install activitysim
+        run: |
+          python -m pip install .
+      - name: Conda checkup
+        run: |
+          conda info -a
+          conda list
+          echo REPOSITORY ${{ github.repository }}
+          echo REF ${{ github.ref }}
+          echo REF_NAME ${{ github.ref_name }}
+      - name: Build the docs
+        run: |
+          cd docs
+          make clean
+          make html
+      - name: Push to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # Token is created automatically by Github Actions, no other config needed
+          publish_dir: ./docs/_build/html
+          destination_dir: ${{ github.ref_name }}

@@ -197,40 +197,81 @@ The shadow pricing calculator used by work and school location choice.
 
 **Turning on and saving shadow prices**
 
-Shadow pricing is activated by setting the ``use_shadow_pricing`` to True in the settings.yaml file. Once this setting has
-been activated, ActivitySim will search for shadow pricing configuration in the shadow_pricing.yaml file. When shadow pricing is
-activated, the shadow pricing outputs will be exported by the tracing engine. As a result, the shadow pricing output files will
-be prepended with ``trace`` followed by the iteration number the results represent. For example, the shadow pricing outputs
-for iteration 3 of the school location model will be called ``trace.shadow_price_school_shadow_prices_3.csv``.
+Shadow pricing is activated by setting the ``use_shadow_pricing`` to True in the settings.yaml file.
+Once this setting has been activated, ActivitySim will search for shadow pricing configuration in
+the shadow_pricing.yaml file. When shadow pricing is activated, the shadow pricing outputs will be
+exported by the tracing engine. As a result, the shadow pricing output files will be prepended with
+``trace`` followed by the iteration number the results represent. For example, the shadow pricing
+outputs for iteration 3 of the school location model will be called
+``trace.shadow_price_school_shadow_prices_3.csv``.
 
 In total, ActivitySim generates three types of output files for each model with shadow pricing:
 
-- ``trace.shadow_price_<model>_desired_size.csv``
-  The size terms by zone that shadow pricing is attempting to target. These usually will match the size terms identified
-  in the land_use input file.
+- ``trace.shadow_price_<model>_desired_size.csv`` The size terms by zone that the ctramp and daysim
+  methods are attempting to target. These equal the size term columns in the land use data
+  multiplied by size term coefficients.
 
-- ``trace.shadow_price_<model>_modeled_size_<iteration>.csv``
-  These are the modeled size terms after the iteration of shadow pricing identified by the <iteration> number. In other
-  words, these are the predicted choices by zone for the model after the iteration completes.
+- ``trace.shadow_price_<model>_modeled_size_<iteration>.csv`` These are the modeled size terms after
+  the iteration of shadow pricing identified by the <iteration> number. In other words, these are
+  the predicted choices by zone and segment for the model after the iteration completes. (Not
+  applicable for ``simulation`` option.)
 
-- ``trace.shadow_price_<model>_shadow_prices_<iteration>.csv``
-  The actual shadow price for each zone and segment after the <iteration> of shadow pricing. This the file that can be
-  used to warm start the shadow pricing mechanism in ActivitySim.
+- ``trace.shadow_price_<model>_shadow_prices_<iteration>.csv`` The actual shadow price for each zone
+  and segment after the <iteration> of shadow pricing. This is the file that can be used to warm
+  start the shadow pricing mechanism in ActivitySim. (Not applicable for ``simulation`` option.)
+
+There are three shadow pricing methods in activitysim: ``ctramp``, ``daysim``, and ``simulation``.
+The first two methods try to match model output with workplace/school location model size terms,
+while the last method matches model output with actual employment/enrollmment data.
+
+The simulation approach operates the following steps.  First, every worker / student will be
+assigned without shadow prices applied. The modeled share and the target share for each zone are
+compared. If the zone is overassigned, a sample of people from the over-assigned zones will be
+selected for re-simulation.  Shadow prices are set to -999 for the next iteration for overassigned
+zones which removes the zone from the set of alternatives in the next iteration. The sampled people
+will then be forced to choose from one of the under-assigned zones that still have the initial
+shadow price of 0. (In this approach, the shadow price variable is really just a switch turning that
+zone on or off for selection in the subsequent iterations. For this reason, warm-start functionality
+for this approach is not applicable.)  This process repeats until the overall convergence criteria
+is met or the maximum number of allowed iterations is reached.
+
+Because the simulation approach only re-simulates workers / students who were over-assigned in the
+previous iteration, run time is significantly less (~90%) than the CTRAMP or DaySim approaches which
+re-simulate all workers and students at each iteration.
 
 **shadow_pricing.yaml Attributes**
 
-- ``shadow_pricing_models`` List model_selectors and model_names of models that use shadow pricing. This list identifies which size_terms to preload which must be done in single process mode, so predicted_size tables can be scaled to population)
-- ``LOAD_SAVED_SHADOW_PRICES`` global switch to enable/disable loading of saved shadow prices. From the above example, this would be trace.shadow_price_<model>_shadow_prices_<iteration>.csv renamed and stored in the ``data_dir``.
-- ``MAX_ITERATIONS`` If no loaded shadow prices, maximum number of times shadow pricing can be run on each model before proceeding to the next model.
-- ``MAX_ITERATIONS_SAVED`` If loaded shadow prices, maximum number of times shadow pricing can be run.
-- ``SIZE_THRESHOLD`` Ignore zones in failure calculation with fewer choices than specified here.
+- ``shadow_pricing_models`` List model_selectors and model_names of models that use shadow pricing.
+  This list identifies which size_terms to preload which must be done in single process mode, so
+  predicted_size tables can be scaled to population
+- ``LOAD_SAVED_SHADOW_PRICES`` global switch to enable/disable loading of saved shadow prices. From
+  the above example, this would be trace.shadow_price_<model>_shadow_prices_<iteration>.csv renamed
+  and stored in the ``data_dir``.
+- ``MAX_ITERATIONS`` If no loaded shadow prices, maximum number of times shadow pricing can be run
+  on each model before proceeding to the next model.
+- ``MAX_ITERATIONS_SAVED`` If loaded shadow prices, maximum number of times shadow pricing can be
+  run.
+- ``SIZE_THRESHOLD`` Ignore zones in failure calculation (ctramp or daysim method) with smaller size
+  term value than size_threshold.
+- ``TARGET_THRESHOLD`` Ignore zones in failure calculation (simulation method) with smaller
+  employment/enrollment than target_threshold.
 - ``PERCENT_TOLERANCE`` Maximum percent difference between modeled and desired size terms
-- ``FAIL_THRESHOLD`` Number of zones exceeding the PERCENT_TOLERANCE considered a failure
-- ``SHADOW_PRICE_METHOD`` [ctramp | daysim]
-- ``DAMPING_FACTOR`` On each iteration, ActivitySim will attempt to adjust the model to match desired size terms. The number is multiplied by adjustment factor to dampen or amplify the ActivitySim calculation. (only for CT-RAMP)
-- ``DAYSIM_ABSOLUTE_TOLERANCE``
+- ``FAIL_THRESHOLD`` percentage of zones exceeding the PERCENT_TOLERANCE considered a failure
+- ``SHADOW_PRICE_METHOD`` [ctramp | daysim | simulation]
+- ``workplace_segmentation_targets`` dict matching school segment to landuse employment column
+  target. Only used as part of simulation option. If mutiple segments list the same target column,
+  the segments will be added together for comparison. (Same with the school option below.)
+- ``school_segmentation_targets`` dict matching school segment to landuse enrollment column target.
+  Only used as part of simulation option.
+- ``DAMPING_FACTOR`` On each iteration, ActivitySim will attempt to adjust the model to match
+  desired size terms. The number is multiplied by adjustment factor to dampen or amplify the
+  ActivitySim calculation. (only for CTRAMP)
+- ``DAYSIM_ABSOLUTE_TOLERANCE`` Absolute tolerance for DaySim option
+- ``DAYSIM_PERCENT_TOLERANCE`` Relative tolerance for DaySim option
+- ``WRITE_ITERATION_CHOICES`` [True | False ] Writes the choices of each person out to the trace
+  folder. Used for debugging or checking itration convergence. WARNING: every person is written for
+  each sub-process so the disc space can get large.
 
-- ``DAYSIM_PERCENT_TOLERANCE``
 
 .. automodule:: activitysim.abm.tables.shadow_pricing
    :members:

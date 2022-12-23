@@ -1056,6 +1056,33 @@ def allocate_shared_shadow_pricing_buffers():
     return shadow_pricing_buffers
 
 
+def allocate_shared_shadow_pricing_buffers_choice():
+    """
+    This is called by the main process to allocate memory buffer to share with subprocs
+
+    Returns
+    -------
+        multiprocessing.RawArray
+    """
+
+    info("allocate_shared_shadow_pricing_buffers_choice")
+
+    shadow_pricing_choice_info = inject.get_injectable(
+        "shadow_pricing_choice_info", None
+    )
+
+    if shadow_pricing_choice_info is not None:
+        from activitysim.abm.tables import shadow_pricing
+
+        shadow_pricing_buffers_choice = (
+            shadow_pricing.buffers_for_shadow_pricing_choice(shadow_pricing_choice_info)
+        )
+    else:
+        shadow_pricing_buffers_choice = {}
+
+    return shadow_pricing_buffers_choice
+
+
 def run_sub_simulations(
     injectables,
     shared_data_buffers,
@@ -1400,6 +1427,12 @@ def run_multiprocess(injectables):
     shared_data_buffers.update(allocate_shared_shadow_pricing_buffers())
     t0 = tracing.print_elapsed_time("allocate shared shadow_pricing buffer", t0)
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
+
+    # combine shared_shadow_pricing_buffers to pool choices across all processes
+    t0 = tracing.print_elapsed_time()
+    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice())
+    t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
+    mem.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
 
     # - mp_setup_skims
     if len(shared_data_buffers) > 0:

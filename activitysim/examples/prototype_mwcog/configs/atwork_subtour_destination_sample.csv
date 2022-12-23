@@ -1,0 +1,16 @@
+Label,Description,Expression,atwork
+local_dist,local_dist,_DIST@skims['DIST'],1
+util_dist,util_dist,@_DIST,coef_dist_atwork
+util_dist_squared,util_dist_squared,@(_DIST)**2,coef_dist_squared_atwork
+util_dist_cubed,util_dist_cubed,@(_DIST)**3,coef_dist_cubed_atwork
+util_dist_logged,util_dist_logged,@(_DIST).apply(np.log1p),coef_dist_logged_atwork
+util_dist_female,"Distance,female",@(df['female']==True) * _DIST,coef_dist_female_atwork
+util_dist_zero_auto,"Distance,zero auto HH",@(df['auto_ownership']==0) * _DIST,coef_dist_zero_auto_atwork
+util_dist_calibration_0_1,util_dist_calibration_0_1,@((_DIST>0) & (_DIST<=1)),coef_calib_0_1_dist_atwork
+util_dist_calibration_1_3,util_dist_calibration_1_3,@((_DIST>1) & (_DIST<=3)),coef_calib_1_3_dist_atwork
+util_dist_calibration_3_6,util_dist_calibration_3_6,@((_DIST>3) & (_DIST<=6)),coef_calib_3_6_dist_atwork
+util_dist_calibration_6_10,util_dist_calibration_6_10,@((_DIST>6) & (_DIST<=10)),coef_calib_6_10_dist_atwork
+util_dist_calibration_10_15,util_dist_calibration_10_15,@((_DIST>10) & (_DIST<=15)),coef_calib_10_15_dist_atwork
+util_dist_calibration_15_pl,util_dist_calibration_15_pl,@(_DIST>15),coef_calib_15_pl_dist_atwork
+util_size_variable_atwork,Size variable atwork,@df['size_term'].apply(np.log1p),coef_size_variable_atwork
+util_no_attractions_atwork_size_variable_is_0,"No attractions, atwork size variable is 0",size_term==0,coef_no_attractions_atwork_size_variable_is_0

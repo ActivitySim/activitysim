@@ -42,7 +42,9 @@ def est_data():
     os.chdir(cwd)
 
 
-def _regression_check(dataframe_regression, df, basename=None):
+def _regression_check(dataframe_regression, df, basename=None, rtol=None):
+    if rtol is None:
+        rtol = 0.1
     dataframe_regression.check(
         df.select_dtypes("number")
         .drop(columns=["holdfast"], errors="ignore")
@@ -50,8 +52,8 @@ def _regression_check(dataframe_regression, df, basename=None):
         # pandas 1.3 handles int8 dtypes as actual numbers, so holdfast needs to be dropped manually
         # we're dropping it not adding to the regression check so older pandas will also work.
         basename=basename,
-        default_tolerance=dict(atol=1e-6, rtol=0.1)
-        # set a little loose, as there is sometimes a little variance in these
+        default_tolerance=dict(atol=1e-6, rtol=rtol)
+        # can set a little loose, as there is sometimes a little variance in these
         # results when switching backend implementations. We're checking all
         # the parameters and the log likelihood, so modest variance in individual
         # parameters, especially those with high std errors, is not problematic.
@@ -89,16 +91,23 @@ def test_simple_simulate(est_data, num_regression, dataframe_regression, name, m
 
 
 @pytest.mark.parametrize(
-    "name,method",
+    "name,method,rtol",
     [
-        ("workplace_location", "SLSQP"),
-        ("school_location", "SLSQP"),
-        ("non_mandatory_tour_destination", "SLSQP"),
-        ("atwork_subtour_destination", "BHHH"),
-        ("trip_destination", "SLSQP"),
+        ("workplace_location", "SLSQP", None),
+        ("school_location", "SLSQP", None),
+        ("non_mandatory_tour_destination", "SLSQP", None),
+        ("atwork_subtour_destination", "BHHH", None),
+        ("trip_destination", "SLSQP", 0.12),
+        # trip_destination model has unusual parameter variance on a couple
+        # parameters when switching platforms, possibly related to default data
+        # types and high standard errors.  Most parameters and the overall
+        # log likelihoods behave fine, suggesting it is just a numerical
+        # precision issue.
     ],
 )
-def test_location_model(est_data, num_regression, dataframe_regression, name, method):
+def test_location_model(
+    est_data, num_regression, dataframe_regression, name, method, rtol
+):
     from activitysim.estimation.larch import component_model, update_size_spec
 
     m, data = component_model(name, return_data=True)
@@ -109,7 +118,7 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
         {"loglike_prior": loglike_prior, "loglike_converge": r.loglike},
         basename=f"test_loc_{name}_loglike",
     )
-    _regression_check(dataframe_regression, m.pf)
+    _regression_check(dataframe_regression, m.pf, rtol=rtol)
     size_spec = update_size_spec(
         m,
         data,
@@ -136,7 +145,7 @@ def test_location_model(est_data, num_regression, dataframe_regression, name, me
     ],
 )
 def test_scheduling_model(est_data, num_regression, dataframe_regression, name, method):
-    from activitysim.estimation.larch import component_model, update_size_spec
+    from activitysim.estimation.larch import component_model
 
     m, data = component_model(name, return_data=True)
     m.load_data()
@@ -255,7 +264,7 @@ def test_tour_and_subtour_mode_choice(est_data, num_regression, dataframe_regres
 
     m = tour_mode_choice_model()
     s = atwork_subtour_mode_choice_model()
-    m.extend(s)  # join the atwork subtour model to the master group
+    m.extend(s)  # join the atwork subtour model to the main group
     m.load_data()
     m.doctor(repair_ch_av="-")
     loglike_prior = m.loglike()

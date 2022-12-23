@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import re
 
 import numpy as np
 import pandas as pd
@@ -58,15 +59,6 @@ def enumerate_tour_types(tour_flavors):
 
 
 def read_alts_file(file_name, set_index=None):
-    try:
-        alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
-        logger.warning(f"Could not find file {file_name} to determine tour flavors.")
-        return pd.DataFrame()
-    return alts
-
-
-def read_spec_file(file_name, set_index=None):
     try:
         alts = simulate.read_model_alts(file_name, set_index=set_index)
     except RuntimeError:
@@ -175,7 +167,7 @@ def determine_flavors_from_alts_file(
     Parameters
     ----------
     alts : pd.DataFrame
-    provided_flavors : dict
+    provided_flavors : dict, optional
         tour flavors provided by user in the model yaml
     default_flavors : dict
         default tour flavors to fall back on

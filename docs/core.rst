@@ -223,7 +223,7 @@ Expressions
 The expressions class is often used for pre- and post-processor table annotation, which read a CSV file of expression, calculate
 a number of additional table fields, and join the fields to the target table.  An example table annotation expressions
 file is found in the example configuration files for households for the CDAP model -
-`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/master/example/configs/annotate_households_cdap.csv>`__.
+`annotate_households_cdap.csv <https://github.com/activitysim/activitysim/blob/main/example/configs/annotate_households_cdap.csv>`__.
 
 .. automodule:: activitysim.core.expressions
    :members:
@@ -616,7 +616,7 @@ Chunking management.
    of chunk_size simplifies model setup since it is the approximate amount of RAM available to
    ActivitySim as opposed to the obscure number of doubles (64-bit numbers) in a chunk of a choosers table.
 
-The ``chunk_size`` is the approximate amount of RAM in GBs to allocate to ActivitySim for batch
+The ``chunk_size`` is the approximate amount of RAM in bytes (1 Gigabyte or 1 GB is equal to 1,000,000,000 bytes) to allocate to ActivitySim for batch
 processing choosers across all processes.  It is specified in bytes, for example ``chunk_size: 500_000_000_000`` is 500 GBs.
 If set ``chunk_training_mode: disabled`` then no chunking will be performed and ActivitySim will attempt to solve all the
 choosers at once across all the processes.  Chunking is required when all the chooser data required to process all the

@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import argparse
+import importlib
 import logging
 import os
 import sys
@@ -13,7 +14,13 @@ from activitysim.core import chunk, config, inject, mem, pipeline, tracing
 logger = logging.getLogger(__name__)
 
 
-INJECTABLES = ["data_dir", "configs_dir", "output_dir", "settings_file_name"]
+INJECTABLES = [
+    "data_dir",
+    "configs_dir",
+    "output_dir",
+    "settings_file_name",
+    "imported_extensions",
+]
 
 
 def add_run_args(parser, multiprocess=True):
@@ -64,6 +71,15 @@ def add_run_args(parser, multiprocess=True):
     parser.add_argument(
         "--households_sample_size", type=int, metavar="N", help="households sample size"
     )
+    parser.add_argument(
+        "-e",
+        "--ext",
+        type=str,
+        action="append",
+        metavar="PATH",
+        help="Package of extension modules to load. Use of this option is not "
+        "generally secure.",
+    )
 
     if multiprocess:
         parser.add_argument(
@@ -110,6 +126,23 @@ def handle_standard_args(args, multiprocess=True):
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
+
+    if args.ext:
+        for e in args.ext:
+            basepath, extpath = os.path.split(e)
+            if not basepath:
+                basepath = "."
+            sys.path.insert(0, os.path.abspath(basepath))
+            try:
+                importlib.import_module(extpath)
+            except ImportError as err:
+                logger.exception("ImportError")
+                raise
+            finally:
+                del sys.path[0]
+        inject_arg("imported_extensions", args.ext)
+    else:
+        inject_arg("imported_extensions", ())
 
     # settings_file_name should be cached or else it gets squashed by config.py
     if args.settings_file:
@@ -183,12 +216,23 @@ def run(args):
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+        # register abm steps and other abm-specific injectables
+        from activitysim import abm  # noqa: F401
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
+
+    if config.setting("memory_profile", False) and not config.setting(
+        "multiprocess", False
+    ):
+        # Memory sidecar is only useful for single process runs
+        # multiprocess runs log memory usage without blocking in the controlling process.
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        from ..core.memory_sidecar import MemorySidecar
+
+        memory_sidecar_process = MemorySidecar(mem_prof_log)
+    else:
+        memory_sidecar_process = None
 
     # legacy support for run_list setting nested 'models' and 'resume_after' settings
     if config.setting("run_list"):
@@ -281,7 +325,11 @@ def run(args):
         else:
             logger.info("run single process simulation")
 
-            pipeline.run(models=config.setting("models"), resume_after=resume_after)
+            pipeline.run(
+                models=config.setting("models"),
+                resume_after=resume_after,
+                memory_sidecar_process=memory_sidecar_process,
+            )
 
             if config.setting("cleanup_pipeline_after_run", False):
                 pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
@@ -300,12 +348,15 @@ def run(args):
 
     tracing.print_elapsed_time("all models", t0)
 
+    if memory_sidecar_process:
+        memory_sidecar_process.stop()
+
     return 0
 
 
 if __name__ == "__main__":
 
-    from activitysim import abm  # register injectables
+    from activitysim import abm  # register injectables  # noqa: F401
 
     parser = argparse.ArgumentParser()
     add_run_args(parser)

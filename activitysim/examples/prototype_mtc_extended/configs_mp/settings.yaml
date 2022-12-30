@@ -20,7 +20,7 @@ fail_fast: True
 # - ------------------------- dev config
 multiprocess: True
 strict: False
-use_shadow_pricing: False
+use_shadow_pricing: True
 
 households_sample_size: 0
 chunk_size: 0
@@ -35,7 +35,7 @@ want_dest_choice_sample_tables: False
 #write_skim_cache: True
 
 # - tracing
-#trace_hh_id:
+trace_hh_id:
 trace_od:
 
 # to resume after last successful checkpoint, specify resume_after: _

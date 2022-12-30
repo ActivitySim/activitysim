@@ -1,14 +1,10 @@
-import itertools
 import logging
 import os
-import re
 from pathlib import Path
-from typing import Mapping
 
-import numpy as np
 import pandas as pd
 import yaml
-from larch import DataFrames, Model, P, X
+from larch import DataFrames, Model
 from larch.log import logger_name
 from larch.util import Dict
 
@@ -125,7 +121,23 @@ def unavail(model, x_ca):
 def nonmand_tour_freq_model(
     edb_directory="output/estimation_data_bundle/{name}/",
     return_data=False,
+    condense_parameters=False,
 ):
+    """
+    Prepare nonmandatory tour frequency models for estimation.
+
+    Parameters
+    ----------
+    edb_directory : str
+        Location of estimation data bundle for these models.
+    return_data : bool, default False
+        Whether to return the data used in preparing this function.
+        If returned, data is a dict in the second return value.
+    condense_parameters : bool, default False
+        Apply a transformation whereby all parameters in each model that
+        have the same initial value are converted to have the same name
+        (and thus to be the same parameter, used in various places).
+    """
     data = interaction_simulate_data(
         name="non_mandatory_tour_frequency",
         edb_directory=edb_directory,
@@ -133,9 +145,10 @@ def nonmand_tour_freq_model(
 
     settings = data.settings
     segment_names = [s["NAME"] for s in settings["SPEC_SEGMENTS"]]
-    data.relabel_coef = link_same_value_coefficients(
-        segment_names, data.coefficients, data.spec
-    )
+    if condense_parameters:
+        data.relabel_coef = link_same_value_coefficients(
+            segment_names, data.coefficients, data.spec
+        )
     spec = data.spec
     coefficients = data.coefficients
     chooser_data = data.chooser_data

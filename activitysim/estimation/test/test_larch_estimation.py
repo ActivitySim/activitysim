@@ -279,12 +279,24 @@ def test_tour_and_subtour_mode_choice(est_data, num_regression, dataframe_regres
 def test_nonmand_tour_freq(est_data, num_regression, dataframe_regression):
     from activitysim.estimation.larch.nonmand_tour_freq import nonmand_tour_freq_model
 
-    m = nonmand_tour_freq_model()
+    m = nonmand_tour_freq_model(condense_parameters=True)
     loglike_prior = {}
+    expected_n_params = {
+        "PTYPE_FULL": 72,
+        "PTYPE_PART": 51,
+        "PTYPE_UNIVERSITY": 70,
+        "PTYPE_NONWORK": 77,
+        "PTYPE_RETIRED": 53,
+        "PTYPE_DRIVING": 43,
+        "PTYPE_SCHOOL": 34,
+        "PTYPE_PRESCHOOL": 25,
+    }
     for segment_name in m:
         m[segment_name].load_data()
         m[segment_name].doctor(repair_ch_av="-")
         loglike_prior[segment_name] = m[segment_name].loglike()
+        assert len(m[segment_name].pf) == expected_n_params[segment_name]
+        assert len(m[segment_name].utility_ca) == 210
     r = {}
     for segment_name in m:
         r[segment_name] = m[segment_name].maximize_loglike(
@@ -297,3 +309,14 @@ def test_nonmand_tour_freq(est_data, num_regression, dataframe_regression):
         basename="test_nonmand_tour_freq_loglike",
     )
     _regression_check(dataframe_regression, pd.concat([x.pf for x in m.values()]))
+
+
+def test_nonmand_tour_freq_not_condensed(
+    est_data, num_regression, dataframe_regression
+):
+    from activitysim.estimation.larch.nonmand_tour_freq import nonmand_tour_freq_model
+
+    m = nonmand_tour_freq_model(condense_parameters=False)
+    for segment_name in m:
+        assert len(m[segment_name].pf) == 210
+        assert len(m[segment_name].utility_ca) == 210

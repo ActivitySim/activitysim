@@ -11,9 +11,8 @@ chunk_size: 0
 
 # - shadow pricing global switches
 # turn shadow_pricing on and off for all models (e.g. school and work)
-# shadow pricing is deprecated for less than full samples
 # see shadow_pricing.yaml for additional settings
-use_shadow_pricing: False
+use_shadow_pricing: True
 
 # turn writing of sample_tables on and off for all models
 # (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)

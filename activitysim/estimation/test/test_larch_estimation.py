@@ -279,7 +279,7 @@ def test_tour_and_subtour_mode_choice(est_data, num_regression, dataframe_regres
 def test_nonmand_tour_freq(est_data, num_regression, dataframe_regression):
     from activitysim.estimation.larch.nonmand_tour_freq import nonmand_tour_freq_model
 
-    m = nonmand_tour_freq_model()
+    m = nonmand_tour_freq_model(condense_parameters=True)
     loglike_prior = {}
     expected_n_params = {
         "PTYPE_FULL": 72,

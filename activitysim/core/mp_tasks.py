@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+import importlib
 import logging
 import multiprocessing
 import os
@@ -733,14 +734,27 @@ def setup_injectables_and_logging(injectables, locutor=True):
     # other callers (e.g. piopulationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+        # register abm steps and other abm-specific injectables
+        from activitysim import abm  # noqa: F401
 
     try:
 
         for k, v in injectables.items():
             inject.add_injectable(k, v)
+
+        ext = inject.get_injectable("imported_extensions", default=())
+        for e in ext:
+            basepath, extpath = os.path.split(e)
+            if not basepath:
+                basepath = "."
+            sys.path.insert(0, basepath)
+            try:
+                importlib.import_module(e)
+            except ImportError as err:
+                logger.exception("ImportError")
+                raise
+            finally:
+                del sys.path[0]
 
         inject.add_injectable("is_sub_task", True)
         inject.add_injectable("locutor", locutor)

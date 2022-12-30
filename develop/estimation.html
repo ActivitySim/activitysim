@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Estimation &#8212; ActivitySim 1.1.4.dev103+g58cf20e9</title>
+    <title>Estimation &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -877,7 +877,28 @@ the values are the alternative code numbers.</p>
 </dl>
 </dd></dl>
 
-<span class="target" id="module-activitysim.estimation.larch.location_choice"></span><span class="target" id="module-activitysim.estimation.larch.mode_choice"></span><span class="target" id="module-activitysim.estimation.larch.nonmand_tour_freq"></span><span class="target" id="module-activitysim.estimation.larch.scheduling"></span><dl class="py function">
+<span class="target" id="module-activitysim.estimation.larch.location_choice"></span><span class="target" id="module-activitysim.estimation.larch.mode_choice"></span><span class="target" id="module-activitysim.estimation.larch.nonmand_tour_freq"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model">
+<span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.nonmand_tour_freq.</span></span><span class="sig-name descname"><span class="pre">nonmand_tour_freq_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">edb_directory</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'output/estimation_data_bundle/{name}/'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">condense_parameters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.nonmand_tour_freq.nonmand_tour_freq_model" title="Permalink to this definition">#</a></dt>
+<dd><p>Prepare nonmandatory tour frequency models for estimation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>edb_directory</strong><span class="classifier">str</span></dt><dd><p>Location of estimation data bundle for these models.</p>
+</dd>
+<dt><strong>return_data</strong><span class="classifier">bool, default False</span></dt><dd><p>Whether to return the data used in preparing this function.
+If returned, data is a dict in the second return value.</p>
+</dd>
+<dt><strong>condense_parameters</strong><span class="classifier">bool, default False</span></dt><dd><p>Apply a transformation whereby all parameters in each model that
+have the same initial value are converted to have the same name
+(and thus to be the same parameter, used in various places).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<span class="target" id="module-activitysim.estimation.larch.scheduling"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.estimation.larch.scheduling.construct_availability_ca">
 <span class="sig-prename descclassname"><span class="pre">activitysim.estimation.larch.scheduling.</span></span><span class="sig-name descname"><span class="pre">construct_availability_ca</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chooser_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_codes_to_names</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.estimation.larch.scheduling.construct_availability_ca" title="Permalink to this definition">#</a></dt>
 <dd><p>Construct an availability dataframe based on -999 parameters.</p>
@@ -936,7 +957,7 @@ the values are the alternative code numbers.</p>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev103+g58cf20e9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
 </p>
     </div>
     

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Core Components &#8212; ActivitySim 1.1.4.dev94+g1e8164b4</title>
+    <title>Core Components &#8212; ActivitySim 1.1.4.dev103+g58cf20e9</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -2454,7 +2454,7 @@ computed or added columns.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.pipeline.run">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.pipeline.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.run" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.pipeline.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">models</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resume_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_sidecar_process</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.pipeline.run" title="Permalink to this definition">#</a></dt>
 <dd><p>run the specified list of models, optionally loading checkpoint and resuming after specified
 checkpoint.</p>
 <p>Since we use model_name as checkpoint name, the same model may not be run more than once.</p>
@@ -2467,6 +2467,8 @@ the same list of models, but specify a resume_after point if desired.</p>
 <dt><strong>models</strong><span class="classifier">[str]</span></dt><dd><p>list of model_names</p>
 </dd>
 <dt><strong>resume_after</strong><span class="classifier">str or None</span></dt><dd><p>model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run</p>
+</dd>
+<dt><strong>memory_sidecar_process</strong><span class="classifier">MemorySidecar, optional</span></dt><dd><p>Subprocess that monitors memory usage</p>
 </dd>
 <dt><strong>returns:</strong></dt><dd><p>nothing, but with pipeline open</p>
 </dd>
@@ -5771,7 +5773,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev94+g1e8164b4, documentation last updated Dec 21, 2022.<br/>
+ActivitySim 1.1.4.dev103+g58cf20e9, documentation last updated Dec 30, 2022.<br/>
 </p>
     </div>
     

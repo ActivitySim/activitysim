@@ -1,0 +1,63 @@
+name: Build installer
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Build installer for version (e.g. "1.0.4")'
+        required: true
+        type: string
+      release:
+        description: 'Upload as release artifact'
+        required: true
+        type: boolean
+
+jobs:
+  build:
+    name: ActivitySim-${{ matrix.OS_NAME }}-${{ matrix.ARCH }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            ARCH: x86_64
+            TARGET_PLATFORM: win-64
+            OS_NAME: "Windows"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - uses: conda-incubator/setup-miniconda@35d1405e78aa3f784fe3ce9a2eb378d5eeb62169
+      with:
+        miniconda-version: "latest"
+      if: contains(matrix.OS_NAME, 'Windows')
+
+    - name: Build installer
+      env:
+        ARCH: ${{ matrix.ARCH }}
+        OS_NAME: ${{ matrix.OS_NAME }}
+        TARGET_PLATFORM: ${{ matrix.TARGET_PLATFORM }}
+      run: |
+        export ACTIVITYSIM_VERSION=${{ inputs.version }}
+        export EXT=exe
+        source /c/Miniconda3/Scripts/activate;
+        source other_resources/installer/build_win.sh;
+        ls -alh build
+      shell: bash
+
+    - name: Upload installer to Github artifact
+      uses: actions/upload-artifact@v3
+      with:
+        path: build/Activitysim-${{ inputs.version }}-${{ matrix.OS_NAME }}-${{ matrix.ARCH }}*
+        name: Activitysim-${{ inputs.version }}-${{ matrix.OS_NAME }}-${{ matrix.ARCH }}
+
+    - name: Upload installer to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: build/Activitysim*
+        tag: v${{ inputs.version }}
+        overwrite: true
+        file_glob: true
+      if: inputs.release

@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+import importlib
 import logging
 import multiprocessing
 import os
@@ -733,14 +734,27 @@ def setup_injectables_and_logging(injectables, locutor=True):
     # other callers (e.g. piopulationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+        # register abm steps and other abm-specific injectables
+        from activitysim import abm  # noqa: F401
 
     try:
 
         for k, v in injectables.items():
             inject.add_injectable(k, v)
+
+        ext = inject.get_injectable("imported_extensions", default=())
+        for e in ext:
+            basepath, extpath = os.path.split(e)
+            if not basepath:
+                basepath = "."
+            sys.path.insert(0, basepath)
+            try:
+                importlib.import_module(e)
+            except ImportError as err:
+                logger.exception("ImportError")
+                raise
+            finally:
+                del sys.path[0]
 
         inject.add_injectable("is_sub_task", True)
         inject.add_injectable("locutor", locutor)
@@ -1054,6 +1068,33 @@ def allocate_shared_shadow_pricing_buffers():
         shadow_pricing_buffers = {}
 
     return shadow_pricing_buffers
+
+
+def allocate_shared_shadow_pricing_buffers_choice():
+    """
+    This is called by the main process to allocate memory buffer to share with subprocs
+
+    Returns
+    -------
+        multiprocessing.RawArray
+    """
+
+    info("allocate_shared_shadow_pricing_buffers_choice")
+
+    shadow_pricing_choice_info = inject.get_injectable(
+        "shadow_pricing_choice_info", None
+    )
+
+    if shadow_pricing_choice_info is not None:
+        from activitysim.abm.tables import shadow_pricing
+
+        shadow_pricing_buffers_choice = (
+            shadow_pricing.buffers_for_shadow_pricing_choice(shadow_pricing_choice_info)
+        )
+    else:
+        shadow_pricing_buffers_choice = {}
+
+    return shadow_pricing_buffers_choice
 
 
 def run_sub_simulations(
@@ -1400,6 +1441,12 @@ def run_multiprocess(injectables):
     shared_data_buffers.update(allocate_shared_shadow_pricing_buffers())
     t0 = tracing.print_elapsed_time("allocate shared shadow_pricing buffer", t0)
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
+
+    # combine shared_shadow_pricing_buffers to pool choices across all processes
+    t0 = tracing.print_elapsed_time()
+    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice())
+    t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
+    mem.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
 
     # - mp_setup_skims
     if len(shared_data_buffers) > 0:

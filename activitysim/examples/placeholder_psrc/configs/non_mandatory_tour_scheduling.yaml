@@ -1,7 +1,6 @@
 
 SPEC: tour_scheduling_nonmandatory.csv
 COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
-sharrow_skip: true
 
 LOGIT_TYPE: MNL
 

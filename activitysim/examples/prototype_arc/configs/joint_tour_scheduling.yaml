@@ -2,6 +2,7 @@ LOGIT_TYPE: MNL
 
 SPEC: tour_scheduling_joint.csv
 COEFFICIENTS: tour_scheduling_joint_coeffs.csv
+sharrow_skip: True
 
 preprocessor:
   SPEC: joint_tour_scheduling_annotate_tours_preprocessor

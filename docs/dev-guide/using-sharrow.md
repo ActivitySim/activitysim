@@ -17,34 +17,6 @@ multiprocessing mode after all the compilation for all model components is
 complete.
 ```
 
-## Getting the Code
-
-We'll assume that activitysim and sharrow have been installed in editable
-mode, per the [developer install instructions](install.md).
-
-The code to implement `sharrow` in `activitysim` is in the
-[sharrow-black](https://github.com/camsys/activitysim/tree/sharrow-black) branch
-of the [camsys/activitysim](https://github.com/camsys/activitysim) repository.
-If you have checked out from this repository directly, you can just switch to
-the correct branch:
-
-```sh
-cd activitysim
-git switch sharrow-black
-cd ..
-```
-
-If your local Git repository is configured with only the main ActivitySim
-parent repo as its remote, you can find the code in
-[PR #579](https://github.com/ActivitySim/activitysim/pull/579), accessible on the
-command line using the `gh` tool:
-
-```sh
-cd activitysim
-gh pr checkout 579  # use `gh auth login` first if needed
-cd ..
-```
-
 ## Model Design Requirements
 
 Activating the `sharrow` optimizations also requires using the new

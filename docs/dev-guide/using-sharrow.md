@@ -211,6 +211,11 @@ such string operations won't appear in utility specifications at all, or if they
 do appear, they are executed only once and stored in a temporary value for re-use
 as needed.
 
+For models with utility expressions that include a lot of string comparisons,
+(e.g. because they are built for the legacy `pandas.eval` interpreter and have not
+been updated) sharrow can be disabled by setting `sharrow_skip: true` in the
+component's configuration yaml file.
+
 ### Limited Tracing and Estimation Mode Capabilities
 
 When running sharrow-optimized code, large parts of certain calculations are routed

@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import argparse
+import importlib
 import logging
 import os
 import sys
@@ -134,8 +135,6 @@ def handle_standard_args(args, multiprocess=True):
         os.chdir(args.working_dir)
 
     if args.ext:
-        import importlib
-
         for e in args.ext:
             basepath, extpath = os.path.split(e)
             if not basepath:

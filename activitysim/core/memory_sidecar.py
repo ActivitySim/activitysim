@@ -1,7 +1,7 @@
 import datetime
 import os
 import time
-from multiprocessing import Pipe, Process, Queue
+from multiprocessing import Pipe, Process
 
 import psutil
 

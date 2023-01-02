@@ -73,6 +73,7 @@ _test_est
 *_local.*
 
 **/__sharrowcache__
+**/skims.zarr
 **/output/
 **/_generated_version.py
 docs/**/_generated

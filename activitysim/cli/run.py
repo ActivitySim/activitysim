@@ -72,6 +72,13 @@ def add_run_args(parser, multiprocess=True):
         "--households_sample_size", type=int, metavar="N", help="households sample size"
     )
     parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Do not limit process to one thread. "
+        "Can make single process runs faster, "
+        "but will cause thrashing on MP runs.",
+    )
+    parser.add_argument(
         "-e",
         "--ext",
         type=str,
@@ -103,7 +110,7 @@ def validate_injectable(name):
         # injectable is missing, meaning is hasn't been explicitly set
         # and defaults cannot be found.
         sys.exit(
-            "Error: please specify either a --working_dir "
+            f"Error({name}): please specify either a --working_dir "
             "containing 'configs', 'data', and 'output' folders "
             "or all three of --config, --data, and --output"
         )
@@ -137,6 +144,9 @@ def handle_standard_args(args, multiprocess=True):
                 importlib.import_module(extpath)
             except ImportError as err:
                 logger.exception("ImportError")
+                raise
+            except Exception as err:
+                logger.exception(f"Error {err}")
                 raise
             finally:
                 del sys.path[0]
@@ -192,8 +202,16 @@ def cleanup_output_files():
 
     tracing.delete_trace_files()
 
+    csv_ignore = []
+    if config.setting("memory_profile", False):
+        # memory profiling is opened potentially before `cleanup_output_files`
+        # is called, but we want to leave any (newly created) memory profiling
+        # log files that may have just been created.
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        csv_ignore.append(mem_prof_log)
+
     tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
+    tracing.delete_output_files("csv", ignore=csv_ignore)
     tracing.delete_output_files("txt")
     tracing.delete_output_files("yaml")
     tracing.delete_output_files("prof")
@@ -221,6 +239,9 @@ def run(args):
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
+
+    if config.setting("rotate_logs", False):
+        config.rotate_log_directory()
 
     if config.setting("memory_profile", False) and not config.setting(
         "multiprocess", False
@@ -282,7 +303,12 @@ def run(args):
     # OMP_NUM_THREADS: openmp
     # OPENBLAS_NUM_THREADS: openblas
     # MKL_NUM_THREADS: mkl
-    for env in ["MKL_NUM_THREADS", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS"]:
+    for env in [
+        "MKL_NUM_THREADS",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMBA_NUM_THREADS",
+    ]:
         logger.info(f"ENV {env}: {os.getenv(env)}")
 
     np_info_keys = [
@@ -346,6 +372,10 @@ def run(args):
     chunk.consolidate_logs()
     mem.consolidate_logs()
 
+    from ..core.flow import TimeLogger
+
+    TimeLogger.aggregate_summary(logger)
+
     tracing.print_elapsed_time("all models", t0)
 
     if memory_sidecar_process:
@@ -361,6 +391,4 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     add_run_args(parser)
     args = parser.parse_args()
-
-    parser.parse_args(["--sum", "7", "-1", "42"])
     sys.exit(run(args))

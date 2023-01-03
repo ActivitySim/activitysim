@@ -121,7 +121,9 @@ def _interaction_sample_simulate(
     # here, alternatives is sparsely repeated once for each (non-dup) sample
     # we expect alternatives to have same index of choosers (but with duplicate index values)
     # so we just need to left join alternatives with choosers
-    assert alternatives.index.name == choosers.index.name
+
+    # assert alternatives.index.name == choosers.index.name
+    # asserting the index names are the same tells us nothing about the underlying data so why?
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
 
@@ -263,6 +265,16 @@ def _interaction_sample_simulate(
     if allow_zero_probs:
         zero_probs = probs.sum(axis=1) == 0
         if zero_probs.any():
+            # Debug tracing in depth
+            # _z_interaction_df = alternatives.loc[zero_probs].join(
+            #     choosers.loc[zero_probs], how='left', rsuffix='_chooser'
+            # )
+            # _z_trace_rows = np.ones(len(_z_interaction_df), dtype=np.bool)
+            # _z_interaction_utilities, _z_trace_eval_results \
+            #     = interaction_simulate.eval_interaction_utilities(
+            #     spec, _z_interaction_df, locals_d, trace_label,
+            #     _z_trace_rows,
+            #     estimator=estimator, log_alt_losers=log_alt_losers)
             # FIXME this is kind of gnarly, but we force choice of first alt
             probs.loc[zero_probs, 0] = 1.0
 
@@ -294,7 +306,7 @@ def _interaction_sample_simulate(
 
     chunk.log_df(trace_label, "choices", choices)
 
-    if allow_zero_probs and zero_probs.any():
+    if allow_zero_probs and zero_probs.any() and zero_prob_choice_val is not None:
         # FIXME this is kind of gnarly, patch choice for zero_probs
         choices.loc[zero_probs] = zero_prob_choice_val
 

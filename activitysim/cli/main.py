@@ -2,18 +2,9 @@ import os
 import sys
 
 
-def main():
+def prog():
 
-    # set all these before we import numpy or any other math library
-    if len(sys.argv) > 1 and sys.argv[1] == "benchmark":
-        os.environ["MKL_NUM_THREADS"] = "1"
-        os.environ["OMP_NUM_THREADS"] = "1"
-        os.environ["OPENBLAS_NUM_THREADS"] = "1"
-        os.environ["NUMBA_NUM_THREADS"] = "1"
-        os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-        os.environ["NUMEXPR_NUM_THREADS"] = "1"
-
-    from activitysim import __doc__, __version__
+    from activitysim import __doc__, __version__, workflows
     from activitysim.cli import CLI, benchmark, create, run
 
     asim = CLI(version=__version__, description=__doc__)
@@ -35,4 +26,48 @@ def main():
         exec_func=benchmark.benchmark,
         description=benchmark.benchmark.__doc__,
     )
-    sys.exit(asim.execute())
+    asim.add_subcommand(
+        name="workflow",
+        args_func=lambda x: None,
+        exec_func=workflows.main,
+        description=workflows.main.__doc__,
+    )
+    return asim
+
+
+def main():
+
+    # set all these before we import numpy or any other math library
+    if len(sys.argv) > 1 and sys.argv[1] == "benchmark":
+        os.environ["MKL_NUM_THREADS"] = "1"
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+        os.environ["NUMBA_NUM_THREADS"] = "1"
+        os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+        os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+    asim = prog()
+    try:
+        if len(sys.argv) >= 2 and sys.argv[1] in ("workflow", "workflow_"):
+            from activitysim import workflows
+
+            if sys.argv[1] == "workflow_":
+                result = workflows.main(sys.argv[2:])
+                # exit silently on PipelineNotFoundError
+                if result == 254:
+                    result = 0
+                sys.exit(result)
+            else:
+                sys.exit(workflows.main(sys.argv[2:]))
+        else:
+            sys.exit(asim.execute())
+    except Exception:
+        # if we are in the debugger, re-raise the error instead of exiting
+        if sys.gettrace() is not None:
+            raise
+        sys.exit(99)
+
+
+def parser():
+    asim = prog()
+    return asim.parser

@@ -77,6 +77,14 @@ def settings_file_name():
 def settings(settings_file_name):
     settings_dict = read_settings_file(settings_file_name, mandatory=True)
 
+    # basic settings validation for sharrow
+    sharrow_enabled = settings_dict.get("sharrow", False)
+    recode_pipeline_columns = settings_dict.get("recode_pipeline_columns", True)
+    if sharrow_enabled and not recode_pipeline_columns:
+        warnings.warn(
+            "use of `sharrow` setting generally requires `recode_pipeline_columns`"
+        )
+
     return settings_dict
 
 
@@ -107,6 +115,13 @@ def get_cache_dir():
     if not os.path.isdir(cache_dir):
         os.mkdir(cache_dir)
     assert os.path.isdir(cache_dir)
+
+    # create a git-ignore in the cache dir if it does not exist.
+    # this helps prevent accidentally committing cache contents to git
+    gitignore = os.path.join(cache_dir, ".gitignore")
+    if not os.path.exists(gitignore):
+        with open(gitignore, "wt") as f:
+            f.write("/*")
 
     return cache_dir
 
@@ -248,18 +263,19 @@ def cascading_input_file_path(
     dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
 
     file_path = None
-    for dir in dir_paths:
-        p = os.path.join(dir, file_name)
-        if os.path.isfile(p):
-            file_path = p
-            break
+    if file_name is not None:
+        for dir in dir_paths:
+            p = os.path.join(dir, file_name)
+            if os.path.isfile(p):
+                file_path = p
+                break
 
-        if allow_glob and len(glob.glob(p)) > 0:
-            file_path = p
-            break
+            if allow_glob and len(glob.glob(p)) > 0:
+                file_path = p
+                break
 
     if mandatory and not file_path:
-        raise RuntimeError(
+        raise FileNotFoundError(
             "file_path %s: file '%s' not in %s"
             % (dir_list_injectable_name, file_name, dir_paths)
         )
@@ -337,6 +353,20 @@ def output_file_path(file_name):
     return build_output_file_path(file_name, use_prefix=prefix)
 
 
+def profiling_file_path(file_name):
+
+    profile_dir = inject.get_injectable("profile_dir", None)
+    if profile_dir is None:
+        output_dir = inject.get_injectable("output_dir")
+        profile_dir = os.path.join(
+            output_dir, time.strftime("profiling--%Y-%m-%d--%H-%M-%S")
+        )
+        os.makedirs(profile_dir, exist_ok=True)
+        inject.add_injectable("profile_dir", profile_dir)
+
+    return os.path.join(profile_dir, file_name)
+
+
 def trace_file_path(file_name):
 
     output_dir = inject.get_injectable("output_dir")
@@ -397,6 +427,31 @@ def open_log_file(file_name, mode, header=None, prefix=False):
         print(header, file=f)
 
     return f
+
+
+def rotate_log_directory():
+
+    output_dir = inject.get_injectable("output_dir")
+    log_dir = os.path.join(output_dir, "log")
+    if not os.path.exists(log_dir):
+        return
+
+    from datetime import datetime
+    from stat import ST_CTIME
+
+    old_log_time = os.stat(log_dir)[ST_CTIME]
+    rotate_name = os.path.join(
+        output_dir,
+        datetime.fromtimestamp(old_log_time).strftime("log--%Y-%m-%d--%H-%M-%S"),
+    )
+    try:
+        os.rename(log_dir, rotate_name)
+    except Exception as err:
+        # if Windows fights us due to permissions or whatever,
+        print(f"unable to rotate log file, {err!r}")
+    else:
+        # on successful rotate, create new empty log directory
+        os.makedirs(log_dir)
 
 
 def pipeline_file_path(file_name):
@@ -504,7 +559,7 @@ def read_settings_file(
                 # essentially the current settings firle is an alias for the included file
                 if len(s) > 1:
                     logger.error(
-                        f"'include_settings' must appear alone in settings file."
+                        "'include_settings' must appear alone in settings file."
                     )
                     additional_settings = list(
                         set(s.keys()).difference({"include_settings"})
@@ -513,7 +568,7 @@ def read_settings_file(
                         f"Unexpected additional settings: {additional_settings}"
                     )
                     raise RuntimeError(
-                        f"'include_settings' must appear alone in settings file."
+                        "'include_settings' must appear alone in settings file."
                     )
 
                 logger.debug(
@@ -626,6 +681,14 @@ def filter_warnings():
         category=DeprecationWarning,
         module="tables",
         message="`np.object` is a deprecated alias",
+    )
+
+    # Numba triggers a DeprecationWarning from numpy about np.MachAr
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        module="numba",
+        message=".np.MachAr. is deprecated",
     )
 
     # beginning pandas version 1.3, various places emit a PerformanceWarning that is

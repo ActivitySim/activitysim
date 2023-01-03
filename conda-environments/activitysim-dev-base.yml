@@ -1,0 +1,72 @@
+# Environment for Advanced Development
+#  This is a set of recommended dependencies for ActivitySim developers.
+#  It includes a variety of tools and packages not necessary for actually
+#  running models, but useful for writing code, running tests and
+#  experiments, etc.
+#
+#  This file does not install ActivitySim or Sharrow, you must do that yourself
+#  (so that you can install a preferred branch or fork)
+#
+#  usage: $ mamba env create --file=activitysim-dev-base.yml -n ASIM-DEV
+
+channels:
+- conda-forge
+- nodefaults
+dependencies:
+- python=3.9
+- pip
+- asv  # for benchmarking
+- black
+- bump2version  # for making a release
+- coveralls
+- cytoolz >= 0.8.1
+- dask
+- descartes
+- filelock
+- fsspec
+- geopandas
+- gh
+- git
+- ipykernel  # so this env will appear in jupyter as a selection
+- isort
+- jupyterlab
+- larch >= 5.5.8
+- matplotlib
+- myst-parser  # allows markdown in sphinx
+- nbconvert
+- nbformat
+- numba >= 0.55.2
+- numexpr
+- numpy >= 1.16.1,<=1.21
+- numpydoc
+- openmatrix >= 0.3.4.1
+- orca >= 1.6
+- pandas >= 1.1.0
+- pre-commit
+- psutil >= 4.1
+- pyarrow >= 2.0
+- pycodestyle
+- pydantic
+- pydata-sphinx-theme
+- pyinstrument
+- pypyr
+- pytables >=3.5.1,<3.7
+- pytest
+- pytest-cov
+- pytest-regressions
+- pyyaml >= 5.1
+- requests >= 2.7
+- rich
+- ruby  # required for benchmarking pre-commit hooks
+- setuptools_scm
+- simwrapper > 1.7
+- snakeviz  # for profiling
+- sphinx
+- sphinx_rtd_theme
+- sphinx-argparse
+- xarray >= 0.21
+- xmle
+- zarr
+
+- pip:
+  - autodoc_pydantic

@@ -2,21 +2,13 @@
 # See full license in LICENSE.txt.
 import logging
 
-import numpy as np
-
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import expressions
-
 from activitysim.abm.models.util import estimation
+from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
 
 logger = logging.getLogger("activitysim")
 
 
-@inject.step()
+@inject.custom_step()
 def transit_pass_subsidy(persons_merged, persons, chunk_size, trace_hh_id):
     """
     Transit pass subsidy model.

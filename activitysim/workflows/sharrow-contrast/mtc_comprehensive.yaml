@@ -1,0 +1,113 @@
+#
+#  mtc_comprehensive
+#
+#   This workflow runs the Prototype MTC model using full skims (1454 zones),
+#   running it multiple times in different configurations (single process,
+#   single process with zarr compression, multi-process).
+#
+
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      workspace: workspace
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: True
+      reference_asim_version: "1.1.3"
+      tag:
+      compile_n_households: 2000
+      main_n_households_singleprocess: 100000
+      main_n_households_multiprocess: 0
+      multiprocess: -4
+      resume_after:
+
+- description: Ensure integer types for numbers
+  name: activitysim.workflows.steps.py
+  in:
+    label: Ensure integer types for numbers
+    py: |
+      save(
+        compile_n_households=int(compile_n_households),
+        main_n_households_singleprocess=int(main_n_households_singleprocess),
+        main_n_households_multiprocess=int(main_n_households_multiprocess),
+        multiprocess=int(multiprocess),
+      )
+
+- description: Generate a tag based on date if tag is not given
+  name: activitysim.workflows.steps.py
+  in:
+    label: Generate tag
+    py: |
+      import time
+      if tag is None:
+        tag = time.strftime("%Y-%m-%d-Comprehensive")
+      save(tag=tag)
+
+- name: activitysim.workflows.steps.pype
+  description: Prototype MTC Model, Single Process, Zarr Disabled
+  skip: false
+  in:
+    pype:
+      name: sharrow-contrast/mtc_full
+      args:
+        workflow_name: sharrow-contrast/mtc_full (zarr disabled)
+        workspace: '{workspace}'
+        create: '{create}'
+        compile: '{compile}'
+        sharrow: '{sharrow}'
+        legacy: '{legacy}'
+        reference: '{reference}'
+        disable_zarr: True
+        memory_profile: True
+        reference_asim_version: "{reference_asim_version}"
+        tag: '{tag}-SingleProcess'
+        resume_after: '{resume_after}'
+        compile_n_households: '{compile_n_households}'
+        main_n_households: '{main_n_households_singleprocess}'
+
+- name: activitysim.workflows.steps.pype
+  description: Prototype MTC Model, Single Process
+  skip: false
+  in:
+    pype:
+      name: sharrow-contrast/mtc_full
+      args:
+        workflow_name: sharrow-contrast/mtc_full (zarr enabled)
+        workspace: '{workspace}'
+        create: False
+        compile: '{compile}'
+        sharrow: '{sharrow}'
+        legacy: '{legacy}'
+        reference: False
+        memory_profile: True
+        reference_asim_version: "{reference_asim_version}"
+        tag: '{tag}-SingleProcess-Zarr'
+        resume_after: '{resume_after}'
+        compile_n_households: '{compile_n_households}'
+        main_n_households: '{main_n_households_singleprocess}'
+
+- name: activitysim.workflows.steps.pype
+  description: Prototype MTC Model, Multiple Processes
+  skip: false
+  in:
+    pype:
+      name: sharrow-contrast/mtc_mp
+      args:
+        workspace: '{workspace}'
+        create: '{create}'
+        compile: '{compile}'
+        sharrow: '{sharrow}'
+        legacy: '{legacy}'
+        reference: '{reference}'
+        reference_asim_version: "{reference_asim_version}"
+        tag: '{tag}-MultiProcess'
+        resume_after: '{resume_after}'
+        multiprocess: '{multiprocess}'
+        compile_n_households: '{compile_n_households}'
+        main_n_households: '{main_n_households_multiprocess}'

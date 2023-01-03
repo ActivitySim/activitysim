@@ -6,7 +6,7 @@ Discretionary tour-ASC for Legtime = 0,@(df['main_leg_duration'] == 0) & (df['to
 "Discretionary tour,ASC for Legtime = 3",@(df['main_leg_duration'] == 3) & (df['tour_type']=='othdiscr'),-1.0313
 "Discretionary tour,ASC for Legtime = 4",@(df['main_leg_duration'] == 4) & (df['tour_type']=='othdiscr'),-0.46489
 Discretionary tour - Main Leg time,"@np.where(df['tour_type']=='othdiscr', df['main_leg_duration'], 0)",0.060382
-Eatout tour - Shift,"@np.where(df['tour_type']=='eatout', np.where(df['main_leg_duration']> 4.5, (df['main_leg_duration'] - 4.5), (4.5 - df['main_leg_duration'])), 0)",-0.7508
+Eatout tour - Shift,"@np.where(df['tour_type']=='eatout', np.absolute(df['main_leg_duration'] - 4.5), 0)",-0.7508
 Eatout tour - Main leg time,"@np.where(df['tour_type']=='eatout', df['main_leg_duration'], 0)",0.53247
 "Maintenance tour,ASC for Legtime = 0",@(df['main_leg_duration'] == 0) & (df['tour_type']=='othmaint'),-3.6079
 "Maintenance tour,ASC for Legtime = 1",@(df['main_leg_duration'] == 1) & (df['tour_type']=='othmaint'),-1.9376
@@ -78,8 +78,8 @@ Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='shopping'),-2.0
 Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='shopping'),-1.0205
 Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='shopping'),-0.0582
 Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='shopping'),0.5533
-Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='eatout'),-100
-Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='eatout'),-100
+Calibration,@(df['main_leg_duration'] == 0) & (df['tour_type']=='eatout'),-50
+Calibration,@(df['main_leg_duration'] == 1) & (df['tour_type']=='eatout'),-50
 Calibration,@(df['main_leg_duration'] == 2) & (df['tour_type']=='eatout'),-6.8372
 Calibration,@(df['main_leg_duration'] == 3) & (df['tour_type']=='eatout'),-0.3319
 Calibration,@(df['main_leg_duration'] == 4) & (df['tour_type']=='eatout'),0.8709

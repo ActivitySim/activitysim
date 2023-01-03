@@ -24,6 +24,18 @@ logging:
       handlers: [console, logfile]
       propagate: false
 
+    filelock:
+      level: WARN
+
+    sharrow:
+      level: INFO
+
+    blib2to3:
+      level: WARN
+
+    black:
+      level: WARN
+
   handlers:
 
     logfile:

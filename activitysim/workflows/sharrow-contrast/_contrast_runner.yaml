@@ -1,0 +1,708 @@
+# activitysim workflow example_runner example_name=prototype_mtc
+
+context_parser: pypyr.parser.keyvaluepairs
+
+on_failure:
+- name: activitysim.workflows.steps.py
+  in:
+    py: |
+      import time
+      print("FAILURE", time.strftime("%Y-%m-%d %I:%M:%S%p"))
+
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: prototype_mtc
+      workflow_name: sharrow-contrast
+      workspace: workspace
+      multiprocess: 0
+      chunk_size: 0
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: False
+      reference_asim_version: "1.1.3"
+      tag:
+      resume_after:
+      fast: False
+      compile_n_households: 1000
+      main_n_households: 100000
+      config_dirs: configs
+      data_dir: data
+      ext_dirs:
+      instrument: False
+      memory_profile: False
+      trace_hh_id:
+      trace_od:
+      chunk_method: hybrid_uss
+      chunk_training_mode: disabled
+      machine_name:
+      disable_zarr: False
+      settings_file: settings.yaml
+      report_skip: []
+      copy_report_to:
+
+- description: Ensure integer types for numbers
+  name: activitysim.workflows.steps.py
+  in:
+    label: Ensure integer types for numbers
+    py: |
+      def int_or_none(i):
+        return int(i) if i is not None else i
+      save(
+        compile_n_households=int_or_none(compile_n_households),
+        main_n_households=int_or_none(main_n_households),
+        multiprocess=int_or_none(multiprocess),
+        chunk_size=int_or_none(chunk_size),
+      )
+
+- name: activitysim.workflows.steps.title
+  in:
+    label: "activitysim workflow {workflow_name}"
+    formatting: bold cyan
+
+- name: activitysim.workflows.steps.py
+  in:
+    label: Make {workspace} directory if it does not exist
+    py: |
+      import os
+      os.makedirs(f"{workspace}", exist_ok=True)
+
+- name: activitysim.workflows.steps.py
+  in:
+    label: Detect if debugging
+    py: |
+      def is_debug():
+          import sys
+          gettrace = getattr(sys, 'gettrace', None)
+          if gettrace is None:
+              return False
+          else:
+              v = gettrace()
+              if v is None:
+                  return False
+              else:
+                  return True
+      should_swallow_errors = not is_debug()
+      save('should_swallow_errors')
+
+- activitysim.workflows.steps.contrast.contrast_setup
+
+- name: activitysim.workflows.steps.create
+  run: '{create}'
+  in:
+    destination: "{workspace}"
+
+- activitysim.workflows.steps.contrast.directory_prep
+
+- name: pypyr.steps.call
+  run: '{compile}'
+  in:
+    call: run-compile
+  swallow: False
+
+- name: pypyr.steps.call
+  run: '{sharrow}'
+  in:
+    call: run-sharrow
+  swallow: '{should_swallow_errors}'
+
+- name: pypyr.steps.call
+  run: '{legacy}'
+  in:
+    call: run-legacy
+  swallow: '{should_swallow_errors}'
+
+- name: pypyr.steps.call
+  run: '{reference}'
+  in:
+    call: run-reference
+  swallow: '{should_swallow_errors}'
+
+- activitysim.workflows.steps.contrast.composite_log
+
+- name: pypyr.steps.call
+  in:
+    call:
+      groups: reporting
+      success: report-save
+      failure: report-save
+  swallow: False
+
+################################################################################
+run-compile:
+  # This step group runs activitysim with a (usually) smaller sample of
+  # household, to generate the compiled numba code for the local machine
+
+- description: write configs_sh_compile
+  name: pypyr.steps.filewriteyaml
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_sh_compile/{settings_file}"
+      payload:
+        inherit_settings: True
+        sharrow: test
+        chunk_training_mode: disabled
+        households_sample_size: '{compile_n_households}'
+        cache_dir: cache_sharrow
+        trace_hh_id: '{trace_hh_id}'
+        trace_od: '{trace_od}'
+        instrument: '{instrument}'
+        disable_zarr: '{disable_zarr}'
+        multiprocess: False
+        recode_pipeline_columns: True
+
+- description: Run activitysim to compile and test sharrow-enabled model
+  name: activitysim.workflows.steps.run_subprocess
+  in:
+    pre_config_dirs: configs_sh_compile
+    output_dir: 'output-{tag}/output-compile'
+    cwd: "{workspace}/{example_name}"
+    label: "{example_name} -- sharrow compile"
+
+
+################################################################################
+run-sharrow:
+
+- description: write configs_sh
+  name: pypyr.steps.filewriteyaml
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_sh/{settings_file}"
+      payload:
+        inherit_settings: True
+        sharrow: require
+        cache_dir: cache_sharrow
+        households_sample_size: '{main_n_households}'
+        trace_hh_id: '{trace_hh_id}'
+        trace_od: '{trace_od}'
+        instrument: '{instrument}'
+        memory_profile: '{memory_profile}'
+        chunk_size: '{chunk_size}'
+        num_processes: '{num_processes}'
+        multiprocess: '{is_multiprocess}'
+        chunk_method: '{chunk_method}'
+        chunk_training_mode: '{chunk_training_mode}'
+        disable_zarr: '{disable_zarr}'
+        recode_pipeline_columns: True
+
+- description: Run activitysim to evaluate sharrow-enabled model
+  name: activitysim.workflows.steps.run_subprocess
+  in:
+    pre_config_dirs: configs_sh
+    output_dir: 'output-{tag}/output-sharrow'
+    cwd: "{workspace}/{example_name}"
+    label: "{example_name} -- sharrow run"
+
+################################################################################
+run-legacy:
+
+- description: write.configs_legacy
+  name: pypyr.steps.filewriteyaml
+  in:
+    fileWriteYaml:
+      path: "{workspace}/{example_name}/configs_legacy/{settings_file}"
+      payload:
+        inherit_settings: True
+        recode_pipeline_columns: False
+        cache_dir: cache_legacy
+        households_sample_size: '{main_n_households}'
+        trace_hh_id: '{trace_hh_id}'
+        trace_od: '{trace_od}'
+        instrument: '{instrument}'
+        memory_profile: '{memory_profile}'
+        chunk_size: '{chunk_size}'
+        num_processes: '{num_processes}'
+        multiprocess: '{is_multiprocess}'
+        chunk_method: '{chunk_method}'
+        chunk_training_mode: '{chunk_training_mode}'
+
+- description: Run activitysim to evaluate legacy model
+  name: activitysim.workflows.steps.run_subprocess
+  in:
+    pre_config_dirs: configs_legacy
+    output_dir: 'output-{tag}/output-legacy'
+    cwd: "{workspace}/{example_name}"
+    label: "{example_name} -- legacy run"
+
+
+################################################################################
+run-reference:
+
+- description: Install a reference environment
+  name: activitysim.workflows.steps.install_env
+  in:
+    label: "{example_name} -- install ref env {reference_asim_version}"
+    env_prefix: "{workspace}/env/asim-ref-{reference_asim_version}"
+    asim_version: '{reference_asim_version}'
+
+- name: activitysim.workflows.steps.py
+  in:
+    label: Identify first config dir
+    py: |
+      if isinstance(config_dirs, str):
+        first_config_dir = config_dirs
+      else:
+        first_config_dir = config_dirs[0]
+      save('first_config_dir')
+
+- description: Copy required reference settings
+  name: activitysim.workflows.steps.copy_files
+  in:
+    source_glob:
+      - "{workspace}/{example_name}/{first_config_dir}/legacy-{reference_asim_version}/*.yaml"
+      - "{workspace}/{example_name}/{first_config_dir}/legacy-{reference_asim_version}/*.csv"
+    dest_dir: "{workspace}/{example_name}/configs_reference"
+
+- name: activitysim.workflows.steps.py
+  in:
+    label: Allow resume_after in ref only if pipeline exists
+    # Older versions of ActivitySim choke on resume_after if pipeline is missing.
+    py: |
+      import os
+      ref_pipeline = f"{workspace}/{example_name}/output-{tag}/output-reference/pipeline.h5"
+      if os.path.exists(ref_pipeline):
+        resume_after_ref = resume_after
+      else:
+        resume_after_ref = None
+      save('resume_after_ref')
+
+- description: write.configs_reference
+  name: activitysim.workflows.steps.update_yaml
+  in:
+    updateYaml:
+      path: "{workspace}/{example_name}/configs_reference/{settings_file}"
+      payload:
+        inherit_settings: True
+        households_sample_size: '{main_n_households}'
+        trace_hh_id: '{trace_hh_id}'
+        trace_od: '{trace_od}'
+        resume_after: '{resume_after_ref}'
+        chunk_size: '{chunk_size}'
+        num_processes: '{num_processes}'
+        multiprocess: '{is_multiprocess}'
+        chunk_method: '{chunk_method}'
+        chunk_training_mode: '{chunk_training_mode}'
+
+- description: Run activitysim to evaluate reference model
+  name: activitysim.workflows.steps.run_subprocess
+  in:
+    resume_after:
+    pre_config_dirs: configs_reference
+    output_dir: 'output-{tag}/output-reference'
+    cwd: "{workspace}/{example_name}"
+    label: "{example_name} -- reference run"
+    conda_prefix: "../env/asim-ref-{reference_asim_version}"
+
+
+################################################################################
+reporting:
+
+- name: activitysim.workflows.steps.contrast.load_tables
+  in:
+    common_output_directory: "{workspace}/{example_name}/output-{tag}"
+    databases:
+      sharrow: "output-sharrow"
+      legacy: "output-legacy"
+      reference: "output-reference"
+    tables:
+      households:
+        filename: final_households.csv
+        index_col: household_id
+      persons:
+        filename: final_persons.csv
+        index_col: person_id
+      tours:
+        filename: final_tours.csv
+        index_col: tour_id
+      trips:
+        filename: final_trips.csv
+        index_col: trip_id
+      land_use:
+        filename: final_land_use.csv
+        index_col: zone_id
+
+- name: activitysim.workflows.steps.contrast.load_skims
+  in:
+    common_directory: "{workspace}/{example_name}"
+
+- name: activitysim.workflows.steps.reporting.init_report
+  in:
+    title: "{example_name} report"
+    common_directory: "{workspace}/{example_name}"
+
+- name: activitysim.workflows.steps.reporting.machine_info
+  in:
+    caption: Machine Info
+
+- name: activitysim.workflows.steps.reporting.settings
+  in:
+    caption: Settings
+    names:
+      - disable_zarr
+      - resume_after
+      - instrument
+      - memory_profile
+      - fast
+      - chunk_method
+      - chunk_training_mode
+      - chunk_size
+      - multiprocess
+
+
+#### Runtime and Data Inventory ####
+
+- name: activitysim.workflows.steps.contrast.runtime
+  in:
+    caption: Model Runtime
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.reporting.section_title
+  in:
+    title: Memory Usage
+
+- name: activitysim.workflows.steps.contrast.memory_use
+  in:
+    caption: USS
+    caption_level: 3
+    memory_measure: uss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.contrast.memory_use
+  in:
+    caption: RSS
+    caption_level: 3
+    memory_measure: rss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.contrast.memory_use
+  in:
+    caption: Full RSS
+    caption_level: 3
+    memory_measure: full_rss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.contrast.memory_use_peak
+  in:
+    caption: Peak RSS by Component
+    caption_level: 3
+    memory_measure: rss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+- name: activitysim.workflows.steps.contrast.memory_use_peak
+  in:
+    caption: Peak USS by Component
+    caption_level: 3
+    memory_measure: uss
+    include_runs:
+      - reference
+      - legacy
+      - sharrow
+
+
+- name: activitysim.workflows.steps.contrast.data_inventory
+
+
+#### Workplace Location ####
+
+- name: activitysim.workflows.steps.reporting.load_data_dictionary
+  in:
+    cwd: "{workspace}/{example_name}"
+
+- name: pypyr.steps.default
+  in:
+    defaults:
+      workplace_zone_agg:
+
+- name: activitysim.workflows.steps.reporting.section_title
+  skip: !py "'work location' in report_skip"
+  run: '{workplace_zone_agg}'
+  in:
+    title: Workplace Location
+
+- name: activitysim.workflows.steps.contrast.district_to_district
+  skip: !py "'work location' in report_skip"
+  run: '{workplace_zone_agg}'
+  in:
+    tablename: persons
+    caption: '{workplace_zone_agg[caption]}'
+    caption_level: 3
+    district_id: '{workplace_zone_agg[district_id]}'
+    orig_label: home district
+    dest_label: work district
+    orig_col: home_zone_id
+    dest_col: workplace_zone_id
+    filter: workplace_zone_id >= 0
+    size_label: n_workers
+
+- name: activitysim.workflows.steps.contrast.transform_data
+  skip: !py "household_income is None"
+  in:
+    tablename: households
+    column: '{household_income}'
+    out: income_tertile
+    qcut:
+      q: 3
+      labels:
+        - low
+        - mid
+        - high
+
+- name: activitysim.workflows.steps.contrast.join_table_data
+  skip: !py "household_income is None"
+  in:
+    caption: Join Income to Persons
+    tablename: persons
+    from_tablename: households
+    columns: income_tertile
+    on: household_id
+
+- name: activitysim.workflows.steps.contrast.trip_distance
+  skip: !py "'work location' in report_skip"
+  in:
+    caption: Workplace Distance by Income
+    caption_level: 3
+    dist_bins: 20
+    dist_skim_name: 'distance_to_work'
+    tablename: persons
+    grouping: income_tertile
+
+- name: activitysim.workflows.steps.contrast.trip_distance
+  skip: !py "'school location' in report_skip"
+  in:
+    caption: School Distance by Income
+    caption_level: 3
+    dist_bins: 20
+    dist_skim_name: 'distance_to_school'
+    tablename: persons
+    grouping: income_tertile
+
+#### Auto Ownership ####
+
+- name: activitysim.workflows.steps.reporting.section_title
+  skip: !py "'auto ownership' in report_skip"
+  in:
+    title: Auto Ownership
+
+- name: activitysim.workflows.steps.contrast.transform_data
+  skip: !py "'auto ownership' in report_skip"
+  in:
+    tablename: households
+    column: hhsize
+    out: hhsize_to5
+    clip:
+      upper: 5
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'auto ownership' in report_skip"
+  in:
+    caption: Household Auto Ownership Counts by Household Size
+    caption_level: 3
+    tablename: households
+    nominal_col: auto_ownership
+    row_grouping:
+      field: hhsize_to5
+      title: Household Size (up to 5)
+    col_grouping:
+      field: income_tertile
+      sort: [low, mid, high]
+      title: Income Tertile
+    ordinal: true
+    plot_type: count
+    axis_label: "# of Households"
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'auto ownership' in report_skip"
+  in:
+    caption: Household Auto Ownership Shares by Household Size
+    caption_level: 3
+    tablename: households
+    nominal_col: auto_ownership
+    row_grouping:
+      field: hhsize_to5
+      title: Household Size (up to 5)
+    col_grouping:
+      field: income_tertile
+      sort: [low, mid, high]
+      title: Income Tertile
+    ordinal: true
+
+
+#### CDAP ####
+
+- name: activitysim.workflows.steps.reporting.section_title
+  skip: !py "'cdap' in report_skip"
+  in:
+    title: Coordinated Daily Activity Pattern
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'cdap' in report_skip"
+  in:
+    caption: Coordinated Daily Activity Pattern by Person Type
+    caption_level: 3
+    tablename: persons
+    nominal_col: cdap_activity
+    row_grouping:
+      field: ptype
+      title: Person Type
+    axis_label: Daily Activity Pattern Count
+    plot_type: count
+
+
+#### Tour Mode Choice ####
+
+- name: activitysim.workflows.steps.reporting.section_title
+  in:
+    title: Tour Mode Choice
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  in:
+    caption: Tour Mode Choice by Primary Purpose
+    caption_level: 3
+    tablename: tours
+    nominal_col: tour_mode
+    row_grouping: primary_purpose
+    axis_label: Tour Mode Share
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  skip: !py "'tour mode by composition' in report_skip"
+  in:
+    caption: Tour Mode Choice by Composition
+    caption_level: 3
+    tablename: tours
+    nominal_col: tour_mode
+    row_grouping: composition
+    axis_label: Tour Mode Share
+
+
+#### Tour Schedule ####
+
+- name: activitysim.workflows.steps.reporting.section_title
+  in:
+    title: Tour Scheduling
+
+- name: activitysim.workflows.steps.contrast.ordinal_distribution
+  in:
+    caption: Tour Start Time by Primary Purpose
+    caption_level: 3
+    tablename: tours
+    ordinal_col: start
+    facet_grouping: primary_purpose
+    plot_type: count
+
+- name: activitysim.workflows.steps.contrast.ordinal_distribution
+  in:
+    caption: Tour Duration by Primary Purpose
+    caption_level: 3
+    tablename: tours
+    ordinal_col: duration
+    facet_grouping: primary_purpose
+    plot_type: count
+
+
+#### Trip Mode Choice ####
+
+- name: activitysim.workflows.steps.reporting.section_title
+  in:
+    title: Trip Mode Choice
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  in:
+    caption: Trip Mode Choice by Primary Purpose
+    caption_level: 3
+    tablename: trips
+    nominal_col: trip_mode
+    row_grouping: primary_purpose
+    axis_label: Trip Mode Share
+
+- name: activitysim.workflows.steps.contrast.nominal_choice
+  in:
+    caption: Trip Mode Choice by Departure Time
+    caption_level: 3
+    tablename: trips
+    nominal_col: trip_mode
+    row_grouping: depart
+    axis_label: Trip Mode Share
+
+
+#### Trip Distance ####
+
+- name: activitysim.workflows.steps.reporting.section_title
+  in:
+    title: Trip Distance
+
+- name: activitysim.workflows.steps.contrast.attach_skim_data
+  in:
+    tablename: trips
+    otaz_col: origin
+    dtaz_col: destination
+    time_col: depart
+    skim_vars: '{distance_skim}'
+
+- name: activitysim.workflows.steps.contrast.transform_data
+  in:
+    tablename: trips
+    column: '{distance_skim}'
+    out: distance_to10_binned
+    censor:
+      left: 0
+      right: 10
+    cut:
+      bins: 20
+      labels: midpoint
+
+- name: activitysim.workflows.steps.contrast.ordinal_distribution
+  in:
+    caption: Trip Distance by the Primary Purpose, <10 miles
+    caption_level: 3
+    tablename: trips
+    ordinal_col: distance_to10_binned
+    facet_grouping: primary_purpose
+    plot_type: count
+    interpolate: step
+    value_format: "0.2f"
+    axis_label: Distance (to 10 miles)
+
+- name: activitysim.workflows.steps.contrast.trip_distance
+  in:
+    caption: Trip Distance by Primary Purpose, <10 miles
+    caption_level: 3
+    grouping: primary_purpose
+    dist_bins: 20
+    dist_skim_name: '{distance_skim}'
+    max_dist: 10
+
+- name: activitysim.workflows.steps.contrast.trip_distance
+  in:
+    caption: Trip Distance by Primary Purpose
+    caption_level: 3
+    grouping: primary_purpose
+    dist_bins: 20
+    dist_skim_name: '{distance_skim}'
+
+
+################################################################################
+report-save:
+- name: activitysim.workflows.steps.reporting.save_report
+  in:
+    html_filename: "{workspace}/{example_name}/output-{tag}/report-{tag}.html"
+    copy_filename: '{copy_report_to}'

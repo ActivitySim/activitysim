@@ -85,7 +85,9 @@
         "numba": [],
         "coverage": [],
         "pytest": [],
-        "cytoolz": []
+        "cytoolz": [],
+        "zarr": [],
+        "sharrow": []
     },
 
     // Combinations of libraries/python versions can be excluded/included

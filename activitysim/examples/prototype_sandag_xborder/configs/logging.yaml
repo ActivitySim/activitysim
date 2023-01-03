@@ -24,6 +24,18 @@ logging:
       handlers: [console, logfile]
       propagate: false
 
+    filelock:
+      level: WARN
+
+    sharrow:
+      level: INFO
+
+    blib2to3:
+      level: WARN
+
+    black:
+      level: WARN
+
   handlers:
 
     logfile:
@@ -36,7 +48,7 @@ logging:
     console:
       class: logging.StreamHandler
       stream: ext://sys.stdout
-      formatter: simpleFormatter
+      formatter: elapsedFormatter
       level: NOTSET
 
   formatters:
@@ -52,3 +64,7 @@ logging:
       format: '%(asctime)s - %(levelname)s - %(name)s - %(message)s'
       datefmt: '%d/%m/%Y %H:%M:%S'
 
+    elapsedFormatter:
+      (): activitysim.core.tracing.ElapsedTimeFormatter
+      format: '[{elapsedTime}] {levelname:s}: {message:s}'
+      style: '{'

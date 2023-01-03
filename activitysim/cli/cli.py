@@ -25,4 +25,4 @@ class CLI:
 
     def execute(self):
         args = self.parser.parse_args()
-        args.afunc(args)
+        return args.afunc(args)

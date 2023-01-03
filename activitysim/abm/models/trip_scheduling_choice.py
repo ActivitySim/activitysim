@@ -370,6 +370,9 @@ def trip_scheduling_choice(trips, tours, skim_dict, chunk_size, trace_hh_id):
             "od_skims": od_skim_stack_wrapper,
             "do_skims": do_skim_stack_wrapper,
             "obib_skims": obib_skim_stack_wrapper,
+            "orig_col_name": "origin",
+            "dest_col_name": "destination",
+            "timeframe": "timeless_directional",
         }
 
         simulate.set_skim_wrapper_targets(tours_df, skims)

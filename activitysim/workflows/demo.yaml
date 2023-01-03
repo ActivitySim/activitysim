@@ -1,0 +1,39 @@
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: prototype_mtc
+      workspace: workspace
+      legacy: True
+      tag:
+      stress: 22
+
+- name: activitysim.workflows.steps.title
+  in:
+    label: "[bold blue]activitysim workflow demo {example_name}"
+
+- description: Make {workspace} directory if it does not exist
+  name: activitysim.workflows.steps.py
+  in:
+    py: |
+      import os
+      os.makedirs(f"{workspace}", exist_ok=True)
+
+- description: Generate a tag based on datetime if tag is not given
+  name: activitysim.workflows.steps.py
+  in:
+    label: Generate tag
+    py: |
+      import time
+      if tag is None:
+        tag = time.strftime("%Y-%m-%d-%H%M%S")
+      time.sleep(2)
+      save(tag=tag)
+      print(f"tag is {tag}")
+
+- description: Memory Stress Test
+  name: activitysim.workflows.steps.memory_stress_test
+  in:
+    n: '{stress}'

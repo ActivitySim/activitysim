@@ -1,5 +1,5 @@
-﻿activitysim.core.configuration.Settings
-=======================================
+﻿Settings
+========
 
 .. currentmodule:: activitysim.core.configuration
 

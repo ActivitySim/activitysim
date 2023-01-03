@@ -1,6 +1,6 @@
-﻿NetworkSettings
+﻿DigitalEncoding
 ===============
 
 .. currentmodule:: activitysim.core.configuration
 
-.. autopydantic_model:: NetworkSettings
+.. autopydantic_model:: DigitalEncoding

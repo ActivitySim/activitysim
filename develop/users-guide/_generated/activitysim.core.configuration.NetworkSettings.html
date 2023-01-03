@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>activitysim.core.configuration.NetworkSettings &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>NetworkSettings &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,8 +35,8 @@
     <script src="../../_static/design-tabs.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="activitysim.core.configuration.TAZ_Settings" href="activitysim.core.configuration.TAZ_Settings.html" />
-    <link rel="prev" title="activitysim.core.configuration.InputTable" href="activitysim.core.configuration.InputTable.html" />
+    <link rel="next" title="TAZ_Settings" href="activitysim.core.configuration.TAZ_Settings.html" />
+    <link rel="prev" title="MultiprocessStepSlice" href="activitysim.core.configuration.MultiprocessStepSlice.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -194,6 +194,11 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="../cli-tools.html">
+   Command Line Tools
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../../examples.html">
    Examples
   </a>
@@ -210,27 +215,47 @@ function checkPageExistsAndRedirect(event) {
   <ul class="current">
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.Settings.html">
-     activitysim.core.configuration.Settings
+     Settings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.InputTable.html">
-     activitysim.core.configuration.InputTable
+     InputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.OutputTable.html">
+     OutputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.OutputTables.html">
+     OutputTables
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.MultiprocessStep.html">
+     MultiprocessStep
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.MultiprocessStepSlice.html">
+     MultiprocessStepSlice
     </a>
    </li>
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
-     activitysim.core.configuration.NetworkSettings
+     NetworkSettings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.TAZ_Settings.html">
-     activitysim.core.configuration.TAZ_Settings
+     TAZ_Settings
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="activitysim.core.configuration.ZarrDigitalEncoding.html">
-     activitysim.core.configuration.ZarrDigitalEncoding
+    <a class="reference internal" href="activitysim.core.configuration.DigitalEncoding.html">
+     DigitalEncoding
     </a>
    </li>
   </ul>
@@ -289,8 +314,8 @@ function checkPageExistsAndRedirect(event) {
               
               <div>
                 
-  <section id="activitysim-core-configuration-networksettings">
-<h1>activitysim.core.configuration.NetworkSettings<a class="headerlink" href="#activitysim-core-configuration-networksettings" title="Permalink to this headline">#</a></h1>
+  <section id="networksettings">
+<h1>NetworkSettings<a class="headerlink" href="#networksettings" title="Permalink to this headline">#</a></h1>
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings">
 <em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.configuration.</span></span><span class="sig-name descname"><span class="pre">NetworkSettings</span></span><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings" title="Permalink to this definition">#</a></dt>
@@ -300,12 +325,12 @@ usually called <code class="docutils literal notranslate"><span class="pre">netw
 <dl class="field-list simple">
 <dt class="field-odd">Fields</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="#activitysim.core.configuration.NetworkSettings.cache_dir" title="activitysim.core.configuration.NetworkSettings.cache_dir"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_dir</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.NetworkSettings.read_skim_cache" title="activitysim.core.configuration.NetworkSettings.read_skim_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_skim_cache</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.NetworkSettings.skim_time_periods" title="activitysim.core.configuration.NetworkSettings.skim_time_periods"><code class="xref py py-obj docutils literal notranslate"><span class="pre">skim_time_periods</span> <span class="pre">(dict)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.NetworkSettings.taz_skims" title="activitysim.core.configuration.NetworkSettings.taz_skims"><code class="xref py py-obj docutils literal notranslate"><span class="pre">taz_skims</span> <span class="pre">(Union[str,</span> <span class="pre">activitysim.core.configuration.TAZ_Settings])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.NetworkSettings.write_skim_cache" title="activitysim.core.configuration.NetworkSettings.write_skim_cache"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_skim_cache</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.NetworkSettings.zone_system" title="activitysim.core.configuration.NetworkSettings.zone_system"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zone_system</span> <span class="pre">(int)</span></code></a></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cache_dir</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">read_skim_cache</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">skim_time_periods</span> <span class="pre">(dict)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">taz_skims</span> <span class="pre">(Union[str,</span> <span class="pre">activitysim.core.configuration.network.TAZ_Settings])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_skim_cache</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">zone_system</span> <span class="pre">(int)</span></code></p></li>
 </ul>
 </dd>
 </dl>
@@ -337,7 +362,7 @@ uncompressed file.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.NetworkSettings.taz_skims">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">taz_skims</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="activitysim.core.configuration.TAZ_Settings.html#activitysim.core.configuration.TAZ_Settings" title="activitysim.core.configuration.TAZ_Settings"><span class="pre">activitysim.core.configuration.TAZ_Settings</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.taz_skims" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">taz_skims</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="activitysim.core.configuration.TAZ_Settings.html#activitysim.core.configuration.TAZ_Settings" title="activitysim.core.configuration.network.TAZ_Settings"><span class="pre">activitysim.core.configuration.network.TAZ_Settings</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.NetworkSettings.taz_skims" title="Permalink to this definition">#</a></dt>
 <dd><p>Instructions for how to load and pre-process skim matrices.</p>
 <p>If given as a string, it is interpreted as the location for OMX file(s),
 either as a single file or as a glob-matching pattern for multiple files.
@@ -377,17 +402,17 @@ runs.</p>
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="activitysim.core.configuration.InputTable.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="activitysim.core.configuration.MultiprocessStepSlice.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">activitysim.core.configuration.InputTable</p>
+            <p class="prev-next-title">MultiprocessStepSlice</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="activitysim.core.configuration.TAZ_Settings.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">activitysim.core.configuration.TAZ_Settings</p>
+        <p class="prev-next-title">TAZ_Settings</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
@@ -407,7 +432,7 @@ runs.</p>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

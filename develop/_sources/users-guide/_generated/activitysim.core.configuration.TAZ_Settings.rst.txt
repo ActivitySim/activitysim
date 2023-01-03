@@ -1,5 +1,5 @@
-﻿activitysim.core.configuration.TAZ\_Settings
-============================================
+﻿TAZ\_Settings
+=============
 
 .. currentmodule:: activitysim.core.configuration
 

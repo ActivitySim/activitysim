@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>activitysim.core.configuration.Settings &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>Settings &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,7 +35,7 @@
     <script src="../../_static/design-tabs.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="activitysim.core.configuration.InputTable" href="activitysim.core.configuration.InputTable.html" />
+    <link rel="next" title="InputTable" href="activitysim.core.configuration.InputTable.html" />
     <link rel="prev" title="Configuration" href="../configuration.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
@@ -194,6 +194,11 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="../cli-tools.html">
+   Command Line Tools
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../../examples.html">
    Examples
   </a>
@@ -210,27 +215,47 @@ function checkPageExistsAndRedirect(event) {
   <ul class="current">
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
-     activitysim.core.configuration.Settings
+     Settings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.InputTable.html">
-     activitysim.core.configuration.InputTable
+     InputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.OutputTable.html">
+     OutputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.OutputTables.html">
+     OutputTables
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.MultiprocessStep.html">
+     MultiprocessStep
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.MultiprocessStepSlice.html">
+     MultiprocessStepSlice
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.NetworkSettings.html">
-     activitysim.core.configuration.NetworkSettings
+     NetworkSettings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.TAZ_Settings.html">
-     activitysim.core.configuration.TAZ_Settings
+     TAZ_Settings
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="activitysim.core.configuration.ZarrDigitalEncoding.html">
-     activitysim.core.configuration.ZarrDigitalEncoding
+    <a class="reference internal" href="activitysim.core.configuration.DigitalEncoding.html">
+     DigitalEncoding
     </a>
    </li>
   </ul>
@@ -289,8 +314,8 @@ function checkPageExistsAndRedirect(event) {
               
               <div>
                 
-  <section id="activitysim-core-configuration-settings">
-<h1>activitysim.core.configuration.Settings<a class="headerlink" href="#activitysim-core-configuration-settings" title="Permalink to this headline">#</a></h1>
+  <section id="settings">
+<h1>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">#</a></h1>
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings">
 <em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.configuration.</span></span><span class="sig-name descname"><span class="pre">Settings</span></span><a class="headerlink" href="#activitysim.core.configuration.Settings" title="Permalink to this definition">#</a></dt>
@@ -304,28 +329,63 @@ the model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Fields</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.check_for_variability" title="activitysim.core.configuration.Settings.check_for_variability"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_for_variability</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.checkpoints" title="activitysim.core.configuration.Settings.checkpoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkpoints</span> <span class="pre">(Union[bool,</span> <span class="pre">list])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.chunk_method" title="activitysim.core.configuration.Settings.chunk_method"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_method</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.chunk_size" title="activitysim.core.configuration.Settings.chunk_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_size</span> <span class="pre">(int)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.chunk_training_mode" title="activitysim.core.configuration.Settings.chunk_training_mode"><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_training_mode</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.cleanup_pipeline_after_run" title="activitysim.core.configuration.Settings.cleanup_pipeline_after_run"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cleanup_pipeline_after_run</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.create_input_store" title="activitysim.core.configuration.Settings.create_input_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_input_store</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.households_sample_size" title="activitysim.core.configuration.Settings.households_sample_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">households_sample_size</span> <span class="pre">(int)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.input_store" title="activitysim.core.configuration.Settings.input_store"><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_store</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.input_table_list" title="activitysim.core.configuration.Settings.input_table_list"><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_table_list</span> <span class="pre">(list[activitysim.core.configuration.InputTable])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.log_alt_losers" title="activitysim.core.configuration.Settings.log_alt_losers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_alt_losers</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.models" title="activitysim.core.configuration.Settings.models"><code class="xref py py-obj docutils literal notranslate"><span class="pre">models</span> <span class="pre">(list[str])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.output_tables" title="activitysim.core.configuration.Settings.output_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tables</span> <span class="pre">(list[str])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.resume_after" title="activitysim.core.configuration.Settings.resume_after"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resume_after</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.sharrow" title="activitysim.core.configuration.Settings.sharrow"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sharrow</span> <span class="pre">(Union[bool,</span> <span class="pre">str])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.trace_hh_id" title="activitysim.core.configuration.Settings.trace_hh_id"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_hh_id</span> <span class="pre">(Union[int,</span> <span class="pre">list])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.trace_od" title="activitysim.core.configuration.Settings.trace_od"><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_od</span> <span class="pre">(list[int])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.use_shadow_pricing" title="activitysim.core.configuration.Settings.use_shadow_pricing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_shadow_pricing</span> <span class="pre">(bool)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.Settings.want_dest_choice_sample_tables" title="activitysim.core.configuration.Settings.want_dest_choice_sample_tables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">want_dest_choice_sample_tables</span> <span class="pre">(bool)</span></code></a></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">benchmarking</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_for_variability</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">checkpoints</span> <span class="pre">(Union[bool,</span> <span class="pre">list])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_method</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_size</span> <span class="pre">(int)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">chunk_training_mode</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cleanup_pipeline_after_run</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cleanup_trace_files_on_resume</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_input_store</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">disable_destination_sampling</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">disable_zarr</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">fail_fast</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">households_sample_size</span> <span class="pre">(int)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_store</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">input_table_list</span> <span class="pre">(list[activitysim.core.configuration.top.InputTable])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">instrument</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">keep_mem_logs</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">log_alt_losers</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">memory_profile</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">models</span> <span class="pre">(list[str])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">multiprocess</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">multiprocess_steps</span> <span class="pre">(list[activitysim.core.configuration.top.MultiprocessStep])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">num_processes</span> <span class="pre">(int)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">offset_preprocessing</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">output_tables</span> <span class="pre">(activitysim.core.configuration.top.OutputTables)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">recode_pipeline_columns</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">resume_after</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate_logs</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">sharrow</span> <span class="pre">(Union[bool,</span> <span class="pre">str])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">testing_fail_trip_destination</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_hh_id</span> <span class="pre">(Union[int,</span> <span class="pre">list])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">trace_od</span> <span class="pre">(list[int])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">use_shadow_pricing</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">want_dest_choice_presampling</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">want_dest_choice_sample_tables</span> <span class="pre">(bool)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_raw_tables</span> <span class="pre">(bool)</span></code></p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.benchmarking">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">benchmarking</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.benchmarking" title="Permalink to this definition">#</a></dt>
+<dd><p>Flag this model run as a benchmarking run.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.1.</span></p>
+</div>
+<p>This is generally a developer-only feature and not needed for regular usage
+of ActivitySim.</p>
+<p>By flagging a model run as a benchmark, certain operations of the model are
+altered, to ensure valid benchmark readings.  For example, in regular
+operation, data such as skims are loaded on-demand within the first model
+component that needs them.  With benchmarking enabled, all data are always
+pre-loaded before any component is run, to ensure that recorded times are
+the runtime of the component itself, and not data I/O operations that are
+neither integral to that component nor necessarily stable over replication.</p>
+</dd></dl>
+
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.check_for_variability">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">check_for_variability</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.check_for_variability" title="Permalink to this definition">#</a></dt>
@@ -373,12 +433,43 @@ single-checkpoint pipeline file, and deleting any subprocess pipelines.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.cleanup_trace_files_on_resume">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cleanup_trace_files_on_resume</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.cleanup_trace_files_on_resume" title="Permalink to this definition">#</a></dt>
+<dd><p>Clean all trace files when restarting a model from a checkpoint.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.create_input_store">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_input_store</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.create_input_store" title="Permalink to this definition">#</a></dt>
 <dd><p>Write the inputs as read in back to an HDF5 store.</p>
 <p>If enabled, this writes the store to the outputs folder to use for subsequent
 model runs, as reading HDF5 can be faster than reading CSV files.</p>
 </dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.disable_destination_sampling">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">disable_destination_sampling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.disable_destination_sampling" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.disable_zarr">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">disable_zarr</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.disable_zarr" title="Permalink to this definition">#</a></dt>
+<dd><p>Disable the use of zarr format skims.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.2.</span></p>
+</div>
+<p>By default, if sharrow is enabled (any setting other than false), ActivitySim
+currently loads data from zarr format skims if a zarr location is provided,
+and data is found there.  If no data is found there, then original OMX skim
+data is loaded, any transformations or encodings are applied, and then this
+data is written out to a zarr file at that location.  Setting this option to
+True will disable the use of zarr.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.fail_fast">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fail_fast</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.fail_fast" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.households_sample_size">
@@ -395,9 +486,36 @@ model runs, as reading HDF5 can be faster than reading CSV files.</p>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.input_table_list">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">input_table_list</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="activitysim.core.configuration.InputTable.html#activitysim.core.configuration.InputTable" title="activitysim.core.configuration.InputTable"><span class="pre">activitysim.core.configuration.InputTable</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.input_table_list" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">input_table_list</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="activitysim.core.configuration.InputTable.html#activitysim.core.configuration.InputTable" title="activitysim.core.configuration.top.InputTable"><span class="pre">activitysim.core.configuration.top.InputTable</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.input_table_list" title="Permalink to this definition">#</a></dt>
 <dd><p>list of table names, indices, and column re-maps for each table in <cite>input_store</cite></p>
 </dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.instrument">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">instrument</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.instrument" title="Permalink to this definition">#</a></dt>
+<dd><p>Use <cite>pyinstrument</cite> to profile component performance.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.2.</span></p>
+</div>
+<p>This is generally a developer-only feature and not needed for regular usage
+of ActivitySim.</p>
+<p>Use of this setting to enable statistical profiling of ActivitySim code,
+using the <cite>pyinstrument</cite> library (an optional dependency which must also be
+installed).  A separate profiling session is triggered for each model
+component. See the pyinstrument
+<a class="reference external" href="https://pyinstrument.readthedocs.io/en/latest/how-it-works.html">documentation</a>
+for a description of how this tool works.</p>
+<p>When activated, a “profiling–*” directory is created in the output directory
+of the model, tagged with the date and time of the profiling run.  Profile
+output is always tagged like this and never overwrites previous profiling
+outputs, facilitating serial comparisons of runtimes in response to code or
+configuration changes.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.keep_mem_logs">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">keep_mem_logs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.keep_mem_logs" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.log_alt_losers">
@@ -408,6 +526,24 @@ Enabling this check does not alter valid results but slows down model runs.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.memory_profile">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">memory_profile</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.memory_profile" title="Permalink to this definition">#</a></dt>
+<dd><p>Generate a memory profile by sampling memory usage from a secondary process.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.2.</span></p>
+</div>
+<p>This is generally a developer-only feature and not needed for regular usage
+of ActivitySim.</p>
+<p>Using this feature will open a secondary process, whose only job is to poll
+memory usage for the main ActivitySim process.  The usage is logged to a file
+with time stamps, so it can be cross-referenced against ActivitySim logs to
+identify what parts of the code are using RAM.  The profiling is done from
+a separate process to avoid the profiler itself from significantly slowing
+the main model core, or (more importantly) generating memory usage on its
+own that pollutes the collected data.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.models">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">models</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.models" title="Permalink to this definition">#</a></dt>
 <dd><p>list of model steps to run - auto ownership, tour frequency, etc.</p>
@@ -415,9 +551,59 @@ Enabling this check does not alter valid results but slows down model runs.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.multiprocess">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">multiprocess</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.multiprocess" title="Permalink to this definition">#</a></dt>
+<dd><p>Enable multiprocessing for this model.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.multiprocess_steps">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">multiprocess_steps</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="activitysim.core.configuration.MultiprocessStep.html#activitysim.core.configuration.MultiprocessStep" title="activitysim.core.configuration.top.MultiprocessStep"><span class="pre">activitysim.core.configuration.top.MultiprocessStep</span></a><span class="p"><span class="pre">]</span></span></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.multiprocess_steps" title="Permalink to this definition">#</a></dt>
+<dd><p>A list of multiprocess steps.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.num_processes">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">num_processes</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.num_processes" title="Permalink to this definition">#</a></dt>
+<dd><p>If running in multiprocessing mode, use this number of processes by default.</p>
+<p>If not given or set to 0, the number of processes to use is set to
+half the number of available CPU cores, plus 1.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.offset_preprocessing">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">offset_preprocessing</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.offset_preprocessing" title="Permalink to this definition">#</a></dt>
+<dd><p>Flag to indicate whether offset preprocessing has already been done.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.2.</span></p>
+</div>
+<p>This flag is generally set automatically within ActivitySim during a run,
+and not be a user ahead of time.  The ability to do so is provided as a
+developer-only feature for testing and development.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.output_tables">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_tables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.output_tables" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">output_tables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="activitysim.core.configuration.OutputTables.html#activitysim.core.configuration.OutputTables" title="activitysim.core.configuration.top.OutputTables"><span class="pre">activitysim.core.configuration.top.OutputTables</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.output_tables" title="Permalink to this definition">#</a></dt>
 <dd><p>list of output tables to write to CSV or HDF5</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.recode_pipeline_columns">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">recode_pipeline_columns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.recode_pipeline_columns" title="Permalink to this definition">#</a></dt>
+<dd><p>Apply recoding instructions on input and final output for pipeline tables.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 1.2.</span></p>
+</div>
+<p>Recoding instructions can be provided in individual
+<a class="reference internal" href="activitysim.core.configuration.InputTable.html#activitysim.core.configuration.InputTable.recode_columns" title="activitysim.core.configuration.InputTable.recode_columns"><code class="xref py py-attr docutils literal notranslate"><span class="pre">InputTable.recode_columns</span></code></a> and <a class="reference internal" href="activitysim.core.configuration.OutputTable.html#activitysim.core.configuration.OutputTable.decode_columns" title="activitysim.core.configuration.OutputTable.decode_columns"><code class="xref py py-attr docutils literal notranslate"><span class="pre">OutputTable.decode_columns</span></code></a>
+settings. This global setting permits disabling all recoding processes
+simultaneously.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Disabling recoding is fine in legacy mode but it is generally not
+compatible with using <a class="reference internal" href="#activitysim.core.configuration.Settings.sharrow" title="activitysim.core.configuration.Settings.sharrow"><code class="xref py py-attr docutils literal notranslate"><span class="pre">Settings.sharrow</span></code></a>.</p>
+</div>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -425,6 +611,11 @@ Enabling this check does not alter valid results but slows down model runs.</p>
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">resume_after</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.resume_after" title="Permalink to this definition">#</a></dt>
 <dd><p>to resume running the data pipeline after the last successful checkpoint</p>
 </dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.rotate_logs">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rotate_logs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.rotate_logs" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.sharrow">
@@ -449,6 +640,11 @@ mode of operation, but useful for development and debugging.</p></li>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.testing_fail_trip_destination">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">testing_fail_trip_destination</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.testing_fail_trip_destination" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.trace_hh_id">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">trace_hh_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.trace_hh_id" title="Permalink to this definition">#</a></dt>
 <dd><p>Trace household id(s)</p>
@@ -469,9 +665,24 @@ mode of operation, but useful for development and debugging.</p></li>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.want_dest_choice_presampling">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">want_dest_choice_presampling</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.want_dest_choice_presampling" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.Settings.want_dest_choice_sample_tables">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">want_dest_choice_sample_tables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.want_dest_choice_sample_tables" title="Permalink to this definition">#</a></dt>
 <dd><p>turn writing of sample_tables on and off for all models</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.Settings.write_raw_tables">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">write_raw_tables</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#activitysim.core.configuration.Settings.write_raw_tables" title="Permalink to this definition">#</a></dt>
+<dd><p>Dump input tables back to disk immediately after loading them.</p>
+<p>This is generally a developer-only feature and not needed for regular usage
+of ActivitySim.</p>
+<p>The data tables are written out before any annotation steps, but after
+initial processing (renaming, filtering columns, recoding).</p>
 </dd></dl>
 
 </dd></dl>
@@ -494,7 +705,7 @@ mode of operation, but useful for development and debugging.</p></li>
     <a class='right-next' id="next-link" href="activitysim.core.configuration.InputTable.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">activitysim.core.configuration.InputTable</p>
+        <p class="prev-next-title">InputTable</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
@@ -514,7 +725,7 @@ mode of operation, but useful for development and debugging.</p></li>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

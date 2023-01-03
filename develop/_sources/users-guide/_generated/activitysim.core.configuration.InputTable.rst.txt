@@ -1,5 +1,5 @@
-﻿activitysim.core.configuration.InputTable
-=========================================
+﻿InputTable
+==========
 
 .. currentmodule:: activitysim.core.configuration
 

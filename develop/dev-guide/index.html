@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Developers &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>Developers &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -194,6 +194,21 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="using-sharrow.html">
+   Using Sharrow
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="skim-dataset.html">
+   Using Skim Dataset
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="workflows.html">
+   Workflows
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../development.html">
    Software Development
   </a>
@@ -202,6 +217,23 @@ function checkPageExistsAndRedirect(event) {
   <a class="reference internal" href="../models.html">
    Models
   </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="components/index.html">
+   Components
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="components/trip_destination.html">
+     Trip Destination
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1">
   <a class="reference internal" href="../core.html">
@@ -282,6 +314,40 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l2"><a class="reference internal" href="install.html#environment">Environment</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="using-sharrow.html">Using Sharrow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="using-sharrow.html#how-it-works">How it Works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using-sharrow.html#model-design-requirements">Model Design Requirements</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using-sharrow.html#zero-based-recoding-of-zones">Zero-based Recoding of Zones</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using-sharrow.html#measuring-performance">Measuring Performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="using-sharrow.html#sharrow-compatability-and-limitations">Sharrow Compatability and Limitations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using-sharrow.html#temporary-variables">Temporary Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using-sharrow.html#switchable-expressions">Switchable Expressions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using-sharrow.html#performance-considerations">Performance Considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using-sharrow.html#limited-tracing-and-estimation-mode-capabilities">Limited Tracing and Estimation Mode Capabilities</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="using-sharrow.html#digital-encoding">Digital Encoding</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="using-sharrow.html#fixed-point-encoding">Fixed Point Encoding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="using-sharrow.html#dictionary-encoding">Dictionary Encoding</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="skim-dataset.html">Using Skim Dataset</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="skim-dataset.html#skims-in-shared-memory">Skims in Shared Memory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="skim-dataset.html#module-activitysim.core.skim_dataset">Skim Dataset API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="workflows.html">Workflows</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="workflows.html#workflows-for-performance-monitoring">Workflows for Performance Monitoring</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#mini-examples">Mini Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="workflows.html#full-size-examples">Full Size Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../development.html">Software Development</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="../development.html#software-design">Software Design</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="../development.html#model-orchestrator">Model Orchestrator</a></li>
@@ -358,7 +424,7 @@ the development and management of the ActivitySim is on the <a class="reference 
 <li class="toctree-l2"><a class="reference internal" href="../models.html#parking-location-choice">Parking Location Choice</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#write-trip-matrices">Write Trip Matrices</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#util">Util</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="../models.html#id32">CDAP</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models.html#id31">CDAP</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../models.html#estimation">Estimation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../models.html#module-activitysim.abm.models.util.logsums">Logsums</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../models.html#module-activitysim.abm.models.util.mode">Mode</a></li>
@@ -370,6 +436,17 @@ the development and management of the ActivitySim is on the <a class="reference 
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../models.html#tests">Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="components/index.html">Components</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="components/trip_destination.html">Trip Destination</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="components/trip_destination.html#structure">Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="components/trip_destination.html#configuration">Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="components/trip_destination.html#implementation">Implementation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="components/trip_destination.html#context-variables">Context Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="components/trip_destination.html#additional-related-functions">Additional Related Functions</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../core.html">Core Components</a><ul>
@@ -480,7 +557,7 @@ the development and management of the ActivitySim is on the <a class="reference 
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Software Development &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>Software Development &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Models" href="models.html" />
-    <link rel="prev" title="Developer Installation" href="dev-guide/install.html" />
+    <link rel="prev" title="Workflows" href="dev-guide/workflows.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -193,6 +193,21 @@ function checkPageExistsAndRedirect(event) {
    Developer Installation
   </a>
  </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev-guide/using-sharrow.html">
+   Using Sharrow
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev-guide/skim-dataset.html">
+   Using Skim Dataset
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev-guide/workflows.html">
+   Workflows
+  </a>
+ </li>
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
    Software Development
@@ -202,6 +217,23 @@ function checkPageExistsAndRedirect(event) {
   <a class="reference internal" href="models.html">
    Models
   </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="dev-guide/components/index.html">
+   Components
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dev-guide/components/trip_destination.html">
+     Trip Destination
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1">
   <a class="reference internal" href="core.html">
@@ -504,7 +536,7 @@ any changes you make in the code in your git directory will be reflected.</p></l
 <section id="style">
 <h3>Style<a class="headerlink" href="#style" title="Permalink to this headline">#</a></h3>
 <ul class="simple">
-<li><p>Python code should follow the <a class="reference external" href="https://pypi.python.org/pypi/pycodestyle">pycodestyle style guide</a></p></li>
+<li><p>Python code should follow the <a class="reference external" href="https://black.readthedocs.io/en/stable/the_black_code_style/current_style.html">black code style</a></p></li>
 <li><p>Python docstrings should follow the <a class="reference external" href="https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt">numpydoc documentation format</a></p></li>
 </ul>
 </section>
@@ -569,14 +601,16 @@ release other than for a specific well-defined purpose.</p></li>
 </section>
 <section id="testing">
 <h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">#</a></h3>
-<p>ActivitySim testing is done with three tools:</p>
+<p>ActivitySim testing is done with several tools:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="https://pypi.python.org/pypi/pycodestyle">pycodestyle</a>, a tool to check Python code against the pycodestyle style conventions</p></li>
+<li><p><a class="reference external" href="https://black.readthedocs.io">black</a>, a tool to check and enforce black
+code style on Python code</p></li>
+<li><p><cite>isort &lt;https://pycqa.github.io/isort/&gt;</cite> to organize imports</p></li>
 <li><p><a class="reference external" href="http://pytest.org/latest/">pytest</a>, a Python testing tool</p></li>
 <li><p><a class="reference external" href="https://github.com/coagulant/coveralls-python">coveralls</a>, a tool for measuring code coverage and publishing code coverage stats online</p></li>
 </ul>
 <p>To run the tests locally, first make sure the required packages are installed.  Next, run the tests with the following commands:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pycodestyle</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">black</span> <span class="o">--</span><span class="n">check</span>
 <span class="n">py</span><span class="o">.</span><span class="n">test</span>
 </pre></div>
 </div>
@@ -820,11 +854,11 @@ resources for each agency example that need to be up-to-date are:</p>
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="dev-guide/install.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="dev-guide/workflows.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Developer Installation</p>
+            <p class="prev-next-title">Workflows</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="models.html" title="next page">
@@ -850,7 +884,7 @@ resources for each agency example that need to be up-to-date are:</p>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

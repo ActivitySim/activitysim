@@ -1,6 +1,0 @@
-﻿activitysim.core.configuration.ZarrDigitalEncoding
-==================================================
-
-.. currentmodule:: activitysim.core.configuration
-
-.. autopydantic_model:: ZarrDigitalEncoding

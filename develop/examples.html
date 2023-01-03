@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Examples &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>Examples &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Configuration" href="users-guide/configuration.html" />
-    <link rel="prev" title="Getting Started" href="gettingstarted.html" />
+    <link rel="prev" title="Command Line Tools" href="users-guide/cli-tools.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -193,6 +193,11 @@ function checkPageExistsAndRedirect(event) {
    Getting Started
   </a>
  </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="users-guide/cli-tools.html">
+   Command Line Tools
+  </a>
+ </li>
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
    Examples
@@ -210,27 +215,47 @@ function checkPageExistsAndRedirect(event) {
   <ul>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.Settings.html">
-     activitysim.core.configuration.Settings
+     Settings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.InputTable.html">
-     activitysim.core.configuration.InputTable
+     InputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTable.html">
+     OutputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTables.html">
+     OutputTables
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStep.html">
+     MultiprocessStep
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStepSlice.html">
+     MultiprocessStepSlice
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.NetworkSettings.html">
-     activitysim.core.configuration.NetworkSettings
+     NetworkSettings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.TAZ_Settings.html">
-     activitysim.core.configuration.TAZ_Settings
+     TAZ_Settings
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.ZarrDigitalEncoding.html">
-     activitysim.core.configuration.ZarrDigitalEncoding
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.DigitalEncoding.html">
+     DigitalEncoding
     </a>
    </li>
   </ul>
@@ -1355,7 +1380,7 @@ skim inputs for a subset of user-defined zones.</p>
 </section>
 </section>
 <section id="configuration">
-<span id="index-2"></span><h4>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">#</a></h4>
+<h4>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">#</a></h4>
 <p>This section has been moved to <a class="reference internal" href="users-guide/configuration.html#configuration"><span class="std std-ref">Configuration</span></a>.</p>
 </section>
 <section id="sub-model-specification-files">
@@ -2010,7 +2035,7 @@ restarting the pipeline at any step.</p>
 </tbody>
 </table>
 <section id="logging">
-<span id="logs"></span><span id="index-3"></span><h4>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">#</a></h4>
+<span id="logs"></span><span id="index-2"></span><h4>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">#</a></h4>
 <p>Included in the <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder is the <code class="docutils literal notranslate"><span class="pre">logging.yaml</span></code>, which configures Python logging
 library.  The following key log files are created with a model run:</p>
 <ul class="simple">
@@ -2121,7 +2146,7 @@ data bundle (EDB), which is a collection of the necessary data to re-estimate a 
 for examples that illustrate running ActivitySim in estimation mode and using larch to re-restimate submodels.</p>
 </section>
 <section id="placeholder-multiple-zone">
-<span id="multiple-zone-systems"></span><span id="index-4"></span><span id="id8"></span><h2>placeholder_multiple_zone<a class="headerlink" href="#placeholder-multiple-zone" title="Permalink to this headline">#</a></h2>
+<span id="multiple-zone-systems"></span><span id="index-3"></span><span id="id8"></span><h2>placeholder_multiple_zone<a class="headerlink" href="#placeholder-multiple-zone" title="Permalink to this headline">#</a></h2>
 <p>In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
 than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
 indicators (e.g. skims), the model uses different spatial resolutions for different travel modes in order to reduce the network
@@ -2648,11 +2673,11 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="gettingstarted.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="users-guide/cli-tools.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Getting Started</p>
+            <p class="prev-next-title">Command Line Tools</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="users-guide/configuration.html" title="next page">
@@ -2678,7 +2703,7 @@ for running prototype_mwcog.  For optimal performance, configure multiprocessing
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

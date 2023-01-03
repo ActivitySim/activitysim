@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Getting Started &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>Getting Started &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,7 +35,7 @@
     <script src="_static/design-tabs.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Examples" href="examples.html" />
+    <link rel="next" title="Command Line Tools" href="users-guide/cli-tools.html" />
     <link rel="prev" title="Users Guide" href="users-guide/index.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
@@ -194,6 +194,11 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="users-guide/cli-tools.html">
+   Command Line Tools
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="examples.html">
    Examples
   </a>
@@ -210,27 +215,47 @@ function checkPageExistsAndRedirect(event) {
   <ul>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.Settings.html">
-     activitysim.core.configuration.Settings
+     Settings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.InputTable.html">
-     activitysim.core.configuration.InputTable
+     InputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTable.html">
+     OutputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.OutputTables.html">
+     OutputTables
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStep.html">
+     MultiprocessStep
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.MultiprocessStepSlice.html">
+     MultiprocessStepSlice
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.NetworkSettings.html">
-     activitysim.core.configuration.NetworkSettings
+     NetworkSettings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.TAZ_Settings.html">
-     activitysim.core.configuration.TAZ_Settings
+     TAZ_Settings
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.ZarrDigitalEncoding.html">
-     activitysim.core.configuration.ZarrDigitalEncoding
+    <a class="reference internal" href="users-guide/_generated/activitysim.core.configuration.DigitalEncoding.html">
+     DigitalEncoding
     </a>
    </li>
   </ul>
@@ -383,7 +408,7 @@ including ActivitySim, itself. For example:</p>
 <p>Additional libraries can also be installed later.  You may want to consider these
 tools for certain development tasks:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># packages for testing</span>
-<span class="n">mamba</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">pycodestyle</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
+<span class="n">mamba</span> <span class="n">install</span> <span class="n">pytest</span> <span class="n">pytest</span><span class="o">-</span><span class="n">cov</span> <span class="n">coveralls</span> <span class="n">black</span> <span class="n">flake8</span> <span class="n">pytest</span><span class="o">-</span><span class="n">regressions</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
 
 <span class="c1"># packages for building documentation</span>
 <span class="n">mamba</span> <span class="n">install</span> <span class="n">sphinx</span> <span class="n">numpydoc</span> <span class="n">sphinx_rtd_theme</span><span class="o">==</span><span class="mf">0.5.2</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="o">--</span><span class="n">override</span><span class="o">-</span><span class="n">channels</span> <span class="o">-</span><span class="n">n</span> <span class="n">asim</span>
@@ -550,10 +575,10 @@ line as follows: <code class="docutils literal notranslate"><span class="pre">SE
             <p class="prev-next-title">Users Guide</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="examples.html" title="next page">
+    <a class='right-next' id="next-link" href="users-guide/cli-tools.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Examples</p>
+        <p class="prev-next-title">Command Line Tools</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
@@ -573,7 +598,7 @@ line as follows: <code class="docutils literal notranslate"><span class="pre">SE
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

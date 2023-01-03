@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Core Components &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>Core Components &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -36,7 +36,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Benchmarking" href="benchmarking.html" />
-    <link rel="prev" title="Models" href="models.html" />
+    <link rel="prev" title="Trip Destination" href="dev-guide/components/trip_destination.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -194,6 +194,21 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="dev-guide/using-sharrow.html">
+   Using Sharrow
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev-guide/skim-dataset.html">
+   Using Skim Dataset
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="dev-guide/workflows.html">
+   Workflows
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="development.html">
    Software Development
   </a>
@@ -202,6 +217,23 @@ function checkPageExistsAndRedirect(event) {
   <a class="reference internal" href="models.html">
    Models
   </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="dev-guide/components/index.html">
+   Components
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dev-guide/components/trip_destination.html">
+     Trip Destination
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toctree-l1 current active">
   <a class="current reference internal" href="#">
@@ -1429,12 +1461,16 @@ to be shared with subprocesses.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.create_skim_dict">
-<span class="sig-name descname"><span class="pre">create_skim_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.create_skim_dict" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">create_skim_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">_override_offset_int</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.create_skim_dict" title="Permalink to this definition">#</a></dt>
 <dd><p>Create a new SkimDict of type specified by skim_tag (e.g. ‘taz’, ‘maz’ or ‘tap’)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>skim_tag: str</strong></dt><dd></dd>
+<dt><strong>skim_tag</strong><span class="classifier">str</span></dt><dd></dd>
+<dt><strong>_override_offset_int</strong><span class="classifier">int, optional</span></dt><dd><p>Override the offset int for this dictionary.  Use this to set that
+offset to zero when zone id’s have been pre-processed to be zero-based
+contiguous integers.</p>
+</dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1456,6 +1492,12 @@ to be shared with subprocesses.</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.get_maz_to_taz_series">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_maz_to_taz_series</span></span><a class="headerlink" href="#activitysim.core.los.Network_LOS.get_maz_to_taz_series" title="Permalink to this definition">#</a></dt>
+<dd><p>pd.Series: Index is the MAZ, value is the corresponding TAZ</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1552,6 +1594,26 @@ THREE_ZONE systems have both TAZ and TAP skims</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.map_maz_to_taz">
+<span class="sig-name descname"><span class="pre">map_maz_to_taz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.map_maz_to_taz" title="Permalink to this definition">#</a></dt>
+<dd><p>Convert MAZ’s to TAZ’s</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>s</strong><span class="classifier">Array-like</span></dt><dd><p>Integer MAZ values</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>pd.Series</dt><dd><p>Integer TAZ values</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.multiprocess">
 <span class="sig-name descname"><span class="pre">multiprocess</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.multiprocess" title="Permalink to this definition">#</a></dt>
 <dd><p>return True if this is a multiprocessing run (even if it is a main or single-process subprocess)</p>
@@ -1594,8 +1656,44 @@ THREE_ZONE systems have both TAZ and TAP skims</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<dt>numpy.array</dt><dd><p>string time period labels</p>
+<dt>pandas Series</dt><dd><p>string time period labels</p>
 </dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.zarr_file_name">
+<span class="sig-name descname"><span class="pre">zarr_file_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.zarr_file_name" title="Permalink to this definition">#</a></dt>
+<dd><p>Return zarr directory name from network_los settings file for the specified skim_tag (e.g. ‘taz’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_tag: str (e.g. ‘taz’)</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>list of str</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="activitysim.core.los.Network_LOS.zarr_pre_encoding">
+<span class="sig-name descname"><span class="pre">zarr_pre_encoding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">skim_tag</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.los.Network_LOS.zarr_pre_encoding" title="Permalink to this definition">#</a></dt>
+<dd><p>Return digital encoding pre-processing before writing to zarr for the specified skim_tag (e.g. ‘taz’)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>skim_tag: str (e.g. ‘taz’)</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>list or None</dt><dd></dd>
 </dl>
 </dd>
 </dl>
@@ -2662,7 +2760,7 @@ and well-known index name corresponding to the channel</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="activitysim.core.random.SimpleChannel.normal_for_df">
-<span class="sig-name descname"><span class="pre">normal_for_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lognormal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.normal_for_df" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">normal_for_df</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lognormal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.random.SimpleChannel.normal_for_df" title="Permalink to this definition">#</a></dt>
 <dd><p>Return a floating point random number in normal (or lognormal) distribution
 for each row in df using the appropriate random channel for each row.</p>
 <p>Subsequent calls (in the same step) will return the next rand for each df row</p>
@@ -3290,7 +3388,7 @@ included in the utility.</p>
 <h4>API<a class="headerlink" href="#id8" title="Permalink to this headline">#</a></h4>
 <span class="target" id="module-activitysim.core.interaction_sample"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_sample.interaction_sample">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">interaction_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_col_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_sample.</span></span><span class="sig-name descname"><span class="pre">interaction_sample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alternatives</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_col_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_zero_probs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_sample.interaction_sample" title="Permalink to this definition">#</a></dt>
 <dd><p>Run a simulation in the situation in which alternatives must
 be merged with choosers because there are interaction terms or
 because alternatives are being sampled.</p>
@@ -3580,8 +3678,9 @@ of <cite>spec</cite>.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.simulate.eval_utilities">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">eval_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">have_trace_targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_all_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_utilities" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.simulate.</span></span><span class="sig-name descname"><span class="pre">eval_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">have_trace_targets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_all_rows</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_column_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spec_sh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.simulate.eval_utilities" title="Permalink to this definition">#</a></dt>
+<dd><p>Evaluate a utility function as defined in a spec file.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>spec</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>A table of variable specifications and coefficient values.
@@ -3590,19 +3689,40 @@ should have a column for each alternative.</p>
 </dd>
 <dt><strong>choosers</strong><span class="classifier">pandas.DataFrame</span></dt><dd></dd>
 <dt><strong>locals_d</strong><span class="classifier">Dict or None</span></dt><dd><p>This is a dictionary of local variables that will be the environment
-for an evaluation of an expression that begins with &#64;</p>
+for an evaluation of an expression that begins with “&#64;”.</p>
 </dd>
-<dt><strong>trace_label: str</strong></dt><dd></dd>
-<dt><strong>have_trace_targets: boolean - choosers has targets to trace</strong></dt><dd></dd>
-<dt><strong>trace_all_rows: boolean - trace all chooser rows, bypassing tracing.trace_targets</strong></dt><dd></dd>
+<dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd></dd>
+<dt><strong>have_trace_targets</strong><span class="classifier">bool</span></dt><dd><p>Indicates if <cite>choosers</cite> has targets to trace</p>
+</dd>
+<dt><strong>trace_all_rows</strong><span class="classifier">bool</span></dt><dd><p>Trace all chooser rows, bypassing tracing.trace_targets</p>
+</dd>
 <dt><strong>estimator</strong></dt><dd><p>called to report intermediate table results (used for estimation)</p>
 </dd>
-<dt><strong>trace_column_names: str or list of str</strong></dt><dd><p>chooser columns to include when tracing expression_values</p>
+<dt><strong>trace_column_names: str or list[str]</strong></dt><dd><p>chooser columns to include when tracing expression_values</p>
+</dd>
+<dt><strong>log_alt_losers</strong><span class="classifier">bool, default False</span></dt><dd><p>Write out expressions when all alternatives are unavailable.
+This can be useful for model development to catch errors in
+specifications. Enabling this check does not alter valid results
+but slows down model runs.</p>
+</dd>
+<dt><strong>zone_layer</strong><span class="classifier">{‘taz’, ‘maz’}, optional</span></dt><dd><p>Specify which zone layer of the skims is to be used by sharrow.  You
+cannot use the ‘maz’ zone layer in a one-zone model, but you can use
+the ‘taz’ layer in a two- or three-zone model (e.g. for destination
+pre-sampling). If not given, the default (lowest available) layer is
+used.</p>
+</dd>
+<dt><strong>spec_sh</strong><span class="classifier">pandas.DataFrame, optional</span></dt><dd><p>An alternative <cite>spec</cite> modified specifically for use with sharrow.
+This is meant to give the same result, but allows for some optimizations
+or preprocessing outside the sharrow framework (e.g. to run the Python
+based transit virtual path builder and cache relevant values).</p>
 </dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"></dd>
+<dd class="field-even"><dl class="simple">
+<dt><strong>utilities</strong><span class="classifier">pandas.DataFrame</span></dt><dd></dd>
+</dl>
+</dd>
 </dl>
 </dd></dl>
 
@@ -3801,7 +3921,7 @@ with interaction with the chooser table.</p>
 <h4>API<a class="headerlink" href="#id12" title="Permalink to this headline">#</a></h4>
 <span class="target" id="module-activitysim.core.interaction_simulate"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.interaction_simulate.eval_interaction_utilities">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_simulate.</span></span><span class="sig-name descname"><span class="pre">eval_interaction_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_rows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_simulate.eval_interaction_utilities" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.interaction_simulate.</span></span><span class="sig-name descname"><span class="pre">eval_interaction_utilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_rows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_alt_losers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zone_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.interaction_simulate.eval_interaction_utilities" title="Permalink to this definition">#</a></dt>
 <dd><p>Compute the utilities for a single-alternative spec evaluated in the context of df</p>
 <p>We could compute the utilities for interaction datasets just as we do for simple_simulate
 specs with multiple alternative columns by calling eval_variables and then computing the
@@ -4639,6 +4759,79 @@ checkpoint the table in another context where it does not know that name.</p>
 </dl>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.timetable.sharrow_tt_remaining_periods_available">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.timetable.</span></span><span class="sig-name descname"><span class="pre">sharrow_tt_remaining_periods_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tt_windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tt_row_mapper</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_row_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starter</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ender</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.sharrow_tt_remaining_periods_available" title="Permalink to this definition">#</a></dt>
+<dd><p>Number of periods remaining available after hypothetical scheduling</p>
+<p>This is what’s left after a new tour or trip from <cite>starts</cite> to
+<cite>ends</cite> is hypothetically scheduled.</p>
+<p>Implements MTC TM1 &#64;&#64;remainingPeriodsAvailableAlt</p>
+<p>The start and end periods will always be available after
+scheduling, so ignore them. The periods between start and end
+must be currently unscheduled, so assume they will become
+unavailable after scheduling this window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tt_windows</strong><span class="classifier">array[int8], 2 dimensions</span></dt><dd><p>Array of currently scheduled stuff</p>
+</dd>
+<dt><strong>tt_row_mapper</strong><span class="classifier">numba.typed.Dict[int,int]</span></dt><dd><p>Maps value in the <cite>window_row_ids</cite> to row positions in <cite>windows</cite>.</p>
+</dd>
+<dt><strong>window_row_id</strong><span class="classifier">int</span></dt><dd><p>An identifier for which window row to use.</p>
+</dd>
+<dt><strong>starter</strong><span class="classifier">int</span></dt><dd><p>The starting period of the new tour that will block windows.</p>
+</dd>
+<dt><strong>ender</strong><span class="classifier">int</span></dt><dd><p>The ending period of the new tour that will block windows.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>int</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.timetable.tt_remaining_periods_available">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.timetable.</span></span><span class="sig-name descname"><span class="pre">tt_remaining_periods_available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_row_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">starts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ends</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.tt_remaining_periods_available" title="Permalink to this definition">#</a></dt>
+<dd><p>Number of periods remaining available after hypothetical scheduling</p>
+<p>That is, what’s left after something from starts to ends is
+hypothetically scheduled</p>
+<p>Implements MTC TM1 &#64;&#64;remainingPeriodsAvailableAlt</p>
+<p>The start and end periods will always be available after
+scheduling, so ignore them. The periods between start and end
+must be currently unscheduled, so assume they will become
+unavailable after scheduling this window.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tt</strong><span class="classifier">TimeTable</span></dt><dd></dd>
+<dt><strong>window_row_ids</strong><span class="classifier">pandas.Series[int]</span></dt><dd><p>series of window_row_ids indexed by tour_id</p>
+</dd>
+<dt><strong>starts</strong><span class="classifier">pandas.Series[int]</span></dt><dd><p>series of tdd_alt ids, index irrelevant (one per window_row_id)</p>
+</dd>
+<dt><strong>ends</strong><span class="classifier">pandas.Series[int]</span></dt><dd><p>series of tdd_alt ids, index irrelevant (one per window_row_id)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>available</strong><span class="classifier">pandas Series int</span></dt><dd><p>number periods available indexed by window_row_ids.index</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.timetable.tt_slice_windows_by_row_id">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.timetable.</span></span><span class="sig-name descname"><span class="pre">tt_slice_windows_by_row_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tt_window_row_ix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tt_windows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_row_ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.timetable.tt_slice_windows_by_row_id" title="Permalink to this definition">#</a></dt>
+<dd><p>return windows array slice containing rows for specified window_row_ids
+(in window_row_ids order)</p>
 </dd></dl>
 
 </section>
@@ -5604,9 +5797,17 @@ Silently replace if replace=True.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.core.inject.custom_step">
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.inject.</span></span><span class="sig-name descname"><span class="pre">custom_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.custom_step" title="Permalink to this definition">#</a></dt>
+<dd><p>This decorator allows custom steps to potentially overload existing steps.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.core.inject.reinject_decorated_tables">
-<span class="sig-prename descclassname"><span class="pre">activitysim.core.inject.</span></span><span class="sig-name descname"><span class="pre">reinject_decorated_tables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.reinject_decorated_tables" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.core.inject.</span></span><span class="sig-name descname"><span class="pre">reinject_decorated_tables</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">steps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.core.inject.reinject_decorated_tables" title="Permalink to this definition">#</a></dt>
 <dd><p>reinject the decorated tables (and columns)</p>
+<p>This function can be used to completely reset the global state for
+ActivitySim.</p>
 </dd></dl>
 
 </section>
@@ -5743,11 +5944,11 @@ if no output_tables list is specified, then all checkpointed tables will be writ
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="models.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="dev-guide/components/trip_destination.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Models</p>
+            <p class="prev-next-title">Trip Destination</p>
         </div>
     </a>
     <a class='right-next' id="next-link" href="benchmarking.html" title="next page">
@@ -5773,7 +5974,7 @@ if no output_tables list is specified, then all checkpointed tables will be writ
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

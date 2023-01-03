@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>activitysim.core.configuration.InputTable &#8212; ActivitySim 1.1.4.dev111+g7cc99ef9</title>
+    <title>InputTable &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,8 +35,8 @@
     <script src="../../_static/design-tabs.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="activitysim.core.configuration.NetworkSettings" href="activitysim.core.configuration.NetworkSettings.html" />
-    <link rel="prev" title="activitysim.core.configuration.Settings" href="activitysim.core.configuration.Settings.html" />
+    <link rel="next" title="OutputTable" href="activitysim.core.configuration.OutputTable.html" />
+    <link rel="prev" title="Settings" href="activitysim.core.configuration.Settings.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -194,6 +194,11 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="../cli-tools.html">
+   Command Line Tools
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../../examples.html">
    Examples
   </a>
@@ -210,27 +215,47 @@ function checkPageExistsAndRedirect(event) {
   <ul class="current">
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.Settings.html">
-     activitysim.core.configuration.Settings
+     Settings
     </a>
    </li>
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
-     activitysim.core.configuration.InputTable
+     InputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.OutputTable.html">
+     OutputTable
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.OutputTables.html">
+     OutputTables
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.MultiprocessStep.html">
+     MultiprocessStep
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="activitysim.core.configuration.MultiprocessStepSlice.html">
+     MultiprocessStepSlice
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.NetworkSettings.html">
-     activitysim.core.configuration.NetworkSettings
+     NetworkSettings
     </a>
    </li>
    <li class="toctree-l2">
     <a class="reference internal" href="activitysim.core.configuration.TAZ_Settings.html">
-     activitysim.core.configuration.TAZ_Settings
+     TAZ_Settings
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="activitysim.core.configuration.ZarrDigitalEncoding.html">
-     activitysim.core.configuration.ZarrDigitalEncoding
+    <a class="reference internal" href="activitysim.core.configuration.DigitalEncoding.html">
+     DigitalEncoding
     </a>
    </li>
   </ul>
@@ -289,8 +314,8 @@ function checkPageExistsAndRedirect(event) {
               
               <div>
                 
-  <section id="activitysim-core-configuration-inputtable">
-<h1>activitysim.core.configuration.InputTable<a class="headerlink" href="#activitysim-core-configuration-inputtable" title="Permalink to this headline">#</a></h1>
+  <section id="inputtable">
+<h1>InputTable<a class="headerlink" href="#inputtable" title="Permalink to this headline">#</a></h1>
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="activitysim.core.configuration.InputTable">
 <em class="property"><span class="pre">settings</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">activitysim.core.configuration.</span></span><span class="sig-name descname"><span class="pre">InputTable</span></span><a class="headerlink" href="#activitysim.core.configuration.InputTable" title="Permalink to this definition">#</a></dt>
@@ -298,12 +323,13 @@ function checkPageExistsAndRedirect(event) {
 <dl class="field-list simple">
 <dt class="field-odd">Fields</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="#activitysim.core.configuration.InputTable.filename" title="activitysim.core.configuration.InputTable.filename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filename</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.InputTable.h5_tablename" title="activitysim.core.configuration.InputTable.h5_tablename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">h5_tablename</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.InputTable.index_col" title="activitysim.core.configuration.InputTable.index_col"><code class="xref py py-obj docutils literal notranslate"><span class="pre">index_col</span> <span class="pre">(str)</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.InputTable.keep_columns" title="activitysim.core.configuration.InputTable.keep_columns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">keep_columns</span> <span class="pre">(list[str])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.InputTable.rename_columns" title="activitysim.core.configuration.InputTable.rename_columns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rename_columns</span> <span class="pre">(dict[str,</span> <span class="pre">str])</span></code></a></p></li>
-<li><p><a class="reference internal" href="#activitysim.core.configuration.InputTable.tablename" title="activitysim.core.configuration.InputTable.tablename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tablename</span> <span class="pre">(str)</span></code></a></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">filename</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">h5_tablename</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">index_col</span> <span class="pre">(str)</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">keep_columns</span> <span class="pre">(list[str])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">recode_columns</span> <span class="pre">(dict[str,</span> <span class="pre">str])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">rename_columns</span> <span class="pre">(dict[str,</span> <span class="pre">str])</span></code></p></li>
+<li><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">tablename</span> <span class="pre">(str)</span></code></p></li>
 </ul>
 </dd>
 </dl>
@@ -329,15 +355,45 @@ function checkPageExistsAndRedirect(event) {
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.InputTable.keep_columns">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">keep_columns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.InputTable.keep_columns" title="Permalink to this definition">#</a></dt>
-<dd><p>columns to keep once read in to memory.</p>
+<dd><p>Columns to keep once read in to memory.</p>
 <p>Save only the columns needed for modeling or analysis to save on memory
-and file I/O</p>
+and file I/O.  If not given, all columns in the input file will be read
+and retained.</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="activitysim.core.configuration.InputTable.recode_columns">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">recode_columns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.InputTable.recode_columns" title="Permalink to this definition">#</a></dt>
+<dd><p>Dictionary of column recoding instructions.</p>
+<p>Certain columns of data, notably TAZ and MAZ id’s, are more efficiently
+stored as the index (offset) position of each value within a fixed array of
+values, instead of as the value itself.  To recode a column into this offset
+format, give the value “zero-based” for that column name.  This will replace
+the named column with a RangeIndex, starting from zero, and will create a
+lookup column of the original values, which is not used by ActivitySim other
+than to recode other related variables, or to reconstitute the original
+labels for a final output table.  This zero-based recoding is typically
+done for the <cite>zone_id</cite> field in the land_use table, but might also be done
+elsewhere.</p>
+<p>Alternatively, for columns that contain <em>references</em> to recoded data, give
+the recode instruction as “tablename.fieldname” (often, “land_use.zone_id”).
+This will trigger a remapping of each value according to the stored lookup
+table for the original values, transforming the values in other columns to
+be consistent with the recoded zero-based values.  For example, if the
+<cite>zone_id</cite> field in the land_use table has been recoded to be zero-based,
+then the home_zone_id in the households table needs to be recoded to match.</p>
+<p>Note that recoding is done after renaming, so the key values in this mapping
+should correspond to the internally used names and not the original column
+names that appear in the input file (if they have been renamed).</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="activitysim.core.configuration.InputTable.rename_columns">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">rename_columns</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#activitysim.core.configuration.InputTable.rename_columns" title="Permalink to this definition">#</a></dt>
-<dd><p>dictionary of column name mappings</p>
+<dd><p>Dictionary of column name mappings.</p>
+<p>This allows for renaming data columns from the original names found in the
+header of the input file itself, into the names used internally by
+ActivitySim, in configuration and specification files.</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -360,13 +416,13 @@ and file I/O</p>
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">activitysim.core.configuration.Settings</p>
+            <p class="prev-next-title">Settings</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="activitysim.core.configuration.NetworkSettings.html" title="next page">
+    <a class='right-next' id="next-link" href="activitysim.core.configuration.OutputTable.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">activitysim.core.configuration.NetworkSettings</p>
+        <p class="prev-next-title">OutputTable</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>
@@ -386,7 +442,7 @@ and file I/O</p>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev111+g7cc99ef9, documentation last updated Dec 30, 2022.<br/>
+ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
 </p>
     </div>
     

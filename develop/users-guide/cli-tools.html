@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Configuration &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
+    <title>Command Line Tools &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,8 +35,8 @@
     <script src="../_static/design-tabs.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Settings" href="_generated/activitysim.core.configuration.Settings.html" />
-    <link rel="prev" title="Examples" href="../examples.html" />
+    <link rel="next" title="Examples" href="../examples.html" />
+    <link rel="prev" title="Getting Started" href="../gettingstarted.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -104,14 +104,14 @@
 
 <!-- NOTE: this JS must live here (not in our global JS file) because it relies
      on being processed by Jinja before it is run (specifically for replacing
-     variables users-guide/configuration and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.1.4'}.
+     variables users-guide/cli-tools and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.1.4'}.
 -->
 
 <script type="text/javascript">
 // Check if corresponding page path exists in other version of docs
 // and, if so, go there instead of the homepage of the other docs version
 function checkPageExistsAndRedirect(event) {
-    const currentFilePath = "users-guide/configuration.html",
+    const currentFilePath = "users-guide/cli-tools.html",
           tryUrl = event.target.getAttribute("href");
     let otherDocsHomepage = tryUrl.replace(currentFilePath, "");
     $.ajax({
@@ -132,7 +132,7 @@ function checkPageExistsAndRedirect(event) {
 // Populate the version switcher from the JSON config file
 (function () {
     $.getJSON("https://activitysim.github.io/activitysim/switcher.json", function(data, textStatus, jqXHR) {
-        const currentFilePath = "users-guide/configuration.html";
+        const currentFilePath = "users-guide/cli-tools.html";
         // create links to the corresponding page in the other docs versions
         $.each(data, function(index, entry) {
             // if no custom name specified (e.g., "latest"), use version string
@@ -193,8 +193,8 @@ function checkPageExistsAndRedirect(event) {
    Getting Started
   </a>
  </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="cli-tools.html">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
    Command Line Tools
   </a>
  </li>
@@ -203,11 +203,11 @@ function checkPageExistsAndRedirect(event) {
    Examples
   </a>
  </li>
- <li class="toctree-l1 current active has-children">
-  <a class="current reference internal" href="#">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="configuration.html">
    Configuration
   </a>
-  <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
   <label for="toctree-checkbox-1">
    <i class="fas fa-chevron-down">
    </i>
@@ -299,14 +299,28 @@ function checkPageExistsAndRedirect(event) {
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#top-level-settings">
-   Top Level Settings
+  <a class="reference internal nav-link" href="#activitysim-run">
+   activitysim run
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#Named Arguments">
+     Named Arguments
+    </a>
+   </li>
+  </ul>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#network-level-of-service">
-   Network Level of Service
+  <a class="reference internal nav-link" href="#activitysim-create">
+   activitysim create
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#Named Arguments">
+     Named Arguments
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -329,60 +343,110 @@ function checkPageExistsAndRedirect(event) {
               
               <div>
                 
-  <section id="configuration">
-<span id="index-0"></span><span id="id1"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">#</a></h1>
-<p>The <code class="docutils literal notranslate"><span class="pre">configs</span></code> folder for a model implementation contains settings, expressions
-files, and other files required for specifying model utilities and form.  Each
-component will have one or more files that control the operation of that
-component.</p>
-<section id="top-level-settings">
-<h2>Top Level Settings<a class="headerlink" href="#top-level-settings" title="Permalink to this headline">#</a></h2>
-<table class="autosummary longtable table autosummary">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.Settings.html#activitysim.core.configuration.Settings" title="activitysim.core.configuration.Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Settings</span></code></a></p></td>
-<td><p>The overall settings for the ActivitySim model system.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.InputTable.html#activitysim.core.configuration.InputTable" title="activitysim.core.configuration.InputTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">InputTable</span></code></a></p></td>
-<td><p>The features that define an input table to be read by ActivitySim.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.OutputTable.html#activitysim.core.configuration.OutputTable" title="activitysim.core.configuration.OutputTable"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputTable</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.OutputTables.html#activitysim.core.configuration.OutputTables" title="activitysim.core.configuration.OutputTables"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OutputTables</span></code></a></p></td>
-<td><p>Instructions on how to write out final pipeline tables.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.MultiprocessStep.html#activitysim.core.configuration.MultiprocessStep" title="activitysim.core.configuration.MultiprocessStep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiprocessStep</span></code></a></p></td>
-<td><p>A contiguous group of model components that are multiprocessed together.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.MultiprocessStepSlice.html#activitysim.core.configuration.MultiprocessStepSlice" title="activitysim.core.configuration.MultiprocessStepSlice"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MultiprocessStepSlice</span></code></a></p></td>
-<td><p>Instructions on how to slice tables for each subprocess.</p></td>
-</tr>
-</tbody>
-</table>
+  <section id="command-line-tools">
+<h1>Command Line Tools<a class="headerlink" href="#command-line-tools" title="Permalink to this headline">#</a></h1>
+<section id="activitysim-run">
+<h2>activitysim run<a class="headerlink" href="#activitysim-run" title="Permalink to this headline">#</a></h2>
+<p><blockquote>
+<div><p>Run the models. Specify a project folder using the ‘–working_dir’ option,
+or point to the config, data, and output folders directly with
+‘–config’, ‘–data’, and ‘–output’. Both ‘–config’ and ‘–data’ can be
+specified multiple times. Directories listed first take precedence.</p>
+<dl class="simple">
+<dt>returns:</dt><dd><p>int: sys.exit exit code</p>
+</dd>
+</dl>
+</div></blockquote>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">activitysim</span> <span class="n">run</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">PATH</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">r</span> <span class="n">STEPNAME</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">FILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">FILE</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">g</span> <span class="n">BYTES</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">chunk_training_mode</span> <span class="n">CHUNK_TRAINING_MODE</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">--</span><span class="n">households_sample_size</span> <span class="n">N</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">fast</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">PATH</span><span class="p">]</span>
+                       <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="p">[</span><span class="n">N</span><span class="p">]]</span>
+</pre></div>
+</div>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">#</a></h3>
+<dl class="option-list">
+<dt><kbd>-w, --working_dir</kbd></dt>
+<dd><p>path to example/project directory (default: /home/runner/work/activitysim/activitysim/docs)</p>
+</dd>
+<dt><kbd>-c, --config</kbd></dt>
+<dd><p>path to config dir</p>
+</dd>
+<dt><kbd>-o, --output</kbd></dt>
+<dd><p>path to output dir</p>
+</dd>
+<dt><kbd>-d, --data</kbd></dt>
+<dd><p>path to data dir</p>
+</dd>
+<dt><kbd>-r, --resume</kbd></dt>
+<dd><p>resume after step</p>
+</dd>
+<dt><kbd>-p, --pipeline</kbd></dt>
+<dd><p>pipeline file name</p>
+</dd>
+<dt><kbd>-s, --settings_file</kbd></dt>
+<dd><p>settings file name</p>
+</dd>
+<dt><kbd>-g, --chunk_size</kbd></dt>
+<dd><p>chunk size</p>
+</dd>
+<dt><kbd>--chunk_training_mode</kbd></dt>
+<dd><p>chunk training mode, one of [training, adaptive, production, disabled]</p>
+</dd>
+<dt><kbd>--households_sample_size</kbd></dt>
+<dd><p>households sample size</p>
+</dd>
+<dt><kbd>--fast</kbd></dt>
+<dd><p>Do not limit process to one thread. Can make single process runs faster, but will cause thrashing on MP runs.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-e, --ext</kbd></dt>
+<dd><p>Package of extension modules to load. Use of this option is not generally secure.</p>
+</dd>
+<dt><kbd>-m, --multiprocess</kbd></dt>
+<dd><p>run multiprocess. Adds configs_mp settings by default. Optionally give a number of processes, which will override the settings file.</p>
+<p>Default: False</p>
+</dd>
+</dl>
 </section>
-<section id="network-level-of-service">
-<h2>Network Level of Service<a class="headerlink" href="#network-level-of-service" title="Permalink to this headline">#</a></h2>
-<table class="autosummary longtable table autosummary">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.NetworkSettings.html#activitysim.core.configuration.NetworkSettings" title="activitysim.core.configuration.NetworkSettings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NetworkSettings</span></code></a></p></td>
-<td><p>Network level of service and skims settings</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.TAZ_Settings.html#activitysim.core.configuration.TAZ_Settings" title="activitysim.core.configuration.TAZ_Settings"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TAZ_Settings</span></code></a></p></td>
-<td><p>Complex settings for TAZ skims that are not just OMX file(s).</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="_generated/activitysim.core.configuration.DigitalEncoding.html#activitysim.core.configuration.DigitalEncoding" title="activitysim.core.configuration.DigitalEncoding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DigitalEncoding</span></code></a></p></td>
-<td><p>Digital encoding instructions for skim tables.</p></td>
-</tr>
-</tbody>
-</table>
+</section>
+<section id="activitysim-create">
+<h2>activitysim create<a class="headerlink" href="#activitysim-create" title="Permalink to this headline">#</a></h2>
+<p><blockquote>
+<div><p>Create a new ActivitySim configuration from an existing template.</p>
+<p>Use the -l flag to view a list of example configurations, then
+copy to your own working directory. These new project files can
+be run with the ‘run’ command.</p>
+</div></blockquote>
+</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">(</span><span class="o">-</span><span class="n">l</span> <span class="o">|</span> <span class="o">-</span><span class="n">e</span> <span class="n">PATH</span><span class="p">)</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">link</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="Named Arguments">
+<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">#</a></h3>
+<dl class="option-list">
+<dt><kbd>-l, --list</kbd></dt>
+<dd><p>list available example directories and exit</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>-e, --example</kbd></dt>
+<dd><p>example directory to copy</p>
+</dd>
+<dt><kbd>-d, --destination</kbd></dt>
+<dd><p>Path to new project directory.  If this directory already exists, the
+newly created example will be copied to a subdirectory within the
+existing directory, and named according to the example name.  Otherwise,
+a new directory is created with this name and the newly created example
+will be copied directly into it.</p>
+</dd>
+<dt><kbd>--link</kbd></dt>
+<dd><p>cache and reuse downloaded files via symlinking</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
 </section>
 </section>
 
@@ -392,17 +456,17 @@ component.</p>
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="../examples.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="../gettingstarted.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Examples</p>
+            <p class="prev-next-title">Getting Started</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="_generated/activitysim.core.configuration.Settings.html" title="next page">
+    <a class='right-next' id="next-link" href="../examples.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Settings</p>
+        <p class="prev-next-title">Examples</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

@@ -25,6 +25,8 @@ input_table_list:
       persons: hhsize
       cars: auto_ownership
       zone_id: home_zone_id
+    recode_columns:
+      home_zone_id: land_use.zone_id
   #
   # persons (table index 'person_id')
   #
@@ -39,6 +41,8 @@ input_table_list:
     index_col: zone_id
     rename_columns:
       ZONE: zone_id
+    recode_columns:
+      zone_id: zero-based
 
 # convert input CSVs to HDF5 format and save to outputs directory
 # create_input_store: True
@@ -128,11 +132,25 @@ output_tables:
   tables:
     - checkpoints
     - accessibility
-    - land_use
-    - households
-    - persons
-    - tours
-    - trips
+    - tablename: land_use
+      decode_columns:
+        zone_id: land_use.zone_id
+    - tablename: households
+      decode_columns:
+        home_zone_id: land_use.zone_id
+    - tablename: persons
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        school_zone_id: nonnegative | land_use.zone_id
+        workplace_zone_id: nonnegative | land_use.zone_id
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
     - joint_tour_participants
 
 # area_types less than this are considered urban
@@ -154,3 +172,4 @@ household_median_value_of_time:
   2: 8.81
   3: 10.44
   4: 12.86
+

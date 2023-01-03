@@ -168,15 +168,12 @@ def reindex(series1, series2):
 
     """
 
-    # turns out the merge is much faster than the .loc below
-    df = pd.merge(
-        series2.to_frame(name="left"),
-        series1.to_frame(name="right"),
-        left_on="left",
-        right_index=True,
-        how="left",
-    )
-    return df.right
+    result = series1.reindex(series2)
+    try:
+        result.index = series2.index
+    except AttributeError:
+        pass
+    return result
 
     # return pd.Series(series1.loc[series2.values].values, index=series2.index)
 

@@ -61,7 +61,7 @@ def enumerate_tour_types(tour_flavors):
 def read_alts_file(file_name, set_index=None):
     try:
         alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
+    except (RuntimeError, FileNotFoundError):
         logger.warning(f"Could not find file {file_name} to determine tour flavors.")
         return pd.DataFrame()
     return alts
@@ -230,7 +230,7 @@ def canonical_tours():
             "non_mandatory_tour_frequency_extension_probs.csv"
         )
         extension_probs = pd.read_csv(ext_probs_f, comment="#")
-    except RuntimeError:
+    except (RuntimeError, FileNotFoundError):
         logger.warning(
             f"non_mandatory_tour_frequency_extension_probs.csv file not found"
         )

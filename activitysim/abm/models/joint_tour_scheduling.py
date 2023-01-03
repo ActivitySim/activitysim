@@ -71,6 +71,7 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
     estimator = estimation.manager.begin_estimation("joint_tour_scheduling")
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    sharrow_skip = model_settings.get("sharrow_skip", False)
     coefficients_df = simulate.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
@@ -91,6 +92,7 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
         estimator=estimator,
         chunk_size=chunk_size,
         trace_label=trace_label,
+        sharrow_skip=sharrow_skip,
     )
 
     if estimator:

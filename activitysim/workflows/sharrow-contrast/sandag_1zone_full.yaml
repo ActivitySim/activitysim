@@ -1,0 +1,39 @@
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: placeholder_sandag_1_zone_full
+      workspace: workspace
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: False
+      tag: '2022-07-1zone-1process'
+      resume_after:
+      fast: False
+      compile_n_households: 10000
+      main_n_households: 100000
+      config_dirs:
+      - configs_1_zone
+      - prototype_mtc/configs
+      data_dir: data_1
+      instrument: False
+      memory_profile: True
+      trace_hh_id:
+      trace_od:
+      workplace_zone_agg:
+        caption: Workplaces by County
+        district_id: county_id
+      distance_skim: DIST
+      household_income: income
+      chunk_training: True
+      chunk_training_mode: training
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner

@@ -27,9 +27,12 @@ from . import (
     school_escorting,
     stop_frequency,
     summarize,
+    telecommute_frequency,
     tour_mode_choice,
     tour_od_choice,
     tour_scheduling_probabilistic,
+    transit_pass_ownership,
+    transit_pass_subsidy,
     trip_departure_choice,
     trip_destination,
     trip_matrices,
@@ -40,4 +43,5 @@ from . import (
     trip_scheduling_choice,
     vehicle_allocation,
     vehicle_type_choice,
+    work_from_home,
 )

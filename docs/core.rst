@@ -514,7 +514,7 @@ Table columns can also be aggregated, or "remapped," during the preprocessing st
       - column: major_trip_mode        # Column on which to operate
         label: major_trip_mode         # New column to make
         map:
-          DRIVEALONEFREE: SOV          # Keys: Existing values to map from 
+          DRIVEALONEFREE: SOV          # Keys: Existing values to map from
           DRIVEALONEPAY: SOV           # Values: New values to map to
           SHARED2FREE: HOV
           SHARED2PAY: HOV
@@ -557,7 +557,7 @@ The latest information about the Simwrapper package is available on its `PyPI pa
 To run SimWrapper, navigate on the command line to ``output\summarize`` within the model directory, or a directory where you may have copied outputs, and run:
 ::
 
-  > simwrapper open asim 
+  > simwrapper open asim
 
 This will start SimWrapper in your default browser. If this directory contains the appropriate configuration files for a dashboard (see above), the dashboard will open automatically. Otherwise, SimWrapper will show a file browser with the contents of the directory.
 

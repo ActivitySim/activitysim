@@ -10,3 +10,7 @@ LOGIT_TYPE: MNL
 WORK_FROM_HOME_ALT: 0
 
 DEST_CHOICE_COLUMN_NAME: workplace_zone_id
+
+preprocessor:
+  SPEC: work_from_home_annotate_persons_preprocessor
+  DF: persons

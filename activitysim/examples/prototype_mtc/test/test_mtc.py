@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -15,7 +16,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def run_test_mtc(multiprocess=False, chunkless=False):
+def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=False):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -58,6 +59,28 @@ def run_test_mtc(multiprocess=False, chunkless=False):
             "-o",
             test_path("output"),
         ]
+    elif recode:
+        run_args = [
+            "-c",
+            test_path("configs_recode"),
+            "-c",
+            example_path("configs"),
+            "-d",
+            example_path("data"),
+            "-o",
+            test_path("output"),
+        ]
+    elif sharrow:
+        run_args = [
+            "-c",
+            test_path("configs_sharrow"),
+            "-c",
+            example_path("configs"),
+            "-d",
+            example_path("data"),
+            "-o",
+            test_path("output"),
+        ]
     else:
         run_args = [
             "-c",
@@ -70,7 +93,10 @@ def run_test_mtc(multiprocess=False, chunkless=False):
             test_path("output"),
         ]
 
-    subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    else:
+        subprocess.run([sys.executable, file_path] + run_args, check=True)
 
     regress()
 
@@ -87,8 +113,18 @@ def test_mtc_mp():
     run_test_mtc(multiprocess=True)
 
 
+def test_mtc_recode():
+    run_test_mtc(recode=True)
+
+
+def test_mtc_sharrow():
+    run_test_mtc(sharrow=True)
+
+
 if __name__ == "__main__":
 
     run_test_mtc(multiprocess=False)
     run_test_mtc(multiprocess=True)
     run_test_mtc(multiprocess=False, chunkless=True)
+    run_test_mtc(recode=True)
+    run_test_mtc(sharrow=True)

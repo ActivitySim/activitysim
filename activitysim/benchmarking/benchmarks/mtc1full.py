@@ -52,6 +52,14 @@ TIMEOUT = 36000.0  # ten hours
 VERSION = "1"
 
 
+try:
+    from activitysim import __data_compatability__
+except ImportError:
+    __data_compatability__ = None
+else:
+    OUTPUT_DIR = f"{OUTPUT_DIR}-{__data_compatability__}"
+
+
 def setup_cache():
     template_setup_cache(
         EXAMPLE_NAME,

@@ -13,8 +13,8 @@ free parking availability,free_parking_available,(df.tour_type == 'work') & df.f
 #cost coefficients,,
 ,c_cost,(c_cost_low * df.is_low_income)+(c_cost_med * df.is_medium_income)+(c_cost_high * df.is_high_income)+(c_cost_high * df.is_very_high_income)
 #,,
-is_morning_period,_out_period,"(df.trip_period.isin(['EA','AM','MD']))"
-is_afternoon_period,_in_period,"(df.trip_period.isin(['MD','PM']))"
+is_morning_period,_out_period,"(df.trip_period.isin(['EA','AM','MD',0,1,2]))"
+is_afternoon_period,_in_period,"(df.trip_period.isin(['MD','PM',2,3]))"
 #,,
 WLKALL transit in-vehicle time - outbound direction,walk_allTransit_ivt,odt_skims['WLK_ALLTRN_WLK_LOCAL']+expr*odt_skims['WLK_ALLTRN_WLK_XBUS']+hrt*odt_skims['WLK_ALLTRN_WLK_HRT']+brt*odt_skims['WLK_ALLTRN_WLK_BRT']+lrt*odt_skims['WLK_ALLTRN_WLK_LRT']+crl*odt_skims['WLK_ALLTRN_WLK_COMRAIL']
 WLKPRM transit in-vehicle time - outbound direction,walk_prmTransit_ivt,odt_skims['WLK_PRMTRN_WLK_LOCAL']+expr*odt_skims['WLK_PRMTRN_WLK_XBUS']+hrt*odt_skims['WLK_PRMTRN_WLK_HRT']+brt*odt_skims['WLK_PRMTRN_WLK_BRT']+lrt*odt_skims['WLK_PRMTRN_WLK_LRT']+crl*odt_skims['WLK_PRMTRN_WLK_COMRAIL']

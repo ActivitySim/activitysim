@@ -1,0 +1,3 @@
+Description,Target,Expression
+subsequent_tour_is_work,subsequent_tour_is_work,df.tour_type.shift(-1) == 'work'
+subsequent_tour_is_school,subsequent_tour_is_school,df.tour_type.shift(-1) == 'school'

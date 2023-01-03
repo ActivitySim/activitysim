@@ -50,4 +50,6 @@ def log_settings():
         "num_processes",
         "resume_after",
         "trace_hh_id",
+        "memory_profile",
+        "instrument",
     ]

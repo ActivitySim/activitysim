@@ -125,6 +125,8 @@ def parking_destination_simulate(
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update(skims)
+    locals_dict["timeframe"] = "trip"
+    locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     parking_locations = interaction_sample_simulate(
         choosers=trips,
@@ -295,6 +297,21 @@ def parking_location(
     trips_df = trips.to_frame()
     trips_merged_df = trips_merged.to_frame()
     land_use_df = land_use.to_frame()
+
+    proposed_trip_departure_period = model_settings["TRIP_DEPARTURE_PERIOD"]
+    # TODO: the number of skim time periods should be more readily available than this
+    n_skim_time_periods = np.unique(
+        network_los.los_settings["skim_time_periods"]["labels"]
+    ).size
+    if trips_merged_df[proposed_trip_departure_period].max() > n_skim_time_periods:
+        # max proposed_trip_departure_period is out of range,
+        # it is most likely the high-resolution time period, we need the skim-level time period
+        if "trip_period" not in trips_merged_df:
+            # TODO: resolve this to the skim time period index not the label, it will be faster
+            trips_merged_df["trip_period"] = network_los.skim_time_period_label(
+                trips_merged_df[proposed_trip_departure_period]
+            )
+        model_settings["TRIP_DEPARTURE_PERIOD"] = "trip_period"
 
     locals_dict = {"network_los": network_los}
 

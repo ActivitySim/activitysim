@@ -25,10 +25,10 @@ Can walk to work - Retired interaction,(ptype == 5) & (distance_to_work < 3),0,0
 Can walk to school - University student interaction,(ptype == 3) & (distance_to_school < 3),0,0,0,0.7114,0
 Can walk to school - Driving-age child interaction,(ptype == 6) & (distance_to_school < 3),0,0,0,0.7114,0
 Can walk to school - Pre-driving age child who is in school interaction,((ptype == 7)|(ptype == 8)) & (distance_to_school < 3),0,0,0,0.7114,0
-Can walk to work or school - Full-time worker interaction,(ptype == 1) & (distance_to_work < 3 | distance_to_school < 3),0,0,0,0,0.1391
-Can walk to work or school - Part-time worker interaction,(ptype == 2) & (distance_to_work < 3 | distance_to_school < 3),0,0,0,0,0.1391
-Can walk to work or school - University student interaction,(ptype == 3) & (distance_to_work < 3 | distance_to_school < 3),0,0,0,0,0.1391
-Can walk to work or school - Driving-age child interaction,(ptype == 6) & (distance_to_work < 3 | distance_to_school < 3),0,0,0,0,0.1391
+Can walk to work or school - Full-time worker interaction,(ptype == 1) & ((distance_to_work < 3) | (distance_to_school < 3)),0,0,0,0,0.1391
+Can walk to work or school - Part-time worker interaction,(ptype == 2) & ((distance_to_work < 3) | (distance_to_school < 3)),0,0,0,0,0.1391
+Can walk to work or school - University student interaction,(ptype == 3) & ((distance_to_work < 3) | (distance_to_school < 3)),0,0,0,0,0.1391
+Can walk to work or school - Driving-age child interaction,(ptype == 6) & ((distance_to_work < 3) | (distance_to_school < 3)),0,0,0,0,0.1391
 Round trip auto time to work - Full-time worker interaction,(ptype == 1) * roundtrip_auto_time_to_work,0,-0.003518,0,0,-0.003124
 Round trip auto time to work - Part-time worker interaction,(ptype == 2) * roundtrip_auto_time_to_work,0,-0.003518,0,0,-0.003124
 Round trip auto time to work - University student interaction,(ptype == 3) * roundtrip_auto_time_to_work,0,-0.003518,0,0,-0.003124

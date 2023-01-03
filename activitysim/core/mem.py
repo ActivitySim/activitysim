@@ -7,7 +7,6 @@ import glob
 import logging
 import multiprocessing
 import os
-import platform
 import threading
 import time
 
@@ -174,7 +173,7 @@ def log_global_hwm():
         )
 
 
-def trace_memory_info(event, trace_ticks=0):
+def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False):
 
     global MEM_TICK
 
@@ -182,6 +181,14 @@ def trace_memory_info(event, trace_ticks=0):
     if trace_ticks and (tick - MEM_TICK < trace_ticks):
         return
     MEM_TICK = tick
+
+    if force_garbage_collect:
+        was_disabled = not gc.isenabled()
+        if was_disabled:
+            gc.enable()
+        gc.collect()
+        if was_disabled:
+            gc.disable()
 
     process_name = multiprocessing.current_process().name
     pid = os.getpid()
@@ -284,6 +291,11 @@ def shared_memory_size(data_buffers=None):
         data_buffers = inject.get_injectable("data_buffers", {})
 
     for k, data_buffer in data_buffers.items():
+        if isinstance(data_buffer, str) and data_buffer.startswith("sh.Dataset:"):
+            from sharrow import Dataset
+
+            shared_size += Dataset.shm.preload_shared_memory_size(data_buffer[11:])
+            continue
         try:
             obj = data_buffer.get_obj()
         except Exception:

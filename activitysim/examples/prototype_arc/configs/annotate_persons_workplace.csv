@@ -36,4 +36,4 @@ Total IVT,students_totalTrn_ivt,"np.where((_PremOnlyPremIVT_Sch > 0) * (_PremOnl
 Usual work location is home,usualWorkLocationIsHome,"np.where(persons.workplace_zone_id == persons.home_zone_id, 1, 0)"
 #Followed MTC convention - not sure why workplace taz equal to 0 was not used,,
 No usual work location,noUsualWorkLocation,"np.where(persons.workplace_zone_id < 0, 1, 0)"
-Distance to work,distance_to_work,"skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('SOV_FREE_DISTANCE', 'MD'))"
+Distance to work,distance_to_work,"np.where(persons.workplace_zone_id>=0, skim_dict.lookup(persons.home_zone_id, persons.workplace_zone_id, ('SOV_FREE_DISTANCE', 'MD')),np.nan)"

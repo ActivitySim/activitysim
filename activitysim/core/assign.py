@@ -7,7 +7,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, pipeline, util
+from activitysim.core import chunk, config, pipeline, util
 
 logger = logging.getLogger(__name__)
 
@@ -264,6 +264,41 @@ def assign_variables(
     variables = OrderedDict()
     temps = OrderedDict()
 
+    # draw required randomness in one slug
+    # TODO: generalize to all randomness, not just lognormals
+    n_randoms = 0
+    for expression_idx in assignment_expressions.index:
+        expression = assignment_expressions.loc[expression_idx, "expression"]
+        if "rng.lognormal_for_df(df," in expression:
+            expression = expression.replace(
+                "rng.lognormal_for_df(df,", f"rng_lognormal(random_draws[{n_randoms}],"
+            )
+            n_randoms += 1
+            assignment_expressions.loc[expression_idx, "expression"] = expression
+    if n_randoms:
+        from activitysim.core import pipeline
+
+        try:
+            random_draws = pipeline.get_rn_generator().normal_for_df(
+                df, broadcast=True, size=n_randoms
+            )
+        except RuntimeError:
+            pass
+        else:
+            _locals_dict["random_draws"] = random_draws
+
+            def rng_lognormal(random_draws, mu, sigma, broadcast=True, scale=False):
+                if scale:
+                    x = 1 + ((sigma * sigma) / (mu * mu))
+                    mu = np.log(mu / (np.sqrt(x)))
+                    sigma = np.sqrt(np.log(x))
+                assert broadcast
+                return np.exp(random_draws * sigma + mu)
+
+            _locals_dict["rng_lognormal"] = rng_lognormal
+
+    sharrow_enabled = config.setting("sharrow", False)
+
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously
 
@@ -318,6 +353,18 @@ def assign_variables(
             # FIXME should whitelist globals for security?
             globals_dict = {}
             expr_values = to_series(eval(expression, globals_dict, _locals_dict))
+
+            if (
+                sharrow_enabled
+                and np.issubdtype(expr_values.dtype, np.floating)
+                and expr_values.dtype.itemsize < 4
+            ):
+                # promote to float32, numba is not presently compatible with
+                # any float less than 32 (i.e., float16)
+                # see https://github.com/numba/numba/issues/4402
+                # note this only applies to floats, signed and unsigned
+                # integers are readily supported down to 1 byte
+                expr_values = expr_values.astype(np.float32)
 
             np.seterr(**save_err)
             np.seterrcall(saved_handler)

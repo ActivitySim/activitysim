@@ -28,6 +28,8 @@ input_table_list:
       workers: num_workers
       VEHICL: auto_ownership
       TAZ: home_zone_id
+    recode_columns:
+      home_zone_id: land_use.zone_id
     keep_columns:
       - home_zone_id
       - income
@@ -61,6 +63,8 @@ input_table_list:
     rename_columns:
       TAZ: zone_id  # person_id is the required index column
       COUNTY: county_id
+    recode_columns:
+      zone_id: zero-based
     keep_columns:
       - DISTRICT
       - SD
@@ -186,3 +190,4 @@ household_median_value_of_time:
   2: 8.81
   3: 10.44
   4: 12.86
+

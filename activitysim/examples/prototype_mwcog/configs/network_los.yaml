@@ -8,7 +8,28 @@ write_skim_cache: False
 
 zone_system: 1
 
-taz_skims: skims.omx
+taz_skims:
+    omx: skims*.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - {regex: .*_DIST.*   , joint_dict: true}
+        - {regex: .*_DDIST    , joint_dict: true}
+        - {regex: .*_DTIME    , joint_dict: true}
+        - {regex: .*_FARE     , joint_dict: true}
+        - {regex: .*_IVTBR    , joint_dict: true}
+        - {regex: .*_IVTCR    , joint_dict: true}
+        - {regex: .*_IVTLB    , joint_dict: true}
+        - {regex: .*_IVTLR    , joint_dict: true}
+        - {regex: .*_IVTMR    , joint_dict: true}
+        - {regex: .*_IVTXB    , joint_dict: true}
+        - {regex: .*_IWAIT    , joint_dict: true}
+        - {regex: .*_TOTIVT   , joint_dict: true}
+        - {regex: .*_TOTTT    , joint_dict: true}
+        - {regex: .*_WACC     , joint_dict: true}
+        - {regex: .*_WAUX     , joint_dict: true}
+        - {regex: .*_XFERS    , joint_dict: true}
+        - {regex: .*_XPEN     , joint_dict: true}
+        - {regex: .*_XWAIT    , joint_dict: true}
 
 skim_time_periods:
     time_window: 1440
@@ -16,4 +37,4 @@ skim_time_periods:
     periods: [0, 6, 12, 24, 32, 48]
     labels: ['NT', 'AM', 'MD', 'PM', 'NT']
 
-#NT is repeated twice as it's on both sides of the day. 
+#NT is repeated twice as it's on both sides of the day.

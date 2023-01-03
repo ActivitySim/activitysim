@@ -55,7 +55,7 @@ def compute_utilities(
             f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers"
         )
 
-        locals_dict = {"np": np, "los": network_los}
+        locals_dict = {"np": np, "los": network_los, "disable_sharrow": True}
         locals_dict.update(model_constants)
 
         # we don't grok coefficients, but allow them to use constants in spec alt columns
@@ -1267,6 +1267,16 @@ class TransitVirtualPathLogsumWrapper(object):
         skim: Skim
              The skim object
         """
+        if self.cache_choices and path_type in self.cache:
+            # restore out of cache if all logsums are available in cache
+            # this can happen if the tvpb is called twice for the same thing in a spec
+            # do we want to allow this?  alternatively the onus can be on the
+            # spec writer not to use them twice
+            cached = self.cache.get(path_type)
+            if "logsum" in cached and self.df.index[0] in cached.index:
+                recalled_logsums = cached.reindex(self.df.index).logsum
+                if not recalled_logsums.isna().any():
+                    return recalled_logsums
 
         assert self.df is not None, "Call set_df first"
         assert (
@@ -1308,11 +1318,21 @@ class TransitVirtualPathLogsumWrapper(object):
             choices_df = logsum_df[["atap", "btap", "path_set"]]
 
             if path_type in self.cache:
-                assert (
+                if (
                     len(self.cache.get(path_type).index.intersection(logsum_df.index))
                     == 0
-                )
-                choices_df = pd.concat([self.cache.get(path_type), choices_df])
+                ):
+                    choices_df = pd.concat([self.cache.get(path_type), choices_df])
+                else:
+                    intersect = self.cache.get(path_type).index.intersection(
+                        logsum_df.index
+                    )
+                    choices_df = pd.concat(
+                        [
+                            self.cache.get(path_type),
+                            choices_df.loc[~choices_df.index.isin(intersect)],
+                        ]
+                    )
 
             self.cache[path_type] = choices_df
 

@@ -1,3 +1,4 @@
+sharrow_skip: true
 
 OUTBOUND_SPEC: school_escorting_outbound.csv
 OUTBOUND_COEFFICIENTS: school_escorting_coefficients_outbound.csv

@@ -711,6 +711,16 @@ def filter_warnings():
             "To retain the old behavior, use either.*"
         ),
     )
+    # beginning in pandas version 1.5, a warning is emitted when using pandas.concat on dataframes
+    # that contain object-dtype columns with all-bool values.  ActivitySim plans to address dtypes
+    # and move away from object-dtype columns anyhow, so this is not a critical problem.
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message=(
+            ".*object-dtype columns with all-bool values will not be included in reductions.*"
+        ),
+    )
 
     # beginning in sharrow version 2.5, a CacheMissWarning is emitted when a sharrow
     # flow cannot be loaded from cache and needs to be compiled.  These are performance

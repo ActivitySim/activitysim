@@ -13,9 +13,7 @@ All - No attractions,"@size_terms.get(df.dest_zone_id, df.purpose) == 0 # sharro
 #Applied the conventions used in the destination sample file,,,,,,,,,,,
 ,"_org_to_stop_dist@od_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
 ,"_stop_to_dest_dist@dp_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
-# THIS IS WRONG ***** RIGHT HERE **** I CHANGED THE BELOW TO MAKE WORK MECHANICALLY ,,,,,,,,,,,
-# ,"_od_distance@op_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
-,"_od_distance@od_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
+,"_od_distance@op_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
 #WORK,,,,,,,,,,,
 WORK - Distance squared,"@((od_skims[('SOV_FREE_DISTANCE', 'MD')] + dp_skims[('SOV_FREE_DISTANCE', 'MD')]) ** 2)",0.0026,,,,,,,,,
 WORK - Distance cubed,"@((od_skims[('SOV_FREE_DISTANCE', 'MD')] + dp_skims[('SOV_FREE_DISTANCE', 'MD')]) ** 3)",-0.0000109,,,,,,,,,

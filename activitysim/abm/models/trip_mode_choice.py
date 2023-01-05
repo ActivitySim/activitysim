@@ -284,7 +284,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
     pipeline.replace_table("trips", trips_df)
 
     if model_settings.get("annotate_trips"):
-        annotate.annotate_trips(model_settings, trace_label)
+        annotate.annotate_trips(model_settings, trace_label, locals_dict)
 
     if trace_hh_id:
         tracing.trace_df(

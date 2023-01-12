@@ -2,24 +2,14 @@
 # See full license in LICENSE.txt.
 import logging
 
-from activitysim.core.interaction_simulate import interaction_simulate
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import pipeline
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import expressions
-from activitysim.core import los
+import numpy as np
+import pandas as pd
 
-import activitysim.abm.tables.tours as tables_tours
+from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core.util import reindex
 
-import pandas as pd
-import numpy as np
-import warnings
-
-from .util import estimation
-from .util import school_escort_tours_trips
+from .util import estimation, school_escort_tours_trips
 
 logger = logging.getLogger(__name__)
 
@@ -386,6 +376,7 @@ def school_escorting(
 
     school_escorting_stages = ["outbound", "inbound", "outbound_cond"]
     escort_bundles = []
+    choices = None
     for stage_num, stage in enumerate(school_escorting_stages):
         stage_trace_label = trace_label + "_" + stage
         estimator = estimation.manager.begin_estimation("school_escorting_" + stage)
@@ -399,6 +390,20 @@ def school_escorting(
         model_spec = simulate.eval_coefficients(
             model_spec_raw, coefficients_df, estimator
         )
+
+        # allow for skipping sharrow entirely in this model with `sharrow_skip: true`
+        # or skipping stages selectively with a mapping of the stages to skip
+        sharrow_skip = model_settings.get("sharrow_skip", False)
+        stage_sharrow_skip = False  # default is false unless set below
+        if sharrow_skip:
+            if isinstance(sharrow_skip, dict):
+                stage_sharrow_skip = sharrow_skip.get(stage.upper(), False)
+            else:
+                stage_sharrow_skip = True
+        if stage_sharrow_skip:
+            locals_dict["_sharrow_skip"] = True
+        else:
+            locals_dict.pop("_sharrow_skip", None)
 
         # reduce memory by limiting columns if selected columns are supplied
         chooser_columns = model_settings.get("SIMULATE_CHOOSER_COLUMNS", None)

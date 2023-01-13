@@ -7,7 +7,7 @@ import warnings
 
 import pandas as pd
 
-from activitysim.core import config, inject, mem, util
+from activitysim.core import config, inject, util
 
 logger = logging.getLogger(__name__)
 
@@ -162,16 +162,22 @@ def read_from_table_info(table_info):
         for colname, recode_instruction in recode_columns.items():
             logger.info(f"recoding column {colname}: {recode_instruction}")
             if recode_instruction == "zero-based":
-                remapper = {j: i for i, j in enumerate(sorted(set(df[colname])))}
-                df[f"_original_{colname}"] = df[colname]
-                df[colname] = df[colname].apply(remapper.get)
-                if keep_columns:
-                    keep_columns.append(f"_original_{colname}")
-                if tablename == "land_use" and colname == canonical_index_col:
-                    # We need to keep track if we have recoded the land_use
-                    # table's index to zero-based, as we need to disable offset
-                    # processing for legacy skim access.
-                    config.override_setting("offset_preprocessing", True)
+                if f"_original_{colname}" in df:
+                    # a recoding of this column has already been completed
+                    # just need to confirm it is zero-based
+                    if (df[colname] != pd.RangeIndex(len(df))).any():
+                        raise ValueError("column already recoded as non-zero-based")
+                else:
+                    remapper = {j: i for i, j in enumerate(sorted(set(df[colname])))}
+                    df[f"_original_{colname}"] = df[colname]
+                    df[colname] = df[colname].apply(remapper.get)
+                    if keep_columns and f"_original_{colname}" not in keep_columns:
+                        keep_columns.append(f"_original_{colname}")
+                    if tablename == "land_use" and colname == canonical_index_col:
+                        # We need to keep track if we have recoded the land_use
+                        # table's index to zero-based, as we need to disable offset
+                        # processing for legacy skim access.
+                        config.override_setting("offset_preprocessing", True)
             else:
                 source_table, lookup_col = recode_instruction.split(".")
                 parent_table = inject.get_table(source_table)

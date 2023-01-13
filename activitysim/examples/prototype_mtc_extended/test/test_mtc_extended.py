@@ -41,10 +41,27 @@ def _test_prototype_mtc_extended(multiprocess=False, sharrow=False):
         final_accessibiliy_df = pd.read_csv(
             test_path("output/final_proto_disaggregate_accessibility.csv")
         )
+        # new transforms may add columns to final_accessibiliy_df, but that is
+        # not a test breakage if the existing columns still match.
+        final_accessibiliy_df = final_accessibiliy_df.drop(
+            columns=[
+                i
+                for i in final_accessibiliy_df.columns
+                if i not in regress_accessibility_df.columns
+            ]
+        )
+        pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)
 
+        # try:
+        #     pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)
+        # except AssertionError:
+        #     print("final_accessibiliy_df")
+        #     final_accessibiliy_df.info(1)
+        #     print("regress_accessibility_df")
+        #     regress_accessibility_df.info(1)
+        #     raise
         pdt.assert_frame_equal(final_trips_df, regress_trips_df, rtol=1.0e-4)
         pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df, rtol=1.0e-4)
-        pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
     if sharrow:

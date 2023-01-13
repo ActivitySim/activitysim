@@ -29,7 +29,7 @@ trace_hh_id:
 # global switch to turn on or off presampling of destination alternatives at TAZ level (multizone models only)
 want_dest_choice_presampling: True
 
-cleanup_pipeline_after_run: True
+recode_pipeline_columns: False
 
 output_tables:
   h5_store: False

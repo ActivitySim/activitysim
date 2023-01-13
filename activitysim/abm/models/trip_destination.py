@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import logging
 from builtins import range
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -12,7 +13,6 @@ from activitysim.abm.models.util.trip import (
 )
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import (
-    assign,
     chunk,
     config,
     expressions,
@@ -24,11 +24,12 @@ from activitysim.core import (
 )
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.skim_dictionary import DataFrameMatrix
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
 
+from ...core.configuration.base import Any, PydanticBase
+from .util.school_escort_tours_trips import split_out_school_escorting_trips
 from .util import estimation
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,38 @@ NO_DESTINATION = -1
 ALT_DEST_TAZ = "ALT_DEST_TAZ"
 # PRIMARY_DEST_TAZ = 'PRIMARY_DEST_TAZ'
 # DEST_MAZ = 'dest_maz'
+
+
+class TripDestinationSettings(PydanticBase):
+    """Settings for the trip_destination component.
+
+    .. versionadded:: 1.2
+
+    Note that this implementation is presently used only for generating
+    documentation, but future work may migrate the settings implementation to
+    actually use this pydantic code to validate the settings before running
+    the model.
+    """
+
+    SAMPLE_SPEC: Path
+    SPEC: Path
+    COEFFICIENTS: Path
+    SAMPLE_SIZE: int
+    """This many candidate stop locations will be sampled for each choice."""
+    DESTINATION_SAMPLE_SPEC: Path
+    DESTINATION_SPEC: Path
+    LOGSUM_SETTINGS: Path
+    DEST_CHOICE_LOGSUM_COLUMN_NAME: str = None
+    DEST_CHOICE_SAMPLE_TABLE_NAME: str = None
+    TRIP_ORIGIN: str = "origin"
+    ALT_DEST_COL_NAME: str = "dest_taz"
+    PRIMARY_DEST: str = "tour_leg_dest"  # must be created in preprocessor
+    REDUNDANT_TOURS_MERGED_CHOOSER_COLUMNS: list[str] = None
+    CONSTANTS: dict[str, Any] = None
+    preprocessor: Any
+    CLEANUP: bool
+    fail_some_trips_for_testing: bool = False
+    """This setting is used by testing code to force failed trip_destination."""
 
 
 def _destination_sample(
@@ -53,6 +86,7 @@ def _destination_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    zone_layer=None,
 ):
     """
 
@@ -95,7 +129,13 @@ def _destination_sample(
     # cannot be determined until after choosers are joined with alternatives
     # (unless we iterate over trip.purpose - which we could, though we are already iterating over trip_num)
     # so, instead, expressions determine row-specific size_term by a call to: size_terms.get(df.alt_dest, df.purpose)
-    locals_dict.update({"size_terms": size_term_matrix})
+    locals_dict.update(
+        {
+            "size_terms": size_term_matrix,
+            "size_terms_array": size_term_matrix.df.to_numpy(),
+            "timeframe": "trip",
+        }
+    )
     locals_dict.update(skims)
 
     log_alt_losers = config.setting("log_alt_losers", False)
@@ -113,6 +153,7 @@ def _destination_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer=zone_layer,
     )
 
     return choices
@@ -152,12 +193,12 @@ def destination_sample(
     return choices
 
 
-def aggregate_size_term_matrix(maz_size_term_matrix, maz_taz):
+def aggregate_size_term_matrix(maz_size_term_matrix, network_los):
 
     df = maz_size_term_matrix.df
     assert ALT_DEST_TAZ not in df
 
-    dest_taz = df.index.map(maz_taz)
+    dest_taz = network_los.map_maz_to_taz(df.index)
     taz_size_term_matrix = df.groupby(dest_taz).sum()
 
     taz_size_term_matrix = DataFrameMatrix(taz_size_term_matrix)
@@ -256,9 +297,13 @@ def choose_MAZ_for_TAZ(
     # there will be a different set (and number) of candidate MAZs for each TAZ
     # (preserve index, which will have duplicates as result of join)
 
-    maz_taz = network_los.maz_taz_df[["MAZ", "TAZ"]].rename(
-        columns={"TAZ": DEST_TAZ, "MAZ": DEST_MAZ}
+    maz_taz = (
+        network_los.get_maz_to_taz_series.rename(DEST_TAZ)
+        .rename_axis(index=DEST_MAZ)
+        .to_frame()
+        .reset_index()
     )
+
     maz_sizes = pd.merge(
         taz_choices[[chooser_id_col, DEST_TAZ]].reset_index(),
         maz_taz,
@@ -426,20 +471,21 @@ def destination_presample(
     chunk_tag = "trip_destination.presample"  # distinguish from trip_destination.sample
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
-    maz_taz = network_los.maz_taz_df[["MAZ", "TAZ"]].set_index("MAZ").TAZ
 
-    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, maz_taz)
+    TAZ_size_term_matrix = aggregate_size_term_matrix(size_term_matrix, network_los)
 
     TRIP_ORIGIN = model_settings["TRIP_ORIGIN"]
     PRIMARY_DEST = model_settings["PRIMARY_DEST"]
     trips_taz = trips.copy()
 
-    trips_taz[TRIP_ORIGIN] = trips_taz[TRIP_ORIGIN].map(maz_taz)
-    trips_taz[PRIMARY_DEST] = trips_taz[PRIMARY_DEST].map(maz_taz)
+    trips_taz[TRIP_ORIGIN] = network_los.map_maz_to_taz(trips_taz[TRIP_ORIGIN])
+    trips_taz[PRIMARY_DEST] = network_los.map_maz_to_taz(trips_taz[PRIMARY_DEST])
 
     # alternatives is just an empty dataframe indexed by maz with index name <alt_dest_col_name>
     # but logically, we are aggregating so lets do it, as there is no particular gain in being clever
-    alternatives = alternatives.groupby(alternatives.index.map(maz_taz)).sum()
+    alternatives = alternatives.groupby(
+        network_los.map_maz_to_taz(alternatives.index)
+    ).sum()
 
     # # i did this but after changing alt_dest_col_name to 'trip_dest' it
     # # shouldn't be needed anymore
@@ -459,6 +505,7 @@ def destination_presample(
         chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer="taz",
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
@@ -677,6 +724,7 @@ def compute_logsums(
         "odt_skims": skims["odt_skims"],
         "dot_skims": skims["dot_skims"],
         "od_skims": skims["od_skims"],
+        "timeframe": "trip",
     }
     if network_los.zone_system == los.THREE_ZONE:
         od_skims.update(
@@ -769,8 +817,20 @@ def trip_destination_simulate(
 
     skims = skim_hotel.sample_skims(presample=False)
 
+    if not np.issubdtype(trips["trip_period"].dtype, np.integer):
+        if hasattr(skims["odt_skims"], "map_time_periods"):
+            trip_period_idx = skims["odt_skims"].map_time_periods(trips)
+            if trip_period_idx is not None:
+                trips["trip_period"] = trip_period_idx
+
     locals_dict = config.get_model_constants(model_settings).copy()
-    locals_dict.update({"size_terms": size_term_matrix})
+    locals_dict.update(
+        {
+            "size_terms": size_term_matrix,
+            "size_terms_array": size_term_matrix.df.to_numpy(),
+            "timeframe": "trip",
+        }
+    )
     locals_dict.update(skims)
 
     log_alt_losers = config.setting("log_alt_losers", False)
@@ -924,6 +984,7 @@ class SkimHotel(object):
 
         o = self.model_settings["TRIP_ORIGIN"]
         d = self.model_settings["ALT_DEST_COL_NAME"]
+        n = self.model_settings.get("PRIMARY_ORIGIN", "origin")
         p = self.model_settings["PRIMARY_DEST"]
 
         if presample:
@@ -935,6 +996,8 @@ class SkimHotel(object):
         skims = {
             "od_skims": skim_dict.wrap(o, d),
             "dp_skims": skim_dict.wrap(d, p),
+            "op_skims": skim_dict.wrap(o, p),
+            "nd_skims": skim_dict.wrap(n, d),
             "odt_skims": skim_dict.wrap_3d(
                 orig_key=o, dest_key=d, dim3_key="trip_period"
             ),
@@ -946,6 +1009,18 @@ class SkimHotel(object):
             ),
             "pdt_skims": skim_dict.wrap_3d(
                 orig_key=p, dest_key=d, dim3_key="trip_period"
+            ),
+            "opt_skims": skim_dict.wrap_3d(
+                orig_key=o, dest_key=p, dim3_key="trip_period"
+            ),
+            "pot_skims": skim_dict.wrap_3d(
+                orig_key=p, dest_key=o, dim3_key="trip_period"
+            ),
+            "ndt_skims": skim_dict.wrap_3d(
+                orig_key=n, dest_key=d, dim3_key="trip_period"
+            ),
+            "dnt_skims": skim_dict.wrap_3d(
+                orig_key=d, dest_key=n, dim3_key="trip_period"
             ),
         }
 
@@ -1168,7 +1243,10 @@ def run_trip_destination(
                 trace_label, "trip_num_%s" % trip_num
             )
 
-            locals_dict = {"network_los": network_los}
+            locals_dict = {
+                "network_los": network_los,
+                "size_terms": size_term_matrix,
+            }
             locals_dict.update(config.get_model_constants(model_settings))
 
             # - annotate nth_trips
@@ -1179,6 +1257,15 @@ def run_trip_destination(
                     locals_dict=locals_dict,
                     trace_label=nth_trace_label,
                 )
+
+            if not np.issubdtype(nth_trips["trip_period"].dtype, np.integer):
+                skims = network_los.get_default_skim_dict()
+                if hasattr(skims, "map_time_periods_from_series"):
+                    trip_period_idx = skims.map_time_periods_from_series(
+                        nth_trips["trip_period"]
+                    )
+                    if trip_period_idx is not None:
+                        nth_trips["trip_period"] = trip_period_idx
 
             logger.info("Running %s with %d trips", nth_trace_label, nth_trips.shape[0])
 
@@ -1264,11 +1351,28 @@ def run_trip_destination(
 @inject.step()
 def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
     """
-    Choose a destination for all 'intermediate' trips based on trip purpose.
+    Choose a destination for all intermediate trips based on trip purpose.
 
-    Final trips already have a destination (the primary tour destination for outbound trips,
-    and home for inbound trips.)
+    The trip (or stop) location choice model predicts the location of trips
+    (or stops) along the tour other than the primary destination. This model is
+    structured as a multinomial logit model using a zone attraction size
+    variable and route deviation measure as impedance. The alternatives are
+    sampled from the full set of zones, subject to availability of a zonal
+    attraction size term (i.e., it is non-zero). The sampling mechanism is also
+    usually based on accessibility between tour origin and primary destination,
+    and can be subject to certain rules based on tour mode.
 
+    Parameters
+    ----------
+    trips : orca.DataFrameWrapper
+        The trips table.  This table is edited in-place to add the trip
+        destinations.
+    tours_merged : orca.DataFrameWrapper
+        The tours table, with columns merge from persons and households as well.
+    chunk_size : int
+        If non-zero, iterate over trips using this chunk size.
+    trace_hh_id : int or list[int]
+        Generate trace output for these households.
 
     """
     trace_label = "trip_destination"
@@ -1283,6 +1387,13 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
 
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
+
+    if pipeline.is_table("school_escort_trips"):
+        school_escort_trips = pipeline.get_table("school_escort_trips")
+        # separate out school escorting trips to exclude them from the model and estimation data bundle
+        trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
+            trips_df, school_escort_trips
+        )
 
     estimator = estimation.manager.begin_estimation("trip_destination")
 
@@ -1318,7 +1429,7 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
     ):
         if (trips_df.trip_num < trips_df.trip_count).sum() == 0:
             raise RuntimeError(
-                f"can't honor 'testing_fail_trip_destination' setting because no intermediate trips"
+                "can't honor 'testing_fail_trip_destination' setting because no intermediate trips"
             )
 
         fail_o = trips_df[trips_df.trip_num < trips_df.trip_count].origin.max()
@@ -1355,6 +1466,23 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
             trips_df = cleanup_failed_trips(trips_df)
 
         trips_df.drop(columns="failed", inplace=True, errors="ignore")
+
+    if pipeline.is_table("school_escort_trips"):
+        # setting destination for school escort trips
+        se_trips_df["destination"] = reindex(
+            school_escort_trips.destination, se_trips_df.index
+        )
+        # merge trips back together preserving index order
+        trips_df = pd.concat([trips_df, se_trips_df])
+        trips_df["destination"] = trips_df["destination"].astype(int)
+        trips_df = trips_df.reindex(full_trips_index)
+        # Origin is previous destination
+        # (leaving first origin alone as it's already set correctly)
+        trips_df["origin"] = np.where(
+            (trips_df["trip_num"] == 1) & (trips_df["outbound"] == True),
+            trips_df["origin"],
+            trips_df.groupby("tour_id")["destination"].shift(),
+        ).astype(int)
 
     pipeline.replace_table("trips", trips_df)
 

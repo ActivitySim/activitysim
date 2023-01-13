@@ -37,6 +37,9 @@ output_tables:
   prefix: final_
   sort: True
   tables:
-    - trips
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
     - vehicles
     - proto_disaggregate_accessibility

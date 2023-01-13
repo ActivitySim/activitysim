@@ -1,0 +1,49 @@
+#
+#  sandag_xborder_mini
+#
+#   This workflow runs the Prototype SANDAG cross-border model in a single-
+#   process runner.
+#
+#   > activitysim workflow sharrow-contrast/sandag_xborder_mini
+
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: prototype_sandag_xborder
+      workspace: workspace
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: False
+      tag:
+      resume_after:
+      fast: False
+      compile_n_households: 500
+      main_n_households: 50000
+      config_dirs:
+        - configs
+      data_dir: data
+      ext_dirs:
+        - extensions
+      instrument: False
+      memory_profile: False
+      trace_hh_id:
+      trace_od:
+      distance_skim: SOV_NT_M_DIST
+      household_income:
+      report_skip:
+        - auto ownership
+        - cdap
+        - tour mode by composition
+        - work location
+        - school location
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner

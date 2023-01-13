@@ -63,6 +63,7 @@ def setup_component(
     data_dir="data",
     output_dir="output",
     settings_filename="settings.yaml",
+    **other_settings,
 ):
     """
     Prepare to benchmark a model component.
@@ -84,6 +85,7 @@ def setup_component(
         settings_filename,
         benchmarking=component_name,
         checkpoints=False,
+        **other_settings,
     )
 
     component_logging(component_name)
@@ -144,6 +146,7 @@ def setup_component(
         "use_shadow_pricing",
         "want_dest_choice_sample_tables",
         "log_alt_losers",
+        "sharrow",
     ]
     for k in log_settings:
         logger.info(f"SETTING {k}: {config.setting(k)}")
@@ -623,6 +626,7 @@ def template_component_timings(
                     config_dirs,
                     data_dir,
                     output_dir,
+                    sharrow=True,
                 )
 
             def teardown(self):

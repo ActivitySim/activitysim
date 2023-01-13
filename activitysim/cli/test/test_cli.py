@@ -71,7 +71,7 @@ def test_run():
     cp = subprocess.run(["activitysim", "run"], capture_output=True)
 
     msg = (
-        "Error: please specify either a --working_dir "
+        "please specify either a --working_dir "
         "containing 'configs', 'data', and 'output' "
         "folders or all three of --config, --data, and --output"
     )

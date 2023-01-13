@@ -81,15 +81,17 @@ def test_load_cached_accessibility():
         "initialize_households",
     ]
 
-    pipeline.run(models=_MODELS, resume_after=None)
+    try:
+        pipeline.run(models=_MODELS, resume_after=None)
 
-    accessibility_df = pipeline.get_table("accessibility")
+        accessibility_df = pipeline.get_table("accessibility")
 
-    assert "auPkRetail" in accessibility_df
+        assert "auPkRetail" in accessibility_df
 
-    pipeline.close_pipeline()
-    inject.clear_cache()
-    close_handlers()
+    finally:
+        pipeline.close_pipeline()
+        inject.clear_cache()
+        close_handlers()
 
 
 if __name__ == "__main__":

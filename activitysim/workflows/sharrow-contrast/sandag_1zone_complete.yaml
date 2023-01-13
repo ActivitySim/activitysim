@@ -1,0 +1,38 @@
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: placeholder_sandag_1_zone_full
+      multiprocess: 4
+      chunk_size_minimum_gb: 30
+      chunk_training: True
+      create: False
+      compile: True
+      sharrow: True
+      legacy: False
+      reference: False
+      workspace: workspace
+      tag: '2022-07'
+      resume_after:
+      fast: False
+      compile_n_households: 2000
+      main_n_households: 0  # complete data
+      config_dirs:
+        - configs_1_zone
+        - prototype_mtc/configs
+      data_dir: data_1
+      settings_file: settings_mp.yaml
+      instrument: False
+      memory_profile: True
+      trace_hh_id:
+      trace_od:
+      distance_skim: DIST
+      household_income: income
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner_chunked

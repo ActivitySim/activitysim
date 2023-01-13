@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from . import config, pipeline, tracing
+from .choosing import choice_maker
 
 logger = logging.getLogger(__name__)
 
@@ -156,26 +157,35 @@ def utils_to_probs(
     # fixme - conversion to float not needed in either case?
     # utils_arr = utils.values.astype('float')
     utils_arr = utils.values
+
+    if utils_arr.dtype == np.float32 and utils_arr.max() > 85:
+        # exponentiated utils will overflow, downshift them
+        utils_arr -= utils_arr.max(1, keepdims=True)
+
     if not exponentiated:
+        # TODO: reduce memory usage by exponentiating in-place.
+        #       but first we need to make sure the raw utilities
+        #       are not needed elsewhere and overwriting won't hurt.
+        # try:
+        #     np.exp(utils_arr, out=utils_arr)
+        # except TypeError:
+        #     utils_arr = np.exp(utils_arr)
         utils_arr = np.exp(utils_arr)
 
-    np.clip(utils_arr, EXP_UTIL_MIN, EXP_UTIL_MAX, out=utils_arr)
-
-    # FIXME
-    utils_arr = np.where(utils_arr == EXP_UTIL_MIN, 0.0, utils_arr)
+    np.putmask(utils_arr, utils_arr <= EXP_UTIL_MIN, 0)
 
     arr_sum = utils_arr.sum(axis=1)
 
-    zero_probs = arr_sum == 0.0
-    if zero_probs.any() and not allow_zero_probs:
-
-        report_bad_choices(
-            zero_probs,
-            utils,
-            trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
-            msg="all probabilities are zero",
-            trace_choosers=trace_choosers,
-        )
+    if not allow_zero_probs:
+        zero_probs = arr_sum == 0.0
+        if zero_probs.any():
+            report_bad_choices(
+                zero_probs,
+                utils,
+                trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
+                msg="all probabilities are zero",
+                trace_choosers=trace_choosers,
+            )
 
     inf_utils = np.isinf(arr_sum)
     if inf_utils.any():
@@ -195,7 +205,7 @@ def utils_to_probs(
         np.divide(utils_arr, arr_sum.reshape(len(utils_arr), 1), out=utils_arr)
 
     # if allow_zero_probs, this will cause EXP_UTIL_MIN util rows to have all zero probabilities
-    utils_arr[np.isnan(utils_arr)] = PROB_MIN
+    np.putmask(utils_arr, np.isnan(utils_arr), PROB_MIN)
 
     np.clip(utils_arr, PROB_MIN, PROB_MAX, out=utils_arr)
 
@@ -251,13 +261,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
 
     rands = pipeline.get_rn_generator().random_for_df(probs)
 
-    probs_arr = probs.values.cumsum(axis=1) - rands
-
-    # rows, cols = np.where(probs_arr > 0)
-    # choices = [s.iat[0] for _, s in pd.Series(cols).groupby(rows)]
-    choices = np.argmax(probs_arr > 0.0, axis=1)
-
-    choices = pd.Series(choices, index=probs.index)
+    choices = pd.Series(choice_maker(probs.values, rands), index=probs.index)
 
     rands = pd.Series(np.asanyarray(rands).flatten(), index=probs.index)
 

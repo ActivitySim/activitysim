@@ -10,9 +10,7 @@ from activitysim.core import (
     config,
     expressions,
     inject,
-    logit,
     los,
-    mem,
     pipeline,
     simulate,
     tracing,
@@ -116,6 +114,7 @@ def _location_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    zone_layer=None,
 ):
     """
     select a sample of alternative locations.
@@ -149,7 +148,13 @@ def _location_sample(
         )
         sample_size = 0
 
-    locals_d = {"skims": skims, "segment_size": segment_name}
+    locals_d = {
+        "skims": skims,
+        "segment_size": segment_name,
+        "orig_col_name": skims.orig_key,  # added for sharrow flows
+        "dest_col_name": skims.dest_key,  # added for sharrow flows
+        "timeframe": "timeless",
+    }
     constants = config.get_model_constants(model_settings)
     locals_d.update(constants)
 
@@ -175,6 +180,7 @@ def _location_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer=zone_layer,
     )
 
     return choices
@@ -235,13 +241,7 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
-    maz_to_taz = (
-        network_los.maz_taz_df[["MAZ", "TAZ"]]
-        .set_index("MAZ")
-        .sort_values(by="TAZ")
-        .TAZ
-    )
-    MAZ_size_terms[DEST_TAZ] = MAZ_size_terms.index.map(maz_to_taz)
+    MAZ_size_terms[DEST_TAZ] = network_los.map_maz_to_taz(MAZ_size_terms.index)
 
     MAZ_size_terms["avail_MAZ"] = np.where(
         (MAZ_size_terms.size_term > 0)
@@ -368,6 +368,7 @@ def location_presample(
         chunk_size,
         chunk_tag,
         trace_label,
+        zone_layer="taz",
     )
 
     # print(f"taz_sample\n{taz_sample}")
@@ -591,7 +592,13 @@ def run_location_simulate(
     skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap("home_zone_id", alt_dest_col_name)
 
-    locals_d = {"skims": skims, "segment_size": segment_name}
+    locals_d = {
+        "skims": skims,
+        "segment_size": segment_name,
+        "orig_col_name": skims.orig_key,  # added for sharrow flows
+        "dest_col_name": skims.dest_key,  # added for sharrow flows
+        "timeframe": "timeless",
+    }
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
@@ -899,6 +906,8 @@ def iterate_location_choice(
 
     logger.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
+    choices_df = None  # initialize to None, will be populated in first iteration
+
     for iteration in range(1, max_iterations + 1):
 
         persons_merged_df_ = persons_merged_df.copy()
@@ -938,9 +947,7 @@ def iterate_location_choice(
                 and iteration > 1
             ):
                 # if a process ends up with no sampled workers in it, hence an empty choice_df_, then choice_df wil be what it was previously
-                if len(choices_df_) == 0:
-                    choices_df = choices_df
-                else:
+                if len(choices_df_) != 0:
                     choices_df = pd.concat([choices_df, choices_df_], axis=0)
                     choices_df_index = choices_df_.index.name
                     choices_df = choices_df.reset_index()

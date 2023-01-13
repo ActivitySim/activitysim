@@ -1,0 +1,6 @@
+Description,Target,Expression
+# re-calculating tour counts with school escorting tours included,,
+,tour_type_num,"df.groupby(['person_id', 'tour_type']).cumcount() + 1"
+,tour_type_count,"tour_type_num + df.groupby(['person_id', 'tour_type']).cumcount(ascending=False)"
+,tour_num,"df.groupby('person_id').cumcount() + 1"
+,tour_count,"tour_num + df.groupby('person_id').cumcount(ascending=False)"

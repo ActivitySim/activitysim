@@ -60,6 +60,15 @@ input_table_list:
     index_col: zone_id
     rename_columns:
       MAZ: zone_id
+    recode_columns:
+      zone_id: zero-based
+      TAZ: land_use_taz.TAZ
+
+  - tablename: land_use_taz
+    filename: taz_xborder.csv
+    index_col: TAZ
+    recode_columns:
+      TAZ: zero-based
 
   - tablename: tours
     filename: tours_xborder.csv
@@ -147,7 +156,10 @@ output_tables:
     - households
     - persons
     - tours
-    - trips
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
     - attribute_combinations
 
 output_summaries:

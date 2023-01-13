@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -15,7 +16,7 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def run_test_prototype_mtc_extended(multiprocess=False):
+def _test_prototype_mtc_extended(multiprocess=False, sharrow=False):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc_extended", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -41,67 +42,65 @@ def run_test_prototype_mtc_extended(multiprocess=False):
             test_path("output/final_proto_disaggregate_accessibility.csv")
         )
 
-        pdt.assert_frame_equal(final_trips_df, regress_trips_df)
-        pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df)
+        pdt.assert_frame_equal(final_trips_df, regress_trips_df, rtol=1.0e-4)
+        pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df, rtol=1.0e-4)
         pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
-
+    if sharrow:
+        sh_configs = ["-c", example_path("configs_sharrow")]
+    else:
+        sh_configs = []
     if multiprocess:
-        subprocess.run(
-            [
-                "coverage",
-                "run",
-                "-a",
-                file_path,
-                "-c",
-                test_path("configs_mp"),
-                "-c",
-                example_path("configs_mp"),
-                "-c",
-                example_path("configs"),
-                "-c",
-                example_mtc_path("configs"),
-                "-d",
-                example_mtc_path("data"),
-                "-o",
-                test_path("output"),
-            ],
-            check=True,
-        )
+        mp_configs = [
+            "-c",
+            test_path("configs_mp"),
+            "-c",
+            example_path("configs_mp"),
+        ]
+    else:
+        mp_configs = [
+            "-c",
+            test_path("configs"),
+        ]
+    run_args = (
+        sh_configs
+        + mp_configs
+        + [
+            "-c",
+            example_path("configs"),
+            "-c",
+            example_mtc_path("configs"),
+            "-d",
+            example_mtc_path("data"),
+            "-o",
+            test_path("output"),
+        ]
+    )
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
     else:
         subprocess.run(
-            [
-                "coverage",
-                "run",
-                "-a",
-                file_path,
-                "-c",
-                test_path("configs"),
-                "-c",
-                example_path("configs"),
-                "-c",
-                example_mtc_path("configs"),
-                "-d",
-                example_mtc_path("data"),
-                "-o",
-                test_path("output"),
-            ],
-            check=True,
+            [sys.executable, "-m", "activitysim", "run"] + run_args, check=True
         )
 
     regress()
 
 
 def test_prototype_mtc_extended():
-    run_test_prototype_mtc_extended(multiprocess=False)
+    _test_prototype_mtc_extended(multiprocess=False, sharrow=False)
 
+
+def test_prototype_mtc_extended_sharrow():
+    _test_prototype_mtc_extended(multiprocess=False, sharrow=True)
 
 
 def test_prototype_mtc_extended_mp():
-    run_test_prototype_mtc_extended(multiprocess=True)
+    _test_prototype_mtc_extended(multiprocess=True, sharrow=False)
 
 
 if __name__ == "__main__":
-    run_test_prototype_mtc_extended(multiprocess=False)
-    run_test_prototype_mtc_extended(multiprocess=True)
+
+    test_prototype_mtc_extended()
+    test_prototype_mtc_extended_sharrow()
+    test_prototype_mtc_extended_mp()

@@ -1,0 +1,42 @@
+#
+# arc_mp
+#   - activitysim workflow sharrow-contrast/arc_mp
+#
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: prototype_arc_full
+      workflow_name: sharrow-contrast/arc_mp
+      workspace: workspace
+      multiprocess: -4
+      settings_file: settings_mp.yaml
+      chunk_size_pct_of_available: 0.75
+      chunk_size_minimum_gb: 40
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: False
+      tag:
+      resume_after:
+      fast: False
+      compile_n_households: 5000
+      main_n_households: 0
+      instrument: False
+      memory_profile: True
+      trace_hh_id:
+      trace_od:
+      workplace_zone_agg:
+        caption: Workplaces by County
+        district_id: county_id
+      distance_skim: DIST
+      household_income: income
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner_chunked

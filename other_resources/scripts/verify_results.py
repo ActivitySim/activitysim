@@ -88,7 +88,7 @@ mode_labels = [
 #############################################################
 
 # read distance matrix (DIST)
-distmat = omx.open_file(distance_matrix_filename)["DIST"][:]
+distmat = omx.open_file(distance_matrix_filename, mode="r")["DIST"][:]
 
 #############################################################
 # EXPORT TABLES

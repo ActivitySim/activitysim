@@ -116,14 +116,20 @@ def test_make_choices_only_one():
     )
     choices, rands = logit.make_choices(probs)
 
-    pdt.assert_series_equal(choices, pd.Series([0, 1], index=["x", "y"]))
+    pdt.assert_series_equal(
+        choices, pd.Series([0, 1], index=["x", "y"]), check_dtype=False
+    )
 
 
 def test_make_choices_real_probs(utilities):
     probs = logit.utils_to_probs(utilities, trace_label=None)
     choices, rands = logit.make_choices(probs)
 
-    pdt.assert_series_equal(choices, pd.Series([1, 2], index=[0, 1]))
+    pdt.assert_series_equal(
+        choices,
+        pd.Series([1, 2], index=[0, 1]),
+        check_dtype=False,
+    )
 
 
 @pytest.fixture(scope="module")

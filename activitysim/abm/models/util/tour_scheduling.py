@@ -4,7 +4,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, simulate, tracing
+from activitysim.core import config, expressions, inject, simulate
 
 from . import estimation
 from . import vectorize_tour_scheduling as vts
@@ -61,6 +61,7 @@ def run_tour_scheduling(
         # load segmented specs
         spec_segment_settings = model_settings.get("SPEC_SEGMENTS", {})
         specs = {}
+        sharrow_skips = {}
         for spec_segment_name, spec_settings in spec_segment_settings.items():
 
             bundle_name = f"{model_name}_{spec_segment_name}"
@@ -76,6 +77,7 @@ def run_tour_scheduling(
             specs[spec_segment_name] = simulate.eval_coefficients(
                 model_spec, coefficients_df, estimator
             )
+            sharrow_skips[spec_segment_name] = spec_settings.get("sharrow_skip", False)
 
             if estimator:
                 estimators[spec_segment_name] = estimator  # add to local list
@@ -90,6 +92,9 @@ def run_tour_scheduling(
             tour_segments[tour_segment_name] = {}
             tour_segments[tour_segment_name]["spec_segment_name"] = spec_segment_name
             tour_segments[tour_segment_name]["spec"] = specs[spec_segment_name]
+            tour_segments[tour_segment_name]["sharrow_skip"] = sharrow_skips[
+                spec_segment_name
+            ]
             tour_segments[tour_segment_name]["estimator"] = estimators.get(
                 spec_segment_name
             )
@@ -108,6 +113,7 @@ def run_tour_scheduling(
 
         spec_file_name = model_settings["SPEC"]
         model_spec = simulate.read_model_spec(file_name=spec_file_name)
+        sharrow_skip = model_settings.get("sharrow_skip", False)
         coefficients_df = simulate.read_model_coefficients(model_settings)
         model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
 
@@ -118,7 +124,11 @@ def run_tour_scheduling(
             estimator.write_coefficients(coefficients_df, model_settings)
 
         # - non_mandatory tour scheduling is not segmented by tour type
-        tour_segments = {"spec": model_spec, "estimator": estimator}
+        tour_segments = {
+            "spec": model_spec,
+            "estimator": estimator,
+            "sharrow_skip": sharrow_skip,
+        }
 
     if estimators:
         timetable.begin_transaction(list(estimators.values()))

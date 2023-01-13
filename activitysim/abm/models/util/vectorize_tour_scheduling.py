@@ -5,20 +5,10 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import (
-    chunk,
-    config,
-    expressions,
-    inject,
-    logit,
-    los,
-    mem,
-    simulate,
-)
+from activitysim.core import chunk, config, expressions, inject, los, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -179,7 +169,7 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
     tdd_segments = inject.get_injectable("tdd_alt_segments", None)
     alt_tdd_periods = None
 
-    logger.info(f"tdd_alt_segments specified for representative logsums")
+    logger.info("tdd_alt_segments specified for representative logsums")
 
     with chunk.chunk_log(tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")):
 
@@ -272,8 +262,8 @@ def dedupe_alt_tdd(alt_tdd, tour_purpose, trace_label):
             dedupe_columns = ["out_period", "in_period", "duration"]
 
             logger.warning(
-                f"No tdd_alt_segments for representative logsums so fallback to "
-                f"deduping tdd_alts by time_period and duration"
+                "No tdd_alt_segments for representative logsums so fallback to "
+                "deduping tdd_alts by time_period and duration"
             )
 
             # - get list of unique (tour_id, out_period, in_period, duration) in alt_tdd_periods
@@ -317,8 +307,13 @@ def compute_logsums(
     # - in_period and out_period
     assert "out_period" not in alt_tdd
     assert "in_period" not in alt_tdd
+
+    # FIXME:MEMORY
+    #  These two lines each generate a massive array of strings,
+    #  using a bunch of RAM and slowing things down.
     alt_tdd["out_period"] = network_los.skim_time_period_label(alt_tdd["start"])
     alt_tdd["in_period"] = network_los.skim_time_period_label(alt_tdd["end"])
+
     alt_tdd["duration"] = alt_tdd["end"] - alt_tdd["start"]
 
     # outside chunk_log context because we extend log_df call for alt_tdd made by our only caller _schedule_tours
@@ -352,7 +347,7 @@ def compute_logsums(
             f"from {len(alt_tdd)} to {len(deduped_alt_tdds)} compared to USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS"
         )
 
-        t0 = tracing.print_elapsed_time()
+        tracing.print_elapsed_time()
 
         # - compute logsums for the alt_tdd_periods
         deduped_alt_tdds["logsums"] = _compute_logsums(
@@ -458,9 +453,9 @@ def tdd_interaction_dataset(
 
     Parameters
     ----------
-    tours : pandas DataFrame
+    tours : pandas.DataFrame
         must have person_id column and index on tour_id
-    alts : pandas DataFrame
+    alts : pandas.DataFrame
         alts index must be timetable tdd id
     timetable : TimeTable object
     choice_column : str
@@ -484,35 +479,46 @@ def tdd_interaction_dataset(
 
         tour_ids = np.repeat(tours.index, len(alts.index))
         window_row_ids = np.repeat(tours[window_id_col], len(alts.index))
+        chunk.log_df(trace_label, "window_row_ids", window_row_ids)
 
         alt_tdd = alts.take(alts_ids)
 
         alt_tdd.index = tour_ids
-        alt_tdd[window_id_col] = window_row_ids
+
+        import xarray as xr
+
+        alt_tdd_ = xr.Dataset.from_dataframe(alt_tdd)
+        dimname = alt_tdd.index.name or "index"
+        # alt_tdd_[window_id_col] = xr.DataArray(window_row_ids, dims=(dimname,))
+        alt_tdd_[choice_column] = xr.DataArray(
+            alts_ids, dims=(dimname,), coords=alt_tdd_.coords
+        )
 
         # add tdd alternative id
         # by convention, the choice column is the first column in the interaction dataset
-        alt_tdd.insert(loc=0, column=choice_column, value=alts_ids)
+        # alt_tdd.insert(loc=0, column=choice_column, value=alts_ids)
 
         # slice out all non-available tours
-        available = timetable.tour_available(
-            alt_tdd[window_id_col], alt_tdd[choice_column]
-        )
+        available = timetable.tour_available(window_row_ids, alts_ids)
+
+        del window_row_ids
+        chunk.log_df(trace_label, "window_row_ids", None)
+
         logger.debug(
             f"tdd_interaction_dataset keeping {available.sum()} of ({len(available)}) available alt_tdds"
         )
         assert available.any()
 
         chunk.log_df(
-            trace_label, "alt_tdd", alt_tdd
+            trace_label, "alt_tdd_", alt_tdd_
         )  # catch this before we slice on available
 
-        alt_tdd = alt_tdd[available]
+        alt_tdd = alt_tdd_.isel({dimname: available}).to_dataframe()
 
         chunk.log_df(trace_label, "alt_tdd", alt_tdd)
 
         # FIXME - don't need this any more after slicing
-        del alt_tdd[window_id_col]
+        # del alt_tdd[window_id_col]
 
     return alt_tdd
 
@@ -591,6 +597,7 @@ def _schedule_tours(
     tour_owner_id_col,
     estimator,
     tour_trace_label,
+    sharrow_skip=False,
 ):
     """
     previous_tour stores values used to add columns that can be used in the spec
@@ -697,6 +704,11 @@ def _schedule_tours(
     if constants is not None:
         locals_d.update(constants)
 
+    if sharrow_skip:
+        locals_d["_sharrow_skip"] = True
+    else:
+        locals_d["_sharrow_skip"] = False
+
     if not RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
         # Note: Clint was running alts_preprocessor here on tdd_interaction_dataset instead of on raw (unmerged) alts
         # and he was using logsum_tour_purpose as selector, although logically it should be the spec_segment
@@ -760,6 +772,7 @@ def schedule_tours(
     chunk_size,
     tour_trace_label,
     tour_chunk_tag,
+    sharrow_skip=False,
 ):
     """
     chunking wrapper for _schedule_tours
@@ -810,11 +823,12 @@ def schedule_tours(
             tour_owner_id_col,
             estimator,
             tour_trace_label=chunk_trace_label,
+            sharrow_skip=sharrow_skip,
         )
 
         result_list.append(choices)
 
-        chunk.log_df(tour_trace_label, f"result_list", result_list)
+        chunk.log_df(tour_trace_label, "result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
@@ -959,6 +973,7 @@ def vectorize_tour_scheduling(
                     chunk_size=chunk_size,
                     tour_trace_label=segment_trace_label,
                     tour_chunk_tag=segment_chunk_tag,
+                    sharrow_skip=tour_segment_info.get("sharrow_skip"),
                 )
 
                 choice_list.append(choices)
@@ -988,6 +1003,7 @@ def vectorize_tour_scheduling(
                 chunk_size=chunk_size,
                 tour_trace_label=tour_trace_label,
                 tour_chunk_tag=tour_chunk_tag,
+                sharrow_skip=tour_segments.get("sharrow_skip"),
             )
 
             choice_list.append(choices)
@@ -1006,6 +1022,7 @@ def vectorize_subtour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
+    sharrow_skip=False,
 ):
     """
     Like vectorize_tour_scheduling but specifically for atwork subtours
@@ -1104,6 +1121,7 @@ def vectorize_subtour_scheduling(
             chunk_size,
             tour_trace_label,
             tour_chunk_tag,
+            sharrow_skip=sharrow_skip,
         )
 
         choice_list.append(choices)
@@ -1159,6 +1177,7 @@ def vectorize_joint_tour_scheduling(
     estimator,
     chunk_size=0,
     trace_label=None,
+    sharrow_skip=False,
 ):
     """
     Like vectorize_tour_scheduling but specifically for joint tours
@@ -1251,6 +1270,7 @@ def vectorize_joint_tour_scheduling(
             chunk_size,
             tour_trace_label,
             tour_chunk_tag,
+            sharrow_skip=sharrow_skip,
         )
 
         # - update timetables of all joint tour participants

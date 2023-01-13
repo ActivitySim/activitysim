@@ -31,9 +31,23 @@ def accessibility(land_use):
             "created placeholder accessibility table %s" % (accessibility_df.shape,)
         )
     else:
-        assert accessibility_df.sort_index().index.equals(
-            land_use.to_frame().sort_index().index
-        ), f"loaded accessibility table index does not match index of land_use table"
+        try:
+            assert accessibility_df.sort_index().index.equals(
+                land_use.to_frame().sort_index().index
+            ), f"loaded accessibility table index does not match index of land_use table"
+        except AssertionError:
+            land_use_index = land_use.to_frame().index
+            if f"_original_{land_use_index.name}" in land_use.to_frame():
+                land_use_zone_ids = land_use.to_frame()[
+                    f"_original_{land_use_index.name}"
+                ]
+                remapper = dict(zip(land_use_zone_ids, land_use_zone_ids.index))
+                accessibility_df.index = accessibility_df.index.map(remapper.get)
+                assert accessibility_df.sort_index().index.equals(
+                    land_use.to_frame().sort_index().index
+                ), f"loaded accessibility table index does not match index of land_use table"
+            else:
+                raise
         logger.info("loaded land_use %s" % (accessibility_df.shape,))
 
     # replace table function with dataframe

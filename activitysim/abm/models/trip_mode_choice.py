@@ -20,7 +20,7 @@ from activitysim.core import (
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.util import assign_in_place
 
-from .util import estimation
+from .util import estimation, annotate, school_escort_tours_trips
 from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
@@ -101,6 +101,13 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         orig_key=dest_col, dest_key=orig_col, dim3_key="trip_period"
     )
     od_skim_wrapper = skim_dict.wrap("origin", "destination")
+
+    if hasattr(skim_dict, "map_time_periods_from_series"):
+        trip_period_idx = skim_dict.map_time_periods_from_series(
+            trips_merged["trip_period"]
+        )
+        if trip_period_idx is not None:
+            trips_merged["trip_period"] = trip_period_idx
 
     skims = {
         "odt_skims": odt_skim_stack_wrapper,
@@ -204,6 +211,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
             estimator.write_choosers(trips_segment)
 
         locals_dict.update(skims)
+        locals_dict["timeframe"] = "trip"
 
         choices = mode_choice_simulate(
             choosers=trips_segment,
@@ -273,6 +281,15 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
     trips_df = trips.to_frame()
     assign_in_place(trips_df, choices_df)
 
+    if pipeline.is_table("school_escort_tours") & model_settings.get(
+        "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
+    ):
+        trips_df = (
+            school_escort_tours_trips.force_escortee_trip_modes_to_match_chauffeur(
+                trips_df
+            )
+        )
+
     tracing.print_summary("trip_modes", trips_merged.tour_mode, value_counts=True)
 
     tracing.print_summary(
@@ -282,6 +299,9 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
     assert not trips_df[mode_column_name].isnull().any()
 
     pipeline.replace_table("trips", trips_df)
+
+    if model_settings.get("annotate_trips"):
+        annotate.annotate_trips(model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(

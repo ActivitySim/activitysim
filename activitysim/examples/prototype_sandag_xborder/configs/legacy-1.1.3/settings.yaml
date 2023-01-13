@@ -1,0 +1,157 @@
+inherit_settings: False
+
+# number of households to simulate
+
+households_sample_size: 0
+multiprocess: True
+strict: False
+mem_tick: 30
+num_processes: 30
+fail_fast: True
+
+##############
+#
+# chunking
+#
+
+# chooser chunk size in gigabytes
+# target top memory usage during activitysim run (including shared memory, loaded tables, and transient memory usage)
+chunk_size: 400_000_000_000
+#chunk_size: 0
+
+# minimum fraction of total chunk_size to reserve for adaptive chunking
+min_available_chunk_ratio: 0.05
+
+# initial number of chooser rows for first chunk in training mode
+# when there is no pre-existing chunk_cache to set initial value
+# ordinarily bigger is better as long as it is not so big it causes memory issues (e.g. accessibility with lots of zones)
+default_initial_rows_per_chunk: 500
+
+# method to calculate memory overhead when chunking is enabled
+chunk_method: hybrid_uss
+
+# chunk training mode
+# training to determine the chunking settings written to a cache file that is re-used for production runs
+# training
+# production
+# disabled
+chunk_training_mode: disabled
+
+# whether to preserve or delete subprocess chunk and mem logs when they are consolidated at end of multiprocess run
+keep_chunk_logs: True
+keep_mem_logs: True
+
+##############
+
+trace_hh_id:
+
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households_xborder.csv
+    index_col: household_id
+
+  - tablename: persons
+    filename: persons_xborder.csv
+    index_col: person_id
+
+  - tablename: land_use
+    filename: mazs_xborder.csv
+    index_col: zone_id
+    rename_columns:
+      MAZ: zone_id
+
+  - tablename: tours
+    filename: tours_xborder.csv
+    index_col: tour_id
+    keep_columns:
+      - pass_type
+      - tour_type
+      - purpose_id
+      - tour_category
+      - number_of_participants
+      - tour_num
+      - tour_count
+      - household_id
+      - person_id
+
+
+# set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: False
+
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+want_dest_choice_presampling: True
+
+#resume_after: trip_scheduling
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - initialize_tours
+  # --- STATIC cache prebuild steps
+  # single-process step to create attribute_combination list
+  - initialize_los
+  # multi-processable step to build STATIC cache
+  # (this step is a NOP if cache already exists and network_los.rebuild_tvpb_cache setting is False)
+  - initialize_tvpb
+  # # ---
+  - tour_scheduling_probabilistic
+  - tour_od_choice
+  - reassign_tour_purpose_by_poe
+  - tour_mode_choice_simulate
+  - stop_frequency
+  - trip_purpose
+  - trip_scheduling
+  - trip_destination
+  - trip_mode_choice
+  - write_trip_matrices
+  - write_tables
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    num_processes: 5
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_households
+    begin: tour_scheduling_probabilistic
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_trip_matrices
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  # FIXME sort is an undocumented feature - sorts table by best index or ref_col according to traceable_table_indexes
+  sort: True
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips
+    - attribute_combinations
+
+output_summaries:
+  tours:
+    - tour_mode
+    - od_path_set
+    - do_path_set

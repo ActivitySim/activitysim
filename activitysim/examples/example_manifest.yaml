@@ -56,7 +56,7 @@
   # activitysim run -c configs_mp -c configs_extended/configs -c configs -o output -d data
   # cd ..
   include:
-    - prototype_mtc/data
+    # prototype_mtc/data   # data loaded from activitysim_resources
     - prototype_mtc/configs
     - prototype_mtc_extended/configs
       configs_extended
@@ -81,7 +81,7 @@
   include:
     - prototype_mtc/configs
     - prototype_mtc/configs_mp
-    - prototype_mtc/data
+    # prototype_mtc/data  # load data from activitysim_resources
     - prototype_mtc/output
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/mtc_data_sf/skims.omx
       data/skims.omx
@@ -136,7 +136,7 @@
   include:
     - prototype_mtc/configs
     - placeholder_multiple_zone/configs_2_zone
-    - placeholder_multiple_zone/data_2
+    # placeholder_multiple_zone/data_2  # data loaded from activitysim_resources
     - placeholder_multiple_zone/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_2/households.csv
       data_2/households.csv
@@ -177,7 +177,7 @@
     - prototype_mtc/configs
     - placeholder_multiple_zone/configs_3_zone
     - placeholder_multiple_zone/configs_local
-    - placeholder_multiple_zone/data_3
+    # placeholder_multiple_zone/data_3  # data loaded from activitysim_resources
     - placeholder_multiple_zone/output_3
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/data_3/households.csv
       data_3/households.csv
@@ -247,7 +247,7 @@
   # cd ..
   include:
     - prototype_marin/configs
-    - prototype_marin/data
+    # prototype_marin/data   # data loaded from activitysim_resources
     - prototype_marin/output
     - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_marin_sf/highway_skims_AM.omx
@@ -319,7 +319,7 @@
   # cd ..
   include:
     - prototype_marin/configs
-    - prototype_marin/data
+    # prototype_marin/data   # data loaded from activitysim_resources
     - prototype_marin/output
     - prototype_marin/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/marin_data_full/highway_skims_AM.omx
@@ -406,7 +406,7 @@
     - placeholder_psrc/configs
     - placeholder_psrc/configs_skip_accessibility
     - placeholder_psrc/configs_accessibility
-    - placeholder_psrc/data
+    # placeholder_psrc/data  # data loaded from activitysim_resources
     - placeholder_psrc/output
     - placeholder_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_seattle/skims.omx
@@ -448,7 +448,7 @@
     - placeholder_psrc/configs
     - placeholder_psrc/configs_skip_accessibility
     - placeholder_psrc/configs_accessibility
-    - placeholder_psrc/data
+    # placeholder_psrc/data  # data loaded from activitysim_resources
     - placeholder_psrc/output
     - placeholder_psrc/README.MD
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/psrc_data_full/skims.omx
@@ -579,7 +579,7 @@
   # activitysim run -c configs -o output -d data
   # cd ..
   include:
-    - prototype_arc/data
+    # prototype_arc/data  # data loaded from activitysim_resources
     - prototype_arc/configs
     - prototype_arc/output
     - prototype_arc/README.MD
@@ -652,7 +652,7 @@
     - placeholder_sandag/../prototype_mtc/configs
       prototype_mtc
     - placeholder_sandag/configs_1_zone
-    - placeholder_sandag/data_1
+    # placeholder_sandag/data_1  # load data from activitysim_resources instead
     - placeholder_sandag/output_1
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_1_zone_data_full/households.csv
       data_1/households.csv
@@ -708,7 +708,7 @@
     - placeholder_sandag/../placeholder_psrc/configs
       placeholder_psrc
     - placeholder_sandag/configs_2_zone
-    - placeholder_sandag/data_2
+    # placeholder_sandag/data_2   # load data from activitysim_resources instead
     - placeholder_sandag/output_2
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_2_zone_data_full/households.csv
       data_2/households.csv
@@ -771,12 +771,14 @@
   # activitysim run -c configs_3_zone -c prototype_mtc/configs -d data_3 -o output_3 -s settings_mp.yaml
   # cd ..
   include:
-    - placeholder_sandag/data_3
+    # placeholder_sandag/data_3   # load data from activitysim_resources instead
     - placeholder_sandag/../prototype_mtc/configs
       prototype_mtc
     - placeholder_sandag/configs_3_zone
     - placeholder_sandag/configs_skip_accessibility
     - placeholder_sandag/output_3
+    - placeholder_sandag/data_3/cached_accessibility.csv.gz
+      data_3/cached_accessibility.csv.gz
     - https://media.githubusercontent.com/media/activitysim/activitysim_resources/master/sandag_3_zone_data_full/taz_skims1.omx
       data_3/taz_skims1.omx
       5b56d0e79ec671e37f8c71f7fedd741d7bf32d2bced866ab1f03f3973fccce8c
@@ -912,4 +914,52 @@
     - prototype_mwcog/output
     - prototype_mwcog/README.MD
     - prototype_mwcog/simulation.py
- 
+
+- name: prototype_mwcog_full
+  description: full scale test example for the MWCOG region
+  # activitysim create -e prototype_mwcog_full -d test_prototype_mwcog_full
+  # cd test_prototype_mwcog_full
+  # python simulation.py -c configs -o output -d data
+  # cd ..
+  include:
+    - prototype_mwcog/extensions
+    # prototype_mwcog/data  # data is provided below
+    - prototype_mwcog/configs
+    - prototype_mwcog/configs_mp
+    - prototype_mwcog/configs_sharrow
+    - prototype_mwcog/output
+    - prototype_mwcog/README.MD
+    - prototype_mwcog/simulation.py
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/LU_taz3722_rnd91a_2018_adj_enrollment.csv
+      data/LU_taz3722_rnd91a_2018_adj_enrollment.csv
+      9cec393becd718175168b6638e4b0e7f70510ea4c53079819e21eee8bfbbd455
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/combined_synthetic_hh_2018.csv
+      data/combined_synthetic_hh_2018.csv
+      a904ac91505c7e21999e5bb790ea599dcc4657d30463600038a8ec25be1575c8
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/combined_synthetic_per_2018.csv
+      data/combined_synthetic_per_2018.csv
+      b5d29a29ab04c36e142456a25397c0eca28dd9fade46f5a3ca986a79f42bdd07
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/land_use.csv
+      data/land_use.csv
+      cf7d7aec7854204a3a938d03b9f9acc8d9e33865a453cf8283b93ea762c07a9b
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/skims0.omx
+      data/skims0.omx
+      22640ec3c87775b42209abedb28e1feca5f4653e2645fabb9c71127473292cfa
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/skims1.omx
+      data/skims1.omx
+      49ab4b9c673d7528320657caa0b71ffe150d8ed418c49c54a1de75b72027f980
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/skims2.omx
+      data/skims2.omx
+      a756f4f871297cdbe693f4eaf39ee01405f32dd9f60927f87927fa2611ad8ae3
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/skims3.omx
+      data/skims3.omx
+      e9334eaa17e2dbc55583128387b834284f70d5c289d8ecfb0f5a98ffab62a14e
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/skims4.omx
+      data/skims4.omx
+      63b8fa22a7890615c8771bc1ff23f0d00f7853c16bc8fc4a0e826222d7c37e46
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/skims5.omx
+      data/skims5.omx
+      a6408d6a4d501dfb759c83fb9a757fd4045378b4a7a7b7a69b8bce6381215331
+    - https://media.githubusercontent.com/media/ActivitySim/activitysim_resources/master/mwcog_data_full/skims6.omx
+      data/skims6.omx
+      783113cd748f78d1d2b933dd45502d342625f7aa6cfe6d21c98e1e15d02db838

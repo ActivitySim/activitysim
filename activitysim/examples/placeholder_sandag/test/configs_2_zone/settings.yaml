@@ -20,7 +20,7 @@ want_dest_choice_presampling: True
 models:
   ## Disaggregate Accessibility steps
   # only including for 2 zone sandag test
-  - initialize_proto_population 
+  - initialize_proto_population
   - compute_disaggregate_accessibility
   ### mp_initialize step
   - initialize_landuse
@@ -69,3 +69,5 @@ output_tables:
     - trips
     - vehicles
     - proto_disaggregate_accessibility
+
+recode_pipeline_columns: False

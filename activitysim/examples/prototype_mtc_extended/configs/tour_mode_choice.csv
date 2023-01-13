@@ -342,3 +342,6 @@ util_Walk_not_available_for_long_distances,Walk not available for long distances
 util_Bike_not_available_for_long_distances,Bike not available for long distances,@od_skims.max('DISTBIKE') > 8,,,,,,,,-999,,,,,,,,,,,,,
 util_Drive_alone_not_available_for_escort_tours,Drive alone not available for escort tours,is_escort,-999,-999,,,,,,,,,,,,,,,,,,,
 #, max(c_densityIndexOrigin*originDensityIndex,originDensityIndexMax),,,,,,,,,1,1,1,1,1,1,1,,,,,,
+#, School Escorting eligibility-odd looking where/isnan is to allow this to work with numba fastmath,,,,,,,,,,,,,,,,,,,,,,
+util_one_or_more_school_escort,No SOV if on school escort tour,"@(np.where(np.isnan(df.get('num_escortees', 0)), 0 , df.get('num_escortees', 0)) >= 1)",-999,-999,,,,,,,,,,,,,,,,,,,
+util_two_or_more_school_escort,Can't take HOV2 if taking two children and yourself,"@(np.where(np.isnan(df.get('num_escortees', 0)), 0 , df.get('num_escortees', 0)) >= 2)",,,-999,-999,,,,,,,,,,,,,,,,,

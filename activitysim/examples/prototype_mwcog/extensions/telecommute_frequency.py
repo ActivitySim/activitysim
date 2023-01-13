@@ -4,19 +4,13 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import tracing
-from activitysim.core import config
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import inject
-from activitysim.core import expressions
-
 from activitysim.abm.models.util import estimation
+from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
+@inject.custom_step()
 def telecommute_frequency(persons_merged, persons, chunk_size, trace_hh_id):
     """
     This model predicts the frequency of telecommute for a person (worker) who

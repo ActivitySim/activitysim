@@ -1,3 +1,5 @@
+# That the school escort model as written in this prototype is not
+# compatible with sharrow, so "sharrow_skip" must be activated here.
 sharrow_skip: true
 
 OUTBOUND_SPEC: school_escorting_outbound.csv

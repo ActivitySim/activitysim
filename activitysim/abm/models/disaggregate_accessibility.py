@@ -597,9 +597,9 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             model_settings["LOGSUM_SETTINGS"] = " ".join(suffixes)
 
         if model_name != "non_mandatory_tour_destination":
-            shadow_price_calculator = shadow_pricing.load_shadow_price_calculator(
-                model_settings
-            )
+            spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+            # explicitly turning off shadow pricing for disaggregate accessibilities
+            spc.use_shadow_pricing = False
             # filter to only workers or students
             chooser_filter_column = model_settings["CHOOSER_FILTER_COLUMN_NAME"]
             choosers = persons_merged[persons_merged[chooser_filter_column]]
@@ -608,7 +608,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             _logsums, _ = location_choice.run_location_choice(
                 choosers,
                 network_los,
-                shadow_price_calculator=shadow_price_calculator,
+                shadow_price_calculator=spc,
                 want_logsums=True,
                 want_sample_table=True,
                 estimator=estimator,
@@ -664,6 +664,18 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 def initialize_proto_population(network_los, chunk_size):
     # Synthesize the proto-population
     ProtoPop(network_los, chunk_size)
+
+    model_settings = read_disaggregate_accessibility_yaml(
+        "disaggregate_accessibility.yaml"
+    )
+
+    # - initialize shadow_pricing size tables after annotating household and person tables
+    # since these are scaled to model size, they have to be created while single-process
+    # this can now be called as a standalone model step instead, add_size_tables
+    add_size_tables = model_settings.get("add_size_tables", True)
+    if add_size_tables:
+        # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
+        shadow_pricing.add_size_tables(model_settings.get("suffixes"))
     return
 
 
@@ -679,14 +691,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     model_settings = read_disaggregate_accessibility_yaml(
         "disaggregate_accessibility.yaml"
     )
-
-    # - initialize shadow_pricing size tables after annotating household and person tables
-    # since these are scaled to model size, they have to be created while single-process
-    # this can now be called as a standalone model step instead, add_size_tables
-    add_size_tables = model_settings.get("add_size_tables", True)
-    if add_size_tables:
-        # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-        shadow_pricing.add_size_tables(model_settings.get("suffixes"))
 
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:

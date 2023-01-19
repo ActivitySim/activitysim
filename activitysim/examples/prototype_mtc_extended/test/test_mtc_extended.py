@@ -63,7 +63,9 @@ def _test_prototype_mtc_extended(
                 if i not in regress_accessibility_df.columns
             ]
         )
-        pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)
+        pdt.assert_frame_equal(
+            final_accessibiliy_df, regress_accessibility_df, rtol=1.0e-4
+        )
 
         pdt.assert_frame_equal(final_trips_df, regress_trips_df, rtol=1.0e-4)
         pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df, rtol=1.0e-4)

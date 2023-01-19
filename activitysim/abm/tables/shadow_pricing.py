@@ -114,10 +114,18 @@ class ShadowPriceCalculator(object):
         self.model_selector = model_settings["MODEL_SELECTOR"]
 
         full_model_run = config.setting("households_sample_size") == 0
-        if self.use_shadow_pricing and not full_model_run:
+        if (
+            self.use_shadow_pricing
+            and not full_model_run
+            and self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation"
+        ):
+            # ctramp and daysim methods directly compare desired and modeled size to compute shadow prices.
+            # desination size terms are scaled in add_size_tables only for full model runs
             logger.warning(
-                "deprecated combination of use_shadow_pricing and not full_model_run"
+                "only 'simulation' shadow price method can use_shadow_pricing and not full_model_run"
             )
+            logger.warning(f"Not using shadow pricing for {self.model_selector}")
+            self.use_shadow_pricing = False
 
         if (self.num_processes > 1) and not config.setting("fail_fast"):
             # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
@@ -1297,7 +1305,10 @@ def add_size_tables(disaggregate_suffixes):
         raw_size = tour_destination_size_terms(land_use, size_terms, model_selector)
         assert set(raw_size.columns) == set(segment_ids.keys())
 
-        if use_shadow_pricing or scale_size_table:
+        full_model_run = config.setting("households_sample_size") == 0
+        # only want to scale size terms if using shadow pricing and a full model run
+        # or we explicitly set size table scaling in shadow_pricing.yaml
+        if (use_shadow_pricing & full_model_run) or scale_size_table:
 
             # - scale size_table counts to sample population
             # scaled_size = zone_size * (total_segment_modeled / total_segment_desired)
@@ -1352,7 +1363,7 @@ def add_size_tables(disaggregate_suffixes):
             scaled_size.index.is_monotonic_increasing
         ), f"size table {size_table_name(model_selector)} not is_monotonic_increasing"
 
-        inject.add_table(size_table_name(model_selector), scaled_size)
+        inject.add_table(size_table_name(model_selector), scaled_size, replace=True)
 
 
 def get_shadow_pricing_info():

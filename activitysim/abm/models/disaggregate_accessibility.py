@@ -80,6 +80,14 @@ class ProtoPop:
         self.annotate_tables()
         self.merge_persons()
 
+        # - initialize shadow_pricing size tables after annotating household and person tables
+        # since these are scaled to model size, they have to be created while single-process
+        # this can now be called as a standalone model step instead, add_size_tables
+        add_size_tables = self.model_settings.get("add_size_tables", True)
+        if add_size_tables:
+            # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
+            shadow_pricing.add_size_tables(self.model_settings.get("suffixes"))
+
     def zone_sampler(self):
         """
         This is a "pre"-sampling method, which selects a sample from the total zones and generates a proto-pop on it.
@@ -664,18 +672,6 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 def initialize_proto_population(network_los, chunk_size):
     # Synthesize the proto-population
     ProtoPop(network_los, chunk_size)
-
-    model_settings = read_disaggregate_accessibility_yaml(
-        "disaggregate_accessibility.yaml"
-    )
-
-    # - initialize shadow_pricing size tables after annotating household and person tables
-    # since these are scaled to model size, they have to be created while single-process
-    # this can now be called as a standalone model step instead, add_size_tables
-    add_size_tables = model_settings.get("add_size_tables", True)
-    if add_size_tables:
-        # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-        shadow_pricing.add_size_tables(model_settings.get("suffixes"))
     return
 
 
@@ -686,11 +682,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     as well as each zone in land use file using expressions from accessibility_spec.
 
     """
-
-    # Synthesize the proto-population
-    model_settings = read_disaggregate_accessibility_yaml(
-        "disaggregate_accessibility.yaml"
-    )
 
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:

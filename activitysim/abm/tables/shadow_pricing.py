@@ -113,20 +113,6 @@ class ShadowPriceCalculator(object):
 
         self.model_selector = model_settings["MODEL_SELECTOR"]
 
-        full_model_run = config.setting("households_sample_size") == 0
-        if (
-            self.use_shadow_pricing
-            and not full_model_run
-            and self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation"
-        ):
-            # ctramp and daysim methods directly compare desired and modeled size to compute shadow prices.
-            # desination size terms are scaled in add_size_tables only for full model runs
-            logger.warning(
-                "only 'simulation' shadow price method can use_shadow_pricing and not full_model_run"
-            )
-            logger.warning(f"Not using shadow pricing for {self.model_selector}")
-            self.use_shadow_pricing = False
-
         if (self.num_processes > 1) and not config.setting("fail_fast"):
             # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
             logger.warning(
@@ -148,6 +134,20 @@ class ShadowPriceCalculator(object):
                 logger.debug(
                     "shadow_settings %s: %s" % (k, self.shadow_settings.get(k))
                 )
+
+        full_model_run = config.setting("households_sample_size") == 0
+        if (
+            self.use_shadow_pricing
+            and not full_model_run
+            and self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation"
+        ):
+            # ctramp and daysim methods directly compare desired and modeled size to compute shadow prices.
+            # desination size terms are scaled in add_size_tables only for full model runs
+            logger.warning(
+                "only 'simulation' shadow price method can use_shadow_pricing and not full_model_run"
+            )
+            logger.warning(f"Not using shadow pricing for {self.model_selector}")
+            self.use_shadow_pricing = False
 
         if (
             self.use_shadow_pricing

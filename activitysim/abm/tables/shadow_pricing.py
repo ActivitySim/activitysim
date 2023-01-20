@@ -1306,9 +1306,16 @@ def add_size_tables(disaggregate_suffixes):
         assert set(raw_size.columns) == set(segment_ids.keys())
 
         full_model_run = config.setting("households_sample_size") == 0
-        # only want to scale size terms if using shadow pricing and a full model run
-        # or we explicitly set size table scaling in shadow_pricing.yaml
-        if (use_shadow_pricing & full_model_run) or scale_size_table:
+
+        # FIXME using this line instead of commented out line below causes mp-ing to hang
+        # when waiting for all subprocesses to check in. (line 342 in wait())
+        # Hangs when scaled_size = raw_size (or segment_scale_factors = 1)
+        # if use_shadow_pricing or scale_size_table:
+        if (use_shadow_pricing and full_model_run) or scale_size_table:
+
+            # need to scale destination size terms because ctramp and daysim approaches directly
+            # compare modeled size and target size when computing shadow prices
+            # Does not apply to simulation approach which compares proportions.
 
             # - scale size_table counts to sample population
             # scaled_size = zone_size * (total_segment_modeled / total_segment_desired)

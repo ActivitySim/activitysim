@@ -86,7 +86,9 @@ class ProtoPop:
         add_size_tables = self.model_settings.get("add_size_tables", True)
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            shadow_pricing.add_size_tables(self.model_settings.get("suffixes"))
+            shadow_pricing.add_size_tables(
+                self.model_settings.get("suffixes"), scale=False
+            )
 
     def zone_sampler(self):
         """

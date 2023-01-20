@@ -1221,7 +1221,7 @@ def load_shadow_price_calculator(model_settings):
 
 
 @inject.step()
-def add_size_tables(disaggregate_suffixes):
+def add_size_tables(disaggregate_suffixes, scale=True):
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 
@@ -1307,11 +1307,13 @@ def add_size_tables(disaggregate_suffixes):
 
         full_model_run = config.setting("households_sample_size") == 0
 
+        scale_size_table = scale and scale_size_table
+
         # FIXME using this line instead of commented out line below causes mp-ing to hang
         # when waiting for all subprocesses to check in. (line 342 in wait())
         # Hangs when scaled_size = raw_size (or segment_scale_factors = 1)
-        # if use_shadow_pricing or scale_size_table:
-        if (use_shadow_pricing and full_model_run) or scale_size_table:
+        # if use_shadow_pricing and scale_size_table:
+        if (use_shadow_pricing and full_model_run) and scale_size_table:
 
             # need to scale destination size terms because ctramp and daysim approaches directly
             # compare modeled size and target size when computing shadow prices

@@ -1224,8 +1224,17 @@ def load_shadow_price_calculator(model_settings):
     return spc
 
 
+# first define add_size_tables as an orca step with no scale argument at all.
 @inject.step()
-def add_size_tables(disaggregate_suffixes, scale=True):
+def add_size_tables(disaggregate_suffixes):
+    return _add_size_tables(disaggregate_suffixes)
+
+
+# then define _add_size_tables as a second method which also offers an optional
+# default argument to not scale sizes.  This is used only in disaggregate
+# accessibility (for now) and is not called via orca.  We need to do this to
+# avoid having to create a new orca variable for the scale argument.
+def _add_size_tables(disaggregate_suffixes, scale=True):
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 

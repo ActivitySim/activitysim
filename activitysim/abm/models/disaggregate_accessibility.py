@@ -1,17 +1,17 @@
-import random
 import logging
-import pandas as pd
-import numpy as np
+import random
 from functools import reduce
+
+import numpy as np
+import pandas as pd
 from orca import orca
-
-from activitysim.core import inject, tracing, config, pipeline, util, los, logit
-from activitysim.abm.models import location_choice, initialize
-from activitysim.abm.models.util import tour_destination, estimation
-from activitysim.abm.tables import shadow_pricing
-from activitysim.core.expressions import assign_columns
-
 from sklearn.cluster import KMeans
+
+from activitysim.abm.models import initialize, location_choice
+from activitysim.abm.models.util import estimation, tour_destination
+from activitysim.abm.tables import shadow_pricing
+from activitysim.core import config, inject, los, pipeline, tracing, util
+from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,7 @@ class ProtoPop:
         add_size_tables = self.model_settings.get("add_size_tables", True)
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            shadow_pricing.add_size_tables(
+            shadow_pricing._add_size_tables(
                 self.model_settings.get("suffixes"), scale=False
             )
 
@@ -184,16 +184,16 @@ class ProtoPop:
             """
             init: (default='k-means++')
                 ‘k-means++’ : selects initial cluster centroids using sampling based on an
-                empirical probability distribution of the points’ contribution to the overall inertia. 
-                This technique speeds up convergence, and is theoretically proven to be O(log k) -optimal. 
+                empirical probability distribution of the points’ contribution to the overall inertia.
+                This technique speeds up convergence, and is theoretically proven to be O(log k) -optimal.
                 See the description of n_init for more details.
 
                 ‘random’: choose n_clusters observations (rows) at random from data for the initial centroids.
-            
+
             n_init: (default=10)
                 Number of time the k-means algorithm will be run with different centroid seeds.
                 The final results will be the best output of n_init consecutive runs in terms of inertia.
-            
+
             max_iter: (default=300)
                 Maximum number of iterations of the k-means algorithm for a single run.
 

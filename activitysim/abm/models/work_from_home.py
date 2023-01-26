@@ -15,6 +15,8 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     """
     This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).
+    The workplace location choice is overridden for workers who work from home
+    and set to -1.
     """
 
     trace_label = "work_from_home"
@@ -22,7 +24,9 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
 
     choosers = persons_merged.to_frame()
     model_settings = config.read_model_settings(model_settings_file_name)
-    chooser_filter_column_name = model_settings.get("CHOOSER_FILTER_COLUMN_NAME")
+    chooser_filter_column_name = model_settings.get(
+        "CHOOSER_FILTER_COLUMN_NAME", "is_worker"
+    )
     choosers = choosers[choosers[chooser_filter_column_name]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
@@ -153,6 +157,17 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     persons["is_out_of_home_worker"] = (
         persons[chooser_filter_column_name] & ~persons["work_from_home"]
     )
+
+    # setting workplace_zone_id to -1 if person works from home
+    # this will exclude them from the telecommute frequency model choosers
+    # See https://github.com/ActivitySim/activitysim/issues/627
+    dest_choice_column_name = model_settings.get(
+        "DEST_CHOICE_COLUMN_NAME", "workplace_zone_id"
+    )
+    if dest_choice_column_name in persons.columns:
+        persons[dest_choice_column_name] = np.where(
+            persons.work_from_home == True, -1, persons[dest_choice_column_name]
+        )
 
     pipeline.replace_table("persons", persons)
 

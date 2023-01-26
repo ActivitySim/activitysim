@@ -227,6 +227,7 @@ class ShadowPriceCalculator(object):
         self.max_rel_diff = pd.DataFrame(index=self.desired_size.columns)
         self.choices_by_iteration = pd.DataFrame()
         self.global_pending_persons = 1
+        self.sampled_persons = pd.DataFrame()
 
         if (
             self.use_shadow_pricing
@@ -234,7 +235,6 @@ class ShadowPriceCalculator(object):
         ):
 
             assert self.model_selector in ["workplace", "school"]
-            self.sampled_persons = pd.DataFrame()
             self.target = {}
             land_use = inject.get_table("land_use").to_frame()
 

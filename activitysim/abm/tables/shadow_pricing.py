@@ -10,9 +10,8 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, inject, tracing, util
+from activitysim.core import config, inject, logit, tracing, util
 from activitysim.core.input import read_input_table
-from activitysim.core import logit
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +53,7 @@ ShadowPriceCalculator.synchronize_modeled_size coordinates access to the global 
 """
 TALLY_CHECKIN = (0, -1)
 TALLY_CHECKOUT = (1, -1)
+TALLY_PENDING_PERSONS = (2, -1)
 
 default_segment_to_name_dict = {
     # model_selector : persons_segment_name
@@ -226,6 +226,7 @@ class ShadowPriceCalculator(object):
         self.max_abs_diff = pd.DataFrame(index=self.desired_size.columns)
         self.max_rel_diff = pd.DataFrame(index=self.desired_size.columns)
         self.choices_by_iteration = pd.DataFrame()
+        self.global_pending_persons = 1
 
         if (
             self.use_shadow_pricing
@@ -352,15 +353,18 @@ class ShadowPriceCalculator(object):
             # Ellipsis expands : to fill available dims so [..., 0:-1] is the whole array except for the tallys
             self.shared_data[..., 0:-1] += local_modeled_size.values
             self.shared_data[TALLY_CHECKIN] += 1
+            if len(self.sampled_persons) > 0:
+                self.shared_data[TALLY_PENDING_PERSONS] += 1
 
         # - wait until everybody else has checked in
         wait(TALLY_CHECKIN, self.num_processes)
 
-        # - copy shared data, increment TALLY_CHECKIN
+        # - copy shared data, increment TALLY_CHECKOUT
         with self.shared_data_lock:
             logger.info("copy shared_data")
             # numpy array with sum of local_modeled_size.values from all processes
             global_modeled_size_array = self.shared_data[..., 0:-1].copy()
+            self.global_pending_persons = self.shared_data[TALLY_PENDING_PERSONS]
             self.shared_data[TALLY_CHECKOUT] += 1
 
         # - first in waits until all other processes have checked out, and cleans tub
@@ -613,7 +617,7 @@ class ShadowPriceCalculator(object):
             max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
 
             converged = (total_fails <= np.ceil(max_fail)) | (
-                (iteration > 1) & (len(self.sampled_persons) == 0)
+                (iteration > 1) & (self.global_pending_persons == 0)
             )
 
         logger.info(

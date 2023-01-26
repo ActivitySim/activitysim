@@ -1322,10 +1322,6 @@ def _add_size_tables(disaggregate_suffixes, scale=True):
 
         scale_size_table = scale and scale_size_table
 
-        # FIXME using this line instead of commented out line below causes mp-ing to hang
-        # when waiting for all subprocesses to check in. (line 342 in wait())
-        # Hangs when scaled_size = raw_size (or segment_scale_factors = 1)
-        # if use_shadow_pricing and scale_size_table:
         if (use_shadow_pricing and full_model_run) and scale_size_table:
 
             # need to scale destination size terms because ctramp and daysim approaches directly

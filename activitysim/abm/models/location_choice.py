@@ -262,6 +262,7 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
             "size_term": "sum",
             "shadow_price_size_term_adjustment": "sum",
             "shadow_price_utility_adjustment": "sum",
+            "avail_MAZ": "sum",
         }
     )
 

@@ -100,7 +100,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
             )
             final_accessibiliy_df = pd.read_csv(
                 test_path(
-                    f"output/final_{zone}_zone_proto_disaggregate_accessibility.csv"
+                    f"output_{zone}/final_{zone}_zone_proto_disaggregate_accessibility.csv"
                 )
             )
             pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)

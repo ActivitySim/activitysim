@@ -733,6 +733,11 @@ def filter_warnings():
             ".*object-dtype columns with all-bool values will not be included in reductions.*"
         ),
     )
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        message=".*will attempt to set the values inplace instead of always setting a new array.*",
+    )
 
     # beginning in sharrow version 2.5, a CacheMissWarning is emitted when a sharrow
     # flow cannot be loaded from cache and needs to be compiled.  These are performance

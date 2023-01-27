@@ -98,12 +98,19 @@ def run_test(zone, multiprocess=False, sharrow=False):
                     f"regress/final_{zone}_zone_proto_disaggregate_accessibility.csv"
                 )
             )
-            final_accessibiliy_df = pd.read_csv(
+            final_accessibility_df = pd.read_csv(
                 test_path(
                     f"output_{zone}/final_{zone}_zone_proto_disaggregate_accessibility.csv"
                 )
             )
-            pdt.assert_frame_equal(final_accessibiliy_df, regress_accessibility_df)
+            final_accessibility_df = final_accessibility_df[
+                [
+                    c
+                    for c in final_accessibility_df.columns
+                    if not c.startswith("_original_")
+                ]
+            ]
+            pdt.assert_frame_equal(final_accessibility_df, regress_accessibility_df)
 
     # run test
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")

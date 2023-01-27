@@ -186,10 +186,11 @@ preprocessor:
     - tours
     - vehicles
 
-#  - SPEC: trip_mode_choice_annotate_trips_preprocessor2
-#    DF: df
-#    TABLES:
-#      - land_use
+# annotate_trips:
+#   SPEC: trip_mode_choice_annotate_trips_postprocessor
+#   DF: df
+#   TABLES:
+#      - tours
 
 # to reduce memory needs filter chooser table to these fields
 TOURS_MERGED_CHOOSER_COLUMNS:

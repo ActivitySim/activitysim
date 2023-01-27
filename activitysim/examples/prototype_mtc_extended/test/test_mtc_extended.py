@@ -16,7 +16,9 @@ def teardown_function(func):
     inject.reinject_decorated_tables()
 
 
-def _test_prototype_mtc_extended(multiprocess=False, sharrow=False):
+def _test_prototype_mtc_extended(
+    multiprocess=False, sharrow=False, shadow_pricing=True
+):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mtc_extended", dirname)
         return pkg_resources.resource_filename("activitysim", resource)
@@ -29,16 +31,49 @@ def _test_prototype_mtc_extended(multiprocess=False, sharrow=False):
         return os.path.join(os.path.dirname(__file__), dirname)
 
     def regress():
-        regress_trips_df = pd.read_csv(test_path("regress/final_trips.csv"))
-        final_trips_df = pd.read_csv(test_path("output/final_trips.csv"))
+        regress_suffix = ""
+        if shadow_pricing:
+            regress_suffix += "-shadowpriced"
+        if sharrow:
+            regress_suffix += "-sharrow"
+
+        output_dir = "output"
+        regress_trips_df = pd.read_csv(
+            test_path(f"regress/final_trips{regress_suffix}.csv")
+        )
+        final_trips_df = pd.read_csv(test_path(f"{output_dir}/final_trips.csv"))
 
         regress_vehicles_df = pd.read_csv(test_path("regress/final_vehicles.csv"))
-        final_vehicles_df = pd.read_csv(test_path("output/final_vehicles.csv"))
+        final_vehicles_df = pd.read_csv(test_path(f"{output_dir}/final_vehicles.csv"))
+
+        regress_accessibility_df = pd.read_csv(
+            test_path(
+                f"regress/final_proto_disaggregate_accessibility{regress_suffix}.csv"
+            )
+        )
+        final_accessibiliy_df = pd.read_csv(
+            test_path(f"{output_dir}/final_proto_disaggregate_accessibility.csv")
+        )
+        # new transforms may add columns to final_accessibiliy_df, but that is
+        # not a test breakage if the existing columns still match.
+        final_accessibiliy_df = final_accessibiliy_df.drop(
+            columns=[
+                i
+                for i in final_accessibiliy_df.columns
+                if i not in regress_accessibility_df.columns
+            ]
+        )
+        pdt.assert_frame_equal(
+            final_accessibiliy_df, regress_accessibility_df, rtol=1.0e-4
+        )
 
         pdt.assert_frame_equal(final_trips_df, regress_trips_df, rtol=1.0e-4)
         pdt.assert_frame_equal(final_vehicles_df, regress_vehicles_df, rtol=1.0e-4)
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
+    shadowprice_configs = (
+        [] if shadow_pricing else ["-c", test_path("no-shadow-pricing")]
+    )
     if sharrow:
         sh_configs = ["-c", example_path("configs_sharrow")]
     else:
@@ -50,13 +85,19 @@ def _test_prototype_mtc_extended(multiprocess=False, sharrow=False):
             "-c",
             example_path("configs_mp"),
         ]
+    elif sharrow:
+        mp_configs = [
+            "-c",
+            test_path("configs"),
+        ]
     else:
         mp_configs = [
             "-c",
             test_path("configs"),
         ]
     run_args = (
-        sh_configs
+        shadowprice_configs
+        + sh_configs
         + mp_configs
         + [
             "-c",
@@ -80,15 +121,29 @@ def _test_prototype_mtc_extended(multiprocess=False, sharrow=False):
 
 
 def test_prototype_mtc_extended():
-    _test_prototype_mtc_extended(multiprocess=False, sharrow=False)
+    _test_prototype_mtc_extended(
+        multiprocess=False, sharrow=False, shadow_pricing=False
+    )
 
 
 def test_prototype_mtc_extended_sharrow():
-    _test_prototype_mtc_extended(multiprocess=False, sharrow=True)
+    _test_prototype_mtc_extended(multiprocess=False, sharrow=True, shadow_pricing=False)
 
 
 def test_prototype_mtc_extended_mp():
-    _test_prototype_mtc_extended(multiprocess=True, sharrow=False)
+    _test_prototype_mtc_extended(multiprocess=True, sharrow=False, shadow_pricing=False)
+
+
+def test_prototype_mtc_extended_shadow_pricing():
+    _test_prototype_mtc_extended(multiprocess=False, sharrow=False, shadow_pricing=True)
+
+
+def test_prototype_mtc_extended_sharrow_shadow_pricing():
+    _test_prototype_mtc_extended(multiprocess=False, sharrow=True, shadow_pricing=True)
+
+
+def test_prototype_mtc_extended_mp_shadow_pricing():
+    _test_prototype_mtc_extended(multiprocess=True, sharrow=False, shadow_pricing=True)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,158 @@
+Alt,bundle1,bundle2,bundle3,chauf1,chauf2,chauf3,nbund1,nbund2,nbundles,nrs1,npe1,nrs2,npe2,Description
+1,0,0,0,0,0,0,0,0,0,0,0,0,0,no one is escorted
+2,1,0,0,1,0,0,1,0,1,1,0,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing
+3,1,0,0,2,0,0,1,0,1,0,1,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort
+4,1,0,0,3,0,0,0,1,1,0,0,1,0,child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing
+5,1,0,0,4,0,0,0,1,1,0,0,0,1,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort
+6,0,1,0,0,1,0,1,0,1,1,0,0,0,child 2 is escorted in bundle 1 by chauffeur 1 as ride sharing
+7,0,1,0,0,2,0,1,0,1,0,1,0,0,child 2 is escorted in bundle 1 by chauffeur 1 as pure escort
+8,0,1,0,0,3,0,0,1,1,0,0,1,0,child 2 is escorted in bundle 1 by chauffeur 2 as ride sharing
+9,0,1,0,0,4,0,0,1,1,0,0,0,1,child 2 is escorted in bundle 1 by chauffeur 2 as pure escort
+10,0,0,1,0,0,1,1,0,1,1,0,0,0,child 3 is escorted in bundle 1 by chauffeur 1 as ride sharing
+11,0,0,1,0,0,2,1,0,1,0,1,0,0,child 3 is escorted in bundle 1 by chauffeur 1 as pure escort
+12,0,0,1,0,0,3,0,1,1,0,0,1,0,child 3 is escorted in bundle 1 by chauffeur 2 as ride sharing
+13,0,0,1,0,0,4,0,1,1,0,0,0,1,child 3 is escorted in bundle 1 by chauffeur 2 as pure escort
+14,1,1,0,1,1,0,1,0,1,1,0,0,0,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as ride sharing
+15,1,1,0,2,2,0,1,0,1,0,1,0,0,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as pure escort
+16,1,1,0,3,3,0,0,1,1,0,0,1,0,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as ride sharing
+17,1,1,0,4,4,0,0,1,1,0,0,0,1,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as pure escort
+18,1,0,1,1,0,1,1,0,1,1,0,0,0,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as ride sharing
+19,1,0,1,2,0,2,1,0,1,0,1,0,0,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as pure escort
+20,1,0,1,3,0,3,0,1,1,0,0,1,0,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as ride sharing
+21,1,0,1,4,0,4,0,1,1,0,0,0,1,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as pure escort
+22,0,1,1,0,1,1,1,0,1,1,0,0,0,child 2 and 3 are escorted in bundle 1 by chauffeur 1 as ride sharing
+23,0,1,1,0,2,2,1,0,1,0,1,0,0,child 2 and 3 are escorted in bundle 1 by chauffeur 1 as pure escort
+24,0,1,1,0,3,3,0,1,1,0,0,1,0,child 2 and 3 are escorted in bundle 1 by chauffeur 2 as ride sharing
+25,0,1,1,0,4,4,0,1,1,0,0,0,1,child 2 and 3 are escorted in bundle 1 by chauffeur 2 as pure escort
+26,1,2,0,1,2,0,2,0,2,1,1,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+27,1,2,0,1,3,0,1,1,2,1,0,1,0,child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing
+28,1,2,0,1,4,0,1,1,2,1,0,0,1,child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+29,1,2,0,2,1,0,2,0,2,1,1,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing
+30,1,2,0,2,2,0,2,0,2,0,2,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+31,1,2,0,2,3,0,1,1,2,0,1,1,0,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing
+32,1,2,0,2,4,0,1,1,2,0,1,0,1,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+33,1,2,0,3,1,0,1,1,2,1,0,1,0,child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing
+34,1,2,0,3,2,0,1,1,2,0,1,1,0,child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+35,1,2,0,3,4,0,0,2,2,0,0,1,1,child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+36,1,2,0,4,1,0,1,1,2,1,0,0,1,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing
+37,1,2,0,4,2,0,1,1,2,0,1,0,1,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+38,1,2,0,4,3,0,0,2,2,0,0,1,1,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing
+39,1,2,0,4,4,0,0,2,2,0,0,0,2,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+40,1,0,2,1,0,2,2,0,2,1,1,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+41,1,0,2,1,0,3,1,1,2,1,0,1,0,child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+42,1,0,2,1,0,4,1,1,2,1,0,0,1,child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+43,1,0,2,2,0,1,2,0,2,1,1,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+44,1,0,2,2,0,2,2,0,2,0,2,0,0,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+45,1,0,2,2,0,3,1,1,2,0,1,1,0,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+46,1,0,2,2,0,4,1,1,2,0,1,0,1,child 1 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+47,1,0,2,3,0,1,1,1,2,1,0,1,0,child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+48,1,0,2,3,0,2,1,1,2,0,1,1,0,child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+49,1,0,2,3,0,4,0,2,2,0,0,1,1,child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+50,1,0,2,4,0,1,1,1,2,1,0,0,1,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+51,1,0,2,4,0,2,1,1,2,0,1,0,1,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+52,1,0,2,4,0,3,0,2,2,0,0,1,1,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+53,1,0,2,4,0,4,0,2,2,0,0,0,2,child 1 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+54,0,1,2,0,1,2,2,0,2,1,1,0,0,child 2 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+55,0,1,2,0,1,3,1,1,2,1,0,1,0,child 2 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+56,0,1,2,0,1,4,1,1,2,1,0,0,1,child 2 is escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+57,0,1,2,0,2,1,2,0,2,1,1,0,0,child 2 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+58,0,1,2,0,2,2,2,0,2,0,2,0,0,child 2 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+59,0,1,2,0,2,3,1,1,2,0,1,1,0,child 2 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+60,0,1,2,0,2,4,1,1,2,0,1,0,1,child 2 is escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+61,0,1,2,0,3,1,1,1,2,1,0,1,0,child 2 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+62,0,1,2,0,3,2,1,1,2,0,1,1,0,child 2 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+63,0,1,2,0,3,4,0,2,2,0,0,1,1,child 2 is escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+64,0,1,2,0,4,1,1,1,2,1,0,0,1,child 2 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+65,0,1,2,0,4,2,1,1,2,0,1,0,1,child 2 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as pure escorting
+66,0,1,2,0,4,3,0,2,2,0,0,1,1,child 2 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+67,0,1,2,0,4,4,0,2,2,0,0,0,2,child 2 is escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as pure escorting
+68,1,1,1,1,1,1,1,0,1,1,0,0,0,"child 1, 2 and 3 are escorted in bundle 1 by chauffeur 1 as ride sharing"
+69,1,1,1,2,2,2,1,0,1,0,1,0,0,"child 1, 2 and 3 are escorted in bundle 1 by chauffeur 1 as pure escort"
+70,1,1,1,3,3,3,0,1,1,0,0,1,0,"child 1, 2 and 3 are escorted in bundle 1 by chauffeur 2 as ride sharing"
+71,1,1,1,4,4,4,0,1,1,0,0,0,1,"child 1, 2 and 3 are escorted in bundle 1 by chauffeur 2 as pure escort"
+72,1,2,3,1,2,2,3,0,3,1,2,0,0,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+73,1,2,3,1,2,3,2,1,3,1,1,1,0,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+74,1,2,3,1,2,4,2,1,3,1,1,0,1,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+75,1,2,3,1,3,2,2,1,3,1,1,1,0,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+76,1,2,3,1,3,4,1,2,3,1,0,1,1,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+77,1,2,3,1,4,2,2,1,3,1,1,0,1,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+78,1,2,3,1,4,3,1,2,3,1,0,1,1,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+79,1,2,3,1,4,4,1,2,3,1,0,0,2,"child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+80,1,2,3,2,1,2,3,0,3,1,2,0,0,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+81,1,2,3,2,1,3,2,1,3,1,1,1,0,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+82,1,2,3,2,1,4,2,1,3,1,1,0,1,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+83,1,2,3,2,2,1,3,0,3,1,2,0,0,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+84,1,2,3,2,2,2,3,0,3,0,3,0,0,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+85,1,2,3,2,2,3,2,1,3,0,2,1,0,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+86,1,2,3,2,2,4,2,1,3,0,2,0,1,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+87,1,2,3,2,3,1,2,1,3,1,1,1,0,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+88,1,2,3,2,3,2,2,1,3,0,2,1,0,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+89,1,2,3,2,3,4,1,2,3,0,1,1,1,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+90,1,2,3,2,4,1,2,1,3,1,1,0,1,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+91,1,2,3,2,4,2,2,1,3,0,2,0,1,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+92,1,2,3,2,4,3,1,2,3,0,1,1,1,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+93,1,2,3,2,4,4,1,2,3,0,1,0,2,"child 1 is escorted in bundle 1 by chauffeur 1 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+94,1,2,3,3,1,2,2,1,3,1,1,1,0,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+95,1,2,3,3,1,4,1,2,3,1,0,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+96,1,2,3,3,2,1,2,1,3,1,1,1,0,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+97,1,2,3,3,2,2,2,1,3,0,2,1,0,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+98,1,2,3,3,2,4,1,2,3,0,1,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+99,1,2,3,3,4,1,1,2,3,1,0,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+100,1,2,3,3,4,2,1,2,3,0,1,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+101,1,2,3,3,4,4,0,3,3,0,0,1,2,"child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+102,1,2,3,4,1,2,2,1,3,1,1,0,1,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+103,1,2,3,4,1,3,1,2,3,1,0,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+104,1,2,3,4,1,4,1,2,3,1,0,0,2,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+105,1,2,3,4,2,1,2,1,3,1,1,0,1,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+106,1,2,3,4,2,2,2,1,3,0,2,0,1,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+107,1,2,3,4,2,3,1,2,3,0,1,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+108,1,2,3,4,2,4,1,2,3,0,1,0,2,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 1 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+109,1,2,3,4,3,1,1,2,3,1,0,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+110,1,2,3,4,3,2,1,2,3,0,1,1,1,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+111,1,2,3,4,3,4,0,3,3,0,0,1,2,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing, and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+112,1,2,3,4,4,1,1,2,3,1,0,0,2,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as ride sharing"
+113,1,2,3,4,4,2,1,2,3,0,1,0,2,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 1 as pure escort"
+114,1,2,3,4,4,3,0,3,3,0,0,1,2,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as ride sharing"
+115,1,2,3,4,4,4,0,3,3,0,0,0,3,"child 1 is escorted in bundle 1 by chauffeur 2 as pure escort, child 2 is escorted in bundle 2 by chauffeur 2 as pure escort and child 3 is escorted in bundle 3 by chauffeur 2 as pure escort"
+116,1,1,2,1,1,2,2,0,2,1,1,0,0,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as pure escort
+117,1,1,2,1,1,3,1,1,2,1,0,1,0,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+118,1,1,2,1,1,4,1,1,2,1,0,0,1,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as pure escort
+119,1,1,2,2,2,1,2,0,2,1,1,0,0,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+120,1,1,2,2,2,2,2,0,2,0,2,0,0,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as pure escort
+121,1,1,2,2,2,3,1,1,2,0,1,1,0,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+122,1,1,2,2,2,4,1,1,2,0,1,0,1,child 1 and 2 are escorted in bundle 1 by chauffeur 1 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as pure escort
+123,1,1,2,3,3,1,1,1,2,1,0,1,0,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+124,1,1,2,3,3,2,1,1,2,0,1,1,0,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 1 as pure escort
+125,1,1,2,3,3,4,0,2,2,0,0,1,1,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as ride sharing and child 3 is escorted in bundle 2 by chauffeur 2 as pure escort
+126,1,1,2,4,4,1,1,1,2,1,0,0,1,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as ride sharing
+127,1,1,2,4,4,2,1,1,2,0,1,0,1,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 1 as pure escort
+128,1,1,2,4,4,3,0,2,2,0,0,1,1,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as ride sharing
+129,1,1,2,4,4,4,0,2,2,0,0,0,2,child 1 and 2 are escorted in bundle 1 by chauffeur 2 as pure escort and child 3 is escorted in bundle 2 by chauffeur 2 as pure escort
+130,1,2,1,1,2,1,2,0,2,1,1,0,0,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+131,1,2,1,1,3,1,1,1,2,1,0,1,0,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing
+132,1,2,1,1,4,1,1,1,2,1,0,0,1,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+133,1,2,1,2,1,2,2,0,2,1,1,0,0,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing
+134,1,2,1,2,2,2,2,0,2,0,2,0,0,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+135,1,2,1,2,3,2,1,1,2,0,1,1,0,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing
+136,1,2,1,2,4,2,1,1,2,0,1,0,1,child 1 and 3 are escorted in bundle 1 by chauffeur 1 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+137,1,2,1,3,1,3,1,1,2,1,0,1,0,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing
+138,1,2,1,3,2,3,1,1,2,0,1,1,0,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+139,1,2,1,3,4,3,0,2,2,0,0,1,1,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as ride sharing and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+140,1,2,1,4,1,4,1,1,2,1,0,0,1,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as ride sharing
+141,1,2,1,4,2,4,1,1,2,0,1,0,1,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 1 as pure escort
+142,1,2,1,4,3,4,0,2,2,0,0,1,1,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as ride sharing
+143,1,2,1,4,4,4,0,2,2,0,0,0,2,child 1 and 3 are escorted in bundle 1 by chauffeur 2 as pure escort and child 2 is escorted in bundle 2 by chauffeur 2 as pure escort
+144,1,2,2,1,2,2,2,0,2,1,1,0,0,child 2 and 3 are escorted in bundle 2 by chauffeur 1 as ride sharing and child 1 is escorted in bundle 1 by chauffeur 1 as pure escort
+145,1,2,2,1,3,3,1,1,2,1,0,1,0,child 2 and 3 are escorted in bundle 2 by chauffeur 1 as ride sharing and child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing
+146,1,2,2,1,4,4,1,1,2,1,0,0,1,child 2 and 3 are escorted in bundle 2 by chauffeur 1 as ride sharing and child 1 is escorted in bundle 1 by chauffeur 2 as pure escort
+147,1,2,2,2,1,1,2,0,2,1,1,0,0,child 2 and 3 are escorted in bundle 2 by chauffeur 1 as pure escort and child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing
+148,1,2,2,2,2,2,2,0,2,0,2,0,0,child 2 and 3 are escorted in bundle 2 by chauffeur 1 as pure escort and child 1 is escorted in bundle 1 by chauffeur 1 as pure escort
+149,1,2,2,2,3,3,1,1,2,0,1,1,0,child 2 and 3 are escorted in bundle 2 by chauffeur 1 as pure escort and child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing
+150,1,2,2,2,4,4,1,1,2,0,1,0,1,child 2 and 3 are escorted in bundle 2 by chauffeur 1 as pure escort and child 1 is escorted in bundle 1 by chauffeur 2 as pure escort
+151,1,2,2,3,1,1,1,1,2,1,0,1,0,child 2 and 3 are escorted in bundle 2 by chauffeur 2 as ride sharing and child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing
+152,1,2,2,3,2,2,1,1,2,0,1,1,0,child 2 and 3 are escorted in bundle 2 by chauffeur 2 as ride sharing and child 1 is escorted in bundle 1 by chauffeur 1 as pure escort
+153,1,2,2,3,4,4,0,2,2,0,0,1,1,child 2 and 3 are escorted in bundle 2 by chauffeur 2 as ride sharing and child 1 is escorted in bundle 1 by chauffeur 2 as pure escort
+154,1,2,2,4,1,1,1,1,2,1,0,0,1,child 2 and 3 are escorted in bundle 2 by chauffeur 2 as pure escort and child 1 is escorted in bundle 1 by chauffeur 1 as ride sharing
+155,1,2,2,4,2,2,1,1,2,0,1,0,1,child 2 and 3 are escorted in bundle 2 by chauffeur 2 as pure escort and child 1 is escorted in bundle 1 by chauffeur 1 as pure escort
+156,1,2,2,4,3,3,0,2,2,0,0,1,1,child 2 and 3 are escorted in bundle 2 by chauffeur 2 as pure escort and child 1 is escorted in bundle 1 by chauffeur 2 as ride sharing
+157,1,2,2,4,4,4,0,2,2,0,0,0,2,child 2 and 3 are escorted in bundle 2 by chauffeur 2 as pure escort and child 1 is escorted in bundle 1 by chauffeur 2 as pure escort

@@ -128,7 +128,16 @@ def write_data_dictionary(output_dir):
     schema = dict()
     final_shapes = dict()
     for table_name in table_names:
-        df = pipeline.get_table(table_name)
+        try:
+            df = pipeline.get_table(table_name)
+        except RuntimeError as run_err:
+            if run_err.args and "dropped" in run_err.args[0]:
+                # if a checkpointed table was dropped, that's not ideal, so we should
+                # log a warning about it, but not allow the error to stop execution here
+                logger.warning(run_err.args[0])
+                # note actually emitting a warnings.warn instead of a logger message will
+                # unfortunately cause some of our excessively strict tests to fail
+                continue
 
         final_shapes[table_name] = df.shape
 
@@ -164,15 +173,15 @@ def write_data_dictionary(output_dir):
 
             info = schema.get(table_name, None)
 
-            # tag any new columns with checkpoint name
-            prev_columns = info[info.checkpoint != ""].column_name.values
-            new_cols = [c for c in df.columns.values if c not in prev_columns]
-            is_new_column_this_checkpoont = info.column_name.isin(new_cols)
-            info.checkpoint = np.where(
-                is_new_column_this_checkpoont, checkpoint_name, info.checkpoint
-            )
-
-            schema[table_name] = info
+            if info is not None:
+                # tag any new columns with checkpoint name
+                prev_columns = info[info.checkpoint != ""].column_name.values
+                new_cols = [c for c in df.columns.values if c not in prev_columns]
+                is_new_column_this_checkpoont = info.column_name.isin(new_cols)
+                info.checkpoint = np.where(
+                    is_new_column_this_checkpoont, checkpoint_name, info.checkpoint
+                )
+                schema[table_name] = info
 
     schema_df = pd.concat(schema.values())
 
@@ -187,7 +196,8 @@ def write_data_dictionary(output_dir):
 
             for table_name in table_names:
                 info = schema.get(table_name, None)
-
+                if info is None:
+                    continue
                 columns_to_print = ["column_name", "dtype", "checkpoint"]
                 info = info[columns_to_print].copy()
 

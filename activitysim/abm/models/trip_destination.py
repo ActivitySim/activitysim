@@ -29,6 +29,7 @@ from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place, reindex
 
 from ...core.configuration.base import Any, PydanticBase
+from .util.school_escort_tours_trips import split_out_school_escorting_trips
 from .util import estimation
 
 logger = logging.getLogger(__name__)
@@ -1387,6 +1388,13 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
     trips_df = trips.to_frame()
     tours_merged_df = tours_merged.to_frame()
 
+    if pipeline.is_table("school_escort_trips"):
+        school_escort_trips = pipeline.get_table("school_escort_trips")
+        # separate out school escorting trips to exclude them from the model and estimation data bundle
+        trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
+            trips_df, school_escort_trips
+        )
+
     estimator = estimation.manager.begin_estimation("trip_destination")
 
     if estimator:
@@ -1458,6 +1466,23 @@ def trip_destination(trips, tours_merged, chunk_size, trace_hh_id):
             trips_df = cleanup_failed_trips(trips_df)
 
         trips_df.drop(columns="failed", inplace=True, errors="ignore")
+
+    if pipeline.is_table("school_escort_trips"):
+        # setting destination for school escort trips
+        se_trips_df["destination"] = reindex(
+            school_escort_trips.destination, se_trips_df.index
+        )
+        # merge trips back together preserving index order
+        trips_df = pd.concat([trips_df, se_trips_df])
+        trips_df["destination"] = trips_df["destination"].astype(int)
+        trips_df = trips_df.reindex(full_trips_index)
+        # Origin is previous destination
+        # (leaving first origin alone as it's already set correctly)
+        trips_df["origin"] = np.where(
+            (trips_df["trip_num"] == 1) & (trips_df["outbound"] == True),
+            trips_df["origin"],
+            trips_df.groupby("tour_id")["destination"].shift(),
+        ).astype(int)
 
     pipeline.replace_table("trips", trips_df)
 

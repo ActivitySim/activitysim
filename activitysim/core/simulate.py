@@ -674,12 +674,6 @@ def eval_utilities(
                     )
         timelogger.mark("trace", True, logger, trace_label)
 
-    del expression_values
-    chunk.log_df(trace_label, "expression_values", None)
-
-    # no longer our problem - but our caller should re-log this...
-    chunk.log_df(trace_label, "utilities", None)
-
     if sharrow_enabled == "test":
         try:
             np.testing.assert_allclose(
@@ -703,6 +697,16 @@ def eval_utilities(
                 )
                 print(f"{sh_util.shape=}")
                 print(misses)
+                _sh_flow_load = sh_flow.load()
+                print("possible problematic expressions:")
+                for expr_n, expr in enumerate(exprs):
+                    closeness = np.isclose(
+                        _sh_flow_load[:, expr_n], expression_values[expr_n, :]
+                    )
+                    if not closeness.all():
+                        print(
+                            f"  {closeness.sum()/closeness.size:05.1%} [{expr_n:03d}] {expr}"
+                        )
                 raise
         except TypeError as err:
             print(err)
@@ -711,6 +715,12 @@ def eval_utilities(
             print("utilities")
             print(utilities)
         timelogger.mark("sharrow test", True, logger, trace_label)
+
+    del expression_values
+    chunk.log_df(trace_label, "expression_values", None)
+
+    # no longer our problem - but our caller should re-log this...
+    chunk.log_df(trace_label, "utilities", None)
 
     end_time = time.time()
     logger.info(

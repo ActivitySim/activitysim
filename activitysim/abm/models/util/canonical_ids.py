@@ -5,8 +5,11 @@ import re
 
 import numpy as np
 import pandas as pd
+import re
 
-from activitysim.core import config, simulate
+from activitysim.core import config
+from activitysim.core import pipeline
+from activitysim.core import simulate
 
 logger = logging.getLogger(__name__)
 
@@ -249,7 +252,6 @@ def canonical_tours():
     non_mandatory_tour_flavors = determine_flavors_from_alts_file(
         nm_alts, provided_nm_tour_flavors, default_nm_tour_flavors, max_extension
     )
-    # FIXME additional non-mandatory tour flavors are added in school escorting PR
     non_mandatory_channels = enumerate_tour_types(non_mandatory_tour_flavors)
 
     logger.info(f"Non-Mandatory tour flavors used are {non_mandatory_tour_flavors}")
@@ -320,12 +322,29 @@ def canonical_tours():
         + joint_tour_channels
     )
 
+    # ---- school escort channels
+    # only include if model is run
+    if pipeline.is_table("school_escort_tours") | (
+        "school_escorting" in config.setting("models", default=[])
+    ):
+        se_model_settings_file_name = "school_escorting.yaml"
+        se_model_settings = config.read_model_settings(se_model_settings_file_name)
+        num_escortees = se_model_settings.get("NUM_ESCORTEES", 3)
+        school_escort_flavors = {"escort": 2 * num_escortees}
+        school_escort_channels = enumerate_tour_types(school_escort_flavors)
+        school_escort_channels = ["se_%s" % c for c in school_escort_channels]
+        logger.info(f"School escort tour flavors used are {school_escort_flavors}")
+
+        sub_channels = sub_channels + school_escort_channels
+
     sub_channels.sort()
 
     return sub_channels
 
 
-def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
+def set_tour_index(
+    tours, parent_tour_num_col=None, is_joint=False, is_school_escorting=False
+):
     """
     The new index values are stable based on the person_id, tour_type, and tour_num.
     The existing index is ignored and replaced.
@@ -367,6 +386,9 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
     if is_joint:
         tours["tour_id"] = "j_" + tours["tour_id"]
 
+    if is_school_escorting:
+        tours["tour_id"] = "se_" + tours["tour_id"]
+
     # map recognized strings to ints
     tours.tour_id = tours.tour_id.replace(
         to_replace=possible_tours, value=list(range(possible_tours_count))
@@ -377,9 +399,16 @@ def set_tour_index(tours, parent_tour_num_col=None, is_joint=False):
 
     tours.tour_id = (tours.person_id * possible_tours_count) + tours.tour_id
 
-    # if tours.tour_id.duplicated().any():
-    #     print("\ntours.tour_id not unique\n%s" % tours[tours.tour_id.duplicated(keep=False)])
-    #     print(tours[tours.tour_id.duplicated(keep=False)][['survey_tour_id', 'tour_type', 'tour_category']])
+    if tours.tour_id.duplicated().any():
+        print(
+            "\ntours.tour_id not unique\n%s"
+            % tours[tours.tour_id.duplicated(keep=False)]
+        )
+        print(
+            tours[tours.tour_id.duplicated(keep=False)][
+                ["survey_tour_id", "tour_type", "tour_category"]
+            ]
+        )
     assert not tours.tour_id.duplicated().any()
 
     tours.set_index("tour_id", inplace=True, verify_integrity=True)
@@ -403,9 +432,8 @@ def determine_max_trips_per_leg(default_max_trips_per_leg=4):
             for c in alts.columns
             if all(alts[c].astype(str).str.isnumeric())
         ]
-        max_trips_per_leg = (
-            max(trips_per_leg) + 1
-        )  # adding one for additional trip home or to primary dest
+        # adding one for additional trip home or to primary dest
+        max_trips_per_leg = max(trips_per_leg) + 1
         if max_trips_per_leg > 1:
             valid_max_trips = True
     except (ValueError, RuntimeError):
@@ -429,7 +457,7 @@ def set_trip_index(trips, tour_id_column="tour_id"):
     #  = stops + 1 for primary half-tour destination
     max_trips_per_leg = determine_max_trips_per_leg()
 
-    # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = max_trips_per_leg + 1, etc.
+    # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
     canonical_trip_num = (~trips.outbound * max_trips_per_leg) + trips.trip_num
     trips["trip_id"] = (
         trips[tour_id_column] * (2 * max_trips_per_leg) + canonical_trip_num

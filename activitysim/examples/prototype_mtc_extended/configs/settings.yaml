@@ -182,6 +182,10 @@ checkpoints: True
 
 
 models:
+  ## Disaggregate Accessibility steps
+  - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
+  - compute_disaggregate_accessibility
+  ## Main model steps
   - initialize_landuse
   - initialize_households
   - compute_accessibility
@@ -193,6 +197,7 @@ models:
   - cdap_simulate
   - mandatory_tour_frequency
   - mandatory_tour_scheduling
+  - school_escorting
   - joint_tour_frequency
   - joint_tour_composition
   - joint_tour_participation
@@ -225,6 +230,7 @@ output_tables:
   tables:
     - checkpoints
     - accessibility
+    - proto_disaggregate_accessibility
     - tablename: land_use
       decode_columns:
         zone_id: land_use.zone_id

@@ -1,0 +1,54 @@
+# The school escort model as written in this prototype is not
+# compatible with sharrow, so "sharrow_skip" must be activated here.
+# Currently the spec file has a few lines that evaluate differently in
+# the sharrow implementation, resulting in failure that are flagged by
+# the `test` mode.  Once these are fixed (and string comparisons are
+# minimized for performance) this `sharrow_skip` setting can be removed.
+sharrow_skip: true
+
+OUTBOUND_SPEC: school_escorting_outbound.csv
+OUTBOUND_COEFFICIENTS: school_escorting_coefficients_outbound.csv
+
+INBOUND_SPEC: school_escorting_inbound.csv
+INBOUND_COEFFICIENTS: school_escorting_coefficients_inbound.csv
+
+OUTBOUND_COND_SPEC: school_escorting_outbound_cond.csv
+OUTBOUND_COND_COEFFICIENTS: school_escorting_coefficients_outbound_cond.csv
+
+ALTS: school_escorting_alts.csv
+
+LOGIT_TYPE: MNL
+
+NUM_ESCORTEES: 3
+NUM_CHAPERONES: 2
+
+preprocessor_outbound:
+  SPEC: school_escorting_preprocessor_outbound
+  DF: df
+  TABLES:
+    - persons
+    - tours
+
+preprocessor_inbound:
+  SPEC: school_escorting_preprocessor_inbound
+  DF: df
+  TABLES:
+    - persons
+    - tours
+
+preprocessor_outbound_cond:
+  SPEC: school_escorting_preprocessor_outbound
+  DF: df
+  TABLES:
+    - persons
+    - tours
+
+SIMULATE_CHOOSER_COLUMNS:
+  - home_zone_id
+  - income
+  - auto_ownership
+  - num_workers
+
+CONSTANTS:
+  max_bin_difference_between_departure_times: 1
+  mins_per_time_bin: 60

@@ -670,6 +670,9 @@ def _interaction_simulate(
     sharrow_enabled = config.setting("sharrow", False)
     interaction_utilities = None
 
+    if locals_d is not None and locals_d.get("_sharrow_skip", False):
+        sharrow_enabled = False
+
     if (
         sharrow_enabled
         and skims is None

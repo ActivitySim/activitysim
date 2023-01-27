@@ -26,7 +26,8 @@ dependencies:
 - pytest-regressions
 - pyyaml >= 5.1
 - requests >= 2.7
-- sharrow >= 2.3.2
+- sharrow >= 2.5.2
 - simwrapper > 1.7
+- scikit-learn >= 1.1.1
 - xarray >= 0.21
 - zarr

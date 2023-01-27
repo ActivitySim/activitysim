@@ -1,0 +1,175 @@
+Label,Description,Expression,Coefficient
+# ,Availability Conditions,,
+util_one_child_to_school,Availability based on number of eligible children,((bundle2 + bundle3) > 0) & (num_children_going_to_school==1),coef_unavail
+util_two_children_to_school,Availability based on number of eligible children,(bundle3 > 0) & (num_children_going_to_school == 2),coef_unavail
+util_one_potential_chauffeur,Availability based on number of eligible chauffeurs,((bundle1 + bundle2 + bundle3) > 0) & (num_potential_chauffeurs == 0),coef_unavail
+util_two_potential_chauffeurs,Availability based on number of eligible chauffeurs,((chauf1 > 2) | (chauf2 > 2) | (chauf3 > 2)) & (num_potential_chauffeurs == 1),coef_unavail
+util_avail_rs_cdap_child1_chauf1,Availability for RideSharing by daily pattern - Child 1 and Chauffeur 1,(bundle1 > 0) & (chauf1 == 1) & (cdap_chauf1 != 'M'),coef_unavail
+util_avail_rs_cdap_child1_chauf2,Availability for RideSharing by daily pattern - Child 1 and Chauffeur 2,(bundle1 > 0) & (chauf1 == 3) & (cdap_chauf2 != 'M'),coef_unavail
+util_avail_rs_cdap_child2_chauf1,Availability for RideSharing by daily pattern - Child 2 and Chauffeur 1,(bundle2 > 0) & (chauf2 == 1) & (cdap_chauf1 != 'M'),coef_unavail
+util_avail_rs_cdap_child2_chauf2,Availability for RideSharing by daily pattern - Child 2 and Chauffeur 2,(bundle2 > 0) & (chauf2 == 3) & (cdap_chauf2 != 'M'),coef_unavail
+util_avail_rs_cdap_child3_chauf1,Availability for RideSharing by daily pattern - Child 3 and Chauffeur 1,(bundle3 > 0) & (chauf3 == 1) & (cdap_chauf1 != 'M'),coef_unavail
+util_avail_rs_cdap_child3_chauf2,Availability for RideSharing by daily pattern - Child 3 and Chauffeur 2,(bundle3 > 0) & (chauf3 == 3) & (cdap_chauf2 != 'M'),coef_unavail
+util_avail_rs_sync_child1_chauf1,Availability for RideSharing by synchronization - Child 1 and Chauffeur 1,@(df.bundle1 > 0) & (df.chauf1 == 1) & (np.abs(df.pref_depart_time_chauf1 + (df.time_mand1_to_school1 / mins_per_time_bin) - df.pref_depart_time_school1) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_rs_sync_child1_chauf2,Availability for RideSharing by synchronization - Child 1 and Chauffeur 2,@(df.bundle1 > 0) & (df.chauf1 == 3) & (np.abs(df.pref_depart_time_chauf2 + (df.time_mand2_to_school1 / mins_per_time_bin) - df.pref_depart_time_school1) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_rs_sync_child2_chauf1,Availability for RideSharing by synchronization - Child 2 and Chauffeur 1,@(df.bundle2 > 0) & (df.chauf2 == 1) & (np.abs(df.pref_depart_time_chauf1 + (df.time_mand1_to_school2 / mins_per_time_bin) - df.pref_depart_time_school2) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_rs_sync_child2_chauf2,Availability for RideSharing by synchronization - Child 2 and Chauffeur 2,@(df.bundle2 > 0) & (df.chauf2 == 3) & (np.abs(df.pref_depart_time_chauf2 + (df.time_mand2_to_school2 / mins_per_time_bin) - df.pref_depart_time_school2) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_rs_sync_child3_chauf1,Availability for RideSharing by synchronization - Child 3 and Chauffeur 1,@(df.bundle3 > 0) & (df.chauf3 == 1) & (np.abs(df.pref_depart_time_chauf1 + (df.time_mand1_to_school3 / mins_per_time_bin) - df.pref_depart_time_school3) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_rs_sync_child3_chauf2,Availability for RideSharing by synchronization - Child 3 and Chauffeur 2,@(df.bundle3 > 0) & (df.chauf3 == 3) & (np.abs(df.pref_depart_time_chauf2 + (df.time_mand2_to_school3 / mins_per_time_bin) - df.pref_depart_time_school3) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_pe_cdap_child1_chauf1,Availability for Pure-Escorting by daily pattern - Child 1 and Chauffeur 1,(bundle1 > 0) & (chauf1 == 2) & (ptype_chauf1 < 6) & (cdap_chauf1 == 'H'),coef_unavail
+util_avail_pe_cdap_child1_chauf2,Availability for Pure-Escorting by daily pattern - Child 1 and Chauffeur 2,(bundle1 > 0) & (chauf1 == 4) & (ptype_chauf2 < 6) & (cdap_chauf2 == 'H'),coef_unavail
+util_avail_pe_cdap_child2_chauf1,Availability for Pure-Escorting by daily pattern - Child 2 and Chauffeur 1,(bundle2 > 0) & (chauf2 == 2) & (ptype_chauf1 < 6) & (cdap_chauf1 == 'H'),coef_unavail
+util_avail_pe_cdap_child2_chauf2,Availability for Pure-Escorting by daily pattern - Child 2 and Chauffeur 2,(bundle2 > 0) & (chauf2 == 4) & (ptype_chauf2 < 6) & (cdap_chauf2 == 'H'),coef_unavail
+util_avail_pe_cdap_child3_chauf1,Availability for Pure-Escorting by daily pattern - Child 3 and Chauffeur 1,(bundle3 > 0) & (chauf3 == 2) & (ptype_chauf1 < 6) & (cdap_chauf1 == 'H'),coef_unavail
+util_avail_pe_cdap_child3_chauf2,Availability for Pure-Escorting by daily pattern - Child 3 and Chauffeur 2,(bundle3 > 0) & (chauf3 == 4) & (ptype_chauf2 < 6) & (cdap_chauf2 == 'H'),coef_unavail
+util_avail_pe_sync_child1_chauf1,Availability for Pure-Escorting by synchronization - Child 1 and Chauffeur 1,@(df.bundle1 > 0) & (df.chauf1 == 2) & (df.cdap_chauf1 == 'H') & (((df.pref_depart_time_chauf1 + (df.time_mand_to_home1 / mins_per_time_bin)) - (df.pref_depart_time_school1 - (df.time_home_to_school1 / mins_per_time_bin))) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_pe_sync_child1_chauf2,Availability for Pure-Escorting by synchronization - Child 1 and Chauffeur 2,@(df.bundle1 > 0) & (df.chauf1 == 4) & (df.cdap_chauf2 == 'H') & (((df.pref_depart_time_chauf2 + (df.time_mand_to_home2 / mins_per_time_bin)) - (df.pref_depart_time_school1 - (df.time_home_to_school1 / mins_per_time_bin))) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_pe_sync_child2_chauf1,Availability for Pure-Escorting by synchronization - Child 2 and Chauffeur 1,@(df.bundle2 > 0) & (df.chauf2 == 2) & (df.cdap_chauf1 == 'H') & (((df.pref_depart_time_chauf1 + (df.time_mand_to_home1 / mins_per_time_bin)) - (df.pref_depart_time_school2 - (df.time_home_to_school2 / mins_per_time_bin))) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_pe_sync_child2_chauf2,Availability for Pure-Escorting by synchronization - Child 2 and Chauffeur 2,@(df.bundle2 > 0) & (df.chauf2 == 4) & (df.cdap_chauf2 == 'H') & (((df.pref_depart_time_chauf2 + (df.time_mand_to_home2 / mins_per_time_bin)) - (df.pref_depart_time_school2 - (df.time_home_to_school2 / mins_per_time_bin))) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_pe_sync_child3_chauf1,Availability for Pure-Escorting by synchronization - Child 3 and Chauffeur 1,@(df.bundle3 > 0) & (df.chauf3 == 2) & (df.cdap_chauf1 == 'H') & (((df.pref_depart_time_chauf1 + (df.time_mand_to_home1 / mins_per_time_bin)) - (df.pref_depart_time_school3 - (df.time_home_to_school3 / mins_per_time_bin))) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_pe_sync_child3_chauf2,Availability for Pure-Escorting by synchronization - Child 3 and Chauffeur 2,@(df.bundle3 > 0) & (df.chauf3 == 4) & (df.cdap_chauf2 == 'H') & (((df.pref_depart_time_chauf2 + (df.time_mand_to_home2 / mins_per_time_bin)) - (df.pref_depart_time_school3 - (df.time_home_to_school3 / mins_per_time_bin))) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_bundle_child_1and2,Availability for bundling child 1 and child 2,@(df.bundle1 == df.bundle2) & (df.bundle1 > 0) & (np.abs(df.pref_depart_time_school1 - df.pref_depart_time_school2) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_bundle_child_1and3,Availability for bundling child 1 and child 3,@(df.bundle1 == df.bundle3) & (df.bundle1 > 0) & (np.abs(df.pref_depart_time_school1 - df.pref_depart_time_school3) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_bundle_child_2and3,Availability for bundling child 2 and child 3,@(df.bundle2 == df.bundle3) & (df.bundle2 > 0) & (np.abs(df.pref_depart_time_school2 - df.pref_depart_time_school3) > max_bin_difference_between_departure_times),coef_unavail
+util_avail_mult_bundles_outbound1,Availability Chauffeur 1 - Expected arrival from previous pure escort must be before departure for subsequent escort,((nrs1 + npe1) > 1) & ~avail_multiple_bundles,coef_unavail
+util_avail_mult_bundles_outbound2,Availability Chauffeur 2 - Expected arrival from previous pure escort must be before departure for subsequent escort,((nrs2 + npe2) > 1) & ~avail_multiple_bundles,coef_unavail
+util_time_span11,Chauffeur 1 and Child 1 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf1 == 1) | (chauf1 == 2)) & (return_bin_outbound_school_escorting1 > pref_depart_time_school1),coef_unavail
+util_time_span12,Chauffeur 1 and Child 2 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf2 == 1) | (chauf2 == 2)) & (return_bin_outbound_school_escorting1 > pref_depart_time_school2),coef_unavail
+util_time_span13,Chauffeur 1 and Child 3 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf3 == 1) | (chauf3 == 2)) & (return_bin_outbound_school_escorting1 > pref_depart_time_school3),coef_unavail
+util_time_span21,Chauffeur 2 and Child 1 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf1 == 3) | (chauf1 == 4)) & (return_bin_outbound_school_escorting2 > pref_depart_time_school1),coef_unavail
+util_time_span22,Chauffeur 2 and Child 2 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf2 == 3) | (chauf2 == 4)) & (return_bin_outbound_school_escorting2 > pref_depart_time_school2),coef_unavail
+util_time_span23,Chauffeur 2 and Child 3 - time span for this alternative must not overlap time span reserved from outbound conditional,(bundle1 > 0) & ((chauf3 == 3) | (chauf3 == 4)) & (return_bin_outbound_school_escorting2 > pref_depart_time_school3),coef_unavail
+util_avail_pe_during_mand_child1_chauf1,Availability pure escort tour must take place before mandatory tour - Child 1 and Chauffeur 1,@(df.bundle1 > 0) & (df.chauf1 == 2) & (df.cdap_chauf1 == 'M') & ((df.pref_depart_time_chauf1 + max_bin_difference_between_departure_times) >= df.pref_depart_time_school1),coef_unavail
+util_avail_pe_during_mand_child1_chauf2,Availability pure escort tour must take place before mandatory tour - Child 1 and Chauffeur 2,@(df.bundle1 > 0) & (df.chauf1 == 4) & (df.cdap_chauf2 == 'M') & ((df.pref_depart_time_chauf2 + max_bin_difference_between_departure_times) >= df.pref_depart_time_school1),coef_unavail
+util_avail_pe_during_mand_child2_chauf1,Availability pure escort tour must take place before mandatory tour - Child 2 and Chauffeur 1,@(df.bundle2 > 0) & (df.chauf2 == 2) & (df.cdap_chauf1 == 'M') & ((df.pref_depart_time_chauf1 + max_bin_difference_between_departure_times) >= df.pref_depart_time_school2),coef_unavail
+util_avail_pe_during_mand_child2_chauf2,Availability pure escort tour must take place before mandatory tour - Child 2 and Chauffeur 2,@(df.bundle2 > 0) & (df.chauf2 == 4) & (df.cdap_chauf2 == 'M') & ((df.pref_depart_time_chauf2 + max_bin_difference_between_departure_times) >= df.pref_depart_time_school2),coef_unavail
+util_avail_pe_during_mand_child3_chauf1,Availability pure escort tour must take place before mandatory tour - Child 3 and Chauffeur 1,@(df.bundle3 > 0) & (df.chauf3 == 2) & (df.cdap_chauf1 == 'M') & ((df.pref_depart_time_chauf1 + max_bin_difference_between_departure_times) >= df.pref_depart_time_school3),coef_unavail
+util_avail_pe_during_mand_child3_chauf2,Availability pure escort tour must take place before mandatory tour - Child 3 and Chauffeur 2,@(df.bundle3 > 0) & (df.chauf3 == 4) & (df.cdap_chauf2 == 'M') & ((df.pref_depart_time_chauf2 + max_bin_difference_between_departure_times) >= df.pref_depart_time_school3),coef_unavail
+# ,No escorting,,
+util_child1_age_16p_noes,Child 1 age 16 years or older - No escort,(bundle1 == 0) & (child_id1 > 0) & (age_child1 > 15),coef_child_age_16p_noes
+util_child2_age_16p_noes,Child 2 age 16 years or older - No escort,(bundle2 == 0) & (child_id2 > 0) & (age_child2 > 15),coef_child_age_16p_noes
+util_child3_age_16p_noes,Child 3 age 16 years or older - No escort,(bundle3 == 0) & (child_id3 > 0) & (age_child3 > 15),coef_child_age_16p_noes
+util_child1_age_6_to_15_noes,Child 1 age 6 to 15 years - No escort,(bundle1 == 0) & (child_id1 > 0) & (age_child1 > 5) & (age_child1 < 16),coef_child_age_6_to_15_noes
+util_child2_age_6_to_15_noes,Child 2 age 6 to 15 years - No escort,(bundle2 == 0) & (child_id2 > 0) & (age_child2 > 5) & (age_child2 < 16),coef_child_age_6_to_15_noes
+util_child3_age_6_to_15_noes,Child 3 age 6 to 15 years - No escort,(bundle3 == 0) & (child_id3 > 0) & (age_child3 > 5) & (age_child3 < 16),coef_child_age_6_to_15_noes
+util_child1_age_u5_noes,Child 1 age 5 years or younger - No escort,(bundle1 == 0) & (child_id1 > 0) & (age_child1 < 6),coef_child_age_u5_noes
+util_child2_age_u5_noes,Child 2 age 5 years or younger - No escort,(bundle2 == 0) & (child_id2 > 0) & (age_child2 < 6),coef_child_age_u5_noes
+util_child3_age_u5_noes,Child 3 age 5 years or younger - No escort,(bundle3 == 0) & (child_id3 > 0) & (age_child3 < 6),coef_child_age_u5_noes
+util_ln_dist_from_school_child1_noes,Logged distance to school for Child 1 - No escort,@(df.bundle1 == 0) * (df.child_id1 > 0) * np.log(1 + df.dist_school_to_home1),coef_ln_dist_from_school_noes
+util_ln_dist_from_school_child2_noes,Logged distance to school for Child 2 - No escort,@(df.bundle2 == 0) * (df.child_id2 > 0) * np.log(1 + df.dist_school_to_home2),coef_ln_dist_from_school_noes
+util_ln_dist_from_school_child3_noes,Logged distance to school for Child 3 - No escort,@(df.bundle3 == 0) * (df.child_id3 > 0) * np.log(1 + df.dist_school_to_home3),coef_ln_dist_from_school_noes
+util_ln_dist_from_school_child1_u6_noes,Logged distance to school for Child 1 under 6 years old - No escort,@(df.bundle1 == 0) * (df.child_id1 > 0) * (df.age_child1 < 6) * np.log(1 + df.dist_school_to_home1),coef_ln_dist_from_school_u6_noes
+util_ln_dist_from_school_child2_u6_noes,Logged distance to school for Child 2 under 6 years old - No escort,@(df.bundle2 == 0) * (df.child_id2 > 0) * (df.age_child2 < 6) * np.log(1 + df.dist_school_to_home2),coef_ln_dist_from_school_u6_noes
+util_ln_dist_from_school_child3_u6_noes,Logged distance to school for Child 3 under 6 years old - No escort,@(df.bundle3 == 0) * (df.child_id3 > 0) * (df.age_child3 < 6) * np.log(1 + df.dist_school_to_home3),coef_ln_dist_from_school_u6_noes
+util_ln_dist_from_school_child1_6to9_noes,Logged distance to school for Child 1 6 to 9 years old - No escort,@(df.bundle1 == 0) * (df.child_id1 > 0) * (df.age_child1 > 5) * (df.age_child1 < 10) * np.log(1 + df.dist_school_to_home1),coef_ln_dist_from_school_6to9_noes
+util_ln_dist_from_school_child2_6to9_noes,Logged distance to school for Child 2 6 to 9 years old - No escort,@(df.bundle2 == 0) * (df.child_id2 > 0) * (df.age_child2 > 5) * (df.age_child2 < 10) * np.log(1 + df.dist_school_to_home2),coef_ln_dist_from_school_6to9_noes
+util_ln_dist_from_school_child3_6to9_noes,Logged distance to school for Child 3 6 to 9 years old - No escort,@(df.bundle3 == 0) * (df.child_id3 > 0) * (df.age_child3 > 5) * (df.age_child3 < 10) * np.log(1 + df.dist_school_to_home3),coef_ln_dist_from_school_6to9_noes
+# ,Ride Sharing,,
+util_child1_age_16p_rs,Child 1 age 16 years or older - Ride Share,((chauf1 == 1) | (chauf1 == 3)) & (age_child1 > 15),coef_child_age_16p_rs
+util_child2_age_16p_rs,Child 2 age 16 years or older - Ride Share,((chauf2 == 1) | (chauf2 == 3)) & (age_child2 > 15),coef_child_age_16p_rs
+util_child3_age_16p_rs,Child 3 age 16 years or older - Ride Share,((chauf3 == 1) | (chauf3 == 3)) & (age_child3 > 15),coef_child_age_16p_rs
+util_child1_age_10to15_rs,Child 1 age 10 to 15 years - Ride Share,((chauf1 == 1) | (chauf1 == 3)) & (age_child1 > 9) & (age_child1 < 16),coef_child_age_10to15_rs
+util_child2_age_10to15_rs,Child 2 age 10 to 15 years - Ride Share,((chauf2 == 1) | (chauf2 == 3)) & (age_child2 > 9) & (age_child2 < 16),coef_child_age_10to15_rs
+util_child3_age_10to15_rs,Child 3 age 10 to 15 years - Ride Share,((chauf3 == 1) | (chauf3 == 3)) & (age_child3 > 9) & (age_child3 < 16),coef_child_age_10to15_rs
+util_child1_age_6to9_rs,Child 1 age 6 to 9 years - Ride Share,((chauf1 == 1) | (chauf1 == 3)) & (age_child1 > 5) & (age_child1 < 10),coef_child_age_6to9_rs
+util_child2_age_6to9_rs,Child 2 age 6 to 9 years - Ride Share,((chauf2 == 1) | (chauf2 == 3)) & (age_child2 > 5) & (age_child2 < 10),coef_child_age_6to9_rs
+util_child3_age_6to9_rs,Child 3 age 6 to 9 years - Ride Share,((chauf3 == 1) | (chauf3 == 3)) & (age_child3 > 5) & (age_child3 < 10),coef_child_age_6to9_rs
+util_child1_age_u6_rs,Child 1 age under 6 years old - Ride Share,((chauf1 == 1) | (chauf1 == 3)) & (age_child1 < 6),coef_child_age_u6_rs
+util_child2_age_u6_rs,Child 2 age under 6 years old - Ride Share,((chauf2 == 1) | (chauf2 == 3)) & (age_child2 < 6),coef_child_age_u6_rs
+util_child3_age_u6_rs,Child 3 age under 6 years old - Ride Share,((chauf3 == 1) | (chauf3 == 3)) & (age_child3 < 6),coef_child_age_u6_rs
+# ,Pure Escort Distance,,
+util_child1_dist_pe,Child 1 Pure escorting not allowed if over 30 miles,((chauf1 == 2) | (chauf1 == 4)) & (dist_school_to_home1 > 30),coef_unavail
+util_child2_dist_pe,Child 2 Pure escorting not allowed if over 30 miles,((chauf2 == 2) | (chauf2 == 4)) & (dist_school_to_home2 > 30),coef_unavail
+util_child3_dist_pe,Child 3 Pure escorting not allowed if over 30 miles,((chauf3 == 2) | (chauf3 == 4)) & (dist_school_to_home3 > 30),coef_unavail
+# ,Household Interactions,,
+util_hh_inc_u25k_noes,Household income less than 25k - No Escorting,(income <= 25000) & ((bundle1 == 0) | ((bundle2 == 0) & (num_children_going_to_school > 1)) | ((bundle3 == 0) & (num_children_going_to_school > 2))),coef_hh_inc_u25k_noes
+util_hh_inc_25to50k_noes,Household income between 25 and 50k - No Escorting,((income > 25000) & (income <= 50000)) & ((bundle1 == 0) | ((bundle2 == 0) & (num_children_going_to_school > 1)) | ((bundle3 == 0) & (num_children_going_to_school > 2))),coef_hh_inc_25to50k_noes
+util_zero_auto_hh_noes,Zero cars in the household - No Escorting,(auto_ownership == 0) & ((bundle1 == 0) | ((bundle2 == 0) & (num_children_going_to_school > 1)) | ((bundle3 == 0) & (num_children_going_to_school > 2))),coef_zero_auto_hh_noes
+util_cars_lt_workers_rs,Cars fewer than household workers - Ride Share,(auto_ownership < num_workers) & ((chauf1 % 2 == 1) | (chauf2 % 2 == 1) | (chauf3 % 2 == 1)),coef_cars_lt_workers_rs
+util_cars_lt_workers_pe,Cars fewer than household workers - Pure escort,(auto_ownership < num_workers) & ((chauf1 % 2 == 0) | (chauf2 % 2 == 0) | (chauf3 % 2 == 0)),coef_cars_lt_workers_pe
+# ,Chauffer Interactions,,
+util_chauf1_female_rs,Chauffeur 1 Female - Ride share,(gender_chauf1 == 2) & ((chauf1 == 1) | (chauf2 == 1) | (chauf3 == 1)),coef_chauf_female_rs
+util_chauf1_male_rs,Chauffeur 1 Male - Ride share,(gender_chauf1 == 1) & ((chauf1 == 1) | (chauf2 == 1) | (chauf3 == 1)),coef_chauf_male_rs
+util_chauf1_female_pe,Chauffeur 1 Female - Pure Escort,(gender_chauf1 == 2) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_female_pe
+util_chauf1_male_pe,Chauffeur 1 Male - Pure Escort,(gender_chauf1 == 1) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_male_pe
+util_chauf2_female_rs,Chauffeur 2 Female - Ride share,(gender_chauf2 == 2) & ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_female_rs
+util_chauf2_male_rs,Chauffeur 2 Male - Ride share,(gender_chauf2 == 1) & ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_male_rs
+util_chauf2_female_pe,Chauffeur 2 Female - Pure Escort,(gender_chauf2 == 2) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_female_pe
+util_chauf2_male_pe,Chauffeur 2 Male - Pure Escort,(gender_chauf2 == 1) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_male_pe
+util_chauf1_pt_worker_rs,Chauffer 1 part time worker - Ride share,(ptype_chauf1 == 2) & ((chauf1 == 1) | (chauf2 == 1) | (chauf3 == 1)),coef_chauf_pt_worker_rs
+util_chauf1_pt_worker_pe,Chauffer 1 part time worker - Pure escort,(ptype_chauf1 == 2) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_pt_worker_pe
+util_chauf2_pt_worker_rs,Chauffer 2 part time worker - Ride share,(ptype_chauf2 == 2) & ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_pt_worker_rs
+util_chauf2_pt_worker_pe,Chauffer 2 part time worker - Pure escort,(ptype_chauf2 == 2) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_pt_worker_pe
+util_chauf1_non_worker_pe,Chauffer 1 non worker - Pure escort,(ptype_chauf1 == 4) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_non_worker_pe
+util_chauf2_non_worker_pe,Chauffer 2 non worker - Pure escort,(ptype_chauf2 == 4) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_non_worker_pe
+util_chauf1_univ_stud_re,Chauffer 1 university student - Ride Share,(ptype_chauf1 == 3) & ((chauf1 == 1) | (chauf2 == 1) | (chauf3 == 1)),coef_chauf_univ_stud_re
+util_chauf2_univ_stud_re,Chauffer 2 university student - Ride Share,(ptype_chauf2 == 3) & ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_univ_stud_re
+util_chauf1_age_u35_pe,Chauffer 1 Age 35 years or younger - Pure escort,(ptype_chauf1 == 4) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_age_u35_pe
+util_chauf2_age_u35_pe,Chauffer 2 Age 35 years or younger - Pure escort,(ptype_chauf2 == 4) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_age_u35_pe
+util_chauf1_time_to_work_or_univ_rs,Chauffer 1 Auto time to work or university - Ride Share,time_mand_to_home1 * ((chauf1 == 1) | (chauf2 == 1) | (chauf3 == 1)),coef_chauf_time_to_work_or_univ_rs
+util_chauf2_time_to_work_or_univ_rs,Chauffer 2 Auto time to work or university - Ride Share,time_mand_to_home2 * ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_time_to_work_or_univ_rs
+util_chauf1_walk_dist_to_work_or_univ_rs,Chauffer 1 Walk dist to work or university - Ride Share,(dist_mand1_to_home < 3) & ((chauf1 == 1) | (chauf2 == 1) | (chauf3 == 1)),coef_chauf_walk_dist_to_work_or_univ_rs
+util_chauf2_walk_dist_to_work_or_univ_rs,Chauffer 2 Walk dist to work or university - Ride Share,(dist_mand2_to_home < 3) & ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_walk_dist_to_work_or_univ_rs
+util_chauf1_walk_dist_to_work_or_univ_pe,Chauffer 1 Walk dist to work or university - Pure Escort,(dist_home_to_mand1 < 3) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_walk_dist_to_work_or_univ_pe
+util_chauf2_walk_dist_to_work_or_univ_pe,Chauffer 2 Walk dist to work or university - Pure Escort,(dist_home_to_mand2 < 3) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_walk_dist_to_work_or_univ_pe
+# ,Chauffer deviation,,
+util_chauf1_abs_dev_rs_child1only,Chauffer 1 Absolute deviation ride share - child 1 only,((bundle1 != bundle2) & (bundle1 != bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child1_chauf1,coef_abs_dev_distance
+util_chauf2_abs_dev_rs_child1only,Chauffer 2 Absolute deviation ride share - child 1 only,((bundle1 != bundle2) & (bundle1 != bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child1_chauf2,coef_abs_dev_distance
+util_chauf1_abs_dev_rs_child2only,Chauffer 1 Absolute deviation ride share - child 2 only,((bundle1 != bundle2) & (bundle2 != bundle3) & (chauf2 == 1)) * abs_dev_dist_in_child2_chauf1,coef_abs_dev_distance
+util_chauf2_abs_dev_rs_child2only,Chauffer 2 Absolute deviation ride share - child 2 only,((bundle1 != bundle2) & (bundle2 != bundle3) & (chauf2 == 3)) * abs_dev_dist_in_child2_chauf2,coef_abs_dev_distance
+util_chauf1_abs_dev_rs_child3only,Chauffer 1 Absolute deviation ride share - child 3 only,((bundle1 != bundle3) & (bundle2 != bundle3) & (chauf3 == 1)) * abs_dev_dist_in_child3_chauf1,coef_abs_dev_distance
+util_chauf2_abs_dev_rs_child3only,Chauffer 2 Absolute deviation ride share - child 3 only,((bundle1 != bundle3) & (bundle2 != bundle3) & (chauf3 == 3)) * abs_dev_dist_in_child3_chauf2,coef_abs_dev_distance
+util_chauf1_abs_dev_rs_child12,Chauffer 1 Absolute deviation ride share - child 1 & 2,((bundle1 == bundle2) & (bundle1 != bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child12_chauf1,coef_abs_dev_distance
+util_chauf2_abs_dev_rs_child12,Chauffer 2 Absolute deviation ride share - child 1 & 2,((bundle1 == bundle2) & (bundle1 != bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child12_chauf2,coef_abs_dev_distance
+util_chauf1_abs_dev_rs_child13,Chauffer 1 Absolute deviation ride share - child 1 & 3,((bundle1 != bundle2) & (bundle1 == bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child13_chauf1,coef_abs_dev_distance
+util_chauf2_abs_dev_rs_child13,Chauffer 2 Absolute deviation ride share - child 1 & 3,((bundle1 != bundle2) & (bundle1 == bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child13_chauf2,coef_abs_dev_distance
+util_chauf1_abs_dev_rs_child23,Chauffer 1 Absolute deviation ride share - child 2 & 3,((bundle1 != bundle2) & (bundle2 == bundle3) & (chauf2 == 1)) * abs_dev_dist_in_child23_chauf1,coef_abs_dev_distance
+util_chauf2_abs_dev_rs_child23,Chauffer 2 Absolute deviation ride share - child 2 & 3,((bundle1 != bundle2) & (bundle2 == bundle3) & (chauf2 == 3)) * abs_dev_dist_in_child23_chauf2,coef_abs_dev_distance
+util_chauf1_abs_dev_rs_child123,Chauffer 1 Absolute deviation ride share - child 1 & 2 & 3,((bundle1 == bundle2) & (bundle2 == bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child123_chauf1,coef_abs_dev_distance
+util_chauf2_abs_dev_rs_child123,Chauffer 2 Absolute deviation ride share - child 1 & 2 & 3,((bundle1 == bundle2) & (bundle2 == bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child123_chauf2,coef_abs_dev_distance
+util_chauf1_rel_dev_rs_child1only,Chauffer 1 Relative deviation ride share - child 1 only,((bundle1 != bundle2) & (bundle1 != bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child1_chauf1 / (dist_home_to_mand1 + 0.001),coef_rel_dev_distance
+util_chauf2_rel_dev_rs_child1only,Chauffer 2 Relative deviation ride share - child 1 only,((bundle1 != bundle2) & (bundle1 != bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child1_chauf2 / (dist_home_to_mand2 + 0.001),coef_rel_dev_distance
+util_chauf1_rel_dev_rs_child2only,Chauffer 1 Relative deviation ride share - child 2 only,((bundle1 != bundle2) & (bundle2 != bundle3) & (chauf2 == 1)) * abs_dev_dist_in_child2_chauf1 / (dist_home_to_mand1 + 0.001),coef_rel_dev_distance
+util_chauf2_rel_dev_rs_child2only,Chauffer 2 Relative deviation ride share - child 2 only,((bundle1 != bundle2) & (bundle2 != bundle3) & (chauf2 == 3)) * abs_dev_dist_in_child2_chauf2 / (dist_home_to_mand2 + 0.001),coef_rel_dev_distance
+util_chauf1_rel_dev_rs_child3only,Chauffer 1 Relative deviation ride share - child 3 only,((bundle1 != bundle3) & (bundle2 != bundle3) & (chauf3 == 1)) * abs_dev_dist_in_child3_chauf1 / (dist_home_to_mand1 + 0.001),coef_rel_dev_distance
+util_chauf2_rel_dev_rs_child3only,Chauffer 2 Relative deviation ride share - child 3 only,((bundle1 != bundle3) & (bundle2 != bundle3) & (chauf3 == 3)) * abs_dev_dist_in_child3_chauf2 / (dist_home_to_mand2 + 0.001),coef_rel_dev_distance
+util_chauf1_rel_dev_rs_child12,Chauffer 1 Relative deviation ride share - child 1 & 2,((bundle1 == bundle2) & (bundle1 != bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child12_chauf1 / (dist_home_to_mand1 + 0.001),coef_rel_dev_distance
+util_chauf2_rel_dev_rs_child12,Chauffer 2 Relative deviation ride share - child 1 & 2,((bundle1 == bundle2) & (bundle1 != bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child12_chauf2 / (dist_home_to_mand2 + 0.001),coef_rel_dev_distance
+util_chauf1_rel_dev_rs_child13,Chauffer 1 Relative deviation ride share - child 1 & 3,((bundle1 != bundle2) & (bundle1 == bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child13_chauf1 / (dist_home_to_mand1 + 0.001),coef_rel_dev_distance
+util_chauf2_rel_dev_rs_child13,Chauffer 2 Relative deviation ride share - child 1 & 3,((bundle1 != bundle2) & (bundle1 == bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child13_chauf2 / (dist_home_to_mand2 + 0.001),coef_rel_dev_distance
+util_chauf1_rel_dev_rs_child23,Chauffer 1 Relative deviation ride share - child 2 & 3,((bundle1 != bundle2) & (bundle2 == bundle3) & (chauf2 == 1)) * abs_dev_dist_in_child23_chauf1 / (dist_home_to_mand1 + 0.001),coef_rel_dev_distance
+util_chauf2_rel_dev_rs_child23,Chauffer 2 Relative deviation ride share - child 2 & 3,((bundle1 != bundle2) & (bundle2 == bundle3) & (chauf2 == 3)) * abs_dev_dist_in_child23_chauf2 / (dist_home_to_mand2 + 0.001),coef_rel_dev_distance
+util_chauf1_rel_dev_rs_child123,Chauffer 1 Relative deviation ride share - child 1 & 2 & 3,((bundle1 == bundle2) & (bundle2 == bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child123_chauf1 / (dist_home_to_mand1 + 0.001),coef_rel_dev_distance
+util_chauf2_rel_dev_rs_child123,Chauffer 2 Relative deviation ride share - child 1 & 2 & 3,((bundle1 == bundle2) & (bundle2 == bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child123_chauf2 / (dist_home_to_mand2 + 0.001),coef_rel_dev_distance
+# ,Same TAZ,,
+util_same_taz_child12_escort,Same school TAZ for child 1 and 2 - Escorting,(bundle1 == bundle2) & (bundle1 > 0) & (school_location_child1 == school_location_child2) & (school_location_child1 > 0),coef_same_taz_escort
+util_same_taz_child13_escort,Same school TAZ for child 1 and 3 - Escorting,(bundle1 == bundle3) & (bundle1 > 0) & (school_location_child1 == school_location_child3) & (school_location_child1 > 0),coef_same_taz_escort
+util_same_taz_child32_escort,Same school TAZ for child 3 and 2 - Escorting,(bundle3 == bundle2) & (bundle2 > 0) & (school_location_child3 == school_location_child2) & (school_location_child2 > 0),coef_same_taz_escort
+util_same_taz_child12_no_escort,Same school TAZ for child 1 and 2 - No Escorting,(bundle1 == 0) & (bundle2 == 0) & (child_id1 > 0) & (child_id2 > 0) & (school_location_child1 == school_location_child2) & (school_location_child1 > 0),coef_same_taz_no_escort
+util_same_taz_child13_no_escort,Same school TAZ for child 1 and 3 - No Escorting,(bundle1 == 0) & (bundle3 == 0) & (child_id1 > 0) & (child_id3 > 0) & (school_location_child1 == school_location_child3) & (school_location_child1 > 0),coef_same_taz_no_escort
+util_same_taz_child32_no_escort,Same school TAZ for child 3 and 2 - No Escorting,(bundle3 == 0) & (bundle2 == 0) & (child_id3 > 0) & (child_id2 > 0) & (school_location_child3 == school_location_child2) & (school_location_child2 > 0),coef_same_taz_no_escort
+# ,Outbound Terms,,
+util_no_escort_outbound_child1,No escorting in outbound direction - Child 1,(bundle1 == 0) & (child_id1 > 0) & (bundle1_outbound == 0),coef_no_escort_outbound
+util_no_escort_outbound_child2,No escorting in outbound direction - Child 2,(bundle2 == 0) & (child_id2 > 0) & (bundle2_outbound == 0),coef_no_escort_outbound
+util_no_escort_outbound_child3,No escorting in outbound direction - Child 3,(bundle3 == 0) & (child_id3 > 0) & (bundle3_outbound == 0),coef_no_escort_outbound
+util_outbound_rs_child1,Ride sharing in the outbound direction - Child 1,((chauf1 == 1) | (chauf1 == 3)) & ((chauf1_outbound == 1) | (chauf1_outbound == 3)),coef_outbound_rs
+util_outbound_rs_child1,Ride sharing in the outbound direction - Child 2,((chauf2 == 1) | (chauf2 == 3)) & ((chauf2_outbound == 1) | (chauf2_outbound == 3)),coef_outbound_rs
+util_outbound_rs_child1,Ride sharing in the outbound direction - Child 3,((chauf3 == 1) | (chauf3 == 3)) & ((chauf3_outbound == 1) | (chauf3_outbound == 3)),coef_outbound_rs
+util_same_chauf,Same chauffeur in both directions (not child specific) - chauf 1 inbound & outbound,((chauf1 == 1) | (chauf1 == 2) | (chauf2 == 1) | (chauf2 == 2) | (chauf3 == 1) | (chauf3 == 2)) & ((nbund1_outbound > 0)),coef_same_chauf
+util_same_chauf,Same chauffeur in both directions (not child specific) - chauf 2 inbound & outbound,((chauf1 == 3) | (chauf1 == 4) | (chauf2 == 3) | (chauf2 == 4) | (chauf3 == 3) | (chauf3 == 4)) & ((nbund2_outbound > 0)),coef_same_chauf
+# ,Calibration Constants,,
+util_calib_child1_age_u6_rs,Child 1 age under 6 - Calibration constant - Ride Share,((chauf1 == 1) | (chauf1 == 3)) & (age_child1 < 6),coef_calib_child_age_u6_rs
+util_calib_child2_age_u6_rs,Child 2 age under 6 - Calibration constant - Ride Share,((chauf2 == 1) | (chauf2 == 3)) & (age_child2 < 6),coef_calib_child_age_u6_rs
+util_calib_child3_age_u6_rs,Child 3 age under 6 - Calibration constant - Ride Share,((chauf3 == 1) | (chauf3 == 3)) & (age_child3 < 6),coef_calib_child_age_u6_rs
+util_calib_child1_age_16p_rs,Child 1 age 16 years or older - Calibration constant - Ride Share,((chauf1 == 1) | (chauf1 == 3)) & (age_child1 > 15),coef_calib_child_age_16p_rs
+util_calib_child2_age_16p_rs,Child 2 age 16 years or older - Calibration constant - Ride Share,((chauf2 == 1) | (chauf2 == 3)) & (age_child2 > 15),coef_calib_child_age_16p_rs
+util_calib_child3_age_16p_rs,Child 3 age 16 years or older - Calibration constant - Ride Share,((chauf3 == 1) | (chauf3 == 3)) & (age_child3 > 15),coef_calib_child_age_16p_rs
+util_calib_child1_age_6to15_noes,Child 1 age 6 to 15 years - Calibration constant - No Escort,(bundle1 == 0) & (child_id1 > 0) & (age_child1 > 5) & (age_child1 < 16),coef_calib_child_age_6to15_noes
+util_calib_child2_age_6to15_noes,Child 2 age 6 to 15 years - Calibration constant - No Escort,(bundle2 == 0) & (child_id2 > 0) & (age_child2 > 5) & (age_child2 < 16),coef_calib_child_age_6to15_noes
+util_calib_child3_age_6to15_noes,Child 3 age 6 to 15 years - Calibration constant - No Escort,(bundle3 == 0) & (child_id3 > 0) & (age_child3 > 5) & (age_child3 < 16),coef_calib_child_age_6to15_noes
+util_calib_child1_age_u6_noes,Child 1 age 5 years or younger - Calibration constant - No escort,(bundle1 == 0) & (child_id1 > 0) & (age_child1 < 6),coef_calib_child_age_u6_noes
+util_calib_child2_age_u6_noes,Child 2 age 5 years or younger - Calibration constant - No escort,(bundle2 == 0) & (child_id2 > 0) & (age_child2 < 6),coef_calib_child_age_u6_noes
+util_calib_child3_age_u6_noes,Child 3 age 5 years or younger - Calibration constant - No escort,(bundle3 == 0) & (child_id3 > 0) & (age_child3 < 6),coef_calib_child_age_u6_noes
+util_calib_child1_age_6to15_rs,Child 1 age 6 to 15 years - Calibration constant - Ride Share,((chauf1 == 1) | (chauf1 == 3)) & (age_child1 > 5) & (age_child1 < 16),coef_calib_child_age_6to15_rs
+util_calib_child2_age_6to15_rs,Child 2 age 6 to 15 years - Calibration constant - Ride Share,((chauf2 == 1) | (chauf2 == 3)) & (age_child2 > 5) & (age_child2 < 16),coef_calib_child_age_6to15_rs
+util_calib_child3_age_6to15_rs,Child 3 age 6 to 15 years - Calibration constant - Ride Share,((chauf3 == 1) | (chauf3 == 3)) & (age_child3 > 5) & (age_child3 < 16),coef_calib_child_age_6to15_rs

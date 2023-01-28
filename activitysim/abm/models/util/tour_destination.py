@@ -126,9 +126,12 @@ def _destination_sample(
         zone_layer=zone_layer,
     )
 
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
-    choices["person_id"] = choosers.person_id
+    choices[chooser_id_column] = choosers[chooser_id_column]
 
     return choices
 
@@ -527,14 +530,18 @@ def run_destination_sample(
 
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]
     tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == "person_id"]
+        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
     ]
     choosers = pd.merge(
-        tours, persons_merged, left_on="person_id", right_index=True, how="left"
+        tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
@@ -584,7 +591,7 @@ def run_destination_sample(
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
-    choices["person_id"] = tours.person_id
+    choices[chooser_id_column] = tours[chooser_id_column]
 
     return choices
 
@@ -620,6 +627,8 @@ def run_destination_logsums(
     """
 
     logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
     chunk_tag = "tour_destination.logsums"
 
@@ -632,7 +641,7 @@ def run_destination_logsums(
     choosers = pd.merge(
         destination_sample,
         persons_merged,
-        left_on="person_id",
+        left_on=chooser_id_column,
         right_index=True,
         how="left",
     )
@@ -670,6 +679,7 @@ def run_destination_simulate(
     estimator,
     chunk_size,
     trace_label,
+    skip_choice=False,
 ):
     """
     run destination_simulate on tour_destination_sample
@@ -686,14 +696,18 @@ def run_destination_simulate(
 
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]
     tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == "person_id"]
+        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
     ]
     choosers = pd.merge(
-        tours, persons_merged, left_on="person_id", right_index=True, how="left"
+        tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
@@ -754,6 +768,7 @@ def run_destination_simulate(
         trace_label=trace_label,
         trace_choice_name="destination",
         estimator=estimator,
+        skip_choice=skip_choice,
     )
 
     if not want_logsums:
@@ -775,6 +790,7 @@ def run_tour_destination(
     chunk_size,
     trace_hh_id,
     trace_label,
+    skip_choice=False,
 ):
 
     size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
@@ -850,6 +866,7 @@ def run_tour_destination(
             estimator=estimator,
             chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "simulate"),
+            skip_choice=skip_choice,
         )
 
         choices_list.append(choices)

@@ -40,3 +40,6 @@ output_tables:
         origin: land_use.zone_id
         destination: land_use.zone_id
     - vehicles
+    - proto_disaggregate_accessibility
+
+recode_pipeline_columns: False

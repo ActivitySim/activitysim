@@ -10,7 +10,7 @@ import warnings
 
 import yaml
 
-from activitysim.core import inject
+from activitysim.core import inject, util
 
 logger = logging.getLogger(__name__)
 
@@ -516,6 +516,14 @@ def read_settings_file(
             set(configs_dir_list)
         ), f"repeating file names not allowed in config_dir list: {configs_dir_list}"
 
+    args = util.parse_suffix_args(file_name)
+    file_name = args.filename
+
+    assert isinstance(args.ROOTS, list)
+    assert (args.SUFFIX is not None and args.ROOTS) or (
+        args.SUFFIX is None and not args.ROOTS
+    ), ("Expected to find both 'ROOTS' and 'SUFFIX' in %s, missing one" % args.filename)
+
     if not file_name.lower().endswith(".yaml"):
         file_name = "%s.yaml" % (file_name,)
 
@@ -620,6 +628,10 @@ def read_settings_file(
     if mandatory and not settings:
         raise SettingsFileNotFound(file_name, configs_dir_list)
 
+    # Adds proto_ suffix for disaggregate accessibilities
+    if args.SUFFIX is not None and args.ROOTS:
+        settings = util.suffix_tables_in_settings(settings, args.SUFFIX, args.ROOTS)
+
     if include_stack:
         # if we were called recursively, return an updated list of source_file_paths
         return settings, source_file_paths
@@ -710,6 +722,21 @@ def filter_warnings():
             ".*will attempt to set the values inplace instead of always setting a new array. "
             "To retain the old behavior, use either.*"
         ),
+    )
+    # beginning in pandas version 1.5, a warning is emitted when using pandas.concat on dataframes
+    # that contain object-dtype columns with all-bool values.  ActivitySim plans to address dtypes
+    # and move away from object-dtype columns anyhow, so this is not a critical problem.
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message=(
+            ".*object-dtype columns with all-bool values will not be included in reductions.*"
+        ),
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        message=".*will attempt to set the values inplace instead of always setting a new array.*",
     )
 
     # beginning in sharrow version 2.5, a CacheMissWarning is emitted when a sharrow

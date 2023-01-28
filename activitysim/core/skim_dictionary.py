@@ -261,6 +261,7 @@ class SkimDict(object):
             result = self.skim_data[mapped_orig, mapped_dest, block_offsets]
 
         # FIXME - should return nan if not in skim (negative indices wrap around)
+        # FIXME - this check only works if # of origin zones match # of dest zones!
         in_skim = (
             (mapped_orig >= 0)
             & (mapped_orig < self.omx_shape[0])

@@ -309,7 +309,8 @@ def register_traceable_table(table_name, df):
         return
 
     new_traced_ids = []
-    if table_name == "households":
+    # if table_name == "households":
+    if table_name in ["households", "proto_households"]:
         if trace_hh_id not in df.index:
             logger.warning("trace_hh_id %s not in dataframe" % trace_hh_id)
             new_traced_ids = []
@@ -761,15 +762,32 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
 
     traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
 
-    if choosers.index.name == "person_id" and "persons" in traceable_table_ids:
+    # Determine whether actual tables or proto_ tables for disaggregate accessibilities
+    persons_table_name = set(traceable_table_ids).intersection(
+        ["persons", "proto_persons"]
+    )
+    households_table_name = set(traceable_table_ids).intersection(
+        ["households", "proto_households"]
+    )
+
+    assert len(persons_table_name) == 1 and len(persons_table_name) == 1
+    persons_table_name, households_table_name = (
+        persons_table_name.pop(),
+        households_table_name.pop(),
+    )
+
+    if choosers.index.name == "person_id" and persons_table_name in traceable_table_ids:
         slicer_column_name = choosers.index.name
         targets = traceable_table_ids["persons"]
+    elif choosers.index.name == "household_id" and "households" in traceable_table_ids:
+        slicer_column_name = choosers.index.name
+        targets = traceable_table_ids["households"]
     elif "household_id" in choosers.columns and "households" in traceable_table_ids:
         slicer_column_name = "household_id"
-        targets = traceable_table_ids["households"]
-    elif "person_id" in choosers.columns and "persons" in traceable_table_ids:
+        targets = traceable_table_ids[households_table_name]
+    elif "person_id" in choosers.columns and persons_table_name in traceable_table_ids:
         slicer_column_name = "person_id"
-        targets = traceable_table_ids["persons"]
+        targets = traceable_table_ids[persons_table_name]
     else:
         print(choosers.columns)
         raise RuntimeError(

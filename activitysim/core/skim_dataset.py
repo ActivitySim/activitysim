@@ -100,9 +100,11 @@ class SkimDataset:
         self.usage.add(key)
         use_index = None
 
-        if use_index is None and hasattr(orig, "index"):
+        # orig or dest might be a list instead of a series, in which case `index`
+        # is a builtin method instead of an array of coordinates, we don't want that.
+        if use_index is None and hasattr(orig, "index") and not isinstance(orig, list):
             use_index = orig.index
-        if use_index is None and hasattr(dest, "index"):
+        if use_index is None and hasattr(dest, "index") and not isinstance(dest, list):
             use_index = dest.index
 
         orig = np.asanyarray(orig).astype(int)

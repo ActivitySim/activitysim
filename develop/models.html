@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Models &#8212; ActivitySim 1.1.4.dev511+g71d3e919</title>
+    <title>Models &#8212; ActivitySim 1.1.4.dev733+g28ff4477</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -33,6 +33,8 @@
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/design-tabs.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Components" href="dev-guide/components/index.html" />
@@ -284,6 +286,11 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#disaggregate-accessibility">
+   Disaggregate Accessibility
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#work-from-home">
    Work From Home
   </a>
@@ -294,7 +301,7 @@ function checkPageExistsAndRedirect(event) {
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id6">
+  <a class="reference internal nav-link" href="#id7">
    Work Location
   </a>
  </li>
@@ -346,6 +353,11 @@ function checkPageExistsAndRedirect(event) {
  <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#representative-logsums">
    Mandatory Tour Scheduling
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#school-escorting">
+   School Escorting
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -474,7 +486,7 @@ function checkPageExistsAndRedirect(event) {
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id31">
+    <a class="reference internal nav-link" href="#id33">
      CDAP
     </a>
    </li>
@@ -658,8 +670,84 @@ steeper than automobile or transit.  The minimum accessibility is zero.</p>
 </dd></dl>
 
 </section>
+<section id="disaggregate-accessibility">
+<span id="id4"></span><h2>Disaggregate Accessibility<a class="headerlink" href="#disaggregate-accessibility" title="Permalink to this headline">#</a></h2>
+<p>The disaggregate accessibility model is an extension of the base accessibility model.
+While the base accessibility model is based on a mode-specific decay function and uses fixed market
+segments in the population (i.e., income), the disaggregate accessibility model extracts the actual
+destination choice logsums by purpose (i.e., mandatory fixed school/work location and non-mandatory
+tour destinations by purpose) from the actual model calculations using a user-defined proto-population.
+This enables users to include features that may be more critical to destination
+choice than just income (e.g., automobile ownership).</p>
+<dl class="simple">
+<dt>Inputs:</dt><dd><ul class="simple">
+<li><p>disaggregate_accessibility.yaml - Configuration settings for disaggregate accessibility model.</p></li>
+<li><p>annotate.csv [optional] - Users can specify additional annotations specific to disaggregate accessibility. For example, annotating the proto-population tables.</p></li>
+</ul>
+</dd>
+<dt>Outputs:</dt><dd><ul class="simple">
+<li><p>final_disaggregate_accessibility.csv [optional]</p></li>
+<li><p>final_non_mandatory_tour_destination_accesibility.csv [optional]</p></li>
+<li><p>final_workplace_location_accessibility.csv [optional]</p></li>
+<li><p>final_school_location_accessibility.csv [optional]</p></li>
+<li><p>final_proto_persons.csv [optional]</p></li>
+<li><p>final_proto_households.csv [optional]</p></li>
+<li><p>final_proto_tours.csv [optional]</p></li>
+</ul>
+</dd>
+</dl>
+<p>The above tables are created in the model pipeline, but the model will not save
+any outputs unless specified in settings.yaml - output_tables. Users can return
+the proto population tables for inspection, as well as the raw logsum accessibilities
+for mandatory school/work and non-mandatory destinations. The logsums are then merged
+at the household level in final_disaggregate_accessibility.csv, which each tour purpose
+logsums shown as separate columns.</p>
+<p><strong>Usage</strong>
+The disaggregate accessibility model is run as a model step in the model list.
+There are two necessary steps:</p>
+<p><code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">initialize_proto_population</span></code> | <code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">compute_disaggregate_accessibility</span></code></p>
+<p>The reason the steps must be separate is to enable multiprocessing.
+The proto-population must be fully generated and initialized before activitysim
+slices the tables into separate threads. These steps must also occur before
+initialize_households in order to avoid conflict with the shadow_pricing model.</p>
+<p>The model steps can be run either as part the activitysim model run, or setup
+to run as a standalone run to pre-computing the accessibility values.
+For standalone implementations, the final_disaggregate_accessibility.csv is read
+into the pipeline and initialized with the initialize_household model step.</p>
+<dl class="simple">
+<dt><strong>Configuration of disaggregate_accessibility.yaml:</strong></dt><dd><ul class="simple">
+<li><p>CREATE_TABLES - Users define the variables to be generated for PROTO_HOUSEHOLDS, PROTO_PERSONS, and PROTO_TOURS tables. These tables must include all basic fields necessary for running the actual model. Additional fields can be annotated in pre-processing using the annotation settings of this file. The base variables in each table are defined using the following parameters:</p>
+<ul>
+<li><p>VARIABLES - The base variable, must be a value or a list. Results in the cartesian product (all non-repeating combinations) of the fields.</p></li>
+<li><p>mapped_fields [optional] - For non-combinatorial fields, users can map a variable to the fields generated in VARIABLES (e.g., income category bins mapped to median dollar values).</p></li>
+<li><p>filter_rows [optional] - Users can also filter rows using pandas expressions if specific variable combinations are not desired.</p></li>
+<li><p>JOIN_ON [required only for PROTO_TOURS] - specify the persons variable to join the tours to (e.g., person_number).</p></li>
+</ul>
+</li>
+<li><p>MERGE_ON - User specified fields to merge the proto-population logsums onto the full synthetic population. The proto-population should be designed such that the logsums are able to be joined exactly on these variables specified to the full population. Users specify the to join on using:</p>
+<ul>
+<li><p>by: An exact merge will be attempted using these discrete variables.</p></li>
+<li><p>asof [optional]: The model can peform an “asof” join for continuous variables, which finds the nearest value. This method should not be necessary since synthetic populations are all discrete.</p></li>
+<li><p>method [optional]: Optional join method can be “soft”, default is None. For cases where a full inner join is not possible, a Naive Bayes clustering method is fast but discretely constrained method. The proto-population is treated as the “training data” to match the synthetic population value to the best possible proto-population candidate. The Some refinement may be necessary to make this procedure work.</p></li>
+</ul>
+</li>
+<li><p>annotate_proto_tables [optional] - Annotation configurations if users which to modify the proto-population beyond basic generation in the YAML.</p></li>
+<li><p>DESTINATION_SAMPLE_SIZE - The <em>destination</em> sample size (0 = all zones), e.g., the number of destination zone alternatives sampled for calculating the destination logsum. Decimal values &lt; 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.</p></li>
+<li><p>ORIGIN_SAMPLE_SIZE - The <em>origin</em> sample size (0 = all zones), e.g., the number of origins where logsum is calculated. Origins without a logsum will draw from the nearest zone with a logsum. This parameter is useful for systems with a large number of zones with similar accessibility. Decimal values &lt; 1 will be interpreted as a percentage, e.g., 0.5 = 50% sample.</p></li>
+<li><p>ORIGIN_SAMPLE_METHOD - The method in which origins are sampled. Population weighted sampling can be TAZ-based or “TAZ-agnostic” using KMeans clustering. The potential advantage of KMeans is to provide a more geographically even spread of MAZs sampled that do not rely on TAZ hierarchies. Unweighted sampling is also possible using ‘uniform’ and ‘uniform-taz’.</p>
+<ul>
+<li><p>None [Default] - Sample zones weighted by population, ensuring at least one TAZ is sampled per MAZ. If n-samples &gt; n-tazs then sample 1 MAZ from each TAZ until n-remaining-samples &lt; n-tazs, then sample n-remaining-samples TAZs and sample an MAZ within each of those TAZs. If n-samples &lt; n-tazs, then it proceeds to the above ‘then’ condition.</p></li>
+<li><p>“kmeans” - K-Means clustering is performed on the zone centroids (must be provided as maz_centroids.csv), weighted by population. The clustering yields k XY coordinates weighted by zone population for n-samples = k-clusters specified. Once k new cluster centroids are found, these are then approximated into the nearest available zone centroid and used to calculate accessibilities on. By default, the k-means method is run on 10 different initial cluster seeds (n_init) using using “k-means++” seeding algorithm (<a class="reference external" href="https://en.wikipedia.org/wiki/K-means%2B%2B">https://en.wikipedia.org/wiki/K-means%2B%2B</a>). The k-means method runs for max_iter iterations (default=300).</p></li>
+<li><p>“uniform” - Unweighted sample of N zones independent of each other.</p></li>
+<li><p>“uniform-taz” - Unweighted sample of 1 zone per taz up to the N samples specified.</p></li>
+</ul>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
 <section id="work-from-home">
-<span id="id4"></span><h2>Work From Home<a class="headerlink" href="#work-from-home" title="Permalink to this headline">#</a></h2>
+<span id="id5"></span><h2>Work From Home<a class="headerlink" href="#work-from-home" title="Permalink to this headline">#</a></h2>
 <p>Telecommuting is defined as workers who work from home instead of going
 to work. It only applies to workers with a regular workplace outside of home.
 The telecommute model consists of two submodels - this work from home model and a
@@ -680,12 +768,14 @@ function is registered as an Inject step in the example Pipeline.</p>
 <dt class="sig sig-object py" id="activitysim.abm.models.work_from_home.work_from_home">
 <span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.work_from_home.</span></span><span class="sig-name descname"><span class="pre">work_from_home</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">persons_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.work_from_home.work_from_home" title="Permalink to this definition">#</a></dt>
 <dd><p>This model predicts whether a person (worker) works from home. The output
-from this model is TRUE (if works from home) or FALSE (works away from home).</p>
+from this model is TRUE (if works from home) or FALSE (works away from home).
+The workplace location choice is overridden for workers who work from home
+and set to -1.</p>
 </dd></dl>
 
 </section>
 <section id="work-location">
-<span id="school-location"></span><span id="id5"></span><h2>School Location<a class="headerlink" href="#work-location" title="Permalink to this headline">#</a></h2>
+<span id="school-location"></span><span id="id6"></span><h2>School Location<a class="headerlink" href="#work-location" title="Permalink to this headline">#</a></h2>
 <p>The usual school location choice models assign a usual school location for the primary
 mandatory activity of each child and university student in the
 synthetic population. The models are composed of a set of accessibility-based parameters
@@ -709,8 +799,8 @@ destination.</p>
 This function is registered as an Inject step in the example Pipeline.  See <a class="reference internal" href="examples.html#writing-logsums"><span class="std std-ref">Writing Logsums</span></a> for how to write logsums for estimation.</p>
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">persons</span></code> | Result Field: <code class="docutils literal notranslate"><span class="pre">school_taz</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">TAZ,</span> <span class="pre">alt_dest,</span> <span class="pre">AM</span> <span class="pre">time</span> <span class="pre">period,</span> <span class="pre">MD</span> <span class="pre">time</span> <span class="pre">period</span></code></p>
 </section>
-<section id="id6">
-<h2>Work Location<a class="headerlink" href="#id6" title="Permalink to this headline">#</a></h2>
+<section id="id7">
+<h2>Work Location<a class="headerlink" href="#id7" title="Permalink to this headline">#</a></h2>
 <p>The usual work location choice models assign a usual work location for the primary
 mandatory activity of each employed person in the
 synthetic population. The models are composed of a set of accessibility-based parameters
@@ -764,7 +854,7 @@ or max_iterations reached.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.location_choice.run_location_choice">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.location_choice.</span></span><span class="sig-name descname"><span class="pre">run_location_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">persons_merged_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_price_calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_sample_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_choice" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.location_choice.</span></span><span class="sig-name descname"><span class="pre">run_location_choice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">persons_merged_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shadow_price_calculator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_sample_table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_choice" title="Permalink to this definition">#</a></dt>
 <dd><p>Run the three-part location choice algorithm to generate a location choice for each chooser</p>
 <p>Handle the various segments separately and in turn for simplicity of expression files</p>
 <dl class="field-list simple">
@@ -873,7 +963,7 @@ and a pick_count indicating how many times that choice was selected for that cho
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.location_choice.run_location_simulate">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.location_choice.</span></span><span class="sig-name descname"><span class="pre">run_location_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segment_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_sample_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_size_terms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_simulate" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.location_choice.</span></span><span class="sig-name descname"><span class="pre">run_location_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">segment_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location_sample_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest_size_terms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_tag</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.location_choice.run_location_simulate" title="Permalink to this definition">#</a></dt>
 <dd><p>run location model on location_sample annotated with mode_choice logsum
 to select a dest zone from sample alternatives</p>
 <dl class="field-list simple">
@@ -918,7 +1008,7 @@ logsum : float logsum of choice utilities across alternatives</p>
 
 </section>
 <section id="shadow-pricing">
-<span id="index-1"></span><span id="id7"></span><h2>Shadow Pricing<a class="headerlink" href="#shadow-pricing" title="Permalink to this headline">#</a></h2>
+<span id="index-1"></span><span id="id8"></span><h2>Shadow Pricing<a class="headerlink" href="#shadow-pricing" title="Permalink to this headline">#</a></h2>
 <p>The shadow pricing calculator used by work and school location choice.</p>
 <p><strong>Turning on and saving shadow prices</strong></p>
 <p>Shadow pricing is activated by setting the <code class="docutils literal notranslate"><span class="pre">use_shadow_pricing</span></code> to True in the settings.yaml file.
@@ -991,23 +1081,6 @@ folder. Used for debugging or checking itration convergence. WARNING: every pers
 each sub-process so the disc space can get large.</p></li>
 </ul>
 <span class="target" id="module-activitysim.abm.tables.shadow_pricing"></span><dl class="py function">
-<dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.add_size_tables">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">add_size_tables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.add_size_tables" title="Permalink to this definition">#</a></dt>
-<dd><p>inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)</p>
-<p>Size tables are pandas dataframes with locations counts for model_selector by zone and segment
-tour_destination_size_terms</p>
-<p>if using shadow pricing, we scale size_table counts to sample population
-(in which case, they have to be created while single-process)</p>
-<p>Scaling is problematic as it breaks household result replicability across sample sizes
-It also changes the magnitude of the size terms so if they are used as utilities in
-expression files, their importance will diminish relative to other utilities as the sample
-size decreases.</p>
-<p>Scaling makes most sense for a full sample in conjunction with shadow pricing, where
-shadow prices can be adjusted iteratively to bring modelled counts into line with desired
-(size table) counts.</p>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.tables.shadow_pricing.block_name">
 <span class="sig-prename descclassname"><span class="pre">activitysim.abm.tables.shadow_pricing.</span></span><span class="sig-name descname"><span class="pre">block_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_selector</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.tables.shadow_pricing.block_name" title="Permalink to this definition">#</a></dt>
 <dd><p>return canonical block name for model_selector</p>
@@ -1238,7 +1311,7 @@ shared_data_lock : numpy array wrapping multiprocessing.RawArray or None (if sin
 
 </section>
 <section id="transit-pass-subsidy">
-<span id="id8"></span><h2>Transit Pass Subsidy<a class="headerlink" href="#transit-pass-subsidy" title="Permalink to this headline">#</a></h2>
+<span id="id9"></span><h2>Transit Pass Subsidy<a class="headerlink" href="#transit-pass-subsidy" title="Permalink to this headline">#</a></h2>
 <p>The transit fare discount model is defined as persons who purchase or are
 provided a transit pass.  The transit fare discount consists of two submodels - this
 transit pass subsidy model and a person <a class="reference internal" href="#transit-pass-ownership"><span class="std std-ref">Transit Pass Ownership</span></a> model.  The
@@ -1257,7 +1330,7 @@ function is registered as an Inject step in the example Pipeline.</p>
 
 </section>
 <section id="transit-pass-ownership">
-<span id="id9"></span><h2>Transit Pass Ownership<a class="headerlink" href="#transit-pass-ownership" title="Permalink to this headline">#</a></h2>
+<span id="id10"></span><h2>Transit Pass Ownership<a class="headerlink" href="#transit-pass-ownership" title="Permalink to this headline">#</a></h2>
 <p>The transit fare discount is defined as persons who purchase or are
 provided a transit pass.  The transit fare discount consists of two submodels - this
 transit pass ownership model and a person <a class="reference internal" href="#transit-pass-subsidy"><span class="std std-ref">Transit Pass Subsidy</span></a> model. The
@@ -1275,7 +1348,7 @@ function is registered as an Inject step in the example Pipeline.</p>
 
 </section>
 <section id="auto-ownership">
-<span id="id10"></span><h2>Auto Ownership<a class="headerlink" href="#auto-ownership" title="Permalink to this headline">#</a></h2>
+<span id="id11"></span><h2>Auto Ownership<a class="headerlink" href="#auto-ownership" title="Permalink to this headline">#</a></h2>
 <p>The auto ownership model selects a number of autos for each household in the simulation.
 The primary model components are household demographics, zonal density, and accessibility.</p>
 <p>The main interface to the auto ownership model is the
@@ -1291,7 +1364,7 @@ with given characteristics owns</p>
 
 </section>
 <section id="vehicle-type-choice">
-<span id="id11"></span><h2>Vehicle Type Choice<a class="headerlink" href="#vehicle-type-choice" title="Permalink to this headline">#</a></h2>
+<span id="id12"></span><h2>Vehicle Type Choice<a class="headerlink" href="#vehicle-type-choice" title="Permalink to this headline">#</a></h2>
 <p>The vehicle type choice model selects a vehicle type for each household vehicle. A vehicle type
 is a combination of the vehicle’s body type, age, and fuel type.  For example, a 13 year old
 gas powered van would have a vehicle type of <em>van_13_gas</em>.</p>
@@ -1565,7 +1638,7 @@ and “annotate_persons_vehicle_type.csv”, respectively.</p>
 
 </section>
 <section id="telecommute-frequency">
-<span id="id12"></span><h2>Telecommute Frequency<a class="headerlink" href="#telecommute-frequency" title="Permalink to this headline">#</a></h2>
+<span id="id13"></span><h2>Telecommute Frequency<a class="headerlink" href="#telecommute-frequency" title="Permalink to this headline">#</a></h2>
 <p>Telecommuting is defined as workers who work from home instead of going to work. It only applies to
 workers with a regular workplace outside of home. The telecommute model consists of two
 submodels - a person <a class="reference internal" href="#work-from-home"><span class="std std-ref">Work From Home</span></a> model and this person telecommute frequency model.</p>
@@ -1638,7 +1711,7 @@ simply applies those utilities using the simulation framework.</p>
 
 </section>
 <section id="mandatory-tour-frequency">
-<span id="id13"></span><h2>Mandatory Tour Frequency<a class="headerlink" href="#mandatory-tour-frequency" title="Permalink to this headline">#</a></h2>
+<span id="id14"></span><h2>Mandatory Tour Frequency<a class="headerlink" href="#mandatory-tour-frequency" title="Permalink to this headline">#</a></h2>
 <p>The individual mandatory tour frequency model predicts the number of work and school tours
 taken by each person with a mandatory DAP. The primary drivers of mandatory tour frequency
 are demographics, accessibility-based parameters such as drive time to work, and household
@@ -1656,7 +1729,7 @@ alternatives above) - these trips include work and school in some combination.</
 
 </section>
 <section id="representative-logsums">
-<span id="mandatory-tour-scheduling"></span><span id="id14"></span><h2>Mandatory Tour Scheduling<a class="headerlink" href="#representative-logsums" title="Permalink to this headline">#</a></h2>
+<span id="mandatory-tour-scheduling"></span><span id="id15"></span><h2>Mandatory Tour Scheduling<a class="headerlink" href="#representative-logsums" title="Permalink to this headline">#</a></h2>
 <p>The mandatory tour scheduling model selects a tour departure and duration period (and therefore a
 start and end period as well) for each mandatory tour.   The primary drivers in the model are
 accessibility-based parameters such as the mode choice logsum for the departure/arrival hour
@@ -1685,8 +1758,285 @@ function.  This function is registered as an Inject step in the example Pipeline
 </dd></dl>
 
 </section>
+<section id="school-escorting">
+<span id="id16"></span><h2>School Escorting<a class="headerlink" href="#school-escorting" title="Permalink to this headline">#</a></h2>
+<p>The school escort model determines whether children are dropped-off at or picked-up from school,
+simultaneously with the chaperone responsible for chauffeuring the children,
+which children are bundled together on half-tours, and the type of tour (pure escort versus rideshare).
+The model is run after work and school locations have been chosen for all household members,
+and after work and school tours have been generated and scheduled.
+The model labels household members of driving age as potential ‘chauffeurs’ and children with school tours as potential ‘escortees’.
+The model then attempts to match potential chauffeurs with potential escortees in a choice model whose alternatives
+consist of ‘bundles’ of escortees with a chauffeur for each half tour.</p>
+<p>School escorting is a household level decision – each household will choose an alternative from the <code class="docutils literal notranslate"><span class="pre">school_escorting_alts.csv</span></code> file,
+with the first alternative being no escorting. This file contains the following columns:</p>
+<table class="table">
+<colgroup>
+<col style="width: 41%" />
+<col style="width: 59%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Column Name</p></th>
+<th class="head"><p>Column Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Alt</p></td>
+<td><p>Alternative number</p></td>
+</tr>
+<tr class="row-odd"><td><p>bundle[1,2,3]</p></td>
+<td><p>bundle number for child 1,2, and 3</p></td>
+</tr>
+<tr class="row-even"><td><p>chauf[1,2,3]</p></td>
+<td><p>chauffeur number for child 1,2, and 3
+- 0 = child not escorted
+- 1 = chauffeur 1 as ride share
+- 2 = chauffeur 1 as pure escort
+- 3 = chauffeur 2 as ride share
+- 4 = chauffeur 3 as pure escort</p></td>
+</tr>
+<tr class="row-odd"><td><p>nbund[1,2]</p></td>
+<td><ul class="simple">
+<li><p>number of escorting bundles for chauffeur 1 and 2</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>nbundles</p></td>
+<td><ul class="simple">
+<li><p>total number of bundles</p></li>
+<li><p>equals nbund1 + nbund2</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>nrs1</p></td>
+<td><ul class="simple">
+<li><p>number of ride share bundles for chauffeur 1</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>npe1</p></td>
+<td><ul class="simple">
+<li><p>number of pure escort bundles for chauffeur 1</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>nrs2</p></td>
+<td><ul class="simple">
+<li><p>number of ride share bundles for chauffeur 2</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><p>npe2</p></td>
+<td><ul class="simple">
+<li><p>number of pure escort bundles for chauffeur 2</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><p>Description</p></td>
+<td><ul class="simple">
+<li><p>text description of alternative</p></li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>The model as currently implemented contains three escortees and two chauffeurs.
+Escortees are students under age 16 with a mandatory tour whereas chaperones are all persons in the household over the age of 18.
+For households that have more than three possible escortees, the three youngest children are selected for the model.
+The two chaperones are selected as the adults of the household with the highest weight according to the following calculation:
+<span class="math notranslate nohighlight">\(Weight = 100*personType + 10*gender + 1*age(0,1)\)</span>
+Where <em>personType</em> is the person type number from 1 to 5, <em>gender</em> is 1 for male and 2 for female, and
+<em>age</em> is a binary indicator equal to 1 if age is over 25 else 0.</p>
+<p>The model is run sequentially three times, once in the outbound direction, once in the inbound direction,
+and again in the outbound direction with additional conditions on what happened in the inbound direction.
+There are therefore three sets of utility specifications, coefficients, and pre-processor files.
+Each of these files is specified in the school_escorting.yaml file along with the number of escortees and number of chaperones.</p>
+<p>There is also a constants section in the school_escorting.yaml file which contain two constants.
+One which sets the maximum time bin difference to match school and work tours for ride sharing
+and another to set the number of minutes per time bin.
+In the <a class="reference internal" href="examples.html#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a> example, these are set to 1 and 60 respectively.</p>
+<p>After a school escorting alternative is chosen for the inbound and outbound direction, the model will
+create the tours and trips associated with the decision.  Pure escort tours are created,
+and the mandatory tour start and end times are changed to match the school escort bundle start and end times.
+(Outbound tours have their start times matched and inbound tours have their end times matched.)
+Escortee drop-off / pick-up order is determined by the distance from home to the school locations.
+They are ordered from smallest to largest in the outbound direction, and largest to smallest in the inbound direction.
+Trips are created for each half-tour that includes school escorting according to the provided order.</p>
+<p>The created pure escort tours are joined to the already created mandatory tour table in the pipeline
+and are also saved separately to the pipeline under the table name “school_escort_tours”.
+Created school escorting trips are saved to the pipeline under the table name “school_escort_trips”.
+By saving these to the pipeline, their data can be queried in downstream models to set correct purposes,
+destinations, and schedules to satisfy the school escorting model choice.</p>
+<p>There are a host of downstream model changes that are involved when including the school escorting model.
+The following list contains the models that are changed in some way when school escorting is included:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>Joint tour scheduling:</strong> Joint tours are not allowed to be scheduled over school escort tours.
+This happens automatically by updating the timetable object with the updated mandatory tour times
+and created pure escort tour times after the school escorting model is run.
+There were no code or config changes in this model, but it is still affected by school escorting.</p></li>
+<li><p><strong>Non-Mandatory tour frequency:</strong>  Pure school escort tours are joined to the tours created in the
+non-mandatory tour frequency model and tour statistics (such as tour_count and tour_num) are re-calculated.</p></li>
+<li><p><strong>Non-Mandatory tour destination:</strong> Since the primary destination of pure school escort tours is known,
+they are removed from the choosers table and have their destination set according to the destination inschool_escort_tours table.  They are also excluded from the estimation data bundle.</p></li>
+<li><p><strong>Non-Mandatory tour scheduling:</strong> Pure escort tours need to have the non-escorting portion of their tour scheduled.
+This is done by inserting availability conditions in the model specification that ensures the alternative
+chosen for the start of the tour is equal to the alternative start time for outbound tours and the end time
+is equal to the alternative end time for the inbound tours.  There are additional terms that ensure the tour
+does not overlap with subsequent school escorting tours as well.  Beware – If the availability conditions
+in the school escorting model are not set correctly, the tours created may not be consistent with each other
+and this model will fail.</p></li>
+<li><p><strong>Tour mode choice:</strong> Availability conditions are set in tour mode choice to prohibit the drive alone mode
+if the tour contains an escortee and the shared-ride 2 mode if the tour contains more than one escortee.</p></li>
+<li><p><strong>Stop Frequency:</strong> No stops are allowed on half-tours that include school escorting.
+This is enforced by adding availability conditions in the stop frequency model.  After the stop frequency
+model is run, the school escorting trips are merged from the trips created by the stop frequency model
+and a new stop frequency is computed along with updated trip numbers.</p></li>
+<li><p><strong>Trip purpose, destination, and scheduling:</strong> Trip purpose, destination, and departure times are known
+for school escorting trips.  As such they are removed from their respective chooser tables and the estimation
+data bundles, and set according to the values in the school_escort_trips table residing in the pipeline.</p></li>
+<li><p><strong>Trip mode choice:</strong> Like in tour mode choice, availability conditions are set to prohibit trip containing
+an escortee to use the drive alone mode or the shared-ride 2 mode for trips with more than one escortee.</p></li>
+</ul>
+</div></blockquote>
+<p>Many of the changes discussed in the above list are handled in the code and the user is not required to make any
+changes when implementing the school escorting model.  However, it is the users responsibility to include the
+changes in the following model configuration files for models downstream of the school escorting model:</p>
+<table class="table">
+<colgroup>
+<col style="width: 51%" />
+<col style="width: 49%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>File Name(s)</p></th>
+<th class="head"><p>Change(s) Needed</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><ul class="simple">
+<li><p><cite>non_mandatory_tour_scheduling_annotate_tours_preprocessor.csv</cite></p></li>
+<li><p><cite>tour_scheduling_nonmandatory.csv</cite></p></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li><p>Set availability conditions based on those times</p></li>
+<li><p>Do not schedule over other school escort tours</p></li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p><cite>tour_mode_choice_annotate_choosers_preprocessor.csv</cite></p></li>
+<li><p><cite>tour_mode_choice.csv</cite></p></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li><p>count number of escortees on tour by parsing the</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">escort_participants</span></code> column
+- set mode choice availability based on number of escortees</p>
+</td>
+</tr>
+<tr class="row-even"><td><ul class="simple">
+<li><p><cite>stop_frequency_school.csv</cite></p></li>
+<li><p><cite>stop_frequency_work.csv</cite></p></li>
+<li><p><cite>stop_frequency_univ.csv</cite></p></li>
+<li><p><cite>stop_frequency_escort.csv</cite></p></li>
+</ul>
+</td>
+<td><p>Do not allow stops for half-tours that include school escorting</p></td>
+</tr>
+<tr class="row-odd"><td><ul class="simple">
+<li><p><cite>trip_mode_choice_annotate_trips_preprocessor.csv</cite></p></li>
+<li><p><cite>trip_mode_choice.csv</cite></p></li>
+</ul>
+</td>
+<td><ul class="simple">
+<li><p>count number of escortees on trip by parsing the</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">escort_participants</span></code> column
+- set mode choice availability based on number of escortees</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>When not including the school escorting model, all of the escort trips to and from school are counted implicitly in
+escort tours determined in the non-mandatory tour frequency model. Thus, when including the school escort model and
+accounting for these tours explicitly, extra care should be taken not to double count them in the non-mandatory
+tour frequency model. The non-mandatory tour frequency model should be re-evaluated and likely changed to decrease
+the number of escort tours generated by that model.  This was not implemented in the <a class="reference internal" href="examples.html#prototype-mtc-extended"><span class="std std-ref">prototype_mtc_extended</span></a>
+implementation due to a lack of data surrounding the number of escort tours in the region.</p>
+<span class="target" id="module-activitysim.abm.models.school_escorting"></span><dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.check_alts_consistency">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.school_escorting.</span></span><span class="sig-name descname"><span class="pre">check_alts_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_escorting.check_alts_consistency" title="Permalink to this definition">#</a></dt>
+<dd><p>Checking to ensure that the alternatives file is consistent with
+the number of chaperones and escortees set in the model settings.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.create_bundle_attributes">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.school_escorting.</span></span><span class="sig-name descname"><span class="pre">create_bundle_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_escorting.create_bundle_attributes" title="Permalink to this definition">#</a></dt>
+<dd><p>Parse a bundle to determine escortee numbers and tour info.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.create_school_escorting_bundles_table">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.school_escorting.</span></span><span class="sig-name descname"><span class="pre">create_school_escorting_bundles_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_escorting.create_school_escorting_bundles_table" title="Permalink to this definition">#</a></dt>
+<dd><p>Creates a table that has one row for every school escorting bundle.
+Additional calculations are performed to help facilitate tour and
+trip creation including escortee order, times, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>choosers</strong><span class="classifier">pd.DataFrame</span></dt><dd><p>households pre-processed for the school escorting model</p>
+</dd>
+<dt><strong>tours</strong><span class="classifier">pd.Dataframe</span></dt><dd><p>mandatory tours</p>
+</dd>
+<dt><strong>stage</strong><span class="classifier">str</span></dt><dd><p>inbound or outbound_cond</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>bundles</strong><span class="classifier">pd.DataFrame</span></dt><dd><p>one school escorting bundle per row</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.determine_escorting_participants">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.school_escorting.</span></span><span class="sig-name descname"><span class="pre">determine_escorting_participants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_escorting.determine_escorting_participants" title="Permalink to this definition">#</a></dt>
+<dd><p>Determining which persons correspond to chauffer 1..n and escortee 1..n.
+Chauffers are those with the highest weight given by:
+weight = 100 * person type +  10 * gender + 1*(age &gt; 25)
+and escortees are selected youngest to oldest.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.school_escorting.school_escorting">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.school_escorting.</span></span><span class="sig-name descname"><span class="pre">school_escorting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">households</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">households_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.school_escorting.school_escorting" title="Permalink to this definition">#</a></dt>
+<dd><p>school escorting model</p>
+<p>The school escorting model determines whether children are dropped-off at or
+picked-up from school, simultaneously with the driver responsible for
+chauffeuring the children, which children are bundled together on half-tours,
+and the type of tour (pure escort versus rideshare).</p>
+<p>Run iteratively for an outbound choice, an inbound choice, and an outbound choice
+conditional on the inbound choice. The choices for inbound and outbound conditional
+are used to create school escort tours and trips.</p>
+<p>Updates / adds the following tables to the pipeline:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-</span> <span class="n">households</span> <span class="k">with</span> <span class="n">school</span> <span class="n">escorting</span> <span class="n">choice</span>
+<span class="o">-</span> <span class="n">tours</span> <span class="n">including</span> <span class="n">pure</span> <span class="n">school</span> <span class="n">escorting</span>
+<span class="o">-</span> <span class="n">school_escort_tours</span> <span class="n">which</span> <span class="n">contains</span> <span class="n">only</span> <span class="n">pure</span> <span class="n">school</span> <span class="n">escort</span> <span class="n">tours</span>
+<span class="o">-</span> <span class="n">school_escort_trips</span>
+<span class="o">-</span> <span class="n">timetable</span> <span class="n">to</span> <span class="n">avoid</span> <span class="n">joint</span> <span class="n">tours</span> <span class="n">scheduled</span> <span class="n">over</span> <span class="n">school</span> <span class="n">escort</span> <span class="n">tours</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
 <section id="joint-tour-frequency">
-<span id="id15"></span><h2>Joint Tour Frequency<a class="headerlink" href="#joint-tour-frequency" title="Permalink to this headline">#</a></h2>
+<span id="id17"></span><h2>Joint Tour Frequency<a class="headerlink" href="#joint-tour-frequency" title="Permalink to this headline">#</a></h2>
 <p>The joint tour generation models are divided into three sub-models: the joint tour frequency
 model, the party composition model, and the person participation model. In the joint tour
 frequency model, the household chooses the purposes and number (up to two) of its fully joint
@@ -1704,7 +2054,7 @@ alternatives above).</p>
 
 </section>
 <section id="joint-tour-composition">
-<span id="id16"></span><h2>Joint Tour Composition<a class="headerlink" href="#joint-tour-composition" title="Permalink to this headline">#</a></h2>
+<span id="id18"></span><h2>Joint Tour Composition<a class="headerlink" href="#joint-tour-composition" title="Permalink to this headline">#</a></h2>
 <p>In the joint tour party composition model, the makeup of the travel party (adults, children, or
 mixed - adults and children) is determined for each joint tour.  The party composition determines the
 general makeup of the party of participants in each joint tour in order to allow the micro-simulation
@@ -1722,7 +2072,7 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 </section>
 <section id="joint-tour-participation">
-<span id="id17"></span><h2>Joint Tour Participation<a class="headerlink" href="#joint-tour-participation" title="Permalink to this headline">#</a></h2>
+<span id="id19"></span><h2>Joint Tour Participation<a class="headerlink" href="#joint-tour-participation" title="Permalink to this headline">#</a></h2>
 <p>In the joint tour person participation model, each eligible person sequentially makes a
 choice to participate or not participate in each joint tour.  Since the party composition model
 determines what types of people are eligible to join a given tour, the person participation model
@@ -1781,7 +2131,7 @@ indicating that the participant has been chosen to participate in the tour</p>
 
 </section>
 <section id="joint-tour-destination-choice">
-<span id="id18"></span><h2>Joint Tour Destination Choice<a class="headerlink" href="#joint-tour-destination-choice" title="Permalink to this headline">#</a></h2>
+<span id="id20"></span><h2>Joint Tour Destination Choice<a class="headerlink" href="#joint-tour-destination-choice" title="Permalink to this headline">#</a></h2>
 <p>The joint tour destination choice model operate similarly to the usual work and
 school location choice model, selecting the primary destination for travel tours. The only
 procedural difference between the models is that the usual work and school location choice
@@ -1819,7 +2169,7 @@ person that’s making the tour)</p>
 
 </section>
 <section id="joint-tour-scheduling">
-<span id="id19"></span><h2>Joint Tour Scheduling<a class="headerlink" href="#joint-tour-scheduling" title="Permalink to this headline">#</a></h2>
+<span id="id21"></span><h2>Joint Tour Scheduling<a class="headerlink" href="#joint-tour-scheduling" title="Permalink to this headline">#</a></h2>
 <p>The joint tour scheduling model selects a tour departure and duration period (and therefore a start and end
 period as well) for each joint tour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>. The primary drivers in the
 models are accessibility-based parameters such
@@ -1838,7 +2188,7 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 </section>
 <section id="non-mandatory-tour-frequency">
-<span id="id20"></span><h2>Non-Mandatory Tour Frequency<a class="headerlink" href="#non-mandatory-tour-frequency" title="Permalink to this headline">#</a></h2>
+<span id="id22"></span><h2>Non-Mandatory Tour Frequency<a class="headerlink" href="#non-mandatory-tour-frequency" title="Permalink to this headline">#</a></h2>
 <p>The non-mandatory tour frequency model selects the number of non-mandatory tours made by each person on the simulation day.
 It also adds non-mandatory tours to the tours in the data pipeline. The individual non-mandatory tour frequency model
 operates in two stages:</p>
@@ -1898,7 +2248,7 @@ othdiscr, eatout, and social trips in various combination.</p>
 
 </section>
 <section id="non-mandatory-tour-destination-choice">
-<span id="id21"></span><h2>Non-Mandatory Tour Destination Choice<a class="headerlink" href="#non-mandatory-tour-destination-choice" title="Permalink to this headline">#</a></h2>
+<span id="id23"></span><h2>Non-Mandatory Tour Destination Choice<a class="headerlink" href="#non-mandatory-tour-destination-choice" title="Permalink to this headline">#</a></h2>
 <p>The non-mandatory tour destination choice model chooses a destination zone for
 non-mandatory tours.  The three step (sample, logsums, final choice) process also used for
 mandatory tour destination choice is used for non-mandatory tour destination choice.</p>
@@ -1918,7 +2268,7 @@ person that’s making the tour)</p>
 
 </section>
 <section id="non-mandatory-tour-scheduling">
-<span id="id22"></span><h2>Non-Mandatory Tour Scheduling<a class="headerlink" href="#non-mandatory-tour-scheduling" title="Permalink to this headline">#</a></h2>
+<span id="id24"></span><h2>Non-Mandatory Tour Scheduling<a class="headerlink" href="#non-mandatory-tour-scheduling" title="Permalink to this headline">#</a></h2>
 <p>The non-mandatory tour scheduling model selects a tour departure and duration period (and therefore a start and end
 period as well) for each non-mandatory tour.  This model uses person <a class="reference internal" href="core.html#time-windows"><span class="std std-ref">Person Time Windows</span></a>.  Includes support
 for <a class="reference internal" href="#representative-logsums"><span class="std std-ref">Mandatory Tour Scheduling</span></a>.</p>
@@ -1934,7 +2284,7 @@ function.  This function is registered as an Inject step in the example Pipeline
 
 </section>
 <section id="vehicle-allocation">
-<span id="id23"></span><h2>Vehicle Allocation<a class="headerlink" href="#vehicle-allocation" title="Permalink to this headline">#</a></h2>
+<span id="id25"></span><h2>Vehicle Allocation<a class="headerlink" href="#vehicle-allocation" title="Permalink to this headline">#</a></h2>
 <p>The vehicle allocation model selects which vehicle would be used for a tour of given occupancy. The alternatives for the vehicle
 allocation model consist of the vehicles owned by the household and an additional non household vehicle option. (Zero-auto
 households would be assigned the non-household vehicle option since there are no owned vehicles in the household).
@@ -2013,7 +2363,7 @@ type-based fields specified via the annotate_tours option.</p>
 
 </section>
 <section id="tour-mode-choice">
-<span id="id24"></span><h2>Tour Mode Choice<a class="headerlink" href="#tour-mode-choice" title="Permalink to this headline">#</a></h2>
+<span id="id26"></span><h2>Tour Mode Choice<a class="headerlink" href="#tour-mode-choice" title="Permalink to this headline">#</a></h2>
 <p>The mandatory, non-mandatory, and joint tour mode choice model assigns to each tour the “primary” mode that
 is used to get from the origin to the primary destination. The tour-based modeling approach requires a reconsideration
 of the conventional mode choice structure. Instead of a single mode choice model used in a four-step
@@ -2222,7 +2572,7 @@ See <a class="reference internal" href="examples.html#writing-logsums"><span cla
 
 </section>
 <section id="intermediate-stop-frequency">
-<span id="id25"></span><h2>Intermediate Stop Frequency<a class="headerlink" href="#intermediate-stop-frequency" title="Permalink to this headline">#</a></h2>
+<span id="id27"></span><h2>Intermediate Stop Frequency<a class="headerlink" href="#intermediate-stop-frequency" title="Permalink to this headline">#</a></h2>
 <p>The stop frequency model assigns to each tour the number of intermediate destinations a person
 will travel to on each leg of the tour from the origin to tour primary destination and back.
 The model incorporates the ability for more than one stop in each direction,
@@ -2265,7 +2615,7 @@ and four corresponding trips: three outbound, and one inbound.</p>
 
 </section>
 <section id="trip-purpose">
-<span id="id26"></span><h2>Trip Purpose<a class="headerlink" href="#trip-purpose" title="Permalink to this headline">#</a></h2>
+<span id="id28"></span><h2>Trip Purpose<a class="headerlink" href="#trip-purpose" title="Permalink to this headline">#</a></h2>
 <p>For trip other than the last trip outbound or inbound, assign a purpose based on an
 observed frequency distribution.  The distribution is segmented by tour purpose, tour
 direction and person type. Work tours are also segmented by departure or arrival time period.</p>
@@ -2319,7 +2669,7 @@ and depart time ranges are specified in the probability lookup table.</p>
 
 </section>
 <section id="trip-destination-choice">
-<span id="id27"></span><h2>Trip Destination Choice<a class="headerlink" href="#trip-destination-choice" title="Permalink to this headline">#</a></h2>
+<span id="id29"></span><h2>Trip Destination Choice<a class="headerlink" href="#trip-destination-choice" title="Permalink to this headline">#</a></h2>
 <p>See <a class="reference internal" href="dev-guide/components/trip_destination.html#component-trip-destination"><span class="std std-ref">Trip Destination</span></a>.</p>
 </section>
 <section id="trip-purpose-and-destination">
@@ -2531,7 +2881,7 @@ time periods consistent with the time windows for the appropriate leg of the tri
 </ul>
 </section>
 <section id="trip-mode-choice">
-<span id="id28"></span><h2>Trip Mode Choice<a class="headerlink" href="#trip-mode-choice" title="Permalink to this headline">#</a></h2>
+<span id="id30"></span><h2>Trip Mode Choice<a class="headerlink" href="#trip-mode-choice" title="Permalink to this headline">#</a></h2>
 <p>The trip mode choice model assigns a travel mode for each trip on a given tour. It
 operates similarly to the tour mode choice model, but only certain trip modes are available for
 each tour mode. The correspondence rules are defined according to the following principles:</p>
@@ -2562,14 +2912,14 @@ coefficient values (stored in trip_mode_choice_coefficients.csv coefficient file
 
 </section>
 <section id="parking-location-choice">
-<span id="id29"></span><h2>Parking Location Choice<a class="headerlink" href="#parking-location-choice" title="Permalink to this headline">#</a></h2>
+<span id="id31"></span><h2>Parking Location Choice<a class="headerlink" href="#parking-location-choice" title="Permalink to this headline">#</a></h2>
 <p>The parking location choice model selects a parking location for specified trips. While the model does not
 require parking location be applied to any specific set of trips, it is usually applied for drive trips to
 specific zones (e.g., CBD) in the model.</p>
 <p>The model provides provides a filter for both the eligible choosers and eligible parking location zone. The
 trips dataframe is the chooser of this model. The zone selection filter is applied to the land use zones
 dataframe.</p>
-<p>If this model is specified in the pipeline, the <a class="reference internal" href="#id30">Write Trip Matrices</a> step will using the parking location
+<p>If this model is specified in the pipeline, the <a class="reference internal" href="#id32">Write Trip Matrices</a> step will using the parking location
 choice results to build trip tables in lieu of the trip destination.</p>
 <p>The main interface to the trip mode choice model is the
 <code class="xref py py-func docutils literal notranslate"><span class="pre">parking_location_choice()</span></code> function.  This function
@@ -2694,14 +3044,14 @@ dp_skims - SkimDictWrapper: trip alt_dest, trip primary_dest</p>
 
 </section>
 <section id="write-trip-matrices">
-<span id="id30"></span><h2>Write Trip Matrices<a class="headerlink" href="#write-trip-matrices" title="Permalink to this headline">#</a></h2>
+<span id="id32"></span><h2>Write Trip Matrices<a class="headerlink" href="#write-trip-matrices" title="Permalink to this headline">#</a></h2>
 <p>Write open matrix (OMX) trip matrices for assignment.  Reads the trips table post preprocessor and run expressions
 to code additional data fields, with one data fields for each matrix specified.  The matrices are scaled by a
 household level expansion factor, which is the household sample rate by default, which is calculated when
 households are read in at the beginning of a model run.  The main interface to write trip
 matrices is the <a class="reference internal" href="#activitysim.abm.models.trip_matrices.write_trip_matrices" title="activitysim.abm.models.trip_matrices.write_trip_matrices"><code class="xref py py-func docutils literal notranslate"><span class="pre">write_trip_matrices()</span></code></a> function.  This function
 is registered as an Inject step in the example Pipeline.</p>
-<p>If the <a class="reference internal" href="#id29">Parking Location Choice</a> model is defined in the pipeline, the parking location zone will be used in
+<p>If the <a class="reference internal" href="#id31">Parking Location Choice</a> model is defined in the pipeline, the parking location zone will be used in
 lieu of the destination zone.</p>
 <p>Core Table: <code class="docutils literal notranslate"><span class="pre">trips</span></code> | Result: <code class="docutils literal notranslate"><span class="pre">omx</span> <span class="pre">trip</span> <span class="pre">matrices</span></code> | Skims Keys: <code class="docutils literal notranslate"><span class="pre">origin,</span> <span class="pre">destination</span></code></p>
 <span class="target" id="module-activitysim.abm.models.trip_matrices"></span><dl class="py function">
@@ -2746,8 +3096,8 @@ and uses the tap skim zone names for the set of possible taps.</p>
 <section id="util">
 <span id="utility-steps"></span><h2>Util<a class="headerlink" href="#util" title="Permalink to this headline">#</a></h2>
 <p>Additional helper classes</p>
-<section id="id31">
-<h3>CDAP<a class="headerlink" href="#id31" title="Permalink to this headline">#</a></h3>
+<section id="id33">
+<h3>CDAP<a class="headerlink" href="#id33" title="Permalink to this headline">#</a></h3>
 <span class="target" id="module-activitysim.abm.models.util.cdap"></span><dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.util.cdap.add_interaction_column">
 <span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">add_interaction_column</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">choosers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_tup</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.add_interaction_column" title="Permalink to this definition">#</a></dt>
@@ -3288,7 +3638,7 @@ in destination_sample, and computing the logsum of all the utilities</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.util.tour_destination.run_destination_simulate">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.tour_destination.</span></span><span class="sig-name descname"><span class="pre">run_destination_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec_segment_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_size_terms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_destination.run_destination_simulate" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.tour_destination.</span></span><span class="sig-name descname"><span class="pre">run_destination_simulate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec_segment_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tours</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">persons_merged</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">want_logsums</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_settings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">network_los</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination_size_terms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_choice</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_destination.run_destination_simulate" title="Permalink to this definition">#</a></dt>
 <dd><p>run destination_simulate on tour_destination_sample
 annotated with mode_choice logsum to select a destination from sample alternatives</p>
 </dd></dl>
@@ -3830,7 +4180,7 @@ DataFrame and the values are the index of the alts DataFrame.</p>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.1.4.dev511+g71d3e919, documentation last updated Jan 03, 2023.<br/>
+ActivitySim 1.1.4.dev733+g28ff4477, documentation last updated Jan 28, 2023.<br/>
 </p>
     </div>
     

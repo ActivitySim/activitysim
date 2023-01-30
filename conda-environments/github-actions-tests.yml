@@ -1,4 +1,7 @@
 # Environment for testing in GitHub Actions
+#  This environment contains a minimal set of dependencies needed to run most tests.
+#  It does not install ActivitySim itself (which is done by the test scripts) and
+#  is not meant for use outside the CI tools.
 name: asim-test
 channels:
 - conda-forge
@@ -9,8 +12,8 @@ dependencies:
 - cytoolz >= 0.8.1
 - isort
 - nbmake
-- numba >= 0.55.2
-- numpy >= 1.16.1,<=1.21
+- numba >= 0.56.4
+- numpy >= 1.16.1
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
 - pandas >= 1.1.0
@@ -23,7 +26,8 @@ dependencies:
 - pytest-regressions
 - pyyaml >= 5.1
 - requests >= 2.7
-- sharrow >= 2.2.4
+- sharrow >= 2.5.2
 - simwrapper > 1.7
+- scikit-learn >= 1.1.1
 - xarray >= 0.21
 - zarr

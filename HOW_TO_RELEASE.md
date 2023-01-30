@@ -40,18 +40,17 @@
     and development.  If they are not updated, these environments will end
     up with dependencies loaded from *pip* instead of *conda-forge*.
 
-00. Run `black` to ensure that the codebase passes minimal style checks.
+00. Run black to ensure that the codebase passes all style checks.
     This check should only take a few seconds.  These checks are also done on
-    GitHub Actions and are platform independent, so they should not be necessary to
+    Travis and are platform independent, so they should not be necessary to
     replicate locally, but are listed here for completeness.
     ```sh
     black --check --diff .
     ```
 
-00. Run the regular test suite on Windows. Most GitHub Actions tests are done on Linux,
-    Linux (it's faster to start up and run a new clean VM for testing) but most
-    users are on Windows, and the test suite should also be run on Windows to
-    ensure that it works on that platform as well.  If you
+00. Run the regular test suite on Windows. Travis tests are done on Linux,
+    but most users are on Windows, and the test suite should also be run
+    on Windows to ensure that it works on that platform as well.  If you
     are not preparing this release on Windows, you should be sure to run
     at least through this step on a Windows machine before finalizing a
     release.
@@ -67,7 +66,7 @@
     ```
 
 00. Test the full-scale regional examples. These examples are big, too
-    large to run on GitHub Actions, and will take a lot of time (many hours) to
+    large to run on Travis, and will take a lot of time (many hours) to
     download and run.
     ```sh
     mkdir tmp-asim
@@ -88,6 +87,37 @@
     There are also demo notebooks for estimation, but their functionality
     is completely tested in the unit tests run previously.
 
+00. Use bump2version to tag the release commit and update the
+    version number.  The following code will generate a "patch" release,
+    incrementing the third value in the version number (i.e. "1.2.3"
+    becomes "1.2.4").  Alternatively, make a "minor" or "major" release.
+    The `--list` command will generate output to your console to confirm
+    that the old and new version numbers are what you expect, before you
+    push the commit (with the changed version in the code) and tags to
+    GitHub.
+    ```sh
+    bump2version patch --list
+    ```
+
+    It is also possible to make a development pre-release. To do so,
+    explicitly set the version number to the next patch plus a ".devN"
+    suffix:
+
+    ```sh
+    bump2version patch --new-version 1.2.3.dev0 --list
+    ```
+
+    Then, when ready to make a "final" release, set the version by
+    explicitly removing the suffix:
+    ```sh
+    bump2version patch --new-version 1.2.3 --list
+    ```
+
+00. Push the tagged commit to GitHub.
+    ```sh
+    git push --tags
+    ```
+
 00. For non-development releases, open a pull request to merge the proposed
     release into main. The following command will open a web browser for
     you to create the pull request.
@@ -105,10 +135,6 @@
     ```sh
     gh release create v1.2.3
     ```
-    The process of creating and tagging a release will automatically
-    trigger various GitHub Actions scripts to build, test, and publish the
-    new release to PyPI and conda forge, assuming there are no errors.
-
     For a development pre-release, include the `--prerelease` argument.
     As the project's policy is that only formally released code is merged
     to the main branch, any pre-release should also be built against a
@@ -129,11 +155,3 @@
     conda deactivate
     conda env remove -n TEMP-ASIM-DEV
     ```
-
-00. Change the default redirect page for the ActivitySim documentation to point
-    to the newly released documentation.  The redirect page can be edited
-    [here](https://github.com/ActivitySim/activitysim/blob/gh-pages/index.html).
-
-00. Add the new release to the `switch.json` file. Don't delete the references
-    for existing old documentation.  The switcher can be edited
-    [here](https://github.com/ActivitySim/activitysim/blob/gh-pages/switcher.json).

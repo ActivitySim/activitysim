@@ -1,0 +1,47 @@
+inherit_settings: settings.yaml
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+households_sample_size: 0
+multiprocess: True
+num_processes: 28
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+# presampling
+want_dest_choice_presampling: True
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    slice:
+      tables:
+        - accessibility
+  - name: mp_households
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  sort: True
+  tables:
+    - checkpoints
+    - accessibility
+    - land_use
+    - households
+    - persons
+    - tours
+    - trips

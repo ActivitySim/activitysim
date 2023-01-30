@@ -507,12 +507,12 @@ Area types
   The prototype_mtc_sf inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and
   skim inputs for a subset of user-defined zones.
 
-.. index:: configuration
 
 Configuration
 ^^^^^^^^^^^^^
 
 This section has been moved to :ref:`configuration`.
+
 
 .. _sub-model-spec-files:
 
@@ -1054,6 +1054,17 @@ in this example are:
 * :ref:`vehicle_type_choice`: Selects a vehicle type for each household vehicle. Runs after auto_ownership.
 * :ref:`vehicle_allocation`: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
   auto operating costs are modified to reflect the allocated vehicle option.
+* :ref:`school_escorting`: Explicitly models school drop-off / pick-up of students to and from school.
+
+The prototype_mtc_extended example also contains changes to test the flexible number of tour and trip ids.
+(Information in why this is important can be found `here <https://github.com/ActivitySim/activitysim/wiki/Project-Meeting-2022.08.09>`__.)
+The following changes were made to demonstrate this:
+
+* An additional alternative was added to the non-mandatory tour frequency alternatives file containing 2 other discretionary tours.
+* An additional alternative was added to the stop_frequency_alts.csv for 4 outbound stops and 3 inbound stops. This alternative was then
+  included as part of the stop_frequency_othdiscr.csv specification with an added calibration constant to control that alternative.
+  Because an additional trip may now happen in the outbound direction, the trip scheduling probabilities table was extended for the
+  other discretionary tour purpose where the fourth outbound trip rows were copied for the now availabile fifth trip.
 
 
 .. _example_estimation :
@@ -1487,8 +1498,8 @@ prototype_semcog
 The prototype_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
 and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
 submodel :ref:`sub-model-spec-files`.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
-submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
-the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
+the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface
 in order to load the extensions folder.
 
 .. _semcog-sub-model-spec-files:

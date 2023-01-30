@@ -10,7 +10,7 @@ import warnings
 
 import yaml
 
-from activitysim.core import inject
+from activitysim.core import inject, util
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +65,7 @@ def pipeline_file_name(settings):
 
 @inject.injectable()
 def rng_base_seed():
-    return 0
+    return setting("rng_base_seed", 0)
 
 
 @inject.injectable(cache=True)
@@ -76,6 +76,14 @@ def settings_file_name():
 @inject.injectable(cache=True)
 def settings(settings_file_name):
     settings_dict = read_settings_file(settings_file_name, mandatory=True)
+
+    # basic settings validation for sharrow
+    sharrow_enabled = settings_dict.get("sharrow", False)
+    recode_pipeline_columns = settings_dict.get("recode_pipeline_columns", True)
+    if sharrow_enabled and not recode_pipeline_columns:
+        warnings.warn(
+            "use of `sharrow` setting generally requires `recode_pipeline_columns`"
+        )
 
     return settings_dict
 
@@ -107,6 +115,13 @@ def get_cache_dir():
     if not os.path.isdir(cache_dir):
         os.mkdir(cache_dir)
     assert os.path.isdir(cache_dir)
+
+    # create a git-ignore in the cache dir if it does not exist.
+    # this helps prevent accidentally committing cache contents to git
+    gitignore = os.path.join(cache_dir, ".gitignore")
+    if not os.path.exists(gitignore):
+        with open(gitignore, "wt") as f:
+            f.write("/*")
 
     return cache_dir
 
@@ -248,18 +263,19 @@ def cascading_input_file_path(
     dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
 
     file_path = None
-    for dir in dir_paths:
-        p = os.path.join(dir, file_name)
-        if os.path.isfile(p):
-            file_path = p
-            break
+    if file_name is not None:
+        for dir in dir_paths:
+            p = os.path.join(dir, file_name)
+            if os.path.isfile(p):
+                file_path = p
+                break
 
-        if allow_glob and len(glob.glob(p)) > 0:
-            file_path = p
-            break
+            if allow_glob and len(glob.glob(p)) > 0:
+                file_path = p
+                break
 
     if mandatory and not file_path:
-        raise RuntimeError(
+        raise FileNotFoundError(
             "file_path %s: file '%s' not in %s"
             % (dir_list_injectable_name, file_name, dir_paths)
         )
@@ -337,6 +353,20 @@ def output_file_path(file_name):
     return build_output_file_path(file_name, use_prefix=prefix)
 
 
+def profiling_file_path(file_name):
+
+    profile_dir = inject.get_injectable("profile_dir", None)
+    if profile_dir is None:
+        output_dir = inject.get_injectable("output_dir")
+        profile_dir = os.path.join(
+            output_dir, time.strftime("profiling--%Y-%m-%d--%H-%M-%S")
+        )
+        os.makedirs(profile_dir, exist_ok=True)
+        inject.add_injectable("profile_dir", profile_dir)
+
+    return os.path.join(profile_dir, file_name)
+
+
 def trace_file_path(file_name):
 
     output_dir = inject.get_injectable("output_dir")
@@ -397,6 +427,31 @@ def open_log_file(file_name, mode, header=None, prefix=False):
         print(header, file=f)
 
     return f
+
+
+def rotate_log_directory():
+
+    output_dir = inject.get_injectable("output_dir")
+    log_dir = os.path.join(output_dir, "log")
+    if not os.path.exists(log_dir):
+        return
+
+    from datetime import datetime
+    from stat import ST_CTIME
+
+    old_log_time = os.stat(log_dir)[ST_CTIME]
+    rotate_name = os.path.join(
+        output_dir,
+        datetime.fromtimestamp(old_log_time).strftime("log--%Y-%m-%d--%H-%M-%S"),
+    )
+    try:
+        os.rename(log_dir, rotate_name)
+    except Exception as err:
+        # if Windows fights us due to permissions or whatever,
+        print(f"unable to rotate log file, {err!r}")
+    else:
+        # on successful rotate, create new empty log directory
+        os.makedirs(log_dir)
 
 
 def pipeline_file_path(file_name):
@@ -461,6 +516,14 @@ def read_settings_file(
             set(configs_dir_list)
         ), f"repeating file names not allowed in config_dir list: {configs_dir_list}"
 
+    args = util.parse_suffix_args(file_name)
+    file_name = args.filename
+
+    assert isinstance(args.ROOTS, list)
+    assert (args.SUFFIX is not None and args.ROOTS) or (
+        args.SUFFIX is None and not args.ROOTS
+    ), ("Expected to find both 'ROOTS' and 'SUFFIX' in %s, missing one" % args.filename)
+
     if not file_name.lower().endswith(".yaml"):
         file_name = "%s.yaml" % (file_name,)
 
@@ -504,7 +567,7 @@ def read_settings_file(
                 # essentially the current settings firle is an alias for the included file
                 if len(s) > 1:
                     logger.error(
-                        f"'include_settings' must appear alone in settings file."
+                        "'include_settings' must appear alone in settings file."
                     )
                     additional_settings = list(
                         set(s.keys()).difference({"include_settings"})
@@ -513,7 +576,7 @@ def read_settings_file(
                         f"Unexpected additional settings: {additional_settings}"
                     )
                     raise RuntimeError(
-                        f"'include_settings' must appear alone in settings file."
+                        "'include_settings' must appear alone in settings file."
                     )
 
                 logger.debug(
@@ -564,6 +627,10 @@ def read_settings_file(
 
     if mandatory and not settings:
         raise SettingsFileNotFound(file_name, configs_dir_list)
+
+    # Adds proto_ suffix for disaggregate accessibilities
+    if args.SUFFIX is not None and args.ROOTS:
+        settings = util.suffix_tables_in_settings(settings, args.SUFFIX, args.ROOTS)
 
     if include_stack:
         # if we were called recursively, return an updated list of source_file_paths
@@ -628,12 +695,60 @@ def filter_warnings():
         message="`np.object` is a deprecated alias",
     )
 
+    # Numba triggers a DeprecationWarning from numpy about np.MachAr
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        module="numba",
+        message=".np.MachAr. is deprecated",
+    )
+
     # beginning pandas version 1.3, various places emit a PerformanceWarning that is
     # caught in the "strict" filter above, but which are currently unavoidable for complex models.
     # These warning are left as warnings as an invitation for future enhancement.
     from pandas.errors import PerformanceWarning
 
     warnings.filterwarnings("default", category=PerformanceWarning)
+
+    # pandas 1.5
+    # beginning in pandas version 1.5, a new warning is emitted when a column is set via iloc
+    # from an array of different dtype, the update will eventually be done in-place in future
+    # versions. This is actually the preferred outcome for ActivitySim and no code changes are
+    # needed.
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message=(
+            ".*will attempt to set the values inplace instead of always setting a new array. "
+            "To retain the old behavior, use either.*"
+        ),
+    )
+    # beginning in pandas version 1.5, a warning is emitted when using pandas.concat on dataframes
+    # that contain object-dtype columns with all-bool values.  ActivitySim plans to address dtypes
+    # and move away from object-dtype columns anyhow, so this is not a critical problem.
+    warnings.filterwarnings(
+        "ignore",
+        category=FutureWarning,
+        message=(
+            ".*object-dtype columns with all-bool values will not be included in reductions.*"
+        ),
+    )
+    warnings.filterwarnings(
+        "ignore",
+        category=DeprecationWarning,
+        message=".*will attempt to set the values inplace instead of always setting a new array.*",
+    )
+
+    # beginning in sharrow version 2.5, a CacheMissWarning is emitted when a sharrow
+    # flow cannot be loaded from cache and needs to be compiled.  These are performance
+    # warnings for production runs and totally expected when running test or on new
+    # machines
+    try:
+        from sharrow import CacheMissWarning
+    except ImportError:
+        pass
+    else:
+        warnings.filterwarnings("default", category=CacheMissWarning)
 
 
 def handle_standard_args(parser=None):

@@ -1,0 +1,3 @@
+Description,Target,Expression
+overwrite non-mandatory tour destination for school escort tours,_school_escort_tour_destination,"reindex(school_escort_tours.destination, df.index)"
+,destination,"np.where(_school_escort_tour_destination.isna(), df.destination, _school_escort_tour_destination)"

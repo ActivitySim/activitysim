@@ -65,7 +65,7 @@ Additional libraries can also be installed later.  You may want to consider thes
 tools for certain development tasks::
 
   # packages for testing
-  mamba install pytest pytest-cov coveralls pycodestyle pytest-regressions -c conda-forge --override-channels -n asim
+  mamba install pytest pytest-cov coveralls black flake8 pytest-regressions -c conda-forge --override-channels -n asim
 
   # packages for building documentation
   mamba install sphinx numpydoc sphinx_rtd_theme==0.5.2 -c conda-forge --override-channels -n asim
@@ -172,11 +172,11 @@ To setup and run the primary example (see :ref:`examples`), do the following:
 * Review the outputs in the output directory
 
 .. note::
-   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.  
+   Common configuration settings can be overridden at runtime.  See ``activitysim -h``, ``activitysim create -h`` and ``activitysim run -h``.
    ActivitySim model runs can be configured with settings file inheritance to avoid duplicating settings across model configurations.  See :ref:`cli` for more information.
 
 Additional examples, including the full scale prototype MTC regional demand model, estimation integration examples, multiple zone system examples,
-and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from 
+and examples for agency partners are available for creation by typing ``activitysim create -l``.  To create these examples, ActivitySim downloads the (large) input files from
 the `ActivitySim resources <https://github.com/rsginc/activitysim_resources>`__ repository.  See :ref:`examples` for more information.
 
 Try the Notebooks
@@ -213,7 +213,7 @@ on the amount of RAM and number of processors allocated.  See :ref:`multiprocess
 
 .. note::
    ActivitySim has been run in the cloud, on both Windows and Linux using
-   `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations, 
+   `Microsoft Azure <https://azure.microsoft.com/en-us/>`__.  Example configurations,
    scripts, and runtimes are in the ``other_resources\example_azure`` folder.
 
 .. _mkl_settings :

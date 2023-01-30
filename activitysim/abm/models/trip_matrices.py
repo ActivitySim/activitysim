@@ -38,7 +38,7 @@ def write_trip_matrices(network_los):
         # this might legitimately happen if they comment out some steps to debug but still want write_tables
         # this saves them the hassle of remembering to comment out this step
         logger.warning(
-            f"write_trip_matrices returning empty-handed because there is no trips table"
+            "write_trip_matrices returning empty-handed because there is no trips table"
         )
         return
 
@@ -52,6 +52,7 @@ def write_trip_matrices(network_los):
         parking_settings = config.read_model_settings("parking_location_choice.yaml")
         parking_taz_col_name = parking_settings["ALT_DEST_COL_NAME"]
         if parking_taz_col_name in trips_df:
+            # TODO make parking zone negative, not zero, if not used
             trips_df.loc[trips_df[parking_taz_col_name] > 0, "destination"] = trips_df[
                 parking_taz_col_name
             ]
@@ -60,7 +61,9 @@ def write_trip_matrices(network_los):
     # write matrices by zone system type
     if network_los.zone_system == los.ONE_ZONE:  # taz trips written to taz matrices
         logger.info("aggregating trips one zone...")
-        aggregate_trips = trips_df.groupby(["origin", "destination"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["origin", "destination"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
@@ -75,15 +78,21 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("destination")
 
         # use the land use table for the set of possible tazs
-        zone_index = pipeline.get_table("land_use").index
+        land_use = pipeline.get_table("land_use")
+        zone_index = land_use.index
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 
         _, orig_index = zone_index.reindex(orig_vals)
         _, dest_index = zone_index.reindex(dest_vals)
 
+        try:
+            zone_labels = land_use[f"_original_{land_use.index.name}"]
+        except KeyError:
+            zone_labels = land_use.index
+
         write_matrices(
-            aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            aggregate_trips, zone_labels, orig_index, dest_index, model_settings
         )
 
     elif network_los.zone_system == los.TWO_ZONE:  # maz trips written to taz matrices
@@ -94,7 +103,9 @@ def write_trip_matrices(network_los):
         trips_df["dtaz"] = (
             pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
         )
-        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
@@ -107,6 +118,15 @@ def write_trip_matrices(network_los):
 
         orig_vals = aggregate_trips.index.get_level_values("otaz")
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
+
+        try:
+            land_use_taz = pipeline.get_table("land_use_taz")
+        except (KeyError, RuntimeError):
+            pass  # table missing, ignore
+        else:
+            if "_original_TAZ" in land_use_taz.columns:
+                orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
+                dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
 
         zone_index = pd.Index(network_los.get_tazs(), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)
@@ -130,7 +150,9 @@ def write_trip_matrices(network_los):
         trips_df["dtaz"] = (
             pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
         )
-        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
@@ -144,6 +166,15 @@ def write_trip_matrices(network_los):
         orig_vals = aggregate_trips.index.get_level_values("otaz")
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
+        try:
+            land_use_taz = pipeline.get_table("land_use_taz")
+        except (KeyError, RuntimeError):
+            pass  # table missing, ignore
+        else:
+            if "_original_TAZ" in land_use_taz.columns:
+                orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
+                dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
+
         zone_index = pd.Index(network_los.get_tazs(), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
@@ -156,7 +187,9 @@ def write_trip_matrices(network_los):
         )
 
         logger.info("aggregating trips three zone tap...")
-        aggregate_trips = trips_df.groupby(["btap", "atap"], sort=False).sum()
+        aggregate_trips = trips_df.groupby(["btap", "atap"], sort=False).sum(
+            numeric_only=True
+        )
 
         # use the average household weight for all trips in the origin destination pair
         hh_weight_col = model_settings.get("HH_EXPANSION_WEIGHT_COL")
@@ -215,6 +248,14 @@ def annotate_trips(trips, network_los, model_settings):
     expressions.annotate_preprocessors(
         trips_df, locals_dict, skims, model_settings, trace_label
     )
+
+    if not np.issubdtype(trips_df["trip_period"].dtype, np.integer):
+        if hasattr(skim_dict, "map_time_periods_from_series"):
+            trip_period_idx = skim_dict.map_time_periods_from_series(
+                trips_df["trip_period"]
+            )
+            if trip_period_idx is not None:
+                trips_df["trip_period"] = trip_period_idx
 
     # Data will be expanded by an expansion weight column from
     # the households pipeline table, if specified in the model settings.

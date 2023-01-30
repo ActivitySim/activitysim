@@ -8,14 +8,12 @@ All - Tour origin zone,@(df.origin == df.dest_zone_id),0.7112,0.7112,0.7112,0.71
 All - Tour destinatoin zone,@(df.destination == df.dest_zone_id),1.037,1.037,1.037,1.037,1.037,1.037,1.037,1.037,1.037,1.037
 "# dest_zone_id is not available in the preprocessor file and reindex is not available here, so the expression was commented out. Similar expression was commented out in the ActivitySim example file as well. ",,,,,,,,,,,
 # All - CBD area type,"@reindex(land_use.areatype, df.dest_zone_id) == 1",-0.285,-0.285,-0.285,-0.285,-0.285,-0.285,-0.285,-0.285,-0.285,-0.285
-All - Size variable ,"@np.log1p(size_terms.get(df.dest_zone_id, df.purpose))",1,1,1,1,1,1,1,1,1,1
-All - No attractions,"@size_terms.get(df.dest_zone_id, df.purpose) == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+All - Size variable ,"@np.log1p(size_terms.get(df.dest_zone_id, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])",1,1,1,1,1,1,1,1,1,1
+All - No attractions,"@size_terms.get(df.dest_zone_id, df.purpose) == 0 # sharrow: size_terms['sizearray'] == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 #Applied the conventions used in the destination sample file,,,,,,,,,,,
 ,"_org_to_stop_dist@od_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
 ,"_stop_to_dest_dist@dp_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
-# THIS IS WRONG ***** RIGHT HERE **** I CHANGED THE BELOW TO MAKE WORK MECHANICALLY ,,,,,,,,,,,
-# ,"_od_distance@op_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
-,"_od_distance@od_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
+,"_od_distance@op_skims[('SOV_FREE_DISTANCE', 'MD')]",1,1,1,1,1,1,1,1,1,1
 #WORK,,,,,,,,,,,
 WORK - Distance squared,"@((od_skims[('SOV_FREE_DISTANCE', 'MD')] + dp_skims[('SOV_FREE_DISTANCE', 'MD')]) ** 2)",0.0026,,,,,,,,,
 WORK - Distance cubed,"@((od_skims[('SOV_FREE_DISTANCE', 'MD')] + dp_skims[('SOV_FREE_DISTANCE', 'MD')]) ** 3)",-0.0000109,,,,,,,,,

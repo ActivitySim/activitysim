@@ -1,0 +1,45 @@
+inherit_settings: True
+
+# treat warnings as errors
+strict: True
+
+# raise error if any sub-process fails without waiting for others to complete
+fail_fast: True
+
+multiprocess: True
+
+chunk_size: 0
+num_processes: 2
+
+# number of households to simulate
+households_sample_size:  10
+
+# - shadow pricing global switches
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: True
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+
+cleanup_pipeline_after_run: True
+
+trace_hh_id:
+# global switch to turn on or off presampling of destination alternatives at TAZ level (multizone models only)
+want_dest_choice_presampling: True
+
+recode_pipeline_columns: False
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  sort: True
+  tables:
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - vehicles
+    - proto_disaggregate_accessibility

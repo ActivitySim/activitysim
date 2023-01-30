@@ -6,7 +6,7 @@ import warnings
 
 import pandas as pd
 
-from activitysim.abm.tables import shadow_pricing
+from activitysim.abm.tables import shadow_pricing, disaggregate_accessibility
 from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing
 from activitysim.core.steps.output import (
     track_skim_usage,
@@ -141,7 +141,8 @@ def initialize_households():
         add_size_tables = model_settings.get("add_size_tables", True)
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            shadow_pricing.add_size_tables()
+            suffixes = inject.get_injectable("disaggregate_suffixes")
+            shadow_pricing.add_size_tables(suffixes)
 
         # - preload person_windows
         person_windows = inject.get_table("person_windows").to_frame()

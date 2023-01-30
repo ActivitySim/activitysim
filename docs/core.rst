@@ -514,7 +514,7 @@ Table columns can also be aggregated, or "remapped," during the preprocessing st
       - column: major_trip_mode        # Column on which to operate
         label: major_trip_mode         # New column to make
         map:
-          DRIVEALONEFREE: SOV          # Keys: Existing values to map from 
+          DRIVEALONEFREE: SOV          # Keys: Existing values to map from
           DRIVEALONEPAY: SOV           # Values: New values to map to
           SHARED2FREE: HOV
           SHARED2PAY: HOV
@@ -557,7 +557,7 @@ The latest information about the Simwrapper package is available on its `PyPI pa
 To run SimWrapper, navigate on the command line to ``output\summarize`` within the model directory, or a directory where you may have copied outputs, and run:
 ::
 
-  > simwrapper open asim 
+  > simwrapper open asim
 
 This will start SimWrapper in your default browser. If this directory contains the appropriate configuration files for a dashboard (see above), the dashboard will open automatically. Otherwise, SimWrapper will show a file browser with the contents of the directory.
 
@@ -616,7 +616,7 @@ Chunking management.
    of chunk_size simplifies model setup since it is the approximate amount of RAM available to
    ActivitySim as opposed to the obscure number of doubles (64-bit numbers) in a chunk of a choosers table.
 
-The ``chunk_size`` is the approximate amount of RAM in GBs to allocate to ActivitySim for batch
+The ``chunk_size`` is the approximate amount of RAM in bytes (1 Gigabyte or 1 GB is equal to 1,000,000,000 bytes) to allocate to ActivitySim for batch
 processing choosers across all processes.  It is specified in bytes, for example ``chunk_size: 500_000_000_000`` is 500 GBs.
 If set ``chunk_training_mode: disabled`` then no chunking will be performed and ActivitySim will attempt to solve all the
 choosers at once across all the processes.  Chunking is required when all the chooser data required to process all the

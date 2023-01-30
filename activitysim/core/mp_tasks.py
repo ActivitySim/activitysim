@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+import importlib
 import logging
 import multiprocessing
 import os
@@ -381,7 +382,7 @@ def build_slice_rules(slice_info, pipeline_tables):
     """
 
     slicer_table_names = slice_info["tables"]
-    slicer_table_exceptions = slice_info.get("except", [])
+    slicer_table_exceptions = slice_info.get("exclude", slice_info.get("except", []))
     primary_slicer = slicer_table_names[0]
 
     # - ensure that tables listed in slice_info appear in correct order and before any others
@@ -733,14 +734,28 @@ def setup_injectables_and_logging(injectables, locutor=True):
     # other callers (e.g. piopulationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+        # register abm steps and other abm-specific injectables
+        from activitysim import abm  # noqa: F401
 
     try:
 
         for k, v in injectables.items():
             inject.add_injectable(k, v)
+
+        # re-import extension modules to register injectables
+        ext = inject.get_injectable("imported_extensions", default=())
+        for e in ext:
+            basepath, extpath = os.path.split(e)
+            if not basepath:
+                basepath = "."
+            sys.path.insert(0, basepath)
+            try:
+                importlib.import_module(e)
+            except ImportError as err:
+                logger.exception("ImportError")
+                raise
+            finally:
+                del sys.path[0]
 
         inject.add_injectable("is_sub_task", True)
         inject.add_injectable("locutor", locutor)
@@ -1054,6 +1069,33 @@ def allocate_shared_shadow_pricing_buffers():
         shadow_pricing_buffers = {}
 
     return shadow_pricing_buffers
+
+
+def allocate_shared_shadow_pricing_buffers_choice():
+    """
+    This is called by the main process to allocate memory buffer to share with subprocs
+
+    Returns
+    -------
+        multiprocessing.RawArray
+    """
+
+    info("allocate_shared_shadow_pricing_buffers_choice")
+
+    shadow_pricing_choice_info = inject.get_injectable(
+        "shadow_pricing_choice_info", None
+    )
+
+    if shadow_pricing_choice_info is not None:
+        from activitysim.abm.tables import shadow_pricing
+
+        shadow_pricing_buffers_choice = (
+            shadow_pricing.buffers_for_shadow_pricing_choice(shadow_pricing_choice_info)
+        )
+    else:
+        shadow_pricing_buffers_choice = {}
+
+    return shadow_pricing_buffers_choice
 
 
 def run_sub_simulations(
@@ -1385,15 +1427,18 @@ def run_multiprocess(injectables):
     def find_breadcrumb(crumb, default=None):
         return old_breadcrumbs.get(step_name, {}).get(crumb, default)
 
+    sharrow_enabled = config.setting("sharrow", False)
+
     # - allocate shared data
     shared_data_buffers = {}
 
     mem.trace_memory_info("allocate_shared_skim_buffer.before")
 
     t0 = tracing.print_elapsed_time()
-    shared_data_buffers.update(allocate_shared_skim_buffers())
-    t0 = tracing.print_elapsed_time("allocate shared skim buffer", t0)
-    mem.trace_memory_info("allocate_shared_skim_buffer.completed")
+    if not sharrow_enabled:
+        shared_data_buffers.update(allocate_shared_skim_buffers())
+        t0 = tracing.print_elapsed_time("allocate shared skim buffer", t0)
+        mem.trace_memory_info("allocate_shared_skim_buffer.completed")
 
     # combine shared_skim_buffer and shared_shadow_pricing_buffer in shared_data_buffer
     t0 = tracing.print_elapsed_time()
@@ -1401,18 +1446,42 @@ def run_multiprocess(injectables):
     t0 = tracing.print_elapsed_time("allocate shared shadow_pricing buffer", t0)
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers.completed")
 
+    # combine shared_shadow_pricing_buffers to pool choices across all processes
+    t0 = tracing.print_elapsed_time()
+    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice())
+    t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
+    mem.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
+
+    if sharrow_enabled:
+        start_time = time.time()
+        shared_data_buffers["skim_dataset"] = "sh.Dataset:skim_dataset"
+
+        # Loading skim_dataset must be done in the main process, not a subprocess,
+        # so that this min process can hold on to the shared memory and then cleanly
+        # release it on exit.
+        from . import flow  # make injectable known  # noqa: F401
+
+        inject.get_injectable("skim_dataset")
+
+        tracing.print_elapsed_time("setup skim_dataset", t0)
+        mem.trace_memory_info("skim_dataset.completed")
+
     # - mp_setup_skims
-    if len(shared_data_buffers) > 0:
-        run_sub_task(
-            multiprocessing.Process(
-                target=mp_setup_skims,
-                name="mp_setup_skims",
-                args=(injectables,),
-                kwargs=shared_data_buffers,
+    else:  # not sharrow_enabled
+        if len(shared_data_buffers) > 0:
+            start_time = time.time()
+            run_sub_task(
+                multiprocessing.Process(
+                    target=mp_setup_skims,
+                    name="mp_setup_skims",
+                    args=(injectables,),
+                    kwargs=shared_data_buffers,
+                )
             )
-        )
-        t0 = tracing.print_elapsed_time("setup shared_data_buffers", t0)
-        mem.trace_memory_info("mp_setup_skims.completed")
+
+            tracing.print_elapsed_time("setup shared_data_buffers", t0)
+            mem.trace_memory_info("mp_setup_skims.completed")
+    tracing.log_runtime("mp_setup_skims", start_time=start_time, force=True)
 
     # - for each step in run list
     for step_info in run_list["multiprocess_steps"]:
@@ -1429,12 +1498,16 @@ def run_multiprocess(injectables):
 
         # - mp_apportion_pipeline
         if not skip_phase("apportion") and num_processes > 1:
+            start_time = time.time()
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_apportion_pipeline,
                     name="%s_apportion" % step_name,
                     args=(injectables, sub_proc_names, step_info),
                 )
+            )
+            tracing.log_runtime(
+                "%s_apportion" % step_name, start_time=start_time, force=True
             )
         drop_breadcrumb(step_name, "apportion")
 
@@ -1463,12 +1536,16 @@ def run_multiprocess(injectables):
 
         # - mp_coalesce_pipelines
         if not skip_phase("coalesce") and num_processes > 1:
+            start_time = time.time()
             run_sub_task(
                 multiprocessing.Process(
                     target=mp_coalesce_pipelines,
                     name="%s_coalesce" % step_name,
                     args=(injectables, sub_proc_names, slice_info),
                 )
+            )
+            tracing.log_runtime(
+                "%s_coalesce" % step_name, start_time=start_time, force=True
             )
         drop_breadcrumb(step_name, "coalesce")
 
@@ -1786,7 +1863,11 @@ def get_run_list():
 
         # - add resume breadcrumbs
         if resume_after:
-            breadcrumbs = get_breadcrumbs(run_list)
+            try:
+                breadcrumbs = get_breadcrumbs(run_list)
+            except IOError:  # file does not exist, no resume_after is possible
+                breadcrumbs = None
+                resume_after = None
             if breadcrumbs:
                 run_list["breadcrumbs"] = breadcrumbs
 

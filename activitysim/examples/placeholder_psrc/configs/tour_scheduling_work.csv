@@ -31,10 +31,10 @@ util_previously_scheduled_tour_begins_in_this_arrival_hour,Previously-scheduled 
 #,FIXME - use temps as timetable ops can be very time-consuming,,
 util_dummy_adjacent_before,local temp variable,"_adjacent_window_before@tt.adjacent_window_before(df.person_id, df.start)",coef_dummy
 util_dummy_adjacent_after,local temp variable,"_adjacent_window_after@tt.adjacent_window_after(df.person_id, df.end)",coef_dummy
-util_adjacent_window_exists_before_this_departure_hour_first_tour_interaction,Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & _adjacent_window_before",coef_adjacent_window_exists_before_this_departure_hour_first_tour_interaction
-util_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction,Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) & (df.tour_num == 1) & _adjacent_window_after",coef_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction
-util_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction,Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) & _adjacent_window_before",coef_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction
-util_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction,Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) & _adjacent_window_after",coef_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction
+util_adjacent_window_exists_before_this_departure_hour_first_tour_interaction,Adjacent window exists before this departure hour - first tour interaction,"@(df.tour_count>1) * (df.tour_num == 1) * _adjacent_window_before",coef_adjacent_window_exists_before_this_departure_hour_first_tour_interaction
+util_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction,Adjacent window exists after this arrival hour - first tour interaction,"@(df.tour_count>1) * (df.tour_num == 1) * _adjacent_window_after",coef_adjacent_window_exists_after_this_arrival_hour_first_tour_interaction
+util_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction,Adjacent window exists before this departure hour - second+ tour interaction,"@(df.tour_num > 1) * _adjacent_window_before",coef_adjacent_window_exists_before_this_departure_hour_second_plus_tour_interaction
+util_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction,Adjacent window exists after this arrival hour - second+ tour interaction,"@(df.tour_num > 1) * _adjacent_window_after",coef_adjacent_window_exists_after_this_arrival_hour_second_plus_tour_interaction
 util_remaining_tours_to_be_scheduled_div_number_of_unscheduled_hours,Remaining work/school tours to be scheduled / number of unscheduled hours,"@((df.tour_count>1) & (df.tour_num == 1)) * 1.0 / tt.remaining_periods_available(df.person_id, df.start, df.end)",coef_remaining_tours_to_be_scheduled_div_number_of_unscheduled_hours
 util_departure_constants_early,Departure Constants -- Early (up to 5),start < 6,coef_departure_constants_early
 util_departure_constants_am_peak_1,Departure Constants -- AM peak 1 (6),start == 6,coef_departure_constants_am_peak_1
@@ -65,72 +65,3 @@ util_duration_constants_10_hours,Duration Constants -- 10 hours,duration == 10,c
 util_duration_constants_11_hours,Duration Constants -- 11 hours,duration == 11,coef_duration_constants_11_hours
 util_duration_constants_12_to_13_hours,Duration Constants -- 12 to 13 hours,(duration > 11) & (duration < 14),coef_duration_constants_12_to_13_hours
 util_duration_constants_14_to_18_hours,Duration Constants -- 14 to 18 hours,(duration > 13) & (duration < 19),coef_duration_constants_14_to_18_hours
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

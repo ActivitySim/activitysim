@@ -7,7 +7,6 @@ import glob
 import logging
 import multiprocessing
 import os
-import platform
 import threading
 import time
 
@@ -174,7 +173,7 @@ def log_global_hwm():
         )
 
 
-def trace_memory_info(event, trace_ticks=0):
+def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False):
 
     global MEM_TICK
 
@@ -183,14 +182,26 @@ def trace_memory_info(event, trace_ticks=0):
         return
     MEM_TICK = tick
 
+    if force_garbage_collect:
+        was_disabled = not gc.isenabled()
+        if was_disabled:
+            gc.enable()
+        gc.collect()
+        if was_disabled:
+            gc.disable()
+
     process_name = multiprocessing.current_process().name
     pid = os.getpid()
 
     current_process = psutil.Process()
 
     if USS:
-        info = current_process.memory_full_info()
-        uss = info.uss
+        try:
+            info = current_process.memory_full_info()
+            uss = info.uss
+        except (PermissionError, psutil.AccessDenied, RuntimeError):
+            info = current_process.memory_info()
+            uss = 0
     else:
         info = current_process.memory_info()
         uss = 0
@@ -254,8 +265,12 @@ def get_rss(force_garbage_collect=False, uss=False):
             gc.disable()
 
     if uss:
-        info = psutil.Process().memory_full_info()
-        return info.rss, info.uss
+        try:
+            info = psutil.Process().memory_full_info()
+            return info.rss, info.uss
+        except (PermissionError, psutil.AccessDenied, RuntimeError):
+            info = psutil.Process().memory_info()
+            return info.rss, 0
     else:
         info = psutil.Process().memory_info()
         return info.rss, 0
@@ -276,6 +291,11 @@ def shared_memory_size(data_buffers=None):
         data_buffers = inject.get_injectable("data_buffers", {})
 
     for k, data_buffer in data_buffers.items():
+        if isinstance(data_buffer, str) and data_buffer.startswith("sh.Dataset:"):
+            from sharrow import Dataset
+
+            shared_size += Dataset.shm.preload_shared_memory_size(data_buffer[11:])
+            continue
         try:
             obj = data_buffer.get_obj()
         except Exception:

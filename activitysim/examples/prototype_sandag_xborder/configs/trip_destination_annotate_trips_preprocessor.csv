@@ -5,3 +5,4 @@ Description,Target,Expression
 ,tour_leg_dest,"np.where(df.outbound,reindex(tours.destination, df.tour_id), reindex(tours.origin, df.tour_id))"
 ,_tod,"np.where(df.outbound,reindex_i(tours.start, df.tour_id), reindex_i(tours.end, df.tour_id))"
 ,trip_period,network_los.skim_time_period_label(_tod)
+,purpose_index_num,"size_terms.get_cols(df.purpose)"

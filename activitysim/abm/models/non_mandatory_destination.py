@@ -7,7 +7,8 @@ import pandas as pd
 from activitysim.core import config, inject, pipeline, simulate, tracing
 from activitysim.core.util import assign_in_place
 
-from .util import estimation, tour_destination
+from .util import estimation, tour_destination, annotate
+
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +44,18 @@ def non_mandatory_tour_destination(
     # choosers are tours - in a sense tours are choosing their destination
     non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]
 
-    # - if no mandatory_tours
+    # separating out pure escort school tours
+    # they already have their destination set
+    if pipeline.is_table("school_escort_tours"):
+        nm_tour_index = non_mandatory_tours.index
+        pure_school_escort_tours = non_mandatory_tours[
+            (non_mandatory_tours["school_esc_outbound"] == "pure_escort")
+            | (non_mandatory_tours["school_esc_inbound"] == "pure_escort")
+        ]
+        non_mandatory_tours = non_mandatory_tours[
+            ~non_mandatory_tours.index.isin(pure_school_escort_tours.index)
+        ]
+
     if non_mandatory_tours.shape[0] == 0:
         tracing.no_results(trace_label)
         return
@@ -85,13 +97,26 @@ def non_mandatory_tour_destination(
 
     non_mandatory_tours["destination"] = choices_df.choice
 
+    # merging back in school escort tours and preserving index
+    if pipeline.is_table("school_escort_tours"):
+        non_mandatory_tours = pd.concat(
+            [pure_school_escort_tours, non_mandatory_tours]
+        ).set_index(nm_tour_index)
+
     assign_in_place(tours, non_mandatory_tours[["destination"]])
 
     if want_logsums:
         non_mandatory_tours[logsum_column_name] = choices_df["logsum"]
         assign_in_place(tours, non_mandatory_tours[[logsum_column_name]])
 
+    assert all(
+        ~tours["destination"].isna()
+    ), f"Tours are missing destination: {tours[tours['destination'].isna()]}"
+
     pipeline.replace_table("tours", tours)
+
+    if model_settings.get("annotate_tours"):
+        annotate.annotate_tours(model_settings, trace_label)
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)

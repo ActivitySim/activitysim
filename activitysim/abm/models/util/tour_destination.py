@@ -76,6 +76,7 @@ def _destination_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    zone_layer=None,
 ):
 
     model_spec = simulate.spec_for_segment(
@@ -98,7 +99,12 @@ def _destination_sample(
         )
         sample_size = 0
 
-    locals_d = {"skims": skims}
+    locals_d = {
+        "skims": skims,
+        "orig_col_name": skims.orig_key,  # added for sharrow flows
+        "dest_col_name": skims.dest_key,  # added for sharrow flows
+        "timeframe": "timeless",
+    }
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
@@ -117,11 +123,15 @@ def _destination_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer=zone_layer,
     )
+
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
-    choices["person_id"] = choosers.person_id
+    choices[chooser_id_column] = choosers[chooser_id_column]
 
     return choices
 
@@ -175,11 +185,6 @@ DEST_TAZ = "dest_TAZ"
 ORIG_TAZ = "TAZ"  # likewise a temp, but if already in choosers, we assume we can use it opportunistically
 
 
-def map_maz_to_taz(s, network_los):
-    maz_to_taz = network_los.maz_taz_df[["MAZ", "TAZ"]].set_index("MAZ").TAZ
-    return s.map(maz_to_taz)
-
-
 def aggregate_size_terms(dest_size_terms, network_los):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
@@ -188,7 +193,9 @@ def aggregate_size_terms(dest_size_terms, network_los):
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
-    MAZ_size_terms[DEST_TAZ] = map_maz_to_taz(MAZ_size_terms.index, network_los)
+    MAZ_size_terms[DEST_TAZ] = network_los.map_maz_to_taz(MAZ_size_terms.index)
+    if MAZ_size_terms[DEST_TAZ].isna().any():
+        raise ValueError("found NaN MAZ")
 
     # aggregate to TAZ
     TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg({"size_term": "sum"})
@@ -215,6 +222,9 @@ def aggregate_size_terms(dest_size_terms, network_los):
 
     # print(f"TAZ_size_terms ({TAZ_size_terms.shape})\n{TAZ_size_terms}")
     # print(f"MAZ_size_terms ({MAZ_size_terms.shape})\n{MAZ_size_terms}")
+
+    if np.issubdtype(TAZ_size_terms[DEST_TAZ], np.floating):
+        raise TypeError("TAZ indexes are not integer")
 
     return MAZ_size_terms, TAZ_size_terms
 
@@ -475,7 +485,7 @@ def destination_presample(
     orig_maz = model_settings["CHOOSER_ORIG_COL_NAME"]
     assert orig_maz in choosers
     if ORIG_TAZ not in choosers:
-        choosers[ORIG_TAZ] = map_maz_to_taz(choosers[orig_maz], network_los)
+        choosers[ORIG_TAZ] = network_los.map_maz_to_taz(choosers[orig_maz])
 
     # create wrapper with keys for this lookup - in this case there is a HOME_TAZ in the choosers
     # and a DEST_TAZ in the alternatives which get merged during interaction
@@ -494,6 +504,7 @@ def destination_presample(
         chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer="taz",
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
@@ -519,14 +530,18 @@ def run_destination_sample(
 
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]
     tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == "person_id"]
+        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
     ]
     choosers = pd.merge(
-        tours, persons_merged, left_on="person_id", right_index=True, how="left"
+        tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
@@ -576,7 +591,7 @@ def run_destination_sample(
 
     # remember person_id in chosen alts so we can merge with persons in subsequent steps
     # (broadcasts person_id onto all alternatives sharing the same tour_id index value)
-    choices["person_id"] = tours.person_id
+    choices[chooser_id_column] = tours[chooser_id_column]
 
     return choices
 
@@ -612,6 +627,8 @@ def run_destination_logsums(
     """
 
     logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 
     chunk_tag = "tour_destination.logsums"
 
@@ -624,7 +641,7 @@ def run_destination_logsums(
     choosers = pd.merge(
         destination_sample,
         persons_merged,
-        left_on="person_id",
+        left_on=chooser_id_column,
         right_index=True,
         how="left",
     )
@@ -662,6 +679,7 @@ def run_destination_simulate(
     estimator,
     chunk_size,
     trace_label,
+    skip_choice=False,
 ):
     """
     run destination_simulate on tour_destination_sample
@@ -678,14 +696,18 @@ def run_destination_simulate(
 
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
+
+    # if special person id is passed
+    chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
+
     persons_merged = persons_merged[
         [c for c in persons_merged.columns if c in chooser_columns]
     ]
     tours = tours[
-        [c for c in tours.columns if c in chooser_columns or c == "person_id"]
+        [c for c in tours.columns if c in chooser_columns or c == chooser_id_column]
     ]
     choosers = pd.merge(
-        tours, persons_merged, left_on="person_id", right_index=True, how="left"
+        tours, persons_merged, left_on=chooser_id_column, right_index=True, how="left"
     )
 
     # interaction_sample requires that choosers.index.is_monotonic_increasing
@@ -721,6 +743,9 @@ def run_destination_simulate(
 
     locals_d = {
         "skims": skims,
+        "orig_col_name": skims.orig_key,  # added for sharrow flows
+        "dest_col_name": skims.dest_key,  # added for sharrow flows
+        "timeframe": "timeless",
     }
     if constants is not None:
         locals_d.update(constants)
@@ -743,6 +768,7 @@ def run_destination_simulate(
         trace_label=trace_label,
         trace_choice_name="destination",
         estimator=estimator,
+        skip_choice=skip_choice,
     )
 
     if not want_logsums:
@@ -764,6 +790,7 @@ def run_tour_destination(
     chunk_size,
     trace_hh_id,
     trace_label,
+    skip_choice=False,
 ):
 
     size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
@@ -839,6 +866,7 @@ def run_tour_destination(
             estimator=estimator,
             chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "simulate"),
+            skip_choice=skip_choice,
         )
 
         choices_list.append(choices)

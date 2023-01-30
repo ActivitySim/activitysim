@@ -9,6 +9,9 @@ trace_hh_id:
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
 trace_od:
 
+# presampling
+want_dest_choice_presampling: True
+
 # input tables
 input_table_list:
   - tablename: households
@@ -20,6 +23,8 @@ input_table_list:
       workers: num_workers
       VEHICL: auto_ownership
       MAZ: home_zone_id
+    recode_columns:
+      home_zone_id: land_use.zone_id
     keep_columns:
       - home_zone_id
       - income
@@ -46,6 +51,9 @@ input_table_list:
     rename_columns:
       MAZ: zone_id
       COUNTY: county_id
+    recode_columns:
+      zone_id: zero-based
+      TAZ: land_use_taz.TAZ
     keep_columns:
       - TAZ
       - DISTRICT
@@ -73,6 +81,11 @@ input_table_list:
       - TOPOLOGY
       - TERMINAL
       - access_dist_transit
+  - tablename: land_use_taz
+    filename: taz.csv
+    index_col: TAZ
+    recode_columns:
+      TAZ: zero-based
 
 output_tables:
   h5_store: False
@@ -82,11 +95,26 @@ output_tables:
   tables:
     - checkpoints
     - accessibility
-    - land_use
-    - households
-    - persons
-    - tours
-    - trips
+    - tablename: land_use
+      decode_columns:
+        zone_id: land_use.zone_id
+    - tablename: households
+      decode_columns:
+        home_zone_id: land_use.zone_id
+    - tablename: persons
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        school_zone_id: nonnegative | land_use.zone_id
+        workplace_zone_id: nonnegative | land_use.zone_id
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - joint_tour_participants
 
 models:
   - initialize_landuse
@@ -129,7 +157,3 @@ models:
   - track_skim_usage
   - write_trip_matrices
   - write_tables
-
-
-
-

@@ -403,3 +403,6 @@ util_Bike_not_available_for_long_distances,Bike not available for long distances
 util_origin_density_index,Origin density index,@origin_density_applied*(origin_density_index_multiplier*df.origin_density_index).clip(origin_density_index_max),,,,,,,coef_ivt,coef_ivt,coef_ivt,coef_ivt,coef_ivt,coef_ivt,coef_ivt,,,,,,,coef_ivt,coef_ivt
 util_walk_express_penalty,Walk-express penalty for intermediate stops,@walk_express_penalty * ~(df.first_trip | df.first_trip),,,,,,,,,,,coef_ivt,,,,,,,,,,
 util_adjust_tnc_shared,TNC shared adjustment,@adjust_tnc_shared,,,,,,,,,,,,,,,,,,,,,coef_ivt
+#, School Escorting eligibility,,,,,,,,,,,,,,,,,,,,,,
+util_one_or_more_school_escort,No SOV if on school escort tour,(num_escortees >= 1),-999,-999,,,,,,,,,,,,,,,,,,,
+util_two_or_more_school_escort,Can't take HOV2 if taking two children and yourself,(num_escortees >= 2),,,-999,-999,,,,,,,,,,,,,,,,,

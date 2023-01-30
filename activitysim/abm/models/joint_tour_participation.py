@@ -133,6 +133,8 @@ def participants_chooser(probs, choosers, spec, trace_label):
     In principal, this shold always occur eventually, but we fail after MAX_ITERATIONS,
     just in case there is some failure in program logic (haven't seen this occur.)
 
+    The return values are the same as logit.make_choices
+
     Parameters
     ----------
     probs : pandas.DataFrame

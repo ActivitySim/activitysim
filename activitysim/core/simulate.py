@@ -2,22 +2,24 @@
 # See full license in LICENSE.txt.
 
 import logging
+import time
 import warnings
 from builtins import range
 from collections import OrderedDict
+from datetime import timedelta
 
 import numpy as np
 import pandas as pd
 
 from . import assign, chunk, config, logit, pathbuilder, pipeline, tracing, util
+from .simulate_consts import (
+    ALT_LOSER_UTIL,
+    SPEC_DESCRIPTION_NAME,
+    SPEC_EXPRESSION_NAME,
+    SPEC_LABEL_NAME,
+)
 
 logger = logging.getLogger(__name__)
-
-SPEC_DESCRIPTION_NAME = "Description"
-SPEC_EXPRESSION_NAME = "Expression"
-SPEC_LABEL_NAME = "Label"
-
-ALT_LOSER_UTIL = -900
 
 
 def random_rows(df, n):
@@ -319,7 +321,7 @@ def get_segment_coefficients(model_settings, segment_name):
             FutureWarning,
         )
     else:
-        raise RuntimeError(f"No COEFFICIENTS setting in model_settings")
+        raise RuntimeError("No COEFFICIENTS setting in model_settings")
 
     if legacy:
         constants = config.get_model_constants(model_settings)
@@ -397,6 +399,11 @@ def eval_coefficients(spec, coefficients, estimator):
             spec[c].apply(lambda x: eval(str(x), {}, coefficients)).astype(np.float32)
         )
 
+    sharrow_enabled = config.setting("sharrow", False)
+    if sharrow_enabled:
+        # keep all zero rows, reduces the number of unique flows to compile and store.
+        return spec
+
     # drop any rows with all zeros since they won't have any effect (0 marginal utility)
     # (do not drop rows in estimation mode as it may confuse the estimation package (e.g. larch)
     zero_rows = (spec == 0).all(axis=1)
@@ -420,8 +427,11 @@ def eval_utilities(
     estimator=None,
     trace_column_names=None,
     log_alt_losers=False,
+    zone_layer=None,
+    spec_sh=None,
 ):
     """
+    Evaluate a utility function as defined in a spec file.
 
     Parameters
     ----------
@@ -432,99 +442,163 @@ def eval_utilities(
     choosers : pandas.DataFrame
     locals_d : Dict or None
         This is a dictionary of local variables that will be the environment
-        for an evaluation of an expression that begins with @
-    trace_label: str
-    have_trace_targets: boolean - choosers has targets to trace
-    trace_all_rows: boolean - trace all chooser rows, bypassing tracing.trace_targets
+        for an evaluation of an expression that begins with "@".
+    trace_label : str
+    have_trace_targets : bool
+        Indicates if `choosers` has targets to trace
+    trace_all_rows : bool
+        Trace all chooser rows, bypassing tracing.trace_targets
     estimator :
         called to report intermediate table results (used for estimation)
-    trace_column_names: str or list of str
+    trace_column_names: str or list[str]
         chooser columns to include when tracing expression_values
+    log_alt_losers : bool, default False
+        Write out expressions when all alternatives are unavailable.
+        This can be useful for model development to catch errors in
+        specifications. Enabling this check does not alter valid results
+        but slows down model runs.
+    zone_layer : {'taz', 'maz'}, optional
+        Specify which zone layer of the skims is to be used by sharrow.  You
+        cannot use the 'maz' zone layer in a one-zone model, but you can use
+        the 'taz' layer in a two- or three-zone model (e.g. for destination
+        pre-sampling). If not given, the default (lowest available) layer is
+        used.
+    spec_sh : pandas.DataFrame, optional
+        An alternative `spec` modified specifically for use with sharrow.
+        This is meant to give the same result, but allows for some optimizations
+        or preprocessing outside the sharrow framework (e.g. to run the Python
+        based transit virtual path builder and cache relevant values).
 
     Returns
     -------
-
+    utilities : pandas.DataFrame
     """
+    start_time = time.time()
+
+    sharrow_enabled = config.setting("sharrow", False)
+
+    expression_values = None
+
+    from .flow import TimeLogger
+
+    timelogger = TimeLogger("simulate")
+    sh_util = None
+    sh_flow = None
+    utilities = None
+
+    if spec_sh is None:
+        spec_sh = spec
+
+    if locals_d is not None and "disable_sharrow" in locals_d:
+        sharrow_enabled = False
+
+    if sharrow_enabled:
+        from .flow import apply_flow  # import inside func to prevent circular imports
+
+        locals_dict = {}
+        locals_dict.update(config.get_global_constants())
+        if locals_d is not None:
+            locals_dict.update(locals_d)
+        sh_util, sh_flow = apply_flow(
+            spec_sh,
+            choosers,
+            locals_dict,
+            trace_label,
+            sharrow_enabled == "require",
+            zone_layer=zone_layer,
+        )
+        utilities = sh_util
+        timelogger.mark("sharrow flow", True, logger, trace_label)
+    else:
+        timelogger.mark("sharrow flow", False)
 
     # fixme - restore tracing and _check_for_variability
 
-    trace_label = tracing.extend_trace_label(trace_label, "eval_utils")
+    if utilities is None or estimator or sharrow_enabled == "test":
 
-    # avoid altering caller's passed-in locals_d parameter (they may be looping)
-    locals_dict = assign.local_utilities()
+        trace_label = tracing.extend_trace_label(trace_label, "eval_utils")
 
-    if locals_d is not None:
-        locals_dict.update(locals_d)
-    globals_dict = {}
+        # avoid altering caller's passed-in locals_d parameter (they may be looping)
+        locals_dict = assign.local_utilities()
 
-    locals_dict["df"] = choosers
+        if locals_d is not None:
+            locals_dict.update(locals_d)
+        globals_dict = {}
 
-    # - eval spec expressions
-    if isinstance(spec.index, pd.MultiIndex):
-        # spec MultiIndex with expression and label
-        exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
-    else:
-        exprs = spec.index
+        locals_dict["df"] = choosers
 
-    expression_values = np.empty((spec.shape[0], choosers.shape[0]))
-    chunk.log_df(trace_label, "expression_values", expression_values)
+        # - eval spec expressions
+        if isinstance(spec.index, pd.MultiIndex):
+            # spec MultiIndex with expression and label
+            exprs = spec.index.get_level_values(SPEC_EXPRESSION_NAME)
+        else:
+            exprs = spec.index
 
-    i = 0
-    for expr, coefficients in zip(exprs, spec.values):
+        expression_values = np.empty((spec.shape[0], choosers.shape[0]))
+        chunk.log_df(trace_label, "expression_values", expression_values)
 
-        try:
-            with warnings.catch_warnings(record=True) as w:
-                # Cause all warnings to always be triggered.
-                warnings.simplefilter("always")
-                if expr.startswith("@"):
-                    expression_value = eval(expr[1:], globals_dict, locals_dict)
+        i = 0
+        for expr, coefficients in zip(exprs, spec.values):
 
-                else:
-                    expression_value = choosers.eval(expr)
+            try:
+                with warnings.catch_warnings(record=True) as w:
+                    # Cause all warnings to always be triggered.
+                    warnings.simplefilter("always")
+                    if expr.startswith("@"):
+                        expression_value = eval(expr[1:], globals_dict, locals_dict)
+                    else:
+                        expression_value = choosers.eval(expr)
 
-                if len(w) > 0:
-                    for wrn in w:
-                        logger.warning(
-                            f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}"
-                        )
+                    if len(w) > 0:
+                        for wrn in w:
+                            logger.warning(
+                                f"{trace_label} - {type(wrn).__name__} ({wrn.message}) evaluating: {str(expr)}"
+                            )
 
-        except Exception as err:
-            logger.exception(
-                f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
-            )
-            raise err
-
-        if log_alt_losers:
-            # utils for each alt for this expression
-            # FIXME if we always did tis, we cold uem these and skip np.dot below
-            utils = np.outer(expression_value, coefficients)
-            losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
-
-            if losers.any():
-                logger.warning(
-                    f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
-                    f"with prohibitive utilities for all alternatives for expression: {expr}"
+            except Exception as err:
+                logger.exception(
+                    f"{trace_label} - {type(err).__name__} ({str(err)}) evaluating: {str(expr)}"
                 )
+                raise err
 
-        expression_values[i] = expression_value
-        i += 1
+            if log_alt_losers:
+                # utils for each alt for this expression
+                # FIXME if we always did tis, we cold uem these and skip np.dot below
+                utils = np.outer(expression_value, coefficients)
+                losers = np.amax(utils, axis=1) < ALT_LOSER_UTIL
 
-    chunk.log_df(trace_label, "expression_values", expression_values)
+                if losers.any():
+                    logger.warning(
+                        f"{trace_label} - {sum(losers)} choosers of {len(losers)} "
+                        f"with prohibitive utilities for all alternatives for expression: {expr}"
+                    )
 
-    if estimator:
-        df = pd.DataFrame(
-            data=expression_values.transpose(),
-            index=choosers.index,
-            columns=spec.index.get_level_values(SPEC_LABEL_NAME),
+            expression_values[i] = expression_value
+            i += 1
+
+        chunk.log_df(trace_label, "expression_values", expression_values)
+
+        if estimator:
+            df = pd.DataFrame(
+                data=expression_values.transpose(),
+                index=choosers.index,
+                columns=spec.index.get_level_values(SPEC_LABEL_NAME),
+            )
+            df.index.name = choosers.index.name
+            estimator.write_expression_values(df)
+
+        # - compute_utilities
+        utilities = np.dot(
+            expression_values.transpose(), spec.astype(np.float64).values
         )
-        df.index.name = choosers.index.name
-        estimator.write_expression_values(df)
 
-    # - compute_utilities
-    utilities = np.dot(expression_values.transpose(), spec.astype(np.float64).values)
+        timelogger.mark("simple flow", True, logger=logger, suffix=trace_label)
+    else:
+        timelogger.mark("simple flow", False)
+
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
-
     chunk.log_df(trace_label, "utilities", utilities)
+    timelogger.mark("assemble utilities")
 
     # sometimes tvpb will drop rows on the fly and we wind up with an empty
     # table of choosers. this will just bypass tracing in that case.
@@ -539,39 +613,108 @@ def eval_utilities(
         # get int offsets of the trace_targets (offsets of bool=True values)
         offsets = np.nonzero(list(trace_targets))[0]
 
+        # trace sharrow
+        if sh_flow is not None:
+            try:
+                data_sh = sh_flow.load(
+                    sh_flow.tree.replace_datasets(
+                        df=choosers.iloc[offsets],
+                    ),
+                    dtype=np.float32,
+                )
+                expression_values_sh = pd.DataFrame(data=data_sh.T, index=spec.index)
+            except ValueError:
+                expression_values_sh = None
+        else:
+            expression_values_sh = None
+
         # get array of expression_values
         # expression_values.shape = (len(spec), len(choosers))
         # data.shape = (len(spec), len(offsets))
-        data = expression_values[:, offsets]
+        if expression_values is not None:
+            data = expression_values[:, offsets]
 
-        # index is utility expressions (and optional label if MultiIndex)
-        expression_values_df = pd.DataFrame(data=data, index=spec.index)
+            # index is utility expressions (and optional label if MultiIndex)
+            expression_values_df = pd.DataFrame(data=data, index=spec.index)
 
-        if trace_column_names is not None:
-            if isinstance(trace_column_names, str):
-                trace_column_names = [trace_column_names]
-            expression_values_df.columns = pd.MultiIndex.from_frame(
-                choosers.loc[trace_targets, trace_column_names]
+            if trace_column_names is not None:
+                if isinstance(trace_column_names, str):
+                    trace_column_names = [trace_column_names]
+                expression_values_df.columns = pd.MultiIndex.from_frame(
+                    choosers.loc[trace_targets, trace_column_names]
+                )
+        else:
+            expression_values_df = None
+
+        if expression_values_sh is not None:
+            tracing.trace_df(
+                expression_values_sh,
+                tracing.extend_trace_label(trace_label, "expression_values_sh"),
+                slicer=None,
+                transpose=False,
+            )
+        if expression_values_df is not None:
+            tracing.trace_df(
+                expression_values_df,
+                tracing.extend_trace_label(trace_label, "expression_values"),
+                slicer=None,
+                transpose=False,
             )
 
-        tracing.trace_df(
-            expression_values_df,
-            tracing.extend_trace_label(trace_label, "expression_values"),
-            slicer=None,
-            transpose=False,
-        )
+            if len(spec.columns) > 1:
 
-        if len(spec.columns) > 1:
+                for c in spec.columns:
+                    name = f"expression_value_{c}"
 
-            for c in spec.columns:
-                name = f"expression_value_{c}"
+                    tracing.trace_df(
+                        expression_values_df.multiply(spec[c].values, axis=0),
+                        tracing.extend_trace_label(trace_label, name),
+                        slicer=None,
+                        transpose=False,
+                    )
+        timelogger.mark("trace", True, logger, trace_label)
 
-                tracing.trace_df(
-                    expression_values_df.multiply(spec[c].values, axis=0),
-                    tracing.extend_trace_label(trace_label, name),
-                    slicer=None,
-                    transpose=False,
+    if sharrow_enabled == "test":
+        try:
+            np.testing.assert_allclose(
+                sh_util,
+                utilities.values,
+                rtol=1e-2,
+                atol=0,
+                err_msg="utility not aligned",
+                verbose=True,
+            )
+        except AssertionError as err:
+            print(err)
+            misses = np.where(~np.isclose(sh_util, utilities.values, rtol=1e-2, atol=0))
+            _sh_util_miss1 = sh_util[tuple(m[0] for m in misses)]
+            _u_miss1 = utilities.values[tuple(m[0] for m in misses)]
+            diff = _sh_util_miss1 - _u_miss1
+            if len(misses[0]) > sh_util.size * 0.01:
+                print(
+                    f"big problem: {len(misses[0])} missed close values "
+                    f"out of {sh_util.size} ({100*len(misses[0]) / sh_util.size:.2f}%)"
                 )
+                print(f"{sh_util.shape=}")
+                print(misses)
+                _sh_flow_load = sh_flow.load()
+                print("possible problematic expressions:")
+                for expr_n, expr in enumerate(exprs):
+                    closeness = np.isclose(
+                        _sh_flow_load[:, expr_n], expression_values[expr_n, :]
+                    )
+                    if not closeness.all():
+                        print(
+                            f"  {closeness.sum()/closeness.size:05.1%} [{expr_n:03d}] {expr}"
+                        )
+                raise
+        except TypeError as err:
+            print(err)
+            print("sh_util")
+            print(sh_util)
+            print("utilities")
+            print(utilities)
+        timelogger.mark("sharrow test", True, logger, trace_label)
 
     del expression_values
     chunk.log_df(trace_label, "expression_values", None)
@@ -579,6 +722,11 @@ def eval_utilities(
     # no longer our problem - but our caller should re-log this...
     chunk.log_df(trace_label, "utilities", None)
 
+    end_time = time.time()
+    logger.info(
+        f"simulate.eval_utils runtime: {timedelta(seconds=end_time - start_time)} {trace_label}"
+    )
+    timelogger.summary(logger, "simulate.eval_utils timing")
     return utilities
 
 
@@ -1070,8 +1218,10 @@ def eval_nl(
     if have_trace_targets:
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
+    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
+
     raw_utilities = eval_utilities(
-        spec,
+        spec_sh,
         choosers,
         locals_d,
         log_alt_losers=log_alt_losers,
@@ -1079,6 +1229,7 @@ def eval_nl(
         have_trace_targets=have_trace_targets,
         estimator=estimator,
         trace_column_names=trace_column_names,
+        spec_sh=spec_sh,
     )
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1345,7 +1496,7 @@ def simple_simulate(
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1396,7 +1547,7 @@ def simple_simulate_by_chunk_id(
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1452,6 +1603,85 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     return logsums
 
 
+def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
+    """
+    Compute TVPB logsums and attach those values to the choosers.
+
+    Also generate a modified spec that uses the replacement value instead of
+    regenerating the logsums dynamically inline.
+
+    Parameters
+    ----------
+    choosers
+    spec
+    locals_d
+
+    Returns
+    -------
+    choosers
+    spec
+
+    """
+    spec_sh = spec.copy()
+
+    def _replace_in_level(multiindex, level_name, *args, **kwargs):
+        y = multiindex.levels[multiindex.names.index(level_name)].str.replace(
+            *args, **kwargs
+        )
+        return multiindex.set_levels(y, level=level_name)
+
+    # Preprocess TVPB logsums outside sharrow
+    if "tvpb_logsum_odt" in locals_d:
+        tvpb = locals_d["tvpb_logsum_odt"]
+        path_types = tvpb.tvpb.network_los.setting(
+            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
+        ).keys()
+        assignments = {}
+        for path_type in ["WTW", "DTW"]:
+            if path_type not in path_types:
+                continue
+            re_spec = spec_sh.index
+            re_spec = _replace_in_level(
+                re_spec,
+                "Expression",
+                rf"tvpb_logsum_odt\['{path_type}'\]",
+                f"df.PRELOAD_tvpb_logsum_odt_{path_type}",
+                regex=True,
+            )
+            if not all(spec_sh.index == re_spec):
+                spec_sh.index = re_spec
+                preloaded = locals_d["tvpb_logsum_odt"][path_type]
+                assignments[f"PRELOAD_tvpb_logsum_odt_{path_type}"] = preloaded
+        if assignments:
+            choosers = choosers.assign(**assignments)
+
+    if "tvpb_logsum_dot" in locals_d:
+        tvpb = locals_d["tvpb_logsum_dot"]
+        path_types = tvpb.tvpb.network_los.setting(
+            f"TVPB_SETTINGS.{tvpb.recipe}.path_types"
+        ).keys()
+        assignments = {}
+        for path_type in ["WTW", "WTD"]:
+            if path_type not in path_types:
+                continue
+            re_spec = spec_sh.index
+            re_spec = _replace_in_level(
+                re_spec,
+                "Expression",
+                rf"tvpb_logsum_dot\['{path_type}'\]",
+                f"df.PRELOAD_tvpb_logsum_dot_{path_type}",
+                regex=True,
+            )
+            if not all(spec_sh.index == re_spec):
+                spec_sh.index = re_spec
+                preloaded = locals_d["tvpb_logsum_dot"][path_type]
+                assignments[f"PRELOAD_tvpb_logsum_dot_{path_type}"] = preloaded
+        if assignments:
+            choosers = choosers.assign(**assignments)
+
+    return choosers, spec_sh
+
+
 def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     """
     like eval_nl except return logsums instead of making choices
@@ -1467,16 +1697,19 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
+    choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
+
     # trace choosers
     if have_trace_targets:
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     raw_utilities = eval_utilities(
-        spec,
+        spec_sh,
         choosers,
         locals_d,
         trace_label=trace_label,
         have_trace_targets=have_trace_targets,
+        spec_sh=spec_sh,
     )
     chunk.log_df(trace_label, "raw_utilities", raw_utilities)
 
@@ -1576,7 +1809,7 @@ def simple_simulate_logsums(
 
         result_list.append(logsums)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         logsums = pd.concat(result_list)

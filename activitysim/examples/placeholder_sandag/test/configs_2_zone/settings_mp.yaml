@@ -14,6 +14,10 @@ write_skim_cache: False
 fail_fast: True
 
 models:
+  ## Disaggregate Accessibility steps
+  # only including for 2 zone sandag test
+  - initialize_proto_population 
+  - compute_disaggregate_accessibility
   ### mp_initialize step
   - initialize_landuse
   - initialize_households
@@ -52,6 +56,15 @@ models:
   - write_tables
 
 multiprocess_steps:
+  - name: mp_proto_initialize
+    begin: initialize_proto_population
+  - name: mp_disaggregate_accessibility
+    begin: compute_disaggregate_accessibility
+    slice:
+      tables:
+        - proto_households
+        - proto_persons
+        - proto_tours
   - name: mp_initialize
     begin: initialize_landuse
   - name: mp_accessibility
@@ -64,3 +77,14 @@ multiprocess_steps:
         - persons
   - name: mp_summarize
     begin: write_data_dictionary
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_2_zone_
+  sort: True
+  tables:
+    - tours
+    - trips
+    - vehicles
+    - proto_disaggregate_accessibility

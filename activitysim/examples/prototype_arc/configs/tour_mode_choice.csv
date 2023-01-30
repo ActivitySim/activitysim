@@ -254,8 +254,8 @@ SCHOOLBUS - Grade school pre-driver,"@np.where(df.is_school, (coef_schBus_PreDri
 SCHOOLBUS -  Grade school driver,"@np.where(df.is_school, coef_schBus_Driver * df.is_driving_age, 0)",,,,,,,,,,,,,,,1
 SCHOOLBUS - Rural/exurban destination,"@np.where(df.is_school, coef_schBus_Rural * df.is_rural_or_exurban, 0)",,,,,,,,,,,,,,,1
 SCHOOLBUS - o/d distance greater than 10 miles,"@np.where(df.is_school, coef_schBus_odDistgre10Mile * (odt_skims['SOV_FREE_DISTANCE']>10), 0)",,,,,,,,,,,,,,,1
-SCHOOLBUS - Depart from home before 8 am (downstream model),"@np.where(df.is_school, todOut<2 , 0)",,,,,,,,,,,,,,,
-SCHOOLBUS -  Return to home before 5 pm (downstream model),"@np.where(df.is_school, todIn<6, 0)",,,,,,,,,,,,,,,
+#SCHOOLBUS - Depart from home before 8 am (downstream model),"@np.where(df.is_school, todOut<2 , 0)",,,,,,,,,,,,,,,
+#SCHOOLBUS -  Return to home before 5 pm (downstream model),"@np.where(df.is_school, todIn<6, 0)",,,,,,,,,,,,,,,
 SCHOOLBUS - In-vehicle time (ERROR-all probabilities are zero for 1204 rows),"@np.where(df.is_school, coef_ivt*(odt_skims['SOV_FREE_DISTANCE']+dot_skims['SOV_FREE_DISTANCE'])*60/schoolBusSpeed, 0)",,,,,,,,,,,,,,,1
 SCHOOLBUS - Out-of-vehicle time,"@np.where(df.is_school, coef_ovt*schoolBusOvt, 0)",,,,,,,,,,,,,,,1
 #,,,,,,,,,,,,,,,,

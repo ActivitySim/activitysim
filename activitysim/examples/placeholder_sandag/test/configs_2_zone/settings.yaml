@@ -1,0 +1,73 @@
+inherit_settings: True
+
+# treat warnings as errors
+strict: True
+
+# number of households to simulate
+households_sample_size: 30
+chunk_size: 0
+
+# - shadow pricing global switches
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+
+# global switch to turn on or off presampling of destination alternatives at TAZ level (multizone models only)
+want_dest_choice_presampling: True
+
+models:
+  ## Disaggregate Accessibility steps
+  # only including for 2 zone sandag test
+  - initialize_proto_population
+  - compute_disaggregate_accessibility
+  ### mp_initialize step
+  - initialize_landuse
+  - initialize_households
+  ### mp_accessibility step
+  - compute_accessibility
+  ### mp_households step
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  ### mp_summarize step
+  - write_data_dictionary
+  - write_trip_matrices
+  - write_tables
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_2_zone_
+  sort: True
+  tables:
+    - tours
+    - trips
+    - vehicles
+    - proto_disaggregate_accessibility
+
+recode_pipeline_columns: False

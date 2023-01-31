@@ -1,0 +1,11 @@
+coefficient_name,value,constrain
+coef_dist,-0.063338148,F
+coef_dist_squared,0.001294031,F
+coef_dist_cubed,-6.70E-05,F
+coef_dist_logged,-0.479603662,F
+coef_dist_low_inc,-0.029396589,F
+coef_dist_med_inc,-0.024858401,F
+coef_dist_high_inc,-0.013891636,F
+coef_dist_part_time,-0.047762376,F
+coef_dist_student,-0.024044614,F
+coef_mode_logsum,0.25,F

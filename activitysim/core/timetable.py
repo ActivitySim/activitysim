@@ -1,16 +1,14 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-from builtins import range
-from builtins import object
-
 import logging
+from builtins import object, range
 
+import numba as nb
 import numpy as np
 import pandas as pd
 
-from activitysim.core import pipeline
-from activitysim.core import chunk
+from activitysim.core import chunk, pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -31,13 +29,16 @@ COLLISIONS = [
     [I_START, I_START],
     [I_END, I_END],
     [I_MIDDLE, I_MIDDLE],
-    [I_START, I_MIDDLE], [I_MIDDLE, I_START],
-    [I_END, I_MIDDLE], [I_MIDDLE, I_END],
-    [I_START_END, I_MIDDLE], [I_MIDDLE, I_START_END],
+    [I_START, I_MIDDLE],
+    [I_MIDDLE, I_START],
+    [I_END, I_MIDDLE],
+    [I_MIDDLE, I_END],
+    [I_START_END, I_MIDDLE],
+    [I_MIDDLE, I_START_END],
 ]
 
 COLLISION_LIST = [a + (b << I_BIT_SHIFT) for a, b in COLLISIONS]
-
+COLLISION_ARRAY = np.asarray(COLLISION_LIST)
 
 # str versions of time windows period states
 C_EMPTY = str(I_EMPTY)
@@ -47,25 +48,180 @@ C_MIDDLE = str(I_MIDDLE)
 C_START_END = str(I_START_END)
 
 
-def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
+@nb.njit
+def _fast_tour_available(
+    tdds,
+    tdd_footprints,
+    window_row_ids,
+    window_row_ix__mapper,
+    self_windows,
+):
+    """
+
+    Parameters
+    ----------
+    tdds : array-like, shape (k)
+    tdd_footprints : array-like, shape (c, t)
+    window_row_ids : array-like, shape (k)
+    window_row_ix__mapper : FastMapping._mapper
+    self_windows : array-like
+
+    Returns
+    -------
+    array of bool, shape (k)
+    """
+    out = np.ones_like(tdds, dtype=np.bool_)
+    for k in range(tdds.shape[0]):
+        tour_footprints = tdd_footprints[tdds[k]]  # -> shape (t)
+        row_ix = window_row_ix__mapper[window_row_ids[k]]
+        windows = self_windows[row_ix]
+        x = tour_footprints + (windows << I_BIT_SHIFT)
+        stop = False
+        for j in range(COLLISION_ARRAY.size):
+            for i in range(x.size):
+                if x[i] == COLLISION_ARRAY[j]:
+                    out[k] = False
+                    stop = True
+                    break
+            if stop:
+                break
+    return out
+
+
+@nb.njit
+def _available_run_length(
+    available,
+    before,
+    periods,
+    time_ix_mapper,
+):
+    num_rows = available.shape[0]
+    num_cols = available.shape[1]
+    _time_col_ix_map = np.arange(num_cols)
+    available_run_length = np.zeros(num_rows, dtype=np.int32)
+    for row in range(num_rows):
+        _time_col_ix = time_ix_mapper[periods[row]]  # scalar
+        if before:
+            mask = (_time_col_ix_map < _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where(
+                (1 - available[row]) * mask, _time_col_ix_map, 0
+            ).max()
+            available_run_length[row] = _time_col_ix - first_unavailable - 1
+        else:
+            # ones after specified time, zeroes before
+            mask = (_time_col_ix_map > _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where(
+                (1 - available[row]) * mask, _time_col_ix_map, num_cols
+            ).min()
+            available_run_length[row] = first_unavailable - _time_col_ix - 1
+    return available_run_length
+
+
+@nb.njit
+def _available_run_length_1(
+    windows,
+    window_row_mapper,
+    time_ix_mapper,
+    before,
+    window_row_id,
+    period,
+):
+    num_cols = windows.shape[1]
+    _time_col_ix_map = np.arange(num_cols)
+    available = np.ones(num_cols, dtype=np.int8)
+    available[0] = 0
+    available[-1] = 0
+
+    window_row = windows[window_row_mapper[window_row_id], :]
+    for j in range(1, num_cols - 1):
+        if window_row[j] != I_MIDDLE:
+            available[j] = 1
+        else:
+            available[j] = 0
+
+    _time_col_ix = time_ix_mapper[period]  # scalar
+    if before:
+        mask = (_time_col_ix_map < _time_col_ix) * 1
+        # index of first unavailable window after time
+        first_unavailable = np.where((1 - available) * mask, _time_col_ix_map, 0).max()
+        available_run_length = _time_col_ix - first_unavailable - 1
+    else:
+        # ones after specified time, zeroes before
+        mask = (_time_col_ix_map > _time_col_ix) * 1
+        # index of first unavailable window after time
+        first_unavailable = np.where(
+            (1 - available) * mask, _time_col_ix_map, num_cols
+        ).min()
+        available_run_length = first_unavailable - _time_col_ix - 1
+    return available_run_length
+
+
+@nb.njit
+def _available_run_length_2(
+    windows,
+    window_row_mapper,
+    time_ix_mapper,
+    before,
+    window_row_id_values,
+    periods,
+):
+    num_rows = window_row_id_values.shape[0]
+    num_cols = windows.shape[1]
+    _time_col_ix_map = np.arange(num_cols)
+    available_run_length = np.zeros(num_rows, dtype=np.int32)
+    available = np.ones(num_cols, dtype=np.int8)
+    available[0] = 0
+    available[-1] = 0
+    for row in range(num_rows):
+
+        row_ix = window_row_mapper[window_row_id_values[row]]
+        window_row = windows[row_ix]
+        for j in range(1, num_cols - 1):
+            if window_row[j] != I_MIDDLE:
+                available[j] = 1
+            else:
+                available[j] = 0
+
+        _time_col_ix = time_ix_mapper[periods[row]]  # scalar
+        if before:
+            mask = (_time_col_ix_map < _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where(
+                (1 - available) * mask, _time_col_ix_map, 0
+            ).max()
+            available_run_length[row] = _time_col_ix - first_unavailable - 1
+        else:
+            # ones after specified time, zeroes before
+            mask = (_time_col_ix_map > _time_col_ix) * 1
+            # index of first unavailable window after time
+            first_unavailable = np.where(
+                (1 - available) * mask, _time_col_ix_map, num_cols
+            ).min()
+            available_run_length[row] = first_unavailable - _time_col_ix - 1
+    return available_run_length
+
+
+def tour_map(persons, tours, tdd_alts, persons_id_col="person_id"):
 
     sigil = {
-        'empty': '   ',
-        'overlap': '+++',
-        'work': 'WWW',
-        'school': 'SSS',
-        'escort': 'esc',
-        'shopping': 'shp',
-        'othmaint': 'mnt',
-        'othdiscr': 'dsc',
-        'eatout': 'eat',
-        'social': 'soc',
-        'eat': 'eat',
-        'business': 'bus',
-        'maint': 'mnt'
+        "empty": "   ",
+        "overlap": "+++",
+        "work": "WWW",
+        "school": "SSS",
+        "escort": "esc",
+        "shopping": "shp",
+        "othmaint": "mnt",
+        "othdiscr": "dsc",
+        "eatout": "eat",
+        "social": "soc",
+        "eat": "eat",
+        "business": "bus",
+        "maint": "mnt",
     }
 
-    sigil_type = 'S3'
+    sigil_type = "S3"
 
     # we can only map scheduled tours
     tours = tours[tours.tdd.notnull()]
@@ -76,7 +232,7 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
     n_periods = max_period - min_period + 1
     n_persons = len(persons.index)
 
-    agenda = np.array([sigil['empty']]*(n_periods*n_persons), dtype=sigil_type)
+    agenda = np.array([sigil["empty"]] * (n_periods * n_persons), dtype=sigil_type)
     agenda = agenda.reshape(n_persons, n_periods)
 
     scheduled = np.zeros_like(agenda, dtype=int)
@@ -84,15 +240,16 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
 
     # construct with strings so we can create runs of strings using char * int
     w_strings = [
-        '0' * (row.start - min_period) +
-        '1' * (row.duration + 1) +
-        '0' * (max_period - row.end)
-        for idx, row in tdd_alts.iterrows()]
+        "0" * (row.start - min_period)
+        + "1" * (row.duration + 1)
+        + "0" * (max_period - row.end)
+        for idx, row in tdd_alts.iterrows()
+    ]
 
     window_periods = np.asanyarray([list(r) for r in w_strings]).astype(int)
     window_periods_df = pd.DataFrame(data=window_periods, index=tdd_alts.index)
 
-    for keys, nth_tours in tours.groupby(['tour_type', 'tour_type_num'], sort=True):
+    for keys, nth_tours in tours.groupby(["tour_type", "tour_type_num"], sort=True):
 
         tour_type = keys[0]
         tour_sigil = sigil[tour_type]
@@ -110,10 +267,12 @@ def tour_map(persons, tours, tdd_alts, persons_id_col='person_id'):
         agenda[row_ixs] = np.where(tour_windows, tour_sigil, agenda[row_ixs])
 
     # show tour overlaps
-    agenda = np.where(scheduled > 1, sigil['overlap'], agenda)
+    agenda = np.where(scheduled > 1, sigil["overlap"], agenda)
 
     # a = pd.Series([' '.join(a) for a in agenda], index=persons.index)
-    a = pd.DataFrame(data=agenda, columns=[str(w) for w in range(min_period, max_period+1)])
+    a = pd.DataFrame(
+        data=agenda, columns=[str(w) for w in range(min_period, max_period + 1)]
+    )
 
     a.index = persons.index
     a.index.name = persons_id_col
@@ -157,10 +316,9 @@ def create_timetable_windows(rows, tdd_alts):
 
     UNSCHEDULED = 0
 
-    df = pd.DataFrame(data=UNSCHEDULED,
-                      index=rows.index,
-                      columns=window_cols,
-                      dtype=np.int8)
+    df = pd.DataFrame(
+        data=UNSCHEDULED, index=rows.index, columns=window_cols, dtype=np.int8
+    )
 
     return df
 
@@ -194,21 +352,28 @@ class TimeTable(object):
         self.checkpoint_df = None
 
         # series to map window row index value to window row's ordinal index
-        self.window_row_ix = pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
+        from ..core.fast_mapping import FastMapping
+
+        self.window_row_ix = FastMapping(
+            pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
+        )
 
         int_time_periods = [int(c) for c in windows_df.columns.values]
-        self.time_ix = pd.Series(list(range(len(windows_df.columns))), index=int_time_periods)
+        self.time_ix = FastMapping(
+            pd.Series(list(range(len(windows_df.columns))), index=int_time_periods)
+        )
 
         # - pre-compute window state footprints for every tdd_alt
         min_period = min(int_time_periods)
         max_period = max(int_time_periods)
         # construct with strings so we can create runs of strings using char * int
         w_strings = [
-            C_EMPTY * (row.start - min_period) +
-            (C_START + C_MIDDLE * (row.duration - 1) if row.duration > 0 else '') +
-            (C_END if row.duration > 0 else C_START_END) +
-            (C_EMPTY * (max_period - row.end))
-            for idx, row in tdd_alts_df.iterrows()]
+            C_EMPTY * (row.start - min_period)
+            + (C_START + C_MIDDLE * (row.duration - 1) if row.duration > 0 else "")
+            + (C_END if row.duration > 0 else C_START_END)
+            + (C_EMPTY * (max_period - row.end))
+            for idx, row in tdd_alts_df.iterrows()
+        ]
 
         # we want range index so we can use raw numpy
         assert (tdd_alts_df.index == list(range(tdd_alts_df.shape[0]))).all()
@@ -223,7 +388,9 @@ class TimeTable(object):
         if not isinstance(transaction_loggers, list):
             transaction_loggers = [transaction_loggers]
         for transaction_logger in transaction_loggers:
-            transaction_logger.log("timetable.begin_transaction %s" % self.windows_table_name)
+            transaction_logger.log(
+                "timetable.begin_transaction %s" % self.windows_table_name
+            )
         self.checkpoint_df = self.windows_df.copy()
         self.transaction_loggers = transaction_loggers
         pass
@@ -237,12 +404,19 @@ class TimeTable(object):
         self.checkpoint_df = None
         self.transaction_loggers = None
 
+    def export_for_numba(self):
+        return dict(
+            tt_row_mapper=self.window_row_ix._mapper,
+            tt_col_mapper=self.time_ix._mapper,
+            tt_windows=self.windows,
+        )
+
     def slice_windows_by_row_id(self, window_row_ids):
         """
         return windows array slice containing rows for specified window_row_ids
         (in window_row_ids order)
         """
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids.values)
         windows = self.windows[row_ixs]
 
         return windows
@@ -250,10 +424,10 @@ class TimeTable(object):
     def slice_windows_by_row_id_and_period(self, window_row_ids, periods):
 
         # row ixs of tour_df group rows in windows
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         # col ixs of periods in windows
-        time_col_ixs = periods.map(self.time_ix).values
+        time_col_ixs = self.time_ix.apply_to(periods)
 
         windows = self.windows[row_ixs, time_col_ixs]
 
@@ -281,8 +455,11 @@ class TimeTable(object):
         assert self.windows_table_name is not None
         if self.checkpoint_df is not None:
             for logger in self.transaction_loggers.values():
-                logger.log("Attempt to replace_table while in transaction: %s" %
-                           self.windows_table_name, level=logging.ERROR)
+                logger.log(
+                    "Attempt to replace_table while in transaction: %s"
+                    % self.windows_table_name,
+                    level=logging.ERROR,
+                )
             raise RuntimeError("Attempt to replace_table while in transaction")
 
         # get windows_df from bottleneck function in case updates to self.person_window
@@ -305,21 +482,30 @@ class TimeTable(object):
         available : pandas Series of bool
             with same index as window_row_ids.index (presumably tour_id, but we don't care)
         """
+        if isinstance(tdds, pd.Series):
+            tdds = tdds.astype(np.int32).to_numpy()
+        else:
+            tdds = tdds.astype(np.int32)
+        if isinstance(window_row_ids, pd.Series):
+            window_row_ids = window_row_ids.astype(np.int64).to_numpy()
+        else:
+            window_row_ids = window_row_ids.astype(np.int64)
 
-        assert len(window_row_ids) == len(tdds)
-
-        # numpy array with one tdd_footprints_df row for tdds
-        tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
-
-        # numpy array with one windows row for each person
-        windows = self.slice_windows_by_row_id(window_row_ids)
-
-        # t0 = tracing.print_elapsed_time("slice_windows_by_row_id", t0, debug=True)
-
-        x = tour_footprints + (windows << I_BIT_SHIFT)
-
-        available = ~np.isin(x, COLLISION_LIST).any(axis=1)
-        available = pd.Series(available, index=window_row_ids.index)
+        try:
+            available = _fast_tour_available(
+                tdds,
+                self.tdd_footprints,
+                window_row_ids,
+                self.window_row_ix._mapper,
+                self.windows,
+            )
+        except KeyError:
+            # key error messages here may not have enough detail to be useful,
+            # so we'll also log the row ids and mapper to help diagnose errors.
+            logger.error("KeyError in _fast_tour_available")
+            logger.error(f"{window_row_ids=}")
+            logger.error(f"{self.window_row_ix._mapper=}")
+            raise
 
         return available
 
@@ -347,7 +533,7 @@ class TimeTable(object):
         tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         self.windows[row_ixs] = np.bitwise_or(self.windows[row_ixs], tour_footprints)
 
@@ -384,7 +570,7 @@ class TimeTable(object):
         tour_footprints = self.tdd_footprints[tdds.values.astype(int)]
 
         # row idxs of windows to assign to
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         self.windows[row_ixs] = (tour_footprints == 0) * I_MIDDLE
 
@@ -412,7 +598,7 @@ class TimeTable(object):
         assert len(window_row_ids.values) == len(np.unique(window_row_ids.values))
 
         # row idxs of windows to assign to
-        row_ixs = window_row_ids.map(self.window_row_ix).values
+        row_ixs = self.window_row_ix.apply_to(window_row_ids)
 
         self.windows[row_ixs] = np.bitwise_or(self.windows[row_ixs], footprints)
 
@@ -421,7 +607,7 @@ class TimeTable(object):
         available1 = (self.slice_windows_by_row_id(window1_row_ids) != I_MIDDLE) * 1
         available2 = (self.slice_windows_by_row_id(window2_row_ids) != I_MIDDLE) * 1
 
-        return (available1 * available2)
+        return available1 * available2
 
     def individually_available(self, window_row_ids):
 
@@ -445,44 +631,18 @@ class TimeTable(object):
         """
         assert len(window_row_ids) == len(periods)
 
-        trace_label = 'tt.adjacent_window_run_length'
+        trace_label = "tt.adjacent_window_run_length"
         with chunk.chunk_log(trace_label):
+            available_run_length = _available_run_length_2(
+                self.windows,
+                self.window_row_ix._mapper,
+                self.time_ix._mapper,
+                before,
+                window_row_ids.values,
+                periods.to_numpy(),
+            )
 
-            time_col_ixs = periods.map(self.time_ix).values
-            chunk.log_df(trace_label, 'time_col_ixs', time_col_ixs)
-
-            # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
-            available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
-            chunk.log_df(trace_label, 'available', available)
-
-            # padding periods not available
-            available[:, 0] = 0
-            available[:, -1] = 0
-
-            # column idxs of windows
-            num_rows, num_cols = available.shape
-            time_col_ix_map = np.tile(np.arange(0, num_cols), num_rows).reshape(num_rows, num_cols)
-            # 0 1 2 3 4 5...
-            # 0 1 2 3 4 5...
-            # 0 1 2 3 4 5...
-            chunk.log_df(trace_label, 'time_col_ix_map', time_col_ix_map)
-
-            if before:
-                # ones after specified time, zeroes before
-                mask = (time_col_ix_map < time_col_ixs.reshape(num_rows, 1)) * 1
-                # index of first unavailable window after time
-                first_unavailable = np.where((1-available)*mask, time_col_ix_map, 0).max(axis=1)
-                available_run_length = time_col_ixs - first_unavailable - 1
-            else:
-                # ones after specified time, zeroes before
-                mask = (time_col_ix_map > time_col_ixs.reshape(num_rows, 1)) * 1
-                # index of first unavailable window after time
-                first_unavailable = np.where((1 - available) * mask, time_col_ix_map, num_cols).min(axis=1)
-                available_run_length = first_unavailable - time_col_ixs - 1
-
-            chunk.log_df(trace_label, 'mask', mask)
-            chunk.log_df(trace_label, 'first_unavailable', first_unavailable)
-            chunk.log_df(trace_label, 'available_run_length', available_run_length)
+            chunk.log_df(trace_label, "available_run_length", available_run_length)
 
         return pd.Series(available_run_length, index=window_row_ids.index)
 
@@ -575,7 +735,9 @@ class TimeTable(object):
         pandas Series boolean
             indexed by window_row_ids.index
         """
-        return self.window_periods_in_states(window_row_ids, periods, [I_END, I_START_END])
+        return self.window_periods_in_states(
+            window_row_ids, periods, [I_END, I_START_END]
+        )
 
     def previous_tour_begins(self, window_row_ids, periods):
         """
@@ -596,7 +758,9 @@ class TimeTable(object):
             indexed by window_row_ids.index
         """
 
-        return self.window_periods_in_states(window_row_ids, periods, [I_START, I_START_END])
+        return self.window_periods_in_states(
+            window_row_ids, periods, [I_START, I_START_END]
+        )
 
     def remaining_periods_available(self, window_row_ids, starts, ends):
         """
@@ -623,19 +787,8 @@ class TimeTable(object):
         available : pandas Series int
             number periods available indexed by window_row_ids.index
         """
-
-        assert len(window_row_ids) == len(starts)
-        assert len(window_row_ids) == len(ends)
-
-        available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE).sum(axis=1)
-
-        # don't count time window padding at both ends of day
-        available -= 2
-
-        available -= np.clip((ends - starts - 1), a_min=0, a_max=None)
-        available = pd.Series(available, index=window_row_ids.index)
-
-        return available
+        result = tt_remaining_periods_available(self, window_row_ids, starts, ends)
+        return result
 
     def max_time_block_available(self, window_row_ids):
         """
@@ -649,31 +802,393 @@ class TimeTable(object):
         -------
             pandas.Series with same index as window_row_ids, and integer max_run_length of
         """
+        result = pd.Series(
+            _max_time_blocks_available_1(
+                self.window_row_ix._mapper, self.windows, np.asarray(window_row_ids)
+            ),
+            index=window_row_ids.index,
+        )
+        return result
 
-        # FIXME consider dedupe/redupe window_row_ids for performance
-        # as this may be called for alts with lots of duplicates (e.g. trip scheduling time pressure calculations)
 
-        # sliced windows with 1s where windows state is I_MIDDLE and 0s elsewhere
-        available = (self.slice_windows_by_row_id(window_row_ids) != I_MIDDLE) * 1
+@nb.njit
+def _max_time_block_available_1(windows_row):
+    """
 
-        # np.set_printoptions(edgeitems=25, linewidth = 180)
-        # print(f"self.slice_windows_by_row_id(window_row_ids)\n{self.slice_windows_by_row_id(window_row_ids)}")
+    Parameters
+    ----------
+    tt_windows : array[int8], 1 dimension
+        Array of currently scheduled stuff
+    tt_row_mapper : numba.typed.Dict[int,int]
+        Maps value in `window_row_id` to row position in `tt_windows`.
+    window_row_id : int
 
-        # padding periods not available
-        available[:, 0] = 0
-        available[:, -1] = 0
+    Returns
+    -------
 
-        diffs = np.diff(available)  # 1 at start of run of availables, -1 at end, 0 everywhere else
-        start_row_index, starts = np.asarray(diffs > 0).nonzero()  # indices of run starts
-        end_row_index, ends = np.asarray(diffs < 0).nonzero()  # indices of run ends
-        assert (start_row_index == end_row_index).all()  # because bounded, expect same number of starts and ends
+    """
+    max_block_avail = 0
+    current_block = 0
+    for i in range(1, windows_row.size - 1):
+        if windows_row[i] != I_MIDDLE:
+            current_block += 1
+        else:
+            current_block = 0
+        if current_block > max_block_avail:
+            max_block_avail = current_block
+    return max_block_avail
 
-        # run_lengths like availability but with run length at start of every run and zeros elsewhere
-        # (row_indices of starts and ends are aligned, so end - start is run_length)
-        run_lengths = np.zeros_like(available)
-        run_lengths[start_row_index, starts] = (ends - starts)
 
-        # we just want to know the the longest one for each window_row_id
-        max_run_lengths = run_lengths.max(axis=1)
+@nb.njit
+def _max_time_blocks_available_1(tt_window_row_ix, tt_windows, window_row_ids):
+    max_blocks = np.zeros(window_row_ids.size, dtype=np.uint8)
+    # FIXME consider dedupe/redupe window_row_ids for performance
+    # as this may be called for alts with lots of duplicates (e.g. trip scheduling time pressure calculations)
+    for j in range(window_row_ids.size):
+        max_blocks[j] = _max_time_block_available_1(
+            tt_windows[tt_window_row_ix[window_row_ids[j]]]
+        )
+    return max_blocks
 
-        return pd.Series(max_run_lengths, index=window_row_ids.index)
+
+@nb.njit
+def sharrow_tt_max_time_block_available(tt_windows, tt_row_mapper, window_row_id):
+    return _max_time_block_available_1(tt_windows[tt_row_mapper[window_row_id]])
+
+
+def tt_slice_windows_by_row_id(tt_window_row_ix, tt_windows, window_row_ids):
+    """
+    return windows array slice containing rows for specified window_row_ids
+    (in window_row_ids order)
+    """
+    row_ixs = tt_window_row_ix.apply_to(window_row_ids.values)
+    windows = tt_windows[row_ixs]
+
+    return windows
+
+
+@nb.njit
+def _count_windows_that_are_not_middles(
+    window_row_id,  # int
+    windows_mapper,  # nb.Dict[int,int]
+    windows,  # ndarray
+):
+    row_ix = windows_mapper[window_row_id]
+    x = 0
+    for i in range(windows.shape[1]):
+        if windows[row_ix, i] != I_MIDDLE:
+            x += 1
+    return x
+
+
+@nb.njit
+def sharrow_tt_remaining_periods_available(
+    tt_windows,  # ndarray
+    tt_row_mapper,  # nb.Dict[int,int]
+    window_row_id,  # int
+    starter,  # int
+    ender,  # int
+):
+    """
+    Number of periods remaining available after hypothetical scheduling
+
+    This is what's left after a new tour or trip from `starts` to
+    `ends` is hypothetically scheduled.
+
+    Implements MTC TM1 @@remainingPeriodsAvailableAlt
+
+    The start and end periods will always be available after
+    scheduling, so ignore them. The periods between start and end
+    must be currently unscheduled, so assume they will become
+    unavailable after scheduling this window.
+
+    Parameters
+    ----------
+    tt_windows : array[int8], 2 dimensions
+        Array of currently scheduled stuff
+    tt_row_mapper : numba.typed.Dict[int,int]
+        Maps value in the `window_row_ids` to row positions in `windows`.
+    window_row_id : int
+        An identifier for which window row to use.
+    starter : int
+        The starting period of the new tour that will block windows.
+    ender : int
+        The ending period of the new tour that will block windows.
+
+    Returns
+    -------
+    int
+    """
+    available = _count_windows_that_are_not_middles(
+        window_row_id,
+        tt_row_mapper,
+        tt_windows,
+    )
+    # don't count time window padding at both ends of day
+    available -= 2
+    this_block = ender - starter - 1
+    if this_block > 0:
+        available -= this_block
+    return available
+
+
+@nb.njit
+def _remaining_periods_available(
+    windows,  # ndarray
+    windows_row_mapper,
+    window_row_ids,  # ndarray[int]
+    starts,  # ndarray[int]
+    ends,  # ndarray[int]
+):
+    """
+    Number of periods remaining available after hypothetical scheduling
+
+    This is what's left after a new tour or trip from `starts` to
+    `ends` is hypothetically scheduled.
+
+    Implements MTC TM1 @@remainingPeriodsAvailableAlt
+
+    The start and end periods will always be available after
+    scheduling, so ignore them. The periods between start and end
+    must be currently unscheduled, so assume they will become
+    unavailable after scheduling this window.
+
+    Parameters
+    ----------
+    windows_row_mapper : numba.typed.Dict[int,int]
+        Maps value in the `window_row_ids` to row positions in `windows`.
+    windows : array[int8], 2 dimensions
+    window_row_ids : array[int], 1-dimension
+    starts : array[int]
+        A 1-dimension array the same shape as `window_row_ids` which
+        gives the starting period of the new tour that will block windows.
+    ends : array[int], 1-dimension
+        A 1-dimension array the same shape as `window_row_ids` which
+        gives the ending period of the new tour that will block windows.
+
+    Returns
+    -------
+    array[int]
+        A 1-dimension array the same shape as `window_row_ids` which
+        gives the number of available periods remaining.
+    """
+    result = np.empty(window_row_ids.shape, dtype=np.int64)
+    for i in range(window_row_ids.shape[0]):
+        result[i] = sharrow_tt_remaining_periods_available(
+            windows,
+            windows_row_mapper,
+            window_row_ids[i],
+            starts[i],
+            ends[i],
+        )
+    return result
+
+
+def tt_remaining_periods_available(tt, window_row_ids, starts, ends):
+    """
+    Number of periods remaining available after hypothetical scheduling
+
+    That is, what's left after something from starts to ends is
+    hypothetically scheduled
+
+    Implements MTC TM1 @@remainingPeriodsAvailableAlt
+
+    The start and end periods will always be available after
+    scheduling, so ignore them. The periods between start and end
+    must be currently unscheduled, so assume they will become
+    unavailable after scheduling this window.
+
+    Parameters
+    ----------
+    tt : TimeTable
+    window_row_ids : pandas.Series[int]
+        series of window_row_ids indexed by tour_id
+    starts : pandas.Series[int]
+        series of tdd_alt ids, index irrelevant (one per window_row_id)
+    ends : pandas.Series[int]
+        series of tdd_alt ids, index irrelevant (one per window_row_id)
+
+    Returns
+    -------
+    available : pandas Series int
+        number periods available indexed by window_row_ids.index
+    """
+
+    result = _remaining_periods_available(
+        tt.windows,
+        tt.window_row_ix._mapper,
+        window_row_ids.values,
+        starts.values,
+        ends.values,
+    )
+    if isinstance(window_row_ids, pd.Series):
+        result = pd.Series(result, index=window_row_ids.index)
+    return result
+
+
+@nb.njit
+def _window_period_in_states(
+    windows,
+    windows_row_mapper,
+    windows_col_mapper,
+    window_row_id,
+    period,
+    state1,
+    state2,
+):
+    """
+    Return boolean indicating whether specified window periods are in list of states.
+
+    Internal DRY method to implement previous_tour_ends and previous_tour_begins
+
+    Parameters
+    ----------
+    windows : array of int8, 2 dimensions
+        Array of currently scheduled stuff
+    windows_row_mapper : numba.typed.Dict[int,int]
+        Maps value in the `window_row_ids` to row positions in `windows`.
+    windows_col_mapper : numba.typed.Dict[int,int]
+        Array of currently scheduled stuff
+    window_row_id : int
+        An identifier for which window row to use.
+    period : int
+        An identifier for which window col to use.
+    state1, state2 : int
+        presumably (e.g. I_EMPTY, I_START...)
+
+    Returns
+    -------
+    bool
+    """
+    w = windows[windows_row_mapper[window_row_id], windows_col_mapper[period]]
+    if w == state1 or w == state2:
+        return True
+    return False
+
+
+@nb.njit
+def _windows_periods_in_states(
+    windows,
+    windows_row_mapper,
+    windows_col_mapper,
+    window_row_ids,
+    periods,
+    state1,
+    state2,
+):
+    result = np.empty(window_row_ids.shape, dtype=np.int8)
+    for i in range(window_row_ids.shape[0]):
+        result[i] = _window_period_in_states(
+            windows,
+            windows_row_mapper,
+            windows_col_mapper,
+            window_row_ids[i],
+            periods[i],
+            state1,
+            state2,
+        )
+    return result
+
+
+def tt_previous_tour_ends(tt, window_row_ids, periods):
+    return _windows_periods_in_states(
+        tt.windows,
+        tt.window_row_ix._mapper,
+        tt.time_ix._mapper,
+        window_row_ids.values,
+        periods.values,
+        I_END,
+        I_START_END,
+    )
+
+
+@nb.njit
+def sharrow_tt_previous_tour_ends(
+    tt_windows, tt_row_mapper, tt_col_mapper, window_row_id, period
+):
+    return _window_period_in_states(
+        tt_windows,
+        tt_row_mapper,
+        tt_col_mapper,
+        window_row_id,
+        period,
+        I_END,
+        I_START_END,
+    )
+
+
+def tt_previous_tour_begins(tt, window_row_ids, periods):
+    return _windows_periods_in_states(
+        tt.windows,
+        tt.window_row_ix._mapper,
+        tt.time_ix._mapper,
+        window_row_ids.values,
+        periods.values,
+        I_START,
+        I_START_END,
+    )
+
+
+@nb.njit
+def sharrow_tt_previous_tour_begins(
+    tt_windows, tt_row_mapper, tt_col_mapper, window_row_id, period
+):
+    return _window_period_in_states(
+        tt_windows,
+        tt_row_mapper,
+        tt_col_mapper,
+        window_row_id,
+        period,
+        I_START,
+        I_START_END,
+    )
+
+
+def tt_adjacent_window_before(tt, window_row_ids, periods):
+    return _available_run_length_2(
+        tt.windows,
+        tt.window_row_ix._mapper,
+        tt.time_ix._mapper,
+        True,
+        window_row_ids.values,
+        periods.to_numpy(),
+    )
+
+
+@nb.njit
+def sharrow_tt_adjacent_window_before(
+    tt_windows, tt_row_mapper, tt_col_mapper, window_row_id, period
+):
+    return _available_run_length_1(
+        tt_windows,
+        tt_row_mapper,
+        tt_col_mapper,
+        True,
+        window_row_id,
+        period,
+    )
+
+
+def tt_adjacent_window_after(tt, window_row_ids, periods):
+    return _available_run_length_2(
+        tt.windows,
+        tt.window_row_ix._mapper,
+        tt.time_ix._mapper,
+        False,
+        window_row_ids.values,
+        periods.to_numpy(),
+    )
+
+
+@nb.njit
+def sharrow_tt_adjacent_window_after(
+    tt_windows, tt_row_mapper, tt_col_mapper, window_row_id, period
+):
+    return _available_run_length_1(
+        tt_windows,
+        tt_row_mapper,
+        tt_col_mapper,
+        False,
+        window_row_id,
+        period,
+    )

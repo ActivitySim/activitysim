@@ -1,0 +1,42 @@
+sharrow_skip: true
+# The `sharrow_skip` option is activated to disable the use of sharrow for this
+# model, because the utility specification as currently written includes a
+# large number of string comparisons (nearly every one of 300+ expressions has
+# such an operation). Sharrow can process these expressions correctly, but it is
+# slow.  If the specification is rewritten to remove most of these string
+# comparisons (see for example in the equivalent file for the prototype_mtc
+# models) then sharrow can be re-enabled for a significant speed benefit.
+
+SPEC: tour_scheduling_nonmandatory.csv
+COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
+
+LOGIT_TYPE: MNL
+
+preprocessor:
+  SPEC: non_mandatory_tour_scheduling_annotate_tours_preprocessor
+  DF: non_mandatory_tours
+  TABLES:
+    - land_use
+    - joint_tour_participants
+
+SIMULATE_CHOOSER_COLUMNS:
+
+  - age
+  - is_female
+  - adult
+  - ptype
+  - has_pre_school_child_with_mandatory
+  - has_driving_age_child_with_mandatory
+  - retired_adults_only_hh
+  - is_income_less25K
+  - is_income_25K_to_60K
+  - is_income_60K_to_120K
+  - auto_ownership
+  - num_children
+  - num_adults
+  - num_mand_tours
+  - num_joint_tours
+  - num_escort_tours
+  - num_non_escort_tours
+  - num_add_shop_maint_tours
+  - num_add_soc_discr_tours

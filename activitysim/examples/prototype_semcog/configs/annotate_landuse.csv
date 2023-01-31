@@ -1,0 +1,5 @@
+Description,Target,Expression
+#,, annotate landuse table after import
+household_density,household_density,land_use.tot_hhs / (land_use.tot_acres)
+employment_density,employment_density,land_use.tot_emp / (land_use.tot_acres)
+density_index,density_index,(household_density *employment_density) / (household_density + employment_density).clip(lower=1)

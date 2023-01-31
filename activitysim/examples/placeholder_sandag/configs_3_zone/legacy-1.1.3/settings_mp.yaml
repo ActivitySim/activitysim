@@ -1,0 +1,34 @@
+inherit_settings: settings.yaml
+
+multiprocess: True
+households_sample_size: 0
+num_processes: 28
+
+# raise error if any sub-process fails without waiting for others to complete
+# (Shadow pricing requires fail_fast setting in multiprocessing mode)
+fail_fast: True
+
+multiprocess_steps:
+  - name: mp_initialize
+    begin: initialize_landuse
+  - name: mp_accessibility
+    begin: compute_accessibility
+    slice:
+      tables:
+        - accessibility
+  - name: mp_los
+    begin: initialize_los
+  - name: mp_tvpb
+    begin: initialize_tvpb
+    num_processes: 20
+    slice:
+      tables:
+        - attribute_combinations
+  - name: mp_models
+    begin: school_location
+    slice:
+      tables:
+        - households
+        - persons
+  - name: mp_summarize
+    begin: write_data_dictionary

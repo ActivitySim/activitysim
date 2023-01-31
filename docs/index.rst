@@ -1,42 +1,43 @@
-.. ActivitySim documentation master file, created by
-   sphinx-quickstart on Tue May 26 14:13:47 2016.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
+===========
 ActivitySim
 ===========
 
-The mission of the ActivitySim project is to create and maintain advanced, open-source, 
-activity-based travel behavior modeling software based on best software development 
+The mission of the ActivitySim project is to create and maintain advanced, open-source,
+activity-based travel behavior modeling software based on best software development
 practices for distribution at no charge to the public.
 
-The ActivitySim project is led by a consortium of Metropolitan Planning Organizations 
-(MPOs) and other transportation planning agencies, which provides technical direction 
-and resources to support project development. New member agencies are welcome to join 
-the consortium. All member agencies help make decisions about development priorities 
-and benefit from contributions of other agency partners.  Additional information about 
+The ActivitySim project is led by a consortium of Metropolitan Planning Organizations
+(MPOs) and other transportation planning agencies, which provides technical direction
+and resources to support project development. New member agencies are welcome to join
+the consortium. All member agencies help make decisions about development priorities
+and benefit from contributions of other agency partners.  Additional information about
 the development and management of the ActivitySim is on the `project site <http://www.activitysim.org>`__.
 
+.. grid:: 2
 
-Contents
---------
+    .. grid-item-card::
+
+        :fa:`book` |nbsp| |nbsp| :ref:`User's Guide <userguide>`
+
+        ^^^
+
+        Start here to learn about using ActivitySim, including how to install,
+        the software, and how to configure and run models.
+
+    .. grid-item-card::
+
+        :fa:`terminal` |nbsp| |nbsp| :ref:`Developer's Guide <devguide>`
+
+        ^^^
+
+        Start here to learn about developing ActivitySim, including creating
+        model components, or changing the codebase.
 
 .. toctree::
-   :maxdepth: 3
+   :hidden:
 
-   gettingstarted
-   examples
-   models
-   core
-   cli
-   estimation
-   howitworks
-   development
+   users-guide/index
+   dev-guide/index
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. |nbsp| unicode:: 0xA0
+   :trim:

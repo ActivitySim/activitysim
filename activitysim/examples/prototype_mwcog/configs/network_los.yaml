@@ -1,0 +1,40 @@
+# read cached skims (using numpy memmap) from output directory (memmap is faster than omx )
+read_skim_cache: False
+# write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
+write_skim_cache: False
+
+#alternate dir to read/write skim cache (defaults to output_dir)
+#cache_dir: data/cache
+
+zone_system: 1
+
+taz_skims:
+    omx: skims*.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - {regex: .*_DIST.*   , joint_dict: true}
+        - {regex: .*_DDIST    , joint_dict: true}
+        - {regex: .*_DTIME    , joint_dict: true}
+        - {regex: .*_FARE     , joint_dict: true}
+        - {regex: .*_IVTBR    , joint_dict: true}
+        - {regex: .*_IVTCR    , joint_dict: true}
+        - {regex: .*_IVTLB    , joint_dict: true}
+        - {regex: .*_IVTLR    , joint_dict: true}
+        - {regex: .*_IVTMR    , joint_dict: true}
+        - {regex: .*_IVTXB    , joint_dict: true}
+        - {regex: .*_IWAIT    , joint_dict: true}
+        - {regex: .*_TOTIVT   , joint_dict: true}
+        - {regex: .*_TOTTT    , joint_dict: true}
+        - {regex: .*_WACC     , joint_dict: true}
+        - {regex: .*_WAUX     , joint_dict: true}
+        - {regex: .*_XFERS    , joint_dict: true}
+        - {regex: .*_XPEN     , joint_dict: true}
+        - {regex: .*_XWAIT    , joint_dict: true}
+
+skim_time_periods:
+    time_window: 1440
+    period_minutes: 30
+    periods: [0, 6, 12, 24, 32, 48]
+    labels: ['NT', 'AM', 'MD', 'PM', 'NT']
+
+#NT is repeated twice as it's on both sides of the day.

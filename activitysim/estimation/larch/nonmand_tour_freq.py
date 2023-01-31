@@ -1,21 +1,18 @@
-import numpy as np
-import pandas as pd
-import re
+import logging
 import os
-import yaml
-import itertools
-from typing import Mapping
-from larch import P, X, DataFrames, Model
-from larch.util import Dict
 from pathlib import Path
 
-import logging
+import pandas as pd
+import yaml
+from larch import DataFrames, Model
 from larch.log import logger_name
+from larch.util import Dict
+
 from .general import (
-    remove_apostrophes,
-    linear_utility_from_spec,
     apply_coefficients,
     cv_to_ca,
+    linear_utility_from_spec,
+    remove_apostrophes,
 )
 
 _logger = logging.getLogger(logger_name)
@@ -39,7 +36,10 @@ def interaction_simulate_data(
 
     settings_file = settings_file.format(name=name)
     with open(os.path.join(edb_directory, settings_file), "r") as yf:
-        settings = yaml.load(yf, Loader=yaml.SafeLoader,)
+        settings = yaml.load(
+            yf,
+            Loader=yaml.SafeLoader,
+        )
 
     coefficients = {}
     chooser_data = {}
@@ -59,7 +59,9 @@ def interaction_simulate_data(
             alt_values_files.format(name=name, segment_name=segment_name),
         )
 
-    spec = _read_csv(spec_file,)
+    spec = _read_csv(
+        spec_file,
+    )
     spec = remove_apostrophes(spec, ["Label"])
     # alt_names = list(spec.columns[3:])
     # alt_codes = np.arange(1, len(alt_names) + 1)
@@ -117,15 +119,36 @@ def unavail(model, x_ca):
 
 
 def nonmand_tour_freq_model(
-    edb_directory="output/estimation_data_bundle/{name}/", return_data=False,
+    edb_directory="output/estimation_data_bundle/{name}/",
+    return_data=False,
+    condense_parameters=False,
 ):
+    """
+    Prepare nonmandatory tour frequency models for estimation.
+
+    Parameters
+    ----------
+    edb_directory : str
+        Location of estimation data bundle for these models.
+    return_data : bool, default False
+        Whether to return the data used in preparing this function.
+        If returned, data is a dict in the second return value.
+    condense_parameters : bool, default False
+        Apply a transformation whereby all parameters in each model that
+        have the same initial value are converted to have the same name
+        (and thus to be the same parameter, used in various places).
+    """
     data = interaction_simulate_data(
-        name="non_mandatory_tour_frequency", edb_directory=edb_directory,
+        name="non_mandatory_tour_frequency",
+        edb_directory=edb_directory,
     )
 
     settings = data.settings
     segment_names = [s["NAME"] for s in settings["SPEC_SEGMENTS"]]
-    data.relabel_coef = link_same_value_coefficients(segment_names, data.coefficients, data.spec)
+    if condense_parameters:
+        data.relabel_coef = link_same_value_coefficients(
+            segment_names, data.coefficients, data.spec
+        )
     spec = data.spec
     coefficients = data.coefficients
     chooser_data = data.chooser_data
@@ -142,7 +165,9 @@ def nonmand_tour_freq_model(
 
         # Utility specifications
         segment_model.utility_ca = linear_utility_from_spec(
-            spec, x_col="Label", p_col=segment_name,
+            spec,
+            x_col="Label",
+            p_col=segment_name,
         )
         apply_coefficients(coefficients[segment_name], segment_model)
         segment_model.choice_co_code = "override_choice"
@@ -154,7 +179,11 @@ def nonmand_tour_freq_model(
             .rename(columns={"TAZ": "HOMETAZ"})
         )
         x_ca = cv_to_ca(alt_values[segment_name].set_index(["person_id", "variable"]))
-        d = DataFrames(co=x_co, ca=x_ca, av=~unavail(segment_model, x_ca),)
+        d = DataFrames(
+            co=x_co,
+            ca=x_ca,
+            av=~unavail(segment_model, x_ca),
+        )
         m[segment_name].dataservice = d
 
     if return_data:

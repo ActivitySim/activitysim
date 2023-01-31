@@ -1,10 +1,9 @@
-/* override table width restrictions */
-.wy-table-responsive table td, .wy-table-responsive table th {
-    white-space: normal;
+a.navbar-brand {
+    font-size: 20pt;
+    font-weight: bold;
 }
 
-.wy-table-responsive {
-    margin-bottom: 24px;
-    max-width: 100%;
-    overflow: visible;
+div.sd-card-header {
+    font-weight: 800;
+    var(--pst-font-family-base);
 }

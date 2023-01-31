@@ -1,4 +1,3 @@
-
 # rst doesn't support image maps, so we'll add one after the html has been built
 
 fileName = "_build/html/examples.html"
@@ -38,10 +37,10 @@ imageMap = """\n   <map name="image-map">
 
 print("add image map to " + fileName)
 
-with open(fileName, encoding='utf-8') as file:
+with open(fileName, encoding="utf-8") as file:
     lines = file.readlines()
 
-with open(fileName, 'w') as file:
+with open(fileName, "w") as file:
     for aLine in lines:
         if line in aLine:
             print("updated " + fileName)

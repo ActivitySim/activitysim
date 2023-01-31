@@ -7,49 +7,77 @@
 Examples
 ========
 
-This page describes the example models included with ActivitySim.  The current examples are:
+This page describes the example models included with ActivitySim. There are three
+basic types of example model:
+
+* "production" examples are calibrated and validated by the relevant agency, and
+  are intended to be replicas of an "official" travel model used by that agency,
+  although generally we expect agencies to maintain independent repositories and
+  not rely on the Consortium maintained version as a single source for the model.
+  At this time there are no production examples in the consortium's collection,
+  but we expect that to change soon.
+* "prototype" examples are not representative of any "official" travel model
+  used by the relevant agency, but they are viewed as "ok" models by the
+  consortium: they are usually at least loosely calibrated and/or validated, and
+  typically contain at least some components or parameters specialized for the
+  relevant region. They may be in-development models that are not quite finished,
+  or consortium maintained models that are derived from but now different from
+  the official model of some region. They should not be used in place of
+  "official" models for policy analysis in any given region, but could serve as
+  a donor model for new users who want to implement ActivitySim somewhere new
+  (subject to all the caveats that go along with transferring models).
+* "placeholder" examples are computational testbeds that technically run but
+  have not been calibrated nor validated in any meaningful way. These examples
+  are early stage development models used for testing purposes, and users are
+  strongly cautioned not to use them for any policy or planning purpose.
+
+The current examples are:
 
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 | Example                         | Purpose                                                   | Zone Systems | Status               |
 +=================================+===========================================================+==============+======================+
-| :ref:`example_mtc`              | Primary MTC travel model one example                      | 1            | Mature               |
+| :ref:`prototype_mtc`            | Original ActivitySim Example, derived from MTC TM1        | 1            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_estimation`       | Estimation example with example_mtc                       | 1            | Mature               |
+| :ref:`prototype_mtc_extended`   | Prototype MTC example with additional optional models     | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_multiple_zones`   | 2 or 3 zone system example using example_mtc data         | 2 or 3       | Simple test example  |
+| :ref:`example_estimation`       | Estimation example with prototype_mtc                     | 1            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_marin`            | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
+| :ref:`placeholder_multiple_zone`| 2 or 3 zone system example using MTC data                 | 2 or 3       | Simple test example  |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_arc`              | ARC agency example                                        | 1            | In development       |
+| :ref:`prototype_marin`          | 3 zone system example using Marin tour mode choice model  | 3            | Mature               |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_semcog`           | SEMCOG agency example                                     | 1            | In development       |
+| :ref:`prototype_arc`            | ARC agency example                                        | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_psrc`             | PSRC agency example                                       | 2            | In development       |
+| :ref:`prototype_semcog`         | SEMCOG agency example                                     | 1            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_sandag`           | SANDAG agency example                                     | 3            | In development       |
+| :ref:`placeholder_psrc`         | PSRC agency example                                       | 2            | Future development   |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
-| :ref:`example_sandag_xborder`   | SANDAG agency example                                     | 3            | In development       |
+| :ref:`placeholder_sandag`       | SANDAG agency example                                     | 3            | Future development   |
++---------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| :ref:`prototype_sandag_xborder` | SANDAG agency example                                     | 3            | In development       |
++---------------------------------+-----------------------------------------------------------+--------------+----------------------+
+| :ref:`prototype_mwcog`          | MWCOG agency example                                      | 2            | In development       |
 +---------------------------------+-----------------------------------------------------------+--------------+----------------------+
 
 .. note::
-   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
+   The `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
    contains example commands to create and run several versions of the examples.  See also :ref:`adding_agency_examples` for more
    information on agency example models.
 
-.. _example_mtc :
+.. _prototype_mtc :
 
-example_mtc
------------
+prototype_mtc
+-------------
 
-The initial example implemented in ActivitySim was example_mtc.  This section described the example_mtc 
-model design, how to setup and run the example, and how to review outputs. The default configuration of the 
-example is limited to a small sample of households and zones so that it can be run quickly and require 
+The initial example implemented in ActivitySim was prototype_mtc.  This section described the prototype_mtc
+model design, how to setup and run the example, and how to review outputs. The default configuration of the
+example is limited to a small sample of households and zones so that it can be run quickly and require
 less than 1 GB of RAM.  The full scale example can be configured and run as well.
 
 Model Design
 ~~~~~~~~~~~~
 
-The example_mtc example is based on the
+The prototype_mtc example is based on (but has evolved away from) the
 `Bay Area Metro Travel Model One <https://github.com/BayAreaMetro/travel-model-one>`__ (TM1).
 TM1 has its roots in a wide array of analytical approaches, including discrete
 choice forms (multinomial and nested logit models), activity duration models, time-use models,
@@ -63,11 +91,11 @@ individual decision-makers.
 Space
 ^^^^^
 
-TM1 uses the 1454 TAZ zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
+The prototype MTC model uses the 1454 TAZ zone system developed for the MTC trip-based model.  The zones are fairly large for the region,
 which may somewhat distort the representation of transit access in mode choice. To ameliorate this problem, the
 original model zones were further sub-divided into three categories of transit access: short walk, long walk, and not
 walkable.  However, support for transit subzones is not included in the activitysim implementation since the latest generation
-of activity-based models typically use an improved approach to spatial representation called multiple zone systems.  See 
+of activity-based models typically use an improved approach to spatial representation called multiple zone systems.  See
 :ref:`multiple_zone_systems` for more information.
 
 Decision-making units
@@ -202,39 +230,39 @@ occupancy and toll/non-toll choice, walk and bike, walk and drive access to five
 transit line-haul modes, and ride hail with taxi, single TNC (Transportation Network Company), and shared TNC.
 
   * Auto
-  
+
     * SOV Free
     * SOV Pay
     * 2 Person Free
     * 2 Person Pay
     * 3+ Person Free
     * 3+ Person Pay
-  
+
   * Nonmotorized
-    
+
     * Walk
     * Bike
-  
-  * Transit 
-  
+
+  * Transit
+
     * Walk
-    
+
       * Walk to Local Bus
       * Walk to Light-Rail Transit
       * Walk to Express Bus
       * Walk to Bus Rapid Transit
       * Walk to Heavy Rail
-    
+
     * Drive
-    
+
       * Drive to Local Bus
       * Drive to Light-Rail Transit
       * Drive to Express Bus
       * Drive to Bus Rapid Transit
       * Drive to Heavy Rail
-  
+
   * Ride Hail
-  
+
     * Taxi
     * Single TNC
     * Shared TNC
@@ -242,7 +270,7 @@ transit line-haul modes, and ride hail with taxi, single TNC (Transportation Net
 Sub-models
 ^^^^^^^^^^
 
-The general design of the example_mtc model is presented below.  Long-term choices that relate to
+The general design of the prototype_mtc model is presented below.  Long-term choices that relate to
 the usual workplace/university/school for each worker and student, household car ownership, and the
 availability of free parking at workplaces are first.
 
@@ -279,12 +307,12 @@ can be aggregated into travel demand matrices for network loading.
 Setup
 ~~~~~
 
-The following describes the example_mtc model setup.
+The following describes the prototype_mtc model setup.
 
 
 Folder and File Setup
 
-The example_mtc has the following root folder/file setup:
+The prototype_mtc has the following root folder/file setup:
 
   * configs - settings, expressions files, etc.
   * configs_mp - override settings for the multiprocess configuration
@@ -293,9 +321,9 @@ The example_mtc has the following root folder/file setup:
 
 Inputs
 ^^^^^^
-In order to run example_mtc, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file and the ``configs\network_los.yaml`` file:
+In order to run prototype_mtc, you first need the input files in the ``data`` folder as identified in the ``configs\settings.yaml`` file and the ``configs\network_los.yaml`` file:
 
-* input_table_list: the input CSV tables from MTC travel model one (see below for column definitions):
+* input_table_list: the input CSV tables for MTC (see below for column definitions):
 
     * households - Synthetic population household records for a subset of zones.
     * persons - Synthetic population person records for a subset of zones.
@@ -304,7 +332,7 @@ In order to run example_mtc, you first need the input files in the ``data`` fold
 * taz_skims: skims.omx - an OMX matrix file containing the MTC TM1 skim matrices for a subset of zones.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM).
 
 These files are used in the tests as well.  The full set
-of MTC TM1 households, persons, and OMX skims are on the ActivitySim `resources repository <https://github.com/rsginc/activitysim_resources>`__.
+of MTC households, persons, and OMX skims are on the ActivitySim `resources repository <https://github.com/rsginc/activitysim_resources>`__.
 
 Additional details on these files is available in the original `Travel Model 1 repository <https://github.com/BayAreaMetro/modeling-website/wiki/DataDictionary>`_,
 although many of the files described there are not used in ActivitySim.
@@ -466,74 +494,25 @@ Area types
 +------+------------------------------------------+
 
 .. note::
-  
+
   ActivitySim can optionally build an HDF5 file of the input CSV tables for use in subsequent runs since
   HDF5 is binary and therefore results in faster read times. see :ref:`configuration`
 
-  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__ or 
+  OMX and HDF5 files can be viewed with the `OMX Viewer <https://github.com/osPlanning/omx/wiki/OMX-Viewer>`__ or
   `HDFView <https://www.hdfgroup.org/downloads/hdfview>`__.
-  
-  The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted from
+
+  The ``other_resources\scripts\build_omx.py`` script will build one OMX file containing all the skims. The original MTC TM1 skims were converted for the prototype from
   Cube to OMX using the ``other_resources\scripts\mtc_tm1_omx_export.s`` script.
 
-  The example_mtc inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and 
+  The prototype_mtc_sf inputs were created by the ``other_resources\scripts\create_sf_example.py`` script, which creates the land use, synthetic population, and
   skim inputs for a subset of user-defined zones.
 
-.. index:: configuration
-.. _configuration:
 
 Configuration
 ^^^^^^^^^^^^^
 
-The ``configs`` folder contains settings, expressions files, and other files required for specifying
-model utilities and form.  The first place to start in the ``configs`` folder is ``settings.yaml``, which
-is the main settings file for the model run.  This file includes:
+This section has been moved to :ref:`configuration`.
 
-* ``models`` - list of model steps to run - auto ownership, tour frequency, etc. - see :ref:`model_steps`
-* ``resume_after`` - to resume running the data pipeline after the last successful checkpoint
-* ``input_store`` - HDF5 inputs file
-* ``input_table_list`` - list of table names, indices, and column re-maps for each table in `input_store`
-
-    * ``tablename`` - name of the injected table
-    * ``filename`` - name of the CSV or HDF5 file to read (optional, defaults to `input_store`)
-    * ``index_col`` - table column to use for the index
-    * ``rename_columns`` - dictionary of column name mappings
-    * ``keep_columns`` - columns to keep once read in to memory to save on memory needs and file I/O
-    * ``h5_tablename`` - table name if reading from HDF5 and different from `tablename`
-
-* ``create_input_store`` - write new `input_data.h5` file to outputs folder using CSVs from `input_table_list` to use for subsequent model runs
-* ``households_sample_size`` - number of households to sample and simulate; comment out to simulate all households
-* ``trace_hh_id`` - trace household id; comment out for no trace
-* ``trace_od`` - trace origin, destination pair in accessibility calculation; comment out for no trace
-* ``chunk_training_mode`` - disabled, training, production, or adaptive, see :ref:`chunk_size`.
-* ``chunk_size`` - approximate amount of RAM in GBs to allocate to ActivitySim for batch processing choosers, see :ref:`chunk_size`.
-* ``chunk_method`` - memory use measure such as hybrid_uss, see :ref:`chunk_size`.
-* ``checkpoints`` - if True, checkpoints are written at each step; if False, no intermediate checkpoints will be written before the end of run; also supports an explicit list of models to checkpoint
-* ``check_for_variability`` - disable check for variability in an expression result debugging feature in order to speed-up runtime
-* ``log_alt_losers`` - if True, log (i.e. write out) expressions for debugging that return prohibitive utility values that exclude all alternatives.  This feature slows down the model run and so it is recommended for debugging purposes only.
-* ``use_shadow_pricing`` - turn shadow_pricing on and off for work and school location
-* ``output_tables`` - list of output tables to write to CSV or HDF5
-* ``want_dest_choice_sample_tables`` - turn writing of sample_tables on and off for all models
-* ``cleanup_pipeline_after_run`` - if true, cleans up pipeline after successful run by creating a single-checkpoint pipeline file and deletes any subprocess pipelines
-* global variables that can be used in expressions tables and Python code such as:
-
-    * ``urban_threshold`` - urban threshold area type max value
-    * ``county_map`` - mapping of county codes to county names
-    * ``household_median_value_of_time`` - various household and person value-of-time model settings
-
-Also in the ``configs`` folder is ``network_los.yaml``, which includes network LOS / skims settings such as:
-
-* ``zone_system`` - 1 (taz), 2 (maz and taz), or 3 (maz, taz, tap)
-* ``taz_skims`` - skim matrices in one OMX file.  The time period for the matrix must be represented at the end of the matrix name and be seperated by a double_underscore (e.g. BUS_IVT__AM indicates base skim BUS_IVT with a time period of AM.
-* ``skim_time_periods`` - time period upper bound values and labels
-
-    * ``time_window`` - total duration (in minutes) of the modeled time span (Default: 1440 minutes (24 hours))
-    * ``period_minutes`` - length of time (in minutes) each model time period represents. Must be whole factor of ``time_window``. (Default: 60 minutes)
-    * ``periods`` - Breakpoints that define the aggregate periods for skims and assignment
-    * ``labels`` - Labels to define names for aggregate periods for skims and assignment
-* ``read_skim_cache`` - read cached skims (using numpy memmap) from output directory (memmap is faster than omx)
-* ``write_skim_cache`` - write memmapped cached skims to output directory after reading from omx, for use in subsequent runs
-* ``cache_dir`` - alternate dir to read/write cache files (defaults to output_dir)
 
 .. _sub-model-spec-files:
 
@@ -544,8 +523,8 @@ Included in the ``configs`` folder are the model specification files that store 
 Python/pandas/numpy expressions, alternatives, and other settings used by each model.  Some models includes an
 alternatives file since the alternatives are not easily described as columns in the expressions file.  An example
 of this is the ``non_mandatory_tour_frequency_alternatives.csv`` file, which lists each alternative as a row and each
-columns indicates the number of non-mandatory tours by purpose.  The  set of files for the example_mtc are below.  The
-:ref:`example_arc` example and :ref:`example_semcog` example added additional submodels.
+columns indicates the number of non-mandatory tours by purpose.  The  set of files for the prototype_mtc are below.  The
+:ref:`prototype_arc`, :ref:`prototype_semcog`, and :ref:`prototype_mtc_extended` examples added additional submodels.
 
 +------------------------------------------------+--------------------------------------------------------------------+
 |            Model                               |    Specification Files                                             |
@@ -807,7 +786,7 @@ To run the example, do the following:
 
 ::
 
-  activitysim create --example example_mtc --destination my_test_example
+  activitysim create --example prototype_mtc --destination my_test_example
 
 * Run the example
 
@@ -823,7 +802,7 @@ The example should run in a few minutes since it runs a small sample of househol
 
 .. note::
 
-  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/master/other_resources/scripts>`__.
+  A customizable run script for power users can be found in the `Github repo <https://github.com/ActivitySim/activitysim/tree/main/other_resources/scripts>`__.
   This script takes many of the same arguments as the ``activitysim run`` command, including paths to
   ``--config``, ``--data``, and ``--output`` directories. The script looks for these folders in the current
   working directory by default.
@@ -846,13 +825,13 @@ include the multiprocessing configuration settings via settings file inheritance
 The multiprocessing example also writes outputs to the output folder.
 
 The default multiprocessed example is configured to run with two processors and chunking training: ``num_processes: 2``,
-``chunk_size: 0``, and ``chunk_training_mode: training``.  Additional more performant configurations are included and 
-commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example 
-- ``example_mtc_full`` - was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.  
-The default setup runs with ``chunk_training_mode: training`` since no chunk cache file is present. To run the example 
-significantly faster, try ``chunk_training_mode: disabled`` if the machine has sufficient RAM, or try 
-``chunk_training_mode: production``.  To configure ``chunk_training_mode: production``, first configure chunking as 
-discussed below. See :ref:`multiprocessing` and :ref:`chunk_size` for more information.  
+``chunk_size: 0``, and ``chunk_training_mode: training``.  Additional more performant configurations are included and
+commented out in the example settings file.  For example, the 100 percent sample full scale multiprocessing example
+- ``prototype_mtc_full`` - was run on a Windows Server machine with 28 cores and 256GB RAM with the configuration below.
+The default setup runs with ``chunk_training_mode: training`` since no chunk cache file is present. To run the example
+significantly faster, try ``chunk_training_mode: disabled`` if the machine has sufficient RAM, or try
+``chunk_training_mode: production``.  To configure ``chunk_training_mode: production``, first configure chunking as
+discussed below. See :ref:`multiprocessing` and :ref:`chunk_size` for more information.
 
 ::
 
@@ -867,12 +846,19 @@ discussed below. See :ref:`multiprocessing` and :ref:`chunk_size` for more infor
 Configuring chunking
 ^^^^^^^^^^^^^^^^^^^^
 
-To configure chunking, ActivitySim must first be trained to determine reasonable chunking settings given the 
+To configure chunking, ActivitySim must first be trained to determine reasonable chunking settings given the
 model setup and machine.  The steps to configure chunking are:
 
-* Run the full scale model with ``chunk_training_mode: training``.  Set ``num_processors`` to about 80% of the available physical processors and ``chunk_size`` to about 80% of the available RAM.  This will run the model and create the ``chunk_cache.csv`` file in the output\cache directory for reuse.
-* The ``households_sample_size`` for training chunking should be at least 1 / num_processors to provide sufficient data for training and the ``chunk_method: hybrid_uss`` typically performs best.
-* Run the full scale model with ``chunk_training_mode: production``.  Experiment with different ``num_processors`` and ``chunk_size`` settings depending on desired runtimes and machine resources.
+* Run the full scale model with ``chunk_training_mode: training``.
+  Set ``num_processors`` to about 80% of the available physical processors
+  and ``chunk_size`` to about 80% of the available RAM.  This will run the model
+  and create the ``chunk_cache.csv`` file in the output\cache directory for reuse.
+* The ``households_sample_size`` for training chunking should be at least 1 / num_processors
+  to provide sufficient data for training and the ``chunk_method: hybrid_uss``
+  typically performs best.
+* Run the full scale model with ``chunk_training_mode: production``.  Experiment
+  with different ``num_processors`` and ``chunk_size`` settings depending on desired
+  runtimes and machine resources.
 
 See :ref:`chunk_size` for more information.  Users can run ``chunk_training_mode: disabled`` if the machine has an abundance of RAM for the model setup.
 
@@ -880,10 +866,10 @@ Outputs
 ~~~~~~~
 
 The key output of ActivitySim is the HDF5 data pipeline file ``outputs\pipeline.h5``.  By default, this datastore file
-contains a copy of each data table after each model step in which the table was modified.  
+contains a copy of each data table after each model step in which the table was modified.
 
 The example also writes the final tables to CSV files by using the ``write_tables`` step.  This step calls
-:func:`activitysim.core.pipeline.get_table` to get a pandas DataFrame and write a CSV file for each table 
+:func:`activitysim.core.pipeline.get_table` to get a pandas DataFrame and write a CSV file for each table
 specified in ``output_tables`` in the settings.yaml file.
 
 ::
@@ -904,7 +890,7 @@ specified in ``output_tables`` in the settings.yaml file.
 
 
 
-The ``other_resources\scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create 
+The ``other_resources\scripts\make_pipeline_output.py`` script uses the information stored in the pipeline file to create
 the table below for a small sample of households.  The table shows that for each table in the pipeline, the number of rows
 and/or columns changes as a result of the relevant model step.  A ``checkpoints`` table is also stored in the
 pipeline, which contains the crosswalk between model steps and table states in order to reload tables for
@@ -1022,9 +1008,9 @@ help debug data and/or logic errors.
 Writing Logsums
 ^^^^^^^^^^^^^^^
 
-The tour and trip destination and mode choice models calculate logsums but do not persist them by default.  
-Mode and destination choice logsums are essential for re-estimating these models and can therefore be 
-saved to the pipeline if desired.  To save the tour and trip destination and mode choice model logsums, include 
+The tour and trip destination and mode choice models calculate logsums but do not persist them by default.
+Mode and destination choice logsums are essential for re-estimating these models and can therefore be
+saved to the pipeline if desired.  To save the tour and trip destination and mode choice model logsums, include
 the following optional settings in the model settings file.  The data is saved to the pipeline for later use.
 
 ::
@@ -1032,18 +1018,18 @@ the following optional settings in the model settings file.  The data is saved t
   # in workplace_location.yaml for example
   DEST_CHOICE_LOGSUM_COLUMN_NAME: workplace_location_logsum
   DEST_CHOICE_SAMPLE_TABLE_NAME: workplace_location_sample
-  
+
   # in tour_mode_choice.yaml for example
   MODE_CHOICE_LOGSUM_COLUMN_NAME: mode_choice_logsum
 
-The `DEST_CHOICE_SAMPLE_TABLE_NAME` contains the fields in the table below.  Writing out the 
-destination choice sample table, which includes the mode choice logsum for each sampled 
+The `DEST_CHOICE_SAMPLE_TABLE_NAME` contains the fields in the table below.  Writing out the
+destination choice sample table, which includes the mode choice logsum for each sampled
 alternative destination, adds significant size to the pipeline.  Therefore, this feature should
 only be activated when writing logsums for a small set of households for model estimation.
 
 +-----------------------------------+---------------------------------------+
 | Field                             | Description                           |
-+===================================+=======================================+ 
++===================================+=======================================+
 | chooser_id                        | chooser id such as person or tour id  |
 +-----------------------------------+---------------------------------------+
 | alt_dest                          | destination alternative id            |
@@ -1055,37 +1041,97 @@ only be activated when writing logsums for a small set of households for model e
 | mode_choice_logsum                | mode choice logsum                    |
 +-----------------------------------+---------------------------------------+
 
+.. _prototype_mtc_extended :
+
+prototype_mtc_extended
+----------------------
+
+prototype_mtc_extended contains additional models that were developed to enhance ActivitySim's modeling
+capabilities. This example inherets
+the data and configuration files from prototype_mtc. The current list of additional models included
+in this example are:
+
+* :ref:`vehicle_type_choice`: Selects a vehicle type for each household vehicle. Runs after auto_ownership.
+* :ref:`vehicle_allocation`: Allocates a vehicle for each tour and each occupancy level.  Tour and trip mode choice
+  auto operating costs are modified to reflect the allocated vehicle option.
+* :ref:`school_escorting`: Explicitly models school drop-off / pick-up of students to and from school.
+
+The prototype_mtc_extended example also contains changes to test the flexible number of tour and trip ids.
+(Information in why this is important can be found `here <https://github.com/ActivitySim/activitysim/wiki/Project-Meeting-2022.08.09>`__.)
+The following changes were made to demonstrate this:
+
+* An additional alternative was added to the non-mandatory tour frequency alternatives file containing 2 other discretionary tours.
+* An additional alternative was added to the stop_frequency_alts.csv for 4 outbound stops and 3 inbound stops. This alternative was then
+  included as part of the stop_frequency_othdiscr.csv specification with an added calibration constant to control that alternative.
+  Because an additional trip may now happen in the outbound direction, the trip scheduling probabilities table was extended for the
+  other discretionary tour purpose where the fourth outbound trip rows were copied for the now availabile fifth trip.
+
+
 .. _example_estimation :
 
 example_estimation
 ------------------
 
 ActivitySim includes the ability to re-estimate submodels using choice model estimation tools
-such as `larch <https://larch.newman.me/>`__.  In order to do so, ActivitySim adopts the concept of an estimation 
+such as `larch <https://larch.newman.me/>`__.  In order to do so, ActivitySim adopts the concept of an estimation
 data bundle (EDB), which is a collection of the necessary data to re-estimate a submodel.  See :ref:`estimation`
 for examples that illustrate running ActivitySim in estimation mode and using larch to re-restimate submodels.
 
 .. index:: multiple_zone_systems
 .. _multiple_zone_systems :
-.. _example_multiple_zones :
+.. _placeholder_multiple_zone :
 
-example_multiple_zones
-----------------------
+placeholder_multiple_zone
+-------------------------
 
 In a multiple zone system approach, households, land use, and trips are modeled at the microzone (MAZ) level.  MAZs are smaller
 than traditional TAZs and therefore make for a more precise system.  However, when considering network level-of-service (LOS)
 indicators (e.g. skims), the model uses different spatial resolutions for different travel modes in order to reduce the network
-modeling burden and model runtimes.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone 
+modeling burden and model runtimes.  The typical multiple zone system setup is a TAZ zone system for auto travel, a MAZ zone
 system for non-motorized travel, and optionally a transit access points (TAPs) zone system for transit.
 
 ActivitySim supports models with multiple zone systems.  The three versions of multiple zone systems are one-zone, two-zone, and three-zone.
 
-  * **One-zone**: This version is based on TM1 and supports only TAZs. All origins and destinations are represented at the TAZ level, and all skims including auto, transit, and non-motorized times and costs are also represented at the TAZ level.
-  * **Two-zone**: This version is similar to many DaySim models. It uses microzones (MAZs) for origins and destinations, and TAZs for specification of auto and transit times and costs. Impedance for walk or bike all-the-way from the origin to the destination can be specified at the MAZ level for close together origins and destinations, and at the TAZ level for further origins and destinations. Users can also override transit walk access and egress times with times specified in the MAZ file by transit mode.  Careful pre-calculation of the assumed transit walk access and egress time by MAZ and transit mode is required depending on the network scenario.
-  * **Three-zone**: This version is based on the SANDAG generation of CT-RAMP models. Origins and destinations are represented at the MAZ level. Impedance for walk or bike all-the-way from the origin to the destination can be specified at the MAZ level for close together origins and destinations, and at the TAZ level for further origins and destinations, just like the two-zone system. TAZs are used for auto times and costs. The difference between this system and the two-zone system is that transit times and costs are represented between Transit Access Points (TAPs), which are essentially dummy zones that represent transit stops or clusters of stops. Transit skims are built between TAPs, since there are typically too many MAZs to build skims between them. Often multiple sets of TAP to TAP skims (local bus only, all modes, etc.) are created and input to the demand model for consideration.  Walk access and egress times are also calculated between the MAZ and the TAP, and total transit path utilities are assembled from their respective components - from MAZ to first boarding TAP, from first boarding to final alighting TAP, and from alighting TAP to destination MAZ. This assembling is done via the :ref:`transit_virtual_path_builder` (TVPB), which considers all possible combinations of nearby boarding and alighting TAPs for each origin destination MAZ pair.
+  * **One-zone**: This version is based on TM1 and supports only TAZs. All origins and
+    destinations are represented at the TAZ level, and all skims including auto, transit,
+    and non-motorized times and costs are also represented at the TAZ level.
+  * **Two-zone**: This version is similar to many DaySim models. It uses microzones (MAZs)
+    for origins and destinations, and TAZs for specification of auto and transit times and
+    costs. Impedance for walk or bike all-the-way from the origin to the destination can
+    be specified at the MAZ level for close together origins and destinations, and at
+    the TAZ level for further origins and destinations. Users can also override transit
+    walk access and egress times with times specified in the MAZ file by transit mode.
+    Careful pre-calculation of the assumed transit walk access and egress time by MAZ
+    and transit mode is required depending on the network scenario.
+  * **Three-zone**: This version is based on the SANDAG generation of CT-RAMP models.
+    Origins and destinations are represented at the MAZ level. Impedance for walk or
+    bike all-the-way from the origin to the destination can be specified at the MAZ
+    level for close together origins and destinations, and at the TAZ level for further
+    origins and destinations, just like the two-zone system. TAZs are used for auto
+    times and costs. The difference between this system and the two-zone system is that
+    transit times and costs are represented between Transit Access Points (TAPs), which
+    are essentially dummy zones that represent transit stops or clusters of stops.
+    Transit skims are built between TAPs, since there are typically too many MAZs to
+    build skims between them. Often multiple sets of TAP to TAP skims (local bus only,
+    all modes, etc.) are created and input to the demand model for consideration.  Walk
+    access and egress times are also calculated between the MAZ and the TAP, and total
+    transit path utilities are assembled from their respective components - from MAZ to
+    first boarding TAP, from first boarding to final alighting TAP, and from alighting
+    TAP to destination MAZ. This assembling is done via the
+    :ref:`transit_virtual_path_builder` (TVPB), which considers all possible
+    combinations of nearby boarding and alighting TAPs for each origin destination MAZ
+    pair.
 
-Regions that have an interest in more precise transit forecasts may wish to adopt the three-zone approach, while other regions may adopt the one or two-zone approach.  The microzone version requires coding households and land use at the microzone level.  Typically an all-streets network is used for representation of non-motorized impedances. This requires a routable all-streets network, with centroids and connectors for microzones.  If the three-zone system is adopted, procedures need to be developed to code TAPs from transit stops and populate the all-street network with TAP centroids and centroid connectors.  A model with transit virtual path building takes longer to run than a traditional
-TAZ only model, but it provides a much richer framework for transit modeling.
+Regions that have an interest in more precise transit forecasts may wish to adopt the
+three-zone approach, while other regions may adopt the one or two-zone approach.  The
+microzone version requires coding households and land use at the microzone level.
+Typically an all-streets network is used for representation of non-motorized impedances.
+This requires a routable all-streets network, with centroids and connectors for
+microzones.  If the three-zone system is adopted, procedures need to be developed to
+code TAPs from transit stops and populate the all-street network with TAP centroids
+and centroid connectors.  A model with transit virtual path building takes longer to
+run than a traditional TAZ only model, but it provides a much richer framework for
+transit modeling.
 
 .. note::
    The two and three zone system test examples are simple test examples developed from the TM1 example.  To develop the two zone system
@@ -1093,7 +1139,7 @@ TAZ only model, but it provides a much richer framework for transit modeling.
    TAZ to TAZ impedances.  To develop the three zone example system example, the TM1 TAZ model was further transformed
    so select TAZs also became TAPs and TAP to TAP skims and MAZ to TAP impedances files were created.  While sufficient for
    initial development, these examples were insufficient for validation and performance testing of the new software. As a result,
-   the :ref:`example_marin` example was created.  
+   the :ref:`prototype_marin` example was created.
 
 Example simple test configurations and inputs for two and three-zone system models are described below.
 
@@ -1108,10 +1154,10 @@ To run the two zone and three zone system examples, do the following:
 ::
 
   # simple two zone example
-  activitysim create -e example_2_zone -d test_example_2_zone
+  activitysim create -e placeholder_2_zone -d test_placeholder_2_zone
 
   # simple three zone example
-  activitysim create -e example_3_zone -d test_example_3_zone
+  activitysim create -e placeholder_3_zone -d test_placeholder_3_zone
 
 
 * Change to the example directory
@@ -1129,7 +1175,7 @@ To run the two zone and three zone system examples, do the following:
 Settings
 ~~~~~~~~
 
-Additional settings for running ActivitySim with two or three zone systems are specified in the ``settings.yaml`` and 
+Additional settings for running ActivitySim with two or three zone systems are specified in the ``settings.yaml`` and
 ``network_los.yaml`` files.  The settings are:
 
 Two Zone
@@ -1137,16 +1183,28 @@ Two Zone
 
 In ``settings.yaml``:
 
-* ``want_dest_choice_presampling`` - enable presampling for multizone systems, which means first select a TAZ using the sampling model and then select a microzone within the TAZ based on the microzone share of TAZ size term.
+* ``want_dest_choice_presampling`` - enable presampling for multizone systems, which
+  means first select a TAZ using the sampling model and then select a microzone within
+  the TAZ based on the microzone share of TAZ size term.
 
 In ``network_los.yaml``:
 
-The additional two zone system settings and inputs are described and illustrated below.  No additional utility expression files or expression revisions are required beyond the one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is available using the existing skim expressions.  Users can specify mode utilities using MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.
+The additional two zone system settings and inputs are described and illustrated below.
+No additional utility expression files or expression revisions are required beyond the
+one zone approach.  The MAZ data is available as zone data and the MAZ to MAZ data is
+available using the existing skim expressions.  Users can specify mode utilities using
+MAZ data, MAZ to MAZ impedances, and TAZ to TAZ impedances.
 
 * ``zone_system`` - set to 2 for two zone system
 * ``maz`` -  MAZ data file, with MAZ ID, TAZ, and land use and other MAZ attributes
-* ``maz_to_maz:tables`` - list of MAZ to MAZ impedance tables.  These tables are read as pandas DataFrames and the columns are exposed to expressions.
-* ``maz_to_maz:max_blend_distance`` - in order to avoid cliff effects, the lookup of MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and origin TAZ to destination TAZ impedance up to a max distance.  The blending formula is below.  This requires specifying a distance TAZ skim and distance columns from the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the same so the blending can happen on-the-fly or else a value of 0 is returned.
+* ``maz_to_maz:tables`` - list of MAZ to MAZ impedance tables.  These tables are read
+  as pandas DataFrames and the columns are exposed to expressions.
+* ``maz_to_maz:max_blend_distance`` - in order to avoid cliff effects, the lookup of
+  MAZ to MAZ impedance can be a blend of origin MAZ to destination MAZ impedance and
+  origin TAZ to destination TAZ impedance up to a max distance.  The blending formula
+  is below.  This requires specifying a distance TAZ skim and distance columns from
+  the MAZ to MAZ files.  The TAZ skim name and MAZ to MAZ column name need to be the
+  same so the blending can happen on-the-fly or else a value of 0 is returned.
 
 ::
 
@@ -1316,11 +1374,11 @@ Additional settings to configure the TVPB are:
 Outputs
 ~~~~~~~
 
-Essentially the same set of outputs is created for a two or three zone system 
+Essentially the same set of outputs is created for a two or three zone system
 model as for a one zone system model.  However, the one key additional bit of
-information for a three zone system model is the boarding TAP, alighting TAP, and 
-transit skim set is added to the relevant chooser table (e.g. tours and trips) when the 
-chosen mode is transit.  Logging and tracing also work for two and three zone models, 
+information for a three zone system model is the boarding TAP, alighting TAP, and
+transit skim set is added to the relevant chooser table (e.g. tours and trips) when the
+chosen mode is transit.  Logging and tracing also work for two and three zone models,
 including tracing of the TVPB calculations. The :ref:`write_trip_matrices` step writes
 both TAZ and TAP level matrices depending on the configured number of zone systems.
 
@@ -1329,28 +1387,28 @@ both TAZ and TAP level matrices depending on the configured number of zone syste
 Presampling
 ~~~~~~~~~~~
 
-In multiple zone systems models, destination choice presampling is activated by default.  Destination 
-choice presampling first aggregates microzone size terms to the TAZ level and then runs destination 
-choice sampling at the TAZ level using the destination choice sampling models.  After sampling X 
-number of TAZs based on impedance and size, the model selects a microzone for each TAZ based 
+In multiple zone systems models, destination choice presampling is activated by default.  Destination
+choice presampling first aggregates microzone size terms to the TAZ level and then runs destination
+choice sampling at the TAZ level using the destination choice sampling models.  After sampling X
+number of TAZs based on impedance and size, the model selects a microzone for each TAZ based
 on the microzone share of TAZ size.  Presampling significantly reduces runtime while producing
 similar results.
 
-.. _example_marin :
+.. _prototype_marin :
 
-example_marin
--------------
+prototype_marin
+---------------
 
 To finalize development and verification of the multiple zone system and transit virtual path building components, the
 `Transportation Authority of Marin County <https://www.tam.ca.gov/>`__ version of MTC travel model two (TM2) work
 tour mode choice model was implemented.  This example was also developed to test multiprocessed runtime performance.
-The complete runnable setup is available from the ActivitySim command line interface as `example_3_marin_full`.  This example
+The complete runnable setup is available from the ActivitySim command line interface as `prototype_3_marin_full`.  This example
 has essentially the same configuration as the simpler three zone example above.
 
 Example
 ~~~~~~~
 
-To run example_marin, do the following:
+To run prototype_marin, do the following:
 
 * Activate the correct conda environment if needed
 * Create a local copy of the example
@@ -1358,7 +1416,7 @@ To run example_marin, do the following:
 ::
 
   # Marin TM2 work tour mode choice for the MTC region
-  activitysim create -e example_3_marin_full -d test_example_3_marin_full
+  activitysim create -e prototype_3_marin_full -d test_prototype_3_marin_full
 
 * Change to the example directory
 * Run the example
@@ -1374,10 +1432,10 @@ To run example_marin, do the following:
 Settings
 ~~~~~~~~
 
-Additional settings for running the Marin TM2 tour mode choice example are in the ``network_los.yaml`` file.  The 
-only additional notable setting is the ``tap_lines`` setting, which identifies a table of transit line names 
-served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are 
-further away and serve new service are included in the TAP set for consideration.  It is a very important 
+Additional settings for running the Marin TM2 tour mode choice example are in the ``network_los.yaml`` file.  The
+only additional notable setting is the ``tap_lines`` setting, which identifies a table of transit line names
+served for each TAP.  This file is used to trimmed the set of nearby TAP for each MAZ so only TAPs that are
+further away and serve new service are included in the TAP set for consideration.  It is a very important
 file to include as it can considerably reduce runtimes.
 
 ::
@@ -1385,18 +1443,18 @@ file to include as it can considerably reduce runtimes.
   tap_lines: tap_lines.csv
 
 
-.. _example_arc :
+.. _prototype_arc :
 
-example_arc
------------
+prototype_arc
+-------------
 
 .. note::
 
   This example is in development
 
 
-The example_arc added a :ref:`trip_scheduling_choice`, :ref:`trip_departure_choice`, and :ref:`parking_location_choice`
-submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
+The prototype_arc added a :ref:`trip_scheduling_choice`, :ref:`trip_departure_choice`, and :ref:`parking_location_choice`
+submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
 submodel :ref:`sub-model-spec-files`.
 
 .. _arc-sub-model-spec-files:
@@ -1424,24 +1482,24 @@ Example ARC Sub-Model Specification Files
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running prototype_arc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
-.. _example_semcog :
+.. _prototype_semcog :
 
-example_semcog
---------------
+prototype_semcog
+----------------
 
 .. note::
 
   This example is in development
 
 
-The example_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
-and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`example_mtc` 
-submodel :ref:`sub-model-spec-files`.  These submodels were added to example_semcog as extensions, which is a way for users to add 
-submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through 
-the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface 
+The prototype_semcog added a :ref:`work_from_home`, :ref:`telecommute_frequency`, :ref:`transit_pass_subsidy`
+and :ref:`transit_pass_ownership` submodel.  These submodel specification files are below, and are in addition to the :ref:`prototype_mtc`
+submodel :ref:`sub-model-spec-files`.  These submodels were added to prototype_semcog as extensions, which is a way for users to add
+submodels within their model setup as opposed to formally adding them to the activitysim package.  Extension submodels are run through
+the `models` settings.  However, the model must be run with the `simulation.py` script instead of the command line interface
 in order to load the extensions folder.
 
 .. _semcog-sub-model-spec-files:
@@ -1472,62 +1530,82 @@ Example SEMCOG Sub-Model Specification Files
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running prototype_semcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
 
-.. _example_psrc :
+.. _placeholder_psrc :
 
-example_psrc
-------------
+placeholder_psrc
+----------------
+
+.. note::
+
+  This example is a placeholder model used only for code development and debugging, and is not suitable for policy analysis
+
+
+The placeholder_psrc is a two zone system (MAZs and TAZs) implementation of the
+prototype_mtc model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).
+
+Example
+~~~~~~~
+
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running placeholder_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+
+.. _placeholder_sandag :
+
+placeholder_sandag
+------------------
 
 .. note::
 
   This example is in development
 
 
-The example_psrc is a two zone system (MAZs and TAZs) implementation of the 
-example_mtc model design.  It uses PSRC zones, land use, synthetic population, and network LOS (skims).
+The placeholder_sandag is a multi-part model, containing one-, two-, and three- zone system (MAZs, TAZs, and TAPs) implementation of the
+prototype_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).
 
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_psrc.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running placeholder_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
-.. _example_sandag :
+.. _prototype_sandag_xborder :
 
-example_sandag
---------------
+prototype_sandag_xborder
+------------------------
 
 .. note::
 
   This example is in development
 
 
-The example_sandag is a three zone system (MAZs, TAZs, and TAPs) implementation of the 
-example_mtc model design.  It uses SANDAG zones, land use, synthetic population, and network LOS (skims).
+The prototype_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that
+generates cross-border activities for a tour-based population of Mexican residents.
+In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for
+each border crossing station (Port of Entry). Because the model is tour-based, there
+are no household or person-level attributes in the synthetic population. The
+principal difference between this and the standard 3-zone implementation is that
+since household do not have a default tour origin (home zones), a tour OD choice
+model is required to assign tour origins and destinations simultaneously.
 
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_sandag.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running prototype_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
 
-.. _example_sandag_xborder :
+.. _prototype_mwcog :
 
-example_sandag_xborder
-----------------------
+prototype_mwcog
+---------------
 
-.. note::
-
-  This example is in development
-
-
-The example_sandag_xborder is a three zone system (MAZs, TAZs, and TAPs) that generates cross-border activities for a tour-based population of Mexican residents. In addition to the normal SANDAG zones, there are external MAZs and TAZs defined for each border crossing station (Port of Entry). Because the model is tour-based, there are no household or person-level attributes in the synthetic population. The principal difference between this and the standard 3-zone implementation is that since household do not have a default tour origin (home zones), a tour OD choice model is required to assign tour origins and destinations simultaneously.
+The prototype_mwcog is a one zone system (TAZs only).
 
 Example
 ~~~~~~~
 
-See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/master/activitysim/examples/example_manifest.yaml>`_ 
-for running example_sandag_xborder.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.
+See example commands in `example_manifest.yaml <https://github.com/ActivitySim/activitysim/blob/main/activitysim/examples/example_manifest.yaml>`_
+for running prototype_mwcog.  For optimal performance, configure multiprocessing and chunk_size based on machine hardware.

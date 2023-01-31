@@ -1,0 +1,259 @@
+# read trips table post preprocessor and run expressions to code
+# additional data fields, with one data fields for each matrix specified below
+
+preprocessor:
+  SPEC: write_trip_matrices_annotate_trips_preprocessor
+  DF: trips
+  TABLES:
+    - tours
+
+# divide trip counts by household expansion factor
+HH_EXPANSION_WEIGHT_COL: sample_rate  # added when households read in
+
+# save preprocessed trips table to pipeline if desired
+SAVE_TRIPS_TABLE: False
+
+MATRICES:
+  - file_name: auto_trips_am.omx
+    tables:
+      - name: DRIVEALONE
+        data_field: DRIVEALONE_AM
+      - name: SHARED2
+        data_field: SHARED2_AM
+      - name: SHARED3
+        data_field: SHARED3_AM
+  - file_name: nm_trips_am.omx
+    tables:
+      - name: WALK
+        data_field: WALK_AM
+      - name: BIKE
+        data_field: BIKE_AM
+  - file_name: trn_trips_am.omx
+    tables:
+      - name: WALK_AB
+        data_field: WALK_AB_AM
+      - name: WALK_BM
+        data_field: WALK_BM_AM
+      - name: WALK_MR
+        data_field: WALK_MR_AM
+      - name: WALK_CR
+        data_field: WALK_CR_AM
+      - name: PNR_AB
+        data_field: PNR_AB_AM
+      - name: PNR_BM
+        data_field: PNR_BM_AM
+      - name: PNR_MR
+        data_field: PNR_MR_AM
+      - name: PNR_CR
+        data_field: PNR_CR_AM
+      - name: KNR_AB
+        data_field: KNR_AB_AM
+      - name: KNR_BM
+        data_field: KNR_BM_AM
+      - name: KNR_MR
+        data_field: KNR_MR_AM
+      - name: PNRE_AB
+        data_field: PNRE_AB_AM
+      - name: PNRE_BM
+        data_field: PNRE_BM_AM
+      - name: PNRE_MR
+        data_field: PNRE_MR_AM
+      - name: PNRE_CR
+        data_field: PNRE_CR_AM
+      - name: KNRE_AB
+        data_field: KNRE_AB_AM
+      - name: KNRE_BM
+        data_field: KNRE_BM_AM
+      - name: KNRE_MR
+        data_field: KNRE_MR_AM
+  - file_name: sb_trips_am.omx
+    tables:
+      - name: SCHOOLBUS
+        data_field: SCHOOLBUS_AM
+  - file_name: auto_trips_md.omx
+    tables:
+      - name: DRIVEALONE
+        data_field: DRIVEALONE_MD
+      - name: SHARED2
+        data_field: SHARED2_MD
+      - name: SHARED3
+        data_field: SHARED3_MD
+  - file_name: nm_trips_md.omx
+    tables:
+      - name: WALK
+        data_field: WALK_MD
+      - name: BIKE
+        data_field: BIKE_MD
+  - file_name: trn_trips_md.omx
+    tables:
+      - name: WALK_AB
+        data_field: WALK_AB_MD
+      - name: WALK_BM
+        data_field: WALK_BM_MD
+      - name: WALK_MR
+        data_field: WALK_MR_MD
+      - name: WALK_CR
+        data_field: WALK_CR_MD
+      - name: PNR_AB
+        data_field: PNR_AB_MD
+      - name: PNR_BM
+        data_field: PNR_BM_MD
+      - name: PNR_MR
+        data_field: PNR_MR_MD
+      - name: PNR_CR
+        data_field: PNR_CR_MD
+      - name: KNR_AB
+        data_field: KNR_AB_MD
+      - name: KNR_BM
+        data_field: KNR_BM_MD
+      - name: KNR_MR
+        data_field: KNR_MR_MD
+      - name: PNRE_AB
+        data_field: PNRE_AB_MD
+      - name: PNRE_BM
+        data_field: PNRE_BM_MD
+      - name: PNRE_MR
+        data_field: PNRE_MR_MD
+      - name: PNRE_CR
+        data_field: PNRE_CR_MD
+      - name: KNRE_AB
+        data_field: KNRE_AB_MD
+      - name: KNRE_BM
+        data_field: KNRE_BM_MD
+      - name: KNRE_MR
+        data_field: KNRE_MR_MD
+  - file_name: sb_trips_md.omx
+    tables:
+      - name: SCHOOLBUS
+        data_field: SCHOOLBUS_MD
+  - file_name: auto_trips_pm.omx
+    tables:
+      - name: DRIVEALONE
+        data_field: DRIVEALONE_PM
+      - name: SHARED2
+        data_field: SHARED2_PM
+      - name: SHARED3
+        data_field: SHARED3_PM
+  - file_name: nm_trips_pm.omx
+    tables:
+      - name: WALK
+        data_field: WALK_PM
+      - name: BIKE
+        data_field: BIKE_PM
+  - file_name: trn_trips_pm.omx
+    tables:
+      - name: WALK_AB
+        data_field: WALK_AB_PM
+      - name: WALK_BM
+        data_field: WALK_BM_PM
+      - name: WALK_MR
+        data_field: WALK_MR_PM
+      - name: WALK_CR
+        data_field: WALK_CR_PM
+      - name: PNR_AB
+        data_field: PNR_AB_PM
+      - name: PNR_BM
+        data_field: PNR_BM_PM
+      - name: PNR_MR
+        data_field: PNR_MR_PM
+      - name: PNR_CR
+        data_field: PNR_CR_PM
+      - name: KNR_AB
+        data_field: KNR_AB_PM
+      - name: KNR_BM
+        data_field: KNR_BM_PM
+      - name: KNR_MR
+        data_field: KNR_MR_PM
+      - name: PNRE_AB
+        data_field: PNRE_AB_PM
+      - name: PNRE_BM
+        data_field: PNRE_BM_PM
+      - name: PNRE_MR
+        data_field: PNRE_MR_PM
+      - name: PNRE_CR
+        data_field: PNRE_CR_PM
+      - name: KNRE_AB
+        data_field: KNRE_AB_PM
+      - name: KNRE_BM
+        data_field: KNRE_BM_PM
+      - name: KNRE_MR
+        data_field: KNRE_MR_PM
+  - file_name: sb_trips_pm.omx
+    tables:
+      - name: SCHOOLBUS
+        data_field: SCHOOLBUS_PM
+  - file_name: auto_trips_nt.omx
+    tables:
+      - name: DRIVEALONE
+        data_field: DRIVEALONE_NT
+      - name: SHARED2
+        data_field: SHARED2_NT
+      - name: SHARED3
+        data_field: SHARED3_NT
+  - file_name: nm_trips_nt.omx
+    tables:
+      - name: WALK
+        data_field: WALK_NT
+      - name: BIKE
+        data_field: BIKE_NT
+  - file_name: trn_trips_nt.omx
+    tables:
+      - name: WALK_AB
+        data_field: WALK_AB_NT
+      - name: WALK_BM
+        data_field: WALK_BM_NT
+      - name: WALK_MR
+        data_field: WALK_MR_NT
+      - name: WALK_CR
+        data_field: WALK_CR_NT
+      - name: PNR_AB
+        data_field: PNR_AB_NT
+      - name: PNR_BM
+        data_field: PNR_BM_NT
+      - name: PNR_MR
+        data_field: PNR_MR_NT
+      - name: PNR_CR
+        data_field: PNR_CR_NT
+      - name: KNR_AB
+        data_field: KNR_AB_NT
+      - name: KNR_BM
+        data_field: KNR_BM_NT
+      - name: KNR_MR
+        data_field: KNR_MR_NT
+      - name: PNRE_AB
+        data_field: PNRE_AB_NT
+      - name: PNRE_BM
+        data_field: PNRE_BM_NT
+      - name: PNRE_MR
+        data_field: PNRE_MR_NT
+      - name: PNRE_CR
+        data_field: PNRE_CR_NT
+      - name: KNRE_AB
+        data_field: KNRE_AB_NT
+      - name: KNRE_BM
+        data_field: KNRE_BM_NT
+      - name: KNRE_MR
+        data_field: KNRE_MR_NT
+  - file_name: sb_trips_nt.omx
+    tables:
+      - name: SCHOOLBUS
+        data_field: SCHOOLBUS_NT
+
+CONSTANTS:
+  time_periods:
+    AM:
+      first_hour: 7
+      last_hour: 12
+    MD:
+      first_hour: 13
+      last_hour: 24
+    PM:
+      first_hour: 25
+      last_hour: 32
+    NT:
+      first_hour: 33
+      last_hour: 6
+
+  # SHARED2 and SHARED2 Occupancies
+  OCC_SHARED2: 2.0
+  OCC_SHARED3: 3.33

@@ -1,0 +1,23 @@
+Label,Description,Expression,coefficient
+util_size_variable,Size variable,@(df['size_term']).apply(np.log1p),1
+util_no_attractions,No attractions,@df['size_term']==0,-999
+local_dist,skim distance,"_DIST@skims[('SOV_NT_M_DIST','AM')]",1
+poe_accessibility,station logsum,@df['colonia_pop_accessibility'],1
+otay_mesa_mandatory,"POE is Otay Mesa, mandatory","@(df['poe_id']==1) & (df.is_mandatory)",coef_otay_mesa_mandatory
+otay_mesa_non_mandatory,"POE is Otay Mesa, non-mandatory","@(df['poe_id']==1) & (1 - df.is_mandatory)",coef_otay_mesa_non_mandatory
+tecate_mandatory,"POE is Tecate, mandatory","@(df['poe_id']==2) & (df.is_mandatory)",coef_tecate_mandatory
+tecate_non_mandatory,"POE is Tecate, non-mandatory","@(df['poe_id']==2) & (1 - df.is_mandatory)",coef_tecate_non_mandatory
+util_dist_0_2_mandatory,"Distance, piecewise linear from 0 to 2 miles, mandatory","@(_DIST > 0) * (np.minimum(_DIST, 2)) * (df.is_mandatory)",coef_dist_0_2_mandatory
+util_dist_2_5_mandatory,"Distance, piecewise linear from 2 to 5 miles, mandatory","@(_DIST > 2) * (np.minimum(_DIST - 2, 3)) * (df.is_mandatory)",coef_dist_2_5_mandatory
+util_dist_5_10_mandatory,"Distance, piecewise linear from 5 to 10 miles, mandatory","@(_DIST > 5) * (np.minimum(_DIST - 5, 5)) * (df.is_mandatory)",coef_dist_5_10_mandatory
+util_dist_10_20_mandatory,"Distance, piecewise linear from 10 to 20 miles, mandatory","@(_DIST > 10) * (np.minimum(_DIST - 10, 10)) * (df.is_mandatory)",coef_dist_10_20_mandatory
+util_dist_20_up_mandatory,"Distance, piecewise linear for 20+ miles, mandatory","@(_DIST > 20) * (_DIST - 20) * (df.is_mandatory)",coef_dist_20_up_mandatory
+util_dist_0_2_non_mandatory,"Distance, piecewise linear from 0 to 2 miles, non_mandatory","@(_DIST > 0) * (np.minimum(_DIST, 2)) * (1 - df.is_mandatory)",coef_dist_0_2_non_mandatory
+util_dist_2_5_non_mandatory,"Distance, piecewise linear from 2 to 5 miles, non_mandatory","@(_DIST > 2) * (np.minimum(_DIST - 2, 3)) * (1 - df.is_mandatory)",coef_dist_2_5_non_mandatory
+util_dist_5_10_non_mandatory,"Distance, piecewise linear from 5 to 10 miles, non_mandatory","@(_DIST > 5) * (np.minimum(_DIST - 5, 5)) * (1 - df.is_mandatory)",coef_dist_5_10_non_mandatory
+util_dist_10_20_non_mandatory,"Distance, piecewise linear from 10 to 20 miles, non_mandatory","@(_DIST > 10) * (np.minimum(_DIST - 10, 10)) * (1 - df.is_mandatory)",coef_dist_10_20_non_mandatory
+util_dist_20_up_non_mandatory,"Distance, piecewise linear for 20+ miles, non_mandatory","@(_DIST > 20) * (_DIST - 20) * (1 - df.is_mandatory)",coef_dist_20_up_non_mandatory
+util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count / df.prob), 60)",1
+otay_mesa_calibration_adjustment,"POE is Otay Mesa, calibration adjustment",@df['poe_id']==1,coef_otay_mesa_calibration_adj
+tecate_calibration_adjustment,"POE is Tecate, calibration adjustment",@df['poe_id']==2,coef_tecate_calibration_adj
+util_mode_logsum,tour mode choice logsum,tour_mode_choice_logsum,1

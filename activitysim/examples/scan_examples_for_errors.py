@@ -5,10 +5,10 @@ import glob
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    'working_dir',
+    "working_dir",
     type=str,
-    metavar='PATH',
-    help='path to examples working directory',
+    metavar="PATH",
+    help="path to examples working directory",
 )
 
 args = parser.parse_args()
@@ -16,7 +16,7 @@ args = parser.parse_args()
 files_with_errors = []
 
 for logfile in glob.glob(f"{args.working_dir}/*/output/log/activitysim.log"):
-    with open(logfile, 'rt') as f:
+    with open(logfile, "rt") as f:
         printing_traceback = False
         found_traceback = False
         for n, line in enumerate(f.readlines(), start=1):

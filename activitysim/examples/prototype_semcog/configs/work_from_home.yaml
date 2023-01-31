@@ -1,0 +1,23 @@
+
+SPEC: work_from_home.csv
+COEFFICIENTS: work_from_home_coeffs.csv
+
+#LOGIT_TYPE: NL
+LOGIT_TYPE: MNL
+
+WORK_FROM_HOME_ALT: 0
+
+# boolean column to filter choosers (True means keep)
+CHOOSER_FILTER_COLUMN_NAME: is_worker
+
+# iterative what-if analysis example
+# omit these settings to not iterate
+# WORK_FROM_HOME_ITERATIONS: 3
+# WORK_FROM_HOME_CHOOSER_FILTER: is_worker
+# WORK_FROM_HOME_TARGET_PERCENT: 0.1
+# WORK_FROM_HOME_TARGET_PERCENT_TOLERANCE: 0.01
+# WORK_FROM_HOME_COEFFICIENT_CONSTANT: coef_work_from_home_constant
+
+preprocessor:
+  SPEC: work_from_home_annotate_persons_preprocessor
+  DF: persons

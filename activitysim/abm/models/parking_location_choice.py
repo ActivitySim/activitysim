@@ -5,20 +5,20 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import pipeline
-from activitysim.core import simulate
-from activitysim.core import tracing
-from activitysim.core import logit
-
-from activitysim.core import expressions
+from activitysim.core import (
+    config,
+    expressions,
+    inject,
+    logit,
+    pipeline,
+    simulate,
+    tracing,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-from activitysim.core.util import assign_in_place
 from activitysim.core.tracing import print_elapsed_time
+from activitysim.core.util import assign_in_place
 
 from .util import estimation
-
 
 logger = logging.getLogger(__name__)
 
@@ -50,19 +50,27 @@ def wrap_skims(model_settings):
         dict containing skims, keyed by canonical names relative to tour orientation
     """
 
-    network_los = inject.get_injectable('network_los')
+    network_los = inject.get_injectable("network_los")
     skim_dict = network_los.get_default_skim_dict()
 
-    origin = model_settings['TRIP_ORIGIN']
-    park_zone = model_settings['ALT_DEST_COL_NAME']
-    destination = model_settings['TRIP_DESTINATION']
-    time_period = model_settings['TRIP_DEPARTURE_PERIOD']
+    origin = model_settings["TRIP_ORIGIN"]
+    park_zone = model_settings["ALT_DEST_COL_NAME"]
+    destination = model_settings["TRIP_DESTINATION"]
+    time_period = model_settings["TRIP_DEPARTURE_PERIOD"]
 
     skims = {
-        "odt_skims": skim_dict.wrap_3d(orig_key=origin, dest_key=destination, dim3_key=time_period),
-        "dot_skims": skim_dict.wrap_3d(orig_key=destination, dest_key=origin, dim3_key=time_period),
-        "opt_skims": skim_dict.wrap_3d(orig_key=origin, dest_key=park_zone, dim3_key=time_period),
-        "pdt_skims": skim_dict.wrap_3d(orig_key=park_zone, dest_key=destination, dim3_key=time_period),
+        "odt_skims": skim_dict.wrap_3d(
+            orig_key=origin, dest_key=destination, dim3_key=time_period
+        ),
+        "dot_skims": skim_dict.wrap_3d(
+            orig_key=destination, dest_key=origin, dim3_key=time_period
+        ),
+        "opt_skims": skim_dict.wrap_3d(
+            orig_key=origin, dest_key=park_zone, dim3_key=time_period
+        ),
+        "pdt_skims": skim_dict.wrap_3d(
+            orig_key=park_zone, dest_key=destination, dim3_key=time_period
+        ),
         "od_skims": skim_dict.wrap(origin, destination),
         "do_skims": skim_dict.wrap(destination, origin),
         "op_skims": skim_dict.wrap(origin, park_zone),
@@ -86,13 +94,15 @@ def get_spec_for_segment(model_settings, spec_name, segment):
 
 
 def parking_destination_simulate(
-        segment_name,
-        trips,
-        destination_sample,
-        model_settings,
-        skims,
-        chunk_size, trace_hh_id,
-        trace_label):
+    segment_name,
+    trips,
+    destination_sample,
+    model_settings,
+    skims,
+    chunk_size,
+    trace_hh_id,
+    trace_label,
+):
     """
     Chose destination from destination_sample (with od_logsum and dp_logsum columns added)
 
@@ -102,16 +112,21 @@ def parking_destination_simulate(
     choices - pandas.Series
         destination alt chosen
     """
-    trace_label = tracing.extend_trace_label(trace_label, 'trip_destination_simulate')
+    trace_label = tracing.extend_trace_label(trace_label, "trip_destination_simulate")
 
-    spec = get_spec_for_segment(model_settings, 'SPECIFICATION', segment_name)
+    spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    spec = simulate.eval_coefficients(spec, coefficients_df, None)
+
+    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     logger.info("Running trip_destination_simulate with %d trips", len(trips))
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update(skims)
+    locals_dict["timeframe"] = "trip"
+    locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     parking_locations = interaction_sample_simulate(
         choosers=trips,
@@ -119,40 +134,48 @@ def parking_destination_simulate(
         spec=spec,
         choice_column=alt_dest_col_name,
         want_logsums=False,
-        allow_zero_probs=True, zero_prob_choice_val=NO_DESTINATION,
+        allow_zero_probs=True,
+        zero_prob_choice_val=NO_DESTINATION,
         skims=skims,
         locals_d=locals_dict,
         chunk_size=chunk_size,
         trace_label=trace_label,
-        trace_choice_name='parking_loc')
+        trace_choice_name="parking_loc",
+    )
 
     # drop any failed zero_prob destinations
     if (parking_locations == NO_DESTINATION).any():
-        logger.debug("dropping %s failed parking locations", (parking_locations == NO_DESTINATION).sum())
+        logger.debug(
+            "dropping %s failed parking locations",
+            (parking_locations == NO_DESTINATION).sum(),
+        )
         parking_locations = parking_locations[parking_locations != NO_DESTINATION]
 
     return parking_locations
 
 
 def choose_parking_location(
-        segment_name,
-        trips,
-        alternatives,
-        model_settings,
-        want_sample_table,
-        skims,
-        chunk_size, trace_hh_id,
-        trace_label):
+    segment_name,
+    trips,
+    alternatives,
+    model_settings,
+    want_sample_table,
+    skims,
+    chunk_size,
+    trace_hh_id,
+    trace_label,
+):
 
     logger.info("choose_parking_location %s with %d trips", trace_label, trips.shape[0])
 
     t0 = print_elapsed_time()
 
-    alt_dest_col_name = model_settings['ALT_DEST_COL_NAME']
-    destination_sample = logit.interaction_dataset(trips, alternatives, alt_index_id=alt_dest_col_name)
+    alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
+    destination_sample = logit.interaction_dataset(
+        trips, alternatives, alt_index_id=alt_dest_col_name
+    )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
-    destination_sample = destination_sample[[alt_dest_col_name]].copy()
 
     # # - trip_destination_simulate
     destinations = parking_destination_simulate(
@@ -161,12 +184,16 @@ def choose_parking_location(
         destination_sample=destination_sample,
         model_settings=model_settings,
         skims=skims,
-        chunk_size=chunk_size, trace_hh_id=trace_hh_id,
-        trace_label=trace_label)
+        chunk_size=chunk_size,
+        trace_hh_id=trace_hh_id,
+        trace_label=trace_label,
+    )
 
     if want_sample_table:
         # FIXME - sample_table
-        destination_sample.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
+        destination_sample.set_index(
+            model_settings["ALT_DEST_COL_NAME"], append=True, inplace=True
+        )
     else:
         destination_sample = None
 
@@ -176,18 +203,24 @@ def choose_parking_location(
 
 
 def run_parking_destination(
-        model_settings,
-        trips, land_use,
-        chunk_size, trace_hh_id,
-        trace_label,
-        fail_some_trips_for_testing=False):
+    model_settings,
+    trips,
+    land_use,
+    chunk_size,
+    trace_hh_id,
+    trace_label,
+    fail_some_trips_for_testing=False,
+):
 
-    chooser_filter_column = model_settings.get('CHOOSER_FILTER_COLUMN_NAME')
-    chooser_segment_column = model_settings.get('CHOOSER_SEGMENT_COLUMN_NAME')
+    chooser_filter_column = model_settings.get("CHOOSER_FILTER_COLUMN_NAME")
+    chooser_segment_column = model_settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
 
-    parking_location_column_name = model_settings['ALT_DEST_COL_NAME']
-    sample_table_name = model_settings.get('DEST_CHOICE_SAMPLE_TABLE_NAME')
-    want_sample_table = config.setting('want_dest_choice_sample_tables') and sample_table_name is not None
+    parking_location_column_name = model_settings["ALT_DEST_COL_NAME"]
+    sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
+    want_sample_table = (
+        config.setting("want_dest_choice_sample_tables")
+        and sample_table_name is not None
+    )
 
     choosers = trips[trips[chooser_filter_column]]
     choosers = choosers.sort_index()
@@ -197,18 +230,18 @@ def run_parking_destination(
 
     skims = wrap_skims(model_settings)
 
-    alt_column_filter_name = model_settings.get('ALTERNATIVE_FILTER_COLUMN_NAME')
+    alt_column_filter_name = model_settings.get("ALTERNATIVE_FILTER_COLUMN_NAME")
     alternatives = land_use[land_use[alt_column_filter_name]]
 
-    # don't need size terms in alternatives, just TAZ index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = parking_location_column_name
 
     choices_list = []
     sample_list = []
     for segment_name, chooser_segment in choosers.groupby(chooser_segment_column):
         if chooser_segment.shape[0] == 0:
-            logger.info("%s skipping segment %s: no choosers", trace_label, segment_name)
+            logger.info(
+                "%s skipping segment %s: no choosers", trace_label, segment_name
+            )
             continue
 
         choices, destination_sample = choose_parking_location(
@@ -218,8 +251,10 @@ def run_parking_destination(
             model_settings,
             want_sample_table,
             skims,
-            chunk_size, trace_hh_id,
-            trace_label=tracing.extend_trace_label(trace_label, segment_name))
+            chunk_size,
+            trace_hh_id,
+            trace_label=tracing.extend_trace_label(trace_label, segment_name),
+        )
 
         choices_list.append(choices)
         if want_sample_table:
@@ -233,7 +268,9 @@ def run_parking_destination(
             parking_df = parking_df.drop(parking_df.index[0])
 
         assign_in_place(trips, parking_df.to_frame(parking_location_column_name))
-        trips[parking_location_column_name] = trips[parking_location_column_name].fillna(-1)
+        trips[parking_location_column_name] = trips[
+            parking_location_column_name
+        ].fillna(-1)
     else:
         trips[parking_location_column_name] = -1
 
@@ -244,42 +281,57 @@ def run_parking_destination(
 
 @inject.step()
 def parking_location(
-        trips,
-        trips_merged,
-        land_use,
-        network_los,
-        chunk_size,
-        trace_hh_id):
+    trips, trips_merged, land_use, network_los, chunk_size, trace_hh_id
+):
     """
     Given a set of trips, each trip needs to have a parking location if
     it is eligible for remote parking.
     """
 
-    trace_label = 'parking_location'
-    model_settings = config.read_model_settings('parking_location_choice.yaml')
-    alt_destination_col_name = model_settings['ALT_DEST_COL_NAME']
+    trace_label = "parking_location"
+    model_settings = config.read_model_settings("parking_location_choice.yaml")
+    alt_destination_col_name = model_settings["ALT_DEST_COL_NAME"]
 
-    preprocessor_settings = model_settings.get('PREPROCESSOR', None)
+    preprocessor_settings = model_settings.get("PREPROCESSOR", None)
 
     trips_df = trips.to_frame()
     trips_merged_df = trips_merged.to_frame()
     land_use_df = land_use.to_frame()
 
-    locals_dict = {
-        'network_los': network_los
-    }
-    locals_dict.update(config.get_model_constants(model_settings))
+    proposed_trip_departure_period = model_settings["TRIP_DEPARTURE_PERIOD"]
+    # TODO: the number of skim time periods should be more readily available than this
+    n_skim_time_periods = np.unique(
+        network_los.los_settings["skim_time_periods"]["labels"]
+    ).size
+    if trips_merged_df[proposed_trip_departure_period].max() > n_skim_time_periods:
+        # max proposed_trip_departure_period is out of range,
+        # it is most likely the high-resolution time period, we need the skim-level time period
+        if "trip_period" not in trips_merged_df:
+            # TODO: resolve this to the skim time period index not the label, it will be faster
+            trips_merged_df["trip_period"] = network_los.skim_time_period_label(
+                trips_merged_df[proposed_trip_departure_period]
+            )
+        model_settings["TRIP_DEPARTURE_PERIOD"] = "trip_period"
+
+    locals_dict = {"network_los": network_los}
+
+    constants = config.get_model_constants(model_settings)
+
+    if constants is not None:
+        locals_dict.update(constants)
 
     if preprocessor_settings:
         expressions.assign_columns(
             df=trips_merged_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
-            trace_label=trace_label)
+            trace_label=trace_label,
+        )
 
     parking_locations, save_sample_df = run_parking_destination(
         model_settings,
-        trips_merged_df, land_use_df,
+        trips_merged_df,
+        land_use_df,
         chunk_size=chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
@@ -290,20 +342,25 @@ def parking_location(
     pipeline.replace_table("trips", trips_df)
 
     if trace_hh_id:
-        tracing.trace_df(trips_df,
-                         label=trace_label,
-                         slicer='trip_id',
-                         index_label='trip_id',
-                         warn_if_empty=True)
+        tracing.trace_df(
+            trips_df,
+            label=trace_label,
+            slicer="trip_id",
+            index_label="trip_id",
+            warn_if_empty=True,
+        )
 
     if save_sample_df is not None:
-        assert len(save_sample_df.index.get_level_values(0).unique()) == \
-               len(trips_df[trips_df.trip_num < trips_df.trip_count])
+        assert len(save_sample_df.index.get_level_values(0).unique()) == len(
+            trips_df[trips_df.trip_num < trips_df.trip_count]
+        )
 
-        sample_table_name = model_settings.get('PARKING_LOCATION_SAMPLE_TABLE_NAME')
+        sample_table_name = model_settings.get("PARKING_LOCATION_SAMPLE_TABLE_NAME")
         assert sample_table_name is not None
 
-        logger.info("adding %s samples to %s" % (len(save_sample_df), sample_table_name))
+        logger.info(
+            "adding %s samples to %s" % (len(save_sample_df), sample_table_name)
+        )
 
         # lest they try to put tour samples into the same table
         if pipeline.is_table(sample_table_name):

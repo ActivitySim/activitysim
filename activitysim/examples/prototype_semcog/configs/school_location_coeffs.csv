@@ -1,0 +1,15 @@
+coefficient_name,value,constrain
+coef_univ_dist_0_1,-3.2451,F
+coef_univ_dist_1_2,-2.7011,F
+coef_univ_dist_2_5,-0.5707,F
+coef_univ_dist_5_15,-0.5002,F
+coef_univ_dist_15_up,-0.073,F
+coef_mode_logsum_uni,0.5358,F
+coef_dist,-0.1560,F
+coef_dist_squared,-0.0116,F
+coef_dist_cubed,0.0005,F
+coef_dist_logged,-0.9316,F
+coef_dist_part_time,-0.0985,F
+coef_dist_child_0_5,0.0236,F
+coef_dist_child_6_12,-0.0657,F
+coef_mode_logsum,0.4,F

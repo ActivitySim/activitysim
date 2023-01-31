@@ -1,0 +1,12 @@
+Description,Expression,work,school,visit,shop,other
+Size variable,"@np.log1p(size_terms.get(df.trip_dest, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])",1,1,1,1,1
+No attractions,"@size_terms.get(df.trip_dest, df.purpose) == 0 # sharrow: size_terms['sizearray'] == 0",-999,-999,-999,-999,-999
+,"_od_DIST@odt_skims['SOV_NT_M_DIST']",1,1,1,1,1
+,"_dp_DIST@dpt_skims['SOV_NT_M_DIST']",1,1,1,1,1
+intermediate stops on half-tour,_stops_on_leg@df.trip_count - 1,1,1,1,1,1
+first outbound trip,"@(df.trip_num == 1) & df.outbound & (_od_DIST > 1)",coef_first_outbound_dist_poe_gt_1mi,coef_first_outbound_dist_poe_gt_1mi,coef_first_outbound_dist_poe_gt_1mi,coef_first_outbound_dist_poe_gt_1mi,coef_first_outbound_dist_poe_gt_1mi
+last outbound intermediate stop,"@(df.trip_num == _stops_on_leg) & df.outbound & (_dp_DIST > 1)",coef_last_outbound_dist_dest_gt_1mi,coef_last_outbound_dist_dest_gt_1mi,coef_last_outbound_dist_dest_gt_1mi,coef_last_outbound_dist_dest_gt_1mi,coef_last_outbound_dist_dest_gt_1mi
+last outbound intermediate stop,"@(df.trip_num == _stops_on_leg) * df.outbound * np.clip(_dp_DIST - 1, 0, 3)",coef_last_outbound_dist_dest_gt1_max3,coef_last_outbound_dist_dest_gt1_max3,coef_last_outbound_dist_dest_gt1_max3,coef_last_outbound_dist_dest_gt1_max3,coef_last_outbound_dist_dest_gt1_max3
+first inbound trip,"@(df.trip_num == 1) & (1 - df.outbound) & (_od_DIST > 1)",coef_first_inbound_dist_poe_gt_1mi,coef_first_inbound_dist_poe_gt_1mi,coef_first_inbound_dist_poe_gt_1mi,coef_first_inbound_dist_poe_gt_1mi,coef_first_inbound_dist_poe_gt_1mi
+last inbound intermediate stop,"@(df.trip_num == _stops_on_leg) & (1 - df.outbound) & (_dp_DIST > 1)",coef_last_inbound_dist_dest_gt_1mi,coef_last_inbound_dist_dest_gt_1mi,coef_last_inbound_dist_dest_gt_1mi,coef_last_inbound_dist_dest_gt_1mi,coef_last_inbound_dist_dest_gt_1mi
+last inbound intermediate stop,"@(df.trip_num == _stops_on_leg) * (1 - df.outbound) * np.clip(_dp_DIST - 1, 0, 3)",coef_last_inbound_dist_dest_gt1_max3,coef_last_inbound_dist_dest_gt1_max3,coef_last_inbound_dist_dest_gt1_max3,coef_last_inbound_dist_dest_gt1_max3,coef_last_inbound_dist_dest_gt1_max3

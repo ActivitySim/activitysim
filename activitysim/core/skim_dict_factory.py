@@ -2,18 +2,16 @@
 # See full license in LICENSE.txt.
 # from builtins import int
 
-import os
-import multiprocessing
 import logging
+import multiprocessing
+import os
+import warnings
+from abc import ABC
+
 import numpy as np
 import openmatrix as omx
-from abc import ABC, abstractmethod
 
-from activitysim.core import util
-from activitysim.core import config
-from activitysim.core import inject
-from activitysim.core import tracing
-from activitysim.core import skim_dictionary
+from activitysim.core import config, inject, skim_dictionary, util
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +25,7 @@ class SkimData(object):
 
     For instance, to open/close memmapped files just in time, or to access backing data via an alternate api
     """
+
     def __init__(self, skim_data):
         """
         skim_data is an np.ndarray or anything that implements the methods/properties of this class
@@ -39,7 +38,7 @@ class SkimData(object):
 
     def __getitem__(self, indexes):
         if len(indexes) != 3:
-            raise ValueError(f'number of indexes ({len(indexes)}) should be 3')
+            raise ValueError(f"number of indexes ({len(indexes)}) should be 3")
         return self._skim_data[indexes]
 
     @property
@@ -89,7 +88,8 @@ class SkimInfo(object):
         self.base_keys = None
         self.block_offsets = None
 
-        self.load_skim_info(skim_tag)
+        if skim_tag:
+            self.load_skim_info(skim_tag)
 
     def load_skim_info(self, skim_tag):
         """
@@ -108,7 +108,7 @@ class SkimInfo(object):
         # ignore any 3D skims not in skim_time_periods
         # specifically, load all skims except those with key2 not in dim3_tags_to_load
         skim_time_periods = self.network_los.skim_time_periods
-        dim3_tags_to_load = skim_time_periods and skim_time_periods['labels']
+        dim3_tags_to_load = skim_time_periods and skim_time_periods["labels"]
 
         self.omx_manifest = {}  # dict mapping { omx_key: skim_name }
 
@@ -116,17 +116,23 @@ class SkimInfo(object):
 
             logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
-            with omx.open_file(omx_file_path) as omx_file:
+            with omx.open_file(omx_file_path, mode="r") as omx_file:
 
                 # fixme call to omx_file.shape() failing in windows p3.5
                 if self.omx_shape is None:
-                    self.omx_shape = tuple(int(i) for i in omx_file.shape())  # sometimes omx shape are floats!
+                    self.omx_shape = tuple(
+                        int(i) for i in omx_file.shape()
+                    )  # sometimes omx shape are floats!
                 else:
-                    assert (self.omx_shape == tuple(int(i) for i in omx_file.shape()))
+                    assert self.omx_shape == tuple(
+                        int(i) for i in omx_file.shape()
+                    ), f"Mismatch shape {self.omx_shape} != {omx_file.shape()}"
 
                 for skim_name in omx_file.listMatrices():
-                    assert skim_name not in self.omx_manifest, \
-                        f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                    if skim_name in self.omx_manifest:
+                        warnings.warn(
+                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                        )
                     self.omx_manifest[skim_name] = omx_file_path
 
                 for m in omx_file.listMappings():
@@ -137,14 +143,16 @@ class SkimInfo(object):
                     else:
                         # don't really expect more than one, but ok if they are all the same
                         if not (self.offset_map == omx_file.mapentries(m)):
-                            raise RuntimeError(f"Multiple mappings in omx file: {self.offset_map_name} != {m}")
+                            raise RuntimeError(
+                                f"Multiple mappings in omx file: {self.offset_map_name} != {m}"
+                            )
 
         # - omx_keys dict maps skim key to omx_key
         # DISTWALK: DISTWALK
         # ('DRV_COM_WLK_BOARDS', 'AM'): DRV_COM_WLK_BOARDS__AM, ...
         self.omx_keys = dict()
         for skim_name in self.omx_manifest.keys():
-            key1, sep, key2 = skim_name.partition('__')
+            key1, sep, key2 = skim_name.partition("__")
 
             # - ignore composite tags not in dim3_tags_to_load
             if dim3_tags_to_load and sep and key2 not in dim3_tags_to_load:
@@ -192,7 +200,11 @@ class SkimInfo(object):
             self.block_offsets[skim_key] = key1_offset + key2_relative_offset
 
         if skim_dictionary.ROW_MAJOR_LAYOUT:
-            self.skim_data_shape = (self.num_skims, self.omx_shape[0], self.omx_shape[1])
+            self.skim_data_shape = (
+                self.num_skims,
+                self.omx_shape[0],
+                self.omx_shape[1],
+            )
         else:
             self.skim_data_shape = self.omx_shape + (self.num_skims,)
 
@@ -272,14 +284,16 @@ class AbstractSkimFactory(ABC):
             logger.info(f"_read_skims_from_omx {omx_file_path}")
 
             # read skims into skim_data
-            with omx.open_file(omx_file_path) as omx_file:
+            with omx.open_file(omx_file_path, mode="r") as omx_file:
                 for skim_key, omx_key in omx_keys.items():
 
                     if omx_manifest[omx_key] == omx_file_path:
 
                         offset = skim_info.block_offsets[skim_key]
-                        logger.debug(f"_read_skims_from_omx file {omx_file_path} omx_key {omx_key} "
-                                     f"skim_key {skim_key} to offset {offset}")
+                        logger.debug(
+                            f"_read_skims_from_omx file {omx_file_path} omx_key {omx_key} "
+                            f"skim_key {skim_key} to offset {offset}"
+                        )
 
                         if skim_dictionary.ROW_MAJOR_LAYOUT:
                             a = skim_data[offset, :, :]
@@ -292,12 +306,14 @@ class AbstractSkimFactory(ABC):
 
                         num_skims_loaded += 1
 
-            logger.info(f"_read_skims_from_omx loaded {num_skims_loaded} skims from {omx_file_path}")
+            logger.info(
+                f"_read_skims_from_omx loaded {num_skims_loaded} skims from {omx_file_path}"
+            )
 
     def _open_existing_readonly_memmap_skim_cache(self, skim_info):
         """
-            read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
-            return True if it was there and we read it, return False if not found
+        read cached memmapped skim data from canonically named cache file(s) in output directory into skim_data
+        return True if it was there and we read it, return False if not found
         """
 
         dtype = np.dtype(skim_info.dtype_name)
@@ -308,29 +324,41 @@ class AbstractSkimFactory(ABC):
             logger.warning(f"read_skim_cache file not found: {skim_cache_path}")
             return None
 
-        logger.info(f"reading skim cache {skim_info.skim_tag} {skim_info.skim_data_shape} from {skim_cache_path}")
+        logger.info(
+            f"reading skim cache {skim_info.skim_tag} {skim_info.skim_data_shape} from {skim_cache_path}"
+        )
 
         try:
-            data = np.memmap(skim_cache_path, shape=skim_info.skim_data_shape, dtype=dtype, mode='r')
+            data = np.memmap(
+                skim_cache_path, shape=skim_info.skim_data_shape, dtype=dtype, mode="r"
+            )
         except Exception as e:
-            logger.warning(f"{type(e).__name__} reading {skim_info.skim_tag} skim_cache {skim_cache_path}:  {str(e)}")
-            logger.warning(f"ignoring incompatible {skim_info.skim_tag} skim_cache {skim_cache_path}")
+            logger.warning(
+                f"{type(e).__name__} reading {skim_info.skim_tag} skim_cache {skim_cache_path}:  {str(e)}"
+            )
+            logger.warning(
+                f"ignoring incompatible {skim_info.skim_tag} skim_cache {skim_cache_path}"
+            )
             return None
 
         return data
 
     def _create_empty_writable_memmap_skim_cache(self, skim_info):
         """
-            write skim data from skim_data to canonically named cache file(s) in output directory
+        write skim data from skim_data to canonically named cache file(s) in output directory
         """
 
         dtype = np.dtype(skim_info.dtype_name)
 
         skim_cache_path = self._memmap_skim_data_path(skim_info.skim_tag)
 
-        logger.info(f"writing skim cache {skim_info.skim_tag} {skim_info.skim_data_shape} to {skim_cache_path}")
+        logger.info(
+            f"writing skim cache {skim_info.skim_tag} {skim_info.skim_data_shape} to {skim_cache_path}"
+        )
 
-        data = np.memmap(skim_cache_path, shape=skim_info.skim_data_shape, dtype=dtype, mode='w+')
+        data = np.memmap(
+            skim_cache_path, shape=skim_info.skim_data_shape, dtype=dtype, mode="w+"
+        )
 
         return data
 
@@ -343,7 +371,6 @@ class AbstractSkimFactory(ABC):
 
 
 class NumpyArraySkimFactory(AbstractSkimFactory):
-
     def __init__(self, network_los):
         super().__init__(network_los)
 
@@ -366,8 +393,9 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         multiprocessing.RawArray or numpy.ndarray
         """
 
-        assert shared == self.network_los.multiprocess(), \
-            f"NumpyArraySkimFactory.allocate_skim_buffer shared {shared} multiprocess {not shared}"
+        assert (
+            shared == self.network_los.multiprocess()
+        ), f"NumpyArraySkimFactory.allocate_skim_buffer shared {shared} multiprocess {not shared}"
 
         dtype_name = skim_info.dtype_name
         dtype = np.dtype(dtype_name)
@@ -376,16 +404,20 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         buffer_size = util.iprod(skim_info.skim_data_shape)
 
         csz = buffer_size * dtype.itemsize
-        logger.info(f"allocate_skim_buffer shared {shared} {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
-                    f"total size: {util.INT(csz)} ({util.GB(csz)})")
+        logger.info(
+            f"allocate_skim_buffer shared {shared} {skim_info.skim_tag} shape {skim_info.skim_data_shape} "
+            f"total size: {util.INT(csz)} ({util.GB(csz)})"
+        )
 
         if shared:
-            if dtype_name == 'float64':
-                typecode = 'd'
-            elif dtype_name == 'float32':
-                typecode = 'f'
+            if dtype_name == "float64":
+                typecode = "d"
+            elif dtype_name == "float32":
+                typecode = "f"
             else:
-                raise RuntimeError("allocate_skim_buffer unrecognized dtype %s" % dtype_name)
+                raise RuntimeError(
+                    "allocate_skim_buffer unrecognized dtype %s" % dtype_name
+                )
 
             buffer = multiprocessing.RawArray(typecode, buffer_size)
         else:
@@ -409,7 +441,9 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
 
         dtype = np.dtype(skim_info.dtype_name)
         assert len(skim_buffer) == util.iprod(skim_info.skim_data_shape)
-        skim_data = np.frombuffer(skim_buffer, dtype=dtype).reshape(skim_info.skim_data_shape)
+        skim_data = np.frombuffer(skim_buffer, dtype=dtype).reshape(
+            skim_info.skim_data_shape
+        )
         return skim_data
 
     def load_skims_to_buffer(self, skim_info, skim_buffer):
@@ -422,8 +456,8 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         skim_buffer: 1D buffer sized to hold all skims (multiprocessing.RawArray or numpy.ndarray)
         """
 
-        read_cache = self.network_los.setting('read_skim_cache', False)
-        write_cache = self.network_los.setting('write_skim_cache', False)
+        read_cache = self.network_los.setting("read_skim_cache", False)
+        write_cache = self.network_los.setting("write_skim_cache", False)
 
         skim_data = self._skim_data_from_buffer(skim_info, skim_buffer)
         assert skim_data.shape == skim_info.skim_data_shape
@@ -451,7 +485,9 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
 
             # bug - do we need to close it?
 
-        logger.info(f"load_skims_to_buffer {skim_info.skim_tag} shape {skim_data.shape}")
+        logger.info(
+            f"load_skims_to_buffer {skim_info.skim_tag} shape {skim_data.shape}"
+        )
 
     def get_skim_data(self, skim_tag, skim_info):
         """
@@ -467,10 +503,12 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         SkimData
         """
 
-        data_buffers = inject.get_injectable('data_buffers', None)
+        data_buffers = inject.get_injectable("data_buffers", None)
         if data_buffers:
             # we assume any existing skim buffers will already have skim data loaded into them
-            logger.info(f"get_skim_data {skim_tag} using existing shared skim_buffers for skims")
+            logger.info(
+                f"get_skim_data {skim_tag} using existing shared skim_buffers for skims"
+            )
             skim_buffer = data_buffers[skim_tag]
         else:
             skim_buffer = self.allocate_skim_buffer(skim_info, shared=False)
@@ -478,7 +516,9 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
 
         skim_data = SkimData(self._skim_data_from_buffer(skim_info, skim_buffer))
 
-        logger.info(f"get_skim_data {skim_tag} {type(skim_data).__name__} shape {skim_data.shape}")
+        logger.info(
+            f"get_skim_data {skim_tag} {type(skim_data).__name__} shape {skim_data.shape}"
+        )
 
         return skim_data
 
@@ -499,9 +539,11 @@ class JitMemMapSkimData(SkimData):
         self._shape = skim_info.skim_data_shape
 
     def __getitem__(self, indexes):
-        assert len(indexes) == 3, f'number of indexes ({len(indexes)}) should be 3'
+        assert len(indexes) == 3, f"number of indexes ({len(indexes)}) should be 3"
         # open memmap
-        data = np.memmap(self.skim_cache_path, shape=self._shape, dtype=self.dtype, mode='r')
+        data = np.memmap(
+            self.skim_cache_path, shape=self._shape, dtype=self.dtype, mode="r"
+        )
         # dereference skim values
         result = data[indexes]
         # closing memmap's underlying mmap frees data read into (not really needed as we are exiting scope)
@@ -552,7 +594,7 @@ class MemMapSkimFactory(AbstractSkimFactory):
         """
 
         # don't expect legacy shared memory buffers
-        assert not inject.get_injectable('data_buffers', {}).get(skim_tag)
+        assert not inject.get_injectable("data_buffers", {}).get(skim_tag)
 
         skim_cache_path = self._memmap_skim_data_path(skim_tag)
         if not os.path.isfile(skim_cache_path):
@@ -566,6 +608,8 @@ class MemMapSkimFactory(AbstractSkimFactory):
             skim_data = self._open_existing_readonly_memmap_skim_cache(skim_info)
             skim_data = SkimData(skim_data)
 
-        logger.info(f"get_skim_data {skim_tag} {type(skim_data).__name__} shape {skim_data.shape}")
+        logger.info(
+            f"get_skim_data {skim_tag} {type(skim_data).__name__} shape {skim_data.shape}"
+        )
 
         return skim_data

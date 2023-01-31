@@ -1,0 +1,19 @@
+inherit_settings: True
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_3_zone_
+  sort: True
+  tables:
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+
+sharrow: test
+recode_pipeline_columns: True

@@ -1,0 +1,265 @@
+# input tables
+#
+# activitysim uses "well-known" index and foreign key names for imported tables (e.g. households, persons, land_use)
+# as well as for created tables (tours, joint_tour_participants, trips)
+# e.g. the households table must have an index column 'household_id' and the foreign key to households in the
+# persons table is also household_id. This naming convention allows activitysim to intuit the relationship
+# between tables - for instance, to ensure that multiprocess slicing includes all the persons, tours, and trips
+# in the same subprocess pipeline. The same strategy is also when chunking choosers, and to support tracing by
+# household_id.
+#
+# the input_table_list index_col directive instructs activitysim to set the imported table index to zone_id
+# you cannot change the well-known name of the index by modifying this directive. However, if your input file
+# has a different id column name, you can rename it to the required index name with the rename_columns directive.
+# In the settings below, the 'TAZ' column in the imported table is renamed 'zone_id' in the rename_columns settings.
+#
+input_table_list:
+  #
+  # households (table index 'household_id')
+  #
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      HHID: household_id  # household_id is the required index column
+      PERSONS: hhsize
+      workers: num_workers
+      VEHICL: auto_ownership
+      TAZ: home_zone_id
+    recode_columns:
+      home_zone_id: land_use.zone_id
+    keep_columns:
+      - home_zone_id
+      - income
+      - hhsize
+      - HHT
+      - auto_ownership
+      - num_workers
+  #
+  # persons (table index 'person_id')
+  #
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    rename_columns:
+      PERID: person_id  # person_id is the required index column
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+      - sex
+      - pemploy
+      - pstudent
+      - ptype
+  #
+  # land_use (table index 'zone_id')
+  #
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      TAZ: zone_id  # person_id is the required index column
+      COUNTY: county_id
+    recode_columns:
+      zone_id: zero-based
+    keep_columns:
+      - DISTRICT
+      - SD
+      - county_id
+      - TOTHH
+      - TOTPOP
+      - TOTACRE
+      - RESACRE
+      - CIACRE
+      - TOTEMP
+      - AGE0519
+      - RETEMPN
+      - FPSEMPN
+      - HEREMPN
+      - OTHEMPN
+      - AGREMPN
+      - MWTEMPN
+      - PRKCST
+      - OPRKCST
+      - area_type
+      - HSENROLL
+      - COLLFTE
+      - COLLPTE
+      - TOPOLOGY
+      - TERMINAL
+
+# convert input CSVs to HDF5 format and save to outputs directory
+# create_input_store: True
+
+#input_store: ../output/input_data.h5
+
+# number of households to simulate
+households_sample_size:  100000
+# simulate all households
+# households_sample_size: 0
+
+# set false to disable variability check in simple_simulate and interaction_simulate
+check_for_variability: False
+
+# - shadow pricing global switches
+
+# turn shadow_pricing on and off for all models (e.g. school and work)
+# shadow pricing is deprecated for less than full samples
+# see shadow_pricing.yaml for additional settings
+use_shadow_pricing: False
+
+# turn writing of sample_tables on and off for all models
+# (if True, tables will be written if DEST_CHOICE_SAMPLE_TABLE_NAME is specified in individual model settings)
+want_dest_choice_sample_tables: False
+
+# log interaction simulate/sample expressions that return prohibitive utility values that exclude all alternatives
+log_alt_losers: False
+
+# alternate dir to read/write cache (defaults to output_dir)
+# used for skim cache, tvpb, and chunk_log caches
+#cache_dir: data/cache
+
+##############
+#
+# chunking
+#
+
+# chooser chunk size in gigabytes
+# target top memory usage during activitysim run (including shared memory, loaded tables, and transient memory usage)
+#chunk_size: 12_000_000_000
+chunk_size: 0
+
+# minimum fraction of total chunk_size to reserve for adaptive chunking
+min_available_chunk_ratio: 0.05
+
+# initial number of chooser rows for first chunk in training mode
+# when there is no pre-existing chunk_cache to set initial value
+# ordinarily bigger is better as long as it is not so big it causes memory issues (e.g. accessibility with lots of zones)
+default_initial_rows_per_chunk: 500
+
+# method to calculate memory overhead when chunking is enabled
+chunk_method: hybrid_uss
+
+# chunk training mode
+# training to determine the chunking settings written to a cache file that is re-used for production runs
+# training
+# production
+# disabled
+# assume enough RAM to not chunk
+chunk_training_mode: disabled
+
+# whether to preserve or delete subprocess chunk and mem logs when they are consolidated at end of multiprocess run
+keep_chunk_logs: True
+keep_mem_logs: True
+
+##############
+
+# - tracing
+
+# trace household id; comment out or leave empty for no trace
+# households with all tour types
+#  [ 728370 1234067 1402924 1594625 1595333 1747572 1896849 1931818 2222690 2344951 2677154]
+trace_hh_id:
+
+# trace origin, destination in accessibility calculation; comment out or leave empty for no trace
+# trace_od: [5, 11]
+trace_od:
+
+
+
+# to resume after last successful checkpoint, specify resume_after: _
+#resume_after: trip_destination
+resume_after:
+
+checkpoints: True
+# if checkpoints is False, no intermediate checkpoints will be written before the end of run
+# (or if multiprocessing, at the end of each multiprocess_step)
+#checkpoints: False
+# explicit list of models to checkpoint
+#checkpoints:
+#  - mandatory_tour_scheduling
+#  - non_mandatory_tour_scheduling
+#  - trip_mode_choice
+
+
+models:
+  - initialize_landuse
+  - initialize_households
+  - compute_accessibility
+  - school_location
+  - workplace_location
+  - auto_ownership_simulate
+  - free_parking
+  - cdap_simulate
+  - mandatory_tour_frequency
+  - mandatory_tour_scheduling
+  - joint_tour_frequency
+  - joint_tour_composition
+  - joint_tour_participation
+  - joint_tour_destination
+  - joint_tour_scheduling
+  - non_mandatory_tour_frequency
+  - non_mandatory_tour_destination
+  - non_mandatory_tour_scheduling
+  - tour_mode_choice_simulate
+  - atwork_subtour_frequency
+  - atwork_subtour_destination
+  - atwork_subtour_scheduling
+  - atwork_subtour_mode_choice
+  - stop_frequency
+  - trip_purpose
+  - trip_destination
+  - trip_purpose_and_destination
+  - trip_scheduling
+  - trip_mode_choice
+  - write_data_dictionary
+  - track_skim_usage
+  - write_trip_matrices
+  - write_tables
+  - summarize
+
+output_tables:
+  h5_store: False
+  action: include
+  prefix: final_
+  tables:
+    - checkpoints
+    - accessibility
+    - tablename: land_use
+      decode_columns:
+        zone_id: land_use.zone_id
+    - tablename: households
+      decode_columns:
+        home_zone_id: land_use.zone_id
+    - tablename: persons
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        school_zone_id: nonnegative | land_use.zone_id
+        workplace_zone_id: nonnegative | land_use.zone_id
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - joint_tour_participants
+
+# area_types less than this are considered urban
+urban_threshold: 4
+cbd_threshold: 2
+rural_threshold: 6
+
+# - value of time
+min_value_of_time: 1
+max_value_of_time: 50
+distributed_vot_mu: 0.684
+distributed_vot_sigma: 0.85
+
+household_median_value_of_time:
+  1: 6.01
+  2: 8.81
+  3: 10.44
+  4: 12.86
+

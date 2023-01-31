@@ -1,22 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-from builtins import range
-
 import logging
 
-from math import ceil
 import numpy as np
 import pandas as pd
 
-from . import logit
-from . import tracing
-from . import chunk
-from . import config
+from . import chunk, config, interaction_simulate, logit, pipeline, tracing
 from .simulate import set_skim_wrapper_targets
-
-
-from . import interaction_simulate
-from . import pipeline
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +63,15 @@ def make_sample_choices_utility_based(
 
 
 def make_sample_choices(
-        choosers, probs,
-        alternatives,
-        sample_size, alternative_count, alt_col_name,
-        allow_zero_probs,
-        trace_label):
+    choosers,
+    probs,
+    alternatives,
+    sample_size,
+    alternative_count,
+    alt_col_name,
+    allow_zero_probs,
+    trace_label,
+):
     """
 
     Parameters
@@ -104,21 +98,15 @@ def make_sample_choices(
     assert len(alternatives) == alternative_count
 
     if allow_zero_probs:
-        zero_probs = (probs.sum(axis=1) == 0)
+        zero_probs = probs.sum(axis=1) == 0
         if zero_probs.all():
-            return pd.DataFrame(columns=[alt_col_name, 'rand', 'prob', choosers.index.name])
+            return pd.DataFrame(
+                columns=[alt_col_name, "rand", "prob", choosers.index.name]
+            )
         if zero_probs.any():
             # remove from sample
             probs = probs[~zero_probs]
             choosers = choosers[~zero_probs]
-
-    cum_probs_array = probs.values.cumsum(axis=1)
-    chunk.log_df(trace_label, 'cum_probs_array', cum_probs_array)
-
-    # alt probs in convenient layout to return prob of chose alternative
-    # (same layout as cum_probs_arr)
-    alt_probs_array = probs.values.flatten()
-    chunk.log_df(trace_label, 'alt_probs_array', alt_probs_array)
 
     # get sample_size rands for each chooser
     rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
@@ -126,93 +114,59 @@ def make_sample_choices(
     # transform as we iterate over alternatives
     # reshape so rands[i] is in broadcastable (2-D) shape for cum_probs_arr
     # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
-    rands = rands.T.reshape(sample_size, -1, 1)
-    chunk.log_df(trace_label, 'rands', rands)
+    # rands = rands.T #.reshape(sample_size, -1, 1)
+    chunk.log_df(trace_label, "rands", rands)
 
-    # the alternative value chosen
-    # WHY SHOULD CHOICES COL HAVE TO BE TYPE INT???
-    # choices_array = np.empty([sample_size, len(choosers)]).astype(int)
-    choices_array = np.empty([sample_size, len(choosers)]).astype(alternatives.index.dtype)
-    # chunk log these later after we populate them...
+    # TODO: is `sample_choices_maker` more efficient?  The order of samples changes, might change repro-randoms
+    from .choosing import sample_choices_maker_preserve_ordering
 
-    # the probability of the chosen alternative
-    choice_probs_array = np.empty([sample_size, len(choosers)])
-    # chunk log these later after we populate them...
+    choices_array, choice_probs_array = sample_choices_maker_preserve_ordering(
+        probs.values,
+        rands,
+        alternatives.index.values,
+    )
 
-    alts = np.tile(alternatives.index.values, len(choosers))
-    chunk.log_df(trace_label, 'alts', alts)
-
-    # FIXME - do this all at once rather than iterate?
-    for i in range(sample_size):
-
-        # FIXME - do this in numpy, not pandas?
-
-        # rands for this alt in broadcastable shape
-        r = rands[i]
-
-        # position of first occurrence of positive value
-        positions = np.argmax(cum_probs_array > r, axis=1)
-
-        # FIXME - leave positions as numpy array, not pandas series?
-        # positions is series with the chosen alternative represented as a column index in probs
-        # which is an integer between zero and num alternatives in the alternative sample
-        positions = pd.Series(positions, index=probs.index)
-
-        # need to get from an integer offset into the alternative sample to the alternative index
-        # that is, we want the index value of the row that is offset by <position> rows into the
-        # tranche of this choosers alternatives created by cross join of alternatives and choosers
-
-        # offsets is the offset into model_design df of first row of chooser alternatives
-        offsets = np.arange(len(positions)) * alternative_count
-
-        # choices and choice_probs have one element per chooser and is in same order as choosers
-        choices_array[i] = np.take(alts, positions + offsets)
-        choice_probs_array[i] = np.take(alt_probs_array, positions + offsets)
-
-        del positions
-        del offsets
-
-    chunk.log_df(trace_label, 'choices_array', choices_array)
-    chunk.log_df(trace_label, 'choice_probs_array', choice_probs_array)
-
-    del alts
-    chunk.log_df(trace_label, 'alts', None)
-    del cum_probs_array
-    chunk.log_df(trace_label, 'cum_probs_array', None)
-    del alt_probs_array
-    chunk.log_df(trace_label, 'alt_probs_array', None)
+    chunk.log_df(trace_label, "choices_array", choices_array)
+    chunk.log_df(trace_label, "choice_probs_array", choice_probs_array)
 
     # explode to one row per chooser.index, alt_zone_id
     choices_df = pd.DataFrame(
-        {alt_col_name: choices_array.flatten(order='F'),
-         'rand': rands.flatten(order='F'),
-         'prob': choice_probs_array.flatten(order='F'),
-         choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size)
-         })
+        {
+            alt_col_name: choices_array.flatten(order="F"),
+            "rand": rands.T.flatten(order="F"),
+            "prob": choice_probs_array.flatten(order="F"),
+            choosers.index.name: np.repeat(np.asanyarray(choosers.index), sample_size),
+        }
+    )
 
-    chunk.log_df(trace_label, 'choices_df', choices_df)
+    chunk.log_df(trace_label, "choices_df", choices_df)
 
     del choices_array
-    chunk.log_df(trace_label, 'choices_array', None)
+    chunk.log_df(trace_label, "choices_array", None)
     del rands
-    chunk.log_df(trace_label, 'rands', None)
+    chunk.log_df(trace_label, "rands", None)
     del choice_probs_array
-    chunk.log_df(trace_label, 'choice_probs_array', None)
+    chunk.log_df(trace_label, "choice_probs_array", None)
 
     # handing this off to caller
-    chunk.log_df(trace_label, 'choices_df', None)
+    chunk.log_df(trace_label, "choices_df", None)
 
     return choices_df
 
 
 def _interaction_sample(
-        choosers, alternatives,
-        spec, sample_size, alt_col_name,
-        allow_zero_probs=False,
-        log_alt_losers=False,
-        skims=None,
-        locals_d=None,
-        trace_label=None):
+    choosers,
+    alternatives,
+    spec,
+    sample_size,
+    alt_col_name,
+    allow_zero_probs=False,
+    log_alt_losers=False,
+    skims=None,
+    locals_d=None,
+    trace_label=None,
+    zone_layer=None,
+):
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -269,17 +223,23 @@ def _interaction_sample(
     """
 
     have_trace_targets = tracing.has_trace_targets(choosers)
+    trace_ids = None
+    trace_rows = None
     num_choosers = len(choosers.index)
 
     assert num_choosers > 0
 
     if have_trace_targets:
-        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, 'choosers'))
-        tracing.trace_df(alternatives, tracing.extend_trace_label(trace_label, 'alternatives'),
-                         slicer='NONE', transpose=False)
+        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
+        tracing.trace_df(
+            alternatives,
+            tracing.extend_trace_label(trace_label, "alternatives"),
+            slicer="NONE",
+            transpose=False,
+        )
 
     if len(spec.columns) > 1:
-        raise RuntimeError('spec must have only one column')
+        raise RuntimeError("spec must have only one column")
 
     # if using skims, copy index into the dataframe, so it will be
     # available as the "destination" for set_skim_wrapper_targets
@@ -289,73 +249,181 @@ def _interaction_sample(
 
     chooser_index_id = interaction_simulate.ALT_CHOOSER_ID if log_alt_losers else None
 
+    sharrow_enabled = config.setting("sharrow", False)
+
     # - cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
     # index values (non-unique) are from alternatives df
     alternative_count = alternatives.shape[0]
-    interaction_df = \
-        logit.interaction_dataset(choosers, alternatives, sample_size=alternative_count,
-                                  chooser_index_id=chooser_index_id)
 
-    chunk.log_df(trace_label, 'interaction_df', interaction_df)
+    interaction_utilities = None
+    interaction_utilities_sh = None
+    if sharrow_enabled:
 
-    assert alternative_count == len(interaction_df.index) / len(choosers.index)
+        (
+            interaction_utilities,
+            trace_eval_results,
+        ) = interaction_simulate.eval_interaction_utilities(
+            spec,
+            choosers,
+            locals_d,
+            trace_label,
+            trace_rows,
+            estimator=None,
+            log_alt_losers=log_alt_losers,
+            extra_data=alternatives,
+            zone_layer=zone_layer,
+        )
+        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+        if sharrow_enabled == "test" or True:
+            interaction_utilities_sh, trace_eval_results_sh = (
+                interaction_utilities,
+                trace_eval_results,
+            )
+    if not sharrow_enabled or (sharrow_enabled == "test"):
+        interaction_df = logit.interaction_dataset(
+            choosers,
+            alternatives,
+            sample_size=alternative_count,
+            chooser_index_id=chooser_index_id,
+        )
 
-    if skims is not None:
-        set_skim_wrapper_targets(interaction_df, skims)
+        chunk.log_df(trace_label, "interaction_df", interaction_df)
 
-    # evaluate expressions from the spec multiply by coefficients and sum
-    # spec is df with one row per spec expression and one col with utility coefficient
-    # column names of interaction_df match spec index values
-    # utilities has utility value for element in the cross product of choosers and alternatives
-    # interaction_utilities is a df with one utility column and one row per row in interaction_df
-    if have_trace_targets:
-        trace_rows, trace_ids \
-            = tracing.interaction_trace_rows(interaction_df, choosers, alternative_count)
+        assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
-        tracing.trace_df(interaction_df[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_df'),
-                         slicer='NONE', transpose=False)
-    else:
-        trace_rows = trace_ids = None
+        if skims is not None:
+            set_skim_wrapper_targets(interaction_df, skims)
 
-    # interaction_utilities is a df with one utility column and one row per interaction_df row
-    interaction_utilities, trace_eval_results \
-        = interaction_simulate.eval_interaction_utilities(spec, interaction_df, locals_d, trace_label, trace_rows,
-                                                          estimator=None,
-                                                          log_alt_losers=log_alt_losers)
-    chunk.log_df(trace_label, 'interaction_utilities', interaction_utilities)
+        # evaluate expressions from the spec multiply by coefficients and sum
+        # spec is df with one row per spec expression and one col with utility coefficient
+        # column names of interaction_df match spec index values
+        # utilities has utility value for element in the cross product of choosers and alternatives
+        # interaction_utilities is a df with one utility column and one row per row in interaction_df
+        if have_trace_targets:
+            trace_rows, trace_ids = tracing.interaction_trace_rows(
+                interaction_df, choosers, alternative_count
+            )
 
-    # ########### HWM - high water mark (point of max observed memory usage)
+            tracing.trace_df(
+                interaction_df[trace_rows],
+                tracing.extend_trace_label(trace_label, "interaction_df"),
+                slicer="NONE",
+                transpose=False,
+            )
+        else:
+            trace_rows = trace_ids = None
 
-    del interaction_df
-    chunk.log_df(trace_label, 'interaction_df', None)
+        # interaction_utilities is a df with one utility column and one row per interaction_df row
+        (
+            interaction_utilities,
+            trace_eval_results,
+        ) = interaction_simulate.eval_interaction_utilities(
+            spec,
+            interaction_df,
+            locals_d,
+            trace_label,
+            trace_rows,
+            estimator=None,
+            log_alt_losers=log_alt_losers,
+            zone_layer=zone_layer,
+        )
+        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
-    if have_trace_targets:
-        tracing.trace_interaction_eval_results(trace_eval_results, trace_ids,
-                                               tracing.extend_trace_label(trace_label, 'eval'))
+        # ########### HWM - high water mark (point of max observed memory usage)
 
-        tracing.trace_df(interaction_utilities[trace_rows],
-                         tracing.extend_trace_label(trace_label, 'interaction_utilities'),
-                         slicer='NONE', transpose=False)
+        del interaction_df
+        chunk.log_df(trace_label, "interaction_df", None)
 
-    tracing.dump_df(DUMP, interaction_utilities, trace_label, 'interaction_utilities')
+    if sharrow_enabled == "test":
+        try:
+            if interaction_utilities_sh is not None:
+                np.testing.assert_allclose(
+                    interaction_utilities_sh.values.reshape(
+                        interaction_utilities.values.shape
+                    ),
+                    interaction_utilities.values,
+                    rtol=1e-2,
+                    atol=0,
+                    err_msg="utility not aligned",
+                    verbose=True,
+                )
+        except AssertionError as err:
+            print(err)
+            misses = np.where(
+                ~np.isclose(
+                    interaction_utilities_sh.values,
+                    interaction_utilities.values,
+                    rtol=1e-2,
+                    atol=0,
+                )
+            )
+            _sh_util_miss1 = interaction_utilities_sh.values[
+                tuple(m[0] for m in misses)
+            ]
+            _u_miss1 = interaction_utilities.values[tuple(m[0] for m in misses)]
+            diff = _sh_util_miss1 - _u_miss1
+            if len(misses[0]) > interaction_utilities_sh.values.size * 0.01:
+                print("big problem")
+                print(misses)
+                if "nan location mismatch" in str(err):
+                    print("nan location mismatch interaction_utilities_sh")
+                    print(np.where(np.isnan(interaction_utilities_sh.values)))
+                    print("nan location mismatch interaction_utilities legacy")
+                    print(np.where(np.isnan(interaction_utilities.values)))
+                print("misses =>", misses)
+                j = 0
+                while j < len(misses[0]):
+                    print(
+                        f"miss {j} {tuple(m[j] for m in misses)}:",
+                        interaction_utilities_sh.values[tuple(m[j] for m in misses)],
+                        "!=",
+                        interaction_utilities.values[tuple(m[j] for m in misses)],
+                    )
+                    j += 1
+                    if j > 10:
+                        break
+                raise
+
+    if have_trace_targets and trace_ids is not None:
+        tracing.trace_interaction_eval_results(
+            trace_eval_results,
+            trace_ids,
+            tracing.extend_trace_label(trace_label, "eval"),
+        )
+
+    if have_trace_targets and trace_rows is not None:
+        try:
+            tracing.trace_df(
+                interaction_utilities[trace_rows],
+                tracing.extend_trace_label(trace_label, "interaction_utilities"),
+                slicer="NONE",
+                transpose=False,
+            )
+        except ValueError:
+            pass
+
+    tracing.dump_df(DUMP, interaction_utilities, trace_label, "interaction_utilities")
 
     # reshape utilities (one utility column and one row per row in interaction_utilities)
     # to a dataframe with one row per chooser and one column per alternative
     utilities = pd.DataFrame(
         interaction_utilities.values.reshape(len(choosers), alternative_count),
-        index=choosers.index)
-    chunk.log_df(trace_label, 'utilities', utilities)
+        index=choosers.index,
+    )
+    chunk.log_df(trace_label, "utilities", utilities)
 
     del interaction_utilities
-    chunk.log_df(trace_label, 'interaction_utilities', None)
+    chunk.log_df(trace_label, "interaction_utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(utilities, tracing.extend_trace_label(trace_label, 'utils'),
-                         column_labels=['alternative', 'utility'])
+        tracing.trace_df(
+            utilities,
+            tracing.extend_trace_label(trace_label, "utils"),
+            column_labels=["alternative", "utility"],
+        )
 
-    tracing.dump_df(DUMP, utilities, trace_label, 'utilities')
+    tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # sample size 0 is for estimation mode - see below
     if config.setting("freeze_unobserved_utilities", False) and (sample_size != 0):
@@ -426,10 +494,10 @@ def _interaction_sample(
                 allow_zero_probs=allow_zero_probs,
                 trace_label=trace_label)
 
-    chunk.log_df(trace_label, 'choices_df', choices_df)
+    chunk.log_df(trace_label, "choices_df", choices_df)
 
     del probs
-    chunk.log_df(trace_label, 'probs', None)
+    chunk.log_df(trace_label, "probs", None)
 
     # pick_count and pick_dup
     # pick_count is number of duplicate picks
@@ -437,48 +505,59 @@ def _interaction_sample(
     pick_group = choices_df.groupby([choosers.index.name, alt_col_name])
 
     # number each item in each group from 0 to the length of that group - 1.
-    choices_df['pick_count'] = pick_group.cumcount(ascending=True)
+    choices_df["pick_count"] = pick_group.cumcount(ascending=True)
     # flag duplicate rows after first
-    choices_df['pick_dup'] = choices_df['pick_count'] > 0
+    choices_df["pick_dup"] = choices_df["pick_count"] > 0
     # add reverse cumcount to get total pick_count (conveniently faster than groupby.count + merge)
-    choices_df['pick_count'] += pick_group.cumcount(ascending=False) + 1
+    choices_df["pick_count"] += pick_group.cumcount(ascending=False) + 1
 
     # drop the duplicates
-    choices_df = choices_df[~choices_df['pick_dup']]
-    del choices_df['pick_dup']
+    choices_df = choices_df[~choices_df["pick_dup"]]
+    del choices_df["pick_dup"]
+    chunk.log_df(trace_label, "choices_df", choices_df)
 
     # set index after groupby so we can trace on it
     choices_df.set_index(choosers.index.name, inplace=True)
 
-    chunk.log_df(trace_label, 'choices_df', choices_df)
-
-    tracing.dump_df(DUMP, choices_df, trace_label, 'choices_df')
+    tracing.dump_df(DUMP, choices_df, trace_label, "choices_df")
 
     if have_trace_targets:
-        tracing.trace_df(choices_df,
-                         tracing.extend_trace_label(trace_label, 'sampled_alternatives'),
-                         transpose=False,
-                         column_labels=['sample_alt', 'alternative'])
+        tracing.trace_df(
+            choices_df,
+            tracing.extend_trace_label(trace_label, "sampled_alternatives"),
+            transpose=False,
+            column_labels=["sample_alt", "alternative"],
+        )
 
     # don't need this after tracing
     if not config.setting("freeze_unobserved_utilities", False):
         del choices_df['rand']
+        chunk.log_df(trace_label, "choices_df", choices_df)
 
     # - NARROW
-    choices_df['prob'] = choices_df['prob'].astype(np.float32)
-    assert (choices_df['pick_count'].max() < 4294967295) or (choices_df.empty)
-    choices_df['pick_count'] = choices_df['pick_count'].astype(np.uint32)
+    choices_df["prob"] = choices_df["prob"].astype(np.float32)
+    assert (choices_df["pick_count"].max() < 4294967295) or (choices_df.empty)
+    choices_df["pick_count"] = choices_df["pick_count"].astype(np.uint32)
+    chunk.log_df(trace_label, "choices_df", choices_df)
 
     return choices_df
 
 
 def interaction_sample(
-        choosers, alternatives, spec, sample_size,
-        alt_col_name,
-        allow_zero_probs=False,
-        log_alt_losers=False,
-        skims=None, locals_d=None, chunk_size=0, chunk_tag=None,
-        trace_label=None):
+    choosers,
+    alternatives,
+    spec,
+    sample_size,
+    alt_col_name,
+    allow_zero_probs=False,
+    log_alt_losers=False,
+    skims=None,
+    locals_d=None,
+    chunk_size=0,
+    chunk_tag=None,
+    trace_label=None,
+    zone_layer=None,
+):
 
     """
     Run a simulation in the situation in which alternatives must
@@ -536,7 +615,7 @@ def interaction_sample(
             number of duplicate picks for chooser, alt
     """
 
-    trace_label = tracing.extend_trace_label(trace_label, 'interaction_sample')
+    trace_label = tracing.extend_trace_label(trace_label, "interaction_sample")
     chunk_tag = chunk_tag or trace_label
 
     # we return alternatives ordered in (index, alt_col_name)
@@ -548,24 +627,29 @@ def interaction_sample(
     sample_size = min(sample_size, len(alternatives.index))
 
     result_list = []
-    for i, chooser_chunk, chunk_trace_label \
-            in chunk.adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag):
+    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
+        choosers, chunk_size, trace_label, chunk_tag
+    ):
 
-        choices = _interaction_sample(chooser_chunk, alternatives,
-                                      spec=spec,
-                                      sample_size=sample_size,
-                                      alt_col_name=alt_col_name,
-                                      allow_zero_probs=allow_zero_probs,
-                                      log_alt_losers=log_alt_losers,
-                                      skims=skims,
-                                      locals_d=locals_d,
-                                      trace_label=chunk_trace_label)
+        choices = _interaction_sample(
+            chooser_chunk,
+            alternatives,
+            spec=spec,
+            sample_size=sample_size,
+            alt_col_name=alt_col_name,
+            allow_zero_probs=allow_zero_probs,
+            log_alt_losers=log_alt_losers,
+            skims=skims,
+            locals_d=locals_d,
+            trace_label=chunk_trace_label,
+            zone_layer=zone_layer,
+        )
 
         if choices.shape[0] > 0:
             # might not be any if allow_zero_probs
             result_list.append(choices)
 
-            chunk.log_df(trace_label, f'result_list', result_list)
+            chunk.log_df(trace_label, f"result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
@@ -573,9 +657,11 @@ def interaction_sample(
     if len(result_list) > 1:
         choices = pd.concat(result_list)
 
-    assert allow_zero_probs or (len(choosers.index) == len(np.unique(choices.index.values)))
+    assert allow_zero_probs or (
+        len(choosers.index) == len(np.unique(choices.index.values))
+    )
 
     # keep alts in canonical order so choices based on their probs are stable across runs
-    choices = choices.sort_values(by=alt_col_name).sort_index(kind='mergesort')
+    choices = choices.sort_values(by=alt_col_name).sort_index(kind="mergesort")
 
     return choices

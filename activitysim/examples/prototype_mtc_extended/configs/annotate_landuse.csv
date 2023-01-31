@@ -1,0 +1,17 @@
+Description,Target,Expression
+#,, annotate landuse table after import
+household_density,household_density,land_use.TOTHH / (land_use.RESACRE + land_use.CIACRE)
+employment_density,employment_density,land_use.TOTEMP / (land_use.RESACRE + land_use.CIACRE)
+density_index,density_index,(household_density *employment_density) / (household_density + employment_density).clip(lower=1)
+,is_cbd,land_use.area_type == 1
+# additions put in place for simulation shadow pricing approach,,
+total university enrollment,TOTENR_univ,land_use.COLLFTE + land_use.COLLPTE
+# example external worker implementation,,
+Example with 10 percent external workers across all zones,ext_work_share,0.1
+scaling employment fields,RETEMPN_scaled,land_use.RETEMPN * (1 - ext_work_share)
+,FPSEMPN_scaled,land_use.FPSEMPN * (1 - ext_work_share)
+,HEREMPN_scaled,land_use.HEREMPN * (1 - ext_work_share)
+,OTHEMPN_scaled,land_use.OTHEMPN * (1 - ext_work_share)
+,AGREMPN_scaled,land_use.AGREMPN * (1 - ext_work_share)
+,MWTEMPN_scaled,land_use.MWTEMPN * (1 - ext_work_share)
+,TOTEMP_scaled,land_use.TOTEMP * (1 - ext_work_share)

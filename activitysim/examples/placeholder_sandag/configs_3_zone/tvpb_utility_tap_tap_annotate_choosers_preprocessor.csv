@@ -1,0 +1,26 @@
+Description,Target,Expression
+# demographic segment,,
+,c_ivt_for_segment,"np.where(df.demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_ivt_low_income, c_ivt_high_income)"
+,c_cost_for_segment,"np.where(df.demographic_segment==C_LOW_INCOME_SEGMENT_ID,c_cost_low_income, c_cost_high_income)"
+# fastest,,
+,_bus_available_fastest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_TOTIVT_FAST')>0"
+,_com_available_fastest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'COM_TOTIVT_FAST')>0"
+,_exp_available_fastest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'EXP_TOTIVT_FAST')>0"
+,_hvy_available_fastest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HVY_TOTIVT_FAST')>0"
+,_lrf_available_fastest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LRF_TOTIVT_FAST')>0"
+,transit_available_fastest,_bus_available_fastest | _com_available_fastest | _exp_available_fastest | _hvy_available_fastest | _lrf_available_fastest
+,not_transit_available_fastest,~transit_available_fastest
+# cheapest,,
+,_bus_available_cheapest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_TOTIVT_CHEAP')>0"
+,_com_available_cheapest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'COM_TOTIVT_CHEAP')>0"
+,_exp_available_cheapest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'EXP_TOTIVT_CHEAP')>0"
+,_hvy_available_cheapest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HVY_TOTIVT_CHEAP')>0"
+,_lrf_available_cheapest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LRF_TOTIVT_CHEAP')>0"
+,transit_available_cheapest,_bus_available_cheapest | _com_available_cheapest | _exp_available_cheapest | _hvy_available_cheapest | _lrf_available_cheapest
+# shortest,,
+,_bus_available_shortest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LOC_TOTIVT_SHORT')>0"
+,_com_available_shortest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'COM_TOTIVT_SHORT')>0"
+,_exp_available_shortest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'EXP_TOTIVT_SHORT')>0"
+,_hvy_available_shortest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'HVY_TOTIVT_SHORT')>0"
+,_lrf_available_shortest,"los.get_tappairs3d(df.btap, df.atap, df.tod, 'LRF_TOTIVT_SHORT')>0"
+,transit_available_shortest,_bus_available_shortest | _com_available_shortest | _exp_available_shortest | _hvy_available_shortest | _lrf_available_shortest

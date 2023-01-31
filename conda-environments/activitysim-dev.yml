@@ -55,6 +55,7 @@ dependencies:
 - rich
 - ruby  # required for benchmarking pre-commit hooks
 - setuptools_scm
+- scikit-learn >= 1.1
 - sharrow >= 2.5.2
 - simwrapper > 1.7
 - snakeviz  # for profiling

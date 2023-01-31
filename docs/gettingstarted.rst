@@ -11,6 +11,31 @@ This page describes how to get started with ActivitySim.
 .. index:: installation
 
 
+Pre-packaged Installer
+----------------------
+
+Begining with version 1.2, ActivitySim is now available for Windows via a
+pre-packaged installer.  This installer provides everything you need to run
+ActivitySim, including Python, all the necessary supporting packages, and
+ActivitySim itself.  You should only choose this installation process if you
+plan to use ActivitySim but you don't need or want to do other Python
+development.  Note this installer is provided as an "executable" which (of course)
+installs a variety of things on your system, and it is quite likely to be flagged by
+Windows, anti-virus, or institutional IT policies as "unusual" software, which
+may require special treatment to actually install and use.
+
+Download the installer from GitHub `here <https://github.com/ActivitySim/activitysim/releases/download/v1.2.0/Activitysim-1.2.0-Windows-x86_64.exe`__.
+It is strongly recommended to choose the option to install "for me only", as this
+should not require administrator privileges on your machine.  Pay attention
+to the *complete path* of the installation location. You will need to know
+that path to run ActivitySim in the future, as the installer does not modify
+your "PATH" and the location of the `ActivitySim.exe` command line tool will not
+be available without knowing the path to where the install has happened.
+
+Once the install is complete, ActivitySim can be run directly from any command
+prompt by running `<install_location>/Scripts/ActivitySim.exe`.
+
+
 Installation
 ------------
 

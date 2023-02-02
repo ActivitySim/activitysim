@@ -7,7 +7,7 @@ channels:
 - conda-forge
 dependencies:
 - pip
-- black
+- black >= 22.0,<23
 - coveralls
 - cytoolz >= 0.8.1
 - isort

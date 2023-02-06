@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Getting Started &#8212; ActivitySim 1.2.0</title>
+    <title>Getting Started &#8212; ActivitySim 1.2.1.dev7+g08c7ab2f</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -94,7 +94,7 @@
       <div class="navbar-end-item">
         <div class="dropdown" id="version_switcher">
     <button type="button" class="btn btn-primary btn-sm navbar-btn dropdown-toggle" id="version_switcher_button" data-toggle="dropdown">
-        1.2.0  <!-- this text may get changed later by javascript -->
+        1.2.1  <!-- this text may get changed later by javascript -->
         <span class="caret"></span>
     </button>
     <div id="version_switcher_menu" class="dropdown-menu list-group-flush py-0" aria-labelledby="version_switcher_button">
@@ -104,7 +104,7 @@
 
 <!-- NOTE: this JS must live here (not in our global JS file) because it relies
      on being processed by Jinja before it is run (specifically for replacing
-     variables gettingstarted and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.2.0'}.
+     variables gettingstarted and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.2.1'}.
 -->
 
 <script type="text/javascript">
@@ -155,10 +155,10 @@ function checkPageExistsAndRedirect(event) {
 
             $("#version_switcher_menu").append(node);
             // replace dropdown button text with the preferred display name of
-            // this version, rather than using sphinx's 1.2.0 variable.
+            // this version, rather than using sphinx's 1.2.1 variable.
             // also highlight the dropdown entry for the currently-viewed
             // version's entry
-            if (entry.version == "1.2.0") {
+            if (entry.version == "1.2.1") {
                 node.classList.add("active");
                 let btn = document.getElementById("version_switcher_button");
                 btn.innerText = btn.dataset["activeVersionName"] = entry.name;
@@ -299,6 +299,11 @@ function checkPageExistsAndRedirect(event) {
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pre-packaged-installer">
+   Pre-packaged Installer
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
   <a class="reference internal nav-link" href="#installation">
    Installation
   </a>
@@ -360,8 +365,29 @@ function checkPageExistsAndRedirect(event) {
 <p class="admonition-title">Note</p>
 <p>ActivitySim is under active development</p>
 </div>
+<section id="pre-packaged-installer">
+<span id="index-0"></span><h2>Pre-packaged Installer<a class="headerlink" href="#pre-packaged-installer" title="Permalink to this headline">#</a></h2>
+<p>Begining with version 1.2, ActivitySim is now available for Windows via a
+pre-packaged installer.  This installer provides everything you need to run
+ActivitySim, including Python, all the necessary supporting packages, and
+ActivitySim itself.  You should only choose this installation process if you
+plan to use ActivitySim but you don’t need or want to do other Python
+development.  Note this installer is provided as an “executable” which (of course)
+installs a variety of things on your system, and it is quite likely to be flagged by
+Windows, anti-virus, or institutional IT policies as “unusual” software, which
+may require special treatment to actually install and use.</p>
+<p>Download the installer from GitHub <a class="reference external" href="https://github.com/ActivitySim/activitysim/releases/download/v1.2.0/Activitysim-1.2.0-Windows-x86_64.exe">here</a>.
+It is strongly recommended to choose the option to install “for me only”, as this
+should not require administrator privileges on your machine.  Pay attention
+to the <em>complete path</em> of the installation location. You will need to know
+that path to run ActivitySim in the future, as the installer does not modify
+your “PATH” and the location of the <cite>ActivitySim.exe</cite> command line tool will not
+be available without knowing the path to where the install has happened.</p>
+<p>Once the install is complete, ActivitySim can be run directly from any command
+prompt by running <cite>&lt;install_location&gt;/Scripts/ActivitySim.exe</cite>.</p>
+</section>
 <section id="installation">
-<span id="index-0"></span><h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">#</a></h2>
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">#</a></h2>
 <p>1. It is recommended that you install and use a <em>conda</em> package manager
 for your system. One easy way to do so is by using
 <a class="reference external" href="https://github.com/conda-forge/miniforge#mambaforge">Mambaforge</a>.
@@ -495,8 +521,14 @@ check the current active environment with <code class="docutils literal notransl
 <p>To setup and run the primary example (see <a class="reference internal" href="examples.html#examples"><span class="std std-ref">Examples</span></a>), do the following:</p>
 <ul class="simple">
 <li><p>Open a command prompt</p></li>
-<li><p>Activate the conda environment with ActivitySim installed (i.e. <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">asim</span></code>)</p></li>
-<li><p>Type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-e</span> <span class="pre">prototype_mtc</span> <span class="pre">-d</span> <span class="pre">test_prototype_mtc</span></code> to copy the very small prototype_mtc example to a new test_prototype_mtc directory</p></li>
+<li><p>If you installed ActivitySim using conda environments, activate the conda
+environment with ActivitySim installed (i.e. <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">activate</span> <span class="pre">asim</span></code>)</p></li>
+<li><p>Or, if you used the <span class="xref std std-ref">pre-packaged installer</span>,
+replace all the commands below that call <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">...</span></code> with the complete
+path to your installed location, which is probably something
+like <code class="docutils literal notranslate"><span class="pre">c:\programdata\activitysim\scripts\activitysim.exe</span></code>.</p></li>
+<li><p>Type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">create</span> <span class="pre">-e</span> <span class="pre">prototype_mtc</span> <span class="pre">-d</span> <span class="pre">test_prototype_mtc</span></code> to copy
+the very small prototype_mtc example to a new test_prototype_mtc directory</p></li>
 <li><p>Change to the test_prototype_mtc directory</p></li>
 <li><p>Type <code class="docutils literal notranslate"><span class="pre">activitysim</span> <span class="pre">run</span> <span class="pre">-c</span> <span class="pre">configs</span> <span class="pre">-o</span> <span class="pre">output</span> <span class="pre">-d</span> <span class="pre">data</span></code> to run the example</p></li>
 <li><p>Review the outputs in the output directory</p></li>
@@ -598,7 +630,7 @@ line as follows: <code class="docutils literal notranslate"><span class="pre">SE
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.0, documentation last updated Jan 31, 2023.<br/>
+ActivitySim 1.2.1.dev7+g08c7ab2f, documentation last updated Feb 06, 2023.<br/>
 </p>
     </div>
     

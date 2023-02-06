@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Command Line Tools &#8212; ActivitySim 1.2.0</title>
+    <title>Command Line Tools &#8212; ActivitySim 1.2.1.dev7+g08c7ab2f</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -94,7 +94,7 @@
       <div class="navbar-end-item">
         <div class="dropdown" id="version_switcher">
     <button type="button" class="btn btn-primary btn-sm navbar-btn dropdown-toggle" id="version_switcher_button" data-toggle="dropdown">
-        1.2.0  <!-- this text may get changed later by javascript -->
+        1.2.1  <!-- this text may get changed later by javascript -->
         <span class="caret"></span>
     </button>
     <div id="version_switcher_menu" class="dropdown-menu list-group-flush py-0" aria-labelledby="version_switcher_button">
@@ -104,7 +104,7 @@
 
 <!-- NOTE: this JS must live here (not in our global JS file) because it relies
      on being processed by Jinja before it is run (specifically for replacing
-     variables users-guide/cli-tools and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.2.0'}.
+     variables users-guide/cli-tools and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.2.1'}.
 -->
 
 <script type="text/javascript">
@@ -155,10 +155,10 @@ function checkPageExistsAndRedirect(event) {
 
             $("#version_switcher_menu").append(node);
             // replace dropdown button text with the preferred display name of
-            // this version, rather than using sphinx's 1.2.0 variable.
+            // this version, rather than using sphinx's 1.2.1 variable.
             // also highlight the dropdown entry for the currently-viewed
             // version's entry
-            if (entry.version == "1.2.0") {
+            if (entry.version == "1.2.1") {
                 node.classList.add("active");
                 let btn = document.getElementById("version_switcher_button");
                 btn.innerText = btn.dataset["activeVersionName"] = entry.name;
@@ -304,7 +304,7 @@ function checkPageExistsAndRedirect(event) {
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#Named Arguments">
+    <a class="reference internal nav-link" href="#named-arguments">
      Named Arguments
     </a>
    </li>
@@ -316,7 +316,7 @@ function checkPageExistsAndRedirect(event) {
   </a>
   <ul class="nav section-nav flex-column">
    <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#Named Arguments">
+    <a class="reference internal nav-link" href="#named-arguments">
      Named Arguments
     </a>
    </li>
@@ -365,8 +365,8 @@ specified multiple times. Directories listed first take precedence.</p>
                        <span class="p">[</span><span class="o">-</span><span class="n">m</span> <span class="p">[</span><span class="n">N</span><span class="p">]]</span>
 </pre></div>
 </div>
-<section id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">#</a></h3>
+<section id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">#</a></h3>
 <dl class="option-list">
 <dt><kbd>-w, --working_dir</kbd></dt>
 <dd><p>path to example/project directory (default: /home/runner/work/activitysim/activitysim/docs)</p>
@@ -424,8 +424,8 @@ be run with the ‘run’ command.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">activitysim</span> <span class="n">create</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">(</span><span class="o">-</span><span class="n">l</span> <span class="o">|</span> <span class="o">-</span><span class="n">e</span> <span class="n">PATH</span><span class="p">)</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">link</span><span class="p">]</span>
 </pre></div>
 </div>
-<section id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">#</a></h3>
+<section id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Permalink to this headline">#</a></h3>
 <dl class="option-list">
 <dt><kbd>-l, --list</kbd></dt>
 <dd><p>list available example directories and exit</p>
@@ -486,7 +486,7 @@ will be copied directly into it.</p>
     <div class="footer-item">
       <!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.0, documentation last updated Jan 31, 2023.<br/>
+ActivitySim 1.2.1.dev7+g08c7ab2f, documentation last updated Feb 06, 2023.<br/>
 </p>
     </div>
     

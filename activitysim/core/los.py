@@ -294,6 +294,10 @@ class Network_LOS(object):
 
                 df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
+                # recode MAZs if needed
+                df["OMAZ"] = recode_based_on_table(df["OMAZ"], "land_use")
+                df["DMAZ"] = recode_based_on_table(df["DMAZ"], "land_use")
+
                 df["i"] = df.OMAZ * self.maz_ceiling + df.DMAZ
                 df.set_index("i", drop=True, inplace=True, verify_integrity=True)
                 logger.debug(

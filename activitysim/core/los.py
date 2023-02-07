@@ -298,7 +298,9 @@ class Network_LOS(object):
                 df["OMAZ"] = recode_based_on_table(df["OMAZ"], "land_use")
                 df["DMAZ"] = recode_based_on_table(df["DMAZ"], "land_use")
 
-                df["i"] = df.OMAZ * self.maz_ceiling + df.DMAZ
+                df["i"] = df.OMAZ.astype(np.int32) * self.maz_ceiling.astype(
+                    np.int32
+                ) + df.DMAZ.astype(np.int32)
                 df.set_index("i", drop=True, inplace=True, verify_integrity=True)
                 logger.debug(
                     f"loading maz_to_maz table {file_name} with {len(df)} rows"

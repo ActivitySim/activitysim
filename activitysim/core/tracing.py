@@ -16,6 +16,7 @@ import yaml
 
 from activitysim.core import inject
 
+from ..core.workflow import workflow_step
 from . import config
 
 # Configurations
@@ -243,14 +244,17 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.info("%s summary:\n%s" % (label, df.describe()))
 
 
-def initialize_traceable_tables():
+@workflow_step
+def initialize_traceable_tables(traceable_table_ids=None):
 
-    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
+    if traceable_table_ids is None:
+        traceable_table_ids = {}
     if len(traceable_table_ids) > 0:
         logger.debug(
             f"initialize_traceable_tables resetting table_ids for {list(traceable_table_ids.keys())}"
         )
-    inject.add_injectable("traceable_table_ids", {})
+    # ORCA# inject.add_injectable("traceable_table_ids", {})
+    return {"traceable_table_ids": {}}
 
 
 def register_traceable_table(table_name, df):

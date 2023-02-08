@@ -58,7 +58,7 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
         estimator.write_spec(model_settings)
-        estimator.write_coefficients(coefficients_df)
+        estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
     # - iterative single process what-if adjustment if specified

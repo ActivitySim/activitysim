@@ -11,7 +11,7 @@ from activitysim.core.los import Network_LOS as los
 @pytest.fixture(scope="module")
 def initialize_pipeline(
     module: str, tables: dict[str, str], initialize_network_los: bool
-) -> pipeline.Pipeline:
+) -> pipeline.Whale:
     test_dir = os.path.join("test", module)
     configs_dir = os.path.join(test_dir, "configs")
     data_dir = os.path.join(test_dir, "data")

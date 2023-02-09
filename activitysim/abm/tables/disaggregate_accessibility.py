@@ -6,9 +6,11 @@ import os
 import numpy as np
 import pandas as pd
 import pandas.api.types as ptypes
-
 from sklearn.naive_bayes import CategoricalNB
-from activitysim.core import inject, config, pipeline, util, input
+
+from activitysim.core import config, inject, input, pipeline, util
+
+from ...core.workflow import workflow_cached_object, workflow_step, workflow_table
 
 logger = logging.getLogger(__name__)
 
@@ -82,14 +84,14 @@ def find_nearest_accessibility_zone(choosers, accessibility_df, method="skims"):
     return matched_df.loc[_idx]
 
 
-@inject.injectable()
-def disaggregate_suffixes():
+@workflow_cached_object
+def disaggregate_suffixes(whale):
     return {"SUFFIX": None, "ROOTS": []}
 
 
-@inject.table()
-def maz_centroids():
-    df = input.read_input_table("maz_centroids")
+@workflow_table
+def maz_centroids(whale):
+    df = input.read_input_table(whale, "maz_centroids")
 
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
@@ -102,11 +104,13 @@ def maz_centroids():
     return df
 
 
-@inject.table()
-def proto_disaggregate_accessibility():
+@workflow_table
+def proto_disaggregate_accessibility(whale):
 
     # Read existing accessibilities, but is not required to enable model compatibility
-    df = input.read_input_table("proto_disaggregate_accessibility", required=False)
+    df = input.read_input_table(
+        whale, "proto_disaggregate_accessibility", required=False
+    )
 
     # If no df, return empty dataframe to skip this model
     if not df:
@@ -119,21 +123,26 @@ def proto_disaggregate_accessibility():
     logger.info("loaded proto_disaggregate_accessibility %s" % (df.shape,))
 
     # replace table function with dataframe
-    inject.add_table("proto_disaggregate_accessibility", df)
+    whale.add_table("proto_disaggregate_accessibility", df)
 
     return df
 
 
-@inject.table()
-def disaggregate_accessibility(persons, households, land_use, accessibility):
+@workflow_table
+def disaggregate_accessibility(whale):
     """
     This step initializes pre-computed disaggregate accessibility and merges it onto the full synthetic population.
     Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
 
     """
 
+    persons = whale.get_dataframe("persons")
+    households = whale.get_dataframe("households")
+    land_use = whale.get_dataframe("land_use")
+    accessibility = whale.get_dataframe("accessibility")
+
     # If disaggregate_accessibilities do not exist in the pipeline, it will try loading csv of that name
-    proto_accessibility_df = pipeline.get_table("proto_disaggregate_accessibility")
+    proto_accessibility_df = whale.get_dataframe("proto_disaggregate_accessibility")
 
     # If there is no table, skip. We do this first to skip as fast as possible
     if proto_accessibility_df.empty:

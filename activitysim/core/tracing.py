@@ -14,9 +14,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from activitysim.core import inject
-
-from ..core.workflow import workflow_step
+from ..core.workflow.steps import workflow_cached_object, workflow_step
 from . import config
 
 # Configurations
@@ -67,7 +65,7 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def log_runtime(model_name, start_time=None, timing=None, force=False):
+def log_runtime(whale, model_name, start_time=None, timing=None, force=False):
     global timing_notes
 
     assert (start_time or timing) and not (start_time and timing)
@@ -78,50 +76,53 @@ def log_runtime(model_name, start_time=None, timing=None, force=False):
 
     process_name = multiprocessing.current_process().name
 
-    if config.setting("multiprocess", False) and not force:
+    if whale.settings.multiprocess and not force:
         # when benchmarking, log timing for each processes in its own log
-        if config.setting("benchmarking", False):
+        if whale.settings.benchmarking:
             header = "component_name,duration"
-            with config.open_log_file(
+            with whale.filesystem.open_log_file(
                 f"timing_log.{process_name}.csv", "a", header
             ) as log_file:
                 print(f"{model_name},{timing}", file=log_file)
         # only continue to log runtime in global timing log for locutor
-        if not inject.get_injectable("locutor", False):
+        if not whale.get_injectable("locutor", False):
             return
 
     header = "process_name,model_name,seconds,minutes,notes"
     note = " ".join(timing_notes)
-    with config.open_log_file("timing_log.csv", "a", header) as log_file:
+    with whale.filesystem.open_log_file("timing_log.csv", "a", header) as log_file:
         print(f"{process_name},{model_name},{seconds},{minutes},{note}", file=log_file)
 
     timing_notes.clear()
 
 
-def delete_output_files(file_type, ignore=None, subdir=None):
+def delete_output_files(whale, file_type, ignore=None, subdir=None):
     """
-    Delete files in output directory of specified type
+    Delete files in output directory of specified type.
 
     Parameters
     ----------
-    output_dir: str
-        Directory of trace output CSVs
-
-    Returns
-    -------
-    Nothing
+    whale : Pipeline
+        The output directory is read from the Pipeline.
+    file_type : str
+        File extension to delete.
+    ignore : list[Path-like]
+        Specific files to leave alone.
+    subdir : list[Path-like], optional
+        Subdirectories to scrub.  If not given, the top level output directory
+        plus the 'log' and 'trace' directories will be scrubbed.
     """
 
-    output_dir = inject.get_injectable("output_dir")
+    output_dir = whale.filesystem.get_output_dir()
 
     subdir = [subdir] if subdir else None
     directories = subdir or ["", "log", "trace"]
 
     for subdir in directories:
 
-        dir = os.path.join(output_dir, subdir) if subdir else output_dir
+        dir = output_dir.joinpath(output_dir, subdir) if subdir else output_dir
 
-        if not os.path.exists(dir):
+        if not dir.exists():
             continue
 
         if ignore:
@@ -144,16 +145,12 @@ def delete_output_files(file_type, ignore=None, subdir=None):
                     print(e)
 
 
-def delete_trace_files():
+def delete_trace_files(whale):
     """
     Delete CSV files in output_dir
-
-    Returns
-    -------
-    Nothing
     """
-    delete_output_files(CSV_FILE_TYPE, subdir="trace")
-    delete_output_files(CSV_FILE_TYPE, subdir="log")
+    delete_output_files(whale, CSV_FILE_TYPE, subdir="trace")
+    delete_output_files(whale, CSV_FILE_TYPE, subdir="log")
 
     active_log_files = [
         h.baseFilename
@@ -161,10 +158,10 @@ def delete_trace_files():
         if isinstance(h, logging.FileHandler)
     ]
 
-    delete_output_files("log", ignore=active_log_files)
+    delete_output_files(whale, "log", ignore=active_log_files)
 
 
-def config_logger(basic=False):
+def config_logger(basic=False, whale=None):
     """
     Configure logger
 
@@ -179,17 +176,32 @@ def config_logger(basic=False):
     if basic:
         log_config_file = None
     else:
-        log_config_file = config.config_file_path(
-            LOGGING_CONF_FILE_NAME, mandatory=False
-        )
+        if whale is None:
+            log_config_file = config.config_file_path(
+                LOGGING_CONF_FILE_NAME, mandatory=False
+            )
+        else:
+            log_config_file = whale.filesystem.get_config_file_path(
+                LOGGING_CONF_FILE_NAME, mandatory=False
+            )
 
     if log_config_file:
         try:
             with open(log_config_file) as f:
-                config_dict = yaml.load(f, Loader=yaml.UnsafeLoader)
+                config_dict = yaml.load(f, Loader=yaml.SafeLoader)
         except Exception as e:
             print(f"Unable to read logging config file {log_config_file}")
             raise e
+
+        if "logging" in config_dict:
+            if "handlers" in config_dict["logging"]:
+                for k, v in config_dict["logging"]["handlers"].items():
+                    if isinstance(v, dict) and "filename" in v:
+                        from .config import log_file_path
+
+                        old_f = v["filename"]
+                        v["filename"] = log_file_path(v["filename"], whale=whale)
+                        print(f"CHANGE {old_f} -> {v['filename']}")
 
         try:
             config_dict = config_dict["logging"]
@@ -244,20 +256,13 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.info("%s summary:\n%s" % (label, df.describe()))
 
 
-@workflow_step
-def initialize_traceable_tables(traceable_table_ids=None):
+@workflow_step(inplace=True)
+def initialize_traceable_tables(whale):
 
-    if traceable_table_ids is None:
-        traceable_table_ids = {}
-    if len(traceable_table_ids) > 0:
-        logger.debug(
-            f"initialize_traceable_tables resetting table_ids for {list(traceable_table_ids.keys())}"
-        )
-    # ORCA# inject.add_injectable("traceable_table_ids", {})
-    return {"traceable_table_ids": {}}
+    whale.set("traceable_table_ids", {})
 
 
-def register_traceable_table(table_name, df):
+def register_traceable_table(whale, table_name, df):
     """
     Register traceable table
 
@@ -275,7 +280,7 @@ def register_traceable_table(table_name, df):
 
     logger.debug(f"register_traceable_table {table_name}")
 
-    traceable_tables = inject.get_injectable("traceable_tables", [])
+    traceable_tables = whale.get_injectable("traceable_tables", [])
     if table_name not in traceable_tables:
         logger.error("table '%s' not in traceable_tables" % table_name)
         return
@@ -285,8 +290,8 @@ def register_traceable_table(table_name, df):
         logger.error("Can't register table '%s' without index name" % table_name)
         return
 
-    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
-    traceable_table_indexes = inject.get_injectable("traceable_table_indexes", {})
+    traceable_table_ids = whale.get_injectable("traceable_table_ids", {})
+    traceable_table_indexes = whale.get_injectable("traceable_table_indexes", {})
 
     if (
         idx_name in traceable_table_indexes
@@ -304,11 +309,11 @@ def register_traceable_table(table_name, df):
         logger.debug(
             "adding table %s.%s to traceable_table_indexes" % (table_name, idx_name)
         )
-        inject.add_injectable("traceable_table_indexes", traceable_table_indexes)
+        whale.add_injectable("traceable_table_indexes", traceable_table_indexes)
 
     # add any new indexes associated with trace_hh_id to traceable_table_ids
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    trace_hh_id = whale.get_injectable("trace_hh_id", None)
     if trace_hh_id is None:
         return
 
@@ -357,7 +362,7 @@ def register_traceable_table(table_name, df):
     if new_traced_ids:
         assert not set(prior_traced_ids) & set(new_traced_ids)
         traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
-        inject.add_injectable("traceable_table_ids", traceable_table_ids)
+        whale.add_injectable("traceable_table_ids", traceable_table_ids)
 
     logger.debug(
         "register %s: added %s new ids to %s existing trace ids"
@@ -442,7 +447,7 @@ def write_csv(
 
     Parameters
     ----------
-    df: pandas.DataFrame or pandas.Series
+    df: pandas.DataFrame or pandas.Series or dict
         traced dataframe
     file_name: str
         output file name
@@ -527,7 +532,7 @@ def slice_ids(df, ids, column=None):
     return df
 
 
-def get_trace_target(df, slicer, column=None):
+def get_trace_target(whale, df, slicer, column=None):
     """
     get target ids and column or index to identify target trace rows in df
 
@@ -569,8 +574,8 @@ def get_trace_target(df, slicer, column=None):
             "bad slicer '%s' for df with index '%s'" % (slicer, df.index.name)
         )
 
-    traceable_table_indexes = inject.get_injectable("traceable_table_indexes", {})
-    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
+    traceable_table_indexes = whale.access("traceable_table_indexes", {})
+    traceable_table_ids = whale.access("traceable_table_ids", {})
 
     if df.empty:
         target_ids = None
@@ -579,14 +584,14 @@ def get_trace_target(df, slicer, column=None):
         table_name = traceable_table_indexes[slicer]
         target_ids = traceable_table_ids.get(table_name, [])
     elif slicer == "zone_id":
-        target_ids = inject.get_injectable("trace_od", [])
+        target_ids = whale.access("trace_od", [])
 
     return target_ids, column
 
 
-def trace_targets(df, slicer=None, column=None):
+def trace_targets(whale, df, slicer=None, column=None):
 
-    target_ids, column = get_trace_target(df, slicer, column)
+    target_ids, column = get_trace_target(whale, df, slicer, column)
 
     if target_ids is None:
         targets = None
@@ -764,7 +769,7 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     # slicer column name and id targets to use for chooser id added to model_design dataframe
     # currently we only ever slice by person_id, but that could change, so we check here...
 
-    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
+    traceable_table_ids = whale.get_injectable("traceable_table_ids", {})
 
     # Determine whether actual tables or proto_ tables for disaggregate accessibilities
     persons_table_name = set(traceable_table_ids).intersection(
@@ -906,7 +911,7 @@ def no_results(trace_label):
     logger.info("Skipping %s: no_results" % trace_label)
 
 
-def deregister_traceable_table(table_name):
+def deregister_traceable_table(whale, table_name):
     """
     un-register traceable table
 
@@ -919,9 +924,9 @@ def deregister_traceable_table(table_name):
     -------
     Nothing
     """
-    traceable_tables = inject.get_injectable("traceable_tables", [])
-    traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
-    traceable_table_indexes = inject.get_injectable("traceable_table_indexes", {})
+    traceable_tables = whale.get_injectable("traceable_tables", [])
+    traceable_table_ids = whale.get_injectable("traceable_table_ids", {})
+    traceable_table_indexes = whale.get_injectable("traceable_table_indexes", {})
 
     if table_name not in traceable_tables:
         logger.error("table '%s' not in traceable_tables" % table_name)
@@ -934,7 +939,7 @@ def deregister_traceable_table(table_name):
             {k: v for k, v in traceable_table_indexes.items() if v != table_name}
         )
 
-        inject.add_injectable("traceable_table_ids", traceable_table_ids)
-        inject.add_injectable("traceable_table_indexes", traceable_table_indexes)
+        whale.add_injectable("traceable_table_ids", traceable_table_ids)
+        whale.add_injectable("traceable_table_indexes", traceable_table_indexes)
 
     return

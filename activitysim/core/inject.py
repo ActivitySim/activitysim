@@ -104,6 +104,7 @@ def merge_tables(target, tables, columns=None):
 
 
 def add_step(name, func):
+    logger.critical(f"ADD-STEP: {name}")
     return orca.add_step(name, func)
 
 
@@ -112,6 +113,7 @@ def add_table(table_name, table, replace=False):
     Add new table and raise assertion error if the table already exists.
     Silently replace if replace=True.
     """
+    logger.critical(f"ADD-TABLE: {table_name}")
     if (
         not replace
         and orca.is_table(table_name)
@@ -126,10 +128,12 @@ def add_table(table_name, table, replace=False):
 
 # fixme remove?
 def add_column(table_name, column_name, column, cache=False):
+    logger.critical(f"ADD-COLUMN: {table_name}[{column_name}]")
     return orca.add_column(table_name, column_name, column, cache=cache)
 
 
 def add_injectable(name, injectable, cache=False):
+    logger.critical(f"ADD-INJECTABLE: {name}")
     return orca.add_injectable(name, injectable, cache=cache)
 
 
@@ -158,7 +162,7 @@ def broadcast(
 
 
 def get_table(name, default=_NO_DEFAULT):
-
+    logger.critical(f"GET-TABLE: {name}")
     if orca.is_table(name) or default == _NO_DEFAULT:
         return orca.get_table(name)
     else:
@@ -171,7 +175,7 @@ def is_injectable(name):
 
 
 def get_injectable(name, default=_NO_DEFAULT):
-
+    logger.critical(f"GET-INJECTABLE: {name}")
     if is_injectable(name) or default == _NO_DEFAULT:
         return orca.get_injectable(name)
     else:
@@ -179,7 +183,7 @@ def get_injectable(name, default=_NO_DEFAULT):
 
 
 def remove_injectable(name):
-
+    logger.critical(f"DEL-INJECTABLE: {name}")
     orca._INJECTABLES.pop(name, None)
 
 

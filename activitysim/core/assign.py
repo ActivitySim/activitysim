@@ -7,7 +7,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, pipeline, util
+from activitysim.core import chunk, pipeline, util
 
 logger = logging.getLogger(__name__)
 
@@ -135,7 +135,7 @@ class NumpyLogger(object):
         )
 
 
-def local_utilities():
+def local_utilities(whale):
     """
     Dict of useful modules and functions to provides as locals for use in eval of expressions
 
@@ -150,12 +150,12 @@ def local_utilities():
         "np": np,
         "reindex": util.reindex,
         "reindex_i": util.reindex_i,
-        "setting": config.setting,
+        "setting": lambda *arg: whale.settings._get_attr(*arg),
         "other_than": util.other_than,
-        "rng": pipeline.get_rn_generator(),
+        "rng": whale.get_rn_generator(),
     }
 
-    utility_dict.update(config.get_global_constants())
+    utility_dict.update(whale.get_global_constants())
 
     return utility_dict
 
@@ -173,6 +173,7 @@ def is_temp(target):
 
 
 def assign_variables(
+    whale,
     assignment_expressions,
     df,
     locals_dict,
@@ -218,8 +219,9 @@ def assign_variables(
     variables : pandas.DataFrame
         Will have the index of `df` and columns named by target and containing
         the result of evaluating expression
-    trace_df : pandas.DataFrame or None
+    trace_results : pandas.DataFrame or None
         a dataframe containing the eval result values for each assignment expression
+    trace_assigned_locals : dict or None
     """
 
     np_logger = NumpyLogger(logger)
@@ -250,7 +252,7 @@ def assign_variables(
             trace_assigned_locals = OrderedDict()
 
     # avoid touching caller's passed-in locals_d parameter (they may be looping)
-    _locals_dict = local_utilities()
+    _locals_dict = local_utilities(whale)
     if locals_dict is not None:
         _locals_dict.update(locals_dict)
     if df_alias:
@@ -279,7 +281,7 @@ def assign_variables(
         from activitysim.core import pipeline
 
         try:
-            random_draws = pipeline.get_rn_generator().normal_for_df(
+            random_draws = whale.get_rn_generator().normal_for_df(
                 df, broadcast=True, size=n_randoms
             )
         except RuntimeError:
@@ -297,7 +299,7 @@ def assign_variables(
 
             _locals_dict["rng_lognormal"] = rng_lognormal
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = whale.settings.sharrow
 
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously

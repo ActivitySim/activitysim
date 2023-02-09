@@ -11,6 +11,9 @@ import numpy as np
 
 from activitysim.core import chunk, config, inject, mem, pipeline, tracing
 
+from ..core.configuration import FileSystem, Settings
+from ..core.pipeline import Whale
+
 logger = logging.getLogger(__name__)
 
 
@@ -97,15 +100,18 @@ def add_run_args(parser, multiprocess=True):
             metavar="(N)",
             nargs="?",
             type=int,
-            help="run multiprocess. Adds configs_mp settings"
-            " by default. Optionally give a number of processes,"
-            " which will override the settings file.",
+            help="run multiprocess. Adds configs_mp settings "
+            "by default as the first config directory, but only if it is found"
+            "and is not already explicitly included elsewhere in the list of "
+            "configs. Optionally give a number of processes greater than 1, "
+            "which will override the number of processes written in settings file.",
         )
 
 
-def validate_injectable(name):
+def validate_injectable(whale: Whale, name, make_if_missing=False):
     try:
-        dir_paths = inject.get_injectable(name)
+        dir_paths = whale.context.get_formatted(name)
+        # dir_paths = inject.get_injectable(name)
     except RuntimeError:
         # injectable is missing, meaning is hasn't been explicitly set
         # and defaults cannot be found.
@@ -119,15 +125,18 @@ def validate_injectable(name):
 
     for dir_path in dir_paths:
         if not os.path.exists(dir_path):
-            sys.exit("Could not find %s '%s'" % (name, os.path.abspath(dir_path)))
+            if make_if_missing:
+                os.makedirs(dir_path)
+            else:
+                sys.exit("Could not find %s '%s'" % (name, os.path.abspath(dir_path)))
 
     return dir_paths
 
 
-def handle_standard_args(args, multiprocess=True):
-    def inject_arg(name, value, cache=False):
+def handle_standard_args(whale: Whale, args, multiprocess=True):
+    def inject_arg(name, value):
         assert name in INJECTABLES
-        inject.add_injectable(name, value, cache=cache)
+        whale.context[name] = value
 
     if args.working_dir:
         # activitysim will look in the current working directory for
@@ -155,67 +164,111 @@ def handle_standard_args(args, multiprocess=True):
         inject_arg("imported_extensions", ())
 
     # settings_file_name should be cached or else it gets squashed by config.py
-    if args.settings_file:
-        inject_arg("settings_file_name", args.settings_file, cache=True)
+    # if args.settings_file:
+    #     inject_arg("settings_file_name", args.settings_file)
+    #
+    # if args.config:
+    #     inject_arg("configs_dir", args.config)
+    #
+    # if args.data:
+    #     inject_arg("data_dir", args.data)
+    #
+    # if args.output:
+    #     inject_arg("output_dir", args.output)
 
-    if args.config:
-        inject_arg("configs_dir", args.config)
+    whale.filesystem = FileSystem.parse_args(args)
 
-    if args.data:
-        inject_arg("data_dir", args.data)
+    # read settings file
+    raw_settings = whale.filesystem.read_settings_file(
+        whale.filesystem.settings_file_name,
+        mandatory=True,
+        include_stack=False,
+    )
 
-    if args.output:
-        inject_arg("output_dir", args.output)
+    # the settings can redefine the cache directories.
+    cache_dir = raw_settings.pop("cache_dir", None)
+    if cache_dir:
+        whale.filesystem.cache_dir = cache_dir
+    whale.settings = Settings.parse_obj(raw_settings)
 
-    if multiprocess and args.multiprocess:
-        config_paths = validate_injectable("configs_dir")
+    extra_settings = set(whale.settings.__dict__) - set(Settings.__fields__)
 
-        if not os.path.exists("configs_mp"):
-            logger.warning("could not find 'configs_mp'. skipping...")
-        else:
-            logger.info("adding 'configs_mp' to config_dir list...")
-            config_paths.insert(0, "configs_mp")
-            inject_arg("configs_dir", config_paths)
+    if extra_settings:
+        warnings.warn(
+            "Writing arbitrary model values as top-level key in settings.yaml "
+            "is deprecated, make them sub-keys of `other_settings` instead.",
+            DeprecationWarning,
+        )
+        logger.warning(f"Found the following unexpected settings:")
+        if whale.settings.other_settings is None:
+            whale.settings.other_settings = {}
+        for k in extra_settings:
+            logger.warning(f" - {k}")
+            whale.settings.other_settings[k] = getattr(whale.settings, k)
+            delattr(whale.settings, k)
 
-        config.override_setting("multiprocess", True)
-        if args.multiprocess > 0:
-            config.override_setting("num_processes", args.multiprocess)
+    if args.multiprocess:
+        if "configs_mp" not in whale.filesystem.configs_dir:
+            # when triggering multiprocessing from command arguments,
+            # add 'configs_mp' as the first config directory, but only
+            # if it exists, and it is not already explicitly included
+            # in the set of config directories.
+            if not whale.filesystem.get_working_subdir("configs_mp").exists():
+                logger.warning("could not find 'configs_mp'. skipping...")
+            else:
+                logger.info("adding 'configs_mp' to config_dir list...")
+                whale.filesystem.configs_dir = (
+                    "configs_mp",
+                ) + whale.filesystem.configs_dir
+
+        whale.settings.multiprocess = True
+        if args.multiprocess > 1:
+            # setting --multiprocess to just 1 implies using the number of
+            # processes discovered in the configs file, while setting to more
+            # than 1 explicitly overrides that setting
+            whale.settings.num_processes = args.multiprocess
 
     if args.chunk_size:
-        config.override_setting("chunk_size", int(args.chunk_size))
+        whale.settings.chunk_size = int(args.chunk_size)
+        # config.override_setting("chunk_size", int(args.chunk_size))
     if args.chunk_training_mode is not None:
-        config.override_setting("chunk_training_mode", args.chunk_training_mode)
+        whale.settings.chunk_training_mode = args.chunk_training_mode
+        # config.override_setting("chunk_training_mode", args.chunk_training_mode)
     if args.households_sample_size is not None:
-        config.override_setting("households_sample_size", args.households_sample_size)
+        whale.settings.households_sample_size = args.households_sample_size
+        # config.override_setting("households_sample_size", args.households_sample_size)
 
-    for injectable in ["configs_dir", "data_dir", "output_dir"]:
-        validate_injectable(injectable)
+    # for injectable in ["configs_dir", "data_dir", "output_dir"]:
+    #     validate_injectable(
+    #         whale, injectable, make_if_missing=(injectable == "output_dir")
+    #     )
 
     if args.pipeline:
-        inject.add_injectable("pipeline_file_name", args.pipeline)
+        whale.filesystem.pipeline_file_name = args.pipeline
 
     if args.resume:
-        config.override_setting("resume_after", args.resume)
+        whale.settings.resume_after = args.resume
+
+    return whale
 
 
-def cleanup_output_files():
-
-    tracing.delete_trace_files()
+def cleanup_output_files(whale: Whale):
+    tracing.delete_trace_files(whale)
 
     csv_ignore = []
-    if config.setting("memory_profile", False):
+    if whale.settings.memory_profile:
         # memory profiling is opened potentially before `cleanup_output_files`
         # is called, but we want to leave any (newly created) memory profiling
         # log files that may have just been created.
-        mem_prof_log = config.log_file_path("memory_profile.csv")
+        mem_prof_log = config.log_file_path("memory_profile.csv", whale=whale)
         csv_ignore.append(mem_prof_log)
 
-    tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv", ignore=csv_ignore)
-    tracing.delete_output_files("txt")
-    tracing.delete_output_files("yaml")
-    tracing.delete_output_files("prof")
-    tracing.delete_output_files("omx")
+    tracing.delete_output_files(whale, "h5")
+    tracing.delete_output_files(whale, "csv", ignore=csv_ignore)
+    tracing.delete_output_files(whale, "txt")
+    tracing.delete_output_files(whale, "yaml")
+    tracing.delete_output_files(whale, "prof")
+    tracing.delete_output_files(whale, "omx")
 
 
 def run(args):
@@ -229,6 +282,8 @@ def run(args):
         int: sys.exit exit code
     """
 
+    whale = pipeline.Whale()
+
     # register abm steps and other abm-specific injectables
     # by default, assume we are running activitysim.abm
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
@@ -238,17 +293,15 @@ def run(args):
         from activitysim import abm  # noqa: F401
 
     tracing.config_logger(basic=True)
-    handle_standard_args(args)  # possibly update injectables
+    whale = handle_standard_args(whale, args)  # possibly update injectables
 
-    if config.setting("rotate_logs", False):
-        config.rotate_log_directory()
+    if whale.settings.rotate_logs:
+        config.rotate_log_directory(whale=whale)
 
-    if config.setting("memory_profile", False) and not config.setting(
-        "multiprocess", False
-    ):
+    if whale.settings.memory_profile and not whale.settings.multiprocess:
         # Memory sidecar is only useful for single process runs
         # multiprocess runs log memory usage without blocking in the controlling process.
-        mem_prof_log = config.log_file_path("memory_profile.csv")
+        mem_prof_log = config.log_file_path("memory_profile.csv", whale=whale)
         from ..core.memory_sidecar import MemorySidecar
 
         memory_sidecar_process = MemorySidecar(mem_prof_log)
@@ -256,49 +309,51 @@ def run(args):
         memory_sidecar_process = None
 
     # legacy support for run_list setting nested 'models' and 'resume_after' settings
-    if config.setting("run_list"):
-        warnings.warn(
-            "Support for 'run_list' settings group will be removed.\n"
-            "The run_list.steps setting is renamed 'models'.\n"
-            "The run_list.resume_after setting is renamed 'resume_after'.\n"
-            "Specify both 'models' and 'resume_after' directly in settings config file.",
-            FutureWarning,
-        )
-        run_list = config.setting("run_list")
-        if "steps" in run_list:
-            assert not config.setting(
-                "models"
-            ), f"Don't expect 'steps' in run_list and 'models' as stand-alone setting!"
-            config.override_setting("models", run_list["steps"])
-
-        if "resume_after" in run_list:
-            assert not config.setting(
-                "resume_after"
-            ), f"Don't expect 'resume_after' both in run_list and as stand-alone setting!"
-            config.override_setting("resume_after", run_list["resume_after"])
+    # if config.setting("run_list"):
+    #     warnings.warn(
+    #         "Support for 'run_list' settings group will be removed.\n"
+    #         "The run_list.steps setting is renamed 'models'.\n"
+    #         "The run_list.resume_after setting is renamed 'resume_after'.\n"
+    #         "Specify both 'models' and 'resume_after' directly in settings config file.",
+    #         FutureWarning,
+    #     )
+    #     run_list = config.setting("run_list")
+    #     if "steps" in run_list:
+    #         assert not config.setting(
+    #             "models"
+    #         ), f"Don't expect 'steps' in run_list and 'models' as stand-alone setting!"
+    #         config.override_setting("models", run_list["steps"])
+    #
+    #     if "resume_after" in run_list:
+    #         assert not config.setting(
+    #             "resume_after"
+    #         ), f"Don't expect 'resume_after' both in run_list and as stand-alone setting!"
+    #         config.override_setting("resume_after", run_list["resume_after"])
 
     # If you provide a resume_after argument to pipeline.run
     # the pipeline manager will attempt to load checkpointed tables from the checkpoint store
     # and resume pipeline processing on the next submodel step after the specified checkpoint
-    resume_after = config.setting("resume_after", None)
+    resume_after = whale.settings.resume_after
 
     # cleanup if not resuming
     if not resume_after:
-        cleanup_output_files()
+        cleanup_output_files(whale)
     elif config.setting("cleanup_trace_files_on_resume", False):
-        tracing.delete_trace_files()
+        tracing.delete_trace_files(whale)
 
-    tracing.config_logger(basic=False)  # update using possibly new logging configs
-    config.filter_warnings()
+    tracing.config_logger(
+        basic=False, whale=whale
+    )  # update using possibly new logging configs
+    config.filter_warnings(whale)
     logging.captureWarnings(capture=True)
 
     # directories
     for k in ["configs_dir", "settings_file_name", "data_dir", "output_dir"]:
-        logger.info("SETTING %s: %s" % (k, inject.get_injectable(k, None)))
+        logger.info("SETTING %s: %s" % (k, getattr(whale.filesystem, k, None)))
 
-    log_settings = inject.get_injectable("log_settings", {})
+    log_settings = whale.settings.log_settings
     for k in log_settings:
-        logger.info("SETTING %s: %s" % (k, config.setting(k)))
+        logger.info("SETTING %s: %s" % (k, getattr(whale.settings, k, None)))
 
     # OMP_NUM_THREADS: openmp
     # OPENBLAS_NUM_THREADS: openblas
@@ -335,7 +390,7 @@ def run(args):
     t0 = tracing.print_elapsed_time()
 
     try:
-        if config.setting("multiprocess", False):
+        if whale.settings.multiprocess:
             logger.info("run multiprocess simulation")
 
             from activitysim.core import mp_tasks
@@ -343,24 +398,24 @@ def run(args):
             injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
             mp_tasks.run_multiprocess(injectables)
 
-            assert not pipeline.is_open()
+            assert not whale.is_open
 
-            if config.setting("cleanup_pipeline_after_run", False):
-                pipeline.cleanup_pipeline()
+            if whale.settings.cleanup_pipeline_after_run:
+                whale.cleanup_pipeline()
 
         else:
             logger.info("run single process simulation")
 
-            pipeline.run(
-                models=config.setting("models"),
+            whale.run(
+                models=whale.settings.models,
                 resume_after=resume_after,
                 memory_sidecar_process=memory_sidecar_process,
             )
 
-            if config.setting("cleanup_pipeline_after_run", False):
-                pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
+            if whale.settings.cleanup_pipeline_after_run:
+                whale.cleanup_pipeline()  # has side effect of closing open pipeline
             else:
-                pipeline.close_pipeline()
+                whale.close_pipeline()
 
             mem.log_global_hwm()  # main process
     except Exception:
@@ -385,7 +440,6 @@ def run(args):
 
 
 if __name__ == "__main__":
-
     from activitysim import abm  # register injectables  # noqa: F401
 
     parser = argparse.ArgumentParser()

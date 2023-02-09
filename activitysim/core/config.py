@@ -10,7 +10,10 @@ import warnings
 
 import yaml
 
-from activitysim.core import inject, util
+from ..core import inject, util
+from .exceptions import SettingsFileNotFoundError
+from .pipeline import Whale
+from .workflow.util import get_formatted_or_default
 
 logger = logging.getLogger(__name__)
 
@@ -387,9 +390,16 @@ def trace_file_path(file_name):
     return file_path
 
 
-def log_file_path(file_name, prefix=True):
+def log_file_path(file_name, prefix=True, whale: Whale = None):
 
-    output_dir = inject.get_injectable("output_dir")
+    if whale is not None:
+        output_dir = whale.filesystem.get_output_dir()
+        prefix = prefix and get_formatted_or_default(
+            whale.context, "log_file_prefix", None
+        )
+    else:
+        output_dir = inject.get_injectable("output_dir")
+        prefix = prefix and inject.get_injectable("log_file_prefix", None)
 
     # - check if running asv and if so, log to commit-specific subfolder
     asv_commit = os.environ.get("ASV_COMMIT", None)
@@ -402,7 +412,6 @@ def log_file_path(file_name, prefix=True):
         output_dir = os.path.join(output_dir, "log")
 
     # - check for optional process name prefix
-    prefix = prefix and inject.get_injectable("log_file_prefix", None)
     if prefix:
         file_name = "%s-%s" % (prefix, file_name)
 
@@ -429,9 +438,12 @@ def open_log_file(file_name, mode, header=None, prefix=False):
     return f
 
 
-def rotate_log_directory():
+def rotate_log_directory(whale=None):
 
-    output_dir = inject.get_injectable("output_dir")
+    if whale is not None:
+        output_dir = whale.context.get_formatted("output_dir")
+    else:
+        output_dir = inject.get_injectable("output_dir")
     log_dir = os.path.join(output_dir, "log")
     if not os.path.exists(log_dir):
         return
@@ -489,7 +501,7 @@ def read_settings_file(
     ----------
     file_name
     mandatory: booelan
-        if true, raise SettingsFileNotFound exception if no settings file, otherwise return empty dict
+        if true, raise SettingsFileNotFoundError if no settings file, otherwise return empty dict
     include_stack: boolean or list
         only used for recursive calls to provide list of files included so far to detect cycles
 
@@ -626,7 +638,7 @@ def read_settings_file(
         settings["source_file_paths"] = source_file_paths
 
     if mandatory and not settings:
-        raise SettingsFileNotFound(file_name, configs_dir_list)
+        raise SettingsFileNotFoundError(file_name, configs_dir_list)
 
     # Adds proto_ suffix for disaggregate accessibilities
     if args.SUFFIX is not None and args.ROOTS:
@@ -666,12 +678,17 @@ def base_settings_file_path(file_name):
     raise RuntimeError("base_settings_file %s not found" % file_name)
 
 
-def filter_warnings():
+def filter_warnings(whale=None):
     """
     set warning filter to 'strict' if specified in settings
     """
 
-    if setting("strict", False):  # noqa: E402
+    if whale is None:
+        strict = setting("strict", False)
+    else:
+        strict = whale.settings.treat_warnings_as_errors
+
+    if strict:  # noqa: E402
         warnings.filterwarnings("error", category=Warning)
         warnings.filterwarnings(
             "default", category=PendingDeprecationWarning, module="future"

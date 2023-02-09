@@ -11,7 +11,7 @@ import yaml
 from ..cli.create import get_example
 from ..cli.run import INJECTABLES, config, pipeline
 from ..core import inject, tracing
-from ..core.pipeline import open_pipeline, run_model
+from ..core.pipeline import Whale
 from . import workspace
 
 logger = logging.getLogger(__name__)
@@ -56,6 +56,7 @@ def component_logging(component_name):
 
 
 def setup_component(
+    whale,
     component_name,
     working_dir=".",
     preload_injectables=(),
@@ -124,7 +125,7 @@ def setup_component(
         # components.  Instead, those benchmarks are generated in
         # aggregate during setup and then extracted from logs later.
     else:
-        open_pipeline(resume_after, mode="r")
+        whale.open_pipeline(resume_after, mode="r")
 
     for k in preload_injectables:
         if inject.get_injectable(k, None) is not None:
@@ -154,7 +155,7 @@ def setup_component(
     logger.info("setup_component completed: %s", component_name)
 
 
-def run_component(component_name):
+def run_component(whale, component_name):
     logger.info("run_component: %s", component_name)
     try:
         if config.setting("multiprocess", False):
@@ -166,7 +167,7 @@ def run_component(component_name):
             # components.  Instead, those benchmarks are generated in
             # aggregate during setup and then extracted from logs later.
         else:
-            run_model(component_name)
+            whale.run_model(component_name)
     except Exception as err:
         logger.exception("run_component exception: %s", component_name)
         raise
@@ -175,21 +176,21 @@ def run_component(component_name):
     return 0
 
 
-def teardown_component(component_name):
+def teardown_component(whale, component_name):
     logger.info("teardown_component: %s", component_name)
 
     # use the pipeline module to clear out all the orca tables, so
     # the next benchmark run has a clean slate.
     # anything needed should be reloaded from the pipeline checkpoint file
-    pipeline_tables = pipeline.registered_tables()
+    pipeline_tables = whale.registered_tables()
     for table_name in pipeline_tables:
         logger.info("dropping table %s", table_name)
-        pipeline.drop_table(table_name)
+        whale.drop_table(table_name)
 
     if config.setting("multiprocess", False):
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
-        pipeline.close_pipeline()
+        whale.close_pipeline()
     logger.critical(
         "teardown_component completed: %s\n\n%s\n\n", component_name, "~" * 88
     )
@@ -197,6 +198,7 @@ def teardown_component(component_name):
 
 
 def pre_run(
+    whale,
     model_working_dir,
     configs_dirs=None,
     data_dir="data",
@@ -301,8 +303,8 @@ def pre_run(
         logger.info("run multi-process complete simulation")
     else:
         logger.info("run single process simulation")
-        pipeline.run(models=config.setting("models"))
-        pipeline.close_pipeline()
+        whale.run(models=config.setting("models"))
+        whale.close_pipeline()
 
     tracing.print_elapsed_time("prerun required models for checkpointing", t0)
 
@@ -324,10 +326,10 @@ def run_multiprocess():
     injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
     mp_tasks.run_multiprocess(injectables)
 
-    assert not pipeline.is_open()
-
-    if config.setting("cleanup_pipeline_after_run", False):
-        pipeline.cleanup_pipeline()
+    # assert not pipeline.is_open()
+    #
+    # if config.setting("cleanup_pipeline_after_run", False):
+    #     pipeline.cleanup_pipeline()
 
 
 ########

@@ -5,8 +5,9 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import assign, chunk, config, inject, los, mem, pipeline, tracing
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
+from ...core import assign, chunk, config, los, pipeline, tracing
+from ...core.pipeline import Whale
+from ...core.workflow import workflow_step
 
 logger = logging.getLogger(__name__)
 
@@ -112,8 +113,15 @@ def compute_accessibilities_for_zones(
     return accessibility_df
 
 
-@inject.step()
-def compute_accessibility(land_use, accessibility, network_los, chunk_size, trace_od):
+@workflow_step
+def compute_accessibility(
+    whale: Whale,
+    land_use: pd.DataFrame,
+    accessibility: pd.DataFrame,
+    network_los,
+    chunk_size,
+    trace_od,
+):
 
     """
     Compute accessibility for each zone in land use file using expressions from accessibility_spec
@@ -177,4 +185,4 @@ def compute_accessibility(land_use, accessibility, network_los, chunk_size, trac
     logger.info(f"{trace_label} computed accessibilities {accessibility_df.shape}")
 
     # - write table to pipeline
-    pipeline.replace_table("accessibility", accessibility_df)
+    whale.add_table("accessibility", accessibility_df)

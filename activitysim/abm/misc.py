@@ -4,7 +4,8 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, inject
+from ..core.pipeline import Whale
+from ..core.workflow import workflow_cached_object
 
 # FIXME
 # warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
@@ -13,23 +14,27 @@ pd.options.mode.chained_assignment = None
 logger = logging.getLogger(__name__)
 
 
-@inject.injectable(cache=True)
-def households_sample_size(settings, override_hh_ids):
+@workflow_cached_object
+def households_sample_size(whale: Whale, override_hh_ids):
 
     if override_hh_ids is None:
-        return settings.get("households_sample_size", 0)
+        return whale.settings, households_sample_size
     else:
         return 0 if override_hh_ids is None else len(override_hh_ids)
 
 
-@inject.injectable(cache=True)
-def override_hh_ids(settings):
+@workflow_cached_object
+def override_hh_ids(whale: Whale):
 
-    hh_ids_filename = settings.get("hh_ids", None)
+    hh_ids_filename = whale.settings.hh_ids
     if hh_ids_filename is None:
         return None
 
-    file_path = config.data_file_path(hh_ids_filename, mandatory=False)
+    file_path = whale.filesystem.get_data_file_path(hh_ids_filename, mandatory=False)
+    if not file_path:
+        file_path = whale.filesystem.get_config_file_path(
+            hh_ids_filename, mandatory=False
+        )
     if not file_path:
         logger.error(
             "hh_ids file name '%s' specified in settings not found" % hh_ids_filename
@@ -56,24 +61,24 @@ def override_hh_ids(settings):
     return household_ids
 
 
-@inject.injectable(cache=True)
-def trace_hh_id(settings):
+# @workflow_object
+# def trace_hh_id(whale: Whale):
+#
+#     id = whale.settings.trace_hh_id
+#
+#     if id and not isinstance(id, int):
+#         logger.warning(
+#             "setting trace_hh_id is wrong type, should be an int, but was %s" % type(id)
+#         )
+#         id = None
+#
+#     return id
 
-    id = settings.get("trace_hh_id", None)
 
-    if id and not isinstance(id, int):
-        logger.warning(
-            "setting trace_hh_id is wrong type, should be an int, but was %s" % type(id)
-        )
-        id = None
+@workflow_cached_object
+def trace_od(whale: Whale):
 
-    return id
-
-
-@inject.injectable(cache=True)
-def trace_od(settings):
-
-    od = settings.get("trace_od", None)
+    od = whale.settings.trace_od
 
     if od and not (
         isinstance(od, list) and len(od) == 2 and all(isinstance(x, int) for x in od)
@@ -84,13 +89,13 @@ def trace_od(settings):
     return od
 
 
-@inject.injectable(cache=True)
-def chunk_size(settings):
-    _chunk_size = int(settings.get("chunk_size", 0) or 0)
+@workflow_cached_object
+def chunk_size(whale: Whale):
+    _chunk_size = int(whale.settings.chunk_size or 0)
 
     return _chunk_size
 
 
-@inject.injectable(cache=True)
-def check_for_variability(settings):
-    return bool(settings.get("check_for_variability", False))
+@workflow_cached_object
+def check_for_variability(whale: Whale):
+    return bool(whale.settings.check_for_variability)

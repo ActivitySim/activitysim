@@ -6,6 +6,9 @@ import logging
 from activitysim.core import config, inject, los
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
+from ...core.pipeline import Whale
+from ...core.workflow import workflow_cached_object
+
 logger = logging.getLogger(__name__)
 
 """
@@ -13,8 +16,8 @@ Read in the omx files and create the skim objects
 """
 
 
-@inject.injectable(cache=True)
-def network_los_preload():
+@workflow_cached_object
+def network_los_preload(whale) -> los.Network_LOS:
 
     # when multiprocessing with shared data mp_tasks has to call network_los methods
     # allocate_shared_skim_buffers() and load_shared_data() BEFORE network_los.load_data()
@@ -24,21 +27,21 @@ def network_los_preload():
     return nw_los
 
 
-@inject.injectable(cache=True)
-def network_los(network_los_preload):
+@workflow_cached_object
+def network_los(whale, network_los_preload: los.Network_LOS) -> los.Network_LOS:
 
     logger.debug("loading network_los injectable")
     network_los_preload.load_data()
     return network_los_preload
 
 
-@inject.injectable(cache=True)
-def skim_dict(network_los):
+@workflow_cached_object
+def skim_dict(whale, network_los):
     return network_los.get_default_skim_dict()
 
 
-@inject.injectable()
-def log_settings():
+@workflow_cached_object
+def log_settings(whale):
 
     # abm settings to log on startup
     return [

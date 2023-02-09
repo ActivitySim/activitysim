@@ -7,17 +7,20 @@ import warnings
 
 import pandas as pd
 
-from activitysim.core import config, inject, util
+from ..core import inject, util
+from ..core.configuration import FileSystem, InputTable, Settings
 
 logger = logging.getLogger(__name__)
 
 
 def canonical_table_index_name(table_name):
-    table_index_names = inject.get_injectable("canonical_table_index_names", None)
+    from ..abm.models.util import canonical_ids
+
+    table_index_names = canonical_ids.CANONICAL_TABLE_INDEX_NAMES
     return table_index_names and table_index_names.get(table_name, None)
 
 
-def read_input_table(tablename, required=True):
+def read_input_table(whale, tablename, required=True):
     """Reads input table name and returns cleaned DataFrame.
 
     Uses settings found in input_table_list in global settings file
@@ -25,21 +28,22 @@ def read_input_table(tablename, required=True):
     Parameters
     ----------
     tablename : string
+    settings : Whale
 
     Returns
     -------
     pandas DataFrame
     """
-    table_list = config.setting("input_table_list")
+    table_list = whale.settings.input_table_list
     assert table_list is not None, "no input_table_list found in settings"
 
     table_info = None
     for info in table_list:
-        if info["tablename"] == tablename:
+        if info.tablename == tablename:
             table_info = info
 
     if table_info is not None:
-        df = read_from_table_info(table_info)
+        df = read_from_table_info(table_info, whale)
     else:
         if required:
             raise RuntimeError(
@@ -50,7 +54,7 @@ def read_input_table(tablename, required=True):
     return df
 
 
-def read_from_table_info(table_info):
+def read_from_table_info(table_info: InputTable, whale):
     """
     Read input text files and return cleaned up DataFrame.
 
@@ -65,28 +69,23 @@ def read_from_table_info(table_info):
     +--------------+----------------------------------------------------------+
     | filename     | name of csv file to read (in data_dir)                   |
     +--------------+----------------------------------------------------------+
-    | column_map   | list of input columns to rename from_name: to_name       |
-    +--------------+----------------------------------------------------------+
     | index_col    | name of column to set as dataframe index column          |
-    +--------------+----------------------------------------------------------+
-    | drop_columns | list of column names of columns to drop                  |
     +--------------+----------------------------------------------------------+
     | h5_tablename | name of target table in HDF5 file                        |
     +--------------+----------------------------------------------------------+
 
     """
-    input_store = config.setting("input_store", None)
-    create_input_store = config.setting("create_input_store", default=False)
+    input_store = whale.settings.input_store
+    create_input_store = whale.settings.create_input_store
 
-    tablename = table_info.get("tablename")
-    data_filename = table_info.get("filename", input_store)
-    h5_tablename = table_info.get("h5_tablename") or tablename
-    drop_columns = table_info.get("drop_columns", None)
-    column_map = table_info.get("column_map", None)
-    keep_columns = table_info.get("keep_columns", None)
-    rename_columns = table_info.get("rename_columns", None)
-    recode_columns = table_info.get("recode_columns", None)
-    csv_dtypes = table_info.get("dtypes", {})
+    tablename = table_info.tablename
+    data_filename = table_info.filename or input_store
+    h5_tablename = table_info.h5_tablename or tablename
+    keep_columns = table_info.keep_columns
+    drop_columns = table_info.drop_columns
+    rename_columns = table_info.rename_columns
+    recode_columns = table_info.recode_columns
+    csv_dtypes = table_info.dtypes or {}
 
     # don't require a redundant index_col directive for canonical tables
     # but allow explicit disabling of assignment of index col for canonical tables, in which case, presumably,
@@ -97,14 +96,14 @@ def read_from_table_info(table_info):
     if "index_col" in table_info:
         # honor explicit index_col unless it conflicts with canonical name
 
-        index_col = table_info["index_col"]
+        index_col = table_info.index_col
 
         if canonical_index_col:
             if index_col:
                 # if there is a non-empty index_col directive, it should be for canonical_table_index_name
                 assert (
                     index_col == canonical_index_col
-                ), f"{tablename} index_col {table_info.get('index_col')} should be {index_col}"
+                ), f"{tablename} index_col {table_info.index_col} should be {index_col}"
             else:
                 logger.info(
                     f"Not assigning canonical index_col {tablename}.{canonical_index_col} "
@@ -120,37 +119,29 @@ def read_from_table_info(table_info):
     assert tablename is not None, "no tablename provided"
     assert data_filename is not None, "no input file provided"
 
-    data_file_path = config.data_file_path(data_filename)
+    data_file_path = whale.filesystem.get_data_file_path(data_filename)
 
     df = _read_input_file(
-        data_file_path, h5_tablename=h5_tablename, csv_dtypes=csv_dtypes
+        str(data_file_path), h5_tablename=h5_tablename, csv_dtypes=csv_dtypes
     )
 
     # logger.debug('raw %s table columns: %s' % (tablename, df.columns.values))
     logger.debug("raw %s table size: %s" % (tablename, util.df_size(df)))
 
     if create_input_store:
-        h5_filepath = config.output_file_path("input_data.h5")
-        logger.info("writing %s to %s" % (h5_tablename, h5_filepath))
-        df.to_hdf(h5_filepath, key=h5_tablename, mode="a")
-
-        csv_dir = config.output_file_path("input_data")
-        if not os.path.exists(csv_dir):
-            os.makedirs(csv_dir)  # make directory if needed
-        df.to_csv(os.path.join(csv_dir, "%s.csv" % tablename), index=False)
+        raise NotImplementedError("the input store functionality has been disabled")
+        # h5_filepath = config.output_file_path("input_data.h5")
+        # logger.info("writing %s to %s" % (h5_tablename, h5_filepath))
+        # df.to_hdf(h5_filepath, key=h5_tablename, mode="a")
+        #
+        # csv_dir = config.output_file_path("input_data")
+        # if not os.path.exists(csv_dir):
+        #     os.makedirs(csv_dir)  # make directory if needed
+        # df.to_csv(os.path.join(csv_dir, "%s.csv" % tablename), index=False)
 
     if drop_columns:
         logger.debug("dropping columns: %s" % drop_columns)
         df.drop(columns=drop_columns, inplace=True, errors="ignore")
-
-    if column_map:
-        warnings.warn(
-            "table_inf option 'column_map' renamed 'rename_columns'"
-            "Support for 'column_map' will be removed in future versions.",
-            FutureWarning,
-        )
-        logger.debug("renaming columns: %s" % column_map)
-        df.rename(columns=column_map, inplace=True)
 
     # rename columns first, so keep_columns can be a stable list of expected/required columns
     if rename_columns:
@@ -158,7 +149,7 @@ def read_from_table_info(table_info):
         df.rename(columns=rename_columns, inplace=True)
 
     # recode columns, can simplify data structure
-    if recode_columns and config.setting("recode_pipeline_columns", True):
+    if recode_columns and whale.settings.recode_pipeline_columns:
         for colname, recode_instruction in recode_columns.items():
             logger.info(f"recoding column {colname}: {recode_instruction}")
             if recode_instruction == "zero-based":
@@ -177,10 +168,10 @@ def read_from_table_info(table_info):
                         # We need to keep track if we have recoded the land_use
                         # table's index to zero-based, as we need to disable offset
                         # processing for legacy skim access.
-                        config.override_setting("offset_preprocessing", True)
+                        whale.settings.offset_preprocessing = True
             else:
                 source_table, lookup_col = recode_instruction.split(".")
-                parent_table = inject.get_table(source_table)
+                parent_table = whale.get_dataframe(source_table)
                 try:
                     map_col = parent_table[f"_original_{lookup_col}"]
                 except KeyError:

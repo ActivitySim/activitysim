@@ -5,27 +5,29 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import inject, pipeline, tracing
-from activitysim.core.input import read_input_table
+from ...core import inject, pipeline, tracing
+from ...core.input import read_input_table
+from ...core.workflow import workflow_table
 
 logger = logging.getLogger(__name__)
 
 
-def read_raw_persons(households):
+def read_raw_persons(whale, households):
 
-    df = read_input_table("persons")
+    df = read_input_table(whale, "persons")
 
-    if inject.get_injectable("households_sliced", False):
+    if whale.get_injectable("households_sliced", False):
         # keep only persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 
     return df
 
 
-@inject.table()
-def persons(households, trace_hh_id):
-
-    df = read_raw_persons(households)
+@workflow_table
+def persons(whale):
+    households = whale.get_dataframe("households")
+    trace_hh_id = whale.settings.trace_hh_id
+    df = read_raw_persons(whale, households)
 
     logger.info("loaded persons %s" % (df.shape,))
     buffer = io.StringIO()
@@ -33,11 +35,11 @@ def persons(households, trace_hh_id):
     logger.debug("persons.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
-    inject.add_table("persons", df)
+    whale.add_table("persons", df)
 
-    pipeline.get_rn_generator().add_channel("persons", df)
+    whale.get_rn_generator().add_channel("persons", df)
 
-    tracing.register_traceable_table("persons", df)
+    tracing.register_traceable_table(whale, "persons", df)
     if trace_hh_id:
         tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
@@ -72,20 +74,62 @@ def persons(households, trace_hh_id):
 
 
 # another common merge for persons
-@inject.table()
-def persons_merged(
-    persons, households, land_use, accessibility, disaggregate_accessibility
-):
+# @inject.table()
+# def persons_merged(
+#     persons, households, land_use, accessibility, disaggregate_accessibility
+# ):
+#
+#     if not disaggregate_accessibility.to_frame().empty:
+#         tables = [
+#             persons,
+#             households,
+#             land_use,
+#             accessibility,
+#             disaggregate_accessibility,
+#         ]
+#     else:
+#         tables = [persons, households, land_use, accessibility]
+#
+#     return inject.merge_tables(persons.name, tables=tables)
 
-    if not disaggregate_accessibility.to_frame().empty:
-        tables = [
+
+@workflow_table
+def persons_merged(whale):
+
+    land_use = whale.get_dataframe("land_use")
+    households = whale.get_dataframe("households")
+    accessibility = whale.get_dataframe("accessibility")
+    persons = whale.get_dataframe("persons")
+    disaggregate_accessibility = whale.get_dataframe("disaggregate_accessibility")
+
+    households = pd.merge(
+        households,
+        land_use,
+        left_on="home_zone_id",
+        right_index=True,
+        suffixes=("_households", "_land_use"),
+    )
+    households = pd.merge(
+        households,
+        accessibility,
+        left_on="home_zone_id",
+        right_index=True,
+        suffixes=("_households", "_accessibility"),
+    )
+    persons = pd.merge(
+        persons,
+        households,
+        left_on="household_id",
+        right_index=True,
+        suffixes=("_persons", "_households"),
+    )
+    if not disaggregate_accessibility.empty:
+        persons = pd.merge(
             persons,
-            households,
-            land_use,
-            accessibility,
             disaggregate_accessibility,
-        ]
-    else:
-        tables = [persons, households, land_use, accessibility]
+            left_on="person_id",
+            right_index=True,
+            suffixes=("_persons", "_disaggregate_accessibility"),
+        )
 
-    return inject.merge_tables(persons.name, tables=tables)
+    return persons

@@ -173,7 +173,7 @@ def log_global_hwm():
         )
 
 
-def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False):
+def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, whale=None):
 
     global MEM_TICK
 
@@ -235,9 +235,19 @@ def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False):
 
         with mem_log_lock:
             MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
-            with config.open_log_file(
-                MEM_LOG_FILE_NAME, "a", header=MEM_LOG_HEADER, prefix=True
-            ) as log_file:
+            if whale is None:
+                log_file = config.open_log_file(
+                    MEM_LOG_FILE_NAME, "a", header=MEM_LOG_HEADER, prefix=True
+                )
+            else:
+                log_file = whale.filesystem.open_log_file(
+                    MEM_LOG_FILE_NAME,
+                    "a",
+                    header=MEM_LOG_HEADER,
+                    prefix=whale.context.get("log_file_prefix", None),
+                )
+
+            with log_file:
                 print(
                     f"{process_name},"
                     f"{pid},"

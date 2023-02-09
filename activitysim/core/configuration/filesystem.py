@@ -1,0 +1,535 @@
+import glob
+import logging
+import os
+import time
+from pathlib import Path
+
+import yaml
+from pydantic import DirectoryPath, validator
+
+from ..exceptions import SettingsFileNotFoundError
+from ..util import parse_suffix_args, suffix_tables_in_settings
+from .base import PydanticBase
+
+logger = logging.getLogger(__name__)
+
+
+class FileSystem(PydanticBase):
+    """
+    Manage finding and loading files for ActivitySim's command line interface.
+    """
+
+    working_dir: DirectoryPath = None
+    """
+    Name of the working directory.
+
+    All other directories (configs, data, output, cache), when given as relative
+    paths, are assumed to be relative to this working directory. If it is not
+    provided, the usual Python current working directory is used.
+    """
+
+    configs_dir: tuple[Path] = ("configs",)
+    """
+    Name[s] of the config directory.
+    """
+
+    @validator("configs_dir")
+    def configs_dirs_must_exist(cls, configs_dir, values):
+        working_dir = values.get("working_dir", None) or Path.cwd()
+        for c in configs_dir:
+            c_full = working_dir.joinpath(c)
+            if not c_full.exists():
+                raise ValueError(f"config directory {c_full} does not exist")
+
+    data_dir: tuple[Path] = ("data",)
+    """
+    Name of the data directory.
+    """
+
+    @validator("data_dir")
+    def data_dirs_must_exist(cls, data_dir, values):
+        working_dir = values.get("working_dir", None) or Path.cwd()
+        for d in data_dir:
+            d_full = working_dir.joinpath(d)
+            if not d_full.exists():
+                raise ValueError(f"data directory {d_full} does not exist")
+
+    output_dir: Path = "output"
+    """
+    Name of the output directory.
+
+    This directory will be created on access if it does not exist.
+    """
+
+    profile_dir: Path = None
+    """
+    Name of the output directory for pyinstrument profiling files.
+
+    If not given, a unique time-stamped directory will be created inside
+    the usual output directory.
+    """
+
+    cache_dir: Path = None
+    """
+    Name of the output directory for cache files.
+
+    If not given, a directory named "cache" will be created inside
+    the usual output directory.
+    """
+
+    settings_file_name: str = "settings.yaml"
+
+    pipeline_file_name: str = "pipeline"
+    """
+    The name for the base pipeline file or directory.
+
+    To use the HDF5 pipeline file format, include a '.h5' file extension.
+    Otherwise, the default parquet file format is used.
+    """
+
+    @classmethod
+    def parse_args(cls, args):
+        self = cls()
+
+        def _parse_arg(name, x):
+            v = getattr(args, x, None)
+            if v is not None:
+                setattr(self, name, v)
+
+        _parse_arg("working_dir", "working_dir")
+        _parse_arg("settings_file_name", "settings_file")
+        _parse_arg("configs_dir", "config")
+        _parse_arg("data_dir", "data")
+        _parse_arg("output_dir", "output")
+
+        return self
+
+    def get_working_subdir(self, subdir) -> Path:
+        if self.working_dir:
+            return self.working_dir.joinpath(subdir)
+        else:
+            return Path(subdir)
+
+    def get_output_dir(self, subdir=None) -> Path:
+        """
+        Get an output directory, creating it if needed.
+
+        Parameters
+        ----------
+        subdir : Path-like, optional
+            If given, get this subdirectory of the output_dir.
+
+        Returns
+        -------
+        Path
+        """
+        out = self.get_working_subdir(self.output_dir)
+        if subdir is not None:
+            out = out.joinpath(subdir)
+        if not out.exists():
+            out.mkdir(parents=True)
+        return out
+
+    def get_pipeline_filepath(self) -> Path:
+        """
+        Get the complete path to the pipeline file or directory.
+
+        Returns
+        -------
+        Path
+        """
+        return self.get_output_dir().joinpath(self.pipeline_file_name)
+
+    def get_profiling_file_path(self, file_name) -> Path:
+        """
+        Get the complete path to a profile output file.
+
+        Parameters
+        ----------
+        file_name : str
+            Base name of the profiling output file.
+
+        Returns
+        -------
+        Path
+        """
+        if self.profile_dir is None:
+            profile_dir = self.get_output_dir(
+                time.strftime("profiling--%Y-%m-%d--%H-%M-%S")
+            )
+            profile_dir.mkdir(parents=True, exist_ok=True)
+            self.profile_dir = profile_dir
+        return self.profile_dir.joinpath(file_name)
+
+    def get_log_file_path(self, file_name) -> Path:
+        """
+        Get the complete path to a log file.
+
+        Parameters
+        ----------
+        file_name : str
+            Base name of the log file.
+
+        Returns
+        -------
+        Path
+        """
+
+        output_dir = self.get_output_dir()
+
+        # - check if running asv and if so, log to commit-specific subfolder
+        asv_commit = os.environ.get("ASV_COMMIT", None)
+        if asv_commit:
+            output_dir = os.path.join(output_dir, f"log-{asv_commit}")
+            os.makedirs(output_dir, exist_ok=True)
+
+        # - check for optional log subfolder
+        if os.path.exists(os.path.join(output_dir, "log")):
+            output_dir = os.path.join(output_dir, "log")
+
+        file_path = os.path.join(output_dir, file_name)
+
+        return Path(file_path)
+
+    def get_cache_dir(self, subdir=None) -> Path:
+        """
+        Get the cache directory, creating it if needed.
+
+        The cache directory is used to store:
+            - skim memmaps created by skim+dict_factories
+            - tvpb tap_tap table cache
+            - pre-compiled sharrow modules
+
+
+        Parameters
+        ----------
+        subdir : Path-like, optional
+            If given, get this subdirectory of the output_dir.
+
+        Returns
+        -------
+        Path
+        """
+        if self.cache_dir is None:
+            out = self.get_output_dir("cache")
+        else:
+            out = self.get_working_subdir(self.cache_dir)
+            if subdir is not None:
+                out = out.joinpath(subdir)
+            if not out.exists():
+                out.mkdir(parents=True)
+
+        # create a git-ignore in the cache dir if it does not exist.
+        # this helps prevent accidentally committing cache contents to git
+        gitignore = out.joinpath(".gitignore")
+        if not gitignore.exists():
+            gitignore.write_text("/**")
+
+        return out
+
+    def _cascading_input_file_path(
+        self, file_name, dir_list_injectable_name, mandatory=True, allow_glob=False
+    ) -> Path:
+        """
+        Find the first matching file among a group of directories.
+
+        Parameters
+        ----------
+        file_name : Path-like
+            The name of the file to match.
+        dir_list_injectable_name : {'configs_dir', 'data_dir'}
+            The group of directories to search.
+        mandatory : bool, default True
+            Raise a FileNotFoundError if no match is found.  If set to False,
+            this method returns None when there is no match.
+        allow_glob : bool, default False
+            Allow glob-style matches.
+
+        Returns
+        -------
+        Path or None
+        """
+
+        dir_paths = getattr(self, dir_list_injectable_name)
+        dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
+
+        file_path = None
+        if file_name is not None:
+            for dir in dir_paths:
+                p = os.path.join(dir, file_name)
+                if os.path.isfile(p):
+                    file_path = p
+                    break
+
+                if allow_glob and len(glob.glob(p)) > 0:
+                    file_path = p
+                    break
+
+        if mandatory and not file_path:
+            raise FileNotFoundError(
+                "file_path %s: file '%s' not in %s"
+                % (dir_list_injectable_name, file_name, dir_paths)
+            )
+
+        return Path(file_path) if file_path else None
+
+    def get_configs_dir(self) -> tuple[Path]:
+        """
+        Get the configs directories.
+
+        Returns
+        -------
+        tuple[Path]
+        """
+        return tuple(self.get_working_subdir(i) for i in self.configs_dir)
+
+    def get_config_file_path(self, file_name, mandatory=True, allow_glob=False) -> Path:
+        """
+        Find the first matching file among config directories.
+
+        Parameters
+        ----------
+        file_name : Path-like
+            The name of the file to match.
+        mandatory : bool, default True
+            Raise a FileNotFoundError if no match is found.  If set to False,
+            this method returns None when there is no match.
+        allow_glob : bool, default False
+            Allow glob-style matches.
+
+        Returns
+        -------
+        Path or None
+        """
+        return self._cascading_input_file_path(
+            file_name, "configs_dir", mandatory, allow_glob
+        )
+
+    def get_data_file_path(self, file_name, mandatory=True, allow_glob=False) -> Path:
+        """
+        Find the first matching file among data directories.
+
+        Parameters
+        ----------
+        file_name : Path-like
+            The name of the file to match.
+        mandatory : bool, default True
+            Raise a FileNotFoundError if no match is found.  If set to False,
+            this method returns None when there is no match.
+        allow_glob : bool, default False
+            Allow glob-style matches.
+
+        Returns
+        -------
+        Path or None
+        """
+        return self._cascading_input_file_path(
+            file_name, "data_dir", mandatory, allow_glob
+        )
+
+    def open_log_file(self, file_name, mode, header=None, prefix=False):
+        if prefix:
+            file_name = f"{prefix}-{file_name}"
+        file_path = self.get_log_file_path(file_name)
+
+        want_header = header and not os.path.exists(file_path)
+
+        f = open(file_path, mode)
+
+        if want_header:
+            assert mode in [
+                "a",
+                "w",
+            ], f"open_log_file: header requested but mode was {mode}"
+            print(header, file=f)
+
+        return f
+
+    def read_settings_file(
+        self,
+        file_name,
+        mandatory=True,
+        include_stack=False,
+        configs_dir_list=None,
+        validator_class=None,
+    ):
+        """
+        Load settings from one or more yaml files.
+
+        This method will look for first occurrence of a yaml file named
+        <file_name> in the directories in configs_dir list, and
+        read settings from that yaml file.
+
+        Settings file may contain directives that affect which file settings
+        are returned:
+
+        - inherit_settings (boolean)
+            If found and set to true, this method will backfill settings
+            in the current file with values from the next settings file
+            in configs_dir list (if any)
+        - include_settings: string <include_file_name>
+            Read settings from specified include_file in place of the current
+            file. To avoid confusion, this directive must appear ALONE in the
+            target file, without any additional settings or directives.
+
+        Parameters
+        ----------
+        file_name : str
+        mandatory : boolean, default True
+            If true, raise SettingsFileNotFoundError if no matching settings file
+            is found in any config directory, otherwise this method will return
+            an empty dict or an all-default instance of the validator class.
+        include_stack : boolean or list
+            Only used for recursive calls, provides a list of files included
+            so far to detect and prevent cycles.
+        validator_class : pydantic.BaseModel, optional
+            This model is used to validate the loaded settings.
+
+        Returns
+        -------
+        dict or validator_class
+        """
+
+        def backfill_settings(settings, backfill):
+            new_settings = backfill.copy()
+            new_settings.update(settings)
+            return new_settings
+
+        if configs_dir_list is None:
+            configs_dir_list = self.get_configs_dir()
+            assert len(configs_dir_list) == len(
+                set(configs_dir_list)
+            ), f"repeating file names not allowed in config_dir list: {configs_dir_list}"
+
+        args = parse_suffix_args(file_name)
+        file_name = args.filename
+
+        assert isinstance(args.ROOTS, list)
+        assert (args.SUFFIX is not None and args.ROOTS) or (
+            args.SUFFIX is None and not args.ROOTS
+        ), (
+            "Expected to find both 'ROOTS' and 'SUFFIX' in %s, missing one"
+            % args.filename
+        )
+
+        if not file_name.lower().endswith(".yaml"):
+            file_name = "%s.yaml" % (file_name,)
+
+        inheriting = False
+        settings = {}
+        if isinstance(include_stack, list):
+            source_file_paths = include_stack.copy()
+        else:
+            source_file_paths = []
+        for dir in configs_dir_list:
+            file_path = os.path.join(dir, file_name)
+            if os.path.exists(file_path):
+                if inheriting:
+                    # we must be inheriting
+                    logger.debug(
+                        "inheriting additional settings for %s from %s"
+                        % (file_name, file_path)
+                    )
+                    inheriting = True
+
+                assert (
+                    file_path not in source_file_paths
+                ), f"read_settings_file - recursion in reading 'file_path' after loading: {source_file_paths}"
+
+                with open(file_path) as f:
+                    s = yaml.load(f, Loader=yaml.SafeLoader)
+                    if s is None:
+                        s = {}
+
+                settings = backfill_settings(settings, s)
+
+                # maintain a list of files we read from to improve error message when an expected setting is not found
+                source_file_paths += [file_path]
+
+                include_file_name = s.get("include_settings", False)
+                if include_file_name:
+                    # FIXME - prevent users from creating borgesian garden of branching paths?
+                    # There is a lot of opportunity for confusion if this feature were over-used
+                    # Maybe we insist that a file with an include directive is the 'end of the road'
+                    # essentially the current settings firle is an alias for the included file
+                    if len(s) > 1:
+                        logger.error(
+                            "'include_settings' must appear alone in settings file."
+                        )
+                        additional_settings = list(
+                            set(s.keys()).difference({"include_settings"})
+                        )
+                        logger.error(
+                            f"Unexpected additional settings: {additional_settings}"
+                        )
+                        raise RuntimeError(
+                            "'include_settings' must appear alone in settings file."
+                        )
+
+                    logger.debug(
+                        "including settings for %s from %s"
+                        % (file_name, include_file_name)
+                    )
+
+                    # recursive call to read included file INSTEAD of the file  with include_settings sepcified
+                    s, source_file_paths = self.read_settings_file(
+                        include_file_name,
+                        mandatory=True,
+                        include_stack=source_file_paths,
+                    )
+
+                    # FIXME backfill with the included file
+                    settings = backfill_settings(settings, s)
+
+                # we are done as soon as we read one file successfully
+                # unless if inherit_settings is set to true in this file
+
+                if not s.get("inherit_settings", False):
+                    break
+
+                # if inheriting, continue and backfill settings from the next existing settings file configs_dir_list
+
+                inherit_settings = s.get("inherit_settings")
+                if isinstance(inherit_settings, str):
+                    inherit_file_name = inherit_settings
+                    assert (
+                        os.path.join(dir, inherit_file_name) not in source_file_paths
+                    ), f"circular inheritance of {inherit_file_name}: {source_file_paths}: "
+                    # make a recursive call to switch inheritance chain to specified file
+
+                    logger.debug(
+                        "inheriting additional settings for %s from %s"
+                        % (file_name, inherit_file_name)
+                    )
+                    s, source_file_paths = self.read_settings_file(
+                        inherit_file_name,
+                        mandatory=True,
+                        include_stack=source_file_paths,
+                        configs_dir_list=configs_dir_list,
+                    )
+
+                    # backfill with the inherited file
+                    settings = backfill_settings(settings, s)
+                    break  # break the current inheritance chain (not as bad luck as breaking a chain-letter chain?...)
+
+        if len(source_file_paths) > 0:
+            settings["source_file_paths"] = source_file_paths
+
+        if mandatory and not settings:
+            raise SettingsFileNotFoundError(file_name, configs_dir_list)
+
+        # Adds proto_ suffix for disaggregate accessibilities
+        if args.SUFFIX is not None and args.ROOTS:
+            settings = suffix_tables_in_settings(settings, args.SUFFIX, args.ROOTS)
+
+        if validator_class is not None:
+            settings = validator_class.parse_obj(settings)
+
+        if include_stack:
+            # if we were called recursively, return an updated list of source_file_paths
+            return settings, source_file_paths
+
+        else:
+            return settings
+
+    read_model_settings = read_settings_file

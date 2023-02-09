@@ -7,11 +7,13 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from activitysim.core import skim_dataset  # noqa: F401
-from activitysim.core import config, inject, pathbuilder, skim_dictionary, tracing, util
-from activitysim.core.cleaning import recode_based_on_table
-from activitysim.core.skim_dict_factory import MemMapSkimFactory, NumpyArraySkimFactory
-from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
+from . import skim_dataset  # noqa: F401
+from . import config, inject, pathbuilder, skim_dictionary, tracing, util
+from .cleaning import recode_based_on_table
+from .exceptions import SettingsFileNotFoundError
+from .pipeline import Whale
+from .skim_dict_factory import MemMapSkimFactory, NumpyArraySkimFactory
+from .skim_dictionary import NOT_IN_SKIM_ZONE_ID
 
 skim_factories = {
     "NumpyArraySkimFactory": NumpyArraySkimFactory,
@@ -69,7 +71,7 @@ class Network_LOS(object):
       tap_tap_uid: TapTapUidCalculator
     """
 
-    def __init__(self, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
+    def __init__(self, whale, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
 
         # Note: we require all skims to be of same dtype so they can share buffer - is that ok?
         # fixme is it ok to require skims be all the same type? if so, is this the right choice?
@@ -91,7 +93,7 @@ class Network_LOS(object):
         self.tvpb = None
 
         self.los_settings_file_name = los_settings_file_name
-        self.load_settings()
+        self.load_settings(whale)
 
         # dependency injection of skim factory (of type specified in skim_dict_factory setting)
         skim_dict_factory_name = self.setting("skim_dict_factory")
@@ -144,58 +146,17 @@ class Network_LOS(object):
         else:
             return default
 
-    def load_settings(self):
+    def load_settings(self, whale: Whale):
         """
         Read setting file and initialize object variables (see class docstring for list of object variables)
         """
 
-        try:
-            self.los_settings = config.read_settings_file(
-                self.los_settings_file_name, mandatory=True
-            )
-        except config.SettingsFileNotFound as e:
-
-            print(
-                f"los_settings_file_name {self.los_settings_file_name} not found - trying global settings"
-            )
-            print(f"skims_file: {config.setting('skims_file')}")
-            print(f"skim_time_periods: {config.setting('skim_time_periods')}")
-            print(f"source_file_paths: {config.setting('source_file_paths')}")
-            print(
-                f"inject.get_injectable('configs_dir') {inject.get_injectable('configs_dir')}"
-            )
-
-            # look for legacy 'skims_file' setting in global settings file
-            if config.setting("skims_file"):
-
-                warnings.warn(
-                    "Support for 'skims_file' setting in global settings file will be removed."
-                    "Use 'taz_skims' in network_los.yaml config file instead.",
-                    FutureWarning,
-                )
-
-                # in which case, we also expect to find skim_time_periods in settings file
-                skim_time_periods = config.setting("skim_time_periods")
-                assert (
-                    skim_time_periods is not None
-                ), "'skim_time_periods' setting not found."
-                warnings.warn(
-                    "Support for 'skim_time_periods' setting in global settings file will be removed."
-                    "Put 'skim_time_periods' in network_los.yaml config file instead.",
-                    FutureWarning,
-                )
-
-                self.los_settings = {
-                    "taz_skims": config.setting("skims_file"),
-                    "zone_system": ONE_ZONE,
-                    "skim_time_periods": skim_time_periods,
-                }
-
-            else:
-                raise e
+        self.los_settings = whale.filesystem.read_settings_file(
+            self.los_settings_file_name, mandatory=True
+        )
 
         # validate skim_time_periods
-        self.skim_time_periods = self.setting("skim_time_periods")
+        self.skim_time_periods = whale.network_settings.skim_time_periods
         if "hours" in self.skim_time_periods:
             self.skim_time_periods["periods"] = self.skim_time_periods.pop("hours")
             warnings.warn(

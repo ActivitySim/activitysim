@@ -6,13 +6,11 @@ import warnings
 
 import pandas as pd
 
-from activitysim.abm.tables import shadow_pricing, disaggregate_accessibility
-from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing
-from activitysim.core.steps.output import (
-    track_skim_usage,
-    write_data_dictionary,
-    write_tables,
-)
+from ...core import chunk, config, expressions, inject, mem, pipeline, tracing
+from ...core.pipeline import Whale
+from ...core.steps.output import track_skim_usage, write_data_dictionary, write_tables
+from ...core.workflow import workflow_step
+from ..tables import disaggregate_accessibility, shadow_pricing
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
@@ -31,11 +29,24 @@ DEFAULT_TABLE_LIST = [
 logger = logging.getLogger(__name__)
 
 
-def annotate_tables(model_settings, trace_label):
+def annotate_tables(whale, model_settings, trace_label, chunk_sizer):
+    """
+
+    Parameters
+    ----------
+    whale : Whale
+    model_settings :
+    trace_label : str
+    chunk_sizer : ChunkSizer
+
+    Returns
+    -------
+
+    """
 
     trace_label = tracing.extend_trace_label(trace_label, "annotate_tables")
 
-    chunk.log_rss(trace_label)
+    chunk_sizer.log_rss(trace_label)
 
     annotate_tables = model_settings.get("annotate_tables", [])
 
@@ -51,18 +62,16 @@ def annotate_tables(model_settings, trace_label):
     t0 = tracing.print_elapsed_time()
 
     for table_info in annotate_tables:
-
         tablename = table_info["tablename"]
 
-        chunk.log_rss(f"{trace_label}.pre-get_table.{tablename}")
+        chunk_sizer.log_rss(f"{trace_label}.pre-get_table.{tablename}")
 
-        df = inject.get_table(tablename).to_frame()
-        chunk.log_df(trace_label, tablename, df)
+        df = whale.get_dataframe(tablename)
+        chunk_sizer.log_df(trace_label, tablename, df)
 
         # - rename columns
         column_map = table_info.get("column_map", None)
         if column_map:
-
             warnings.warn(
                 f"Setting 'column_map' has been changed to 'rename_columns'. "
                 f"Support for 'column_map' in annotate_tables  will be removed in future versions.",
@@ -79,61 +88,71 @@ def annotate_tables(model_settings, trace_label):
                 f"{trace_label} - annotating {tablename} SPEC {annotate['SPEC']}"
             )
             expressions.assign_columns(
-                df=df, model_settings=annotate, trace_label=trace_label
+                whale, df=df, model_settings=annotate, trace_label=trace_label
             )
 
-        chunk.log_df(trace_label, tablename, df)
+        chunk_sizer.log_df(trace_label, tablename, df)
 
         # - write table to pipeline
-        pipeline.replace_table(tablename, df)
+        whale.add_table(tablename, df)
 
         del df
-        chunk.log_df(trace_label, tablename, None)
+        chunk_sizer.log_df(trace_label, tablename, None)
 
 
-@inject.step()
-def initialize_landuse():
+@workflow_step
+def initialize_landuse(whale):
+    """
+    Initialize the land use table.
 
+    Parameters
+    ----------
+    whale : Whale
+
+    Returns
+    -------
+    ?
+    """
     trace_label = "initialize_landuse"
+    settings_filename = "initialize_landuse.yaml"
 
-    with chunk.chunk_log(trace_label, base=True):
-
-        model_settings = config.read_model_settings(
-            "initialize_landuse.yaml", mandatory=True
+    with chunk.chunk_log(
+        trace_label, base=True, settings=whale.settings
+    ) as chunk_sizer:
+        model_settings = whale.filesystem.read_settings_file(
+            settings_filename, mandatory=True
         )
 
-        annotate_tables(model_settings, trace_label)
+        annotate_tables(whale, model_settings, trace_label, chunk_sizer)
 
         # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
-        accessibility = pipeline.get_table("accessibility")
-        chunk.log_df(trace_label, "accessibility", accessibility)
+        accessibility = whale.get_dataframe("accessibility")
+        chunk_sizer.log_df(trace_label, "accessibility", accessibility)
 
 
-@inject.step()
-def initialize_households():
-
+@workflow_step
+def initialize_households(whale):
     trace_label = "initialize_households"
 
-    with chunk.chunk_log(trace_label, base=True):
+    with whale.chunk_log(trace_label, base=True) as chunk_sizer:
+        chunk_sizer.log_rss(f"{trace_label}.inside-yield")
 
-        chunk.log_rss(f"{trace_label}.inside-yield")
-
-        households = inject.get_table("households").to_frame()
+        households = whale.get_dataframe("households")
         assert not households._is_view
-        chunk.log_df(trace_label, "households", households)
+        chunk_sizer.log_df(trace_label, "households", households)
         del households
-        chunk.log_df(trace_label, "households", None)
+        chunk_sizer.log_df(trace_label, "households", None)
 
-        persons = inject.get_table("persons").to_frame()
+        persons = whale.get_dataframe("persons")
         assert not persons._is_view
-        chunk.log_df(trace_label, "persons", persons)
+        chunk_sizer.log_df(trace_label, "persons", persons)
         del persons
-        chunk.log_df(trace_label, "persons", None)
+        chunk_sizer.log_df(trace_label, "persons", None)
 
-        model_settings = config.read_model_settings(
+        model_settings = whale.filesystem.read_settings_file(
             "initialize_households.yaml", mandatory=True
         )
-        annotate_tables(model_settings, trace_label)
+        annotate_tables(whale, model_settings, trace_label, chunk_sizer)
 
         # - initialize shadow_pricing size tables after annotating household and person tables
         # since these are scaled to model size, they have to be created while single-process
@@ -141,12 +160,12 @@ def initialize_households():
         add_size_tables = model_settings.get("add_size_tables", True)
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            suffixes = inject.get_injectable("disaggregate_suffixes")
-            shadow_pricing.add_size_tables(suffixes)
+            suffixes = disaggregate_accessibility.disaggregate_suffixes(whale)
+            shadow_pricing.add_size_tables(whale, suffixes)
 
         # - preload person_windows
-        person_windows = inject.get_table("person_windows").to_frame()
-        chunk.log_df(trace_label, "person_windows", person_windows)
+        person_windows = whale.get_dataframe("person_windows")
+        chunk_sizer.log_df(trace_label, "person_windows", person_windows)
 
 
 @inject.injectable(cache=True)
@@ -176,7 +195,6 @@ def preload_injectables():
 
     # FIXME undocumented feature
     if config.setting("write_raw_tables"):
-
         # write raw input tables as csv (before annotation)
         csv_dir = config.output_file_path("raw_tables")
         if not os.path.exists(csv_dir):

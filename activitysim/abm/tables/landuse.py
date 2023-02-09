@@ -6,15 +6,16 @@ import logging
 from activitysim.core import config, inject
 from activitysim.core.input import read_input_table
 
+from ...core.workflow import workflow_table
+
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def land_use():
+@workflow_table
+def land_use(whale):
+    df = read_input_table(whale, "land_use")
 
-    df = read_input_table("land_use")
-
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = whale.settings.sharrow
     if sharrow_enabled:
         # when using sharrow, the land use file must be organized (either in raw
         # form or via recoding) so that the index is zero-based and contiguous
@@ -33,20 +34,16 @@ def land_use():
     buffer = io.StringIO()
     df.info(buf=buffer)
     logger.debug("land_use.info:\n" + buffer.getvalue())
-
-    # replace table function with dataframe
-    inject.add_table("land_use", df)
-
     return df
 
 
 inject.broadcast("land_use", "households", cast_index=True, onto_on="home_zone_id")
 
 
-@inject.table()
-def land_use_taz():
+@workflow_table
+def land_use_taz(whale):
 
-    df = read_input_table("land_use_taz")
+    df = read_input_table(whale, "land_use_taz")
 
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
@@ -57,6 +54,6 @@ def land_use_taz():
     logger.debug("land_use_taz.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
-    inject.add_table("land_use_taz", df)
+    whale.tableset.store_data("land_use_taz", df)
 
     return df

@@ -1,0 +1,31 @@
+class PipelineError(ValueError):
+    """General class for errors in using a Pipeline."""
+
+
+class PipelineAccessError(PipelineError):
+    """Error trying to access a pipeline feature that is not yet initialized."""
+
+
+class TableTypeError(TypeError):
+    """Unable to return data in the format requested."""
+
+
+class DuplicateWorkflowNameError(ValueError):
+    """More than one workflow function is defined with the same name"""
+
+
+class DuplicateWorkflowTableError(ValueError):
+    """More than one loadable table is defined with the same name"""
+
+
+class DuplicateLoadableObjectError(ValueError):
+    """More than one loadable object is defined with the same name"""
+
+
+class SettingsFileNotFoundError(FileNotFoundError):
+    def __init__(self, file_name, configs_dir):
+        self.file_name = file_name
+        self.configs_dir = configs_dir
+
+    def __str__(self):
+        return repr(f"Settings file '{self.file_name}' not found in {self.configs_dir}")

@@ -9,11 +9,13 @@ import pandas as pd
 from activitysim.abm.models.trip_matrices import annotate_trips
 from activitysim.core import config, expressions, inject, pipeline
 
+from ...core.los import Network_LOS
+
 logger = logging.getLogger(__name__)
 
 
 def wrap_skims(
-    network_los: pipeline.Pipeline, trips_merged: pd.DataFrame
+    network_los: Network_LOS, trips_merged: pd.DataFrame
 ) -> dict[str, object]:
     """
     Retrieve skim wrappers for merged trips.
@@ -200,7 +202,7 @@ def manual_breaks(
 
 @inject.step()
 def summarize(
-    network_los: pipeline.Pipeline,
+    network_los: Network_LOS,
     persons: pd.DataFrame,
     persons_merged: pd.DataFrame,
     households: pd.DataFrame,

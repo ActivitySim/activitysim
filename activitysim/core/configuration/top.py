@@ -1,3 +1,6 @@
+from pathlib import Path
+from typing import Any, Literal
+
 from .base import PydanticBase, Union
 
 
@@ -9,7 +12,7 @@ class InputTable(PydanticBase):
     tablename: str
     """Name of the injected table"""
 
-    filename: str = None
+    filename: Path = None
     """
     Name of the CSV or HDF5 file to read.
 
@@ -65,8 +68,22 @@ class InputTable(PydanticBase):
     and retained.
     """
 
+    drop_columns: list[str] = None
+    """
+    Columns to drop once read in to memory.
+
+    Save only the columns needed for modeling or analysis to save on memory
+    and file I/O.  If not given, all columns in the input file will be read
+    and retained.
+    """
+
     h5_tablename: str = None
     """table name if reading from HDF5 and different from `tablename`"""
+
+    dtypes: dict[str, str] = None
+    """
+    dtypes for loaded columns
+    """
 
 
 class OutputTable(PydanticBase):
@@ -179,7 +196,7 @@ class MultiprocessStep(PydanticBase):
     """Instructions on how to slice tables for each subprocess."""
 
 
-class Settings(PydanticBase):
+class Settings(PydanticBase, extra="allow"):
     """
     The overall settings for the ActivitySim model system.
 
@@ -192,7 +209,7 @@ class Settings(PydanticBase):
     the model.
     """
 
-    models: list[str]
+    models: list[str] = None
     """
     list of model steps to run - auto ownership, tour frequency, etc.
 
@@ -210,13 +227,13 @@ class Settings(PydanticBase):
     half the number of available CPU cores, plus 1.
     """
 
-    multiprocess_steps: list[MultiprocessStep]
+    multiprocess_steps: list[MultiprocessStep] = None
     """A list of multiprocess steps."""
 
     resume_after: str = None
     """to resume running the data pipeline after the last successful checkpoint"""
 
-    input_table_list: list[InputTable]
+    input_table_list: list[InputTable] = None
     """list of table names, indices, and column re-maps for each table in `input_store`"""
 
     input_store: str = None
@@ -235,9 +252,9 @@ class Settings(PydanticBase):
 
     If omitted or set to 0, ActivitySim will simulate all households.
     """
-    trace_hh_id: Union[int, list] = None
+    trace_hh_id: int = None
     """
-    Trace household id(s)
+    Trace this household id
 
     If omitted, no tracing is written out
     """
@@ -249,7 +266,9 @@ class Settings(PydanticBase):
     If omitted, no tracing is written out.
     """
 
-    chunk_training_mode: str = None
+    chunk_training_mode: Literal[
+        "disabled", "training", "production", "adaptive"
+    ] = "disabled"
     """
     The method to use for chunk training.
 
@@ -269,6 +288,16 @@ class Settings(PydanticBase):
     Memory use measure to use for chunking.
 
     See :ref:`chunk_size`.
+    """
+
+    keep_chunk_logs: bool = True
+    """
+    Whether to keep chunk logs when deleting other files.
+    """
+
+    default_initial_rows_per_chunk: int = 100
+    """
+    Default number of rows to use in initial chunking.
     """
 
     checkpoints: Union[bool, list] = True
@@ -457,3 +486,75 @@ class Settings(PydanticBase):
     """
 
     keep_mem_logs: bool = False
+
+    pipeline_complib: str = None
+    """
+    Compression library to use when storing pipeline tables in an HDF5 file.
+
+    .. versionadded:: 1.3
+    """
+
+    treat_warnings_as_errors: bool = False
+    """
+    Treat most warnings as errors.
+
+    Use of this setting is not recommended outside of rigorous testing regimes.
+
+    .. versionadded:: 1.3
+    """
+
+    log_settings: tuple[str] = (
+        "households_sample_size",
+        "chunk_size",
+        "chunk_method",
+        "chunk_training_mode",
+        "multiprocess",
+        "num_processes",
+        "resume_after",
+        "trace_hh_id",
+        "memory_profile",
+        "instrument",
+    )
+    """
+    Setting to log on startup.
+    """
+
+    hh_ids: Path = None
+    """
+    Load only the household ids given in this file.
+
+    The file need only contain the desired households ids, nothing else.
+    If given as a relative path (or just a file name), both the data and
+    config directories are searched, in that order, for the matching file.
+    """
+
+    source_file_paths: list[Path] = None
+    """
+    A list of source files from which these settings were loaded.
+
+    This value should not be set by the user within the YAML settings files,
+    instead it is populated as those files are loaded.  It is primarily
+    provided for debugging purposes, and does not actually affect the operation
+    of the model.
+    """
+
+    inherit_settings: Union[bool, Path] = None
+    """
+    Instruction on if and how to find other files that can provide settings.
+
+    When this value is True, all config directories are searched in order for
+    additional files with the same filename.  If other files are found they
+    are also loaded, but only settings values that are not already explicitly
+    set are applied.  Alternatives, set this to a different file name, in which
+    case settings from that other file are loaded (again, backfilling unset
+    values only).  Once the settings files are loaded, this value does not
+    have any other effect on the operation of the model(s).
+    """
+
+    other_settings: dict[str, Any] = None
+
+    def _get_attr(self, attr):
+        try:
+            return getattr(self, attr)
+        except:
+            return self.other_settings.get(attr)

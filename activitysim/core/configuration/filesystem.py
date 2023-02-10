@@ -273,6 +273,58 @@ class FileSystem(PydanticBase):
 
         return Path(file_path) if file_path else None
 
+    def expand_input_file_list(self, input_files) -> list[Path]:
+        """
+        expand list by unglobbing globs globs
+        """
+
+        # be nice and accept a string as well as a list of strings
+        if isinstance(input_files, (str, Path)):
+            input_files = [Path(input_files)]
+        else:
+            input_files = [Path(i) for i in input_files]
+
+        expanded_files = []
+        ungroked_files = 0
+
+        for file_name in input_files:
+
+            file_name = self.get_data_file_path(file_name, allow_glob=True)
+
+            if file_name.is_file():
+                expanded_files.append(file_name)
+                continue
+
+            if file_name.is_dir():
+                logger.warning(
+                    "WARNING: _expand_input_file_list skipping directory: "
+                    f"(use glob instead): {file_name}",
+                )
+                ungroked_files += 1
+                continue
+
+            # - not an exact match, could be a glob pattern
+            logger.debug(f"expand_input_file_list trying {file_name} as glob")
+            globbed_files = glob.glob(str(file_name))
+            for globbed_file in globbed_files:
+                if os.path.isfile(globbed_file) or os.path.islink(globbed_file):
+                    expanded_files.append(Path(globbed_file))
+                else:
+                    logger.warning(
+                        "WARNING: expand_input_file_list skipping: "
+                        f"(does not grok) {file_name}"
+                    )
+                    ungroked_files += 1
+
+            if len(globbed_files) == 0:
+                logger.warning(
+                    f"WARNING: expand_input_file_list file/glob not found: {file_name}",
+                )
+
+        assert ungroked_files == 0, f"{ungroked_files} ungroked file names"
+
+        return sorted(expanded_files)
+
     def get_configs_dir(self) -> tuple[Path]:
         """
         Get the configs directories.

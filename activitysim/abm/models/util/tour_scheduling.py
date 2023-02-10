@@ -4,15 +4,15 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, simulate
-
-from . import estimation
-from . import vectorize_tour_scheduling as vts
+from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util import vectorize_tour_scheduling as vts
+from activitysim.core import config, expressions, inject, simulate, workflow
 
 logger = logging.getLogger(__name__)
 
 
 def run_tour_scheduling(
+    whale: workflow.Whale,
     model_name,
     chooser_tours,
     persons_merged,
@@ -21,7 +21,6 @@ def run_tour_scheduling(
     chunk_size,
     trace_hh_id,
 ):
-
     trace_label = model_name
     model_settings_file_name = f"{model_name}.yaml"
 
@@ -50,6 +49,7 @@ def run_tour_scheduling(
         locals_d.update(config.get_model_constants(model_settings))
 
         expressions.assign_columns(
+            whale,
             df=chooser_tours,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
@@ -63,7 +63,6 @@ def run_tour_scheduling(
         specs = {}
         sharrow_skips = {}
         for spec_segment_name, spec_settings in spec_segment_settings.items():
-
             bundle_name = f"{model_name}_{spec_segment_name}"
 
             # estimator for this tour_segment
@@ -75,7 +74,7 @@ def run_tour_scheduling(
             model_spec = simulate.read_model_spec(file_name=spec_file_name)
             coefficients_df = simulate.read_model_coefficients(spec_settings)
             specs[spec_segment_name] = simulate.eval_coefficients(
-                model_spec, coefficients_df, estimator
+                whale, model_spec, coefficients_df, estimator
             )
             sharrow_skips[spec_segment_name] = spec_settings.get("sharrow_skip", False)
 
@@ -115,7 +114,9 @@ def run_tour_scheduling(
         model_spec = simulate.read_model_spec(file_name=spec_file_name)
         sharrow_skip = model_settings.get("sharrow_skip", False)
         coefficients_df = simulate.read_model_coefficients(model_settings)
-        model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+        model_spec = simulate.eval_coefficients(
+            whale, model_spec, coefficients_df, estimator
+        )
 
         if estimator:
             estimators[None] = estimator  # add to local list

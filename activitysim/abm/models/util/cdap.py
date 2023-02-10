@@ -7,7 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, logit, pipeline, simulate, tracing
+from activitysim.core import chunk, config, inject, logit, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +50,9 @@ def add_pn(col, pnum):
         raise RuntimeError("add_pn col not list or str")
 
 
-def assign_cdap_rank(persons, person_type_map, trace_hh_id=None, trace_label=None):
+def assign_cdap_rank(
+    whale: workflow.Whale, persons, person_type_map, trace_hh_id=None, trace_label=None
+):
     """
     Assign an integer index, cdap_rank, to each household member. (Starting with 1, not 0)
 
@@ -130,7 +132,7 @@ def assign_cdap_rank(persons, person_type_map, trace_hh_id=None, trace_label=Non
 
     # choose up to MAX_HHSIZE, choosing randomly
     others = persons[[_hh_id_, "cdap_rank"]].copy()
-    others["random_order"] = pipeline.get_rn_generator().random_for_df(persons)
+    others["random_order"] = whale.get_rn_generator().random_for_df(persons)
     others = (
         others.sort_values(by=[_hh_id_, "random_order"], ascending=[True, True])
         .groupby(_hh_id_)
@@ -188,7 +190,7 @@ def individual_utilities(
 
     # calculate single person utilities
     indiv_utils = simulate.eval_utilities(
-        cdap_indiv_spec, persons, locals_d, trace_label=trace_label
+        whale, cdap_indiv_spec, persons, locals_d, trace_label=trace_label
     )
 
     # add columns from persons to facilitate building household interactions
@@ -671,7 +673,7 @@ def household_activity_choices(
             trace_label=trace_label,
         )
 
-        utils = simulate.eval_utilities(spec, choosers, trace_label=trace_label)
+        utils = simulate.eval_utilities(whale, spec, choosers, trace_label=trace_label)
 
     if len(utils.index) == 0:
         return pd.Series(dtype="float64")
@@ -680,7 +682,7 @@ def household_activity_choices(
 
     # select an activity pattern alternative for each household based on probability
     # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
-    idx_choices, rands = logit.make_choices(probs, trace_label=trace_label)
+    idx_choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
 
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
@@ -819,7 +821,7 @@ def extra_hh_member_choices(
     # select an activity pattern alternative for each person based on probability
     # idx_choices is a series (indexed on _persons_index_ ) with the chosen alternative represented
     # as the integer (0 based) index of the chosen column from probs
-    idx_choices, rands = logit.make_choices(probs, trace_label=trace_label)
+    idx_choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
 
     # convert choice from column index to activity name
     choices = pd.Series(probs.columns[idx_choices].values, index=probs.index)
@@ -883,7 +885,7 @@ def _run_cdap(
     # assign integer cdap_rank to each household member
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model
     # extra household members, will have activities assigned by in fixed proportions
-    assign_cdap_rank(persons, person_type_map, trace_hh_id, trace_label)
+    assign_cdap_rank(whale, persons, person_type_map, trace_hh_id, trace_label)
     chunk.log_df(trace_label, "persons", persons)
 
     # Calculate CDAP utilities for each individual, ignoring interactions

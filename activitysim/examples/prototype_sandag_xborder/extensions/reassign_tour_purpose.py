@@ -5,13 +5,13 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, inject, pipeline
+from activitysim.core import config, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def reassign_tour_purpose_by_poe(tours, chunk_size, trace_hh_id):
+@workflow.step
+def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours, chunk_size, trace_hh_id):
 
     """
     Simulates tour purpose choices after tour origin has been assigned. This
@@ -20,7 +20,9 @@ def reassign_tour_purpose_by_poe(tours, chunk_size, trace_hh_id):
     """
 
     trace_label = "reassign_tour_purpose_by_poe"
-    probs_df = pd.read_csv(config.config_file_path("tour_purpose_probs_by_poe.csv"))
+    probs_df = pd.read_csv(
+        whale.filesystem.get_config_file_path("tour_purpose_probs_by_poe.csv")
+    )
     probs_df.columns = [
         col if col in ["Purpose", "Description"] else int(col)
         for col in probs_df.columns
@@ -36,7 +38,7 @@ def reassign_tour_purpose_by_poe(tours, chunk_size, trace_hh_id):
         num_tours = len(group)
         purpose_probs = probs_df[poe]
         purpose_cum_probs = purpose_probs.values.cumsum()
-        rands = pipeline.get_rn_generator().random_for_df(group)
+        rands = whale.get_rn_generator().random_for_df(group)
         purpose_scaled_probs = np.subtract(purpose_cum_probs, rands)
         purpose = np.argmax((purpose_scaled_probs + 1.0).astype("i4"), axis=1)
         tours_df.loc[group.index, "purpose_id"] = purpose
@@ -48,6 +50,6 @@ def reassign_tour_purpose_by_poe(tours, chunk_size, trace_hh_id):
     tours["tour_category"] = "non_mandatory"
     tours.loc[tours["tour_type"].isin(["home", "work"]), "tour_category"] = "mandatory"
 
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     return

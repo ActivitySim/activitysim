@@ -5,13 +5,15 @@ import logging
 import numpy as np
 
 from activitysim.abm.models.util import estimation
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.core import config, expressions, simulate, tracing, workflow
 
 logger = logging.getLogger("activitysim")
 
 
-@inject.step()
-def transit_pass_ownership(persons_merged, persons, chunk_size, trace_hh_id):
+@workflow.step
+def transit_pass_ownership(
+    whale: workflow.Whale, persons_merged, persons, chunk_size, trace_hh_id
+):
     """
     Transit pass ownership model.
     """
@@ -30,12 +32,12 @@ def transit_pass_ownership(persons_merged, persons, chunk_size, trace_hh_id):
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            whale,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
@@ -44,7 +46,9 @@ def transit_pass_ownership(persons_merged, persons, chunk_size, trace_hh_id):
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
@@ -76,7 +80,7 @@ def transit_pass_ownership(persons_merged, persons, chunk_size, trace_hh_id):
     persons = persons.to_frame()
     persons["transit_pass_ownership"] = choices.reindex(persons.index)
 
-    pipeline.replace_table("persons", persons)
+    whale.add_table("persons", persons)
 
     tracing.print_summary(
         "transit_pass_ownership", persons.transit_pass_ownership, value_counts=True

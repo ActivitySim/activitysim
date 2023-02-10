@@ -1,31 +1,31 @@
 import pandas as pd
 
-from activitysim.core import inject, pipeline, tracing
+from activitysim.core import inject, pipeline, tracing, workflow
 
 
-@inject.step()
-def step1():
+@workflow.step
+def step1(whale: workflow.Whale):
 
     table1 = pd.DataFrame({"c": [1, 2, 3]})
     inject.add_table("table1", table1)
 
 
-@inject.step()
-def step2():
+@workflow.step
+def step2(whale: workflow.Whale):
 
     table1 = pd.DataFrame({"c": [2, 4, 6]})
     inject.add_table("table2", table1)
 
 
-@inject.step()
-def step3():
+@workflow.step
+def step3(whale: workflow.Whale):
 
     table1 = pd.DataFrame({"c": [3, 6, 9]})
     inject.add_table("table3", table1)
 
 
-@inject.step()
-def step_add_col():
+@workflow.step
+def step_add_col(whale: workflow.Whale):
 
     table_name = inject.get_step_arg("table_name")
     assert table_name is not None
@@ -39,11 +39,11 @@ def step_add_col():
 
     table[col_name] = table.index + (1000 * len(table.columns))
 
-    pipeline.replace_table(table_name, table)
+    whale.add_table(table_name, table)
 
 
-@inject.step()
-def step_forget_tab():
+@workflow.step
+def step_forget_tab(whale: workflow.Whale):
 
     table_name = inject.get_step_arg("table_name")
     assert table_name is not None
@@ -53,8 +53,8 @@ def step_forget_tab():
     pipeline.drop_table(table_name)
 
 
-@inject.step()
-def create_households(trace_hh_id):
+@workflow.step
+def create_households(whale: workflow.Whale, trace_hh_id):
 
     df = pd.DataFrame({"household_id": [1, 2, 3], "home_zone_id": {100, 100, 101}})
     inject.add_table("households", df)

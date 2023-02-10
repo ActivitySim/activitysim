@@ -4,17 +4,20 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    vectorize_joint_tour_scheduling,
+)
+from activitysim.core import config, expressions, inject, simulate, tracing, workflow
 from activitysim.core.util import assign_in_place, reindex
-
-from .util import estimation
-from .util.vectorize_tour_scheduling import vectorize_joint_tour_scheduling
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_id):
+@workflow.step
+def joint_tour_scheduling(
+    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size, trace_hh_id
+):
     """
     This model predicts the departure time and duration of each joint tour
     """
@@ -54,12 +57,12 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
     # - run preprocessor to annotate choosers
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            whale,
             df=joint_tours,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
@@ -73,7 +76,9 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     sharrow_skip = model_settings.get("sharrow_skip", False)
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     if estimator:
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -82,6 +87,7 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
         timetable.begin_transaction(estimator)
 
     choices = vectorize_joint_tour_scheduling(
+        whale,
         joint_tours,
         joint_tour_participants,
         persons_merged,
@@ -126,7 +132,7 @@ def joint_tour_scheduling(tours, persons_merged, tdd_alts, chunk_size, trace_hh_
     )
 
     assign_in_place(tours, choices)
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     # updated df for tracing
     joint_tours = tours[tours.tour_category == "joint"]

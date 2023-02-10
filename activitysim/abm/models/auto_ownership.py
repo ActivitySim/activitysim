@@ -2,15 +2,16 @@
 # See full license in LICENSE.txt.
 import logging
 
-from activitysim.core import config, inject, pipeline, simulate, tracing
-
-from .util import estimation
+from activitysim.abm.models.util import estimation
+from activitysim.core import config, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def auto_ownership_simulate(households, households_merged, chunk_size, trace_hh_id):
+@workflow.step
+def auto_ownership_simulate(
+    whale: workflow.Whale, households, households_merged, chunk_size, trace_hh_id
+):
     """
     Auto ownership is a standard model which predicts how many cars a household
     with given characteristics owns
@@ -23,7 +24,9 @@ def auto_ownership_simulate(households, households_merged, chunk_size, trace_hh_
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -63,7 +66,7 @@ def auto_ownership_simulate(households, households_merged, chunk_size, trace_hh_
     # no need to reindex as we used all households
     households["auto_ownership"] = choices
 
-    pipeline.replace_table("households", households)
+    whale.add_table("households", households)
 
     tracing.print_summary(
         "auto_ownership", households.auto_ownership, value_counts=True

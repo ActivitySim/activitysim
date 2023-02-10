@@ -141,9 +141,11 @@ def test_generate_alternative(trips):
     )
 
 
-def test_apply_stage_two_model(model_spec, trips):
+def test_apply_stage_two_model(whale, model_spec, trips):
     setup_dirs()
-    departures = tdc.apply_stage_two_model(model_spec, trips, 0, "TEST Trip Departure")
+    departures = tdc.apply_stage_two_model(
+        whale, model_spec, trips, 0, "TEST Trip Departure"
+    )
     assert len(departures) == len(trips)
     pd.testing.assert_index_equal(departures.index, trips.index)
 

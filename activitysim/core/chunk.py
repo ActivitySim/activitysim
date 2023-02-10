@@ -1146,16 +1146,18 @@ def chunk_log_skip():
     None
 
 
-def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None):
+def adaptive_chunked_choosers(whale, choosers, chunk_size, trace_label, chunk_tag=None):
 
     # generator to iterate over choosers
 
-    if chunk_training_mode() == MODE_CHUNKLESS:
+    if whale.settings.chunk_training_mode == MODE_CHUNKLESS:
         # The adaptive chunking logic is expensive and sometimes results
         # in needless data copying.  So we short circuit it entirely
         # when chunking is disabled.
         logger.info(f"Running chunkless with {len(choosers)} choosers")
-        yield 0, choosers, trace_label
+        yield 0, choosers, trace_label, ChunkSizer(
+            "chunkless", trace_label, 0, 0, whale.settings.chunk_training_mode
+        )
         return
 
     chunk_tag = chunk_tag or trace_label
@@ -1190,7 +1192,7 @@ def adaptive_chunked_choosers(choosers, chunk_size, trace_label, chunk_tag=None)
                 f"with {len(chooser_chunk)} of {num_choosers} choosers"
             )
 
-            yield i, chooser_chunk, chunk_trace_label
+            yield i, chooser_chunk, chunk_trace_label, chunk_sizer
 
             offset += rows_per_chunk
 

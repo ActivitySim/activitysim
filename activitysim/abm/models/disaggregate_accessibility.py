@@ -10,13 +10,13 @@ from sklearn.cluster import KMeans
 from activitysim.abm.models import initialize, location_choice
 from activitysim.abm.models.util import estimation, tour_destination
 from activitysim.abm.tables import shadow_pricing
-from activitysim.core import config, inject, los, pipeline, tracing, util
+from activitysim.core import config, inject, los, tracing, util, workflow
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
 
 
-def read_disaggregate_accessibility_yaml(file_name):
+def read_disaggregate_accessibility_yaml(whale: workflow.Whale, file_name):
     """
     Adds in default table suffixes 'proto_' if not defined in the settings file
     """
@@ -39,21 +39,22 @@ def read_disaggregate_accessibility_yaml(file_name):
         size = model_settings.get(sample, 0)
         if size > 0 and size < 1:
             model_settings[sample] = round(
-                size * len(pipeline.get_table("land_use").index)
+                size * len(whale.get_dataframe("land_use").index)
             )
 
     return model_settings
 
 
 class ProtoPop:
-    def __init__(self, network_los, chunk_size):
+    def __init__(self, whale: workflow.Whale, network_los, chunk_size):
+        self.whale = whale
         # Run necessary inits for later
-        initialize.initialize_landuse()
+        initialize.initialize_landuse(whale)
 
         # Initialization
         self.proto_pop = {}
         self.zone_list = []
-        self.land_use = pipeline.get_table("land_use")
+        self.land_use = whale.get_dataframe("land_use")
         self.network_los = network_los
         self.chunk_size = chunk_size
         self.model_settings = read_disaggregate_accessibility_yaml(
@@ -77,7 +78,7 @@ class ProtoPop:
             )
         )
         self.inject_tables()
-        self.annotate_tables()
+        self.annotate_tables(whale)
         self.merge_persons()
 
         # - initialize shadow_pricing size tables after annotating household and person tables
@@ -87,7 +88,7 @@ class ProtoPop:
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
             shadow_pricing._add_size_tables(
-                self.model_settings.get("suffixes"), scale=False
+                whale, self.model_settings.get("suffixes"), scale=False
             )
 
     def zone_sampler(self):
@@ -164,7 +165,7 @@ class ProtoPop:
             ), "K-Means only implemented for 2-zone systems for now"
 
             # Performs a simple k-means clustering using centroid XY coordinates
-            centroids_df = pipeline.get_table("maz_centroids")
+            centroids_df = self.whale.get_dataframe("maz_centroids")
 
             # Assert that land_use zone ids is subset of centroid zone ids
             assert set(self.land_use.index).issubset(set(centroids_df.index))
@@ -463,7 +464,7 @@ class ProtoPop:
         if self.model_settings.get("FROM_TEMPLATES"):
             table_params = {k: self.params.get(k) for k in klist}
             tables = {
-                k: pd.read_csv(config.config_file_path(v.get("file")))
+                k: pd.read_csv(whale.filesystem.get_config_file_path(v.get("file")))
                 for k, v in table_params.items()
             }
             households, persons, tours = self.expand_template_zones(tables)
@@ -524,18 +525,18 @@ class ProtoPop:
         )
         for tablename, df in self.proto_pop.items():
             inject.add_table(tablename, df)
-            pipeline.get_rn_generator().add_channel(tablename, df)
+            self.whale.get_rn_generator().add_channel(tablename, df)
             tracing.register_traceable_table(tablename, df)
-            # pipeline.get_rn_generator().drop_channel(tablename)
 
-    def annotate_tables(self):
+    def annotate_tables(self, whale: workflow.Whale):
         # Extract annotations
         for annotations in self.model_settings["annotate_proto_tables"]:
             tablename = annotations["tablename"]
-            df = pipeline.get_table(tablename)
+            df = self.whale.get_dataframe(tablename)
             assert df is not None
             assert annotations is not None
             assign_columns(
+                whale,
                 df=df,
                 model_settings={
                     **annotations["annotate"],
@@ -543,11 +544,11 @@ class ProtoPop:
                 },
                 trace_label=tracing.extend_trace_label("ProtoPop.annotate", tablename),
             )
-            pipeline.replace_table(tablename, df)
+            self.whale.add_table(tablename, df)
 
     def merge_persons(self):
-        persons = pipeline.get_table("proto_persons")
-        households = pipeline.get_table("proto_households")
+        persons = self.whale.get_dataframe("proto_persons")
+        households = self.whale.get_dataframe("proto_households")
 
         # For dropping any extra columns created during merge
         cols_to_use = households.columns.difference(persons.columns)
@@ -569,13 +570,15 @@ class ProtoPop:
         inject.add_table("proto_persons_merged", persons_merged)
 
 
-def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
+def get_disaggregate_logsums(
+    whale: workflow.Whale, network_los, chunk_size, trace_hh_id
+):
     logsums = {}
-    persons_merged = pipeline.get_table("proto_persons_merged").sort_index(
+    persons_merged = whale.get_dataframe("proto_persons_merged").sort_index(
         inplace=False
     )
     disagg_model_settings = read_disaggregate_accessibility_yaml(
-        "disaggregate_accessibility.yaml"
+        whale, "disaggregate_accessibility.yaml"
     )
 
     for model_name in [
@@ -616,6 +619,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
 
             # run location choice and return logsums
             _logsums, _ = location_choice.run_location_choice(
+                whale,
                 choosers,
                 network_los,
                 shadow_price_calculator=spc,
@@ -638,7 +642,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
                 )
 
         else:
-            tours = pipeline.get_table("proto_tours")
+            tours = whale.get_dataframe("proto_tours")
             tours = tours[tours.tour_category == "non_mandatory"]
 
             _logsums, _ = tour_destination.run_tour_destination(
@@ -670,15 +674,17 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
     return logsums
 
 
-@inject.step()
-def initialize_proto_population(network_los, chunk_size):
+@workflow.step
+def initialize_proto_population(whale: workflow.Whale, network_los, chunk_size):
     # Synthesize the proto-population
-    ProtoPop(network_los, chunk_size)
+    ProtoPop(whale, network_los, chunk_size)
     return
 
 
-@inject.step()
-def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
+@workflow.step
+def compute_disaggregate_accessibility(
+    whale: workflow.Whale, network_los, chunk_size, trace_hh_id
+):
     """
     Compute enhanced disaggregate accessibility for user specified population segments,
     as well as each zone in land use file using expressions from accessibility_spec.
@@ -689,15 +695,15 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:
         df = inject.get_table(tablename).to_frame()
         traceables = inject.get_injectable("traceable_tables")
-        if tablename not in pipeline.get_rn_generator().channels:
-            pipeline.get_rn_generator().add_channel(tablename, df)
+        if tablename not in whale.get_rn_generator().channels:
+            whale.get_rn_generator().add_channel(tablename, df)
         if tablename not in traceables:
             inject.add_injectable("traceable_tables", traceables + [tablename])
             tracing.register_traceable_table(tablename, df)
         del df
 
     # Run location choice
-    logsums = get_disaggregate_logsums(network_los, chunk_size, trace_hh_id)
+    logsums = get_disaggregate_logsums(whale, network_los, chunk_size, trace_hh_id)
     logsums = {k + "_accessibility": v for k, v in logsums.items()}
 
     # Combined accessibility table
@@ -726,7 +732,7 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     # Merge in the proto pop data and inject it
     access_df = (
         access_df.merge(
-            pipeline.get_table("proto_persons_merged").reset_index(),
+            whale.get_dataframe("proto_persons_merged").reset_index(),
             on="proto_household_id",
         )
         .set_index("proto_person_id")
@@ -740,24 +746,24 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
         "school_destination_size",
         "workplace_destination_size",
     ]:
-        pipeline.drop_table(tablename)
+        whale.drop_table(tablename)
 
-    for ch in list(pipeline.get_rn_generator().channels.keys()):
-        pipeline.get_rn_generator().drop_channel(ch)
+    for ch in list(whale.get_rn_generator().channels.keys()):
+        whale.get_rn_generator().drop_channel(ch)
 
     # Drop any prematurely added traceables
     for trace in [
         x for x in inject.get_injectable("traceable_tables") if "proto_" not in x
     ]:
-        tracing.deregister_traceable_table(trace)
+        tracing.deregister_traceable_table(whale, trace)
 
-    # need to clear any premature tables that were added during the previous run
-    orca._TABLES.clear()
-    for name, func in inject._DECORATED_TABLES.items():
-        logger.debug("reinject decorated table %s" % name)
-        orca.add_table(name, func)
+    # # need to clear any premature tables that were added during the previous run
+    # orca._TABLES.clear()
+    # for name, func in inject._DECORATED_TABLES.items():
+    #     logger.debug("reinject decorated table %s" % name)
+    #     orca.add_table(name, func)
 
     # Inject accessibility results into pipeline
-    [inject.add_table(k, df) for k, df in logsums.items()]
+    [whale.add_table(k, df) for k, df in logsums.items()]
 
     return

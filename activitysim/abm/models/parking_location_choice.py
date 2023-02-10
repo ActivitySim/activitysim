@@ -10,15 +10,13 @@ from activitysim.core import (
     expressions,
     inject,
     logit,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place
-
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +79,6 @@ def wrap_skims(model_settings):
 
 
 def get_spec_for_segment(model_settings, spec_name, segment):
-
     omnibus_spec = simulate.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[segment]]
@@ -94,6 +91,7 @@ def get_spec_for_segment(model_settings, spec_name, segment):
 
 
 def parking_destination_simulate(
+    whale: workflow.Whale,
     segment_name,
     trips,
     destination_sample,
@@ -117,7 +115,7 @@ def parking_destination_simulate(
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    spec = simulate.eval_coefficients(spec, coefficients_df, None)
+    spec = simulate.eval_coefficients(whale, spec, coefficients_df, None)
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
@@ -165,7 +163,6 @@ def choose_parking_location(
     trace_hh_id,
     trace_label,
 ):
-
     logger.info("choose_parking_location %s with %d trips", trace_label, trips.shape[0])
 
     t0 = print_elapsed_time()
@@ -211,7 +208,6 @@ def run_parking_destination(
     trace_label,
     fail_some_trips_for_testing=False,
 ):
-
     chooser_filter_column = model_settings.get("CHOOSER_FILTER_COLUMN_NAME")
     chooser_segment_column = model_settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
 
@@ -279,9 +275,15 @@ def run_parking_destination(
     return trips[parking_location_column_name], save_sample_df
 
 
-@inject.step()
+@workflow.step
 def parking_location(
-    trips, trips_merged, land_use, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    trips,
+    trips_merged,
+    land_use,
+    network_los,
+    chunk_size,
+    trace_hh_id,
 ):
     """
     Given a set of trips, each trip needs to have a parking location if
@@ -322,6 +324,7 @@ def parking_location(
 
     if preprocessor_settings:
         expressions.assign_columns(
+            whale,
             df=trips_merged_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -339,7 +342,7 @@ def parking_location(
 
     assign_in_place(trips_df, parking_locations.to_frame(alt_destination_col_name))
 
-    pipeline.replace_table("trips", trips_df)
+    whale.add_table("trips", trips_df)
 
     if trace_hh_id:
         tracing.trace_df(
@@ -363,6 +366,6 @@ def parking_location(
         )
 
         # lest they try to put tour samples into the same table
-        if pipeline.is_table(sample_table_name):
+        if whale.is_table(sample_table_name):
             raise RuntimeError("sample table %s already exists" % sample_table_name)
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        whale.extend_table(sample_table_name, save_sample_df)

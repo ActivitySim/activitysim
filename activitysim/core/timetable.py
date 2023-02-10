@@ -8,7 +8,7 @@ import numba as nb
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, pipeline
+from activitysim.core import chunk, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -442,7 +442,7 @@ class TimeTable(object):
         # assert (self.windows_df.values == self.windows).all()
         return self.windows_df
 
-    def replace_table(self):
+    def replace_table(self, whale: workflow.Whale):
         """
         Save or replace windows_df  DataFrame to pipeline with saved table name
         (specified when object instantiated.)
@@ -464,7 +464,7 @@ class TimeTable(object):
 
         # get windows_df from bottleneck function in case updates to self.person_window
         # do not write through to pandas dataframe
-        pipeline.replace_table(self.windows_table_name, self.get_windows_df())
+        whale.add_table(self.windows_table_name, self.get_windows_df())
 
     def tour_available(self, window_row_ids, tdds):
         """
@@ -632,7 +632,7 @@ class TimeTable(object):
         assert len(window_row_ids) == len(periods)
 
         trace_label = "tt.adjacent_window_run_length"
-        with chunk.chunk_log(trace_label):
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             available_run_length = _available_run_length_2(
                 self.windows,
                 self.window_row_ix._mapper,

@@ -4,8 +4,7 @@ import logging
 
 import pandas as pd
 
-from ..core.pipeline import Whale
-from ..core.workflow import workflow_cached_object
+from activitysim.core import workflow
 
 # FIXME
 # warnings.filterwarnings('ignore', category=pd.io.pytables.PerformanceWarning)
@@ -14,8 +13,8 @@ pd.options.mode.chained_assignment = None
 logger = logging.getLogger(__name__)
 
 
-@workflow_cached_object
-def households_sample_size(whale: Whale, override_hh_ids):
+@workflow.cached_object
+def households_sample_size(whale: workflow.Whale, override_hh_ids):
 
     if override_hh_ids is None:
         return whale.settings, households_sample_size
@@ -23,8 +22,8 @@ def households_sample_size(whale: Whale, override_hh_ids):
         return 0 if override_hh_ids is None else len(override_hh_ids)
 
 
-@workflow_cached_object
-def override_hh_ids(whale: Whale):
+@workflow.cached_object
+def override_hh_ids(whale: workflow.Whale):
 
     hh_ids_filename = whale.settings.hh_ids
     if hh_ids_filename is None:
@@ -75,8 +74,8 @@ def override_hh_ids(whale: Whale):
 #     return id
 
 
-@workflow_cached_object
-def trace_od(whale: Whale):
+@workflow.cached_object
+def trace_od(whale: workflow.Whale):
 
     od = whale.settings.trace_od
 
@@ -89,13 +88,13 @@ def trace_od(whale: Whale):
     return od
 
 
-@workflow_cached_object
-def chunk_size(whale: Whale):
+@workflow.cached_object
+def chunk_size(whale: workflow.Whale):
     _chunk_size = int(whale.settings.chunk_size or 0)
 
     return _chunk_size
 
 
-@workflow_cached_object
-def check_for_variability(whale: Whale):
+@workflow.cached_object
+def check_for_variability(whale: workflow.Whale):
     return bool(whale.settings.check_for_variability)

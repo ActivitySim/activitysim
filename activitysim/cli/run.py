@@ -9,10 +9,8 @@ import warnings
 
 import numpy as np
 
-from activitysim.core import chunk, config, inject, mem, pipeline, tracing
-
-from ..core.configuration import FileSystem, Settings
-from ..core.pipeline import Whale
+from activitysim.core import chunk, config, inject, mem, tracing, workflow
+from activitysim.core.configuration import FileSystem, Settings
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +106,7 @@ def add_run_args(parser, multiprocess=True):
         )
 
 
-def validate_injectable(whale: Whale, name, make_if_missing=False):
+def validate_injectable(whale: workflow.Whale, name, make_if_missing=False):
     try:
         dir_paths = whale.context.get_formatted(name)
         # dir_paths = inject.get_injectable(name)
@@ -133,7 +131,7 @@ def validate_injectable(whale: Whale, name, make_if_missing=False):
     return dir_paths
 
 
-def handle_standard_args(whale: Whale, args, multiprocess=True):
+def handle_standard_args(whale: workflow.Whale, args, multiprocess=True):
     def inject_arg(name, value):
         assert name in INJECTABLES
         whale.context[name] = value
@@ -252,7 +250,7 @@ def handle_standard_args(whale: Whale, args, multiprocess=True):
     return whale
 
 
-def cleanup_output_files(whale: Whale):
+def cleanup_output_files(whale: workflow.Whale):
     tracing.delete_trace_files(whale)
 
     csv_ignore = []
@@ -282,7 +280,7 @@ def run(args):
         int: sys.exit exit code
     """
 
-    whale = pipeline.Whale()
+    whale = workflow.Whale()
 
     # register abm steps and other abm-specific injectables
     # by default, assume we are running activitysim.abm
@@ -396,7 +394,7 @@ def run(args):
             from activitysim.core import mp_tasks
 
             injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
-            mp_tasks.run_multiprocess(injectables)
+            mp_tasks.run_multiprocess(whale, injectables)
 
             assert not whale.is_open
 

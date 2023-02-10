@@ -5,8 +5,8 @@ import logging
 import numpy as np
 import pandas as pd
 
-from . import chunk, config, interaction_simulate, logit, pipeline, tracing
-from .simulate import set_skim_wrapper_targets
+from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow
+from activitysim.core.simulate import set_skim_wrapper_targets
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +14,7 @@ DUMP = False
 
 
 def make_sample_choices(
+    whale: workflow.Whale,
     choosers,
     probs,
     alternatives,
@@ -22,6 +23,7 @@ def make_sample_choices(
     alt_col_name,
     allow_zero_probs,
     trace_label,
+    chunk_sizer,
 ):
     """
 
@@ -61,13 +63,13 @@ def make_sample_choices(
             choosers = choosers[~zero_probs]
 
     # get sample_size rands for each chooser
-    rands = pipeline.get_rn_generator().random_for_df(probs, n=sample_size)
+    rands = whale.get_rn_generator().random_for_df(probs, n=sample_size)
 
     # transform as we iterate over alternatives
     # reshape so rands[i] is in broadcastable (2-D) shape for cum_probs_arr
     # i.e rands[i] is a 2-D array of one alt choice rand for each chooser
     # rands = rands.T #.reshape(sample_size, -1, 1)
-    chunk.log_df(trace_label, "rands", rands)
+    chunk_sizer.log_df(trace_label, "rands", rands)
 
     # TODO: is `sample_choices_maker` more efficient?  The order of samples changes, might change repro-randoms
     from .choosing import sample_choices_maker_preserve_ordering
@@ -78,8 +80,8 @@ def make_sample_choices(
         alternatives.index.values,
     )
 
-    chunk.log_df(trace_label, "choices_array", choices_array)
-    chunk.log_df(trace_label, "choice_probs_array", choice_probs_array)
+    chunk_sizer.log_df(trace_label, "choices_array", choices_array)
+    chunk_sizer.log_df(trace_label, "choice_probs_array", choice_probs_array)
 
     # explode to one row per chooser.index, alt_zone_id
     choices_df = pd.DataFrame(
@@ -91,22 +93,23 @@ def make_sample_choices(
         }
     )
 
-    chunk.log_df(trace_label, "choices_df", choices_df)
+    chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
     del choices_array
-    chunk.log_df(trace_label, "choices_array", None)
+    chunk_sizer.log_df(trace_label, "choices_array", None)
     del rands
-    chunk.log_df(trace_label, "rands", None)
+    chunk_sizer.log_df(trace_label, "rands", None)
     del choice_probs_array
-    chunk.log_df(trace_label, "choice_probs_array", None)
+    chunk_sizer.log_df(trace_label, "choice_probs_array", None)
 
     # handing this off to caller
-    chunk.log_df(trace_label, "choices_df", None)
+    chunk_sizer.log_df(trace_label, "choices_df", None)
 
     return choices_df
 
 
 def _interaction_sample(
+    whale: workflow.Whale,
     choosers,
     alternatives,
     spec,
@@ -118,6 +121,7 @@ def _interaction_sample(
     locals_d=None,
     trace_label=None,
     zone_layer=None,
+    chunk_sizer=None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -174,7 +178,7 @@ def _interaction_sample(
             number of duplicate picks for chooser, alt
     """
 
-    have_trace_targets = tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(whale, choosers)
     trace_ids = None
     trace_rows = None
     num_choosers = len(choosers.index)
@@ -201,7 +205,7 @@ def _interaction_sample(
 
     chooser_index_id = interaction_simulate.ALT_CHOOSER_ID if log_alt_losers else None
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = whale.settings.sharrow
 
     # - cross join choosers and alternatives (cartesian product)
     # for every chooser, there will be a row for each alternative
@@ -216,6 +220,7 @@ def _interaction_sample(
             interaction_utilities,
             trace_eval_results,
         ) = interaction_simulate.eval_interaction_utilities(
+            whale,
             spec,
             choosers,
             locals_d,
@@ -226,7 +231,7 @@ def _interaction_sample(
             extra_data=alternatives,
             zone_layer=zone_layer,
         )
-        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+        chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
         if sharrow_enabled == "test" or True:
             interaction_utilities_sh, trace_eval_results_sh = (
                 interaction_utilities,
@@ -240,7 +245,7 @@ def _interaction_sample(
             chooser_index_id=chooser_index_id,
         )
 
-        chunk.log_df(trace_label, "interaction_df", interaction_df)
+        chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
         assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
@@ -271,6 +276,7 @@ def _interaction_sample(
             interaction_utilities,
             trace_eval_results,
         ) = interaction_simulate.eval_interaction_utilities(
+            whale,
             spec,
             interaction_df,
             locals_d,
@@ -280,12 +286,12 @@ def _interaction_sample(
             log_alt_losers=log_alt_losers,
             zone_layer=zone_layer,
         )
-        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+        chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
         # ########### HWM - high water mark (point of max observed memory usage)
 
         del interaction_df
-        chunk.log_df(trace_label, "interaction_df", None)
+        chunk_sizer.log_df(trace_label, "interaction_df", None)
 
     if sharrow_enabled == "test":
         try:
@@ -363,10 +369,10 @@ def _interaction_sample(
         interaction_utilities.values.reshape(len(choosers), alternative_count),
         index=choosers.index,
     )
-    chunk.log_df(trace_label, "utilities", utilities)
+    chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     del interaction_utilities
-    chunk.log_df(trace_label, "interaction_utilities", None)
+    chunk_sizer.log_df(trace_label, "interaction_utilities", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -385,10 +391,10 @@ def _interaction_sample(
         trace_label=trace_label,
         trace_choosers=choosers,
     )
-    chunk.log_df(trace_label, "probs", probs)
+    chunk_sizer.log_df(trace_label, "probs", probs)
 
     del utilities
-    chunk.log_df(trace_label, "utilities", None)
+    chunk_sizer.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -420,6 +426,7 @@ def _interaction_sample(
         return choices_df
     else:
         choices_df = make_sample_choices(
+            whale,
             choosers,
             probs,
             alternatives,
@@ -428,12 +435,13 @@ def _interaction_sample(
             alt_col_name,
             allow_zero_probs=allow_zero_probs,
             trace_label=trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
-    chunk.log_df(trace_label, "choices_df", choices_df)
+    chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
     del probs
-    chunk.log_df(trace_label, "probs", None)
+    chunk_sizer.log_df(trace_label, "probs", None)
 
     # pick_count and pick_dup
     # pick_count is number of duplicate picks
@@ -450,7 +458,7 @@ def _interaction_sample(
     # drop the duplicates
     choices_df = choices_df[~choices_df["pick_dup"]]
     del choices_df["pick_dup"]
-    chunk.log_df(trace_label, "choices_df", choices_df)
+    chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
     # set index after groupby so we can trace on it
     choices_df.set_index(choosers.index.name, inplace=True)
@@ -467,7 +475,7 @@ def _interaction_sample(
 
     # don't need this after tracing
     del choices_df["rand"]
-    chunk.log_df(trace_label, "choices_df", choices_df)
+    chunk_sizer.log_df(trace_label, "choices_df", choices_df)
 
     # - NARROW
     choices_df["prob"] = choices_df["prob"].astype(np.float32)
@@ -478,6 +486,7 @@ def _interaction_sample(
 
 
 def interaction_sample(
+    whale,
     choosers,
     alternatives,
     spec,
@@ -561,11 +570,17 @@ def interaction_sample(
     sample_size = min(sample_size, len(alternatives.index))
 
     result_list = []
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        choosers, chunk_size, trace_label, chunk_tag
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(
+        whale, choosers, chunk_size, trace_label, chunk_tag
     ):
 
         choices = _interaction_sample(
+            whale,
             chooser_chunk,
             alternatives,
             spec=spec,
@@ -577,13 +592,14 @@ def interaction_sample(
             locals_d=locals_d,
             trace_label=chunk_trace_label,
             zone_layer=zone_layer,
+            chunk_sizer=chunk_sizer,
         )
 
         if choices.shape[0] > 0:
             # might not be any if allow_zero_probs
             result_list.append(choices)
 
-            chunk.log_df(trace_label, f"result_list", result_list)
+            chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

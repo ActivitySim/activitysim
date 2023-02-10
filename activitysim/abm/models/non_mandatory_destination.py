@@ -4,20 +4,18 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, inject, pipeline, simulate, tracing
+from activitysim.core import config, inject, simulate, tracing, workflow
 from activitysim.core.util import assign_in_place
 
-from .util import estimation, tour_destination, annotate
-
+from .util import annotate, estimation, tour_destination
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
+@workflow.step
 def non_mandatory_tour_destination(
-    tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
 ):
-
     """
     Given the tour generation from the above, each tour needs to have a
     destination, so in this case tours are the choosers (with the associated
@@ -46,7 +44,7 @@ def non_mandatory_tour_destination(
 
     # separating out pure escort school tours
     # they already have their destination set
-    if pipeline.is_table("school_escort_tours"):
+    if whale.is_table("school_escort_tours"):
         nm_tour_index = non_mandatory_tours.index
         pure_school_escort_tours = non_mandatory_tours[
             (non_mandatory_tours["school_esc_outbound"] == "pure_escort")
@@ -98,7 +96,7 @@ def non_mandatory_tour_destination(
     non_mandatory_tours["destination"] = choices_df.choice
 
     # merging back in school escort tours and preserving index
-    if pipeline.is_table("school_escort_tours"):
+    if whale.is_table("school_escort_tours"):
         non_mandatory_tours = pd.concat(
             [pure_school_escort_tours, non_mandatory_tours]
         ).set_index(nm_tour_index)
@@ -113,7 +111,7 @@ def non_mandatory_tour_destination(
         ~tours["destination"].isna()
     ), f"Tours are missing destination: {tours[tours['destination'].isna()]}"
 
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     if model_settings.get("annotate_tours"):
         annotate.annotate_tours(model_settings, trace_label)
@@ -121,7 +119,7 @@ def non_mandatory_tour_destination(
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
         tracing.trace_df(

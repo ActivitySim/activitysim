@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def _interaction_sample_simulate(
+    whale,
     choosers,
     alternatives,
     spec,
@@ -96,7 +97,7 @@ def _interaction_sample_simulate(
         alternatives.index[last_repeat]
     )
 
-    have_trace_targets = tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(whale, choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
@@ -160,6 +161,7 @@ def _interaction_sample_simulate(
         interaction_utilities,
         trace_eval_results,
     ) = interaction_simulate.eval_interaction_utilities(
+        whale,
         spec,
         interaction_df,
         locals_d,
@@ -277,7 +279,7 @@ def _interaction_sample_simulate(
         # positions is series with the chosen alternative represented as a column index in probs
         # which is an integer between zero and num alternatives in the alternative sample
         positions, rands = logit.make_choices(
-            probs, trace_label=trace_label, trace_choosers=choosers
+            whale, probs, trace_label=trace_label, trace_choosers=choosers
         )
 
         chunk.log_df(trace_label, "positions", positions)

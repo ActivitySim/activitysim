@@ -3,7 +3,7 @@ import importlib.machinery
 import importlib.util
 import logging
 import time
-from inspect import getfullargspec
+from inspect import get_annotations, getfullargspec
 from typing import Callable, Mapping
 
 from pypyr.context import Context
@@ -165,8 +165,9 @@ class workflow_step:
             The function being decorated.  It should return a dictionary
             of context updates.
         """
-        from ..pipeline import Whale
+        from activitysim.core.workflow import Whale
 
+        _validate_workflow_function(wrapped_func)
         if self._step_name is None:
             self._step_name = wrapped_func.__name__
         logger.debug(f"found workflow_{self._kind}: {self._step_name}")
@@ -312,6 +313,36 @@ class workflow_table(workflow_step):
         return super().__new__(
             cls, wrapped_func, step_name=step_name, cache=True, kind="table"
         )
+
+
+def _validate_workflow_function(f):
+    from activitysim.core.workflow import Whale
+
+    argspec = getfullargspec(f)
+    if argspec.args[0] != "whale":
+        raise SyntaxError("workflow.func must have `whale` as the first argument")
+    if argspec.annotations.get("whale") is not Whale:
+        raise SyntaxError(
+            "workflow.func must have `Whale` as the first argument annotation"
+        )
+
+
+def func(function):
+    """
+    Wrapper for a simple workflow function.
+    """
+    from activitysim.core.workflow import Whale
+
+    _validate_workflow_function(function)
+
+    def wrapper(whale, *args, **kwargs):
+        if not isinstance(whale, Whale):
+            raise TypeError(
+                "workflow functions must have a Whale as the first argument"
+            )
+        return function(whale, *args, **kwargs)
+
+    return wrapper
 
 
 # def workflow_table(func):

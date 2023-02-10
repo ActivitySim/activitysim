@@ -1,15 +1,17 @@
 import glob
 import logging
 import os
+from pathlib import Path
 
 import numpy as np
 import openmatrix
 import pandas as pd
 import sharrow as sh
+import xarray as xr
 
-from . import config
-from . import flow as __flow  # noqa, keep this here for side effects?
-from . import inject
+from activitysim.core import config
+from activitysim.core import flow as __flow
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
@@ -432,7 +434,7 @@ def _use_existing_backing_if_valid(backing, omx_file_paths, skim_tag):
 
 
 def _dedupe_time_periods(network_los_preload):
-    raw_time_periods = network_los_preload.los_settings["skim_time_periods"]["labels"]
+    raw_time_periods = network_los_preload.los_settings.skim_time_periods["labels"]
     # deduplicate time period names
     time_periods = []
     for t in raw_time_periods:
@@ -490,22 +492,27 @@ def _apply_digital_encoding(dataset, digital_encodings):
     return dataset
 
 
-def _scan_for_unused_names(tokens):
+def _scan_for_unused_names(whale, tokens):
     """
     Scan all spec files to find unused skim variable names.
 
     Parameters
     ----------
+    whale : Whale
     tokens : Collection[str]
 
     Returns
     -------
     Set[str]
     """
-    configs_dir_list = inject.get_injectable("configs_dir")
+    configs_dir_list = whale.filesystem.get_configs_dir()
     configs_dir_list = (
-        [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
+        [configs_dir_list]
+        if isinstance(configs_dir_list, (str, Path))
+        else configs_dir_list
     )
+    if isinstance(configs_dir_list, tuple):
+        configs_dir_list = list(configs_dir_list)
     assert isinstance(configs_dir_list, list)
 
     for directory in configs_dir_list:
@@ -524,10 +531,10 @@ def _scan_for_unused_names(tokens):
     return tokens
 
 
-def _drop_unused_names(dataset):
+def _drop_unused_names(whale, dataset):
     logger.info("scanning for unused skims")
     tokens = set(dataset.variables.keys()) - set(dataset.coords.keys())
-    unused_tokens = _scan_for_unused_names(tokens)
+    unused_tokens = _scan_for_unused_names(whale, tokens)
     if unused_tokens:
         baggage = dataset.digital_encoding.baggage(None)
         unused_tokens -= baggage
@@ -583,7 +590,6 @@ def load_sparse_maz_skims(
         data_file_resolver = config.data_file_path
 
     if zone_system in [TWO_ZONE, THREE_ZONE]:
-
         # maz
         maz_taz = pd.read_csv(data_file_resolver(maz2taz_file_name, mandatory=True))
         maz_taz = maz_taz[["MAZ", "TAZ"]].set_index("MAZ").sort_index()
@@ -623,7 +629,6 @@ def load_sparse_maz_skims(
             max_blend_distance = {"DEFAULT": max_blend_distance}
 
         for file_name in maz_to_maz_tables:
-
             df = pd.read_csv(data_file_resolver(file_name, mandatory=True))
             if remapper is not None:
                 df.OMAZ = df.OMAZ.map(remapper.get)
@@ -647,12 +652,13 @@ def load_sparse_maz_skims(
     return dataset
 
 
-def load_skim_dataset_to_shared_memory(skim_tag="taz"):
+def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
     """
     Load skims from disk into shared memory.
 
     Parameters
     ----------
+    whale : Whale
     skim_tag : str, default "taz"
 
     Returns
@@ -662,17 +668,17 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
     from ..core.los import ONE_ZONE
 
     # TODO:SHARROW: taz and maz are the same
-    network_los_preload = inject.get_injectable("network_los_preload", None)
+    network_los_preload = whale.get_injectable("network_los_preload", None)
     if network_los_preload is None:
         raise ValueError("missing network_los_preload")
 
     # find which OMX files are to be used.
-    omx_file_paths = config.expand_input_file_list(
+    omx_file_paths = whale.filesystem.expand_input_file_list(
         network_los_preload.omx_file_names(skim_tag),
     )
     zarr_file = network_los_preload.zarr_file_name(skim_tag)
 
-    if config.setting("disable_zarr", False):
+    if whale.settings.disable_zarr:
         # we can disable the zarr optimizations by setting the `disable_zarr`
         # flag in the master config file to True
         zarr_file = None
@@ -694,10 +700,10 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
         )
         backing = f"memmap:{mmap_file}"
 
-    land_use = inject.get_table("land_use")
+    land_use = whale.get_dataframe("land_use")
 
-    if f"_original_{land_use.index.name}" in land_use.to_frame():
-        land_use_zone_ids = land_use.to_frame()[f"_original_{land_use.index.name}"]
+    if f"_original_{land_use.index.name}" in land_use:
+        land_use_zone_ids = land_use[f"_original_{land_use.index.name}"]
         remapper = dict(zip(land_use_zone_ids, land_use_zone_ids.index))
     else:
         remapper = None
@@ -766,7 +772,7 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
                     ),
                 )
 
-        d = _drop_unused_names(d)
+        d = _drop_unused_names(whale, d)
         # apply non-zarr dependent digital encoding
         d = _apply_digital_encoding(d, skim_digital_encoding)
 
@@ -817,11 +823,11 @@ def load_skim_dataset_to_shared_memory(skim_tag="taz"):
         return d.shm.to_shared_memory(backing, mode="r")
 
 
-@inject.injectable(cache=True)
-def skim_dataset():
-    return load_skim_dataset_to_shared_memory()
+@workflow.cached_object
+def skim_dataset(whale: workflow.Whale) -> xr.Dataset:
+    return load_skim_dataset_to_shared_memory(whale)
 
 
-@inject.injectable(cache=True)
-def tap_dataset():
-    return load_skim_dataset_to_shared_memory("tap")
+@workflow.cached_object
+def tap_dataset(whale: workflow.Whale) -> xr.Dataset:
+    return load_skim_dataset_to_shared_memory(whale, "tap")

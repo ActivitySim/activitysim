@@ -8,12 +8,11 @@ from activitysim.core import (
     chunk,
     config,
     expressions,
-    inject,
     interaction_simulate,
     logit,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
 from activitysim.core.simulate import set_skim_wrapper_targets
 from activitysim.core.util import reindex
@@ -164,7 +163,6 @@ def build_patterns(trips, time_windows):
 
 
 def get_spec_for_segment(omnibus_spec, segment):
-
     spec = omnibus_spec[[segment]]
 
     # might as well ignore any spec rows with 0 utility
@@ -174,9 +172,11 @@ def get_spec_for_segment(omnibus_spec, segment):
     return spec
 
 
-def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_label"):
+def choose_tour_leg_pattern(
+    whale, trip_segment, patterns, spec, trace_label="trace_label"
+):
     alternatives = generate_alternatives(trip_segment, STOP_TIME_DURATION).sort_index()
-    have_trace_targets = tracing.has_trace_targets(trip_segment)
+    have_trace_targets = tracing.has_trace_targets(whale, trip_segment)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -220,7 +220,7 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
         interaction_utilities,
         trace_eval_results,
     ) = interaction_simulate.eval_interaction_utilities(
-        spec, interaction_df, None, trace_label, trace_rows, estimator=None
+        whale, spec, interaction_df, None, trace_label, trace_rows, estimator=None
     )
 
     interaction_utilities = pd.concat(
@@ -335,7 +335,7 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
     positions, rands = logit.make_choices(
-        probs, trace_label=trace_label, trace_choosers=trip_segment
+        whale, probs, trace_label=trace_label, trace_choosers=trip_segment
     )
 
     chunk.log_df(trace_label, "positions", positions)
@@ -371,8 +371,7 @@ def choose_tour_leg_pattern(trip_segment, patterns, spec, trace_label="trace_lab
     return choices
 
 
-def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
-
+def apply_stage_two_model(whale, omnibus_spec, trips, chunk_size, trace_label):
     if not trips.index.is_monotonic:
         trips = trips.sort_index()
 
@@ -429,7 +428,6 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
     ) in chunk.adaptive_chunked_choosers_by_chunk_id(
         side_trips, chunk_size, trace_label
     ):
-
         for is_outbound, trip_segment in chooser_chunk.groupby(OUTBOUND):
             direction = OUTBOUND if is_outbound else "inbound"
             spec = get_spec_for_segment(omnibus_spec, direction)
@@ -438,7 +436,7 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
             patterns = build_patterns(trip_segment, time_windows)
 
             choices = choose_tour_leg_pattern(
-                trip_segment, patterns, spec, trace_label=segment_trace_label
+                whale, trip_segment, patterns, spec, trace_label=segment_trace_label
             )
 
             choices = pd.merge(
@@ -466,9 +464,10 @@ def apply_stage_two_model(omnibus_spec, trips, chunk_size, trace_label):
     return trips["depart"].astype(int)
 
 
-@inject.step()
-def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_id):
-
+@workflow.step
+def trip_departure_choice(
+    whale: workflow.Whale, trips, trips_merged, skim_dict, chunk_size, trace_hh_id
+):
     trace_label = "trip_departure_choice"
     model_settings = config.read_model_settings("trip_departure_choice.yaml")
 
@@ -490,7 +489,7 @@ def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_i
 
     preprocessor_settings = model_settings.get("PREPROCESSOR", None)
     tour_legs = get_tour_legs(trips_merged_df)
-    pipeline.get_rn_generator().add_channel("tour_legs", tour_legs)
+    whale.get_rn_generator().add_channel("tour_legs", tour_legs)
 
     if preprocessor_settings:
         od_skim = skim_dict.wrap("origin", "destination")
@@ -508,13 +507,16 @@ def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_i
         )
 
         expressions.assign_columns(
+            whale,
             df=trips_merged_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    choices = apply_stage_two_model(spec, trips_merged_df, chunk_size, trace_label)
+    choices = apply_stage_two_model(
+        whale, spec, trips_merged_df, chunk_size, trace_label
+    )
 
     trips_df = trips.to_frame()
     trip_length = len(trips_df)
@@ -522,4 +524,4 @@ def trip_departure_choice(trips, trips_merged, skim_dict, chunk_size, trace_hh_i
     assert len(trips_df) == trip_length
     assert trips_df[trips_df["depart"].isnull()].empty
 
-    pipeline.replace_table("trips", trips_df)
+    whale.add_table("trips", trips_df)

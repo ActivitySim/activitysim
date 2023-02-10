@@ -10,10 +10,9 @@ import warnings
 
 import yaml
 
-from ..core import inject, util
-from .exceptions import SettingsFileNotFoundError
-from .pipeline import Whale
-from .workflow.util import get_formatted_or_default
+from activitysim.core import inject, util, workflow
+from activitysim.core.exceptions import SettingsFileNotFoundError
+from activitysim.core.workflow.util import get_formatted_or_default
 
 logger = logging.getLogger(__name__)
 
@@ -22,73 +21,73 @@ logger = logging.getLogger(__name__)
 """
 
 
-@inject.injectable(cache=True)
-def locutor():
+@workflow.cached_object
+def locutor(whale: workflow.Whale):
     # when multiprocessing, sometimes you only want one process to write trace files
     # mp_tasks overrides this definition to designate a single sub-process as locutor
     return True
 
 
-@inject.injectable(cache=True)
-def configs_dir():
-    if not os.path.exists("configs"):
-        raise RuntimeError("'configs' directory does not exist")
-    return "configs"
+# @inject.injectable(cache=True)
+# def configs_dir():
+#     if not os.path.exists("configs"):
+#         raise RuntimeError("'configs' directory does not exist")
+#     return "configs"
+#
+#
+# @inject.injectable(cache=True)
+# def data_dir():
+#     if not os.path.exists("data"):
+#         raise RuntimeError("'data' directory does not exist")
+#     return "data"
+#
+#
+# @inject.injectable(cache=True)
+# def output_dir():
+#     if not os.path.exists("output"):
+#         print(
+#             f"'output' directory does not exist - current working directory: {os.getcwd()}"
+#         )
+#         raise RuntimeError("'output' directory does not exist")
+#     return "output"
+
+#
+# @inject.injectable()
+# def output_file_prefix():
+#     return ""
+
+#
+# @inject.injectable(cache=True)
+# def pipeline_file_name(settings):
+#
+#     pipeline_file_name = settings.get("pipeline_file_name", "pipeline.h5")
+#
+#     return pipeline_file_name
 
 
-@inject.injectable(cache=True)
-def data_dir():
-    if not os.path.exists("data"):
-        raise RuntimeError("'data' directory does not exist")
-    return "data"
+# @inject.injectable()
+# def rng_base_seed():
+#     return setting("rng_base_seed", 0)
 
 
-@inject.injectable(cache=True)
-def output_dir():
-    if not os.path.exists("output"):
-        print(
-            f"'output' directory does not exist - current working directory: {os.getcwd()}"
-        )
-        raise RuntimeError("'output' directory does not exist")
-    return "output"
+# @inject.injectable(cache=True)
+# def settings_file_name():
+#     return "settings.yaml"
 
 
-@inject.injectable()
-def output_file_prefix():
-    return ""
-
-
-@inject.injectable(cache=True)
-def pipeline_file_name(settings):
-
-    pipeline_file_name = settings.get("pipeline_file_name", "pipeline.h5")
-
-    return pipeline_file_name
-
-
-@inject.injectable()
-def rng_base_seed():
-    return setting("rng_base_seed", 0)
-
-
-@inject.injectable(cache=True)
-def settings_file_name():
-    return "settings.yaml"
-
-
-@inject.injectable(cache=True)
-def settings(settings_file_name):
-    settings_dict = read_settings_file(settings_file_name, mandatory=True)
-
-    # basic settings validation for sharrow
-    sharrow_enabled = settings_dict.get("sharrow", False)
-    recode_pipeline_columns = settings_dict.get("recode_pipeline_columns", True)
-    if sharrow_enabled and not recode_pipeline_columns:
-        warnings.warn(
-            "use of `sharrow` setting generally requires `recode_pipeline_columns`"
-        )
-
-    return settings_dict
+# @inject.injectable(cache=True)
+# def settings(settings_file_name):
+#     settings_dict = read_settings_file(settings_file_name, mandatory=True)
+#
+#     # basic settings validation for sharrow
+#     sharrow_enabled = settings_dict.get("sharrow", False)
+#     recode_pipeline_columns = settings_dict.get("recode_pipeline_columns", True)
+#     if sharrow_enabled and not recode_pipeline_columns:
+#         warnings.warn(
+#             "use of `sharrow` setting generally requires `recode_pipeline_columns`"
+#         )
+#
+#     return settings_dict
 
 
 # def testing():
@@ -97,46 +96,47 @@ def settings(settings_file_name):
 #     return "PYTEST_CURRENT_TEST" in os.environ
 
 
-def get_cache_dir():
-    """
-    return path of cache directory in output_dir (creating it, if need be)
-
-    cache directory is used to store
-        skim memmaps created by skim+dict_factories
-        tvpb tap_tap table cache
-
-    Returns
-    -------
-    str path
-    """
-    cache_dir = setting("cache_dir", default=None)
-    if cache_dir is None:
-        cache_dir = setting(
-            "cache_dir", os.path.join(inject.get_injectable("output_dir"), "cache")
-        )
-
-    if not os.path.isdir(cache_dir):
-        os.mkdir(cache_dir)
-    assert os.path.isdir(cache_dir)
-
-    # create a git-ignore in the cache dir if it does not exist.
-    # this helps prevent accidentally committing cache contents to git
-    gitignore = os.path.join(cache_dir, ".gitignore")
-    if not os.path.exists(gitignore):
-        with open(gitignore, "wt") as f:
-            f.write("/*")
-
-    return cache_dir
-
-
-def setting(key, default=None):
-    return inject.get_injectable("settings").get(key, default)
-
-
-def override_setting(key, value):
-    new_settings = inject.get_injectable("settings")
-    new_settings[key] = value
-    inject.add_injectable("settings", new_settings)
+# def get_cache_dir():
+#     """
+#     return path of cache directory in output_dir (creating it, if need be)
+#
+#     cache directory is used to store
+#         skim memmaps created by skim+dict_factories
+#         tvpb tap_tap table cache
+#
+#     Returns
+#     -------
+#     str path
+#     """
+#     cache_dir = setting("cache_dir", default=None)
+#     if cache_dir is None:
+#         cache_dir = setting(
+#             "cache_dir", os.path.join(inject.get_injectable("output_dir"), "cache")
+#         )
+#
+#     if not os.path.isdir(cache_dir):
+#         os.mkdir(cache_dir)
+#     assert os.path.isdir(cache_dir)
+#
+#     # create a git-ignore in the cache dir if it does not exist.
+#     # this helps prevent accidentally committing cache contents to git
+#     gitignore = os.path.join(cache_dir, ".gitignore")
+#     if not os.path.exists(gitignore):
+#         with open(gitignore, "wt") as f:
+#             f.write("/*")
+#
+#     return cache_dir
+#
+#
+# def setting(key, default=None):
+#     return inject.get_injectable("settings").get(key, default)
+#
+#
+# def override_setting(key, value):
+#     new_settings = inject.get_injectable("settings")
+#     new_settings[key] = value
+#     inject.add_injectable("settings", new_settings)
+#
 
 
 def get_global_constants():
@@ -293,7 +293,7 @@ def data_file_path(file_name, mandatory=True, allow_glob=False):
     )
 
 
-def expand_input_file_list(input_files):
+def expand_input_file_list(input_files, whale=None):
     """
     expand list by unglobbing globs globs
     """
@@ -307,7 +307,12 @@ def expand_input_file_list(input_files):
 
     for file_name in input_files:
 
-        file_name = data_file_path(file_name, allow_glob=True)
+        if whale is None:
+            file_name = data_file_path(file_name, allow_glob=True)
+        else:
+            file_name = str(
+                whale.filesystem.get_data_file_path(file_name, allow_glob=True)
+            )
 
         if os.path.isfile(file_name):
             expanded_files.append(file_name)
@@ -390,7 +395,7 @@ def trace_file_path(file_name):
     return file_path
 
 
-def log_file_path(file_name, prefix=True, whale: Whale = None):
+def log_file_path(file_name, prefix=True, whale: workflow.Whale = None):
 
     if whale is not None:
         output_dir = whale.filesystem.get_output_dir()

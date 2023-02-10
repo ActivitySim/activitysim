@@ -697,13 +697,13 @@ def coalesce_pipelines(sub_proc_names, slice_info):
     for table_name in mirrored_tables:
         df = mirrored_tables[table_name]
         info(f"adding mirrored table {table_name} {df.shape}")
-        pipeline.replace_table(table_name, df)
+        whale.add_table(table_name, df)
 
     # - concatenate omnibus tables and add them to pipeline
     for table_name in omnibus_tables:
         df = pd.concat(omnibus_tables[table_name], sort=False)
         info(f"adding omnibus table {table_name} {df.shape}")
-        pipeline.replace_table(table_name, df)
+        whale.add_table(table_name, df)
 
     pipeline.add_checkpoint(checkpoint_name)
 
@@ -1071,7 +1071,7 @@ def allocate_shared_shadow_pricing_buffers():
     return shadow_pricing_buffers
 
 
-def allocate_shared_shadow_pricing_buffers_choice():
+def allocate_shared_shadow_pricing_buffers_choice(whale):
     """
     This is called by the main process to allocate memory buffer to share with subprocs
 
@@ -1090,7 +1090,9 @@ def allocate_shared_shadow_pricing_buffers_choice():
         from activitysim.abm.tables import shadow_pricing
 
         shadow_pricing_buffers_choice = (
-            shadow_pricing.buffers_for_shadow_pricing_choice(shadow_pricing_choice_info)
+            shadow_pricing.buffers_for_shadow_pricing_choice(
+                whale, shadow_pricing_choice_info
+            )
         )
     else:
         shadow_pricing_buffers_choice = {}
@@ -1372,7 +1374,7 @@ def drop_breadcrumb(step_name, crumb, value=True):
     write_breadcrumbs(breadcrumbs)
 
 
-def run_multiprocess(injectables):
+def run_multiprocess(whale, injectables):
     """
     run the steps in run_list, possibly resuming after checkpoint specified by resume_after
 
@@ -1448,7 +1450,7 @@ def run_multiprocess(injectables):
 
     # combine shared_shadow_pricing_buffers to pool choices across all processes
     t0 = tracing.print_elapsed_time()
-    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice())
+    shared_data_buffers.update(allocate_shared_shadow_pricing_buffers_choice(whale))
     t0 = tracing.print_elapsed_time("allocate shared shadow_pricing choice buffer", t0)
     mem.trace_memory_info("allocate_shared_shadow_pricing_buffers_choice.completed")
 

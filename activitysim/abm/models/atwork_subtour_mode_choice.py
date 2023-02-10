@@ -5,27 +5,17 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import (
-    config,
-    expressions,
-    inject,
-    los,
-    pipeline,
-    simulate,
-    tracing,
-)
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
+from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
+from activitysim.core import config, expressions, inject, los, tracing, workflow
 from activitysim.core.util import assign_in_place
-
-from .util import estimation
-from .util.mode import run_tour_mode_choice_simulate
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
+@workflow.step
 def atwork_subtour_mode_choice(
-    tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
 ):
     """
     At-work subtour mode choice simulate
@@ -154,21 +144,17 @@ def atwork_subtour_mode_choice(
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-
         tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
         for mode, path_types in tvpb_mode_path_types.items():
-
             for direction, skim in zip(
                 ["od", "do"], [tvpb_logsum_odt, tvpb_logsum_dot]
             ):
-
                 path_type = path_types[direction]
                 skim_cache = skim.cache[path_type]
 
                 print(f"mode {mode} direction {direction} path_type {path_type}")
 
                 for c in skim_cache:
-
                     dest_col = f"{direction}_{c}"
 
                     if dest_col not in choices_df:
@@ -195,17 +181,18 @@ def atwork_subtour_mode_choice(
     )
 
     assign_in_place(tours, choices_df)
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     # - annotate tours table
     if model_settings.get("annotate_tours"):
         tours = inject.get_table("tours").to_frame()
         expressions.assign_columns(
+            whale,
             df=tours,
             model_settings=model_settings.get("annotate_tours"),
             trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
         )
-        pipeline.replace_table("tours", tours)
+        whale.add_table("tours", tours)
 
     if trace_hh_id:
         tracing.trace_df(

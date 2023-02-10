@@ -7,15 +7,7 @@ from activitysim.abm.models.util.trip import (
     generate_alternative_sizes,
     get_time_windows,
 )
-from activitysim.core import (
-    chunk,
-    config,
-    expressions,
-    inject,
-    pipeline,
-    simulate,
-    tracing,
-)
+from activitysim.core import chunk, config, expressions, simulate, tracing, workflow
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
 
 logger = logging.getLogger(__name__)
@@ -216,9 +208,15 @@ def get_spec_for_segment(model_settings, spec_name, segment):
 
 
 def run_trip_scheduling_choice(
-    spec, tours, skims, locals_dict, chunk_size, trace_hh_id, trace_label
+    whale: workflow.Whale,
+    spec,
+    tours,
+    skims,
+    locals_dict,
+    chunk_size,
+    trace_hh_id,
+    trace_label,
 ):
-
     NUM_TOUR_LEGS = 3
     trace_label = tracing.extend_trace_label(trace_label, "interaction_sample_simulate")
 
@@ -258,13 +256,11 @@ def run_trip_scheduling_choice(
     indirect_tours = tours.loc[tours[HAS_OB_STOPS] | tours[HAS_IB_STOPS]]
 
     if len(indirect_tours) > 0:
-
         # Iterate through the chunks
         result_list = []
         for i, choosers, chunk_trace_label in chunk.adaptive_chunked_choosers(
-            indirect_tours, chunk_size, trace_label
+            whale, indirect_tours, chunk_size, trace_label
         ):
-
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
             schedules = generate_schedule_alternatives(choosers).sort_index()
@@ -319,9 +315,10 @@ def run_trip_scheduling_choice(
     return tours
 
 
-@inject.step()
-def trip_scheduling_choice(trips, tours, skim_dict, chunk_size, trace_hh_id):
-
+@workflow.step
+def trip_scheduling_choice(
+    whale: workflow.Whale, trips, tours, skim_dict, chunk_size, trace_hh_id
+):
     trace_label = "trip_scheduling_choice"
     model_settings = config.read_model_settings("trip_scheduling_choice.yaml")
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", "stage_one")
@@ -378,6 +375,7 @@ def trip_scheduling_choice(trips, tours, skim_dict, chunk_size, trace_hh_id):
         simulate.set_skim_wrapper_targets(tours_df, skims)
 
         expressions.assign_columns(
+            whale,
             df=tours_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -385,7 +383,7 @@ def trip_scheduling_choice(trips, tours, skim_dict, chunk_size, trace_hh_id):
         )
 
     tours_df = run_trip_scheduling_choice(
-        spec, tours_df, skims, locals_dict, chunk_size, trace_hh_id, trace_label
+        whale, spec, tours_df, skims, locals_dict, chunk_size, trace_hh_id, trace_label
     )
 
-    pipeline.replace_table("tours", tours_df)
+    whale.add_table("tours", tours_df)

@@ -6,8 +6,8 @@ from builtins import object
 import numpy as np
 import pandas as pd
 
-from . import config, pipeline, tracing
-from .choosing import choice_maker
+from activitysim.core import config, tracing, workflow
+from activitysim.core.choosing import choice_maker
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +214,13 @@ def utils_to_probs(
     return probs
 
 
-def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=False):
+def make_choices(
+    whale: workflow.Whale,
+    probs,
+    trace_label=None,
+    trace_choosers=None,
+    allow_bad_probs=False,
+):
     """
     Make choices for each chooser from among a set of alternatives.
 
@@ -259,7 +265,7 @@ def make_choices(probs, trace_label=None, trace_choosers=None, allow_bad_probs=F
             trace_choosers=trace_choosers,
         )
 
-    rands = pipeline.get_rn_generator().random_for_df(probs)
+    rands = whale.get_rn_generator().random_for_df(probs)
 
     choices = pd.Series(choice_maker(probs.values, rands), index=probs.index)
 

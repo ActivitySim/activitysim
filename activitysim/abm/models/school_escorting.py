@@ -5,11 +5,10 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.abm.models.util import estimation, school_escort_tours_trips
+from activitysim.core import config, expressions, inject, simulate, tracing, workflow
 from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core.util import reindex
-
-from .util import estimation, school_escort_tours_trips
 
 logger = logging.getLogger(__name__)
 
@@ -326,9 +325,15 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
     return bundles
 
 
-@inject.step()
+@workflow.step
 def school_escorting(
-    households, households_merged, persons, tours, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    households,
+    households_merged,
+    persons,
+    tours,
+    chunk_size,
+    trace_hh_id,
 ):
     """
     school escorting model
@@ -362,7 +367,7 @@ def school_escorting(
     households_merged = households_merged.to_frame()
     tours = tours.to_frame()
 
-    alts = simulate.read_model_alts(model_settings["ALTS"], set_index="Alt")
+    alts = simulate.read_model_alts(whale, model_settings["ALTS"], set_index="Alt")
 
     households_merged, participant_columns = determine_escorting_participants(
         households_merged, persons, model_settings
@@ -388,7 +393,7 @@ def school_escorting(
             file_name=model_settings[stage.upper() + "_COEFFICIENTS"]
         )
         model_spec = simulate.eval_coefficients(
-            model_spec_raw, coefficients_df, estimator
+            whale, model_spec_raw, coefficients_df, estimator
         )
 
         # allow for skipping sharrow entirely in this model with `sharrow_skip: true`
@@ -426,6 +431,7 @@ def school_escorting(
         preprocessor_settings = model_settings.get("preprocessor_" + stage, None)
         if preprocessor_settings:
             expressions.assign_columns(
+                whale,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -441,6 +447,7 @@ def school_escorting(
         log_alt_losers = config.setting("log_alt_losers", False)
 
         choices = interaction_simulate(
+            whale,
             choosers=choosers,
             alternatives=alts,
             spec=model_spec,
@@ -514,14 +521,14 @@ def school_escorting(
     )
 
     # update pipeline
-    pipeline.replace_table("households", households)
-    pipeline.replace_table("tours", tours)
-    pipeline.get_rn_generator().drop_channel("tours")
-    pipeline.get_rn_generator().add_channel("tours", tours)
-    pipeline.replace_table("escort_bundles", escort_bundles)
+    whale.add_table("households", households)
+    whale.add_table("tours", tours)
+    whale.get_rn_generator().drop_channel("tours")
+    whale.get_rn_generator().add_channel("tours", tours)
+    whale.add_table("escort_bundles", escort_bundles)
     # save school escorting tours and trips in pipeline so we can overwrite results from downstream models
-    pipeline.replace_table("school_escort_tours", school_escort_tours)
-    pipeline.replace_table("school_escort_trips", school_escort_trips)
+    whale.add_table("school_escort_tours", school_escort_tours)
+    whale.add_table("school_escort_trips", school_escort_trips)
 
     # updating timetable object with pure escort tours so joint tours do not schedule ontop
     timetable = inject.get_injectable("timetable")

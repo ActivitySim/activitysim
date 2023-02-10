@@ -52,7 +52,9 @@ def data(data_name):
 
 
 def test_read_model_spec():
-    spec = assign.read_assignment_spec(config.config_file_path("assignment_spec.csv"))
+    spec = assign.read_assignment_spec(
+        whale.filesystem.get_config_file_path("assignment_spec.csv")
+    )
 
     assert len(spec) == 8
 
@@ -61,7 +63,9 @@ def test_read_model_spec():
 
 def test_assign_variables(capsys, data):
 
-    spec = assign.read_assignment_spec(config.config_file_path("assignment_spec.csv"))
+    spec = assign.read_assignment_spec(
+        whale.filesystem.get_config_file_path("assignment_spec.csv")
+    )
 
     locals_d = {"CONSTANT": 7, "_shadow": 99}
 
@@ -111,7 +115,7 @@ def test_assign_variables(capsys, data):
 def test_assign_variables_aliased(capsys, data):
 
     spec = assign.read_assignment_spec(
-        config.config_file_path("assignment_spec_alias_df.csv")
+        whale.filesystem.get_config_file_path("assignment_spec_alias_df.csv")
     )
 
     locals_d = {"CONSTANT": 7, "_shadow": 99}
@@ -156,7 +160,7 @@ def test_assign_variables_failing(capsys, data):
     tracing.config_logger(basic=True)
 
     spec = assign.read_assignment_spec(
-        config.config_file_path("assignment_spec_failing.csv")
+        whale.filesystem.get_config_file_path("assignment_spec_failing.csv")
     )
 
     locals_d = {

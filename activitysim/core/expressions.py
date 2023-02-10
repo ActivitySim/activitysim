@@ -2,7 +2,7 @@
 # See full license in LICENSE.txt.
 import logging
 
-from . import assign, config, simulate, tracing
+from . import assign, config, simulate, tracing, workflow
 from .util import assign_in_place, parse_suffix_args, suffix_expressions_df_str
 
 logger = logging.getLogger(__name__)
@@ -122,7 +122,9 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
     return results
 
 
-def assign_columns(whale, df, model_settings, locals_dict={}, trace_label=None):
+def assign_columns(
+    whale: workflow.Whale, df, model_settings, locals_dict={}, trace_label=None
+):
     """
     Evaluate expressions in context of df and assign resulting target columns to df
 

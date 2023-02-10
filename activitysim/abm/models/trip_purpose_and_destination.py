@@ -6,25 +6,30 @@ import pandas as pd
 
 from activitysim.abm.models.trip_destination import run_trip_destination
 from activitysim.abm.models.trip_purpose import run_trip_purpose
+from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.trip import (
     cleanup_failed_trips,
     flag_failed_trip_leg_mates,
 )
-from activitysim.core import config, inject, pipeline, tracing
+from activitysim.core import config, tracing, workflow
 from activitysim.core.util import assign_in_place
-
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 
 
+@workflow.func
 def run_trip_purpose_and_destination(
-    trips_df, tours_merged_df, chunk_size, trace_hh_id, trace_label
+    whale: workflow.Whale,
+    trips_df,
+    tours_merged_df,
+    chunk_size,
+    trace_hh_id,
+    trace_label,
 ):
-
     assert not trips_df.empty
 
     choices = run_trip_purpose(
+        whale,
         trips_df,
         estimator=None,
         chunk_size=chunk_size,
@@ -35,6 +40,7 @@ def run_trip_purpose_and_destination(
     trips_df["purpose"] = choices
 
     trips_df, save_sample_df = run_trip_destination(
+        whale,
         trips_df,
         tours_merged_df,
         estimator=None,
@@ -46,9 +52,10 @@ def run_trip_purpose_and_destination(
     return trips_df, save_sample_df
 
 
-@inject.step()
-def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
-
+@workflow.step
+def trip_purpose_and_destination(
+    whale: workflow.Whale, trips, tours_merged, chunk_size, trace_hh_id
+):
     trace_label = "trip_purpose_and_destination"
     model_settings = config.read_model_settings("trip_purpose_and_destination.yaml")
 
@@ -60,8 +67,7 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
         "DEST_CHOICE_SAMPLE_TABLE_NAME"
     )
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     MAX_ITERATIONS = model_settings.get("MAX_ITERATIONS", 5)
@@ -79,7 +85,6 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
 
     # if trip_destination has been run before, keep only failed trips (and leg_mates) to retry
     if "destination" in trips_df:
-
         if "failed" not in trips_df.columns:
             # trip_destination model cleaned up any failed trips
             logger.info("%s - no failed column from prior model run." % trace_label)
@@ -89,7 +94,7 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
             # 'failed' column but no failed trips from prior run of trip_destination
             logger.info("%s - no failed trips from prior model run." % trace_label)
             trips_df.drop(columns="failed", inplace=True)
-            pipeline.replace_table("trips", trips_df)
+            whale.add_table("trips", trips_df)
             return
 
         else:
@@ -102,11 +107,11 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
             logger.info("Rerunning %s failed trips and leg-mates" % trips_df.shape[0])
 
             # drop any previously saved samples of failed trips
-            if want_sample_table and pipeline.is_table(sample_table_name):
+            if want_sample_table and whale.is_table(sample_table_name):
                 logger.info("Dropping any previously saved samples of failed trips")
-                save_sample_df = pipeline.get_table(sample_table_name)
+                save_sample_df = whale.get_dataframe(sample_table_name)
                 save_sample_df.drop(trips_df.index, level="trip_id", inplace=True)
-                pipeline.replace_table(sample_table_name, save_sample_df)
+                whale.add_table(sample_table_name, save_sample_df)
                 del save_sample_df
 
     # if we estimated trip_destination, there should have been no failed trips
@@ -122,7 +127,6 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
     i = 0
     TRIP_RESULT_COLUMNS = ["purpose", "destination", "origin", "failed"]
     while True:
-
         i += 1
 
         for c in TRIP_RESULT_COLUMNS:
@@ -130,6 +134,7 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
                 del trips_df[c]
 
         trips_df, save_sample_df = run_trip_purpose_and_destination(
+            whale,
             trips_df,
             tours_merged_df,
             chunk_size=chunk_size,
@@ -139,7 +144,7 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
 
         # # if testing, make sure at least one trip fails
         if (
-            config.setting("testing_fail_trip_destination", False)
+            whale.settings.testing_fail_trip_destination
             and (i == 1)
             and not trips_df.failed.any()
         ):
@@ -202,7 +207,7 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
         logger.info(
             "adding %s samples to %s" % (len(save_sample_df), sample_table_name)
         )
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        whale.extend_table(sample_table_name, save_sample_df)
 
     logger.info(
         "%s %s failed trips after %s iterations"
@@ -214,14 +219,14 @@ def trip_purpose_and_destination(trips, tours_merged, chunk_size, trace_hh_id):
 
     trips_df = cleanup_failed_trips(trips_df)
 
-    pipeline.replace_table("trips", trips_df)
+    whale.add_table("trips", trips_df)
 
     # check to make sure we wrote sample file if requestsd
     if want_sample_table and len(trips_df) > 0:
-        assert pipeline.is_table(sample_table_name)
+        assert whale.is_table(sample_table_name)
         # since we have saved samples for all successful trips
         # once we discard failed trips, we should samples for all trips
-        save_sample_df = pipeline.get_table(sample_table_name)
+        save_sample_df = whale.get_dataframe(sample_table_name)
         # expect samples only for intermediate trip destinatinos
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(
             trips_df[trips_df.trip_num < trips_df.trip_count]

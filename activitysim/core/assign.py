@@ -7,7 +7,7 @@ from collections import OrderedDict
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, pipeline, util
+from activitysim.core import chunk, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +278,6 @@ def assign_variables(
             n_randoms += 1
             assignment_expressions.loc[expression_idx, "expression"] = expression
     if n_randoms:
-        from activitysim.core import pipeline
 
         try:
             random_draws = whale.get_rn_generator().normal_for_df(
@@ -345,7 +344,6 @@ def assign_variables(
             continue
 
         try:
-
             # FIXME - log any numpy warnings/errors but don't raise
             np_logger.target = str(target)
             np_logger.expression = str(expression)
@@ -398,7 +396,6 @@ def assign_variables(
         _locals_dict[target] = expr_values
 
     if trace_results is not None:
-
         trace_results = pd.DataFrame.from_dict(trace_results)
 
         trace_results.index = df[trace_rows].index
@@ -409,11 +406,11 @@ def assign_variables(
     assert variables, "No non-temp variables were assigned."
 
     if chunk_log:
-        chunk.log_df(trace_label, "temps", temps)
-        chunk.log_df(trace_label, "variables", variables)
+        chunk_log.log_df(trace_label, "temps", temps)
+        chunk_log.log_df(trace_label, "variables", variables)
         # these are going away - let caller log result df
-        chunk.log_df(trace_label, "temps", None)
-        chunk.log_df(trace_label, "variables", None)
+        chunk_log.log_df(trace_label, "temps", None)
+        chunk_log.log_df(trace_label, "variables", None)
 
     # we stored result in dict - convert to df
     variables = util.df_from_dict(variables, index=df.index)

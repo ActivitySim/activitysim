@@ -1,11 +1,11 @@
 import logging
-import pandas as pd
-import numpy as np
 import warnings
 
+import numpy as np
+import pandas as pd
+
 from activitysim.abm.models.util import canonical_ids
-from activitysim.core import pipeline
-from activitysim.core import inject
+from activitysim.core import inject, workflow
 from activitysim.core.util import reindex
 
 from ..school_escorting import NUM_ESCORTEES
@@ -394,10 +394,10 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     return tours
 
 
-def merge_school_escort_trips_into_pipeline():
-    school_escort_trips = pipeline.get_table("school_escort_trips")
-    tours = pipeline.get_table("tours")
-    trips = pipeline.get_table("trips")
+def merge_school_escort_trips_into_pipeline(whale: workflow.Whale):
+    school_escort_trips = whale.get_dataframe("school_escort_trips")
+    tours = whale.get_dataframe("tours")
+    trips = whale.get_dataframe("trips")
 
     # want to remove stops if school escorting takes place on that half tour so we can replace them with the actual stops
     out_se_tours = tours[
@@ -469,7 +469,7 @@ def merge_school_escort_trips_into_pipeline():
     trips["destination"] = trips["destination"].astype(int)
 
     # updating trip_id now that we have all trips
-    trips = canonical_ids.set_trip_index(trips)
+    trips = canonical_ids.set_trip_index(whale, trips)
     school_escort_trip_id_map = {
         v: k
         for k, v in trips.loc[
@@ -492,10 +492,10 @@ def merge_school_escort_trips_into_pipeline():
     trips.drop(columns="school_escort_trip_id", inplace=True)
 
     # replace trip table and pipeline and register with the random number generator
-    pipeline.replace_table("trips", trips)
+    whale.add_table("trips", trips)
     pipeline.get_rn_generator().drop_channel("trips")
     pipeline.get_rn_generator().add_channel("trips", trips)
-    pipeline.replace_table("school_escort_trips", school_escort_trips)
+    whale.add_table("school_escort_trips", school_escort_trips)
 
     # updating stop frequency in tours tabel to be consistent
     num_outbound_stops = (
@@ -510,7 +510,7 @@ def merge_school_escort_trips_into_pipeline():
     tours.loc[stop_freq.index, "stop_frequency"] = stop_freq
 
     # no need to reset random number generator since no tours added
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     return trips
 
@@ -528,7 +528,7 @@ def recompute_tour_count_statistics():
     tours["tour_num"] = grouped.cumcount() + 1
     tours["tour_count"] = tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
 
 def create_pure_school_escort_tours(bundles):

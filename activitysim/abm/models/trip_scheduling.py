@@ -7,12 +7,13 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util import probabilistic_scheduling as ps
+from activitysim.abm.models.util.school_escort_tours_trips import (
+    split_out_school_escorting_trips,
+)
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
-from activitysim.core import chunk, config, inject, logit, pipeline, tracing
+from activitysim.core import chunk, config, tracing, workflow
 from activitysim.core.util import reindex
-
-from .util.school_escort_tours_trips import split_out_school_escorting_trips
-from .util import probabilistic_scheduling as ps
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +153,7 @@ def update_tour_earliest(trips, outbound_choices):
 
 
 def schedule_trips_in_leg(
+    whale: workflow.Whale,
     outbound,
     trips,
     probs_spec,
@@ -164,6 +166,7 @@ def schedule_trips_in_leg(
 
     Parameters
     ----------
+    whale
     outbound
     trips
     probs_spec
@@ -234,7 +237,6 @@ def schedule_trips_in_leg(
 
     first_trip_in_leg = True
     for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
-
         if outbound or scheduling_mode == DURATION_MODE:
             # iterate in ascending trip_num order
             nth_trips = trips[trips.trip_num == i]
@@ -245,6 +247,7 @@ def schedule_trips_in_leg(
         nth_trace_label = tracing.extend_trace_label(trace_label, "num_%s" % i)
 
         choices = ps.make_scheduling_choices(
+            whale,
             nth_trips,
             scheduling_mode,
             probs_spec,
@@ -289,6 +292,7 @@ def schedule_trips_in_leg(
 
 
 def run_trip_scheduling(
+    whale: workflow.Whale,
     trips_chunk,
     tours,
     probs_spec,
@@ -299,7 +303,6 @@ def run_trip_scheduling(
     trace_hh_id,
     trace_label,
 ):
-
     set_tour_hour(trips_chunk, tours)
     set_stop_num(trips_chunk)
 
@@ -314,6 +317,7 @@ def run_trip_scheduling(
         leg_chunk = trips_chunk[trips_chunk.outbound]
         leg_trace_label = tracing.extend_trace_label(trace_label, "outbound")
         choices = schedule_trips_in_leg(
+            whale,
             outbound=True,
             trips=leg_chunk,
             probs_spec=probs_spec,
@@ -334,6 +338,7 @@ def run_trip_scheduling(
         leg_chunk = trips_chunk[~trips_chunk.outbound]
         leg_trace_label = tracing.extend_trace_label(trace_label, "inbound")
         choices = schedule_trips_in_leg(
+            whale,
             outbound=False,
             trips=leg_chunk,
             probs_spec=probs_spec,
@@ -351,9 +356,8 @@ def run_trip_scheduling(
     return choices
 
 
-@inject.step()
-def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
-
+@workflow.step
+def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id):
     """
     Trip scheduling assigns depart times for trips within the start, end limits of the tour.
 
@@ -406,8 +410,8 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
     trips_df = trips.to_frame()
     tours = tours.to_frame()
 
-    if pipeline.is_table("school_escort_trips"):
-        school_escort_trips = pipeline.get_table("school_escort_trips")
+    if whale.is_table("school_escort_trips"):
+        school_escort_trips = whale.get_dataframe("school_escort_trips")
         # separate out school escorting trips to exclude them from the model and estimation data bundle
         trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
             trips_df, school_escort_trips
@@ -438,7 +442,7 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
         estimator.write_choosers(trips_df[chooser_cols_for_estimation])
 
     probs_spec = pd.read_csv(
-        config.config_file_path("trip_scheduling_probs.csv"), comment="#"
+        whale.filesystem.get_config_file_path("trip_scheduling_probs.csv"), comment="#"
     )
     # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
     # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
@@ -465,13 +469,12 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
     ) in chunk.adaptive_chunked_choosers_by_chunk_id(
         trips_df, chunk_size, trace_label, trace_label
     ):
-
         i = 0
         while (i < max_iterations) and not trips_chunk.empty:
-
             # only chunk log first iteration since memory use declines with each iteration
-            with chunk.chunk_log(trace_label) if i == 0 else chunk.chunk_log_skip():
-
+            with chunk.chunk_log(
+                trace_label, settings=whale.settings
+            ) if i == 0 else chunk.chunk_log_skip():
                 i += 1
                 is_last_iteration = i == max_iterations
 
@@ -484,6 +487,7 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
                 )
 
                 choices = run_trip_scheduling(
+                    whale,
                     trips_chunk,
                     tours,
                     probs_spec,
@@ -509,7 +513,7 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
 
     trips_df = trips.to_frame()
 
-    if pipeline.is_table("school_escort_trips"):
+    if whale.is_table("school_escort_trips"):
         # separate out school escorting trips to exclude them from the model and estimation data bundle
         trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
             trips_df, school_escort_trips
@@ -546,7 +550,7 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
 
     trips_df["depart"] = choices
 
-    if pipeline.is_table("school_escort_trips"):
+    if whale.is_table("school_escort_trips"):
         # setting destination for school escort trips
         se_trips_df["depart"] = reindex(school_escort_trips.depart, se_trips_df.index)
         non_se_trips_df["depart"] = reindex(trips_df.depart, non_se_trips_df.index)
@@ -562,4 +566,4 @@ def trip_scheduling(trips, tours, chunk_size, trace_hh_id):
 
     assert not trips_df.depart.isnull().any()
 
-    pipeline.replace_table("trips", trips_df)
+    whale.add_table("trips", trips_df)

@@ -4,16 +4,14 @@ import logging
 
 import pandas as pd
 
+from activitysim.core import workflow
 from activitysim.core.input import read_input_table
-
-from ...core.pipeline import Whale
-from ...core.workflow import workflow_table
 
 logger = logging.getLogger(__name__)
 
 
-@workflow_table
-def accessibility(whale: Whale):
+@workflow.table
+def accessibility(whale: workflow.Whale):
     """
     If 'accessibility' is in input_tables list, then read it in,
     otherwise create skeleton table with same index as landuse.

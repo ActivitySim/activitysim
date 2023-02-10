@@ -8,11 +8,10 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from ..cli.create import get_example
-from ..cli.run import INJECTABLES, config, pipeline
-from ..core import inject, tracing
-from ..core.pipeline import Whale
-from . import workspace
+from activitysim.benchmarking import workspace
+from activitysim.cli.create import get_example
+from activitysim.cli.run import INJECTABLES, config
+from activitysim.core import inject, tracing
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, simulate, tracing
+from activitysim.core import config, expressions, simulate, tracing, workflow
 
 """
 At this time, these utilities are mostly for transforming the mode choice
@@ -83,6 +83,7 @@ def mode_choice_simulate(
 
 
 def run_tour_mode_choice_simulate(
+    whale: workflow.Whale,
     choosers,
     tour_purpose,
     model_settings,
@@ -106,7 +107,7 @@ def run_tour_mode_choice_simulate(
     spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients = simulate.get_segment_coefficients(model_settings, tour_purpose)
 
-    spec = simulate.eval_coefficients(spec, coefficients, estimator)
+    spec = simulate.eval_coefficients(whale, spec, coefficients, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)

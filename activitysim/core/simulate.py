@@ -11,8 +11,17 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-from . import assign, chunk, config, logit, pathbuilder, pipeline, tracing, util
-from .simulate_consts import (
+from activitysim.core import (
+    assign,
+    chunk,
+    config,
+    logit,
+    pathbuilder,
+    tracing,
+    util,
+    workflow,
+)
+from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
     SPEC_DESCRIPTION_NAME,
     SPEC_EXPRESSION_NAME,
@@ -22,11 +31,11 @@ from .simulate_consts import (
 logger = logging.getLogger(__name__)
 
 
-def random_rows(df, n):
+def random_rows(whale: workflow.Whale, df, n):
 
     # only sample if df has more than n rows
     if len(df.index) > n:
-        prng = pipeline.get_rn_generator().get_global_rng()
+        prng = whale.get_rn_generator().get_global_rng()
         return df.take(prng.choice(len(df), size=n, replace=False))
 
     else:
@@ -49,15 +58,15 @@ def uniquify_spec_index(spec):
     assert spec.index.is_unique
 
 
-def read_model_alts(file_name, set_index=None):
-    file_path = config.config_file_path(file_name)
+def read_model_alts(whale: workflow.Whale, file_name, set_index=None):
+    file_path = whale.filesystem.get_config_file_path(file_name)
     df = pd.read_csv(file_path, comment="#")
     if set_index:
         df.set_index(set_index, inplace=True)
     return df
 
 
-def read_model_spec(file_name):
+def read_model_spec(whale: workflow.Whale, file_name: str):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -93,7 +102,7 @@ def read_model_spec(file_name):
     if not file_name.lower().endswith(".csv"):
         file_name = "%s.csv" % (file_name,)
 
-    file_path = config.config_file_path(file_name)
+    file_path = whale.filesystem.get_config_file_path(file_name)
 
     try:
         spec = pd.read_csv(file_path, comment="#")
@@ -121,7 +130,7 @@ def read_model_spec(file_name):
     return spec
 
 
-def read_model_coefficients(model_settings=None, file_name=None):
+def read_model_coefficients(whale, model_settings=None, file_name=None):
     """
     Read the coefficient file specified by COEFFICIENTS model setting
     """
@@ -138,7 +147,7 @@ def read_model_coefficients(model_settings=None, file_name=None):
         file_name = model_settings["COEFFICIENTS"]
         logger.debug(f"read_model_coefficients file_name {file_name}")
 
-    file_path = config.config_file_path(file_name)
+    file_path = whale.filesystem.get_config_file_path(file_name)
     try:
         coefficients = pd.read_csv(file_path, comment="#", index_col="coefficient_name")
     except ValueError:
@@ -161,7 +170,10 @@ def read_model_coefficients(model_settings=None, file_name=None):
     return coefficients
 
 
-def spec_for_segment(model_settings, spec_id, segment_name, estimator):
+@workflow.func
+def spec_for_segment(
+    whale: workflow.Whale, model_settings, spec_id, segment_name, estimator
+):
     """
     Select spec for specified segment from omnibus spec containing columns for each segment
 
@@ -179,7 +191,7 @@ def spec_for_segment(model_settings, spec_id, segment_name, estimator):
     """
 
     spec_file_name = model_settings[spec_id]
-    spec = read_model_spec(file_name=spec_file_name)
+    spec = read_model_spec(whale, file_name=spec_file_name)
 
     if len(spec.columns) > 1:
         # if spec is segmented
@@ -203,14 +215,14 @@ def spec_for_segment(model_settings, spec_id, segment_name, estimator):
 
         return spec
 
-    coefficients = read_model_coefficients(model_settings)
+    coefficients = read_model_coefficients(whale, model_settings)
 
-    spec = eval_coefficients(spec, coefficients, estimator)
+    spec = eval_coefficients(whale, spec, coefficients, estimator)
 
     return spec
 
 
-def read_model_coefficient_template(model_settings):
+def read_model_coefficient_template(whale: workflow.Whale, model_settings):
     """
     Read the coefficient template specified by COEFFICIENT_TEMPLATE model setting
     """
@@ -223,7 +235,7 @@ def read_model_coefficient_template(model_settings):
 
     coefficients_file_name = model_settings["COEFFICIENT_TEMPLATE"]
 
-    file_path = config.config_file_path(coefficients_file_name)
+    file_path = whale.filesystem.get_config_file_path(coefficients_file_name)
     try:
         template = pd.read_csv(file_path, comment="#", index_col="coefficient_name")
     except ValueError:
@@ -250,13 +262,13 @@ def read_model_coefficient_template(model_settings):
     return template
 
 
-def dump_mapped_coefficients(model_settings):
+def dump_mapped_coefficients(whale: workflow.Whale, model_settings):
     """
     dump template_df with coefficient values
     """
 
-    coefficients_df = read_model_coefficients(model_settings)
-    template_df = read_model_coefficient_template(model_settings)
+    coefficients_df = read_model_coefficients(whale, model_settings)
+    template_df = read_model_coefficient_template(whale, model_settings)
 
     for c in template_df.columns:
         template_df[c] = template_df[c].map(coefficients_df.value)
@@ -272,7 +284,8 @@ def dump_mapped_coefficients(model_settings):
     logger.info(f"wrote raw coefficients to {file_path}")
 
 
-def get_segment_coefficients(model_settings, segment_name):
+@workflow.func
+def get_segment_coefficients(whale: workflow.Whale, model_settings, segment_name):
     """
     Return a dict mapping generic coefficient names to segment-specific coefficient values
 
@@ -325,7 +338,9 @@ def get_segment_coefficients(model_settings, segment_name):
 
     if legacy:
         constants = config.get_model_constants(model_settings)
-        legacy_coeffs_file_path = config.config_file_path(model_settings[legacy])
+        legacy_coeffs_file_path = whale.filesystem.get_config_file_path(
+            model_settings[legacy]
+        )
         omnibus_coefficients = pd.read_csv(
             legacy_coeffs_file_path, comment="#", index_col="coefficient_name"
         )
@@ -333,8 +348,8 @@ def get_segment_coefficients(model_settings, segment_name):
             omnibus_coefficients[segment_name], constants=constants
         )
     else:
-        coefficients_df = read_model_coefficients(model_settings)
-        template_df = read_model_coefficient_template(model_settings)
+        coefficients_df = read_model_coefficients(whale, model_settings)
+        template_df = read_model_coefficient_template(whale, model_settings)
         coefficients_col = (
             template_df[segment_name].map(coefficients_df.value).astype(float)
         )
@@ -380,7 +395,12 @@ def eval_nest_coefficients(nest_spec, coefficients, trace_label):
     return nest_spec
 
 
-def eval_coefficients(spec, coefficients, estimator):
+def eval_coefficients(
+    whale: workflow.Whale,
+    spec: pd.DataFrame,
+    coefficients: dict | pd.DataFrame,
+    estimator,
+):
 
     spec = spec.copy()  # don't clobber input spec
 
@@ -399,7 +419,7 @@ def eval_coefficients(spec, coefficients, estimator):
             spec[c].apply(lambda x: eval(str(x), {}, coefficients)).astype(np.float32)
         )
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = whale.settings.sharrow
     if sharrow_enabled:
         # keep all zero rows, reduces the number of unique flows to compile and store.
         return spec
@@ -418,6 +438,7 @@ def eval_coefficients(spec, coefficients, estimator):
 
 
 def eval_utilities(
+    whale,
     spec,
     choosers,
     locals_d=None,
@@ -475,7 +496,7 @@ def eval_utilities(
     """
     start_time = time.time()
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = whale.settings.sharrow
 
     expression_values = None
 
@@ -500,6 +521,7 @@ def eval_utilities(
         if locals_d is not None:
             locals_dict.update(locals_d)
         sh_util, sh_flow = apply_flow(
+            whale,
             spec_sh,
             choosers,
             locals_dict,
@@ -875,46 +897,47 @@ def set_skim_wrapper_targets(df, skims):
             pass
 
 
-def _check_for_variability(expression_values, trace_label):
-    """
-    This is an internal method which checks for variability in each
-    expression - under the assumption that you probably wouldn't be using a
-    variable (in live simulations) if it had no variability.  This is a
-    warning to the user that they might have constructed the variable
-    incorrectly.  It samples 1000 rows in order to not hurt performance -
-    it's likely that if 1000 rows have no variability, the whole dataframe
-    will have no variability.
-    """
-
-    if trace_label is None:
-        trace_label = "_check_for_variability"
-
-    sample = random_rows(expression_values, min(1000, len(expression_values)))
-
-    no_variability = has_missing_vals = 0
-    for i in range(len(sample.columns)):
-        v = sample.iloc[:, i]
-        if v.min() == v.max():
-            col_name = sample.columns[i]
-            logger.info(
-                "%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], col_name)
-            )
-            no_variability += 1
-        # FIXME - how could this happen? Not sure it is really a problem?
-        if np.count_nonzero(v.isnull().values) > 0:
-            col_name = sample.columns[i]
-            logger.info("%s: missing values in: %s" % (trace_label, col_name))
-            has_missing_vals += 1
-
-    if no_variability > 0:
-        logger.warning(
-            "%s: %s columns have no variability" % (trace_label, no_variability)
-        )
-
-    if has_missing_vals > 0:
-        logger.warning(
-            "%s: %s columns have missing values" % (trace_label, has_missing_vals)
-        )
+#
+# def _check_for_variability(expression_values, trace_label):
+#     """
+#     This is an internal method which checks for variability in each
+#     expression - under the assumption that you probably wouldn't be using a
+#     variable (in live simulations) if it had no variability.  This is a
+#     warning to the user that they might have constructed the variable
+#     incorrectly.  It samples 1000 rows in order to not hurt performance -
+#     it's likely that if 1000 rows have no variability, the whole dataframe
+#     will have no variability.
+#     """
+#
+#     if trace_label is None:
+#         trace_label = "_check_for_variability"
+#
+#     sample = random_rows(expression_values, min(1000, len(expression_values)))
+#
+#     no_variability = has_missing_vals = 0
+#     for i in range(len(sample.columns)):
+#         v = sample.iloc[:, i]
+#         if v.min() == v.max():
+#             col_name = sample.columns[i]
+#             logger.info(
+#                 "%s: no variability (%s) in: %s" % (trace_label, v.iloc[0], col_name)
+#             )
+#             no_variability += 1
+#         # FIXME - how could this happen? Not sure it is really a problem?
+#         if np.count_nonzero(v.isnull().values) > 0:
+#             col_name = sample.columns[i]
+#             logger.info("%s: missing values in: %s" % (trace_label, col_name))
+#             has_missing_vals += 1
+#
+#     if no_variability > 0:
+#         logger.warning(
+#             "%s: %s columns have no variability" % (trace_label, no_variability)
+#         )
+#
+#     if has_missing_vals > 0:
+#         logger.warning(
+#             "%s: %s columns have missing values" % (trace_label, has_missing_vals)
+#         )
 
 
 def compute_nested_exp_utilities(raw_utilities, nest_spec):
@@ -1100,12 +1123,13 @@ def eval_mnl(
     assert not want_logsums
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_mnl")
-    have_trace_targets = tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(whale, choosers)
 
     if have_trace_targets:
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     utilities = eval_utilities(
+        whale,
         spec,
         choosers,
         locals_d,
@@ -1145,7 +1169,7 @@ def eval_mnl(
             probs=probs, choosers=choosers, spec=spec, trace_label=trace_label
         )
     else:
-        choices, rands = logit.make_choices(probs, trace_label=trace_label)
+        choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
 
     del probs
     chunk.log_df(trace_label, "probs", None)
@@ -1211,7 +1235,7 @@ def eval_nl(
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_nl")
     assert trace_label
-    have_trace_targets = tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(whale, choosers)
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
@@ -1221,6 +1245,7 @@ def eval_nl(
     choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
 
     raw_utilities = eval_utilities(
+        whale,
         spec_sh,
         choosers,
         locals_d,
@@ -1314,7 +1339,9 @@ def eval_nl(
             trace_label=trace_label,
         )
     else:
-        choices, rands = logit.make_choices(base_probabilities, trace_label=trace_label)
+        choices, rands = logit.make_choices(
+            whale, base_probabilities, trace_label=trace_label
+        )
 
     del base_probabilities
     chunk.log_df(trace_label, "base_probabilities", None)
@@ -1476,7 +1503,7 @@ def simple_simulate(
     result_list = []
     # segment by person type and pick the right spec for each person type
     for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        choosers, chunk_size, trace_label
+        whale, choosers, chunk_size, trace_label
     ):
 
         choices = _simple_simulate(
@@ -1568,7 +1595,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     # FIXME - untested and not currently used by any models...
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_mnl_logsums")
-    have_trace_targets = tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(whale, choosers)
 
     logger.debug("running eval_mnl_logsums")
 
@@ -1577,7 +1604,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     utilities = eval_utilities(
-        spec, choosers, locals_d, trace_label, have_trace_targets
+        whale, spec, choosers, locals_d, trace_label, have_trace_targets
     )
     chunk.log_df(trace_label, "utilities", utilities)
 
@@ -1682,7 +1709,9 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
     return choosers, spec_sh
 
 
-def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
+def eval_nl_logsums(
+    whale: workflow.Whale, choosers, spec, nest_spec, locals_d, trace_label=None
+):
     """
     like eval_nl except return logsums instead of making choices
 
@@ -1693,7 +1722,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_nl_logsums")
-    have_trace_targets = tracing.has_trace_targets(choosers)
+    have_trace_targets = tracing.has_trace_targets(whale, choosers)
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
@@ -1704,6 +1733,7 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     raw_utilities = eval_utilities(
+        whale,
         spec_sh,
         choosers,
         locals_d,
@@ -1751,7 +1781,13 @@ def eval_nl_logsums(choosers, spec, nest_spec, locals_d, trace_label=None):
 
 
 def _simple_simulate_logsums(
-    choosers, spec, nest_spec, skims=None, locals_d=None, trace_label=None
+    whale: workflow.Whale,
+    choosers,
+    spec,
+    nest_spec,
+    skims=None,
+    locals_d=None,
+    trace_label=None,
 ):
     """
     like simple_simulate except return logsums instead of making choices
@@ -1769,13 +1805,15 @@ def _simple_simulate_logsums(
         logsums = eval_mnl_logsums(choosers, spec, locals_d, trace_label=trace_label)
     else:
         logsums = eval_nl_logsums(
-            choosers, spec, nest_spec, locals_d, trace_label=trace_label
+            whale, choosers, spec, nest_spec, locals_d, trace_label=trace_label
         )
 
     return logsums
 
 
+@workflow.func
 def simple_simulate_logsums(
+    whale: workflow.Whale,
     choosers,
     spec,
     nest_spec,
@@ -1799,17 +1837,22 @@ def simple_simulate_logsums(
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        choosers, chunk_size, trace_label, chunk_tag
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(
+        whale, choosers, chunk_size, trace_label, chunk_tag
     ):
 
         logsums = _simple_simulate_logsums(
-            chooser_chunk, spec, nest_spec, skims, locals_d, chunk_trace_label
+            whale, chooser_chunk, spec, nest_spec, skims, locals_d, chunk_trace_label
         )
 
         result_list.append(logsums)
 
-        chunk.log_df(trace_label, "result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         logsums = pd.concat(result_list)

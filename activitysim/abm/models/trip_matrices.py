@@ -7,13 +7,13 @@ import numpy as np
 import openmatrix as omx
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, los, pipeline
+from activitysim.core import config, expressions, los, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def write_trip_matrices(network_los):
+@workflow.step
+def write_trip_matrices(whale: workflow.Whale, network_los):
     """
     Write trip matrices step.
 
@@ -32,7 +32,7 @@ def write_trip_matrices(network_los):
 
     """
 
-    trips = inject.get_table("trips", None)
+    trips = whale.get("trips", None)
     if trips is None:
         # this step is a NOP if there is no trips table
         # this might legitimately happen if they comment out some steps to debug but still want write_tables
@@ -43,12 +43,12 @@ def write_trip_matrices(network_los):
         return
 
     model_settings = config.read_model_settings("write_trip_matrices.yaml")
-    trips_df = annotate_trips(trips, network_los, model_settings)
+    trips_df = annotate_trips(whale, trips, network_los, model_settings)
 
     if bool(model_settings.get("SAVE_TRIPS_TABLE")):
-        pipeline.replace_table("trips", trips_df)
+        whale.add_table("trips", trips_df)
 
-    if "parking_location" in config.setting("models"):
+    if "parking_location" in whale.settings.models:
         parking_settings = config.read_model_settings("parking_location_choice.yaml")
         parking_taz_col_name = parking_settings["ALT_DEST_COL_NAME"]
         if parking_taz_col_name in trips_df:
@@ -78,7 +78,7 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("destination")
 
         # use the land use table for the set of possible tazs
-        land_use = pipeline.get_table("land_use")
+        land_use = whale.get_dataframe("land_use")
         zone_index = land_use.index
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
@@ -98,10 +98,12 @@ def write_trip_matrices(network_los):
     elif network_los.zone_system == los.TWO_ZONE:  # maz trips written to taz matrices
         logger.info("aggregating trips two zone...")
         trips_df["otaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            whale.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
         )
         trips_df["dtaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
+            whale.get_dataframe("land_use")
+            .reindex(trips_df["destination"])
+            .TAZ.tolist()
         )
         aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
             numeric_only=True
@@ -120,7 +122,7 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
         try:
-            land_use_taz = pipeline.get_table("land_use_taz")
+            land_use_taz = whale.get_dataframe("land_use_taz")
         except (KeyError, RuntimeError):
             pass  # table missing, ignore
         else:
@@ -142,13 +144,14 @@ def write_trip_matrices(network_los):
     elif (
         network_los.zone_system == los.THREE_ZONE
     ):  # maz trips written to taz and tap matrices
-
         logger.info("aggregating trips three zone taz...")
         trips_df["otaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            whale.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
         )
         trips_df["dtaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
+            whale.get_dataframe("land_use")
+            .reindex(trips_df["destination"])
+            .TAZ.tolist()
         )
         aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
             numeric_only=True
@@ -167,7 +170,7 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
         try:
-            land_use_taz = pipeline.get_table("land_use_taz")
+            land_use_taz = whale.get_dataframe("land_use_taz")
         except (KeyError, RuntimeError):
             pass  # table missing, ignore
         else:
@@ -215,7 +218,10 @@ def write_trip_matrices(network_los):
         )
 
 
-def annotate_trips(trips, network_los, model_settings):
+@workflow.func
+def annotate_trips(
+    whale: workflow.Whale, trips: pd.DataFrame, network_los, model_settings
+):
     """
     Add columns to local trips table. The annotator has
     access to the origin/destination skims and everything
@@ -225,7 +231,7 @@ def annotate_trips(trips, network_los, model_settings):
     TABLES in the preprocessor settings.
     """
 
-    trips_df = trips.to_frame()
+    trips_df = trips
 
     trace_label = "trip_matrices"
 
@@ -263,7 +269,7 @@ def annotate_trips(trips, network_los, model_settings):
 
     if hh_weight_col and hh_weight_col not in trips_df:
         logger.info("adding '%s' from households to trips table" % hh_weight_col)
-        household_weights = pipeline.get_table("households")[hh_weight_col]
+        household_weights = whale.get_dataframe("households")[hh_weight_col]
         trips_df[hh_weight_col] = trips_df.household_id.map(household_weights)
 
     return trips_df

@@ -5,29 +5,22 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import (
-    config,
-    expressions,
-    inject,
-    logit,
-    pipeline,
-    simulate,
-    tracing,
+from activitysim.abm.models.util import annotate, estimation
+from activitysim.abm.models.util.overlap import person_max_window
+from activitysim.abm.models.util.school_escort_tours_trips import (
+    recompute_tour_count_statistics,
 )
+from activitysim.abm.models.util.tour_frequency import process_non_mandatory_tours
+from activitysim.core import config, expressions, logit, simulate, tracing, workflow
 from activitysim.core.interaction_simulate import interaction_simulate
-
-from .util import estimation
-from .util import annotate
-from .util.school_escort_tours_trips import recompute_tour_count_statistics
-
-from .util.overlap import person_max_window
-from .util.tour_frequency import process_non_mandatory_tours
 
 logger = logging.getLogger(__name__)
 
 
-def extension_probs():
-    f = config.config_file_path("non_mandatory_tour_frequency_extension_probs.csv")
+def extension_probs(whale: workflow.Whale):
+    f = whale.filesystem.get_config_file_path(
+        "non_mandatory_tour_frequency_extension_probs.csv"
+    )
     df = pd.read_csv(f, comment="#")
 
     # convert cum probs to individual probs
@@ -37,7 +30,9 @@ def extension_probs():
     return df
 
 
-def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_label):
+def extend_tour_counts(
+    whale: workflow.Whale, persons, tour_counts, alternatives, trace_hh_id, trace_label
+):
     """
     extend tour counts based on a probability table
 
@@ -86,10 +81,11 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
         logger.info("extend_tour_counts - no persons eligible for tour_count extension")
         return tour_counts
 
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(extend_tour_counts)
+    have_trace_targets = trace_hh_id and tracing.has_trace_targets(
+        whale, extend_tour_counts
+    )
 
     for i, tour_type in enumerate(alternatives.columns):
-
         i_tour_type = i + 1  # (probs_spec nonmandatory_tour_type column is 1-based)
         tour_type_trace_label = tracing.extend_trace_label(trace_label, tour_type)
 
@@ -113,6 +109,7 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
 
         # - random choice of extension magnitude based on relative probs
         choices, rands = logit.make_choices(
+            whale,
             choosers[PROBABILITY_COLUMNS],
             trace_label=tour_type_trace_label,
             trace_choosers=choosers,
@@ -137,8 +134,10 @@ def extend_tour_counts(persons, tour_counts, alternatives, trace_hh_id, trace_la
     return tour_counts
 
 
-@inject.step()
-def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_id):
+@workflow.step
+def non_mandatory_tour_frequency(
+    whale: workflow.Whale, persons, persons_merged, chunk_size, trace_hh_id
+):
     """
     This model predicts the frequency of making non-mandatory trips
     (alternatives for this model come from a separate csv file which is
@@ -154,7 +153,7 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
     # FIXME kind of tacky both that we know to add this here and del it below
     # 'tot_tours' is used in model_spec expressions
     alternatives = simulate.read_model_alts(
-        "non_mandatory_tour_frequency_alternatives.csv", set_index=None
+        whale, "non_mandatory_tour_frequency_alternatives.csv", set_index=None
     )
     alternatives["tot_tours"] = alternatives.sum(axis=1)
 
@@ -165,10 +164,10 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_dict = {"person_max_window": person_max_window}
 
         expressions.assign_columns(
+            whale,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -185,7 +184,6 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
     # segment by person type and pick the right spec for each person type
     choices_list = []
     for segment_settings in spec_segments:
-
         segment_name = segment_settings["NAME"]
         ptype = segment_settings["PTYPE"]
 
@@ -208,7 +206,7 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
         coefficients_df = simulate.read_model_coefficients(segment_settings)
         segment_spec = simulate.eval_coefficients(
-            segment_spec, coefficients_df, estimator
+            whale, segment_spec, coefficients_df, estimator
         )
 
         if estimator:
@@ -238,6 +236,7 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
         log_alt_losers = config.setting("log_alt_losers", False)
 
         choices = interaction_simulate(
+            whale,
             chooser_segment,
             alternatives,
             spec=segment_spec,
@@ -342,7 +341,6 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
 
     if estimator:
-
         # make sure they created the right tours
         survey_tours = estimation.manager.get_survey_table("tours").sort_index()
         non_mandatory_survey_tours = survey_tours[
@@ -374,12 +372,12 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
         assert not tours_differ.any()
 
-    pipeline.extend_table("tours", non_mandatory_tours)
+    whale.extend_table("tours", non_mandatory_tours)
 
     tracing.register_traceable_table("tours", non_mandatory_tours)
-    pipeline.get_rn_generator().add_channel("tours", non_mandatory_tours)
+    whale.get_rn_generator().add_channel("tours", non_mandatory_tours)
 
-    if pipeline.is_table("school_escort_tours"):
+    if whale.is_table("school_escort_tours"):
         # need to re-compute tour frequency statistics to account for school escort tours
         recompute_tour_count_statistics()
 
@@ -387,12 +385,13 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
         annotate.annotate_tours(model_settings, trace_label)
 
     expressions.assign_columns(
+        whale,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         trace_label=trace_label,
     )
 
-    pipeline.replace_table("persons", persons)
+    whale.add_table("persons", persons)
 
     tracing.print_summary(
         "non_mandatory_tour_frequency",

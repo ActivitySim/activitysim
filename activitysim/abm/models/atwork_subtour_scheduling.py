@@ -5,22 +5,29 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate
+from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util.vectorize_tour_scheduling import (
+    vectorize_subtour_scheduling,
+)
+from activitysim.core import config, expressions, inject, simulate
 from activitysim.core import timetable as tt
-from activitysim.core import tracing
+from activitysim.core import tracing, workflow
 from activitysim.core.util import assign_in_place
-
-from .util import estimation
-from .util.vectorize_tour_scheduling import vectorize_subtour_scheduling
 
 logger = logging.getLogger(__name__)
 
 DUMP = False
 
 
-@inject.step()
+@workflow.step
 def atwork_subtour_scheduling(
-    tours, persons_merged, tdd_alts, skim_dict, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    tours,
+    persons_merged,
+    tdd_alts,
+    skim_dict,
+    chunk_size,
+    trace_hh_id,
 ):
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
@@ -43,7 +50,9 @@ def atwork_subtour_scheduling(
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     sharrow_skip = model_settings.get("sharrow_skip")
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     persons_merged = persons_merged.to_frame()
 
@@ -96,7 +105,7 @@ def atwork_subtour_scheduling(
     )
 
     assign_in_place(tours, tdd_choices)
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     if trace_hh_id:
         tracing.trace_df(

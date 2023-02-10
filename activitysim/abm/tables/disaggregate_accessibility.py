@@ -8,9 +8,7 @@ import pandas as pd
 import pandas.api.types as ptypes
 from sklearn.naive_bayes import CategoricalNB
 
-from activitysim.core import config, inject, input, pipeline, util
-
-from ...core.workflow import workflow_cached_object, workflow_step, workflow_table
+from activitysim.core import config, inject, input, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -84,13 +82,13 @@ def find_nearest_accessibility_zone(choosers, accessibility_df, method="skims"):
     return matched_df.loc[_idx]
 
 
-@workflow_cached_object
-def disaggregate_suffixes(whale):
+@workflow.cached_object
+def disaggregate_suffixes(whale: workflow.Whale):
     return {"SUFFIX": None, "ROOTS": []}
 
 
-@workflow_table
-def maz_centroids(whale):
+@workflow.table
+def maz_centroids(whale: workflow.Whale):
     df = input.read_input_table(whale, "maz_centroids")
 
     if not df.index.is_monotonic_increasing:
@@ -104,9 +102,8 @@ def maz_centroids(whale):
     return df
 
 
-@workflow_table
-def proto_disaggregate_accessibility(whale):
-
+@workflow.table
+def proto_disaggregate_accessibility(whale: workflow.Whale):
     # Read existing accessibilities, but is not required to enable model compatibility
     df = input.read_input_table(
         whale, "proto_disaggregate_accessibility", required=False
@@ -128,8 +125,8 @@ def proto_disaggregate_accessibility(whale):
     return df
 
 
-@workflow_table
-def disaggregate_accessibility(whale):
+@workflow.table
+def disaggregate_accessibility(whale: workflow.Whale):
     """
     This step initializes pre-computed disaggregate accessibility and merges it onto the full synthetic population.
     Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.

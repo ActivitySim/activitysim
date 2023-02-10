@@ -5,13 +5,13 @@ import logging
 import numpy as np
 import pandas as pd
 
-from ...core.workflow import workflow_cached_object
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
 
-@workflow_cached_object
-def size_terms(whale):
+@workflow.cached_object
+def size_terms(whale: workflow.Whale):
     f = whale.filesystem.get_config_file_path("destination_choice_size_terms.csv")
     return pd.read_csv(f, comment="#", index_col="segment")
 

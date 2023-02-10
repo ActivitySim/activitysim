@@ -56,7 +56,7 @@ def tdd_alts():
 
 def test_basic(persons, tdd_alts):
 
-    with chunk.chunk_log("test_basic", base=True):
+    with chunk.chunk_log("test_basic", base=True, settings=whale.settings):
 
         person_windows = tt.create_timetable_windows(persons, tdd_alts)
 

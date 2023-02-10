@@ -2,15 +2,16 @@
 # See full license in LICENSE.txt.
 import logging
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
-
-from .util import estimation
+from activitysim.abm.models.util import estimation
+from activitysim.core import config, expressions, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def free_parking(persons_merged, persons, chunk_size, trace_hh_id):
+@workflow.step
+def free_parking(
+    whale: workflow.Whale, persons_merged, persons, chunk_size, trace_hh_id
+):
     """ """
 
     trace_label = "free_parking"
@@ -28,12 +29,12 @@ def free_parking(persons_merged, persons, chunk_size, trace_hh_id):
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            whale,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
@@ -42,7 +43,9 @@ def free_parking(persons_merged, persons, chunk_size, trace_hh_id):
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
@@ -79,7 +82,7 @@ def free_parking(persons_merged, persons, chunk_size, trace_hh_id):
         choices.reindex(persons.index).fillna(0).astype(bool)
     )
 
-    pipeline.replace_table("persons", persons)
+    whale.add_table("persons", persons)
 
     tracing.print_summary(
         "free_parking", persons.free_parking_at_work, value_counts=True

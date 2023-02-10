@@ -5,9 +5,8 @@ import logging
 
 import pandas as pd
 
-from ...core import inject, pipeline, tracing
-from ...core.input import read_input_table
-from ...core.workflow import workflow_table
+from activitysim.core import inject, tracing, workflow
+from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +22,8 @@ def read_raw_persons(whale, households):
     return df
 
 
-@workflow_table
-def persons(whale):
+@workflow.table
+def persons(whale: workflow.Whale):
     households = whale.get_dataframe("households")
     trace_hh_id = whale.settings.trace_hh_id
     df = read_raw_persons(whale, households)
@@ -93,8 +92,8 @@ def persons(whale):
 #     return inject.merge_tables(persons.name, tables=tables)
 
 
-@workflow_table
-def persons_merged(whale):
+@workflow.table
+def persons_merged(whale: workflow.Whale):
 
     land_use = whale.get_dataframe("land_use")
     households = whale.get_dataframe("households")
@@ -102,34 +101,37 @@ def persons_merged(whale):
     persons = whale.get_dataframe("persons")
     disaggregate_accessibility = whale.get_dataframe("disaggregate_accessibility")
 
-    households = pd.merge(
+    def join(left, right, left_on):
+        intersection = set(left.columns).intersection(right.columns)
+        intersection.discard(left_on)  # intersection is ok if it's the join key
+        right = right.drop(intersection, axis=1)
+        return pd.merge(
+            left,
+            right,
+            left_on=left_on,
+            right_index=True,
+        )
+
+    households = join(
         households,
         land_use,
         left_on="home_zone_id",
-        right_index=True,
-        suffixes=("_households", "_land_use"),
     )
-    households = pd.merge(
+    households = join(
         households,
         accessibility,
         left_on="home_zone_id",
-        right_index=True,
-        suffixes=("_households", "_accessibility"),
     )
-    persons = pd.merge(
+    persons = join(
         persons,
         households,
         left_on="household_id",
-        right_index=True,
-        suffixes=("_persons", "_households"),
     )
     if not disaggregate_accessibility.empty:
-        persons = pd.merge(
+        persons = join(
             persons,
             disaggregate_accessibility,
             left_on="person_id",
-            right_index=True,
-            suffixes=("_persons", "_disaggregate_accessibility"),
         )
 
     return persons

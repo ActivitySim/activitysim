@@ -18,6 +18,7 @@ from activitysim.core import (
     pathbuilder_cache,
     simulate,
     tracing,
+    workflow,
 )
 from activitysim.core.pathbuilder_cache import memo
 from activitysim.core.util import reindex
@@ -36,6 +37,7 @@ CACHE_TAG = "tap_tap_utilities"
 
 
 def compute_utilities(
+    whale: workflow.Whale,
     network_los,
     model_settings,
     choosers,
@@ -49,8 +51,7 @@ def compute_utilities(
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_utils")
 
-    with chunk.chunk_log(trace_label):
-
+    with chunk.chunk_log(trace_label, settings=whale.settings):
         logger.debug(
             f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers"
         )
@@ -67,11 +68,11 @@ def compute_utilities(
         # - run preprocessor to annotate choosers
         preprocessor_settings = model_settings.get("PREPROCESSOR")
         if preprocessor_settings:
-
             # don't want to alter caller's dataframe
             choosers = choosers.copy()
 
             expressions.assign_columns(
+                whale,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -79,6 +80,7 @@ def compute_utilities(
             )
 
         utilities = simulate.eval_utilities(
+            whale,
             spec,
             choosers,
             locals_d=locals_dict,
@@ -96,7 +98,6 @@ class TransitVirtualPathBuilder(object):
     """
 
     def __init__(self, network_los):
-
         self.network_los = network_los
 
         self.uid_calculator = pathbuilder_cache.TapTapUidCalculator(network_los)
@@ -146,10 +147,9 @@ class TransitVirtualPathBuilder(object):
     def compute_maz_tap_utilities(
         self, recipe, maz_od_df, chooser_attributes, leg, mode, trace_label, trace
     ):
-
         trace_label = tracing.extend_trace_label(trace_label, f"maz_tap_utils.{leg}")
 
-        with chunk.chunk_log(trace_label):
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             maz_tap_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.maz_tap_settings.{mode}"
             )
@@ -195,7 +195,6 @@ class TransitVirtualPathBuilder(object):
             chunk.log_df(trace_label, "utilities_df", utilities_df)
 
             if self.units_for_recipe(recipe) == "utility":
-
                 utilities_df[leg] = compute_utilities(
                     self.network_los,
                     maz_tap_settings,
@@ -209,9 +208,10 @@ class TransitVirtualPathBuilder(object):
                 chunk.log_df(trace_label, "utilities_df", utilities_df)  # annotated
 
             else:
-
                 assignment_spec = assign.read_assignment_spec(
-                    file_name=config.config_file_path(maz_tap_settings["SPEC"])
+                    file_name=whale.filesystem.get_config_file_path(
+                        maz_tap_settings["SPEC"]
+                    )
                 )
 
                 results, _, _ = assign.assign_variables(
@@ -233,7 +233,6 @@ class TransitVirtualPathBuilder(object):
     def all_transit_paths(
         self, access_df, egress_df, chooser_attributes, trace_label, trace
     ):
-
         trace_label = tracing.extend_trace_label(trace_label, "all_transit_paths")
 
         # deduped transit_df has one row per chooser for each boarding (btap) and alighting (atap) pair
@@ -295,8 +294,7 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_utils")
 
-        with chunk.chunk_log(trace_label):
-
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -320,7 +318,6 @@ class TransitVirtualPathBuilder(object):
 
             # deduplicate transit_df to unique_transit_df
             with memo("#TVPB compute_tap_tap_utilities deduplicate transit_df"):
-
                 attribute_segments = self.network_los.setting(
                     "TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.attribute_segments"
                 )
@@ -392,7 +389,6 @@ class TransitVirtualPathBuilder(object):
 
             # redupe unique_transit_df back into transit_df
             with memo("#TVPB compute_tap_tap_utilities redupe transit_df"):
-
                 # idx = transit_df.index
                 transit_df = pd.merge(
                     transit_df, unique_utilities_df, left_on="uid", right_index=True
@@ -453,8 +449,7 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "lookup_tap_tap_utils")
 
-        with chunk.chunk_log(trace_label):
-
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             with memo("#TVPB CACHE lookup_tap_tap_utilities all_transit_paths"):
                 transit_df = self.all_transit_paths(
                     access_df, egress_df, chooser_attributes, trace_label, trace=False
@@ -522,11 +517,9 @@ class TransitVirtualPathBuilder(object):
         trace_label,
         trace,
     ):
-
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_time")
 
-        with chunk.chunk_log(trace_label):
-
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -547,12 +540,13 @@ class TransitVirtualPathBuilder(object):
             locals_dict.update(model_constants)
 
             assignment_spec = assign.read_assignment_spec(
-                file_name=config.config_file_path(tap_tap_settings["SPEC"])
+                file_name=whale.filesystem.get_config_file_path(
+                    tap_tap_settings["SPEC"]
+                )
             )
 
             DEDUPE = True
             if DEDUPE:
-
                 # assign uid for reduping
                 max_atap = transit_df.atap.max() + 1
                 transit_df["uid"] = transit_df.btap * max_atap + transit_df.atap
@@ -621,9 +615,7 @@ class TransitVirtualPathBuilder(object):
         trace_label,
         trace,
     ):
-
         if self.units_for_recipe(recipe) == "utility":
-
             if not self.tap_cache.is_open:
                 with memo("#TVPB compute_tap_tap tap_cache.open"):
                     self.tap_cache.open()
@@ -675,11 +667,9 @@ class TransitVirtualPathBuilder(object):
         trace_label,
         trace=False,
     ):
-
         trace_label = tracing.extend_trace_label(trace_label, "best_paths")
 
-        with chunk.chunk_log(trace_label):
-
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             path_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.path_types.{path_type}"
             )
@@ -771,7 +761,6 @@ class TransitVirtualPathBuilder(object):
         trace=False,
         override_choices=None,
     ):
-
         trace_label = tracing.extend_trace_label(trace_label, "build_virtual_path")
 
         # Tracing is implemented as a seperate, second call that operates ONLY on filter_targets
@@ -921,7 +910,6 @@ class TransitVirtualPathBuilder(object):
         chunk.log_df(trace_label, "transit_df", None)
 
         if units == "utility":
-
             # logsums
             with memo("#TVPB build_virtual_path logsums"):
                 # one row per seq with utilities in columns
@@ -980,12 +968,10 @@ class TransitVirtualPathBuilder(object):
                             )
 
             if want_choices:
-
                 # orig index to identify appropriate random number channel to use making choices
                 utilities_df.index = orig.index
 
                 with memo("#TVPB build_virtual_path make_choices"):
-
                     probs = logit.utils_to_probs(
                         utilities_df, allow_zero_probs=True, trace_label=trace_label
                     )
@@ -1000,9 +986,8 @@ class TransitVirtualPathBuilder(object):
                         probs["choices"] = choices
                         self.trace_df(probs, trace_label, "probs")
                     else:
-
                         choices, rands = logit.make_choices(
-                            probs, allow_bad_probs=True, trace_label=trace_label
+                            whale, probs, allow_bad_probs=True, trace_label=trace_label
                         )
 
                         chunk.log_df(trace_label, "rands", rands)
@@ -1031,7 +1016,6 @@ class TransitVirtualPathBuilder(object):
                 logsum_df["logsum"] = logsums
 
             else:
-
                 assert len(logsums) == len(orig)
                 logsum_df = pd.DataFrame({"logsum": logsums}, index=orig.index)
 
@@ -1080,13 +1064,11 @@ class TransitVirtualPathBuilder(object):
         recipe="tour_mode_choice",
         trace_label=None,
     ):
-
         # assume they have given us a more specific name (since there may be more than one active wrapper)
         trace_label = trace_label or "get_tvpb_logsum"
         trace_label = tracing.extend_trace_label(trace_label, path_type)
 
-        with chunk.chunk_log(trace_label):
-
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             logsum_df = self.build_virtual_path(
                 recipe,
                 path_type,
@@ -1124,14 +1106,13 @@ class TransitVirtualPathBuilder(object):
         return logsum_df
 
     def get_tvpb_best_transit_time(self, orig, dest, tod):
-
         # FIXME lots of pathological knowledge here as we are only called by accessibility directly from expressions
 
         trace_label = tracing.extend_trace_label("accessibility.tvpb_best_time", tod)
         recipe = "accessibility"
         path_type = "WTW"
 
-        with chunk.chunk_log(trace_label):
+        with chunk.chunk_log(trace_label, settings=whale.settings):
             result = self.build_virtual_path(
                 recipe,
                 path_type,
@@ -1173,7 +1154,6 @@ class TransitVirtualPathBuilder(object):
         trace_label=None,
         tag=None,
     ):
-
         return TransitVirtualPathLogsumWrapper(
             self,
             orig_key,
@@ -1204,7 +1184,6 @@ class TransitVirtualPathLogsumWrapper(object):
         trace_label,
         tag,
     ):
-
         self.tvpb = pathbuilder
         assert hasattr(pathbuilder, "get_tvpb_logsum")
 
@@ -1309,7 +1288,6 @@ class TransitVirtualPathLogsumWrapper(object):
         )
 
         if (self.cache_choices) and (not all(logsum_df["logsum"] == UNAVAILABLE)):
-
             # not tested on duplicate index because not currently needed
             # caching strategy does not require unique indexes but care would need to be taken to maintain alignment
             assert not orig.index.duplicated().any()

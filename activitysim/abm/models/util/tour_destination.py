@@ -5,13 +5,12 @@ import logging
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, inject, los, pipeline, simulate, tracing
+from activitysim.core import config, inject, los, simulate, tracing, workflow
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
-
-from . import logsums as logsum
 
 logger = logging.getLogger(__name__)
 DUMP = False
@@ -25,7 +24,6 @@ class SizeTermCalculator(object):
     """
 
     def __init__(self, size_term_selector):
-
         # do this once so they can request size_terms for various segments (tour_type or purpose)
         land_use = inject.get_table("land_use")
         size_terms = inject.get_injectable("size_terms")
@@ -78,7 +76,6 @@ def _destination_sample(
     trace_label,
     zone_layer=None,
 ):
-
     model_spec = simulate.spec_for_segment(
         model_settings,
         spec_id="SAMPLE_SPEC",
@@ -112,6 +109,7 @@ def _destination_sample(
     log_alt_losers = config.setting("log_alt_losers", False)
 
     choices = interaction_sample(
+        whale,
         choosers,
         alternatives=destination_size_terms,
         sample_size=sample_size,
@@ -146,7 +144,6 @@ def destination_sample(
     chunk_size,
     trace_label,
 ):
-
     chunk_tag = "tour_destination.sample"
 
     # create wrapper with keys for this lookup
@@ -229,7 +226,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
     return MAZ_size_terms, TAZ_size_terms
 
 
-def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
+def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_label):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
     choose MAZ probabilistically (proportionally by size_term) from set of MAZ zones in parent TAZ
@@ -252,7 +249,7 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     # 542963          59  0.008628           1      13243
 
     trace_hh_id = inject.get_injectable("trace_hh_id", None)
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(taz_sample)
+    have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
 
@@ -364,7 +361,7 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
     assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
 
-    rands = pipeline.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+    rands = whale.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
     rands = rands.reshape(-1, 1)
     assert len(rands) == num_choosers * taz_sample_size
     assert len(rands) == maz_probs.shape[0]
@@ -382,7 +379,6 @@ def choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label):
     taz_choices["prob"] = taz_choices["TAZ_prob"] * taz_choices["MAZ_prob"]
 
     if have_trace_targets:
-
         taz_choices_trace_targets = tracing.trace_targets(
             taz_choices, slicer=CHOOSER_ID
         )
@@ -469,7 +465,6 @@ def destination_presample(
     chunk_size,
     trace_label,
 ):
-
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "tour_destination.presample"
 
@@ -508,7 +503,7 @@ def destination_presample(
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = choose_MAZ_for_TAZ(taz_sample, MAZ_size_terms, trace_label)
+    maz_choices = choose_MAZ_for_TAZ(whale, taz_sample, MAZ_size_terms, trace_label)
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
@@ -527,7 +522,6 @@ def run_destination_sample(
     chunk_size,
     trace_label,
 ):
-
     # FIXME - MEMORY HACK - only include columns actually used in spec (omit them pre-merge)
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
 
@@ -561,7 +555,6 @@ def run_destination_sample(
         )
 
     if pre_sample_taz:
-
         logger.info(
             "Running %s destination_presample with %d tours" % (trace_label, len(tours))
         )
@@ -652,6 +645,7 @@ def run_destination_logsums(
     tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
     logsums = logsum.compute_logsums(
+        whale,
         choosers,
         tour_purpose,
         logsum_settings,
@@ -792,7 +786,6 @@ def run_tour_destination(
     trace_label,
     skip_choice=False,
 ):
-
     size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
 
     # maps segment names to compact (integer) ids
@@ -807,7 +800,6 @@ def run_tour_destination(
     choices_list = []
     sample_list = []
     for segment_name in segments:
-
         segment_trace_label = tracing.extend_trace_label(trace_label, segment_name)
 
         if chooser_segment_column is not None:

@@ -4,15 +4,14 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
-
-from .util import estimation
-from .util.tour_frequency import process_mandatory_tours
+from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util.tour_frequency import process_mandatory_tours
+from activitysim.core import config, expressions, inject, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-def add_null_results(trace_label, mandatory_tour_frequency_settings):
+def add_null_results(whale, trace_label, mandatory_tour_frequency_settings):
     logger.info("Skipping %s: add_null_results", trace_label)
 
     persons = inject.get_table("persons").to_frame()
@@ -23,19 +22,22 @@ def add_null_results(trace_label, mandatory_tour_frequency_settings):
     tours["tour_type"] = None
     tours["person_id"] = None
     tours.index.name = "tour_id"
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     expressions.assign_columns(
+        whale,
         df=persons,
         model_settings=mandatory_tour_frequency_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 
-    pipeline.replace_table("persons", persons)
+    whale.add_table("persons", persons)
 
 
-@inject.step()
-def mandatory_tour_frequency(persons_merged, chunk_size, trace_hh_id):
+@workflow.step
+def mandatory_tour_frequency(
+    whale: workflow.Whale, persons_merged, chunk_size, trace_hh_id
+):
     """
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.
@@ -52,16 +54,16 @@ def mandatory_tour_frequency(persons_merged, chunk_size, trace_hh_id):
 
     # - if no mandatory tours
     if choosers.shape[0] == 0:
-        add_null_results(trace_label, model_settings)
+        add_null_results(whale, trace_label, model_settings)
         return
 
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_dict = {}
 
         expressions.assign_columns(
+            whale,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -72,7 +74,9 @@ def mandatory_tour_frequency(persons_merged, chunk_size, trace_hh_id):
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -112,7 +116,7 @@ def mandatory_tour_frequency(persons_merged, chunk_size, trace_hh_id):
     the same as got non_mandatory_tours except trip types are "work" and "school"
     """
     alternatives = simulate.read_model_alts(
-        "mandatory_tour_frequency_alternatives.csv", set_index="alt"
+        whale, "mandatory_tour_frequency_alternatives.csv", set_index="alt"
     )
     choosers["mandatory_tour_frequency"] = choices.reindex(choosers.index)
 
@@ -120,9 +124,9 @@ def mandatory_tour_frequency(persons_merged, chunk_size, trace_hh_id):
         persons=choosers, mandatory_tour_frequency_alts=alternatives
     )
 
-    tours = pipeline.extend_table("tours", mandatory_tours)
+    tours = whale.extend_table("tours", mandatory_tours)
     tracing.register_traceable_table("tours", mandatory_tours)
-    pipeline.get_rn_generator().add_channel("tours", mandatory_tours)
+    whale.get_rn_generator().add_channel("tours", mandatory_tours)
 
     # - annotate persons
     persons = inject.get_table("persons").to_frame()
@@ -133,12 +137,13 @@ def mandatory_tour_frequency(persons_merged, chunk_size, trace_hh_id):
     )
 
     expressions.assign_columns(
+        whale,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 
-    pipeline.replace_table("persons", persons)
+    whale.add_table("persons", persons)
 
     tracing.print_summary(
         "mandatory_tour_frequency", persons.mandatory_tour_frequency, value_counts=True

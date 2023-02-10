@@ -6,21 +6,15 @@ import numpy as np
 import pandas as pd
 from orca import orca
 
-from activitysim.core import (
-    config,
-    expressions,
-    inject,
-    logit,
-    los,
-    pipeline,
-    simulate,
-    tracing,
+from activitysim.abm.models.util import (
+    annotate,
+    estimation,
+    school_escort_tours_trips,
+    trip,
 )
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
+from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
+from activitysim.core import config, inject, logit, los, simulate, tracing, workflow
 from activitysim.core.util import assign_in_place, reindex
-
-from .util import estimation, trip, annotate, school_escort_tours_trips
-from .util.mode import run_tour_mode_choice_simulate
 
 logger = logging.getLogger(__name__)
 
@@ -129,8 +123,9 @@ def append_tour_leg_trip_mode_choice_logsums(tours):
     return tours
 
 
+@workflow.func
 def get_trip_mc_logsums_for_all_modes(
-    tours, segment_column_name, model_settings, trace_label
+    whale: workflow.Whale, tours, segment_column_name, model_settings, trace_label
 ):
     """Creates pseudo-trips from tours and runs trip mode choice to get logsums
 
@@ -154,9 +149,9 @@ def get_trip_mc_logsums_for_all_modes(
     )
 
     # temporarily register trips in the pipeline
-    pipeline.replace_table("trips", logsum_trips)
+    whale.add_table("trips", logsum_trips)
     tracing.register_traceable_table("trips", logsum_trips)
-    pipeline.get_rn_generator().add_channel("trips", logsum_trips)
+    whale.get_rn_generator().add_channel("trips", logsum_trips)
 
     # run trip mode choice on pseudo-trips. use orca instead of pipeline to
     # execute the step because pipeline can only handle one open step at a time
@@ -166,15 +161,15 @@ def get_trip_mc_logsums_for_all_modes(
     tours = append_tour_leg_trip_mode_choice_logsums(tours)
 
     # de-register logsum trips table
-    pipeline.get_rn_generator().drop_channel("trips")
+    whale.get_rn_generator().drop_channel("trips")
     tracing.deregister_traceable_table("trips")
 
     return tours
 
 
-@inject.step()
+@workflow.step
 def tour_mode_choice_simulate(
-    tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
 ):
     """
     Tour mode choice simulate
@@ -278,7 +273,7 @@ def tour_mode_choice_simulate(
 
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (i.e. tour mode choice logsum creation)
-    if pipeline.get_rn_generator().step_name != "tour_mode_choice_simulate":
+    if whale.get_rn_generator().step_name != "tour_mode_choice_simulate":
         estimator = None
     else:
         estimator = estimation.manager.begin_estimation("tour_mode_choice")
@@ -311,7 +306,6 @@ def tour_mode_choice_simulate(
     for tour_purpose, tours_segment in primary_tours_merged.groupby(
         segment_column_name
     ):
-
         logger.info(
             "tour_mode_choice_simulate tour_type '%s' (%s tours)"
             % (
@@ -354,22 +348,18 @@ def tour_mode_choice_simulate(
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-
         tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
         if tvpb_mode_path_types is not None:
             for mode, path_types in tvpb_mode_path_types.items():
-
                 for direction, skim in zip(
                     ["od", "do"], [tvpb_logsum_odt, tvpb_logsum_dot]
                 ):
-
                     path_type = path_types[direction]
                     skim_cache = skim.cache[path_type]
 
                     print(f"mode {mode} direction {direction} path_type {path_type}")
 
                     for c in skim_cache:
-
                         dest_col = f"{direction}_{c}"
 
                         if dest_col not in choices_df:
@@ -403,7 +393,7 @@ def tour_mode_choice_simulate(
     all_tours = tours.to_frame()
     assign_in_place(all_tours, choices_df)
 
-    if pipeline.is_table("school_escort_tours") & model_settings.get(
+    if whale.is_table("school_escort_tours") & model_settings.get(
         "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
     ):
         all_tours = (
@@ -412,7 +402,7 @@ def tour_mode_choice_simulate(
             )
         )
 
-    pipeline.replace_table("tours", all_tours)
+    whale.add_table("tours", all_tours)
 
     # - annotate tours table
     if model_settings.get("annotate_tours"):

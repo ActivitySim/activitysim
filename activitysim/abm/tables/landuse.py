@@ -3,16 +3,14 @@
 import io
 import logging
 
-from activitysim.core import config, inject
+from activitysim.core import inject, workflow
 from activitysim.core.input import read_input_table
-
-from ...core.workflow import workflow_table
 
 logger = logging.getLogger(__name__)
 
 
-@workflow_table
-def land_use(whale):
+@workflow.table
+def land_use(whale: workflow.Whale):
     df = read_input_table(whale, "land_use")
 
     sharrow_enabled = whale.settings.sharrow
@@ -40,9 +38,8 @@ def land_use(whale):
 inject.broadcast("land_use", "households", cast_index=True, onto_on="home_zone_id")
 
 
-@workflow_table
-def land_use_taz(whale):
-
+@workflow.table
+def land_use_taz(whale: workflow.Whale):
     df = read_input_table(whale, "land_use_taz")
 
     if not df.index.is_monotonic_increasing:
@@ -54,6 +51,6 @@ def land_use_taz(whale):
     logger.debug("land_use_taz.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
-    whale.tableset.store_data("land_use_taz", df)
+    whale.add_table("land_use_taz", df)
 
     return df

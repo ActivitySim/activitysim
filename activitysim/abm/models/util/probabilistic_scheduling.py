@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, logit, pipeline, simulate, tracing
+from activitysim.core import chunk, logit, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -222,6 +222,7 @@ def _postprocess_scheduling_choices(
 
 
 def make_scheduling_choices(
+    whale: workflow.Whale,
     choosers_df,
     scheduling_mode,
     probs_spec,
@@ -267,7 +268,7 @@ def make_scheduling_choices(
     ).set_index(choosers_df.index.name)
     chunk.log_df(trace_label, "choosers", choosers)
 
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
+    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     # different pre-processing is required based on the scheduling mode
@@ -284,17 +285,17 @@ def make_scheduling_choices(
 
     chunk.log_df(trace_label, "chooser_probs", chooser_probs)
 
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
+    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
         tracing.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
 
     raw_choices, rands = logit.make_choices(
-        chooser_probs, trace_label=trace_label, trace_choosers=choosers
+        whale, chooser_probs, trace_label=trace_label, trace_choosers=choosers
     )
 
     chunk.log_df(trace_label, "choices", raw_choices)
     chunk.log_df(trace_label, "rands", rands)
 
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
+    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
         tracing.trace_df(
             raw_choices,
             "%s.choices" % trace_label,
@@ -324,7 +325,7 @@ def make_scheduling_choices(
         )
 
     # trace before removing failures
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
+    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
         tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_col_name]
         )

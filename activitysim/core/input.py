@@ -3,12 +3,11 @@
 
 import logging
 import os
-import warnings
 
 import pandas as pd
 
-from ..core import inject, util
-from ..core.configuration import FileSystem, InputTable, Settings
+from activitysim.core import util, workflow
+from activitysim.core.configuration import InputTable
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +19,7 @@ def canonical_table_index_name(table_name):
     return table_index_names and table_index_names.get(table_name, None)
 
 
-def read_input_table(whale, tablename, required=True):
+def read_input_table(whale: workflow.Whale, tablename, required=True):
     """Reads input table name and returns cleaned DataFrame.
 
     Uses settings found in input_table_list in global settings file

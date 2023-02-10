@@ -5,17 +5,18 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
-
-from .util import estimation
-from .util.overlap import hh_time_window_overlap
-from .util.tour_frequency import process_joint_tours
+from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util.overlap import hh_time_window_overlap
+from activitysim.abm.models.util.tour_frequency import process_joint_tours
+from activitysim.core import config, expressions, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
+@workflow.step
+def joint_tour_frequency(
+    whale: workflow.Whale, households, persons, chunk_size, trace_hh_id
+):
     """
     This model predicts the frequency of making fully joint trips (see the
     alternatives above).
@@ -28,7 +29,7 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
     model_settings = config.read_model_settings(model_settings_file_name)
 
     alternatives = simulate.read_model_alts(
-        "joint_tour_frequency_alternatives.csv", set_index="alt"
+        whale, "joint_tour_frequency_alternatives.csv", set_index="alt"
     )
 
     # - only interested in households with more than one cdap travel_active person and
@@ -49,22 +50,24 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_dict = {
             "persons": persons,
             "hh_time_window_overlap": hh_time_window_overlap,
         }
 
         expressions.assign_columns(
+            whale,
             df=multi_person_households,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -110,10 +113,10 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
 
     joint_tours = process_joint_tours(choices, alternatives, temp_point_persons)
 
-    tours = pipeline.extend_table("tours", joint_tours)
+    tours = whale.extend_table("tours", joint_tours)
 
-    tracing.register_traceable_table("tours", joint_tours)
-    pipeline.get_rn_generator().add_channel("tours", joint_tours)
+    tracing.register_traceable_table(whale, "tours", joint_tours)
+    whale.get_rn_generator().add_channel("tours", joint_tours)
 
     # - annotate households
 
@@ -131,7 +134,7 @@ def joint_tour_frequency(households, persons, chunk_size, trace_hh_id):
         .astype(np.int8)
     )
 
-    pipeline.replace_table("households", households)
+    whale.add_table("households", households)
 
     tracing.print_summary(
         "joint_tour_frequency", households.joint_tour_frequency, value_counts=True

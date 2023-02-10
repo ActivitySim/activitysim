@@ -14,7 +14,8 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from ..core.workflow.steps import workflow_cached_object, workflow_step
+from activitysim.core import workflow
+
 from . import config
 
 # Configurations
@@ -177,7 +178,7 @@ def config_logger(basic=False, whale=None):
         log_config_file = None
     else:
         if whale is None:
-            log_config_file = config.config_file_path(
+            log_config_file = whale.filesystem.get_config_file_path(
                 LOGGING_CONF_FILE_NAME, mandatory=False
             )
         else:
@@ -256,8 +257,8 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.info("%s summary:\n%s" % (label, df.describe()))
 
 
-@workflow_step(inplace=True)
-def initialize_traceable_tables(whale):
+@workflow.step
+def initialize_traceable_tables(whale: workflow.Whale):
 
     whale.set("traceable_table_ids", {})
 
@@ -538,15 +539,15 @@ def get_trace_target(whale, df, slicer, column=None):
 
     Parameters
     ----------
+    whale : Whale
     df: pandas.DataFrame
         dataframe to slice
     slicer: str
         name of column or index to use for slicing
+    column : Any
 
     Returns
     -------
-    (target, column) tuple
-
     target : int or list of ints
         id or ids that identify tracer target rows
     column : str
@@ -589,7 +590,8 @@ def get_trace_target(whale, df, slicer, column=None):
     return target_ids, column
 
 
-def trace_targets(whale, df, slicer=None, column=None):
+@workflow.func
+def trace_targets(whale: workflow.Whale, df, slicer=None, column=None):
 
     target_ids, column = get_trace_target(whale, df, slicer, column)
 
@@ -606,9 +608,10 @@ def trace_targets(whale, df, slicer=None, column=None):
     return targets
 
 
-def has_trace_targets(df, slicer=None, column=None):
+@workflow.func
+def has_trace_targets(whale: workflow.Whale, df, slicer=None, column=None):
 
-    target_ids, column = get_trace_target(df, slicer, column)
+    target_ids, column = get_trace_target(whale, df, slicer, column)
 
     if target_ids is None:
         found = False

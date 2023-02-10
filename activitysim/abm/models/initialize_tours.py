@@ -7,7 +7,7 @@ import warnings
 import pandas as pd
 
 from activitysim.abm.models.util import tour_frequency as tf
-from activitysim.core import config, expressions, inject, pipeline, tracing
+from activitysim.core import config, expressions, inject, tracing, workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -74,12 +74,13 @@ def patch_tour_ids(tours):
     return patched_tours
 
 
-@inject.step()
-def initialize_tours(network_los, households, persons, trace_hh_id):
-
+@workflow.step
+def initialize_tours(
+    whale: workflow.Whale, network_los, households, persons, trace_hh_id
+):
     trace_label = "initialize_tours"
 
-    tours = read_input_table("tours")
+    tours = read_input_table(whale, "tours")
 
     # FIXME can't use households_sliced injectable as flag like persons table does in case of resume_after.
     # FIXME could just always slice...
@@ -95,6 +96,7 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
     # annotate before patching tour_id to allow addition of REQUIRED_TOUR_COLUMNS defined above
     model_settings = config.read_model_settings("initialize_tours.yaml", mandatory=True)
     expressions.assign_columns(
+        whale,
         df=tours,
         model_settings=model_settings.get("annotate_tours"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
@@ -110,7 +112,7 @@ def initialize_tours(network_los, households, persons, trace_hh_id):
     # replace table function with dataframe
     inject.add_table("tours", tours)
 
-    pipeline.get_rn_generator().add_channel("tours", tours)
+    whale.get_rn_generator().add_channel("tours", tours)
 
     tracing.register_traceable_table("tours", tours)
 

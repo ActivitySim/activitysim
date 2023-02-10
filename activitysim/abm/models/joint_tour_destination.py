@@ -4,7 +4,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, inject, pipeline, simulate, tracing
+from activitysim.core import config, inject, tracing, workflow
 from activitysim.core.util import assign_in_place
 
 from .util import estimation, tour_destination
@@ -12,11 +12,16 @@ from .util import estimation, tour_destination
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
+@workflow.step
 def joint_tour_destination(
-    tours, persons_merged, households_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    tours,
+    persons_merged,
+    households_merged,
+    network_los,
+    chunk_size,
+    trace_hh_id,
 ):
-
     """
     Given the tour generation from the above, each tour needs to have a
     destination, so in this case tours are the choosers (with the associated
@@ -85,7 +90,7 @@ def joint_tour_destination(
     # add column as we want joint_tours table for tracing.
     joint_tours["destination"] = choices_df.choice
     assign_in_place(tours, joint_tours[["destination"]])
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     if want_logsums:
         joint_tours[logsum_column_name] = choices_df["logsum"]
@@ -96,7 +101,7 @@ def joint_tour_destination(
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
         tracing.trace_df(joint_tours, label="joint_tour_destination.joint_tours")

@@ -4,13 +4,13 @@ import logging
 import os
 import warnings
 
-import pandas as pd
-
-from ...core import chunk, config, expressions, inject, mem, pipeline, tracing
-from ...core.pipeline import Whale
-from ...core.steps.output import track_skim_usage, write_data_dictionary, write_tables
-from ...core.workflow import workflow_step
-from ..tables import disaggregate_accessibility, shadow_pricing
+from activitysim.abm.tables import disaggregate_accessibility, shadow_pricing
+from activitysim.core import chunk, config, expressions, inject, tracing, workflow
+from activitysim.core.steps.output import (
+    track_skim_usage,
+    write_data_dictionary,
+    write_tables,
+)
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
@@ -29,12 +29,12 @@ DEFAULT_TABLE_LIST = [
 logger = logging.getLogger(__name__)
 
 
-def annotate_tables(whale, model_settings, trace_label, chunk_sizer):
+def annotate_tables(whale: workflow.Whale, model_settings, trace_label, chunk_sizer):
     """
 
     Parameters
     ----------
-    whale : Whale
+    whale : workflow.Whale
     model_settings :
     trace_label : str
     chunk_sizer : ChunkSizer
@@ -100,8 +100,8 @@ def annotate_tables(whale, model_settings, trace_label, chunk_sizer):
         chunk_sizer.log_df(trace_label, tablename, None)
 
 
-@workflow_step
-def initialize_landuse(whale):
+@workflow.step
+def initialize_landuse(whale: workflow.Whale):
     """
     Initialize the land use table.
 
@@ -130,8 +130,8 @@ def initialize_landuse(whale):
         chunk_sizer.log_df(trace_label, "accessibility", accessibility)
 
 
-@workflow_step
-def initialize_households(whale):
+@workflow.step
+def initialize_households(whale: workflow.Whale):
     trace_label = "initialize_households"
 
     with whale.chunk_log(trace_label, base=True) as chunk_sizer:

@@ -2,24 +2,18 @@
 # See full license in LICENSE.txt.
 import logging
 
-import pandas as pd
-
-from activitysim.core import config, inject, pipeline, simulate, tracing
-from activitysim.core.interaction_sample import interaction_sample
-from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
+from activitysim.abm.models.util import estimation, tour_destination
+from activitysim.core import config, inject, tracing, workflow
 from activitysim.core.util import assign_in_place
-
-from .util import estimation, tour_destination
 
 logger = logging.getLogger(__name__)
 DUMP = False
 
 
-@inject.step()
+@workflow.step
 def atwork_subtour_destination(
-    tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
 ):
-
     trace_label = "atwork_subtour_destination"
     model_settings_file_name = "atwork_subtour_destination.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
@@ -95,7 +89,7 @@ def atwork_subtour_destination(
         subtours[logsum_column_name] = choices_df["logsum"]
         assign_in_place(tours, subtours[[logsum_column_name]])
 
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     tracing.print_summary(
         destination_column_name, subtours[destination_column_name], describe=True
@@ -104,7 +98,7 @@ def atwork_subtour_destination(
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
         tracing.trace_df(

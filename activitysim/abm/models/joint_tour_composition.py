@@ -4,22 +4,23 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
-
-from .util import estimation
-from .util.overlap import hh_time_window_overlap
+from activitysim.abm.models.util import estimation
+from activitysim.abm.models.util.overlap import hh_time_window_overlap
+from activitysim.core import config, expressions, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-def add_null_results(trace_label, tours):
+def add_null_results(whale, trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
     tours["composition"] = ""
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
 
-@inject.step()
-def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
+@workflow.step
+def joint_tour_composition(
+    whale: workflow.Whale, tours, households, persons, chunk_size, trace_hh_id
+):
     """
     This model predicts the makeup of the travel party (adults, children, or mixed).
     """
@@ -31,7 +32,7 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
 
     # - if no joint tours
     if joint_tours.shape[0] == 0:
-        add_null_results(trace_label, tours)
+        add_null_results(whale, trace_label, tours)
         return
 
     model_settings = config.read_model_settings(model_settings_file_name)
@@ -51,13 +52,13 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
     # - run preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_dict = {
             "persons": persons,
             "hh_time_window_overlap": hh_time_window_overlap,
         }
 
         expressions.assign_columns(
+            whale,
             df=households,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -71,7 +72,9 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
     # - simple_simulate
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -107,7 +110,7 @@ def joint_tour_composition(tours, households, persons, chunk_size, trace_hh_id):
 
     # reindex since we ran model on a subset of households
     tours["composition"] = choices.reindex(tours.index).fillna("").astype(str)
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     tracing.print_summary(
         "joint_tour_composition", joint_tours.composition, value_counts=True

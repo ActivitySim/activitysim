@@ -146,7 +146,7 @@ class OffsetMapper(object):
         return offsets
 
 
-class SkimDict(object):
+class SkimDict:
     """
     A SkimDict object is a wrapper around a dict of multiple skim objects,
     where each object is identified by a key.
@@ -154,7 +154,7 @@ class SkimDict(object):
     Note that keys are either strings or tuples of two strings (to support stacking of skims.)
     """
 
-    def __init__(self, skim_tag, skim_info, skim_data):
+    def __init__(self, whale, skim_tag, skim_info, skim_data):
 
         logger.info(f"SkimDict init {skim_tag}")
 
@@ -162,8 +162,8 @@ class SkimDict(object):
         self.skim_info = skim_info
         self.usage = set()  # track keys of skims looked up
 
-        self.offset_mapper = (
-            self._offset_mapper()
+        self.offset_mapper = self._offset_mapper(
+            whale
         )  # (in function so subclass can override)
 
         self.omx_shape = skim_info.omx_shape
@@ -184,7 +184,7 @@ class SkimDict(object):
             f"SkimDict.build_3d_skim_block_offset_table registered {len(self.skim_dim3)} 3d keys"
         )
 
-    def _offset_mapper(self):
+    def _offset_mapper(self, whale):
         """
         Return an OffsetMapper to set self.offset_mapper for use with skims
         This allows subclasses (e.g. MazSkimDict) to 'tweak' the parent offset mapper.
@@ -671,7 +671,7 @@ class MazSkimDict(SkimDict):
         )
         self.sparse_key_usage = set()
 
-    def _offset_mapper(self):
+    def _offset_mapper(self, whale):
         """
         return an OffsetMapper to map maz zone_ids to taz skim indexes
         Specifically, an offset_series with MAZ zone_id index and TAZ skim array offset values
@@ -684,13 +684,13 @@ class MazSkimDict(SkimDict):
         """
 
         # use taz offset_mapper to create series mapping directly from MAZ to TAZ skim index
-        taz_offset_mapper = super()._offset_mapper()
-        maz_taz = self.network_los.get_maz_to_taz_series
+        taz_offset_mapper = super()._offset_mapper(whale)
+        maz_taz = self.network_los.get_maz_to_taz_series(whale)
         maz_to_skim_offset = taz_offset_mapper.map(maz_taz)
 
         if isinstance(maz_to_skim_offset, np.ndarray):
             maz_to_skim_offset = pd.Series(
-                maz_to_skim_offset, self.network_los.get_maz_to_taz_series.index
+                maz_to_skim_offset, self.network_los.get_maz_to_taz_series(whale).index
             )  # bug
 
         # MAZ

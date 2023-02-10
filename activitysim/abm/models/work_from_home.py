@@ -5,13 +5,15 @@ import logging
 import numpy as np
 
 from activitysim.abm.models.util import estimation
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.core import config, expressions, simulate, tracing, workflow
 
 logger = logging.getLogger("activitysim")
 
 
-@inject.step()
-def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
+@workflow.step
+def work_from_home(
+    whale: workflow.Whale, persons_merged, persons, chunk_size, trace_hh_id
+):
     """
     This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).
@@ -38,19 +40,19 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            whale,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
 
     nest_spec = config.get_logit_model_settings(model_settings)
@@ -77,7 +79,6 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     )
 
     for iteration in range(iterations):
-
         logger.info(
             "Running %s with %d persons iteration %d",
             trace_label,
@@ -86,8 +87,10 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
         )
 
         # re-read spec to reset substitution
-        model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-        model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+        model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
+        model_spec = simulate.eval_coefficients(
+            whale, model_spec, coefficients_df, estimator
+        )
 
         choices = simulate.simple_simulate(
             choosers=choosers,
@@ -169,7 +172,7 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
             persons.work_from_home == True, -1, persons[dest_choice_column_name]
         )
 
-    pipeline.replace_table("persons", persons)
+    whale.add_table("persons", persons)
 
     tracing.print_summary("work_from_home", persons.work_from_home, value_counts=True)
 

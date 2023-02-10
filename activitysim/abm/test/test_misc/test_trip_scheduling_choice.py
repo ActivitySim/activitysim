@@ -4,7 +4,7 @@ import pytest
 
 from activitysim.abm.models import trip_scheduling_choice as tsc
 from activitysim.abm.tables.skims import skim_dict
-from activitysim.core import los
+from activitysim.core import los, workflow
 
 from .setup_utils import setup_dirs
 
@@ -167,13 +167,15 @@ def test_two_way_stop_patterns(tours):
     assert set(output_columns).issubset(windows.columns)
 
 
-def test_run_trip_scheduling_choice(model_spec, tours, skims, locals_dict):
+def test_run_trip_scheduling_choice(
+    whale: workflow.Whale, model_spec, tours, skims, locals_dict
+):
     """
     Test run the model.
     """
 
     out_tours = tsc.run_trip_scheduling_choice(
-        model_spec, tours, skims, locals_dict, 2, None, "PyTest Trip Scheduling"
+        whale, model_spec, tours, skims, locals_dict, 2, None, "PyTest Trip Scheduling"
     )
 
     assert len(tours) == len(out_tours)

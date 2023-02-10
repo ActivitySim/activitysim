@@ -4,19 +4,23 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, inject, pipeline, simulate, tracing
-from activitysim.core.util import assign_in_place
-
-from .util import estimation, tour_od
+from activitysim.abm.models.util import estimation, tour_od
+from activitysim.core import config, inject, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
+@workflow.step
 def tour_od_choice(
-    tours, persons, households, land_use, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    tours,
+    persons,
+    households,
+    land_use,
+    network_los,
+    chunk_size,
+    trace_hh_id,
 ):
-
     """Simulates joint origin/destination choice for all tours.
 
     Given a set of previously generated tours, each tour needs to have an
@@ -82,6 +86,7 @@ def tour_od_choice(
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_od.run_tour_od(
+        whale,
         tours,
         persons,
         want_logsums,
@@ -134,13 +139,13 @@ def tour_od_choice(
     households["home_zone_id"] = households[origin_col_name]
     persons["home_zone_id"] = persons[origin_col_name]
 
-    pipeline.replace_table("tours", tours)
-    pipeline.replace_table("persons", persons)
-    pipeline.replace_table("households", households)
+    whale.add_table("tours", tours)
+    whale.add_table("persons", persons)
+    whale.add_table("households", households)
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
         tracing.trace_df(

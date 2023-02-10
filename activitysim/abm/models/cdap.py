@@ -4,16 +4,17 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.abm.models.util import cdap, estimation
+from activitysim.core import config, expressions, inject, simulate, tracing, workflow
 from activitysim.core.util import reindex
-
-from .util import cdap, estimation
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
+@workflow.step
+def cdap_simulate(
+    whale: workflow.Whale, persons_merged, persons, households, chunk_size, trace_hh_id
+):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
     high-level activity pattern for each person, in a coordinated way with other
@@ -38,7 +39,7 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
 
     coefficients_df = simulate.read_model_coefficients(model_settings)
     cdap_indiv_spec = simulate.eval_coefficients(
-        cdap_indiv_spec, coefficients_df, estimator
+        whale, cdap_indiv_spec, coefficients_df, estimator
     )
 
     # Rules and coefficients for generating interaction specs for different household sizes
@@ -46,7 +47,8 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
         "INTERACTION_COEFFICIENTS", "cdap_interaction_coefficients.csv"
     )
     cdap_interaction_coefficients = pd.read_csv(
-        config.config_file_path(interaction_coefficients_file_name), comment="#"
+        whale.filesystem.get_config_file_path(interaction_coefficients_file_name),
+        comment="#",
     )
 
     # replace cdap_interaction_coefficients coefficient labels with numeric values
@@ -152,21 +154,23 @@ def cdap_simulate(persons_merged, persons, households, chunk_size, trace_hh_id):
     persons["cdap_activity"] = choices
 
     expressions.assign_columns(
+        whale,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 
-    pipeline.replace_table("persons", persons)
+    whale.add_table("persons", persons)
 
     # - annotate households table
     households = households.to_frame()
     expressions.assign_columns(
+        whale,
         df=households,
         model_settings=model_settings.get("annotate_households"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
     )
-    pipeline.replace_table("households", households)
+    whale.add_table("households", households)
 
     tracing.print_summary("cdap_activity", persons.cdap_activity, value_counts=True)
     logger.info(

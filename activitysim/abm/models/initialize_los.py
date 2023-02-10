@@ -8,19 +8,8 @@ from contextlib import contextmanager
 
 import numba
 import numpy as np
-import pandas as pd
 
-from activitysim.core import (
-    assign,
-    chunk,
-    config,
-    inject,
-    los,
-    pathbuilder,
-    pipeline,
-    simulate,
-    tracing,
-)
+from activitysim.core import chunk, inject, los, pathbuilder, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -55,21 +44,19 @@ def num_nans(data):
 
 
 def any_uninitialized(data, lock=None):
-
     with lock_data(lock):
         result = any_nans(data)
     return result
 
 
 def num_uninitialized(data, lock=None):
-
     with lock_data(lock):
         result = num_nans(data)
     return result
 
 
-@inject.step()
-def initialize_los(network_los):
+@workflow.step
+def initialize_los(whale: workflow.Whale, network_los):
     """
     Currently, this step is only needed for THREE_ZONE systems in which the tap_tap_utilities are precomputed
     in the (presumably subsequent) initialize_tvpb step.
@@ -84,13 +71,12 @@ def initialize_los(network_los):
     trace_label = "initialize_los"
 
     if network_los.zone_system == los.THREE_ZONE:
-
         tap_cache = network_los.tvpb.tap_cache
         uid_calculator = network_los.tvpb.uid_calculator
         attribute_combinations_df = uid_calculator.scalar_attribute_combinations()
 
         # - write table to pipeline (so we can slice it, when multiprocessing)
-        pipeline.replace_table("attribute_combinations", attribute_combinations_df)
+        whale.add_table("attribute_combinations", attribute_combinations_df)
 
         # clean up any unwanted cache files from previous run
         if network_los.rebuild_tvpb_cache:
@@ -118,9 +104,8 @@ def initialize_los(network_los):
 
 
 def compute_utilities_for_attribute_tuple(
-    network_los, scalar_attributes, data, chunk_size, trace_label
+    whale, network_los, scalar_attributes, data, chunk_size, trace_label
 ):
-
     # scalar_attributes is a dict of attribute name/value pairs for this combination
     # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
 
@@ -151,7 +136,7 @@ def compute_utilities_for_attribute_tuple(
     chunk_tag = "initialize_tvpb"  # all attribute_combinations can use same cached data for row_size calc
 
     for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag
+        whale, choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag
     ):
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         if chooser_chunk._is_view:
@@ -194,8 +179,10 @@ def compute_utilities_for_attribute_tuple(
     logger.debug(f"{trace_label} updated utilities")
 
 
-@inject.step()
-def initialize_tvpb(network_los, attribute_combinations, chunk_size):
+@workflow.step
+def initialize_tvpb(
+    whale: workflow.Whale, network_los, attribute_combinations, chunk_size
+):
     """
     Initialize STATIC tap_tap_utility cache and write mmap to disk.
 
@@ -258,7 +245,7 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
         tuple_trace_label = tracing.extend_trace_label(trace_label, f"offset{offset}")
 
         compute_utilities_for_attribute_tuple(
-            network_los, scalar_attributes, data, chunk_size, tuple_trace_label
+            whale, network_los, scalar_attributes, data, chunk_size, tuple_trace_label
         )
 
         # make sure we populated the entire offset
@@ -271,7 +258,6 @@ def initialize_tvpb(network_los, attribute_combinations, chunk_size):
 
     write_results = not multiprocess or inject.get_injectable("locutor", False)
     if write_results:
-
         if multiprocess:
             # if multiprocessing, wait for all processes to fully populate share data before writing results
             # (the other processes don't have to wait, since we were sliced by attribute combination

@@ -6,17 +6,15 @@ from builtins import range
 
 import pandas as pd
 
-from ...core import inject, mem, pipeline, tracing
-from ...core.input import read_input_table
-from ...core.pipeline import Whale
-from ...core.workflow import workflow_table
-from ..misc import override_hh_ids
+from activitysim.abm.misc import override_hh_ids
+from activitysim.core import inject, tracing, workflow
+from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
 
 
-@workflow_table
-def households(whale: Whale):
+@workflow.table
+def households(whale: workflow.Whale):
     households_sample_size = whale.settings.households_sample_size
     _override_hh_ids = override_hh_ids(whale)
     _trace_hh_id = whale.settings.trace_hh_id
@@ -30,7 +28,6 @@ def households(whale: Whale):
 
     # only using households listed in override_hh_ids
     if _override_hh_ids is not None:
-
         # trace_hh_id will not used if it is not in list of override_hh_ids
         logger.info(
             "override household list containing %s households" % len(_override_hh_ids)
@@ -50,14 +47,12 @@ def households(whale: Whale):
 
     # if we are tracing hh exclusively
     elif _trace_hh_id and households_sample_size == 1:
-
         # df contains only trace_hh (or empty if not in full store)
         df = tracing.slice_ids(df_full, _trace_hh_id)
         households_sliced = True
 
     # if we need a subset of full store
     elif tot_households > households_sample_size > 0:
-
         logger.info(
             "sampling %s of %s households" % (households_sample_size, tot_households)
         )

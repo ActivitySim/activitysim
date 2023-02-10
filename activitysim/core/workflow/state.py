@@ -1,6 +1,5 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import contextlib
 import datetime as dt
 import logging
 import os
@@ -9,12 +8,12 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
-from pypyr.context import Context
+import xarray as xr
+from pypyr.context import Context, KeyNotInContextError
 
-from ..core.configuration import FileSystem, NetworkSettings, Settings
-from ..core.exceptions import PipelineAccessError
-from ..core.workflow.steps import run_named_step
-from ..core.workflow.util import get_formatted_or_default
+from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
+from activitysim.core.exceptions import WhaleAccessError
+from activitysim.core.workflow.steps import run_named_step
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +57,28 @@ def split_arg(s, sep, default=""):
     return arg, val
 
 
+class WhaleAttr:
+    def __init__(self, member_type):
+        self.member_type = member_type
+
+    def __set_name__(self, owner, name):
+        self.name = name
+
+    def __get__(self, instance, objtype=None):
+        try:
+            return instance.context[self.name]
+        except (KeyError, AttributeError):
+            raise WhaleAccessError(f"{self.name} not initialized for this whale")
+
+    def __set__(self, instance, value):
+        if not isinstance(value, self.member_type):
+            raise TypeError(f"{self.name} must be {self.member_type} not {type(value)}")
+        instance.context[self.name] = value
+
+    def __delete__(self, instance):
+        self.__set__(instance, None)
+
+
 class Whale:
     def __init__(self, context=None):
         if context is None:
@@ -75,7 +96,7 @@ class Whale:
         # array of checkpoint dicts
         self.checkpoints = []
 
-        from .random import Random
+        from activitysim.core.random import Random  # TOP?
 
         self.context["prng"] = Random()
 
@@ -84,52 +105,56 @@ class Whale:
         self.pipeline_store = None
 
         self._is_open = False
-        from .tracing import initialize_traceable_tables
+        from activitysim.core.tracing import initialize_traceable_tables  # TOP?
 
         initialize_traceable_tables(self)
 
         self.context["_salient_tables"] = {}
 
-    @property
-    def filesystem(self) -> FileSystem:
-        try:
-            return self.context["filesystem"]
-        except KeyError:
-            raise PipelineAccessError("filesystem not initialized for this pipeline")
+    filesystem = WhaleAttr(FileSystem)
+    settings = WhaleAttr(Settings)
+    network_settings = WhaleAttr(NetworkSettings)
 
-    @filesystem.setter
-    def filesystem(self, fs: FileSystem):
-        if not isinstance(fs, FileSystem):
-            raise TypeError(f"filesystem must be FileSystem not {type(fs)}")
-        self.context["filesystem"] = fs
-
-    @property
-    def settings(self) -> Settings:
-        try:
-            return self.context["settings"]
-        except KeyError:
-            raise PipelineAccessError("settings not initialized for this pipeline")
-
-    @settings.setter
-    def settings(self, s: Settings):
-        if not isinstance(s, Settings):
-            raise TypeError(f"settings must be Settings not {type(s)}")
-        self.context["settings"] = s
-
-    @property
-    def network_settings(self) -> NetworkSettings:
-        try:
-            return self.context["network_settings"]
-        except KeyError:
-            raise PipelineAccessError(
-                "network_settings not initialized for this pipeline"
-            )
-
-    @network_settings.setter
-    def network_settings(self, s: NetworkSettings):
-        if not isinstance(s, NetworkSettings):
-            raise TypeError(f"settings must be NetworkSettings not {type(s)}")
-        self.context["network_settings"] = s
+    # @property
+    # def filesystem(self) -> FileSystem:
+    #     try:
+    #         return self.context["filesystem"]
+    #     except KeyError:
+    #         raise WhaleAccessError("filesystem not initialized for this pipeline")
+    #
+    # @filesystem.setter
+    # def filesystem(self, fs: FileSystem):
+    #     if not isinstance(fs, FileSystem):
+    #         raise TypeError(f"filesystem must be FileSystem not {type(fs)}")
+    #     self.context["filesystem"] = fs
+    #
+    # @property
+    # def settings(self) -> Settings:
+    #     try:
+    #         return self.context["settings"]
+    #     except KeyError:
+    #         raise WhaleAccessError("settings not initialized for this pipeline")
+    #
+    # @settings.setter
+    # def settings(self, s: Settings):
+    #     if not isinstance(s, Settings):
+    #         raise TypeError(f"settings must be Settings not {type(s)}")
+    #     self.context["settings"] = s
+    #
+    # @property
+    # def network_settings(self) -> NetworkSettings:
+    #     try:
+    #         return self.context["network_settings"]
+    #     except KeyError:
+    #         raise WhaleAccessError(
+    #             "network_settings not initialized for this pipeline"
+    #         )
+    #
+    # @network_settings.setter
+    # def network_settings(self, s: NetworkSettings):
+    #     if not isinstance(s, NetworkSettings):
+    #         raise TypeError(f"settings must be NetworkSettings not {type(s)}")
+    #     self.context["network_settings"] = s
 
     _RUNNABLE_STEPS = {}
     _LOADABLE_TABLES = {}
@@ -144,7 +169,7 @@ class Whale:
         return self.existing_table_status.keys()
 
     @property
-    def existing_table_status(self):
+    def existing_table_status(self) -> dict:
         return self.context["_salient_tables"]
 
     def uncheckpointed_table_names(self):
@@ -179,7 +204,7 @@ class Whale:
         logger.debug(f"loading table {tablename}")
         try:
             t = self._LOADABLE_TABLES[tablename](self.context)
-        except PipelineAccessError:
+        except WhaleAccessError:
             if not swallow_errors:
                 raise
             else:
@@ -206,15 +231,21 @@ class Whale:
     def get(self, key, default: Any = NO_DEFAULT):
         if default == NO_DEFAULT:
             try:
-                return self.context.get_formatted(key)
-            except KeyError:
-                alt_result = getattr(self.filesystem, key, NO_DEFAULT)
-                if alt_result == NO_DEFAULT:
+                result = self.context[key]
+            except (KeyError, KeyNotInContextError):
+                result = getattr(self.filesystem, key, None)
+                if result is None:
+                    if key in self._LOADABLE_TABLES:
+                        result = self._LOADABLE_TABLES[key](self.context)
+                    elif key in self._LOADABLE_OBJECTS:
+                        result = self._LOADABLE_OBJECTS[key](self.context)
+                if result is None:
                     raise
-                else:
-                    return alt_result
         else:
-            return get_formatted_or_default(self.context, key, default)
+            result = self.context.get(key, default)
+        if not isinstance(result, (xr.Dataset, xr.DataArray, pd.DataFrame, pd.Series)):
+            result = self.context.get_formatted_value(result)
+        return result
 
     def set(self, key, value):
         self.context[key] = value
@@ -627,6 +658,11 @@ class Whale:
                     logger.debug("adding channel %s" % (table_name,))
                     self.rng().add_channel(table_name, loaded_tables[table_name])
 
+    @property
+    def current_model_name(self) -> str:
+        """Name of the currently running model."""
+        return self.rng().step_name
+
     def run_model(self, model_name):
         """
         Run the specified model and add checkpoint for model_name
@@ -674,7 +710,7 @@ class Whale:
 
         self.trace_memory_info(f"pipeline.run_model {model_name} start")
 
-        from .tracing import print_elapsed_time
+        from activitysim.core.tracing import print_elapsed_time
 
         t0 = print_elapsed_time()
         logger.info(f"#run_model running step {step_name}")
@@ -807,7 +843,7 @@ class Whale:
         return checkpoint_name in checkpoints
 
     def trace_memory_info(self, event):
-        from .mem import trace_memory_info
+        from activitysim.core.mem import trace_memory_info
 
         return trace_memory_info(event, whale=self)
 
@@ -834,7 +870,7 @@ class Whale:
         returns:
             nothing, but with pipeline open
         """
-        from .tracing import print_elapsed_time
+        from activitysim.core.tracing import print_elapsed_time
 
         t0 = print_elapsed_time()
 
@@ -867,7 +903,7 @@ class Whale:
             self.run_model(model)
             self.trace_memory_info(f"pipeline.run after {model}")
 
-            from .tracing import log_runtime
+            from activitysim.core.tracing import log_runtime
 
             log_runtime(self, model_name=model, start_time=t1)
 
@@ -988,42 +1024,42 @@ class Whale:
 
         return df
 
-    def replace_table(self, table_name, df):
-        """
-        Add or replace a orca table, removing any existing added orca columns
-
-        The use case for this function is a method that calls to_frame on an orca table, modifies
-        it and then saves the modified.
-
-        orca.to_frame returns a copy, so no changes are saved, and adding multiple column with
-        add_column adds them in an indeterminate order.
-
-        Simply replacing an existing the table "behind the pipeline's back" by calling orca.add_table
-        risks pipeline to failing to detect that it has changed, and thus not checkpoint the changes.
-
-        Parameters
-        ----------
-        table_name : str
-            orca/pipeline table name
-        df : pandas DataFrame
-        """
-
-        assert self.is_open, f"Pipeline is not open."
-
-        if df.columns.duplicated().any():
-            logger.error(
-                "replace_table: dataframe '%s' has duplicate columns: %s"
-                % (table_name, df.columns[df.columns.duplicated()])
-            )
-
-            raise RuntimeError(
-                "replace_table: dataframe '%s' has duplicate columns: %s"
-                % (table_name, df.columns[df.columns.duplicated()])
-            )
-
-        self.rewrap(table_name, df)
-
-        self.replaced_tables[table_name] = True
+    # def replace_table(self, table_name, df):
+    #     """
+    #     Add or replace a orca table, removing any existing added orca columns
+    #
+    #     The use case for this function is a method that calls to_frame on an orca table, modifies
+    #     it and then saves the modified.
+    #
+    #     orca.to_frame returns a copy, so no changes are saved, and adding multiple column with
+    #     add_column adds them in an indeterminate order.
+    #
+    #     Simply replacing an existing the table "behind the pipeline's back" by calling orca.add_table
+    #     risks pipeline to failing to detect that it has changed, and thus not checkpoint the changes.
+    #
+    #     Parameters
+    #     ----------
+    #     table_name : str
+    #         orca/pipeline table name
+    #     df : pandas DataFrame
+    #     """
+    #
+    #     assert self.is_open, f"Pipeline is not open."
+    #
+    #     if df.columns.duplicated().any():
+    #         logger.error(
+    #             "replace_table: dataframe '%s' has duplicate columns: %s"
+    #             % (table_name, df.columns[df.columns.duplicated()])
+    #         )
+    #
+    #         raise RuntimeError(
+    #             "replace_table: dataframe '%s' has duplicate columns: %s"
+    #             % (table_name, df.columns[df.columns.duplicated()])
+    #         )
+    #
+    #     self.rewrap(table_name, df)
+    #
+    #     self.replaced_tables[table_name] = True
 
     def extend_table(self, table_name, df, axis=0):
         """
@@ -1066,7 +1102,7 @@ class Whale:
                 for c in missing_df_str_columns:
                     df[c] = df[c].fillna("")
 
-        self.replace_table(table_name, df)
+        self.add_table(table_name, df)
 
         return df
 
@@ -1076,11 +1112,7 @@ class Whale:
         if self.is_table(table_name):
             logger.debug("drop_table dropping orca table '%s'" % table_name)
             self.context.pop(table_name, None)
-            self._TABLES.pop(table_name, None)
-
-        if table_name in self.replaced_tables:
-            logger.debug("drop_table forgetting replaced_tables '%s'" % table_name)
-            del self.replaced_tables[table_name]
+            self.existing_table_status.pop(table_name)
 
         if table_name in self.last_checkpoint:
             logger.debug(
@@ -1158,7 +1190,7 @@ class Whale:
                 final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
             )
 
-        from .tracing import delete_output_files
+        from activitysim.core.tracing import delete_output_files
 
         logger.debug(f"deleting all pipeline files except {final_pipeline_file_path}")
         delete_output_files(self, "h5", ignore=[final_pipeline_file_path])
@@ -1167,6 +1199,6 @@ class Whale:
 
     # @contextlib.contextmanager
     def chunk_log(self, *args, **kwargs):
-        from .chunk import chunk_log
+        from activitysim.core.chunk import chunk_log
 
         return chunk_log(*args, **kwargs, settings=self.settings)

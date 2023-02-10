@@ -151,7 +151,7 @@ def get_time_windows(residual, level):
 @inject.injectable()
 def stop_frequency_alts():
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
-    file_path = config.config_file_path("stop_frequency_alternatives.csv")
+    file_path = whale.filesystem.get_config_file_path("stop_frequency_alternatives.csv")
     df = pd.read_csv(file_path, comment="#")
     df.set_index("alt", inplace=True)
     return df
@@ -278,7 +278,7 @@ def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserv
     else:
         trip_index_tour_id = "tour_id"
 
-    set_trip_index(trips, trip_index_tour_id)
+    set_trip_index(whale, trips, trip_index_tour_id)
     del trips["tour_temp_index"]
 
     return trips

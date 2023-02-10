@@ -6,10 +6,8 @@ import os
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.trip_matrices import annotate_trips
-from activitysim.core import config, expressions, inject, pipeline
-
-from ...core.los import Network_LOS
+from activitysim.core import config, expressions, workflow
+from activitysim.core.los import Network_LOS
 
 logger = logging.getLogger(__name__)
 
@@ -200,8 +198,9 @@ def manual_breaks(
         return bins
 
 
-@inject.step()
+@workflow.step
 def summarize(
+    whale: workflow.Whale,
     network_los: Network_LOS,
     persons: pd.DataFrame,
     persons_merged: pd.DataFrame,
@@ -234,7 +233,8 @@ def summarize(
     os.makedirs(config.output_file_path(output_location), exist_ok=True)
 
     spec = pd.read_csv(
-        config.config_file_path(model_settings["SPECIFICATION"]), comment="#"
+        whale.filesystem.get_config_file_path(model_settings["SPECIFICATION"]),
+        comment="#",
     )
 
     # Load dataframes from pipeline
@@ -279,7 +279,6 @@ def summarize(
 
     for table_name, df in locals_d.items():
         if table_name in model_settings:
-
             meta = model_settings[table_name]
             df = eval(table_name)
 
@@ -337,13 +336,11 @@ def summarize(
     )
 
     for i, row in spec.iterrows():
-
         out_file = row["Output"]
         expr = row["Expression"]
 
         # Save temporary variables starting with underscores in locals_d
         if out_file.startswith("_"):
-
             logger.debug(f"Temp Variable: {expr} -> {out_file}")
 
             locals_d[out_file] = eval(expr, globals(), locals_d)

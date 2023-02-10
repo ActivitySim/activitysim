@@ -1,21 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
-import os
 
 import numpy as np
 import pandas as pd
 
-from ...core import config, inject
-from ...core import timetable as tt
-from ...core.pipeline import Whale
-from ...core.workflow import workflow_cached_object, workflow_table
+from activitysim.core import timetable as tt
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
 
-@workflow_cached_object
-def tdd_alts(whale) -> pd.DataFrame:
+@workflow.cached_object
+def tdd_alts(whale: workflow.Whale) -> pd.DataFrame:
     # right now this file just contains the start and end hour
     file_path = whale.filesystem.get_config_file_path(
         "tour_departure_and_duration_alternatives.csv"
@@ -30,8 +27,8 @@ def tdd_alts(whale) -> pd.DataFrame:
     return df
 
 
-@workflow_cached_object
-def tdd_alt_segments(whale: Whale) -> pd.DataFrame:
+@workflow.cached_object
+def tdd_alt_segments(whale: workflow.Whale) -> pd.DataFrame:
     # tour_purpose,time_period,start,end
     # work,EA,3,5
     # work,AM,6,8
@@ -56,9 +53,9 @@ def tdd_alt_segments(whale: Whale) -> pd.DataFrame:
     return df
 
 
-@workflow_table
+@workflow.table
 def person_windows(
-    whale: Whale,
+    whale: workflow.Whale,
     persons: pd.DataFrame,
     tdd_alts: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -67,7 +64,9 @@ def person_windows(
     return df
 
 
-@inject.injectable()
-def timetable(person_windows, tdd_alts):
+@workflow.cached_object
+def timetable(
+    whale: workflow.Whale, person_windows: pd.DataFrame, tdd_alts: pd.DataFrame
+) -> tt.TimeTable:
     logging.debug("@inject timetable")
-    return tt.TimeTable(person_windows.to_frame(), tdd_alts, person_windows.name)
+    return tt.TimeTable(person_windows, tdd_alts, person_windows.name)

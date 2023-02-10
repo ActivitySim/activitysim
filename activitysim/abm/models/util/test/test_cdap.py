@@ -8,9 +8,8 @@ import pandas.testing as pdt
 import pytest
 import yaml
 
-from activitysim.core import chunk, config, inject, simulate
-
-from .. import cdap
+from activitysim.abm.models.util import cdap
+from activitysim.core import chunk, config, inject, simulate, workflow
 
 
 @pytest.fixture(scope="module")
@@ -49,9 +48,9 @@ def setup_function():
 
 
 def test_bad_coefficients():
-
     coefficients = pd.read_csv(
-        config.config_file_path("cdap_interaction_coefficients.csv"), comment="#"
+        whale.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
+        comment="#",
     )
     coefficients = cdap.preprocess_interaction_coefficients(coefficients)
 
@@ -63,11 +62,10 @@ def test_bad_coefficients():
 
 
 def test_assign_cdap_rank(people, model_settings):
-
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log("test_assign_cdap_rank", base=True):
-        cdap.assign_cdap_rank(people, person_type_map)
+    with chunk.chunk_log("test_assign_cdap_rank", base=True, settings=whale.settings):
+        cdap.assign_cdap_rank(whale, people, person_type_map)
 
     expected = pd.Series(
         [1, 1, 1, 2, 2, 1, 3, 1, 2, 1, 3, 2, 1, 3, 2, 4, 1, 3, 4, 2], index=people.index
@@ -79,15 +77,16 @@ def test_assign_cdap_rank(people, model_settings):
 
 
 def test_individual_utilities(people, model_settings):
-
     cdap_indiv_and_hhsize1 = simulate.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log("test_individual_utilities", base=True):
-        cdap.assign_cdap_rank(people, person_type_map)
+    with chunk.chunk_log(
+        "test_individual_utilities", base=True, settings=whale.settings
+    ):
+        cdap.assign_cdap_rank(whale, people, person_type_map)
         individual_utils = cdap.individual_utilities(
             people, cdap_indiv_and_hhsize1, locals_d=None
         )
@@ -126,15 +125,15 @@ def test_individual_utilities(people, model_settings):
     )
 
 
-def test_build_cdap_spec_hhsize2(people, model_settings):
-
+def test_build_cdap_spec_hhsize2(whale: workflow.Whale, people, model_settings):
     hhsize = 2
     cdap_indiv_and_hhsize1 = simulate.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
     interaction_coefficients = pd.read_csv(
-        config.config_file_path("cdap_interaction_coefficients.csv"), comment="#"
+        whale.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
+        comment="#",
     )
     interaction_coefficients = cdap.preprocess_interaction_coefficients(
         interaction_coefficients
@@ -142,8 +141,10 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
 
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log("test_build_cdap_spec_hhsize2", base=True):
-        cdap.assign_cdap_rank(people, person_type_map)
+    with chunk.chunk_log(
+        "test_build_cdap_spec_hhsize2", base=True, settings=whale.settings
+    ):
+        cdap.assign_cdap_rank(whale, people, person_type_map)
         indiv_utils = cdap.individual_utilities(
             people, cdap_indiv_and_hhsize1, locals_d=None
         )

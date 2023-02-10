@@ -13,9 +13,9 @@ from activitysim.core import (
     inject,
     logit,
     los,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -50,7 +50,6 @@ def create_od_id_col(df, origin_col, destination_col):
 def _get_od_cols_from_od_id(
     df, orig_col_name=None, dest_col_name=None, od_id_col="choice"
 ):
-
     df[orig_col_name] = df[od_id_col].str.split("_").str[0].astype(int)
     df[dest_col_name] = df[od_id_col].str.split("_").str[1].astype(int)
 
@@ -112,7 +111,9 @@ def _create_od_alts_from_dest_size_terms(
     return od_alts
 
 
+@workflow.func
 def _od_sample(
+    whale: workflow.Whale,
     spec_segment_name,
     choosers,
     network_los,
@@ -127,7 +128,6 @@ def _od_sample(
     chunk_tag,
     trace_label,
 ):
-
     model_spec = simulate.spec_for_segment(
         model_settings,
         spec_id="SAMPLE_SPEC",
@@ -186,6 +186,7 @@ def _od_sample(
         logger.error("Alts df is missing origin skim key column.")
 
     choices = interaction_sample(
+        whale,
         choosers,
         alternatives=od_alts_df,
         sample_size=sample_size,
@@ -212,7 +213,6 @@ def od_sample(
     chunk_size,
     trace_label,
 ):
-
     chunk_tag = "tour_od.sample"
 
     origin_col_name = model_settings["ORIG_COL_NAME"]
@@ -275,7 +275,6 @@ def map_ext_maz_to_maz(s):
 
 
 def aggregate_size_terms(dest_size_terms, network_los):
-
     # aggregate MAZ_size_terms to TAZ_size_terms
     MAZ_size_terms = dest_size_terms.copy()
 
@@ -310,7 +309,9 @@ def aggregate_size_terms(dest_size_terms, network_los):
     return MAZ_size_terms, TAZ_size_terms
 
 
+@workflow.func
 def choose_MAZ_for_TAZ(
+    whale: workflow.Whale,
     taz_sample,
     MAZ_size_terms,
     trace_label,
@@ -342,7 +343,7 @@ def choose_MAZ_for_TAZ(
     # 542963          59  0.008628           1      13243
 
     trace_hh_id = inject.get_injectable("trace_hh_id", None)
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(taz_sample)
+    have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
 
@@ -464,7 +465,7 @@ def choose_MAZ_for_TAZ(
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
     assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
 
-    rands = pipeline.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+    rands = whale.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
     rands = rands.reshape(-1, 1)
     assert len(rands) == num_choosers * taz_sample_size
     assert len(rands) == maz_probs.shape[0]
@@ -484,7 +485,6 @@ def choose_MAZ_for_TAZ(
     taz_choices["prob"] = taz_choices["TAZ_prob"] * taz_choices["MAZ_prob"]
 
     if have_trace_targets:
-
         taz_choices_trace_targets = tracing.trace_targets(
             taz_choices, slicer=CHOOSER_ID
         )
@@ -562,7 +562,9 @@ def choose_MAZ_for_TAZ(
     return taz_choices_w_maz
 
 
+@workflow.func
 def od_presample(
+    whale: workflow.Whale,
     spec_segment_name,
     choosers,
     model_settings,
@@ -572,7 +574,6 @@ def od_presample(
     chunk_size,
     trace_label,
 ):
-
     trace_label = tracing.extend_trace_label(trace_label, "presample")
     chunk_tag = "tour_od.presample"
 
@@ -617,6 +618,7 @@ def od_presample(
     # MAZ size_term fraction of TAZ total
 
     maz_choices = choose_MAZ_for_TAZ(
+        whale,
         orig_MAZ_dest_TAZ_sample,
         MAZ_size_terms,
         trace_label,
@@ -643,7 +645,6 @@ class SizeTermCalculator(object):
     """
 
     def __init__(self, size_term_selector):
-
         # do this once so they can request size_terms for various segments (tour_type or purpose)
         land_use = inject.get_table("land_use")
         self.land_use = land_use
@@ -685,6 +686,7 @@ class SizeTermCalculator(object):
 
 
 def run_od_sample(
+    whale,
     spec_segment_name,
     tours,
     model_settings,
@@ -694,7 +696,6 @@ def run_od_sample(
     chunk_size,
     trace_label,
 ):
-
     model_spec = simulate.spec_for_segment(
         model_settings,
         spec_id="SAMPLE_SPEC",
@@ -724,12 +725,12 @@ def run_od_sample(
         )
 
     if pre_sample_taz:
-
         logger.info(
             "Running %s destination_presample with %d tours" % (trace_label, len(tours))
         )
 
         choices = od_presample(
+            whale,
             spec_segment_name,
             choosers,
             model_settings,
@@ -795,7 +796,6 @@ def run_od_logsums(
 
     # run trip mode choice to compute tour mode choice logsums
     if logsum_settings.get("COMPUTE_TRIP_MODE_CHOICE_LOGSUMS", False):
-
         pseudo_tours = choosers.copy()
         trip_mode_choice_settings = config.read_model_settings("trip_mode_choice")
 
@@ -865,9 +865,9 @@ def run_od_logsums(
             if col not in trips:
                 logsum_trips[col] = reindex(pseudo_tours[col], logsum_trips.unique_id)
 
-        pipeline.replace_table("trips", logsum_trips)
+        whale.add_table("trips", logsum_trips)
         tracing.register_traceable_table("trips", logsum_trips)
-        pipeline.get_rn_generator().add_channel("trips", logsum_trips)
+        whale.get_rn_generator().add_channel("trips", logsum_trips)
 
         # run trip mode choice on pseudo-trips. use orca instead of pipeline to
         # execute the step because pipeline can only handle one open step at a time
@@ -895,7 +895,7 @@ def run_od_logsums(
         choosers.reset_index(inplace=True)
         choosers.set_index(choosers_og_index, inplace=True)
 
-        pipeline.get_rn_generator().drop_channel("trips")
+        whale.get_rn_generator().drop_channel("trips")
         tracing.deregister_traceable_table("trips")
 
         assert (od_sample.index == choosers.index).all()
@@ -903,6 +903,7 @@ def run_od_logsums(
             od_sample[col] = choosers[col]
 
     logsums = logsum.compute_logsums(
+        whale,
         choosers,
         spec_segment_name,
         logsum_settings,
@@ -1030,6 +1031,7 @@ def run_od_simulate(
 
 
 def run_tour_od(
+    whale,
     tours,
     persons,
     want_logsums,
@@ -1041,7 +1043,6 @@ def run_tour_od(
     trace_hh_id,
     trace_label,
 ):
-
     size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
     preprocessor_settings = model_settings.get("preprocessor", None)
     origin_col_name = model_settings["ORIG_COL_NAME"]
@@ -1057,7 +1058,6 @@ def run_tour_od(
     choices_list = []
     sample_list = []
     for segment_name in segments:
-
         choosers = tours[tours[chooser_segment_column] == segment_name]
 
         choosers = pd.merge(
@@ -1070,6 +1070,7 @@ def run_tour_od(
         # - annotate choosers
         if preprocessor_settings:
             expressions.assign_columns(
+                whale,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 trace_label=trace_label,
@@ -1090,6 +1091,7 @@ def run_tour_od(
         spec_segment_name = segment_name  # spec_segment_name is segment_name
 
         od_sample_df = run_od_sample(
+            whale,
             spec_segment_name,
             choosers,
             model_settings,

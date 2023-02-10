@@ -2,21 +2,24 @@
 # See full license in LICENSE.txt.
 import logging
 
-import numpy as np
 import pandas as pd
-from activitysim.abm.models.util import school_escort_tours_trips
 
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
-from activitysim.core.util import assign_in_place, reindex
-
-from .util import estimation, trip
+from activitysim.abm.models.util import estimation, school_escort_tours_trips, trip
+from activitysim.core import config, expressions, simulate, tracing, workflow
+from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
+@workflow.step
 def stop_frequency(
-    tours, tours_merged, stop_frequency_alts, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    tours,
+    tours_merged,
+    stop_frequency_alts,
+    network_los,
+    chunk_size,
+    trace_hh_id,
 ):
     """
     stop frequency model
@@ -61,7 +64,6 @@ def stop_frequency(
     # - run preprocessor to annotate tours_merged
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         # hack: preprocessor adds origin column in place if it does not exist already
         assert "origin" in tours_merged
         assert "destination" in tours_merged
@@ -102,7 +104,6 @@ def stop_frequency(
 
     choices_list = []
     for segment_settings in spec_segments:
-
         segment_name = segment_settings[segment_col]
         segment_value = segment_settings[segment_col]
 
@@ -130,7 +131,7 @@ def stop_frequency(
             file_name=coefficients_file_name
         )
         segment_spec = simulate.eval_coefficients(
-            segment_spec, coefficients_df, estimator
+            whale, segment_spec, coefficients_df, estimator
         )
 
         if estimator:
@@ -180,13 +181,13 @@ def stop_frequency(
         # if not already there, then it will have been added by stop_freq_annotate_tours_preprocessor
         assign_in_place(tours, tours_merged[["primary_purpose"]])
 
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     # create trips table
     trips = trip.initialize_from_tours(tours, stop_frequency_alts)
-    pipeline.replace_table("trips", trips)
-    tracing.register_traceable_table("trips", trips)
-    pipeline.get_rn_generator().add_channel("trips", trips)
+    whale.add_table("trips", trips)
+    tracing.register_traceable_table(whale, "trips", trips)
+    whale.get_rn_generator().add_channel("trips", trips)
 
     if estimator:
         # make sure they created trips with the expected tour_ids
@@ -236,5 +237,5 @@ def stop_frequency(
             columns=None,
         )
 
-    if pipeline.is_table("school_escort_trips"):
-        school_escort_tours_trips.merge_school_escort_trips_into_pipeline()
+    if whale.is_table("school_escort_trips"):
+        school_escort_tours_trips.merge_school_escort_trips_into_pipeline(whale)

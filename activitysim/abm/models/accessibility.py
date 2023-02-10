@@ -5,14 +5,13 @@ import logging
 import numpy as np
 import pandas as pd
 
-from ...core import assign, chunk, config, los, pipeline, tracing
-from ...core.pipeline import Whale
-from ...core.workflow import workflow_step
+from activitysim.core import assign, chunk, los, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
 def compute_accessibilities_for_zones(
+    whale,
     accessibility_df,
     land_use_df,
     assignment_spec,
@@ -20,6 +19,7 @@ def compute_accessibilities_for_zones(
     network_los,
     trace_od,
     trace_label,
+    chunk_sizer,
 ):
 
     orig_zones = accessibility_df.index.values
@@ -50,7 +50,7 @@ def compute_accessibilities_for_zones(
     # merge land_use_columns into od_df
     logger.info(f"{trace_label}: merge land_use_columns into od_df")
     od_df = pd.merge(od_df, land_use_df, left_on="dest", right_index=True).sort_index()
-    chunk.log_df(trace_label, "od_df", od_df)
+    chunk_sizer.log_df(trace_label, "od_df", od_df)
 
     locals_d = {
         "log": np.log,
@@ -68,15 +68,16 @@ def compute_accessibilities_for_zones(
 
     logger.info(f"{trace_label}: assign.assign_variables")
     results, trace_results, trace_assigned_locals = assign.assign_variables(
+        whale,
         assignment_spec,
         od_df,
         locals_d,
         trace_rows=trace_od_rows,
         trace_label=trace_label,
-        chunk_log=True,
+        chunk_log=chunk_sizer,
     )
 
-    chunk.log_df(trace_label, "results", results)
+    chunk_sizer.log_df(trace_label, "results", results)
     logger.info(f"{trace_label}: have results")
 
     # accessibility_df = accessibility_df.copy()
@@ -113,13 +114,13 @@ def compute_accessibilities_for_zones(
     return accessibility_df
 
 
-@workflow_step
+@workflow.step
 def compute_accessibility(
-    whale: Whale,
+    whale: workflow.Whale,
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
-    network_los,
-    chunk_size,
+    network_los: los.Network_LOS,
+    chunk_size: int,
     trace_od,
 ):
 
@@ -140,23 +141,23 @@ def compute_accessibility(
     """
 
     trace_label = "compute_accessibility"
-    model_settings = config.read_model_settings("accessibility.yaml")
+    model_settings = whale.filesystem.read_model_settings("accessibility.yaml")
     assignment_spec = assign.read_assignment_spec(
-        config.config_file_path("accessibility.csv")
+        whale.filesystem.get_config_file_path("accessibility.csv")
     )
 
-    accessibility_df = accessibility.to_frame()
+    accessibility_df = accessibility
     if len(accessibility_df.columns) > 0:
         logger.warning(
             f"accessibility table is not empty. Columns:{list(accessibility_df.columns)}"
         )
         raise RuntimeError(f"accessibility table is not empty.")
 
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.get("CONSTANTS", {})
 
     # only include the land_use columns needed by spec, as specified by land_use_columns model_setting
     land_use_columns = model_settings.get("land_use_columns", [])
-    land_use_df = land_use.to_frame()
+    land_use_df = land_use
     land_use_df = land_use_df[land_use_columns]
 
     logger.info(
@@ -165,11 +166,17 @@ def compute_accessibility(
 
     accessibilities_list = []
 
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        accessibility_df, chunk_size, trace_label
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(
+        whale, accessibility_df, chunk_size, trace_label
     ):
 
         accessibilities = compute_accessibilities_for_zones(
+            whale,
             chooser_chunk,
             land_use_df,
             assignment_spec,
@@ -177,6 +184,7 @@ def compute_accessibility(
             network_los,
             trace_od,
             trace_label,
+            chunk_sizer,
         )
         accessibilities_list.append(accessibilities)
 

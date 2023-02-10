@@ -2,13 +2,15 @@
 # See full license in LICENSE.txt.
 import logging
 
-from activitysim.core import inject, pipeline, tracing
+import pandas as pd
+
+from activitysim.core import inject, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def vehicles(households):
+@workflow.table
+def vehicles(whale: workflow.Whale, households):
     """Creates the vehicles table and load it as an injectable
 
     This method initializes the `vehicles` table, where the number of rows
@@ -37,14 +39,16 @@ def vehicles(households):
     # replace table function with dataframe
     inject.add_table("vehicles", vehicles)
 
-    pipeline.get_rn_generator().add_channel("vehicles", vehicles)
+    whale.get_rn_generator().add_channel("vehicles", vehicles)
     tracing.register_traceable_table("vehicles", vehicles)
 
     return vehicles
 
 
-@inject.table()
-def vehicles_merged(vehicles, households_merged):
+@workflow.table
+def vehicles_merged(
+    whale: workflow.Whale, vehicles: pd.DataFrame, households_merged: pd.DataFrame
+):
     """Augments the vehicles table with household attributes
 
     Parameters

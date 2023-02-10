@@ -114,7 +114,7 @@ def test_make_choices_only_one():
     probs = pd.DataFrame(
         [[1, 0, 0], [0, 1, 0]], columns=["a", "b", "c"], index=["x", "y"]
     )
-    choices, rands = logit.make_choices(probs)
+    choices, rands = logit.make_choices(whale, probs)
 
     pdt.assert_series_equal(
         choices, pd.Series([0, 1], index=["x", "y"]), check_dtype=False
@@ -123,7 +123,7 @@ def test_make_choices_only_one():
 
 def test_make_choices_real_probs(utilities):
     probs = logit.utils_to_probs(utilities, trace_label=None)
-    choices, rands = logit.make_choices(probs)
+    choices, rands = logit.make_choices(whale, probs)
 
     pdt.assert_series_equal(
         choices,

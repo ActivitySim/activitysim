@@ -6,28 +6,27 @@ import logging
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util import annotate, estimation, school_escort_tours_trips
+from activitysim.abm.models.util.mode import mode_choice_simulate
 from activitysim.core import (
-    assign,
     chunk,
     config,
     expressions,
     inject,
     los,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.util import assign_in_place
-
-from .util import estimation, annotate, school_escort_tours_trips
-from .util.mode import mode_choice_simulate
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
+@workflow.step
+def trip_mode_choice(
+    whale: workflow.Whale, trips, network_los, chunk_size, trace_hh_id
+):
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
 
@@ -152,7 +151,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (e.g. tour mode choice logsum creation)
-    if pipeline._PIPELINE.rng().step_name != "trip_mode_choice":
+    if whale.current_model_name != "trip_mode_choice":
         estimator = None
     else:
         estimator = estimation.manager.begin_estimation("trip_mode_choice")
@@ -162,12 +161,11 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
     nest_spec = config.get_logit_model_settings(model_settings)
 
     choices_list = []
     for primary_purpose, trips_segment in trips_merged.groupby("primary_purpose"):
-
         segment_trace_label = tracing.extend_trace_label(trace_label, primary_purpose)
 
         logger.info(
@@ -200,7 +198,9 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         # have to initialize chunker for preprocessing in order to access
         # tvpb logsum terms in preprocessor expressions.
         with chunk.chunk_log(
-            tracing.extend_trace_label(trace_label, "preprocessing"), base=True
+            tracing.extend_trace_label(trace_label, "preprocessing"),
+            base=True,
+            settings=whale.settings,
         ):
             expressions.annotate_preprocessors(
                 trips_segment, locals_dict, skims, model_settings, segment_trace_label
@@ -215,7 +215,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
         choices = mode_choice_simulate(
             choosers=trips_segment,
-            spec=simulate.eval_coefficients(model_spec, coefficients, estimator),
+            spec=simulate.eval_coefficients(whale, model_spec, coefficients, estimator),
             nest_spec=simulate.eval_nest_coefficients(
                 nest_spec, coefficients, segment_trace_label
             ),
@@ -255,10 +255,8 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     # add cached tvpb_logsum tap choices for modes specified in tvpb_mode_path_types
     if network_los.zone_system == los.THREE_ZONE:
-
         tvpb_mode_path_types = model_settings.get("tvpb_mode_path_types")
         for mode, path_type in tvpb_mode_path_types.items():
-
             skim_cache = tvpb_logsum_odt.cache[path_type]
 
             for c in skim_cache:
@@ -281,7 +279,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
     trips_df = trips.to_frame()
     assign_in_place(trips_df, choices_df)
 
-    if pipeline.is_table("school_escort_tours") & model_settings.get(
+    if whale.is_table("school_escort_tours") & model_settings.get(
         "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
     ):
         trips_df = (
@@ -298,10 +296,10 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     assert not trips_df[mode_column_name].isnull().any()
 
-    pipeline.replace_table("trips", trips_df)
+    whale.add_table("trips", trips_df)
 
     if model_settings.get("annotate_trips"):
-        annotate.annotate_trips(model_settings, trace_label)
+        annotate.annotate_trips(whale, model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(

@@ -1,34 +1,17 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import itertools
 import logging
-import os
 
-import numpy as np
 import pandas as pd
 
-from activitysim.core import (
-    assign,
-    config,
-    expressions,
-    inject,
-    logit,
-    los,
-    pipeline,
-    simulate,
-    tracing,
-)
-from activitysim.core.interaction_simulate import interaction_simulate
-from activitysim.core.util import assign_in_place
-
-from .util import estimation
-from .util.mode import mode_choice_simulate
+from activitysim.abm.models.util import estimation
+from activitysim.core import config, expressions, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
 
-def annotate_vehicle_allocation(model_settings, trace_label):
+def annotate_vehicle_allocation(whale: workflow.Whale, model_settings, trace_label):
     """
     Add columns to the tours table in the pipeline according to spec.
 
@@ -37,13 +20,14 @@ def annotate_vehicle_allocation(model_settings, trace_label):
     model_settings : dict
     trace_label : str
     """
-    tours = inject.get_table("tours").to_frame()
+    tours = whale.get_dataframe("tours")
     expressions.assign_columns(
+        whale,
         df=tours,
         model_settings=model_settings.get("annotate_tours"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
     )
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
 
 def get_skim_dict(network_los, choosers):
@@ -89,8 +73,9 @@ def get_skim_dict(network_los, choosers):
     return skims
 
 
-@inject.step()
+@workflow.step
 def vehicle_allocation(
+    whale: workflow.Whale,
     persons,
     households,
     vehicles,
@@ -113,6 +98,7 @@ def vehicle_allocation(
 
     Parameters
     ----------
+    whale : workflow.Whale
     persons : orca.DataFrameWrapper
     households : orca.DataFrameWrapper
     vehicles : orca.DataFrameWrapper
@@ -130,9 +116,11 @@ def vehicle_allocation(
 
     estimator = estimation.manager.begin_estimation("vehicle_allocation")
 
-    model_spec_raw = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec_raw = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
-    model_spec = simulate.eval_coefficients(model_spec_raw, coefficients_df, estimator)
+    model_spec = simulate.eval_coefficients(
+        whale, model_spec_raw, coefficients_df, estimator
+    )
 
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
@@ -182,6 +170,7 @@ def vehicle_allocation(
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
         expressions.assign_columns(
+            whale,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -243,7 +232,7 @@ def vehicle_allocation(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    pipeline.replace_table("tours", tours)
+    whale.add_table("tours", tours)
 
     tracing.print_summary(
         "vehicle_allocation", tours[tours_veh_occup_cols], value_counts=True
@@ -251,7 +240,7 @@ def vehicle_allocation(
 
     annotate_settings = model_settings.get("annotate_tours", None)
     if annotate_settings:
-        annotate_vehicle_allocation(model_settings, trace_label)
+        annotate_vehicle_allocation(whale, model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)

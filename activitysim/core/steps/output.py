@@ -6,8 +6,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, inject, pipeline
-from activitysim.core.config import setting
+from activitysim.core import config, inject, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,6 @@ def track_skim_usage(output_dir):
 
     mode = "wb" if sys.version_info < (3,) else "w"
     with open(config.output_file_path("skim_usage.txt"), mode) as output_file:
-
         print("\n### skim_dict usage", file=output_file)
         for key in skim_dict.get_skim_usage():
             print(key, file=output_file)
@@ -52,7 +50,7 @@ def track_skim_usage(output_dir):
             print(key, file=output_file)
 
 
-def previous_write_data_dictionary(output_dir):
+def previous_write_data_dictionary(whale: workflow.Whale, output_dir):
     """
     Write table_name, number of rows, columns, and bytes for each checkpointed table
 
@@ -67,13 +65,12 @@ def previous_write_data_dictionary(output_dir):
     csv_format = model_settings.get("csv_format", "data_dict.csv")
 
     if txt_format:
-
         output_file_path = config.output_file_path(txt_format)
 
         pd.options.display.max_columns = 500
         pd.options.display.max_rows = 100
 
-        output_tables = pipeline.checkpointed_tables()
+        output_tables = whale.checkpointed_tables()
 
         # write data dictionary for all checkpointed_tables
 
@@ -156,11 +153,9 @@ def write_data_dictionary(output_dir):
 
     # annotate schema.info with name of checkpoint columns were first seen
     for _, row in pipeline.get_checkpoints().iterrows():
-
         checkpoint_name = row[pipeline.CHECKPOINT_NAME]
 
         for table_name in table_names:
-
             # no change to table in this checkpoint
             if row.get(table_name, None) != checkpoint_name:
                 continue
@@ -190,7 +185,6 @@ def write_data_dictionary(output_dir):
 
     if txt_format:
         with open(config.output_file_path(txt_format), "w") as output_file:
-
             # get max schema column widths from omnibus table
             col_width = {c: schema_df[c].str.len().max() + 2 for c in schema_df}
 
@@ -215,7 +209,7 @@ def write_data_dictionary(output_dir):
                 print(f"{info}\n", file=output_file)
 
 
-def write_tables(output_dir):
+def write_tables(whale, output_dir):
     """
     Write pipeline tables as csv files (in output directory) as specified by output_tables list
     in settings file.
@@ -258,9 +252,7 @@ def write_tables(output_dir):
 
     """
 
-    output_tables_settings_name = "output_tables"
-
-    output_tables_settings = setting(output_tables_settings_name)
+    output_tables_settings = whale.settings.output_tables
 
     if output_tables_settings is None:
         logger.info("No output_tables specified in settings file. Nothing to write.")
@@ -285,7 +277,6 @@ def write_tables(output_dir):
         )
 
     for table_name in output_tables_list:
-
         if not isinstance(table_name, str):
             table_decode_cols = table_name.get("decode_columns", {})
             table_name = table_name["tablename"]

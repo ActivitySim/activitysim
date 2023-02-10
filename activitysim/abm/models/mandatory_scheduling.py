@@ -14,7 +14,7 @@ DUMP = False
 
 @workflow.step
 def mandatory_tour_scheduling(
-    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size
 ):
     """
     This model predicts the departure time and duration of each activity for mandatory tours
@@ -22,10 +22,8 @@ def mandatory_tour_scheduling(
 
     model_name = "mandatory_tour_scheduling"
     trace_label = model_name
+    trace_hh_id = whale.settings.trace_hh_id
 
-    persons_merged = persons_merged.to_frame()
-
-    tours = tours.to_frame()
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 
     # - if no mandatory_tours
@@ -50,13 +48,13 @@ def mandatory_tour_scheduling(
     )
 
     choices = run_tour_scheduling(
+        whale,
         model_name,
         mandatory_tours,
         persons_merged,
         tdd_alts,
         tour_segment_col,
         chunk_size,
-        trace_hh_id,
     )
 
     assign_in_place(tours, choices)

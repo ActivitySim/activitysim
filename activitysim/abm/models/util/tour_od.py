@@ -142,7 +142,7 @@ def _od_sample(
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings["SAMPLE_SIZE"]
-    if config.setting("disable_destination_sampling", False) or (
+    if whale.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
         # FIXME interaction_sample will return unsampled complete alternatives
@@ -717,7 +717,7 @@ def run_od_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
-    if pre_sample_taz and not config.setting("want_dest_choice_presampling", True):
+    if pre_sample_taz and not whale.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -924,6 +924,7 @@ def run_od_logsums(
 
 
 def run_od_simulate(
+    whale: workflow.Whale,
     spec_segment_name,
     tours,
     od_sample,
@@ -1009,6 +1010,7 @@ def run_od_simulate(
 
     tracing.dump_df(DUMP, choosers, trace_label, "choosers")
     choices = interaction_sample_simulate(
+        whale,
         choosers,
         od_sample,
         spec=model_spec,

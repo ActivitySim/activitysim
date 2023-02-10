@@ -376,6 +376,7 @@ class Network_LOS(object):
 
                     if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
                         tracing.write_csv(
+                            whale,
                             df,
                             file_name=f"trimmed_{maz_to_tap_settings['table']}",
                             transpose=False,
@@ -572,7 +573,7 @@ class Network_LOS(object):
         -------
             bool
         """
-        is_multiprocess = config.setting("multiprocess", False)
+        is_multiprocess = whale.settings.multiprocess
         return is_multiprocess
 
     def load_shared_data(self, shared_data_buffers):
@@ -600,7 +601,7 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
 
-            if self.rebuild_tvpb_cache and not config.setting("resume_after", None):
+            if self.rebuild_tvpb_cache and not whale.settings.resume_after:
                 # delete old cache at start of new run so that stale cache is not loaded by load_data_to_buffer
                 # when singleprocess, this call is made (later in program flow) in the initialize_los step
                 self.tvpb.tap_cache.cleanup()

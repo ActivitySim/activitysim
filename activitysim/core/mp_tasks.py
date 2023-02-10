@@ -1429,7 +1429,7 @@ def run_multiprocess(whale, injectables):
     def find_breadcrumb(crumb, default=None):
         return old_breadcrumbs.get(step_name, {}).get(crumb, default)
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = whale.settings.sharrow
 
     # - allocate shared data
     shared_data_buffers = {}

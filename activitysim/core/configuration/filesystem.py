@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+import struct
 import time
 from pathlib import Path
 
@@ -189,6 +190,39 @@ class FileSystem(PydanticBase):
 
         file_path = os.path.join(output_dir, file_name)
 
+        return Path(file_path)
+
+    def get_trace_file_path(self, file_name):
+        """
+        Get the complete path to a trace file.
+
+        Parameters
+        ----------
+        file_name : str
+            Base name of the trace file.
+
+        Returns
+        -------
+        Path
+        """
+
+        output_dir = self.get_output_dir()
+
+        # - check for trace subfolder, create it if missing
+        trace_dir = output_dir.joinpath("trace")
+        if not trace_dir.exists():
+            trace_dir.mkdir(parents=True)
+
+        # construct a unique tail string from the time
+        # this is a convenience for opening multiple similarly named trace files
+        tail = hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:]
+
+        file_parts = str(file_name).split(".")
+
+        file_path = (
+            os.path.join(trace_dir, *file_parts[:-1]) + f"-{tail}.{file_parts[-1]}"
+        )
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
         return Path(file_path)
 
     def get_cache_dir(self, subdir=None) -> Path:

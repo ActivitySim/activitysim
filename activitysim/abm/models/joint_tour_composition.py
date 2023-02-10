@@ -19,7 +19,7 @@ def add_null_results(whale, trace_label, tours):
 
 @workflow.step
 def joint_tour_composition(
-    whale: workflow.Whale, tours, households, persons, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, households, persons, chunk_size
 ):
     """
     This model predicts the makeup of the travel party (adults, children, or mixed).
@@ -27,7 +27,6 @@ def joint_tour_composition(
     trace_label = "joint_tour_composition"
     model_settings_file_name = "joint_tour_composition.yaml"
 
-    tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == "joint"]
 
     # - if no joint tours
@@ -36,7 +35,7 @@ def joint_tour_composition(
         return
 
     model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("joint_tour_composition")
+    estimator = estimation.manager.begin_estimation(whale, "joint_tour_composition")
 
     # - only interested in households with joint_tours
     households = households.to_frame()
@@ -86,6 +85,7 @@ def joint_tour_composition(
         estimator.write_choosers(joint_tours_merged)
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=joint_tours_merged,
         spec=model_spec,
         nest_spec=nest_spec,
@@ -116,7 +116,7 @@ def joint_tour_composition(
         "joint_tour_composition", joint_tours.composition, value_counts=True
     )
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         tracing.trace_df(
             joint_tours,
             label="joint_tour_composition.joint_tours",

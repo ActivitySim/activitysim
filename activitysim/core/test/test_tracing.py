@@ -179,7 +179,7 @@ def test_write_csv(capsys):
     tracing.config_logger()
 
     # should complain if df not a DataFrame or Series
-    tracing.write_csv(df="not a df or series", file_name="baddie")
+    tracing.write_csv(whale, df="not a df or series", file_name="baddie")
 
     out, err = capsys.readouterr()
 

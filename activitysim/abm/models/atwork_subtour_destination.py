@@ -12,7 +12,7 @@ DUMP = False
 
 @workflow.step
 def atwork_subtour_destination(
-    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size
 ):
     trace_label = "atwork_subtour_destination"
     model_settings_file_name = "atwork_subtour_destination.yaml"
@@ -33,8 +33,7 @@ def atwork_subtour_destination(
 
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     persons_merged = persons_merged.to_frame()
@@ -47,7 +46,7 @@ def atwork_subtour_destination(
         tracing.no_results("atwork_subtour_destination")
         return
 
-    estimator = estimation.manager.begin_estimation("atwork_subtour_destination")
+    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_destination")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
@@ -62,6 +61,7 @@ def atwork_subtour_destination(
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(
+        whale,
         subtours,
         persons_merged,
         want_logsums,
@@ -70,7 +70,6 @@ def atwork_subtour_destination(
         network_los,
         estimator,
         chunk_size,
-        trace_hh_id,
         trace_label,
     )
 
@@ -100,7 +99,7 @@ def atwork_subtour_destination(
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
         whale.extend_table(sample_table_name, save_sample_df)
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         tracing.trace_df(
             tours, label="atwork_subtour_destination", columns=["destination"]
         )

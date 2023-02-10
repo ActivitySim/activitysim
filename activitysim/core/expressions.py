@@ -101,9 +101,12 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
 
     # FIXME a number of asim model preprocessors want skim_dict - should they request it in model_settings.TABLES?
     if whale.settings.sharrow:
-        _locals_dict["skim_dict"] = whale.get("skim_dataset_dict", None)
+        from activitysim.core.flow import skim_dataset_dict
+        from activitysim.core.skim_dataset import skim_dataset
+
+        _locals_dict["skim_dict"] = whale.get_injectable("skim_dataset_dict")
     else:
-        _locals_dict["skim_dict"] = whale.get("skim_dict", None)
+        _locals_dict["skim_dict"] = whale.get_injectable("skim_dict")
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
         whale,
@@ -117,7 +120,9 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
         tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
 
     if trace_assigned_locals:
-        tracing.write_csv(trace_assigned_locals, file_name="%s_locals" % trace_label)
+        tracing.write_csv(
+            whale, trace_assigned_locals, file_name="%s_locals" % trace_label
+        )
 
     return results
 

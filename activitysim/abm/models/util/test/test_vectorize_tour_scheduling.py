@@ -63,7 +63,7 @@ def test_vts():
 
     persons = pd.DataFrame({"income": [20, 30, 25]}, index=[1, 2, 3])
 
-    inject.add_table("persons", persons)
+    whale.add_table("persons", persons)
 
     spec = pd.DataFrame({"Coefficient": [1.2]}, index=["income"])
     spec.index.name = "Expression"

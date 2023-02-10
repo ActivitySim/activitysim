@@ -9,20 +9,19 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def free_parking(
-    whale: workflow.Whale, persons_merged, persons, chunk_size, trace_hh_id
-):
+def free_parking(whale: workflow.Whale, persons_merged, persons, chunk_size):
     """ """
 
     trace_label = "free_parking"
     model_settings_file_name = "free_parking.yaml"
+    trace_hh_id = whale.settings.trace_hh_id
 
     choosers = persons_merged.to_frame()
     choosers = choosers[choosers.workplace_zone_id > -1]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("free_parking")
+    estimator = estimation.manager.begin_estimation(whale, "free_parking")
 
     constants = config.get_model_constants(model_settings)
 
@@ -56,6 +55,7 @@ def free_parking(
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,

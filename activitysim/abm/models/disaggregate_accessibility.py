@@ -524,7 +524,7 @@ class ProtoPop:
             inject.get_injectable("traceable_tables") + list(self.proto_pop.keys()),
         )
         for tablename, df in self.proto_pop.items():
-            inject.add_table(tablename, df)
+            whale.add_table(tablename, df)
             self.whale.get_rn_generator().add_channel(tablename, df)
             tracing.register_traceable_table(tablename, df)
 
@@ -567,7 +567,7 @@ class ProtoPop:
         self.proto_pop["proto_persons_merged"] = persons_merged
 
         # Store in pipeline
-        inject.add_table("proto_persons_merged", persons_merged)
+        whale.add_table("proto_persons_merged", persons_merged)
 
 
 def get_disaggregate_logsums(
@@ -592,10 +592,10 @@ def get_disaggregate_logsums(
         model_settings["SAMPLE_SIZE"] = disagg_model_settings.get(
             "DESTINATION_SAMPLE_SIZE"
         )
-        estimator = estimation.manager.begin_estimation(trace_label)
+        estimator = estimation.manager.begin_estimation(whale, trace_label)
         if estimator:
             location_choice.write_estimation_specs(
-                estimator, model_settings, model_name + ".yaml"
+                whale, estimator, model_settings, model_name + ".yaml"
             )
 
         # Append table references in settings with "proto_"
@@ -629,7 +629,6 @@ def get_disaggregate_logsums(
                 model_settings=model_settings,
                 chunk_size=chunk_size,
                 chunk_tag=trace_label,
-                trace_hh_id=trace_hh_id,
                 trace_label=trace_label,
                 skip_choice=True,
             )
@@ -646,6 +645,7 @@ def get_disaggregate_logsums(
             tours = tours[tours.tour_category == "non_mandatory"]
 
             _logsums, _ = tour_destination.run_tour_destination(
+                whale,
                 tours,
                 persons_merged,
                 want_logsums=True,
@@ -654,7 +654,6 @@ def get_disaggregate_logsums(
                 network_los=network_los,
                 estimator=estimator,
                 chunk_size=chunk_size,
-                trace_hh_id=trace_hh_id,
                 trace_label=trace_label,
                 skip_choice=True,
             )

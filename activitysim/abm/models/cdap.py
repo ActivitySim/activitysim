@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def cdap_simulate(
-    whale: workflow.Whale, persons_merged, persons, households, chunk_size, trace_hh_id
+    whale: workflow.Whale, persons_merged, persons, households, chunk_size
 ):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
@@ -27,11 +27,12 @@ def cdap_simulate(
 
     trace_label = "cdap"
     model_settings = config.read_model_settings("cdap.yaml")
+    trace_hh_id = whale.settings.trace_hh_id
     person_type_map = model_settings.get("PERSON_TYPE_MAP", None)
     assert (
         person_type_map is not None
     ), f"Expected to find PERSON_TYPE_MAP setting in cdap.yaml"
-    estimator = estimation.manager.begin_estimation("cdap")
+    estimator = estimation.manager.begin_estimation(whale, "cdap")
 
     cdap_indiv_spec = simulate.read_model_spec(
         file_name=model_settings["INDIV_AND_HHSIZE1_SPEC"]
@@ -130,6 +131,7 @@ def cdap_simulate(
     logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 
     choices = cdap.run_cdap(
+        whale,
         persons=persons_merged,
         person_type_map=person_type_map,
         cdap_indiv_spec=cdap_indiv_spec,

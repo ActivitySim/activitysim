@@ -333,7 +333,6 @@ def school_escorting(
     persons,
     tours,
     chunk_size,
-    trace_hh_id,
 ):
     """
     school escorting model
@@ -361,11 +360,7 @@ def school_escorting(
     trace_label = "school_escorting_simulate"
     model_settings_file_name = "school_escorting.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
-
-    persons = persons.to_frame()
-    households = households.to_frame()
-    households_merged = households_merged.to_frame()
-    tours = tours.to_frame()
+    trace_hh_id = whale.settings.trace_hh_id
 
     alts = simulate.read_model_alts(whale, model_settings["ALTS"], set_index="Alt")
 
@@ -384,7 +379,9 @@ def school_escorting(
     choices = None
     for stage_num, stage in enumerate(school_escorting_stages):
         stage_trace_label = trace_label + "_" + stage
-        estimator = estimation.manager.begin_estimation("school_escorting_" + stage)
+        estimator = estimation.manager.begin_estimation(
+            whale, "school_escorting_" + stage
+        )
 
         model_spec_raw = simulate.read_model_spec(
             file_name=model_settings[stage.upper() + "_SPEC"]
@@ -444,7 +441,7 @@ def school_escorting(
             estimator.write_coefficients(coefficients_df, model_settings)
             estimator.write_choosers(choosers)
 
-        log_alt_losers = config.setting("log_alt_losers", False)
+        log_alt_losers = whale.settings.log_alt_losers
 
         choices = interaction_simulate(
             whale,

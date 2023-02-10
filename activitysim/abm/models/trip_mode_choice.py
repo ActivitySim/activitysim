@@ -154,7 +154,7 @@ def trip_mode_choice(
     if whale.current_model_name != "trip_mode_choice":
         estimator = None
     else:
-        estimator = estimation.manager.begin_estimation("trip_mode_choice")
+        estimator = estimation.manager.begin_estimation(whale, "trip_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)

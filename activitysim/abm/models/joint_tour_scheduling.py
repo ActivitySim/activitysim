@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def joint_tour_scheduling(
-    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size
 ):
     """
     This model predicts the departure time and duration of each joint tour
@@ -26,7 +26,7 @@ def joint_tour_scheduling(
     model_settings_file_name = "joint_tour_scheduling.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    tours = tours.to_frame()
+    trace_hh_id = whale.settings.trace_hh_id
     joint_tours = tours[tours.tour_category == "joint"]
 
     # - if no joint tours
@@ -71,7 +71,7 @@ def joint_tour_scheduling(
 
     timetable = inject.get_injectable("timetable")
 
-    estimator = estimation.manager.begin_estimation("joint_tour_scheduling")
+    estimator = estimation.manager.begin_estimation(whale, "joint_tour_scheduling")
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     sharrow_skip = model_settings.get("sharrow_skip", False)

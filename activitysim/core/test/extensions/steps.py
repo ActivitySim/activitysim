@@ -7,21 +7,21 @@ from activitysim.core import inject, pipeline, tracing, workflow
 def step1(whale: workflow.Whale):
 
     table1 = pd.DataFrame({"c": [1, 2, 3]})
-    inject.add_table("table1", table1)
+    whale.add_table("table1", table1)
 
 
 @workflow.step
 def step2(whale: workflow.Whale):
 
     table1 = pd.DataFrame({"c": [2, 4, 6]})
-    inject.add_table("table2", table1)
+    whale.add_table("table2", table1)
 
 
 @workflow.step
 def step3(whale: workflow.Whale):
 
     table1 = pd.DataFrame({"c": [3, 6, 9]})
-    inject.add_table("table3", table1)
+    whale.add_table("table3", table1)
 
 
 @workflow.step
@@ -57,7 +57,7 @@ def step_forget_tab(whale: workflow.Whale):
 def create_households(whale: workflow.Whale, trace_hh_id):
 
     df = pd.DataFrame({"household_id": [1, 2, 3], "home_zone_id": {100, 100, 101}})
-    inject.add_table("households", df)
+    whale.add_table("households", df)
 
     pipeline.get_rn_generator().add_channel("households", df)
 

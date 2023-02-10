@@ -103,7 +103,7 @@ def setup_component(
 
     # Extract the resume_after argument based on the model immediately
     # prior to the component being benchmarked.
-    models = config.setting("models")
+    models = whale.settings.models
     try:
         component_index = models.index(component_name)
     except ValueError:
@@ -115,7 +115,7 @@ def setup_component(
     else:
         resume_after = None
 
-    if config.setting("multiprocess", False):
+    if whale.settings.multiprocess:
         raise NotImplementedError(
             "multiprocess component benchmarking is not yet implemented"
         )
@@ -157,7 +157,7 @@ def setup_component(
 def run_component(whale, component_name):
     logger.info("run_component: %s", component_name)
     try:
-        if config.setting("multiprocess", False):
+        if whale.settings.multiprocess:
             raise NotImplementedError(
                 "multiprocess component benchmarking is not yet implemented"
             )
@@ -186,7 +186,7 @@ def teardown_component(whale, component_name):
         logger.info("dropping table %s", table_name)
         whale.drop_table(table_name)
 
-    if config.setting("multiprocess", False):
+    if whale.settings.multiprocess:
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
         whale.close_pipeline()
@@ -298,11 +298,11 @@ def pre_run(
 
     logger.info(f"MODELS: {config.setting('models')}")
 
-    if config.setting("multiprocess", False):
+    if whale.settings.multiprocess:
         logger.info("run multi-process complete simulation")
     else:
         logger.info("run single process simulation")
-        whale.run(models=config.setting("models"))
+        whale.run(models=whale.settings.models)
         whale.close_pipeline()
 
     tracing.print_elapsed_time("prerun required models for checkpointing", t0)
@@ -327,7 +327,7 @@ def run_multiprocess():
 
     # assert not pipeline.is_open()
     #
-    # if config.setting("cleanup_pipeline_after_run", False):
+    # if whale.settings.cleanup_pipeline_after_run:
     #     pipeline.cleanup_pipeline()
 
 

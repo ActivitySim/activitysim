@@ -97,7 +97,7 @@ def maz_centroids(whale: workflow.Whale):
     logger.info("loaded maz_centroids %s" % (df.shape,))
 
     # replace table function with dataframe
-    inject.add_table("maz_centroids", df)
+    whale.add_table("maz_centroids", df)
 
     return df
 
@@ -266,7 +266,7 @@ def disaggregate_accessibility(whale: workflow.Whale):
     assert any(merge_df[accessibility_cols].isnull())
 
     # Inject merged accessibilities so that it can be included in persons_merged function
-    inject.add_table("disaggregate_accessibility", merge_df[accessibility_cols])
+    whale.add_table("disaggregate_accessibility", merge_df[accessibility_cols])
 
     return merge_df[accessibility_cols]
 

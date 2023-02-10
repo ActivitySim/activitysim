@@ -120,7 +120,6 @@ def delete_output_files(whale, file_type, ignore=None, subdir=None):
     directories = subdir or ["", "log", "trace"]
 
     for subdir in directories:
-
         dir = output_dir.joinpath(output_dir, subdir) if subdir else output_dir
 
         if not dir.exists():
@@ -259,7 +258,6 @@ def print_summary(label, df, describe=False, value_counts=False):
 
 @workflow.step
 def initialize_traceable_tables(whale: workflow.Whale):
-
     whale.set("traceable_table_ids", {})
 
 
@@ -331,7 +329,6 @@ def register_traceable_table(whale, table_name, df):
             )
             new_traced_ids = [trace_hh_id]
     else:
-
         # find first already registered ref_col we can use to slice this table
         ref_col = next((c for c in traceable_table_indexes if c in df.columns), None)
 
@@ -378,7 +375,6 @@ def register_traceable_table(whale, table_name, df):
 def write_df_csv(
     df, file_path, index_label=None, columns=None, column_labels=None, transpose=True
 ):
-
     need_header = not os.path.isfile(file_path)
 
     if columns:
@@ -395,7 +391,6 @@ def write_df_csv(
         df_t.index.name = index_label
 
     if need_header:
-
         if column_labels is None:
             column_labels = [None, None]
         if column_labels[0] is None:
@@ -426,7 +421,6 @@ def write_df_csv(
 def write_series_csv(
     series, file_path, index_label=None, columns=None, column_labels=None
 ):
-
     if isinstance(columns, str):
         series = series.rename(columns)
     elif isinstance(columns, list):
@@ -441,7 +435,13 @@ def write_series_csv(
 
 
 def write_csv(
-    df, file_name, index_label=None, columns=None, column_labels=None, transpose=True
+    whale: workflow.Whale,
+    df,
+    file_name,
+    index_label=None,
+    columns=None,
+    column_labels=None,
+    transpose=True,
 ):
     """
     Print write_csv
@@ -468,7 +468,7 @@ def write_csv(
     if not file_name.endswith(".%s" % CSV_FILE_TYPE):
         file_name = "%s.%s" % (file_name, CSV_FILE_TYPE)
 
-    file_path = config.trace_file_path(file_name)
+    file_path = whale.filesystem.get_trace_file_path(file_name)
 
     if os.name == "nt":
         abs_path = os.path.abspath(file_path)
@@ -592,13 +592,11 @@ def get_trace_target(whale, df, slicer, column=None):
 
 @workflow.func
 def trace_targets(whale: workflow.Whale, df, slicer=None, column=None):
-
     target_ids, column = get_trace_target(whale, df, slicer, column)
 
     if target_ids is None:
         targets = None
     else:
-
         if column is None:
             targets = df.index.isin(target_ids)
         else:
@@ -610,13 +608,11 @@ def trace_targets(whale: workflow.Whale, df, slicer=None, column=None):
 
 @workflow.func
 def has_trace_targets(whale: workflow.Whale, df, slicer=None, column=None):
-
     target_ids, column = get_trace_target(whale, df, slicer, column)
 
     if target_ids is None:
         found = False
     else:
-
         if column is None:
             found = df.index.isin(target_ids).any()
         else:
@@ -736,6 +732,7 @@ def trace_df(
 
     if df.shape[0] > 0:
         write_csv(
+            whale,
             df,
             file_name=label,
             index_label=(index_label or slicer),
@@ -820,7 +817,6 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
             trace_ids = interaction_df[trace_rows].index.values
 
     else:
-
         if slicer_column_name == choosers.index.name:
             trace_rows = np.in1d(choosers.index, targets)
             trace_ids = np.asanyarray(choosers[trace_rows].index)
@@ -885,7 +881,6 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
 
     # if there are multiple targets, we want them in separate tables for readability
     for target in targets:
-
         df_target = trace_results[trace_results[slicer_column_name] == target]
 
         # we want the transposed columns in predictable order

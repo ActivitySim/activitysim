@@ -258,7 +258,12 @@ def run_trip_scheduling_choice(
     if len(indirect_tours) > 0:
         # Iterate through the chunks
         result_list = []
-        for i, choosers, chunk_trace_label in chunk.adaptive_chunked_choosers(
+        for (
+            i,
+            choosers,
+            chunk_trace_label,
+            chunk_sizer,
+        ) in chunk.adaptive_chunked_choosers(
             whale, indirect_tours, chunk_size, trace_label
         ):
             # Sort the choosers and get the schedule alternatives
@@ -271,6 +276,7 @@ def run_trip_scheduling_choice(
 
             # Run the simulation
             choices = _interaction_sample_simulate(
+                whale,
                 choosers=choosers,
                 alternatives=schedules,
                 spec=spec,
@@ -284,6 +290,7 @@ def run_trip_scheduling_choice(
                 trace_label=chunk_trace_label,
                 trace_choice_name="trip_schedule_stage_1",
                 estimator=None,
+                chunk_sizer=chunk_sizer,
             )
 
             assert len(choices.index) == len(choosers.index)

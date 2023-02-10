@@ -634,6 +634,7 @@ class ShadowPriceCalculator(object):
 
             if write_choices:
                 tracing.write_csv(
+                    whale,
                     self.choices_by_iteration,
                     "%s_choices_by_shadow_price_iteration" % self.model_selector,
                     transpose=False,
@@ -884,7 +885,7 @@ class ShadowPriceCalculator(object):
 
         return size_terms
 
-    def write_trace_files(self, iteration):
+    def write_trace_files(self, whale: workflow.Whale, iteration):
         """
         Write trace files for this iteration
         Writes desired_size, modeled_size, and shadow_prices tables
@@ -901,12 +902,14 @@ class ShadowPriceCalculator(object):
         if iteration == 1:
             # write desired_size only on first iteration, as it doesn't change
             tracing.write_csv(
+                whale,
                 self.desired_size,
                 "shadow_price_%s_desired_size" % self.model_selector,
                 transpose=False,
             )
 
         tracing.write_csv(
+            whale,
             self.modeled_size,
             "shadow_price_%s_modeled_size_%s" % (self.model_selector, iteration),
             transpose=False,
@@ -914,6 +917,7 @@ class ShadowPriceCalculator(object):
 
         if self.use_shadow_pricing:
             tracing.write_csv(
+                whale,
                 self.shadow_prices,
                 "shadow_price_%s_shadow_prices_%s" % (self.model_selector, iteration),
                 transpose=False,

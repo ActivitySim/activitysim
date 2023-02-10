@@ -60,20 +60,6 @@ def override_hh_ids(whale: workflow.Whale):
     return household_ids
 
 
-# @workflow_object
-# def trace_hh_id(whale: Whale):
-#
-#     id = whale.settings.trace_hh_id
-#
-#     if id and not isinstance(id, int):
-#         logger.warning(
-#             "setting trace_hh_id is wrong type, should be an int, but was %s" % type(id)
-#         )
-#         id = None
-#
-#     return id
-
-
 @workflow.cached_object
 def trace_od(whale: workflow.Whale):
 

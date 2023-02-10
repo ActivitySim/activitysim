@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def non_mandatory_tour_destination(
-    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size
 ):
     """
     Given the tour generation from the above, each tour needs to have a
@@ -25,14 +25,14 @@ def non_mandatory_tour_destination(
     trace_label = "non_mandatory_tour_destination"
     model_settings_file_name = "non_mandatory_tour_destination.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
+    trace_hh_id = whale.settings.trace_hh_id
 
     logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
     want_logsums = logsum_column_name is not None
 
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     tours = tours.to_frame()
@@ -58,7 +58,9 @@ def non_mandatory_tour_destination(
         tracing.no_results(trace_label)
         return
 
-    estimator = estimation.manager.begin_estimation("non_mandatory_tour_destination")
+    estimator = estimation.manager.begin_estimation(
+        whale, "non_mandatory_tour_destination"
+    )
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
@@ -73,6 +75,7 @@ def non_mandatory_tour_destination(
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(
+        whale,
         non_mandatory_tours,
         persons_merged,
         want_logsums,
@@ -81,7 +84,6 @@ def non_mandatory_tour_destination(
         network_los,
         estimator,
         chunk_size,
-        trace_hh_id,
         trace_label,
     )
 

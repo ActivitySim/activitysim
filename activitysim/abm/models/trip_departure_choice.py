@@ -425,6 +425,7 @@ def apply_stage_two_model(whale, omnibus_spec, trips, chunk_size, trace_label):
         i,
         chooser_chunk,
         chunk_trace_label,
+        chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_by_chunk_id(
         side_trips, chunk_size, trace_label
     ):

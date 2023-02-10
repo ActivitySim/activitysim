@@ -307,7 +307,7 @@ def run(args):
         memory_sidecar_process = None
 
     # legacy support for run_list setting nested 'models' and 'resume_after' settings
-    # if config.setting("run_list"):
+    # if whale.settings.run_list:
     #     warnings.warn(
     #         "Support for 'run_list' settings group will be removed.\n"
     #         "The run_list.steps setting is renamed 'models'.\n"
@@ -315,7 +315,7 @@ def run(args):
     #         "Specify both 'models' and 'resume_after' directly in settings config file.",
     #         FutureWarning,
     #     )
-    #     run_list = config.setting("run_list")
+    #     run_list = whale.settings.run_list
     #     if "steps" in run_list:
     #         assert not config.setting(
     #             "models"
@@ -336,7 +336,7 @@ def run(args):
     # cleanup if not resuming
     if not resume_after:
         cleanup_output_files(whale)
-    elif config.setting("cleanup_trace_files_on_resume", False):
+    elif whale.settings.cleanup_trace_files_on_resume:
         tracing.delete_trace_files(whale)
 
     tracing.config_logger(

@@ -59,7 +59,7 @@ def report_bad_choices(
 
     if trace_label:
         logger.info("dumping %s" % trace_label)
-        tracing.write_csv(df[:MAX_DUMP], file_name=trace_label, transpose=False)
+        tracing.write_csv(whale, df[:MAX_DUMP], file_name=trace_label, transpose=False)
 
     # log the indexes of the first MAX_DUMP offending rows
     for idx in df.index[:MAX_PRINT].values:

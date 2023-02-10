@@ -180,7 +180,7 @@ def preload_injectables():
     inject.add_step("write_data_dictionary", write_data_dictionary)
     inject.add_step("write_tables", write_tables)
 
-    table_list = config.setting("input_table_list")
+    table_list = whale.settings.input_table_list
 
     # default ActivitySim table names and indices
     if table_list is None:
@@ -194,7 +194,7 @@ def preload_injectables():
         inject.add_injectable("settings", new_settings)
 
     # FIXME undocumented feature
-    if config.setting("write_raw_tables"):
+    if whale.settings.write_raw_tables:
         # write raw input tables as csv (before annotation)
         csv_dir = config.output_file_path("raw_tables")
         if not os.path.exists(csv_dir):
@@ -207,7 +207,7 @@ def preload_injectables():
 
     t0 = tracing.print_elapsed_time()
 
-    if config.setting("benchmarking", False):
+    if whale.settings.benchmarking:
         # we don't want to pay for skim_dict inside any model component during
         # benchmarking, so we'll preload skim_dict here.  Preloading is not needed
         # for regular operation, as activitysim components can load-on-demand.

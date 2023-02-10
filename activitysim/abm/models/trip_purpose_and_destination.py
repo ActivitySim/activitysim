@@ -23,10 +23,10 @@ def run_trip_purpose_and_destination(
     trips_df,
     tours_merged_df,
     chunk_size,
-    trace_hh_id,
     trace_label,
 ):
     assert not trips_df.empty
+    trace_hh_id = whale.settings.trace_hh_id
 
     choices = run_trip_purpose(
         whale,
@@ -45,7 +45,6 @@ def run_trip_purpose_and_destination(
         tours_merged_df,
         estimator=None,
         chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, "destination"),
     )
 
@@ -118,8 +117,8 @@ def trip_purpose_and_destination(
     # if we didn't, but it is enabled, it is probably a configuration error
     # if we just estimated trip_purpose, it isn't clear what they are trying to do , nor how to handle it
     assert not (
-        estimation.manager.begin_estimation("trip_purpose")
-        or estimation.manager.begin_estimation("trip_destination")
+        estimation.manager.begin_estimation(whale, "trip_purpose")
+        or estimation.manager.begin_estimation(whale, "trip_destination")
     )
 
     processed_trips = []
@@ -168,7 +167,7 @@ def trip_purpose_and_destination(
         file_name = "%s_i%s_failed_trips" % (trace_label, i)
         logger.info("writing failed trips to %s" % file_name)
         tracing.write_csv(
-            trips_df[trips_df.failed], file_name=file_name, transpose=False
+            whale, trips_df[trips_df.failed], file_name=file_name, transpose=False
         )
 
         # if max iterations reached, add remaining trips to processed_trips and give up

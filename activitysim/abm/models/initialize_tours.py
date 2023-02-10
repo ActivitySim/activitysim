@@ -75,11 +75,10 @@ def patch_tour_ids(tours):
 
 
 @workflow.step
-def initialize_tours(
-    whale: workflow.Whale, network_los, households, persons, trace_hh_id
-):
+def initialize_tours(whale: workflow.Whale, network_los, households, persons):
     trace_label = "initialize_tours"
 
+    trace_hh_id = whale.settings.trace_hh_id
     tours = read_input_table(whale, "tours")
 
     # FIXME can't use households_sliced injectable as flag like persons table does in case of resume_after.
@@ -110,7 +109,7 @@ def initialize_tours(
     assert tours.index.name == "tour_id"
 
     # replace table function with dataframe
-    inject.add_table("tours", tours)
+    whale.add_table("tours", tours)
 
     whale.get_rn_generator().add_channel("tours", tours)
 

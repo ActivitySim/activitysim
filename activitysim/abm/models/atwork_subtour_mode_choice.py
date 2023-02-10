@@ -15,13 +15,15 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def atwork_subtour_mode_choice(
-    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size
 ):
     """
     At-work subtour mode choice simulate
     """
 
     trace_label = "atwork_subtour_mode_choice"
+
+    trace_hh_id = whale.settings.trace_hh_id
 
     model_settings_file_name = "tour_mode_choice.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
@@ -119,7 +121,7 @@ def atwork_subtour_mode_choice(
             network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
         )
 
-    estimator = estimation.manager.begin_estimation("atwork_subtour_mode_choice")
+    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)

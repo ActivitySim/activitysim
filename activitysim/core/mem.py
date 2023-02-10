@@ -49,14 +49,14 @@ def consolidate_logs():
     Consolidate and aggregate subprocess mem logs
     """
 
-    if not config.setting("multiprocess", False):
+    if not whale.settings.multiprocess:
         return
 
-    delete_originals = not config.setting("keep_mem_logs", False)
+    delete_originals = not whale.settings.keep_mem_logs
     omnibus_df = []
 
     # for each multiprocess step
-    multiprocess_steps = config.setting("multiprocess_steps", [])
+    multiprocess_steps = whale.settings.multiprocess_steps
     for step in multiprocess_steps:
         step_name = step.get("name", None)
 

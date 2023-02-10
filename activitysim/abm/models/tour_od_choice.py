@@ -19,7 +19,6 @@ def tour_od_choice(
     land_use,
     network_los,
     chunk_size,
-    trace_hh_id,
 ):
     """Simulates joint origin/destination choice for all tours.
 
@@ -46,8 +45,6 @@ def tour_od_choice(
         lazy-loaded activitysim.los.Network_LOS object
     chunk_size
         simulation chunk size, set in main settings.yaml
-    trace_hh_id : int
-        households to trace, set in main settings.yaml
     """
 
     trace_label = "tour_od_choice"
@@ -56,11 +53,11 @@ def tour_od_choice(
     origin_col_name = model_settings["ORIG_COL_NAME"]
     dest_col_name = model_settings["DEST_COL_NAME"]
     alt_id_col = tour_od.get_od_id_col(origin_col_name, dest_col_name)
+    trace_hh_id = whale.settings.trace_hh_id
 
     sample_table_name = model_settings.get("OD_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     logsum_column_name = model_settings.get("OD_CHOICE_LOGSUM_COLUMN_NAME", None)
@@ -71,7 +68,7 @@ def tour_od_choice(
     # interaction_sample_simulate insists choosers appear in same order as alts
     tours = tours.sort_index()
 
-    estimator = estimation.manager.begin_estimation("tour_od_choice")
+    estimator = estimation.manager.begin_estimation(whale, "tour_od_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_spec(model_settings, tag="SAMPLE_SPEC")

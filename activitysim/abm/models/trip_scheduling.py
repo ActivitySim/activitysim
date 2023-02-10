@@ -423,7 +423,7 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
 
     # trip_scheduling is a probabilistic model ane we don't support estimation,
     # but we do need to override choices in estimation mode
-    estimator = estimation.manager.begin_estimation("trip_scheduling")
+    estimator = estimation.manager.begin_estimation(whale, "trip_scheduling")
     if estimator:
         estimator.write_spec(model_settings, tag="PROBS_SPEC")
         estimator.write_model_settings(model_settings, model_settings_file_name)
@@ -466,6 +466,7 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
         chunk_i,
         trips_chunk,
         chunk_trace_label,
+        chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_by_chunk_id(
         trips_df, chunk_size, trace_label, trace_label
     ):

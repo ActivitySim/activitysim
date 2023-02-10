@@ -85,10 +85,14 @@ def test_individual_utilities(people, model_settings):
 
     with chunk.chunk_log(
         "test_individual_utilities", base=True, settings=whale.settings
-    ):
+    ) as chunk_sizer:
         cdap.assign_cdap_rank(whale, people, person_type_map)
         individual_utils = cdap.individual_utilities(
-            people, cdap_indiv_and_hhsize1, locals_d=None
+            whale,
+            people,
+            cdap_indiv_and_hhsize1,
+            locals_d=None,
+            chunk_sizer=chunk_sizer,
         )
 
     individual_utils = individual_utils[["M", "N", "H"]]
@@ -143,10 +147,14 @@ def test_build_cdap_spec_hhsize2(whale: workflow.Whale, people, model_settings):
 
     with chunk.chunk_log(
         "test_build_cdap_spec_hhsize2", base=True, settings=whale.settings
-    ):
+    ) as chunk_sizer:
         cdap.assign_cdap_rank(whale, people, person_type_map)
         indiv_utils = cdap.individual_utilities(
-            people, cdap_indiv_and_hhsize1, locals_d=None
+            whale,
+            people,
+            cdap_indiv_and_hhsize1,
+            locals_d=None,
+            chunk_sizer=chunk_sizer,
         )
 
         choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)

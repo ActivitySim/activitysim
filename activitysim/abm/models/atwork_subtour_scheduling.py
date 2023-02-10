@@ -27,7 +27,6 @@ def atwork_subtour_scheduling(
     tdd_alts,
     skim_dict,
     chunk_size,
-    trace_hh_id,
 ):
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
@@ -35,8 +34,7 @@ def atwork_subtour_scheduling(
 
     trace_label = "atwork_subtour_scheduling"
     model_settings_file_name = "tour_scheduling_atwork.yaml"
-
-    tours = tours.to_frame()
+    trace_hh_id = whale.settings.trace_hh_id
     subtours = tours[tours.tour_category == "atwork"]
 
     # - if no atwork subtours
@@ -45,7 +43,7 @@ def atwork_subtour_scheduling(
         return
 
     model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("atwork_subtour_scheduling")
+    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_scheduling")
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     sharrow_skip = model_settings.get("sharrow_skip")

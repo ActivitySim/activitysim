@@ -11,9 +11,7 @@ logger = logging.getLogger("activitysim")
 
 
 @workflow.step
-def work_from_home(
-    whale: workflow.Whale, persons_merged, persons, chunk_size, trace_hh_id
-):
+def work_from_home(whale: workflow.Whale, persons_merged, persons, chunk_size):
     """
     This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).
@@ -32,7 +30,7 @@ def work_from_home(
     choosers = choosers[choosers[chooser_filter_column_name]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    estimator = estimation.manager.begin_estimation("work_from_home")
+    estimator = estimation.manager.begin_estimation(whale, "work_from_home")
 
     constants = config.get_model_constants(model_settings)
     work_from_home_alt = model_settings["WORK_FROM_HOME_ALT"]
@@ -93,6 +91,7 @@ def work_from_home(
         )
 
         choices = simulate.simple_simulate(
+            whale,
             choosers=choosers,
             spec=model_spec,
             nest_spec=nest_spec,
@@ -176,5 +175,5 @@ def work_from_home(
 
     tracing.print_summary("work_from_home", persons.work_from_home, value_counts=True)
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

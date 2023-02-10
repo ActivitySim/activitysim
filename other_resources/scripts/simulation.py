@@ -73,7 +73,7 @@ if __name__ == "__main__":
     t0 = tracing.print_elapsed_time()
 
     # cleanup if not resuming
-    if not config.setting("resume_after", False):
+    if not whale.settings.resume_after:
         cleanup_output_files()
 
     run_list = mp_tasks.get_run_list()

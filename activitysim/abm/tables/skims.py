@@ -31,8 +31,9 @@ def network_los(
 
 
 @workflow.cached_object
-def skim_dict(whale: workflow.Whale, network_los):
-    return network_los.get_default_skim_dict()
+def skim_dict(whale: workflow.Whale, network_los: los.Network_LOS):
+    result = network_los.get_default_skim_dict()
+    return result
 
 
 @workflow.cached_object

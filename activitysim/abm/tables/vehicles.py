@@ -37,7 +37,7 @@ def vehicles(whale: workflow.Whale, households):
     vehicles.set_index("vehicle_id", inplace=True)
 
     # replace table function with dataframe
-    inject.add_table("vehicles", vehicles)
+    whale.add_table("vehicles", vehicles)
 
     whale.get_rn_generator().add_channel("vehicles", vehicles)
     tracing.register_traceable_table("vehicles", vehicles)

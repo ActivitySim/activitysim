@@ -64,6 +64,7 @@ class SizeTermCalculator(object):
 
 
 def _destination_sample(
+    whale: workflow.Whale,
     spec_segment_name,
     choosers,
     destination_size_terms,
@@ -86,7 +87,7 @@ def _destination_sample(
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings["SAMPLE_SIZE"]
-    if config.setting("disable_destination_sampling", False) or (
+    if whale.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
@@ -106,7 +107,7 @@ def _destination_sample(
     if constants is not None:
         locals_d.update(constants)
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = whale.settings.log_alt_losers
 
     choices = interaction_sample(
         whale,
@@ -135,6 +136,7 @@ def _destination_sample(
 
 
 def destination_sample(
+    whale: workflow.Whale,
     spec_segment_name,
     choosers,
     model_settings,
@@ -161,6 +163,7 @@ def destination_sample(
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     choices = _destination_sample(
+        whale,
         spec_segment_name,
         choosers,
         destination_size_terms,
@@ -456,6 +459,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
 
 
 def destination_presample(
+    whale: workflow.Whale,
     spec_segment_name,
     choosers,
     model_settings,
@@ -489,6 +493,7 @@ def destination_presample(
     skims = skim_dict.wrap(ORIG_TAZ, DEST_TAZ)
 
     taz_sample = _destination_sample(
+        whale,
         spec_segment_name,
         choosers,
         TAZ_size_terms,
@@ -512,6 +517,7 @@ def destination_presample(
 
 
 def run_destination_sample(
+    whale,
     spec_segment_name,
     tours,
     persons_merged,
@@ -547,7 +553,7 @@ def run_destination_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
-    if pre_sample_taz and not config.setting("want_dest_choice_presampling", True):
+    if pre_sample_taz and not whale.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -560,6 +566,7 @@ def run_destination_sample(
         )
 
         choices = destination_presample(
+            whale,
             spec_segment_name,
             choosers,
             model_settings,
@@ -572,6 +579,7 @@ def run_destination_sample(
 
     else:
         choices = destination_sample(
+            whale,
             spec_segment_name,
             choosers,
             model_settings,
@@ -590,6 +598,7 @@ def run_destination_sample(
 
 
 def run_destination_logsums(
+    whale: workflow.Whale,
     tour_purpose,
     persons_merged,
     destination_sample,
@@ -662,6 +671,7 @@ def run_destination_logsums(
 
 
 def run_destination_simulate(
+    whale: workflow.Whale,
     spec_segment_name,
     tours,
     persons_merged,
@@ -746,9 +756,10 @@ def run_destination_simulate(
 
     tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = whale.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
+        whale,
         choosers,
         destination_sample,
         spec=model_spec,
@@ -774,6 +785,7 @@ def run_destination_simulate(
 
 
 def run_tour_destination(
+    whale: workflow.Whale,
     tours,
     persons_merged,
     want_logsums,
@@ -782,7 +794,6 @@ def run_tour_destination(
     network_los,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
     skip_choice=False,
 ):
@@ -821,6 +832,7 @@ def run_tour_destination(
         # - destination_sample
         spec_segment_name = segment_name  # spec_segment_name is segment_name
         location_sample_df = run_destination_sample(
+            whale,
             spec_segment_name,
             choosers,
             persons_merged,
@@ -835,6 +847,7 @@ def run_tour_destination(
         # - destination_logsums
         tour_purpose = segment_name  # tour_purpose is segment_name
         location_sample_df = run_destination_logsums(
+            whale,
             tour_purpose,
             persons_merged,
             location_sample_df,
@@ -847,6 +860,7 @@ def run_tour_destination(
         # - destination_simulate
         spec_segment_name = segment_name  # spec_segment_name is segment_name
         choices = run_destination_simulate(
+            whale,
             spec_segment_name,
             choosers,
             persons_merged,

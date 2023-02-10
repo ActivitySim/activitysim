@@ -31,7 +31,7 @@ def extension_probs(whale: workflow.Whale):
 
 
 def extend_tour_counts(
-    whale: workflow.Whale, persons, tour_counts, alternatives, trace_hh_id, trace_label
+    whale: workflow.Whale, persons, tour_counts, alternatives, trace_label
 ):
     """
     extend tour counts based on a probability table
@@ -67,12 +67,13 @@ def extend_tour_counts(
     """
 
     assert tour_counts.index.name == persons.index.name
+    trace_hh_id = whale.settings.trace_hh_id
 
     PROBABILITY_COLUMNS = ["0_tours", "1_tours", "2_tours"]
     JOIN_COLUMNS = ["ptype", "has_mandatory_tour", "has_joint_tour"]
     TOUR_TYPE_COL = "nonmandatory_tour_type"
 
-    probs_spec = extension_probs()
+    probs_spec = extension_probs(whale)
     persons = persons[JOIN_COLUMNS]
 
     # only extend if there are 1 - 4 non_mandatory tours to start with
@@ -201,7 +202,7 @@ def non_mandatory_tour_frequency(
             continue
 
         estimator = estimation.manager.begin_estimation(
-            model_name=segment_name, bundle_name="non_mandatory_tour_frequency"
+            whale, model_name=segment_name, bundle_name="non_mandatory_tour_frequency"
         )
 
         coefficients_df = simulate.read_model_coefficients(segment_settings)
@@ -233,7 +234,7 @@ def non_mandatory_tour_frequency(
 
             estimator.set_chooser_id(chooser_segment.index.name)
 
-        log_alt_losers = config.setting("log_alt_losers", False)
+        log_alt_losers = whale.settings.log_alt_losers
 
         choices = interaction_simulate(
             whale,

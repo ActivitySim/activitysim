@@ -541,7 +541,7 @@ def run_location_logsums(
 
 
 def run_location_simulate(
-    whale,
+    whale: workflow.Whale,
     segment_name,
     persons_merged,
     location_sample_df,
@@ -611,12 +611,17 @@ def run_location_simulate(
         estimator.write_interaction_sample_alternatives(alternatives)
 
     spec = simulate.spec_for_segment(
-        model_settings, spec_id="SPEC", segment_name=segment_name, estimator=estimator
+        whale,
+        model_settings,
+        spec_id="SPEC",
+        segment_name=segment_name,
+        estimator=estimator,
     )
 
     log_alt_losers = whale.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
+        whale,
         choosers,
         alternatives,
         spec=spec,
@@ -644,7 +649,7 @@ def run_location_simulate(
 
 
 def run_location_choice(
-    whale,
+    whale: workflow.Whale,
     persons_merged_df,
     network_los,
     shadow_price_calculator,
@@ -654,7 +659,6 @@ def run_location_choice(
     model_settings,
     chunk_size,
     chunk_tag,
-    trace_hh_id,
     trace_label,
     skip_choice=False,
 ):
@@ -675,7 +679,6 @@ def run_location_choice(
     estimator: Estimator object
     model_settings : dict
     chunk_size : int
-    trace_hh_id : int
     trace_label : str
 
     Returns
@@ -761,7 +764,7 @@ def run_location_choice(
         )
 
         if estimator:
-            if trace_hh_id:
+            if whale.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.modeled_choices"
                 )
@@ -803,7 +806,7 @@ def run_location_choice(
                     f"{trace_label} segment {segment_name} estimation: override logsums"
                 )
 
-            if trace_hh_id:
+            if whale.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.survey_choices"
                 )
@@ -838,7 +841,7 @@ def run_location_choice(
 
 
 def iterate_location_choice(
-    whale,
+    whale: workflow.Whale,
     model_settings,
     persons_merged,
     persons,
@@ -846,7 +849,6 @@ def iterate_location_choice(
     network_los,
     estimator,
     chunk_size,
-    trace_hh_id,
     locutor,
     trace_label,
 ):
@@ -863,7 +865,6 @@ def iterate_location_choice(
     persons : injected table
     network_los : los.Network_LOS
     chunk_size : int
-    trace_hh_id : int
     locutor : bool
         whether this process is the privileged logger of shadow_pricing when multiprocessing
     trace_label : str
@@ -936,7 +937,6 @@ def iterate_location_choice(
             model_settings=model_settings,
             chunk_size=chunk_size,
             chunk_tag=chunk_tag,
-            trace_hh_id=trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % iteration),
         )
 
@@ -975,7 +975,7 @@ def iterate_location_choice(
         )
 
         if locutor:
-            spc.write_trace_files(iteration)
+            spc.write_trace_files(whale, iteration)
 
         if spc.use_shadow_pricing and spc.check_fit(iteration):
             logging.info(
@@ -990,11 +990,11 @@ def iterate_location_choice(
     # - shadow price table
     if locutor:
         if spc.use_shadow_pricing and "SHADOW_PRICE_TABLE" in model_settings:
-            inject.add_table(model_settings["SHADOW_PRICE_TABLE"], spc.shadow_prices)
+            whale.add_table(model_settings["SHADOW_PRICE_TABLE"], spc.shadow_prices)
         if "MODELED_SIZE_TABLE" in model_settings:
-            inject.add_table(model_settings["MODELED_SIZE_TABLE"], spc.modeled_size)
+            whale.add_table(model_settings["MODELED_SIZE_TABLE"], spc.modeled_size)
 
-    persons_df = persons.to_frame()
+    persons_df = persons
 
     # add the choice values to the dest_choice_column in persons dataframe
     # We only chose school locations for the subset of persons who go to school
@@ -1032,12 +1032,12 @@ def iterate_location_choice(
 
         whale.add_table("persons", persons_df)
 
-        if trace_hh_id:
+        if whale.settings.trace_hh_id:
             tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
 
     # - annotate households table
     if "annotate_households" in model_settings:
-        households_df = households.to_frame()
+        households_df = households
         expressions.assign_columns(
             whale,
             df=households_df,
@@ -1046,7 +1046,7 @@ def iterate_location_choice(
         )
         whale.add_table("households", households_df)
 
-        if trace_hh_id:
+        if whale.settings.trace_hh_id:
             tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
 
     if logsum_column_name:
@@ -1065,7 +1065,6 @@ def workplace_location(
     households,
     network_los,
     chunk_size,
-    trace_hh_id,
     locutor,
 ):
     """
@@ -1077,9 +1076,11 @@ def workplace_location(
     trace_label = "workplace_location"
     model_settings = whale.filesystem.read_model_settings("workplace_location.yaml")
 
-    estimator = estimation.manager.begin_estimation("workplace_location")
+    estimator = estimation.manager.begin_estimation(whale, whale, "workplace_location")
     if estimator:
-        write_estimation_specs(estimator, model_settings, "workplace_location.yaml")
+        write_estimation_specs(
+            whale, estimator, model_settings, "workplace_location.yaml"
+        )
 
     # FIXME - debugging code to test multiprocessing failure handling
     # process_name = multiprocessing.current_process().name
@@ -1091,6 +1092,7 @@ def workplace_location(
         locutor = False
 
     iterate_location_choice(
+        whale,
         model_settings,
         persons_merged,
         persons,
@@ -1098,7 +1100,6 @@ def workplace_location(
         network_los,
         estimator,
         chunk_size,
-        trace_hh_id,
         locutor,
         trace_label,
     )
@@ -1126,9 +1127,9 @@ def school_location(
     trace_label = "school_location"
     model_settings = whale.filesystem.read_model_settings("school_location.yaml")
 
-    estimator = estimation.manager.begin_estimation(whale, "school_location")
+    estimator = estimation.manager.begin_estimation(whale, whale, "school_location")
     if estimator:
-        write_estimation_specs(estimator, model_settings, "school_location.yaml")
+        write_estimation_specs(whale, estimator, model_settings, "school_location.yaml")
 
     # disable locutor for benchmarking
     if whale.settings.benchmarking:
@@ -1143,7 +1144,6 @@ def school_location(
         network_los,
         estimator,
         chunk_size,
-        whale.settings.trace_hh_id,
         locutor,
         trace_label,
     )

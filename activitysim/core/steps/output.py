@@ -318,7 +318,7 @@ def write_tables(whale, output_dir):
                         )
                         df = df.sort_index()
 
-        if config.setting("recode_pipeline_columns", True):
+        if whale.settings.recode_pipeline_columns:
             for colname, decode_instruction in table_decode_cols.items():
                 if "|" in decode_instruction:
                     decode_filter, decode_instruction = decode_instruction.split("|")

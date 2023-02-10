@@ -19,7 +19,6 @@ def run_tour_scheduling(
     tdd_alts,
     tour_segment_col,
     chunk_size,
-    trace_hh_id,
 ):
     trace_label = model_name
     model_settings_file_name = f"{model_name}.yaml"
@@ -67,7 +66,7 @@ def run_tour_scheduling(
 
             # estimator for this tour_segment
             estimator = estimation.manager.begin_estimation(
-                model_name=bundle_name, bundle_name=bundle_name
+                whale, model_name=bundle_name, bundle_name=bundle_name
             )
 
             spec_file_name = spec_settings["SPEC"]
@@ -108,7 +107,7 @@ def run_tour_scheduling(
         assert "TOUR_SPEC_SEGMENTS" not in model_settings
         assert tour_segment_col is None
 
-        estimator = estimation.manager.begin_estimation(model_name)
+        estimator = estimation.manager.begin_estimation(whale, model_name)
 
         spec_file_name = model_settings["SPEC"]
         model_spec = simulate.read_model_spec(file_name=spec_file_name)

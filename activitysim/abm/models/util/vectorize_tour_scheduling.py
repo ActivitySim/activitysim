@@ -757,9 +757,10 @@ def _schedule_tours(
         estimator.set_alt_id(choice_column)
         estimator.write_interaction_sample_alternatives(alt_tdd)
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = whale.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
+        whale,
         tours,
         alt_tdd,
         spec,

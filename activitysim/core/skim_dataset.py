@@ -665,10 +665,10 @@ def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
     -------
     xarray.Dataset
     """
-    from ..core.los import ONE_ZONE
+    from activitysim.core.los import ONE_ZONE
 
     # TODO:SHARROW: taz and maz are the same
-    network_los_preload = whale.get_injectable("network_los_preload", None)
+    network_los_preload = whale.get_injectable("network_los_preload")
     if network_los_preload is None:
         raise ValueError("missing network_los_preload")
 

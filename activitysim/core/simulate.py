@@ -32,7 +32,6 @@ logger = logging.getLogger(__name__)
 
 
 def random_rows(whale: workflow.Whale, df, n):
-
     # only sample if df has more than n rows
     if len(df.index) > n:
         prng = whale.get_rn_generator().get_global_rng()
@@ -43,7 +42,6 @@ def random_rows(whale: workflow.Whale, df, n):
 
 
 def uniquify_spec_index(spec):
-
     # uniquify spec index inplace
     # ensure uniqueness of spec index by appending comment with dupe count
     # this allows us to use pandas dot to compute_utilities
@@ -370,7 +368,6 @@ def get_segment_coefficients(whale: workflow.Whale, model_settings, segment_name
 def eval_nest_coefficients(nest_spec, coefficients, trace_label):
     def replace_coefficients(nest):
         if isinstance(nest, dict):
-
             assert "coefficient" in nest
             coefficient_name = nest["coefficient"]
             if isinstance(coefficient_name, str):
@@ -401,7 +398,6 @@ def eval_coefficients(
     coefficients: dict | pd.DataFrame,
     estimator,
 ):
-
     spec = spec.copy()  # don't clobber input spec
 
     if isinstance(coefficients, pd.DataFrame):
@@ -450,6 +446,8 @@ def eval_utilities(
     log_alt_losers=False,
     zone_layer=None,
     spec_sh=None,
+    *,
+    chunk_sizer,
 ):
     """
     Evaluate a utility function as defined in a spec file.
@@ -537,7 +535,6 @@ def eval_utilities(
     # fixme - restore tracing and _check_for_variability
 
     if utilities is None or estimator or sharrow_enabled == "test":
-
         trace_label = tracing.extend_trace_label(trace_label, "eval_utils")
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
@@ -557,11 +554,10 @@ def eval_utilities(
             exprs = spec.index
 
         expression_values = np.empty((spec.shape[0], choosers.shape[0]))
-        chunk.log_df(trace_label, "expression_values", expression_values)
+        chunk_sizer.log_df(trace_label, "expression_values", expression_values)
 
         i = 0
         for expr, coefficients in zip(exprs, spec.values):
-
             try:
                 with warnings.catch_warnings(record=True) as w:
                     # Cause all warnings to always be triggered.
@@ -598,7 +594,7 @@ def eval_utilities(
             expression_values[i] = expression_value
             i += 1
 
-        chunk.log_df(trace_label, "expression_values", expression_values)
+        chunk_sizer.log_df(trace_label, "expression_values", expression_values)
 
         if estimator:
             df = pd.DataFrame(
@@ -619,13 +615,12 @@ def eval_utilities(
         timelogger.mark("simple flow", False)
 
     utilities = pd.DataFrame(data=utilities, index=choosers.index, columns=spec.columns)
-    chunk.log_df(trace_label, "utilities", utilities)
+    chunk_sizer.log_df(trace_label, "utilities", utilities)
     timelogger.mark("assemble utilities")
 
     # sometimes tvpb will drop rows on the fly and we wind up with an empty
     # table of choosers. this will just bypass tracing in that case.
     if (trace_all_rows or have_trace_targets) and (len(choosers) > 0):
-
         if trace_all_rows:
             trace_targets = pd.Series(True, index=choosers.index)
         else:
@@ -684,7 +679,6 @@ def eval_utilities(
             )
 
             if len(spec.columns) > 1:
-
                 for c in spec.columns:
                     name = f"expression_value_{c}"
 
@@ -739,10 +733,10 @@ def eval_utilities(
         timelogger.mark("sharrow test", True, logger, trace_label)
 
     del expression_values
-    chunk.log_df(trace_label, "expression_values", None)
+    chunk_sizer.log_df(trace_label, "expression_values", None)
 
     # no longer our problem - but our caller should re-log this...
-    chunk.log_df(trace_label, "utilities", None)
+    chunk_sizer.log_df(trace_label, "utilities", None)
 
     end_time = time.time()
     logger.info(
@@ -795,7 +789,6 @@ def eval_variables(exprs, df, locals_d=None):
     locals_dict["df"] = df
 
     def to_array(x):
-
         if x is None or np.isscalar(x):
             a = np.asanyarray([x] * len(df.index))
         elif isinstance(x, pd.Series):
@@ -965,7 +958,6 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
     nested_utilities = pd.DataFrame(index=raw_utilities.index)
 
     for nest in logit.each_nest(nest_spec, post_order=True):
-
         name = nest.name
 
         if nest.is_leaf:
@@ -1014,7 +1006,6 @@ def compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label):
     nested_probabilities = pd.DataFrame(index=nested_exp_utilities.index)
 
     for nest in logit.each_nest(nest_spec, type="node", post_order=False):
-
         probs = logit.utils_to_probs(
             nested_exp_utilities[nest.alternatives],
             trace_label=trace_label,
@@ -1051,7 +1042,6 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
     base_probabilities = pd.DataFrame(index=nested_probabilities.index)
 
     for nest in logit.each_nest(nests, type="leaf", post_order=False):
-
         # skip root: it has a prob of 1 but we didn't compute a nested probability column for it
         ancestors = nest.ancestors[1:]
 
@@ -1066,6 +1056,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 
 
 def eval_mnl(
+    whale: workflow.Whale,
     choosers,
     spec,
     locals_d,
@@ -1076,6 +1067,8 @@ def eval_mnl(
     trace_label=None,
     trace_choice_name=None,
     trace_column_names=None,
+    *,
+    chunk_sizer,
 ):
     """
     Run a simulation for when the model spec does not involve alternative
@@ -1138,8 +1131,9 @@ def eval_mnl(
         have_trace_targets=have_trace_targets,
         estimator=estimator,
         trace_column_names=trace_column_names,
+        chunk_sizer=chunk_sizer,
     )
-    chunk.log_df(trace_label, "utilities", utilities)
+    chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1151,10 +1145,10 @@ def eval_mnl(
     probs = logit.utils_to_probs(
         utilities, trace_label=trace_label, trace_choosers=choosers
     )
-    chunk.log_df(trace_label, "probs", probs)
+    chunk_sizer.log_df(trace_label, "probs", probs)
 
     del utilities
-    chunk.log_df(trace_label, "utilities", None)
+    chunk_sizer.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
         # report these now in case make_choices throws error on bad_choices
@@ -1172,7 +1166,7 @@ def eval_mnl(
         choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
 
     del probs
-    chunk.log_df(trace_label, "probs", None)
+    chunk_sizer.log_df(trace_label, "probs", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1184,6 +1178,7 @@ def eval_mnl(
 
 
 def eval_nl(
+    whale: workflow.Whale,
     choosers,
     spec,
     nest_spec,
@@ -1255,8 +1250,9 @@ def eval_nl(
         estimator=estimator,
         trace_column_names=trace_column_names,
         spec_sh=spec_sh,
+        chunk_sizer=chunk_sizer,
     )
-    chunk.log_df(trace_label, "raw_utilities", raw_utilities)
+    chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1267,10 +1263,10 @@ def eval_nl(
 
     # exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
+    chunk_sizer.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
     del raw_utilities
-    chunk.log_df(trace_label, "raw_utilities", None)
+    chunk_sizer.log_df(trace_label, "raw_utilities", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1283,15 +1279,15 @@ def eval_nl(
     nested_probabilities = compute_nested_probabilities(
         nested_exp_utilities, nest_spec, trace_label=trace_label
     )
-    chunk.log_df(trace_label, "nested_probabilities", nested_probabilities)
+    chunk_sizer.log_df(trace_label, "nested_probabilities", nested_probabilities)
 
     if want_logsums:
         # logsum of nest root
         logsums = pd.Series(np.log(nested_exp_utilities.root), index=choosers.index)
-        chunk.log_df(trace_label, "logsums", logsums)
+        chunk_sizer.log_df(trace_label, "logsums", logsums)
 
     del nested_exp_utilities
-    chunk.log_df(trace_label, "nested_exp_utilities", None)
+    chunk_sizer.log_df(trace_label, "nested_exp_utilities", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1304,10 +1300,10 @@ def eval_nl(
     base_probabilities = compute_base_probabilities(
         nested_probabilities, nest_spec, spec
     )
-    chunk.log_df(trace_label, "base_probabilities", base_probabilities)
+    chunk_sizer.log_df(trace_label, "base_probabilities", base_probabilities)
 
     del nested_probabilities
-    chunk.log_df(trace_label, "nested_probabilities", None)
+    chunk_sizer.log_df(trace_label, "nested_probabilities", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1322,7 +1318,6 @@ def eval_nl(
     no_choices = (base_probabilities.sum(axis=1) - 1).abs() > BAD_PROB_THRESHOLD
 
     if no_choices.any():
-
         logit.report_bad_choices(
             no_choices,
             base_probabilities,
@@ -1344,7 +1339,7 @@ def eval_nl(
         )
 
     del base_probabilities
-    chunk.log_df(trace_label, "base_probabilities", None)
+    chunk_sizer.log_df(trace_label, "base_probabilities", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1363,7 +1358,9 @@ def eval_nl(
     return choices
 
 
+@workflow.func
 def _simple_simulate(
+    whale: workflow.Whale,
     choosers,
     spec,
     nest_spec,
@@ -1376,6 +1373,8 @@ def _simple_simulate(
     trace_label=None,
     trace_choice_name=None,
     trace_column_names=None,
+    *,
+    chunk_sizer,
 ):
     """
     Run an MNL or NL simulation for when the model spec does not involve alternative
@@ -1427,6 +1426,7 @@ def _simple_simulate(
 
     if nest_spec is None:
         choices = eval_mnl(
+            whale,
             choosers,
             spec,
             locals_d,
@@ -1437,9 +1437,11 @@ def _simple_simulate(
             trace_label=trace_label,
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
+            chunk_sizer=chunk_sizer,
         )
     else:
         choices = eval_nl(
+            whale,
             choosers,
             spec,
             nest_spec,
@@ -1451,6 +1453,7 @@ def _simple_simulate(
             trace_label=trace_label,
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
+            chunk_sizer=chunk_sizer,
         )
 
     return choices
@@ -1476,6 +1479,7 @@ def tvpb_skims(skims):
 
 
 def simple_simulate(
+    whale: workflow.Whale,
     choosers,
     spec,
     nest_spec,
@@ -1502,11 +1506,14 @@ def simple_simulate(
 
     result_list = []
     # segment by person type and pick the right spec for each person type
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        whale, choosers, chunk_size, trace_label
-    ):
-
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(whale, choosers, chunk_size, trace_label):
         choices = _simple_simulate(
+            whale,
             chooser_chunk,
             spec,
             nest_spec,
@@ -1519,11 +1526,12 @@ def simple_simulate(
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
             trace_column_names=trace_column_names,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, "result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1534,6 +1542,7 @@ def simple_simulate(
 
 
 def simple_simulate_by_chunk_id(
+    whale: workflow.Whale,
     choosers,
     spec,
     nest_spec,
@@ -1556,9 +1565,12 @@ def simple_simulate_by_chunk_id(
         i,
         chooser_chunk,
         chunk_trace_label,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(choosers, chunk_size, trace_label):
-
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(
+        whale, choosers, chunk_size, trace_label
+    ):
         choices = _simple_simulate(
+            whale,
             chooser_chunk,
             spec,
             nest_spec,
@@ -1582,7 +1594,9 @@ def simple_simulate_by_chunk_id(
     return choices
 
 
-def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
+def eval_mnl_logsums(
+    whale: workflow.Whale, choosers, spec, locals_d, trace_label=None, *, chunk_sizer
+):
     """
     like eval_nl except return logsums instead of making choices
 
@@ -1604,9 +1618,15 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
         tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     utilities = eval_utilities(
-        whale, spec, choosers, locals_d, trace_label, have_trace_targets
+        whale,
+        spec,
+        choosers,
+        locals_d,
+        trace_label,
+        have_trace_targets,
+        chunk_sizer=chunk_sizer,
     )
-    chunk.log_df(trace_label, "utilities", utilities)
+    chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1619,7 +1639,7 @@ def eval_mnl_logsums(choosers, spec, locals_d, trace_label=None):
     # logsum is log of exponentiated utilities summed across columns of each chooser row
     logsums = np.log(np.exp(utilities.values).sum(axis=1))
     logsums = pd.Series(logsums, index=choosers.index)
-    chunk.log_df(trace_label, "logsums", logsums)
+    chunk_sizer.log_df(trace_label, "logsums", logsums)
 
     # trace utilities
     if have_trace_targets:
@@ -1710,7 +1730,14 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
 
 
 def eval_nl_logsums(
-    whale: workflow.Whale, choosers, spec, nest_spec, locals_d, trace_label=None
+    whale: workflow.Whale,
+    choosers,
+    spec,
+    nest_spec,
+    locals_d,
+    trace_label=None,
+    *,
+    chunk_sizer,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1740,8 +1767,9 @@ def eval_nl_logsums(
         trace_label=trace_label,
         have_trace_targets=have_trace_targets,
         spec_sh=spec_sh,
+        chunk_sizer=chunk_sizer,
     )
-    chunk.log_df(trace_label, "raw_utilities", raw_utilities)
+    chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -1752,15 +1780,15 @@ def eval_nl_logsums(
 
     # - exponentiated utilities of leaves and nests
     nested_exp_utilities = compute_nested_exp_utilities(raw_utilities, nest_spec)
-    chunk.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
+    chunk_sizer.log_df(trace_label, "nested_exp_utilities", nested_exp_utilities)
 
     del raw_utilities  # done with raw_utilities
-    chunk.log_df(trace_label, "raw_utilities", None)
+    chunk_sizer.log_df(trace_label, "raw_utilities", None)
 
     # - logsums
     logsums = np.log(nested_exp_utilities.root)
     logsums = pd.Series(logsums, index=choosers.index)
-    chunk.log_df(trace_label, "logsums", logsums)
+    chunk_sizer.log_df(trace_label, "logsums", logsums)
 
     if have_trace_targets:
         # add logsum to nested_exp_utilities for tracing
@@ -1775,7 +1803,7 @@ def eval_nl_logsums(
         )
 
     del nested_exp_utilities  # done with nested_exp_utilities
-    chunk.log_df(trace_label, "nested_exp_utilities", None)
+    chunk_sizer.log_df(trace_label, "nested_exp_utilities", None)
 
     return logsums
 
@@ -1788,6 +1816,8 @@ def _simple_simulate_logsums(
     skims=None,
     locals_d=None,
     trace_label=None,
+    *,
+    chunk_sizer,
 ):
     """
     like simple_simulate except return logsums instead of making choices
@@ -1802,10 +1832,23 @@ def _simple_simulate_logsums(
         set_skim_wrapper_targets(choosers, skims)
 
     if nest_spec is None:
-        logsums = eval_mnl_logsums(choosers, spec, locals_d, trace_label=trace_label)
+        logsums = eval_mnl_logsums(
+            whale,
+            choosers,
+            spec,
+            locals_d,
+            trace_label=trace_label,
+            chunk_sizer=chunk_sizer,
+        )
     else:
         logsums = eval_nl_logsums(
-            whale, choosers, spec, nest_spec, locals_d, trace_label=trace_label
+            whale,
+            choosers,
+            spec,
+            nest_spec,
+            locals_d,
+            trace_label=trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
     return logsums
@@ -1845,9 +1888,15 @@ def simple_simulate_logsums(
     ) in chunk.adaptive_chunked_choosers(
         whale, choosers, chunk_size, trace_label, chunk_tag
     ):
-
         logsums = _simple_simulate_logsums(
-            whale, chooser_chunk, spec, nest_spec, skims, locals_d, chunk_trace_label
+            whale,
+            chooser_chunk,
+            spec,
+            nest_spec,
+            skims,
+            locals_d,
+            chunk_trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(logsums)

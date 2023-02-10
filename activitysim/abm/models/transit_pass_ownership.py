@@ -25,7 +25,7 @@ def transit_pass_ownership(
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("transit_pass_ownership")
+    estimator = estimation.manager.begin_estimation(whale, "transit_pass_ownership")
 
     constants = config.get_model_constants(model_settings)
 
@@ -59,6 +59,7 @@ def transit_pass_ownership(
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,

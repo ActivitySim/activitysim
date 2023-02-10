@@ -19,9 +19,7 @@ def add_null_results(whale, trace_label, tours):
 
 
 @workflow.step
-def atwork_subtour_frequency(
-    whale: workflow.Whale, tours, persons_merged, chunk_size, trace_hh_id
-):
+def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk_size):
     """
     This model predicts the frequency of making at-work subtour tours
     (alternatives for this model come from a separate csv file which is
@@ -30,8 +28,7 @@ def atwork_subtour_frequency(
 
     trace_label = "atwork_subtour_frequency"
     model_settings_file_name = "atwork_subtour_frequency.yaml"
-
-    tours = tours.to_frame()
+    trace_hh_id = whale.settings.trace_hh_id
     work_tours = tours[tours.tour_type == "work"]
 
     # - if no work_tours
@@ -40,7 +37,7 @@ def atwork_subtour_frequency(
         return
 
     model_settings = config.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation("atwork_subtour_frequency")
+    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_frequency")
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
@@ -80,6 +77,7 @@ def atwork_subtour_frequency(
         estimator.write_choosers(work_tours)
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=work_tours,
         spec=model_spec,
         nest_spec=nest_spec,

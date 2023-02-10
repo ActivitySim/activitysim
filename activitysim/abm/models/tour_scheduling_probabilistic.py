@@ -106,7 +106,9 @@ def tour_scheduling_probabilistic(
 
     # trip_scheduling is a probabilistic model ane we don't support estimation,
     # but we do need to override choices in estimation mode
-    estimator = estimation.manager.begin_estimation("tour_scheduling_probabilistic")
+    estimator = estimation.manager.begin_estimation(
+        whale, "tour_scheduling_probabilistic"
+    )
     if estimator:
         estimator.write_spec(model_settings, tag="PROBS_SPEC")
         estimator.write_model_settings(model_settings, model_settings_file_name)

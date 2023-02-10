@@ -20,7 +20,6 @@ def joint_tour_destination(
     households_merged,
     network_los,
     chunk_size,
-    trace_hh_id,
 ):
     """
     Given the tour generation from the above, each tour needs to have a
@@ -31,14 +30,14 @@ def joint_tour_destination(
     trace_label = "joint_tour_destination"
     model_settings_file_name = "joint_tour_destination.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
+    trace_hh_id = whale.settings.trace_hh_id
 
     logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
     want_logsums = logsum_column_name is not None
 
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     # choosers are tours - in a sense tours are choosing their destination
@@ -52,7 +51,7 @@ def joint_tour_destination(
         tracing.no_results("joint_tour_destination")
         return
 
-    estimator = estimation.manager.begin_estimation("joint_tour_destination")
+    estimator = estimation.manager.begin_estimation(whale, "joint_tour_destination")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
@@ -67,6 +66,7 @@ def joint_tour_destination(
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(
+        whale,
         tours,
         persons_merged,
         want_logsums,
@@ -75,7 +75,6 @@ def joint_tour_destination(
         network_los,
         estimator,
         chunk_size,
-        trace_hh_id,
         trace_label,
     )
 

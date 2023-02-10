@@ -514,7 +514,9 @@ class EstimationManager(object):
 
         self.settings_initialized = True
 
-    def begin_estimation(self, whale, model_name, bundle_name=None) -> Estimator:
+    def begin_estimation(
+        self, whale: workflow.Whale, model_name: str, bundle_name=None
+    ) -> Estimator:
         """
         begin estimating of model_name is specified as model to estimate, otherwise return False
 

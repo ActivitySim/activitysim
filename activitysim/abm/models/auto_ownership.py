@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def auto_ownership_simulate(
-    whale: workflow.Whale, households, households_merged, chunk_size, trace_hh_id
+    whale: workflow.Whale, households, households_merged, chunk_size
 ):
     """
     Auto ownership is a standard model which predicts how many cars a household
@@ -19,8 +19,9 @@ def auto_ownership_simulate(
     trace_label = "auto_ownership_simulate"
     model_settings_file_name = "auto_ownership.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
+    trace_hh_id = whale.settings.trace_hh_id
 
-    estimator = estimation.manager.begin_estimation("auto_ownership")
+    estimator = estimation.manager.begin_estimation(whale, "auto_ownership")
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
@@ -41,9 +42,10 @@ def auto_ownership_simulate(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = whale.settings.log_alt_losers
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,

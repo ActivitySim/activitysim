@@ -130,7 +130,9 @@ def choose_intermediate_trip_purpose(
                     file_name,
                 )
             )
-            tracing.write_csv(unmatched_choosers, file_name=file_name, transpose=False)
+            tracing.write_csv(
+                whale, unmatched_choosers, file_name=file_name, transpose=False
+            )
             raise RuntimeError(
                 "Some trips could not be matched to probs based on join columns %s."
                 % probs_join_cols
@@ -277,7 +279,7 @@ def trip_purpose(whale: workflow.Whale, trips, chunk_size, trace_hh_id):
             trips_df, school_escort_trips
         )
 
-    estimator = estimation.manager.begin_estimation("trip_purpose")
+    estimator = estimation.manager.begin_estimation(whale, "trip_purpose")
     if estimator:
         chooser_cols_for_estimation = [
             "person_id",

@@ -276,7 +276,7 @@ def tour_mode_choice_simulate(
     if whale.get_rn_generator().step_name != "tour_mode_choice_simulate":
         estimator = None
     else:
-        estimator = estimation.manager.begin_estimation("tour_mode_choice")
+        estimator = estimation.manager.begin_estimation(whale, "tour_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)

@@ -84,7 +84,7 @@ def _report_bad_choices(bad_row_map, df, filename, trace_label, trace_choosers=N
     filename = "%s.%s" % (trace_label, filename)
 
     logger.info("dumping %s" % filename)
-    tracing.write_csv(df, file_name=filename, transpose=False)
+    tracing.write_csv(whale, df, file_name=filename, transpose=False)
 
     # log the indexes of the first MAX_PRINT offending rows
     MAX_PRINT = 0

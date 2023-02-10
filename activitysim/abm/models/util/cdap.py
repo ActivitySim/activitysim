@@ -168,7 +168,14 @@ def assign_cdap_rank(
 
 
 def individual_utilities(
-    persons, cdap_indiv_spec, locals_d, trace_hh_id=None, trace_label=None
+    whale: workflow.Whale,
+    persons,
+    cdap_indiv_spec,
+    locals_d,
+    trace_hh_id=None,
+    trace_label=None,
+    *,
+    chunk_sizer,
 ):
     """
     Calculate CDAP utilities for all individuals.
@@ -190,7 +197,12 @@ def individual_utilities(
 
     # calculate single person utilities
     indiv_utils = simulate.eval_utilities(
-        whale, cdap_indiv_spec, persons, locals_d, trace_label=trace_label
+        whale,
+        cdap_indiv_spec,
+        persons,
+        locals_d,
+        trace_label=trace_label,
+        chunk_sizer=chunk_sizer,
     )
 
     # add columns from persons to facilitate building household interactions
@@ -626,7 +638,14 @@ def hh_choosers(indiv_utils, hhsize):
 
 
 def household_activity_choices(
-    indiv_utils, interaction_coefficients, hhsize, trace_hh_id=None, trace_label=None
+    whale: workflow.Whale,
+    indiv_utils,
+    interaction_coefficients,
+    hhsize,
+    trace_hh_id=None,
+    trace_label=None,
+    *,
+    chunk_sizer,
 ):
     """
     Calculate household utilities for each activity pattern alternative for households of hhsize
@@ -673,7 +692,9 @@ def household_activity_choices(
             trace_label=trace_label,
         )
 
-        utils = simulate.eval_utilities(whale, spec, choosers, trace_label=trace_label)
+        utils = simulate.eval_utilities(
+            whale, spec, choosers, trace_label=trace_label, chunk_sizer=chunk_sizer
+        )
 
     if len(utils.index) == 0:
         return pd.Series(dtype="float64")
@@ -861,6 +882,7 @@ def extra_hh_member_choices(
 
 
 def _run_cdap(
+    whale: workflow.Whale,
     persons,
     person_type_map,
     cdap_indiv_spec,
@@ -869,6 +891,8 @@ def _run_cdap(
     locals_d,
     trace_hh_id,
     trace_label,
+    *,
+    chunk_sizer,
 ):
     """
     Implements core run_cdap functionality on persons df (or chunked subset thereof)
@@ -886,17 +910,19 @@ def _run_cdap(
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model
     # extra household members, will have activities assigned by in fixed proportions
     assign_cdap_rank(whale, persons, person_type_map, trace_hh_id, trace_label)
-    chunk.log_df(trace_label, "persons", persons)
+    chunk_sizer.log_df(trace_label, "persons", persons)
 
     # Calculate CDAP utilities for each individual, ignoring interactions
     # ind_utils has index of 'person_id' and a column for each alternative
     # i.e. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
     indiv_utils = individual_utilities(
+        whale,
         persons[persons.cdap_rank <= MAX_HHSIZE],
         cdap_indiv_spec,
         locals_d,
         trace_hh_id,
         trace_label,
+        chunk_sizer=chunk_sizer,
     )
     chunk.log_df(trace_label, "indiv_utils", indiv_utils)
 
@@ -916,11 +942,11 @@ def _run_cdap(
         hh_choices_list.append(choices)
 
     del indiv_utils
-    chunk.log_df(trace_label, "indiv_utils", None)
+    chunk_sizer.log_df(trace_label, "indiv_utils", None)
 
     # concat all the household choices into a single series indexed on _hh_index_
     hh_activity_choices = pd.concat(hh_choices_list)
-    chunk.log_df(trace_label, "hh_activity_choices", hh_activity_choices)
+    chunk_sizer.log_df(trace_label, "hh_activity_choices", hh_activity_choices)
 
     # unpack the household activity choice list into choices for each (non-extra) household member
     # resulting series contains one activity per individual hh member, indexed on _persons_index_
@@ -940,7 +966,7 @@ def _run_cdap(
     person_choices = pd.concat([cdap_person_choices, extra_person_choices])
 
     persons["cdap_activity"] = person_choices
-    chunk.log_df(trace_label, "persons", persons)
+    chunk_sizer.log_df(trace_label, "persons", persons)
 
     # if DUMP:
     #     tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
@@ -951,12 +977,13 @@ def _run_cdap(
     result = persons[["cdap_rank", "cdap_activity"]]
 
     del persons
-    chunk.log_df(trace_label, "persons", None)
+    chunk_sizer.log_df(trace_label, "persons", None)
 
     return result
 
 
 def run_cdap(
+    whale: workflow.Whale,
     persons,
     person_type_map,
     cdap_indiv_spec,
@@ -1011,9 +1038,11 @@ def run_cdap(
         i,
         persons_chunk,
         chunk_trace_label,
+        chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_by_chunk_id(persons, chunk_size, trace_label):
 
         cdap_results = _run_cdap(
+            whale,
             persons_chunk,
             person_type_map,
             cdap_indiv_spec,
@@ -1022,6 +1051,7 @@ def run_cdap(
             locals_d,
             trace_hh_id,
             chunk_trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(cdap_results)

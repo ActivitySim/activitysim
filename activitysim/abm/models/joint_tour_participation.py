@@ -187,6 +187,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
             diagnostic_cols = ["tour_id", "household_id", "composition", "adult"]
             unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
             tracing.write_csv(
+                whale,
                 unsatisfied_candidates,
                 file_name="%s.UNSATISFIED" % trace_label,
                 transpose=False,
@@ -265,15 +266,14 @@ def add_null_results(whale, model_settings, trace_label):
 
 
 @workflow.step
-def joint_tour_participation(
-    whale: workflow.Whale, tours, persons_merged, chunk_size, trace_hh_id
-):
+def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk_size):
     """
     Predicts for each eligible person to participate or not participate in each joint tour.
     """
     trace_label = "joint_tour_participation"
     model_settings_file_name = "joint_tour_participation.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
+    trace_hh_id = whale.settings.trace_hh_id
 
     tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == "joint"]
@@ -313,7 +313,7 @@ def joint_tour_participation(
 
     # - simple_simulate
 
-    estimator = estimation.manager.begin_estimation("joint_tour_participation")
+    estimator = estimation.manager.begin_estimation(whale, "joint_tour_participation")
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
@@ -339,6 +339,7 @@ def joint_tour_participation(
     candidates["chunk_id"] = reindex(household_chunk_ids, candidates.household_id)
 
     choices = simulate.simple_simulate_by_chunk_id(
+        whale,
         choosers=candidates,
         spec=model_spec,
         nest_spec=nest_spec,

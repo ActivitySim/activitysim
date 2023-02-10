@@ -19,7 +19,6 @@ def stop_frequency(
     stop_frequency_alts,
     network_los,
     chunk_size,
-    trace_hh_id,
 ):
     """
     stop frequency model
@@ -49,6 +48,7 @@ def stop_frequency(
 
     trace_label = "stop_frequency"
     model_settings_file_name = "stop_frequency.yaml"
+    trace_hh_id = whale.settings.trace_hh_id
 
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -118,7 +118,7 @@ def stop_frequency(
         )
 
         estimator = estimation.manager.begin_estimation(
-            model_name=segment_name, bundle_name="stop_frequency"
+            whale, model_name=segment_name, bundle_name="stop_frequency"
         )
 
         segment_spec = simulate.read_model_spec(file_name=segment_settings["SPEC"])
@@ -145,6 +145,7 @@ def stop_frequency(
             estimator.set_chooser_id(chooser_segment.index.name)
 
         choices = simulate.simple_simulate(
+            whale,
             choosers=chooser_segment,
             spec=segment_spec,
             nest_spec=nest_spec,

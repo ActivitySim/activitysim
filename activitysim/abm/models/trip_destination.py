@@ -477,7 +477,6 @@ def destination_presample(
     network_los,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
@@ -548,7 +547,6 @@ def trip_destination_sample(
     skim_hotel,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
 ):
     """
@@ -589,6 +587,7 @@ def trip_destination_sample(
         )
 
         choices = destination_presample(
+            whale,
             primary_purpose,
             trips,
             alternatives,
@@ -598,12 +597,12 @@ def trip_destination_sample(
             network_los,
             estimator,
             chunk_size,
-            trace_hh_id,
             trace_label,
         )
 
     else:
         choices = destination_sample(
+            whale,
             primary_purpose,
             trips,
             alternatives,
@@ -815,7 +814,6 @@ def trip_destination_simulate(
     skim_hotel,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
 ):
     """
@@ -864,6 +862,7 @@ def trip_destination_simulate(
 
     log_alt_losers = whale.settings.log_alt_losers
     destinations = interaction_sample_simulate(
+        whale,
         choosers=trips,
         alternatives=destination_sample,
         spec=spec,
@@ -917,7 +916,6 @@ def choose_trip_destination(
     skim_hotel,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
 ):
     logger.info("choose_trip_destination %s with %d trips", trace_label, trips.shape[0])
@@ -935,7 +933,6 @@ def choose_trip_destination(
         skim_hotel=skim_hotel,
         estimator=estimator,
         chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
@@ -980,7 +977,6 @@ def choose_trip_destination(
         skim_hotel=skim_hotel,
         estimator=estimator,
         chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
@@ -1136,7 +1132,6 @@ def run_trip_destination(
     tours_merged,
     estimator,
     chunk_size,
-    trace_hh_id,
     trace_label,
     fail_some_trips_for_testing=False,
 ):
@@ -1315,7 +1310,6 @@ def run_trip_destination(
                     skim_hotel,
                     estimator,
                     chunk_size,
-                    trace_hh_id,
                     trace_label=tracing.extend_trace_label(
                         nth_trace_label, primary_purpose
                     ),
@@ -1428,7 +1422,7 @@ def trip_destination(
             trips_df, school_escort_trips
         )
 
-    estimator = estimation.manager.begin_estimation("trip_destination")
+    estimator = estimation.manager.begin_estimation(whale, "trip_destination")
 
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
@@ -1451,16 +1445,12 @@ def trip_destination(
         tours_merged_df,
         estimator=estimator,
         chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=trace_label,
         fail_some_trips_for_testing=fail_some_trips_for_testing,
     )
 
     # testing feature t0 make sure at least one trip fails so trip_purpose_and_destination model is run
-    if (
-        config.setting("testing_fail_trip_destination", False)
-        and not trips_df.failed.any()
-    ):
+    if whale.settings.testing_fail_trip_destination and not trips_df.failed.any():
         if (trips_df.trip_num < trips_df.trip_count).sum() == 0:
             raise RuntimeError(
                 "can't honor 'testing_fail_trip_destination' setting because no intermediate trips"
@@ -1479,7 +1469,7 @@ def trip_destination(
             file_name = f"{trace_label}_failed_trips"
         logger.info("writing failed trips to %s", file_name)
         tracing.write_csv(
-            trips_df[trips_df.failed], file_name=file_name, transpose=False
+            whale, trips_df[trips_df.failed], file_name=file_name, transpose=False
         )
 
     if estimator:

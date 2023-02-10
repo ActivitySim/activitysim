@@ -4,7 +4,7 @@ import logging
 from collections import OrderedDict
 
 from activitysim.abm.models.util import canonical_ids as cid
-from activitysim.core import inject
+from activitysim.core import inject, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -14,14 +14,14 @@ should be registered as random number generator channels.
 """
 
 
-@inject.injectable()
-def rng_channels():
+@workflow.cached_object
+def rng_channels(whale: workflow.Whale):
 
     return cid.RANDOM_CHANNELS
 
 
-@inject.injectable()
-def traceable_tables():
+@workflow.cached_object
+def traceable_tables(whale: workflow.Whale):
 
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
@@ -29,20 +29,20 @@ def traceable_tables():
     return cid.TRACEABLE_TABLES
 
 
-@inject.injectable()
-def traceable_table_indexes():
+@workflow.cached_object
+def traceable_table_indexes(whale: workflow.Whale):
     # traceable_table_indexes is OrderedDict {<index_name>: <table_name>}
     # so we can find first registered table to slice by ref_col
     return OrderedDict()
 
 
-@inject.injectable()
-def traceable_table_ids():
+@workflow.cached_object
+def traceable_table_ids(whale: workflow.Whale):
     # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
     return dict()
 
 
-@inject.injectable()
-def canonical_table_index_names():
+@workflow.cached_object
+def canonical_table_index_names(whale: workflow.Whale):
     # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
     return cid.CANONICAL_TABLE_INDEX_NAMES

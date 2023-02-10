@@ -114,7 +114,7 @@ def vehicle_allocation(
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
 
-    estimator = estimation.manager.begin_estimation("vehicle_allocation")
+    estimator = estimation.manager.begin_estimation(whale, "vehicle_allocation")
 
     model_spec_raw = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
@@ -195,6 +195,7 @@ def vehicle_allocation(
         locals_dict.update({"occup": occup})
 
         choices = simulate.simple_simulate(
+            whale,
             choosers=choosers,
             spec=model_spec,
             nest_spec=nest_spec,

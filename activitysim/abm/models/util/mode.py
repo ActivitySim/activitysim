@@ -53,6 +53,7 @@ def mode_choice_simulate(
     want_logsums = logsum_column_name is not None
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,

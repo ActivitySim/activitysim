@@ -213,7 +213,7 @@ def eval_interaction_utilities(
             else:
                 trace_eval_results = None
 
-            check_for_variability = config.setting("check_for_variability")
+            check_for_variability = whale.settings.check_for_variability
 
             # need to be able to identify which variables causes an error, which keeps
             # this from being expressed more parsimoniously
@@ -678,7 +678,7 @@ def _interaction_simulate(
     alt_index_id = estimator.get_alt_id() if estimator else None
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = whale.settings.sharrow
     interaction_utilities = None
 
     if locals_d is not None and locals_d.get("_sharrow_skip", False):

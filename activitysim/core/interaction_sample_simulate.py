@@ -5,14 +5,14 @@ import logging
 import numpy as np
 import pandas as pd
 
-from . import chunk, interaction_simulate, logit, tracing
-from .simulate import set_skim_wrapper_targets
+from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow
+from activitysim.core.simulate import set_skim_wrapper_targets
 
 logger = logging.getLogger(__name__)
 
 
 def _interaction_sample_simulate(
-    whale,
+    whale: workflow.Whale,
     choosers,
     alternatives,
     spec,
@@ -27,8 +27,9 @@ def _interaction_sample_simulate(
     trace_choice_name,
     estimator,
     skip_choice=False,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
-
     """
     Run a MNL simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -136,7 +137,7 @@ def _interaction_sample_simulate(
             interaction_simulate.ALT_CHOOSER_ID
         ] = interaction_df.index.values
 
-    chunk.log_df(trace_label, "interaction_df", interaction_df)
+    chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
     if have_trace_targets:
         trace_rows, trace_ids = tracing.interaction_trace_rows(interaction_df, choosers)
@@ -170,10 +171,10 @@ def _interaction_sample_simulate(
         estimator=estimator,
         log_alt_losers=log_alt_losers,
     )
-    chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+    chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
     del interaction_df
-    chunk.log_df(trace_label, "interaction_df", None)
+    chunk_sizer.log_df(trace_label, "interaction_df", None)
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(
@@ -197,7 +198,7 @@ def _interaction_sample_simulate(
     sample_counts = (
         interaction_utilities.groupby(interaction_utilities.index).size().values
     )
-    chunk.log_df(trace_label, "sample_counts", sample_counts)
+    chunk_sizer.log_df(trace_label, "sample_counts", sample_counts)
 
     # max number of alternatvies for any chooser
     max_sample_count = sample_counts.max()
@@ -212,25 +213,25 @@ def _interaction_sample_simulate(
     inserts = np.repeat(last_row_offsets, max_sample_count - sample_counts)
 
     del sample_counts
-    chunk.log_df(trace_label, "sample_counts", None)
+    chunk_sizer.log_df(trace_label, "sample_counts", None)
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
-    chunk.log_df(trace_label, "padded_utilities", padded_utilities)
+    chunk_sizer.log_df(trace_label, "padded_utilities", padded_utilities)
     del inserts
 
     del interaction_utilities
-    chunk.log_df(trace_label, "interaction_utilities", None)
+    chunk_sizer.log_df(trace_label, "interaction_utilities", None)
 
     # reshape to array with one row per chooser, one column per alternative
     padded_utilities = padded_utilities.reshape(-1, max_sample_count)
 
     # convert to a dataframe with one row per chooser and one column per alternative
     utilities_df = pd.DataFrame(padded_utilities, index=choosers.index)
-    chunk.log_df(trace_label, "utilities_df", utilities_df)
+    chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
     del padded_utilities
-    chunk.log_df(trace_label, "padded_utilities", None)
+    chunk_sizer.log_df(trace_label, "padded_utilities", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -247,16 +248,16 @@ def _interaction_sample_simulate(
         trace_label=trace_label,
         trace_choosers=choosers,
     )
-    chunk.log_df(trace_label, "probs", probs)
+    chunk_sizer.log_df(trace_label, "probs", probs)
 
     if want_logsums:
         logsums = logit.utils_to_logsums(
             utilities_df, allow_zero_probs=allow_zero_probs
         )
-        chunk.log_df(trace_label, "logsums", logsums)
+        chunk_sizer.log_df(trace_label, "logsums", logsums)
 
     del utilities_df
-    chunk.log_df(trace_label, "utilities_df", None)
+    chunk_sizer.log_df(trace_label, "utilities_df", None)
 
     if have_trace_targets:
         tracing.trace_df(
@@ -282,11 +283,11 @@ def _interaction_sample_simulate(
             whale, probs, trace_label=trace_label, trace_choosers=choosers
         )
 
-        chunk.log_df(trace_label, "positions", positions)
-        chunk.log_df(trace_label, "rands", rands)
+        chunk_sizer.log_df(trace_label, "positions", positions)
+        chunk_sizer.log_df(trace_label, "rands", rands)
 
         del probs
-        chunk.log_df(trace_label, "probs", None)
+        chunk_sizer.log_df(trace_label, "probs", None)
 
         # shouldn't have chosen any of the dummy pad utilities
         assert positions.max() < max_sample_count
@@ -301,7 +302,7 @@ def _interaction_sample_simulate(
         # create a series with index from choosers and the index of the chosen alternative
         choices = pd.Series(choices, index=choosers.index)
 
-        chunk.log_df(trace_label, "choices", choices)
+        chunk_sizer.log_df(trace_label, "choices", choices)
 
         if allow_zero_probs and zero_probs.any() and zero_prob_choice_val is not None:
             # FIXME this is kind of gnarly, patch choice for zero_probs
@@ -329,15 +330,16 @@ def _interaction_sample_simulate(
             choices = choices.to_frame("choice")
             choices["logsum"] = logsums
 
-        chunk.log_df(trace_label, "choices", choices)
+        chunk_sizer.log_df(trace_label, "choices", choices)
 
         # handing this off to our caller
-        chunk.log_df(trace_label, "choices", None)
+        chunk_sizer.log_df(trace_label, "choices", None)
 
         return choices
 
 
 def interaction_sample_simulate(
+    whale: workflow.Whale,
     choosers,
     alternatives,
     spec,
@@ -355,7 +357,6 @@ def interaction_sample_simulate(
     estimator=None,
     skip_choice=False,
 ):
-
     """
     Run a simulation in the situation in which alternatives must
     be merged with choosers because there are interaction terms or
@@ -423,11 +424,12 @@ def interaction_sample_simulate(
         chooser_chunk,
         alternative_chunk,
         chunk_trace_label,
+        chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_and_alts(
-        choosers, alternatives, chunk_size, trace_label, chunk_tag
+        whale, choosers, alternatives, chunk_size, trace_label, chunk_tag
     ):
-
         choices = _interaction_sample_simulate(
+            whale,
             chooser_chunk,
             alternative_chunk,
             spec,
@@ -442,11 +444,12 @@ def interaction_sample_simulate(
             trace_choice_name,
             estimator,
             skip_choice,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

@@ -406,6 +406,7 @@ def iterate_vehicle_type_choice(
         # each alternative as a distinct column in the .csv
         elif simulation_type == "simple_simulate":
             choices = simulate.simple_simulate(
+                whale,
                 choosers=choosers,
                 spec=model_spec,
                 log_alt_losers=log_alt_losers,
@@ -517,7 +518,7 @@ def vehicle_type_choice(
     model_settings_file_name = "vehicle_type_choice.yaml"
     model_settings = config.read_model_settings(model_settings_file_name)
 
-    estimator = estimation.manager.begin_estimation("vehicle_type")
+    estimator = estimation.manager.begin_estimation(whale, "vehicle_type")
 
     model_spec_raw = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)

@@ -108,7 +108,7 @@ def compute_accessibilities_for_zones(
 
             if trace_assigned_locals:
                 tracing.write_csv(
-                    trace_assigned_locals, file_name="accessibility_locals"
+                    whale, trace_assigned_locals, file_name="accessibility_locals"
                 )
 
     return accessibility_df

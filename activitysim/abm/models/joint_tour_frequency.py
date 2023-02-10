@@ -14,17 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def joint_tour_frequency(
-    whale: workflow.Whale, households, persons, chunk_size, trace_hh_id
-):
+def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size):
     """
     This model predicts the frequency of making fully joint trips (see the
     alternatives above).
     """
     trace_label = "joint_tour_frequency"
     model_settings_file_name = "joint_tour_frequency.yaml"
+    trace_hh_id = whale.settings.trace_hh_id
 
-    estimator = estimation.manager.begin_estimation("joint_tour_frequency")
+    estimator = estimation.manager.begin_estimation(whale, "joint_tour_frequency")
 
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -79,6 +78,7 @@ def joint_tour_frequency(
         estimator.write_choosers(multi_person_households)
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=multi_person_households,
         spec=model_spec,
         nest_spec=nest_spec,

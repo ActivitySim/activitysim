@@ -35,15 +35,14 @@ def add_null_results(whale, trace_label, mandatory_tour_frequency_settings):
 
 
 @workflow.step
-def mandatory_tour_frequency(
-    whale: workflow.Whale, persons_merged, chunk_size, trace_hh_id
-):
+def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
     """
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.
     """
     trace_label = "mandatory_tour_frequency"
     model_settings_file_name = "mandatory_tour_frequency.yaml"
+    trace_hh_id = whale.settings.trace_hh_id
 
     model_settings = config.read_model_settings(model_settings_file_name)
 
@@ -70,7 +69,7 @@ def mandatory_tour_frequency(
             trace_label=trace_label,
         )
 
-    estimator = estimation.manager.begin_estimation("mandatory_tour_frequency")
+    estimator = estimation.manager.begin_estimation(whale, "mandatory_tour_frequency")
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     coefficients_df = simulate.read_model_coefficients(model_settings)
@@ -88,6 +87,7 @@ def mandatory_tour_frequency(
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
+        whale,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,

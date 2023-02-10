@@ -127,6 +127,7 @@ def parking_destination_simulate(
     locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     parking_locations = interaction_sample_simulate(
+        whale,
         choosers=trips,
         alternatives=destination_sample,
         spec=spec,
@@ -214,8 +215,7 @@ def run_parking_destination(
     parking_location_column_name = model_settings["ALT_DEST_COL_NAME"]
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     choosers = trips[trips[chooser_filter_column]]
@@ -283,7 +283,6 @@ def parking_location(
     land_use,
     network_los,
     chunk_size,
-    trace_hh_id,
 ):
     """
     Given a set of trips, each trip needs to have a parking location if
@@ -292,6 +291,7 @@ def parking_location(
 
     trace_label = "parking_location"
     model_settings = config.read_model_settings("parking_location_choice.yaml")
+    trace_hh_id = whale.settings.trace_hh_id
     alt_destination_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     preprocessor_settings = model_settings.get("PREPROCESSOR", None)

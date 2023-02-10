@@ -51,7 +51,7 @@ def compute_utilities(
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_utils")
 
-    with chunk.chunk_log(trace_label, settings=whale.settings):
+    with chunk.chunk_log(trace_label, settings=whale.settings) as chunk_sizer:
         logger.debug(
             f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers"
         )
@@ -87,6 +87,7 @@ def compute_utilities(
             trace_all_rows=trace,
             trace_label=trace_label,
             trace_column_names=trace_column_names,
+            chunk_sizer=chunk_sizer,
         )
 
     return utilities

@@ -57,4 +57,4 @@ SCHOOL - Duration Constant: 8.5 hours,@(df.duration==17),-0.139412248
 SCHOOL - Duration Constant: 9 hours,@(df.duration==18),-0.509620713
 SCHOOL - Duration Constant: Longer than 9 hrs,@(df.duration>18),-0.561449384
 SCHOOL - Duration Constant: Shift for every 30 minutes more than 9.5 hrs - Linear,"@(df.duration>19) * ((np.minimum(13-df.duration,47)*(df.duration<13)) + (np.minimum(df.duration-19,9)*(df.duration>19)))",0.379484906
-SCHOOL - Duration Constant: Shift for every 30 minutes more than 9.5 hrs - Squared,"@(df.duration>19) * (((np.minimum(13-df.duration,47)*(df.duration<13)) + (np.minimum(df.duration-19,9)*(df.duration>19))) ** 2)",-0.028814477
+SCHOOL - Duration Constant: Shift for every 30 minutes more than 9.5 hrs - Squared,"@(df.duration>19) * (((np.minimum(13-df.duration,47)*(df.duration<13)) + (np.minimum(df.duration-19,9)*(df.duration>19))).astype(np.float32) ** 2)",-0.028814477

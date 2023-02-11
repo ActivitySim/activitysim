@@ -5,7 +5,6 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core.util import reindex
 from activitysim.core import config
 from activitysim.abm.models.util.canonical_ids import set_tour_index
 from activitysim.core.util import reindex

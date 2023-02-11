@@ -10,9 +10,8 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.tables.size_terms import tour_destination_size_terms
-from activitysim.core import config, inject, tracing, util
+from activitysim.core import config, inject, logit, tracing, util
 from activitysim.core.input import read_input_table
-from activitysim.core import logit
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +53,13 @@ ShadowPriceCalculator.synchronize_modeled_size coordinates access to the global 
 """
 TALLY_CHECKIN = (0, -1)
 TALLY_CHECKOUT = (1, -1)
+TALLY_PENDING_PERSONS = (2, -1)
+
+default_segment_to_name_dict = {
+    # model_selector : persons_segment_name
+    "school": "school_segment",
+    "workplace": "income_segment",
+}
 
 default_segment_to_name_dict = {
     # model_selector : persons_segment_name
@@ -113,12 +119,6 @@ class ShadowPriceCalculator(object):
 
         self.model_selector = model_settings["MODEL_SELECTOR"]
 
-        full_model_run = config.setting("households_sample_size") == 0
-        if self.use_shadow_pricing and not full_model_run:
-            logger.warning(
-                "deprecated combination of use_shadow_pricing and not full_model_run"
-            )
-
         if (self.num_processes > 1) and not config.setting("fail_fast"):
             # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
             logger.warning(
@@ -140,6 +140,20 @@ class ShadowPriceCalculator(object):
                 logger.debug(
                     "shadow_settings %s: %s" % (k, self.shadow_settings.get(k))
                 )
+
+        full_model_run = config.setting("households_sample_size") == 0
+        if (
+            self.use_shadow_pricing
+            and not full_model_run
+            and self.shadow_settings["SHADOW_PRICE_METHOD"] != "simulation"
+        ):
+            # ctramp and daysim methods directly compare desired and modeled size to compute shadow prices.
+            # desination size terms are scaled in add_size_tables only for full model runs
+            logger.warning(
+                "only 'simulation' shadow price method can use_shadow_pricing and not full_model_run"
+            )
+            logger.warning(f"Not using shadow pricing for {self.model_selector}")
+            self.use_shadow_pricing = False
 
         if (
             self.use_shadow_pricing
@@ -218,6 +232,8 @@ class ShadowPriceCalculator(object):
         self.max_abs_diff = pd.DataFrame(index=self.desired_size.columns)
         self.max_rel_diff = pd.DataFrame(index=self.desired_size.columns)
         self.choices_by_iteration = pd.DataFrame()
+        self.global_pending_persons = 1
+        self.sampled_persons = pd.DataFrame()
 
         if (
             self.use_shadow_pricing
@@ -225,7 +241,6 @@ class ShadowPriceCalculator(object):
         ):
 
             assert self.model_selector in ["workplace", "school"]
-            self.sampled_persons = pd.DataFrame()
             self.target = {}
             land_use = inject.get_table("land_use").to_frame()
 
@@ -344,15 +359,18 @@ class ShadowPriceCalculator(object):
             # Ellipsis expands : to fill available dims so [..., 0:-1] is the whole array except for the tallys
             self.shared_data[..., 0:-1] += local_modeled_size.values
             self.shared_data[TALLY_CHECKIN] += 1
+            if len(self.sampled_persons) > 0:
+                self.shared_data[TALLY_PENDING_PERSONS] += 1
 
         # - wait until everybody else has checked in
         wait(TALLY_CHECKIN, self.num_processes)
 
-        # - copy shared data, increment TALLY_CHECKIN
+        # - copy shared data, increment TALLY_CHECKOUT
         with self.shared_data_lock:
             logger.info("copy shared_data")
             # numpy array with sum of local_modeled_size.values from all processes
             global_modeled_size_array = self.shared_data[..., 0:-1].copy()
+            self.global_pending_persons = self.shared_data[TALLY_PENDING_PERSONS]
             self.shared_data[TALLY_CHECKOUT] += 1
 
         # - first in waits until all other processes have checked out, and cleans tub
@@ -605,7 +623,7 @@ class ShadowPriceCalculator(object):
             max_fail = (fail_threshold / 100.0) * util.iprod(desired_size.shape)
 
             converged = (total_fails <= np.ceil(max_fail)) | (
-                (iteration > 1) & (len(self.sampled_persons) == 0)
+                (iteration > 1) & (self.global_pending_persons == 0)
             )
 
         logger.info(
@@ -1212,8 +1230,17 @@ def load_shadow_price_calculator(model_settings):
     return spc
 
 
+# first define add_size_tables as an orca step with no scale argument at all.
 @inject.step()
 def add_size_tables(disaggregate_suffixes):
+    return _add_size_tables(disaggregate_suffixes)
+
+
+# then define _add_size_tables as a second method which also offers an optional
+# default argument to not scale sizes.  This is used only in disaggregate
+# accessibility (for now) and is not called via orca.  We need to do this to
+# avoid having to create a new orca variable for the scale argument.
+def _add_size_tables(disaggregate_suffixes, scale=True):
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 
@@ -1297,7 +1324,15 @@ def add_size_tables(disaggregate_suffixes):
         raw_size = tour_destination_size_terms(land_use, size_terms, model_selector)
         assert set(raw_size.columns) == set(segment_ids.keys())
 
-        if use_shadow_pricing or scale_size_table:
+        full_model_run = config.setting("households_sample_size") == 0
+
+        scale_size_table = scale and scale_size_table
+
+        if (use_shadow_pricing and full_model_run) and scale_size_table:
+
+            # need to scale destination size terms because ctramp and daysim approaches directly
+            # compare modeled size and target size when computing shadow prices
+            # Does not apply to simulation approach which compares proportions.
 
             # - scale size_table counts to sample population
             # scaled_size = zone_size * (total_segment_modeled / total_segment_desired)
@@ -1352,7 +1387,7 @@ def add_size_tables(disaggregate_suffixes):
             scaled_size.index.is_monotonic_increasing
         ), f"size table {size_table_name(model_selector)} not is_monotonic_increasing"
 
-        inject.add_table(size_table_name(model_selector), scaled_size)
+        inject.add_table(size_table_name(model_selector), scaled_size, replace=True)
 
 
 def get_shadow_pricing_info():

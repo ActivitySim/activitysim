@@ -1,0 +1,46 @@
+#
+#  sandag_3zone_mini
+#
+#   This workflow runs the Placeholder SANDAG model using the 3-Zone system
+#   in a single process runner.  It is for mainly for rapid testing of the code
+#   and specification files for errors, not for policy analysis.
+#
+#   > activitysim workflow sharrow-contrast/sandag_3zone_mini
+
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: placeholder_sandag_3_zone
+      workspace: workspace
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: False
+      tag:
+      resume_after:
+      fast: False
+      compile_n_households: 500
+      main_n_households: 50000
+      config_dirs:
+      - configs_3_zone
+      - prototype_mtc/configs
+      data_dir: data_3
+      instrument: False
+      memory_profile: False
+      trace_hh_id:
+      trace_od:
+      workplace_zone_agg:
+        caption: Workplaces by County
+        district_id: county_id
+      distance_skim: DIST
+      household_income: income
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner

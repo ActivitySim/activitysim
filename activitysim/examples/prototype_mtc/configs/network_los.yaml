@@ -4,8 +4,28 @@ read_skim_cache: False
 write_skim_cache: True
 
 zone_system: 1
+name: prototype_mtc
 
-taz_skims: skims.omx
+taz_skims:
+    omx: skims.omx
+    zarr: skims.zarr
+    zarr-digital-encoding:
+        - regex: ".*_BOARDS"
+          joint_dict: joined_board
+        - regex: ".*_FAR"
+          joint_dict: joined_fare
+        - regex: ".*_XWAIT"
+          joint_dict: joined_xwait
+        - regex: ".*_WAUX"
+          joint_dict: joined_waux
+        - regex: ".*_IWAIT"
+          joint_dict: joined_iwait
+        - regex: ".*_KEYIVT"
+          joint_dict: joined_keyivt
+        - regex: ".*_WAIT"
+          joint_dict: joined_wait
+        - regex: "DISTWALK|DISTBIKE"
+          joint_dict: joined_walkbike
 
 skim_time_periods:
     time_window: 1440

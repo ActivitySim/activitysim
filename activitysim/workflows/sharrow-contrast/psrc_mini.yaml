@@ -1,0 +1,31 @@
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: placeholder_psrc_seattle
+      workspace: workspace
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: True
+      tag:
+      resume_after:
+      fast: False
+      compile_n_households: 500
+      main_n_households: 50000
+      config_dirs:
+      #- configs_skip_accessibility
+      - configs
+      data_dir: data
+      instrument: False
+      distance_skim: DIST
+      household_income: income_in_thousands
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner

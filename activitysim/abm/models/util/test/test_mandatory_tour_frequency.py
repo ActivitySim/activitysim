@@ -13,6 +13,11 @@ from activitysim.core import inject
 from ..tour_frequency import process_mandatory_tours
 
 
+@pytest.fixture(scope="module")
+def configs_dir():
+    return os.path.join(os.path.dirname(__file__), "configs")
+
+
 def setup_function():
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
     inject.add_injectable("configs_dir", configs_dir)

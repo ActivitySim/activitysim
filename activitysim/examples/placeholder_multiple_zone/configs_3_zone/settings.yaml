@@ -83,3 +83,5 @@ output_tables:
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
 #trace_od: [5000, 11000]
+
+recode_pipeline_columns: False

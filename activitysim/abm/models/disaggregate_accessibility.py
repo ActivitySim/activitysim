@@ -1,17 +1,17 @@
-import random
 import logging
-import pandas as pd
-import numpy as np
+import random
 from functools import reduce
+
+import numpy as np
+import pandas as pd
 from orca import orca
-
-from activitysim.core import inject, tracing, config, pipeline, util, los, logit
-from activitysim.abm.models import location_choice, initialize
-from activitysim.abm.models.util import tour_destination, estimation
-from activitysim.abm.tables import shadow_pricing
-from activitysim.core.expressions import assign_columns
-
 from sklearn.cluster import KMeans
+
+from activitysim.abm.models import initialize, location_choice
+from activitysim.abm.models.util import estimation, tour_destination
+from activitysim.abm.tables import shadow_pricing
+from activitysim.core import config, inject, los, pipeline, tracing, util
+from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +52,7 @@ class ProtoPop:
 
         # Initialization
         self.proto_pop = {}
+        self.zone_list = []
         self.land_use = pipeline.get_table("land_use")
         self.network_los = network_los
         self.chunk_size = chunk_size
@@ -78,6 +79,16 @@ class ProtoPop:
         self.inject_tables()
         self.annotate_tables()
         self.merge_persons()
+
+        # - initialize shadow_pricing size tables after annotating household and person tables
+        # since these are scaled to model size, they have to be created while single-process
+        # this can now be called as a standalone model step instead, add_size_tables
+        add_size_tables = self.model_settings.get("add_size_tables", True)
+        if add_size_tables:
+            # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
+            shadow_pricing._add_size_tables(
+                self.model_settings.get("suffixes"), scale=False
+            )
 
     def zone_sampler(self):
         """
@@ -147,6 +158,11 @@ class ProtoPop:
             )
             sample_idx = sorted(sample_idx)
         elif method and method.lower() == "kmeans":
+            # Only implemented for 2-zone system for now
+            assert (
+                self.network_los.zone_system == los.TWO_ZONE
+            ), "K-Means only implemented for 2-zone systems for now"
+
             # Performs a simple k-means clustering using centroid XY coordinates
             centroids_df = pipeline.get_table("maz_centroids")
 
@@ -168,16 +184,16 @@ class ProtoPop:
             """
             init: (default='k-means++')
                 ‘k-means++’ : selects initial cluster centroids using sampling based on an
-                empirical probability distribution of the points’ contribution to the overall inertia. 
-                This technique speeds up convergence, and is theoretically proven to be O(log k) -optimal. 
+                empirical probability distribution of the points’ contribution to the overall inertia.
+                This technique speeds up convergence, and is theoretically proven to be O(log k) -optimal.
                 See the description of n_init for more details.
 
                 ‘random’: choose n_clusters observations (rows) at random from data for the initial centroids.
-            
+
             n_init: (default=10)
                 Number of time the k-means algorithm will be run with different centroid seeds.
                 The final results will be the best output of n_init consecutive runs in terms of inertia.
-            
+
             max_iter: (default=300)
                 Maximum number of iterations of the k-means algorithm for a single run.
 
@@ -281,9 +297,18 @@ class ProtoPop:
 
     def read_table_settings(self):
         # Check if setup properly
+
         assert "CREATE_TABLES" in self.model_settings.keys()
-        create_tables = self.model_settings["CREATE_TABLES"]
-        assert all([True for k, v in create_tables.items() if "VARIABLES" in v.keys()])
+
+        # Set zone_id name if not already specified
+        self.model_settings["zone_id_names"] = self.model_settings.get(
+            "zone_id_names", {"index_col": "zone_id"}
+        )
+        create_tables = self.model_settings.get("CREATE_TABLES")
+        from_templates = self.model_settings.get("FROM_TEMPLATES", False)
+        zone_list = self.zone_sampler()
+        params = {}
+
         assert all(
             [
                 True
@@ -292,35 +317,37 @@ class ProtoPop:
             ]
         )
 
-        params = {}
-        for name, table in create_tables.items():
-            # Ensure table variables are all lists
-            params[name.lower()] = {
-                "variables": {
-                    k: (v if isinstance(v, list) else [v])
-                    for k, v in table["VARIABLES"].items()
-                },
-                "mapped": table.get("mapped_fields", []),
-                "filter": table.get("filter_rows", []),
-                "join_on": table.get("JOIN_ON", []),
-                "index_col": table.get("index_col", []),
-                "zone_col": table.get("zone_col", []),
-                "rename_columns": table.get("rename_columns", []),
+        if from_templates:
+            params = {
+                k.lower(): {"file": v, "index_col": k.lower()[:-1] + "_id"}
+                for k, v in create_tables.items()
             }
+            params = {**params, **zone_list}
+            params["proto_households"]["zone_col"] = "home_zone_id"
+        else:
+            assert all(
+                [True for k, v in create_tables.items() if "VARIABLES" in v.keys()]
+            )
+            for name, table in create_tables.items():
+                # Ensure table variables are all lists
+                params[name.lower()] = {
+                    "variables": {
+                        k: (v if isinstance(v, list) else [v])
+                        for k, v in table["VARIABLES"].items()
+                    },
+                    "mapped": table.get("mapped_fields", []),
+                    "filter": table.get("filter_rows", []),
+                    "join_on": table.get("JOIN_ON", []),
+                    "index_col": table.get("index_col", []),
+                    "zone_col": table.get("zone_col", []),
+                    "rename_columns": table.get("rename_columns", []),
+                }
 
-        # Set zone_id name if not already specified
-        self.model_settings["zone_id_names"] = self.model_settings.get(
-            "zone_id_names", {"index_col": "zone_id"}
-        )
-
-        # Add in the zone variables
-        zone_list = self.zone_sampler()
-
-        # Add zones to households dicts as vary_on variable
-        params["proto_households"]["variables"] = {
-            **params["proto_households"]["variables"],
-            **zone_list,
-        }
+                # Add zones to households dicts as vary_on variable
+                params["proto_households"]["variables"] = {
+                    **params["proto_households"]["variables"],
+                    **zone_list,
+                }
 
         return params
 
@@ -347,13 +374,83 @@ class ProtoPop:
 
         return df
 
+    def expand_template_zones(self, tables):
+        assert (
+            len(
+                set(tables["proto_households"].proto_household_id).difference(
+                    tables["proto_persons"].proto_household_id
+                )
+            )
+            == 0
+        ), "Unmatched template_household_id in households/persons templates"
+
+        assert (
+            len(
+                set(tables["proto_persons"].proto_person_id).difference(
+                    tables["proto_tours"].proto_person_id
+                )
+            )
+            == 0
+        ), "Unmatched template_household_id in persons/tours templates"
+
+        # Create one master template
+        master_template = (
+            tables["proto_households"]
+            .merge(tables["proto_persons"], on="proto_household_id", how="left")
+            .merge(
+                tables["proto_tours"],
+                on=["proto_household_id", "proto_person_id"],
+                how="left",
+            )
+            .reset_index(drop=True)
+        )
+
+        # Run cartesian product on the index vs zones
+        index_params = {
+            "index": master_template.index,
+            "home_zone_id": self.params.get("zone_id"),
+        }
+
+        # Create cartesian product on the index and zone id
+        _expanded = pd.DataFrame(util.named_product(**index_params)).set_index("index")
+
+        # Use result to join template onto expanded table of zones
+        ex_table = _expanded.join(master_template).reset_index()
+
+        # Concatenate a new unique set of ids
+        cols = ["home_zone_id", "proto_household_id", "proto_person_id"]
+        col_filler = {
+            x: len(ex_table[x].unique().max().astype(str))
+            for x in ["proto_household_id", "proto_person_id"]
+        }
+
+        # Convert IDs to string and pad zeroes
+        df_ids = ex_table[cols].astype(str)
+        for col, fill in col_filler.items():
+            df_ids[col] = df_ids[col].str.zfill(fill)
+
+        ex_table["proto_person_id"] = df_ids[cols].apply("".join, axis=1).astype(int)
+        ex_table["proto_household_id"] = (
+            df_ids[cols[:-1]].apply("".join, axis=1).astype(int)
+        )
+
+        # Separate out into households, persons, tours
+        col_keys = {k: list(v.columns) for k, v in tables.items()}
+        col_keys["proto_households"].append("home_zone_id")
+
+        proto_tables = {k: ex_table[v].drop_duplicates() for k, v in col_keys.items()}
+        proto_tables["proto_tours"] = (
+            proto_tables["proto_tours"]
+            .reset_index()
+            .rename(columns={"index": "proto_tour_id"})
+        )
+        proto_tables["proto_tours"].index += 1
+
+        return [x for x in proto_tables.values()]
+
     def create_proto_pop(self):
         # Separate out the mapped data from the varying data and create base replicate tables
         klist = ["proto_households", "proto_persons", "proto_tours"]
-        households, persons, tours = [self.generate_replicates(k) for k in klist]
-
-        # Names
-        households.name, persons.name, tours.name = klist
 
         # Create ID columns, defaults to "%tablename%_id"
         hhid, perid, tourid = [
@@ -363,24 +460,43 @@ class ProtoPop:
             for x in klist
         ]
 
-        # Create hhid
-        households[hhid] = households.index + 1
-        households["household_serial_no"] = households[hhid]
+        if self.model_settings.get("FROM_TEMPLATES"):
+            table_params = {k: self.params.get(k) for k in klist}
+            tables = {
+                k: pd.read_csv(config.config_file_path(v.get("file")))
+                for k, v in table_params.items()
+            }
+            households, persons, tours = self.expand_template_zones(tables)
+            households["household_serial_no"] = households[hhid]
+        else:
+            households, persons, tours = [self.generate_replicates(k) for k in klist]
 
-        # Assign persons to households
-        rep = (
-            pd.DataFrame(util.named_product(hhid=households[hhid], index=persons.index))
-            .set_index("index")
-            .rename(columns={"hhid": hhid})
-        )
-        persons = rep.join(persons).sort_values(hhid).reset_index(drop=True)
-        persons[perid] = persons.index + 1
+            # Names
+            households.name, persons.name, tours.name = klist
 
-        # Assign persons to tours
-        tkey, pkey = list(self.params["proto_tours"]["join_on"].items())[0]
-        tours = tours.merge(persons[[pkey, hhid, perid]], left_on=tkey, right_on=pkey)
-        tours.index = tours.index.set_names([tourid])
-        tours = tours.reset_index().drop(columns=[pkey])
+            # Create hhid
+            households[hhid] = households.index + 1
+            households["household_serial_no"] = households[hhid]
+
+            # Assign persons to households
+            rep = (
+                pd.DataFrame(
+                    util.named_product(hhid=households[hhid], index=persons.index)
+                )
+                .set_index("index")
+                .rename(columns={"hhid": hhid})
+            )
+            persons = rep.join(persons).sort_values(hhid).reset_index(drop=True)
+            persons[perid] = persons.index + 1
+
+            # Assign persons to tours
+            tkey, pkey = list(self.params["proto_tours"]["join_on"].items())[0]
+            tours = tours.merge(
+                persons[[pkey, hhid, perid]], left_on=tkey, right_on=pkey
+            )
+            tours.index = tours.index.set_names([tourid])
+            tours.index += 1
+            tours = tours.reset_index().drop(columns=[pkey])
 
         # Set index
         households.set_index(hhid, inplace=True, drop=False)
@@ -396,7 +512,7 @@ class ProtoPop:
 
         # Rename any columns. Do this first before any annotating
         for tablename, df in self.proto_pop.items():
-            colnames = self.params[tablename]["rename_columns"]
+            colnames = self.params[tablename].get("rename_columns", [])
             if len(colnames) > 0:
                 df.rename(columns=colnames, inplace=True)
 
@@ -491,9 +607,9 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             model_settings["LOGSUM_SETTINGS"] = " ".join(suffixes)
 
         if model_name != "non_mandatory_tour_destination":
-            shadow_price_calculator = shadow_pricing.load_shadow_price_calculator(
-                model_settings
-            )
+            spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+            # explicitly turning off shadow pricing for disaggregate accessibilities
+            spc.use_shadow_pricing = False
             # filter to only workers or students
             chooser_filter_column = model_settings["CHOOSER_FILTER_COLUMN_NAME"]
             choosers = persons_merged[persons_merged[chooser_filter_column]]
@@ -502,7 +618,7 @@ def get_disaggregate_logsums(network_los, chunk_size, trace_hh_id):
             _logsums, _ = location_choice.run_location_choice(
                 choosers,
                 network_los,
-                shadow_price_calculator=shadow_price_calculator,
+                shadow_price_calculator=spc,
                 want_logsums=True,
                 want_sample_table=True,
                 estimator=estimator,
@@ -568,19 +684,6 @@ def compute_disaggregate_accessibility(network_los, chunk_size, trace_hh_id):
     as well as each zone in land use file using expressions from accessibility_spec.
 
     """
-
-    # Synthesize the proto-population
-    model_settings = read_disaggregate_accessibility_yaml(
-        "disaggregate_accessibility.yaml"
-    )
-
-    # - initialize shadow_pricing size tables after annotating household and person tables
-    # since these are scaled to model size, they have to be created while single-process
-    # this can now be called as a standalone model step instead, add_size_tables
-    add_size_tables = model_settings.get("add_size_tables", True)
-    if add_size_tables:
-        # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-        shadow_pricing.add_size_tables(model_settings.get("suffixes"))
 
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:

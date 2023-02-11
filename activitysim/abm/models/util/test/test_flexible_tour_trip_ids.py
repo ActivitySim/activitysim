@@ -1,15 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
-import os
-
 import pandas as pd
-import pandas.testing as pdt
-import pytest
 
 from ..canonical_ids import (
-    determine_mandatory_tour_flavors,
     determine_flavors_from_alts_file,
+    determine_mandatory_tour_flavors,
 )
 
 
@@ -20,7 +16,7 @@ def test_mandatory_tour_flavors():
     # first test using default
     mandatory_tour_flavors = determine_mandatory_tour_flavors(
         mtf_settings,
-        pd.DataFrame(columns={"random_name"}),
+        pd.DataFrame(columns=["random_name"]),
         default_mandatory_tour_flavors,
     )
 
@@ -69,7 +65,7 @@ def test_tour_flavors_from_alt_files():
 
     # first test using default
     tour_flavors = determine_flavors_from_alts_file(
-        pd.DataFrame(columns={"random_name"}),
+        pd.DataFrame(columns=["random_name"]),
         provided_flavors=None,
         default_flavors=default_tour_flavors,
     )

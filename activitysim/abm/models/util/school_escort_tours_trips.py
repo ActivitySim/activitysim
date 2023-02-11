@@ -6,6 +6,7 @@ import warnings
 from activitysim.abm.models.util import canonical_ids
 from activitysim.core import pipeline
 from activitysim.core import inject
+from activitysim.core.util import reindex
 
 from ..school_escorting import NUM_ESCORTEES
 
@@ -594,3 +595,95 @@ def split_out_school_escorting_trips(trips, school_escort_trips):
     trips = trips[~se_trips_mask]
 
     return trips, se_trips, full_trips_index
+
+
+def force_escortee_tour_modes_to_match_chauffeur(tours):
+    # FIXME: escortee tour can have different chauffeur in outbound vs inbound direction
+    # which tour mode should it be set to?  Currently it's whatever comes last.
+    # Does it even matter if trip modes are getting matched later?
+    escort_bundles = inject.get_table("escort_bundles").to_frame()
+
+    # grabbing the school tour ids for each school escort bundle
+    se_tours = escort_bundles[["school_tour_ids", "chauf_tour_id"]].copy()
+    # merging in chauffeur tour mode
+    se_tours["tour_mode"] = reindex(tours.tour_mode, se_tours.chauf_tour_id)
+    # creating entry for each escort school tour
+    se_tours["school_tour_ids"] = se_tours.school_tour_ids.str.split("_")
+    se_tours = se_tours.explode(["school_tour_ids"])
+    # create mapping between school tour id and chauffeur tour mode
+    se_tours["school_tour_ids"] = se_tours["school_tour_ids"].astype("int64")
+    mode_mapping = se_tours.set_index("school_tour_ids")["tour_mode"]
+
+    # setting escortee tours to have the same tour mode as chauffeur
+    original_modes = tours["tour_mode"].copy()
+    tours.loc[mode_mapping.index, "tour_mode"] = mode_mapping
+    diff = tours["tour_mode"] != original_modes
+    logger.info(
+        f"Changed {diff.sum()} tour modes of school escortees to match their chauffeur"
+    )
+
+    assert (
+        ~tours.tour_mode.isna()
+    ).all(), f"Missing tour mode for {tours[tours.tour_mode.isna()]}"
+    return tours
+
+
+def force_escortee_trip_modes_to_match_chauffeur(trips):
+    school_escort_trips = inject.get_table("school_escort_trips").to_frame()
+
+    # starting with only trips that are created as part of the school escorting model
+    se_trips = trips[trips.index.isin(school_escort_trips.index)].copy()
+
+    # getting chauffeur tour id
+    se_trips["chauf_tour_id"] = reindex(
+        school_escort_trips.chauf_tour_id, se_trips.index
+    )
+    # merging chauffeur trips onto escortee trips
+    se_trips = (
+        se_trips.reset_index()
+        .merge(
+            se_trips[
+                [
+                    "origin",
+                    "destination",
+                    "depart",
+                    "escort_participants",
+                    "chauf_tour_id",
+                    "trip_mode",
+                ]
+            ],
+            how="left",
+            left_on=[
+                "origin",
+                "destination",
+                "depart",
+                "escort_participants",
+                "tour_id",
+            ],
+            right_on=[
+                "origin",
+                "destination",
+                "depart",
+                "escort_participants",
+                "chauf_tour_id",
+            ],
+            suffixes=("", "_chauf"),
+        )
+        .set_index("trip_id")
+    )
+    # trip_mode_chauf is na if the trip belongs to a chauffeur instead of an escortee
+    # only want to change mode for escortees
+    mode_mapping = se_trips[~se_trips["trip_mode_chauf"].isna()]["trip_mode_chauf"]
+
+    # setting escortee trips to have the same trip mode as chauffeur
+    original_modes = trips["trip_mode"].copy()
+    trips.loc[mode_mapping.index, "trip_mode"] = mode_mapping
+    diff = trips["trip_mode"] != original_modes
+    logger.info(
+        f"Changed {diff.sum()} trip modes of school escortees to match their chauffeur"
+    )
+
+    assert (
+        ~trips.trip_mode.isna()
+    ).all(), f"Missing trip mode for {trips[trips.trip_mode.isna()]}"
+    return trips

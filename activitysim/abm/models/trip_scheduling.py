@@ -8,15 +8,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
-from activitysim.core import (
-    chunk,
-    config,
-    inject,
-    logit,
-    pipeline,
-    tracing,
-    expressions,
-)
+from activitysim.core import chunk, config, inject, pipeline, tracing, expressions
 from activitysim.core.util import reindex
 
 from .util.school_escort_tours_trips import split_out_school_escorting_trips

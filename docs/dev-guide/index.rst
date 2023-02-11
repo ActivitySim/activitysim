@@ -23,7 +23,11 @@ Contents
    :maxdepth: 3
 
    install
+   using-sharrow
+   skim-dataset
+   workflows
    ../development
    ../models
+   components/index
    ../core
    ../benchmarking

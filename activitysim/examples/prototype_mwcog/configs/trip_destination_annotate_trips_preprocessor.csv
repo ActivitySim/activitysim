@@ -7,3 +7,4 @@ Description,Target,Expression
 #,,not needed as school is not chosen as an intermediate trip destination
 #,_grade_school,"(df.primary_purpose == 'school') & reindex(persons.is_gradeschool, df.person_id)"
 #,size_segment,"df.primary_purpose.where(df.primary_purpose != 'school', np.where(_grade_school,'gradeschool', 'highschool'))"
+,purpose_index_num,"size_terms.get_cols(df.purpose)"

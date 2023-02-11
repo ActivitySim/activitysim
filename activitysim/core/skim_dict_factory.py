@@ -5,12 +5,13 @@
 import logging
 import multiprocessing
 import os
-from abc import ABC, abstractmethod
+import warnings
+from abc import ABC
 
 import numpy as np
 import openmatrix as omx
 
-from activitysim.core import config, inject, skim_dictionary, tracing, util
+from activitysim.core import config, inject, skim_dictionary, util
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,8 @@ class SkimInfo(object):
         self.base_keys = None
         self.block_offsets = None
 
-        self.load_skim_info(skim_tag)
+        if skim_tag:
+            self.load_skim_info(skim_tag)
 
     def load_skim_info(self, skim_tag):
         """
@@ -114,7 +116,7 @@ class SkimInfo(object):
 
             logger.debug(f"load_skim_info {skim_tag} reading {omx_file_path}")
 
-            with omx.open_file(omx_file_path) as omx_file:
+            with omx.open_file(omx_file_path, mode="r") as omx_file:
 
                 # fixme call to omx_file.shape() failing in windows p3.5
                 if self.omx_shape is None:
@@ -127,9 +129,10 @@ class SkimInfo(object):
                     ), f"Mismatch shape {self.omx_shape} != {omx_file.shape()}"
 
                 for skim_name in omx_file.listMatrices():
-                    assert (
-                        skim_name not in self.omx_manifest
-                    ), f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                    if skim_name in self.omx_manifest:
+                        warnings.warn(
+                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                        )
                     self.omx_manifest[skim_name] = omx_file_path
 
                 for m in omx_file.listMappings():
@@ -281,7 +284,7 @@ class AbstractSkimFactory(ABC):
             logger.info(f"_read_skims_from_omx {omx_file_path}")
 
             # read skims into skim_data
-            with omx.open_file(omx_file_path) as omx_file:
+            with omx.open_file(omx_file_path, mode="r") as omx_file:
                 for skim_key, omx_key in omx_keys.items():
 
                     if omx_manifest[omx_key] == omx_file_path:

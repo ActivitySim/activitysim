@@ -413,6 +413,14 @@ def load_checkpoint(checkpoint_name):
         # register it as an orca table
         rewrap(table_name, df)
         loaded_tables[table_name] = df
+        if table_name == "land_use" and "_original_zone_id" in df.columns:
+            # The presence of _original_zone_id indicates this table index was
+            # decoded to zero-based, so we need to disable offset
+            # processing for legacy skim access.
+            # TODO: this "magic" column name should be replaced with a mechanism
+            #       to write and recover particular settings from the pipeline
+            #       store, but we don't have that mechanism yet
+            config.override_setting("offset_preprocessing", True)
 
     # register for tracing in order that tracing.register_traceable_table wants us to register them
     traceable_tables = inject.get_injectable("traceable_tables", [])
@@ -499,7 +507,26 @@ def run_model(model_name):
     t0 = print_elapsed_time()
     logger.info(f"#run_model running step {step_name}")
 
-    orca.run([step_name])
+    instrument = config.setting("instrument", None)
+    if instrument is not None:
+        try:
+            from pyinstrument import Profiler
+        except ImportError:
+            instrument = False
+    if isinstance(instrument, (list, set, tuple)):
+        if step_name not in instrument:
+            instrument = False
+        else:
+            instrument = True
+
+    if instrument:
+        with Profiler() as profiler:
+            orca.run([step_name])
+        out_file = config.profiling_file_path(f"{step_name}.html")
+        with open(out_file, "wt") as f:
+            f.write(profiler.output_html())
+    else:
+        orca.run([step_name])
 
     t0 = print_elapsed_time(
         "#run_model completed step '%s'" % model_name, t0, debug=True
@@ -543,7 +570,15 @@ def open_pipeline(resume_after=None, mode="a"):
         # open existing pipeline
         logger.debug("open_pipeline - open existing pipeline")
         open_pipeline_store(overwrite=False, mode=mode)
-        load_checkpoint(resume_after)
+        try:
+            load_checkpoint(resume_after)
+        except KeyError as err:
+            if "checkpoints" in err.args[0]:
+                # no checkpoints initialized, fall back to restart
+                _PIPELINE.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
+                add_checkpoint(INITIAL_CHECKPOINT_NAME)
+            else:
+                raise
     else:
         # open new, empty pipeline
         logger.debug("open_pipeline - new, empty pipeline")
@@ -601,7 +636,7 @@ def intermediate_checkpoint(checkpoint_name=None):
     return checkpoint_name in checkpoints
 
 
-def run(models, resume_after=None):
+def run(models, resume_after=None, memory_sidecar_process=None):
     """
     run the specified list of models, optionally loading checkpoint and resuming after specified
     checkpoint.
@@ -618,6 +653,8 @@ def run(models, resume_after=None):
         list of model_names
     resume_after : str or None
         model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
+    memory_sidecar_process : MemorySidecar, optional
+        Subprocess that monitors memory usage
 
     returns:
         nothing, but with pipeline open
@@ -640,17 +677,24 @@ def run(models, resume_after=None):
 
     # preload any bulky injectables (e.g. skims) not in pipeline
     if inject.get_injectable("preload_injectables", None):
+        if memory_sidecar_process:
+            memory_sidecar_process.set_event("preload_injectables")
         t0 = print_elapsed_time("preload_injectables", t0)
 
     mem.trace_memory_info("pipeline.run after preload_injectables")
 
     t0 = print_elapsed_time()
     for model in models:
+        if memory_sidecar_process:
+            memory_sidecar_process.set_event(model)
         t1 = print_elapsed_time()
         run_model(model)
         mem.trace_memory_info(f"pipeline.run after {model}")
 
         tracing.log_runtime(model_name=model, start_time=t1)
+
+    if memory_sidecar_process:
+        memory_sidecar_process.set_event("finalizing")
 
     # add checkpoint with final tables even if not intermediate checkpointing
     if not intermediate_checkpoint():

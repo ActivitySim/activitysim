@@ -26,6 +26,8 @@ input_table_list:
       workers: num_workers
       VEHICL: auto_ownership
       TAZ: home_zone_id
+    recode_columns:
+      home_zone_id: land_use.zone_id
     keep_columns:
       - home_zone_id
       - income
@@ -58,6 +60,8 @@ input_table_list:
     rename_columns:
       TAZ: zone_id  # person_id is the required index column
       COUNTY: county_id
+    recode_columns:
+      zone_id: zero-based
     keep_columns:
       - DISTRICT
       - SD
@@ -90,7 +94,7 @@ input_table_list:
 #input_store: ../output/input_data.h5
 
 # number of households to simulate
-households_sample_size:  100
+households_sample_size:  100000
 # simulate all households
 # households_sample_size: 0
 
@@ -155,7 +159,7 @@ keep_mem_logs: True
 # trace household id; comment out or leave empty for no trace
 # households with all tour types
 #  [ 728370 1234067 1402924 1594625 1595333 1747572 1896849 1931818 2222690 2344951 2677154]
-trace_hh_id: 982875
+trace_hh_id:
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
 # trace_od: [5, 11]
@@ -221,11 +225,25 @@ output_tables:
   tables:
     - checkpoints
     - accessibility
-    - land_use
-    - households
-    - persons
-    - tours
-    - trips
+    - tablename: land_use
+      decode_columns:
+        zone_id: land_use.zone_id
+    - tablename: households
+      decode_columns:
+        home_zone_id: land_use.zone_id
+    - tablename: persons
+      decode_columns:
+        home_zone_id: land_use.zone_id
+        school_zone_id: nonnegative | land_use.zone_id
+        workplace_zone_id: nonnegative | land_use.zone_id
+    - tablename: tours
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
+    - tablename: trips
+      decode_columns:
+        origin: land_use.zone_id
+        destination: land_use.zone_id
     - joint_tour_participants
 
 # area_types less than this are considered urban
@@ -244,3 +262,4 @@ household_median_value_of_time:
   2: 8.81
   3: 10.44
   4: 12.86
+

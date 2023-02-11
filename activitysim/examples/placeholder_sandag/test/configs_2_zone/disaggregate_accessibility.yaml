@@ -1,0 +1,170 @@
+# Sampling size. 0 = no limit
+# can be whole integer value or a sample rate (percent of zones)
+# zero or missing defaults to full sample!
+DESTINATION_SAMPLE_SIZE: 0.1
+ORIGIN_SAMPLE_SIZE: 200
+
+# select origin zones weighted by population (or another landuse variable)
+ORIGIN_WEIGHTING_COLUMN: TOTPOP
+
+# How the nearest sampled zone is found: skims or centroid distance
+NEAREST_METHOD: skims
+
+# Specify the tables to be created and  their variables.
+# Single values are constants
+# Lists are varying and will generate the cartesian product (i.e., all possible non-repeating combinations)
+
+# Example result for households below:
+#hhid   veh hinccat1    hinc    hworkers    persons hht  bldgsz
+# 1     0   1           14000   1           2       1    2
+# 2     1   1           14000   1           2       1    2
+# 3     2   1           14000   1           2       1    2
+# 4     0   2           67000   1           2       1    2
+# 5     1   2           67000   1           2       1    2
+# 6     2   2           67000   1           2       1    2
+# ....
+
+# Use FROM_TEMPLATES or CREATE_TABLES to generate the proto-population
+# Alternative can be manually specified in csv templates
+# FROM_TEMPLATES: True
+# CREATE_TABLES:
+#   PROTO_HOUSEHOLDS: proto_households_template.csv
+#   PROTO_PERSONS: proto_persons_template.csv
+#   PROTO_TOURS: proto_tours_template.csv
+
+##Note: parameters in ALL CAPS below are required by the program for synthesis
+CREATE_TABLES:
+   # Note: Only one household-member composition is possible through direct definition.
+   # e.g., you cannot have one household with 2 people and another with 3 people
+   PROTO_HOUSEHOLDS:
+       index_col: proto_household_id
+       zone_col: home_zone_id
+       rename_columns:
+           zone_id: home_zone_id
+       VARIABLES:
+           hinccat1: [1, 2, 3, 4]          # Income categories
+           hworkers: 1                  # Household workers
+           veh: [0, 1, 2]               # Household vehicles
+           persons: 2                   # Two persons household
+           HHT: 1                       # Married-couple family household
+           bldgsz: 2                    # Building size - Single family detached
+       # Additional columns that are mapped to another (e.g., hhinccat1: 1 = hinc: 14000)
+       mapped_fields:
+           hinccat1: # List new fields mapped to this field
+             income: # Median income within each quartile
+               1: 15000   # 14000  (for 3 level)
+               2: 45000   # 67000  (for 3 level)
+               3: 80000   # 120000 (for 3 level)
+               4: 150000
+           persons:
+             hhsize:
+               1: 1
+               2: 2
+               3: 3
+           hworkers:
+             num_workers:
+               1: 1
+               2: 2
+               3: 3
+
+   PROTO_PERSONS:
+       index_col: proto_person_id
+       VARIABLES:
+           pnum: [1, 2]                # Person number
+           military: 4                 # Not military
+           pstudent: 3                 # Not attending school
+           educ: 13                    # Bachelor's
+           grade: 0                    # Not attending
+       mapped_fields:
+           pnum:
+               age:
+                   1: 35
+                   2: 55
+               sex: # Female male
+                   1: 2
+                   2: 1
+               ptype: # Person type, full-time and non-working adult
+                   1: 1
+                   2: 4
+               pemploy: # Full-time and unemployed
+                   1: 1
+                   2: 3
+               weeks: # 50-52 weeks, none
+                   1: 1
+                   2: 0
+               hours: # Hours per week
+                   1: 35
+                   2: 0
+               DAP: # Mandatory, Non-mandatory
+                   1: "M"
+                   2: "N"
+
+   PROTO_TOURS:
+       index_col: proto_tour_id
+       VARIABLES:
+           tour_num: 1                 # Tour number, 1 tour per person
+           purpose: [1, 2, 3]
+       mapped_fields:
+           purpose:
+               person_num: # In this case it was easier to map the person number directly to the purposez
+                   1: 1
+                   2: 2
+                   3: 2
+               tour_type:
+                   1: "work"
+                   2: "shopping"
+                   3: "othdiscr"
+               tour_category:  # tour purpose category, mandatory/non-mandatory
+                   1: "mandatory"
+                   2: "non_mandatory"
+                   3: "non_mandatory"
+       filter_rows: # list any matching conditions as pandas expression
+           - ~((df.tour_type == "work") & (df.person_num == 1))
+       JOIN_ON:
+           person_num: pnum            # Specifies which person variable to join the tours on
+
+# Merge on variables
+MERGE_ON:
+  by: # These should be categorical variables at the household level
+    - home_zone_id
+    - auto_ownership
+    - income_segment
+
+# Include any annotations for persons, households, land_use, or tours.
+# The purpose of a separate annotation setup is that annotation expressions for the main model
+# may require data that aren't in the proto population.
+# This step enables users to annotate the proto-population by referencing custom annotation scripts.
+# Of course, users can also just reference existing configs if they work, but they must be referenced here too.
+
+annotate_proto_tables:
+  - tablename: proto_persons
+    annotate:
+      SPEC: annotate_persons
+      DF: proto_persons
+      TABLES:
+        - proto_households
+
+  - tablename: proto_households
+    annotate:
+      SPEC: annotate_proto_households
+      DF: proto_households
+      TABLES:
+        - proto_persons
+        - land_use
+
+# Annotate the proto_households table using the main model annotations files
+  - tablename: proto_households
+    annotate:
+      SPEC: annotate_households
+      DF: proto_households
+      TABLES:
+        - proto_persons
+        - land_use
+
+# Annotate the proto_persons table using the main model annotations files
+  - tablename: proto_persons
+    annotate:
+      SPEC: annotate_persons_after_hh
+      DF: proto_persons
+      TABLES:
+        - proto_households

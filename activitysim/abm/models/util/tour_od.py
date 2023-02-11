@@ -156,7 +156,12 @@ def _od_sample(
         )
         sample_size = 0
 
-    locals_d = {"skims": skims}
+    locals_d = {
+        "skims": skims,
+        "timeframe": "timeless",
+        "orig_col_name": ORIG_TAZ,
+        "dest_col_name": DEST_TAZ,
+    }
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
@@ -175,7 +180,7 @@ def _od_sample(
     )
 
     if skims.orig_key == ORIG_TAZ:
-        od_alts_df[ORIG_TAZ] = map_maz_to_taz(od_alts_df[origin_id_col], network_los)
+        od_alts_df[ORIG_TAZ] = network_los.map_maz_to_taz(od_alts_df[origin_id_col])
 
     elif skims.orig_key not in od_alts_df:
         logger.error("Alts df is missing origin skim key column.")
@@ -191,6 +196,7 @@ def _od_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer="taz",
     )
 
     return choices
@@ -274,7 +280,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
-    MAZ_size_terms[DEST_TAZ] = map_maz_to_taz(MAZ_size_terms.index, network_los)
+    MAZ_size_terms[DEST_TAZ] = network_los.map_maz_to_taz(MAZ_size_terms.index)
 
     # aggregate to TAZ
     TAZ_size_terms = MAZ_size_terms.groupby(DEST_TAZ).agg({"size_term": "sum"})
@@ -993,6 +999,9 @@ def run_od_simulate(
 
     locals_d = {
         "skims": skims,
+        "timeframe": "timeless",
+        "orig_col_name": origin_col_name,
+        "dest_col_name": dest_col_name,
     }
     if constants is not None:
         locals_d.update(constants)

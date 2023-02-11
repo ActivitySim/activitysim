@@ -1,15 +1,16 @@
+# flake8: noqa
 # ActivitySim
 # See full license in LICENSE.txt.
 
 from . import (
     accessibility,
-    disaggregate_accessibility,
     atwork_subtour_destination,
     atwork_subtour_frequency,
     atwork_subtour_mode_choice,
     atwork_subtour_scheduling,
     auto_ownership,
     cdap,
+    disaggregate_accessibility,
     free_parking,
     initialize,
     initialize_los,
@@ -30,9 +31,12 @@ from . import (
     school_escorting,
     stop_frequency,
     summarize,
+    telecommute_frequency,
     tour_mode_choice,
     tour_od_choice,
     tour_scheduling_probabilistic,
+    transit_pass_ownership,
+    transit_pass_subsidy,
     trip_departure_choice,
     trip_destination,
     trip_matrices,
@@ -43,4 +47,5 @@ from . import (
     trip_scheduling_choice,
     vehicle_allocation,
     vehicle_type_choice,
+    work_from_home,
 )

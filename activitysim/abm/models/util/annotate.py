@@ -3,7 +3,6 @@
 import pandas as pd
 import logging
 
-from activitysim.core import config
 from activitysim.core import expressions
 from activitysim.core import tracing
 from activitysim.core import inject

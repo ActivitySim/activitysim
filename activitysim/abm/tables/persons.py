@@ -1,10 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+import io
 import logging
 
 import pandas as pd
 
-from activitysim.core import inject, mem, pipeline, tracing
+from activitysim.core import inject, pipeline, tracing
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,9 @@ def persons(households, trace_hh_id):
     df = read_raw_persons(households)
 
     logger.info("loaded persons %s" % (df.shape,))
+    buffer = io.StringIO()
+    df.info(buf=buffer)
+    logger.debug("persons.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
     inject.add_table("persons", df)

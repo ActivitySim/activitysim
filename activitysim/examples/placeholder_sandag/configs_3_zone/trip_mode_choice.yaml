@@ -76,16 +76,8 @@ CONSTANTS:
     SHARED3PAY: 6
     WALK: 7
     BIKE: 8
-    WALK_LOC: 9
-    WALK_LRF: 10
-    WALK_EXP: 11
-    WALK_HVY: 12
-    WALK_COM: 13
-    DRIVE_LOC: 14
-    DRIVE_LRF: 15
-    DRIVE_EXP: 16
-    DRIVE_HVY: 17
-    DRIVE_COM: 18
+    WALK_TRANSIT: 9
+    DRIVE_TRANSIT: 14
     TAXI: 19
     TNC_SINGLE: 20
     TNC_SHARED: 21
@@ -95,8 +87,8 @@ CONSTANTS:
   I_AUTO_MODES: [1, 2, 3, 4, 5, 6]
   I_WALK_MODE: 7
   I_BIKE_MODE: 8
-  I_WALK_TRANSIT_MODES: [9, 10, 11, 12, 13]
-  I_DRIVE_TRANSIT_MODES: [14, 15, 16, 17, 18]
+  I_WALK_TRANSIT_MODES: [9]
+  I_DRIVE_TRANSIT_MODES: [14]
   I_RIDE_HAIL_MODES: [19, 20, 21]
   # RIDEHAIL Settings
   Taxi_baseFare: 2.20
@@ -108,7 +100,7 @@ CONSTANTS:
     3: 13.3
     4: 17.3
     5: 26.5
-  Taxi_waitTime_sd: 
+  Taxi_waitTime_sd:
     1: 0
     2: 0
     3: 0
@@ -118,13 +110,13 @@ CONSTANTS:
   TNC_single_costPerMile: 1.33
   TNC_single_costPerMinute: 0.24
   TNC_single_costMinimum: 7.20
-  TNC_single_waitTime_mean: 
+  TNC_single_waitTime_mean:
     1: 3.0
     2: 6.3
     3: 8.4
     4: 8.5
     5: 10.3
-  TNC_single_waitTime_sd: 
+  TNC_single_waitTime_sd:
     1: 0
     2: 0
     3: 0
@@ -135,13 +127,13 @@ CONSTANTS:
   TNC_shared_costPerMinute: 0.10
   TNC_shared_costMinimum: 3.00
   TNC_shared_IVTFactor: 1.5
-  TNC_shared_waitTime_mean: 
+  TNC_shared_waitTime_mean:
     1: 5.0
     2: 8.0
     3: 11.0
     4: 15.0
     5: 15.0
-  TNC_shared_waitTime_sd: 
+  TNC_shared_waitTime_sd:
     1: 0
     2: 0
     3: 0

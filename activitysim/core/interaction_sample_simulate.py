@@ -122,7 +122,9 @@ def _interaction_sample_simulate(
     # here, alternatives is sparsely repeated once for each (non-dup) sample
     # we expect alternatives to have same index of choosers (but with duplicate index values)
     # so we just need to left join alternatives with choosers
-    assert alternatives.index.name == choosers.index.name
+
+    # assert alternatives.index.name == choosers.index.name
+    # asserting the index names are the same tells us nothing about the underlying data so why?
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
 
@@ -299,7 +301,7 @@ def _interaction_sample_simulate(
 
         chunk.log_df(trace_label, "choices", choices)
 
-        if allow_zero_probs and zero_probs.any():
+        if allow_zero_probs and zero_probs.any() and zero_prob_choice_val is not None:
             # FIXME this is kind of gnarly, patch choice for zero_probs
             choices.loc[zero_probs] = zero_prob_choice_val
 

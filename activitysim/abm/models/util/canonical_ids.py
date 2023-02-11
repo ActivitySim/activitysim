@@ -1,12 +1,12 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+import re
 
 import numpy as np
 import pandas as pd
 import re
 
-from activitysim.core.util import reindex
 from activitysim.core import config
 from activitysim.core import pipeline
 from activitysim.core import simulate
@@ -61,16 +61,7 @@ def enumerate_tour_types(tour_flavors):
 def read_alts_file(file_name, set_index=None):
     try:
         alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
-        logger.warning(f"Could not find file {file_name} to determine tour flavors.")
-        return pd.DataFrame()
-    return alts
-
-
-def read_spec_file(file_name, set_index=None):
-    try:
-        alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
+    except (RuntimeError, FileNotFoundError):
         logger.warning(f"Could not find file {file_name} to determine tour flavors.")
         return pd.DataFrame()
     return alts
@@ -176,168 +167,7 @@ def determine_flavors_from_alts_file(
     Parameters
     ----------
     alts : pd.DataFrame
-    provided_flavors : dict
-        tour flavors provided by user in the model yaml
-    default_flavors : dict
-        default tour flavors to fall back on
-    max_extension : int
-        scale to increase number of tours accross all alternatives
-
-    Returns
-    -------
-    dict
-        tour flavors
-    """
-    try:
-        flavors = {
-            c: int(alts[c].max() + max_extension)
-            for c in alts.columns
-            if all(alts[c].astype(str).str.isnumeric())
-        }
-        valid_flavors = all(
-            [(isinstance(flavor, str) & (num >= 0)) for flavor, num in flavors.items()]
-        ) & (len(flavors) > 0)
-    except (ValueError, AttributeError):
-        valid_flavors = False
-
-    if provided_flavors is not None:
-        if flavors != provided_flavors:
-            logger.warning(
-                f"Specified tour flavors {provided_flavors} do not match alternative file flavors {flavors}"
-            )
-        # use provided flavors if provided
-        return provided_flavors
-
-    if not valid_flavors:
-        # if flavors could not be parsed correctly and no flavors provided, return the default
-        logger.warning(
-            "Could not determine alts from alt file and no flavors were provided."
-        )
-        logger.warning(f"Using defaults: {default_flavors}")
-        return default_flavors
-
-    return flavors
-
-
-def read_alts_file(file_name, set_index=None):
-    try:
-        alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
-        logger.warning(f"Could not find file {file_name} to determine tour flavors.")
-        return pd.DataFrame()
-    return alts
-
-
-def read_spec_file(file_name, set_index=None):
-    try:
-        alts = simulate.read_model_alts(file_name, set_index=set_index)
-    except RuntimeError:
-        logger.warning(f"Could not find file {file_name} to determine tour flavors.")
-        return pd.DataFrame()
-    return alts
-
-
-def parse_tour_flavor_from_columns(columns, tour_flavor):
-    """
-    determines the max number from columns if column name contains tour flavor
-    example: columns={'work1', 'work2'} -> 2
-
-    Parameters
-    ----------
-    columns : list of str
-    tour_flavor : str
-        string subset that you want to find in columns
-
-    Returns
-    -------
-    int
-        max int found in columns with tour_flavor
-    """
-    # below produces a list of numbers present in each column containing the tour flavor string
-    tour_numbers = [(re.findall(r"\d+", col)) for col in columns if tour_flavor in col]
-
-    # flatten list
-    tour_numbers = [int(item) for sublist in tour_numbers for item in sublist]
-
-    # find max
-    try:
-        max_tour_flavor = max(tour_numbers)
-        return max_tour_flavor
-    except ValueError:
-        # could not find a maximum integer for this flavor in the columns
-        return -1
-
-
-def determine_mandatory_tour_flavors(mtf_settings, model_spec, default_flavors):
-    provided_flavors = mtf_settings.get("MANDATORY_TOUR_FLAVORS", None)
-
-    mandatory_tour_flavors = {
-        # hard code work and school tours
-        "work": parse_tour_flavor_from_columns(model_spec.columns, "work"),
-        "school": parse_tour_flavor_from_columns(model_spec.columns, "school"),
-    }
-
-    valid_flavors = (mandatory_tour_flavors["work"] >= 1) & (
-        mandatory_tour_flavors["school"] >= 1
-    )
-
-    if provided_flavors is not None:
-        if mandatory_tour_flavors != provided_flavors:
-            logger.warning(
-                "Specified tour flavors do not match alternative file flavors"
-            )
-            logger.warning(
-                f"{provided_flavors} does not equal {mandatory_tour_flavors}"
-            )
-        # use provided flavors if provided
-        return provided_flavors
-
-    if not valid_flavors:
-        # if flavors could not be parsed correctly and no flavors provided, return the default
-        logger.warning(
-            "Could not determine alts from alt file and no flavors were provided."
-        )
-        logger.warning(f"Using defaults: {default_flavors}")
-        return default_flavors
-
-    return mandatory_tour_flavors
-
-
-def determine_non_mandatory_tour_max_extension(
-    model_settings, extension_probs, default_max_extension=2
-):
-    provided_max_extension = model_settings.get("MAX_EXTENSION", None)
-
-    max_extension = parse_tour_flavor_from_columns(extension_probs.columns, "tour")
-
-    if provided_max_extension is not None:
-        if provided_max_extension != max_extension:
-            logger.warning(
-                "Specified non mandatory tour extension does not match extension probabilities file"
-            )
-        return provided_max_extension
-
-    if (max_extension >= 0) & isinstance(max_extension, int):
-        return max_extension
-
-    return default_max_extension
-
-
-def determine_flavors_from_alts_file(
-    alts, provided_flavors, default_flavors, max_extension=0
-):
-    """
-    determines the max number from alts for each column containing numbers
-    example: alts={'index': ['alt1', 'alt2'], 'escort': [1, 2], 'othdisc': [3, 4]}
-             yelds -> {'escort': 2, 'othdisc': 4}
-
-    will return provided flavors if available
-    else, return default flavors if alts can't be groked
-
-    Parameters
-    ----------
-    alts : pd.DataFrame
-    provided_flavors : dict
+    provided_flavors : dict, optional
         tour flavors provided by user in the model yaml
     default_flavors : dict
         default tour flavors to fall back on
@@ -400,7 +230,7 @@ def canonical_tours():
             "non_mandatory_tour_frequency_extension_probs.csv"
         )
         extension_probs = pd.read_csv(ext_probs_f, comment="#")
-    except RuntimeError:
+    except (RuntimeError, FileNotFoundError):
         logger.warning(
             f"non_mandatory_tour_frequency_extension_probs.csv file not found"
         )
@@ -430,7 +260,7 @@ def canonical_tours():
     mtf_model_settings_file_name = "mandatory_tour_frequency.yaml"
     mtf_model_settings = config.read_model_settings(mtf_model_settings_file_name)
     mtf_spec = mtf_model_settings.get("SPEC", "mandatory_tour_frequency.csv")
-    mtf_model_spec = read_spec_file(file_name=mtf_spec)
+    mtf_model_spec = read_alts_file(file_name=mtf_spec)
     default_mandatory_tour_flavors = {"work": 2, "school": 2}
 
     mandatory_tour_flavors = determine_mandatory_tour_flavors(

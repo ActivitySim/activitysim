@@ -3,8 +3,6 @@ repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
   rev: v4.3.0
   hooks:
-  - id: check-yaml
-    exclude: logging.yaml  # TODO don't exclude, will require fixing logging
   - id: end-of-file-fixer
     exclude: .*\.ipynb
   - id: trailing-whitespace

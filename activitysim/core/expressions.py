@@ -2,15 +2,11 @@
 # See full license in LICENSE.txt.
 import logging
 
-import argparse
-import numpy as np
-import pandas as pd
-
 from activitysim.core import assign, config, inject, simulate, tracing
 from activitysim.core.util import (
     assign_in_place,
-    suffix_expressions_df_str,
     parse_suffix_args,
+    suffix_expressions_df_str,
 )
 
 logger = logging.getLogger(__name__)
@@ -108,12 +104,10 @@ def compute_columns(df, model_settings, locals_dict={}, trace_label=None):
     _locals_dict.update(tables)
 
     # FIXME a number of asim model preprocessors want skim_dict - should they request it in model_settings.TABLES?
-    _locals_dict.update(
-        {
-            # 'los': inject.get_injectable('network_los', None),
-            "skim_dict": inject.get_injectable("skim_dict", None),
-        }
-    )
+    if config.setting("sharrow", False):
+        _locals_dict["skim_dict"] = inject.get_injectable("skim_dataset_dict", None)
+    else:
+        _locals_dict["skim_dict"] = inject.get_injectable("skim_dict", None)
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
         expressions_spec, df, _locals_dict, trace_rows=tracing.trace_targets(df)

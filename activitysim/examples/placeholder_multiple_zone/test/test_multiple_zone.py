@@ -2,6 +2,7 @@
 # See full license in LICENSE.txt.
 import os
 import subprocess
+import sys
 
 import pandas as pd
 import pandas.testing as pdt
@@ -28,12 +29,12 @@ def mtc_example_path(dirname):
 
 def build_data():
     if os.environ.get("TRAVIS") != "true":
-        subprocess.check_call(
-            ["coverage", "run", example_path("scripts/two_zone_example_data.py")]
-        )
-        subprocess.check_call(
-            ["coverage", "run", example_path("scripts/three_zone_example_data.py")]
-        )
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            go = ["coverage", "run"]
+        else:
+            go = [sys.executable]
+        subprocess.check_call(go + [example_path("scripts/two_zone_example_data.py")])
+        subprocess.check_call(go + [example_path("scripts/three_zone_example_data.py")])
 
 
 @pytest.fixture(scope="module")
@@ -89,7 +90,10 @@ def run_test(zone, multiprocess=False):
     elif zone == "3":
         run_args = run_args + ["-s", "settings_static"]
 
-    subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        subprocess.run(["coverage", "run", "-a", file_path] + run_args, check=True)
+    else:
+        subprocess.run([sys.executable, file_path] + run_args, check=True)
 
     regress(zone)
 

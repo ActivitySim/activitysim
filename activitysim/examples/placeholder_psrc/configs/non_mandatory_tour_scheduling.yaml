@@ -1,6 +1,14 @@
 
 SPEC: tour_scheduling_nonmandatory.csv
 COEFFICIENTS: tour_scheduling_nonmandatory_coeffs.csv
+sharrow_skip: true
+# The `sharrow_skip` option is activated to disable the use of sharrow for this
+# model, because the utility specification as currently written includes a
+# large number of string comparisons. Sharrow can process these expressions
+# correctly, but it is slow.  If the specification is rewritten to remove most
+# of these string comparisons (see for example in the equivalent file for the
+# prototype_mtc models) then sharrow can be re-enabled for a significant speed
+# benefit.
 
 LOGIT_TYPE: MNL
 

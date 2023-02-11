@@ -8,7 +8,7 @@ testing.
 ## Package Manager
 
 ActivitySim has a lot of dependencies.  It's easiest and fastest to install
-them using a package manager like conda. There's a faster version called
+them using a package manager like conda, or its faster and free sibling
 [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
 Depending on your security settings, you might need to install in a
 container like docker, instructions for that are coming soon.
@@ -44,15 +44,21 @@ want to install in a new directory called "workspace" run:
 ```sh
 mkdir workspace
 cd workspace
-mamba env create -p ASIM-ENV --file https://raw.githubusercontent.com/camsys/activitysim/sharrow-black/conda-environments/activitysim-dev-base.yml
+mamba env create -p ASIM-ENV --file https://raw.githubusercontent.com/ActivitySim/activitysim/main/conda-environments/activitysim-dev-base.yml
 conda activate ./ASIM-ENV
 git clone https://github.com/ActivitySim/sharrow.git
 python -m pip install -e ./sharrow
-git clone https://github.com/camsys/activitysim.git
+git clone https://github.com/ActivitySim/activitysim.git
 cd activitysim
-git switch sharrow-black
+git switch develop
 cd ..
 python -m pip install -e ./activitysim
+```
+
+```{note}
+If the environment create step above fails due to a 404 missing error,
+the main repository may not be up to date with these docs, try this instead:
+https://raw.githubusercontent.com/camsys/activitysim/sharrow-black/conda-environments/activitysim-dev-base.yml
 ```
 
 Note the above commands will create an environment with all the
@@ -60,6 +66,12 @@ necessary dependencies, clone both ActivitySim and sharrow from GitHub,
 and `pip install` each of these libraries in editable mode, which
 will allow your code changes to be reflected when running ActivitySim
 in this environment.
+
+Depending on what you are working on, you may want to check out a branch
+other than `develop`.  To do so, you can point the `git switch` command
+above to any other existing branch name.  If you want to start an new
+branch, first create it with `git branch cool-new-feature` and then switch
+to it with `git switch cool-new-feature`.
 
 Now your environment should be ready to use.  Happy coding!
 

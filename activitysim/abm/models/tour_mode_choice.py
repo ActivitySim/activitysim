@@ -19,7 +19,7 @@ from activitysim.core import (
 from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 from activitysim.core.util import assign_in_place, reindex
 
-from .util import estimation, trip
+from .util import estimation, trip, annotate, school_escort_tours_trips
 from .util.mode import run_tour_mode_choice_simulate
 
 logger = logging.getLogger(__name__)
@@ -403,17 +403,20 @@ def tour_mode_choice_simulate(
     all_tours = tours.to_frame()
     assign_in_place(all_tours, choices_df)
 
+    if pipeline.is_table("school_escort_tours") & model_settings.get(
+        "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
+    ):
+        all_tours = (
+            school_escort_tours_trips.force_escortee_tour_modes_to_match_chauffeur(
+                all_tours
+            )
+        )
+
     pipeline.replace_table("tours", all_tours)
 
     # - annotate tours table
     if model_settings.get("annotate_tours"):
-        tours = inject.get_table("tours").to_frame()
-        expressions.assign_columns(
-            df=tours,
-            model_settings=model_settings.get("annotate_tours"),
-            trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
-        )
-        pipeline.replace_table("tours", tours)
+        annotate.annotate_tours(model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(

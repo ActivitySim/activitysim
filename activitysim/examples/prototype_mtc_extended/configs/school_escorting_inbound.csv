@@ -110,8 +110,8 @@ util_chauf1_time_to_work_or_univ_rs,Chauffer 1 Auto time to work or university -
 util_chauf2_time_to_work_or_univ_rs,Chauffer 2 Auto time to work or university - Ride Share,time_mand_to_home2 * ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_time_to_work_or_univ_rs
 util_chauf1_walk_dist_to_work_or_univ_rs,Chauffer 1 Walk dist to work or university - Ride Share,(dist_mand1_to_home < 3) & ((chauf1 == 1) | (chauf2 == 1) | (chauf3 == 1)),coef_chauf_walk_dist_to_work_or_univ_rs
 util_chauf2_walk_dist_to_work_or_univ_rs,Chauffer 2 Walk dist to work or university - Ride Share,(dist_mand2_to_home < 3) & ((chauf1 == 3) | (chauf2 == 3) | (chauf3 == 3)),coef_chauf_walk_dist_to_work_or_univ_rs
-util_chauf1_walk_dist_to_work_or_univ_pe,Chauffer 1 Walk dist to work or university - Pure Escort,(dist_home1_to_mand < 3) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_walk_dist_to_work_or_univ_pe
-util_chauf2_walk_dist_to_work_or_univ_pe,Chauffer 2 Walk dist to work or university - Pure Escort,(dist_home2_to_mand < 3) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_walk_dist_to_work_or_univ_pe
+util_chauf1_walk_dist_to_work_or_univ_pe,Chauffer 1 Walk dist to work or university - Pure Escort,(dist_home_to_mand1 < 3) & ((chauf1 == 2) | (chauf2 == 2) | (chauf3 == 2)),coef_chauf_walk_dist_to_work_or_univ_pe
+util_chauf2_walk_dist_to_work_or_univ_pe,Chauffer 2 Walk dist to work or university - Pure Escort,(dist_home_to_mand2 < 3) & ((chauf1 == 4) | (chauf2 == 4) | (chauf3 == 4)),coef_chauf_walk_dist_to_work_or_univ_pe
 # ,Chauffer deviation,,
 util_chauf1_abs_dev_rs_child1only,Chauffer 1 Absolute deviation ride share - child 1 only,((bundle1 != bundle2) & (bundle1 != bundle3) & (chauf1 == 1)) * abs_dev_dist_in_child1_chauf1,coef_abs_dev_distance
 util_chauf2_abs_dev_rs_child1only,Chauffer 2 Absolute deviation ride share - child 1 only,((bundle1 != bundle2) & (bundle1 != bundle3) & (chauf1 == 3)) * abs_dev_dist_in_child1_chauf2,coef_abs_dev_distance

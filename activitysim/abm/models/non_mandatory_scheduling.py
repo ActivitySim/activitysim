@@ -8,12 +8,7 @@ from activitysim.core import config, expressions, inject, pipeline, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing
 from activitysim.core.util import assign_in_place
-
-from .util import estimation
 from .util.tour_scheduling import run_tour_scheduling
-from .util.school_escort_tours_trips import create_pure_school_escort_tours
-
-from .util.vectorize_tour_scheduling import vectorize_tour_scheduling
 
 logger = logging.getLogger(__name__)
 DUMP = False

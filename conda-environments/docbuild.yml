@@ -25,8 +25,8 @@ dependencies:
 - larch >=5.5.3
 - matplotlib
 - myst-parser
-- numba >= 0.51.2
-- numpy >= 1.16.1,<=1.21
+- numba >= 0.56.4
+- numpy >= 1.16.1
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
@@ -41,7 +41,8 @@ dependencies:
 - pytest-regressions
 - pyyaml >= 5.1
 - requests >= 2.7
-- sharrow >= 2.2.4
+- scikit-learn >= 1.1
+- sharrow >= 2.5.2
 - simwrapper > 1.7
 - sphinx-argparse
 - sphinx_rtd_theme
@@ -50,3 +51,4 @@ dependencies:
 
 - pip:
   - autodoc_pydantic
+  - -e ..

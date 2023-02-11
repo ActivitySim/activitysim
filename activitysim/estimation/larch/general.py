@@ -1,18 +1,15 @@
-import itertools
 import logging
 import os
-import re
 from pathlib import Path
 from typing import Mapping
 
 import numpy as np
 import pandas as pd
-import yaml
-from larch import DataFrames, Model, P, X
+from larch import DataFrames, Model, P, X  # noqa: F401
 from larch.log import logger_name
 from larch.model.abstract_model import AbstractChoiceModel
 from larch.model.tree import NestingTree
-from larch.util import Dict
+from larch.util import Dict  # noqa: F401
 
 _logger = logging.getLogger(logger_name)
 
@@ -490,13 +487,24 @@ def clean_values(
     return values
 
 
-def update_coefficients(model, data, result_dir=Path("."), output_file=None):
+def update_coefficients(
+    model, data, result_dir=Path("."), output_file=None, relabel_coef=None
+):
     if isinstance(data, pd.DataFrame):
         coefficients = data.copy()
     else:
         coefficients = data.coefficients.copy()
-    est_names = [j for j in coefficients.index if j in model.pf.index]
-    coefficients.loc[est_names, "value"] = model.pf.loc[est_names, "value"]
+    if relabel_coef is not None and len(relabel_coef):
+        for j in coefficients.index:
+            if j in model.pf.index:
+                coefficients.loc[j, "value"] = model.pf.loc[j, "value"]
+            else:
+                j_ = relabel_coef.get(j, None)
+                if j_ is not None and j_ in model.pf.index:
+                    coefficients.loc[j, "value"] = model.pf.loc[j_, "value"]
+    else:
+        est_names = [j for j in coefficients.index if j in model.pf.index]
+        coefficients.loc[est_names, "value"] = model.pf.loc[est_names, "value"]
     if output_file is not None:
         os.makedirs(result_dir, exist_ok=True)
         coefficients.reset_index().to_csv(

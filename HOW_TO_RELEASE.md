@@ -40,7 +40,7 @@
     and development.  If they are not updated, these environments will end
     up with dependencies loaded from *pip* instead of *conda-forge*.
 
-00. Run `black` to ensure that the codebase passes minimal style checks.
+00. Run black to ensure that the codebase passes all style checks.
     This check should only take a few seconds.  These checks are also done on
     GitHub Actions and are platform independent, so they should not be necessary to
     replicate locally, but are listed here for completeness.
@@ -67,7 +67,7 @@
     ```
 
 00. Test the full-scale regional examples. These examples are big, too
-    large to run on GitHub Actions, and will take a lot of time (many hours) to
+    large to run on Travis, and will take a lot of time (many hours) to
     download and run.
     ```sh
     mkdir tmp-asim
@@ -87,6 +87,37 @@
 00. Test the notebooks in `activitysim/examples/prototype_mtc/notebooks`.
     There are also demo notebooks for estimation, but their functionality
     is completely tested in the unit tests run previously.
+
+00. Use bump2version to tag the release commit and update the
+    version number.  The following code will generate a "patch" release,
+    incrementing the third value in the version number (i.e. "1.2.3"
+    becomes "1.2.4").  Alternatively, make a "minor" or "major" release.
+    The `--list` command will generate output to your console to confirm
+    that the old and new version numbers are what you expect, before you
+    push the commit (with the changed version in the code) and tags to
+    GitHub.
+    ```sh
+    bump2version patch --list
+    ```
+
+    It is also possible to make a development pre-release. To do so,
+    explicitly set the version number to the next patch plus a ".devN"
+    suffix:
+
+    ```sh
+    bump2version patch --new-version 1.2.3.dev0 --list
+    ```
+
+    Then, when ready to make a "final" release, set the version by
+    explicitly removing the suffix:
+    ```sh
+    bump2version patch --new-version 1.2.3 --list
+    ```
+
+00. Push the tagged commit to GitHub.
+    ```sh
+    git push --tags
+    ```
 
 00. For non-development releases, open a pull request to merge the proposed
     release into main. The following command will open a web browser for
@@ -129,11 +160,3 @@
     conda deactivate
     conda env remove -n TEMP-ASIM-DEV
     ```
-
-00. Change the default redirect page for the ActivitySim documentation to point
-    to the newly released documentation.  The redirect page can be edited
-    [here](https://github.com/ActivitySim/activitysim/blob/gh-pages/index.html).
-
-00. Add the new release to the `switch.json` file. Don't delete the references
-    for existing old documentation.  The switcher can be edited
-    [here](https://github.com/ActivitySim/activitysim/blob/gh-pages/switcher.json).

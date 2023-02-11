@@ -12,6 +12,8 @@ Description,Target,Expression
 #,,
 ,i_tour_mode,df.tour_mode.map(I_MODE_MAP)
 ,tour_mode_is_SOV,i_tour_mode.isin(I_SOV_MODES)
+,tour_mode_is_SR2,i_tour_mode.isin(I_SR2_MODES)
+,tour_mode_is_SR3P,i_tour_mode.isin(I_SR3P_MODES)
 ,tour_mode_is_auto,i_tour_mode.isin(I_AUTO_MODES)
 ,tour_mode_is_walk,i_tour_mode == I_WALK_MODE
 ,tour_mode_is_bike,i_tour_mode == I_BIKE_MODE

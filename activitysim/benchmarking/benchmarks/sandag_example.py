@@ -33,6 +33,7 @@ COMPONENT_NAMES = [
 ]
 BENCHMARK_SETTINGS = {
     "households_sample_size": 48_769,
+    "sharrow": True,
 }
 SKIM_CACHE = True
 PRELOAD_INJECTABLES = ("skim_dict",)

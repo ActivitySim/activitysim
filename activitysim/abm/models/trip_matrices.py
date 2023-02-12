@@ -42,14 +42,16 @@ def write_trip_matrices(whale: workflow.Whale, network_los):
         )
         return
 
-    model_settings = config.read_model_settings("write_trip_matrices.yaml")
+    model_settings = whale.filesystem.read_model_settings("write_trip_matrices.yaml")
     trips_df = annotate_trips(whale, trips, network_los, model_settings)
 
     if bool(model_settings.get("SAVE_TRIPS_TABLE")):
         whale.add_table("trips", trips_df)
 
     if "parking_location" in whale.settings.models:
-        parking_settings = config.read_model_settings("parking_location_choice.yaml")
+        parking_settings = whale.filesystem.read_model_settings(
+            "parking_location_choice.yaml"
+        )
         parking_taz_col_name = parking_settings["ALT_DEST_COL_NAME"]
         if parking_taz_col_name in trips_df:
             # TODO make parking zone negative, not zero, if not used
@@ -300,7 +302,7 @@ def write_matrices(
 
         if matrix_is_tap == is_tap:  # only write tap matrices to tap matrix files
             filename = matrix.get("file_name")
-            filepath = config.output_file_path(filename)
+            filepath = whale.get_output_file_path(filename)
             logger.info("opening %s" % filepath)
             file = omx.open_file(filepath, "w")  # possibly overwrite existing file
             table_settings = matrix.get("tables")

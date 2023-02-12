@@ -25,7 +25,7 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
 
     estimator = estimation.manager.begin_estimation(whale, "joint_tour_frequency")
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     alternatives = simulate.read_model_alts(
         whale, "joint_tour_frequency_alternatives.csv", set_index="alt"
@@ -62,8 +62,8 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )

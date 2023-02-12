@@ -47,7 +47,7 @@ def find_nearest_accessibility_zone(choosers, accessibility_df, method="skims"):
 
     if method == "centroids":
         # Extract and vectorize TAZ centroids
-        centroids = inject.get_table("maz_centroids").to_frame()
+        centroids = whale.get_dataframe("maz_centroids")
 
         # TODO.NF This is a bit hacky, needs some work for variable zone names
         if "TAZ" in centroids.columns:
@@ -65,7 +65,7 @@ def find_nearest_accessibility_zone(choosers, accessibility_df, method="skims"):
         nearest = [nearest_node(Oz, _centroids.XY) for Oz in unmatched_zones]
 
     else:
-        skim_dict = inject.get_injectable("skim_dict")
+        skim_dict = whale.get_injectable("skim_dict")
         nearest = [nearest_skim(Oz, accessibility_zones) for Oz in unmatched_zones]
 
     # Add the nearest zones to the matched zones
@@ -151,7 +151,9 @@ def disaggregate_accessibility(whale: workflow.Whale):
     )
 
     # Extract model settings
-    model_settings = config.read_model_settings("disaggregate_accessibility.yaml")
+    model_settings = whale.filesystem.read_model_settings(
+        "disaggregate_accessibility.yaml"
+    )
     merging_params = model_settings.get("MERGE_ON")
     nearest_method = model_settings.get("NEAREST_METHOD", "skims")
     accessibility_cols = [

@@ -24,7 +24,7 @@ def spec_name(data_dir):
 
 @pytest.fixture(scope="module")
 def spec(data_dir, spec_name):
-    return simulate.read_model_spec(file_name=spec_name)
+    return whale.filesystem.read_model_spec(file_name=spec_name)
 
 
 @pytest.fixture(scope="module")
@@ -42,7 +42,7 @@ def setup_function():
 
 def test_read_model_spec(spec_name):
 
-    spec = simulate.read_model_spec(file_name=spec_name)
+    spec = whale.filesystem.read_model_spec(file_name=spec_name)
 
     assert len(spec) == 4
     assert spec.index.name == "Expression"
@@ -52,7 +52,7 @@ def test_read_model_spec(spec_name):
 
 def test_eval_variables(spec, data):
 
-    result = simulate.eval_variables(spec.index, data)
+    result = simulate.eval_variables(whale, spec.index, data)
 
     expected = pd.DataFrame(
         [[1, 0, 4, 1], [0, 1, 4, 1], [0, 1, 5, 1]], index=data.index, columns=spec.index

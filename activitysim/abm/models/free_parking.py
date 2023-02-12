@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 import logging
 
+import pandas as pd
+
 from activitysim.abm.models.util import estimation
 from activitysim.core import config, expressions, simulate, tracing, workflow
 
@@ -9,18 +11,23 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def free_parking(whale: workflow.Whale, persons_merged, persons, chunk_size):
+def free_parking(
+    whale: workflow.Whale,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    chunk_size,
+):
     """ """
 
     trace_label = "free_parking"
     model_settings_file_name = "free_parking.yaml"
     trace_hh_id = whale.settings.trace_hh_id
 
-    choosers = persons_merged.to_frame()
+    choosers = pd.DataFrame(persons_merged)
     choosers = choosers[choosers.workplace_zone_id > -1]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation(whale, "free_parking")
 
     constants = config.get_model_constants(model_settings)
@@ -40,8 +47,8 @@ def free_parking(whale: workflow.Whale, persons_merged, persons, chunk_size):
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )
@@ -77,7 +84,6 @@ def free_parking(whale: workflow.Whale, persons_merged, persons, chunk_size):
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons = persons.to_frame()
     persons["free_parking_at_work"] = (
         choices.reindex(persons.index).fillna(0).astype(bool)
     )

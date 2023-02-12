@@ -58,8 +58,9 @@ def split_arg(s, sep, default=""):
 
 
 class WhaleAttr:
-    def __init__(self, member_type):
+    def __init__(self, member_type, default_init=False):
         self.member_type = member_type
+        self._default_init = default_init
 
     def __set_name__(self, owner, name):
         self.name = name
@@ -68,6 +69,9 @@ class WhaleAttr:
         try:
             return instance.context[self.name]
         except (KeyError, AttributeError):
+            if self._default_init:
+                instance.context[self.name] = self.member_type()
+                return instance.context[self.name]
             raise WhaleAccessError(f"{self.name} not initialized for this whale")
 
     def __set__(self, instance, value):
@@ -114,6 +118,7 @@ class Whale:
     filesystem = WhaleAttr(FileSystem)
     settings = WhaleAttr(Settings)
     network_settings = WhaleAttr(NetworkSettings)
+    predicates = WhaleAttr(dict, default_init=True)
 
     # @property
     # def filesystem(self) -> FileSystem:
@@ -159,6 +164,7 @@ class Whale:
     _RUNNABLE_STEPS = {}
     _LOADABLE_TABLES = {}
     _LOADABLE_OBJECTS = {}
+    _PREDICATES = {}
 
     @property
     def known_table_names(self):
@@ -225,7 +231,7 @@ class Whale:
 
     def access(self, key, initializer):
         if key not in self.context:
-            self.context[key] = initializer
+            self.set(key, initializer)
         return self.context[key]
 
     def get(self, key, default: Any = NO_DEFAULT):
@@ -249,6 +255,10 @@ class Whale:
 
     def set(self, key, value):
         self.context[key] = value
+        for i in self._PREDICATES.get(key, []):
+            if i in self.context:
+                logger.critical(f"update of {key} clears cached {i}")
+                del self.context[i]
 
     def extract(self, func):
         return func(self)
@@ -456,7 +466,7 @@ class Whale:
             # mark this salient table as edited, so it can be checkpointed
             # at some later time if desired.
             self.existing_table_status[name] = True
-        self.context.update({name: content})
+        self.set(name, content)
 
     def is_table(self, name):
         return name in self.existing_table_status
@@ -643,7 +653,7 @@ class Whale:
         # register for tracing in order that tracing.register_traceable_table wants us to register them
         traceable_tables = self.get_injectable("traceable_tables", [])
 
-        from .tracing import register_traceable_table
+        from activitysim.core.tracing import register_traceable_table
 
         for table_name in traceable_tables:
             if table_name in loaded_tables:
@@ -1071,9 +1081,6 @@ class Whale:
             orca/inject table name
         df : pandas DataFrame
         """
-
-        assert self.is_open, f"Pipeline is not open."
-
         assert axis in [0, 1]
 
         if self.is_table(table_name):
@@ -1107,7 +1114,6 @@ class Whale:
         return df
 
     def drop_table(self, table_name):
-        assert self.is_open, f"Pipeline is not open."
 
         if self.is_table(table_name):
             logger.debug("drop_table dropping orca table '%s'" % table_name)
@@ -1202,3 +1208,9 @@ class Whale:
         from activitysim.core.chunk import chunk_log
 
         return chunk_log(*args, **kwargs, settings=self.settings)
+
+    def get_output_file_path(self, file_name: str) -> Path:
+        prefix = self.get_injectable("output_file_prefix", None)
+        if prefix:
+            file_name = "%s-%s" % (prefix, file_name)
+        return self.filesystem.get_output_dir().joinpath(file_name)

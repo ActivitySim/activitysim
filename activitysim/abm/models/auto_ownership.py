@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 import logging
 
+import pandas as pd
+
 from activitysim.abm.models.util import estimation
 from activitysim.core import config, simulate, tracing, workflow
 
@@ -18,13 +20,12 @@ def auto_ownership_simulate(
     """
     trace_label = "auto_ownership_simulate"
     model_settings_file_name = "auto_ownership.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     trace_hh_id = whale.settings.trace_hh_id
 
     estimator = estimation.manager.begin_estimation(whale, "auto_ownership")
-
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )
@@ -32,7 +33,7 @@ def auto_ownership_simulate(
     nest_spec = config.get_logit_model_settings(model_settings)
     constants = config.get_model_constants(model_settings)
 
-    choosers = households_merged.to_frame()
+    choosers = households_merged
 
     logger.info("Running %s with %d households", trace_label, len(choosers))
 
@@ -62,8 +63,6 @@ def auto_ownership_simulate(
         choices = estimator.get_survey_values(choices, "households", "auto_ownership")
         estimator.write_override_choices(choices)
         estimator.end_estimation()
-
-    households = households.to_frame()
 
     # no need to reindex as we used all households
     households["auto_ownership"] = choices

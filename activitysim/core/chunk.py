@@ -1069,6 +1069,20 @@ class ChunkSizer:
 
 @contextmanager
 def chunk_log(trace_label, chunk_tag=None, base=False, settings=None):
+    """
+    Chunk management.
+
+    Parameters
+    ----------
+    trace_label : str
+    chunk_tag : str, optional
+    base
+    settings
+
+    Yields
+    ------
+    ChunkSizer
+    """
     # With `base=True` this method can be used to instantiate
     # a ChunkSizer class object without actually chunking. This
     # avoids breaking the assertion below.

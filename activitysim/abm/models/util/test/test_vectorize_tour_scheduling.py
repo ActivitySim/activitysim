@@ -8,7 +8,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from activitysim.core import inject
+from activitysim.core import inject, workflow
 
 from ..vectorize_tour_scheduling import (
     get_previous_tour_by_tourid,
@@ -27,7 +27,7 @@ def setup_function():
 
 
 def test_vts():
-
+    whale = workflow.Whale()
     inject.add_injectable("settings", {})
 
     # note: need 0 duration tour on one end of day to guarantee at least one available tour
@@ -70,9 +70,10 @@ def test_vts():
 
     inject.add_injectable("check_for_variability", True)
 
-    timetable = inject.get_injectable("timetable")
+    timetable = whale.get_injectable("timetable")
 
     tdd_choices = vectorize_tour_scheduling(
+        whale,
         tours,
         persons,
         alts,

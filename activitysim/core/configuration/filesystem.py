@@ -8,9 +8,9 @@ from pathlib import Path
 import yaml
 from pydantic import DirectoryPath, validator
 
-from ..exceptions import SettingsFileNotFoundError
-from ..util import parse_suffix_args, suffix_tables_in_settings
-from .base import PydanticBase
+from activitysim.core.configuration.base import PydanticBase
+from activitysim.core.exceptions import SettingsFileNotFoundError
+from activitysim.core.util import parse_suffix_args, suffix_tables_in_settings
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +130,9 @@ class FileSystem(PydanticBase):
         if not out.exists():
             out.mkdir(parents=True)
         return out
+
+    def get_output_file_path(self, file_name) -> Path:
+        return self.get_output_dir().joinpath(file_name)
 
     def get_pipeline_filepath(self) -> Path:
         """
@@ -322,7 +325,6 @@ class FileSystem(PydanticBase):
         ungroked_files = 0
 
         for file_name in input_files:
-
             file_name = self.get_data_file_path(file_name, allow_glob=True)
 
             if file_name.is_file():
@@ -618,4 +620,27 @@ class FileSystem(PydanticBase):
         else:
             return settings
 
-    read_model_settings = read_settings_file
+    def read_model_settings(
+        self,
+        file_name,
+        mandatory=False,
+    ):
+        # in the legacy implementation, this function has a default mandatory=False
+        return self.read_settings_file(file_name, mandatory=mandatory)
+
+    def read_model_spec(self, file_name: str):
+        from activitysim.core import simulate
+
+        return simulate.read_model_spec(self, file_name)
+
+    def read_model_coefficients(self, model_settings=None, file_name=None):
+        from activitysim.core import simulate
+
+        return simulate.read_model_coefficients(
+            self, model_settings=model_settings, file_name=file_name
+        )
+
+    def get_segment_coefficients(self, model_settings, segment_name):
+        from activitysim.core import simulate
+
+        return simulate.get_segment_coefficients(self, model_settings, segment_name)

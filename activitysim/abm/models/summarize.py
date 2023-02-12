@@ -225,12 +225,12 @@ def summarize(
     """
     trace_label = "summarize"
     model_settings_file_name = "summarize.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     output_location = (
         model_settings["OUTPUT"] if "OUTPUT" in model_settings else "summaries"
     )
-    os.makedirs(config.output_file_path(output_location), exist_ok=True)
+    os.makedirs(whale.get_output_file_path(output_location), exist_ok=True)
 
     spec = pd.read_csv(
         whale.filesystem.get_config_file_path(model_settings["SPECIFICATION"]),
@@ -319,10 +319,12 @@ def summarize(
     # Output pipeline tables for expression development
     if model_settings["EXPORT_PIPELINE_TABLES"] is True:
         pipeline_table_dir = os.path.join(output_location, "pipeline_tables")
-        os.makedirs(config.output_file_path(pipeline_table_dir), exist_ok=True)
+        os.makedirs(whale.get_output_file_path(pipeline_table_dir), exist_ok=True)
         for name, df in locals_d.items():
             df.to_csv(
-                config.output_file_path(os.path.join(pipeline_table_dir, f"{name}.csv"))
+                whale.get_output_file_path(
+                    os.path.join(pipeline_table_dir, f"{name}.csv")
+                )
             )
 
     # Add classification functions to locals
@@ -350,6 +352,8 @@ def summarize(
 
         resultset = eval(expr, globals(), locals_d)
         resultset.to_csv(
-            config.output_file_path(os.path.join(output_location, f"{out_file}.csv")),
+            whale.get_output_file_path(
+                os.path.join(output_location, f"{out_file}.csv")
+            ),
             index=False,
         )

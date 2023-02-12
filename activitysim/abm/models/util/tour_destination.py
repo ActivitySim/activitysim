@@ -26,7 +26,7 @@ class SizeTermCalculator(object):
     def __init__(self, size_term_selector):
         # do this once so they can request size_terms for various segments (tour_type or purpose)
         land_use = inject.get_table("land_use")
-        size_terms = inject.get_injectable("size_terms")
+        size_terms = whale.get_injectable("size_terms")
         self.destination_size_terms = tour_destination_size_terms(
             land_use, size_terms, size_term_selector
         )
@@ -251,7 +251,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     # 542963          53  0.004224           2      13243
     # 542963          59  0.008628           1      13243
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    trace_hh_id = whale.settings.trace_hh_id
     have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
@@ -628,7 +628,9 @@ def run_destination_logsums(
     +-----------+--------------+----------------+------------+----------------+
     """
 
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+    logsum_settings = whale.filesystem.read_model_settings(
+        model_settings["LOGSUM_SETTINGS"]
+    )
     # if special person id is passed
     chooser_id_column = model_settings.get("CHOOSER_ID_COLUMN", "person_id")
 

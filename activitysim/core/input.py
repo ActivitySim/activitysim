@@ -129,11 +129,11 @@ def read_from_table_info(table_info: InputTable, whale):
 
     if create_input_store:
         raise NotImplementedError("the input store functionality has been disabled")
-        # h5_filepath = config.output_file_path("input_data.h5")
+        # h5_filepath = whale.get_output_file_path("input_data.h5")
         # logger.info("writing %s to %s" % (h5_tablename, h5_filepath))
         # df.to_hdf(h5_filepath, key=h5_tablename, mode="a")
         #
-        # csv_dir = config.output_file_path("input_data")
+        # csv_dir = whale.get_output_file_path("input_data")
         # if not os.path.exists(csv_dir):
         #     os.makedirs(csv_dir)  # make directory if needed
         # df.to_csv(os.path.join(csv_dir, "%s.csv" % tablename), index=False)

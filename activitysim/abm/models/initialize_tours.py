@@ -17,11 +17,11 @@ SURVEY_PARENT_TOUR_ID = "external_parent_tour_id"
 SURVEY_PARTICIPANT_ID = "external_participant_id"
 ASIM_TOUR_ID = "tour_id"
 ASIM_PARENT_TOUR_ID = "parent_tour_id"
-REQUIRED_TOUR_COLUMNS = set(["person_id", "tour_category", "tour_type"])
+REQUIRED_TOUR_COLUMNS = {"person_id", "tour_category", "tour_type"}
 
 
-def patch_tour_ids(tours):
-    def set_tour_index(tours, parent_tour_num_col, is_joint):
+def patch_tour_ids(whale: workflow.Whale, tours):
+    def set_tour_index(whale: workflow.Whale, tours, parent_tour_num_col, is_joint):
         group_cols = ["person_id", "tour_category", "tour_type"]
 
         if "parent_tour_num" in tours:
@@ -32,7 +32,7 @@ def patch_tour_ids(tours):
         )
 
         return tf.set_tour_index(
-            tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
+            whale, tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
         )
 
     assert REQUIRED_TOUR_COLUMNS.issubset(
@@ -48,6 +48,7 @@ def patch_tour_ids(tours):
 
     # mandatory tours
     mandatory_tours = set_tour_index(
+        whale,
         tours[tours.tour_category == "mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -60,6 +61,7 @@ def patch_tour_ids(tours):
 
     # non_mandatory tours
     non_mandatory_tours = set_tour_index(
+        whale,
         tours[tours.tour_category == "non_mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -93,7 +95,9 @@ def initialize_tours(whale: workflow.Whale, network_los, households, persons):
         tours = tours[tours.person_id.isin(persons.index)]
 
     # annotate before patching tour_id to allow addition of REQUIRED_TOUR_COLUMNS defined above
-    model_settings = config.read_model_settings("initialize_tours.yaml", mandatory=True)
+    model_settings = whale.filesystem.read_model_settings(
+        "initialize_tours.yaml", mandatory=True
+    )
     expressions.assign_columns(
         whale,
         df=tours,
@@ -105,7 +109,7 @@ def initialize_tours(whale: workflow.Whale, network_los, households, persons):
     if skip_patch_tour_ids:
         pass
     else:
-        tours = patch_tour_ids(tours)
+        tours = patch_tour_ids(whale, tours)
     assert tours.index.name == "tour_id"
 
     # replace table function with dataframe
@@ -113,7 +117,7 @@ def initialize_tours(whale: workflow.Whale, network_los, households, persons):
 
     whale.get_rn_generator().add_channel("tours", tours)
 
-    tracing.register_traceable_table("tours", tours)
+    tracing.register_traceable_table(whale, "tours", tours)
 
     logger.debug(f"{len(tours.household_id.unique())} unique household_ids in tours")
     logger.debug(f"{len(households.index.unique())} unique household_ids in households")

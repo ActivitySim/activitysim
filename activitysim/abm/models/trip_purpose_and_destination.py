@@ -56,10 +56,12 @@ def trip_purpose_and_destination(
     whale: workflow.Whale, trips, tours_merged, chunk_size, trace_hh_id
 ):
     trace_label = "trip_purpose_and_destination"
-    model_settings = config.read_model_settings("trip_purpose_and_destination.yaml")
+    model_settings = whale.filesystem.read_model_settings(
+        "trip_purpose_and_destination.yaml"
+    )
 
     # for consistency, read sample_table_name setting from trip_destination settings file
-    trip_destination_model_settings = config.read_model_settings(
+    trip_destination_model_settings = whale.filesystem.read_model_settings(
         "trip_destination.yaml"
     )
     sample_table_name = trip_destination_model_settings.get(

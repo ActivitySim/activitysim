@@ -154,7 +154,9 @@ def participants_chooser(probs, choosers, spec, trace_label):
     assert probs.index.equals(choosers.index)
 
     # choice is boolean (participate or not)
-    model_settings = config.read_model_settings("joint_tour_participation.yaml")
+    model_settings = whale.filesystem.read_model_settings(
+        "joint_tour_participation.yaml"
+    )
 
     choice_col = model_settings.get("participation_choice", "participate")
     assert (
@@ -241,7 +243,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
 
 def annotate_jtp(model_settings, trace_label):
     # - annotate persons
-    persons = inject.get_table("persons").to_frame()
+    persons = whale.get_dataframe("persons")
     expressions.assign_columns(
         whale,
         df=persons,
@@ -272,7 +274,7 @@ def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk
     """
     trace_label = "joint_tour_participation"
     model_settings_file_name = "joint_tour_participation.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     trace_hh_id = whale.settings.trace_hh_id
 
     tours = tours.to_frame()
@@ -287,7 +289,7 @@ def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk
 
     # - create joint_tour_participation_candidates table
     candidates = joint_tour_participation_candidates(joint_tours, persons_merged)
-    tracing.register_traceable_table("joint_tour_participants", candidates)
+    tracing.register_traceable_table(whale, "joint_tour_participants", candidates)
     whale.get_rn_generator().add_channel("joint_tour_participants", candidates)
 
     logger.info(
@@ -315,8 +317,8 @@ def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk
 
     estimator = estimation.manager.begin_estimation(whale, "joint_tour_participation")
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )

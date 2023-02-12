@@ -60,7 +60,7 @@ def compute_utilities(
         locals_dict.update(model_constants)
 
         # we don't grok coefficients, but allow them to use constants in spec alt columns
-        spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+        spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
         for c in spec.columns:
             if c != simulate.SPEC_LABEL_NAME:
                 spec[c] = spec[c].map(lambda s: model_constants.get(s, s)).astype(float)
@@ -964,7 +964,7 @@ class TransitVirtualPathBuilder(object):
                                 np.nansum(np.exp(utilities_df.values), axis=1) == 0
                             ]
                             zero_utilities_df.to_csv(
-                                config.output_file_path("warning_utilities_df.csv"),
+                                whale.get_output_file_path("warning_utilities_df.csv"),
                                 index=True,
                             )
 
@@ -1081,7 +1081,7 @@ class TransitVirtualPathBuilder(object):
                 trace_label=trace_label,
             )
 
-            trace_hh_id = inject.get_injectable("trace_hh_id", None)
+            trace_hh_id = whale.settings.trace_hh_id
             if (all(logsum_df["logsum"] == UNAVAILABLE)) or (len(logsum_df) == 0):
                 trace_hh_id = False
 
@@ -1125,7 +1125,7 @@ class TransitVirtualPathBuilder(object):
                 trace_label=trace_label,
             )
 
-            trace_od = inject.get_injectable("trace_od", None)
+            trace_od = whale.get_injectable("trace_od", None)
             if trace_od:
                 filter_targets = (orig == trace_od[0]) & (dest == trace_od[1])
                 if filter_targets.any():

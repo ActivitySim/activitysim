@@ -53,7 +53,9 @@ def test_mtf():
 
     tour_frequency_alternatives = mandatory_tour_frequency_alternatives()
 
-    mandatory_tours = process_mandatory_tours(persons, tour_frequency_alternatives)
+    mandatory_tours = process_mandatory_tours(
+        whale, persons, tour_frequency_alternatives
+    )
 
     idx = mandatory_tours.index
 

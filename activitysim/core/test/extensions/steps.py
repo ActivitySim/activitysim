@@ -61,4 +61,4 @@ def create_households(whale: workflow.Whale, trace_hh_id):
 
     pipeline.get_rn_generator().add_channel("households", df)
 
-    tracing.register_traceable_table("households", df)
+    tracing.register_traceable_table(whale, "households", df)

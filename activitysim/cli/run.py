@@ -109,7 +109,7 @@ def add_run_args(parser, multiprocess=True):
 def validate_injectable(whale: workflow.Whale, name, make_if_missing=False):
     try:
         dir_paths = whale.context.get_formatted(name)
-        # dir_paths = inject.get_injectable(name)
+        # dir_paths = whale.get_injectable(name)
     except RuntimeError:
         # injectable is missing, meaning is hasn't been explicitly set
         # and defaults cannot be found.
@@ -393,7 +393,7 @@ def run(args):
 
             from activitysim.core import mp_tasks
 
-            injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+            injectables = {k: whale.get_injectable(k) for k in INJECTABLES}
             mp_tasks.run_multiprocess(whale, injectables)
 
             assert not whale.is_open

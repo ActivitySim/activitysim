@@ -23,7 +23,7 @@ def work_from_home(whale: workflow.Whale, persons_merged, persons, chunk_size):
     model_settings_file_name = "work_from_home.yaml"
 
     choosers = persons_merged.to_frame()
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     chooser_filter_column_name = model_settings.get(
         "CHOOSER_FILTER_COLUMN_NAME", "is_worker"
     )
@@ -50,8 +50,8 @@ def work_from_home(whale: workflow.Whale, persons_merged, persons, chunk_size):
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
@@ -85,7 +85,7 @@ def work_from_home(whale: workflow.Whale, persons_merged, persons, chunk_size):
         )
 
         # re-read spec to reset substitution
-        model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
+        model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
         model_spec = simulate.eval_coefficients(
             whale, model_spec, coefficients_df, estimator
         )

@@ -29,7 +29,6 @@ MAX_INTERACTION_CARDINALITY = 3
 
 
 def set_hh_index(df):
-
     # index on household_id, not person_id
     df.set_index(_hh_id_, inplace=True)
     df.index.name = _hh_index_
@@ -273,11 +272,10 @@ def cached_spec_name(hhsize):
     return "cdap_spec_%s" % hhsize
 
 
-def get_cached_spec(hhsize):
-
+def get_cached_spec(whale: workflow.Whale, hhsize):
     spec_name = cached_spec_name(hhsize)
 
-    spec = inject.get_injectable(spec_name, None)
+    spec = whale.get_injectable(spec_name, None)
     if spec is not None:
         logger.debug("build_cdap_spec returning cached injectable spec %s", spec_name)
         return spec
@@ -287,22 +285,27 @@ def get_cached_spec(hhsize):
     # cached spec will be available as an injectable to subsequent chunks
 
     # # try data dir
-    # if os.path.exists(config.output_file_path(spec_name)):
-    #     spec_path = config.output_file_path(spec_name)
+    # if os.path.exists(whale.get_output_file_path(spec_name)):
+    #     spec_path = whale.get_output_file_path(spec_name)
     #     logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
     #     return pd.read_csv(spec_path, index_col='Expression')
 
     return None
 
 
-def cache_spec(hhsize, spec):
+def cache_spec(whale: workflow.Whale, hhsize, spec):
     spec_name = cached_spec_name(hhsize)
     # cache as injectable
-    inject.add_injectable(spec_name, spec)
+    whale.add_injectable(spec_name, spec)
 
 
 def build_cdap_spec(
-    interaction_coefficients, hhsize, trace_spec=False, trace_label=None, cache=True
+    whale: workflow.Whale,
+    interaction_coefficients,
+    hhsize,
+    trace_spec=False,
+    trace_label=None,
+    cache=True,
 ):
     """
     Build a spec file for computing utilities of alternative household member interaction patterns
@@ -359,7 +362,7 @@ def build_cdap_spec(
     hhsize = min(hhsize, MAX_HHSIZE)
 
     if cache:
-        spec = get_cached_spec(hhsize)
+        spec = get_cached_spec(whale, hhsize)
         if spec is not None:
             return spec
 
@@ -383,7 +386,6 @@ def build_cdap_spec(
     #         N_p1  0.0  0.0  0.0  1.0  1.0  1.0  0.0  0.0  0.0
     for pnum in range(1, hhsize + 1):
         for activity in ["M", "N", "H"]:
-
             new_row_index = len(spec)
             spec.loc[new_row_index, expression_name] = add_pn(activity, pnum)
 
@@ -399,10 +401,8 @@ def build_cdap_spec(
 
     # for each row in the interaction_coefficients table
     for row in interaction_coefficients[relevant_rows].itertuples():
-
         # if it is a wildcard all_people interaction
         if not row.interaction_ptypes:
-
             # wildcard interactions only apply if the interaction includes all household members
             # this will be the case if the cardinality of the wildcard equals the hhsize
             # conveniently, the slug is given the name of the alternative column (e.g. HHHH)
@@ -426,7 +426,6 @@ def build_cdap_spec(
         # possible combination of interacting persons
         # e.g. for (1, 2), (1,3), (2,3) for a coefficient with cardinality 2 in hhsize 3
         for tup in itertools.combinations(list(range(1, hhsize + 1)), row.cardinality):
-
             # determine the name of the chooser column with the ptypes for this interaction
             if row.cardinality == 1:
                 interaction_column = "ptype_p%d" % tup[0]
@@ -489,7 +488,7 @@ def build_cdap_spec(
         )
 
     if cache:
-        cache_spec(hhsize, spec)
+        cache_spec(whale, hhsize, spec)
 
     t0 = tracing.print_elapsed_time("build_cdap_spec hh_size %s" % hhsize, t0)
 
@@ -610,7 +609,6 @@ def hh_choosers(indiv_utils, hhsize):
 
     # for each of the higher cdap_ranks
     for pnum in range(2, hhsize + 1):
-
         # df with merge columns for indiv with cdap_rank of pnum
         rhs = indiv_utils.loc[
             include_households & (indiv_utils["cdap_rank"] == pnum), merge_cols
@@ -682,10 +680,10 @@ def household_activity_choices(
         # index on household_id, not person_id
         set_hh_index(utils)
     else:
-
         choosers = hh_choosers(indiv_utils, hhsize=hhsize)
 
         spec = build_cdap_spec(
+            whale,
             interaction_coefficients,
             hhsize,
             trace_spec=(trace_hh_id in choosers.index),
@@ -709,7 +707,6 @@ def household_activity_choices(
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
 
     if trace_hh_id:
-
         if hhsize > 1:
             tracing.trace_df(
                 choosers,
@@ -789,7 +786,12 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices, trace_hh_id, trace_l
 
 
 def extra_hh_member_choices(
-    persons, cdap_fixed_relative_proportions, locals_d, trace_hh_id, trace_label
+    whale: workflow.Whale,
+    persons,
+    cdap_fixed_relative_proportions,
+    locals_d,
+    trace_hh_id,
+    trace_label,
 ):
     """
     Generate the activity choices for the 'extra' household members who weren't handled by cdap
@@ -830,7 +832,7 @@ def extra_hh_member_choices(
 
     # eval the expression file
     values = simulate.eval_variables(
-        cdap_fixed_relative_proportions.index, choosers, locals_d
+        whale, cdap_fixed_relative_proportions.index, choosers, locals_d
     )
 
     # cdap_fixed_relative_proportions computes relative proportions by ptype, not utilities
@@ -893,7 +895,7 @@ def _run_cdap(
     trace_label,
     *,
     chunk_sizer,
-):
+) -> pd.DataFrame:
     """
     Implements core run_cdap functionality on persons df (or chunked subset thereof)
     Aside from chunking of persons df, params are passed through from run_cdap unchanged
@@ -924,19 +926,20 @@ def _run_cdap(
         trace_label,
         chunk_sizer=chunk_sizer,
     )
-    chunk.log_df(trace_label, "indiv_utils", indiv_utils)
+    chunk_sizer.log_df(trace_label, "indiv_utils", indiv_utils)
 
     # compute interaction utilities, probabilities, and hh activity pattern choices
     # for each size household separately in turn up to MAX_HHSIZE
     hh_choices_list = []
     for hhsize in range(1, MAX_HHSIZE + 1):
-
         choices = household_activity_choices(
+            whale,
             indiv_utils,
             interaction_coefficients,
             hhsize=hhsize,
             trace_hh_id=trace_hh_id,
             trace_label=trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
         hh_choices_list.append(choices)
@@ -957,7 +960,12 @@ def _run_cdap(
     # assign activities to extra household members (with cdap_rank > MAX_HHSIZE)
     # resulting series contains one activity per individual hh member, indexed on _persons_index_
     extra_person_choices = extra_hh_member_choices(
-        persons, cdap_fixed_relative_proportions, locals_d, trace_hh_id, trace_label
+        whale,
+        persons,
+        cdap_fixed_relative_proportions,
+        locals_d,
+        trace_hh_id,
+        trace_label,
     )
 
     # concat cdap and extra persoin choices into a single series
@@ -1039,8 +1047,9 @@ def run_cdap(
         persons_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(persons, chunk_size, trace_label):
-
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(
+        whale, persons, chunk_size, trace_label
+    ):
         cdap_results = _run_cdap(
             whale,
             persons_chunk,
@@ -1056,7 +1065,7 @@ def run_cdap(
 
         result_list.append(cdap_results)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:
@@ -1065,7 +1074,6 @@ def run_cdap(
         cdap_results = pd.concat(result_list)
 
     if trace_hh_id:
-
         tracing.trace_df(
             cdap_results,
             label="cdap",

@@ -127,12 +127,12 @@ def setup_component(
         whale.open_pipeline(resume_after, mode="r")
 
     for k in preload_injectables:
-        if inject.get_injectable(k, None) is not None:
+        if whale.get_injectable(k, None) is not None:
             logger.info("pre-loaded %s", k)
 
     # Directories Logging
     for k in ["configs_dir", "settings_file_name", "data_dir", "output_dir"]:
-        logger.info(f"DIRECTORY {k}: {inject.get_injectable(k, None)}")
+        logger.info(f"DIRECTORY {k}: {whale.get_injectable(k, None)}")
 
     # Settings Logging
     log_settings = [
@@ -261,9 +261,9 @@ def pre_run(
 
     # directories
     for k in ["configs_dir", "settings_file_name", "data_dir", "output_dir"]:
-        logger.info("SETTING %s: %s" % (k, inject.get_injectable(k, None)))
+        logger.info("SETTING %s: %s" % (k, whale.get_injectable(k, None)))
 
-    log_settings = inject.get_injectable("log_settings", {})
+    log_settings = whale.get_injectable("log_settings", {})
     for k in log_settings:
         logger.info("SETTING %s: %s" % (k, config.setting(k)))
 
@@ -322,7 +322,7 @@ def run_multiprocess():
 
     from activitysim.core import mp_tasks
 
-    injectables = {k: inject.get_injectable(k) for k in INJECTABLES}
+    injectables = {k: whale.get_injectable(k) for k in INJECTABLES}
     mp_tasks.run_multiprocess(injectables)
 
     # assert not pipeline.is_open()

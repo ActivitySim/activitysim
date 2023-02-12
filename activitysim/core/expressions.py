@@ -36,7 +36,9 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
 
     if isinstance(model_settings, str):
         model_settings_name = model_settings
-        model_settings = config.read_model_settings("%s.yaml" % model_settings)
+        model_settings = whale.filesystem.read_model_settings(
+            "%s.yaml" % model_settings
+        )
         assert model_settings, "Found no model settings for %s" % model_settings_name
     else:
         model_settings_name = "dict"

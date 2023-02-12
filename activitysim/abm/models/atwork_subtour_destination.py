@@ -16,7 +16,7 @@ def atwork_subtour_destination(
 ):
     trace_label = "atwork_subtour_destination"
     model_settings_file_name = "atwork_subtour_destination.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     future_settings = {
         "SIZE_TERM_SELECTOR": "atwork",
@@ -53,11 +53,9 @@ def atwork_subtour_destination(
         estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
         estimator.write_table(
-            inject.get_injectable("size_terms"), "size_terms", append=False
+            whale.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(
-            inject.get_table("land_use").to_frame(), "landuse", append=False
-        )
+        estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(

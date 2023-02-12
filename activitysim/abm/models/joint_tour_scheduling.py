@@ -24,7 +24,7 @@ def joint_tour_scheduling(
     trace_label = "joint_tour_scheduling"
 
     model_settings_file_name = "joint_tour_scheduling.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     trace_hh_id = whale.settings.trace_hh_id
     joint_tours = tours[tours.tour_category == "joint"]
@@ -35,7 +35,7 @@ def joint_tour_scheduling(
         return
 
     # use inject.get_table as this won't exist if there are no joint_tours
-    joint_tour_participants = inject.get_table("joint_tour_participants").to_frame()
+    joint_tour_participants = whale.get_dataframe("joint_tour_participants")
 
     persons_merged = persons_merged.to_frame()
 
@@ -69,13 +69,13 @@ def joint_tour_scheduling(
             trace_label=trace_label,
         )
 
-    timetable = inject.get_injectable("timetable")
+    timetable = whale.get_injectable("timetable")
 
     estimator = estimation.manager.begin_estimation(whale, "joint_tour_scheduling")
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     sharrow_skip = model_settings.get("sharrow_skip", False)
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )

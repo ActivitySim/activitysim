@@ -376,7 +376,7 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     tours.loc[bad_end_times, "end"] = tours.loc[bad_end_times, "start"]
 
     # updating tdd to match start and end times
-    tdd_alts = inject.get_injectable("tdd_alts")
+    tdd_alts = whale.get_injectable("tdd_alts")
     tdd_alts["tdd"] = tdd_alts.index
     tours.drop(columns="tdd", inplace=True)
 
@@ -582,7 +582,7 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["tour_num"] = grouped.cumcount() + 1
     pe_tours["tour_count"] = pe_tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pe_tours = canonical_ids.set_tour_index(pe_tours, is_school_escorting=True)
+    pe_tours = canonical_ids.set_tour_index(whale, pe_tours, is_school_escorting=True)
 
     return pe_tours
 
@@ -601,7 +601,7 @@ def force_escortee_tour_modes_to_match_chauffeur(tours):
     # FIXME: escortee tour can have different chauffeur in outbound vs inbound direction
     # which tour mode should it be set to?  Currently it's whatever comes last.
     # Does it even matter if trip modes are getting matched later?
-    escort_bundles = inject.get_table("escort_bundles").to_frame()
+    escort_bundles = whale.get_dataframe("escort_bundles")
 
     # grabbing the school tour ids for each school escort bundle
     se_tours = escort_bundles[["school_tour_ids", "chauf_tour_id"]].copy()
@@ -629,7 +629,7 @@ def force_escortee_tour_modes_to_match_chauffeur(tours):
 
 
 def force_escortee_trip_modes_to_match_chauffeur(trips):
-    school_escort_trips = inject.get_table("school_escort_trips").to_frame()
+    school_escort_trips = whale.get_dataframe("school_escort_trips")
 
     # starting with only trips that are created as part of the school escorting model
     se_trips = trips[trips.index.isin(school_escort_trips.index)].copy()

@@ -105,8 +105,10 @@ def run_tour_mode_choice_simulate(
     you want to use in the evaluation of variables.
     """
 
-    spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients = simulate.get_segment_coefficients(model_settings, tour_purpose)
+    spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients = whale.filesystem.get_segment_coefficients(
+        model_settings, tour_purpose
+    )
 
     spec = simulate.eval_coefficients(whale, spec, coefficients, estimator)
 

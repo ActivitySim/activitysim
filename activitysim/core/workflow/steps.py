@@ -4,17 +4,28 @@ import importlib.util
 import logging
 import time
 from inspect import get_annotations, getfullargspec
-from typing import Callable, Mapping
+from typing import Callable, Mapping, NamedTuple
 
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 
-from ..exceptions import DuplicateWorkflowNameError, DuplicateWorkflowTableError
-from .util import get_formatted_or_default, get_formatted_or_raw
+from activitysim.core.exceptions import (
+    DuplicateWorkflowNameError,
+    DuplicateWorkflowTableError,
+)
+from activitysim.core.workflow.util import (
+    get_formatted_or_default,
+    get_formatted_or_raw,
+)
 
 logger = logging.getLogger(__name__)
 
 _STEP_LIBRARY = {}
+
+
+class TableInfo(NamedTuple):
+    factory: Callable
+    predicates: tuple[str]
 
 
 def error_logging(func):
@@ -269,6 +280,9 @@ class workflow_step:
                     context["_salient_tables"] = {}
                 context["_salient_tables"][self._step_name] = time.time()
                 return outcome
+            elif self._kind == "temp_table":
+                context[self._step_name] = outcome
+                return outcome
             elif self._kind == "cached_object":
                 context[self._step_name] = outcome
                 return outcome
@@ -294,6 +308,14 @@ class workflow_step:
         elif self._kind == "table":
             Whale._LOADABLE_TABLES[self._step_name] = run_step
             return update_with_cache
+        elif self._kind == "temp_table":
+            Whale._LOADABLE_TABLES[self._step_name] = run_step
+            for i in _args[1:]:
+                if i not in Whale._PREDICATES:
+                    Whale._PREDICATES[i] = {self._step_name}
+                else:
+                    Whale._PREDICATES[i].add(self._step_name)
+            return update_with_cache
         elif self._kind == "step":
             Whale._RUNNABLE_STEPS[self._step_name] = run_step
             return wrapped_func
@@ -312,6 +334,13 @@ class workflow_table(workflow_step):
     def __new__(cls, wrapped_func=None, *, step_name=None):
         return super().__new__(
             cls, wrapped_func, step_name=step_name, cache=True, kind="table"
+        )
+
+
+class workflow_temp_table(workflow_step):
+    def __new__(cls, wrapped_func=None, *, step_name=None):
+        return super().__new__(
+            cls, wrapped_func, step_name=step_name, cache=True, kind="temp_table"
         )
 
 

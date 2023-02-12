@@ -261,7 +261,7 @@ def initialize_traceable_tables(whale: workflow.Whale):
     whale.set("traceable_table_ids", {})
 
 
-def register_traceable_table(whale, table_name, df):
+def register_traceable_table(whale: workflow.Whale, table_name: str, df: pd.DataFrame):
     """
     Register traceable table
 
@@ -682,8 +682,8 @@ def dump_df(dump_switch, df, trace_label, fname):
 
 
 def trace_df(
-    df,
-    label,
+    df: pd.DataFrame,
+    label: str,
     slicer=None,
     columns=None,
     index_label=None,

@@ -247,7 +247,7 @@ def choose_MAZ_for_TAZ(
 
     taz_sample.rename(columns={alt_dest_col_name: DEST_TAZ}, inplace=True)
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    trace_hh_id = whale.settings.trace_hh_id
     have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
@@ -571,7 +571,7 @@ def trip_destination_sample(
     assert len(alternatives) > 0
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
-    network_los = inject.get_injectable("network_los")
+    network_los = whale.get_injectable("network_los")
     pre_sample_taz = network_los.zone_system != los.ONE_ZONE
     if pre_sample_taz and not whale.settings.want_dest_choice_presampling:
         pre_sample_taz = False
@@ -699,7 +699,7 @@ def compute_logsums(
     chunk_tag = "trip_destination.compute_logsums"
 
     # FIXME should pass this in?
-    network_los = inject.get_injectable("network_los")
+    network_los = whale.get_injectable("network_los")
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(
@@ -719,13 +719,17 @@ def compute_logsums(
     ).set_index("trip_id")
     assert choosers.index.equals(destination_sample.index)
 
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
-    coefficients = simulate.get_segment_coefficients(logsum_settings, primary_purpose)
+    logsum_settings = whale.filesystem.read_model_settings(
+        model_settings["LOGSUM_SETTINGS"]
+    )
+    coefficients = whale.filesystem.get_segment_coefficients(
+        logsum_settings, primary_purpose
+    )
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
 
-    logsum_spec = simulate.read_model_spec(whale, file_name=logsum_settings["SPEC"])
+    logsum_spec = whale.filesystem.read_model_spec(file_name=logsum_settings["SPEC"])
     logsum_spec = simulate.eval_coefficients(
         whale, logsum_spec, coefficients, estimator=None
     )
@@ -1159,9 +1163,11 @@ def run_trip_destination(
     """
 
     model_settings_file_name = "trip_destination.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     preprocessor_settings = model_settings.get("preprocessor", None)
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+    logsum_settings = whale.filesystem.read_model_settings(
+        model_settings["LOGSUM_SETTINGS"]
+    )
 
     logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
     want_logsums = logsum_column_name is not None
@@ -1172,8 +1178,8 @@ def run_trip_destination(
     )
 
     land_use = inject.get_table("land_use")
-    size_terms = inject.get_injectable("size_terms")
-    network_los = inject.get_injectable("network_los")
+    size_terms = whale.get_injectable("size_terms")
+    network_los = whale.get_injectable("network_los")
     trips = trips.sort_index()
     trips["next_trip_id"] = np.roll(trips.index, -1)
     trips.next_trip_id = trips.next_trip_id.where(trips.trip_num < trips.trip_count, 0)
@@ -1405,7 +1411,7 @@ def trip_destination(
     trace_label = "trip_destination"
 
     model_settings_file_name = "trip_destination.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     CLEANUP = model_settings.get("CLEANUP", True)
     fail_some_trips_for_testing = model_settings.get(
@@ -1430,11 +1436,9 @@ def trip_destination(
         estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
         estimator.write_table(
-            inject.get_injectable("size_terms"), "size_terms", append=False
+            whale.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(
-            inject.get_table("land_use").to_frame(), "landuse", append=False
-        )
+        estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     logger.info("Running %s with %d trips", trace_label, trips_df.shape[0])

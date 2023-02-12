@@ -54,22 +54,24 @@ def test_summarize(initialize_pipeline: pipeline.Whale, caplog):
     pipeline.run(models=["summarize"])
 
     # Retrieve output tables to check contents
-    model_settings = config.read_model_settings("summarize.yaml")
+    model_settings = whale.filesystem.read_model_settings("summarize.yaml")
     output_location = (
         model_settings["OUTPUT"] if "OUTPUT" in model_settings else "summaries"
     )
-    output_dir = config.output_file_path(output_location)
+    output_dir = whale.get_output_file_path(output_location)
 
     # Check that households are counted correctly
     households_count = pd.read_csv(
-        config.output_file_path(os.path.join(output_location, f"households_count.csv"))
+        whale.get_output_file_path(
+            os.path.join(output_location, f"households_count.csv")
+        )
     )
     households = pd.read_csv(config.data_file_path("households.csv"))
     assert int(households_count.iloc[0]) == len(households)
 
     # Check that bike trips are counted correctly
     trips_by_mode_count = pd.read_csv(
-        config.output_file_path(
+        whale.get_output_file_path(
             os.path.join(output_location, f"trips_by_mode_count.csv")
         )
     )

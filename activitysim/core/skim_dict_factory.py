@@ -503,7 +503,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         SkimData
         """
 
-        data_buffers = inject.get_injectable("data_buffers", None)
+        data_buffers = whale.get_injectable("data_buffers", None)
         if data_buffers:
             # we assume any existing skim buffers will already have skim data loaded into them
             logger.info(
@@ -594,7 +594,7 @@ class MemMapSkimFactory(AbstractSkimFactory):
         """
 
         # don't expect legacy shared memory buffers
-        assert not inject.get_injectable("data_buffers", {}).get(skim_tag)
+        assert not whale.get_injectable("data_buffers", {}).get(skim_tag)
 
         skim_cache_path = self._memmap_skim_data_path(skim_tag)
         if not os.path.isfile(skim_cache_path):

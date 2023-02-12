@@ -15,6 +15,7 @@ from activitysim.core import (
     assign,
     chunk,
     config,
+    configuration,
     logit,
     pathbuilder,
     tracing,
@@ -64,7 +65,7 @@ def read_model_alts(whale: workflow.Whale, file_name, set_index=None):
     return df
 
 
-def read_model_spec(whale: workflow.Whale, file_name: str):
+def read_model_spec(filesystem: configuration.FileSystem, file_name: str):
     """
     Read a CSV model specification into a Pandas DataFrame or Series.
 
@@ -100,7 +101,7 @@ def read_model_spec(whale: workflow.Whale, file_name: str):
     if not file_name.lower().endswith(".csv"):
         file_name = "%s.csv" % (file_name,)
 
-    file_path = whale.filesystem.get_config_file_path(file_name)
+    file_path = filesystem.get_config_file_path(file_name)
 
     try:
         spec = pd.read_csv(file_path, comment="#")
@@ -128,10 +129,13 @@ def read_model_spec(whale: workflow.Whale, file_name: str):
     return spec
 
 
-def read_model_coefficients(whale, model_settings=None, file_name=None):
+def read_model_coefficients(
+    filesystem: configuration.FileSystem, model_settings=None, file_name=None
+):
     """
     Read the coefficient file specified by COEFFICIENTS model setting
     """
+    assert isinstance(filesystem, configuration.FileSystem)
 
     if model_settings is None:
         assert file_name is not None
@@ -145,7 +149,7 @@ def read_model_coefficients(whale, model_settings=None, file_name=None):
         file_name = model_settings["COEFFICIENTS"]
         logger.debug(f"read_model_coefficients file_name {file_name}")
 
-    file_path = whale.filesystem.get_config_file_path(file_name)
+    file_path = filesystem.get_config_file_path(file_name)
     try:
         coefficients = pd.read_csv(file_path, comment="#", index_col="coefficient_name")
     except ValueError:
@@ -189,7 +193,7 @@ def spec_for_segment(
     """
 
     spec_file_name = model_settings[spec_id]
-    spec = read_model_spec(whale, file_name=spec_file_name)
+    spec = read_model_spec(whale.filesystem, file_name=spec_file_name)
 
     if len(spec.columns) > 1:
         # if spec is segmented
@@ -213,14 +217,16 @@ def spec_for_segment(
 
         return spec
 
-    coefficients = read_model_coefficients(whale, model_settings)
+    coefficients = whale.filesystem.read_model_coefficients(model_settings)
 
     spec = eval_coefficients(whale, spec, coefficients, estimator)
 
     return spec
 
 
-def read_model_coefficient_template(whale: workflow.Whale, model_settings):
+def read_model_coefficient_template(
+    filesystem: configuration.FileSystem, model_settings
+):
     """
     Read the coefficient template specified by COEFFICIENT_TEMPLATE model setting
     """
@@ -233,7 +239,7 @@ def read_model_coefficient_template(whale: workflow.Whale, model_settings):
 
     coefficients_file_name = model_settings["COEFFICIENT_TEMPLATE"]
 
-    file_path = whale.filesystem.get_config_file_path(coefficients_file_name)
+    file_path = filesystem.get_config_file_path(coefficients_file_name)
     try:
         template = pd.read_csv(file_path, comment="#", index_col="coefficient_name")
     except ValueError:
@@ -265,25 +271,26 @@ def dump_mapped_coefficients(whale: workflow.Whale, model_settings):
     dump template_df with coefficient values
     """
 
-    coefficients_df = read_model_coefficients(whale, model_settings)
-    template_df = read_model_coefficient_template(whale, model_settings)
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    template_df = read_model_coefficient_template(whale.filesystem, model_settings)
 
     for c in template_df.columns:
         template_df[c] = template_df[c].map(coefficients_df.value)
 
     coefficients_template_file_name = model_settings["COEFFICIENT_TEMPLATE"]
-    file_path = config.output_file_path(coefficients_template_file_name)
+    file_path = whale.get_output_file_path(coefficients_template_file_name)
     template_df.to_csv(file_path, index=True)
     logger.info(f"wrote mapped coefficient template to {file_path}")
 
     coefficients_file_name = model_settings["COEFFICIENTS"]
-    file_path = config.output_file_path(coefficients_file_name)
+    file_path = whale.get_output_file_path(coefficients_file_name)
     coefficients_df.to_csv(file_path, index=True)
     logger.info(f"wrote raw coefficients to {file_path}")
 
 
-@workflow.func
-def get_segment_coefficients(whale: workflow.Whale, model_settings, segment_name):
+def get_segment_coefficients(
+    filesystem: configuration.FileSystem, model_settings, segment_name
+):
     """
     Return a dict mapping generic coefficient names to segment-specific coefficient values
 
@@ -336,7 +343,7 @@ def get_segment_coefficients(whale: workflow.Whale, model_settings, segment_name
 
     if legacy:
         constants = config.get_model_constants(model_settings)
-        legacy_coeffs_file_path = whale.filesystem.get_config_file_path(
+        legacy_coeffs_file_path = filesystem.get_config_file_path(
             model_settings[legacy]
         )
         omnibus_coefficients = pd.read_csv(
@@ -346,8 +353,8 @@ def get_segment_coefficients(whale: workflow.Whale, model_settings, segment_name
             omnibus_coefficients[segment_name], constants=constants
         )
     else:
-        coefficients_df = read_model_coefficients(whale, model_settings)
-        template_df = read_model_coefficient_template(whale, model_settings)
+        coefficients_df = filesystem.read_model_coefficients(model_settings)
+        template_df = read_model_coefficient_template(filesystem, model_settings)
         coefficients_col = (
             template_df[segment_name].map(coefficients_df.value).astype(float)
         )
@@ -538,7 +545,7 @@ def eval_utilities(
         trace_label = tracing.extend_trace_label(trace_label, "eval_utils")
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
-        locals_dict = assign.local_utilities()
+        locals_dict = assign.local_utilities(whale)
 
         if locals_d is not None:
             locals_dict.update(locals_d)
@@ -746,7 +753,7 @@ def eval_utilities(
     return utilities
 
 
-def eval_variables(exprs, df, locals_d=None):
+def eval_variables(whale: workflow.Whale, exprs, df, locals_d=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -781,7 +788,7 @@ def eval_variables(exprs, df, locals_d=None):
     """
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
-    locals_dict = assign.local_utilities()
+    locals_dict = assign.local_utilities(whale)
     if locals_d is not None:
         locals_dict.update(locals_d)
     globals_dict = {}

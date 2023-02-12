@@ -48,7 +48,7 @@ def wrap_skims(model_settings):
         dict containing skims, keyed by canonical names relative to tour orientation
     """
 
-    network_los = inject.get_injectable("network_los")
+    network_los = whale.get_injectable("network_los")
     skim_dict = network_los.get_default_skim_dict()
 
     origin = model_settings["TRIP_ORIGIN"]
@@ -79,7 +79,7 @@ def wrap_skims(model_settings):
 
 
 def get_spec_for_segment(model_settings, spec_name, segment):
-    omnibus_spec = simulate.read_model_spec(file_name=model_settings[spec_name])
+    omnibus_spec = whale.filesystem.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[segment]]
 
@@ -114,7 +114,7 @@ def parking_destination_simulate(
 
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     spec = simulate.eval_coefficients(whale, spec, coefficients_df, None)
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
@@ -290,7 +290,9 @@ def parking_location(
     """
 
     trace_label = "parking_location"
-    model_settings = config.read_model_settings("parking_location_choice.yaml")
+    model_settings = whale.filesystem.read_model_settings(
+        "parking_location_choice.yaml"
+    )
     trace_hh_id = whale.settings.trace_hh_id
     alt_destination_col_name = model_settings["ALT_DEST_COL_NAME"]
 

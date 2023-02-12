@@ -342,7 +342,7 @@ def choose_MAZ_for_TAZ(
     # 542963          53  0.004224           2      13243
     # 542963          59  0.008628           1      13243
 
-    trace_hh_id = inject.get_injectable("trace_hh_id", None)
+    trace_hh_id = whale.settings.trace_hh_id
     have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
@@ -648,7 +648,7 @@ class SizeTermCalculator(object):
         # do this once so they can request size_terms for various segments (tour_type or purpose)
         land_use = inject.get_table("land_use")
         self.land_use = land_use
-        size_terms = inject.get_injectable("size_terms")
+        size_terms = whale.get_injectable("size_terms")
         self.destination_size_terms = tour_destination_size_terms(
             self.land_use, size_terms, size_term_selector
         )
@@ -757,6 +757,7 @@ def run_od_sample(
 
 
 def run_od_logsums(
+    whale: workflow.Whale,
     spec_segment_name,
     tours_merged_df,
     od_sample,
@@ -774,7 +775,9 @@ def run_od_logsums(
     (person, OD_id) pair in od_sample, and computing the logsum of all the utilities
     """
     chunk_tag = "tour_od.logsums"
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+    logsum_settings = whale.filesystem.read_model_settings(
+        model_settings["LOGSUM_SETTINGS"]
+    )
     origin_id_col = model_settings["ORIG_COL_NAME"]
     dest_id_col = model_settings["DEST_COL_NAME"]
     tour_od_id_col = get_od_id_col(origin_id_col, dest_id_col)
@@ -797,7 +800,9 @@ def run_od_logsums(
     # run trip mode choice to compute tour mode choice logsums
     if logsum_settings.get("COMPUTE_TRIP_MODE_CHOICE_LOGSUMS", False):
         pseudo_tours = choosers.copy()
-        trip_mode_choice_settings = config.read_model_settings("trip_mode_choice")
+        trip_mode_choice_settings = whale.filesystem.read_model_settings(
+            "trip_mode_choice"
+        )
 
         # tours_merged table doesn't yet have all the cols it needs to be called (e.g.
         # home_zone_id), so in order to compute tour mode choice/trip mode choice logsums
@@ -826,7 +831,7 @@ def run_od_logsums(
         # tour dest as separate column in the trips table bc the trip mode choice
         # preprocessor isn't able to get the tour dest from the tours table bc the
         # tours don't yet have ODs.
-        stop_frequency_alts = inject.get_injectable("stop_frequency_alts")
+        stop_frequency_alts = whale.get_injectable("stop_frequency_alts")
         pseudo_tours["tour_destination"] = pseudo_tours[dest_id_col]
         trips = trip.initialize_from_tours(
             pseudo_tours,
@@ -843,7 +848,7 @@ def run_od_logsums(
         nest_spec = config.get_logit_model_settings(logsum_settings)
 
         # actual coeffs dont matter here, just need them to load the nest structure
-        coefficients = simulate.get_segment_coefficients(
+        coefficients = whale.filesystem.get_segment_coefficients(
             logsum_settings, pseudo_tours.iloc[0]["tour_purpose"]
         )
         nest_spec = simulate.eval_nest_coefficients(
@@ -866,7 +871,7 @@ def run_od_logsums(
                 logsum_trips[col] = reindex(pseudo_tours[col], logsum_trips.unique_id)
 
         whale.add_table("trips", logsum_trips)
-        tracing.register_traceable_table("trips", logsum_trips)
+        tracing.register_traceable_table(whale, "trips", logsum_trips)
         whale.get_rn_generator().add_channel("trips", logsum_trips)
 
         # run trip mode choice on pseudo-trips. use orca instead of pipeline to
@@ -875,7 +880,7 @@ def run_od_logsums(
 
         # grab trip mode choice logsums and pivot by tour mode and direction, index
         # on tour_id to enable merge back to choosers table
-        trips = inject.get_table("trips").to_frame()
+        trips = whale.get_dataframe("trips")
         trip_dir_mode_logsums = trips.pivot(
             index=["tour_id", tour_od_id_col],
             columns=["tour_mode", "outbound"],
@@ -896,7 +901,7 @@ def run_od_logsums(
         choosers.set_index(choosers_og_index, inplace=True)
 
         whale.get_rn_generator().drop_channel("trips")
-        tracing.deregister_traceable_table("trips")
+        tracing.deregister_traceable_table(whale, "trips")
 
         assert (od_sample.index == choosers.index).all()
         for col in new_cols:
@@ -1122,6 +1127,7 @@ def run_tour_od(
 
         # - destination_logsums
         od_sample_df = run_od_logsums(
+            whale,
             spec_segment_name,
             choosers,
             od_sample_df,

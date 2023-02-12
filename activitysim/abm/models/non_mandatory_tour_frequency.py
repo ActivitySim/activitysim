@@ -149,7 +149,7 @@ def non_mandatory_tour_frequency(
     trace_label = "non_mandatory_tour_frequency"
     model_settings_file_name = "non_mandatory_tour_frequency.yaml"
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     # FIXME kind of tacky both that we know to add this here and del it below
     # 'tot_tours' is used in model_spec expressions
@@ -179,7 +179,7 @@ def non_mandatory_tour_frequency(
 
     constants = config.get_model_constants(model_settings)
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     spec_segments = model_settings.get("SPEC_SEGMENTS", {})
 
     # segment by person type and pick the right spec for each person type
@@ -205,7 +205,7 @@ def non_mandatory_tour_frequency(
             whale, model_name=segment_name, bundle_name="non_mandatory_tour_frequency"
         )
 
-        coefficients_df = simulate.read_model_coefficients(segment_settings)
+        coefficients_df = whale.filesystem.read_model_coefficients(segment_settings)
         segment_spec = simulate.eval_coefficients(
             whale, segment_spec, coefficients_df, estimator
         )
@@ -375,7 +375,7 @@ def non_mandatory_tour_frequency(
 
     whale.extend_table("tours", non_mandatory_tours)
 
-    tracing.register_traceable_table("tours", non_mandatory_tours)
+    tracing.register_traceable_table(whale, "tours", non_mandatory_tours)
     whale.get_rn_generator().add_channel("tours", non_mandatory_tours)
 
     if whale.is_table("school_escort_tours"):

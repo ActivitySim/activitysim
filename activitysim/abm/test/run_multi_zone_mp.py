@@ -25,7 +25,7 @@ def test_mp_run():
 
     # do this after config.handle_standard_args, as command line args may override injectables
     injectables = ["data_dir", "configs_dir", "output_dir", "settings_file_name"]
-    injectables = {k: inject.get_injectable(k) for k in injectables}
+    injectables = {k: whale.get_injectable(k) for k in injectables}
 
     mp_tasks.run_multiprocess(run_list, injectables)
     pipeline.open_pipeline("_")

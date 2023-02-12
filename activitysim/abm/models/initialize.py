@@ -168,35 +168,28 @@ def initialize_households(whale: workflow.Whale):
         chunk_sizer.log_df(trace_label, "person_windows", person_windows)
 
 
-@inject.injectable(cache=True)
-def preload_injectables():
+@workflow.cached_object
+def preload_injectables(whale: workflow.Whale):
     """
     preload bulky injectables up front - stuff that isn't inserted into the pipeline
     """
 
     logger.info("preload_injectables")
 
-    inject.add_step("track_skim_usage", track_skim_usage)
-    inject.add_step("write_data_dictionary", write_data_dictionary)
-    inject.add_step("write_tables", write_tables)
+    # whale.add_step("track_skim_usage", track_skim_usage)
+    # inject.add_step("write_data_dictionary", write_data_dictionary)
+    # inject.add_step("write_tables", write_tables)
 
     table_list = whale.settings.input_table_list
 
     # default ActivitySim table names and indices
     if table_list is None:
-        logger.warning(
-            "No 'input_table_list' found in settings. This will be a "
-            "required setting in upcoming versions of ActivitySim."
-        )
-
-        new_settings = inject.get_injectable("settings")
-        new_settings["input_table_list"] = DEFAULT_TABLE_LIST
-        inject.add_injectable("settings", new_settings)
+        raise ValueError("No 'input_table_list' found in settings.")
 
     # FIXME undocumented feature
     if whale.settings.write_raw_tables:
         # write raw input tables as csv (before annotation)
-        csv_dir = config.output_file_path("raw_tables")
+        csv_dir = whale.get_output_file_path("raw_tables")
         if not os.path.exists(csv_dir):
             os.makedirs(csv_dir)  # make directory if needed
 

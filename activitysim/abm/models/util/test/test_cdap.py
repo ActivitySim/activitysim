@@ -77,7 +77,7 @@ def test_assign_cdap_rank(people, model_settings):
 
 
 def test_individual_utilities(people, model_settings):
-    cdap_indiv_and_hhsize1 = simulate.read_model_spec(
+    cdap_indiv_and_hhsize1 = whale.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
@@ -131,7 +131,7 @@ def test_individual_utilities(people, model_settings):
 
 def test_build_cdap_spec_hhsize2(whale: workflow.Whale, people, model_settings):
     hhsize = 2
-    cdap_indiv_and_hhsize1 = simulate.read_model_spec(
+    cdap_indiv_and_hhsize1 = whale.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
@@ -160,14 +160,14 @@ def test_build_cdap_spec_hhsize2(whale: workflow.Whale, people, model_settings):
         choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
 
         spec = cdap.build_cdap_spec(
-            interaction_coefficients, hhsize=hhsize, cache=False
+            whale, interaction_coefficients, hhsize=hhsize, cache=False
         )
 
         # pandas.dot depends on column names of expression_values matching spec index values
         # expressions should have been uniquified when spec was read
         assert spec.index.is_unique
 
-        vars = simulate.eval_variables(spec.index, choosers)
+        vars = simulate.eval_variables(whale, spec.index, choosers)
         assert (spec.index.values == vars.columns.values).all()
 
     # spec = spec.astype(np.float64)

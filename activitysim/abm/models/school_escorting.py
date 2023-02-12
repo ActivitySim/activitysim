@@ -359,7 +359,7 @@ def school_escorting(
     """
     trace_label = "school_escorting_simulate"
     model_settings_file_name = "school_escorting.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     trace_hh_id = whale.settings.trace_hh_id
 
     alts = simulate.read_model_alts(whale, model_settings["ALTS"], set_index="Alt")
@@ -383,10 +383,10 @@ def school_escorting(
             whale, "school_escorting_" + stage
         )
 
-        model_spec_raw = simulate.read_model_spec(
+        model_spec_raw = whale.filesystem.read_model_spec(
             file_name=model_settings[stage.upper() + "_SPEC"]
         )
-        coefficients_df = simulate.read_model_coefficients(
+        coefficients_df = whale.filesystem.read_model_coefficients(
             file_name=model_settings[stage.upper() + "_COEFFICIENTS"]
         )
         model_spec = simulate.eval_coefficients(
@@ -528,7 +528,7 @@ def school_escorting(
     whale.add_table("school_escort_trips", school_escort_trips)
 
     # updating timetable object with pure escort tours so joint tours do not schedule ontop
-    timetable = inject.get_injectable("timetable")
+    timetable = whale.get_injectable("timetable")
 
     # Need to do this such that only one person is in nth_tours
     # thus, looping through tour_category and tour_num

@@ -103,7 +103,7 @@ def p2p_time_window_overlap(p1_ids, p2_ids):
 
     """
 
-    timetable = inject.get_injectable("timetable")
+    timetable = whale.get_injectable("timetable")
 
     assert len(p1_ids) == len(p2_ids)
     # if series, ought to have same index
@@ -223,7 +223,7 @@ def person_time_window_overlap(persons):
 
 def person_max_window(persons):
 
-    timetable = inject.get_injectable("timetable")
+    timetable = whale.get_injectable("timetable")
 
     # ndarray with one row per person and one column per time period
     # array value of 1 where free periods and 0 elsewhere

@@ -49,7 +49,7 @@ def tour_od_choice(
 
     trace_label = "tour_od_choice"
     model_settings_file_name = "tour_od_choice.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     origin_col_name = model_settings["ORIG_COL_NAME"]
     dest_col_name = model_settings["DEST_COL_NAME"]
     alt_id_col = tour_od.get_od_id_col(origin_col_name, dest_col_name)
@@ -75,11 +75,9 @@ def tour_od_choice(
         estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(alt_id_col)
         estimator.write_table(
-            inject.get_injectable("size_terms"), "size_terms", append=False
+            whale.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(
-            inject.get_table("land_use").to_frame(), "landuse", append=False
-        )
+        estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_od.run_tour_od(

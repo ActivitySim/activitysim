@@ -196,7 +196,7 @@ def get_spec_for_segment(model_settings, spec_name, segment):
     :return: array of utility equations
     """
 
-    omnibus_spec = simulate.read_model_spec(file_name=model_settings[spec_name])
+    omnibus_spec = whale.filesystem.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[segment]]
 
@@ -327,7 +327,7 @@ def trip_scheduling_choice(
     whale: workflow.Whale, trips, tours, skim_dict, chunk_size, trace_hh_id
 ):
     trace_label = "trip_scheduling_choice"
-    model_settings = config.read_model_settings("trip_scheduling_choice.yaml")
+    model_settings = whale.filesystem.read_model_settings("trip_scheduling_choice.yaml")
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", "stage_one")
 
     trips_df = trips.to_frame()

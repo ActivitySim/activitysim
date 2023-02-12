@@ -283,7 +283,7 @@ def test_mini_pipeline_run3():
     setup_dirs()
     inject_settings(hh_ids="override_hh_ids.csv")
 
-    households = inject.get_table("households").to_frame()
+    households = whale.get_dataframe("households")
 
     override_hh_ids = pd.read_csv(config.data_file_path("override_hh_ids.csv"))
 
@@ -334,7 +334,7 @@ def full_run(
 
 def get_trace_csv(file_name):
 
-    file_name = config.output_file_path(file_name)
+    file_name = whale.get_output_file_path(file_name)
     df = pd.read_csv(file_name)
 
     #        label    value_1    value_2    value_3    value_4
@@ -456,7 +456,7 @@ def regress():
     assert trips_df.shape[0] >= 2 * tours_df.shape[0]
 
     # write_trip_matrices
-    trip_matrices_file = config.output_file_path("trips_md.omx")
+    trip_matrices_file = whale.get_output_file_path("trips_md.omx")
     assert os.path.exists(trip_matrices_file)
     trip_matrices = omx.open_file(trip_matrices_file)
     assert trip_matrices.shape() == (25, 25)

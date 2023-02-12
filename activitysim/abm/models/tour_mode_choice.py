@@ -24,7 +24,9 @@ will be used for the tour
 """
 
 
-def get_alts_from_segmented_nested_logit(model_settings, segment_name, trace_label):
+def get_alts_from_segmented_nested_logit(
+    whale: workflow.Whale, model_settings, segment_name, trace_label
+):
     """Infer alts from logit spec
 
     Parameters
@@ -39,7 +41,9 @@ def get_alts_from_segmented_nested_logit(model_settings, segment_name, trace_lab
     """
 
     nest_spec = config.get_logit_model_settings(model_settings)
-    coefficients = simulate.get_segment_coefficients(model_settings, segment_name)
+    coefficients = whale.filesystem.get_segment_coefficients(
+        model_settings, segment_name
+    )
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
     tour_mode_alts = []
     for nest in logit.each_nest(nest_spec):
@@ -49,7 +53,9 @@ def get_alts_from_segmented_nested_logit(model_settings, segment_name, trace_lab
     return tour_mode_alts
 
 
-def create_logsum_trips(tours, segment_column_name, model_settings, trace_label):
+def create_logsum_trips(
+    whale: workflow.Whale, tours, segment_column_name, model_settings, trace_label
+):
     """
     Construct table of trips from half-tours (1 inbound, 1 outbound) for each tour-mode.
 
@@ -66,7 +72,7 @@ def create_logsum_trips(tours, segment_column_name, model_settings, trace_label)
     pandas.DataFrame
         Table of trips: 2 per tour, with O/D and purpose inherited from tour
     """
-    stop_frequency_alts = inject.get_injectable("stop_frequency_alts")
+    stop_frequency_alts = whale.get_injectable("stop_frequency_alts")
     stop_freq = "0out_0in"  # no intermediate stops
     tours["stop_frequency"] = stop_freq
     tours["primary_purpose"] = tours["tour_purpose"]
@@ -80,7 +86,7 @@ def create_logsum_trips(tours, segment_column_name, model_settings, trace_label)
     # to get a set of coefficients from the spec
     segment_name = tours.iloc[0][segment_column_name]
     tour_mode_alts = get_alts_from_segmented_nested_logit(
-        model_settings, segment_name, trace_label
+        whale, model_settings, segment_name, trace_label
     )
 
     # repeat rows from the trips table iterating over tour mode
@@ -94,7 +100,7 @@ def create_logsum_trips(tours, segment_column_name, model_settings, trace_label)
     return logsum_trips
 
 
-def append_tour_leg_trip_mode_choice_logsums(tours):
+def append_tour_leg_trip_mode_choice_logsums(whale: workflow.Whale, tours):
     """Creates trip mode choice logsum column in tours table for each tour mode and leg
 
     Parameters
@@ -106,7 +112,7 @@ def append_tour_leg_trip_mode_choice_logsums(tours):
     tours : pd.DataFrame
         Adds two * n_modes logsum columns to each tour row, e.g. "logsum_DRIVE_outbound"
     """
-    trips = inject.get_table("trips").to_frame()
+    trips = whale.get_dataframe("trips")
     trip_dir_mode_logsums = trips.pivot(
         index="tour_id",
         columns=["tour_mode", "outbound"],
@@ -145,12 +151,12 @@ def get_trip_mc_logsums_for_all_modes(
 
     # create pseudo-trips from tours for all tour modes
     logsum_trips = create_logsum_trips(
-        tours, segment_column_name, model_settings, trace_label
+        whale, tours, segment_column_name, model_settings, trace_label
     )
 
     # temporarily register trips in the pipeline
     whale.add_table("trips", logsum_trips)
-    tracing.register_traceable_table("trips", logsum_trips)
+    tracing.register_traceable_table(whale, "trips", logsum_trips)
     whale.get_rn_generator().add_channel("trips", logsum_trips)
 
     # run trip mode choice on pseudo-trips. use orca instead of pipeline to
@@ -158,11 +164,11 @@ def get_trip_mc_logsums_for_all_modes(
     orca.run(["trip_mode_choice"])
 
     # add trip mode choice logsums as new cols in tours
-    tours = append_tour_leg_trip_mode_choice_logsums(tours)
+    tours = append_tour_leg_trip_mode_choice_logsums(whale, tours)
 
     # de-register logsum trips table
     whale.get_rn_generator().drop_channel("trips")
-    tracing.deregister_traceable_table("trips")
+    tracing.deregister_traceable_table(whale, "trips")
 
     return tours
 
@@ -176,7 +182,7 @@ def tour_mode_choice_simulate(
     """
     trace_label = "tour_mode_choice"
     model_settings_file_name = "tour_mode_choice.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "tour_mode"

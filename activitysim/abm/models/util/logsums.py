@@ -128,9 +128,9 @@ def compute_logsums(
     else:
         logger.error("Choosers table already has column 'duration'.")
 
-    logsum_spec = simulate.read_model_spec(whale, file_name=logsum_settings["SPEC"])
-    coefficients = simulate.get_segment_coefficients(
-        whale, logsum_settings, tour_purpose
+    logsum_spec = whale.filesystem.read_model_spec(file_name=logsum_settings["SPEC"])
+    coefficients = whale.filesystem.get_segment_coefficients(
+        logsum_settings, tour_purpose
     )
 
     logsum_spec = simulate.eval_coefficients(

@@ -103,7 +103,7 @@ def annotate_vehicle_type_choice_households(
     model_settings : dict
     trace_label : str
     """
-    households = inject.get_table("households").to_frame()
+    households = whale.get_dataframe("households")
     expressions.assign_columns(
         whale,
         df=households,
@@ -124,7 +124,7 @@ def annotate_vehicle_type_choice_persons(
     model_settings : dict
     trace_label : str
     """
-    persons = inject.get_table("persons").to_frame()
+    persons = whale.get_dataframe("persons")
     expressions.assign_columns(
         whale,
         df=persons,
@@ -145,7 +145,7 @@ def annotate_vehicle_type_choice_vehicles(
     model_settings : dict
     trace_label : str
     """
-    vehicles = inject.get_table("vehicles").to_frame()
+    vehicles = whale.get_dataframe("vehicles")
     expressions.assign_columns(
         whale,
         df=vehicles,
@@ -182,7 +182,9 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict):
     return alts_wide, alts_long
 
 
-def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_data):
+def construct_model_alternatives(
+    whale: workflow.Whale, model_settings, alts_cats_dict, vehicle_type_data
+):
     """
     Construct the table of vehicle type alternatives.
 
@@ -232,7 +234,7 @@ def construct_model_alternatives(model_settings, alts_cats_dict, vehicle_type_da
     alts_wide["age"] = alts_wide["age"].astype(int)
 
     # store alts in primary configs dir for inspection
-    configs_dirs = inject.get_injectable("configs_dir")
+    configs_dirs = whale.filesystem.get_configs_dir()
     configs_dirs = configs_dirs if isinstance(configs_dirs, list) else [configs_dirs]
 
     if model_settings.get("WRITE_OUT_ALTS_FILE", False):
@@ -516,12 +518,12 @@ def vehicle_type_choice(
     """
     trace_label = "vehicle_type_choice"
     model_settings_file_name = "vehicle_type_choice.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     estimator = estimation.manager.begin_estimation(whale, "vehicle_type")
 
-    model_spec_raw = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec_raw = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec_raw, coefficients_df, estimator
     )

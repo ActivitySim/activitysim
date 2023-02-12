@@ -48,7 +48,12 @@ def run_tour_scheduling_probabilistic(
         series of chosen alternative indices for each chooser
     """
     result_list = []
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(
         whale, tours_df, chunk_size, trace_label, trace_label
     ):
         choices = ps.make_scheduling_choices(
@@ -95,7 +100,7 @@ def tour_scheduling_probabilistic(
 
     trace_label = "tour_scheduling_probabilistic"
     model_settings_file_name = "tour_scheduling_probabilistic.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     depart_alt_base = model_settings.get("depart_alt_base", 0)
     scheduling_probs_filepath = whale.filesystem.get_config_file_path(
         model_settings["PROBS_SPEC"]

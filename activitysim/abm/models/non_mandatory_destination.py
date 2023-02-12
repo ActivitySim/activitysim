@@ -24,7 +24,7 @@ def non_mandatory_tour_destination(
 
     trace_label = "non_mandatory_tour_destination"
     model_settings_file_name = "non_mandatory_tour_destination.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     trace_hh_id = whale.settings.trace_hh_id
 
     logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
@@ -67,11 +67,9 @@ def non_mandatory_tour_destination(
         estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
         estimator.write_table(
-            inject.get_injectable("size_terms"), "size_terms", append=False
+            whale.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(
-            inject.get_table("land_use").to_frame(), "landuse", append=False
-        )
+        estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(

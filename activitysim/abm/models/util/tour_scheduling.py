@@ -23,10 +23,12 @@ def run_tour_scheduling(
     trace_label = model_name
     model_settings_file_name = f"{model_name}.yaml"
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     if "LOGSUM_SETTINGS" in model_settings:
-        logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+        logsum_settings = whale.filesystem.read_model_settings(
+            model_settings["LOGSUM_SETTINGS"]
+        )
         logsum_columns = logsum_settings.get("LOGSUM_CHOOSER_COLUMNS", [])
     else:
         logsum_columns = []
@@ -39,7 +41,7 @@ def run_tour_scheduling(
 
     persons_merged = expressions.filter_chooser_columns(persons_merged, chooser_columns)
 
-    timetable = inject.get_injectable("timetable")
+    timetable = whale.get_injectable("timetable")
 
     # - run preprocessor to annotate choosers
     preprocessor_settings = model_settings.get("preprocessor", None)
@@ -70,8 +72,8 @@ def run_tour_scheduling(
             )
 
             spec_file_name = spec_settings["SPEC"]
-            model_spec = simulate.read_model_spec(file_name=spec_file_name)
-            coefficients_df = simulate.read_model_coefficients(spec_settings)
+            model_spec = whale.filesystem.read_model_spec(file_name=spec_file_name)
+            coefficients_df = whale.filesystem.read_model_coefficients(spec_settings)
             specs[spec_segment_name] = simulate.eval_coefficients(
                 whale, model_spec, coefficients_df, estimator
             )
@@ -110,9 +112,9 @@ def run_tour_scheduling(
         estimator = estimation.manager.begin_estimation(whale, model_name)
 
         spec_file_name = model_settings["SPEC"]
-        model_spec = simulate.read_model_spec(file_name=spec_file_name)
+        model_spec = whale.filesystem.read_model_spec(file_name=spec_file_name)
         sharrow_skip = model_settings.get("sharrow_skip", False)
-        coefficients_df = simulate.read_model_coefficients(model_settings)
+        coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
         model_spec = simulate.eval_coefficients(
             whale, model_spec, coefficients_df, estimator
         )
@@ -135,6 +137,7 @@ def run_tour_scheduling(
 
     logger.info(f"Running {model_name} with %d tours", len(chooser_tours))
     choices = vts.vectorize_tour_scheduling(
+        whale,
         chooser_tours,
         persons_merged,
         tdd_alts,

@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util.canonical_ids import set_tour_index
+from activitysim.core import workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -167,7 +168,9 @@ def process_tours(
     return tours
 
 
-def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
+def process_mandatory_tours(
+    whale: workflow.Whale, persons, mandatory_tour_frequency_alts
+):
     """
     This method processes the mandatory_tour_frequency column that comes out of
     the model of the same name and turns into a DataFrame that represents the
@@ -238,7 +241,7 @@ def process_mandatory_tours(persons, mandatory_tour_frequency_alts):
     tours["household_id"] = tours_merged.household_id
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours)
+    set_tour_index(whale, tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -291,7 +294,7 @@ def process_non_mandatory_tours(persons, tour_counts):
     tours["origin"] = reindex(persons.home_zone_id, tours.person_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours)
+    set_tour_index(whale, tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num   tour_count
@@ -377,7 +380,7 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     tours = pd.merge(tours, work_tours, left_on=parent_col, right_index=True)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, parent_tour_num_col="parent_tour_num")
+    set_tour_index(whale, tours, parent_tour_num_col="parent_tour_num")
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -442,7 +445,7 @@ def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_p
     tours["origin"] = reindex(point_persons.home_zone_id, tours.household_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(tours, is_joint=True)
+    set_tour_index(whale, tours, is_joint=True)
 
     """
                    household_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count

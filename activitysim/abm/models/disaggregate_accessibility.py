@@ -20,7 +20,7 @@ def read_disaggregate_accessibility_yaml(whale: workflow.Whale, file_name):
     """
     Adds in default table suffixes 'proto_' if not defined in the settings file
     """
-    model_settings = config.read_model_settings(file_name)
+    model_settings = whale.filesystem.read_model_settings(file_name)
     if not model_settings.get("suffixes"):
         model_settings["suffixes"] = {
             "SUFFIX": "proto_",
@@ -521,12 +521,12 @@ class ProtoPop:
         # Update canonical tables lists
         inject.add_injectable(
             "traceable_tables",
-            inject.get_injectable("traceable_tables") + list(self.proto_pop.keys()),
+            whale.get_injectable("traceable_tables") + list(self.proto_pop.keys()),
         )
         for tablename, df in self.proto_pop.items():
             whale.add_table(tablename, df)
             self.whale.get_rn_generator().add_channel(tablename, df)
-            tracing.register_traceable_table(tablename, df)
+            tracing.register_traceable_table(whale, tablename, df)
 
     def annotate_tables(self, whale: workflow.Whale):
         # Extract annotations
@@ -588,7 +588,7 @@ def get_disaggregate_logsums(
     ]:
         trace_label = tracing.extend_trace_label(model_name, "accessibilities")
         print("Running model {}".format(trace_label))
-        model_settings = config.read_model_settings(model_name + ".yaml")
+        model_settings = whale.filesystem.read_model_settings(model_name + ".yaml")
         model_settings["SAMPLE_SIZE"] = disagg_model_settings.get(
             "DESTINATION_SAMPLE_SIZE"
         )
@@ -693,12 +693,12 @@ def compute_disaggregate_accessibility(
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:
         df = inject.get_table(tablename).to_frame()
-        traceables = inject.get_injectable("traceable_tables")
+        traceables = whale.get_injectable("traceable_tables")
         if tablename not in whale.get_rn_generator().channels:
             whale.get_rn_generator().add_channel(tablename, df)
         if tablename not in traceables:
             inject.add_injectable("traceable_tables", traceables + [tablename])
-            tracing.register_traceable_table(tablename, df)
+            tracing.register_traceable_table(whale, tablename, df)
         del df
 
     # Run location choice
@@ -752,7 +752,7 @@ def compute_disaggregate_accessibility(
 
     # Drop any prematurely added traceables
     for trace in [
-        x for x in inject.get_injectable("traceable_tables") if "proto_" not in x
+        x for x in whale.get_injectable("traceable_tables") if "proto_" not in x
     ]:
         tracing.deregister_traceable_table(whale, trace)
 

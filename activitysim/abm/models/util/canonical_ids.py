@@ -218,7 +218,9 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- non_mandatory_channels
     nm_model_settings_file_name = "non_mandatory_tour_frequency.yaml"
-    nm_model_settings = config.read_model_settings(nm_model_settings_file_name)
+    nm_model_settings = whale.filesystem.read_model_settings(
+        nm_model_settings_file_name
+    )
     nm_alts = read_alts_file(whale, "non_mandatory_tour_frequency_alternatives.csv")
 
     # first need to determine max extension
@@ -255,7 +257,9 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- mandatory_channels
     mtf_model_settings_file_name = "mandatory_tour_frequency.yaml"
-    mtf_model_settings = config.read_model_settings(mtf_model_settings_file_name)
+    mtf_model_settings = whale.filesystem.read_model_settings(
+        mtf_model_settings_file_name
+    )
     mtf_spec = mtf_model_settings.get("SPEC", "mandatory_tour_frequency.csv")
     mtf_model_spec = read_alts_file(whale, file_name=mtf_spec)
     default_mandatory_tour_flavors = {"work": 2, "school": 2}
@@ -269,7 +273,9 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- atwork_subtour_channels
     atwork_model_settings_file_name = "atwork_subtour_frequency.yaml"
-    atwork_model_settings = config.read_model_settings(atwork_model_settings_file_name)
+    atwork_model_settings = whale.filesystem.read_model_settings(
+        atwork_model_settings_file_name
+    )
     atwork_alts = read_alts_file(whale, "atwork_subtour_frequency_alternatives.csv")
 
     provided_atwork_flavors = atwork_model_settings.get("ATWORK_SUBTOUR_FLAVORS", None)
@@ -293,7 +299,9 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- joint_tour_channels
     jtf_model_settings_file_name = "joint_tour_frequency.yaml"
-    jtf_model_settings = config.read_model_settings(jtf_model_settings_file_name)
+    jtf_model_settings = whale.filesystem.read_model_settings(
+        jtf_model_settings_file_name
+    )
     jtf_alts = read_alts_file(whale, "joint_tour_frequency_alternatives.csv")
     provided_joint_flavors = jtf_model_settings.get("JOINT_TOUR_FLAVORS", None)
 
@@ -325,7 +333,9 @@ def canonical_tours(whale: workflow.Whale):
         "school_escorting" in whale.settings.models
     ):
         se_model_settings_file_name = "school_escorting.yaml"
-        se_model_settings = config.read_model_settings(se_model_settings_file_name)
+        se_model_settings = whale.filesystem.read_model_settings(
+            se_model_settings_file_name
+        )
         num_escortees = se_model_settings.get("NUM_ESCORTEES", 3)
         school_escort_flavors = {"escort": 2 * num_escortees}
         school_escort_channels = enumerate_tour_types(school_escort_flavors)
@@ -340,7 +350,11 @@ def canonical_tours(whale: workflow.Whale):
 
 
 def set_tour_index(
-    tours, parent_tour_num_col=None, is_joint=False, is_school_escorting=False
+    whale: workflow.Whale,
+    tours,
+    parent_tour_num_col=None,
+    is_joint=False,
+    is_school_escorting=False,
 ):
     """
     The new index values are stable based on the person_id, tour_type, and tour_num.
@@ -360,7 +374,7 @@ def set_tour_index(
     """
 
     tour_num_col = "tour_type_num"
-    possible_tours = canonical_tours()
+    possible_tours = canonical_tours(whale)
     possible_tours_count = len(possible_tours)
 
     assert tour_num_col in tours.columns
@@ -416,7 +430,7 @@ def set_tour_index(
 
 def determine_max_trips_per_leg(whale: workflow.Whale, default_max_trips_per_leg=4):
     model_settings_file_name = "stop_frequency.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     # first see if flavors given explicitly
     provided_max_trips_per_leg = model_settings.get("MAX_TRIPS_PER_LEG", None)

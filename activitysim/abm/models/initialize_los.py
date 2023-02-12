@@ -135,7 +135,12 @@ def compute_utilities_for_attribute_tuple(
 
     chunk_tag = "initialize_tvpb"  # all attribute_combinations can use same cached data for row_size calc
 
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(
         whale, choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag
     ):
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities

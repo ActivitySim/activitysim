@@ -30,7 +30,7 @@ def telecommute_frequency(
 
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation(whale, "telecommute_frequency")
 
     constants = config.get_model_constants(model_settings)
@@ -50,8 +50,8 @@ def telecommute_frequency(
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )

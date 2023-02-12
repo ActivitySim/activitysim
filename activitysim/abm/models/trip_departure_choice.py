@@ -470,9 +470,9 @@ def trip_departure_choice(
     whale: workflow.Whale, trips, trips_merged, skim_dict, chunk_size, trace_hh_id
 ):
     trace_label = "trip_departure_choice"
-    model_settings = config.read_model_settings("trip_departure_choice.yaml")
+    model_settings = whale.filesystem.read_model_settings("trip_departure_choice.yaml")
 
-    spec = simulate.read_model_spec(file_name=model_settings["SPECIFICATION"])
+    spec = whale.filesystem.read_model_spec(file_name=model_settings["SPECIFICATION"])
 
     trips_merged_df = trips_merged.to_frame()
     # add tour-based chunk_id so we can chunk all trips in tour together

@@ -118,11 +118,39 @@ def households(whale: workflow.Whale):
 
 
 # this is a common merge so might as well define it once here and use it
-@inject.table()
-def households_merged(households, land_use, accessibility):
-    return inject.merge_tables(
-        households.name, tables=[households, land_use, accessibility]
+@workflow.temp_table
+def households_merged(
+    whale: workflow.Whale,
+    households: pd.DataFrame,
+    land_use: pd.DataFrame,
+    accessibility: pd.DataFrame,
+):
+    # land_use = whale.get_dataframe("land_use")
+    # households = whale.get_dataframe("households")
+    # accessibility = whale.get_dataframe("accessibility")
+
+    def join(left, right, left_on):
+        intersection = set(left.columns).intersection(right.columns)
+        intersection.discard(left_on)  # intersection is ok if it's the join key
+        right = right.drop(intersection, axis=1)
+        return pd.merge(
+            left,
+            right,
+            left_on=left_on,
+            right_index=True,
+        )
+
+    households = join(
+        households,
+        land_use,
+        left_on="home_zone_id",
     )
+    households = join(
+        households,
+        accessibility,
+        left_on="home_zone_id",
+    )
+    return households
 
 
 inject.broadcast("households", "persons", cast_index=True, onto_on="household_id")

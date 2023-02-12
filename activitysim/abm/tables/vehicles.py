@@ -40,7 +40,7 @@ def vehicles(whale: workflow.Whale, households):
     whale.add_table("vehicles", vehicles)
 
     whale.get_rn_generator().add_channel("vehicles", vehicles)
-    tracing.register_traceable_table("vehicles", vehicles)
+    tracing.register_traceable_table(whale, "vehicles", vehicles)
 
     return vehicles
 

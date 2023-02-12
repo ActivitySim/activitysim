@@ -26,7 +26,7 @@ def atwork_subtour_mode_choice(
     trace_hh_id = whale.settings.trace_hh_id
 
     model_settings_file_name = "tour_mode_choice.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "tour_mode"
@@ -187,7 +187,7 @@ def atwork_subtour_mode_choice(
 
     # - annotate tours table
     if model_settings.get("annotate_tours"):
-        tours = inject.get_table("tours").to_frame()
+        tours = whale.get_dataframe("tours")
         expressions.assign_columns(
             whale,
             df=tours,

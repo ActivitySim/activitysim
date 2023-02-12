@@ -110,14 +110,14 @@ def vehicle_allocation(
     """
     trace_label = "vehicle_allocation"
     model_settings_file_name = "vehicle_allocation.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
 
     estimator = estimation.manager.begin_estimation(whale, "vehicle_allocation")
 
-    model_spec_raw = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec_raw = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec_raw, coefficients_df, estimator
     )

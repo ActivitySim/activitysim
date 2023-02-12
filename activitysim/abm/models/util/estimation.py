@@ -280,7 +280,9 @@ class Estimator:
         assert file_name is not None
 
         if coefficients_df is None:
-            coefficients_df = simulate.read_model_coefficients(file_name=file_name)
+            coefficients_df = whale.filesystem.read_model_coefficients(
+                file_name=file_name
+            )
 
         # preserve original config file name
         base_file_name = os.path.basename(file_name)

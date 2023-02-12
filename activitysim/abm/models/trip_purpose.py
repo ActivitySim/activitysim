@@ -101,7 +101,7 @@ def choose_intermediate_trip_purpose(
             ]
 
             # join to persons for better diagnostics
-            persons = inject.get_table("persons").to_frame()
+            persons = whale.get_dataframe("persons")
             persons_cols = [
                 "age",
                 "is_worker",
@@ -186,7 +186,7 @@ def run_trip_purpose(
     chunk_tag = "trip_purpose"
 
     model_settings_file_name = "trip_purpose.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     probs_join_cols = model_settings.get("probs_join_cols", PROBS_JOIN_COLUMNS)
 
@@ -196,7 +196,7 @@ def run_trip_purpose(
     )
     # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
     # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
-    # coefficients_df = simulate.read_model_coefficients(model_settings)
+    # coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     # probs_spec = map_coefficients(probs_spec, coefficients_df)
 
     if estimator:
@@ -237,7 +237,12 @@ def run_trip_purpose(
 
     use_depart_time = model_settings.get("use_depart_time", True)
 
-    for i, trips_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
+    for (
+        i,
+        trips_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(
         whale, trips_df, chunk_size, chunk_tag, trace_label
     ):
         choices = choose_intermediate_trip_purpose(

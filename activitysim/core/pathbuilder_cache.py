@@ -306,7 +306,7 @@ class TVPBCache(object):
         -------
         either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
         """
-        data_buffers = inject.get_injectable("data_buffers", None)
+        data_buffers = whale.get_injectable("data_buffers", None)
         assert self.cache_tag in data_buffers  # internal error
         logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
         data_buffer = data_buffers[self.cache_tag]
@@ -361,7 +361,9 @@ class TapTapUidCalculator(object):
         spec_name = self.network_los.setting(
             f"TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.SPEC"
         )
-        self.set_names = list(simulate.read_model_spec(file_name=spec_name).columns)
+        self.set_names = list(
+            whale.filesystem.read_model_spec(file_name=spec_name).columns
+        )
 
     @property
     def fully_populated_shape(self):

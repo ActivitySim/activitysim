@@ -69,4 +69,4 @@ def timetable(
     whale: workflow.Whale, person_windows: pd.DataFrame, tdd_alts: pd.DataFrame
 ) -> tt.TimeTable:
     logging.debug("@inject timetable")
-    return tt.TimeTable(person_windows, tdd_alts, person_windows.name)
+    return tt.TimeTable(person_windows, tdd_alts, "person_windows")

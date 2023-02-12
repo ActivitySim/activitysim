@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 
 
 def read_raw_persons(whale, households):
-
     df = read_input_table(whale, "persons")
 
     if whale.get_injectable("households_sliced", False):
@@ -92,14 +91,20 @@ def persons(whale: workflow.Whale):
 #     return inject.merge_tables(persons.name, tables=tables)
 
 
-@workflow.table
-def persons_merged(whale: workflow.Whale):
-
-    land_use = whale.get_dataframe("land_use")
-    households = whale.get_dataframe("households")
-    accessibility = whale.get_dataframe("accessibility")
-    persons = whale.get_dataframe("persons")
-    disaggregate_accessibility = whale.get_dataframe("disaggregate_accessibility")
+@workflow.temp_table
+def persons_merged(
+    whale: workflow.Whale,
+    persons: pd.DataFrame,
+    land_use: pd.DataFrame,
+    households: pd.DataFrame,
+    accessibility: pd.DataFrame,
+    disaggregate_accessibility: pd.DataFrame = None,
+):
+    # land_use = whale.get_dataframe("land_use")
+    # households = whale.get_dataframe("households")
+    # accessibility = whale.get_dataframe("accessibility")
+    # persons = whale.get_dataframe("persons")
+    # disaggregate_accessibility = whale.get_dataframe("disaggregate_accessibility")
 
     def join(left, right, left_on):
         intersection = set(left.columns).intersection(right.columns)
@@ -127,7 +132,7 @@ def persons_merged(whale: workflow.Whale):
         households,
         left_on="household_id",
     )
-    if not disaggregate_accessibility.empty:
+    if disaggregate_accessibility is not None and not disaggregate_accessibility.empty:
         persons = join(
             persons,
             disaggregate_accessibility,

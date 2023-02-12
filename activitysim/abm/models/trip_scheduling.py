@@ -405,7 +405,7 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
     """
     trace_label = "trip_scheduling"
     model_settings_file_name = "trip_scheduling.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     trips_df = trips.to_frame()
     tours = tours.to_frame()
@@ -446,7 +446,7 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
     )
     # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
     # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
-    # coefficients_df = simulate.read_model_coefficients(model_settings)
+    # coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     # probs_spec = map_coefficients(probs_spec, coefficients_df)
 
     # add tour-based chunk_id so we can chunk all trips in tour together

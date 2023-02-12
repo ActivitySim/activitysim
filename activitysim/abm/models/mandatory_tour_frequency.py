@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 def add_null_results(whale, trace_label, mandatory_tour_frequency_settings):
     logger.info("Skipping %s: add_null_results", trace_label)
 
-    persons = inject.get_table("persons").to_frame()
+    persons = whale.get_dataframe("persons")
     persons["mandatory_tour_frequency"] = ""
 
     tours = pd.DataFrame()
@@ -44,9 +44,9 @@ def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
     model_settings_file_name = "mandatory_tour_frequency.yaml"
     trace_hh_id = whale.settings.trace_hh_id
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
-    choosers = persons_merged.to_frame()
+    choosers = persons_merged
     # filter based on results of CDAP
     choosers = choosers[choosers.cdap_activity == "M"]
     logger.info("Running mandatory_tour_frequency with %d persons", len(choosers))
@@ -71,8 +71,8 @@ def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
 
     estimator = estimation.manager.begin_estimation(whale, "mandatory_tour_frequency")
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )
@@ -121,15 +121,15 @@ def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
     choosers["mandatory_tour_frequency"] = choices.reindex(choosers.index)
 
     mandatory_tours = process_mandatory_tours(
-        persons=choosers, mandatory_tour_frequency_alts=alternatives
+        whale, persons=choosers, mandatory_tour_frequency_alts=alternatives
     )
 
     tours = whale.extend_table("tours", mandatory_tours)
-    tracing.register_traceable_table("tours", mandatory_tours)
+    tracing.register_traceable_table(whale, "tours", mandatory_tours)
     whale.get_rn_generator().add_channel("tours", mandatory_tours)
 
     # - annotate persons
-    persons = inject.get_table("persons").to_frame()
+    persons = whale.get_dataframe("persons")
 
     # need to reindex as we only handled persons with cdap_activity == 'M'
     persons["mandatory_tour_frequency"] = (

@@ -50,7 +50,7 @@ def stop_frequency(
     model_settings_file_name = "stop_frequency.yaml"
     trace_hh_id = whale.settings.trace_hh_id
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     tours = tours.to_frame()
     tours_merged = tours_merged.to_frame()
@@ -121,13 +121,15 @@ def stop_frequency(
             whale, model_name=segment_name, bundle_name="stop_frequency"
         )
 
-        segment_spec = simulate.read_model_spec(file_name=segment_settings["SPEC"])
+        segment_spec = whale.filesystem.read_model_spec(
+            file_name=segment_settings["SPEC"]
+        )
         assert segment_spec is not None, (
             "spec for segment_type %s not found" % segment_name
         )
 
         coefficients_file_name = segment_settings["COEFFICIENTS"]
-        coefficients_df = simulate.read_model_coefficients(
+        coefficients_df = whale.filesystem.read_model_coefficients(
             file_name=coefficients_file_name
         )
         segment_spec = simulate.eval_coefficients(

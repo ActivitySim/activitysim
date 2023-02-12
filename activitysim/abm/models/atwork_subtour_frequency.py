@@ -36,11 +36,11 @@ def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk
         add_null_results(whale, trace_label, tours)
         return
 
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_frequency")
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
         whale, model_spec, coefficients_df, estimator
     )

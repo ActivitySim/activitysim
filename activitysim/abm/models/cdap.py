@@ -13,7 +13,11 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def cdap_simulate(
-    whale: workflow.Whale, persons_merged, persons, households, chunk_size
+    whale: workflow.Whale,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    chunk_size,
 ):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
@@ -26,7 +30,7 @@ def cdap_simulate(
     """
 
     trace_label = "cdap"
-    model_settings = config.read_model_settings("cdap.yaml")
+    model_settings = whale.filesystem.read_model_settings("cdap.yaml")
     trace_hh_id = whale.settings.trace_hh_id
     person_type_map = model_settings.get("PERSON_TYPE_MAP", None)
     assert (
@@ -34,11 +38,11 @@ def cdap_simulate(
     ), f"Expected to find PERSON_TYPE_MAP setting in cdap.yaml"
     estimator = estimation.manager.begin_estimation(whale, "cdap")
 
-    cdap_indiv_spec = simulate.read_model_spec(
+    cdap_indiv_spec = whale.filesystem.read_model_spec(
         file_name=model_settings["INDIV_AND_HHSIZE1_SPEC"]
     )
 
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
     cdap_indiv_spec = simulate.eval_coefficients(
         whale, cdap_indiv_spec, coefficients_df, estimator
     )
@@ -77,11 +81,9 @@ def cdap_simulate(
     EXCEPT that the values computed are relative proportions, not utilities
     (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
     """
-    cdap_fixed_relative_proportions = simulate.read_model_spec(
+    cdap_fixed_relative_proportions = whale.filesystem.read_model_spec(
         file_name=model_settings["FIXED_RELATIVE_PROPORTIONS_SPEC"]
     )
-
-    persons_merged = persons_merged.to_frame()
 
     # add tour-based chunk_id so we can chunk all trips in tour together
     assert "chunk_id" not in persons_merged.columns
@@ -104,10 +106,12 @@ def cdap_simulate(
     # (also when multiprocessing locutor might not see all household sizes)
     logger.info("Pre-building cdap specs")
     for hhsize in range(2, cdap.MAX_HHSIZE + 1):
-        spec = cdap.build_cdap_spec(cdap_interaction_coefficients, hhsize, cache=True)
-        if inject.get_injectable("locutor", False):
+        spec = cdap.build_cdap_spec(
+            whale, cdap_interaction_coefficients, hhsize, cache=True
+        )
+        if whale.get_injectable("locutor", False):
             spec.to_csv(
-                config.output_file_path("cdap_spec_%s.csv" % hhsize), index=True
+                whale.get_output_file_path("cdap_spec_%s.csv" % hhsize), index=True
             )
 
     if estimator:
@@ -125,7 +129,7 @@ def cdap_simulate(
         )
         estimator.write_choosers(persons_merged)
         for hhsize in range(2, cdap.MAX_HHSIZE + 1):
-            spec = cdap.get_cached_spec(hhsize)
+            spec = cdap.get_cached_spec(whale, hhsize)
             estimator.write_table(spec, "spec_%s" % hhsize, append=False)
 
     logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
@@ -149,9 +153,6 @@ def cdap_simulate(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    # - assign results to persons table and annotate
-    persons = persons.to_frame()
-
     choices = choices.reindex(persons.index)
     persons["cdap_activity"] = choices
 
@@ -165,7 +166,6 @@ def cdap_simulate(
     whale.add_table("persons", persons)
 
     # - annotate households table
-    households = households.to_frame()
     expressions.assign_columns(
         whale,
         df=households,

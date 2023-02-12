@@ -105,14 +105,14 @@ def test_register_households(capsys):
     inject.add_injectable("traceable_tables", ["households"])
     inject.add_injectable("trace_hh_id", 5)
 
-    tracing.register_traceable_table("households", df)
+    tracing.register_traceable_table(whale, "households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
     assert "Can't register table 'households' without index name" in out
 
     df.index.name = "household_id"
-    tracing.register_traceable_table("households", df)
+    tracing.register_traceable_table(whale, "households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
@@ -139,7 +139,7 @@ def test_register_tours(capsys):
     tours_df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[10, 11, 12])
     tours_df.index.name = "tour_id"
 
-    tracing.register_traceable_table("tours", tours_df)
+    tracing.register_traceable_table(whale, "tours", tours_df)
 
     out, err = capsys.readouterr()
     assert (
@@ -150,9 +150,9 @@ def test_register_tours(capsys):
     inject.add_injectable("trace_hh_id", 3)
     households_df = pd.DataFrame({"dzing": ["a", "b", "c"]}, index=[1, 2, 3])
     households_df.index.name = "household_id"
-    tracing.register_traceable_table("households", households_df)
+    tracing.register_traceable_table(whale, "households", households_df)
 
-    tracing.register_traceable_table("tours", tours_df)
+    tracing.register_traceable_table(whale, "tours", tours_df)
 
     out, err = capsys.readouterr()
     # print out  # don't consume output
@@ -160,7 +160,7 @@ def test_register_tours(capsys):
 
     tours_df["household_id"] = [1, 5, 3]
 
-    tracing.register_traceable_table("tours", tours_df)
+    tracing.register_traceable_table(whale, "tours", tours_df)
 
     out, err = capsys.readouterr()
     print(out)  # don't consume output

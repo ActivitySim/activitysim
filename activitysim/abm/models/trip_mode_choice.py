@@ -38,7 +38,7 @@ def trip_mode_choice(
 
     trace_label = "trip_mode_choice"
     model_settings_file_name = "trip_mode_choice.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "trip_mode"
@@ -161,7 +161,7 @@ def trip_mode_choice(
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    model_spec = simulate.read_model_spec(whale, file_name=model_settings["SPEC"])
+    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     nest_spec = config.get_logit_model_settings(model_settings)
 
     choices_list = []
@@ -183,7 +183,7 @@ def trip_mode_choice(
             tvpb_logsum_odt.extend_trace_label(primary_purpose)
             # tvpb_logsum_dot.extend_trace_label(primary_purpose)
 
-        coefficients = simulate.get_segment_coefficients(
+        coefficients = whale.filesystem.get_segment_coefficients(
             model_settings, primary_purpose
         )
 

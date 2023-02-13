@@ -20,7 +20,6 @@ from activitysim.core import (
     chunk,
     config,
     expressions,
-    inject,
     los,
     simulate,
     tracing,
@@ -759,6 +758,7 @@ def compute_logsums(
             }
         )
     destination_sample["od_logsum"] = compute_ood_logsums(
+        whale,
         choosers,
         logsum_settings,
         nest_spec,
@@ -787,6 +787,7 @@ def compute_logsums(
         )
 
     destination_sample["dp_logsum"] = compute_ood_logsums(
+        whale,
         choosers,
         logsum_settings,
         nest_spec,
@@ -1168,7 +1169,7 @@ def run_trip_destination(
         whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
-    land_use = inject.get_table("land_use")
+    land_use = whale.get_dataframe("land_use")
     size_terms = whale.get_injectable("size_terms")
     network_los = whale.get_injectable("network_los")
     trips = trips.sort_index()
@@ -1458,8 +1459,8 @@ def trip_destination(
 
     if trips_df.failed.any():
         logger.warning("%s %s failed trips", trace_label, trips_df.failed.sum())
-        if inject.get_injectable("pipeline_file_prefix", None):
-            file_name = f"{trace_label}_failed_trips_{inject.get_injectable('pipeline_file_prefix')}"
+        if whale.get_injectable("pipeline_file_prefix", None):
+            file_name = f"{trace_label}_failed_trips_{whale.get_injectable('pipeline_file_prefix')}"
         else:
             file_name = f"{trace_label}_failed_trips"
         logger.info("writing failed trips to %s", file_name)

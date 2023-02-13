@@ -5,7 +5,8 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import inject, tracing, workflow
+from activitysim.abm.tables.util import simple_table_join
+from activitysim.core import tracing, workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -100,34 +101,23 @@ def persons_merged(
     accessibility: pd.DataFrame,
     disaggregate_accessibility: pd.DataFrame = None,
 ):
-    def join(left, right, left_on):
-        intersection = set(left.columns).intersection(right.columns)
-        intersection.discard(left_on)  # intersection is ok if it's the join key
-        right = right.drop(intersection, axis=1)
-        return pd.merge(
-            left,
-            right,
-            left_on=left_on,
-            right_index=True,
-        )
-
-    households = join(
+    households = simple_table_join(
         households,
         land_use,
         left_on="home_zone_id",
     )
-    households = join(
+    households = simple_table_join(
         households,
         accessibility,
         left_on="home_zone_id",
     )
-    persons = join(
+    persons = simple_table_join(
         persons,
         households,
         left_on="household_id",
     )
     if disaggregate_accessibility is not None and not disaggregate_accessibility.empty:
-        persons = join(
+        persons = simple_table_join(
             persons,
             disaggregate_accessibility,
             left_on="person_id",

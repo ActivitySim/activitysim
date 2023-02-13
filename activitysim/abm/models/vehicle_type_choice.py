@@ -279,7 +279,7 @@ def get_vehicle_type_data(model_settings, vehicle_type_data_file):
 
 def iterate_vehicle_type_choice(
     whale: workflow.Whale,
-    vehicles_merged,
+    vehicles_merged: pd.DataFrame,
     model_settings,
     model_spec,
     locals_dict,
@@ -302,7 +302,7 @@ def iterate_vehicle_type_choice(
 
     Parameters
     ----------
-    vehicles_merged : orca.DataFrameWrapper
+    vehicles_merged : DataFrame
         vehicle list owned by each household merged with households table
     model_settings : dict
         yaml model settings file as dict
@@ -343,7 +343,6 @@ def iterate_vehicle_type_choice(
         )
 
     # - preparing choosers for iterating
-    vehicles_merged = vehicles_merged.to_frame()
     vehicles_merged["already_owned_veh"] = ""
     logger.info("Running %s with %d vehicles", trace_label, len(vehicles_merged))
     all_choosers = []
@@ -466,12 +465,10 @@ def iterate_vehicle_type_choice(
 @workflow.step
 def vehicle_type_choice(
     whale: workflow.Whale,
-    persons,
-    households,
-    vehicles,
-    vehicles_merged,
-    chunk_size,
-    trace_hh_id,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    vehicles: pd.DataFrame,
+    vehicles_merged: pd.DataFrame,
 ):
     """Assign a vehicle type to each vehicle in the `vehicles` table.
 
@@ -511,9 +508,7 @@ def vehicle_type_choice(
     persons : orca.DataFrameWrapper
     households : orca.DataFrameWrapper
     vehicles : orca.DataFrameWrapper
-    vehicles_merged : orca.DataFrameWrapper
-    chunk_size : orca.injectable
-    trace_hh_id : orca.injectable
+    vehicles_merged : DataFrame
     """
     trace_label = "vehicle_type_choice"
     model_settings_file_name = "vehicle_type_choice.yaml"
@@ -540,7 +535,7 @@ def vehicle_type_choice(
         model_spec,
         locals_dict,
         estimator,
-        chunk_size,
+        whale.settings.chunk_size,
         trace_label,
     )
 
@@ -587,5 +582,5 @@ def vehicle_type_choice(
         "vehicle_type_choice", vehicles.vehicle_type, value_counts=True
     )
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.trace_df(vehicles, label="vehicle_type_choice", warn_if_empty=True)

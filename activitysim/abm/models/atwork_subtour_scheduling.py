@@ -9,7 +9,7 @@ from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.vectorize_tour_scheduling import (
     vectorize_subtour_scheduling,
 )
-from activitysim.core import config, expressions, inject, simulate
+from activitysim.core import config, expressions, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
 from activitysim.core.util import assign_in_place

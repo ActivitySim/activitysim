@@ -3,6 +3,8 @@ import logging
 import numpy as np
 import pandas as pd
 
+from activitysim.core import workflow
+
 from . import inject
 
 logger = logging.getLogger(__name__)
@@ -32,9 +34,9 @@ def recode_to_zero_based(values, mapping):
     return result
 
 
-def should_recode_based_on_table(tablename):
+def should_recode_based_on_table(whale: workflow.Whale, tablename):
     try:
-        base_df = inject.get_table(tablename).to_frame()
+        base_df = whale.get_dataframe(tablename)
     except (KeyError, RuntimeError):
         # the basis table is missing, do not
         return False
@@ -43,9 +45,9 @@ def should_recode_based_on_table(tablename):
     return False
 
 
-def recode_based_on_table(values, tablename):
+def recode_based_on_table(whale: workflow.Whale, values, tablename):
     try:
-        base_df = inject.get_table(tablename).to_frame()
+        base_df = whale.get_dataframe(tablename)
     except (KeyError, RuntimeError):
         # the basis table is missing, do nothing
         logger.warning(f"unable to recode based on missing {tablename} table")

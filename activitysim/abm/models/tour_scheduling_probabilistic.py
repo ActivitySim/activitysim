@@ -61,6 +61,7 @@ def run_tour_scheduling_probabilistic(
             trace_label=chunk_trace_label,
             trace_choice_col_name="depart_return",
             clip_earliest_latest=False,
+            chunk_sizer=chunk_sizer,
         )
         result_list.append(choices)
 

@@ -828,7 +828,7 @@ class Network_LOS(object):
             tazs = whale.get_dataframe("land_use").index.values
         else:
             try:
-                land_use_taz = whale.get_dataframe("land_use_taz").to_frame()
+                land_use_taz = whale.get_dataframe("land_use_taz")
             except (RuntimeError, KeyError):
                 # land_use_taz is missing, use fallback
                 tazs = self.maz_taz_df.TAZ.unique()

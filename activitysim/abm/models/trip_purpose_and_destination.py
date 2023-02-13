@@ -32,8 +32,6 @@ def run_trip_purpose_and_destination(
         whale,
         trips_df,
         estimator=None,
-        chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=tracing.extend_trace_label(trace_label, "purpose"),
     )
 
@@ -53,7 +51,7 @@ def run_trip_purpose_and_destination(
 
 @workflow.step
 def trip_purpose_and_destination(
-    whale: workflow.Whale, trips, tours_merged, chunk_size, trace_hh_id
+    whale: workflow.Whale, trips: pd.DataFrame, tours_merged: pd.DataFrame
 ):
     trace_label = "trip_purpose_and_destination"
     model_settings = whale.filesystem.read_model_settings(
@@ -73,8 +71,8 @@ def trip_purpose_and_destination(
 
     MAX_ITERATIONS = model_settings.get("MAX_ITERATIONS", 5)
 
-    trips_df = trips.to_frame()
-    tours_merged_df = tours_merged.to_frame()
+    trips_df = trips
+    tours_merged_df = tours_merged
 
     if trips_df.empty:
         logger.info("%s - no trips. Nothing to do." % trace_label)
@@ -138,8 +136,8 @@ def trip_purpose_and_destination(
             whale,
             trips_df,
             tours_merged_df,
-            chunk_size=chunk_size,
-            trace_hh_id=trace_hh_id,
+            chunk_size=whale.settings.chunk_size,
+            trace_hh_id=whale.settings.trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % i),
         )
 
@@ -215,7 +213,7 @@ def trip_purpose_and_destination(
         % (trace_label, processed_trips.failed.sum(), i)
     )
 
-    trips_df = trips.to_frame()
+    trips_df = trips
     assign_in_place(trips_df, processed_trips)
 
     trips_df = cleanup_failed_trips(trips_df)
@@ -234,7 +232,7 @@ def trip_purpose_and_destination(
         )
         del save_sample_df
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.trace_df(
             trips_df,
             label=trace_label,

@@ -5,8 +5,10 @@ import sys
 
 import numpy as np
 import pandas as pd
+import pyarrow as pa
+import pyarrow.csv as csv
 
-from activitysim.core import config, inject, workflow
+from activitysim.core import configuration, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +81,7 @@ def previous_write_data_dictionary(whale: workflow.Whale, output_dir):
 
         with open(output_file_path, "w") as output_file:
             for table_name in output_tables:
-                df = inject.get_table(table_name, None).to_frame()
+                df = whale.get_dataframe(table_name)
 
                 print("\n### %s %s" % (table_name, df.shape), file=output_file)
                 print("index:", df.index.name, df.index.dtype, file=output_file)
@@ -158,31 +160,32 @@ def write_data_dictionary(whale: workflow.Whale):
         schema[table_name] = info
 
     # annotate schema.info with name of checkpoint columns were first seen
-    for _, row in whale.get_checkpoints().iterrows():
-        checkpoint_name = row[workflow.state.CHECKPOINT_NAME]
+    if whale.pipeline_store:
+        for _, row in whale.get_checkpoints().iterrows():
+            checkpoint_name = row[workflow.state.CHECKPOINT_NAME]
 
-        for table_name in table_names:
-            # no change to table in this checkpoint
-            if row.get(table_name, None) != checkpoint_name:
-                continue
+            for table_name in table_names:
+                # no change to table in this checkpoint
+                if row.get(table_name, None) != checkpoint_name:
+                    continue
 
-            # get the checkpointed version of the table
-            df = whale.get_table(table_name, checkpoint_name)
+                # get the checkpointed version of the table
+                df = whale.get_table(table_name, checkpoint_name)
 
-            if df.index.name and df.index.name not in df.columns:
-                df = df.reset_index()
+                if df.index.name and df.index.name not in df.columns:
+                    df = df.reset_index()
 
-            info = schema.get(table_name, None)
+                info = schema.get(table_name, None)
 
-            if info is not None:
-                # tag any new columns with checkpoint name
-                prev_columns = info[info.checkpoint != ""].column_name.values
-                new_cols = [c for c in df.columns.values if c not in prev_columns]
-                is_new_column_this_checkpoont = info.column_name.isin(new_cols)
-                info.checkpoint = np.where(
-                    is_new_column_this_checkpoont, checkpoint_name, info.checkpoint
-                )
-                schema[table_name] = info
+                if info is not None:
+                    # tag any new columns with checkpoint name
+                    prev_columns = info[info.checkpoint != ""].column_name.values
+                    new_cols = [c for c in df.columns.values if c not in prev_columns]
+                    is_new_column_this_checkpoont = info.column_name.isin(new_cols)
+                    info.checkpoint = np.where(
+                        is_new_column_this_checkpoont, checkpoint_name, info.checkpoint
+                    )
+                    schema[table_name] = info
 
     schema_df = pd.concat(schema.values())
 
@@ -267,11 +270,11 @@ def write_tables(whale: workflow.Whale):
         logger.info("No output_tables specified in settings file. Nothing to write.")
         return
 
-    action = output_tables_settings.get("action")
-    tables = output_tables_settings.get("tables")
-    prefix = output_tables_settings.get("prefix", "final_")
-    h5_store = output_tables_settings.get("h5_store", False)
-    sort = output_tables_settings.get("sort", False)
+    action = output_tables_settings.action
+    tables = output_tables_settings.tables
+    prefix = output_tables_settings.prefix
+    h5_store = output_tables_settings.h5_store
+    sort = output_tables_settings.sort
 
     registered_tables = whale.registered_tables()
     if action == "include":
@@ -283,46 +286,56 @@ def write_tables(whale: workflow.Whale):
         raise f"expected action '{action}' to be either 'include' or 'skip'"
 
     for table_name in output_tables_list:
-        if not isinstance(table_name, str):
+        if isinstance(table_name, configuration.OutputTable):
+            table_decode_cols = table_name.decode_columns or {}
+            table_name = table_name.tablename
+        elif not isinstance(table_name, str):
             table_decode_cols = table_name.get("decode_columns", {})
             table_name = table_name["tablename"]
         else:
             table_decode_cols = {}
 
         if table_name == "checkpoints":
-            df = whale.get_checkpoints()
+            dt = pa.Table.from_pandas(whale.get_checkpoints(), preserve_index=True)
         else:
             if table_name not in registered_tables:
                 logger.warning("Skipping '%s': Table not found." % table_name)
                 continue
-            df = whale.get_dataframe(table_name)
+
+            # the write tables method now uses pyarrow to avoid making edits to
+            # the internal pipeline dataframes, which need to remain un-decoded
+            # for any subsequent summarize step[s].
+            dt = whale.get_pyarrow(table_name)
+            dt_index_name = whale.get_dataframe_index_name(table_name)
 
             if sort:
                 traceable_table_indexes = whale.get_injectable(
                     "traceable_table_indexes", {}
                 )
 
-                if df.index.name in traceable_table_indexes:
-                    df = df.sort_index()
+                if dt_index_name in traceable_table_indexes:
+                    dt = dt.sort_by(dt_index_name)
                     logger.debug(
-                        f"write_tables sorting {table_name} on index {df.index.name}"
+                        f"write_tables sorting {table_name} on index {dt_index_name}"
                     )
                 else:
                     # find all registered columns we can use to sort this table
                     # (they are ordered appropriately in traceable_table_indexes)
                     sort_columns = [
-                        c for c in traceable_table_indexes if c in df.columns
+                        (c, "ascending")
+                        for c in traceable_table_indexes
+                        if c in dt.columns
                     ]
                     if len(sort_columns) > 0:
-                        df = df.sort_values(by=sort_columns)
+                        dt = dt.sort_by(sort_columns)
                         logger.debug(
                             f"write_tables sorting {table_name} on columns {sort_columns}"
                         )
                     else:
                         logger.debug(
-                            f"write_tables sorting {table_name} on unrecognized index {df.index.name}"
+                            f"write_tables sorting {table_name} on unrecognized index {dt_index_name}"
                         )
-                        df = df.sort_index()
+                        dt = dt.sort_by(dt_index_name)
 
         if whale.settings.recode_pipeline_columns:
             for colname, decode_instruction in table_decode_cols.items():
@@ -335,14 +348,14 @@ def write_tables(whale: workflow.Whale):
                 if "." not in decode_instruction:
                     lookup_col = decode_instruction
                     source_table = table_name
-                    parent_table = df
+                    parent_table = dt
                 else:
                     source_table, lookup_col = decode_instruction.split(".")
-                    parent_table = inject.get_table(source_table)
+                    parent_table = whale.get_pyarrow(source_table)
                 try:
-                    map_col = parent_table[f"_original_{lookup_col}"]
+                    map_col = parent_table.column(f"_original_{lookup_col}")
                 except KeyError:
-                    map_col = parent_table[lookup_col]
+                    map_col = parent_table.column(lookup_col)
                 map_col = np.asarray(map_col)
                 map_func = map_col.__getitem__
                 if decode_filter:
@@ -353,24 +366,28 @@ def write_tables(whale: workflow.Whale):
 
                     else:
                         raise ValueError(f"unknown decode_filter {decode_filter}")
-                if colname in df.columns:
-                    df[colname] = df[colname].astype(int).map(map_func)
-                elif colname == df.index.name:
-                    df.index = df.index.astype(int).map(map_func)
+                if colname in dt.column_names:
+                    revised_col = (
+                        pd.Series(dt.column(colname)).astype(int).map(map_func)
+                    )
+                    dt = dt.drop([colname]).append_column(
+                        colname, pa.array(revised_col)
+                    )
                 # drop _original_x from table if it is duplicative
-                if source_table == table_name and f"_original_{lookup_col}" in df:
-                    df = df.drop(columns=[f"_original_{lookup_col}"])
+                if (
+                    source_table == table_name
+                    and f"_original_{lookup_col}" in dt.column_names
+                ):
+                    dt = dt.drop([f"_original_{lookup_col}"])
 
         if h5_store:
             file_path = whale.get_output_file_path("%soutput_tables.h5" % prefix)
-            df.to_hdf(file_path, key=table_name, mode="a", format="fixed")
+            dt.to_pandas().to_hdf(
+                str(file_path), key=table_name, mode="a", format="fixed"
+            )
         else:
             file_name = "%s%s.csv" % (prefix, table_name)
             file_path = whale.get_output_file_path(file_name)
 
             # include the index if it has a name or is a MultiIndex
-            write_index = df.index.name is not None or isinstance(
-                df.index, pd.MultiIndex
-            )
-
-            df.to_csv(file_path, index=write_index)
+            csv.write_csv(dt, file_path)

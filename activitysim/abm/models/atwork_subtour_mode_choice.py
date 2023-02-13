@@ -7,7 +7,7 @@ import pandas as pd
 
 from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
-from activitysim.core import config, expressions, inject, los, tracing, workflow
+from activitysim.core import config, expressions, los, tracing, workflow
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)

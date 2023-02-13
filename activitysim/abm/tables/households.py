@@ -7,6 +7,7 @@ from builtins import range
 import pandas as pd
 
 from activitysim.abm.misc import override_hh_ids
+from activitysim.abm.tables.util import simple_table_join
 from activitysim.core import inject, tracing, workflow
 from activitysim.core.input import read_input_table
 
@@ -125,36 +126,15 @@ def households_merged(
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
 ):
-    # land_use = whale.get_dataframe("land_use")
-    # households = whale.get_dataframe("households")
-    # accessibility = whale.get_dataframe("accessibility")
 
-    def join(left, right, left_on):
-        intersection = set(left.columns).intersection(right.columns)
-        intersection.discard(left_on)  # intersection is ok if it's the join key
-        right = right.drop(intersection, axis=1)
-        return pd.merge(
-            left,
-            right,
-            left_on=left_on,
-            right_index=True,
-        )
-
-    households = join(
+    households = simple_table_join(
         households,
         land_use,
         left_on="home_zone_id",
     )
-    households = join(
+    households = simple_table_join(
         households,
         accessibility,
         left_on="home_zone_id",
     )
     return households
-
-
-inject.broadcast("households", "persons", cast_index=True, onto_on="household_id")
-
-# this would be accessibility around the household location - be careful with
-# this one as accessibility at some other location can also matter
-inject.broadcast("accessibility", "households", cast_index=True, onto_on="home_zone_id")

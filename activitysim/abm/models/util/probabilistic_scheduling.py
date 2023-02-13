@@ -59,7 +59,9 @@ def _clip_probs(choosers_df, probs, depart_alt_base):
     return probs
 
 
-def _report_bad_choices(bad_row_map, df, filename, trace_label, trace_choosers=None):
+def _report_bad_choices(
+    whale: workflow.Whale, bad_row_map, df, filename, trace_label, trace_choosers=None
+):
     """
 
     Parameters
@@ -233,6 +235,8 @@ def make_scheduling_choices(
     trace_label,
     trace_choice_col_name="depart",
     clip_earliest_latest=True,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     """
     We join each trip with the appropriate row in probs_spec by joining on probs_join_cols,
@@ -264,7 +268,7 @@ def make_scheduling_choices(
     choosers = pd.merge(
         choosers_df.reset_index(), probs_spec, on=probs_join_cols, how="left"
     ).set_index(choosers_df.index.name)
-    chunk.log_df(trace_label, "choosers", choosers)
+    chunk_sizer.log_df(trace_label, "choosers", choosers)
 
     if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
         whale.trace_df(choosers, "%s.choosers" % trace_label)
@@ -281,7 +285,7 @@ def make_scheduling_choices(
         first_trip_in_leg,
     )
 
-    chunk.log_df(trace_label, "chooser_probs", chooser_probs)
+    chunk_sizer.log_df(trace_label, "chooser_probs", chooser_probs)
 
     if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
         whale.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
@@ -290,8 +294,8 @@ def make_scheduling_choices(
         whale, chooser_probs, trace_label=trace_label, trace_choosers=choosers
     )
 
-    chunk.log_df(trace_label, "choices", raw_choices)
-    chunk.log_df(trace_label, "rands", rands)
+    chunk_sizer.log_df(trace_label, "choices", raw_choices)
+    chunk_sizer.log_df(trace_label, "rands", rands)
 
     if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
         whale.trace_df(
@@ -310,11 +314,12 @@ def make_scheduling_choices(
         choosers_df,
     )
 
-    chunk.log_df(trace_label, "failed", failed)
+    chunk_sizer.log_df(trace_label, "failed", failed)
 
     # report failed trips while we have the best diagnostic info
     if report_failed_trips and failed.any():
         _report_bad_choices(
+            whale,
             bad_row_map=failed,
             df=choosers,
             filename="failed_choosers",

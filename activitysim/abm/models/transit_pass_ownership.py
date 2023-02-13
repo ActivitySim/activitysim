@@ -3,6 +3,7 @@
 import logging
 
 import numpy as np
+import pandas as pd
 
 from activitysim.abm.models.util import estimation
 from activitysim.core import config, expressions, simulate, tracing, workflow
@@ -12,7 +13,7 @@ logger = logging.getLogger("activitysim")
 
 @workflow.step
 def transit_pass_ownership(
-    whale: workflow.Whale, persons_merged, persons, chunk_size, trace_hh_id
+    whale: workflow.Whale, persons_merged: pd.DataFrame, persons: pd.DataFrame
 ):
     """
     Transit pass ownership model.
@@ -21,7 +22,7 @@ def transit_pass_ownership(
     trace_label = "transit_pass_ownership"
     model_settings_file_name = "transit_pass_ownership.yaml"
 
-    choosers = persons_merged.to_frame()
+    choosers = persons_merged
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
     model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
@@ -77,7 +78,6 @@ def transit_pass_ownership(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons = persons.to_frame()
     persons["transit_pass_ownership"] = choices.reindex(persons.index)
 
     whale.add_table("persons", persons)
@@ -86,5 +86,5 @@ def transit_pass_ownership(
         "transit_pass_ownership", persons.transit_pass_ownership, value_counts=True
     )
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.trace_df(persons, label=trace_label, warn_if_empty=True)

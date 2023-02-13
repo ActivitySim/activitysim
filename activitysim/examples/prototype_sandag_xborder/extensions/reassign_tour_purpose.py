@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours, chunk_size, trace_hh_id):
+def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours: pd.DataFrame):
 
     """
     Simulates tour purpose choices after tour origin has been assigned. This
@@ -44,7 +44,6 @@ def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours, chunk_size, trace
         tours_df.loc[group.index, "purpose_id"] = purpose
     tours_df["new_tour_type"] = tours_df["purpose_id"].map(tour_types)
 
-    tours = tours.to_frame()
     tours["tour_type"] = tours_df["new_tour_type"].reindex(tours.index)
     tours["purpose_id"] = tours_df["purpose_id"].reindex(tours.index)
     tours["tour_category"] = "non_mandatory"

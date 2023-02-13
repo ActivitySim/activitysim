@@ -76,7 +76,7 @@ def create_logsum_trips(
     stop_freq = "0out_0in"  # no intermediate stops
     tours["stop_frequency"] = stop_freq
     tours["primary_purpose"] = tours["tour_purpose"]
-    trips = trip.initialize_from_tours(tours, stop_frequency_alts)
+    trips = trip.initialize_from_tours(whale, tours, stop_frequency_alts)
     trips["stop_frequency"] = stop_freq
     outbound = trips["outbound"]
     trips["depart"] = reindex(tours.start, trips.tour_id)

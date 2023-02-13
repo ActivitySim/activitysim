@@ -12,7 +12,6 @@ from activitysim.core import (
     chunk,
     config,
     expressions,
-    inject,
     los,
     simulate,
     tracing,
@@ -24,7 +23,9 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def trip_mode_choice(whale: workflow.Whale, trips, network_los, trace_hh_id):
+def trip_mode_choice(
+    whale: workflow.Whale, trips: pd.DataFrame, network_los: los.Network_LOS
+):
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
 
@@ -53,7 +54,7 @@ def trip_mode_choice(whale: workflow.Whale, trips, network_los, trace_hh_id):
         if col not in trips_df.columns
     ]
     if len(tours_cols) > 0:
-        tours_merged = inject.get_table("tours_merged").to_frame(columns=tours_cols)
+        tours_merged = whale.get_dataframe("tours_merged", columns=tours_cols)
     else:
         tours_merged = pd.DataFrame()
 
@@ -232,7 +233,7 @@ def trip_mode_choice(whale: workflow.Whale, trips, network_los, trace_hh_id):
             estimator=estimator,
         )
 
-        if trace_hh_id:
+        if whale.settings.trace_hh_id:
             # trace the coefficients
             whale.trace_df(
                 pd.Series(locals_dict),
@@ -304,7 +305,7 @@ def trip_mode_choice(whale: workflow.Whale, trips, network_los, trace_hh_id):
     if model_settings.get("annotate_trips"):
         annotate.annotate_trips(whale, model_settings, trace_label)
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.trace_df(
             trips_df,
             label=tracing.extend_trace_label(trace_label, "trip_mode"),

@@ -175,7 +175,12 @@ def test_run_trip_scheduling_choice(
     """
 
     out_tours = tsc.run_trip_scheduling_choice(
-        whale, model_spec, tours, skims, locals_dict, 2, None, "PyTest Trip Scheduling"
+        whale,
+        model_spec,
+        tours,
+        skims,
+        locals_dict,
+        trace_label="PyTest Trip Scheduling",
     )
 
     assert len(tours) == len(out_tours)

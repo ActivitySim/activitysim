@@ -184,7 +184,7 @@ def stop_frequency(
     whale.add_table("tours", tours)
 
     # create trips table
-    trips = trip.initialize_from_tours(tours, stop_frequency_alts)
+    trips = trip.initialize_from_tours(whale, tours, stop_frequency_alts)
     whale.add_table("trips", trips)
     tracing.register_traceable_table(whale, "trips", trips)
     whale.get_rn_generator().add_channel("trips", trips)

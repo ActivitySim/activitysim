@@ -37,7 +37,7 @@ def joint_tour_scheduling(
         tracing.no_results(trace_label)
         return
 
-    # use inject.get_table as this won't exist if there are no joint_tours
+    # use whale.get_dataframe as this won't exist if there are no joint_tours
     joint_tour_participants = whale.get_dataframe("joint_tour_participants")
 
     logger.info("Running %s with %d joint tours", trace_label, joint_tours.shape[0])

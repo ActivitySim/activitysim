@@ -195,7 +195,7 @@ def preload_injectables(whale: workflow.Whale):
 
         table_names = [t["tablename"] for t in table_list]
         for t in table_names:
-            df = inject.get_table(t).to_frame()
+            df = whale.get_dataframe(t)
             df.to_csv(os.path.join(csv_dir, "%s.csv" % t), index=True)
 
     t0 = tracing.print_elapsed_time()

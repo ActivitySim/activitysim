@@ -4,13 +4,12 @@ from functools import reduce
 
 import numpy as np
 import pandas as pd
-from orca import orca
 from sklearn.cluster import KMeans
 
 from activitysim.abm.models import initialize, location_choice
 from activitysim.abm.models.util import estimation, tour_destination
 from activitysim.abm.tables import shadow_pricing
-from activitysim.core import config, inject, los, tracing, util, workflow
+from activitysim.core import los, tracing, util, workflow
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
@@ -77,7 +76,7 @@ class ProtoPop:
                 self.model_settings["DESTINATION_SAMPLE_SIZE"],
             )
         )
-        self.inject_tables()
+        self.inject_tables(whale)
         self.annotate_tables(whale)
         self.merge_persons()
 
@@ -517,9 +516,9 @@ class ProtoPop:
             if len(colnames) > 0:
                 df.rename(columns=colnames, inplace=True)
 
-    def inject_tables(self):
+    def inject_tables(self, whale: workflow.Whale):
         # Update canonical tables lists
-        inject.add_injectable(
+        whale.add_injectable(
             "traceable_tables",
             whale.get_injectable("traceable_tables") + list(self.proto_pop.keys()),
         )
@@ -696,7 +695,7 @@ def compute_disaggregate_accessibility(
         if tablename not in whale.get_rn_generator().channels:
             whale.get_rn_generator().add_channel(tablename, df)
         if tablename not in traceables:
-            inject.add_injectable("traceable_tables", traceables + [tablename])
+            whale.add_injectable("traceable_tables", traceables + [tablename])
             tracing.register_traceable_table(whale, tablename, df)
         del df
 

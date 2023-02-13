@@ -85,10 +85,7 @@ def initialize_tours(whale: workflow.Whale, network_los, households, persons):
 
     # FIXME can't use households_sliced injectable as flag like persons table does in case of resume_after.
     # FIXME could just always slice...
-    slice_happened = (
-        inject.get_injectable("households_sample_size", 0) > 0
-        or inject.get_injectable("households_sample_size", 0) > 0
-    )
+    slice_happened = whale.settings.households_sample_size > 0
     if slice_happened:
         logger.info("slicing tours %s" % (tours.shape,))
         # keep all persons in the sampled households

@@ -54,7 +54,7 @@ def step_forget_tab(whale: workflow.Whale):
 
 
 @workflow.step
-def create_households(whale: workflow.Whale, trace_hh_id):
+def create_households(whale: workflow.Whale):
 
     df = pd.DataFrame({"household_id": [1, 2, 3], "home_zone_id": {100, 100, 101}})
     whale.add_table("households", df)

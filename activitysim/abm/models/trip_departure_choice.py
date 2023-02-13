@@ -173,7 +173,13 @@ def get_spec_for_segment(omnibus_spec, segment):
 
 
 def choose_tour_leg_pattern(
-    whale, trip_segment, patterns, spec, trace_label="trace_label"
+    whale,
+    trip_segment,
+    patterns,
+    spec,
+    trace_label="trace_label",
+    *,
+    chunk_sizer: chunk.ChunkSizer
 ):
     alternatives = generate_alternatives(trip_segment, STOP_TIME_DURATION).sort_index()
     have_trace_targets = tracing.has_trace_targets(whale, trip_segment)
@@ -201,7 +207,7 @@ def choose_tour_leg_pattern(
 
     interaction_df = alternatives.join(trip_segment, how="left", rsuffix="_chooser")
 
-    chunk.log_df(trace_label, "interaction_df", interaction_df)
+    chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
     if have_trace_targets:
         trace_rows, trace_ids = tracing.interaction_trace_rows(
@@ -226,7 +232,7 @@ def choose_tour_leg_pattern(
     interaction_utilities = pd.concat(
         [interaction_df[STOP_TIME_DURATION], interaction_utilities], axis=1
     )
-    chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+    chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
 
     interaction_utilities = pd.merge(
         interaction_utilities.reset_index(),
@@ -249,7 +255,7 @@ def choose_tour_leg_pattern(
         )
 
     del interaction_df
-    chunk.log_df(trace_label, "interaction_df", None)
+    chunk_sizer.log_df(trace_label, "interaction_df", None)
 
     interaction_utilities = interaction_utilities.groupby(
         [TOUR_ID, OUTBOUND, PATTERN_ID], as_index=False
@@ -271,7 +277,7 @@ def choose_tour_leg_pattern(
     sample_counts = (
         interaction_utilities.groupby(interaction_utilities.index).size().values
     )
-    chunk.log_df(trace_label, "sample_counts", sample_counts)
+    chunk_sizer.log_df(trace_label, "sample_counts", sample_counts)
 
     # max number of alternatvies for any chooser
     max_sample_count = sample_counts.max()
@@ -286,25 +292,25 @@ def choose_tour_leg_pattern(
     inserts = np.repeat(last_row_offsets, max_sample_count - sample_counts)
 
     del sample_counts
-    chunk.log_df(trace_label, "sample_counts", None)
+    chunk_sizer.log_df(trace_label, "sample_counts", None)
 
     # insert the zero-prob utilities to pad each alternative set to same size
     padded_utilities = np.insert(interaction_utilities.utility.values, inserts, -999)
     del inserts
 
     del interaction_utilities
-    chunk.log_df(trace_label, "interaction_utilities", None)
+    chunk_sizer.log_df(trace_label, "interaction_utilities", None)
 
     # reshape to array with one row per chooser, one column per alternative
     padded_utilities = padded_utilities.reshape(-1, max_sample_count)
-    chunk.log_df(trace_label, "padded_utilities", padded_utilities)
+    chunk_sizer.log_df(trace_label, "padded_utilities", padded_utilities)
 
     # convert to a dataframe with one row per chooser and one column per alternative
     utilities_df = pd.DataFrame(padded_utilities, index=tour_choosers.index.unique())
-    chunk.log_df(trace_label, "utilities_df", utilities_df)
+    chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
     del padded_utilities
-    chunk.log_df(trace_label, "padded_utilities", None)
+    chunk_sizer.log_df(trace_label, "padded_utilities", None)
 
     if have_trace_targets:
         whale.trace_df(
@@ -319,10 +325,10 @@ def choose_tour_leg_pattern(
         utilities_df, trace_label=trace_label, trace_choosers=trip_segment
     )
 
-    chunk.log_df(trace_label, "probs", probs)
+    chunk_sizer.log_df(trace_label, "probs", probs)
 
     del utilities_df
-    chunk.log_df(trace_label, "utilities_df", None)
+    chunk_sizer.log_df(trace_label, "utilities_df", None)
 
     if have_trace_targets:
         whale.trace_df(
@@ -338,11 +344,11 @@ def choose_tour_leg_pattern(
         whale, probs, trace_label=trace_label, trace_choosers=trip_segment
     )
 
-    chunk.log_df(trace_label, "positions", positions)
-    chunk.log_df(trace_label, "rands", rands)
+    chunk_sizer.log_df(trace_label, "positions", positions)
+    chunk_sizer.log_df(trace_label, "rands", rands)
 
     del probs
-    chunk.log_df(trace_label, "probs", None)
+    chunk_sizer.log_df(trace_label, "probs", None)
 
     # shouldn't have chosen any of the dummy pad utilities
     assert positions.max() < max_sample_count
@@ -354,7 +360,7 @@ def choose_tour_leg_pattern(
     # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
     choices = tour_choosers[PATTERN_ID].take(positions + first_row_offsets)
 
-    chunk.log_df(trace_label, "choices", choices)
+    chunk_sizer.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
         whale.trace_df(
@@ -435,7 +441,12 @@ def apply_stage_two_model(whale, omnibus_spec, trips, chunk_size, trace_label):
             patterns = build_patterns(trip_segment, time_windows)
 
             choices = choose_tour_leg_pattern(
-                whale, trip_segment, patterns, spec, trace_label=segment_trace_label
+                whale,
+                trip_segment,
+                patterns,
+                spec,
+                trace_label=segment_trace_label,
+                chunk_sizer=chunk_sizer,
             )
 
             choices = pd.merge(

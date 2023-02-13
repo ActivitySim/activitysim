@@ -443,8 +443,9 @@ class Settings(PydanticBase, extra="allow"):
     This is generally a developer-only feature and not needed for regular usage
     of ActivitySim.
 
-    The data tables are written out before any annotation steps, but after
-    initial processing (renaming, filtering columns, recoding).
+    The data tables are written out to `<output_dir>/raw_tables` before any
+    annotation steps, but after initial processing (renaming, filtering columns,
+    recoding).
     """
 
     disable_destination_sampling: bool = False

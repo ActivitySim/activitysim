@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import numba
 import numpy as np
 
-from activitysim.core import chunk, inject, los, pathbuilder, tracing, workflow
+from activitysim.core import chunk, los, pathbuilder, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -258,10 +258,10 @@ def initialize_tvpb(
             data.reshape(uid_calculator.skim_shape)[offset], lock
         )
 
-    if multiprocess and not inject.get_injectable("locutor", False):
+    if multiprocess and not whale.get_injectable("locutor", False):
         return
 
-    write_results = not multiprocess or inject.get_injectable("locutor", False)
+    write_results = not multiprocess or whale.get_injectable("locutor", False)
     if write_results:
         if multiprocess:
             # if multiprocessing, wait for all processes to fully populate share data before writing results

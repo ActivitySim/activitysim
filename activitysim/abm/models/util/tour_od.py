@@ -1,12 +1,15 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 from orca import orca
 
-from activitysim.abm.tables.size_terms import tour_destination_size_terms
+from activitysim.abm.models.util import logsums as logsum
+from activitysim.abm.models.util import trip
+from activitysim.abm.models.util.tour_destination import SizeTermCalculator
 from activitysim.core import (
     config,
     expressions,
@@ -20,10 +23,6 @@ from activitysim.core import (
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.util import reindex
-
-from . import logsums as logsum
-from . import trip
-from .tour_destination import SizeTermCalculator
 
 logger = logging.getLogger(__name__)
 DUMP = False
@@ -58,13 +57,14 @@ def _get_od_cols_from_od_id(
 
 
 def _create_od_alts_from_dest_size_terms(
+    whale: workflow.Whale,
     size_terms_df,
     segment_name,
     od_id_col=None,
     origin_id_col="origin",
     dest_id_col="destination",
     origin_filter=None,
-    origin_attr_cols=None,
+    origin_attr_cols: Optional[list[str]] = None,
 ):
     """
     Extend destination size terms to create dataframe representing the
@@ -73,7 +73,9 @@ def _create_od_alts_from_dest_size_terms(
     attributes of the origins can be preserved.
     """
 
-    land_use = inject.get_table("land_use").to_frame(columns=origin_attr_cols)
+    land_use = whale.get_dataframe("land_use")
+    if origin_attr_cols is not None:
+        land_use = land_use[origin_attr_cols]
 
     if origin_filter:
         origins = land_use.query(origin_filter)
@@ -172,6 +174,7 @@ def _od_sample(
     origin_attr_cols = model_settings["ORIGIN_ATTR_COLS_TO_USE"]
 
     od_alts_df = _create_od_alts_from_dest_size_terms(
+        whale,
         destination_size_terms,
         spec_segment_name,
         od_id_col=alt_col_name,
@@ -255,24 +258,18 @@ def map_maz_to_taz(s, network_los):
     return s.map(maz_to_taz)
 
 
-def map_maz_to_ext_taz(s):
-    land_use = (
-        inject.get_table("land_use").to_frame(columns=["external_TAZ"]).external_TAZ
-    )
+def map_maz_to_ext_taz(whale: workflow.Whale, s):
+    land_use = whale.get_dataframe("land_use", columns=["external_TAZ"]).external_TAZ
     return s.map(land_use).astype(int)
 
 
-def map_maz_to_ext_maz(s):
-    land_use = (
-        inject.get_table("land_use").to_frame(columns=["external_MAZ"]).external_MAZ
-    )
+def map_maz_to_ext_maz(whale: workflow.Whale, s):
+    land_use = whale.get_dataframe("land_use", columns=["external_MAZ"]).external_MAZ
     return s.map(land_use).astype(int)
 
 
-def map_ext_maz_to_maz(s):
-    land_use = (
-        inject.get_table("land_use").to_frame(columns=["original_MAZ"]).original_MAZ
-    )
+def map_ext_maz_to_maz(whale: workflow.Whale, s):
+    land_use = whale.get_dataframe("land_use", columns=["original_MAZ"]).original_MAZ
     return s.map(land_use).astype(int)
 
 
@@ -837,6 +834,7 @@ def run_od_logsums(
         stop_frequency_alts = whale.get_injectable("stop_frequency_alts")
         pseudo_tours["tour_destination"] = pseudo_tours[dest_id_col]
         trips = trip.initialize_from_tours(
+            whale,
             pseudo_tours,
             stop_frequency_alts,
             [origin_id_col, dest_id_col, "tour_destination", "unique_id"],
@@ -991,7 +989,7 @@ def run_od_simulate(
     )
 
     # also have to add origin attribute columns
-    lu = inject.get_table("land_use").to_frame(columns=origin_attr_cols)
+    lu = whale.get_dataframe("land_use", columns=origin_attr_cols)
     od_sample = pd.merge(
         od_sample, lu, left_on=origin_col_name, right_index=True, how="left"
     )
@@ -1123,7 +1121,7 @@ def run_tour_od(
             # sampled alts using internal mazs, so now we
             # have to convert to using the external tazs
             od_sample_df[origin_col_name] = map_maz_to_ext_maz(
-                od_sample_df[origin_col_name]
+                whale, od_sample_df[origin_col_name]
             )
         else:
             raise ValueError(

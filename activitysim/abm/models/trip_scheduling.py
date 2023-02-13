@@ -159,8 +159,9 @@ def schedule_trips_in_leg(
     probs_spec,
     model_settings,
     is_last_iteration,
-    trace_hh_id,
     trace_label,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     """
 
@@ -172,7 +173,6 @@ def schedule_trips_in_leg(
     probs_spec
     depart_alt_base
     is_last_iteration
-    trace_hh_id
     trace_label
 
     Returns
@@ -256,6 +256,7 @@ def schedule_trips_in_leg(
             first_trip_in_leg=first_trip_in_leg,
             report_failed_trips=is_last_iteration,
             trace_label=nth_trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
         # most initial departure (when no choice was made because all probs were zero)
@@ -280,7 +281,7 @@ def schedule_trips_in_leg(
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
         first_trip_in_leg = False
 
@@ -298,9 +299,9 @@ def run_trip_scheduling(
     model_settings,
     estimator,
     is_last_iteration,
-    chunk_size,
-    trace_hh_id,
     trace_label,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     set_tour_hour(trips_chunk, tours)
     set_stop_num(trips_chunk)
@@ -322,12 +323,12 @@ def run_trip_scheduling(
             probs_spec=probs_spec,
             model_settings=model_settings,
             is_last_iteration=is_last_iteration,
-            trace_hh_id=trace_hh_id,
             trace_label=leg_trace_label,
+            chunk_sizer=chunk_sizer,
         )
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
         # departure time of last outbound trips must constrain
         # departure times for initial inbound trips
@@ -343,12 +344,12 @@ def run_trip_scheduling(
             probs_spec=probs_spec,
             model_settings=model_settings,
             is_last_iteration=is_last_iteration,
-            trace_hh_id=trace_hh_id,
             trace_label=leg_trace_label,
+            chunk_sizer=chunk_sizer,
         )
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
     choices = pd.concat(result_list)
 
@@ -356,7 +357,7 @@ def run_trip_scheduling(
 
 
 @workflow.step
-def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id):
+def trip_scheduling(whale: workflow.Whale, trips: pd.DataFrame, tours: pd.DataFrame):
     """
     Trip scheduling assigns depart times for trips within the start, end limits of the tour.
 
@@ -406,8 +407,7 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
     model_settings_file_name = "trip_scheduling.yaml"
     model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
-    trips_df = trips.to_frame()
-    tours = tours.to_frame()
+    trips_df = trips
 
     if whale.is_table("school_escort_trips"):
         school_escort_trips = whale.get_dataframe("school_escort_trips")
@@ -494,9 +494,8 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
                     model_settings,
                     estimator=estimator,
                     is_last_iteration=is_last_iteration,
-                    chunk_size=chunk_size,
-                    trace_hh_id=trace_hh_id,
                     trace_label=trace_label_i,
+                    chunk_sizer=chunk_sizer,
                 )
 
                 # boolean series of trips whose individual trip scheduling failed
@@ -511,7 +510,7 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
 
                 choices_list.append(choices)
 
-    trips_df = trips.to_frame()
+    trips_df = trips
 
     if whale.is_table("school_escort_trips"):
         # separate out school escorting trips to exclude them from the model and estimation data bundle

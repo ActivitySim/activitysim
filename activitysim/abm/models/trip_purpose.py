@@ -55,6 +55,8 @@ def choose_intermediate_trip_purpose(
     use_depart_time,
     trace_hh_id,
     trace_label,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     """
     chose purpose for intermediate trips based on probs_spec
@@ -81,7 +83,7 @@ def choose_intermediate_trip_purpose(
     choosers = pd.merge(
         trips.reset_index(), probs_spec, on=probs_join_cols, how="left"
     ).set_index("trip_id")
-    chunk.log_df(trace_label, "choosers", choosers)
+    chunk_sizer.log_df(trace_label, "choosers", choosers)
 
     if use_depart_time:
         # select the matching depart range (this should result on in exactly one chooser row per trip)
@@ -163,9 +165,7 @@ def choose_intermediate_trip_purpose(
     return choices
 
 
-def run_trip_purpose(
-    whale: workflow.Whale, trips_df, estimator, chunk_size, trace_hh_id, trace_label
-):
+def run_trip_purpose(whale: workflow.Whale, trips_df, estimator, trace_label):
     """
     trip purpose - main functionality separated from model step so it can be called iteratively
 
@@ -250,13 +250,14 @@ def run_trip_purpose(
             estimator,
             probs_join_cols=probs_join_cols,
             use_depart_time=use_depart_time,
-            trace_hh_id=trace_hh_id,
+            trace_hh_id=whale.settings.trace_hh_id,
             trace_label=chunk_trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -265,7 +266,7 @@ def run_trip_purpose(
 
 
 @workflow.step
-def trip_purpose(whale: workflow.Whale, trips, chunk_size, trace_hh_id):
+def trip_purpose(whale: workflow.Whale, trips: pd.DataFrame):
     """
     trip purpose model step - calls run_trip_purpose to run the actual model
 
@@ -273,7 +274,7 @@ def trip_purpose(whale: workflow.Whale, trips, chunk_size, trace_hh_id):
     """
     trace_label = "trip_purpose"
 
-    trips_df = trips.to_frame()
+    trips_df = trips
 
     if whale.is_table("school_escort_trips"):
         school_escort_trips = whale.get_dataframe("school_escort_trips")
@@ -296,8 +297,6 @@ def trip_purpose(whale: workflow.Whale, trips, chunk_size, trace_hh_id):
         whale,
         trips_df,
         estimator,
-        chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
@@ -323,7 +322,7 @@ def trip_purpose(whale: workflow.Whale, trips, chunk_size, trace_hh_id):
 
     whale.add_table("trips", trips_df)
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.trace_df(
             trips_df,
             label=trace_label,

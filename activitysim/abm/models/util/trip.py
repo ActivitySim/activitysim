@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util.canonical_ids import set_trip_index
-from activitysim.core import config, inject
+from activitysim.core import config, inject, workflow
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
@@ -148,8 +148,8 @@ def get_time_windows(residual, level):
     return np.concatenate(ranges, axis=1)
 
 
-@inject.injectable()
-def stop_frequency_alts():
+@workflow.cached_object
+def stop_frequency_alts(whale: workflow.Whale):
     # alt file for building trips even though simulation is simple_simulate not interaction_simulate
     file_path = whale.filesystem.get_config_file_path("stop_frequency_alternatives.csv")
     df = pd.read_csv(file_path, comment="#")
@@ -157,7 +157,9 @@ def stop_frequency_alts():
     return df
 
 
-def initialize_from_tours(tours, stop_frequency_alts, addtl_tour_cols_to_preserve=None):
+def initialize_from_tours(
+    whale: workflow.Whale, tours, stop_frequency_alts, addtl_tour_cols_to_preserve=None
+):
     """
     Instantiates a trips table based on tour-level attributes: stop frequency,
     tour origin, tour destination.

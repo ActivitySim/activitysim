@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import pandas as pd
+import pyarrow as pa
 import xarray as xr
 from pypyr.context import Context, KeyNotInContextError
 
@@ -85,6 +86,9 @@ class WhaleAttr:
 
 class Whale:
     def __init__(self, context=None):
+        self.pipeline_store: pd.HDFStore | Path | None = None
+        """Location of checkpoint storage"""
+
         if context is None:
             self.context = Context()
             self.init_state()
@@ -219,15 +223,85 @@ class Whale:
             self.add_table(tablename, t)
         return t
 
-    def get_dataframe(self, tablename):
+    def get_dataframe(
+        self, tablename: str, columns: Optional[list[str]] = None
+    ) -> pd.DataFrame:
+        """
+        Get a workflow table as a pandas.DataFrame.
+
+        Parameters
+        ----------
+        tablename : str
+            Name of table to get.
+        columns : list[str], optional
+            Include only these columns in the dataframe.
+
+        Returns
+        -------
+        DataFrame
+        """
         t = self.context.get(tablename, None)
         if t is None:
             t = self.load_table(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
+            if columns is not None:
+                t = t[columns]
             return t
         raise TypeError(f"cannot convert {tablename} to DataFrame")
+
+    def get_dataframe_index_name(self, tablename: str) -> str:
+        """
+        Get the index name for a workflow table.
+
+        Parameters
+        ----------
+        tablename : str
+            Name of table to get.
+
+        Returns
+        -------
+        str
+        """
+        t = self.context.get(tablename, None)
+        if t is None:
+            t = self.load_table(tablename, swallow_errors=False)
+        if t is None:
+            raise KeyError(tablename)
+        if isinstance(t, pd.DataFrame):
+            return t.index.name
+        raise TypeError(f"cannot get index name for {tablename}")
+
+    def get_pyarrow(
+        self, tablename: str, columns: Optional[list[str]] = None
+    ) -> pa.Table:
+        """
+        Get a workflow table as a pyarrow.Table.
+
+        Parameters
+        ----------
+        tablename : str
+            Name of table to get.
+        columns : list[str], optional
+            Include only these columns in the dataframe.
+
+        Returns
+        -------
+        pyarrow.Table
+        """
+        t = self.context.get(tablename, None)
+        if t is None:
+            t = self.load_table(tablename, swallow_errors=False)
+        if t is None:
+            raise KeyError(tablename)
+        if isinstance(t, pd.DataFrame):
+            t = pa.Table.from_pandas(t, preserve_index=True, columns=columns)
+        if isinstance(t, pa.Table):
+            if columns is not None:
+                t = t.select(columns)
+            return t
+        raise TypeError(f"cannot convert {tablename} to pyarrow.Table")
 
     def access(self, key, initializer):
         if key not in self.context:
@@ -305,7 +379,7 @@ class Whale:
 
     def is_readonly(self):
         if self.is_open:
-            store = self.get_pipeline_store()
+            store = self.pipeline_store
             if store and not isinstance(store, Path) and store._mode == "r":
                 return True
         return False
@@ -373,17 +447,6 @@ class Whale:
 
         logger.debug(f"opened pipeline_store {pipeline_file_path}")
 
-    def get_pipeline_store(self):
-        """
-        Return the open pipeline hdf5 checkpoint store or return None if it not been opened
-
-        If the pipeline filename ends in ".h5" then the legacy HDF5 pipeline
-        is used, otherwise the faster parquet format is used, and the value
-        returned here is just the path to the pipeline directory.
-
-        """
-        return self.pipeline_store
-
     def get_rn_generator(self):
         """
         Return the singleton random number object
@@ -428,7 +491,7 @@ class Whale:
 
         """
 
-        store = self.get_pipeline_store()
+        store = self.pipeline_store
         if isinstance(store, Path):
             df = pd.read_parquet(
                 store.joinpath(table_name, f"{checkpoint_name}.parquet"),
@@ -463,7 +526,7 @@ class Whale:
         # coerce column names to str as unicode names will cause PyTables to pickle them
         df.columns = df.columns.astype(str)
 
-        store = self.get_pipeline_store()
+        store = self.pipeline_store
         if isinstance(store, Path):
             store.joinpath(table_name).mkdir(parents=True, exist_ok=True)
             df.to_parquet(store.joinpath(table_name, f"{checkpoint_name}.parquet"))
@@ -1033,7 +1096,7 @@ class Whale:
 
         """
 
-        store = self.get_pipeline_store()
+        store = self.pipeline_store
 
         if store is not None:
             if isinstance(store, Path):

@@ -4,7 +4,8 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import inject, tracing, workflow
+from activitysim.abm.tables.util import simple_table_join
+from activitysim.core import tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -51,20 +52,11 @@ def vehicles_merged(
 
     Parameters
     ----------
-    vehicles :  orca.DataFrameWrapper
-    households_merged :  orca.DataFrameWrapper
+    vehicles :  DataFrame
+    households_merged :  DataFrame
 
     Returns
     -------
     vehicles_merged : pandas.DataFrame
     """
-
-    vehicles_merged = inject.merge_tables(
-        vehicles.name, tables=[vehicles, households_merged]
-    )
-    return vehicles_merged
-
-
-inject.broadcast(
-    "households_merged", "vehicles", cast_index=True, onto_on="household_id"
-)
+    return simple_table_join(vehicles, households_merged, "household_id")

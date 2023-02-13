@@ -2,14 +2,12 @@
 # See full license in LICENSE.txt.
 import logging
 
-from activitysim.core import inject
+from activitysim.abm.tables.util import simple_table_join
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.table()
-def trips_merged(trips, tours):
-    return inject.merge_tables(trips.name, tables=[trips, tours])
-
-
-inject.broadcast("tours", "trips", cast_index=True, onto_on="tour_id")
+@workflow.temp_table
+def trips_merged(whale: workflow.Whale, trips, tours):
+    return simple_table_join(trips, tours, "tour_id")

@@ -94,7 +94,7 @@ def write_trip_matrices(whale: workflow.Whale, network_los):
             zone_labels = land_use.index
 
         write_matrices(
-            aggregate_trips, zone_labels, orig_index, dest_index, model_settings
+            whale, aggregate_trips, zone_labels, orig_index, dest_index, model_settings
         )
 
     elif network_los.zone_system == los.TWO_ZONE:  # maz trips written to taz matrices
@@ -140,7 +140,7 @@ def write_trip_matrices(whale: workflow.Whale, network_los):
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            whale, aggregate_trips, zone_index, orig_index, dest_index, model_settings
         )
 
     elif (
@@ -188,7 +188,7 @@ def write_trip_matrices(whale: workflow.Whale, network_los):
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            whale, aggregate_trips, zone_index, orig_index, dest_index, model_settings
         )
 
         logger.info("aggregating trips three zone tap...")
@@ -216,7 +216,13 @@ def write_trip_matrices(whale: workflow.Whale, network_los):
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            aggregate_trips, zone_index, orig_index, dest_index, model_settings, True
+            whale,
+            aggregate_trips,
+            zone_index,
+            orig_index,
+            dest_index,
+            model_settings,
+            True,
         )
 
 
@@ -278,7 +284,13 @@ def annotate_trips(
 
 
 def write_matrices(
-    aggregate_trips, zone_index, orig_index, dest_index, model_settings, is_tap=False
+    whale: workflow.Whale,
+    aggregate_trips,
+    zone_index,
+    orig_index,
+    dest_index,
+    model_settings,
+    is_tap=False,
 ):
     """
     Write aggregated trips to OMX format.
@@ -304,7 +316,7 @@ def write_matrices(
             filename = matrix.get("file_name")
             filepath = whale.get_output_file_path(filename)
             logger.info("opening %s" % filepath)
-            file = omx.open_file(filepath, "w")  # possibly overwrite existing file
+            file = omx.open_file(str(filepath), "w")  # possibly overwrite existing file
             table_settings = matrix.get("tables")
 
             for table in table_settings:

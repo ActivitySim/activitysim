@@ -1,4 +1,5 @@
 import logging
+from typing import Mapping
 
 import numpy as np
 import pandas as pd
@@ -209,13 +210,11 @@ def get_spec_for_segment(model_settings, spec_name, segment):
 
 def run_trip_scheduling_choice(
     whale: workflow.Whale,
-    spec,
-    tours,
+    spec: pd.DataFrame,
+    tours: pd.DataFrame,
     skims,
-    locals_dict,
-    chunk_size,
-    trace_hh_id,
-    trace_label,
+    locals_dict: Mapping,
+    trace_label: str,
 ):
     NUM_TOUR_LEGS = 3
     trace_label = tracing.extend_trace_label(trace_label, "interaction_sample_simulate")
@@ -321,15 +320,13 @@ def run_trip_scheduling_choice(
 
 
 @workflow.step
-def trip_scheduling_choice(
-    whale: workflow.Whale, trips, tours, skim_dict, chunk_size, trace_hh_id
-):
+def trip_scheduling_choice(whale: workflow.Whale, trips, tours, skim_dict):
     trace_label = "trip_scheduling_choice"
     model_settings = whale.filesystem.read_model_settings("trip_scheduling_choice.yaml")
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", "stage_one")
 
-    trips_df = trips.to_frame()
-    tours_df = tours.to_frame()
+    trips_df = trips
+    tours_df = tours
 
     outbound_trips = trips_df[trips_df[OUTBOUND_FLAG]]
     inbound_trips = trips_df[~trips_df[OUTBOUND_FLAG]]
@@ -360,22 +357,23 @@ def trip_scheduling_choice(
 
     preprocessor_settings = model_settings.get("PREPROCESSOR", None)
 
+    # hack: preprocessor adds origin column in place if it does not exist already
+    od_skim_stack_wrapper = skim_dict.wrap("origin", "destination")
+    do_skim_stack_wrapper = skim_dict.wrap("destination", "origin")
+    obib_skim_stack_wrapper = skim_dict.wrap(LAST_OB_STOP, FIRST_IB_STOP)
+
+    skims = [od_skim_stack_wrapper, do_skim_stack_wrapper, obib_skim_stack_wrapper]
+
+    locals_dict = {
+        "od_skims": od_skim_stack_wrapper,
+        "do_skims": do_skim_stack_wrapper,
+        "obib_skims": obib_skim_stack_wrapper,
+        "orig_col_name": "origin",
+        "dest_col_name": "destination",
+        "timeframe": "timeless_directional",
+    }
+
     if preprocessor_settings:
-        # hack: preprocessor adds origin column in place if it does not exist already
-        od_skim_stack_wrapper = skim_dict.wrap("origin", "destination")
-        do_skim_stack_wrapper = skim_dict.wrap("destination", "origin")
-        obib_skim_stack_wrapper = skim_dict.wrap(LAST_OB_STOP, FIRST_IB_STOP)
-
-        skims = [od_skim_stack_wrapper, do_skim_stack_wrapper, obib_skim_stack_wrapper]
-
-        locals_dict = {
-            "od_skims": od_skim_stack_wrapper,
-            "do_skims": do_skim_stack_wrapper,
-            "obib_skims": obib_skim_stack_wrapper,
-            "orig_col_name": "origin",
-            "dest_col_name": "destination",
-            "timeframe": "timeless_directional",
-        }
 
         simulate.set_skim_wrapper_targets(tours_df, skims)
 
@@ -388,7 +386,7 @@ def trip_scheduling_choice(
         )
 
     tours_df = run_trip_scheduling_choice(
-        whale, spec, tours_df, skims, locals_dict, chunk_size, trace_hh_id, trace_label
+        whale, spec, tours_df, skims, locals_dict, trace_label
     )
 
     whale.add_table("tours", tours_df)

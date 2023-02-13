@@ -82,8 +82,6 @@ def vehicle_allocation(
     tours,
     tours_merged,
     network_los,
-    chunk_size,
-    trace_hh_id,
 ):
     """Selects a vehicle for each occupancy level for each tour.
 
@@ -106,7 +104,6 @@ def vehicle_allocation(
     tours : orca.DataFrameWrapper
     tours_merged : orca.DataFrameWrapper
     chunk_size : orca.injectable
-    trace_hh_id : orca.injectable
     """
     trace_label = "vehicle_allocation"
     model_settings_file_name = "vehicle_allocation.yaml"
@@ -130,7 +127,7 @@ def vehicle_allocation(
     locals_dict.update(coefficients_df)
 
     # ------ constructing alternatives from model spec and joining to choosers
-    vehicles_wide = vehicles.to_frame().pivot_table(
+    vehicles_wide = vehicles.pivot_table(
         index="household_id",
         columns="vehicle_num",
         values="vehicle_type",
@@ -158,7 +155,7 @@ def vehicle_allocation(
     vehicles_wide[alts_from_spec[-1]] = ""
 
     # merging vehicle alternatives to choosers
-    choosers = tours_merged.to_frame().reset_index()
+    choosers = tours_merged.reset_index()
     choosers = pd.merge(choosers, vehicles_wide, how="left", on="household_id")
     choosers.set_index("tour_id", inplace=True)
 
@@ -184,8 +181,6 @@ def vehicle_allocation(
         estimator.write_spec(model_settings)
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
-
-    tours = tours.to_frame()
 
     # ------ running for each occupancy level selected
     tours_veh_occup_cols = []
@@ -242,5 +237,5 @@ def vehicle_allocation(
     if annotate_settings:
         annotate_vehicle_allocation(whale, model_settings, trace_label)
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)

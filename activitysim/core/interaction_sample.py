@@ -186,8 +186,8 @@ def _interaction_sample(
     assert num_choosers > 0
 
     if have_trace_targets:
-        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
-        tracing.trace_df(
+        whale.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
+        whale.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             slicer="NONE",
@@ -262,7 +262,7 @@ def _interaction_sample(
                 interaction_df, choosers, alternative_count
             )
 
-            tracing.trace_df(
+            whale.trace_df(
                 interaction_df[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_df"),
                 slicer="NONE",
@@ -352,7 +352,7 @@ def _interaction_sample(
 
     if have_trace_targets and trace_rows is not None:
         try:
-            tracing.trace_df(
+            whale.trace_df(
                 interaction_utilities[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_utilities"),
                 slicer="NONE",
@@ -361,7 +361,7 @@ def _interaction_sample(
         except ValueError:
             pass
 
-    tracing.dump_df(DUMP, interaction_utilities, trace_label, "interaction_utilities")
+    whale.dump_df(DUMP, interaction_utilities, trace_label, "interaction_utilities")
 
     # reshape utilities (one utility column and one row per row in interaction_utilities)
     # to a dataframe with one row per chooser and one column per alternative
@@ -375,13 +375,13 @@ def _interaction_sample(
     chunk_sizer.log_df(trace_label, "interaction_utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             utilities,
             tracing.extend_trace_label(trace_label, "utils"),
             column_labels=["alternative", "utility"],
         )
 
-    tracing.dump_df(DUMP, utilities, trace_label, "utilities")
+    whale.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
@@ -397,7 +397,7 @@ def _interaction_sample(
     chunk_sizer.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -463,10 +463,10 @@ def _interaction_sample(
     # set index after groupby so we can trace on it
     choices_df.set_index(choosers.index.name, inplace=True)
 
-    tracing.dump_df(DUMP, choices_df, trace_label, "choices_df")
+    whale.dump_df(DUMP, choices_df, trace_label, "choices_df")
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             choices_df,
             tracing.extend_trace_label(trace_label, "sampled_alternatives"),
             transpose=False,

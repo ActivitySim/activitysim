@@ -73,4 +73,4 @@ def auto_ownership_simulate(
     )
 
     if trace_hh_id:
-        tracing.trace_df(households, label="auto_ownership", warn_if_empty=True)
+        whale.trace_df(households, label="auto_ownership", warn_if_empty=True)

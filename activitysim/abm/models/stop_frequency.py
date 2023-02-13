@@ -76,6 +76,7 @@ def stop_frequency(
 
         # this should be pre-slice as some expressions may count tours by type
         annotations = expressions.compute_columns(
+            whale,
             df=tours_merged,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -219,17 +220,17 @@ def stop_frequency(
         assert not trips_differ.any()
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             tours, label="stop_frequency.tours", slicer="person_id", columns=None
         )
 
-        tracing.trace_df(
+        whale.trace_df(
             trips, label="stop_frequency.trips", slicer="person_id", columns=None
         )
 
-        tracing.trace_df(annotations, label="stop_frequency.annotations", columns=None)
+        whale.trace_df(annotations, label="stop_frequency.annotations", columns=None)
 
-        tracing.trace_df(
+        whale.trace_df(
             tours_merged,
             label="stop_frequency.tours_merged",
             slicer="person_id",

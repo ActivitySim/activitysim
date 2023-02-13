@@ -98,7 +98,7 @@ def compute_accessibilities_for_zones(
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
             # dump the trace results table (with _temp variables) to aid debugging
-            tracing.trace_df(
+            whale.trace_df(
                 df,
                 label="accessibility",
                 index_label="skim_offset",

@@ -128,7 +128,7 @@ CHUNK_SIZERS = []
 ledger_lock = threading.Lock()
 
 
-def chunk_method():
+def chunk_method(whale: workflow.Whale):
     method = SETTINGS.get("chunk_method")
     if method is None:
         method = SETTINGS.setdefault("chunk_method", whale.settings.chunk_method)
@@ -138,13 +138,13 @@ def chunk_method():
     return method
 
 
-def chunk_metric():
+def chunk_metric(whale: workflow.Whale):
     return SETTINGS.setdefault(
-        "chunk_metric", USS if chunk_method() in USS_CHUNK_METHODS else "rss"
+        "chunk_metric", USS if chunk_method(whale) in USS_CHUNK_METHODS else "rss"
     )
 
 
-def chunk_training_mode():
+def chunk_training_mode(whale: workflow.Whale):
     training_mode = SETTINGS.setdefault(
         "chunk_training_mode", whale.settings.chunk_training_mode
     )
@@ -169,13 +169,13 @@ def default_initial_rows_per_chunk():
     )
 
 
-def min_available_chunk_ratio():
+def min_available_chunk_ratio(whale: workflow.Whale):
     return SETTINGS.setdefault(
         "min_available_chunk_ratio", whale.settings.min_available_chunk_ratio
     )
 
 
-def keep_chunk_logs():
+def keep_chunk_logs(whale: workflow.Whale):
     # if we are overwriting MEM_LOG_FILE then presumably we want to delete any subprocess files
     default = LOG_FILE_NAME == OMNIBUS_LOG_FILE_NAME
 
@@ -194,7 +194,7 @@ def get_base_chunk_size():
     return CHUNK_SIZERS[0].chunk_size
 
 
-def overhead_for_chunk_method(overhead, method=None):
+def overhead_for_chunk_method(whale: workflow.Whale, overhead, method=None):
     """
 
     return appropriate overhead for row_size calculation based on current chunk_method
@@ -223,7 +223,7 @@ def overhead_for_chunk_method(overhead, method=None):
 
         return hybrid_overhead
 
-    method = method or chunk_method()
+    method = method or chunk_method(whale)
 
     if method == HYBRID_RSS:
         oh = hybrid(overhead[RSS], overhead[BYTES])
@@ -236,14 +236,14 @@ def overhead_for_chunk_method(overhead, method=None):
     return oh
 
 
-def consolidate_logs():
+def consolidate_logs(whale: workflow.Whale):
     glob_file_name = config.log_file_path(f"*{LOG_FILE_NAME}", prefix=False)
     glob_files = glob.glob(glob_file_name)
 
     if not glob_files:
         return
 
-    assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS), (
+    assert chunk_training_mode(whale,) not in (MODE_PRODUCTION, MODE_CHUNKLESS), (
         f"shouldn't be any chunk log files when chunk_training_mode"
         f" is {MODE_PRODUCTION} or {MODE_CHUNKLESS}"
     )
@@ -269,7 +269,7 @@ def consolidate_logs():
         len(multi_depth_chunk_tag) == 0
     ), f"consolidate_logs multi_depth_chunk_tags \n{multi_depth_chunk_tag.values}"
 
-    if not keep_chunk_logs():
+    if not keep_chunk_logs(whale):
         util.delete_files(glob_files, "chunk.consolidate_logs")
 
     log_output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
@@ -305,7 +305,7 @@ def consolidate_logs():
     num_rows = omnibus_df[C_NUM_ROWS]
     for m in USS_CHUNK_METHODS:
         omnibus_df[f"{m}_row_size"] = np.ceil(
-            overhead_for_chunk_method(omnibus_df, m) / num_rows
+            overhead_for_chunk_method(whale, omnibus_df, m) / num_rows
         ).astype(int)
 
     omnibus_df = omnibus_df.sort_values(by=C_CHUNK_TAG)
@@ -316,7 +316,12 @@ def consolidate_logs():
     )
     omnibus_df.to_csv(log_dir_output_path, mode="w", index=False)
 
-    if (chunk_training_mode() == MODE_RETRAIN) or not _HISTORIAN.have_cached_history:
+    if (
+        chunk_training_mode(
+            whale,
+        )
+        == MODE_RETRAIN
+    ) or not _HISTORIAN.have_cached_history:
         if whale.settings.resume_after:
             # FIXME
             logger.warning(
@@ -332,7 +337,7 @@ def consolidate_logs():
             omnibus_df.to_csv(cache_dir_output_path, mode="w", index=False)
 
 
-class ChunkHistorian(object):
+class ChunkHistorian:
     """
     Utility for estimating row_size
     """
@@ -342,8 +347,13 @@ class ChunkHistorian(object):
         self.have_cached_history = None
         self.cached_history_df = None
 
-    def load_cached_history(self):
-        if chunk_training_mode() == MODE_RETRAIN:
+    def load_cached_history(self, whale: workflow.Whale):
+        if (
+            chunk_training_mode(
+                whale,
+            )
+            == MODE_RETRAIN
+        ):
             # don't need cached history if retraining
             return
 
@@ -374,10 +384,20 @@ class ChunkHistorian(object):
         else:
             self.have_cached_history = False
 
-            if chunk_training_mode() == MODE_CHUNKLESS:
+            if (
+                chunk_training_mode(
+                    whale,
+                )
+                == MODE_CHUNKLESS
+            ):
                 return
 
-            if chunk_training_mode() == MODE_PRODUCTION:
+            if (
+                chunk_training_mode(
+                    whale,
+                )
+                == MODE_PRODUCTION
+            ):
                 # raise RuntimeError(f"chunk_training_mode is {MODE_PRODUCTION} but no chunk_cache: {chunk_cache_path}")
 
                 SETTINGS["chunk_training_mode"] = MODE_RETRAIN
@@ -385,12 +405,12 @@ class ChunkHistorian(object):
                     f"chunk_training_mode is {MODE_PRODUCTION} but no chunk_cache: {chunk_cache_path}"
                 )
                 logger.warning(
-                    f"chunk_training_mode falling back to {chunk_training_mode()}"
+                    f"chunk_training_mode falling back to {chunk_training_mode(whale,)}"
                 )
 
-    def cached_history_for_chunk_tag(self, chunk_tag):
+    def cached_history_for_chunk_tag(self, whale: workflow.Whale, chunk_tag):
         history = {}
-        self.load_cached_history()
+        self.load_cached_history(whale)
 
         if self.have_cached_history:
             try:
@@ -416,21 +436,25 @@ class ChunkHistorian(object):
 
         return history
 
-    def cached_row_size(self, chunk_tag):
+    def cached_row_size(self, whale: workflow.Whale, chunk_tag):
         row_size = 0
 
-        cached_history = self.cached_history_for_chunk_tag(chunk_tag)
+        cached_history = self.cached_history_for_chunk_tag(whale, chunk_tag)
         if cached_history:
             cum_overhead = {m: cached_history[m] for m in METRICS}
             num_rows = cached_history[C_NUM_ROWS]
 
             # initial_row_size based on cum_overhead and rows_processed from chunk_cache
-            row_size = math.ceil(overhead_for_chunk_method(cum_overhead) / num_rows)
+            row_size = math.ceil(
+                overhead_for_chunk_method(whale, cum_overhead) / num_rows
+            )
 
         return row_size
 
-    def write_history(self, history, chunk_tag):
-        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
+    def write_history(self, whale: workflow.Whale, history, chunk_tag):
+        assert chunk_training_mode(
+            whale,
+        ) not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         history_df = pd.DataFrame.from_dict(history)
 
@@ -473,8 +497,12 @@ class ChunkLedger(object):
         self.hwm_uss = {"value": baseline_uss, "info": f"{trace_label}.init"}
         self.total_bytes = 0
 
-    def audit(self, msg, bytes=0, rss=0, uss=0, from_rss_monitor=False):
-        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
+    def audit(
+        self, whale: workflow.Whale, msg, bytes=0, rss=0, uss=0, from_rss_monitor=False
+    ):
+        assert chunk_training_mode(
+            whale,
+        ) not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         MAX_OVERDRAFT = 0.2
 
@@ -490,7 +518,7 @@ class ChunkLedger(object):
                 f"bytes: {bytes} headroom: {self.headroom} chunk_size: {self.base_chunk_size} {msg}"
             )
 
-        if chunk_metric() == RSS and rss > mem_panic_threshold:
+        if chunk_metric(whale) == RSS and rss > mem_panic_threshold:
             rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
             if rss > mem_panic_threshold:
                 logger.warning(
@@ -498,7 +526,7 @@ class ChunkLedger(object):
                     f"rss: {rss} chunk_size: {self.base_chunk_size} {msg}"
                 )
 
-        if chunk_metric() == USS and uss > mem_panic_threshold:
+        if chunk_metric(whale) == USS and uss > mem_panic_threshold:
             _, uss = mem.get_rss(force_garbage_collect=True, uss=True)
             if uss > mem_panic_threshold:
                 logger.warning(
@@ -550,7 +578,9 @@ class ChunkLedger(object):
                 assert False
             return elements, bytes
 
-        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
+        assert chunk_training_mode(
+            whale,
+        ) not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         if df is None:
             elements, bytes = (0, 0)
@@ -581,7 +611,9 @@ class ChunkLedger(object):
         self.total_bytes = sum(self.tables.values())
 
     def check_local_hwm(self, hwm_trace_label, rss, uss, total_bytes):
-        assert chunk_training_mode() not in (MODE_PRODUCTION, MODE_CHUNKLESS)
+        assert chunk_training_mode(
+            whale,
+        ) not in (MODE_PRODUCTION, MODE_CHUNKLESS)
 
         from_rss_monitor = total_bytes is None
 
@@ -599,19 +631,23 @@ class ChunkLedger(object):
                 # total_bytes high water mark
                 self.hwm_bytes["value"] = total_bytes
                 self.hwm_bytes["info"] = info
-                self.audit(hwm_trace_label, bytes=total_bytes)
+                self.audit(whale, hwm_trace_label, bytes=total_bytes)
 
         if rss > self.hwm_rss["value"]:
             # rss high water mark
             self.hwm_rss["value"] = rss
             self.hwm_rss["info"] = info
-            self.audit(hwm_trace_label, rss=rss, from_rss_monitor=from_rss_monitor)
+            self.audit(
+                whale, hwm_trace_label, rss=rss, from_rss_monitor=from_rss_monitor
+            )
 
         if uss > self.hwm_uss["value"]:
             # uss high water mark
             self.hwm_uss["value"] = uss
             self.hwm_uss["info"] = info
-            self.audit(hwm_trace_label, uss=uss, from_rss_monitor=from_rss_monitor)
+            self.audit(
+                whale, hwm_trace_label, uss=uss, from_rss_monitor=from_rss_monitor
+            )
 
         # silently registers global high water mark
         mem.check_global_hwm(RSS, rss, hwm_trace_label)
@@ -634,7 +670,12 @@ class ChunkLedger(object):
 
 
 def log_rss(trace_label, force=False):
-    if chunk_training_mode() == MODE_CHUNKLESS:
+    if (
+        chunk_training_mode(
+            whale,
+        )
+        == MODE_CHUNKLESS
+    ):
         # no memory tracing at all in chunkless mode
         return
 
@@ -642,7 +683,12 @@ def log_rss(trace_label, force=False):
 
     hwm_trace_label = f"{trace_label}.log_rss"
 
-    if chunk_training_mode() == MODE_PRODUCTION:
+    if (
+        chunk_training_mode(
+            whale,
+        )
+        == MODE_PRODUCTION
+    ):
         # FIXME - this trace_memory_info call slows things down a lot so it is turned off for now
         # trace_ticks = 0 if force else mem.MEM_TRACE_TICK_LEN
         # mem.trace_memory_info(hwm_trace_label, trace_ticks=trace_ticks)
@@ -657,7 +703,9 @@ def log_rss(trace_label, force=False):
 
 
 def log_df(trace_label, table_name, df):
-    if chunk_training_mode() in (MODE_PRODUCTION, MODE_CHUNKLESS):
+    if chunk_training_mode(
+        whale,
+    ) in (MODE_PRODUCTION, MODE_CHUNKLESS):
         return
 
     assert len(CHUNK_LEDGERS) > 0, f"log_df called without current chunker."
@@ -707,7 +755,7 @@ class ChunkSizer:
         self.chunk_training_mode = chunk_training_mode
 
         if self.chunk_training_mode != MODE_CHUNKLESS:
-            if chunk_metric() == USS:
+            if chunk_metric(whale) == USS:
                 self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
             else:
                 self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
@@ -738,7 +786,7 @@ class ChunkSizer:
         self.num_choosers = num_choosers
         self.rows_processed = 0
 
-        min_chunk_ratio = min_available_chunk_ratio()
+        min_chunk_ratio = min_available_chunk_ratio(whale)
         assert (
             0 <= min_chunk_ratio <= 1
         ), f"min_chunk_ratio setting {min_chunk_ratio} is not in range [0..1]"
@@ -754,7 +802,9 @@ class ChunkSizer:
 
         # if production mode, to reduce volatility, initialize cum_overhead and cum_rows from cache
         if self.chunk_training_mode in [MODE_ADAPTIVE, MODE_PRODUCTION]:
-            cached_history = _HISTORIAN.cached_history_for_chunk_tag(self.chunk_tag)
+            cached_history = _HISTORIAN.cached_history_for_chunk_tag(
+                whale, self.chunk_tag
+            )
             if cached_history:
                 self.cum_overhead = {m: cached_history[m] for m in METRICS}
                 self.cum_rows = cached_history[C_NUM_ROWS]
@@ -772,7 +822,7 @@ class ChunkSizer:
 
         # need base_chunk_size to calc headroom
         self.headroom = self.available_headroom(
-            self.uss if chunk_metric() == USS else self.rss
+            self.uss if chunk_metric(whale) == USS else self.rss
         )
 
     def close(self):
@@ -782,7 +832,7 @@ class ChunkSizer:
         if ((self.depth == 1) or WRITE_SUBCHUNK_HISTORY) and (
             self.chunk_training_mode not in (MODE_PRODUCTION, MODE_CHUNKLESS)
         ):
-            _HISTORIAN.write_history(self.history, self.chunk_tag)
+            _HISTORIAN.write_history(whale, self.history, self.chunk_tag)
 
         _chunk_sizer = CHUNK_SIZERS.pop()
         assert _chunk_sizer == self
@@ -807,7 +857,7 @@ class ChunkSizer:
     def initial_rows_per_chunk(self):
         # whatever the TRAINING_MODE, use cache to determine initial_row_size
         # (presumably preferable to default_initial_rows_per_chunk)
-        self.initial_row_size = _HISTORIAN.cached_row_size(self.chunk_tag)
+        self.initial_row_size = _HISTORIAN.cached_row_size(whale, self.chunk_tag)
 
         if self.chunk_size == 0:
             rows_per_chunk = self.num_choosers
@@ -871,14 +921,14 @@ class ChunkSizer:
         prev_uss = self.uss
 
         if self.chunk_training_mode != MODE_PRODUCTION:
-            if chunk_metric() == USS:
+            if chunk_metric(whale) == USS:
                 self.rss, self.uss = mem.get_rss(force_garbage_collect=True, uss=True)
             else:
                 self.rss, _ = mem.get_rss(force_garbage_collect=True, uss=False)
                 self.uss = 0
 
         self.headroom = self.available_headroom(
-            self.uss if chunk_metric() == USS else self.rss
+            self.uss if chunk_metric(whale) == USS else self.rss
         )
 
         rows_remaining = self.num_choosers - prev_rows_processed
@@ -900,7 +950,7 @@ class ChunkSizer:
                 self.cum_overhead[m] += overhead[m]
 
             observed_row_size = prev_cum_rows and math.ceil(
-                overhead_for_chunk_method(self.cum_overhead) / prev_cum_rows
+                overhead_for_chunk_method(whale, self.cum_overhead) / prev_cum_rows
             )
 
         # rows_per_chunk is closest number of chooser rows to achieve chunk_size without exceeding it
@@ -931,7 +981,7 @@ class ChunkSizer:
 
         # diagnostics not reported by ChunkHistorian
 
-        if chunk_metric() == USS:
+        if chunk_metric(whale) == USS:
             self.history.setdefault("prev_uss", []).append(prev_uss)
             self.history.setdefault("cur_uss", []).append(self.uss)
         else:
@@ -1088,7 +1138,9 @@ def chunk_log(trace_label, chunk_tag=None, base=False, settings=None):
     # avoids breaking the assertion below.
 
     if settings is None:
-        _chunk_training_mode = chunk_training_mode()
+        _chunk_training_mode = chunk_training_mode(
+            whale,
+        )
     else:
         _chunk_training_mode = settings.chunk_training_mode
 
@@ -1179,7 +1231,12 @@ def adaptive_chunked_choosers(
 
             offset += rows_per_chunk
 
-            if chunk_training_mode() != MODE_CHUNKLESS:
+            if (
+                chunk_training_mode(
+                    whale,
+                )
+                != MODE_CHUNKLESS
+            ):
                 (
                     rows_per_chunk,
                     estimated_number_of_chunks,
@@ -1316,7 +1373,12 @@ def adaptive_chunked_choosers_and_alts(
             offset += rows_per_chunk
             alt_offset = alt_end
 
-            if chunk_training_mode() != MODE_CHUNKLESS:
+            if (
+                chunk_training_mode(
+                    whale,
+                )
+                != MODE_CHUNKLESS
+            ):
                 (
                     rows_per_chunk,
                     estimated_number_of_chunks,
@@ -1376,7 +1438,12 @@ def adaptive_chunked_choosers_by_chunk_id(
 
             offset += rows_per_chunk
 
-            if chunk_training_mode() != MODE_CHUNKLESS:
+            if (
+                chunk_training_mode(
+                    whale,
+                )
+                != MODE_CHUNKLESS
+            ):
                 (
                     rows_per_chunk,
                     estimated_number_of_chunks,

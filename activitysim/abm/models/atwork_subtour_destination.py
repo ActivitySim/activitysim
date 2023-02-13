@@ -99,6 +99,6 @@ def atwork_subtour_destination(
         whale.extend_table(sample_table_name, save_sample_df)
 
     if whale.settings.trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             tours, label="atwork_subtour_destination", columns=["destination"]
         )

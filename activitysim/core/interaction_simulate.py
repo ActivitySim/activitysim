@@ -5,11 +5,12 @@ import time
 from builtins import zip
 from collections import OrderedDict
 from datetime import timedelta
+from typing import Mapping
 
 import numpy as np
 import pandas as pd
 
-from . import chunk, config, logit, simulate, tracing
+from . import chunk, config, logit, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -582,11 +583,12 @@ def eval_interaction_utilities(
 
 
 def _interaction_simulate(
-    choosers,
-    alternatives,
-    spec,
+    whale: workflow.Whale,
+    choosers: pd.DataFrame,
+    alternatives: pd.DataFrame,
+    spec: pd.DataFrame,
     skims=None,
-    locals_d=None,
+    locals_d: Mapping = None,
     sample_size=None,
     trace_label=None,
     trace_choice_name=None,
@@ -646,8 +648,8 @@ def _interaction_simulate(
     have_trace_targets = tracing.has_trace_targets(whale, choosers)
 
     if have_trace_targets:
-        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
-        tracing.trace_df(
+        whale.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
+        whale.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             slicer="NONE",
@@ -752,7 +754,7 @@ def _interaction_simulate(
                 interaction_df, choosers, sample_size
             )
 
-            tracing.trace_df(
+            whale.trace_df(
                 interaction_df[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_df"),
                 slicer="NONE",
@@ -787,7 +789,7 @@ def _interaction_simulate(
                 tracing.extend_trace_label(trace_label, "eval"),
             )
 
-            tracing.trace_df(
+            whale.trace_df(
                 interaction_utilities[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_utils"),
                 slicer="NONE",
@@ -803,13 +805,13 @@ def _interaction_simulate(
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             utilities,
             tracing.extend_trace_label(trace_label, "utils"),
             column_labels=["alternative", "utility"],
         )
 
-    tracing.dump_df(DUMP, utilities, trace_label, "utilities")
+    whale.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
@@ -822,7 +824,7 @@ def _interaction_simulate(
     chunk_sizer.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -850,12 +852,12 @@ def _interaction_simulate(
     chunk_sizer.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             choices,
             tracing.extend_trace_label(trace_label, "choices"),
             columns=[None, trace_choice_name],
         )
-        tracing.trace_df(
+        whale.trace_df(
             rands,
             tracing.extend_trace_label(trace_label, "rands"),
             columns=[None, "rand"],
@@ -941,6 +943,7 @@ def interaction_simulate(
     ) in chunk.adaptive_chunked_choosers(whale, choosers, trace_label):
 
         choices = _interaction_simulate(
+            whale,
             chooser_chunk,
             alternatives,
             spec,

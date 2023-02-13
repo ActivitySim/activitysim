@@ -508,7 +508,7 @@ class ShadowPriceCalculator(object):
 
             self.choices_synced = self.synchronize_choices(choice_merged)
 
-    def check_fit(self, iteration):
+    def check_fit(self, whale: workflow.Whale, iteration):
         """
         Check convergence criteria fit of modeled_size to target desired_size
         (For multiprocessing, this is global modeled_size summed across processes,

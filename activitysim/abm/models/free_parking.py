@@ -94,4 +94,4 @@ def free_parking(
     )
 
     if trace_hh_id:
-        tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+        whale.trace_df(persons, label=trace_label, warn_if_empty=True)

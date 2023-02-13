@@ -157,11 +157,11 @@ def assign_cdap_rank(
     persons["cdap_rank"] = p["cdap_rank"]  # assignment aligns on index values
 
     # if DUMP:
-    #     tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
+    #     whale.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
     #                      transpose=False, slicer='NONE')
 
     if trace_hh_id:
-        tracing.trace_df(persons, "%s.cdap_rank" % trace_label)
+        whale.trace_df(persons, "%s.cdap_rank" % trace_label)
 
     return persons["cdap_rank"]
 
@@ -209,7 +209,7 @@ def individual_utilities(
     indiv_utils[useful_columns] = persons[useful_columns]
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             indiv_utils,
             "%s.indiv_utils" % trace_label,
             column_labels=["activity", "person"],
@@ -354,7 +354,7 @@ def build_cdap_spec(
 
     # if DUMP:
     #     # dump the interaction_coefficients table because it has been preprocessed
-    #     tracing.trace_df(interaction_coefficients,
+    #     whale.trace_df(interaction_coefficients,
     #                      '%s.hhsize%d_interaction_coefficients' % (trace_label, hhsize),
     #                      transpose=False, slicer='NONE')
 
@@ -467,7 +467,7 @@ def build_cdap_spec(
     simulate.uniquify_spec_index(spec)
 
     if trace_spec:
-        tracing.trace_df(
+        whale.trace_df(
             spec,
             "%s.hhsize%d_spec" % (trace_label, hhsize),
             transpose=False,
@@ -480,7 +480,7 @@ def build_cdap_spec(
         spec[c] = spec[c].map(lambda x: d.get(x, x or 0.0)).fillna(0)
 
     if trace_spec:
-        tracing.trace_df(
+        whale.trace_df(
             spec,
             "%s.hhsize%d_spec_patched" % (trace_label, hhsize),
             transpose=False,
@@ -708,28 +708,28 @@ def household_activity_choices(
 
     if trace_hh_id:
         if hhsize > 1:
-            tracing.trace_df(
+            whale.trace_df(
                 choosers,
                 "%s.hhsize%d_choosers" % (trace_label, hhsize),
                 column_labels=["expression", "person"],
             )
 
-        tracing.trace_df(
+        whale.trace_df(
             utils,
             "%s.hhsize%d_utils" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        tracing.trace_df(
+        whale.trace_df(
             probs,
             "%s.hhsize%d_probs" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        tracing.trace_df(
+        whale.trace_df(
             choices,
             "%s.hhsize%d_activity_choices" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        tracing.trace_df(
+        whale.trace_df(
             rands, "%s.hhsize%d_rands" % (trace_label, hhsize), columns=[None, "rand"]
         )
 
@@ -778,7 +778,7 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices, trace_hh_id, trace_l
     cdap_indiv_activity_choices = indiv_activity["cdap_activity"]
 
     # if DUMP:
-    #     tracing.trace_df(cdap_indiv_activity_choices,
+    #     whale.trace_df(cdap_indiv_activity_choices,
     #                      '%s.DUMP.cdap_indiv_activity_choices' % trace_label,
     #                      transpose=False, slicer='NONE')
 
@@ -850,31 +850,31 @@ def extra_hh_member_choices(
     choices = pd.Series(probs.columns[idx_choices].values, index=probs.index)
 
     # if DUMP:
-    #     tracing.trace_df(proportions, '%s.DUMP.extra_proportions' % trace_label,
+    #     whale.trace_df(proportions, '%s.DUMP.extra_proportions' % trace_label,
     #                      transpose=False, slicer='NONE')
-    #     tracing.trace_df(probs, '%s.DUMP.extra_probs' % trace_label,
+    #     whale.trace_df(probs, '%s.DUMP.extra_probs' % trace_label,
     #                      transpose=False, slicer='NONE')
-    #     tracing.trace_df(choices, '%s.DUMP.extra_choices' % trace_label,
+    #     whale.trace_df(choices, '%s.DUMP.extra_choices' % trace_label,
     #                      transpose=False,
     #                      slicer='NONE')
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             proportions,
             "%s.extra_hh_member_choices_proportions" % trace_label,
             column_labels=["expression", "person"],
         )
-        tracing.trace_df(
+        whale.trace_df(
             probs,
             "%s.extra_hh_member_choices_probs" % trace_label,
             column_labels=["expression", "person"],
         )
-        tracing.trace_df(
+        whale.trace_df(
             choices,
             "%s.extra_hh_member_choices_choices" % trace_label,
             column_labels=["expression", "person"],
         )
-        tracing.trace_df(
+        whale.trace_df(
             rands,
             "%s.extra_hh_member_choices_rands" % trace_label,
             columns=[None, "rand"],
@@ -977,9 +977,9 @@ def _run_cdap(
     chunk_sizer.log_df(trace_label, "persons", persons)
 
     # if DUMP:
-    #     tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
+    #     whale.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
     #                      transpose=False, slicer='NONE')
-    #     tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
+    #     whale.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
     #                      transpose=False, slicer='NONE')
 
     result = persons[["cdap_rank", "cdap_activity"]]
@@ -1072,7 +1072,7 @@ def run_cdap(
         cdap_results = pd.concat(result_list)
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             cdap_results,
             label="cdap",
             columns=["cdap_rank", "cdap_activity"],

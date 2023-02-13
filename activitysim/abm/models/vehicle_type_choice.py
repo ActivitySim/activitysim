@@ -588,4 +588,4 @@ def vehicle_type_choice(
     )
 
     if trace_hh_id:
-        tracing.trace_df(vehicles, label="vehicle_type_choice", warn_if_empty=True)
+        whale.trace_df(vehicles, label="vehicle_type_choice", warn_if_empty=True)

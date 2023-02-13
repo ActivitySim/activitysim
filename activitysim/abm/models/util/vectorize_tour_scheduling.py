@@ -412,7 +412,7 @@ def compute_tour_scheduling_logsums(
                 skims,
                 trace_label,
             )
-            tracing.trace_df(
+            whale.trace_df(
                 trace_logsums_df,
                 label=tracing.extend_trace_label(trace_label, "representative_logsums"),
                 slicer="NONE",

@@ -422,7 +422,7 @@ def run(args):
         logger.exception("activitysim run encountered an unrecoverable error")
         raise
 
-    chunk.consolidate_logs()
+    chunk.consolidate_logs(whale)
     mem.consolidate_logs()
 
     from ..core.flow import TimeLogger

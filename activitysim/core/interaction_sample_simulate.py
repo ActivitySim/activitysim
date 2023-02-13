@@ -101,8 +101,8 @@ def _interaction_sample_simulate(
     have_trace_targets = tracing.has_trace_targets(whale, choosers)
 
     if have_trace_targets:
-        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
-        tracing.trace_df(
+        whale.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
+        whale.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             transpose=False,
@@ -142,7 +142,7 @@ def _interaction_sample_simulate(
     if have_trace_targets:
         trace_rows, trace_ids = tracing.interaction_trace_rows(interaction_df, choosers)
 
-        tracing.trace_df(
+        whale.trace_df(
             interaction_df,
             tracing.extend_trace_label(trace_label, "interaction_df"),
             transpose=False,
@@ -183,7 +183,7 @@ def _interaction_sample_simulate(
             tracing.extend_trace_label(trace_label, "eval"),
         )
 
-        tracing.trace_df(
+        whale.trace_df(
             interaction_utilities,
             tracing.extend_trace_label(trace_label, "interaction_utilities"),
             transpose=False,
@@ -234,7 +234,7 @@ def _interaction_sample_simulate(
     chunk_sizer.log_df(trace_label, "padded_utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             utilities_df,
             tracing.extend_trace_label(trace_label, "utilities"),
             column_labels=["alternative", "utility"],
@@ -260,7 +260,7 @@ def _interaction_sample_simulate(
     chunk_sizer.log_df(trace_label, "utilities_df", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -309,18 +309,18 @@ def _interaction_sample_simulate(
             choices.loc[zero_probs] = zero_prob_choice_val
 
         if have_trace_targets:
-            tracing.trace_df(
+            whale.trace_df(
                 choices,
                 tracing.extend_trace_label(trace_label, "choices"),
                 columns=[None, trace_choice_name],
             )
-            tracing.trace_df(
+            whale.trace_df(
                 rands,
                 tracing.extend_trace_label(trace_label, "rands"),
                 columns=[None, "rand"],
             )
             if want_logsums:
-                tracing.trace_df(
+                whale.trace_df(
                     logsums,
                     tracing.extend_trace_label(trace_label, "logsum"),
                     columns=[None, "logsum"],

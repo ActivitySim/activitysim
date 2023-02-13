@@ -132,4 +132,4 @@ def initialize_tours(whale: workflow.Whale, network_los, households, persons):
         raise RuntimeError(f"{tours_without_persons.sum()} tours with bad person_id")
 
     if trace_hh_id:
-        tracing.trace_df(tours, label="initialize_tours", warn_if_empty=True)
+        whale.trace_df(tours, label="initialize_tours", warn_if_empty=True)

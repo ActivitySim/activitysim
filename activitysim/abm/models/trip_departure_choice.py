@@ -179,10 +179,10 @@ def choose_tour_leg_pattern(
     have_trace_targets = tracing.has_trace_targets(whale, trip_segment)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             trip_segment, tracing.extend_trace_label(trace_label, "choosers")
         )
-        tracing.trace_df(
+        whale.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             transpose=False,
@@ -208,7 +208,7 @@ def choose_tour_leg_pattern(
             interaction_df, trip_segment
         )
 
-        tracing.trace_df(
+        whale.trace_df(
             interaction_df,
             tracing.extend_trace_label(trace_label, "interaction_df"),
             transpose=False,
@@ -242,7 +242,7 @@ def choose_tour_leg_pattern(
             tracing.extend_trace_label(trace_label, "eval"),
         )
 
-        tracing.trace_df(
+        whale.trace_df(
             interaction_utilities,
             tracing.extend_trace_label(trace_label, "interaction_utilities"),
             transpose=False,
@@ -307,7 +307,7 @@ def choose_tour_leg_pattern(
     chunk.log_df(trace_label, "padded_utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             utilities_df,
             tracing.extend_trace_label(trace_label, "utilities"),
             column_labels=["alternative", "utility"],
@@ -325,7 +325,7 @@ def choose_tour_leg_pattern(
     chunk.log_df(trace_label, "utilities_df", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -357,12 +357,12 @@ def choose_tour_leg_pattern(
     chunk.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
-        tracing.trace_df(
+        whale.trace_df(
             choices,
             tracing.extend_trace_label(trace_label, "choices"),
             columns=[None, PATTERN_ID],
         )
-        tracing.trace_df(
+        whale.trace_df(
             rands,
             tracing.extend_trace_label(trace_label, "rands"),
             columns=[None, "rand"],
@@ -464,15 +464,13 @@ def apply_stage_two_model(whale, omnibus_spec, trips, chunk_size, trace_label):
 
 
 @workflow.step
-def trip_departure_choice(
-    whale: workflow.Whale, trips, trips_merged, skim_dict, chunk_size, trace_hh_id
-):
+def trip_departure_choice(whale: workflow.Whale, trips, trips_merged, skim_dict):
     trace_label = "trip_departure_choice"
     model_settings = whale.filesystem.read_model_settings("trip_departure_choice.yaml")
 
     spec = whale.filesystem.read_model_spec(file_name=model_settings["SPECIFICATION"])
 
-    trips_merged_df = trips_merged.to_frame()
+    trips_merged_df = trips_merged
     # add tour-based chunk_id so we can chunk all trips in tour together
     tour_ids = trips_merged[TOUR_ID].unique()
     trips_merged_df["chunk_id"] = reindex(
@@ -514,10 +512,10 @@ def trip_departure_choice(
         )
 
     choices = apply_stage_two_model(
-        whale, spec, trips_merged_df, chunk_size, trace_label
+        whale, spec, trips_merged_df, whale.settings.chunk_size, trace_label
     )
 
-    trips_df = trips.to_frame()
+    trips_df = trips
     trip_length = len(trips_df)
     trips_df = pd.concat([trips_df, choices], axis=1)
     assert len(trips_df) == trip_length

@@ -174,4 +174,4 @@ def work_from_home(whale: workflow.Whale, persons_merged, persons):
     tracing.print_summary("work_from_home", persons.work_from_home, value_counts=True)
 
     if whale.settings.trace_hh_id:
-        tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+        whale.trace_df(persons, label=trace_label, warn_if_empty=True)

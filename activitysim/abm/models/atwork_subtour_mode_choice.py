@@ -200,7 +200,7 @@ def atwork_subtour_mode_choice(
         whale.add_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             tours[tours.tour_category == "atwork"],
             label=tracing.extend_trace_label(trace_label, mode_column_name),
             slicer="tour_id",

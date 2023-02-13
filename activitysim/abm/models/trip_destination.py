@@ -252,7 +252,7 @@ def choose_MAZ_for_TAZ(
 
         # write taz choices, pick_counts, probs
         trace_targets = tracing.trace_targets(whale, taz_sample)
-        tracing.trace_df(
+        whale.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -336,7 +336,7 @@ def choose_MAZ_for_TAZ(
         # write maz_sizes: maz_sizes[index,trip_id,dest_TAZ,zone_id,size_term]
         maz_sizes_trace_targets = tracing.trace_targets(maz_sizes, slicer="trip_id")
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -391,7 +391,7 @@ def choose_MAZ_for_TAZ(
     if have_trace_targets:
         taz_choices_trace_targets = tracing.trace_targets(taz_choices, slicer="trip_id")
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -417,7 +417,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -433,7 +433,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -447,7 +447,7 @@ def choose_MAZ_for_TAZ(
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,
@@ -644,7 +644,7 @@ def compute_ood_logsums(
         settings=whale.settings,
     ):
         expressions.annotate_preprocessors(
-            choosers, locals_dict, od_skims, logsum_settings, trace_label
+            whale, choosers, locals_dict, od_skims, logsum_settings, trace_label
         )
 
     logsums = simulate.simple_simulate_logsums(
@@ -1372,7 +1372,7 @@ def run_trip_destination(
 
 @workflow.step
 def trip_destination(
-    whale: workflow.Whale, trips, tours_merged, chunk_size, trace_hh_id
+    whale: workflow.Whale, trips: pd.DataFrame, tours_merged: pd.DataFrame
 ):
     """
     Choose a destination for all intermediate trips based on trip purpose.
@@ -1388,10 +1388,10 @@ def trip_destination(
 
     Parameters
     ----------
-    trips : orca.DataFrameWrapper
+    trips : DataFrame
         The trips table.  This table is edited in-place to add the trip
         destinations.
-    tours_merged : orca.DataFrameWrapper
+    tours_merged : DataFrame
         The tours table, with columns merge from persons and households as well.
     chunk_size : int
         If non-zero, iterate over trips using this chunk size.
@@ -1409,8 +1409,8 @@ def trip_destination(
         "fail_some_trips_for_testing", False
     )
 
-    trips_df = trips.to_frame()
-    tours_merged_df = tours_merged.to_frame()
+    trips_df = trips
+    tours_merged_df = tours_merged
 
     if whale.is_table("school_escort_trips"):
         school_escort_trips = whale.get_dataframe("school_escort_trips")
@@ -1439,7 +1439,7 @@ def trip_destination(
         trips_df,
         tours_merged_df,
         estimator=estimator,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         trace_label=trace_label,
         fail_some_trips_for_testing=fail_some_trips_for_testing,
     )
@@ -1504,8 +1504,8 @@ def trip_destination(
 
     whale.add_table("trips", trips_df)
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if whale.settings.trace_hh_id:
+        whale.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

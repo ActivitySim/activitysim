@@ -9,14 +9,13 @@ import sys
 import time
 from builtins import next, range
 from collections import OrderedDict
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 import yaml
 
-from activitysim.core import workflow
-
-from . import config
+from activitysim.core import config, workflow
 
 # Configurations
 ASIM_LOGGER = "activitysim"
@@ -673,19 +672,25 @@ def trace_id_for_chooser(id, choosers):
     return hh_id, column_name
 
 
-def dump_df(dump_switch, df, trace_label, fname):
+def dump_df(whale: workflow.Whale, dump_switch, df, trace_label, fname):
     if dump_switch:
         trace_label = extend_trace_label(trace_label, "DUMP.%s" % fname)
         trace_df(
-            df, trace_label, index_label=df.index.name, slicer="NONE", transpose=False
+            whale,
+            df,
+            trace_label,
+            index_label=df.index.name,
+            slicer="NONE",
+            transpose=False,
         )
 
 
 def trace_df(
+    whale: workflow.Whale,
     df: pd.DataFrame,
     label: str,
     slicer=None,
-    columns=None,
+    columns: Optional[list[str]] = None,
     index_label=None,
     column_labels=None,
     transpose=True,
@@ -696,6 +701,7 @@ def trace_df(
 
     Parameters
     ----------
+    whale: workflow.Whale
     df: pandas.DataFrame
         traced dataframe
     label: str
@@ -718,7 +724,7 @@ def trace_df(
     Nothing
     """
 
-    target_ids, column = get_trace_target(df, slicer)
+    target_ids, column = get_trace_target(whale, df, slicer)
 
     if target_ids is not None:
         df = slice_ids(df, target_ids, column)

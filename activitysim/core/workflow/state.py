@@ -5,7 +5,7 @@ import logging
 import os
 from builtins import map, next
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import pandas as pd
 import xarray as xr
@@ -254,11 +254,37 @@ class Whale:
         return result
 
     def set(self, key, value):
+        """
+        Set a new value for a key in the context.
+
+        Also removes from the context all other keys predicated on this key.
+        They can be regenerated later (from fresh inputs) if needed.
+
+        Parameters
+        ----------
+        key : str
+        """
         self.context[key] = value
         for i in self._PREDICATES.get(key, []):
             if i in self.context:
                 logger.critical(f"update of {key} clears cached {i}")
-                del self.context[i]
+                self.drop(i)
+
+    def drop(self, key):
+        """
+        Remove a key from the context.
+
+        Also removes from the context all other keys predicated on this key.
+
+        Parameters
+        ----------
+        key : str
+        """
+        del self.context[key]
+        for i in self._PREDICATES.get(key, []):
+            if i in self.context:
+                logger.critical(f"dropping {key} clears cached {i}")
+                self.drop(i)
 
     def extract(self, func):
         return func(self)
@@ -1114,7 +1140,6 @@ class Whale:
         return df
 
     def drop_table(self, table_name):
-
         if self.is_table(table_name):
             logger.debug("drop_table dropping orca table '%s'" % table_name)
             self.context.pop(table_name, None)
@@ -1214,3 +1239,56 @@ class Whale:
         if prefix:
             file_name = "%s-%s" % (prefix, file_name)
         return self.filesystem.get_output_dir().joinpath(file_name)
+
+    def trace_df(
+        self,
+        df: pd.DataFrame,
+        label: str,
+        slicer=None,
+        columns: Optional[list[str]] = None,
+        index_label=None,
+        column_labels=None,
+        transpose=True,
+        warn_if_empty=False,
+    ):
+        """
+        Slice dataframe by traced household or person id dataframe and write to CSV
+
+        Parameters
+        ----------
+        whale: workflow.Whale
+        df: pandas.DataFrame
+            traced dataframe
+        label: str
+            tracer name
+        slicer: Object
+            slicer for subsetting
+        columns: list
+            columns to write
+        index_label: str
+            index name
+        column_labels: [str, str]
+            labels for columns in csv
+        transpose: boolean
+            whether to transpose file for legibility
+        warn_if_empty: boolean
+            write warning if sliced df is empty
+        """
+        from activitysim.core.tracing import trace_df
+
+        return trace_df(
+            self,
+            df,
+            label,
+            slicer=slicer,
+            columns=columns,
+            index_label=index_label,
+            column_labels=column_labels,
+            transpose=transpose,
+            warn_if_empty=warn_if_empty,
+        )
+
+    def dump_df(self, dump_switch, df, trace_label, fname):
+        from activitysim.core.tracing import dump_df
+
+        return dump_df(self, dump_switch, df, trace_label, fname)

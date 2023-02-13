@@ -235,7 +235,7 @@ def trip_purpose_and_destination(
         del save_sample_df
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

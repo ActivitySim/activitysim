@@ -348,7 +348,7 @@ def parking_location(
     whale.add_table("trips", trips_df)
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

@@ -97,4 +97,4 @@ def joint_tour_destination(
         whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
-        tracing.trace_df(joint_tours, label="joint_tour_destination.joint_tours")
+        whale.trace_df(joint_tours, label="joint_tour_destination.joint_tours")

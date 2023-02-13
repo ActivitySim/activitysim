@@ -112,7 +112,7 @@ def households(whale: workflow.Whale):
 
     tracing.register_traceable_table(whale, "households", df)
     if _trace_hh_id:
-        tracing.trace_df(df, "raw.households", warn_if_empty=True)
+        whale.trace_df(df, "raw.households", warn_if_empty=True)
 
     return df
 

@@ -266,7 +266,7 @@ def summarize(
 
     # Annotate trips_merged
     expressions.annotate_preprocessors(
-        trips_merged, locals_d, skims, model_settings, "summarize"
+        whale, trips_merged, locals_d, skims, model_settings, "summarize"
     )
 
     for table_name, df in locals_d.items():

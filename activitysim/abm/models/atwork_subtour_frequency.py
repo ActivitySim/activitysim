@@ -50,7 +50,6 @@ def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk
     )
 
     # merge persons into work_tours
-    persons_merged = persons_merged.to_frame()
     work_tours = pd.merge(
         work_tours, persons_merged, left_on="person_id", right_index=True
     )
@@ -119,4 +118,4 @@ def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk
     )
 
     if trace_hh_id:
-        tracing.trace_df(tours, label="atwork_subtour_frequency.tours")
+        whale.trace_df(tours, label="atwork_subtour_frequency.tours")

@@ -417,7 +417,7 @@ def tour_mode_choice_simulate(
         annotate.annotate_tours(model_settings, trace_label)
 
     if whale.settings.trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             primary_tours,
             label=tracing.extend_trace_label(trace_label, mode_column_name),
             slicer="tour_id",

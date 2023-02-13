@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 @workflow.step
 def tour_od_choice(
     whale: workflow.Whale,
-    tours,
-    persons,
-    households,
-    land_use,
+    tours: pd.DataFrame,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    land_use: pd.DataFrame,
     network_los,
     chunk_size,
 ):
@@ -62,8 +62,6 @@ def tour_od_choice(
 
     logsum_column_name = model_settings.get("OD_CHOICE_LOGSUM_COLUMN_NAME", None)
     want_logsums = logsum_column_name is not None
-
-    tours = tours.to_frame()
 
     # interaction_sample_simulate insists choosers appear in same order as alts
     tours = tours.sort_index()
@@ -119,8 +117,6 @@ def tour_od_choice(
         land_use.to_frame(columns="poe_id").poe_id
     )
 
-    households = households.to_frame()
-    persons = persons.to_frame()
     households[origin_col_name] = tours.set_index("household_id")[
         origin_col_name
     ].reindex(households.index)
@@ -143,7 +139,7 @@ def tour_od_choice(
         whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             tours,
             label="tours_od_choice",
             slicer="person_id",

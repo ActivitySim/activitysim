@@ -1,9 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
+from typing import Optional
 
 import pandas as pd
 
+from activitysim.abm.models.util.estimation import Estimator
 from activitysim.core import config, expressions, simulate, tracing, workflow
 
 """
@@ -16,18 +18,18 @@ logger = logging.getLogger(__name__)
 
 
 def mode_choice_simulate(
-    choosers,
-    spec,
+    whale: workflow.Whale,
+    choosers: pd.DataFrame,
+    spec: pd.DataFrame,
     nest_spec,
     skims,
     locals_d,
-    chunk_size,
     mode_column_name,
     logsum_column_name,
-    trace_label,
+    trace_label: str,
     trace_choice_name,
     trace_column_names=None,
-    estimator=None,
+    estimator: Optional[Estimator] = None,
 ):
     """
     common method for  both tour_mode_choice and trip_mode_choice
@@ -130,7 +132,7 @@ def run_tour_mode_choice_simulate(
     choosers["out_period"] = network_los.skim_time_period_label(choosers[out_time])
 
     expressions.annotate_preprocessors(
-        choosers, locals_dict, skims, model_settings, trace_label
+        whale, choosers, locals_dict, skims, model_settings, trace_label
     )
 
     trace_column_names = choosers.index.name
@@ -143,12 +145,12 @@ def run_tour_mode_choice_simulate(
         estimator.write_choosers(choosers)
 
     choices = mode_choice_simulate(
+        whale,
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=whale.settings.chunk_size,
         mode_column_name=mode_column_name,
         logsum_column_name=logsum_column_name,
         trace_label=trace_label,

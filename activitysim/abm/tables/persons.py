@@ -39,7 +39,7 @@ def persons(whale: workflow.Whale):
 
     tracing.register_traceable_table(whale, "persons", df)
     if trace_hh_id:
-        tracing.trace_df(df, "raw.persons", warn_if_empty=True)
+        whale.trace_df(df, "raw.persons", warn_if_empty=True)
 
     logger.debug(f"{len(df.household_id.unique())} unique household_ids in persons")
     logger.debug(f"{len(households.index.unique())} unique household_ids in households")
@@ -100,12 +100,6 @@ def persons_merged(
     accessibility: pd.DataFrame,
     disaggregate_accessibility: pd.DataFrame = None,
 ):
-    # land_use = whale.get_dataframe("land_use")
-    # households = whale.get_dataframe("households")
-    # accessibility = whale.get_dataframe("accessibility")
-    # persons = whale.get_dataframe("persons")
-    # disaggregate_accessibility = whale.get_dataframe("disaggregate_accessibility")
-
     def join(left, right, left_on):
         intersection = set(left.columns).intersection(right.columns)
         intersection.discard(left_on)  # intersection is ok if it's the join key

@@ -138,9 +138,9 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
     )
 
     if trace_hh_id:
-        tracing.trace_df(households, label="joint_tour_frequency.households")
+        whale.trace_df(households, label="joint_tour_frequency.households")
 
-        tracing.trace_df(
+        whale.trace_df(
             joint_tours, label="joint_tour_frequency.joint_tours", slicer="household_id"
         )
 

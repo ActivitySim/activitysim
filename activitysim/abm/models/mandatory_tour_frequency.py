@@ -149,12 +149,12 @@ def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
     )
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             mandatory_tours,
             label="mandatory_tour_frequency.mandatory_tours",
             warn_if_empty=True,
         )
 
-        tracing.trace_df(
+        whale.trace_df(
             persons, label="mandatory_tour_frequency.persons", warn_if_empty=True
         )

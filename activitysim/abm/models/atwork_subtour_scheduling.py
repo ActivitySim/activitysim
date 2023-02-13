@@ -61,7 +61,7 @@ def atwork_subtour_scheduling(
         "od_skims": od_skim_wrapper,
     }
     expressions.annotate_preprocessors(
-        subtours, constants, skims, model_settings, trace_label
+        whale, subtours, constants, skims, model_settings, trace_label
     )
 
     # parent_tours table with columns ['tour_id', 'tdd'] index = tour_id
@@ -105,7 +105,7 @@ def atwork_subtour_scheduling(
     whale.add_table("tours", tours)
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             tours[tours.tour_category == "atwork"],
             label="atwork_subtour_scheduling",
             slicer="person_id",
@@ -117,12 +117,12 @@ def atwork_subtour_scheduling(
         subtours = tours[tours.tour_category == "atwork"]
         parent_tours = tours[tours.index.isin(subtours.parent_tour_id)]
 
-        tracing.dump_df(DUMP, subtours, trace_label, "sub_tours")
-        tracing.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
+        whale.dump_df(DUMP, subtours, trace_label, "sub_tours")
+        whale.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
 
         parent_tours["parent_tour_id"] = parent_tours.index
         subtours = pd.concat([parent_tours, subtours])
-        tracing.dump_df(
+        whale.dump_df(
             DUMP,
             tt.tour_map(
                 parent_tours, subtours, tdd_alts, persons_id_col="parent_tour_id"

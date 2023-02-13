@@ -254,7 +254,7 @@ def annotate_trips(
         locals_dict.update(constants)
 
     expressions.annotate_preprocessors(
-        trips_df, locals_dict, skims, model_settings, trace_label
+        whale, trips_df, locals_dict, skims, model_settings, trace_label
     )
 
     if not np.issubdtype(trips_df["trip_period"].dtype, np.integer):

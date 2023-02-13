@@ -63,7 +63,7 @@ def mandatory_tour_scheduling(
     # updated df for tracing
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 
-    tracing.dump_df(
+    whale.dump_df(
         DUMP,
         tt.tour_map(persons_merged, mandatory_tours, tdd_alts),
         trace_label,
@@ -71,7 +71,7 @@ def mandatory_tour_scheduling(
     )
 
     if trace_hh_id:
-        tracing.trace_df(
+        whale.trace_df(
             mandatory_tours,
             label=trace_label,
             slicer="person_id",

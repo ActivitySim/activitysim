@@ -356,7 +356,7 @@ def choose_MAZ_for_TAZ(
 
         # write taz choices, pick_counts, probs
         trace_targets = tracing.trace_targets(taz_sample)
-        tracing.trace_df(
+        whale.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -436,7 +436,7 @@ def choose_MAZ_for_TAZ(
 
         maz_sizes_trace_targets = tracing.trace_targets(maz_sizes, slicer=CHOOSER_ID)
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -491,7 +491,7 @@ def choose_MAZ_for_TAZ(
             taz_choices, slicer=CHOOSER_ID
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -517,7 +517,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -533,7 +533,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -547,7 +547,7 @@ def choose_MAZ_for_TAZ(
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,
@@ -798,7 +798,7 @@ def run_od_logsums(
 
     logger.info("Running %s with %s rows", trace_label, len(choosers))
 
-    tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    whale.dump_df(DUMP, choosers, trace_label, "choosers")
 
     # run trip mode choice to compute tour mode choice logsums
     if logsum_settings.get("COMPUTE_TRIP_MODE_CHOICE_LOGSUMS", False):
@@ -996,7 +996,7 @@ def run_od_simulate(
         od_sample, lu, left_on=origin_col_name, right_index=True, how="left"
     )
 
-    tracing.dump_df(DUMP, od_sample, trace_label, "alternatives")
+    whale.dump_df(DUMP, od_sample, trace_label, "alternatives")
 
     constants = config.get_model_constants(model_settings)
 
@@ -1017,7 +1017,7 @@ def run_od_simulate(
     if constants is not None:
         locals_d.update(constants)
 
-    tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    whale.dump_df(DUMP, choosers, trace_label, "choosers")
     choices = interaction_sample_simulate(
         whale,
         choosers,

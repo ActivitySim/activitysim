@@ -267,7 +267,7 @@ def make_scheduling_choices(
     chunk.log_df(trace_label, "choosers", choosers)
 
     if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
-        tracing.trace_df(choosers, "%s.choosers" % trace_label)
+        whale.trace_df(choosers, "%s.choosers" % trace_label)
 
     # different pre-processing is required based on the scheduling mode
     chooser_probs = _preprocess_scheduling_probs(
@@ -284,7 +284,7 @@ def make_scheduling_choices(
     chunk.log_df(trace_label, "chooser_probs", chooser_probs)
 
     if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
-        tracing.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
+        whale.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
 
     raw_choices, rands = logit.make_choices(
         whale, chooser_probs, trace_label=trace_label, trace_choosers=choosers
@@ -294,12 +294,12 @@ def make_scheduling_choices(
     chunk.log_df(trace_label, "rands", rands)
 
     if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
-        tracing.trace_df(
+        whale.trace_df(
             raw_choices,
             "%s.choices" % trace_label,
             columns=[None, trace_choice_col_name],
         )
-        tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        whale.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     # different post-processing is required based on the scheduling mode
     choices, failed = _postprocess_scheduling_choices(
@@ -324,10 +324,10 @@ def make_scheduling_choices(
 
     # trace before removing failures
     if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
-        tracing.trace_df(
+        whale.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_col_name]
         )
-        tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        whale.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     # remove any failed choices
     if failed.any():

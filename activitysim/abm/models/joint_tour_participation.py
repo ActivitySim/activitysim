@@ -426,6 +426,6 @@ def joint_tour_participation(
     annotate_jtp(whale, model_settings, trace_label)
 
     if trace_hh_id:
-        tracing.trace_df(participants, label="joint_tour_participation.participants")
+        whale.trace_df(participants, label="joint_tour_participation.participants")
 
-        tracing.trace_df(joint_tours, label="joint_tour_participation.joint_tours")
+        whale.trace_df(joint_tours, label="joint_tour_participation.joint_tours")

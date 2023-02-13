@@ -119,7 +119,7 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
     )
 
     if trace_results is not None:
-        tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
+        whale.trace_df(trace_results, label=trace_label, slicer="NONE")
 
     if trace_assigned_locals:
         tracing.write_csv(
@@ -154,7 +154,9 @@ def assign_columns(
 # ##################################################################################################
 
 
-def annotate_preprocessors(df, locals_dict, skims, model_settings, trace_label):
+def annotate_preprocessors(
+    whale: workflow.Whale, df, locals_dict, skims, model_settings, trace_label
+):
 
     locals_d = {}
     locals_d.update(locals_dict)
@@ -170,6 +172,7 @@ def annotate_preprocessors(df, locals_dict, skims, model_settings, trace_label):
     for model_settings in preprocessor_settings:
 
         results = compute_columns(
+            whale,
             df=df,
             model_settings=model_settings,
             locals_dict=locals_d,

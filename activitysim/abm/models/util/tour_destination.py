@@ -257,7 +257,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
 
         # write taz choices, pick_counts, probs
         trace_targets = tracing.trace_targets(taz_sample)
-        tracing.trace_df(
+        whale.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -327,7 +327,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
 
         maz_sizes_trace_targets = tracing.trace_targets(maz_sizes, slicer=CHOOSER_ID)
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -380,7 +380,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             taz_choices, slicer=CHOOSER_ID
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -406,7 +406,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -422,7 +422,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -436,7 +436,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        tracing.trace_df(
+        whale.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,
@@ -643,8 +643,8 @@ def run_destination_logsums(
 
     logger.info("Running %s with %s rows", trace_label, len(choosers))
 
-    tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
-    tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    whale.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
+    whale.dump_df(DUMP, choosers, trace_label, "choosers")
 
     logsums = logsum.compute_logsums(
         whale,
@@ -727,7 +727,7 @@ def run_destination_simulate(
         destination_size_terms.size_term, destination_sample[alt_dest_col_name]
     )
 
-    tracing.dump_df(DUMP, destination_sample, trace_label, "alternatives")
+    whale.dump_df(DUMP, destination_sample, trace_label, "alternatives")
 
     constants = config.get_model_constants(model_settings)
 
@@ -748,7 +748,7 @@ def run_destination_simulate(
     if constants is not None:
         locals_d.update(constants)
 
-    tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    whale.dump_df(DUMP, choosers, trace_label, "choosers")
 
     log_alt_losers = whale.settings.log_alt_losers
 

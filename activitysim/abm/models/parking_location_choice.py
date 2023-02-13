@@ -110,7 +110,9 @@ def parking_destination_simulate(
     choices - pandas.Series
         destination alt chosen
     """
-    trace_label = tracing.extend_trace_label(trace_label, "trip_destination_simulate")
+    trace_label = tracing.extend_trace_label(
+        trace_label, "parking_destination_simulate"
+    )
 
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
@@ -119,7 +121,7 @@ def parking_destination_simulate(
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
-    logger.info("Running trip_destination_simulate with %d trips", len(trips))
+    logger.info("Running parking_destination_simulate with %d trips", len(trips))
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update(skims)
@@ -175,7 +177,6 @@ def choose_parking_location(
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
 
-    # # - trip_destination_simulate
     destinations = parking_destination_simulate(
         segment_name=segment_name,
         trips=trips,
@@ -278,9 +279,9 @@ def run_parking_destination(
 @workflow.step
 def parking_location(
     whale: workflow.Whale,
-    trips,
-    trips_merged,
-    land_use,
+    trips: pd.DataFrame,
+    trips_merged: pd.DataFrame,
+    land_use: pd.DataFrame,
     network_los,
     chunk_size,
 ):
@@ -298,9 +299,9 @@ def parking_location(
 
     preprocessor_settings = model_settings.get("PREPROCESSOR", None)
 
-    trips_df = trips.to_frame()
-    trips_merged_df = trips_merged.to_frame()
-    land_use_df = land_use.to_frame()
+    trips_df = trips
+    trips_merged_df = trips_merged
+    land_use_df = land_use
 
     proposed_trip_departure_period = model_settings["TRIP_DEPARTURE_PERIOD"]
     # TODO: the number of skim time periods should be more readily available than this

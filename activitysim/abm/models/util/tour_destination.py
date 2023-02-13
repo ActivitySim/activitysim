@@ -60,16 +60,15 @@ class SizeTermCalculator:
 
 def _destination_sample(
     whale: workflow.Whale,
-    spec_segment_name,
-    choosers,
+    spec_segment_name: str,
+    choosers: pd.DataFrame,
     destination_size_terms,
     skims,
     estimator,
     model_settings,
     alt_dest_col_name,
-    chunk_size,
     chunk_tag,
-    trace_label,
+    trace_label: str,
     zone_layer=None,
 ):
     model_spec = simulate.spec_for_segment(
@@ -115,7 +114,7 @@ def _destination_sample(
         spec=model_spec,
         skims=skims,
         locals_d=locals_d,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
@@ -167,7 +166,6 @@ def destination_sample(
         estimator,
         model_settings,
         alt_dest_col_name,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
     )
@@ -462,7 +460,6 @@ def destination_presample(
     network_los,
     destination_size_terms,
     estimator,
-    chunk_size,
     trace_label,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
@@ -497,7 +494,6 @@ def destination_presample(
         estimator,
         model_settings,
         DEST_TAZ,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
@@ -569,7 +565,6 @@ def run_destination_sample(
             network_los,
             destination_size_terms,
             estimator,
-            chunk_size,
             trace_label,
         )
 

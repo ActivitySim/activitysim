@@ -14,7 +14,10 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def non_mandatory_tour_destination(
-    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    network_los,
 ):
     """
     Given the tour generation from the above, each tour needs to have a
@@ -34,10 +37,6 @@ def non_mandatory_tour_destination(
     want_sample_table = (
         whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
-
-    tours = tours.to_frame()
-
-    persons_merged = persons_merged.to_frame()
 
     # choosers are tours - in a sense tours are choosing their destination
     non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]

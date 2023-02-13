@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, expressions, inject, los, simulate
+from activitysim.core import chunk, config, expressions, los, simulate
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
@@ -550,7 +550,9 @@ def tdd_interaction_dataset(
     return alt_tdd
 
 
-def run_alts_preprocessor(model_settings, alts, segment, locals_dict, trace_label):
+def run_alts_preprocessor(
+    whale: workflow.Whale, model_settings, alts, segment, locals_dict, trace_label
+):
     """
     run preprocessor on alts, as specified by ALTS_PREPROCESSOR in model_settings
 
@@ -758,7 +760,7 @@ def _schedule_tours(
             logsum_tour_purpose  # FIXME this is not always right - see note above
         )
         alt_tdd = run_alts_preprocessor(
-            model_settings, alt_tdd, spec_segment, locals_d, tour_trace_label
+            whale, model_settings, alt_tdd, spec_segment, locals_d, tour_trace_label
         )
         chunk_sizer.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
@@ -998,6 +1000,7 @@ def vectorize_tour_scheduling(
                 if RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
                     locals_dict = {}
                     alts = run_alts_preprocessor(
+                        whale,
                         model_settings,
                         alts,
                         spec_segment_name,
@@ -1061,6 +1064,7 @@ def vectorize_tour_scheduling(
 
 
 def vectorize_subtour_scheduling(
+    whale: workflow.Whale,
     parent_tours,
     subtours,
     persons_merged,

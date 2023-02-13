@@ -255,7 +255,6 @@ def schedule_trips_in_leg(
             depart_alt_base,
             first_trip_in_leg=first_trip_in_leg,
             report_failed_trips=is_last_iteration,
-            trace_hh_id=trace_hh_id,
             trace_label=nth_trace_label,
         )
 

@@ -230,7 +230,6 @@ def make_scheduling_choices(
     depart_alt_base,
     first_trip_in_leg,
     report_failed_trips,
-    trace_hh_id,
     trace_label,
     trace_choice_col_name="depart",
     clip_earliest_latest=True,
@@ -254,7 +253,6 @@ def make_scheduling_choices(
         int to add to probs column index to get time period it represents.
         e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
     report_failed_trips : bool
-    trace_hh_id
     trace_label
 
     Returns
@@ -262,7 +260,7 @@ def make_scheduling_choices(
     choices: pd.Series
         time periods depart choices, one per trip (except for trips with zero probs)
     """
-
+    trace_hh_id = whale.settings.trace_hh_id
     choosers = pd.merge(
         choosers_df.reset_index(), probs_spec, on=probs_join_cols, how="left"
     ).set_index(choosers_df.index.name)

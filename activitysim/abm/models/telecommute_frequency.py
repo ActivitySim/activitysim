@@ -12,7 +12,7 @@ logger = logging.getLogger("activitysim")
 
 @workflow.step
 def telecommute_frequency(
-    whale: workflow.Whale, persons_merged, persons, chunk_size, trace_hh_id
+    whale: workflow.Whale, persons_merged: pd.DataFrame, persons: pd.DataFrame
 ):
     """
     This model predicts the frequency of telecommute for a person (worker) who
@@ -25,7 +25,7 @@ def telecommute_frequency(
     trace_label = "telecommute_frequency"
     model_settings_file_name = "telecommute_frequency.yaml"
 
-    choosers = persons_merged.to_frame()
+    choosers = persons_merged
     choosers = choosers[choosers.workplace_zone_id > -1]
 
     logger.info("Running %s with %d persons", trace_label, len(choosers))
@@ -85,7 +85,6 @@ def telecommute_frequency(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons = persons.to_frame()
     persons["telecommute_frequency"] = (
         choices.reindex(persons.index).fillna("").astype(str)
     )
@@ -96,5 +95,5 @@ def telecommute_frequency(
         "telecommute_frequency", persons.telecommute_frequency, value_counts=True
     )
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

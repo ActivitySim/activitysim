@@ -16,7 +16,10 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def joint_tour_scheduling(
-    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    tdd_alts: pd.DataFrame,
 ):
     """
     This model predicts the departure time and duration of each joint tour
@@ -36,8 +39,6 @@ def joint_tour_scheduling(
 
     # use inject.get_table as this won't exist if there are no joint_tours
     joint_tour_participants = whale.get_dataframe("joint_tour_participants")
-
-    persons_merged = persons_merged.to_frame()
 
     logger.info("Running %s with %d joint tours", trace_label, joint_tours.shape[0])
 
@@ -96,7 +97,7 @@ def joint_tour_scheduling(
         spec=model_spec,
         model_settings=model_settings,
         estimator=estimator,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         trace_label=trace_label,
         sharrow_skip=sharrow_skip,
     )
@@ -123,7 +124,7 @@ def joint_tour_scheduling(
                 nth_participants.person_id, reindex(choices, nth_participants.tour_id)
             )
 
-    timetable.replace_table()
+    timetable.replace_table(whale)
 
     # choices are tdd alternative ids
     # we want to add start, end, and duration columns to tours, which we have in tdd_alts table

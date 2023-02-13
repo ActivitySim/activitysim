@@ -14,11 +14,10 @@ logger = logging.getLogger(__name__)
 @workflow.step
 def stop_frequency(
     whale: workflow.Whale,
-    tours,
-    tours_merged,
+    tours: pd.DataFrame,
+    tours_merged: pd.DataFrame,
     stop_frequency_alts,
     network_los,
-    chunk_size,
 ):
     """
     stop frequency model
@@ -52,8 +51,6 @@ def stop_frequency(
 
     model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
-    tours = tours.to_frame()
-    tours_merged = tours_merged.to_frame()
     assert not tours_merged.household_id.isnull().any()
     assert not (tours_merged.origin == -1).any()
     assert not (tours_merged.destination == -1).any()

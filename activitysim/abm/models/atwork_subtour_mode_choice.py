@@ -15,7 +15,11 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def atwork_subtour_mode_choice(
-    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    network_los,
+    chunk_size,
 ):
     """
     At-work subtour mode choice simulate
@@ -31,7 +35,6 @@ def atwork_subtour_mode_choice(
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "tour_mode"
 
-    tours = tours.to_frame()
     subtours = tours[tours.tour_category == "atwork"]
 
     # - if no atwork subtours
@@ -41,7 +44,7 @@ def atwork_subtour_mode_choice(
 
     subtours_merged = pd.merge(
         subtours,
-        persons_merged.to_frame(),
+        persons_merged,
         left_on="person_id",
         right_index=True,
         how="left",
@@ -130,6 +133,7 @@ def atwork_subtour_mode_choice(
         # FIXME run_tour_mode_choice_simulate writes choosers post-annotation
 
     choices_df = run_tour_mode_choice_simulate(
+        whale,
         subtours_merged,
         tour_purpose="atwork",
         model_settings=model_settings,
@@ -139,7 +143,6 @@ def atwork_subtour_mode_choice(
         skims=skims,
         constants=constants,
         estimator=estimator,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="tour_mode_choice",
     )

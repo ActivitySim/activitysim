@@ -2,8 +2,10 @@
 # See full license in LICENSE.txt.
 import logging
 
+import pandas as pd
+
 from activitysim.abm.models.util import estimation, tour_destination
-from activitysim.core import config, inject, tracing, workflow
+from activitysim.core import config, inject, los, tracing, workflow
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -12,7 +14,10 @@ DUMP = False
 
 @workflow.step
 def atwork_subtour_destination(
-    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    network_los: los.Network_LOS,
 ):
     trace_label = "atwork_subtour_destination"
     model_settings_file_name = "atwork_subtour_destination.yaml"
@@ -36,9 +41,6 @@ def atwork_subtour_destination(
         whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
-    persons_merged = persons_merged.to_frame()
-
-    tours = tours.to_frame()
     subtours = tours[tours.tour_category == "atwork"]
 
     # - if no atwork subtours

@@ -175,7 +175,10 @@ def get_trip_mc_logsums_for_all_modes(
 
 @workflow.step
 def tour_mode_choice_simulate(
-    whale: workflow.Whale, tours, persons_merged, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    network_los,
 ):
     """
     Tour mode choice simulate
@@ -188,14 +191,13 @@ def tour_mode_choice_simulate(
     mode_column_name = "tour_mode"
     segment_column_name = "tour_purpose"
 
-    primary_tours = tours.to_frame()
+    primary_tours = tours
     assert not (primary_tours.tour_category == "atwork").any()
 
     logger.info("Running %s with %d tours" % (trace_label, primary_tours.shape[0]))
 
     tracing.print_summary("tour_types", primary_tours.tour_type, value_counts=True)
 
-    persons_merged = persons_merged.to_frame()
     primary_tours_merged = pd.merge(
         primary_tours,
         persons_merged,
@@ -328,6 +330,7 @@ def tour_mode_choice_simulate(
         assert tours_segment.index.name == "tour_id"
 
         choices_df = run_tour_mode_choice_simulate(
+            whale,
             tours_segment,
             tour_purpose,
             model_settings,
@@ -337,7 +340,6 @@ def tour_mode_choice_simulate(
             skims=skims,
             constants=constants,
             estimator=estimator,
-            chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(trace_label, tour_purpose),
             trace_choice_name="tour_mode_choice",
         )
@@ -396,7 +398,7 @@ def tour_mode_choice_simulate(
     assign_in_place(primary_tours, choices_df)
 
     # update tours table with mode choice (and optionally logsums)
-    all_tours = tours.to_frame()
+    all_tours = tours
     assign_in_place(all_tours, choices_df)
 
     if whale.is_table("school_escort_tours") & model_settings.get(
@@ -414,7 +416,7 @@ def tour_mode_choice_simulate(
     if model_settings.get("annotate_tours"):
         annotate.annotate_tours(model_settings, trace_label)
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         tracing.trace_df(
             primary_tours,
             label=tracing.extend_trace_label(trace_label, mode_column_name),

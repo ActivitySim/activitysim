@@ -86,7 +86,6 @@ def _destination_sample(
     skims,
     alt_dest_col_name,
     estimator,
-    chunk_size,
     chunk_tag,
     trace_label,
     zone_layer=None,
@@ -155,7 +154,7 @@ def _destination_sample(
         spec=spec,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
@@ -192,7 +191,6 @@ def destination_sample(
         skims,
         alt_dest_col_name,
         estimator,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
     )
@@ -476,7 +474,6 @@ def destination_presample(
     skim_hotel,
     network_los,
     estimator,
-    chunk_size,
     trace_label,
 ):
     trace_label = tracing.extend_trace_label(trace_label, "presample")
@@ -515,7 +512,6 @@ def destination_presample(
         skims,
         alt_dest_col_name,
         estimator,
-        chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer="taz",
@@ -596,7 +592,6 @@ def trip_destination_sample(
             skim_hotel,
             network_los,
             estimator,
-            chunk_size,
             trace_label,
         )
 
@@ -673,15 +668,14 @@ def compute_ood_logsums(
 
 
 def compute_logsums(
-    whale,
+    whale: workflow.Whale,
     primary_purpose,
-    trips,
+    trips: pd.DataFrame,
     destination_sample,
-    tours_merged,
+    tours_merged: pd.DataFrame,
     model_settings,
     skim_hotel,
-    chunk_size,
-    trace_label,
+    trace_label: str,
 ):
     """
     Calculate mode choice logsums using the same recipe as for trip_mode_choice, but do it twice
@@ -771,7 +765,7 @@ def compute_logsums(
         logsum_spec,
         od_skims,
         locals_dict,
-        chunk_size,
+        whale.settings.chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, "od"),
         chunk_tag=chunk_tag,
     )
@@ -799,7 +793,7 @@ def compute_logsums(
         logsum_spec,
         dp_skims,
         locals_dict,
-        chunk_size,
+        whale.settings.chunk_size,
         trace_label=tracing.extend_trace_label(trace_label, "dp"),
         chunk_tag=chunk_tag,
     )
@@ -817,7 +811,6 @@ def trip_destination_simulate(
     size_term_matrix,
     skim_hotel,
     estimator,
-    chunk_size,
     trace_label,
 ):
     """
@@ -878,7 +871,7 @@ def trip_destination_simulate(
         zero_prob_choice_val=NO_DESTINATION,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         trace_choice_name="trip_dest",
@@ -964,13 +957,11 @@ def choose_trip_destination(
         tours_merged=tours_merged,
         model_settings=model_settings,
         skim_hotel=skim_hotel,
-        chunk_size=chunk_size,
         trace_label=trace_label,
     )
 
     t0 = print_elapsed_time("%s.compute_logsums" % trace_label, t0)
 
-    # - trip_destination_simulate
     destinations = trip_destination_simulate(
         whale,
         primary_purpose=primary_purpose,
@@ -981,7 +972,6 @@ def choose_trip_destination(
         size_term_matrix=size_term_matrix,
         skim_hotel=skim_hotel,
         estimator=estimator,
-        chunk_size=chunk_size,
         trace_label=trace_label,
     )
 

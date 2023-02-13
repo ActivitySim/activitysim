@@ -93,7 +93,6 @@ def run_tour_mode_choice_simulate(
     skims,
     constants,
     estimator,
-    chunk_size,
     trace_label=None,
     trace_choice_name=None,
 ):
@@ -149,7 +148,7 @@ def run_tour_mode_choice_simulate(
         nest_spec=nest_spec,
         skims=skims,
         locals_d=locals_dict,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         mode_column_name=mode_column_name,
         logsum_column_name=logsum_column_name,
         trace_label=trace_label,

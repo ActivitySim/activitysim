@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.table
-def vehicles(whale: workflow.Whale, households):
+def vehicles(whale: workflow.Whale, households: pd.DataFrame):
     """Creates the vehicles table and load it as an injectable
 
     This method initializes the `vehicles` table, where the number of rows
@@ -18,7 +18,7 @@ def vehicles(whale: workflow.Whale, households):
 
     Parameters
     ----------
-    households :  orca.DataFrameWrapper
+    households : DataFrame
 
     Returns
     -------
@@ -26,9 +26,7 @@ def vehicles(whale: workflow.Whale, households):
     """
 
     # initialize vehicles table
-    vehicles = households.to_frame().loc[
-        households.index.repeat(households["auto_ownership"])
-    ]
+    vehicles = households.loc[households.index.repeat(households["auto_ownership"])]
     vehicles = vehicles.reset_index()[["household_id"]]
 
     vehicles["vehicle_num"] = vehicles.groupby("household_id").cumcount() + 1
@@ -45,7 +43,7 @@ def vehicles(whale: workflow.Whale, households):
     return vehicles
 
 
-@workflow.table
+@workflow.temp_table
 def vehicles_merged(
     whale: workflow.Whale, vehicles: pd.DataFrame, households_merged: pd.DataFrame
 ):

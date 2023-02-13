@@ -691,7 +691,7 @@ def compute_disaggregate_accessibility(
 
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:
-        df = inject.get_table(tablename).to_frame()
+        df = whale.get_dataframe(tablename)
         traceables = whale.get_injectable("traceable_tables")
         if tablename not in whale.get_rn_generator().channels:
             whale.get_rn_generator().add_channel(tablename, df)

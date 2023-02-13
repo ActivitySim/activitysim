@@ -14,18 +14,17 @@ logger = logging.getLogger(__name__)
 
 def run_tour_scheduling_probabilistic(
     whale: workflow.Whale,
-    tours_df,
-    scheduling_probs,
-    probs_join_cols,
-    depart_alt_base,
-    chunk_size,
-    trace_label,
-    trace_hh_id,
+    tours_df: pd.DataFrame,
+    scheduling_probs: pd.DataFrame,
+    probs_join_cols: str | list[str],
+    depart_alt_base: int,
+    trace_label: str,
 ):
     """Make probabilistic tour scheduling choices in chunks
 
     Parameters
     ----------
+    whale: workflow.Whale
     tours_df : pandas.DataFrame
         table of tours
     scheduling_probs : pandas.DataFrame
@@ -35,12 +34,8 @@ def run_tour_scheduling_probabilistic(
     depart_alt_base : int
         int to add to probs column index to get time period it represents.
         e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
-    chunk_size : int
-        size of chooser chunks, set in main settings.yaml
     trace_label : str
         label to append to tracing logs and table names
-    trace_hh_id : int
-        households to trace
 
     Returns
     -------
@@ -64,7 +59,6 @@ def run_tour_scheduling_probabilistic(
             first_trip_in_leg=False,
             report_failed_trips=True,
             trace_label=chunk_trace_label,
-            trace_hh_id=trace_hh_id,
             trace_choice_col_name="depart_return",
             clip_earliest_latest=False,
         )
@@ -75,9 +69,7 @@ def run_tour_scheduling_probabilistic(
 
 
 @workflow.step
-def tour_scheduling_probabilistic(
-    whale: workflow.Whale, tours, chunk_size, trace_hh_id
-):
+def tour_scheduling_probabilistic(whale: workflow.Whale, tours: pd.DataFrame):
     """Makes tour departure and arrival choices by sampling from a probability lookup table
 
     This model samples tour scheduling choices from an exogenously defined probability
@@ -87,7 +79,7 @@ def tour_scheduling_probabilistic(
 
     Parameters
     ----------
-    tours :  orca.DataFrameWrapper
+    tours : DataFrame
         lazy-loaded table of tours
     chunk_size :  int
         size of chooser chunks, defined in main settings.yaml
@@ -105,7 +97,7 @@ def tour_scheduling_probabilistic(
     )
     scheduling_probs = pd.read_csv(scheduling_probs_filepath)
     probs_join_cols = model_settings["PROBS_JOIN_COLS"]
-    tours_df = tours.to_frame()
+    tours_df = tours
 
     # trip_scheduling is a probabilistic model ane we don't support estimation,
     # but we do need to override choices in estimation mode
@@ -124,9 +116,7 @@ def tour_scheduling_probabilistic(
         scheduling_probs,
         probs_join_cols,
         depart_alt_base,
-        chunk_size,
         trace_label,
-        trace_hh_id,
     )
 
     # convert alt index choices to depart/return times

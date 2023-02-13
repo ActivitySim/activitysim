@@ -207,7 +207,6 @@ def summarize(
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
     trips: pd.DataFrame,
-    tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
     land_use: pd.DataFrame,
 ):
@@ -238,14 +237,7 @@ def summarize(
     )
 
     # Load dataframes from pipeline
-    persons = persons.to_frame()
-    persons_merged = persons_merged.to_frame()
-    households = households.to_frame()
-    households_merged = households_merged.to_frame()
-    trips = trips.to_frame()
-    tours = tours_merged.to_frame()
-    tours_merged = tours_merged.to_frame()
-    land_use = land_use.to_frame()
+    tours = tours_merged
 
     # - trips_merged - merge trips and tours_merged
     trips_merged = pd.merge(

@@ -22,8 +22,8 @@ DUMP = False
 @workflow.step
 def atwork_subtour_scheduling(
     whale: workflow.Whale,
-    tours,
-    persons_merged,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
     tdd_alts,
     skim_dict,
     chunk_size,
@@ -52,8 +52,6 @@ def atwork_subtour_scheduling(
         whale, model_spec, coefficients_df, estimator
     )
 
-    persons_merged = persons_merged.to_frame()
-
     logger.info("Running %s with %d tours", trace_label, len(subtours))
 
     # preprocessor
@@ -78,6 +76,7 @@ def atwork_subtour_scheduling(
         # we don't need to update timetable because subtours are scheduled inside work trip windows
 
     choices = vectorize_subtour_scheduling(
+        whale,
         parent_tours,
         subtours,
         persons_merged,

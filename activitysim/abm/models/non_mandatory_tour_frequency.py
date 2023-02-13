@@ -31,7 +31,11 @@ def extension_probs(whale: workflow.Whale):
 
 
 def extend_tour_counts(
-    whale: workflow.Whale, persons, tour_counts, alternatives, trace_label
+    whale: workflow.Whale,
+    persons: pd.DataFrame,
+    tour_counts: pd.DataFrame,
+    alternatives,
+    trace_label: str,
 ):
     """
     extend tour counts based on a probability table
@@ -50,7 +54,6 @@ def extend_tour_counts(
     alternatives
         alternatives from nmtv interaction_simulate
         only need this to know max possible frequency for a tour type
-    trace_hh_id
     trace_label
 
     Returns
@@ -67,7 +70,6 @@ def extend_tour_counts(
     """
 
     assert tour_counts.index.name == persons.index.name
-    trace_hh_id = whale.settings.trace_hh_id
 
     PROBABILITY_COLUMNS = ["0_tours", "1_tours", "2_tours"]
     JOIN_COLUMNS = ["ptype", "has_mandatory_tour", "has_joint_tour"]
@@ -82,7 +84,7 @@ def extend_tour_counts(
         logger.info("extend_tour_counts - no persons eligible for tour_count extension")
         return tour_counts
 
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(
+    have_trace_targets = whale.settings.trace_hh_id and tracing.has_trace_targets(
         whale, extend_tour_counts
     )
 
@@ -137,7 +139,7 @@ def extend_tour_counts(
 
 @workflow.step
 def non_mandatory_tour_frequency(
-    whale: workflow.Whale, persons, persons_merged, chunk_size, trace_hh_id
+    whale: workflow.Whale, persons: pd.DataFrame, persons_merged: pd.DataFrame
 ):
     """
     This model predicts the frequency of making non-mandatory trips
@@ -159,7 +161,7 @@ def non_mandatory_tour_frequency(
     alternatives["tot_tours"] = alternatives.sum(axis=1)
 
     # filter based on results of CDAP
-    choosers = persons_merged.to_frame()
+    choosers = persons_merged
     choosers = choosers[choosers.cdap_activity.isin(["M", "N"])]
 
     # - preprocessor
@@ -243,7 +245,7 @@ def non_mandatory_tour_frequency(
             spec=segment_spec,
             log_alt_losers=log_alt_losers,
             locals_d=constants,
-            chunk_size=chunk_size,
+            chunk_size=whale.settings.chunk_size,
             trace_label="non_mandatory_tour_frequency.%s" % segment_name,
             trace_choice_name="non_mandatory_tour_frequency",
             estimator=estimator,
@@ -266,7 +268,6 @@ def non_mandatory_tour_frequency(
     choices = pd.concat(choices_list).sort_index()
 
     # add non_mandatory_tour_frequency column to persons
-    persons = persons.to_frame()
     # we expect there to be an alt with no tours - which we can use to backfill non-travelers
     no_tours_alt = (alternatives.sum(axis=1) == 0).index[0]
     # need to reindex as we only handled persons with cdap_activity in ['M', 'N']
@@ -299,10 +300,10 @@ def non_mandatory_tour_frequency(
 
     # - extend_tour_counts - probabalistic
     extended_tour_counts = extend_tour_counts(
+        whale,
         choosers,
         modeled_tour_counts.copy(),
         alternatives,
-        trace_hh_id,
         tracing.extend_trace_label(trace_label, "extend_tour_counts"),
     )
 
@@ -402,7 +403,7 @@ def non_mandatory_tour_frequency(
         value_counts=True,
     )
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         tracing.trace_df(
             non_mandatory_tours,
             label="non_mandatory_tour_frequency.non_mandatory_tours",

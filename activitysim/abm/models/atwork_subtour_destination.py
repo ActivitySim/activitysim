@@ -67,7 +67,6 @@ def atwork_subtour_destination(
         model_settings,
         network_los,
         estimator,
-        chunk_size,
         trace_label,
     )
 

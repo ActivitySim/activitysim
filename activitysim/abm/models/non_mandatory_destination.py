@@ -81,7 +81,6 @@ def non_mandatory_tour_destination(
         model_settings,
         network_los,
         estimator,
-        chunk_size,
         trace_label,
     )
 

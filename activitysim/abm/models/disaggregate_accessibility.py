@@ -653,7 +653,6 @@ def get_disaggregate_logsums(
                 model_settings=model_settings,
                 network_los=network_los,
                 estimator=estimator,
-                chunk_size=chunk_size,
                 trace_label=trace_label,
                 skip_choice=True,
             )

@@ -833,6 +833,7 @@ def trip_destination_simulate(
     chunk_tag = "trip_destination.simulate"
 
     spec = simulate.spec_for_segment(
+        whale,
         model_settings,
         spec_id="DESTINATION_SPEC",
         segment_name=primary_purpose,

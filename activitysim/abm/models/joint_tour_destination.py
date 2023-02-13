@@ -4,7 +4,7 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, inject, tracing, workflow
+from activitysim.core import config, inject, los, tracing, workflow
 from activitysim.core.util import assign_in_place
 
 from .util import estimation, tour_destination
@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 @workflow.step
 def joint_tour_destination(
     whale: workflow.Whale,
-    tours,
-    persons_merged,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
     households_merged,
-    network_los,
+    network_los: los.Network_LOS,
     chunk_size,
 ):
     """
@@ -41,10 +41,7 @@ def joint_tour_destination(
     )
 
     # choosers are tours - in a sense tours are choosing their destination
-    tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == "joint"]
-
-    persons_merged = persons_merged.to_frame()
 
     # - if no joint tours
     if joint_tours.shape[0] == 0:
@@ -72,7 +69,6 @@ def joint_tour_destination(
         model_settings,
         network_los,
         estimator,
-        chunk_size,
         trace_label,
     )
 

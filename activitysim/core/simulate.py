@@ -7,11 +7,12 @@ import warnings
 from builtins import range
 from collections import OrderedDict
 from datetime import timedelta
-from typing import Callable
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util.estimation import Estimator
 from activitysim.core import (
     assign,
     chunk,
@@ -180,8 +181,12 @@ def read_model_coefficients(
 
 @workflow.func
 def spec_for_segment(
-    whale: workflow.Whale, model_settings, spec_id, segment_name, estimator
-):
+    whale: workflow.Whale,
+    model_settings,
+    spec_id: str,
+    segment_name: str,
+    estimator: Optional[Estimator],
+) -> pd.DataFrame:
     """
     Select spec for specified segment from omnibus spec containing columns for each segment
 
@@ -409,8 +414,8 @@ def eval_coefficients(
     whale: workflow.Whale,
     spec: pd.DataFrame,
     coefficients: dict | pd.DataFrame,
-    estimator,
-):
+    estimator: Optional[Estimator],
+) -> pd.DataFrame:
     spec = spec.copy()  # don't clobber input spec
 
     if isinstance(coefficients, pd.DataFrame):
@@ -1560,7 +1565,6 @@ def simple_simulate_by_chunk_id(
     nest_spec,
     skims=None,
     locals_d=None,
-    chunk_size=0,
     custom_chooser=None,
     log_alt_losers=False,
     want_logsums=False,
@@ -1571,7 +1575,7 @@ def simple_simulate_by_chunk_id(
     """
     chunk_by_chunk_id wrapper for simple_simulate
     """
-
+    choices = None
     result_list = []
     for (
         i,

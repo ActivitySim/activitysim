@@ -13,7 +13,9 @@ from activitysim.core import config, inject, input, util, workflow
 logger = logging.getLogger(__name__)
 
 
-def find_nearest_accessibility_zone(choosers, accessibility_df, method="skims"):
+def find_nearest_accessibility_zone(
+    whale: workflow.Whale, choosers, accessibility_df, method="skims"
+):
     """
     Matches choosers zone to the nearest accessibility zones.
     Can be achieved by querying the skims or by nearest neighbor of centroids
@@ -173,7 +175,7 @@ def disaggregate_accessibility(whale: workflow.Whale):
     # Note that from here on the 'home_zone_id' is the matched name
     if "nearest_accessibility_zone_id" not in persons_merged_df.columns:
         persons_merged_df = find_nearest_accessibility_zone(
-            persons_merged_df, proto_accessibility_df, nearest_method
+            whale, persons_merged_df, proto_accessibility_df, nearest_method
         )
 
     # Copy home_zone_id in proto-table to match the temporary 'nearest_zone_id'

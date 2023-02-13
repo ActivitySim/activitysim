@@ -353,7 +353,6 @@ def joint_tour_participation(
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="participation",
         custom_chooser=participants_chooser,

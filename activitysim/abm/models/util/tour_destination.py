@@ -16,16 +16,16 @@ logger = logging.getLogger(__name__)
 DUMP = False
 
 
-class SizeTermCalculator(object):
+class SizeTermCalculator:
     """
     convenience object to provide size_terms for a selector (e.g. non_mandatory)
     for various segments (e.g. tour_type or purpose)
     returns size terms for specified segment in df or series form
     """
 
-    def __init__(self, size_term_selector):
+    def __init__(self, whale: workflow.Whale, size_term_selector):
         # do this once so they can request size_terms for various segments (tour_type or purpose)
-        land_use = inject.get_table("land_use")
+        land_use = whale.get_dataframe("land_use")
         size_terms = whale.get_injectable("size_terms")
         self.destination_size_terms = tour_destination_size_terms(
             land_use, size_terms, size_term_selector
@@ -57,11 +57,6 @@ class SizeTermCalculator(object):
 
         return size_terms
 
-    # def dest_size_terms_series(self, segment_name):
-    #     # return size terms as as series
-    #     # convenient (and no copy overhead) if reindexing and assigning into alts column
-    #     return self.destination_size_terms[segment_name]
-
 
 def _destination_sample(
     whale: workflow.Whale,
@@ -78,6 +73,7 @@ def _destination_sample(
     zone_layer=None,
 ):
     model_spec = simulate.spec_for_segment(
+        whale,
         model_settings,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
@@ -694,6 +690,7 @@ def run_destination_simulate(
     chunk_tag = "tour_destination.simulate"
 
     model_spec = simulate.spec_for_segment(
+        whale,
         model_settings,
         spec_id="SPEC",
         segment_name=spec_segment_name,
@@ -788,18 +785,19 @@ def run_destination_simulate(
 
 def run_tour_destination(
     whale: workflow.Whale,
-    tours,
-    persons_merged,
-    want_logsums,
-    want_sample_table,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    want_logsums: bool,
+    want_sample_table: bool,
     model_settings,
-    network_los,
+    network_los: los.Network_LOS,
     estimator,
-    chunk_size,
     trace_label,
     skip_choice=False,
 ):
-    size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
+    size_term_calculator = SizeTermCalculator(
+        whale, model_settings["SIZE_TERM_SELECTOR"]
+    )
 
     # maps segment names to compact (integer) ids
     segments = model_settings["SEGMENTS"]
@@ -842,7 +840,7 @@ def run_tour_destination(
             network_los,
             segment_destination_size_terms,
             estimator,
-            chunk_size=chunk_size,
+            chunk_size=whale.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "sample"),
         )
 
@@ -855,7 +853,7 @@ def run_tour_destination(
             location_sample_df,
             model_settings,
             network_los,
-            chunk_size=chunk_size,
+            chunk_size=whale.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "logsums"),
         )
 
@@ -872,7 +870,7 @@ def run_tour_destination(
             network_los=network_los,
             destination_size_terms=segment_destination_size_terms,
             estimator=estimator,
-            chunk_size=chunk_size,
+            chunk_size=whale.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "simulate"),
             skip_choice=skip_choice,
         )

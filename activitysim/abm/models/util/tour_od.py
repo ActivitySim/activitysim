@@ -23,6 +23,7 @@ from activitysim.core.util import reindex
 
 from . import logsums as logsum
 from . import trip
+from .tour_destination import SizeTermCalculator
 
 logger = logging.getLogger(__name__)
 DUMP = False
@@ -129,6 +130,7 @@ def _od_sample(
     trace_label,
 ):
     model_spec = simulate.spec_for_segment(
+        whale,
         model_settings,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
@@ -637,52 +639,52 @@ def od_presample(
     return maz_choices
 
 
-class SizeTermCalculator(object):
-    """
-    convenience object to provide size_terms for a selector (e.g.
-    non_mandatory) for various segments (e.g. tour_type or purpose)
-    returns size terms for specified segment in df or series form.
-    """
-
-    def __init__(self, size_term_selector):
-        # do this once so they can request size_terms for various segments (tour_type or purpose)
-        land_use = inject.get_table("land_use")
-        self.land_use = land_use
-        size_terms = whale.get_injectable("size_terms")
-        self.destination_size_terms = tour_destination_size_terms(
-            self.land_use, size_terms, size_term_selector
-        )
-
-        assert not self.destination_size_terms.isna().any(axis=None)
-
-    def omnibus_size_terms_df(self):
-        return self.destination_size_terms
-
-    def dest_size_terms_df(self, segment_name, trace_label):
-        # return size terms as df with one column named 'size_term'
-        # convenient if creating or merging with alts
-
-        size_terms = self.destination_size_terms[[segment_name]].copy()
-        size_terms.columns = ["size_term"]
-
-        # FIXME - no point in considering impossible alternatives (where dest size term is zero)
-        logger.debug(
-            f"SizeTermCalculator dropping {(~(size_terms.size_term > 0)).sum()} "
-            f"of {len(size_terms)} rows where size_term is zero for {segment_name}"
-        )
-        size_terms = size_terms[size_terms.size_term > 0]
-
-        if len(size_terms) == 0:
-            logger.warning(
-                f"SizeTermCalculator: no zones with non-zero size terms for {segment_name} in {trace_label}"
-            )
-
-        return size_terms
-
-    def dest_size_terms_series(self, segment_name):
-        # return size terms as as series
-        # convenient (and no copy overhead) if reindexing and assigning into alts column
-        return self.destination_size_terms[segment_name]
+# class SizeTermCalculatorOD:  # class SizeTermCalculator
+#     """
+#     convenience object to provide size_terms for a selector (e.g.
+#     non_mandatory) for various segments (e.g. tour_type or purpose)
+#     returns size terms for specified segment in df or series form.
+#     """
+#
+#     def __init__(self, size_term_selector):
+#         # do this once so they can request size_terms for various segments (tour_type or purpose)
+#         land_use = inject.get_table("land_use")
+#         self.land_use = land_use
+#         size_terms = whale.get_injectable("size_terms")
+#         self.destination_size_terms = tour_destination_size_terms(
+#             self.land_use, size_terms, size_term_selector
+#         )
+#
+#         assert not self.destination_size_terms.isna().any(axis=None)
+#
+#     def omnibus_size_terms_df(self):
+#         return self.destination_size_terms
+#
+#     def dest_size_terms_df(self, segment_name, trace_label):
+#         # return size terms as df with one column named 'size_term'
+#         # convenient if creating or merging with alts
+#
+#         size_terms = self.destination_size_terms[[segment_name]].copy()
+#         size_terms.columns = ["size_term"]
+#
+#         # FIXME - no point in considering impossible alternatives (where dest size term is zero)
+#         logger.debug(
+#             f"SizeTermCalculator dropping {(~(size_terms.size_term > 0)).sum()} "
+#             f"of {len(size_terms)} rows where size_term is zero for {segment_name}"
+#         )
+#         size_terms = size_terms[size_terms.size_term > 0]
+#
+#         if len(size_terms) == 0:
+#             logger.warning(
+#                 f"SizeTermCalculator: no zones with non-zero size terms for {segment_name} in {trace_label}"
+#             )
+#
+#         return size_terms
+#
+#     def dest_size_terms_series(self, segment_name):
+#         # return size terms as as series
+#         # convenient (and no copy overhead) if reindexing and assigning into alts column
+#         return self.destination_size_terms[segment_name]
 
 
 def run_od_sample(
@@ -697,6 +699,7 @@ def run_od_sample(
     trace_label,
 ):
     model_spec = simulate.spec_for_segment(
+        whale,
         model_settings,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
@@ -947,6 +950,7 @@ def run_od_simulate(
     """
 
     model_spec = simulate.spec_for_segment(
+        whale,
         model_settings,
         spec_id="SPEC",
         segment_name=spec_segment_name,
@@ -1050,7 +1054,9 @@ def run_tour_od(
     trace_hh_id,
     trace_label,
 ):
-    size_term_calculator = SizeTermCalculator(model_settings["SIZE_TERM_SELECTOR"])
+    size_term_calculator = SizeTermCalculator(
+        whale, model_settings["SIZE_TERM_SELECTOR"]
+    )
     preprocessor_settings = model_settings.get("preprocessor", None)
     origin_col_name = model_settings["ORIG_COL_NAME"]
 

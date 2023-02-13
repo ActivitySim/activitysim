@@ -176,7 +176,7 @@ def run_tour_scheduling(
                 tdds=choices.reindex(nth_tours.index),
             )
 
-    timetable.replace_table()
+    timetable.replace_table(whale)
 
     # choices are tdd alternative ids
     # we want to add start, end, and duration columns to tours, which we have in tdd_alts table

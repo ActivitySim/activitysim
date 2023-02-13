@@ -260,7 +260,7 @@ def process_mandatory_tours(
     return tours
 
 
-def process_non_mandatory_tours(persons, tour_counts):
+def process_non_mandatory_tours(whale: workflow.Whale, persons, tour_counts):
     """
     This method processes the non_mandatory_tour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -313,7 +313,11 @@ def process_non_mandatory_tours(persons, tour_counts):
     return tours
 
 
-def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
+def process_atwork_subtours(
+    whale: workflow.Whale,
+    work_tours: pd.DataFrame,
+    atwork_subtour_frequency_alts: pd.DataFrame,
+):
 
     """
     This method processes the atwork_subtour_frequency column that comes
@@ -401,7 +405,12 @@ def process_atwork_subtours(work_tours, atwork_subtour_frequency_alts):
     return tours
 
 
-def process_joint_tours(joint_tour_frequency, joint_tour_frequency_alts, point_persons):
+def process_joint_tours(
+    whale: workflow.Whale,
+    joint_tour_frequency,
+    joint_tour_frequency_alts,
+    point_persons,
+):
     """
     This method processes the joint_tour_frequency column that comes out of
     the model of the same name and turns into a DataFrame that represents the

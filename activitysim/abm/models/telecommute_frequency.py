@@ -70,7 +70,6 @@ def telecommute_frequency(
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="telecommute_frequency",
         estimator=estimator,

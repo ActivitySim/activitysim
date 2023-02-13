@@ -42,7 +42,7 @@ def test_nmtf():
     tour_counts.index = persons.index  # assign person ids to the index
 
     # - create the non_mandatory tours
-    nmt = process_non_mandatory_tours(persons, tour_counts)
+    nmt = process_non_mandatory_tours(whale, persons, tour_counts)
 
     idx = nmt.index
 

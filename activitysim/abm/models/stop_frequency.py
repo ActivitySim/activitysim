@@ -152,7 +152,6 @@ def stop_frequency(
             spec=segment_spec,
             nest_spec=nest_spec,
             locals_d=constants,
-            chunk_size=chunk_size,
             trace_label=tracing.extend_trace_label(trace_label, segment_name),
             trace_choice_name="stops",
             estimator=estimator,

@@ -263,9 +263,7 @@ def run_trip_scheduling_choice(
             choosers,
             chunk_trace_label,
             chunk_sizer,
-        ) in chunk.adaptive_chunked_choosers(
-            whale, indirect_tours, chunk_size, trace_label
-        ):
+        ) in chunk.adaptive_chunked_choosers(whale, indirect_tours, trace_label):
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
             schedules = generate_schedule_alternatives(choosers).sort_index()

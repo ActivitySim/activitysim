@@ -468,7 +468,7 @@ def trip_scheduling(whale: workflow.Whale, trips, tours, chunk_size, trace_hh_id
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_by_chunk_id(
-        trips_df, chunk_size, trace_label, trace_label
+        whale, trips_df, trace_label, trace_label
     ):
         i = 0
         while (i < max_iterations) and not trips_chunk.empty:

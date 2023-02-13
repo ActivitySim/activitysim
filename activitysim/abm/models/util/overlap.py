@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject, tracing
+from activitysim.core import inject, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ def rle(a):
     return row_id, start_pos, run_length, run_val
 
 
-def p2p_time_window_overlap(p1_ids, p2_ids):
+def p2p_time_window_overlap(whale: workflow.Whale, p1_ids, p2_ids):
     """
 
     Parameters
@@ -163,11 +163,11 @@ def person_pairs(persons):
     return p2p
 
 
-def hh_time_window_overlap(households, persons):
+def hh_time_window_overlap(whale: workflow.Whale, households, persons):
 
     p2p = person_pairs(persons)
 
-    p2p["max_overlap"] = p2p_time_window_overlap(p2p.person1, p2p.person2)
+    p2p["max_overlap"] = p2p_time_window_overlap(whale, p2p.person1, p2p.person2)
 
     hh_overlap = (
         p2p.groupby(["household_id", "p2p_type"])
@@ -186,11 +186,11 @@ def hh_time_window_overlap(households, persons):
     return hh_overlap
 
 
-def person_time_window_overlap(persons):
+def person_time_window_overlap(whale: workflow.Whale, persons):
 
     p2p = person_pairs(persons)
 
-    p2p["max_overlap"] = p2p_time_window_overlap(p2p.person1, p2p.person2)
+    p2p["max_overlap"] = p2p_time_window_overlap(whale, p2p.person1, p2p.person2)
 
     p_overlap = (
         pd.concat(
@@ -221,7 +221,7 @@ def person_time_window_overlap(persons):
     return p_overlap
 
 
-def person_max_window(persons):
+def person_max_window(whale: workflow.Whale, persons):
 
     timetable = whale.get_injectable("timetable")
 

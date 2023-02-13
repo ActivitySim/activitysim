@@ -201,7 +201,6 @@ def vehicle_allocation(
             nest_spec=nest_spec,
             skims=skims,
             locals_d=locals_dict,
-            chunk_size=chunk_size,
             trace_label=trace_label,
             trace_choice_name="vehicle_allocation",
             estimator=estimator,

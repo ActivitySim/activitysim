@@ -141,7 +141,7 @@ def compute_utilities_for_attribute_tuple(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(
-        whale, choosers_df, chunk_size, trace_label, chunk_tag=chunk_tag
+        whale, choosers_df, trace_label, chunk_tag=chunk_tag
     ):
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         if chooser_chunk._is_view:

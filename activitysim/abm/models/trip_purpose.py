@@ -242,9 +242,7 @@ def run_trip_purpose(
         trips_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(
-        whale, trips_df, chunk_size, chunk_tag, trace_label
-    ):
+    ) in chunk.adaptive_chunked_choosers(whale, trips_df, chunk_tag, trace_label):
         choices = choose_intermediate_trip_purpose(
             whale,
             trips_chunk,

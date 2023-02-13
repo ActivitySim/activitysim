@@ -92,7 +92,6 @@ def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="mandatory_tour_frequency",
         estimator=estimator,

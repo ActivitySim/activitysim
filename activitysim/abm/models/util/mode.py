@@ -59,7 +59,6 @@ def mode_choice_simulate(
         nest_spec=nest_spec,
         skims=skims,
         locals_d=locals_d,
-        chunk_size=chunk_size,
         want_logsums=want_logsums,
         trace_label=trace_label,
         trace_choice_name=trace_choice_name,

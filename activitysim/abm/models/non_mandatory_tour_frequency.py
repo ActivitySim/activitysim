@@ -165,7 +165,7 @@ def non_mandatory_tour_frequency(
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-        locals_dict = {"person_max_window": person_max_window}
+        locals_dict = {"person_max_window": lambda x: person_max_window(whale, x)}
 
         expressions.assign_columns(
             whale,
@@ -338,7 +338,9 @@ def non_mandatory_tour_frequency(
     """
     create the non_mandatory tours based on extended_tour_counts
     """
-    non_mandatory_tours = process_non_mandatory_tours(persons, extended_tour_counts)
+    non_mandatory_tours = process_non_mandatory_tours(
+        whale, persons, extended_tour_counts
+    )
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
 
     if estimator:

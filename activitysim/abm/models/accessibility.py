@@ -120,7 +120,6 @@ def compute_accessibility(
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
     network_los: los.Network_LOS,
-    chunk_size: int,
     trace_od,
 ):
 
@@ -171,9 +170,7 @@ def compute_accessibility(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(
-        whale, accessibility_df, chunk_size, trace_label
-    ):
+    ) in chunk.adaptive_chunked_choosers(whale, accessibility_df, trace_label):
 
         accessibilities = compute_accessibilities_for_zones(
             whale,

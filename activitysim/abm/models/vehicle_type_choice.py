@@ -414,7 +414,6 @@ def iterate_vehicle_type_choice(
                 log_alt_losers=log_alt_losers,
                 nest_spec=nest_spec,
                 locals_d=locals_dict,
-                chunk_size=chunk_size,
                 trace_label=trace_label,
                 trace_choice_name="vehicle_type",
                 estimator=estimator,

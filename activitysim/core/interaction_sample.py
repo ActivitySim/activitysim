@@ -575,9 +575,7 @@ def interaction_sample(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(
-        whale, choosers, chunk_size, trace_label, chunk_tag
-    ):
+    ) in chunk.adaptive_chunked_choosers(whale, choosers, trace_label, chunk_tag):
 
         choices = _interaction_sample(
             whale,

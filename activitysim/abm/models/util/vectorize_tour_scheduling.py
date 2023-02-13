@@ -852,7 +852,7 @@ def schedule_tours(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(
-        whale, tours, chunk_size, tour_trace_label, tour_chunk_tag
+        whale, tours, tour_trace_label, tour_chunk_tag
     ):
         choices = _schedule_tours(
             whale,

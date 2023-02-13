@@ -426,7 +426,7 @@ def interaction_sample_simulate(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers_and_alts(
-        whale, choosers, alternatives, chunk_size, trace_label, chunk_tag
+        whale, choosers, alternatives, trace_label, chunk_tag
     ):
         choices = _interaction_sample_simulate(
             whale,

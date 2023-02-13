@@ -51,7 +51,6 @@ def auto_ownership_simulate(
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="auto_ownership",
         log_alt_losers=log_alt_losers,

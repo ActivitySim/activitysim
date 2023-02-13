@@ -352,7 +352,7 @@ class TimeTable(object):
         self.checkpoint_df = None
 
         # series to map window row index value to window row's ordinal index
-        from ..core.fast_mapping import FastMapping
+        from activitysim.core.fast_mapping import FastMapping
 
         self.window_row_ix = FastMapping(
             pd.Series(list(range(len(windows_df.index))), index=windows_df.index)
@@ -632,7 +632,7 @@ class TimeTable(object):
         assert len(window_row_ids) == len(periods)
 
         trace_label = "tt.adjacent_window_run_length"
-        with chunk.chunk_log(trace_label, settings=whale.settings):
+        with chunk.chunk_log(trace_label, settings=whale.settings) as chunk_sizer:
             available_run_length = _available_run_length_2(
                 self.windows,
                 self.window_row_ix._mapper,

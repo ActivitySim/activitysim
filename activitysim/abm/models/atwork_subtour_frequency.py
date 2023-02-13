@@ -82,7 +82,6 @@ def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="atwork_subtour_frequency",
         estimator=estimator,
@@ -108,7 +107,7 @@ def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk
     work_tours = tours[tours.tour_type == "work"]
     assert not work_tours.atwork_subtour_frequency.isnull().any()
 
-    subtours = process_atwork_subtours(work_tours, alternatives)
+    subtours = process_atwork_subtours(whale, work_tours, alternatives)
 
     tours = whale.extend_table("tours", subtours)
 

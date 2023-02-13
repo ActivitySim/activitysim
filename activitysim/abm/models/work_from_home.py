@@ -96,7 +96,6 @@ def work_from_home(whale: workflow.Whale, persons_merged, persons, chunk_size):
             spec=model_spec,
             nest_spec=nest_spec,
             locals_d=constants,
-            chunk_size=chunk_size,
             trace_label=trace_label,
             trace_choice_name="work_from_home",
             estimator=estimator,

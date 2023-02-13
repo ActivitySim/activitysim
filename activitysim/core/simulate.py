@@ -7,6 +7,7 @@ import warnings
 from builtins import range
 from collections import OrderedDict
 from datetime import timedelta
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -30,6 +31,11 @@ from activitysim.core.simulate_consts import (
 )
 
 logger = logging.getLogger(__name__)
+
+CustomChooser_T = Callable[
+    [workflow.Whale, pd.DataFrame, pd.DataFrame, pd.DataFrame, str],
+    tuple[pd.Series, pd.Series],
+]
 
 
 def random_rows(whale: workflow.Whale, df, n):
@@ -1067,7 +1073,7 @@ def eval_mnl(
     choosers,
     spec,
     locals_d,
-    custom_chooser,
+    custom_chooser: CustomChooser_T,
     estimator,
     log_alt_losers=False,
     want_logsums=False,
@@ -1166,9 +1172,7 @@ def eval_mnl(
         )
 
     if custom_chooser:
-        choices, rands = custom_chooser(
-            probs=probs, choosers=choosers, spec=spec, trace_label=trace_label
-        )
+        choices, rands = custom_chooser(whale, probs, choosers, spec, trace_label)
     else:
         choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
 
@@ -1190,13 +1194,15 @@ def eval_nl(
     spec,
     nest_spec,
     locals_d,
-    custom_chooser,
+    custom_chooser: CustomChooser_T,
     estimator,
     log_alt_losers=False,
     want_logsums=False,
     trace_label=None,
     trace_choice_name=None,
     trace_column_names=None,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     """
     Run a nested-logit simulation for when the model spec does not involve alternative
@@ -1373,7 +1379,7 @@ def _simple_simulate(
     nest_spec,
     skims=None,
     locals_d=None,
-    custom_chooser=None,
+    custom_chooser: CustomChooser_T = None,
     log_alt_losers=False,
     want_logsums=False,
     estimator=None,
@@ -1409,7 +1415,7 @@ def _simple_simulate(
     locals_d : Dict
         This is a dictionary of local variables that will be the environment
         for an evaluation of an expression that begins with @
-    custom_chooser : Estimator object
+    custom_chooser : CustomChooser_T
     estimator : function(df, label, table_name)
         called to report intermediate table results (used for estimation)
 
@@ -1492,7 +1498,6 @@ def simple_simulate(
     nest_spec,
     skims=None,
     locals_d=None,
-    chunk_size=0,
     custom_chooser=None,
     log_alt_losers=False,
     want_logsums=False,
@@ -1518,7 +1523,7 @@ def simple_simulate(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(whale, choosers, chunk_size, trace_label):
+    ) in chunk.adaptive_chunked_choosers(whale, choosers, trace_label):
         choices = _simple_simulate(
             whale,
             chooser_chunk,
@@ -1573,9 +1578,7 @@ def simple_simulate_by_chunk_id(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(
-        whale, choosers, chunk_size, trace_label
-    ):
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(whale, choosers, trace_label):
         choices = _simple_simulate(
             whale,
             chooser_chunk,
@@ -1589,11 +1592,12 @@ def simple_simulate_by_chunk_id(
             estimator=estimator,
             trace_label=chunk_trace_label,
             trace_choice_name=trace_choice_name,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, "result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -1744,7 +1748,7 @@ def eval_nl_logsums(
     locals_d,
     trace_label=None,
     *,
-    chunk_sizer,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1892,9 +1896,7 @@ def simple_simulate_logsums(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(
-        whale, choosers, chunk_size, trace_label, chunk_tag
-    ):
+    ) in chunk.adaptive_chunked_choosers(whale, choosers, trace_label, chunk_tag):
         logsums = _simple_simulate_logsums(
             whale,
             chooser_chunk,

@@ -216,11 +216,11 @@ def utils_to_probs(
 
 def make_choices(
     whale: workflow.Whale,
-    probs,
-    trace_label=None,
+    probs: pd.DataFrame,
+    trace_label: str = None,
     trace_choosers=None,
     allow_bad_probs=False,
-):
+) -> tuple[pd.Series, pd.Series]:
     """
     Make choices for each chooser from among a set of alternatives.
 

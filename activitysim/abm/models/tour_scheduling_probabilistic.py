@@ -53,9 +53,7 @@ def run_tour_scheduling_probabilistic(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(
-        whale, tours_df, chunk_size, trace_label, trace_label
-    ):
+    ) in chunk.adaptive_chunked_choosers(whale, tours_df, trace_label, trace_label):
         choices = ps.make_scheduling_choices(
             whale,
             chooser_chunk,

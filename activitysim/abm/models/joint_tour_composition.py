@@ -19,7 +19,11 @@ def add_null_results(whale, trace_label, tours):
 
 @workflow.step
 def joint_tour_composition(
-    whale: workflow.Whale, tours, households, persons, chunk_size
+    whale: workflow.Whale,
+    tours,
+    households: pd.DataFrame,
+    persons: pd.DataFrame,
+    chunk_size,
 ):
     """
     This model predicts the makeup of the travel party (adults, children, or mixed).
@@ -38,10 +42,8 @@ def joint_tour_composition(
     estimator = estimation.manager.begin_estimation(whale, "joint_tour_composition")
 
     # - only interested in households with joint_tours
-    households = households.to_frame()
     households = households[households.num_hh_joint_tours > 0]
 
-    persons = persons.to_frame()
     persons = persons[persons.household_id.isin(households.index)]
 
     logger.info(
@@ -53,7 +55,7 @@ def joint_tour_composition(
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,
-            "hh_time_window_overlap": hh_time_window_overlap,
+            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(whale, *x),
         }
 
         expressions.assign_columns(
@@ -90,7 +92,6 @@ def joint_tour_composition(
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="composition",
         estimator=estimator,

@@ -82,8 +82,13 @@ def test_simple_simulate_chunked(data, spec):
 
     inject.add_injectable("settings", {"check_for_variability": False})
 
+    # whale -. set chunk_size as 2
+
     choices = simulate.simple_simulate(
-        whale, choosers=data, spec=spec, nest_spec=None, chunk_size=2
+        whale,
+        choosers=data,
+        spec=spec,
+        nest_spec=None,
     )
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected, check_dtype=False)

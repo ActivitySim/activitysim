@@ -116,7 +116,13 @@ def get_tour_satisfaction(candidates, participate):
     return satisfaction
 
 
-def participants_chooser(probs, choosers, spec, trace_label):
+def participants_chooser(
+    whale: workflow.Whale,
+    probs: pd.DataFrame,
+    choosers: pd.DataFrame,
+    spec: pd.DataFrame,
+    trace_label: str,
+) -> tuple[pd.Series, pd.Series]:
     """
     custom alternative to logit.make_choices for simulate.simple_simulate
 
@@ -241,7 +247,7 @@ def participants_chooser(probs, choosers, spec, trace_label):
     return choices, rands
 
 
-def annotate_jtp(model_settings, trace_label):
+def annotate_jtp(whale: workflow.Whale, model_settings, trace_label):
     # - annotate persons
     persons = whale.get_dataframe("persons")
     expressions.assign_columns(
@@ -264,11 +270,13 @@ def add_null_results(whale, model_settings, trace_label):
     whale.add_table("joint_tour_participants", participants)
 
     # - run annotations
-    annotate_jtp(model_settings, trace_label)
+    annotate_jtp(whale, model_settings, trace_label)
 
 
 @workflow.step
-def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk_size):
+def joint_tour_participation(
+    whale: workflow.Whale, tours: pd.DataFrame, persons_merged: pd.DataFrame, chunk_size
+):
     """
     Predicts for each eligible person to participate or not participate in each joint tour.
     """
@@ -277,15 +285,12 @@ def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk
     model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
     trace_hh_id = whale.settings.trace_hh_id
 
-    tours = tours.to_frame()
     joint_tours = tours[tours.tour_category == "joint"]
 
     # - if no joint tours
     if joint_tours.shape[0] == 0:
         add_null_results(whale, model_settings, trace_label)
         return
-
-    persons_merged = persons_merged.to_frame()
 
     # - create joint_tour_participation_candidates table
     candidates = joint_tour_participation_candidates(joint_tours, persons_merged)
@@ -301,7 +306,9 @@ def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
         locals_dict = {
-            "person_time_window_overlap": person_time_window_overlap,
+            "person_time_window_overlap": lambda x: person_time_window_overlap(
+                whale, x
+            ),
             "persons": persons_merged,
         }
 
@@ -417,7 +424,7 @@ def joint_tour_participation(whale: workflow.Whale, tours, persons_merged, chunk
     whale.add_table("tours", tours)
 
     # - run annotations
-    annotate_jtp(model_settings, trace_label)
+    annotate_jtp(whale, model_settings, trace_label)
 
     if trace_hh_id:
         tracing.trace_df(participants, label="joint_tour_participation.participants")

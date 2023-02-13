@@ -1084,7 +1084,7 @@ class Whale:
         assert axis in [0, 1]
 
         if self.is_table(table_name):
-            table_df = self.get_table(table_name)
+            table_df = self.get_dataframe(table_name)
 
             if axis == 0:
                 # don't expect indexes to overlap

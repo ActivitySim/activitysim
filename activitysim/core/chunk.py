@@ -1126,7 +1126,12 @@ def chunk_log_skip():
     None
 
 
-def adaptive_chunked_choosers(whale, choosers, chunk_size, trace_label, chunk_tag=None):
+def adaptive_chunked_choosers(
+    whale: workflow.Whale,
+    choosers: pd.DataFrame,
+    trace_label: str,
+    chunk_tag: str = None,
+):
     # generator to iterate over choosers
 
     if whale.settings.chunk_training_mode == MODE_CHUNKLESS:
@@ -1140,6 +1145,7 @@ def adaptive_chunked_choosers(whale, choosers, chunk_size, trace_label, chunk_ta
         return
 
     chunk_tag = chunk_tag or trace_label
+    chunk_size = whale.settings.chunk_size
 
     num_choosers = len(choosers.index)
     assert num_choosers > 0
@@ -1184,11 +1190,10 @@ def adaptive_chunked_choosers(whale, choosers, chunk_size, trace_label, chunk_ta
 
 def adaptive_chunked_choosers_and_alts(
     whale: workflow.Whale,
-    choosers,
-    alternatives,
-    chunk_size,
-    trace_label,
-    chunk_tag=None,
+    choosers: pd.DataFrame,
+    alternatives: pd.DataFrame,
+    trace_label: str,
+    chunk_tag: str = None,
 ):
     """
     generator to iterate over choosers and alternatives in chunk_size chunks
@@ -1262,6 +1267,7 @@ def adaptive_chunked_choosers_and_alts(
         f"with {num_choosers} choosers and {num_alternatives} alternatives"
     )
 
+    chunk_size = whale.settings.chunk_size
     chunk_sizer = ChunkSizer(chunk_tag, trace_label, num_choosers, chunk_size)
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()
     assert (rows_per_chunk > 0) and (rows_per_chunk <= num_choosers)
@@ -1320,7 +1326,7 @@ def adaptive_chunked_choosers_and_alts(
 
 
 def adaptive_chunked_choosers_by_chunk_id(
-    whale: workflow.Whale, choosers, chunk_size, trace_label, chunk_tag=None
+    whale: workflow.Whale, choosers: pd.DataFrame, trace_label: str, chunk_tag=None
 ):
     # generator to iterate over choosers in chunk_size chunks
     # like chunked_choosers but based on chunk_id field rather than dataframe length
@@ -1344,6 +1350,7 @@ def adaptive_chunked_choosers_by_chunk_id(
     num_choosers = choosers["chunk_id"].max() + 1
     assert num_choosers > 0
 
+    chunk_size = whale.settings.chunk_size
     chunk_sizer = ChunkSizer(chunk_tag, trace_label, num_choosers, chunk_size)
 
     rows_per_chunk, estimated_number_of_chunks = chunk_sizer.initial_rows_per_chunk()

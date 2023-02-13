@@ -1047,9 +1047,7 @@ def run_cdap(
         persons_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(
-        whale, persons, chunk_size, trace_label
-    ):
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(whale, persons, trace_label):
         cdap_results = _run_cdap(
             whale,
             persons_chunk,

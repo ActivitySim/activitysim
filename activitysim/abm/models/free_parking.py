@@ -67,7 +67,6 @@ def free_parking(
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="free_parking_at_work",
         estimator=estimator,

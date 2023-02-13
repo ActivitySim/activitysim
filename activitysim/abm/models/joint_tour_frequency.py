@@ -33,12 +33,10 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
 
     # - only interested in households with more than one cdap travel_active person and
     # - at least one non-preschooler
-    households = households.to_frame()
     multi_person_households = households[households.participates_in_jtf_model].copy()
 
     # - only interested in persons in multi_person_households
     # FIXME - gratuitous pathological efficiency move, just let yaml specify persons?
-    persons = persons.to_frame()
     persons = persons[persons.household_id.isin(multi_person_households.index)]
 
     logger.info(
@@ -51,7 +49,7 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,
-            "hh_time_window_overlap": hh_time_window_overlap,
+            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(whale, *x),
         }
 
         expressions.assign_columns(
@@ -83,7 +81,6 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
         spec=model_spec,
         nest_spec=nest_spec,
         locals_d=constants,
-        chunk_size=chunk_size,
         trace_label=trace_label,
         trace_choice_name="joint_tour_frequency",
         estimator=estimator,
@@ -111,7 +108,7 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
     temp_point_persons = temp_point_persons.set_index("household_id")
     temp_point_persons = temp_point_persons[["person_id", "home_zone_id"]]
 
-    joint_tours = process_joint_tours(choices, alternatives, temp_point_persons)
+    joint_tours = process_joint_tours(whale, choices, alternatives, temp_point_persons)
 
     tours = whale.extend_table("tours", joint_tours)
 

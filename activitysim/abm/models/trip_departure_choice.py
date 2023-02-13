@@ -426,9 +426,7 @@ def apply_stage_two_model(whale, omnibus_spec, trips, chunk_size, trace_label):
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(
-        side_trips, chunk_size, trace_label
-    ):
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(whale, side_trips, trace_label):
         for is_outbound, trip_segment in chooser_chunk.groupby(OUTBOUND):
             direction = OUTBOUND if is_outbound else "inbound"
             spec = get_spec_for_segment(omnibus_spec, direction)

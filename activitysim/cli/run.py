@@ -258,7 +258,7 @@ def cleanup_output_files(whale: workflow.Whale):
         # memory profiling is opened potentially before `cleanup_output_files`
         # is called, but we want to leave any (newly created) memory profiling
         # log files that may have just been created.
-        mem_prof_log = config.log_file_path("memory_profile.csv", whale=whale)
+        mem_prof_log = whale.get_log_file_path("memory_profile.csv")
         csv_ignore.append(mem_prof_log)
 
     tracing.delete_output_files(whale, "h5")
@@ -290,7 +290,7 @@ def run(args):
         # register abm steps and other abm-specific injectables
         from activitysim import abm  # noqa: F401
 
-    tracing.config_logger(basic=True)
+    whale.config_logger(basic=True)
     whale = handle_standard_args(whale, args)  # possibly update injectables
 
     if whale.settings.rotate_logs:
@@ -299,7 +299,7 @@ def run(args):
     if whale.settings.memory_profile and not whale.settings.multiprocess:
         # Memory sidecar is only useful for single process runs
         # multiprocess runs log memory usage without blocking in the controlling process.
-        mem_prof_log = config.log_file_path("memory_profile.csv", whale=whale)
+        mem_prof_log = whale.get_log_file_path("memory_profile.csv")
         from ..core.memory_sidecar import MemorySidecar
 
         memory_sidecar_process = MemorySidecar(mem_prof_log)
@@ -339,9 +339,7 @@ def run(args):
     elif whale.settings.cleanup_trace_files_on_resume:
         tracing.delete_trace_files(whale)
 
-    tracing.config_logger(
-        basic=False, whale=whale
-    )  # update using possibly new logging configs
+    whale.config_logger(basic=False)  # update using possibly new logging configs
     config.filter_warnings(whale)
     logging.captureWarnings(capture=True)
 
@@ -423,7 +421,7 @@ def run(args):
         raise
 
     chunk.consolidate_logs(whale)
-    mem.consolidate_logs()
+    mem.consolidate_logs(whale)
 
     from ..core.flow import TimeLogger
 

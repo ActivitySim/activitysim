@@ -773,7 +773,7 @@ def setup_injectables_and_logging(injectables, locutor=True):
         raise e
 
     try:
-        tracing.config_logger()
+        whale.config_logger()
     except Exception as e:
         exception(f"{type(e).__name__} exception while configuring logger: {str(e)}")
         raise e

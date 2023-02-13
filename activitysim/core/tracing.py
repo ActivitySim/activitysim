@@ -199,7 +199,7 @@ def config_logger(basic=False, whale=None):
                         from .config import log_file_path
 
                         old_f = v["filename"]
-                        v["filename"] = log_file_path(v["filename"], whale=whale)
+                        v["filename"] = whale.get_log_file_path(v["filename"])
                         print(f"CHANGE {old_f} -> {v['filename']}")
 
         try:

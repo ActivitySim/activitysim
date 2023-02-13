@@ -29,7 +29,7 @@ def component_logging(component_name):
 
     CLOG_FMT = "%(asctime)s %(levelname)7s - %(name)s: %(message)s"
 
-    logfilename = config.log_file_path(f"asv-{component_name}.log")
+    logfilename = whale.get_log_file_path(f"asv-{component_name}.log")
 
     # avoid creation of multiple file handlers for logging components
     # as we will re-enter this function for every component run
@@ -39,7 +39,7 @@ def component_logging(component_name):
         ):
             return
 
-    tracing.config_logger(basic=True)
+    whale.config_logger(basic=True)
     file_handler = logging.handlers.RotatingFileHandler(
         filename=logfilename,
         mode="a",
@@ -255,7 +255,7 @@ def pre_run(
     # cleanup
     # cleanup_output_files()
 
-    tracing.config_logger(basic=False)
+    whale.config_logger(basic=False)
     config.filter_warnings()
     logging.captureWarnings(capture=True)
 
@@ -687,7 +687,7 @@ def template_component_timings_mp(
             def track_component(self):
                 durations = []
                 inject.add_injectable("output_dir", model_dir(example_name, output_dir))
-                logfiler = config.log_file_path(f"timing_log.mp_households_*.csv")
+                logfiler = whale.get_log_file_path(f"timing_log.mp_households_*.csv")
                 for logfile in glob.glob(logfiler):
                     df = pd.read_csv(logfile)
                     dfq = df.query(f"component_name=='{self.component_name}'")

@@ -1303,6 +1303,12 @@ class Whale:
             file_name = "%s-%s" % (prefix, file_name)
         return self.filesystem.get_output_dir().joinpath(file_name)
 
+    def get_log_file_path(self, file_name: str, prefix=True) -> Path:
+        prefix = self.get_injectable("output_file_prefix", None)
+        if prefix:
+            file_name = "%s-%s" % (prefix, file_name)
+        return self.filesystem.get_log_file_path(file_name)
+
     def trace_df(
         self,
         df: pd.DataFrame,
@@ -1355,3 +1361,8 @@ class Whale:
         from activitysim.core.tracing import dump_df
 
         return dump_df(self, dump_switch, df, trace_label, fname)
+
+    def config_logger(self, basic=False):
+        from activitysim.core.tracing import config_logger
+
+        config_logger(basic, whale=self)

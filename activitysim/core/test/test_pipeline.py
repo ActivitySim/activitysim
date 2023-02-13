@@ -33,7 +33,7 @@ def setup_function():
 
     inject.clear_cache()
 
-    tracing.config_logger()
+    whale.config_logger()
 
 
 def teardown_function(func):

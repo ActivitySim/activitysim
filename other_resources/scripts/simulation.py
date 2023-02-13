@@ -66,7 +66,7 @@ if __name__ == "__main__":
     config.handle_standard_args()
 
     config.filter_warnings()
-    tracing.config_logger()
+    whale.config_logger()
 
     # log_settings(injectables)
 

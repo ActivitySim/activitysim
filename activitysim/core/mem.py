@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-from activitysim.core import config, inject, util
+from activitysim.core import config, inject, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ def time_bin(timestamps):
     return pd.to_datetime(bin, unit="s", origin="unix")
 
 
-def consolidate_logs():
+def consolidate_logs(whale: workflow.Whale):
     """
     Consolidate and aggregate subprocess mem logs
     """
@@ -62,10 +62,10 @@ def consolidate_logs():
 
         logger.debug(f"mem.consolidate_logs for step {step_name}")
 
-        glob_file_name = config.log_file_path(
+        glob_file_name = whale.get_log_file_path(
             f"{step_name}*{MEM_LOG_FILE_NAME}", prefix=False
         )
-        glob_files = glob.glob(glob_file_name)
+        glob_files = glob.glob(str(glob_file_name))
 
         if not glob_files:
             continue
@@ -126,7 +126,7 @@ def consolidate_logs():
             util.delete_files(glob_files, f"mem.consolidate_logs.{step_name}")
 
         # write aggregate step log
-        output_path = config.log_file_path(f"mem_{step_name}.csv", prefix=False)
+        output_path = whale.get_log_file_path(f"mem_{step_name}.csv", prefix=False)
         logger.debug(
             f"chunk.consolidate_logs writing step summary log for step {step_name} to {output_path}"
         )
@@ -138,7 +138,7 @@ def consolidate_logs():
     omnibus_df = pd.concat(omnibus_df)
     omnibus_df = omnibus_df.sort_values("time")
 
-    output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
+    output_path = whale.get_log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
     logger.debug(f"chunk.consolidate_logs writing omnibus log to {output_path}")
     omnibus_df.to_csv(output_path, mode="w", index=False)
 

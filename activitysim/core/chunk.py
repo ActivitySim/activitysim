@@ -237,8 +237,8 @@ def overhead_for_chunk_method(whale: workflow.Whale, overhead, method=None):
 
 
 def consolidate_logs(whale: workflow.Whale):
-    glob_file_name = config.log_file_path(f"*{LOG_FILE_NAME}", prefix=False)
-    glob_files = glob.glob(glob_file_name)
+    glob_file_name = whale.get_log_file_path(f"*{LOG_FILE_NAME}", prefix=False)
+    glob_files = glob.glob(str(glob_file_name))
 
     if not glob_files:
         return
@@ -272,7 +272,7 @@ def consolidate_logs(whale: workflow.Whale):
     if not keep_chunk_logs(whale):
         util.delete_files(glob_files, "chunk.consolidate_logs")
 
-    log_output_path = config.log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
+    log_output_path = whale.get_log_file_path(OMNIBUS_LOG_FILE_NAME, prefix=False)
     logger.debug(f"chunk.consolidate_logs writing omnibus log to {log_output_path}")
     omnibus_df.to_csv(log_output_path, mode="w", index=False)
 
@@ -310,7 +310,7 @@ def consolidate_logs(whale: workflow.Whale):
 
     omnibus_df = omnibus_df.sort_values(by=C_CHUNK_TAG)
 
-    log_dir_output_path = config.log_file_path(CACHE_FILE_NAME, prefix=False)
+    log_dir_output_path = whale.get_log_file_path(CACHE_FILE_NAME, prefix=False)
     logger.debug(
         f"chunk.consolidate_logs writing omnibus chunk cache to {log_dir_output_path}"
     )
@@ -467,7 +467,7 @@ class ChunkHistorian:
         history_df = history_df[CHUNK_HISTORY_COLUMNS]
 
         if self.chunk_log_path is None:
-            self.chunk_log_path = config.log_file_path(LOG_FILE_NAME)
+            self.chunk_log_path = whale.get_log_file_path(LOG_FILE_NAME)
 
         tracing.write_df_csv(
             history_df,

@@ -415,7 +415,8 @@ class Random(object):
             pipeline step name
         """
 
-        assert self.step_name is None
+        if self.step_name is not None:
+            raise ValueError(f"already in step {self.step_name}")
         assert step_name is not None
 
         self.step_name = step_name

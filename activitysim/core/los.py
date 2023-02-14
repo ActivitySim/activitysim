@@ -3,6 +3,7 @@
 
 import logging
 import warnings
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -117,7 +118,7 @@ class Network_LOS(object):
         ), f"Should not even be asking about rebuild_tvpb_cache if not THREE_ZONE"
         return self.setting("rebuild_tvpb_cache")
 
-    def setting(self, keys, default="<REQUIRED>"):
+    def setting(self, keys, default: Any = "<REQUIRED>"):
         # if they dont specify a default, check the default defaults
         default = (
             DEFAULT_SETTINGS.get(keys, "<REQUIRED>")
@@ -247,10 +248,10 @@ class Network_LOS(object):
 
             # recode MAZs if needed
             self.maz_taz_df["MAZ"] = recode_based_on_table(
-                self.maz_taz_df["MAZ"], "land_use"
+                self.whale, self.maz_taz_df["MAZ"], "land_use"
             )
             self.maz_taz_df["TAZ"] = recode_based_on_table(
-                self.maz_taz_df["TAZ"], "land_use_taz"
+                self.whale, self.maz_taz_df["TAZ"], "land_use_taz"
             )
 
             self.maz_ceiling = self.maz_taz_df.MAZ.max() + 1
@@ -266,8 +267,8 @@ class Network_LOS(object):
                 df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
                 # recode MAZs if needed
-                df["OMAZ"] = recode_based_on_table(df["OMAZ"], "land_use")
-                df["DMAZ"] = recode_based_on_table(df["DMAZ"], "land_use")
+                df["OMAZ"] = recode_based_on_table(self.whale, df["OMAZ"], "land_use")
+                df["DMAZ"] = recode_based_on_table(self.whale, df["DMAZ"], "land_use")
 
                 df["i"] = df.OMAZ.astype(np.int32) * self.maz_ceiling.astype(
                     np.int32
@@ -306,7 +307,7 @@ class Network_LOS(object):
                 df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
 
                 # recode MAZs if needed
-                df["MAZ"] = recode_based_on_table(df["MAZ"], "land_use")
+                df["MAZ"] = recode_based_on_table(self.whale, df["MAZ"], "land_use")
 
                 # trim tap set
                 # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
@@ -376,7 +377,7 @@ class Network_LOS(object):
 
                     if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
                         tracing.write_csv(
-                            whale,
+                            self.whale,
                             df,
                             file_name=f"trimmed_{maz_to_tap_settings['table']}",
                             transpose=False,
@@ -447,7 +448,7 @@ class Network_LOS(object):
             else:
                 self.skim_dicts["tap"] = self.get_skim_dict("tap")
 
-    def create_skim_dict(self, whale, skim_tag, _override_offset_int=None):
+    def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """
         Create a new SkimDict of type specified by skim_tag (e.g. 'taz', 'maz' or 'tap')
 
@@ -479,7 +480,9 @@ class Network_LOS(object):
         else:
             skim_info = self.skims_info[skim_tag]
             skim_data = self.skim_dict_factory.get_skim_data(skim_tag, skim_info)
-            skim_dict = skim_dictionary.SkimDict(whale, skim_tag, skim_info, skim_data)
+            skim_dict = skim_dictionary.SkimDict(
+                self.whale, skim_tag, skim_info, skim_data
+            )
 
         logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_dict.omx_shape}")
 
@@ -573,7 +576,7 @@ class Network_LOS(object):
         -------
             bool
         """
-        is_multiprocess = whale.settings.multiprocess
+        is_multiprocess = self.whale.settings.multiprocess
         return is_multiprocess
 
     def load_shared_data(self, shared_data_buffers):
@@ -601,7 +604,7 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
 
-            if self.rebuild_tvpb_cache and not whale.settings.resume_after:
+            if self.rebuild_tvpb_cache and not self.whale.settings.resume_after:
                 # delete old cache at start of new run so that stale cache is not loaded by load_data_to_buffer
                 # when singleprocess, this call is made (later in program flow) in the initialize_los step
                 self.tvpb.tap_cache.cleanup()

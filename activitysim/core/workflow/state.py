@@ -257,7 +257,7 @@ class Whale:
     def uncheckpointed_table_names(self):
         uncheckpointed = []
         for tablename, table_status in self.existing_table_status.items():
-            if table_status:
+            if table_status and tablename not in self._TEMP_NAMES:
                 uncheckpointed.append(tablename)
         return uncheckpointed
 

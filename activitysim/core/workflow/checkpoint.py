@@ -295,7 +295,7 @@ class Checkpoints:
 
             # if the store is not open in read-only mode,
             # write it to the store to ensure so any subsequent checkpoints are forgotten
-            if not self.obj.is_readonly():
+            if not self.is_readonly() and isinstance(self.store, pd.HDFStore):
                 self.write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
         except IndexError:

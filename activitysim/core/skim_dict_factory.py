@@ -263,7 +263,9 @@ class AbstractSkimFactory(ABC):
         assert False, "Not supported"
 
     def _memmap_skim_data_path(self, skim_tag):
-        return os.path.join(config.get_cache_dir(), f"cached_{skim_tag}.mmap")
+        return os.path.join(
+            self.network_los.whale.filesystem.get_cache_dir(), f"cached_{skim_tag}.mmap"
+        )
 
     def load_skim_info(self, whale, skim_tag):
         return SkimInfo(whale, skim_tag, self.network_los)
@@ -496,14 +498,14 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         Parameters
         ----------
         skim_tag: str
-        skim_info: string
+        skim_info: dict
 
         Returns
         -------
         SkimData
         """
 
-        data_buffers = whale.get_injectable("data_buffers", None)
+        data_buffers = self.network_los.whale.get_injectable("data_buffers", None)
         if data_buffers:
             # we assume any existing skim buffers will already have skim data loaded into them
             logger.info(
@@ -594,7 +596,9 @@ class MemMapSkimFactory(AbstractSkimFactory):
         """
 
         # don't expect legacy shared memory buffers
-        assert not whale.get_injectable("data_buffers", {}).get(skim_tag)
+        assert not self.network_los.whale.get_injectable("data_buffers", {}).get(
+            skim_tag
+        )
 
         skim_cache_path = self._memmap_skim_data_path(skim_tag)
         if not os.path.isfile(skim_cache_path):

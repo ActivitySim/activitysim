@@ -352,7 +352,7 @@ def choose_MAZ_for_TAZ(
         assert CHOOSER_ID is not None
 
         # write taz choices, pick_counts, probs
-        trace_targets = tracing.trace_targets(taz_sample)
+        trace_targets = tracing.trace_targets(whale, taz_sample)
         whale.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
@@ -431,7 +431,9 @@ def choose_MAZ_for_TAZ(
     if have_trace_targets:
         # write maz_sizes: maz_sizes[index,tour_id,dest_TAZ,zone_id,size_term]
 
-        maz_sizes_trace_targets = tracing.trace_targets(maz_sizes, slicer=CHOOSER_ID)
+        maz_sizes_trace_targets = tracing.trace_targets(
+            whale, maz_sizes, slicer=CHOOSER_ID
+        )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
         whale.trace_df(
             trace_maz_sizes,
@@ -485,7 +487,7 @@ def choose_MAZ_for_TAZ(
 
     if have_trace_targets:
         taz_choices_trace_targets = tracing.trace_targets(
-            taz_choices, slicer=CHOOSER_ID
+            whale, taz_choices, slicer=CHOOSER_ID
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
         whale.trace_df(

@@ -738,7 +738,7 @@ def _schedule_tours(
     chunk_sizer.log_df(tour_trace_label, "tours", tours)
 
     # - make choices
-    locals_d = {"tt": timetable}
+    locals_d = {"tt": timetable.attach_state(whale)}
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)

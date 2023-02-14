@@ -751,7 +751,7 @@ def _interaction_simulate(
         # interaction_utilities is a df with one utility column and one row per row in model_design
         if have_trace_targets:
             trace_rows, trace_ids = tracing.interaction_trace_rows(
-                interaction_df, choosers, sample_size
+                whale, interaction_df, choosers, sample_size
             )
 
             whale.trace_df(
@@ -784,6 +784,7 @@ def _interaction_simulate(
 
         if have_trace_targets:
             tracing.trace_interaction_eval_results(
+                whale,
                 trace_eval_results,
                 trace_ids,
                 tracing.extend_trace_label(trace_label, "eval"),

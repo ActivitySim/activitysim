@@ -1086,7 +1086,7 @@ class TransitVirtualPathBuilder(object):
                 trace_hh_id = False
 
             if trace_hh_id:
-                filter_targets = tracing.trace_targets(orig)
+                filter_targets = tracing.trace_targets(whale, orig)
                 # choices from preceding run (because random numbers)
                 override_choices = logsum_df["path_num"] if want_choices else None
                 if filter_targets.any():

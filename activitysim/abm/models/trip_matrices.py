@@ -12,8 +12,10 @@ from activitysim.core import config, expressions, los, workflow
 logger = logging.getLogger(__name__)
 
 
-@workflow.step
-def write_trip_matrices(whale: workflow.Whale, network_los):
+@workflow.step(copy_tables=["trips"])
+def write_trip_matrices(
+    whale: workflow.Whale, network_los: los.Network_LOS, trips: pd.DataFrame
+):
     """
     Write trip matrices step.
 
@@ -32,7 +34,6 @@ def write_trip_matrices(whale: workflow.Whale, network_los):
 
     """
 
-    trips = whale.get("trips", None)
     if trips is None:
         # this step is a NOP if there is no trips table
         # this might legitimately happen if they comment out some steps to debug but still want write_tables

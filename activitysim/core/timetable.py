@@ -379,6 +379,9 @@ class TimeTable(object):
         assert (tdd_alts_df.index == list(range(tdd_alts_df.shape[0]))).all()
         self.tdd_footprints = np.asanyarray([list(r) for r in w_strings]).astype(int)
 
+        # by default, do not attach state to this object.
+        self.whale = None
+
     def begin_transaction(self, transaction_loggers):
         """
         begin a transaction for an estimator or list of estimators
@@ -410,6 +413,10 @@ class TimeTable(object):
             tt_col_mapper=self.time_ix._mapper,
             tt_windows=self.windows,
         )
+
+    def attach_state(self, whale: workflow.Whale):
+        self.whale = whale
+        return self
 
     def slice_windows_by_row_id(self, window_row_ids):
         """
@@ -632,7 +639,8 @@ class TimeTable(object):
         assert len(window_row_ids) == len(periods)
 
         trace_label = "tt.adjacent_window_run_length"
-        with chunk.chunk_log(trace_label, settings=whale.settings) as chunk_sizer:
+        settings = self.whale.settings if self.whale is not None else None
+        with chunk.chunk_log(trace_label, settings=settings) as chunk_sizer:
             available_run_length = _available_run_length_2(
                 self.windows,
                 self.window_row_ix._mapper,
@@ -642,7 +650,9 @@ class TimeTable(object):
                 periods.to_numpy(),
             )
 
-            chunk.log_df(trace_label, "available_run_length", available_run_length)
+            chunk_sizer.log_df(
+                trace_label, "available_run_length", available_run_length
+            )
 
         return pd.Series(available_run_length, index=window_row_ids.index)
 

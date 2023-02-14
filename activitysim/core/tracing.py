@@ -278,7 +278,7 @@ def register_traceable_table(whale: workflow.Whale, table_name: str, df: pd.Data
 
     logger.debug(f"register_traceable_table {table_name}")
 
-    traceable_tables = whale.get_injectable("traceable_tables", [])
+    traceable_tables = whale.get_injectable("traceable_tables")
     if table_name not in traceable_tables:
         logger.error("table '%s' not in traceable_tables" % table_name)
         return
@@ -288,8 +288,8 @@ def register_traceable_table(whale: workflow.Whale, table_name: str, df: pd.Data
         logger.error("Can't register table '%s' without index name" % table_name)
         return
 
-    traceable_table_ids = whale.get_injectable("traceable_table_ids", {})
-    traceable_table_indexes = whale.get_injectable("traceable_table_indexes", {})
+    traceable_table_ids = whale.get_injectable("traceable_table_ids")
+    traceable_table_indexes = whale.get_injectable("traceable_table_indexes")
 
     if (
         idx_name in traceable_table_indexes
@@ -311,7 +311,7 @@ def register_traceable_table(whale: workflow.Whale, table_name: str, df: pd.Data
 
     # add any new indexes associated with trace_hh_id to traceable_table_ids
 
-    trace_hh_id = whale.get_injectable("trace_hh_id", None)
+    trace_hh_id = whale.settings.trace_hh_id
     if trace_hh_id is None:
         return
 
@@ -748,7 +748,9 @@ def trace_df(
         )
 
 
-def interaction_trace_rows(interaction_df, choosers, sample_size=None):
+def interaction_trace_rows(
+    whale: workflow.Whale, interaction_df, choosers, sample_size=None
+):
     """
     Trace model design for interaction_simulate
 
@@ -848,7 +850,9 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
     return trace_rows, trace_ids
 
 
-def trace_interaction_eval_results(trace_results, trace_ids, label):
+def trace_interaction_eval_results(
+    whale: workflow.Whale, trace_results, trace_ids, label
+):
     """
     Trace model design eval results for interaction_simulate
 
@@ -882,7 +886,8 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
         return
 
     # write out the raw dataframe
-    file_path = config.trace_file_path("%s.raw.csv" % label)
+
+    file_path = whale.filesystem.get_trace_file_path("%s.raw.csv" % label)
     trace_results.to_csv(file_path, mode="a", index=True, header=True)
 
     # if there are multiple targets, we want them in separate tables for readability
@@ -898,6 +903,7 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
         target_label = "%s.%s.%s" % (label, slicer_column_name, target)
 
         trace_df(
+            whale,
             df_target,
             label=target_label,
             slicer="NONE",
@@ -928,9 +934,9 @@ def deregister_traceable_table(whale, table_name):
     -------
     Nothing
     """
-    traceable_tables = whale.get_injectable("traceable_tables", [])
-    traceable_table_ids = whale.get_injectable("traceable_table_ids", {})
-    traceable_table_indexes = whale.get_injectable("traceable_table_indexes", {})
+    traceable_tables = whale.get_injectable("traceable_tables")
+    traceable_table_ids = whale.get_injectable("traceable_table_ids")
+    traceable_table_indexes = whale.get_injectable("traceable_table_indexes")
 
     if table_name not in traceable_tables:
         logger.error("table '%s' not in traceable_tables" % table_name)

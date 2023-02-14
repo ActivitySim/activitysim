@@ -46,7 +46,7 @@ def run_tour_scheduling(
     # - run preprocessor to annotate choosers
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-        locals_d = {"tt": timetable}
+        locals_d = {"tt": timetable.attach_state(whale)}
         locals_d.update(config.get_model_constants(model_settings))
 
         expressions.assign_columns(

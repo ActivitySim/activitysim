@@ -4,6 +4,7 @@ import logging
 import os
 
 import numpy as np
+import orca.orca
 import pandas as pd
 
 from activitysim.core import config, expressions, workflow

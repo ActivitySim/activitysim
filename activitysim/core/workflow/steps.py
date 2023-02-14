@@ -3,9 +3,11 @@ import importlib.machinery
 import importlib.util
 import logging
 import time
+from collections.abc import Container
 from inspect import get_annotations, getfullargspec
-from typing import Callable, Mapping, NamedTuple
+from typing import Callable, Collection, Mapping, NamedTuple
 
+import pandas as pd
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 
@@ -137,6 +139,7 @@ class workflow_step:
         cache=False,
         inplace=False,
         kind="step",
+        copy_tables=True,
     ):
         """
         Initialize a work step wrapper.
@@ -153,6 +156,11 @@ class workflow_step:
             already stored in the context.  Also, the return value should
             not be a mapping but instead just a single Python object that
             will be stored in the context with a key given by the step_name.
+        copy_tables : bool or Container[str], default True
+            If this evaluates to true, access to tables as a DataFrame is
+            always via a copy of the any registerd table instead of the
+            original. If given as a container, only table names in the container
+            are copied.
         """
         if wrapped_func is not None and not isinstance(wrapped_func, Callable):
             raise TypeError("workflow step must decorate a callable")
@@ -163,6 +171,7 @@ class workflow_step:
         self._cache = cache
         self._inplace = inplace
         self._kind = kind
+        self._copy_tables = copy_tables
         if wrapped_func is not None:
             return self(wrapped_func)
         else:
@@ -266,6 +275,26 @@ class workflow_step:
                                 raise
                         else:
                             arg_value = get_formatted_or_raw(context, arg)
+                            logger.critical(f"DF-COPY-TABLES is {self._copy_tables}")
+                            if self._copy_tables and arg in whale.existing_table_status:
+                                is_df = _annotations.get(arg) is pd.DataFrame
+                                if is_df:
+                                    if isinstance(self._copy_tables, Container):
+                                        if arg in self._copy_tables:
+                                            logger.critical(
+                                                f"DF-COPY? {is_df}, copy_tables is a container and {arg=} is in it"
+                                            )
+                                            arg_value = arg_value.copy()
+                                        else:
+                                            logger.critical(
+                                                f"DF-COPY? copy_tables is a container and {arg=} is not in it"
+                                            )
+                                    else:
+                                        # copy_tables is truthy
+                                        logger.critical(
+                                            f"DF-COPY? copy_tables is truthy {arg=} {is_df=}"
+                                        )
+                                        arg_value = arg_value.copy()
                     try:
                         args.append(arg_value)
                     except Exception as err:

@@ -356,7 +356,7 @@ def run_trip_scheduling(
     return choices
 
 
-@workflow.step
+@workflow.step(copy_tables=False)
 def trip_scheduling(whale: workflow.Whale, trips: pd.DataFrame, tours: pd.DataFrame):
     """
     Trip scheduling assigns depart times for trips within the start, end limits of the tour.
@@ -407,7 +407,7 @@ def trip_scheduling(whale: workflow.Whale, trips: pd.DataFrame, tours: pd.DataFr
     model_settings_file_name = "trip_scheduling.yaml"
     model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
 
-    trips_df = trips
+    trips_df = trips.copy()
 
     if whale.is_table("school_escort_trips"):
         school_escort_trips = whale.get_dataframe("school_escort_trips")
@@ -510,7 +510,7 @@ def trip_scheduling(whale: workflow.Whale, trips: pd.DataFrame, tours: pd.DataFr
 
                 choices_list.append(choices)
 
-    trips_df = trips
+    trips_df = trips.copy()
 
     if whale.is_table("school_escort_trips"):
         # separate out school escorting trips to exclude them from the model and estimation data bundle

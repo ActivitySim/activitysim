@@ -93,7 +93,7 @@ def write_estimation_specs(whale, estimator, model_settings, settings_file):
 
 
 def _location_sample(
-    whale,
+    whale: workflow.Whale,
     segment_name,
     choosers,
     alternatives,
@@ -128,6 +128,10 @@ def _location_sample(
     logger.info("Running %s with %d persons" % (trace_label, len(choosers.index)))
 
     sample_size = model_settings["SAMPLE_SIZE"]
+
+    if "sched" in trace_label:
+        print()
+
     if whale.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
@@ -386,7 +390,7 @@ def location_presample(
 
 
 def run_location_sample(
-    whale,
+    whale: workflow.Whale,
     segment_name,
     persons_merged,
     network_los,

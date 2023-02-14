@@ -2,6 +2,8 @@
 # See full license in LICENSE.txt.
 import logging
 
+import pandas as pd
+
 from activitysim.abm.models.util.tour_scheduling import run_tour_scheduling
 from activitysim.core import timetable as tt
 from activitysim.core import tracing, workflow
@@ -14,7 +16,10 @@ DUMP = False
 
 @workflow.step
 def mandatory_tour_scheduling(
-    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    tdd_alts: pd.DataFrame,
 ):
     """
     This model predicts the departure time and duration of each activity for mandatory tours
@@ -23,6 +28,7 @@ def mandatory_tour_scheduling(
     model_name = "mandatory_tour_scheduling"
     trace_label = model_name
     trace_hh_id = whale.settings.trace_hh_id
+    chunk_size = whale.settings.chunk_size
 
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 

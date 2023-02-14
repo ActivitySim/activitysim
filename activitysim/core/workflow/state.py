@@ -299,7 +299,10 @@ class Whale:
         return t
 
     def get_dataframe(
-        self, tablename: str, columns: Optional[list[str]] = None
+        self,
+        tablename: str,
+        columns: Optional[list[str]] = None,
+        as_copy: bool = True,
     ) -> pd.DataFrame:
         """
         Get a workflow table as a pandas.DataFrame.
@@ -310,6 +313,8 @@ class Whale:
             Name of table to get.
         columns : list[str], optional
             Include only these columns in the dataframe.
+        as_copy : bool, default True
+            Return a copy of the dataframe instead of the original.
 
         Returns
         -------
@@ -323,7 +328,10 @@ class Whale:
         if isinstance(t, pd.DataFrame):
             if columns is not None:
                 t = t[columns]
-            return t
+            if as_copy:
+                return t.copy()
+            else:
+                return t
         raise TypeError(f"cannot convert {tablename} to DataFrame")
 
     def get_dataframe_index_name(self, tablename: str) -> str:
@@ -388,7 +396,10 @@ class Whale:
             try:
                 result = self.context[key]
             except (KeyError, KeyNotInContextError):
-                result = getattr(self.filesystem, key, None)
+                try:
+                    result = getattr(self.filesystem, key, None)
+                except WhaleAccessError:
+                    result = None
                 if result is None:
                     if key in self._LOADABLE_TABLES:
                         result = self._LOADABLE_TABLES[key](self.context)
@@ -397,7 +408,24 @@ class Whale:
                 if result is None:
                     raise
         else:
-            result = self.context.get(key, default)
+            try:
+                self.context.assert_key_has_value(
+                    key=key, caller=self.__class__.__name__
+                )
+            except KeyNotInContextError:
+                try:
+                    result = getattr(self.filesystem, key, None)
+                except WhaleAccessError:
+                    result = None
+                if result is None:
+                    if key in self._LOADABLE_TABLES:
+                        result = self._LOADABLE_TABLES[key](self.context)
+                    elif key in self._LOADABLE_OBJECTS:
+                        result = self._LOADABLE_OBJECTS[key](self.context)
+                if result is None:
+                    result = default
+            else:
+                result = self.context.get(key, default)
         if not isinstance(result, (xr.Dataset, xr.DataArray, pd.DataFrame, pd.Series)):
             result = self.context.get_formatted_value(result)
         return result
@@ -1134,10 +1162,10 @@ class Whale:
 
         # if they want current version of table, no need to read from pipeline store
         if checkpoint_name is None:
-            if table_name not in self.last_checkpoint:
+            if table_name not in self.checkpoint.last_checkpoint:
                 raise RuntimeError("table '%s' never checkpointed." % table_name)
 
-            if not self.last_checkpoint[table_name]:
+            if not self.checkpoint.last_checkpoint[table_name]:
                 raise RuntimeError("table '%s' was dropped." % table_name)
 
             # return orca.get_table(table_name).local
@@ -1329,12 +1357,20 @@ class Whale:
         FINAL_PIPELINE_FILE_NAME = f"final_{self.filesystem.pipeline_file_name}"
         FINAL_CHECKPOINT_NAME = "final"
 
-        final_pipeline_file_path = self.filesystem.get_output_dir().joinpath(
-            FINAL_PIPELINE_FILE_NAME
-        )
+        if FINAL_PIPELINE_FILE_NAME.endswith(".h5"):
+            # constructing the path manually like this will not create a
+            # subdirectory that competes with the HDF5 filename.
+            final_pipeline_file_path = self.filesystem.get_output_dir().joinpath(
+                FINAL_PIPELINE_FILE_NAME
+            )
+        else:
+            # calling for a subdir ensures that the subdirectory exists.
+            final_pipeline_file_path = self.filesystem.get_output_dir(
+                subdir=FINAL_PIPELINE_FILE_NAME
+            )
 
         # keep only the last row of checkpoints and patch the last checkpoint name
-        checkpoints_df = self.checkpoint.get_all_checkpoint().tail(1).copy()
+        checkpoints_df = self.checkpoint.get_inventory().tail(1).copy()
         checkpoints_df["checkpoint_name"] = FINAL_CHECKPOINT_NAME
 
         if final_pipeline_file_path.suffix == ".h5":
@@ -1363,11 +1399,15 @@ class Whale:
                 logger.debug(
                     f"cleanup_pipeline - adding table {table_name} {table_df.shape}"
                 )
+                table_dir = final_pipeline_file_path.joinpath(table_name)
+                if not table_dir.exists():
+                    table_dir.mkdir(parents=True)
                 table_df.to_parquet(
-                    final_pipeline_file_path.joinpath(
-                        table_name, f"{FINAL_CHECKPOINT_NAME}.parquet"
-                    )
+                    table_dir.joinpath(f"{FINAL_CHECKPOINT_NAME}.parquet")
                 )
+            final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME).mkdir(
+                parents=True, exist_ok=True
+            )
             checkpoints_df.to_parquet(
                 final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
             )
@@ -1413,7 +1453,6 @@ class Whale:
 
         Parameters
         ----------
-        whale: workflow.Whale
         df: pandas.DataFrame
             traced dataframe
         label: str

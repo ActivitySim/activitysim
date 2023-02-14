@@ -140,7 +140,9 @@ def _interaction_sample_simulate(
     chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
     if have_trace_targets:
-        trace_rows, trace_ids = tracing.interaction_trace_rows(interaction_df, choosers)
+        trace_rows, trace_ids = tracing.interaction_trace_rows(
+            whale, interaction_df, choosers
+        )
 
         whale.trace_df(
             interaction_df,
@@ -178,6 +180,7 @@ def _interaction_sample_simulate(
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(
+            whale,
             trace_eval_results,
             trace_ids,
             tracing.extend_trace_label(trace_label, "eval"),

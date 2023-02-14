@@ -28,6 +28,10 @@ def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=Fals
         regress_trips_df = pd.read_csv(test_path("regress/final_trips.csv"))
         final_trips_df = pd.read_csv(test_path("output/final_trips.csv"))
 
+        # column order may not match, so fix it before checking
+        assert sorted(regress_trips_df.columns) == sorted(final_trips_df.columns)
+        final_trips_df = final_trips_df[regress_trips_df.columns]
+
         # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,
         # destination,origin,destination_logsum,depart,trip_mode,mode_choice_logsum
         # compare_cols = []

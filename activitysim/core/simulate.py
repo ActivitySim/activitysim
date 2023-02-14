@@ -642,7 +642,7 @@ def eval_utilities(
         if trace_all_rows:
             trace_targets = pd.Series(True, index=choosers.index)
         else:
-            trace_targets = tracing.trace_targets(choosers)
+            trace_targets = tracing.trace_targets(whale, choosers)
             assert trace_targets.any()  # since they claimed to have targets...
 
         # get int offsets of the trace_targets (offsets of bool=True values)

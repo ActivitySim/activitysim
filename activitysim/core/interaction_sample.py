@@ -259,7 +259,7 @@ def _interaction_sample(
         # interaction_utilities is a df with one utility column and one row per row in interaction_df
         if have_trace_targets:
             trace_rows, trace_ids = tracing.interaction_trace_rows(
-                interaction_df, choosers, alternative_count
+                whale, interaction_df, choosers, alternative_count
             )
 
             whale.trace_df(
@@ -345,6 +345,7 @@ def _interaction_sample(
 
     if have_trace_targets and trace_ids is not None:
         tracing.trace_interaction_eval_results(
+            whale,
             trace_eval_results,
             trace_ids,
             tracing.extend_trace_label(trace_label, "eval"),

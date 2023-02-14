@@ -211,7 +211,7 @@ def choose_tour_leg_pattern(
 
     if have_trace_targets:
         trace_rows, trace_ids = tracing.interaction_trace_rows(
-            interaction_df, trip_segment
+            whale, interaction_df, trip_segment
         )
 
         whale.trace_df(
@@ -243,6 +243,7 @@ def choose_tour_leg_pattern(
 
     if have_trace_targets:
         tracing.trace_interaction_eval_results(
+            whale,
             trace_eval_results,
             trace_ids,
             tracing.extend_trace_label(trace_label, "eval"),

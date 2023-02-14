@@ -309,6 +309,7 @@ class workflow_step:
             Whale._LOADABLE_TABLES[self._step_name] = run_step
             return update_with_cache
         elif self._kind == "temp_table":
+            Whale._TEMP_NAMES.add(self._step_name)
             Whale._LOADABLE_TABLES[self._step_name] = run_step
             for i in _args[1:]:
                 if i not in Whale._PREDICATES:

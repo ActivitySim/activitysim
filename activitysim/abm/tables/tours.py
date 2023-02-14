@@ -19,6 +19,3 @@ def tours_merged(
         persons_merged,
         left_on="person_id",
     )
-
-
-# inject.broadcast("persons_merged", "tours", cast_index=True, onto_on="person_id")

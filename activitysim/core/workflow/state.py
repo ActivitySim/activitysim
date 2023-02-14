@@ -240,6 +240,7 @@ class Whale:
     _LOADABLE_TABLES = {}
     _LOADABLE_OBJECTS = {}
     _PREDICATES = {}
+    _TEMP_NAMES = set()  # never checkpointed
 
     @property
     def known_table_names(self):
@@ -623,7 +624,9 @@ class Whale:
     #             )
     #         store.flush()
 
-    def add_table(self, name, content, salient=True):
+    def add_table(self, name, content, salient=None):
+        if salient is None:
+            salient = name not in self._TEMP_NAMES
         if salient:
             # mark this salient table as edited, so it can be checkpointed
             # at some later time if desired.
@@ -1291,12 +1294,12 @@ class Whale:
             self.context.pop(table_name, None)
             self.existing_table_status.pop(table_name)
 
-        if table_name in self.last_checkpoint:
+        if table_name in self.checkpoint.last_checkpoint:
             logger.debug(
                 "drop_table removing table %s from last_checkpoint" % table_name
             )
 
-            self.last_checkpoint[table_name] = ""
+            self.checkpoint.last_checkpoint[table_name] = ""
 
     def cleanup_pipeline(self):
         """

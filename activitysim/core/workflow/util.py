@@ -25,6 +25,15 @@ def get_formatted_or_default(self: Context, key: str, default):
         raise ValueError(f"extracting {key} from context") from err
 
 
+def get_override_or_formatted_or_default(
+    overrides: dict, self: Context, key: str, default
+):
+    if key in overrides:
+        return overrides[key]
+    else:
+        return get_formatted_or_default(self, key, default)
+
+
 # def _create_step(step_name, step_func):
 #     # the module version of each step is for pypyr, and it always mutates
 #     # context in-place instead of making updates to copies
@@ -44,3 +53,16 @@ def get_formatted_or_default(self: Context, key: str, default):
 #         raise
 #     step_func(context)
 #     return context
+
+
+def is_notebook() -> bool:
+    try:
+        shell = get_ipython().__class__.__name__
+        if shell == "ZMQInteractiveShell":
+            return True  # Jupyter notebook or qtconsole
+        elif shell == "TerminalInteractiveShell":
+            return False  # Terminal running IPython
+        else:
+            return False  # Other type (?)
+    except NameError:
+        return False  # Probably standard Python interpreter

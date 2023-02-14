@@ -16,6 +16,7 @@ from pypyr.context import Context, KeyNotInContextError
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import WhaleAccessError
 from activitysim.core.workflow.checkpoint import Checkpoints
+from activitysim.core.workflow.runner import Runner
 from activitysim.core.workflow.steps import run_named_step
 
 logger = logging.getLogger(__name__)
@@ -120,6 +121,8 @@ class Whale:
         initialize_traceable_tables(self)
 
         self.context["_salient_tables"] = {}
+
+        self.get_rn_generator().set_base_seed(self.get("rng_base_seed", 0))
 
     filesystem = WhaleAttr(FileSystem)
     settings = WhaleAttr(Settings)
@@ -948,8 +951,6 @@ class Whale:
         self.init_state()
         self.checkpoint.is_open = True
 
-        self.get_rn_generator().set_base_seed(self.get("rng_base_seed", 0))
-
         if resume_after:
             # open existing pipeline
             logger.debug("open_pipeline - open existing pipeline")
@@ -1023,78 +1024,79 @@ class Whale:
 
         return trace_memory_info(event, whale=self)
 
-    def run(self, models, resume_after=None, memory_sidecar_process=None):
-        """
-        run the specified list of models, optionally loading checkpoint and resuming after specified
-        checkpoint.
+    run = Runner()
+    # def run(self, models, resume_after=None, memory_sidecar_process=None):
+    #     """
+    #     run the specified list of models, optionally loading checkpoint and resuming after specified
+    #     checkpoint.
+    #
+    #     Since we use model_name as checkpoint name, the same model may not be run more than once.
+    #
+    #     If resume_after checkpoint is specified and a model with that name appears in the models list,
+    #     then we only run the models after that point in the list. This allows the user always to pass
+    #     the same list of models, but specify a resume_after point if desired.
+    #
+    #     Parameters
+    #     ----------
+    #     models : [str]
+    #         list of model_names
+    #     resume_after : str or None
+    #         model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
+    #     memory_sidecar_process : MemorySidecar, optional
+    #         Subprocess that monitors memory usage
+    #
+    #     returns:
+    #         nothing, but with pipeline open
+    #     """
+    #     from activitysim.core.tracing import print_elapsed_time
+    #
+    #     t0 = print_elapsed_time()
+    #
+    #     self.open_pipeline(resume_after)
+    #     t0 = print_elapsed_time("open_pipeline", t0)
+    #
+    #     if resume_after == LAST_CHECKPOINT:
+    #         resume_after = self.checkpoint.last_checkpoint[CHECKPOINT_NAME]
+    #
+    #     if resume_after:
+    #         logger.info("resume_after %s" % resume_after)
+    #         if resume_after in models:
+    #             models = models[models.index(resume_after) + 1 :]
+    #
+    #     self.trace_memory_info("pipeline.run before preload_injectables")
+    #
+    #     # preload any bulky injectables (e.g. skims) not in pipeline
+    #     # if inject.get_injectable("preload_injectables", None):
+    #     #     if memory_sidecar_process:
+    #     #         memory_sidecar_process.set_event("preload_injectables")
+    #     #     t0 = print_elapsed_time("preload_injectables", t0)
+    #
+    #     self.trace_memory_info("pipeline.run after preload_injectables")
+    #
+    #     t0 = print_elapsed_time()
+    #     for model in models:
+    #         if memory_sidecar_process:
+    #             memory_sidecar_process.set_event(model)
+    #         t1 = print_elapsed_time()
+    #         self.run_model(model)
+    #         self.trace_memory_info(f"pipeline.run after {model}")
+    #
+    #         from activitysim.core.tracing import log_runtime
+    #
+    #         log_runtime(self, model_name=model, start_time=t1)
+    #
+    #     if memory_sidecar_process:
+    #         memory_sidecar_process.set_event("finalizing")
+    #
+    #     # add checkpoint with final tables even if not intermediate checkpointing
+    #     if not self.should_save_checkpoint():
+    #         self.checkpoint.add(FINAL_CHECKPOINT_NAME)
+    #
+    #     self.trace_memory_info("pipeline.run after run_models")
+    #
+    #     t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
 
-        Since we use model_name as checkpoint name, the same model may not be run more than once.
-
-        If resume_after checkpoint is specified and a model with that name appears in the models list,
-        then we only run the models after that point in the list. This allows the user always to pass
-        the same list of models, but specify a resume_after point if desired.
-
-        Parameters
-        ----------
-        models : [str]
-            list of model_names
-        resume_after : str or None
-            model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
-        memory_sidecar_process : MemorySidecar, optional
-            Subprocess that monitors memory usage
-
-        returns:
-            nothing, but with pipeline open
-        """
-        from activitysim.core.tracing import print_elapsed_time
-
-        t0 = print_elapsed_time()
-
-        self.open_pipeline(resume_after)
-        t0 = print_elapsed_time("open_pipeline", t0)
-
-        if resume_after == LAST_CHECKPOINT:
-            resume_after = self.checkpoint.last_checkpoint[CHECKPOINT_NAME]
-
-        if resume_after:
-            logger.info("resume_after %s" % resume_after)
-            if resume_after in models:
-                models = models[models.index(resume_after) + 1 :]
-
-        self.trace_memory_info("pipeline.run before preload_injectables")
-
-        # preload any bulky injectables (e.g. skims) not in pipeline
-        # if inject.get_injectable("preload_injectables", None):
-        #     if memory_sidecar_process:
-        #         memory_sidecar_process.set_event("preload_injectables")
-        #     t0 = print_elapsed_time("preload_injectables", t0)
-
-        self.trace_memory_info("pipeline.run after preload_injectables")
-
-        t0 = print_elapsed_time()
-        for model in models:
-            if memory_sidecar_process:
-                memory_sidecar_process.set_event(model)
-            t1 = print_elapsed_time()
-            self.run_model(model)
-            self.trace_memory_info(f"pipeline.run after {model}")
-
-            from activitysim.core.tracing import log_runtime
-
-            log_runtime(self, model_name=model, start_time=t1)
-
-        if memory_sidecar_process:
-            memory_sidecar_process.set_event("finalizing")
-
-        # add checkpoint with final tables even if not intermediate checkpointing
-        if not self.should_save_checkpoint():
-            self.checkpoint.add(FINAL_CHECKPOINT_NAME)
-
-        self.trace_memory_info("pipeline.run after run_models")
-
-        t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
-
-        # don't close the pipeline, as the user may want to read intermediate results from the store
+    # don't close the pipeline, as the user may want to read intermediate results from the store
 
     def get_table(self, table_name, checkpoint_name=None):
         """

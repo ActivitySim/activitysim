@@ -16,6 +16,8 @@ from activitysim.core.exceptions import (
 from activitysim.core.workflow.util import (
     get_formatted_or_default,
     get_formatted_or_raw,
+    get_override_or_formatted_or_default,
+    is_notebook,
 )
 
 logger = logging.getLogger(__name__)
@@ -182,6 +184,7 @@ class workflow_step:
         if self._step_name is None:
             self._step_name = wrapped_func.__name__
         logger.debug(f"found workflow_{self._kind}: {self._step_name}")
+        docstring = wrapped_func.__doc__
 
         # check for duplicate workflow function names
         if self._step_name in Whale._LOADABLE_OBJECTS:
@@ -212,62 +215,85 @@ class workflow_step:
                 f"the first argument of a workflow_{self._kind} must be the whale"
             )
 
-        def run_step(context: Context = None) -> None:
-            if self._cache and (context is not None) and (self._step_name in context):
+        def run_step(context: Context = None, **override_kwargs) -> None:
+            if (
+                self._cache
+                and (context is not None)
+                and (self._step_name in context)
+                and len(override_kwargs) == 0
+            ):
                 return context.get_formatted(self._step_name)
             assert isinstance(context, Context)
             whale = Whale(context)
-            caption = get_formatted_or_default(context, "caption", None)
-            progress_tag = get_formatted_or_default(context, "progress_tag", caption)
+            caption = get_override_or_formatted_or_default(
+                override_kwargs, context, "caption", None
+            )
+            progress_tag = get_override_or_formatted_or_default(
+                override_kwargs, context, "progress_tag", caption
+            )
             # if progress_tag is not None:
             #     reset_progress_step(description=progress_tag)
 
             return_type = _annotations.get("return", "<missing>")
 
-            caption_type = get_formatted_or_default(context, "caption_type", "fig")
-            caption_maker = get_formatted_or_default(context, caption_type, None)
+            caption_type = get_override_or_formatted_or_default(
+                override_kwargs, context, "caption_type", "fig"
+            )
+            caption_maker = get_override_or_formatted_or_default(
+                override_kwargs, context, caption_type, None
+            )
             # parse and run function itself
             args = []
             for arg in _required_args:
                 if arg == "whale":
                     args.append(whale)
                 else:
-                    try:
-                        context.assert_key_has_value(
-                            key=arg, caller=wrapped_func.__module__
-                        )
-                    except KeyNotInContextError:
-                        # The desired key does not yet exist.  We will attempt
-                        # to create it using the whale.
-                        if arg in whale._LOADABLE_TABLES:
-                            arg_value = whale._LOADABLE_TABLES[arg](context)
-                        elif arg in whale._LOADABLE_OBJECTS:
-                            arg_value = whale._LOADABLE_OBJECTS[arg](context)
-                        else:
-                            raise
+                    if arg in override_kwargs:
+                        arg_value = override_kwargs[arg]
                     else:
-                        arg_value = get_formatted_or_raw(context, arg)
+                        try:
+                            context.assert_key_has_value(
+                                key=arg, caller=wrapped_func.__module__
+                            )
+                        except KeyNotInContextError:
+                            # The desired key does not yet exist.  We will attempt
+                            # to create it using the whale.
+                            if arg in whale._LOADABLE_TABLES:
+                                arg_value = whale._LOADABLE_TABLES[arg](context)
+                            elif arg in whale._LOADABLE_OBJECTS:
+                                arg_value = whale._LOADABLE_OBJECTS[arg](context)
+                            else:
+                                raise
+                        else:
+                            arg_value = get_formatted_or_raw(context, arg)
                     try:
                         args.append(arg_value)
                     except Exception as err:
                         raise ValueError(f"extracting {arg} from context") from err
             if _ndefault:
                 for arg, default in zip(_args[-_ndefault:], _defaults):
-                    args.append(get_formatted_or_default(context, arg, default))
+                    args.append(
+                        get_override_or_formatted_or_default(
+                            override_kwargs, context, arg, default
+                        )
+                    )
             kwargs = {}
             for karg in _kwonlyargs:
                 if karg in _kwonlydefaults:
-                    kwargs[karg] = get_formatted_or_default(
-                        context, karg, _kwonlydefaults[karg]
+                    kwargs[karg] = get_override_or_formatted_or_default(
+                        override_kwargs, context, karg, _kwonlydefaults[karg]
                     )
                 else:
-                    context.assert_key_has_value(
-                        key=karg, caller=wrapped_func.__module__
-                    )
-                    try:
-                        kwargs[karg] = get_formatted_or_raw(context, karg)
-                    except Exception as err:
-                        raise ValueError(f"extracting {karg} from context") from err
+                    if karg in override_kwargs:
+                        kwargs[karg] = override_kwargs[karg]
+                    else:
+                        context.assert_key_has_value(
+                            key=karg, caller=wrapped_func.__module__
+                        )
+                        try:
+                            kwargs[karg] = get_formatted_or_raw(context, karg)
+                        except Exception as err:
+                            raise ValueError(f"extracting {karg} from context") from err
             if _varkw:
                 kwargs.update(context)
                 for arg in _required_args:
@@ -294,6 +320,7 @@ class workflow_step:
                         )
                     context.update(outcome)
 
+        run_step.__doc__ = docstring
         _create_step(self._step_name, run_step)
 
         def update_with_cache(whale, *args, **kwargs):
@@ -304,9 +331,11 @@ class workflow_step:
 
         if self._kind == "cached_object":
             Whale._LOADABLE_OBJECTS[self._step_name] = run_step
+            update_with_cache.__doc__ = docstring
             return update_with_cache
         elif self._kind == "table":
             Whale._LOADABLE_TABLES[self._step_name] = run_step
+            update_with_cache.__doc__ = docstring
             return update_with_cache
         elif self._kind == "temp_table":
             Whale._TEMP_NAMES.add(self._step_name)
@@ -316,6 +345,7 @@ class workflow_step:
                     Whale._PREDICATES[i] = {self._step_name}
                 else:
                     Whale._PREDICATES[i].add(self._step_name)
+            update_with_cache.__doc__ = docstring
             return update_with_cache
         elif self._kind == "step":
             Whale._RUNNABLE_STEPS[self._step_name] = run_step
@@ -373,26 +403,3 @@ def func(function):
         return function(whale, *args, **kwargs)
 
     return wrapper
-
-
-# def workflow_table(func):
-#     """
-#     Decorator for functions that initialize tables.
-#
-#     The function being decorated should have a single argument: `whale`.
-#
-#     Parameters
-#     ----------
-#     func
-#
-#     Returns
-#     -------
-#     func
-#     """
-#     from ..pipeline import Whale
-#     name = func.__name__
-#     logger.debug(f"found loadable table {name}")
-#     if name in Whale._LOADABLE_TABLES:
-#         raise DuplicateWorkflowTableError(name)
-#     Whale._LOADABLE_TABLES[name] = func
-#     return func

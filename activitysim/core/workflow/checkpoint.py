@@ -28,6 +28,10 @@ CHECKPOINT_TABLE_NAME = "checkpoints"
 
 LAST_CHECKPOINT = "_"
 
+# name of the first step/checkpoint created when the pipeline is started
+INITIAL_CHECKPOINT_NAME = "init"
+FINAL_CHECKPOINT_NAME = "final"
+
 
 class Checkpoints:
     def __init__(self):

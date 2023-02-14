@@ -175,35 +175,36 @@ def handle_standard_args(whale: workflow.Whale, args, multiprocess=True):
     #     inject_arg("output_dir", args.output)
 
     whale.filesystem = FileSystem.parse_args(args)
+    whale.load_settings()
 
-    # read settings file
-    raw_settings = whale.filesystem.read_settings_file(
-        whale.filesystem.settings_file_name,
-        mandatory=True,
-        include_stack=False,
-    )
-
-    # the settings can redefine the cache directories.
-    cache_dir = raw_settings.pop("cache_dir", None)
-    if cache_dir:
-        whale.filesystem.cache_dir = cache_dir
-    whale.settings = Settings.parse_obj(raw_settings)
-
-    extra_settings = set(whale.settings.__dict__) - set(Settings.__fields__)
-
-    if extra_settings:
-        warnings.warn(
-            "Writing arbitrary model values as top-level key in settings.yaml "
-            "is deprecated, make them sub-keys of `other_settings` instead.",
-            DeprecationWarning,
-        )
-        logger.warning(f"Found the following unexpected settings:")
-        if whale.settings.other_settings is None:
-            whale.settings.other_settings = {}
-        for k in extra_settings:
-            logger.warning(f" - {k}")
-            whale.settings.other_settings[k] = getattr(whale.settings, k)
-            delattr(whale.settings, k)
+    # # read settings file
+    # raw_settings = whale.filesystem.read_settings_file(
+    #     whale.filesystem.settings_file_name,
+    #     mandatory=True,
+    #     include_stack=False,
+    # )
+    #
+    # # the settings can redefine the cache directories.
+    # cache_dir = raw_settings.pop("cache_dir", None)
+    # if cache_dir:
+    #     whale.filesystem.cache_dir = cache_dir
+    # whale.settings = Settings.parse_obj(raw_settings)
+    #
+    # extra_settings = set(whale.settings.__dict__) - set(Settings.__fields__)
+    #
+    # if extra_settings:
+    #     warnings.warn(
+    #         "Writing arbitrary model values as top-level key in settings.yaml "
+    #         "is deprecated, make them sub-keys of `other_settings` instead.",
+    #         DeprecationWarning,
+    #     )
+    #     logger.warning(f"Found the following unexpected settings:")
+    #     if whale.settings.other_settings is None:
+    #         whale.settings.other_settings = {}
+    #     for k in extra_settings:
+    #         logger.warning(f" - {k}")
+    #         whale.settings.other_settings[k] = getattr(whale.settings, k)
+    #         delattr(whale.settings, k)
 
     if args.multiprocess:
         if "configs_mp" not in whale.filesystem.configs_dir:

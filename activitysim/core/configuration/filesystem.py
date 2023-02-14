@@ -41,6 +41,7 @@ class FileSystem(PydanticBase):
             c_full = working_dir.joinpath(c)
             if not c_full.exists():
                 raise ValueError(f"config directory {c_full} does not exist")
+        return configs_dir
 
     data_dir: tuple[Path] = ("data",)
     """
@@ -54,6 +55,7 @@ class FileSystem(PydanticBase):
             d_full = working_dir.joinpath(d)
             if not d_full.exists():
                 raise ValueError(f"data directory {d_full} does not exist")
+        return data_dir
 
     output_dir: Path = "output"
     """

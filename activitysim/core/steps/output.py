@@ -160,8 +160,8 @@ def write_data_dictionary(whale: workflow.Whale):
         schema[table_name] = info
 
     # annotate schema.info with name of checkpoint columns were first seen
-    if whale.pipeline_store:
-        for _, row in whale.get_checkpoints().iterrows():
+    if whale.checkpoint.store:
+        for _, row in whale.checkpoint.get_inventory().iterrows():
             checkpoint_name = row[workflow.state.CHECKPOINT_NAME]
 
             for table_name in table_names:
@@ -296,7 +296,9 @@ def write_tables(whale: workflow.Whale):
             table_decode_cols = {}
 
         if table_name == "checkpoints":
-            dt = pa.Table.from_pandas(whale.get_checkpoints(), preserve_index=True)
+            dt = pa.Table.from_pandas(
+                whale.checkpoint.get_inventory(), preserve_index=True
+            )
         else:
             if table_name not in registered_tables:
                 logger.warning("Skipping '%s': Table not found." % table_name)

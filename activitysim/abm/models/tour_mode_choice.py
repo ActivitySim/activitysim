@@ -414,7 +414,7 @@ def tour_mode_choice_simulate(
 
     # - annotate tours table
     if model_settings.get("annotate_tours"):
-        annotate.annotate_tours(model_settings, trace_label)
+        annotate.annotate_tours(whale, model_settings, trace_label)
 
     if whale.settings.trace_hh_id:
         whale.trace_df(

@@ -112,7 +112,7 @@ def non_mandatory_tour_destination(
     whale.add_table("tours", tours)
 
     if model_settings.get("annotate_tours"):
-        annotate.annotate_tours(model_settings, trace_label)
+        annotate.annotate_tours(whale, model_settings, trace_label)
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)

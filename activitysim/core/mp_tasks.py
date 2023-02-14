@@ -1552,7 +1552,7 @@ def run_multiprocess(whale, injectables):
         drop_breadcrumb(step_name, "coalesce")
 
     # add checkpoint with final tables even if not intermediate checkpointing
-    if not pipeline.intermediate_checkpoint():
+    if not pipeline.should_save_checkpoint():
         pipeline.open_pipeline("_")
         pipeline.add_checkpoint(pipeline.FINAL_CHECKPOINT_NAME)
         pipeline.close_pipeline()

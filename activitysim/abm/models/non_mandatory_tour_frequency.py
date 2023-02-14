@@ -383,10 +383,10 @@ def non_mandatory_tour_frequency(
 
     if whale.is_table("school_escort_tours"):
         # need to re-compute tour frequency statistics to account for school escort tours
-        recompute_tour_count_statistics()
+        recompute_tour_count_statistics(whale)
 
     if model_settings.get("annotate_tours"):
-        annotate.annotate_tours(model_settings, trace_label)
+        annotate.annotate_tours(whale, model_settings, trace_label)
 
     expressions.assign_columns(
         whale,

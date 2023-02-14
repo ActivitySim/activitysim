@@ -515,8 +515,8 @@ def merge_school_escort_trips_into_pipeline(whale: workflow.Whale):
     return trips
 
 
-def recompute_tour_count_statistics():
-    tours = pipeline.get_table("tours")
+def recompute_tour_count_statistics(whale: workflow.Whale):
+    tours = whale.get_dataframe("tours")
 
     grouped = tours.groupby(["person_id", "tour_type"])
     tours["tour_type_num"] = grouped.cumcount() + 1

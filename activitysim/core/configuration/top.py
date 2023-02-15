@@ -143,7 +143,7 @@ class OutputTables(PydanticBase):
     """
 
 
-class MultiprocessStepSlice(PydanticBase):
+class MultiprocessStepSlice(PydanticBase, extra="forbid"):
     """Instructions on how to slice tables for each subprocess."""
 
     tables: list[str]
@@ -170,6 +170,10 @@ class MultiprocessStepSlice(PydanticBase):
 
     Or set to `True` or "*" to exclude all tables not explicitly listed in
     `tables`.
+
+    Note in ActivitySim versions 1.2 and earlier, this option was named "except"
+    instead of "exclude", but that is a reserved python keywork and cannot be
+    used as a Pydantic field name.
     """
 
 
@@ -261,7 +265,7 @@ class Settings(PydanticBase, extra="allow"):
     If omitted, no tracing is written out
     """
 
-    trace_od: list[int] = None
+    trace_od: tuple[int, int] = None
     """
     Trace origin, destination pair in accessibility calculation
 

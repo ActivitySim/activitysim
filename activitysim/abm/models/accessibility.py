@@ -17,7 +17,6 @@ def compute_accessibilities_for_zones(
     assignment_spec,
     constants,
     network_los,
-    trace_od,
     trace_label,
     chunk_sizer,
 ):
@@ -41,6 +40,7 @@ def compute_accessibilities_for_zones(
         }
     )
 
+    trace_od = whale.settings.trace_od
     if trace_od:
         trace_orig, trace_dest = trace_od
         trace_od_rows = (od_df.orig == trace_orig) & (od_df.dest == trace_dest)
@@ -120,7 +120,6 @@ def compute_accessibility(
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
     network_los: los.Network_LOS,
-    trace_od,
 ):
 
     """
@@ -179,7 +178,6 @@ def compute_accessibility(
             assignment_spec,
             constants,
             network_los,
-            trace_od,
             trace_label,
             chunk_sizer,
         )

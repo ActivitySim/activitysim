@@ -584,7 +584,7 @@ def get_trace_target(whale, df, slicer, column=None):
         table_name = traceable_table_indexes[slicer]
         target_ids = traceable_table_ids.get(table_name, [])
     elif slicer == "zone_id":
-        target_ids = whale.access("trace_od", [])
+        target_ids = whale.settings.trace_od
 
     return target_ids, column
 

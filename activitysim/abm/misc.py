@@ -66,9 +66,13 @@ def trace_od(whale: workflow.Whale):
     od = whale.settings.trace_od
 
     if od and not (
-        isinstance(od, list) and len(od) == 2 and all(isinstance(x, int) for x in od)
+        isinstance(od, (list, tuple))
+        and len(od) == 2
+        and all(isinstance(x, int) for x in od)
     ):
-        logger.warning("setting trace_od should be a list of length 2, but was %s" % od)
+        logger.warning(
+            "setting trace_od should be a list or tuple of length 2, but was %s" % od
+        )
         od = None
 
     return od

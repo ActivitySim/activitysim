@@ -275,25 +275,17 @@ class workflow_step:
                                 raise
                         else:
                             arg_value = get_formatted_or_raw(context, arg)
-                            logger.critical(f"DF-COPY-TABLES is {self._copy_tables}")
+                            logger.debug(
+                                f"step {self._step_name} copy_tables={self._copy_tables}"
+                            )
                             if self._copy_tables and arg in whale.existing_table_status:
                                 is_df = _annotations.get(arg) is pd.DataFrame
                                 if is_df:
                                     if isinstance(self._copy_tables, Container):
                                         if arg in self._copy_tables:
-                                            logger.critical(
-                                                f"DF-COPY? {is_df}, copy_tables is a container and {arg=} is in it"
-                                            )
                                             arg_value = arg_value.copy()
-                                        else:
-                                            logger.critical(
-                                                f"DF-COPY? copy_tables is a container and {arg=} is not in it"
-                                            )
                                     else:
                                         # copy_tables is truthy
-                                        logger.critical(
-                                            f"DF-COPY? copy_tables is truthy {arg=} {is_df=}"
-                                        )
                                         arg_value = arg_value.copy()
                     try:
                         args.append(arg_value)

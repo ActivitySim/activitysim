@@ -444,7 +444,7 @@ class Whale:
         self.context[key] = value
         for i in self._PREDICATES.get(key, []):
             if i in self.context:
-                logger.critical(f"update of {key} clears cached {i}")
+                logger.debug(f"update of {key} clears cached {i}")
                 self.drop(i)
 
     def drop(self, key):
@@ -460,7 +460,7 @@ class Whale:
         del self.context[key]
         for i in self._PREDICATES.get(key, []):
             if i in self.context:
-                logger.critical(f"dropping {key} clears cached {i}")
+                logger.debug(f"dropping {key} clears cached {i}")
                 self.drop(i)
 
     def extract(self, func):

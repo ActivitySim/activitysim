@@ -16,6 +16,7 @@ from pypyr.context import Context, KeyNotInContextError
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import WhaleAccessError
 from activitysim.core.workflow.checkpoint import Checkpoints
+from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.runner import Runner
 from activitysim.core.workflow.steps import run_named_step
 
@@ -129,6 +130,7 @@ class Whale:
     network_settings = WhaleAttr(NetworkSettings)
     predicates = WhaleAttr(dict, default_init=True)
     checkpoint = Checkpoints()
+    logging = Logging()
 
     def initialize_filesystem(
         self,
@@ -141,6 +143,7 @@ class Whale:
         cache_dir=None,
         settings_file_name="settings.yaml",
         pipeline_file_name="pipeline",
+        **silently_ignored_kwargs,
     ):
         fs = dict(
             configs_dir=configs_dir,
@@ -155,7 +158,11 @@ class Whale:
             fs["profile_dir"] = profile_dir
         if cache_dir is not None:
             fs["cache_dir"] = cache_dir
-        self.filesystem = FileSystem.parse_obj(fs)
+        try:
+            self.filesystem = FileSystem.parse_obj(fs)
+        except Exception as err:
+            print(err)
+            raise
         return self
 
     def load_settings(self):
@@ -472,13 +479,13 @@ class Whale:
     def rng(self):
         return self.context["prng"]
 
-    @property
-    def is_open(self):
-        return self._is_open
-
-    @is_open.setter
-    def is_open(self, x):
-        self._is_open = bool(x)
+    # @property
+    # def is_open(self):
+    #     return self._is_open
+    #
+    # @is_open.setter
+    # def is_open(self, x):
+    #     self._is_open = bool(x)
 
     # def is_readonly(self):
     #     if self.is_open:
@@ -756,17 +763,6 @@ class Whale:
         Return a list of the names of all currently registered dataframe tables
         """
         return [name for name in self.existing_table_status if name in self.context]
-
-    # def checkpointed_tables(self):
-    #     """
-    #     Return a list of the names of all checkpointed tables
-    #     """
-    #
-    #     return [
-    #         name
-    #         for name, checkpoint_name in self.last_checkpoint.items()
-    #         if checkpoint_name and name not in NON_TABLE_COLUMNS
-    #     ]
 
     # def load_checkpoint(self, checkpoint_name):
     #     """
@@ -1047,84 +1043,12 @@ class Whale:
 
         return checkpoint_name in checkpoints
 
-    def trace_memory_info(self, event):
+    def trace_memory_info(self, event, trace_ticks=0):
         from activitysim.core.mem import trace_memory_info
 
-        return trace_memory_info(event, whale=self)
+        return trace_memory_info(event, whale=self, trace_ticks=trace_ticks)
 
     run = Runner()
-    # def run(self, models, resume_after=None, memory_sidecar_process=None):
-    #     """
-    #     run the specified list of models, optionally loading checkpoint and resuming after specified
-    #     checkpoint.
-    #
-    #     Since we use model_name as checkpoint name, the same model may not be run more than once.
-    #
-    #     If resume_after checkpoint is specified and a model with that name appears in the models list,
-    #     then we only run the models after that point in the list. This allows the user always to pass
-    #     the same list of models, but specify a resume_after point if desired.
-    #
-    #     Parameters
-    #     ----------
-    #     models : [str]
-    #         list of model_names
-    #     resume_after : str or None
-    #         model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
-    #     memory_sidecar_process : MemorySidecar, optional
-    #         Subprocess that monitors memory usage
-    #
-    #     returns:
-    #         nothing, but with pipeline open
-    #     """
-    #     from activitysim.core.tracing import print_elapsed_time
-    #
-    #     t0 = print_elapsed_time()
-    #
-    #     self.open_pipeline(resume_after)
-    #     t0 = print_elapsed_time("open_pipeline", t0)
-    #
-    #     if resume_after == LAST_CHECKPOINT:
-    #         resume_after = self.checkpoint.last_checkpoint[CHECKPOINT_NAME]
-    #
-    #     if resume_after:
-    #         logger.info("resume_after %s" % resume_after)
-    #         if resume_after in models:
-    #             models = models[models.index(resume_after) + 1 :]
-    #
-    #     self.trace_memory_info("pipeline.run before preload_injectables")
-    #
-    #     # preload any bulky injectables (e.g. skims) not in pipeline
-    #     # if inject.get_injectable("preload_injectables", None):
-    #     #     if memory_sidecar_process:
-    #     #         memory_sidecar_process.set_event("preload_injectables")
-    #     #     t0 = print_elapsed_time("preload_injectables", t0)
-    #
-    #     self.trace_memory_info("pipeline.run after preload_injectables")
-    #
-    #     t0 = print_elapsed_time()
-    #     for model in models:
-    #         if memory_sidecar_process:
-    #             memory_sidecar_process.set_event(model)
-    #         t1 = print_elapsed_time()
-    #         self.run_model(model)
-    #         self.trace_memory_info(f"pipeline.run after {model}")
-    #
-    #         from activitysim.core.tracing import log_runtime
-    #
-    #         log_runtime(self, model_name=model, start_time=t1)
-    #
-    #     if memory_sidecar_process:
-    #         memory_sidecar_process.set_event("finalizing")
-    #
-    #     # add checkpoint with final tables even if not intermediate checkpointing
-    #     if not self.should_save_checkpoint():
-    #         self.checkpoint.add(FINAL_CHECKPOINT_NAME)
-    #
-    #     self.trace_memory_info("pipeline.run after run_models")
-    #
-    #     t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
-
-    # don't close the pipeline, as the user may want to read intermediate results from the store
 
     def get_table(self, table_name, checkpoint_name=None):
         """
@@ -1199,45 +1123,6 @@ class Whale:
             return self.context.get(table_name)
 
         return self.checkpoint.read_df(table_name, last_checkpoint_name)
-
-    # def get_checkpoints(self):
-    #     """
-    #     Get pandas dataframe of info about all checkpoints stored in pipeline
-    #
-    #     pipeline doesn't have to be open
-    #
-    #     Returns
-    #     -------
-    #     checkpoints_df : pandas.DataFrame
-    #
-    #     """
-    #
-    #     store = self.pipeline_store
-    #
-    #     if store is not None:
-    #         if isinstance(store, Path):
-    #             df = pd.read_parquet(
-    #                 store.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-    #             )
-    #         else:
-    #             df = store[CHECKPOINT_TABLE_NAME]
-    #     else:
-    #         pipeline_file_path = self.filesystem.get_pipeline_filepath()
-    #         if pipeline_file_path.suffix == ".h5":
-    #             df = pd.read_hdf(pipeline_file_path, CHECKPOINT_TABLE_NAME)
-    #         else:
-    #             df = pd.read_parquet(
-    #                 pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-    #             )
-    #
-    #     # non-table columns first (column order in df is random because created from a dict)
-    #     table_names = [
-    #         name for name in df.columns.values if name not in NON_TABLE_COLUMNS
-    #     ]
-    #
-    #     df = df[NON_TABLE_COLUMNS + table_names]
-    #
-    #     return df
 
     # def replace_table(self, table_name, df):
     #     """
@@ -1425,8 +1310,9 @@ class Whale:
 
         return chunk_log(*args, **kwargs, settings=self.settings)
 
-    def get_output_file_path(self, file_name: str) -> Path:
-        prefix = self.get_injectable("output_file_prefix", None)
+    def get_output_file_path(self, file_name: str, prefix: str | bool = None) -> Path:
+        if prefix is None or prefix is True:
+            prefix = self.get_injectable("output_file_prefix", None)
         if prefix:
             file_name = "%s-%s" % (prefix, file_name)
         return self.filesystem.get_output_dir().joinpath(file_name)
@@ -1488,8 +1374,3 @@ class Whale:
         from activitysim.core.tracing import dump_df
 
         return dump_df(self, dump_switch, df, trace_label, fname)
-
-    def config_logger(self, basic=False):
-        from activitysim.core.tracing import config_logger
-
-        config_logger(basic, whale=self)

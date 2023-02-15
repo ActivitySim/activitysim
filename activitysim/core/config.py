@@ -689,7 +689,7 @@ def filter_warnings(whale=None):
     """
 
     if whale is None:
-        strict = setting("strict", False)
+        strict = False
     else:
         strict = whale.settings.treat_warnings_as_errors
 

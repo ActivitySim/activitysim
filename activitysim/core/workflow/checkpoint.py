@@ -62,6 +62,16 @@ class Checkpoints:
             self.open_store()
         return self._checkpoint_store
 
+    @property
+    def default_pipeline_file_path(self):
+        prefix = self.obj.get("pipeline_file_prefix", None)
+        if prefix is None:
+            return self.obj.filesystem.get_pipeline_filepath()
+        else:
+            pipeline_file_name = str(self.obj.filesystem.pipeline_file_name)
+            pipeline_file_name = f"{prefix}-{pipeline_file_name}"
+            return self.obj.filesystem.get_output_dir().joinpath(pipeline_file_name)
+
     def open_store(
         self, pipeline_file_name: Optional[Path] = None, overwrite=False, mode="a"
     ):
@@ -96,7 +106,7 @@ class Checkpoints:
             raise RuntimeError("Pipeline store is already open!")
 
         if pipeline_file_name is None:
-            pipeline_file_path = self.obj.filesystem.get_pipeline_filepath()
+            pipeline_file_path = self.default_pipeline_file_path
         else:
             pipeline_file_path = Path(pipeline_file_name)
 
@@ -223,7 +233,6 @@ class Checkpoints:
         The only exception is the checkpoints dataframe, which just has a table_name,
         although when using the parquet storage format this file is stored as "None.parquet"
         to maintain a simple consistent file directory structure.
-
 
         Parameters
         ----------

@@ -29,7 +29,7 @@ class FileSystem(PydanticBase):
     provided, the usual Python current working directory is used.
     """
 
-    configs_dir: tuple[Path] = ("configs",)
+    configs_dir: tuple[Path, ...] = ("configs",)
     """
     Name[s] of the config directory.
     """
@@ -43,7 +43,7 @@ class FileSystem(PydanticBase):
                 raise ValueError(f"config directory {c_full} does not exist")
         return configs_dir
 
-    data_dir: tuple[Path] = ("data",)
+    data_dir: tuple[Path, ...] = ("data",)
     """
     Name of the data directory.
     """

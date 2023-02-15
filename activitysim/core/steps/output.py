@@ -75,7 +75,7 @@ def previous_write_data_dictionary(whale: workflow.Whale, output_dir):
         pd.options.display.max_columns = 500
         pd.options.display.max_rows = 100
 
-        output_tables = whale.checkpointed_tables()
+        output_tables = whale.checkpoint.list_tables()
 
         # write data dictionary for all checkpointed_tables
 

@@ -1,4 +1,5 @@
 import logging
+import os
 
 from pypyr.context import Context, KeyNotInContextError
 
@@ -66,3 +67,10 @@ def is_notebook() -> bool:
             return False  # Other type (?)
     except NameError:
         return False  # Probably standard Python interpreter
+
+
+def remove_empty_folders(path_abs):
+    walk = list(os.walk(path_abs))
+    for path, _, _ in walk[::-1]:
+        if len(os.listdir(path)) == 0:
+            os.remove(path)

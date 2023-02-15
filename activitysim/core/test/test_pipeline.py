@@ -33,7 +33,7 @@ def setup_function():
 
     inject.clear_cache()
 
-    whale.config_logger()
+    whale.logging.config_logger()
 
 
 def teardown_function(func):
@@ -69,7 +69,7 @@ def test_pipeline_run():
 
     pipeline.run(models=_MODELS, resume_after=None)
 
-    checkpoints = pipeline.get_checkpoints()
+    checkpoints = whale.checkpoint.get_inventory()
     print("checkpoints\n", checkpoints)
 
     c2 = pipeline.get_table("table2").c2
@@ -115,7 +115,7 @@ def test_pipeline_checkpoint_drop():
     ]
     pipeline.run(models=_MODELS, resume_after=None)
 
-    checkpoints = pipeline.get_checkpoints()
+    checkpoints = whale.checkpoint.get_inventory()
     print("checkpoints\n", checkpoints)
 
     pipeline.get_table("table1")

@@ -20,7 +20,7 @@ def test_mp_run():
     setup_dirs(configs_dir, data_dir)
     inject.add_injectable("settings_file_name", "settings_mp.yaml")
 
-    run_list = mp_tasks.get_run_list()
+    run_list = mp_tasks.get_run_list(whale)
     mp_tasks.print_run_list(run_list)
 
     # do this after config.handle_standard_args, as command line args may override injectables

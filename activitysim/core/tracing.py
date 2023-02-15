@@ -160,66 +160,66 @@ def delete_trace_files(whale):
     delete_output_files(whale, "log", ignore=active_log_files)
 
 
-def config_logger(basic=False, whale=None):
-    """
-    Configure logger
-
-    look for conf file in configs_dir, if not found use basicConfig
-
-    Returns
-    -------
-    Nothing
-    """
-
-    # look for conf file in configs_dir
-    if basic:
-        log_config_file = None
-    else:
-        if whale is None:
-            log_config_file = whale.filesystem.get_config_file_path(
-                LOGGING_CONF_FILE_NAME, mandatory=False
-            )
-        else:
-            log_config_file = whale.filesystem.get_config_file_path(
-                LOGGING_CONF_FILE_NAME, mandatory=False
-            )
-
-    if log_config_file:
-        try:
-            with open(log_config_file) as f:
-                config_dict = yaml.load(f, Loader=yaml.SafeLoader)
-        except Exception as e:
-            print(f"Unable to read logging config file {log_config_file}")
-            raise e
-
-        if "logging" in config_dict:
-            if "handlers" in config_dict["logging"]:
-                for k, v in config_dict["logging"]["handlers"].items():
-                    if isinstance(v, dict) and "filename" in v:
-                        from .config import log_file_path
-
-                        old_f = v["filename"]
-                        v["filename"] = whale.get_log_file_path(v["filename"])
-                        print(f"CHANGE {old_f} -> {v['filename']}")
-
-        try:
-            config_dict = config_dict["logging"]
-            config_dict.setdefault("version", 1)
-            logging.config.dictConfig(config_dict)
-        except Exception as e:
-            print(f"Unable to config logging as specified in {log_config_file}")
-            raise e
-
-    else:
-        logging.basicConfig(level=logging.INFO, stream=sys.stdout)
-
-    logger = logging.getLogger(ASIM_LOGGER)
-
-    if log_config_file:
-        logger.info("Read logging configuration from: %s" % log_config_file)
-    else:
-        print("Configured logging using basicConfig")
-        logger.info("Configured logging using basicConfig")
+# def config_logger(basic=False, whale=None):
+#     """
+#     Configure logger
+#
+#     look for conf file in configs_dir, if not found use basicConfig
+#
+#     Returns
+#     -------
+#     Nothing
+#     """
+#
+#     # look for conf file in configs_dir
+#     if basic:
+#         log_config_file = None
+#     else:
+#         if whale is None:
+#             log_config_file = whale.filesystem.get_config_file_path(
+#                 LOGGING_CONF_FILE_NAME, mandatory=False
+#             )
+#         else:
+#             log_config_file = whale.filesystem.get_config_file_path(
+#                 LOGGING_CONF_FILE_NAME, mandatory=False
+#             )
+#
+#     if log_config_file:
+#         try:
+#             with open(log_config_file) as f:
+#                 config_dict = yaml.load(f, Loader=yaml.SafeLoader)
+#         except Exception as e:
+#             print(f"Unable to read logging config file {log_config_file}")
+#             raise e
+#
+#         if "logging" in config_dict:
+#             if "handlers" in config_dict["logging"]:
+#                 for k, v in config_dict["logging"]["handlers"].items():
+#                     if isinstance(v, dict) and "filename" in v:
+#                         from .config import log_file_path
+#
+#                         old_f = v["filename"]
+#                         v["filename"] = whale.get_log_file_path(v["filename"])
+#                         print(f"CHANGE {old_f} -> {v['filename']}")
+#
+#         try:
+#             config_dict = config_dict["logging"]
+#             config_dict.setdefault("version", 1)
+#             logging.config.dictConfig(config_dict)
+#         except Exception as e:
+#             print(f"Unable to config logging as specified in {log_config_file}")
+#             raise e
+#
+#     else:
+#         logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+#
+#     logger = logging.getLogger(ASIM_LOGGER)
+#
+#     if log_config_file:
+#         logger.info("Read logging configuration from: %s" % log_config_file)
+#     else:
+#         print("Configured logging using basicConfig")
+#         logger.info("Configured logging using basicConfig")
 
 
 def print_summary(label, df, describe=False, value_counts=False):

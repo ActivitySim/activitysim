@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def auto_ownership_simulate(
-    whale: workflow.Whale, households, households_merged, chunk_size
+    whale: workflow.Whale,
+    households: pd.DataFrame,
+    households_merged: pd.DataFrame,
 ):
     """
     Auto ownership is a standard model which predicts how many cars a household

@@ -76,7 +76,7 @@ if __name__ == "__main__":
     if not whale.settings.resume_after:
         cleanup_output_files()
 
-    run_list = mp_tasks.get_run_list()
+    run_list = mp_tasks.get_run_list(whale)
 
     if run_list["multiprocess"]:
         # do this after config.handle_standard_args, as command line args may override injectables

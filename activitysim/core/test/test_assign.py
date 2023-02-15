@@ -157,7 +157,7 @@ def test_assign_variables_failing(capsys, data):
     output_dir = os.path.join(os.path.dirname(__file__), "output")
     inject.add_injectable("output_dir", output_dir)
 
-    tracing.config_logger(basic=True)
+    whale.logging.config_logger(basic=True)
 
     spec = assign.read_assignment_spec(
         whale.filesystem.get_config_file_path("assignment_spec_failing.csv")

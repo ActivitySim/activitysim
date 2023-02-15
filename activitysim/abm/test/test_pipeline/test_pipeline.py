@@ -56,7 +56,7 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
     inject.clear_cache()
 
-    tracing.config_logger()
+    whale.logging.config_logger()
 
     tracing.delete_output_files("csv")
     tracing.delete_output_files("txt")
@@ -238,7 +238,7 @@ def test_mini_pipeline_run2():
     inject_settings(households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, read_skim_cache=True)
 
     # should be able to get this BEFORE pipeline is opened
-    checkpoints_df = pipeline.get_checkpoints()
+    checkpoints_df = whale.checkpoint.get_inventory()
     prev_checkpoint_count = len(checkpoints_df.index)
 
     # print "checkpoints_df\n%s" % checkpoints_df[['checkpoint_name']]
@@ -260,7 +260,7 @@ def test_mini_pipeline_run2():
     regress_mini_mtf()
 
     # should be able to get this before pipeline is closed (from existing open store)
-    checkpoints_df = pipeline.get_checkpoints()
+    checkpoints_df = whale.checkpoint.get_inventory()
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
     # - write list of override_hh_ids to override_hh_ids.csv in data for use in next test

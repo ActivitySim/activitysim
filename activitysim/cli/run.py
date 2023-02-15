@@ -291,7 +291,7 @@ def run(args):
         # register abm steps and other abm-specific injectables
         from activitysim import abm  # noqa: F401
 
-    whale.config_logger(basic=True)
+    whale.logging.config_logger(basic=True)
     whale = handle_standard_args(whale, args)  # possibly update injectables
 
     if whale.settings.rotate_logs:
@@ -340,7 +340,9 @@ def run(args):
     elif whale.settings.cleanup_trace_files_on_resume:
         tracing.delete_trace_files(whale)
 
-    whale.config_logger(basic=False)  # update using possibly new logging configs
+    whale.logging.config_logger(
+        basic=False
+    )  # update using possibly new logging configs
     config.filter_warnings(whale)
     logging.captureWarnings(capture=True)
 
@@ -393,9 +395,11 @@ def run(args):
             from activitysim.core import mp_tasks
 
             injectables = {k: whale.get_injectable(k) for k in INJECTABLES}
+            injectables["settings"] = whale.settings
+            # injectables["settings_package"] = whale.settings.dict()
             mp_tasks.run_multiprocess(whale, injectables)
 
-            assert not whale.is_open
+            assert not whale.checkpoint.is_open
 
             if whale.settings.cleanup_pipeline_after_run:
                 whale.cleanup_pipeline()

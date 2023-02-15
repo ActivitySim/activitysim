@@ -1,4 +1,6 @@
 import logging
+import multiprocessing
+import time
 from typing import Iterable
 
 from activitysim.core.workflow.checkpoint import (
@@ -84,9 +86,7 @@ class Runner:
             self._obj.run_model(model)
             self._obj.trace_memory_info(f"pipeline.run after {model}")
 
-            from activitysim.core.tracing import log_runtime
-
-            log_runtime(self._obj, model_name=model, start_time=t1)
+            self.log_runtime(model_name=model, start_time=t1)
 
         if memory_sidecar_process:
             memory_sidecar_process.set_event("finalizing")
@@ -111,3 +111,42 @@ class Runner:
             )
             f.__doc__ = self._obj._RUNNABLE_STEPS[item].__doc__
             return f
+
+    @property
+    def timing_notes(self) -> set:
+        if "_timing_notes" not in self._obj.context:
+            self._obj.context["_timing_notes"] = set()
+        return self._obj.context["_timing_notes"]
+
+    def log_runtime(self, model_name, start_time=None, timing=None, force=False):
+
+        assert (start_time or timing) and not (start_time and timing)
+
+        timing = timing if timing else time.time() - start_time
+        seconds = round(timing, 1)
+        minutes = round(timing / 60, 1)
+
+        process_name = multiprocessing.current_process().name
+
+        if self._obj.settings.multiprocess and not force:
+            # when benchmarking, log timing for each processes in its own log
+            if self._obj.settings.benchmarking:
+                header = "component_name,duration"
+                with self._obj.filesystem.open_log_file(
+                    f"timing_log.{process_name}.csv", "a", header
+                ) as log_file:
+                    print(f"{model_name},{timing}", file=log_file)
+            # only continue to log runtime in global timing log for locutor
+            if not self._obj.get_injectable("locutor", False):
+                return
+
+        header = "process_name,model_name,seconds,minutes,notes"
+        note = " ".join(self.timing_notes)
+        with self._obj.filesystem.open_log_file(
+            "timing_log.csv", "a", header
+        ) as log_file:
+            print(
+                f"{process_name},{model_name},{seconds},{minutes},{note}", file=log_file
+            )
+
+        self.timing_notes.clear()

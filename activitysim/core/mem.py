@@ -57,6 +57,8 @@ def consolidate_logs(whale: workflow.Whale):
 
     # for each multiprocess step
     multiprocess_steps = whale.settings.multiprocess_steps
+    if multiprocess_steps is not None:
+        multiprocess_steps = [i.dict() for i in multiprocess_steps]
     for step in multiprocess_steps:
         step_name = step.get("name", None)
 

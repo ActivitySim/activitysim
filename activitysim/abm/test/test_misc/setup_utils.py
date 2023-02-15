@@ -56,7 +56,7 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
     inject.clear_cache()
 
-    whale.config_logger()
+    whale.logging.config_logger()
 
     tracing.delete_output_files("csv")
     tracing.delete_output_files("txt")

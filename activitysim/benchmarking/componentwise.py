@@ -39,7 +39,7 @@ def component_logging(component_name):
         ):
             return
 
-    whale.config_logger(basic=True)
+    whale.logging.config_logger(basic=True)
     file_handler = logging.handlers.RotatingFileHandler(
         filename=logfilename,
         mode="a",
@@ -255,7 +255,7 @@ def pre_run(
     # cleanup
     # cleanup_output_files()
 
-    whale.config_logger(basic=False)
+    whale.logging.config_logger(basic=False)
     config.filter_warnings()
     logging.captureWarnings(capture=True)
 

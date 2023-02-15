@@ -39,7 +39,7 @@ def test_config_logger(capsys):
 
     add_canonical_dirs()
 
-    tracing.config_logger()
+    whale.logging.config_logger()
 
     logger = logging.getLogger("activitysim")
 
@@ -78,7 +78,7 @@ def test_print_summary(capsys):
 
     add_canonical_dirs()
 
-    tracing.config_logger()
+    whale.logging.config_logger()
 
     tracing.print_summary(
         "label", df=pd.DataFrame(), describe=False, value_counts=False
@@ -98,7 +98,7 @@ def test_register_households(capsys):
 
     add_canonical_dirs()
 
-    tracing.config_logger()
+    whale.logging.config_logger()
 
     df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[1, 2, 3])
 
@@ -126,7 +126,7 @@ def test_register_tours(capsys):
 
     add_canonical_dirs()
 
-    tracing.config_logger()
+    whale.logging.config_logger()
 
     inject.add_injectable("traceable_tables", ["households", "tours"])
 
@@ -176,7 +176,7 @@ def test_write_csv(capsys):
 
     add_canonical_dirs()
 
-    tracing.config_logger()
+    whale.logging.config_logger()
 
     # should complain if df not a DataFrame or Series
     tracing.write_csv(whale, df="not a df or series", file_name="baddie")
@@ -221,7 +221,7 @@ def test_basic(capsys):
     # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []
 
-    tracing.config_logger(basic=True)
+    whale.logging.config_logger(basic=True)
 
     logger = logging.getLogger()
     file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]

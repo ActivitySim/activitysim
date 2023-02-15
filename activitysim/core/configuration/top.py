@@ -164,7 +164,7 @@ class MultiprocessStepSlice(PydanticBase):
     names as the persons table.
     """
 
-    exclude: Union[bool, str, list[str]]
+    exclude: Union[bool, str, list[str]] = None
     """
     Optional list of tables not to slice even if they have a sliceable index name.
 
@@ -194,6 +194,8 @@ class MultiprocessStep(PydanticBase):
 
     slice: MultiprocessStepSlice = None
     """Instructions on how to slice tables for each subprocess."""
+
+    chunk_size: int = None
 
 
 class Settings(PydanticBase, extra="allow"):

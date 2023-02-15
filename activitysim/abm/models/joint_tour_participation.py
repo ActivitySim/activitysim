@@ -369,7 +369,7 @@ def joint_tour_participation(tours, persons_merged, chunk_size, trace_hh_id):
         # its value depends on whether the candidate's 'participant_id' is in the joint_tour_participant index
         survey_participants_df = estimator.get_survey_table("joint_tour_participants")
         participate = pd.Series(
-            choices.index.isin(survey_participants_df.index.values), index=choices.index
+            choices.index.isin(survey_participants_df.participant_id), index=choices.index
         )
 
         # but estimation software wants to know the choices value (alternative index)

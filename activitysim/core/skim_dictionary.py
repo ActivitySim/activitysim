@@ -7,6 +7,8 @@ from builtins import object, range
 import numpy as np
 import pandas as pd
 
+from activitysim.core import workflow
+
 logger = logging.getLogger(__name__)
 
 NOT_IN_SKIM_ZONE_ID = -1
@@ -613,7 +615,7 @@ class MazSkimDict(SkimDict):
     to return values of for more distant pairs (or for skims that are not attributes in the maz-maz table.)
     """
 
-    def __init__(self, skim_tag, network_los, taz_skim_dict):
+    def __init__(self, whale: workflow.Whale, skim_tag, network_los, taz_skim_dict):
         """
         we need network_los because we have dependencies on network_los.load_data (e.g. maz_to_maz_df, maz_taz_df,
         and the fallback taz skim_dict)
@@ -638,10 +640,10 @@ class MazSkimDict(SkimDict):
             should_recode_based_on_table,
         )
 
-        if should_recode_based_on_table("land_use_taz"):
+        if should_recode_based_on_table(whale, "land_use_taz"):
             from .skim_dict_factory import SkimInfo
 
-            skim_info = SkimInfo(None, network_los)
+            skim_info = SkimInfo(whale, None, network_los)
             skim_info.skim_tag = taz_skim_dict.skim_info.skim_tag
             skim_info.dtype_name = network_los.skim_dtype_name
             skim_info.omx_manifest = taz_skim_dict.skim_info.omx_manifest
@@ -654,12 +656,12 @@ class MazSkimDict(SkimDict):
             skim_info.block_offsets = taz_skim_dict.skim_info.block_offsets
 
             skim_info.offset_map = recode_based_on_table(
-                taz_skim_dict.skim_info.offset_map, "land_use_taz"
+                whale, taz_skim_dict.skim_info.offset_map, "land_use_taz"
             )
         else:
             skim_info = taz_skim_dict.skim_info
 
-        super().__init__(skim_tag, skim_info, taz_skim_dict.skim_data)
+        super().__init__(whale, skim_tag, skim_info, taz_skim_dict.skim_data)
         assert (
             self.offset_mapper is not None
         )  # should have been set with _init_offset_mapper

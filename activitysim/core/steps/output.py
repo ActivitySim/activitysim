@@ -311,9 +311,7 @@ def write_tables(whale: workflow.Whale):
             dt_index_name = whale.get_dataframe_index_name(table_name)
 
             if sort:
-                traceable_table_indexes = whale.get_injectable(
-                    "traceable_table_indexes", {}
-                )
+                traceable_table_indexes = whale.tracing.traceable_table_indexes
 
                 if dt_index_name in traceable_table_indexes:
                     dt = dt.sort_by(dt_index_name)

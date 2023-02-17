@@ -38,7 +38,7 @@ def persons(whale: workflow.Whale):
 
     whale.get_rn_generator().add_channel("persons", df)
 
-    tracing.register_traceable_table(whale, "persons", df)
+    whale.tracing.register_traceable_table("persons", df)
     if trace_hh_id:
         whale.trace_df(df, "raw.persons", warn_if_empty=True)
 

@@ -8,7 +8,6 @@ import shutil
 import pandas as pd
 import yaml
 
-from activitysim.abm.models.util import canonical_ids as cid
 from activitysim.core import config, simulate, workflow
 from activitysim.core.util import reindex
 

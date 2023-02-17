@@ -156,6 +156,7 @@ def parking_destination_simulate(
 
 
 def choose_parking_location(
+    whale: workflow.Whale,
     segment_name,
     trips,
     alternatives,
@@ -172,7 +173,7 @@ def choose_parking_location(
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
     destination_sample = logit.interaction_dataset(
-        trips, alternatives, alt_index_id=alt_dest_col_name
+        whale, trips, alternatives, alt_index_id=alt_dest_col_name
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
@@ -202,6 +203,7 @@ def choose_parking_location(
 
 
 def run_parking_destination(
+    whale: workflow.Whale,
     model_settings,
     trips,
     land_use,
@@ -242,6 +244,7 @@ def run_parking_destination(
             continue
 
         choices, destination_sample = choose_parking_location(
+            whale,
             segment_name,
             chooser_segment,
             alternatives,
@@ -335,6 +338,7 @@ def parking_location(
         )
 
     parking_locations, save_sample_df = run_parking_destination(
+        whale,
         model_settings,
         trips_merged_df,
         land_use_df,

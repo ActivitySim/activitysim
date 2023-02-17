@@ -6,14 +6,9 @@ import numpy as np
 import pandas as pd
 from orca import orca
 
-from activitysim.abm.models.util import (
-    annotate,
-    estimation,
-    school_escort_tours_trips,
-    trip,
-)
+from activitysim.abm.models.util import annotate, school_escort_tours_trips, trip
 from activitysim.abm.models.util.mode import run_tour_mode_choice_simulate
-from activitysim.core import config, inject, logit, los, simulate, tracing, workflow
+from activitysim.core import config, estimation, logit, los, simulate, tracing, workflow
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)
@@ -156,7 +151,7 @@ def get_trip_mc_logsums_for_all_modes(
 
     # temporarily register trips in the pipeline
     whale.add_table("trips", logsum_trips)
-    tracing.register_traceable_table(whale, "trips", logsum_trips)
+    whale.tracing.register_traceable_table("trips", logsum_trips)
     whale.get_rn_generator().add_channel("trips", logsum_trips)
 
     # run trip mode choice on pseudo-trips. use orca instead of pipeline to
@@ -168,7 +163,7 @@ def get_trip_mc_logsums_for_all_modes(
 
     # de-register logsum trips table
     whale.get_rn_generator().drop_channel("trips")
-    tracing.deregister_traceable_table(whale, "trips")
+    whale.tracing.deregister_traceable_table("trips")
 
     return tours
 

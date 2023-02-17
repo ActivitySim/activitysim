@@ -4,11 +4,11 @@ import logging
 
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.canonical_ids import MAX_PARTICIPANT_PNUM
 from activitysim.abm.models.util.overlap import person_time_window_overlap
 from activitysim.core import (
     config,
+    estimation,
     expressions,
     inject,
     logit,
@@ -294,7 +294,7 @@ def joint_tour_participation(
 
     # - create joint_tour_participation_candidates table
     candidates = joint_tour_participation_candidates(joint_tours, persons_merged)
-    tracing.register_traceable_table(whale, "joint_tour_participants", candidates)
+    whale.tracing.register_traceable_table("joint_tour_participants", candidates)
     whale.get_rn_generator().add_channel("joint_tour_participants", candidates)
 
     logger.info(

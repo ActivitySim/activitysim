@@ -5,13 +5,13 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
 from activitysim.core import (
     chunk,
     config,
+    estimation,
     expressions,
     inject,
     logit,

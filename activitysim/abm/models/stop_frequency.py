@@ -4,8 +4,15 @@ import logging
 
 import pandas as pd
 
-from activitysim.abm.models.util import estimation, school_escort_tours_trips, trip
-from activitysim.core import config, expressions, simulate, tracing, workflow
+from activitysim.abm.models.util import school_escort_tours_trips, trip
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -186,7 +193,7 @@ def stop_frequency(
     # create trips table
     trips = trip.initialize_from_tours(whale, tours, stop_frequency_alts)
     whale.add_table("trips", trips)
-    tracing.register_traceable_table(whale, "trips", trips)
+    whale.tracing.register_traceable_table("trips", trips)
     whale.get_rn_generator().add_channel("trips", trips)
 
     if estimator:

@@ -4,8 +4,15 @@ import logging
 
 import pandas as pd
 
-from activitysim.abm.models.util import cdap, estimation
-from activitysim.core import config, expressions, simulate, tracing, workflow
+from activitysim.abm.models.util import cdap
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)

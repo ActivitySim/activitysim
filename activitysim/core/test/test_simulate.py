@@ -9,38 +9,39 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from .. import inject, simulate
+from activitysim.core import inject, simulate, workflow
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def data_dir():
     return os.path.join(os.path.dirname(__file__), "data")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def spec_name(data_dir):
     return "sample_spec.csv"
 
 
-@pytest.fixture(scope="module")
-def spec(data_dir, spec_name):
+@pytest.fixture
+def whale(data_dir) -> workflow.Whale:
+    whale = workflow.Whale()
+    whale.initialize_filesystem(
+        working_dir=os.path.dirname(__file__), data_dir=(data_dir,)
+    ).default_settings()
+    return whale
+
+
+@pytest.fixture
+def spec(whale, spec_name):
     return whale.filesystem.read_model_spec(file_name=spec_name)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def data(data_dir):
     return pd.read_csv(os.path.join(data_dir, "data.csv"))
 
 
-def setup_function():
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-
-    output_dir = os.path.join(os.path.dirname(__file__), f"output")
-    inject.add_injectable("output_dir", output_dir)
-
-
-def test_read_model_spec(spec_name):
+def test_read_model_spec(whale, spec_name):
 
     spec = whale.filesystem.read_model_spec(file_name=spec_name)
 
@@ -50,7 +51,7 @@ def test_read_model_spec(spec_name):
     npt.assert_array_equal(spec.values, [[1.1, 11], [2.2, 22], [3.3, 33], [4.4, 44]])
 
 
-def test_eval_variables(spec, data):
+def test_eval_variables(whale, spec, data):
 
     result = simulate.eval_variables(whale, spec.index, data)
 
@@ -69,21 +70,19 @@ def test_eval_variables(spec, data):
     pdt.assert_frame_equal(result, expected, check_names=False)
 
 
-def test_simple_simulate(data, spec):
+def test_simple_simulate(whale, data, spec):
 
-    inject.add_injectable("settings", {"check_for_variability": False})
+    whale.settings.check_for_variability = False
 
     choices = simulate.simple_simulate(whale, choosers=data, spec=spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected, check_dtype=False)
 
 
-def test_simple_simulate_chunked(data, spec):
+def test_simple_simulate_chunked(whale, data, spec):
 
-    inject.add_injectable("settings", {"check_for_variability": False})
-
-    # whale -. set chunk_size as 2
-
+    whale.settings.check_for_variability = False
+    whale.settings.chunk_size = 2
     choices = simulate.simple_simulate(
         whale,
         choosers=data,

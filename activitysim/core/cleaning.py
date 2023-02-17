@@ -40,6 +40,11 @@ def should_recode_based_on_table(whale: workflow.Whale, tablename):
     except (KeyError, RuntimeError):
         # the basis table is missing, do not
         return False
+    except AssertionError:
+        if whale.settings.input_table_list is None:
+            # some tests don't include table definitions.
+            return False
+        raise
     if base_df.index.name and f"_original_{base_df.index.name}" in base_df:
         return True
     return False
@@ -52,6 +57,12 @@ def recode_based_on_table(whale: workflow.Whale, values, tablename):
         # the basis table is missing, do nothing
         logger.warning(f"unable to recode based on missing {tablename} table")
         return values
+    except AssertionError:
+        if whale.settings.input_table_list is None:
+            # some tests don't include table definitions.
+            logger.warning(f"unable to recode based on missing {tablename} table")
+            return values
+        raise
     if base_df.index.name and f"_original_{base_df.index.name}" in base_df:
         source_ids = base_df[f"_original_{base_df.index.name}"]
         if (

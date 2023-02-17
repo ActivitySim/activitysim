@@ -130,7 +130,7 @@ def utils_to_probs(
     utils : pandas.DataFrame
         Rows should be choosers and columns should be alternatives.
 
-    trace_label : str
+    trace_label : str, optional
         label for tracing bad utility or probability values
 
     exponentiated : bool
@@ -275,7 +275,12 @@ def make_choices(
 
 
 def interaction_dataset(
-    choosers, alternatives, sample_size=None, alt_index_id=None, chooser_index_id=None
+    whale: workflow.Whale,
+    choosers,
+    alternatives,
+    sample_size=None,
+    alt_index_id=None,
+    chooser_index_id=None,
 ):
     """
     Combine choosers and alternatives into one table for the purposes
@@ -315,7 +320,7 @@ def interaction_dataset(
     alts_idx = np.arange(numalts)
 
     if sample_size < numalts:
-        sample = pipeline.get_rn_generator().choice_for_df(
+        sample = whale.get_rn_generator().choice_for_df(
             choosers, alts_idx, sample_size, replace=False
         )
     else:

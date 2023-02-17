@@ -5,8 +5,8 @@ from typing import Optional
 
 import pandas as pd
 
-from activitysim.abm.models.util.estimation import Estimator
-from activitysim.core import config, expressions, simulate, tracing, workflow
+from activitysim.core import config, expressions, simulate, workflow
+from activitysim.core.estimation import Estimator
 
 """
 At this time, these utilities are mostly for transforming the mode choice

@@ -1,6 +1,6 @@
 import pandas as pd
 
-from activitysim.core import inject, pipeline, tracing, workflow
+from activitysim.core import workflow
 
 
 @workflow.step
@@ -27,13 +27,13 @@ def step3(whale: workflow.Whale):
 @workflow.step
 def step_add_col(whale: workflow.Whale):
 
-    table_name = inject.get_step_arg("table_name")
+    table_name = whale.get_step_arg("table_name")
     assert table_name is not None
 
-    col_name = inject.get_step_arg("column_name")
+    col_name = whale.get_step_arg("column_name")
     assert col_name is not None
 
-    table = pipeline.get_table(table_name)
+    table = whale.get_table(table_name)
 
     assert col_name not in table.columns
 
@@ -45,12 +45,12 @@ def step_add_col(whale: workflow.Whale):
 @workflow.step
 def step_forget_tab(whale: workflow.Whale):
 
-    table_name = inject.get_step_arg("table_name")
+    table_name = whale.get_step_arg("table_name")
     assert table_name is not None
 
-    table = pipeline.get_table(table_name)
+    table = whale.get_table(table_name)
 
-    pipeline.drop_table(table_name)
+    whale.drop_table(table_name)
 
 
 @workflow.step
@@ -59,6 +59,6 @@ def create_households(whale: workflow.Whale):
     df = pd.DataFrame({"household_id": [1, 2, 3], "home_zone_id": {100, 100, 101}})
     whale.add_table("households", df)
 
-    pipeline.get_rn_generator().add_channel("households", df)
+    whale.get_rn_generator().add_channel("households", df)
 
-    tracing.register_traceable_table(whale, "households", df)
+    whale.tracing.register_traceable_table("households", df)

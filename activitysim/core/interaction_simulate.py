@@ -733,6 +733,7 @@ def _interaction_simulate(
     ):
 
         interaction_df = logit.interaction_dataset(
+            whale,
             choosers,
             alternatives,
             sample_size,

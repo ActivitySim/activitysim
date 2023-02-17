@@ -8,7 +8,7 @@ import numba as nb
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, workflow
+from activitysim.core import chunk, configuration, workflow
 
 logger = logging.getLogger(__name__)
 

@@ -7,7 +7,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
@@ -19,6 +18,7 @@ from activitysim.abm.tables.size_terms import tour_destination_size_terms
 from activitysim.core import (
     chunk,
     config,
+    estimation,
     expressions,
     los,
     simulate,

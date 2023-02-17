@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from activitysim.core import config, mem, tracing, util, workflow
+from activitysim.core import config, configuration, mem, tracing, util, workflow
 from activitysim.core.util import GB
 
 logger = logging.getLogger(__name__)
@@ -1138,9 +1138,8 @@ def chunk_log(trace_label, chunk_tag=None, base=False, settings=None):
     # avoids breaking the assertion below.
 
     if settings is None:
-        _chunk_training_mode = chunk_training_mode(
-            whale,
-        )
+        # use default chunk_training_mode if settings is not given
+        _chunk_training_mode = configuration.Settings().chunk_training_mode
     else:
         _chunk_training_mode = settings.chunk_training_mode
 

@@ -5,8 +5,14 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, interaction_simulate, logit, tracing, workflow
-from activitysim.core.simulate import set_skim_wrapper_targets
+from activitysim.core import (
+    chunk,
+    interaction_simulate,
+    logit,
+    simulate,
+    tracing,
+    workflow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -239,6 +245,7 @@ def _interaction_sample(
             )
     if not sharrow_enabled or (sharrow_enabled == "test"):
         interaction_df = logit.interaction_dataset(
+            whale,
             choosers,
             alternatives,
             sample_size=alternative_count,
@@ -250,7 +257,7 @@ def _interaction_sample(
         assert alternative_count == len(interaction_df.index) / len(choosers.index)
 
         if skims is not None:
-            set_skim_wrapper_targets(interaction_df, skims)
+            simulate.set_skim_wrapper_targets(interaction_df, skims)
 
         # evaluate expressions from the spec multiply by coefficients and sum
         # spec is df with one row per spec expression and one col with utility coefficient

@@ -7,9 +7,9 @@ import pandas as pd
 from sklearn.cluster import KMeans
 
 from activitysim.abm.models import initialize, location_choice
-from activitysim.abm.models.util import estimation, tour_destination
+from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
-from activitysim.core import los, tracing, util, workflow
+from activitysim.core import estimation, los, tracing, util, workflow
 from activitysim.core.expressions import assign_columns
 
 logger = logging.getLogger(__name__)
@@ -518,14 +518,13 @@ class ProtoPop:
 
     def inject_tables(self, whale: workflow.Whale):
         # Update canonical tables lists
-        whale.add_injectable(
-            "traceable_tables",
-            whale.get_injectable("traceable_tables") + list(self.proto_pop.keys()),
+        whale.tracing.traceable_tables = whale.tracing.traceable_tables + list(
+            self.proto_pop.keys()
         )
         for tablename, df in self.proto_pop.items():
             whale.add_table(tablename, df)
             self.whale.get_rn_generator().add_channel(tablename, df)
-            tracing.register_traceable_table(whale, tablename, df)
+            whale.tracing.register_traceable_table(tablename, df)
 
     def annotate_tables(self, whale: workflow.Whale):
         # Extract annotations
@@ -691,12 +690,12 @@ def compute_disaggregate_accessibility(
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:
         df = whale.get_dataframe(tablename)
-        traceables = whale.get_injectable("traceable_tables")
+        traceables = whale.tracing.traceable_tables
         if tablename not in whale.get_rn_generator().channels:
             whale.get_rn_generator().add_channel(tablename, df)
         if tablename not in traceables:
-            whale.add_injectable("traceable_tables", traceables + [tablename])
-            tracing.register_traceable_table(whale, tablename, df)
+            whale.tracing.traceable_tables = traceables + [tablename]
+            whale.tracing.register_traceable_table(tablename, df)
         del df
 
     # Run location choice
@@ -749,10 +748,8 @@ def compute_disaggregate_accessibility(
         whale.get_rn_generator().drop_channel(ch)
 
     # Drop any prematurely added traceables
-    for trace in [
-        x for x in whale.get_injectable("traceable_tables") if "proto_" not in x
-    ]:
-        tracing.deregister_traceable_table(whale, trace)
+    for trace in [x for x in whale.tracing.traceable_tables if "proto_" not in x]:
+        whale.tracing.deregister_traceable_table(trace)
 
     # # need to clear any premature tables that were added during the previous run
     # orca._TABLES.clear()

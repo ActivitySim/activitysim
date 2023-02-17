@@ -8,8 +8,8 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from .. import inject, logit
-from ..simulate import eval_variables
+from activitysim.core import inject, logit, workflow
+from activitysim.core.simulate import eval_variables
 
 
 def setup_function():
@@ -79,7 +79,7 @@ def spec(test_data):
 
 @pytest.fixture
 def utilities(choosers, spec, test_data):
-    vars = eval_variables(spec.index, choosers)
+    vars = eval_variables(workflow.Whale().default_settings(), spec.index, choosers)
     utils = vars.dot(spec).astype("float")
     return pd.DataFrame(
         utils.values.reshape(test_data["probabilities"].shape),
@@ -114,7 +114,7 @@ def test_make_choices_only_one():
     probs = pd.DataFrame(
         [[1, 0, 0], [0, 1, 0]], columns=["a", "b", "c"], index=["x", "y"]
     )
-    choices, rands = logit.make_choices(whale, probs)
+    choices, rands = logit.make_choices(workflow.Whale().default_settings(), probs)
 
     pdt.assert_series_equal(
         choices, pd.Series([0, 1], index=["x", "y"]), check_dtype=False
@@ -123,7 +123,7 @@ def test_make_choices_only_one():
 
 def test_make_choices_real_probs(utilities):
     probs = logit.utils_to_probs(utilities, trace_label=None)
-    choices, rands = logit.make_choices(whale, probs)
+    choices, rands = logit.make_choices(workflow.Whale().default_settings(), probs)
 
     pdt.assert_series_equal(
         choices,
@@ -151,7 +151,9 @@ def test_interaction_dataset_no_sample(interaction_choosers, interaction_alts):
         index=[1, 2, 3, 4] * 4,
     )
 
-    interacted = logit.interaction_dataset(interaction_choosers, interaction_alts)
+    interacted = logit.interaction_dataset(
+        workflow.Whale().default_settings(), interaction_choosers, interaction_alts
+    )
 
     interacted, expected = interacted.align(expected, axis=1)
 
@@ -170,7 +172,10 @@ def test_interaction_dataset_sampled(interaction_choosers, interaction_alts):
     )
 
     interacted = logit.interaction_dataset(
-        interaction_choosers, interaction_alts, sample_size=2
+        workflow.Whale().default_settings(),
+        interaction_choosers,
+        interaction_alts,
+        sample_size=2,
     )
 
     interacted, expected = interacted.align(expected, axis=1)

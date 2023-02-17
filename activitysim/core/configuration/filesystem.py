@@ -15,7 +15,7 @@ from activitysim.core.util import parse_suffix_args, suffix_tables_in_settings
 logger = logging.getLogger(__name__)
 
 
-class FileSystem(PydanticBase):
+class FileSystem(PydanticBase, validate_assignment=True):
     """
     Manage finding and loading files for ActivitySim's command line interface.
     """
@@ -394,6 +394,16 @@ class FileSystem(PydanticBase):
         return self._cascading_input_file_path(
             file_name, "configs_dir", mandatory, allow_glob
         )
+
+    def get_data_dir(self) -> tuple[Path]:
+        """
+        Get the data directories.
+
+        Returns
+        -------
+        tuple[Path]
+        """
+        return tuple(self.get_working_subdir(i) for i in self.data_dir)
 
     def get_data_file_path(self, file_name, mandatory=True, allow_glob=False) -> Path:
         """

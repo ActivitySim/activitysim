@@ -114,7 +114,7 @@ def initialize_tours(whale: workflow.Whale, network_los, households, persons):
 
     whale.get_rn_generator().add_channel("tours", tours)
 
-    tracing.register_traceable_table(whale, "tours", tours)
+    whale.tracing.register_traceable_table("tours", tours)
 
     logger.debug(f"{len(tours.household_id.unique())} unique household_ids in tours")
     logger.debug(f"{len(households.index.unique())} unique household_ids in households")

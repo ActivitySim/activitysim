@@ -6,11 +6,12 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import annotate, estimation, school_escort_tours_trips
+from activitysim.abm.models.util import annotate, school_escort_tours_trips
 from activitysim.abm.models.util.mode import mode_choice_simulate
 from activitysim.core import (
     chunk,
     config,
+    estimation,
     expressions,
     los,
     simulate,

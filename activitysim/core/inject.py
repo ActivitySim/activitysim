@@ -231,23 +231,6 @@ def clear_cache():
     return orca.clear_cache()
 
 
-def set_step_args(args=None):
-
-    assert isinstance(args, dict) or args is None
-    orca.add_injectable("step_args", args)
-
-
-def get_step_arg(arg_name, default=_NO_DEFAULT):
-
-    args = orca.get_injectable("step_args")
-
-    assert isinstance(args, dict)
-    if arg_name not in args and default == _NO_DEFAULT:
-        raise "step arg '%s' not found and no default" % arg_name
-
-    return args.get(arg_name, default)
-
-
 def dump_state():
 
     print("_DECORATED_STEPS", list(_DECORATED_STEPS.keys()))

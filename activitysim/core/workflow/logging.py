@@ -5,6 +5,8 @@ from collections.abc import Mapping, MutableMapping
 
 import yaml
 
+from .accessor import WhaleAccessor
+
 logger = logging.getLogger(__name__)
 
 ASIM_LOGGER = "activitysim"
@@ -53,23 +55,7 @@ def _rewrite_config_dict(whale, x):
         return x
 
 
-class Logging:
-    def __set_name__(self, owner, name):
-        self._name = name
-
-    def __get__(self, instance, objtype=None):
-        from .state import Whale
-
-        assert isinstance(instance, Whale)
-        self._obj = instance
-        return self
-
-    def __set__(self, instance, value):
-        raise ValueError(f"cannot set {self._name}")
-
-    def __delete__(self, instance):
-        raise ValueError(f"cannot delete {self._name}")
-
+class Logging(WhaleAccessor):
     def config_logger(self, basic=False):
         """
         Configure logger
@@ -85,7 +71,7 @@ class Logging:
         if basic:
             log_config_file = None
         else:
-            log_config_file = self._obj.filesystem.get_config_file_path(
+            log_config_file = self.obj.filesystem.get_config_file_path(
                 LOGGING_CONF_FILE_NAME, mandatory=False
             )
 
@@ -97,7 +83,7 @@ class Logging:
                 print(f"Unable to read logging config file {log_config_file}")
                 raise e
 
-            config_dict = _rewrite_config_dict(self._obj, config_dict)
+            config_dict = _rewrite_config_dict(self.obj, config_dict)
 
             try:
                 config_dict = config_dict["logging"]

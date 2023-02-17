@@ -1,19 +1,12 @@
 import datetime as dt
 import logging
 import os
-import warnings
-from builtins import map, next
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Optional, Union
 
 import pandas as pd
-import pyarrow as pa
-import xarray as xr
-from pypyr.context import Context, KeyNotInContextError
 
-from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
-from activitysim.core.exceptions import WhaleAccessError
-from activitysim.core.workflow.steps import run_named_step
+from activitysim.core.workflow.accessor import WhaleAccessor
 
 logger = logging.getLogger(__name__)
 
@@ -33,28 +26,12 @@ INITIAL_CHECKPOINT_NAME = "init"
 FINAL_CHECKPOINT_NAME = "final"
 
 
-class Checkpoints:
+class Checkpoints(WhaleAccessor):
     def __init__(self):
         self.last_checkpoint = {}
         self.checkpoints = []
         self._checkpoint_store = None
         self.is_open = False
-
-    def __set_name__(self, owner, name):
-        self.name = name
-
-    def __get__(self, instance, objtype=None):
-        from .state import Whale
-
-        assert isinstance(instance, Whale)
-        self.obj = instance
-        return self
-
-    def __set__(self, instance, value):
-        raise ValueError(f"cannot set {self.name}")
-
-    def __delete__(self, instance):
-        raise ValueError(f"cannot delete {self.name}")
 
     @property
     def store(self) -> Union[pd.HDFStore, Path]:
@@ -360,14 +337,12 @@ class Checkpoints:
                 self.obj.settings.offset_preprocessing = True
 
         # register for tracing in order that tracing.register_traceable_table wants us to register them
-        traceable_tables = self.obj.get_injectable("traceable_tables", [])
-
-        from activitysim.core.tracing import register_traceable_table
+        traceable_tables = self.obj.tracing.traceable_tables
 
         for table_name in traceable_tables:
             if table_name in loaded_tables:
-                register_traceable_table(
-                    self.obj, table_name, loaded_tables[table_name]
+                self.obj.tracing.register_traceable_table(
+                    table_name, loaded_tables[table_name]
                 )
 
         # add tables of known rng channels

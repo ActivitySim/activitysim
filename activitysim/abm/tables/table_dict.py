@@ -37,12 +37,6 @@ def traceable_table_indexes(whale: workflow.Whale):
 
 
 @workflow.cached_object
-def traceable_table_ids(whale: workflow.Whale):
-    # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
-    return dict()
-
-
-@workflow.cached_object
 def canonical_table_index_names(whale: workflow.Whale):
     # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
     return cid.CANONICAL_TABLE_INDEX_NAMES

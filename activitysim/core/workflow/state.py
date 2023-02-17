@@ -19,6 +19,7 @@ from activitysim.core.workflow.checkpoint import Checkpoints
 from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.runner import Runner
 from activitysim.core.workflow.steps import run_named_step
+from activitysim.core.workflow.tracing import Tracing
 
 logger = logging.getLogger(__name__)
 
@@ -114,13 +115,7 @@ class Whale:
 
         self.open_files = {}
 
-        # self._pipeline_store = None
-
-        # self._is_open = False
-        from activitysim.core.tracing import initialize_traceable_tables  # TOP?
-
-        initialize_traceable_tables(self)
-
+        self.tracing.initialize()
         self.context["_salient_tables"] = {}
 
         self.get_rn_generator().set_base_seed(self.get("rng_base_seed", 0))
@@ -131,6 +126,7 @@ class Whale:
     predicates = WhaleAttr(dict, default_init=True)
     checkpoint = Checkpoints()
     logging = Logging()
+    tracing: Tracing = Tracing()
 
     def initialize_filesystem(
         self,
@@ -165,7 +161,26 @@ class Whale:
             raise
         return self
 
-    def load_settings(self):
+    def default_settings(self, force=False) -> "Whale":
+        """
+        Initialize with all default settings, rather than reading from a file.
+
+        Parameters
+        ----------
+        force : bool, default False
+            If settings are already loaded, this method does nothing unless
+            this argument is true, in which case all existing settings are
+            discarded in favor of the defaults.
+        """
+        try:
+            _ = self.settings
+            if force:
+                raise WhaleAccessError
+        except WhaleAccessError:
+            self.settings = Settings()
+        return self
+
+    def load_settings(self) -> "Whale":
         # read settings file
         raw_settings = self.filesystem.read_settings_file(
             self.filesystem.settings_file_name,
@@ -198,53 +213,6 @@ class Whale:
                 delattr(self.settings, k)
 
         return self
-
-    # @property
-    # def pipeline_store(self):
-    #     if self._pipeline_store is None:
-    #         self.open_pipeline_store()
-    #     return self._pipeline_store
-
-    # @property
-    # def filesystem(self) -> FileSystem:
-    #     try:
-    #         return self.context["filesystem"]
-    #     except KeyError:
-    #         raise WhaleAccessError("filesystem not initialized for this pipeline")
-    #
-    # @filesystem.setter
-    # def filesystem(self, fs: FileSystem):
-    #     if not isinstance(fs, FileSystem):
-    #         raise TypeError(f"filesystem must be FileSystem not {type(fs)}")
-    #     self.context["filesystem"] = fs
-    #
-    # @property
-    # def settings(self) -> Settings:
-    #     try:
-    #         return self.context["settings"]
-    #     except KeyError:
-    #         raise WhaleAccessError("settings not initialized for this pipeline")
-    #
-    # @settings.setter
-    # def settings(self, s: Settings):
-    #     if not isinstance(s, Settings):
-    #         raise TypeError(f"settings must be Settings not {type(s)}")
-    #     self.context["settings"] = s
-    #
-    # @property
-    # def network_settings(self) -> NetworkSettings:
-    #     try:
-    #         return self.context["network_settings"]
-    #     except KeyError:
-    #         raise WhaleAccessError(
-    #             "network_settings not initialized for this pipeline"
-    #         )
-    #
-    # @network_settings.setter
-    # def network_settings(self, s: NetworkSettings):
-    #     if not isinstance(s, NetworkSettings):
-    #         raise TypeError(f"settings must be NetworkSettings not {type(s)}")
-    #     self.context["network_settings"] = s
 
     _RUNNABLE_STEPS = {}
     _LOADABLE_TABLES = {}
@@ -579,7 +547,12 @@ class Whale:
         constants : dict
             dictionary of constants to add to locals for use by expressions in model spec
         """
-        return self.filesystem.read_settings_file("constants.yaml", mandatory=False)
+        try:
+            filesystem = self.filesystem
+        except WhaleAccessError:
+            return {}
+        else:
+            return filesystem.read_settings_file("constants.yaml", mandatory=False)
 
     # def read_df(self, table_name, checkpoint_name=None):
     #     """
@@ -1374,3 +1347,18 @@ class Whale:
         from activitysim.core.tracing import dump_df
 
         return dump_df(self, dump_switch, df, trace_label, fname)
+
+    def set_step_args(self, args=None):
+
+        assert isinstance(args, dict) or args is None
+        self.add_injectable("step_args", args)
+
+    def get_step_arg(self, arg_name, default=NO_DEFAULT):
+
+        args = self.get_injectable("step_args")
+
+        assert isinstance(args, dict)
+        if arg_name not in args and default == NO_DEFAULT:
+            raise "step arg '%s' not found and no default" % arg_name
+
+        return args.get(arg_name, default)

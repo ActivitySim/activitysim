@@ -10,7 +10,7 @@ from contextlib import contextmanager
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, inject, simulate, util
+from activitysim.core import config, los, util
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class TVPBCache(object):
     Transit virtual path builder cache for three zone systems
     """
 
-    def __init__(self, network_los, uid_calculator, cache_tag):
+    def __init__(self, network_los: "los.Network_LOS", uid_calculator, cache_tag):
 
         # lightweight until opened
 
@@ -82,7 +82,9 @@ class TVPBCache(object):
     @property
     def cache_path(self):
         file_type = "mmap"
-        return os.path.join(config.get_cache_dir(), f"{self.cache_tag}.{file_type}")
+        return os.path.join(
+            self.network_los.get_cache_dir(), f"{self.cache_tag}.{file_type}"
+        )
 
     @property
     def csv_trace_path(self):
@@ -306,7 +308,7 @@ class TVPBCache(object):
         -------
         either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
         """
-        data_buffers = whale.get_injectable("data_buffers", None)
+        data_buffers = self.network_los.whale.get_injectable("data_buffers", None)
         assert self.cache_tag in data_buffers  # internal error
         logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
         data_buffer = data_buffers[self.cache_tag]
@@ -320,7 +322,7 @@ class TVPBCache(object):
         return data, lock
 
 
-class TapTapUidCalculator(object):
+class TapTapUidCalculator:
     """
     Transit virtual path builder TAP to TAP unique ID calculator for three zone systems
     """
@@ -362,7 +364,9 @@ class TapTapUidCalculator(object):
             f"TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.SPEC"
         )
         self.set_names = list(
-            whale.filesystem.read_model_spec(file_name=spec_name).columns
+            self.network_los.whale.filesystem.read_model_spec(
+                file_name=spec_name
+            ).columns
         )
 
     @property

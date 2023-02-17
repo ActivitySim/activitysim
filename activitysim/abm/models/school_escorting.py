@@ -5,8 +5,16 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import estimation, school_escort_tours_trips
-from activitysim.core import config, expressions, inject, simulate, tracing, workflow
+from activitysim.abm.models.util import school_escort_tours_trips
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    inject,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.interaction_simulate import interaction_simulate
 from activitysim.core.util import reindex
 

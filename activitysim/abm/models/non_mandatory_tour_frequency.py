@@ -5,13 +5,21 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import annotate, estimation
+from activitysim.abm.models.util import annotate
 from activitysim.abm.models.util.overlap import person_max_window
 from activitysim.abm.models.util.school_escort_tours_trips import (
     recompute_tour_count_statistics,
 )
 from activitysim.abm.models.util.tour_frequency import process_non_mandatory_tours
-from activitysim.core import config, expressions, logit, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    logit,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.interaction_simulate import interaction_simulate
 
 logger = logging.getLogger(__name__)
@@ -378,7 +386,7 @@ def non_mandatory_tour_frequency(
 
     whale.extend_table("tours", non_mandatory_tours)
 
-    tracing.register_traceable_table(whale, "tours", non_mandatory_tours)
+    whale.tracing.register_traceable_table("tours", non_mandatory_tours)
     whale.get_rn_generator().add_channel("tours", non_mandatory_tours)
 
     if whale.is_table("school_escort_tours"):

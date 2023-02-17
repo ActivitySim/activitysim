@@ -6,12 +6,11 @@ import pandas as pd
 
 from activitysim.abm.models.trip_destination import run_trip_destination
 from activitysim.abm.models.trip_purpose import run_trip_purpose
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.trip import (
     cleanup_failed_trips,
     flag_failed_trip_leg_mates,
 )
-from activitysim.core import config, tracing, workflow
+from activitysim.core import config, estimation, tracing, workflow
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)

@@ -1,40 +1,38 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
+from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 
 # Note that the following import statement has the side-effect of registering injectables:
-from .. import config, inject
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
+from activitysim.core import workflow
+from activitysim.core.configuration import Settings
+from activitysim.core.exceptions import WhaleAccessError
 
 
 def test_defaults():
 
-    inject.clear_cache()
+    whale = workflow.Whale()
+    with pytest.raises(ValidationError):
+        whale.initialize_filesystem(working_dir=Path(__file__).parents[1])
 
-    with pytest.raises(RuntimeError) as excinfo:
-        inject.get_injectable("configs_dir")
-    assert "directory does not exist" in str(excinfo.value)
+    work_dir = Path(__file__).parents[0]
+    whale.initialize_filesystem(working_dir=work_dir)
 
-    with pytest.raises(RuntimeError) as excinfo:
-        inject.get_injectable("data_dir")
-    assert "directory does not exist" in str(excinfo.value)
-
-    with pytest.raises(RuntimeError) as excinfo:
-        output_dir = inject.get_injectable("output_dir")
-        print("output_dir", output_dir)
-    assert "directory does not exist" in str(excinfo.value)
+    assert whale.filesystem.get_configs_dir() == (work_dir.joinpath("configs"),)
+    assert whale.filesystem.get_data_dir() == (work_dir.joinpath("data"),)
+    assert whale.filesystem.get_output_dir() == work_dir.joinpath("output")
 
     configs_dir = os.path.join(os.path.dirname(__file__), "configs_test_defaults")
-    inject.add_injectable("configs_dir", configs_dir)
+    with pytest.raises(ValidationError):
+        # can't write one path to configs_dir, must be a tuple
+        whale.filesystem.configs_dir = Path(configs_dir)
+    whale.filesystem.configs_dir = (Path(configs_dir),)
 
-    settings = inject.get_injectable("settings")
-    assert isinstance(settings, dict)
+    with pytest.raises(WhaleAccessError):
+        settings = whale.settings
 
-    data_dir = os.path.join(os.path.dirname(__file__), "data")
-    inject.add_injectable("data_dir", data_dir)
+    whale.load_settings()
+    assert isinstance(whale.settings, Settings)

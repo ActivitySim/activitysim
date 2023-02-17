@@ -6,13 +6,12 @@ from builtins import range
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util import probabilistic_scheduling as ps
 from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
-from activitysim.core import chunk, config, tracing, workflow
+from activitysim.core import chunk, config, estimation, tracing, workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)

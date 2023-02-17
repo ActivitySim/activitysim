@@ -874,7 +874,7 @@ def run_od_logsums(
                 logsum_trips[col] = reindex(pseudo_tours[col], logsum_trips.unique_id)
 
         whale.add_table("trips", logsum_trips)
-        tracing.register_traceable_table(whale, "trips", logsum_trips)
+        whale.tracing.register_traceable_table("trips", logsum_trips)
         whale.get_rn_generator().add_channel("trips", logsum_trips)
 
         # run trip mode choice on pseudo-trips. use orca instead of pipeline to
@@ -904,7 +904,7 @@ def run_od_logsums(
         choosers.set_index(choosers_og_index, inplace=True)
 
         whale.get_rn_generator().drop_channel("trips")
-        tracing.deregister_traceable_table(whale, "trips")
+        whale.tracing.deregister_traceable_table("trips")
 
         assert (od_sample.index == choosers.index).all()
         for col in new_cols:

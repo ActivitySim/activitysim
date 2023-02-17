@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from .base import Any, PydanticBase, Union
 
 
@@ -137,7 +139,16 @@ class TAZ_Settings(PydanticBase):
     """
 
 
-class NetworkSettings(PydanticBase):
+class MazToMazSettings(PydanticBase, extra="forbid"):
+    tables: list[str]
+
+    max_blend_distance: dict[str, float] = None
+
+    blend_distance_skim_name: str = None
+    """The name of the skim table used to blend distances for MAZs."""
+
+
+class NetworkSettings(PydanticBase, extra="forbid"):
     """
     Network level of service and skims settings
 
@@ -189,5 +200,43 @@ class NetworkSettings(PydanticBase):
     runs.
     """
 
-    cache_dir: str = None
+    network_cache_dir: str = None
     """alternate dir to read/write cache files (defaults to output_dir)"""
+
+    #### 2 ZONE ####
+
+    maz: str = None
+    """Filename for the MAZ data file.
+
+    This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes
+    """
+
+    maz_to_maz: MazToMazSettings = None
+    """Settings to manage maz-to-maz level of service in 2- and 3-zone models."""
+
+    #### 3 ZONE ####
+
+    tap: str = None
+    """Filename for the TAP data file.
+
+    This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes
+    """
+
+    maz_to_tap: dict[str, Any] = None
+    """Settings to manage maz-to-tap level of service in 3-zone models."""
+
+    demographic_segments: Any = None
+
+    tap_skims: str | list[str] = None
+
+    TVPB_SETTINGS: Any = None
+
+    source_file_paths: list[Path] = None
+    """
+    A list of source files from which these settings were loaded.
+
+    This value should not be set by the user within the YAML settings files,
+    instead it is populated as those files are loaded.  It is primarily
+    provided for debugging purposes, and does not actually affect the operation
+    of the model.
+    """

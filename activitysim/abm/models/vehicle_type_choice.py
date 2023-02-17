@@ -10,16 +10,14 @@ import pandas as pd
 
 from activitysim.core import (
     config,
+    estimation,
     expressions,
-    inject,
     logit,
     simulate,
     tracing,
     workflow,
 )
 from activitysim.core.interaction_simulate import interaction_simulate
-
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 

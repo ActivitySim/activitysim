@@ -4,9 +4,16 @@ import logging
 
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.tour_frequency import process_mandatory_tours
-from activitysim.core import config, expressions, inject, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    inject,
+    simulate,
+    tracing,
+    workflow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -124,7 +131,7 @@ def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
     )
 
     tours = whale.extend_table("tours", mandatory_tours)
-    tracing.register_traceable_table(whale, "tours", mandatory_tours)
+    whale.tracing.register_traceable_table("tours", mandatory_tours)
     whale.get_rn_generator().add_channel("tours", mandatory_tours)
 
     # - annotate persons

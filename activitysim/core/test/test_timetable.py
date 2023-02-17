@@ -9,8 +9,9 @@ import pandas.testing as pdt
 import pytest
 from numpy.testing import assert_array_equal
 
-from .. import chunk
-from .. import timetable as tt
+from activitysim.core import chunk
+from activitysim.core import timetable as tt
+from activitysim.core import workflow
 
 
 @pytest.fixture
@@ -55,6 +56,8 @@ def tdd_alts():
 
 
 def test_basic(persons, tdd_alts):
+
+    whale = workflow.Whale().default_settings()
 
     with chunk.chunk_log("test_basic", base=True, settings=whale.settings):
 

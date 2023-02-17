@@ -12,7 +12,6 @@ from typing import Callable, Optional
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util.estimation import Estimator
 from activitysim.core import (
     assign,
     chunk,
@@ -24,6 +23,7 @@ from activitysim.core import (
     util,
     workflow,
 )
+from activitysim.core.estimation import Estimator
 from activitysim.core.simulate_consts import (
     ALT_LOSER_UTIL,
     SPEC_DESCRIPTION_NAME,
@@ -185,7 +185,7 @@ def spec_for_segment(
     model_settings,
     spec_id: str,
     segment_name: str,
-    estimator: Optional[Estimator],
+    estimator: "Optional[Estimator]",
 ) -> pd.DataFrame:
     """
     Select spec for specified segment from omnibus spec containing columns for each segment

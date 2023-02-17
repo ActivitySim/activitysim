@@ -5,9 +5,15 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.tour_frequency import process_atwork_subtours
-from activitysim.core import config, expressions, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -110,7 +116,7 @@ def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk
 
     tours = whale.extend_table("tours", subtours)
 
-    tracing.register_traceable_table(whale, "tours", subtours)
+    whale.tracing.register_traceable_table("tours", subtours)
     whale.get_rn_generator().add_channel("tours", subtours)
 
     tracing.print_summary(

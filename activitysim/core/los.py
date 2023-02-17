@@ -3,6 +3,7 @@
 
 import logging
 import warnings
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -118,6 +119,15 @@ class Network_LOS(object):
         ), f"Should not even be asking about rebuild_tvpb_cache if not THREE_ZONE"
         return self.setting("rebuild_tvpb_cache")
 
+    def get_network_cache_dir(self) -> Path:
+        if self.los_settings.network_cache_dir:
+            result = self.whale.filesystem.get_working_subdir(
+                self.los_settings.network_cache_dir
+            )
+            result.mkdir(parents=True, exist_ok=True)
+            return result
+        return self.whale.filesystem.get_cache_dir()
+
     def setting(self, keys, default: Any = "<REQUIRED>"):
         # if they dont specify a default, check the default defaults
         default = (
@@ -219,12 +229,16 @@ class Network_LOS(object):
 
         if self.zone_system == THREE_ZONE:
             # load tap skim_info
-            self.skims_info["tap"] = self.skim_dict_factory.load_skim_info("tap")
+            self.skims_info["tap"] = self.skim_dict_factory.load_skim_info(
+                self.whale, "tap"
+            )
 
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
             self.tap_df = pd.read_csv(
-                config.data_file_path(self.setting("tap"), mandatory=True)
+                self.whale.filesystem.get_data_file_path(
+                    self.setting("tap"), mandatory=True
+                )
             ).sort_values("TAP")
             self.tvpb = pathbuilder.TransitVirtualPathBuilder(
                 self
@@ -240,7 +254,7 @@ class Network_LOS(object):
             # maz
             file_name = self.setting("maz")
             self.maz_taz_df = pd.read_csv(
-                config.data_file_path(file_name, mandatory=True)
+                self.whale.filesystem.get_data_file_path(file_name, mandatory=True)
             )
             self.maz_taz_df = self.maz_taz_df[["MAZ", "TAZ"]].sort_values(
                 by="MAZ"
@@ -264,7 +278,9 @@ class Network_LOS(object):
                 else maz_to_maz_tables
             )
             for file_name in maz_to_maz_tables:
-                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                df = pd.read_csv(
+                    self.whale.filesystem.get_data_file_path(file_name, mandatory=True)
+                )
 
                 # recode MAZs if needed
                 df["OMAZ"] = recode_based_on_table(self.whale, df["OMAZ"], "land_use")
@@ -294,7 +310,7 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
             # tap_df should already have been loaded by load_skim_info because,
             # during multiprocessing, it is required by TapTapUidCalculator to size TVPBCache
-            # self.tap_df = pd.read_csv(config.data_file_path(self.setting('tap'), mandatory=True))
+            # self.tap_df = pd.read_csv(self.whale.filesystem.get_data_file_path(self.setting('tap'), mandatory=True))
             assert self.tap_df is not None
 
             # maz_to_tap_dfs - different sized sparse arrays with different columns, so we keep them seperate
@@ -304,7 +320,9 @@ class Network_LOS(object):
                 ), f"Expected setting maz_to_tap.{mode}.table not found in in {LOS_SETTINGS_FILE_NAME}"
 
                 file_name = maz_to_tap_settings["table"]
-                df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+                df = pd.read_csv(
+                    self.whale.filesystem.get_data_file_path(file_name, mandatory=True)
+                )
 
                 # recode MAZs if needed
                 df["MAZ"] = recode_based_on_table(self.whale, df["MAZ"], "land_use")
@@ -320,7 +338,9 @@ class Network_LOS(object):
                             "tap_lines",
                         )
                         self.tap_lines_df = pd.read_csv(
-                            config.data_file_path(tap_lines_file_name, mandatory=True)
+                            self.whale.filesystem.get_data_file_path(
+                                tap_lines_file_name, mandatory=True
+                            )
                         )
 
                         # csv file has one row per TAP with space-delimited list of lines served by that TAP
@@ -476,7 +496,9 @@ class Network_LOS(object):
                 "taz" in self.skim_dicts
             ), f"create_skim_dict 'maz': backing taz skim_dict not in skim_dicts"
             taz_skim_dict = self.skim_dicts["taz"]
-            skim_dict = skim_dictionary.MazSkimDict("maz", self, taz_skim_dict)
+            skim_dict = skim_dictionary.MazSkimDict(
+                self.whale, "maz", self, taz_skim_dict
+            )
         else:
             skim_info = self.skims_info[skim_tag]
             skim_data = self.skim_dict_factory.get_skim_data(skim_tag, skim_info)

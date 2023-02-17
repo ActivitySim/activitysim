@@ -6,7 +6,8 @@ import os.path
 import pandas as pd
 import pytest
 
-from .. import inject, tracing
+from activitysim.abm.tables import table_dict
+from activitysim.core import inject, tracing, workflow
 
 
 def close_handlers():
@@ -26,18 +27,26 @@ def teardown_function(func):
 
 def add_canonical_dirs():
 
-    inject.clear_cache()
+    whale = workflow.Whale()
 
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
+    whale.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
+    whale.add_injectable("output_dir", output_dir)
+
+    whale.initialize_filesystem(
+        working_dir=os.path.dirname(__file__),
+        configs_dir=(configs_dir,),
+        output_dir=output_dir,
+    )
+
+    return whale
 
 
 def test_config_logger(capsys):
 
-    add_canonical_dirs()
+    whale = add_canonical_dirs()
 
     whale.logging.config_logger()
 
@@ -76,7 +85,7 @@ def test_config_logger(capsys):
 
 def test_print_summary(capsys):
 
-    add_canonical_dirs()
+    whale = add_canonical_dirs()
 
     whale.logging.config_logger()
 
@@ -96,23 +105,24 @@ def test_print_summary(capsys):
 
 def test_register_households(capsys):
 
-    add_canonical_dirs()
+    whale = add_canonical_dirs()
+    whale.load_settings()
 
     whale.logging.config_logger()
 
     df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[1, 2, 3])
 
-    inject.add_injectable("traceable_tables", ["households"])
-    inject.add_injectable("trace_hh_id", 5)
+    whale.tracing.traceable_tables = ["households"]
+    whale.settings.trace_hh_id = 5
 
-    tracing.register_traceable_table(whale, "households", df)
+    whale.tracing.register_traceable_table("households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
     assert "Can't register table 'households' without index name" in out
 
     df.index.name = "household_id"
-    tracing.register_traceable_table(whale, "households", df)
+    whale.tracing.register_traceable_table("households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
@@ -124,22 +134,20 @@ def test_register_households(capsys):
 
 def test_register_tours(capsys):
 
-    add_canonical_dirs()
+    whale = add_canonical_dirs().load_settings()
 
     whale.logging.config_logger()
 
-    inject.add_injectable("traceable_tables", ["households", "tours"])
+    whale.tracing.traceable_tables = ["households", "tours"]
 
     # in case another test injected this
-    inject.add_injectable("trace_tours", [])
-    inject.add_injectable(
-        "trace_hh_id", 3
-    )  # need this or register_traceable_table is a nop
+    whale.add_injectable("trace_tours", [])
+    whale.settings.trace_hh_id = 3
 
     tours_df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[10, 11, 12])
     tours_df.index.name = "tour_id"
 
-    tracing.register_traceable_table(whale, "tours", tours_df)
+    whale.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     assert (
@@ -147,12 +155,12 @@ def test_register_tours(capsys):
         in out
     )
 
-    inject.add_injectable("trace_hh_id", 3)
+    whale.add_injectable("trace_hh_id", 3)
     households_df = pd.DataFrame({"dzing": ["a", "b", "c"]}, index=[1, 2, 3])
     households_df.index.name = "household_id"
-    tracing.register_traceable_table(whale, "households", households_df)
+    whale.tracing.register_traceable_table("households", households_df)
 
-    tracing.register_traceable_table(whale, "tours", tours_df)
+    whale.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     # print out  # don't consume output
@@ -160,13 +168,13 @@ def test_register_tours(capsys):
 
     tours_df["household_id"] = [1, 5, 3]
 
-    tracing.register_traceable_table(whale, "tours", tours_df)
+    whale.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     print(out)  # don't consume output
 
     # should be tracing tour with tour_id 3
-    traceable_table_ids = inject.get_injectable("traceable_table_ids")
+    traceable_table_ids = whale.tracing.traceable_table_ids
     assert traceable_table_ids["tours"] == [12]
 
     close_handlers()
@@ -174,7 +182,7 @@ def test_register_tours(capsys):
 
 def test_write_csv(capsys):
 
-    add_canonical_dirs()
+    whale = add_canonical_dirs()
 
     whale.logging.config_logger()
 
@@ -212,11 +220,13 @@ def test_basic(capsys):
 
     close_handlers()
 
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
+    # configs_dir = os.path.join(os.path.dirname(__file__), "configs")
+    # inject.add_injectable("configs_dir", configs_dir)
+    #
+    # output_dir = os.path.join(os.path.dirname(__file__), "output")
+    # inject.add_injectable("output_dir", output_dir)
 
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
+    whale = add_canonical_dirs()
 
     # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []

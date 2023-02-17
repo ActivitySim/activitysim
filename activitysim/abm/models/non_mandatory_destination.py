@@ -4,10 +4,9 @@ import logging
 
 import pandas as pd
 
-from activitysim.core import config, inject, simulate, tracing, workflow
+from activitysim.abm.models.util import annotate, tour_destination
+from activitysim.core import estimation, tracing, workflow
 from activitysim.core.util import assign_in_place
-
-from .util import annotate, estimation, tour_destination
 
 logger = logging.getLogger(__name__)
 

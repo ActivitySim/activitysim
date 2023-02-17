@@ -42,7 +42,7 @@ class ElapsedTimeFormatter(logging.Formatter):
         return super(ElapsedTimeFormatter, self).format(record)
 
 
-def extend_trace_label(trace_label, extension):
+def extend_trace_label(trace_label: str = None, extension: str = None) -> str | None:
     if trace_label:
         trace_label = "%s.%s" % (trace_label, extension)
     return trace_label
@@ -255,122 +255,6 @@ def print_summary(label, df, describe=False, value_counts=False):
         logger.info("%s summary:\n%s" % (label, df.describe()))
 
 
-@workflow.step
-def initialize_traceable_tables(whale: workflow.Whale):
-    whale.set("traceable_table_ids", {})
-
-
-def register_traceable_table(whale: workflow.Whale, table_name: str, df: pd.DataFrame):
-    """
-    Register traceable table
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    Returns
-    -------
-    Nothing
-    """
-
-    # add index name to traceable_table_indexes
-
-    logger.debug(f"register_traceable_table {table_name}")
-
-    traceable_tables = whale.get_injectable("traceable_tables")
-    if table_name not in traceable_tables:
-        logger.error("table '%s' not in traceable_tables" % table_name)
-        return
-
-    idx_name = df.index.name
-    if idx_name is None:
-        logger.error("Can't register table '%s' without index name" % table_name)
-        return
-
-    traceable_table_ids = whale.get_injectable("traceable_table_ids")
-    traceable_table_indexes = whale.get_injectable("traceable_table_indexes")
-
-    if (
-        idx_name in traceable_table_indexes
-        and traceable_table_indexes[idx_name] != table_name
-    ):
-        logger.error(
-            "table '%s' index name '%s' already registered for table '%s'"
-            % (table_name, idx_name, traceable_table_indexes[idx_name])
-        )
-        return
-
-    # update traceable_table_indexes with this traceable_table's idx_name
-    if idx_name not in traceable_table_indexes:
-        traceable_table_indexes[idx_name] = table_name
-        logger.debug(
-            "adding table %s.%s to traceable_table_indexes" % (table_name, idx_name)
-        )
-        whale.add_injectable("traceable_table_indexes", traceable_table_indexes)
-
-    # add any new indexes associated with trace_hh_id to traceable_table_ids
-
-    trace_hh_id = whale.settings.trace_hh_id
-    if trace_hh_id is None:
-        return
-
-    new_traced_ids = []
-    # if table_name == "households":
-    if table_name in ["households", "proto_households"]:
-        if trace_hh_id not in df.index:
-            logger.warning("trace_hh_id %s not in dataframe" % trace_hh_id)
-            new_traced_ids = []
-        else:
-            logger.info(
-                "tracing household id %s in %s households"
-                % (trace_hh_id, len(df.index))
-            )
-            new_traced_ids = [trace_hh_id]
-    else:
-        # find first already registered ref_col we can use to slice this table
-        ref_col = next((c for c in traceable_table_indexes if c in df.columns), None)
-
-        if ref_col is None:
-            logger.error(
-                "can't find a registered table to slice table '%s' index name '%s'"
-                " in traceable_table_indexes: %s"
-                % (table_name, idx_name, traceable_table_indexes)
-            )
-            return
-
-        # get traceable_ids for ref_col table
-        ref_col_table_name = traceable_table_indexes[ref_col]
-        ref_col_traced_ids = traceable_table_ids.get(ref_col_table_name, [])
-
-        # inject list of ids in table we are tracing
-        # this allows us to slice by id without requiring presence of a household id column
-        traced_df = df[df[ref_col].isin(ref_col_traced_ids)]
-        new_traced_ids = traced_df.index.tolist()
-        if len(new_traced_ids) == 0:
-            logger.warning(
-                "register %s: no rows with %s in %s."
-                % (table_name, ref_col, ref_col_traced_ids)
-            )
-
-    # update the list of trace_ids for this table
-    prior_traced_ids = traceable_table_ids.get(table_name, [])
-
-    if new_traced_ids:
-        assert not set(prior_traced_ids) & set(new_traced_ids)
-        traceable_table_ids[table_name] = prior_traced_ids + new_traced_ids
-        whale.add_injectable("traceable_table_ids", traceable_table_ids)
-
-    logger.debug(
-        "register %s: added %s new ids to %s existing trace ids"
-        % (table_name, len(new_traced_ids), len(prior_traced_ids))
-    )
-    logger.debug(
-        "register %s: tracing new ids %s in %s"
-        % (table_name, new_traced_ids, table_name)
-    )
-
-
 def write_df_csv(
     df, file_path, index_label=None, columns=None, column_labels=None, transpose=True
 ):
@@ -532,7 +416,7 @@ def slice_ids(df, ids, column=None):
     return df
 
 
-def get_trace_target(whale, df, slicer, column=None):
+def get_trace_target(whale: workflow.Whale, df: pd.DataFrame, slicer: str, column=None):
     """
     get target ids and column or index to identify target trace rows in df
 
@@ -574,8 +458,8 @@ def get_trace_target(whale, df, slicer, column=None):
             "bad slicer '%s' for df with index '%s'" % (slicer, df.index.name)
         )
 
-    traceable_table_indexes = whale.access("traceable_table_indexes", {})
-    traceable_table_ids = whale.access("traceable_table_ids", {})
+    traceable_table_indexes = whale.tracing.traceable_table_indexes
+    traceable_table_ids = whale.tracing.traceable_table_ids
 
     if df.empty:
         target_ids = None
@@ -777,7 +661,7 @@ def interaction_trace_rows(
     # slicer column name and id targets to use for chooser id added to model_design dataframe
     # currently we only ever slice by person_id, but that could change, so we check here...
 
-    traceable_table_ids = whale.get_injectable("traceable_table_ids", {})
+    traceable_table_ids = whale.tracing.traceable_table_ids
 
     # Determine whether actual tables or proto_ tables for disaggregate accessibilities
     persons_table_name = set(traceable_table_ids).intersection(
@@ -919,37 +803,3 @@ def no_results(trace_label):
 
     """
     logger.info("Skipping %s: no_results" % trace_label)
-
-
-def deregister_traceable_table(whale, table_name):
-    """
-    un-register traceable table
-
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        traced dataframe
-
-    Returns
-    -------
-    Nothing
-    """
-    traceable_tables = whale.get_injectable("traceable_tables")
-    traceable_table_ids = whale.get_injectable("traceable_table_ids")
-    traceable_table_indexes = whale.get_injectable("traceable_table_indexes")
-
-    if table_name not in traceable_tables:
-        logger.error("table '%s' not in traceable_tables" % table_name)
-
-    else:
-        traceable_table_ids = {
-            k: v for k, v in traceable_table_ids.items() if k != table_name
-        }
-        traceable_table_indexes = OrderedDict(
-            {k: v for k, v in traceable_table_indexes.items() if v != table_name}
-        )
-
-        whale.add_injectable("traceable_table_ids", traceable_table_ids)
-        whale.add_injectable("traceable_table_indexes", traceable_table_indexes)
-
-    return

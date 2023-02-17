@@ -5,10 +5,16 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.abm.models.util import estimation
 from activitysim.abm.models.util.overlap import hh_time_window_overlap
 from activitysim.abm.models.util.tour_frequency import process_joint_tours
-from activitysim.core import config, expressions, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +118,7 @@ def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size)
 
     tours = whale.extend_table("tours", joint_tours)
 
-    tracing.register_traceable_table(whale, "tours", joint_tours)
+    whale.tracing.register_traceable_table("tours", joint_tours)
     whale.get_rn_generator().add_channel("tours", joint_tours)
 
     # - annotate households

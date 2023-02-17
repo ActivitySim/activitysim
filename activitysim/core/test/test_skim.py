@@ -7,7 +7,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from .. import skim_dictionary
+from activitysim.core import skim_dictionary, workflow
 
 
 @pytest.fixture
@@ -35,7 +35,9 @@ def test_skims(data):
     skim_info.omx_shape = omx_shape
     skim_info.dtype_name = "int"
 
-    skim_dict = skim_dictionary.SkimDict(whale, "taz", skim_info, skim_data)
+    skim_dict = skim_dictionary.SkimDict(
+        workflow.Whale().default_settings(), "taz", skim_info, skim_data
+    )
     skim_dict.offset_mapper.set_offset_int(0)  # default is -1
     skims = skim_dict.wrap("taz_l", "taz_r")
 
@@ -73,7 +75,9 @@ def test_3dskims(data):
     skim_info.dtype_name = "int"
     skim_info.key1_block_offsets = {"SOV": 0}
 
-    skim_dict = skim_dictionary.SkimDict(whale, "taz", skim_info, skim_data)
+    skim_dict = skim_dictionary.SkimDict(
+        workflow.Whale().default_settings(), "taz", skim_info, skim_data
+    )
     skim_dict.offset_mapper.set_offset_int(0)  # default is -1
     skims3d = skim_dict.wrap_3d(orig_key="taz_l", dest_key="taz_r", dim3_key="period")
 

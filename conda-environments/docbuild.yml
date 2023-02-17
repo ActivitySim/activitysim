@@ -10,7 +10,7 @@ name: docbuild
 channels:
 - conda-forge
 dependencies:
-- python=3.9
+- python=3.10
 - pip
 - black >= 22.0,<23
 - bump2version

@@ -23,7 +23,8 @@ def network_los_preload(whale: workflow.Whale) -> los.Network_LOS:
 
 @workflow.cached_object
 def network_los(
-    whale: workflow.Whale, network_los_preload: los.Network_LOS
+    whale: workflow.Whale,  # noqa: F841
+    network_los_preload: los.Network_LOS,
 ) -> los.Network_LOS:
     logger.debug("loading network_los injectable")
     network_los_preload.load_data()
@@ -31,13 +32,18 @@ def network_los(
 
 
 @workflow.cached_object
-def skim_dict(whale: workflow.Whale, network_los: los.Network_LOS):
+def skim_dict(
+    whale: workflow.Whale,  # noqa: F841
+    network_los: los.Network_LOS,
+):
     result = network_los.get_default_skim_dict()
     return result
 
 
 @workflow.cached_object
-def log_settings(whale: workflow.Whale):
+def log_settings(
+    whale: workflow.Whale,  # noqa: F841
+):
     # abm settings to log on startup
     return [
         "households_sample_size",

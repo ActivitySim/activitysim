@@ -259,34 +259,31 @@ class workflow_step:
                 else:
                     if arg in override_kwargs:
                         arg_value = override_kwargs[arg]
+                    elif arg in context:
+                        arg_value = context.get(arg)
                     else:
-                        try:
+                        if arg in whale._LOADABLE_TABLES:
+                            arg_value = whale._LOADABLE_TABLES[arg](context)
+                        elif arg in whale._LOADABLE_OBJECTS:
+                            arg_value = whale._LOADABLE_OBJECTS[arg](context)
+                        else:
                             context.assert_key_has_value(
                                 key=arg, caller=wrapped_func.__module__
                             )
-                        except KeyNotInContextError:
-                            # The desired key does not yet exist.  We will attempt
-                            # to create it using the whale.
-                            if arg in whale._LOADABLE_TABLES:
-                                arg_value = whale._LOADABLE_TABLES[arg](context)
-                            elif arg in whale._LOADABLE_OBJECTS:
-                                arg_value = whale._LOADABLE_OBJECTS[arg](context)
+                            raise KeyError(arg)
+                    if (
+                        self._copy_tables
+                        and arg in whale.existing_table_status
+                        and arg not in override_kwargs
+                    ):
+                        is_df = _annotations.get(arg) is pd.DataFrame
+                        if is_df:
+                            if isinstance(self._copy_tables, Container):
+                                if arg in self._copy_tables:
+                                    arg_value = arg_value.copy()
                             else:
-                                raise
-                        else:
-                            arg_value = get_formatted_or_raw(context, arg)
-                            logger.debug(
-                                f"step {self._step_name} copy_tables={self._copy_tables}"
-                            )
-                            if self._copy_tables and arg in whale.existing_table_status:
-                                is_df = _annotations.get(arg) is pd.DataFrame
-                                if is_df:
-                                    if isinstance(self._copy_tables, Container):
-                                        if arg in self._copy_tables:
-                                            arg_value = arg_value.copy()
-                                    else:
-                                        # copy_tables is truthy
-                                        arg_value = arg_value.copy()
+                                # copy_tables is truthy
+                                arg_value = arg_value.copy()
                     try:
                         args.append(arg_value)
                     except Exception as err:

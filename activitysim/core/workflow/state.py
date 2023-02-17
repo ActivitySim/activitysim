@@ -367,40 +367,25 @@ class Whale:
         return self.context[key]
 
     def get(self, key, default: Any = NO_DEFAULT):
-        if default == NO_DEFAULT:
+        result = self.context.get(key, None)
+        if result is None:
             try:
-                result = self.context[key]
-            except (KeyError, KeyNotInContextError):
-                try:
-                    result = getattr(self.filesystem, key, None)
-                except WhaleAccessError:
-                    result = None
-                if result is None:
-                    if key in self._LOADABLE_TABLES:
-                        result = self._LOADABLE_TABLES[key](self.context)
-                    elif key in self._LOADABLE_OBJECTS:
-                        result = self._LOADABLE_OBJECTS[key](self.context)
-                if result is None:
-                    raise
-        else:
-            try:
+                result = getattr(self.filesystem, key, None)
+            except WhaleAccessError:
+                result = None
+        if result is None:
+            if key in self._LOADABLE_TABLES:
+                result = self._LOADABLE_TABLES[key](self.context)
+            elif key in self._LOADABLE_OBJECTS:
+                result = self._LOADABLE_OBJECTS[key](self.context)
+        if result is None:
+            if default != NO_DEFAULT:
+                result = default
+            else:
                 self.context.assert_key_has_value(
                     key=key, caller=self.__class__.__name__
                 )
-            except KeyNotInContextError:
-                try:
-                    result = getattr(self.filesystem, key, None)
-                except WhaleAccessError:
-                    result = None
-                if result is None:
-                    if key in self._LOADABLE_TABLES:
-                        result = self._LOADABLE_TABLES[key](self.context)
-                    elif key in self._LOADABLE_OBJECTS:
-                        result = self._LOADABLE_OBJECTS[key](self.context)
-                if result is None:
-                    result = default
-            else:
-                result = self.context.get(key, default)
+                raise KeyError(key)
         if not isinstance(result, (xr.Dataset, xr.DataArray, pd.DataFrame, pd.Series)):
             result = self.context.get_formatted_value(result)
         return result

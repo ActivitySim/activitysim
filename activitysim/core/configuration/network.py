@@ -156,6 +156,9 @@ class NetworkSettings(PydanticBase, extra="forbid"):
     usually called ``network_los.yaml``.
     """
 
+    name: str = None
+    """Name of this network, not used for anything?"""
+
     zone_system: int
     """Which zone system type is used.
 

@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+from pydantic import ValidationError
 
 from activitysim.core import config, pathbuilder, skim_dictionary, tracing, util
 from activitysim.core.cleaning import recode_based_on_table
@@ -169,11 +170,16 @@ class Network_LOS(object):
         Read setting file and initialize object variables (see class docstring for list of object variables)
         """
 
-        self.los_settings = self.whale.filesystem.read_settings_file(
-            self.los_settings_file_name,
-            mandatory=True,
-            validator_class=NetworkSettings,
-        )
+        try:
+            self.los_settings = self.whale.filesystem.read_settings_file(
+                self.los_settings_file_name,
+                mandatory=True,
+                validator_class=NetworkSettings,
+            )
+        except ValidationError as err:
+            err_msg = str(err)
+            print(err_msg)
+            raise
         self.whale.network_settings = self.los_settings
 
         # validate skim_time_periods

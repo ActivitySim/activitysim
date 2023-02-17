@@ -622,6 +622,9 @@ class FileSystem(PydanticBase, validate_assignment=True):
         if args.SUFFIX is not None and args.ROOTS:
             settings = suffix_tables_in_settings(settings, args.SUFFIX, args.ROOTS)
 
+        # we don't want to actually have inherit_settings as a settings
+        settings.pop("inherit_settings", None)
+
         if validator_class is not None:
             settings = validator_class.parse_obj(settings)
 

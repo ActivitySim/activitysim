@@ -161,50 +161,20 @@ def handle_standard_args(whale: workflow.Whale, args, multiprocess=True):
     else:
         inject_arg("imported_extensions", ())
 
-    # settings_file_name should be cached or else it gets squashed by config.py
-    # if args.settings_file:
-    #     inject_arg("settings_file_name", args.settings_file)
-    #
-    # if args.config:
-    #     inject_arg("configs_dir", args.config)
-    #
-    # if args.data:
-    #     inject_arg("data_dir", args.data)
-    #
-    # if args.output:
-    #     inject_arg("output_dir", args.output)
-
     whale.filesystem = FileSystem.parse_args(args)
-    whale.load_settings()
+    for config_dir in whale.filesystem.get_configs_dir():
+        if not config_dir.is_dir():
+            print(f"missing config directory: {config_dir}", file=sys.stderr)
+            raise NotADirectoryError(f"missing config directory: {config_dir}")
+    for data_dir in whale.filesystem.get_data_dir():
+        if not data_dir.is_dir():
+            print(f"missing data directory: {data_dir}", file=sys.stderr)
+            raise NotADirectoryError(f"missing data directory: {data_dir}")
 
-    # # read settings file
-    # raw_settings = whale.filesystem.read_settings_file(
-    #     whale.filesystem.settings_file_name,
-    #     mandatory=True,
-    #     include_stack=False,
-    # )
-    #
-    # # the settings can redefine the cache directories.
-    # cache_dir = raw_settings.pop("cache_dir", None)
-    # if cache_dir:
-    #     whale.filesystem.cache_dir = cache_dir
-    # whale.settings = Settings.parse_obj(raw_settings)
-    #
-    # extra_settings = set(whale.settings.__dict__) - set(Settings.__fields__)
-    #
-    # if extra_settings:
-    #     warnings.warn(
-    #         "Writing arbitrary model values as top-level key in settings.yaml "
-    #         "is deprecated, make them sub-keys of `other_settings` instead.",
-    #         DeprecationWarning,
-    #     )
-    #     logger.warning(f"Found the following unexpected settings:")
-    #     if whale.settings.other_settings is None:
-    #         whale.settings.other_settings = {}
-    #     for k in extra_settings:
-    #         logger.warning(f" - {k}")
-    #         whale.settings.other_settings[k] = getattr(whale.settings, k)
-    #         delattr(whale.settings, k)
+    try:
+        whale.load_settings()
+    except Exception as err:
+        logger.exception("erroro")
 
     if args.multiprocess:
         if "configs_mp" not in whale.filesystem.configs_dir:
@@ -229,18 +199,10 @@ def handle_standard_args(whale: workflow.Whale, args, multiprocess=True):
 
     if args.chunk_size:
         whale.settings.chunk_size = int(args.chunk_size)
-        # config.override_setting("chunk_size", int(args.chunk_size))
     if args.chunk_training_mode is not None:
         whale.settings.chunk_training_mode = args.chunk_training_mode
-        # config.override_setting("chunk_training_mode", args.chunk_training_mode)
     if args.households_sample_size is not None:
         whale.settings.households_sample_size = args.households_sample_size
-        # config.override_setting("households_sample_size", args.households_sample_size)
-
-    # for injectable in ["configs_dir", "data_dir", "output_dir"]:
-    #     validate_injectable(
-    #         whale, injectable, make_if_missing=(injectable == "output_dir")
-    #     )
 
     if args.pipeline:
         whale.filesystem.pipeline_file_name = args.pipeline

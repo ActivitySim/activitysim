@@ -70,14 +70,8 @@ def test_run():
 
     cp = subprocess.run(["activitysim", "run"], capture_output=True)
 
-    msg = (
-        "please specify either a --working_dir "
-        "containing 'configs', 'data', and 'output' "
-        "folders or all three of --config, --data, and --output"
-    )
-
     # expect error
-    assert msg in str(cp.stderr)
+    assert "missing" in str(cp.stderr)
 
 
 if __name__ == "__main__":

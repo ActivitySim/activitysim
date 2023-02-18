@@ -307,7 +307,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         if mandatory and not file_path:
             raise FileNotFoundError(
                 "file_path %s: file '%s' not in %s"
-                % (dir_list_injectable_name, file_name, dir_paths)
+                % (dir_list_injectable_name, file_name, [str(i) for i in dir_paths])
             )
 
         return Path(file_path) if file_path else None

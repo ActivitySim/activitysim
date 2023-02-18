@@ -141,6 +141,11 @@ class Whale:
         pipeline_file_name="pipeline",
         **silently_ignored_kwargs,
     ):
+        if isinstance(configs_dir, (str, Path)):
+            configs_dir = (configs_dir,)
+        if isinstance(data_dir, (str, Path)):
+            data_dir = (data_dir,)
+
         fs = dict(
             configs_dir=configs_dir,
             data_dir=data_dir,

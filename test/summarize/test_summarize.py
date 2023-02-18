@@ -1,12 +1,23 @@
 import logging
 import os
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
 # import models is necessary to initalize the model steps with orca
 from activitysim.abm import models
-from activitysim.core import config, pipeline
+from activitysim.abm.test.conftest import initialize_pipeline
+from activitysim.core import config, workflow
+
+
+@pytest.fixture(scope="module")
+def base_dir() -> Path:
+    """
+    A pytest fixture that returns the data folder location.
+    :return: folder location for any necessary data to initialize the tests
+    """
+    return Path(__file__).parent
 
 
 # Used by conftest.py initialize_pipeline method
@@ -48,10 +59,11 @@ def initialize_network_los() -> bool:
     return True
 
 
-def test_summarize(initialize_pipeline: pipeline.Whale, caplog):
+def test_summarize(initialize_pipeline: workflow.Whale, caplog):
+    whale = initialize_pipeline
     # Run summarize model
     caplog.set_level(logging.DEBUG)
-    pipeline.run(models=["summarize"])
+    whale.run(models=["summarize"])
 
     # Retrieve output tables to check contents
     model_settings = whale.filesystem.read_model_settings("summarize.yaml")
@@ -66,7 +78,7 @@ def test_summarize(initialize_pipeline: pipeline.Whale, caplog):
             os.path.join(output_location, f"households_count.csv")
         )
     )
-    households = pd.read_csv(config.data_file_path("households.csv"))
+    households = pd.read_csv(whale.filesystem.get_data_file_path("households.csv"))
     assert int(households_count.iloc[0]) == len(households)
 
     # Check that bike trips are counted correctly
@@ -75,7 +87,7 @@ def test_summarize(initialize_pipeline: pipeline.Whale, caplog):
             os.path.join(output_location, f"trips_by_mode_count.csv")
         )
     )
-    trips = pd.read_csv(config.data_file_path("trips.csv"))
+    trips = pd.read_csv(whale.filesystem.get_data_file_path("trips.csv"))
     assert int(trips_by_mode_count.BIKE.iloc[0]) == len(
         trips[trips.trip_mode == "BIKE"]
     )

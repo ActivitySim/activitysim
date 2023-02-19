@@ -361,8 +361,6 @@ def run(args):
             # injectables["settings_package"] = whale.settings.dict()
             mp_tasks.run_multiprocess(whale, injectables)
 
-            assert not whale.checkpoint.is_open
-
             if whale.settings.cleanup_pipeline_after_run:
                 whale.cleanup_pipeline()
 

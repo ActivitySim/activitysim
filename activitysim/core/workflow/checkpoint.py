@@ -72,9 +72,12 @@ class GenericCheckpointStore:
     @property
     @abc.abstractmethod
     def is_readonly(self) -> bool:
-        """
-        This store is read-only.
-        """
+        """This store is read-only."""
+
+    @property
+    @abc.abstractmethod
+    def is_open(self) -> bool:
+        """This store is open."""
 
     @abc.abstractmethod
     def close(self) -> None:
@@ -118,8 +121,13 @@ class HdfStore(GenericCheckpointStore):
         key = self._store_table_key(table_name, checkpoint_name)
         return self._hdf5[key]
 
+    @property
     def is_readonly(self) -> bool:
         return self._hdf5._mode == "r"
+
+    @property
+    def is_open(self) -> bool:
+        return self._hdf5.is_open
 
     def close(self) -> None:
         """Close this store."""
@@ -146,7 +154,7 @@ class ParquetStore(GenericCheckpointStore):
         complib: str = "NOTSET",
         checkpoint_name: str = None,
     ):
-        if self._mode == "r":
+        if self.is_readonly:
             raise ValueError("store is read-only")
         filepath = self._store_table_path(table_name, checkpoint_name)
         filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -161,6 +169,14 @@ class ParquetStore(GenericCheckpointStore):
         self, table_name: str, checkpoint_name: str = None
     ) -> pd.DataFrame:
         return pd.read_parquet(self._store_table_path(table_name, checkpoint_name))
+
+    @property
+    def is_readonly(self) -> bool:
+        return self._mode == "r"
+
+    @property
+    def is_open(self) -> bool:
+        return self._directory is not None and self._directory.is_dir()
 
     def close(self) -> None:
         """Close this store."""
@@ -181,6 +197,11 @@ class Checkpoints(WhaleAccessor):
         if self._checkpoint_store is None:
             self.open_store()
         return self._checkpoint_store
+
+    def store_is_open(self) -> bool:
+        if self._checkpoint_store is None:
+            return False
+        return self._checkpoint_store.is_open
 
     @property
     def default_pipeline_file_path(self):
@@ -255,6 +276,7 @@ class Checkpoints(WhaleAccessor):
         self.__init__()
         logger.debug("close_store")
 
+    @property
     def is_readonly(self):
         if self._checkpoint_store is not None:
             return self._checkpoint_store.is_readonly
@@ -355,28 +377,6 @@ class Checkpoints(WhaleAccessor):
             complib=self.obj.settings.pipeline_complib,
             checkpoint_name=checkpoint_name,
         )
-        # if isinstance(store, Path):
-        #     store.joinpath(table_name).mkdir(parents=True, exist_ok=True)
-        #     df.to_parquet(store.joinpath(table_name, f"{checkpoint_name}.parquet"))
-        # else:
-        #     complib = self.obj.settings.pipeline_complib
-        #     if complib is None or len(df.columns) == 0:
-        #         # tables with no columns can't be compressed successfully, so to
-        #         # avoid them getting just lost and dropped they are instead written
-        #         # in fixed format with no compression, which should be just fine
-        #         # since they have no data anyhow.
-        #         store.put(
-        #             self.obj.pipeline_table_key(table_name, checkpoint_name),
-        #             df,
-        #         )
-        #     else:
-        #         store.put(
-        #             self.obj.pipeline_table_key(table_name, checkpoint_name),
-        #             df,
-        #             "table",
-        #             complib=complib,
-        #         )
-        #     store.flush()
 
     def list_tables(self):
         """
@@ -415,7 +415,7 @@ class Checkpoints(WhaleAccessor):
 
             # if the store is not open in read-only mode,
             # write it to the store to ensure so any subsequent checkpoints are forgotten
-            if not self.is_readonly() and isinstance(self.store, pd.HDFStore):
+            if not self.is_readonly and isinstance(self.store, pd.HDFStore):
                 self.write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
         except IndexError:
@@ -496,21 +496,6 @@ class Checkpoints(WhaleAccessor):
 
         """
         df = self.store.get_dataframe(CHECKPOINT_TABLE_NAME)
-        #     # if isinstance(store, Path):
-        #     #     df = pd.read_parquet(
-        #     #         store.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-        #     #     )
-        #     # else:
-        #     #     df = store[CHECKPOINT_TABLE_NAME]
-        # else:
-        #     pipeline_file_path = self.obj.filesystem.get_pipeline_filepath()
-        #     if pipeline_file_path.suffix == ".h5":
-        #         df = pd.read_hdf(pipeline_file_path, CHECKPOINT_TABLE_NAME)
-        #     else:
-        #         df = pd.read_parquet(
-        #             pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-        #         )
-        #
         # non-table columns first (column order in df is random because created from a dict)
         table_names = [
             name for name in df.columns.values if name not in NON_TABLE_COLUMNS

@@ -10,8 +10,31 @@ from activitysim.core.workflow.checkpoint import (
     FINAL_CHECKPOINT_NAME,
     LAST_CHECKPOINT,
 )
+from activitysim.core.workflow.steps import run_named_step
+
+# single character prefix for run_list model name to indicate that no checkpoint should be saved
+NO_CHECKPOINT_PREFIX = "_"
+
 
 logger = logging.getLogger(__name__)
+
+
+def split_arg(s, sep, default=""):
+    """
+    split str s in two at first sep, returning empty string as second result if no sep
+    """
+    r = s.split(sep, 2)
+    r = list(map(str.strip, r))
+
+    arg = r[0]
+
+    if len(r) == 1:
+        val = default
+    else:
+        val = r[1]
+        val = {"true": True, "false": False}.get(val.lower(), val)
+
+    return arg, val
 
 
 class Runner(WhaleAccessor):
@@ -53,6 +76,10 @@ class Runner(WhaleAccessor):
                 self.obj.set(models.__name__, self.obj.get(models.__name__))
             else:
                 raise DuplicateWorkflowNameError(models.__name__)
+            return
+
+        if isinstance(models, str):
+            return self.by_name(models)
 
         from activitysim.core.tracing import print_elapsed_time
 
@@ -85,7 +112,7 @@ class Runner(WhaleAccessor):
             if memory_sidecar_process:
                 memory_sidecar_process.set_event(model)
             t1 = print_elapsed_time()
-            self.obj.run_model(model)
+            self.by_name(model)
             self.obj.trace_memory_info(f"pipeline.run after {model}")
 
             self.log_runtime(model_name=model, start_time=t1)
@@ -108,9 +135,10 @@ class Runner(WhaleAccessor):
 
     def __getattr__(self, item):
         if item in self.obj._RUNNABLE_STEPS:
-            f = lambda **kwargs: self.obj._RUNNABLE_STEPS[item](
-                self.obj.context, **kwargs
-            )
+            # f = lambda **kwargs: self.obj._RUNNABLE_STEPS[item](
+            #     self.obj.context, **kwargs
+            # )
+            f = lambda **kwargs: self.by_name(item)
             f.__doc__ = self.obj._RUNNABLE_STEPS[item].__doc__
             return f
         raise AttributeError(item)
@@ -149,3 +177,100 @@ class Runner(WhaleAccessor):
             )
 
         self.timing_notes.clear()
+
+    def _pre_run_step(self, model_name: str):
+        if model_name in [
+            checkpoint[CHECKPOINT_NAME]
+            for checkpoint in self.obj.checkpoint.checkpoints
+        ]:
+            raise RuntimeError("Cannot run model '%s' more than once" % model_name)
+
+        self.obj.rng().begin_step(model_name)
+
+        # check for args
+        if "." in model_name:
+            step_name, arg_string = model_name.split(".", 1)
+            args = dict(
+                (k, v)
+                for k, v in (
+                    split_arg(item, "=", default=True) for item in arg_string.split(";")
+                )
+            )
+        else:
+            step_name = model_name
+            args = {}
+
+        # check for no_checkpoint prefix
+        if step_name[0] == NO_CHECKPOINT_PREFIX:
+            step_name = step_name[1:]
+            checkpoint = False
+        else:
+            checkpoint = self.obj.should_save_checkpoint(model_name)
+
+        self.obj.add_injectable("step_args", args)
+
+        self.obj.trace_memory_info(f"pipeline.run_model {model_name} start")
+
+        from activitysim.core.tracing import print_elapsed_time
+
+        t0 = print_elapsed_time()
+        logger.info(f"#run_model running step {step_name}")
+
+        self.step_name = step_name
+        self.checkpoint = checkpoint
+        self.t0 = t0
+
+    def by_name(self, model_name):
+        """
+        Run the specified model and add checkpoint for model_name
+
+        Since we use model_name as checkpoint name, the same model may not be run more than once.
+
+        Parameters
+        ----------
+        model_name : str
+            model_name is assumed to be the name of a registered orca step
+        """
+        self._pre_run_step(model_name)
+
+        instrument = self.obj.settings.instrument
+        if instrument is not None:
+            try:
+                from pyinstrument import Profiler
+            except ImportError:
+                instrument = False
+        if isinstance(instrument, (list, set, tuple)):
+            if self.step_name not in instrument:
+                instrument = False
+            else:
+                instrument = True
+
+        if instrument:
+            from pyinstrument import Profiler
+
+            with Profiler() as profiler:
+                self.obj.context = run_named_step(self.step_name, self.obj.context)
+            out_file = self.obj.filesystem.get_profiling_file_path(
+                f"{self.step_name}.html"
+            )
+            with open(out_file, "wt") as f:
+                f.write(profiler.output_html())
+        else:
+            self.obj.context = run_named_step(self.step_name, self.obj.context)
+
+        from activitysim.core.tracing import print_elapsed_time
+
+        self.t0 = print_elapsed_time(
+            "#run_model completed step '%s'" % model_name, self.t0, debug=True
+        )
+        self.obj.trace_memory_info(f"pipeline.run_model {model_name} finished")
+
+        self.obj.add_injectable("step_args", None)
+
+        self.obj.rng().end_step(model_name)
+        if self.checkpoint:
+            self.obj.checkpoint.add(model_name)
+        else:
+            logger.info(
+                "##### skipping %s checkpoint for %s" % (self.step_name, model_name)
+            )

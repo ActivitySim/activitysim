@@ -3,7 +3,7 @@
 import io
 import logging
 
-from activitysim.core import inject, workflow
+from activitysim.core import workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -33,9 +33,6 @@ def land_use(whale: workflow.Whale):
     df.info(buf=buffer)
     logger.debug("land_use.info:\n" + buffer.getvalue())
     return df
-
-
-inject.broadcast("land_use", "households", cast_index=True, onto_on="home_zone_id")
 
 
 @workflow.table

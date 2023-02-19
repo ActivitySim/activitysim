@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.tables.util import simple_table_join
-from activitysim.core import tracing, workflow
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 

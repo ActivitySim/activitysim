@@ -10,7 +10,7 @@ from activitysim.abm.models.util.trip import (
     cleanup_failed_trips,
     flag_failed_trip_leg_mates,
 )
-from activitysim.core import config, estimation, tracing, workflow
+from activitysim.core import estimation, tracing, workflow
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)

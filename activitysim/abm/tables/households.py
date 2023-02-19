@@ -2,13 +2,12 @@
 # See full license in LICENSE.txt.
 import io
 import logging
-from builtins import range
 
 import pandas as pd
 
 from activitysim.abm.misc import override_hh_ids
 from activitysim.abm.tables.util import simple_table_join
-from activitysim.core import inject, tracing, workflow
+from activitysim.core import tracing, workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)

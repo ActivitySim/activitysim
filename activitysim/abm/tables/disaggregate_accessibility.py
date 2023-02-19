@@ -1,14 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
-import os
 
 import numpy as np
 import pandas as pd
 import pandas.api.types as ptypes
 from sklearn.naive_bayes import CategoricalNB
 
-from activitysim.core import config, inject, input, util, workflow
+from activitysim.core import inject, input, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -148,8 +147,15 @@ def disaggregate_accessibility(whale: workflow.Whale):
         return pd.DataFrame()
 
     # Get persons merged manually
-    persons_merged_df = inject.merge_tables(
-        persons.name, tables=[persons, households, land_use, accessibility]
+    from activitysim.abm.tables.persons import persons_merged
+
+    persons_merged_df = persons_merged(
+        whale,
+        persons,
+        land_use,
+        households,
+        accessibility,
+        disaggregate_accessibility=None,
     )
 
     # Extract model settings

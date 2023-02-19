@@ -6,7 +6,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import probabilistic_scheduling as ps
-from activitysim.core import chunk, config, estimation, workflow
+from activitysim.core import chunk, estimation, workflow
 
 logger = logging.getLogger(__name__)
 

@@ -14,7 +14,6 @@ from activitysim.core import (
     tracing,
     workflow,
 )
-from activitysim.core.simulate import set_skim_wrapper_targets
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)

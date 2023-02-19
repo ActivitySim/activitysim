@@ -28,117 +28,6 @@ def locutor(whale: workflow.Whale):
     return True
 
 
-# @inject.injectable(cache=True)
-# def configs_dir():
-#     if not os.path.exists("configs"):
-#         raise RuntimeError("'configs' directory does not exist")
-#     return "configs"
-#
-#
-# @inject.injectable(cache=True)
-# def data_dir():
-#     if not os.path.exists("data"):
-#         raise RuntimeError("'data' directory does not exist")
-#     return "data"
-#
-#
-# @inject.injectable(cache=True)
-# def output_dir():
-#     if not os.path.exists("output"):
-#         print(
-#             f"'output' directory does not exist - current working directory: {os.getcwd()}"
-#         )
-#         raise RuntimeError("'output' directory does not exist")
-#     return "output"
-
-#
-# @inject.injectable()
-# def output_file_prefix():
-#     return ""
-
-#
-# @inject.injectable(cache=True)
-# def pipeline_file_name(settings):
-#
-#     pipeline_file_name = settings.get("pipeline_file_name", "pipeline.h5")
-#
-#     return pipeline_file_name
-
-
-# @inject.injectable()
-# def rng_base_seed():
-#     return setting("rng_base_seed", 0)
-
-
-# @inject.injectable(cache=True)
-# def settings_file_name():
-#     return "settings.yaml"
-
-
-# @inject.injectable(cache=True)
-# def settings(settings_file_name):
-#     settings_dict = read_settings_file(settings_file_name, mandatory=True)
-#
-#     # basic settings validation for sharrow
-#     sharrow_enabled = settings_dict.get("sharrow", False)
-#     recode_pipeline_columns = settings_dict.get("recode_pipeline_columns", True)
-#     if sharrow_enabled and not recode_pipeline_columns:
-#         warnings.warn(
-#             "use of `sharrow` setting generally requires `recode_pipeline_columns`"
-#         )
-#
-#     return settings_dict
-
-
-# def testing():
-#
-#     assert ("pytest" in sys.modules) == ("PYTEST_CURRENT_TEST" in os.environ)
-#     return "PYTEST_CURRENT_TEST" in os.environ
-
-
-# def get_cache_dir():
-#     """
-#     return path of cache directory in output_dir (creating it, if need be)
-#
-#     cache directory is used to store
-#         skim memmaps created by skim+dict_factories
-#         tvpb tap_tap table cache
-#
-#     Returns
-#     -------
-#     str path
-#     """
-#     cache_dir = setting("cache_dir", default=None)
-#     if cache_dir is None:
-#         cache_dir = setting(
-#             "cache_dir", os.path.join(inject.get_injectable("output_dir"), "cache")
-#         )
-#
-#     if not os.path.isdir(cache_dir):
-#         os.mkdir(cache_dir)
-#     assert os.path.isdir(cache_dir)
-#
-#     # create a git-ignore in the cache dir if it does not exist.
-#     # this helps prevent accidentally committing cache contents to git
-#     gitignore = os.path.join(cache_dir, ".gitignore")
-#     if not os.path.exists(gitignore):
-#         with open(gitignore, "wt") as f:
-#             f.write("/*")
-#
-#     return cache_dir
-#
-#
-# def setting(key, default=None):
-#     return inject.get_injectable("settings").get(key, default)
-#
-#
-# def override_setting(key, value):
-#     new_settings = inject.get_injectable("settings")
-#     new_settings[key] = value
-#     inject.add_injectable("settings", new_settings)
-#
-
-
 def get_global_constants():
     """
     Read global constants from settings file
@@ -355,44 +244,10 @@ def config_file_path(file_name, mandatory=True):
     return cascading_input_file_path(file_name, "configs_dir", mandatory)
 
 
-def output_file_path(file_name):
-
-    prefix = inject.get_injectable("output_file_prefix", None)
-    return build_output_file_path(file_name, use_prefix=prefix)
-
-
-def profiling_file_path(file_name):
-
-    profile_dir = inject.get_injectable("profile_dir", None)
-    if profile_dir is None:
-        output_dir = inject.get_injectable("output_dir")
-        profile_dir = os.path.join(
-            output_dir, time.strftime("profiling--%Y-%m-%d--%H-%M-%S")
-        )
-        os.makedirs(profile_dir, exist_ok=True)
-        inject.add_injectable("profile_dir", profile_dir)
-
-    return os.path.join(profile_dir, file_name)
-
-
-def trace_file_path(file_name):
-
-    output_dir = inject.get_injectable("output_dir")
-
-    # - check for trace subfolder, create it if missing
-    trace_dir = os.path.join(output_dir, "trace")
-    if not os.path.exists(trace_dir):
-        os.makedirs(trace_dir)
-
-    # construct a unique tail string from the time
-    # this is a convenience for opening multiple similarly named trace files
-    tail = hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:]
-
-    file_parts = file_name.split(".")
-
-    file_path = os.path.join(trace_dir, *file_parts[:-1]) + f"-{tail}.{file_parts[-1]}"
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    return file_path
+# def output_file_path(file_name):
+#
+#     prefix = inject.get_injectable("output_file_prefix", None)
+#     return build_output_file_path(file_name, use_prefix=prefix)
 
 
 def log_file_path(file_name, prefix=True, whale: workflow.Whale = None):

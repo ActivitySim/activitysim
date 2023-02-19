@@ -8,7 +8,7 @@ from activitysim.abm.models.util.trip import (
     generate_alternative_sizes,
     get_time_windows,
 )
-from activitysim.core import chunk, config, expressions, simulate, tracing, workflow
+from activitysim.core import chunk, expressions, simulate, tracing, workflow
 from activitysim.core.interaction_sample_simulate import _interaction_sample_simulate
 
 logger = logging.getLogger(__name__)

@@ -11,7 +11,7 @@ from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
-from activitysim.core import chunk, config, estimation, tracing, workflow
+from activitysim.core import chunk, estimation, tracing, workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)

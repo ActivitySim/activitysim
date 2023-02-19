@@ -4,7 +4,7 @@ import logging
 from collections import OrderedDict
 
 from activitysim.abm.models.util import canonical_ids as cid
-from activitysim.core import inject, workflow
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 

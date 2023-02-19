@@ -2,7 +2,6 @@
 # See full license in LICENSE.txt.
 import logging
 
-import numpy as np
 import pandas as pd
 
 from activitysim.core import (

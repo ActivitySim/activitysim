@@ -6,7 +6,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.tables.util import simple_table_join
-from activitysim.core import tracing, workflow
+from activitysim.core import workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -70,26 +70,6 @@ def persons(whale: workflow.Whale):
         )
 
     return df
-
-
-# another common merge for persons
-# @inject.table()
-# def persons_merged(
-#     persons, households, land_use, accessibility, disaggregate_accessibility
-# ):
-#
-#     if not disaggregate_accessibility.to_frame().empty:
-#         tables = [
-#             persons,
-#             households,
-#             land_use,
-#             accessibility,
-#             disaggregate_accessibility,
-#         ]
-#     else:
-#         tables = [persons, households, land_use, accessibility]
-#
-#     return inject.merge_tables(persons.name, tables=tables)
 
 
 @workflow.temp_table

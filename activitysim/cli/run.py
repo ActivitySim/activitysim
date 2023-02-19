@@ -378,7 +378,7 @@ def run(args):
             if whale.settings.cleanup_pipeline_after_run:
                 whale.cleanup_pipeline()  # has side effect of closing open pipeline
             else:
-                whale.close_pipeline()
+                whale.checkpoint.close_store()
 
             mem.log_global_hwm()  # main process
     except Exception:

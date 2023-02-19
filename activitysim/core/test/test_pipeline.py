@@ -85,7 +85,7 @@ def test_pipeline_run(whale):
         whale.get_table("table1", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
     close_handlers()
 
@@ -125,7 +125,7 @@ def test_pipeline_checkpoint_drop(whale):
     # ensure that we can still get table3 from a checkpoint at which it existed
     whale.get_table("table3", checkpoint_name="step3")
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
     close_handlers()
 
 

@@ -110,11 +110,7 @@ class Whale:
         self.close_open_files()
 
     def init_state(self):
-        # most recent checkpoint
-        # self.last_checkpoint = {}
-
-        # array of checkpoint dicts
-        # self.checkpoints = []
+        self.checkpoint.initialize()
 
         self.close_open_files()
 
@@ -908,10 +904,10 @@ class Whale:
         #     raise RuntimeError("Pipeline not initialized! Did you call open_pipeline?")
 
         # can't run same model more than once
-        # if model_name in [
-        #     checkpoint[CHECKPOINT_NAME] for checkpoint in self.checkpoints
-        # ]:
-        #     raise RuntimeError("Cannot run model '%s' more than once" % model_name)
+        if model_name in [
+            checkpoint[CHECKPOINT_NAME] for checkpoint in self.checkpoint.checkpoints
+        ]:
+            raise RuntimeError("Cannot run model '%s' more than once" % model_name)
 
         self.rng().begin_step(model_name)
 
@@ -1241,7 +1237,7 @@ class Whale:
                     final_pipeline_store[table_name] = table_df
 
                 final_pipeline_store[CHECKPOINT_TABLE_NAME] = checkpoints_df
-            self.close_pipeline()
+            self.checkpoint.close_store()
         else:
             for table_name in self.checkpoint.list_tables():
                 # patch last checkpoint name for all tables

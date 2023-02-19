@@ -49,13 +49,13 @@ def initialize_pipeline(
     # Add the dataframes to the pipeline
     whale.checkpoint.restore()
     whale.checkpoint.add(module)
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
     # By convention, this method needs to yield something
     yield whale
 
     # pytest teardown code
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
     pipeline_file_path = os.path.join(output_dir, "pipeline.h5")
     if os.path.exists(pipeline_file_path):
         os.unlink(pipeline_file_path)

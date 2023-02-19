@@ -37,7 +37,7 @@ def run(run_list, injectables=None):
     else:
         logger.info("run single process simulation")
         pipeline.run(models=run_list["models"], resume_after=run_list["resume_after"])
-        pipeline.close_pipeline()
+        pipeline.checkpoint.close_store()
         mem.log_global_hwm()
 
 

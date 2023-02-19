@@ -4,15 +4,13 @@ import logging
 import os
 
 import numpy as np
-import numpy.testing as npt
 import openmatrix as omx
 import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 import pytest
-import yaml
 
-from activitysim.core import config, inject, random, tracing, workflow
+from activitysim.core import random, tracing, workflow
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -86,7 +84,7 @@ def test_rng_access():
 
     assert isinstance(rng, random.Random)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 def regress_mini_auto(whale: workflow.Whale):
@@ -206,8 +204,7 @@ def test_mini_pipeline_run():
     workplace_location_sample_df = whale.get_table("workplace_location_sample")
     assert "mode_choice_logsum" in workplace_location_sample_df
 
-    whale.close_pipeline()
-    inject.clear_cache()
+    whale.checkpoint.close_store()
     close_handlers()
 
 
@@ -257,10 +254,10 @@ def test_mini_pipeline_run2():
     hh_ids = whale.get_table("households").head(num_hh_ids).index.values
     hh_ids = pd.DataFrame({"household_id": hh_ids})
 
-    hh_ids_path = config.data_file_path("override_hh_ids.csv")
+    hh_ids_path = whale.filesystem.get_data_file_path("override_hh_ids.csv")
     hh_ids.to_csv(hh_ids_path, index=False, header=True)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
     close_handlers()
 
 
@@ -454,7 +451,7 @@ def test_full_run1():
 
     regress(whale)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 def test_full_run2():
@@ -474,7 +471,7 @@ def test_full_run2():
 
     regress(whale)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 def test_full_run3_with_chunks():
@@ -496,7 +493,7 @@ def test_full_run3_with_chunks():
 
     regress(whale)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 def test_full_run4_stability():
@@ -512,7 +509,7 @@ def test_full_run4_stability():
 
     regress(whale)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 def test_full_run5_singleton():
@@ -530,12 +527,10 @@ def test_full_run5_singleton():
 
     regress(whale)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 if __name__ == "__main__":
-
-    from activitysim import abm  # register injectables
 
     print("running test_full_run1")
     test_full_run1()

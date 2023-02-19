@@ -38,7 +38,7 @@ def run(run_list, injectables=None):
     else:
         logger.info("run single process simulation")
         pipeline.run(models=run_list["models"], resume_after=run_list["resume_after"])
-        pipeline.close_pipeline()
+        pipeline.checkpoint.close_store()
         mem.log_global_hwm()
 
 
@@ -108,6 +108,6 @@ if __name__ == "__main__":
     # tours_df = pipeline.get_table('tours')
     # print("tours_df\n", tours_df.head())
     #
-    # pipeline.close_pipeline()
+    # pipeline.checkpoint.close_store()
 
     t0 = tracing.print_elapsed_time("everything", t0)

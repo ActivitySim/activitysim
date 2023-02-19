@@ -169,8 +169,11 @@ class ParquetStore(GenericCheckpointStore):
 
 class Checkpoints(WhaleAccessor):
     def __init__(self):
+        self.initialize()
+
+    def initialize(self):
         self.last_checkpoint = {}
-        self.checkpoints = []
+        self.checkpoints: list[dict] = []
         self._checkpoint_store = None
 
     @property

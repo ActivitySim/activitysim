@@ -30,7 +30,7 @@ def test_mp_run():
     mp_tasks.run_multiprocess(run_list, injectables)
     pipeline.checkpoint.restore("_")
     regress_3_zone()
-    pipeline.close_pipeline()
+    pipeline.checkpoint.close_store()
 
 
 if __name__ == "__main__":

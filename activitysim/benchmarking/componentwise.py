@@ -189,7 +189,7 @@ def teardown_component(whale, component_name):
     if whale.settings.multiprocess:
         raise NotImplementedError("multiprocess benchmarking is not yet implemented")
     else:
-        whale.close_pipeline()
+        whale.checkpoint.close_store()
     logger.critical(
         "teardown_component completed: %s\n\n%s\n\n", component_name, "~" * 88
     )
@@ -303,7 +303,7 @@ def pre_run(
     else:
         logger.info("run single process simulation")
         whale.run(models=whale.settings.models)
-        whale.close_pipeline()
+        whale.checkpoint.close_store()
 
     tracing.print_elapsed_time("prerun required models for checkpointing", t0)
 

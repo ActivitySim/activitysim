@@ -564,7 +564,7 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
 
         debug(whale, f"loaded table {table_name} {tables[table_name].shape}")
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
     # should only be one checkpoint (named <multiprocess_step_name>)
     assert len(checkpoints_df) == 1
@@ -858,7 +858,7 @@ def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
 
     whale.checkpoint.add(checkpoint_name)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 def setup_injectables_and_logging(injectables, locutor=True) -> workflow.Whale:
@@ -1054,7 +1054,7 @@ def run_simulation(
     checkpoint_name = step_info["name"]
     whale.checkpoint.add(checkpoint_name)
 
-    whale.close_pipeline()
+    whale.checkpoint.close_store()
 
 
 """
@@ -1743,7 +1743,7 @@ def run_multiprocess(whale: workflow.Whale, injectables):
     if not whale.should_save_checkpoint():
         whale.checkpoint.restore(resume_after="_")
         whale.checkpoint.add(FINAL_CHECKPOINT_NAME)
-        whale.close_pipeline()
+        whale.checkpoint.close_store()
 
     mem.log_global_hwm()  # main process
 

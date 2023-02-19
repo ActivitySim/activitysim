@@ -14,13 +14,7 @@ from activitysim.core import workflow
 
 
 def test_vts():
-    whale = (
-        workflow.Whale()
-        .initialize_filesystem(
-            output_dir=os.path.join(os.path.dirname(__file__), "output"),
-        )
-        .default_settings()
-    )
+    whale = workflow.Whale.make_default(__file__)
 
     # note: need 0 duration tour on one end of day to guarantee at least one available tour
     alts = pd.DataFrame({"start": [1, 1, 2, 3], "end": [1, 4, 5, 6]})

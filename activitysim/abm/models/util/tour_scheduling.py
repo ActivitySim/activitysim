@@ -5,7 +5,7 @@ import logging
 import pandas as pd
 
 from activitysim.abm.models.util import vectorize_tour_scheduling as vts
-from activitysim.core import config, estimation, expressions, inject, simulate, workflow
+from activitysim.core import config, estimation, expressions, simulate, workflow
 
 logger = logging.getLogger(__name__)
 

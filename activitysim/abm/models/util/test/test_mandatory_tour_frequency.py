@@ -8,9 +8,8 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
+from activitysim.abm.models.util.tour_frequency import process_mandatory_tours
 from activitysim.core import workflow
-
-from ..tour_frequency import process_mandatory_tours
 
 
 @pytest.fixture(scope="module")

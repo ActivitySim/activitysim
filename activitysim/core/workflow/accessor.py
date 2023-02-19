@@ -94,7 +94,7 @@ class FromWhale:
         # type validation is only done at the top level for now.
         try:
             type_ok = isinstance(value, self.member_type)
-        except:
+        except (TypeError, AttributeError):
             from typing import get_args, get_origin
 
             type_ok = isinstance(value, get_origin(self.member_type))

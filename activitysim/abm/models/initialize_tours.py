@@ -1,13 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
-import os
-import warnings
 
 import pandas as pd
 
 from activitysim.abm.models.util import tour_frequency as tf
-from activitysim.core import config, expressions, inject, tracing, workflow
+from activitysim.core import expressions, tracing, workflow
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)

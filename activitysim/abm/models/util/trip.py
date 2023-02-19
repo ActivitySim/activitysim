@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from activitysim.abm.models.util.canonical_ids import set_trip_index
-from activitysim.core import config, inject, workflow
+from activitysim.core import workflow
 from activitysim.core.util import assign_in_place, reindex
 
 logger = logging.getLogger(__name__)

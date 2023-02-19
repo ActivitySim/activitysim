@@ -10,7 +10,6 @@ from activitysim.core import (
     config,
     estimation,
     expressions,
-    inject,
     logit,
     simulate,
     tracing,

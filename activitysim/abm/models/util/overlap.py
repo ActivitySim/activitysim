@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from activitysim.core import inject, tracing, workflow
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 

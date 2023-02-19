@@ -6,7 +6,7 @@ import re
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, simulate, workflow
+from activitysim.core import simulate, workflow
 
 logger = logging.getLogger(__name__)
 

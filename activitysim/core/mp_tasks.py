@@ -791,7 +791,7 @@ def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
     # whether or not they satisfy the slice rules. Ordinarily all tables qualify for slicing by the slice rules
     # will be coalesced, including any new tables created by the subprocess that have sliceable indexes or ref_cols.
     # Any other new tables that don't match the slice rules will be considered mirrored. This is usually the desired
-    # behavior, especially in activitysim abm models. However, if the "slice.except: True" wildcard is used, it
+    # behavior, especially in activitysim abm models. However, if the "slice.exclude: True" wildcard is used, it
     # prevents the inference for newly generated tables, and this directive permits explicit specification of
     # which new tables to coalesce. Populationsim uses this wildcard except directives to avoid having to list
     # many slice exceptions, and just lists weigh tables to coalesce. So don't change this behavior without testing

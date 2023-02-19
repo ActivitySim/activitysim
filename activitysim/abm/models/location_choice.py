@@ -8,15 +8,7 @@ import pandas as pd
 from activitysim.abm.models.util import logsums as logsum
 from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
-from activitysim.core import (
-    estimation,
-    expressions,
-    inject,
-    los,
-    simulate,
-    tracing,
-    workflow,
-)
+from activitysim.core import estimation, expressions, los, simulate, tracing, workflow
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 

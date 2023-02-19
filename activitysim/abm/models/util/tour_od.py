@@ -13,7 +13,6 @@ from activitysim.abm.models.util.tour_destination import SizeTermCalculator
 from activitysim.core import (
     config,
     expressions,
-    inject,
     logit,
     los,
     simulate,

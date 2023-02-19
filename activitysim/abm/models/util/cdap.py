@@ -2,12 +2,10 @@
 # See full license in LICENSE.txt.
 import itertools
 import logging
-import os
 
-import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, logit, simulate, tracing, workflow
+from activitysim.core import chunk, logit, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 

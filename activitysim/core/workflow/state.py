@@ -1,9 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import datetime as dt
+
 import io
 import logging
-import os
 import warnings
 from builtins import map, next
 from pathlib import Path
@@ -12,7 +11,7 @@ from typing import Any, Optional
 import pandas as pd
 import pyarrow as pa
 import xarray as xr
-from pypyr.context import Context, KeyNotInContextError
+from pypyr.context import Context
 
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import WhaleAccessError

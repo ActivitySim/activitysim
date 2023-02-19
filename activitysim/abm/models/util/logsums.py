@@ -3,7 +3,6 @@
 import logging
 
 from activitysim.core import config, expressions, los, simulate, tracing
-from activitysim.core.pathbuilder import TransitVirtualPathBuilder
 
 logger = logging.getLogger(__name__)
 

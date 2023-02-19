@@ -1,14 +1,12 @@
 import logging
-import warnings
 
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.school_escorting import NUM_ESCORTEES
 from activitysim.abm.models.util import canonical_ids
-from activitysim.core import inject, workflow
+from activitysim.core import workflow
 from activitysim.core.util import reindex
-
-from ..school_escorting import NUM_ESCORTEES
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +75,6 @@ def create_chauf_trip_table(row):
 
 
 def create_chauf_escort_trips(bundles):
-
     chauf_trip_bundles = bundles.apply(lambda row: create_chauf_trip_table(row), axis=1)
     chauf_trip_bundles["tour_id"] = bundles["chauf_tour_id"].astype(int)
 
@@ -215,7 +212,6 @@ def create_child_escorting_stops(row, escortee_num):
 
 
 def create_escortee_trips(bundles):
-
     escortee_trips = []
     for escortee_num in range(0, int(bundles.num_escortees.max()) + 1):
         escortee_bundles = bundles.apply(

@@ -5,12 +5,7 @@ import os
 import warnings
 
 from activitysim.abm.tables import disaggregate_accessibility, shadow_pricing
-from activitysim.core import chunk, config, expressions, inject, tracing, workflow
-from activitysim.core.steps.output import (
-    track_skim_usage,
-    write_data_dictionary,
-    write_tables,
-)
+from activitysim.core import chunk, expressions, tracing, workflow
 
 # We are using the naming conventions in the mtc_asim.h5 example
 # file for our default list. This provides backwards compatibility
@@ -204,7 +199,7 @@ def preload_injectables(whale: workflow.Whale):
         # we don't want to pay for skim_dict inside any model component during
         # benchmarking, so we'll preload skim_dict here.  Preloading is not needed
         # for regular operation, as activitysim components can load-on-demand.
-        if inject.get_injectable("skim_dict", None) is not None:
+        if whale.get_injectable("skim_dict", None) is not None:
             t0 = tracing.print_elapsed_time("preload skim_dict", t0, debug=True)
 
     return True

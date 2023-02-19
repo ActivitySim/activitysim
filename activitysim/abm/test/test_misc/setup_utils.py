@@ -12,7 +12,7 @@ import pkg_resources
 import pytest
 import yaml
 
-from activitysim.core import config, inject, pipeline, random, tracing
+from activitysim.core import config, inject, random, tracing, workflow
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -37,36 +37,33 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
     # ancillary_configs_dir is used by run_mp to test multiprocess
 
-    test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), "configs")
+    # test_pipeline_configs_dir = os.path.join(os.path.dirname(__file__), "configs")
     example_configs_dir = example_path("configs")
-    configs_dir = [test_pipeline_configs_dir, example_configs_dir]
+    # configs_dir = [test_pipeline_configs_dir, example_configs_dir]
+    configs_dir = [example_configs_dir]
 
     if ancillary_configs_dir is not None:
         configs_dir = [ancillary_configs_dir] + configs_dir
 
-    inject.add_injectable("configs_dir", configs_dir)
-
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
 
     if not data_dir:
         data_dir = example_path("data")
 
-    inject.add_injectable("data_dir", data_dir)
-
-    inject.clear_cache()
+    whale = workflow.Whale.make_default(
+        configs_dir=configs_dir,
+        output_dir=output_dir,
+        data_dir=data_dir,
+    )
 
     whale.logging.config_logger()
 
-    tracing.delete_output_files("csv")
-    tracing.delete_output_files("txt")
-    tracing.delete_output_files("yaml")
-    tracing.delete_output_files("omx")
+    tracing.delete_output_files(whale, "csv")
+    tracing.delete_output_files(whale, "txt")
+    tracing.delete_output_files(whale, "yaml")
+    tracing.delete_output_files(whale, "omx")
 
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
+    return whale
 
 
 def close_handlers():
@@ -77,15 +74,3 @@ def close_handlers():
         logger.handlers = []
         logger.propagate = True
         logger.setLevel(logging.NOTSET)
-
-
-def inject_settings(**kwargs):
-
-    settings = config.read_settings_file("settings.yaml", mandatory=True)
-
-    for k in kwargs:
-        settings[k] = kwargs[k]
-
-    inject.add_injectable("settings", settings)
-
-    return settings

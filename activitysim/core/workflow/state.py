@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import datetime as dt
+import io
 import logging
 import os
 import warnings
@@ -94,6 +95,9 @@ class Whale:
         self._pipeline_store: pd.HDFStore | Path | None = None
         """Location of checkpoint storage"""
 
+        self.open_files: dict[str, io.TextIOBase] = {}
+        """Files to close when whale is destroyed or re-initialized."""
+
         if context is None:
             self.context = Context()
             self.init_state()
@@ -102,6 +106,9 @@ class Whale:
         else:
             raise TypeError(f"cannot init Whale with {type(context)}")
 
+    def __del__(self):
+        self.close_open_files()
+
     def init_state(self):
         # most recent checkpoint
         # self.last_checkpoint = {}
@@ -109,16 +116,28 @@ class Whale:
         # array of checkpoint dicts
         # self.checkpoints = []
 
+        self.close_open_files()
+
         from activitysim.core.random import Random  # TOP?
 
         self.context["prng"] = Random()
-
-        self.open_files = {}
+        self._initialize_prng()
 
         self.tracing.initialize()
         self.context["_salient_tables"] = {}
 
-        self.get_rn_generator().set_base_seed(self.get("rng_base_seed", 0))
+    def _initialize_prng(self, base_seed=None):
+        from activitysim.core.random import Random
+
+        self.context["prng"] = Random()
+        if base_seed is None:
+            try:
+                self.settings
+            except WhaleAccessError:
+                base_seed = 0
+            else:
+                base_seed = self.settings.rng_base_seed
+        self.context["prng"].set_base_seed(base_seed)
 
     filesystem = WhaleAttr(FileSystem)
     settings = WhaleAttr(Settings)
@@ -127,6 +146,43 @@ class Whale:
     checkpoint = Checkpoints()
     logging = Logging()
     tracing: Tracing = Tracing()
+
+    @classmethod
+    def make_default(
+        cls, working_dir: Path = None, settings: dict[str, Any] = None, **kwargs
+    ) -> "Whale":
+        """
+        Convenience constructor for mostly default Whales.
+
+        Parameters
+        ----------
+        working_dir : Path-like
+            If a directory, then this directory is the working directory.  Or,
+            if the given path is actually a file, then the directory where the
+            file lives is the working directory (typically as a convenience for
+            using __file__ in testing).
+        settings : Mapping[str, Any]
+            Override settings values.
+        **kwargs
+            All other keyword arguments are forwarded to the
+            initialize_filesystem method.
+
+        Returns
+        -------
+        Whale
+        """
+        if working_dir:
+            working_dir = Path(working_dir)
+            if working_dir.is_file():
+                working_dir = working_dir.parent
+        self = cls().initialize_filesystem(working_dir, **kwargs)
+        if self.filesystem.get_config_file_path(
+            self.filesystem.settings_file_name
+        ).exists():
+            self.load_settings()
+        else:
+            self.default_settings()
+        return self
 
     def initialize_filesystem(
         self,
@@ -140,7 +196,7 @@ class Whale:
         settings_file_name="settings.yaml",
         pipeline_file_name="pipeline",
         **silently_ignored_kwargs,
-    ):
+    ) -> "Whale":
         if isinstance(configs_dir, (str, Path)):
             configs_dir = (configs_dir,)
         if isinstance(data_dir, (str, Path)):
@@ -372,6 +428,14 @@ class Whale:
         return self.context[key]
 
     def get(self, key, default: Any = NO_DEFAULT):
+        if not isinstance(key, str):
+            key_name = getattr(key, "__name__", None)
+            if key_name in self._LOADABLE_TABLES or key_name in self._LOADABLE_OBJECTS:
+                key = key_name
+            if key_name in self._RUNNABLE_STEPS:
+                raise ValueError(
+                    f"cannot `get` {key_name}, it is a step, try Whale.run.{key_name}()"
+                )
         result = self.context.get(key, None)
         if result is None:
             try:
@@ -916,79 +980,58 @@ class Whale:
         else:
             logger.info("##### skipping %s checkpoint for %s" % (step_name, model_name))
 
-    def open_pipeline(self, resume_after=None, mode="a"):
-        """
-        Start pipeline, either for a new run or, if resume_after, loading checkpoint from pipeline.
-
-        If resume_after, then we expect the pipeline hdf5 file to exist and contain
-        checkpoints from a previous run, including a checkpoint with name specified in resume_after
-
-        Parameters
-        ----------
-        resume_after : str or None
-            name of checkpoint to load from pipeline store
-        mode : {'a', 'w', 'r', 'r+'}, default 'a'
-            same as for typical opening of H5Store.  Ignored unless resume_after
-            is not None.  This is here to allow read-only pipeline for benchmarking.
-        """
-
-        if self.checkpoint.is_open:
-            raise RuntimeError("Pipeline is already open!")
-
-        self.init_state()
-        self.checkpoint.is_open = True
-
-        if resume_after:
-            # open existing pipeline
-            logger.debug("open_pipeline - open existing pipeline")
-            self.checkpoint.open_store(overwrite=False, mode=mode)
-            try:
-                self.checkpoint.load(resume_after)
-            except KeyError as err:
-                if "checkpoints" in err.args[0]:
-                    # no checkpoints initialized, fall back to restart
-                    self.checkpoint.last_checkpoint[
-                        CHECKPOINT_NAME
-                    ] = INITIAL_CHECKPOINT_NAME
-                    self.checkpoint.add(INITIAL_CHECKPOINT_NAME)
-                else:
-                    raise
-        else:
-            # open new, empty pipeline
-            logger.debug("open_pipeline - new, empty pipeline")
-            self.checkpoint.open_store(overwrite=True)
-            # - not sure why I thought we needed this?
-            # could have exogenous tables or prng instantiation under some circumstance??
-            self.checkpoint.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
-            # empty table, in case they have turned off all checkpointing
-            self.checkpoint.add(INITIAL_CHECKPOINT_NAME)
-
-        logger.debug("open_pipeline complete")
-
-    # def last_checkpoint(self):
+    # def open_pipeline(self, resume_after=None, mode="a"):
+    #     """
+    #     Start pipeline, either for a new run or, if resume_after, loading checkpoint from pipeline.
+    #
+    #     If resume_after, then we expect the pipeline hdf5 file to exist and contain
+    #     checkpoints from a previous run, including a checkpoint with name specified in resume_after
+    #
+    #     Parameters
+    #     ----------
+    #     resume_after : str or None
+    #         name of checkpoint to load from pipeline store
+    #     mode : {'a', 'w', 'r', 'r+'}, default 'a'
+    #         same as for typical opening of H5Store.  Ignored unless resume_after
+    #         is not None.  This is here to allow read-only pipeline for benchmarking.
     #     """
     #
-    #     Returns
-    #     -------
-    #     last_checkpoint: str
-    #         name of last checkpoint
-    #     """
+    #     self.init_state()
     #
-    #     assert self.is_open, f"Pipeline is not open."
+    #     if resume_after:
+    #         # open existing pipeline
+    #         logger.debug("open_pipeline - open existing pipeline")
+    #         self.checkpoint.open_store(overwrite=False, mode=mode)
+    #         try:
+    #             self.checkpoint.load(resume_after)
+    #         except KeyError as err:
+    #             if "checkpoints" in err.args[0]:
+    #                 # no checkpoints initialized, fall back to restart
+    #                 self.checkpoint.last_checkpoint[
+    #                     CHECKPOINT_NAME
+    #                 ] = INITIAL_CHECKPOINT_NAME
+    #                 self.checkpoint.add(INITIAL_CHECKPOINT_NAME)
+    #             else:
+    #                 raise
+    #     else:
+    #         # open new, empty pipeline
+    #         logger.debug("open_pipeline - new, empty pipeline")
+    #         self.checkpoint.open_store(overwrite=True)
+    #         # - not sure why I thought we needed this?
+    #         # could have exogenous tables or prng instantiation under some circumstance??
+    #         self.checkpoint.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
+    #         # empty table, in case they have turned off all checkpointing
+    #         self.checkpoint.add(INITIAL_CHECKPOINT_NAME)
     #
-    #     return self.last_checkpoint[CHECKPOINT_NAME]
+    #     logger.debug("open_pipeline complete")
 
     def close_pipeline(self):
         """
         Close any known open files
         """
 
-        assert self.checkpoint.is_open, f"Pipeline is not open."
-
         self.close_open_files()
-
-        if not isinstance(self.checkpoint.store, Path):
-            self.checkpoint.close_store()
+        self.checkpoint.close_store()
 
         self.init_state()
 
@@ -1032,8 +1075,6 @@ class Whale:
         -------
         df : pandas.DataFrame
         """
-
-        assert self.checkpoint.is_open, f"Pipeline is not open."
 
         # orca table not in checkpoints (e.g. a merged table)
         if table_name not in self.checkpoint.last_checkpoint and self.is_table(
@@ -1086,43 +1127,6 @@ class Whale:
             return self.context.get(table_name)
 
         return self.checkpoint.read_df(table_name, last_checkpoint_name)
-
-    # def replace_table(self, table_name, df):
-    #     """
-    #     Add or replace a orca table, removing any existing added orca columns
-    #
-    #     The use case for this function is a method that calls to_frame on an orca table, modifies
-    #     it and then saves the modified.
-    #
-    #     orca.to_frame returns a copy, so no changes are saved, and adding multiple column with
-    #     add_column adds them in an indeterminate order.
-    #
-    #     Simply replacing an existing the table "behind the pipeline's back" by calling orca.add_table
-    #     risks pipeline to failing to detect that it has changed, and thus not checkpoint the changes.
-    #
-    #     Parameters
-    #     ----------
-    #     table_name : str
-    #         orca/pipeline table name
-    #     df : pandas DataFrame
-    #     """
-    #
-    #     assert self.is_open, f"Pipeline is not open."
-    #
-    #     if df.columns.duplicated().any():
-    #         logger.error(
-    #             "replace_table: dataframe '%s' has duplicate columns: %s"
-    #             % (table_name, df.columns[df.columns.duplicated()])
-    #         )
-    #
-    #         raise RuntimeError(
-    #             "replace_table: dataframe '%s' has duplicate columns: %s"
-    #             % (table_name, df.columns[df.columns.duplicated()])
-    #         )
-    #
-    #     self.rewrap(table_name, df)
-    #
-    #     self.replaced_tables[table_name] = True
 
     def extend_table(self, table_name, df, axis=0):
         """
@@ -1198,7 +1202,7 @@ class Whale:
         assert self.settings.cleanup_pipeline_after_run
 
         if not self.checkpoint.is_open:
-            self.open_pipeline("_")
+            self.checkpoint.restore("_")
 
         assert self.checkpoint.is_open, f"Pipeline is not open."
 
@@ -1339,12 +1343,10 @@ class Whale:
         return dump_df(self, dump_switch, df, trace_label, fname)
 
     def set_step_args(self, args=None):
-
         assert isinstance(args, dict) or args is None
         self.add_injectable("step_args", args)
 
     def get_step_arg(self, arg_name, default=NO_DEFAULT):
-
         args = self.get_injectable("step_args")
 
         assert isinstance(args, dict)

@@ -136,7 +136,6 @@ def trip_purpose_and_destination(
             trips_df,
             tours_merged_df,
             chunk_size=whale.settings.chunk_size,
-            trace_hh_id=whale.settings.trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % i),
         )
 

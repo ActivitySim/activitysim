@@ -540,7 +540,7 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
     )
     if last_checkpoint_in_previous_multiprocess_step is None:
         raise RuntimeError("missing last_checkpoint_in_previous_multiprocess_step")
-    whale.open_pipeline(resume_after=last_checkpoint_in_previous_multiprocess_step)
+    whale.checkpoint.restore(resume_after=last_checkpoint_in_previous_multiprocess_step)
 
     # ensure all tables are in the pipeline
     checkpointed_tables = whale.checkpoint.list_tables()
@@ -842,7 +842,7 @@ def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
                 )
 
     # open pipeline, preserving existing checkpoints (so resume_after will work for prior steps)
-    whale.open_pipeline(resume_after="_")
+    whale.checkpoint.restore(resume_after="_")
 
     # - add mirrored tables to pipeline
     for table_name in mirrored_tables:
@@ -1023,7 +1023,7 @@ def run_simulation(
             info(whale, f"resume_after checkpoint '{resume_after}' not in pipeline.")
             resume_after = LAST_CHECKPOINT
 
-    whale.open_pipeline(resume_after)
+    whale.checkpoint.restore(resume_after)
     last_checkpoint = whale.checkpoint.last_checkpoint
 
     if last_checkpoint in models:
@@ -1741,7 +1741,7 @@ def run_multiprocess(whale: workflow.Whale, injectables):
 
     # add checkpoint with final tables even if not intermediate checkpointing
     if not whale.should_save_checkpoint():
-        whale.open_pipeline(resume_after="_")
+        whale.checkpoint.restore(resume_after="_")
         whale.checkpoint.add(FINAL_CHECKPOINT_NAME)
         whale.close_pipeline()
 

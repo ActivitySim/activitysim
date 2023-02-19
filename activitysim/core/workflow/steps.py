@@ -341,19 +341,20 @@ class workflow_step:
         run_step.__doc__ = docstring
         _create_step(self._step_name, run_step)
 
-        def update_with_cache(whale, *args, **kwargs):
+        def update_with_cache(whale: Whale, *args, **kwargs):
             ignore_cache = kwargs.pop("_ignore_cache_", False)
             if self._step_name not in whale.context or ignore_cache:
                 whale.context[self._step_name] = wrapped_func(whale, *args, **kwargs)
             return whale.context[self._step_name]
 
+        update_with_cache.__doc__ = docstring
+        update_with_cache.__name__ = self._step_name
+
         if self._kind == "cached_object":
             Whale._LOADABLE_OBJECTS[self._step_name] = run_step
-            update_with_cache.__doc__ = docstring
             return update_with_cache
         elif self._kind == "table":
             Whale._LOADABLE_TABLES[self._step_name] = run_step
-            update_with_cache.__doc__ = docstring
             return update_with_cache
         elif self._kind == "temp_table":
             Whale._TEMP_NAMES.add(self._step_name)
@@ -363,7 +364,6 @@ class workflow_step:
                     Whale._PREDICATES[i] = {self._step_name}
                 else:
                     Whale._PREDICATES[i].add(self._step_name)
-            update_with_cache.__doc__ = docstring
             return update_with_cache
         elif self._kind == "step":
             Whale._RUNNABLE_STEPS[self._step_name] = run_step

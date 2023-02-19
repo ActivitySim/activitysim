@@ -34,7 +34,7 @@ def read_input_table(whale: workflow.Whale, tablename, required=True):
     pandas DataFrame
     """
     table_list = whale.settings.input_table_list
-    if required and table_list is not None:
+    if required and table_list is None:
         raise AssertionError("no input_table_list found in settings")
     if not required and table_list is None:
         return None

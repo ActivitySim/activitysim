@@ -12,9 +12,9 @@ import pkg_resources
 import pytest
 import yaml
 
-from activitysim.core import config, inject, pipeline, random, tracing
+from activitysim.core import config, configuration, inject, random, tracing, workflow
 
-from .setup_utils import inject_settings, setup_dirs
+from .setup_utils import setup_dirs
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50
@@ -35,11 +35,6 @@ def example_path(dirname):
     return pkg_resources.resource_filename("activitysim", resource)
 
 
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
-
 def close_handlers():
     loggers = logging.Logger.manager.loggerDict
     for name in loggers:
@@ -50,30 +45,27 @@ def close_handlers():
 
 
 def test_load_cached_accessibility():
-
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
     data_dir = [os.path.join(os.path.dirname(__file__), "data"), example_path("data")]
-    setup_dirs(data_dir=data_dir)
+    whale = setup_dirs(data_dir=data_dir)
 
     #
     # add OPTIONAL ceched table accessibility to input_table_list
     # activitysim.abm.tables.land_use.accessibility() will load this table if listed here
     # presumably independently calculated outside activitysim or a cached copy created during a previous run
     #
-    settings = config.read_settings_file("settings.yaml", mandatory=True)
-    input_table_list = settings.get("input_table_list")
+    settings = whale.settings
+    input_table_list = settings.input_table_list
     input_table_list.append(
-        {
-            "tablename": "accessibility",
-            "filename": "cached_accessibility.csv",
-            "index_col": "zone_id",
-        }
+        configuration.InputTable.parse_obj(
+            {
+                "tablename": "accessibility",
+                "filename": "cached_accessibility.csv",
+                "index_col": "zone_id",
+            }
+        )
     )
-    inject_settings(
-        households_sample_size=HOUSEHOLDS_SAMPLE_SIZE, input_table_list=input_table_list
-    )
+    whale.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
+    whale.settings.input_table_list = input_table_list
 
     _MODELS = [
         "initialize_landuse",
@@ -82,15 +74,13 @@ def test_load_cached_accessibility():
     ]
 
     try:
-        pipeline.run(models=_MODELS, resume_after=None)
+        whale.run(models=_MODELS, resume_after=None)
 
-        accessibility_df = pipeline.get_table("accessibility")
+        accessibility_df = whale.get_table("accessibility")
 
         assert "auPkRetail" in accessibility_df
 
     finally:
-        pipeline.close_pipeline()
-        inject.clear_cache()
         close_handlers()
 
 

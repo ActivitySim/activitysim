@@ -1,8 +1,9 @@
 import logging
 import multiprocessing
 import time
-from typing import Iterable
+from typing import Callable, Iterable
 
+from activitysim.core.exceptions import DuplicateWorkflowNameError
 from activitysim.core.workflow.accessor import FromWhale, WhaleAccessor
 from activitysim.core.workflow.checkpoint import (
     CHECKPOINT_NAME,
@@ -31,8 +32,10 @@ class Runner(WhaleAccessor):
 
         Parameters
         ----------
-        models : [str]
-            list of model_names
+        models : list[str] or Callable
+            A list of the model names to run, which should all have been
+            registered with the @workflow.step decorator.  Alternative, give
+            a single function that is or could have been so-decorated.
         resume_after : str or None
             model_name of checkpoint to load checkpoint and AFTER WHICH to resume model run
         memory_sidecar_process : MemorySidecar, optional
@@ -41,12 +44,22 @@ class Runner(WhaleAccessor):
         returns:
             nothing, but with pipeline open
         """
+        if isinstance(models, Callable) and models.__name__ is not None:
+            if models is self.obj._RUNNABLE_STEPS.get(models.__name__, None):
+                self([models.__name__], resume_after=None, memory_sidecar_process=None)
+            elif models is self.obj._LOADABLE_OBJECTS.get(models.__name__, None):
+                self.obj.set(models.__name__, self.obj.get(models.__name__))
+            elif models is self.obj._LOADABLE_TABLES.get(models.__name__, None):
+                self.obj.set(models.__name__, self.obj.get(models.__name__))
+            else:
+                raise DuplicateWorkflowNameError(models.__name__)
+
         from activitysim.core.tracing import print_elapsed_time
 
         t0 = print_elapsed_time()
 
         if resume_after:
-            self.obj.open_pipeline(resume_after)
+            self.obj.checkpoint.restore(resume_after)
         t0 = print_elapsed_time("open_pipeline", t0)
 
         if resume_after == LAST_CHECKPOINT:
@@ -100,6 +113,7 @@ class Runner(WhaleAccessor):
             )
             f.__doc__ = self.obj._RUNNABLE_STEPS[item].__doc__
             return f
+        raise AttributeError(item)
 
     timing_notes: set[str] = FromWhale(default_init=True)
 

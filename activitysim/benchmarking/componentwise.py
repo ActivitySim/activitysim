@@ -124,7 +124,7 @@ def setup_component(
         # components.  Instead, those benchmarks are generated in
         # aggregate during setup and then extracted from logs later.
     else:
-        whale.open_pipeline(resume_after, mode="r")
+        whale.checkpoint.restore(resume_after, mode="r")
 
     for k in preload_injectables:
         if whale.get_injectable(k, None) is not None:

@@ -9,7 +9,7 @@ import pytest
 import yaml
 
 from activitysim.abm.models.util import cdap
-from activitysim.core import chunk, config, inject, simulate, workflow
+from activitysim.core import chunk, inject, simulate, workflow
 
 
 @pytest.fixture(scope="module")
@@ -20,11 +20,6 @@ def data_dir():
 @pytest.fixture(scope="module")
 def people(data_dir):
     return pd.read_csv(os.path.join(data_dir, "people.csv"), index_col="id")
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
 
 
 @pytest.fixture(scope="module")
@@ -40,14 +35,8 @@ def configs_dir():
     return os.path.join(os.path.dirname(__file__), "configs")
 
 
-def setup_function():
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
-
-
 def test_bad_coefficients():
+    whale = workflow.Whale.make_default(__file__)
     coefficients = pd.read_csv(
         whale.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
         comment="#",
@@ -62,6 +51,7 @@ def test_bad_coefficients():
 
 
 def test_assign_cdap_rank(people, model_settings):
+    whale = workflow.Whale.make_default(__file__)
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
     with chunk.chunk_log("test_assign_cdap_rank", base=True, settings=whale.settings):
@@ -77,6 +67,7 @@ def test_assign_cdap_rank(people, model_settings):
 
 
 def test_individual_utilities(people, model_settings):
+    whale = workflow.Whale.make_default(__file__)
     cdap_indiv_and_hhsize1 = whale.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
@@ -129,7 +120,8 @@ def test_individual_utilities(people, model_settings):
     )
 
 
-def test_build_cdap_spec_hhsize2(whale: workflow.Whale, people, model_settings):
+def test_build_cdap_spec_hhsize2(people, model_settings):
+    whale = workflow.Whale.make_default(__file__)
     hhsize = 2
     cdap_indiv_and_hhsize1 = whale.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"

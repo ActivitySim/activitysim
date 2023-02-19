@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import abc
 import datetime as dt
 import logging
 import os
@@ -26,15 +29,152 @@ INITIAL_CHECKPOINT_NAME = "init"
 FINAL_CHECKPOINT_NAME = "final"
 
 
+class GenericCheckpointStore:
+    @abc.abstractmethod
+    def put(
+        self,
+        table_name: str,
+        df: pd.DataFrame,
+        complib: str = None,
+        checkpoint_name: str = None,
+    ):
+        """
+        Store a table.
+
+        Parameters
+        ----------
+        table_name : str
+        df : pd.DataFrame
+        complib : str
+            Name of compression library to use.
+        checkpoint_name : str, optional
+            The checkpoint version name to use for this table.
+        """
+
+    @abc.abstractmethod
+    def get_dataframe(
+        self, table_name: str, checkpoint_name: str = None
+    ) -> pd.DataFrame:
+        """
+        Load table from store as a pandas DataFrame.
+
+        Parameters
+        ----------
+        key : str
+        checkpoint_name : str, optional
+            The checkpoint version name to use for this table.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+
+    @property
+    @abc.abstractmethod
+    def is_readonly(self) -> bool:
+        """
+        This store is read-only.
+        """
+
+    @abc.abstractmethod
+    def close(self) -> None:
+        """Close this store."""
+
+
+class HdfStore(GenericCheckpointStore):
+    """Storage interface for HDF5-based table storage."""
+
+    def __init__(self, filename: Path, mode="a"):
+        self._hdf5 = pd.HDFStore(str(filename), mode=mode)
+
+    def _store_table_key(self, table_name, checkpoint_name):
+        if checkpoint_name:
+            key = f"{table_name}/{checkpoint_name}"
+        else:
+            key = f"/{table_name}"
+        return key
+
+    def put(
+        self,
+        table_name: str,
+        df: pd.DataFrame,
+        complib: str = None,
+        checkpoint_name: str = None,
+    ):
+        key = self._store_table_key(table_name, checkpoint_name)
+        if complib is None or len(df.columns) == 0:
+            # tables with no columns can't be compressed successfully, so to
+            # avoid them getting just lost and dropped they are instead written
+            # in fixed format with no compression, which should be just fine
+            # since they have no data anyhow.
+            self._hdf5.put(key, df)
+        else:
+            self._hdf5.put(key, df, "table", complib=complib)
+        self._hdf5.flush()
+
+    def get_dataframe(
+        self, table_name: str, checkpoint_name: str = None
+    ) -> pd.DataFrame:
+        key = self._store_table_key(table_name, checkpoint_name)
+        return self._hdf5[key]
+
+    def is_readonly(self) -> bool:
+        return self._hdf5._mode == "r"
+
+    def close(self) -> None:
+        """Close this store."""
+        self._hdf5.close()
+
+
+class ParquetStore(GenericCheckpointStore):
+    """Storage interface for parquet-based table storage."""
+
+    def __init__(self, directory: Path, mode: str = "a"):
+        self._directory = directory
+        self._mode = mode
+
+    def _store_table_path(self, table_name, checkpoint_name):
+        if checkpoint_name:
+            return self._directory.joinpath(table_name, f"{checkpoint_name}.parquet")
+        else:
+            return self._directory.joinpath(f"{table_name}.parquet")
+
+    def put(
+        self,
+        table_name: str,
+        df: pd.DataFrame,
+        complib: str = "NOTSET",
+        checkpoint_name: str = None,
+    ):
+        if self._mode == "r":
+            raise ValueError("store is read-only")
+        filepath = self._store_table_path(table_name, checkpoint_name)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        if complib == "NOTSET":
+            pd.DataFrame(df).to_parquet(
+                path=filepath,
+            )
+        else:
+            pd.DataFrame(df).to_parquet(path=filepath, compression=complib)
+
+    def get_dataframe(
+        self, table_name: str, checkpoint_name: str = None
+    ) -> pd.DataFrame:
+        return pd.read_parquet(self._store_table_path(table_name, checkpoint_name))
+
+    def close(self) -> None:
+        """Close this store."""
+        pass
+
+
 class Checkpoints(WhaleAccessor):
     def __init__(self):
         self.last_checkpoint = {}
         self.checkpoints = []
         self._checkpoint_store = None
-        self.is_open = False
 
     @property
-    def store(self) -> Union[pd.HDFStore, Path]:
+    def store(self) -> GenericCheckpointStore:
         if self._checkpoint_store is None:
             self.open_store()
         return self._checkpoint_store
@@ -97,34 +237,24 @@ class Checkpoints(WhaleAccessor):
                     print(e)
                     logger.warning("Error removing %s: %s" % (pipeline_file_path, e))
 
-            self._checkpoint_store = pd.HDFStore(str(pipeline_file_path), mode=mode)
+            self._checkpoint_store = HdfStore(pipeline_file_path, mode=mode)
         else:
-            self._checkpoint_store = Path(pipeline_file_path)
+            self._checkpoint_store = ParquetStore(pipeline_file_path, mode=mode)
 
-        self.is_open = True
         logger.debug(f"opened checkpoint.store {pipeline_file_path}")
 
     def close_store(self):
         """
         Close any known open files
         """
-
-        assert self.is_open, f"Pipeline is not open."
-
-        self.obj.close_open_files()
-
-        if not isinstance(self.store, Path):
+        if self._checkpoint_store is not None:
             self.store.close()
-
-        self.obj.init_state()  # TODO no?
-
-        logger.debug("close_pipeline")
+        self.__init__()
+        logger.debug("close_store")
 
     def is_readonly(self):
-        if self.is_open:
-            store = self.store
-            if store and not isinstance(store, Path) and store._mode == "r":
-                return True
+        if self._checkpoint_store is not None:
+            return self._checkpoint_store.is_readonly
         return False
 
     def add(self, checkpoint_name: str):
@@ -190,15 +320,7 @@ class Checkpoints(WhaleAccessor):
             the dataframe read from the store
 
         """
-        store = self.store
-        if isinstance(store, Path):
-            df = pd.read_parquet(
-                store.joinpath(table_name, f"{checkpoint_name}.parquet"),
-            )
-        else:
-            df = store[self.obj.pipeline_table_key(table_name, checkpoint_name)]
-
-        return df
+        return self.store.get_dataframe(table_name, checkpoint_name)
 
     def write_df(self, df, table_name, checkpoint_name=None):
         """
@@ -224,29 +346,34 @@ class Checkpoints(WhaleAccessor):
         # coerce column names to str as unicode names will cause PyTables to pickle them
         df.columns = df.columns.astype(str)
 
-        store = self.store
-        if isinstance(store, Path):
-            store.joinpath(table_name).mkdir(parents=True, exist_ok=True)
-            df.to_parquet(store.joinpath(table_name, f"{checkpoint_name}.parquet"))
-        else:
-            complib = self.obj.settings.pipeline_complib
-            if complib is None or len(df.columns) == 0:
-                # tables with no columns can't be compressed successfully, so to
-                # avoid them getting just lost and dropped they are instead written
-                # in fixed format with no compression, which should be just fine
-                # since they have no data anyhow.
-                store.put(
-                    self.obj.pipeline_table_key(table_name, checkpoint_name),
-                    df,
-                )
-            else:
-                store.put(
-                    self.obj.pipeline_table_key(table_name, checkpoint_name),
-                    df,
-                    "table",
-                    complib=complib,
-                )
-            store.flush()
+        self.store.put(
+            table_name,
+            df,
+            complib=self.obj.settings.pipeline_complib,
+            checkpoint_name=checkpoint_name,
+        )
+        # if isinstance(store, Path):
+        #     store.joinpath(table_name).mkdir(parents=True, exist_ok=True)
+        #     df.to_parquet(store.joinpath(table_name, f"{checkpoint_name}.parquet"))
+        # else:
+        #     complib = self.obj.settings.pipeline_complib
+        #     if complib is None or len(df.columns) == 0:
+        #         # tables with no columns can't be compressed successfully, so to
+        #         # avoid them getting just lost and dropped they are instead written
+        #         # in fixed format with no compression, which should be just fine
+        #         # since they have no data anyhow.
+        #         store.put(
+        #             self.obj.pipeline_table_key(table_name, checkpoint_name),
+        #             df,
+        #         )
+        #     else:
+        #         store.put(
+        #             self.obj.pipeline_table_key(table_name, checkpoint_name),
+        #             df,
+        #             "table",
+        #             complib=complib,
+        #         )
+        #     store.flush()
 
     def list_tables(self):
         """
@@ -365,25 +492,22 @@ class Checkpoints(WhaleAccessor):
         checkpoints_df : pandas.DataFrame
 
         """
-
-        store = self.store
-
-        if store is not None:
-            if isinstance(store, Path):
-                df = pd.read_parquet(
-                    store.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-                )
-            else:
-                df = store[CHECKPOINT_TABLE_NAME]
-        else:
-            pipeline_file_path = self.obj.filesystem.get_pipeline_filepath()
-            if pipeline_file_path.suffix == ".h5":
-                df = pd.read_hdf(pipeline_file_path, CHECKPOINT_TABLE_NAME)
-            else:
-                df = pd.read_parquet(
-                    pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-                )
-
+        df = self.store.get_dataframe(CHECKPOINT_TABLE_NAME)
+        #     # if isinstance(store, Path):
+        #     #     df = pd.read_parquet(
+        #     #         store.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
+        #     #     )
+        #     # else:
+        #     #     df = store[CHECKPOINT_TABLE_NAME]
+        # else:
+        #     pipeline_file_path = self.obj.filesystem.get_pipeline_filepath()
+        #     if pipeline_file_path.suffix == ".h5":
+        #         df = pd.read_hdf(pipeline_file_path, CHECKPOINT_TABLE_NAME)
+        #     else:
+        #         df = pd.read_parquet(
+        #             pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
+        #         )
+        #
         # non-table columns first (column order in df is random because created from a dict)
         table_names = [
             name for name in df.columns.values if name not in NON_TABLE_COLUMNS
@@ -392,3 +516,52 @@ class Checkpoints(WhaleAccessor):
         df = df[NON_TABLE_COLUMNS + table_names]
 
         return df
+
+    def restore(self, resume_after=None, mode="a"):
+        """
+        Restore state from checkpoints.
+
+        This can be used with "resume_after" to get the correct checkpoint,
+        or for a new run.
+
+        If resume_after, then we expect the pipeline hdf5 file to exist and contain
+        checkpoints from a previous run, including a checkpoint with name specified in resume_after
+
+        Parameters
+        ----------
+        resume_after : str or None
+            name of checkpoint to load from pipeline store
+        mode : {'a', 'w', 'r', 'r+'}, default 'a'
+            same as for typical opening of H5Store.  Ignored unless resume_after
+            is not None.  This is here to allow read-only pipeline for benchmarking.
+        """
+
+        self.obj.init_state()
+
+        if resume_after:
+            # open existing pipeline
+            logger.debug("checkpoint.restore - open existing pipeline")
+            if self._checkpoint_store is None:
+                self.open_store(overwrite=False, mode=mode)
+            try:
+                self.load(resume_after)
+            except KeyError as err:
+                if "checkpoints" in err.args[0]:
+                    # no checkpoints initialized, fall back to restart
+                    self.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
+                    self.add(INITIAL_CHECKPOINT_NAME)
+                else:
+                    raise
+            logger.debug(f"restore from checkpoint {resume_after} complete")
+        else:
+            # open new, empty pipeline
+            logger.debug("checkpoint.restore - new, empty pipeline")
+            if self._checkpoint_store is None:
+                self.open_store(overwrite=True)
+            # - not sure why I thought we needed this?
+            # could have exogenous tables or prng instantiation under some circumstance??
+            self.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
+            # empty table, in case they have turned off all checkpointing
+            self.add(INITIAL_CHECKPOINT_NAME)
+
+            logger.debug(f"restore from tabula rasa complete")

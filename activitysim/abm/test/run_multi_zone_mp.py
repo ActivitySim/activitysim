@@ -17,7 +17,7 @@ def test_mp_run():
     configs_dir = [example_path("configs_3_zone"), example_path("configs")]
     data_dir = example_path("data_3")
 
-    setup_dirs(configs_dir, data_dir)
+    whale = setup_dirs(configs_dir, data_dir)
     inject.add_injectable("settings_file_name", "settings_mp.yaml")
 
     run_list = mp_tasks.get_run_list(whale)
@@ -28,7 +28,7 @@ def test_mp_run():
     injectables = {k: whale.get_injectable(k) for k in injectables}
 
     mp_tasks.run_multiprocess(run_list, injectables)
-    pipeline.open_pipeline("_")
+    pipeline.checkpoint.restore("_")
     regress_3_zone()
     pipeline.close_pipeline()
 

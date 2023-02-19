@@ -8,7 +8,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from activitysim.core import inject
+from activitysim.core import workflow
 
 from ..tour_frequency import process_mandatory_tours
 
@@ -16,13 +16,6 @@ from ..tour_frequency import process_mandatory_tours
 @pytest.fixture(scope="module")
 def configs_dir():
     return os.path.join(os.path.dirname(__file__), "configs")
-
-
-def setup_function():
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
 
 
 def mandatory_tour_frequency_alternatives():
@@ -34,6 +27,8 @@ def mandatory_tour_frequency_alternatives():
 
 
 def test_mtf():
+    whale = workflow.Whale.make_default(__file__)
+
     persons = pd.DataFrame(
         {
             "is_worker": [True, True, False, False],

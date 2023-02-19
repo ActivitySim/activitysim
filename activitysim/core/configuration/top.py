@@ -282,7 +282,7 @@ class Settings(PydanticBase, extra="allow"):
     See :ref:`chunk_size` for more details.
     """
 
-    chunk_size: int = None
+    chunk_size: int = 0
     """
     Approximate amount of RAM to allocate to ActivitySim for batch processing.
 

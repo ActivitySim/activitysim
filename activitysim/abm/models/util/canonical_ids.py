@@ -330,7 +330,8 @@ def canonical_tours(whale: workflow.Whale):
     # ---- school escort channels
     # only include if model is run
     if whale.is_table("school_escort_tours") | (
-        "school_escorting" in whale.settings.models
+        whale.settings.models is not None
+        and "school_escorting" in whale.settings.models
     ):
         se_model_settings_file_name = "school_escorting.yaml"
         se_model_settings = whale.filesystem.read_model_settings(

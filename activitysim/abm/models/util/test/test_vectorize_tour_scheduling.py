@@ -3,37 +3,29 @@
 
 import os
 
-import numpy as np
 import pandas as pd
 import pandas.testing as pdt
-import pytest
 
-from activitysim.core import inject, workflow
-
-from ..vectorize_tour_scheduling import (
+from activitysim.abm.models.util.vectorize_tour_scheduling import (
     get_previous_tour_by_tourid,
     vectorize_tour_scheduling,
 )
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
-
-def setup_function():
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
+from activitysim.core import workflow
 
 
 def test_vts():
-    whale = workflow.Whale()
-    inject.add_injectable("settings", {})
+    whale = (
+        workflow.Whale()
+        .initialize_filesystem(
+            output_dir=os.path.join(os.path.dirname(__file__), "output"),
+        )
+        .default_settings()
+    )
 
     # note: need 0 duration tour on one end of day to guarantee at least one available tour
     alts = pd.DataFrame({"start": [1, 1, 2, 3], "end": [1, 4, 5, 6]})
     alts["duration"] = alts.end - alts.start
-    inject.add_injectable("tdd_alts", alts)
+    whale.add_injectable("tdd_alts", alts)
 
     current_tour_person_ids = pd.Series(["b", "c"], index=["d", "e"])
 
@@ -68,7 +60,7 @@ def test_vts():
     spec = pd.DataFrame({"Coefficient": [1.2]}, index=["income"])
     spec.index.name = "Expression"
 
-    inject.add_injectable("check_for_variability", True)
+    whale.settings.check_for_variability = True
 
     timetable = whale.get_injectable("timetable")
 

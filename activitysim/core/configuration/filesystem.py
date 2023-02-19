@@ -288,8 +288,12 @@ class FileSystem(PydanticBase, validate_assignment=True):
         -------
         Path or None
         """
-
-        dir_paths = getattr(self, dir_list_injectable_name)
+        if dir_list_injectable_name == "configs_dir":
+            dir_paths = self.get_configs_dir()
+        elif dir_list_injectable_name == "data_dir":
+            dir_paths = self.get_data_dir()
+        else:
+            dir_paths = getattr(self, dir_list_injectable_name)
         dir_paths = [dir_paths] if isinstance(dir_paths, str) else dir_paths
 
         file_path = None

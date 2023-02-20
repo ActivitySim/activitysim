@@ -121,54 +121,55 @@ def test_mtc_sharrow():
     run_test_mtc(sharrow=True)
 
 
+EXPECTED_MODELS = [
+    "initialize_landuse",
+    "initialize_households",
+    "compute_accessibility",
+    "school_location",
+    "workplace_location",
+    "auto_ownership_simulate",
+    "free_parking",
+    "cdap_simulate",
+    "mandatory_tour_frequency",
+    "mandatory_tour_scheduling",
+    "joint_tour_frequency",
+    "joint_tour_composition",
+    "joint_tour_participation",
+    "joint_tour_destination",
+    "joint_tour_scheduling",
+    "non_mandatory_tour_frequency",
+    "non_mandatory_tour_destination",
+    "non_mandatory_tour_scheduling",
+    "tour_mode_choice_simulate",
+    "atwork_subtour_frequency",
+    "atwork_subtour_destination",
+    "atwork_subtour_scheduling",
+    "atwork_subtour_mode_choice",
+    "stop_frequency",
+    "trip_purpose",
+    "trip_destination",
+    "trip_purpose_and_destination",
+    "trip_scheduling",
+    "trip_mode_choice",
+    "write_data_dictionary",
+    "track_skim_usage",
+    "write_trip_matrices",
+    "write_tables",
+    "summarize",
+]
+
+
 def test_mtc_progressive():
 
     import activitysim.abm  # register components
 
     whale = workflow.create_example("prototype_mtc", temp=True)
 
-    expected_models = [
-        "initialize_landuse",
-        "initialize_households",
-        "compute_accessibility",
-        "school_location",
-        "workplace_location",
-        "auto_ownership_simulate",
-        "free_parking",
-        "cdap_simulate",
-        "mandatory_tour_frequency",
-        "mandatory_tour_scheduling",
-        "joint_tour_frequency",
-        "joint_tour_composition",
-        "joint_tour_participation",
-        "joint_tour_destination",
-        "joint_tour_scheduling",
-        "non_mandatory_tour_frequency",
-        "non_mandatory_tour_destination",
-        "non_mandatory_tour_scheduling",
-        "tour_mode_choice_simulate",
-        "atwork_subtour_frequency",
-        "atwork_subtour_destination",
-        "atwork_subtour_scheduling",
-        "atwork_subtour_mode_choice",
-        "stop_frequency",
-        "trip_purpose",
-        "trip_destination",
-        "trip_purpose_and_destination",
-        "trip_scheduling",
-        "trip_mode_choice",
-        "write_data_dictionary",
-        "track_skim_usage",
-        "write_trip_matrices",
-        "write_tables",
-        "summarize",
-    ]
-
-    assert whale.settings.models == expected_models
+    assert whale.settings.models == EXPECTED_MODELS
     assert whale.settings.chunk_size == 0
     assert whale.settings.sharrow == False
 
-    for step_name in expected_models:
+    for step_name in EXPECTED_MODELS:
         whale.run.by_name(step_name)
         try:
             whale.checkpoint.check_against(

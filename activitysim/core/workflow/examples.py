@@ -1,8 +1,5 @@
 from pathlib import Path
 
-from activitysim.core.workflow.state import Whale
-from activitysim.examples import get_example
-
 
 def create_example(example_name, directory: Path = None, temp: bool = False):
     """
@@ -28,6 +25,11 @@ def create_example(example_name, directory: Path = None, temp: bool = False):
         temp_dir = None
     if directory is None:
         directory = Path.cwd()
+
+    # import inside function to prevent circular references.
+    from activitysim.core.workflow.state import Whale
+    from activitysim.examples import get_example
+
     whale = Whale.make_default(get_example(example_name, destination=directory))
     if temp:
         whale.context["_TEMP_DIR_"] = temp_dir

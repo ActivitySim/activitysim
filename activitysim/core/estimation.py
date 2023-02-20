@@ -478,7 +478,11 @@ class EstimationManager(object):
         settings = whale.filesystem.read_model_settings(
             ESTIMATION_SETTINGS_FILE_NAME, mandatory=False
         )
-        self.enabled = settings.get("enable", "True")
+        if not settings:
+            # if the model settings file is not found, we are not in estimation mode.
+            self.enabled = False
+        else:
+            self.enabled = settings.get("enable", "True")
         self.bundles = settings.get("bundles", [])
 
         self.model_estimation_table_types = settings.get(

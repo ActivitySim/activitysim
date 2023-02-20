@@ -59,7 +59,7 @@ def test_create_copy():
 
     assert os.path.exists(target)
     for folder in ["configs", "configs_mp", "data", "output"]:
-        assert os.path.isdir(os.path.join(target, folder))
+        assert os.path.isdir(os.path.join(target, "prototype_mtc", folder))
 
     # clean up
     shutil.rmtree(target)

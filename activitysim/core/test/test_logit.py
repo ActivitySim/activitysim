@@ -8,32 +8,13 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from activitysim.core import inject, logit, workflow
+from activitysim.core import logit, workflow
 from activitysim.core.simulate import eval_variables
-
-
-def setup_function():
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
 
 
 @pytest.fixture(scope="module")
 def data_dir():
     return os.path.join(os.path.dirname(__file__), "data")
-
-
-def add_canonical_dirs():
-
-    configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    inject.add_injectable("configs_dir", configs_dir)
-
-    output_dir = os.path.join(os.path.dirname(__file__), "output")
-    inject.add_injectable("output_dir", output_dir)
 
 
 # this is lifted straight from urbansim's test_mnl.py
@@ -93,9 +74,6 @@ def test_utils_to_probs(utilities, test_data):
 
 
 def test_utils_to_probs_raises():
-
-    add_canonical_dirs()
-
     idx = pd.Index(name="household_id", data=[1])
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(

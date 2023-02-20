@@ -281,6 +281,6 @@ def disaggregate_accessibility(whale: workflow.Whale):
     return merge_df[accessibility_cols]
 
 
-inject.broadcast(
-    "disaggregate_accessibility", "persons", cast_index=True, onto_on="person_id"
-)
+# inject.broadcast(
+#     "disaggregate_accessibility", "persons", cast_index=True, onto_on="person_id"
+# )

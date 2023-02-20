@@ -11,11 +11,6 @@ import pkg_resources
 from activitysim.core import inject
 
 
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
-
 def _test_mwcog(sharrow=False):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_mwcog", dirname)

@@ -8,13 +8,6 @@ import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 
-from activitysim.core import inject
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
 
 def _test_psrc(sharrow=False):
     def example_path(dirname):

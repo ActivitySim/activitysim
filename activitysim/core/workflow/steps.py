@@ -140,6 +140,7 @@ class workflow_step:
         inplace=False,
         kind="step",
         copy_tables=True,
+        overloading=False,
     ):
         """
         Initialize a work step wrapper.
@@ -172,6 +173,7 @@ class workflow_step:
         self._inplace = inplace
         self._kind = kind
         self._copy_tables = copy_tables
+        self._overloading = overloading
         if wrapped_func is not None:
             return self(wrapped_func)
         else:
@@ -195,13 +197,25 @@ class workflow_step:
         logger.debug(f"found workflow_{self._kind}: {self._step_name}")
         docstring = wrapped_func.__doc__
 
+        # overloading of existing steps is only allowed when the user
+        # sets overloading=True, which should never be done for steps
+        # defined and delivered within the ActivitySim package itself
+        def warn_overload():
+            if self._overloading:
+                logger.warning(
+                    f"workflow.step {wrapped_func.__module__}.{self._step_name} "
+                    f"overloading existing {self._step_name}"
+                )
+            else:
+                raise DuplicateWorkflowNameError(self._step_name)
+
         # check for duplicate workflow function names
         if self._step_name in Whale._LOADABLE_OBJECTS:
-            raise DuplicateWorkflowNameError(self._step_name)
+            warn_overload()
         if self._step_name in Whale._LOADABLE_TABLES:
-            raise DuplicateWorkflowNameError(self._step_name)
+            warn_overload()
         if self._step_name in Whale._RUNNABLE_STEPS:
-            raise DuplicateWorkflowNameError(self._step_name)
+            warn_overload()
 
         (
             _args,

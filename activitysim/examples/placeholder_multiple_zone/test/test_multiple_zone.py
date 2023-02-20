@@ -9,13 +9,6 @@ import pandas.testing as pdt
 import pkg_resources
 import pytest
 
-from activitysim.core import inject
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
 
 def example_path(dirname):
     resource = os.path.join("examples", "placeholder_multiple_zone", dirname)

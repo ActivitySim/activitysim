@@ -11,11 +11,6 @@ import pkg_resources
 from activitysim.core import inject
 
 
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
-
-
 def _test_sandag_xborder(sharrow=False, mp=True):
     def example_path(dirname):
         resource = os.path.join("examples", "prototype_sandag_xborder", dirname)

@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 
 from activitysim.abm.tables import table_dict
-from activitysim.core import inject, tracing, workflow
+from activitysim.core import tracing, workflow
 
 
 def close_handlers():
@@ -18,11 +18,6 @@ def close_handlers():
         logger.handlers = []
         logger.propagate = True
         logger.setLevel(logging.NOTSET)
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
 
 
 def add_canonical_dirs():
@@ -219,12 +214,6 @@ def test_slice_ids():
 def test_basic(capsys):
 
     close_handlers()
-
-    # configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    # inject.add_injectable("configs_dir", configs_dir)
-    #
-    # output_dir = os.path.join(os.path.dirname(__file__), "output")
-    # inject.add_injectable("output_dir", output_dir)
 
     whale = add_canonical_dirs()
 

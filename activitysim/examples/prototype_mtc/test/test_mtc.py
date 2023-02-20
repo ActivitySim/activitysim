@@ -3,17 +3,13 @@
 import os
 import subprocess
 import sys
+from pathlib import Path
 
 import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 
-from activitysim.core import inject
-
-
-def teardown_function(func):
-    inject.clear_cache()
-    inject.reinject_decorated_tables()
+from activitysim.core import workflow
 
 
 def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=False):
@@ -125,8 +121,68 @@ def test_mtc_sharrow():
     run_test_mtc(sharrow=True)
 
 
-if __name__ == "__main__":
+def test_mtc_progressive():
 
+    import activitysim.abm  # register components
+
+    whale = workflow.create_example("prototype_mtc", temp=True)
+
+    expected_models = [
+        "initialize_landuse",
+        "initialize_households",
+        "compute_accessibility",
+        "school_location",
+        "workplace_location",
+        "auto_ownership_simulate",
+        "free_parking",
+        "cdap_simulate",
+        "mandatory_tour_frequency",
+        "mandatory_tour_scheduling",
+        "joint_tour_frequency",
+        "joint_tour_composition",
+        "joint_tour_participation",
+        "joint_tour_destination",
+        "joint_tour_scheduling",
+        "non_mandatory_tour_frequency",
+        "non_mandatory_tour_destination",
+        "non_mandatory_tour_scheduling",
+        "tour_mode_choice_simulate",
+        "atwork_subtour_frequency",
+        "atwork_subtour_destination",
+        "atwork_subtour_scheduling",
+        "atwork_subtour_mode_choice",
+        "stop_frequency",
+        "trip_purpose",
+        "trip_destination",
+        "trip_purpose_and_destination",
+        "trip_scheduling",
+        "trip_mode_choice",
+        "write_data_dictionary",
+        "track_skim_usage",
+        "write_trip_matrices",
+        "write_tables",
+        "summarize",
+    ]
+
+    assert whale.settings.models == expected_models
+    assert whale.settings.chunk_size == 0
+    assert whale.settings.sharrow == False
+
+    for step_name in expected_models:
+        whale.run.by_name(step_name)
+        try:
+            whale.checkpoint.check_against(
+                Path(__file__).parent.joinpath("prototype_mtc_reference_pipeline.zip"),
+                checkpoint_name=step_name,
+            )
+        except Exception:
+            print(f"> prototype_mtc {step_name}: ERROR")
+            raise
+        else:
+            print(f"> prototype_mtc {step_name}: ok")
+
+
+if __name__ == "__main__":
     run_test_mtc(multiprocess=False)
     run_test_mtc(multiprocess=True)
     run_test_mtc(multiprocess=False, chunkless=True)

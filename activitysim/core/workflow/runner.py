@@ -7,6 +7,7 @@ from activitysim.core.exceptions import DuplicateWorkflowNameError
 from activitysim.core.workflow.accessor import FromWhale, WhaleAccessor
 from activitysim.core.workflow.checkpoint import (
     CHECKPOINT_NAME,
+    CHECKPOINT_TABLE_NAME,
     FINAL_CHECKPOINT_NAME,
     LAST_CHECKPOINT,
 )
@@ -85,9 +86,33 @@ class Runner(WhaleAccessor):
 
         t0 = print_elapsed_time()
 
-        if resume_after:
-            self.obj.checkpoint.restore(resume_after)
-        t0 = print_elapsed_time("open_pipeline", t0)
+        if resume_after == LAST_CHECKPOINT:
+            _checkpoints = self.obj.checkpoint.store.list_checkpoint_names()
+            if len(_checkpoints):
+                _resume_after = _checkpoints[-1]
+            else:
+                # nothing available in the checkpoint.store, cannot resume_after
+                resume_after = _resume_after = None
+        else:
+            _resume_after = resume_after
+
+        if _resume_after:
+
+            if (
+                _resume_after != self.obj.checkpoint.last_checkpoint_name
+                or self.obj.uncheckpointed_table_names()
+            ):
+                logger.debug(
+                    f"last_checkpoint_name = {self.obj.checkpoint.last_checkpoint_name}"
+                )
+                logger.debug(
+                    f"uncheckpointed_table_names = {self.obj.uncheckpointed_table_names()}"
+                )
+                logger.debug(f"restoring from store with resume_after = {resume_after}")
+                self.obj.checkpoint.restore(resume_after)
+                t0 = print_elapsed_time("checkpoint.restore", t0)
+            else:
+                logger.debug(f"good to go with resume_after = {resume_after}")
 
         if resume_after == LAST_CHECKPOINT:
             resume_after = self.obj.checkpoint.last_checkpoint[CHECKPOINT_NAME]
@@ -131,7 +156,7 @@ class Runner(WhaleAccessor):
         # don't close the pipeline, as the user may want to read intermediate results from the store
 
     def __dir__(self) -> Iterable[str]:
-        return self.obj._RUNNABLE_STEPS.keys()
+        return self.obj._RUNNABLE_STEPS.keys() | {"all"}
 
     def __getattr__(self, item):
         if item in self.obj._RUNNABLE_STEPS:
@@ -146,7 +171,6 @@ class Runner(WhaleAccessor):
     timing_notes: set[str] = FromWhale(default_init=True)
 
     def log_runtime(self, model_name, start_time=None, timing=None, force=False):
-
         assert (start_time or timing) and not (start_time and timing)
 
         timing = timing if timing else time.time() - start_time
@@ -216,6 +240,7 @@ class Runner(WhaleAccessor):
         t0 = print_elapsed_time()
         logger.info(f"#run_model running step {step_name}")
 
+        # these values are cached in the runner object itself, not in the context.
         self.step_name = step_name
         self.checkpoint = checkpoint
         self.t0 = t0
@@ -274,3 +299,10 @@ class Runner(WhaleAccessor):
             logger.info(
                 "##### skipping %s checkpoint for %s" % (self.step_name, model_name)
             )
+
+    def all(self, resume_after=LAST_CHECKPOINT, memory_sidecar_process=None):
+        self(
+            models=self.obj.settings.models,
+            resume_after=resume_after,
+            memory_sidecar_process=memory_sidecar_process,
+        )

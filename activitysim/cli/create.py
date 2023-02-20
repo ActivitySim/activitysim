@@ -110,13 +110,12 @@ def get_example(
 
     Parameters
     ----------
-
     example_name: str, name of the example to copy.
         Options can be found via list_examples()
     destination: name of target directory to copy files to.
-        If the target directory already exists, project files
-        will be copied into a subdirectory with the same name
-        as the example
+        If the target directory does not exist, it is created.
+        Project files will then be copied into a subdirectory
+        with the same name as the example
     benchmarking: bool
     optimize: bool
     link: bool or path-like
@@ -125,14 +124,21 @@ def get_example(
         value, then a cache directory is created using in a location
         selected by the appdirs library (or, if not installed,
         linking is skipped.)
+
+    Returns
+    -------
+    Path :
     """
     if example_name not in EXAMPLES:
         sys.exit(f"error: could not find example '{example_name}'")
 
     if os.path.isdir(destination):
         dest_path = os.path.join(destination, example_name)
+    elif os.path.isfile(destination):
+        raise FileExistsError(destination)
     else:
-        dest_path = destination
+        os.makedirs(destination)
+        dest_path = os.path.join(destination, example_name)
 
     example = EXAMPLES[example_name]
     itemlist = example.get("include", [])
@@ -179,6 +185,8 @@ def get_example(
     instructions = example.get("instructions")
     if instructions:
         print(instructions)
+
+    return Path(dest_path)
 
 
 def copy_asset(asset_path, target_path, dirs_exist_ok=False):

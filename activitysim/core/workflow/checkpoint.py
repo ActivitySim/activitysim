@@ -9,7 +9,8 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from activitysim.core.workflow.accessor import WhaleAccessor
+from activitysim.core.exceptions import WhaleAccessError
+from activitysim.core.workflow.accessor import FromWhale, WhaleAccessor
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +84,15 @@ class GenericCheckpointStore:
     def close(self) -> None:
         """Close this store."""
 
+    def list_checkpoint_names(self) -> list[str]:
+        """Get a list of all checkpoint names in this store."""
+        try:
+            df = self.get_dataframe(CHECKPOINT_TABLE_NAME)
+        except Exception:
+            return []
+        else:
+            return list(df.checkpoint_name)
+
 
 class HdfStore(GenericCheckpointStore):
     """Storage interface for HDF5-based table storage."""
@@ -138,7 +148,18 @@ class ParquetStore(GenericCheckpointStore):
     """Storage interface for parquet-based table storage."""
 
     def __init__(self, directory: Path, mode: str = "a"):
-        self._directory = directory
+        directory = Path(directory)
+        if directory.suffix == ".zip":
+            if mode != "r":
+                raise ValueError("can only open a Zip parquet store as read-only.")
+            # import zipfile
+            # import tempfile
+            # self._temp_dir = tempfile.TemporaryDirectory()
+            # with zipfile.ZipFile(directory, mode='r') as zipf:
+            #     zipf.extractall(self._temp_dir.name)
+            #     directory = Path(directory)
+            #
+        self._directory = Path(directory)
         self._mode = mode
 
     def _store_table_path(self, table_name, checkpoint_name):
@@ -168,6 +189,19 @@ class ParquetStore(GenericCheckpointStore):
     def get_dataframe(
         self, table_name: str, checkpoint_name: str = None
     ) -> pd.DataFrame:
+        if self._directory.suffix == ".zip":
+            import io
+            import zipfile
+
+            with zipfile.ZipFile(self._directory, mode="r") as zipf:
+                content = zipf.read(
+                    str(
+                        self._store_table_path(table_name, checkpoint_name).relative_to(
+                            self._directory
+                        )
+                    )
+                )
+                return pd.read_parquet(io.BytesIO(content))
         return pd.read_parquet(self._store_table_path(table_name, checkpoint_name))
 
     @property
@@ -182,10 +216,67 @@ class ParquetStore(GenericCheckpointStore):
         """Close this store."""
         pass
 
+    def make_zip_archive(self, output_filename):
+        """
+        Compress this pipeline into a zip archive.
+
+        Parameters
+        ----------
+        output_filename
+
+        Returns
+        -------
+        Path
+            Filename of the resulting zipped store.
+        """
+        output_filename = Path(output_filename)
+        import zipfile
+
+        if output_filename.suffix != ".zip":
+            output_filename = output_filename.with_suffix(".zip")
+        with zipfile.ZipFile(output_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for root, dirs, files in os.walk(self._directory):
+                files = [f for f in files if not f[0] == "."]
+                for f in files:
+                    arcname = Path(root).joinpath(f).relative_to(self._directory)
+                    zipf.write(Path(root).joinpath(f), arcname=arcname)
+
+        return output_filename
+
+
+class NullStore(GenericCheckpointStore):
+    def put(
+        self,
+        table_name: str,
+        df: pd.DataFrame,
+        complib: str = "NOTSET",
+        checkpoint_name: str = None,
+    ):
+        pass
+
+    def get_dataframe(
+        self, table_name: str, checkpoint_name: str = None
+    ) -> pd.DataFrame:
+        raise ValueError("no data is actually stored in NullStore")
+
+    @property
+    def is_readonly(self) -> bool:
+        return False
+
+    @property
+    def is_open(self) -> bool:
+        return True
+
+    def close(self) -> None:
+        """Close this store."""
+        pass
+
 
 class Checkpoints(WhaleAccessor):
-    def __init__(self):
-        self.initialize()
+
+    last_checkpoint: dict = FromWhale(default_init=True)
+    checkpoints: list[dict] = FromWhale(default_init=True)
+    _checkpoint_store: GenericCheckpointStore | None = FromWhale(default_value=None)
 
     def initialize(self):
         self.last_checkpoint = {}
@@ -282,6 +373,13 @@ class Checkpoints(WhaleAccessor):
             return self._checkpoint_store.is_readonly
         return False
 
+    @property
+    def last_checkpoint_name(self):
+        if self.last_checkpoint:
+            return self.last_checkpoint.get("checkpoint_name", None)
+        else:
+            return None
+
     def add(self, checkpoint_name: str):
         """
         Create a new checkpoint with specified name.
@@ -301,7 +399,7 @@ class Checkpoints(WhaleAccessor):
         for table_name in self.obj.uncheckpointed_table_names():
             df = self.obj.get_dataframe(table_name)
             logger.debug(f"add_checkpoint {checkpoint_name!r} table {table_name!r}")
-            self.write_df(df, table_name, checkpoint_name)
+            self._write_df(df, table_name, checkpoint_name)
 
             # remember which checkpoint it was last written
             self.last_checkpoint[table_name] = checkpoint_name
@@ -321,9 +419,11 @@ class Checkpoints(WhaleAccessor):
             checkpoints[c] = checkpoints[c].fillna("")
 
         # write it to the store, overwriting any previous version (no way to simply extend)
-        self.write_df(checkpoints, CHECKPOINT_TABLE_NAME)
+        self._write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
-    def read_df(self, table_name, checkpoint_name=None):
+    def _read_df(
+        self, table_name, checkpoint_name=None, store: GenericCheckpointStore = None
+    ):
         """
         Read a pandas dataframe from the pipeline store.
 
@@ -345,9 +445,17 @@ class Checkpoints(WhaleAccessor):
             the dataframe read from the store
 
         """
-        return self.store.get_dataframe(table_name, checkpoint_name)
+        if store is None:
+            store = self.store
+        return store.get_dataframe(table_name, checkpoint_name)
 
-    def write_df(self, df, table_name, checkpoint_name=None):
+    def _write_df(
+        self,
+        df: pd.DataFrame,
+        table_name: str,
+        checkpoint_name: str = None,
+        store: GenericCheckpointStore = None,
+    ):
         """
         Write a pandas dataframe to the pipeline store.
 
@@ -366,12 +474,16 @@ class Checkpoints(WhaleAccessor):
             also conventionally the injected table name
         checkpoint_name : str
             the checkpoint at which the table was created/modified
+        store : GenericCheckpointStore, optional
+            Write to this store instead of the default store.
         """
+        if store is None:
+            store = self.store
 
         # coerce column names to str as unicode names will cause PyTables to pickle them
         df.columns = df.columns.astype(str)
 
-        self.store.put(
+        store.put(
             table_name,
             df,
             complib=self.obj.settings.pipeline_complib,
@@ -388,7 +500,7 @@ class Checkpoints(WhaleAccessor):
             if checkpoint_name and name not in NON_TABLE_COLUMNS
         ]
 
-    def load(self, checkpoint_name: str):
+    def load(self, checkpoint_name: str, store=None):
         """
         Load dataframes and restore random number channel state from pipeline hdf5 file.
         This restores the pipeline state that existed at the specified checkpoint in a prior simulation.
@@ -402,7 +514,7 @@ class Checkpoints(WhaleAccessor):
 
         logger.info("load_checkpoint %s" % (checkpoint_name))
 
-        checkpoints = self.read_df(CHECKPOINT_TABLE_NAME)
+        checkpoints = self._read_df(CHECKPOINT_TABLE_NAME, store=store)
 
         if checkpoint_name == LAST_CHECKPOINT:
             checkpoint_name = checkpoints[CHECKPOINT_NAME].iloc[-1]
@@ -415,8 +527,12 @@ class Checkpoints(WhaleAccessor):
 
             # if the store is not open in read-only mode,
             # write it to the store to ensure so any subsequent checkpoints are forgotten
-            if not self.is_readonly and isinstance(self.store, pd.HDFStore):
-                self.write_df(checkpoints, CHECKPOINT_TABLE_NAME)
+            if (
+                store is None
+                and not self.is_readonly
+                and isinstance(self.store, pd.HDFStore)
+            ):
+                self._write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
         except IndexError:
             msg = "Couldn't find checkpoint '%s' in checkpoints" % (checkpoint_name,)
@@ -433,25 +549,35 @@ class Checkpoints(WhaleAccessor):
                 if key not in NON_TABLE_COLUMNS and not checkpoint[key]:
                     del checkpoint[key]
 
-        # patch _CHECKPOINTS array of dicts
-        self.checkpoints = checkpoints
+        if store is None:
+            # patch _CHECKPOINTS array of dicts
+            self.checkpoints = checkpoints
 
-        # patch _CHECKPOINTS dict with latest checkpoint info
-        self.last_checkpoint.clear()
-        self.last_checkpoint.update(self.checkpoints[-1])
+            # patch _CHECKPOINTS dict with latest checkpoint info
+            self.last_checkpoint.clear()
+            self.last_checkpoint.update(self.checkpoints[-1])
 
-        logger.info(
-            "load_checkpoint %s timestamp %s"
-            % (checkpoint_name, self.last_checkpoint["timestamp"])
-        )
+            logger.info(
+                "load_checkpoint %s timestamp %s"
+                % (checkpoint_name, self.last_checkpoint["timestamp"])
+            )
 
-        tables = self.list_tables()
+            tables = self.list_tables()
+            last_checkpoint = self.last_checkpoint
+
+        else:
+            last_checkpoint = checkpoints[-1]
+            tables = [
+                name
+                for name, checkpoint_name in last_checkpoint.items()
+                if checkpoint_name and name not in NON_TABLE_COLUMNS
+            ]
 
         loaded_tables = {}
         for table_name in tables:
             # read dataframe from pipeline store
-            df = self.read_df(
-                table_name, checkpoint_name=self.last_checkpoint[table_name]
+            df = self._read_df(
+                table_name, checkpoint_name=last_checkpoint[table_name], store=store
             )
             logger.info("load_checkpoint table %s %s" % (table_name, df.shape))
             # register it as an orca table
@@ -464,7 +590,12 @@ class Checkpoints(WhaleAccessor):
                 # TODO: this "magic" column name should be replaced with a mechanism
                 #       to write and recover particular settings from the pipeline
                 #       store, but we don't have that mechanism yet
-                self.obj.settings.offset_preprocessing = True
+                try:
+                    self.obj.settings.offset_preprocessing = True
+                except WhaleAccessError:
+                    pass
+                    # self.obj.default_settings()
+                    # self.obj.settings.offset_preprocessing = True
 
         # register for tracing in order that tracing.register_traceable_table wants us to register them
         traceable_tables = self.obj.tracing.traceable_tables
@@ -483,6 +614,11 @@ class Checkpoints(WhaleAccessor):
                 if table_name in loaded_tables:
                     logger.debug("adding channel %s" % (table_name,))
                     self.obj.rng().add_channel(table_name, loaded_tables[table_name])
+
+        if store is not None:
+            # we have loaded from an external store, so we make a new checkpoint
+            # with the same name as the one we just loaded.
+            self.add(checkpoint_name)
 
     def get_inventory(self):
         """
@@ -553,3 +689,75 @@ class Checkpoints(WhaleAccessor):
             self.add(INITIAL_CHECKPOINT_NAME)
 
             logger.debug(f"restore from tabula rasa complete")
+
+    def restore_from(self, location: Path, checkpoint_name: str = LAST_CHECKPOINT):
+        """
+        Restore state from an alternative pipeline store.
+
+        The checkpoint history is collapsed when reading out of an alternative
+        store location, given the presumption that if the use wanted to load a
+        prior intermediate state, that could be done so from the same outside
+        store, and the history does not need to be also preserved in the active
+        checkpoint store.
+
+        Parameters
+        ----------
+        location : Path-like
+            Location of pipeline store to load.
+        checkpoint_name : str
+            name of checkpoint to load from pipeline store
+        """
+        self.obj.init_state()
+        logger.debug(f"checkpoint.restore_from - opening {location}")
+        if isinstance(location, str):
+            location = Path(location)
+        if location.suffix == ".h5":
+            from_store = HdfStore(location, mode="r")
+        else:
+            from_store = ParquetStore(location, mode="r")
+        self.load(checkpoint_name, store=from_store)
+        logger.debug(f"checkpoint.restore_from of {checkpoint_name} complete")
+
+    def check_against(self, location: Path, checkpoint_name: str):
+        """
+        Check that the tables in this Whale match those in an archived pipeline.
+
+        Parameters
+        ----------
+        location : Path-like
+        checkpoint_name : str
+
+        Raises
+        ------
+        AssertionError
+            If any registered table does not match.
+        """
+        for table_name in self.obj.registered_tables():
+            local_table = self.obj.get_dataframe(table_name)
+            logger.info(f"table {table_name!r}: shalpe1 {local_table.shape}")
+
+        from .state import Whale
+
+        ref_whale = Whale()
+        ref_whale.default_settings()
+        ref_whale.checkpoint._checkpoint_store = NullStore()
+
+        if isinstance(location, str):
+            location = Path(location)
+        if location.suffix == ".h5":
+            from_store = HdfStore(location, mode="r")
+        else:
+            from_store = ParquetStore(location, mode="r")
+        ref_whale.checkpoint.load(checkpoint_name, store=from_store)
+        registered_tables = ref_whale.registered_tables()
+        if len(registered_tables) == 0:
+            logger.warning("no tables checked")
+        for table_name in registered_tables:
+            local_table = self.obj.get_dataframe(table_name)
+            ref_table = ref_whale.get_dataframe(table_name)
+            try:
+                pd.testing.assert_frame_equal(local_table, ref_table)
+            except Exception as err:
+                raise AssertionError(f"table {table_name!r}, {str(err)}") from err
+            else:
+                logger.info(f"table {table_name!r}: ok")

@@ -1,4 +1,5 @@
 import inspect
+import warnings
 
 from activitysim.core.exceptions import WhaleAccessError
 
@@ -19,15 +20,27 @@ class WhaleAccessor:
     def __set_name__(self, owner, name):
         self._name = name
 
+    def __init__(self, whale=None):
+        self.obj = whale
+
     def __get__(self, instance, objtype=None):
+        if instance is None:
+            return self
+        cached_accessor = getattr(instance, f"_cached_accessor_{self._name}", None)
+        if cached_accessor is not None:
+            return cached_accessor
         from .state import Whale
 
         assert isinstance(instance, Whale)
-        self.obj = instance
-        return self
+        accessor_obj = self.__class__(instance)
+        object.__setattr__(instance, self._name, accessor_obj)
+        return accessor_obj
 
     def __set__(self, instance, value):
-        raise ValueError(f"cannot directly set accessor {self._name}")
+        if isinstance(value, self.__class__):
+            setattr(instance, f"_cached_accessor_{self._name}", value)
+        else:
+            raise ValueError(f"cannot directly set accessor {self._name}")
 
     def __delete__(self, instance):
         raise ValueError(f"cannot delete accessor {self._name}")
@@ -66,7 +79,7 @@ class FromWhale:
         self.name = f"{owner.__name__.lower()}_{name}"
         # set member type based on annotation
         if self.member_type is None:
-            annot = inspect.get_annotations(owner)
+            annot = inspect.get_annotations(owner, eval_str=True)
             if name in annot:
                 self.member_type = annot[name]
 

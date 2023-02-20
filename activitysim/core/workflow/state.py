@@ -831,14 +831,13 @@ class Whale:
         df : pandas.DataFrame
         """
 
-        # orca table not in checkpoints (e.g. a merged table)
         if table_name not in self.checkpoint.last_checkpoint and self.is_table(
             table_name
         ):
             if checkpoint_name is not None:
                 raise RuntimeError(
-                    "get_table: checkpoint_name ('%s') not supported"
-                    "for non-checkpointed table '%s'" % (checkpoint_name, table_name)
+                    f"get_table: checkpoint_name ({checkpoint_name!r}) not "
+                    f"supported for non-checkpointed table {table_name!r}"
                 )
 
             return self.context.get(table_name)
@@ -851,7 +850,6 @@ class Whale:
             if not self.checkpoint.last_checkpoint[table_name]:
                 raise RuntimeError("table '%s' was dropped." % table_name)
 
-            # return orca.get_table(table_name).local
             return self.context.get(table_name)
 
         # find the requested checkpoint
@@ -881,7 +879,7 @@ class Whale:
         ):
             return self.context.get(table_name)
 
-        return self.checkpoint.read_df(table_name, last_checkpoint_name)
+        return self.checkpoint._read_df(table_name, last_checkpoint_name)
 
     def extend_table(self, table_name, df, axis=0):
         """

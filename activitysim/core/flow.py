@@ -520,7 +520,7 @@ def new_flow(
         else:
             chooser_cols = list(choosers.columns)
 
-        cache_dir = whale.filesystem.get_cache_dir("__sharrowcache__")
+        cache_dir = whale.filesystem.get_sharrow_cache_dir()
         logger.debug(f"flow.cache_dir: {cache_dir}")
         skims_mapping_ = skims_mapping(
             whale,

@@ -74,10 +74,18 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
     cache_dir: Path = None
     """
-    Name of the output directory for cache files.
+    Name of the output directory for general cache files.
 
     If not given, a directory named "cache" will be created inside
     the usual output directory.
+    """
+
+    sharrow_cache_dir: Path = None
+    """
+    Name of the output directory for sharrow cache files.
+
+    If not given, a directory named "__sharrowcache__" will be created inside
+    the general cache directory.
     """
 
     settings_file_name: str = "settings.yaml"
@@ -265,6 +273,49 @@ class FileSystem(PydanticBase, validate_assignment=True):
             gitignore.write_text("/**")
 
         return out
+
+    def get_sharrow_cache_dir(self) -> Path:
+        """
+        Get the sharrow cache directory, creating it if needed.
+
+        The sharrow cache directory is used to store only sharrow's cache
+        of pre-compiled functions.
+
+        Returns
+        -------
+        Path
+        """
+        if self.sharrow_cache_dir is None:
+            out = self.get_cache_dir("__sharrowcache__")
+        else:
+            out = self.get_working_subdir(self.sharrow_cache_dir)
+        if not out.exists():
+            out.mkdir(parents=True)
+
+        # create a git-ignore in the sharrow cache dir if it does not exist.
+        # this helps prevent accidentally committing cache contents to git
+        gitignore = out.joinpath(".gitignore")
+        if not gitignore.exists():
+            gitignore.write_text("/**")
+
+        return out
+
+    def persist_sharrow_cache(self):
+        """
+        Change the sharrow cache directory to a persistent, user-global location.
+
+        This location is selected by the `appdirs.user_cache_dir` function.
+        """
+        import appdirs
+        import numba
+
+        # the cache folder gets an extra directory layer based on the current
+        # numba version, which allows for different sets of cache files to
+        # co-exist for different version of numba (i.e. different conda envs)
+        self.sharrow_cache_dir = Path(
+            appdirs.user_cache_dir(appname="ActivitySim")
+        ).joinpath(f"numba-{numba.__version__}")
+        self.sharrow_cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _cascading_input_file_path(
         self, file_name, dir_list_injectable_name, mandatory=True, allow_glob=False

@@ -243,6 +243,27 @@ class ParquetStore(GenericCheckpointStore):
 
         return output_filename
 
+    def wipe(self):
+        """
+        Remove this store, including all subdirectories.
+        """
+        if self.is_readonly:
+            raise ValueError("store is readonly")
+        walked = list(os.walk(self._directory))
+        while walked:
+            root, dirs, files = walked.pop(-1)
+            for f in files:
+                if f.endswith(".parquet"):
+                    os.unlink(os.path.join(root, f))
+            # after removing all parquet files, is this directory basically empty?
+            should_drop_root = True
+            file_list = {f for f in Path(root).glob("**/*") if f.is_file()}
+            for f in file_list:
+                if f not in {".gitignore", ".DS_Store"}:
+                    should_drop_root = False
+            if should_drop_root:
+                os.rmdir(root)
+
 
 class NullStore(GenericCheckpointStore):
     def put(

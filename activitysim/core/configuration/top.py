@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any, Literal
 
-from .base import PydanticBase, Union
+from activitysim.core.configuration.base import PydanticBase, Union
 
 
 class InputTable(PydanticBase):

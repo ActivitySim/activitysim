@@ -83,13 +83,17 @@ class TVPBCache(object):
     def cache_path(self):
         file_type = "mmap"
         return os.path.join(
-            self.network_los.get_cache_dir(), f"{self.cache_tag}.{file_type}"
+            self.network_los.whale.filesystem.get_cache_dir(),
+            f"{self.cache_tag}.{file_type}",
         )
 
     @property
     def csv_trace_path(self):
         file_type = "csv"
-        return os.path.join(config.get_cache_dir(), f"{self.cache_tag}.{file_type}")
+        return os.path.join(
+            self.network_los.whale.filesystem.get_cache_dir(),
+            f"{self.cache_tag}.{file_type}",
+        )
 
     def cleanup(self):
         """
@@ -106,7 +110,8 @@ class TVPBCache(object):
                 while True:
                     n += 1
                     candidate = os.path.join(
-                        config.get_cache_dir(), f"{self.cache_tag}.{n}.mmap"
+                        self.network_los.whale.filesystem.get_cache_dir(),
+                        f"{self.cache_tag}.{n}.mmap",
                     )
                     if not os.path.isfile(candidate):
                         self.cache_tag = f"{self.cache_tag}.{n}"

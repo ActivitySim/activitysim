@@ -104,7 +104,7 @@ def initialize_los(whale: workflow.Whale, network_los):
 
 
 def compute_utilities_for_attribute_tuple(
-    whale, network_los, scalar_attributes, data, chunk_size, trace_label
+    whale, network_los, scalar_attributes, data, trace_label
 ):
     # scalar_attributes is a dict of attribute name/value pairs for this combination
     # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
@@ -154,15 +154,16 @@ def compute_utilities_for_attribute_tuple(
             # TODO: convert to Dataset or otherwise stop this copying, without
             #       harming anything else.
             chooser_chunk = chooser_chunk.copy()
-        chunk.log_df(trace_label, "attribute_chooser_chunk", chooser_chunk)
+        chunk_sizer.log_df(trace_label, "attribute_chooser_chunk", chooser_chunk)
 
         # add any attribute columns specified as column attributes in settings (the rest will be scalars in locals_dict)
         for attribute_name in attributes_as_columns:
             chooser_chunk[attribute_name] = scalar_attributes[attribute_name]
 
-        chunk.log_df(trace_label, "attribute_chooser_chunk", chooser_chunk)
+        chunk_sizer.log_df(trace_label, "attribute_chooser_chunk", chooser_chunk)
 
         utilities_df = pathbuilder.compute_utilities(
+            whale,
             network_los,
             model_settings=model_settings,
             choosers=chooser_chunk,
@@ -170,7 +171,7 @@ def compute_utilities_for_attribute_tuple(
             trace_label=trace_label,
         )
 
-        chunk.log_df(trace_label, "utilities_df", utilities_df)
+        chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
         assert len(utilities_df) == len(chooser_chunk)
         assert len(utilities_df.columns) == data.shape[1]
@@ -179,14 +180,16 @@ def compute_utilities_for_attribute_tuple(
         data[chooser_chunk.index.values, :] = utilities_df.values
 
         del chooser_chunk
-        chunk.log_df(trace_label, "attribute_chooser_chunk", None)
+        chunk_sizer.log_df(trace_label, "attribute_chooser_chunk", None)
 
     logger.debug(f"{trace_label} updated utilities")
 
 
 @workflow.step
 def initialize_tvpb(
-    whale: workflow.Whale, network_los, attribute_combinations, chunk_size
+    whale: workflow.Whale,
+    network_los,
+    attribute_combinations,
 ):
     """
     Initialize STATIC tap_tap_utility cache and write mmap to disk.
@@ -212,7 +215,7 @@ def initialize_tvpb(
         )
         return
 
-    attribute_combinations_df = attribute_combinations.to_frame()
+    attribute_combinations_df = attribute_combinations
     multiprocess = network_los.multiprocess()
     uid_calculator = network_los.tvpb.uid_calculator
 
@@ -250,7 +253,7 @@ def initialize_tvpb(
         tuple_trace_label = tracing.extend_trace_label(trace_label, f"offset{offset}")
 
         compute_utilities_for_attribute_tuple(
-            whale, network_los, scalar_attributes, data, chunk_size, tuple_trace_label
+            whale, network_los, scalar_attributes, data, tuple_trace_label
         )
 
         # make sure we populated the entire offset

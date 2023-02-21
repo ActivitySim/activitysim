@@ -113,7 +113,6 @@ def _create_od_alts_from_dest_size_terms(
     return od_alts
 
 
-@workflow.func
 def _od_sample(
     whale: workflow.Whale,
     spec_segment_name,
@@ -592,6 +591,7 @@ def od_presample(
     skims = skim_dict.wrap(ORIG_TAZ, DEST_TAZ)
 
     orig_MAZ_dest_TAZ_sample = _od_sample(
+        whale,
         spec_segment_name,
         choosers,
         network_los,
@@ -876,9 +876,11 @@ def run_od_logsums(
         whale.tracing.register_traceable_table("trips", logsum_trips)
         whale.get_rn_generator().add_channel("trips", logsum_trips)
 
-        # run trip mode choice on pseudo-trips. use orca instead of pipeline to
+        # run trip mode choice on pseudo-trips. use a direct call instead of pipeline to
         # execute the step because pipeline can only handle one open step at a time
-        orca.run(["trip_mode_choice"])
+        from activitysim.abm.models.trip_mode_choice import trip_mode_choice
+
+        trip_mode_choice(whale, logsum_trips, whale.get("network_los"))
 
         # grab trip mode choice logsums and pivot by tour mode and direction, index
         # on tour_id to enable merge back to choosers table
@@ -1033,6 +1035,7 @@ def run_od_simulate(
     )
 
     if not want_logsums:
+        # expand pd.Series to a one-column DataFrame
         choices = choices.to_frame("choice")
 
     choices = _get_od_cols_from_od_id(choices, origin_col_name, dest_col_name)
@@ -1074,7 +1077,7 @@ def run_tour_od(
 
         choosers = pd.merge(
             choosers,
-            persons.to_frame(columns=["is_university", "demographic_segment"]),
+            persons[["is_university", "demographic_segment"]],
             left_on="person_id",
             right_index=True,
         )
@@ -1148,6 +1151,7 @@ def run_tour_od(
 
         # - od_simulate
         choices = run_od_simulate(
+            whale,
             spec_segment_name,
             choosers,
             od_sample_df,

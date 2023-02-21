@@ -181,7 +181,7 @@ def write_trip_matrices(
                 orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
                 dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
 
-        zone_index = pd.Index(network_los.get_tazs(), name="TAZ")
+        zone_index = pd.Index(network_los.get_tazs(whale), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 

@@ -148,7 +148,9 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, f"maz_tap_utils.{leg}")
 
-        with chunk.chunk_log(trace_label, settings=self.network_los.whale.settings):
+        with chunk.chunk_log(
+            trace_label, settings=self.network_los.whale.settings
+        ) as chunk_sizer:
             maz_tap_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.maz_tap_settings.{mode}"
             )
@@ -191,7 +193,7 @@ class TransitVirtualPathBuilder(object):
             for c in attribute_columns:
                 utilities_df[c] = reindex(chooser_attributes[c], utilities_df["idx"])
 
-            chunk.log_df(trace_label, "utilities_df", utilities_df)
+            chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
             if self.units_for_recipe(recipe) == "utility":
                 utilities_df[leg] = compute_utilities(
@@ -205,7 +207,9 @@ class TransitVirtualPathBuilder(object):
                     trace_column_names=["idx", maz_col, tap_col] if trace else None,
                 )
 
-                chunk.log_df(trace_label, "utilities_df", utilities_df)  # annotated
+                chunk_sizer.log_df(
+                    trace_label, "utilities_df", utilities_df
+                )  # annotated
 
             else:
                 assignment_spec = assign.read_assignment_spec(
@@ -223,7 +227,7 @@ class TransitVirtualPathBuilder(object):
                 assert len(results.columns == 1)
                 utilities_df[leg] = results
 
-            chunk.log_df(trace_label, "utilities_df", utilities_df)
+            chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
             if trace:
                 self.trace_df(utilities_df, trace_label, "utilities_df")
@@ -297,7 +301,9 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_utils")
 
-        with chunk.chunk_log(trace_label, settings=self.network_los.whale.settings):
+        with chunk.chunk_log(
+            trace_label, settings=self.network_los.whale.settings
+        ) as chunk_sizer:
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -310,7 +316,7 @@ class TransitVirtualPathBuilder(object):
                     access_df, egress_df, chooser_attributes, trace_label, trace
                 )
                 # note: transit_df index is arbitrary
-            chunk.log_df(trace_label, "transit_df", transit_df)
+            chunk_sizer.log_df(trace_label, "transit_df", transit_df)
 
             # FIXME some expressions may want to know access mode -
             locals_dict = path_info.copy()
@@ -342,12 +348,12 @@ class TransitVirtualPathBuilder(object):
                 )
 
                 unique_transit_df.set_index("uid", inplace=True)
-                chunk.log_df(trace_label, "unique_transit_df", unique_transit_df)
+                chunk_sizer.log_df(trace_label, "unique_transit_df", unique_transit_df)
 
                 transit_df = transit_df[
                     ["idx", "btap", "atap", "uid"]
                 ]  # don't need chooser columns
-                chunk.log_df(trace_label, "transit_df", transit_df)
+                chunk_sizer.log_df(trace_label, "transit_df", transit_df)
 
             logger.debug(
                 f"#TVPB CACHE compute_tap_tap_utilities dedupe transit_df "
@@ -370,8 +376,10 @@ class TransitVirtualPathBuilder(object):
                     trace=trace,
                     trace_column_names=chooser_columns if trace else None,
                 )
-                chunk.log_df(trace_label, "unique_utilities_df", unique_utilities_df)
-                chunk.log_df(
+                chunk_sizer.log_df(
+                    trace_label, "unique_utilities_df", unique_utilities_df
+                )
+                chunk_sizer.log_df(
                     trace_label, "unique_transit_df", unique_transit_df
                 )  # annotated
 
@@ -385,9 +393,9 @@ class TransitVirtualPathBuilder(object):
                         how="left",
                     )
                     self.trace_df(omnibus_df, trace_label, "unique_utilities_df")
-                    chunk.log_df(trace_label, "omnibus_df", omnibus_df)
+                    chunk_sizer.log_df(trace_label, "omnibus_df", omnibus_df)
                     del omnibus_df
-                    chunk.log_df(trace_label, "omnibus_df", None)
+                    chunk_sizer.log_df(trace_label, "omnibus_df", None)
 
             assert num_unique_transit_rows == len(unique_utilities_df)  # errcheck
 
@@ -402,7 +410,7 @@ class TransitVirtualPathBuilder(object):
                 # note: left merge on columns does not preserve index,
                 # but transit_df index is arbitrary so no need to restore
 
-                chunk.log_df(trace_label, "transit_df", transit_df)
+                chunk_sizer.log_df(trace_label, "transit_df", transit_df)
 
             for c in unique_utilities_df:
                 assert ERR_CHECK and not transit_df[c].isnull().any()
@@ -410,9 +418,9 @@ class TransitVirtualPathBuilder(object):
             if len(unique_transit_df) > 0:
                 # if all rows were cached, then unique_utilities_df is just a ref to cache
                 del unique_utilities_df
-                chunk.log_df(trace_label, "unique_utilities_df", None)
+                chunk_sizer.log_df(trace_label, "unique_utilities_df", None)
 
-            chunk.log_df(trace_label, "transit_df", None)
+            chunk_sizer.log_df(trace_label, "transit_df", None)
 
             if trace:
                 self.trace_df(transit_df, trace_label, "transit_df")
@@ -453,13 +461,15 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "lookup_tap_tap_utils")
 
-        with chunk.chunk_log(trace_label, settings=self.network_los.whale.settings):
+        with chunk.chunk_log(
+            trace_label, settings=self.network_los.whale.settings
+        ) as chunk_sizer:
             with memo("#TVPB CACHE lookup_tap_tap_utilities all_transit_paths"):
                 transit_df = self.all_transit_paths(
                     access_df, egress_df, chooser_attributes, trace_label, trace=False
                 )
                 # note: transit_df index is arbitrary
-                chunk.log_df(trace_label, "transit_df", transit_df)
+                chunk_sizer.log_df(trace_label, "transit_df", transit_df)
 
             if TRACE_COMPLEXITY:
                 # diagnostic: log the omaz,dmaz pairs with the greatest number of virtual tap-tap paths
@@ -495,7 +505,7 @@ class TransitVirtualPathBuilder(object):
                 transit_df = transit_df[
                     ["idx", "btap", "atap"]
                 ]  # just needed chooser_columns for uid calculation
-                chunk.log_df(trace_label, "transit_df add uid index", transit_df)
+                chunk_sizer.log_df(trace_label, "transit_df add uid index", transit_df)
 
             with memo("#TVPB lookup_tap_tap_utilities reindex transit_df"):
                 utilities = self.tap_cache.data
@@ -507,7 +517,7 @@ class TransitVirtualPathBuilder(object):
             for c in self.uid_calculator.set_names:
                 assert ERR_CHECK and not transit_df[c].isnull().any()
 
-            chunk.log_df(trace_label, "transit_df", None)
+            chunk_sizer.log_df(trace_label, "transit_df", None)
 
         return transit_df
 
@@ -523,7 +533,9 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_time")
 
-        with chunk.chunk_log(trace_label, settings=self.network_los.whale.settings):
+        with chunk.chunk_log(
+            trace_label, settings=self.network_los.whale.settings
+        ) as chunk_sizer:
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -536,7 +548,7 @@ class TransitVirtualPathBuilder(object):
                     access_df, egress_df, chooser_attributes, trace_label, trace
                 )
                 # note: transit_df index is arbitrary
-                chunk.log_df(trace_label, "transit_df", transit_df)
+                chunk_sizer.log_df(trace_label, "transit_df", transit_df)
 
             # some expressions may want to know access mode -
             locals_dict = path_info.copy()
@@ -562,7 +574,7 @@ class TransitVirtualPathBuilder(object):
                     ["btap", "atap", "uid"] + chooser_attribute_columns,
                 ]
                 unique_transit_df.set_index("uid", inplace=True)
-                chunk.log_df(trace_label, "unique_transit_df", unique_transit_df)
+                chunk_sizer.log_df(trace_label, "unique_transit_df", unique_transit_df)
 
                 logger.debug(
                     f"#TVPB CACHE deduped transit_df from {len(transit_df)} to {len(unique_transit_df)}"
@@ -586,8 +598,8 @@ class TransitVirtualPathBuilder(object):
 
                 del transit_df["uid"]
                 del unique_transit_df
-                chunk.log_df(trace_label, "transit_df", transit_df)
-                chunk.log_df(trace_label, "unique_transit_df", None)
+                chunk_sizer.log_df(trace_label, "transit_df", transit_df)
+                chunk_sizer.log_df(trace_label, "unique_transit_df", None)
 
             else:
                 results, _, _ = assign.assign_variables(
@@ -604,7 +616,7 @@ class TransitVirtualPathBuilder(object):
 
             transit_df.drop(columns=chooser_attributes.columns, inplace=True)
 
-            chunk.log_df(trace_label, "transit_df", None)
+            chunk_sizer.log_df(trace_label, "transit_df", None)
 
             if trace:
                 self.trace_df(transit_df, trace_label, "transit_df")
@@ -676,7 +688,9 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, "best_paths")
 
-        with chunk.chunk_log(trace_label, settings=self.network_los.whale.settings):
+        with chunk.chunk_log(
+            trace_label, settings=self.network_los.whale.settings
+        ) as chunk_sizer:
             path_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.path_types.{path_type}"
             )
@@ -697,7 +711,7 @@ class TransitVirtualPathBuilder(object):
                 .merge(transit_df, on=["idx", "atap", "btap"], how="inner")
             )
 
-            chunk.log_df(trace_label, "path_df", path_df)
+            chunk_sizer.log_df(trace_label, "path_df", path_df)
 
             # transit sets are the transit_df non-join columns
             transit_sets = [
@@ -767,6 +781,8 @@ class TransitVirtualPathBuilder(object):
         filter_targets=None,
         trace=False,
         override_choices=None,
+        *,
+        chunk_sizer,
     ):
         trace_label = tracing.extend_trace_label(trace_label, "build_virtual_path")
 
@@ -828,7 +844,7 @@ class TransitVirtualPathBuilder(object):
                     "seq": range(len(orig)),
                 }
             )
-            chunk.log_df(trace_label, "maz_od_df", maz_od_df)
+            chunk_sizer.log_df(trace_label, "maz_od_df", maz_od_df)
             self.trace_maz_tap(maz_od_df, access_mode, egress_mode)
 
         # for location choice, there will be multiple alt dest rows per chooser and duplicate orig.index values
@@ -857,7 +873,7 @@ class TransitVirtualPathBuilder(object):
                 trace_label=trace_label,
                 trace=trace,
             )
-        chunk.log_df(trace_label, "access_df", access_df)
+        chunk_sizer.log_df(trace_label, "access_df", access_df)
 
         with memo("#TVPB build_virtual_path egress_df"):
             egress_df = self.compute_maz_tap_utilities(
@@ -869,7 +885,7 @@ class TransitVirtualPathBuilder(object):
                 trace_label=trace_label,
                 trace=trace,
             )
-        chunk.log_df(trace_label, "egress_df", egress_df)
+        chunk_sizer.log_df(trace_label, "egress_df", egress_df)
 
         # L200 will drop all rows if all trips are intra-tap.
         if np.array_equal(access_df["btap"].values, egress_df["atap"].values):
@@ -889,7 +905,7 @@ class TransitVirtualPathBuilder(object):
                 trace_label=trace_label,
                 trace=trace,
             )
-        chunk.log_df(trace_label, "transit_df", transit_df)
+        chunk_sizer.log_df(trace_label, "transit_df", transit_df)
 
         # Cannot trace if df is empty. Prob happened at L200
         if len(transit_df) == 0:
@@ -906,15 +922,15 @@ class TransitVirtualPathBuilder(object):
                 trace_label,
                 trace,
             )
-        chunk.log_df(trace_label, "path_df", path_df)
+        chunk_sizer.log_df(trace_label, "path_df", path_df)
 
         # now that we have created path_df, we are done with the dataframes for the separate legs
         del access_df
-        chunk.log_df(trace_label, "access_df", None)
+        chunk_sizer.log_df(trace_label, "access_df", None)
         del egress_df
-        chunk.log_df(trace_label, "egress_df", None)
+        chunk_sizer.log_df(trace_label, "egress_df", None)
         del transit_df
-        chunk.log_df(trace_label, "transit_df", None)
+        chunk_sizer.log_df(trace_label, "transit_df", None)
 
         if units == "utility":
             # logsums
@@ -922,7 +938,7 @@ class TransitVirtualPathBuilder(object):
                 # one row per seq with utilities in columns
                 # path_num 0-based to aligh with logit.make_choices 0-based choice indexes
                 path_df["path_num"] = path_df.groupby("seq").cumcount()
-                chunk.log_df(trace_label, "path_df", path_df)
+                chunk_sizer.log_df(trace_label, "path_df", path_df)
 
                 utilities_df = (
                     path_df[["seq", "path_num", units]]
@@ -941,7 +957,7 @@ class TransitVirtualPathBuilder(object):
                     UNAVAILABLE
                 )  # set utilities for missing paths to UNAVAILABLE
 
-                chunk.log_df(trace_label, "utilities_df", utilities_df)
+                chunk_sizer.log_df(trace_label, "utilities_df", utilities_df)
 
                 with warnings.catch_warnings(record=True) as w:
                     # Cause all warnings to always be triggered.
@@ -984,7 +1000,7 @@ class TransitVirtualPathBuilder(object):
                     probs = logit.utils_to_probs(
                         utilities_df, allow_zero_probs=True, trace_label=trace_label
                     )
-                    chunk.log_df(trace_label, "probs", probs)
+                    chunk_sizer.log_df(trace_label, "probs", probs)
 
                     if trace:
                         choices = override_choices
@@ -1002,12 +1018,12 @@ class TransitVirtualPathBuilder(object):
                             trace_label=trace_label,
                         )
 
-                        chunk.log_df(trace_label, "rands", rands)
+                        chunk_sizer.log_df(trace_label, "rands", rands)
                         del rands
-                        chunk.log_df(trace_label, "rands", None)
+                        chunk_sizer.log_df(trace_label, "rands", None)
 
                     del probs
-                    chunk.log_df(trace_label, "probs", None)
+                    chunk_sizer.log_df(trace_label, "probs", None)
 
                 # we need to get path_set, btap, atap from path_df row with same seq and path_num
                 # drop seq join column, but keep path_num of choice to override_choices when tracing
@@ -1031,15 +1047,15 @@ class TransitVirtualPathBuilder(object):
                 assert len(logsums) == len(orig)
                 logsum_df = pd.DataFrame({"logsum": logsums}, index=orig.index)
 
-            chunk.log_df(trace_label, "logsum_df", logsum_df)
+            chunk_sizer.log_df(trace_label, "logsum_df", logsum_df)
 
             del utilities_df
-            chunk.log_df(trace_label, "utilities_df", None)
+            chunk_sizer.log_df(trace_label, "utilities_df", None)
 
             if trace:
                 self.trace_df(logsum_df, trace_label, "logsum_df")
 
-            chunk.log_df(trace_label, "logsum_df", logsum_df)
+            chunk_sizer.log_df(trace_label, "logsum_df", logsum_df)
             results = logsum_df
 
         else:
@@ -1051,12 +1067,12 @@ class TransitVirtualPathBuilder(object):
             # zero-fill rows for O-D pairs where no best path exists because there was no tap-tap transit availability
             results = reindex(results, maz_od_df.idx).fillna(0.0)
 
-            chunk.log_df(trace_label, "results", results)
+            chunk_sizer.log_df(trace_label, "results", results)
 
         assert len(results) == len(orig)
 
         del path_df
-        chunk.log_df(trace_label, "path_df", None)
+        chunk_sizer.log_df(trace_label, "path_df", None)
 
         # diagnostic
         # maz_od_df['DIST'] = self.network_los.get_default_skim_dict().get('DIST').get(maz_od_df.omaz, maz_od_df.dmaz)
@@ -1080,7 +1096,9 @@ class TransitVirtualPathBuilder(object):
         trace_label = trace_label or "get_tvpb_logsum"
         trace_label = tracing.extend_trace_label(trace_label, path_type)
 
-        with chunk.chunk_log(trace_label, settings=self.network_los.whale.settings):
+        with chunk.chunk_log(
+            trace_label, settings=self.network_los.whale.settings
+        ) as chunk_sizer:
             logsum_df = self.build_virtual_path(
                 recipe,
                 path_type,
@@ -1090,6 +1108,7 @@ class TransitVirtualPathBuilder(object):
                 demographic_segment,
                 want_choices=want_choices,
                 trace_label=trace_label,
+                chunk_sizer=chunk_sizer,
             )
 
             trace_hh_id = self.network_los.whale.settings.trace_hh_id

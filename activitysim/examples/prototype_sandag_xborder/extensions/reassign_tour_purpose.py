@@ -28,7 +28,7 @@ def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours: pd.DataFrame):
         for col in probs_df.columns
     ]
 
-    tours_df = tours.to_frame(columns=["tour_type", "poe_id"])
+    tours_df = tours[["tour_type", "poe_id"]]
     tour_types = probs_df[["Purpose", "Description"]].set_index("Purpose")[
         "Description"
     ]

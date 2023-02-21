@@ -124,7 +124,6 @@ def append_tour_leg_trip_mode_choice_logsums(whale: workflow.Whale, tours):
     return tours
 
 
-@workflow.func
 def get_trip_mc_logsums_for_all_modes(
     whale: workflow.Whale, tours, segment_column_name, model_settings, trace_label
 ):
@@ -154,9 +153,11 @@ def get_trip_mc_logsums_for_all_modes(
     whale.tracing.register_traceable_table("trips", logsum_trips)
     whale.get_rn_generator().add_channel("trips", logsum_trips)
 
-    # run trip mode choice on pseudo-trips. use orca instead of pipeline to
+    # run trip mode choice on pseudo-trips. use a direct call instead of pipeline to
     # execute the step because pipeline can only handle one open step at a time
-    orca.run(["trip_mode_choice"])
+    from .trip_mode_choice import trip_mode_choice
+
+    trip_mode_choice(whale, logsum_trips, whale.get("network_los"))
 
     # add trip mode choice logsums as new cols in tours
     tours = append_tour_leg_trip_mode_choice_logsums(whale, tours)
@@ -302,7 +303,11 @@ def tour_mode_choice_simulate(
     # if trip logsums are used, run trip mode choice and append the logsums
     if model_settings.get("COMPUTE_TRIP_MODE_CHOICE_LOGSUMS", False):
         primary_tours_merged = get_trip_mc_logsums_for_all_modes(
-            primary_tours_merged, segment_column_name, model_settings, trace_label
+            whale,
+            primary_tours_merged,
+            segment_column_name,
+            model_settings,
+            trace_label,
         )
 
     choices_list = []

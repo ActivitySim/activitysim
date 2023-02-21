@@ -1,10 +1,13 @@
-# ActivitySim
-# See full license in LICENSE.txt.
+from __future__ import annotations
 
+import importlib
 import io
 import logging
+import os
+import sys
 import warnings
 from builtins import map, next
+from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, Optional
 
@@ -20,6 +23,10 @@ from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.runner import Runner
 from activitysim.core.workflow.steps import run_named_step
 from activitysim.core.workflow.tracing import Tracing
+
+# ActivitySim
+# See full license in LICENSE.txt.
+
 
 logger = logging.getLogger(__name__)
 
@@ -133,6 +140,37 @@ class Whale:
             else:
                 base_seed = self.settings.rng_base_seed
         self.context["prng"].set_base_seed(base_seed)
+
+    def import_extensions(self, ext: str | Iterable[str] = None, append=True):
+        if ext is None:
+            return
+        if isinstance(ext, str):
+            ext = [ext]
+        if append:
+            extensions = self.get("imported_extensions", [])
+        else:
+            extensions = []
+        if self.filesystem.working_dir:
+            working_dir = self.filesystem.working_dir
+        else:
+            working_dir = Path.cwd()
+        for e in ext:
+            basepath, extpath = os.path.split(working_dir.joinpath(e))
+            if not basepath:
+                basepath = "."
+            sys.path.insert(0, os.path.abspath(basepath))
+            try:
+                importlib.import_module(extpath)
+            except ImportError as err:
+                logger.exception("ImportError")
+                raise
+            except Exception as err:
+                logger.exception(f"Error {err}")
+                raise
+            finally:
+                del sys.path[0]
+            extensions.append(e)
+        self.set("imported_extensions", extensions)
 
     filesystem = WhaleAttr(FileSystem)
     settings = WhaleAttr(Settings)

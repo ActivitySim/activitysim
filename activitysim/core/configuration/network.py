@@ -1,6 +1,9 @@
-from pathlib import Path
+from __future__ import annotations
 
-from .base import Any, PydanticBase, Union
+from pathlib import Path
+from typing import Literal
+
+from activitysim.core.configuration.base import Any, PydanticBase, Union
 
 
 class DigitalEncoding(PydanticBase):
@@ -167,14 +170,14 @@ class NetworkSettings(PydanticBase, extra="forbid"):
     * 3 - MAZ, TAZ, and TAP
     """
 
-    taz_skims: Union[str, TAZ_Settings] = None
+    taz_skims: Union[str, list[str], TAZ_Settings] = None
     """Instructions for how to load and pre-process skim matrices.
 
-    If given as a string, it is interpreted as the location for OMX file(s),
-    either as a single file or as a glob-matching pattern for multiple files.
-    The time period for the matrix must be represented at the end of the matrix
-    name and be seperated by a double_underscore (e.g. `BUS_IVT__AM` indicates base
-    skim BUS_IVT with a time period of AM.
+    If given as a string or a list of strings, it is interpreted as the location
+    for OMX file(s), either as a single file or as a glob-matching pattern for
+    multiple files. The time period for the matrix must be represented at the end
+    of the matrix name and be seperated by a double_underscore (e.g. `BUS_IVT__AM`
+    indicates base skim BUS_IVT with a time period of AM.
 
     Alternatively, this can be given as a nested dictionary defined via the
     TAZ_Settings class, which allows for ZARR transformation and pre-processing.
@@ -232,7 +235,29 @@ class NetworkSettings(PydanticBase, extra="forbid"):
 
     tap_skims: str | list[str] = None
 
+    tap_lines: str = None
+    """TAP lines filename."""
+
     TVPB_SETTINGS: Any = None
+
+    rebuild_tvpb_cache: bool = True
+    """
+    rebuild and overwrite existing pre-computed TAP to TAP utilities cache
+    """
+
+    trace_tvpb_cache_as_csv: bool = False
+    """Write a CSV version of TVPB cache for tracing
+
+    Not currently implemented."""
+
+    skim_dict_factory: Literal[
+        "NumpyArraySkimFactory",
+        "MemMapSkimFactory",
+    ] = "NumpyArraySkimFactory"
+    """The skim dict factory to use.
+
+    The MemMapSkimFactory is strictly experimental.
+    """
 
     source_file_paths: list[Path] = None
     """

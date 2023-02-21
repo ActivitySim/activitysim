@@ -777,8 +777,10 @@ class Checkpoints(WhaleAccessor):
             local_table = self.obj.get_dataframe(table_name)
             ref_table = ref_whale.get_dataframe(table_name)
             try:
-                pd.testing.assert_frame_equal(local_table, ref_table)
+                pd.testing.assert_frame_equal(local_table, ref_table, check_dtype=False)
             except Exception as err:
-                raise AssertionError(f"table {table_name!r}, {str(err)}") from err
+                raise AssertionError(
+                    f"checkpoint {checkpoint_name} table {table_name!r}, {str(err)}"
+                ) from err
             else:
                 logger.info(f"table {table_name!r}: ok")

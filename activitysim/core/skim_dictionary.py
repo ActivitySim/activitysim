@@ -733,7 +733,10 @@ class MazSkimDict(SkimDict):
 
         self.sparse_key_usage.add(key)
 
-        max_blend_distance = self.network_los.max_blend_distance.get(key, 0)
+        if self.network_los.max_blend_distance is None:
+            max_blend_distance = 0
+        else:
+            max_blend_distance = self.network_los.max_blend_distance.get(key, 0)
 
         if max_blend_distance == 0:
             blend_distance_skim_name = None

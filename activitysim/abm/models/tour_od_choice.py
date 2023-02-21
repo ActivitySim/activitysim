@@ -113,9 +113,7 @@ def tour_od_choice(
         tours[logsum_column_name] = (
             choices_df["logsum"].reindex(tours.index).astype("float")
         )
-    tours["poe_id"] = tours[origin_col_name].map(
-        land_use.to_frame(columns="poe_id").poe_id
-    )
+    tours["poe_id"] = tours[origin_col_name].map(land_use.poe_id)
 
     households[origin_col_name] = tours.set_index("household_id")[
         origin_col_name

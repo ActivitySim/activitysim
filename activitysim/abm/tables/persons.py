@@ -82,29 +82,27 @@ def persons_merged(
     disaggregate_accessibility: pd.DataFrame = None,
 ):
     n_persons = len(persons)
-    households_ = simple_table_join(
+    households = simple_table_join(
         households,
         land_use,
         left_on="home_zone_id",
     )
-    households_ = simple_table_join(
-        households_,
+    households = simple_table_join(
+        households,
         accessibility,
         left_on="home_zone_id",
     )
-    persons_ = simple_table_join(
+    persons = simple_table_join(
         persons,
-        households_,
+        households,
         left_on="household_id",
     )
     if disaggregate_accessibility is not None and not disaggregate_accessibility.empty:
-        persons_ = simple_table_join(
-            persons_,
+        persons = simple_table_join(
+            persons,
             disaggregate_accessibility,
             left_on="person_id",
         )
-
-    if n_persons != len(persons_):
+    if n_persons != len(persons):
         raise RuntimeError("number of persons changed")
-
-    return persons_
+    return persons

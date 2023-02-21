@@ -1028,53 +1028,6 @@ class Whale:
             file_name = "%s-%s" % (prefix, file_name)
         return self.filesystem.get_log_file_path(file_name)
 
-    def trace_df(
-        self,
-        df: pd.DataFrame,
-        label: str,
-        slicer=None,
-        columns: Optional[list[str]] = None,
-        index_label=None,
-        column_labels=None,
-        transpose=True,
-        warn_if_empty=False,
-    ):
-        """
-        Slice dataframe by traced household or person id dataframe and write to CSV
-
-        Parameters
-        ----------
-        df: pandas.DataFrame
-            traced dataframe
-        label: str
-            tracer name
-        slicer: Object
-            slicer for subsetting
-        columns: list
-            columns to write
-        index_label: str
-            index name
-        column_labels: [str, str]
-            labels for columns in csv
-        transpose: boolean
-            whether to transpose file for legibility
-        warn_if_empty: boolean
-            write warning if sliced df is empty
-        """
-        from activitysim.core.tracing import trace_df
-
-        return trace_df(
-            self,
-            df,
-            label,
-            slicer=slicer,
-            columns=columns,
-            index_label=index_label,
-            column_labels=column_labels,
-            transpose=transpose,
-            warn_if_empty=warn_if_empty,
-        )
-
     def set_step_args(self, args=None):
         assert isinstance(args, dict) or args is None
         self.add_injectable("step_args", args)

@@ -124,4 +124,4 @@ def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk
     )
 
     if trace_hh_id:
-        whale.trace_df(tours, label="atwork_subtour_frequency.tours")
+        whale.tracing.trace_df(tours, label="atwork_subtour_frequency.tours")

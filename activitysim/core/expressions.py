@@ -119,7 +119,7 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
     )
 
     if trace_results is not None:
-        whale.trace_df(trace_results, label=trace_label, slicer="NONE")
+        whale.tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
 
     if trace_assigned_locals:
         whale.tracing.write_csv(

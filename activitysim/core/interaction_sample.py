@@ -192,8 +192,10 @@ def _interaction_sample(
     assert num_choosers > 0
 
     if have_trace_targets:
-        whale.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
-        whale.trace_df(
+        whale.tracing.trace_df(
+            choosers, tracing.extend_trace_label(trace_label, "choosers")
+        )
+        whale.tracing.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             slicer="NONE",
@@ -269,7 +271,7 @@ def _interaction_sample(
                 interaction_df, choosers, alternative_count
             )
 
-            whale.trace_df(
+            whale.tracing.trace_df(
                 interaction_df[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_df"),
                 slicer="NONE",
@@ -359,7 +361,7 @@ def _interaction_sample(
 
     if have_trace_targets and trace_rows is not None:
         try:
-            whale.trace_df(
+            whale.tracing.trace_df(
                 interaction_utilities[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_utilities"),
                 slicer="NONE",
@@ -384,7 +386,7 @@ def _interaction_sample(
     chunk_sizer.log_df(trace_label, "interaction_utilities", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             utilities,
             tracing.extend_trace_label(trace_label, "utils"),
             column_labels=["alternative", "utility"],
@@ -407,7 +409,7 @@ def _interaction_sample(
     chunk_sizer.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -476,7 +478,7 @@ def _interaction_sample(
     whale.tracing.dump_df(DUMP, choices_df, trace_label, "choices_df")
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             choices_df,
             tracing.extend_trace_label(trace_label, "sampled_alternatives"),
             transpose=False,

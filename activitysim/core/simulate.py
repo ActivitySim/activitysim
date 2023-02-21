@@ -682,14 +682,14 @@ def eval_utilities(
             expression_values_df = None
 
         if expression_values_sh is not None:
-            whale.trace_df(
+            whale.tracing.trace_df(
                 expression_values_sh,
                 tracing.extend_trace_label(trace_label, "expression_values_sh"),
                 slicer=None,
                 transpose=False,
             )
         if expression_values_df is not None:
-            whale.trace_df(
+            whale.tracing.trace_df(
                 expression_values_df,
                 tracing.extend_trace_label(trace_label, "expression_values"),
                 slicer=None,
@@ -700,7 +700,7 @@ def eval_utilities(
                 for c in spec.columns:
                     name = f"expression_value_{c}"
 
-                    whale.trace_df(
+                    whale.tracing.trace_df(
                         expression_values_df.multiply(spec[c].values, axis=0),
                         tracing.extend_trace_label(trace_label, name),
                         slicer=None,
@@ -1001,7 +1001,9 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
     return nested_utilities
 
 
-def compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label):
+def compute_nested_probabilities(
+    whale: workflow.Whale, nested_exp_utilities, nest_spec, trace_label
+):
     """
     compute nested probabilities for nest leafs and nodes
     probability for nest alternatives is simply the alternatives's local (to nest) probability
@@ -1138,7 +1140,7 @@ def eval_mnl(
     have_trace_targets = whale.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
-        whale.trace_df(choosers, "%s.choosers" % trace_label)
+        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     utilities = eval_utilities(
         whale,
@@ -1155,7 +1157,7 @@ def eval_mnl(
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             utilities,
             "%s.utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1171,7 +1173,7 @@ def eval_mnl(
 
     if have_trace_targets:
         # report these now in case make_choices throws error on bad_choices
-        whale.trace_df(
+        whale.tracing.trace_df(
             probs,
             "%s.probs" % trace_label,
             column_labels=["alternative", "probability"],
@@ -1186,10 +1188,10 @@ def eval_mnl(
     chunk_sizer.log_df(trace_label, "probs", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_name]
         )
-        whale.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     return choices
 
@@ -1254,7 +1256,7 @@ def eval_nl(
     logit.validate_nest_spec(nest_spec, trace_label)
 
     if have_trace_targets:
-        whale.trace_df(choosers, "%s.choosers" % trace_label)
+        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
 
@@ -1274,7 +1276,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             raw_utilities,
             "%s.raw_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1288,7 +1290,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "raw_utilities", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             nested_exp_utilities,
             "%s.nested_exp_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1296,7 +1298,7 @@ def eval_nl(
 
     # probabilities of alternatives relative to siblings sharing the same nest
     nested_probabilities = compute_nested_probabilities(
-        nested_exp_utilities, nest_spec, trace_label=trace_label
+        whale, nested_exp_utilities, nest_spec, trace_label=trace_label
     )
     chunk_sizer.log_df(trace_label, "nested_probabilities", nested_probabilities)
 
@@ -1309,7 +1311,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "nested_exp_utilities", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             nested_probabilities,
             "%s.nested_probabilities" % trace_label,
             column_labels=["alternative", "probability"],
@@ -1325,7 +1327,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "nested_probabilities", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             base_probabilities,
             "%s.base_probabilities" % trace_label,
             column_labels=["alternative", "probability"],
@@ -1362,12 +1364,12 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "base_probabilities", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_name]
         )
-        whale.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
         if want_logsums:
-            whale.trace_df(
+            whale.tracing.trace_df(
                 logsums, "%s.logsums" % trace_label, columns=[None, "logsum"]
             )
 
@@ -1632,7 +1634,7 @@ def eval_mnl_logsums(
 
     # trace choosers
     if have_trace_targets:
-        whale.trace_df(choosers, "%s.choosers" % trace_label)
+        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     utilities = eval_utilities(
         whale,
@@ -1646,7 +1648,7 @@ def eval_mnl_logsums(
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             utilities,
             "%s.raw_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1660,7 +1662,7 @@ def eval_mnl_logsums(
 
     # trace utilities
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             logsums, "%s.logsums" % trace_label, column_labels=["alternative", "logsum"]
         )
 
@@ -1774,7 +1776,7 @@ def eval_nl_logsums(
 
     # trace choosers
     if have_trace_targets:
-        whale.trace_df(choosers, "%s.choosers" % trace_label)
+        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     raw_utilities = eval_utilities(
         whale,
@@ -1789,7 +1791,7 @@ def eval_nl_logsums(
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             raw_utilities,
             "%s.raw_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1810,12 +1812,12 @@ def eval_nl_logsums(
     if have_trace_targets:
         # add logsum to nested_exp_utilities for tracing
         nested_exp_utilities["logsum"] = logsums
-        whale.trace_df(
+        whale.tracing.trace_df(
             nested_exp_utilities,
             "%s.nested_exp_utilities" % trace_label,
             column_labels=["alternative", "utility"],
         )
-        whale.trace_df(
+        whale.tracing.trace_df(
             logsums, "%s.logsums" % trace_label, column_labels=["alternative", "logsum"]
         )
 

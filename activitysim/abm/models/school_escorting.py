@@ -481,7 +481,9 @@ def school_escorting(
         )
 
         if trace_hh_id:
-            whale.trace_df(households, label=escorting_choice, warn_if_empty=True)
+            whale.tracing.trace_df(
+                households, label=escorting_choice, warn_if_empty=True
+            )
 
         if stage_num >= 1:
             choosers["Alt"] = choices

@@ -124,7 +124,7 @@ def joint_tour_composition(
     )
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             joint_tours,
             label="joint_tour_composition.joint_tours",
             slicer="household_id",

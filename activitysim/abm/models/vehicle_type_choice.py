@@ -580,4 +580,6 @@ def vehicle_type_choice(
     )
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(vehicles, label="vehicle_type_choice", warn_if_empty=True)
+        whale.tracing.trace_df(
+            vehicles, label="vehicle_type_choice", warn_if_empty=True
+        )

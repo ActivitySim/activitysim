@@ -227,17 +227,19 @@ def stop_frequency(
         assert not trips_differ.any()
 
     if trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             tours, label="stop_frequency.tours", slicer="person_id", columns=None
         )
 
-        whale.trace_df(
+        whale.tracing.trace_df(
             trips, label="stop_frequency.trips", slicer="person_id", columns=None
         )
 
-        whale.trace_df(annotations, label="stop_frequency.annotations", columns=None)
+        whale.tracing.trace_df(
+            annotations, label="stop_frequency.annotations", columns=None
+        )
 
-        whale.trace_df(
+        whale.tracing.trace_df(
             tours_merged,
             label="stop_frequency.tours_merged",
             slicer="person_id",

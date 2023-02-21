@@ -104,7 +104,7 @@ def atwork_subtour_scheduling(
     whale.add_table("tours", tours)
 
     if trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             tours[tours.tour_category == "atwork"],
             label="atwork_subtour_scheduling",
             slicer="person_id",

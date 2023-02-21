@@ -22,6 +22,7 @@ from activitysim.core.workflow.checkpoint import (
     CHECKPOINT_TABLE_NAME,
     FINAL_CHECKPOINT_NAME,
     NON_TABLE_COLUMNS,
+    ParquetStore,
 )
 
 logger = logging.getLogger(__name__)
@@ -205,7 +206,6 @@ buffers. This is not very extensible and should be generalized.
 
 
 def log(whale: workflow.Whale, msg, level, write_to_log_file=True):
-
     process_name = multiprocessing.current_process().name
 
     if not write_to_log_file:
@@ -237,7 +237,6 @@ def error(whale: workflow.Whale, msg, write_to_log_file=True):
 
 
 def exception(whale: workflow.Whale, msg, write_to_log_file=True):
-
     process_name = multiprocessing.current_process().name
 
     if not write_to_log_file:
@@ -320,9 +319,10 @@ def parquet_pipeline_table_keys(pipeline_path: Path):
     checkpoint_tables : dict {<table_name>: <table_path>}
 
     """
-    checkpoints = pd.read_parquet(
-        pipeline_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-    )
+    checkpoints = ParquetStore(pipeline_path).get_dataframe(CHECKPOINT_TABLE_NAME)
+    #     pd.read_parquet(
+    #     pipeline_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
+    # )
 
     # last checkpoint row as series
     checkpoint = checkpoints.iloc[-1]
@@ -336,7 +336,9 @@ def parquet_pipeline_table_keys(pipeline_path: Path):
 
     # hdf5 key is <table_name>/<checkpoint_name>
     checkpoint_tables = {
-        table_name: Path(table_name, f"{checkpoint_name}.parquet")
+        table_name: ParquetStore(pipeline_path)
+        ._store_table_path(table_name, checkpoint_name)
+        .relative_to(ParquetStore(pipeline_path)._directory)
         for table_name, checkpoint_name in checkpoint_tables.items()
     }
 
@@ -459,7 +461,6 @@ def build_slice_rules(whale: workflow.Whale, slice_info, pipeline_tables):
     # build slice rules for loaded tables
     slice_rules = OrderedDict()
     for table_name, df in tables.items():
-
         rule = {}
         if table_name == primary_slicer:
             # slice primary apportion table
@@ -575,7 +576,6 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
     # - allocate sliced tables for each sub_proc
     num_sub_procs = len(sub_proc_names)
     for i in range(num_sub_procs):
-
         # use well-known pipeline file name
         process_name = sub_proc_names[i]
         pipeline_path = whale.get_output_file_path(
@@ -583,7 +583,6 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
         )
 
         if pipeline_path.suffix == ".h5":
-
             # remove existing file
             try:
                 os.unlink(pipeline_path)
@@ -591,17 +590,14 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
                 pass
 
             with pd.HDFStore(str(pipeline_path), mode="a") as pipeline_store:
-
                 # remember sliced_tables so we can cascade slicing to other tables
                 sliced_tables = {}
 
                 # - for each table in pipeline
                 for table_name, rule in slice_rules.items():
-
                     df = tables[table_name]
 
                     if rule["slice_by"] is not None and num_sub_procs > len(df):
-
                         # almost certainly a configuration error
                         raise RuntimeError(
                             f"apportion_pipeline: multiprocess step {multiprocess_step_name} "
@@ -676,7 +672,6 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
 
             # - for each table in pipeline
             for table_name, rule in slice_rules.items():
-
                 df = tables[table_name]
 
                 if rule["slice_by"] is not None and num_sub_procs > len(df):
@@ -721,9 +716,16 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
 
                 # - write table to pipeline
                 pipeline_path.joinpath(table_name).mkdir(parents=True, exist_ok=True)
-                sliced_tables[table_name].to_parquet(
-                    pipeline_path.joinpath(table_name, f"{checkpoint_name}.parquet")
+
+                ParquetStore(pipeline_path).put(
+                    table_name=table_name,
+                    df=sliced_tables[table_name],
+                    checkpoint_name=checkpoint_name,
                 )
+                #
+                # sliced_tables[table_name].to_parquet(
+                #     pipeline_path.joinpath(table_name, f"{checkpoint_name}.parquet")
+                # )
 
             debug(
                 whale,
@@ -733,9 +735,14 @@ def apportion_pipeline(whale: workflow.Whale, sub_proc_names, step_info):
             pipeline_path.joinpath(CHECKPOINT_TABLE_NAME).mkdir(
                 parents=True, exist_ok=True
             )
-            checkpoints_df.to_parquet(
-                pipeline_path.joinpath(CHECKPOINT_TABLE_NAME, f"None.parquet")
+            ParquetStore(pipeline_path).put(
+                table_name=CHECKPOINT_TABLE_NAME,
+                df=checkpoints_df,
+                checkpoint_name=None,
             )
+            # checkpoints_df.to_parquet(
+            #     pipeline_path.joinpath(CHECKPOINT_TABLE_NAME, f"None.parquet")
+            # )
 
 
 def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
@@ -771,7 +778,6 @@ def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
 
     if pipeline_path.suffix == ".h5":
         with pd.HDFStore(str(pipeline_path), mode="r") as pipeline_store:
-
             # hdf5_keys is a dict mapping table_name to pipeline hdf5_key
             checkpoint_name, hdf5_keys = pipeline_table_keys(pipeline_store)
 
@@ -780,12 +786,15 @@ def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
                 tables[table_name] = pipeline_store[hdf5_key]
     else:
         checkpoint_name, hdf5_keys = parquet_pipeline_table_keys(pipeline_path)
+        base_pipeline_path = ParquetStore(pipeline_path)._directory
         for table_name, parquet_path in hdf5_keys.items():
             debug(
                 whale,
-                f"loading table {table_name} {pipeline_path.joinpath(parquet_path)}",
+                f"loading table {table_name} {base_pipeline_path.joinpath(parquet_path)}",
             )
-            tables[table_name] = pd.read_parquet(pipeline_path.joinpath(parquet_path))
+            tables[table_name] = pd.read_parquet(
+                base_pipeline_path.joinpath(parquet_path)
+            )
 
     # slice.coalesce is an override  list of omnibus tables created by subprocesses that should be coalesced,
     # whether or not they satisfy the slice rules. Ordinarily all tables qualify for slicing by the slice rules
@@ -836,9 +845,10 @@ def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
                 for table_name, hdf5_key in omnibus_keys.items():
                     omnibus_tables[table_name].append(pipeline_store[hdf5_key])
         else:
+            base_pipeline_path = ParquetStore(pipeline_path)._directory
             for table_name, hdf5_key in omnibus_keys.items():
                 omnibus_tables[table_name].append(
-                    pd.read_parquet(pipeline_path.joinpath(hdf5_key))
+                    pd.read_parquet(base_pipeline_path.joinpath(hdf5_key))
                 )
 
     # open pipeline, preserving existing checkpoints (so resume_after will work for prior steps)
@@ -893,7 +903,6 @@ def setup_injectables_and_logging(injectables, locutor=True) -> workflow.Whale:
         from activitysim import abm  # noqa: F401
 
     try:
-
         for k, v in injectables.items():
             whale.add_injectable(k, v)
 
@@ -940,7 +949,6 @@ def setup_injectables_and_logging(injectables, locutor=True) -> workflow.Whale:
 
 
 def adjust_chunk_size_for_shared_memory(chunk_size, data_buffers, num_processes):
-
     # even if there is only one subprocess,
     # we are separate from parent who allocated the shared memory
     # so we still need to compensate for it
@@ -1034,7 +1042,6 @@ def run_simulation(
 
     t0 = tracing.print_elapsed_time()
     for model in models:
-
         t1 = tracing.print_elapsed_time()
 
         try:
@@ -1085,7 +1092,6 @@ def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kw
     )
 
     try:
-
         if step_info["num_processes"] > 1:
             pipeline_prefix = multiprocessing.current_process().name
             logger.debug(whale, f"injecting pipeline_file_prefix '{pipeline_prefix}'")
@@ -1672,7 +1678,6 @@ def run_multiprocess(whale: workflow.Whale, injectables):
 
     # - for each step in run list
     for step_info in run_list["multiprocess_steps"]:
-
         step_name = step_info["name"]
 
         num_processes = step_info["num_processes"]
@@ -1789,7 +1794,6 @@ def get_breadcrumbs(whale: workflow.Whale, run_list):
 
     # if resume_after is specified by name
     if resume_after != LAST_CHECKPOINT:
-
         # breadcrumbs for steps from previous run
         previous_steps = list(breadcrumbs.keys())
 
@@ -1917,7 +1921,6 @@ def get_run_list(whale: workflow.Whale):
         )
 
     if multiprocess:
-
         if not multiprocess_steps:
             raise RuntimeError(
                 "multiprocess setting is %s but no multiprocess_steps setting"

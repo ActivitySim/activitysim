@@ -77,7 +77,7 @@ def mandatory_tour_scheduling(
     )
 
     if trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             mandatory_tours,
             label=trace_label,
             slicer="person_id",

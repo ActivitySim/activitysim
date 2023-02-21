@@ -112,7 +112,7 @@ class TransitVirtualPathBuilder(object):
 
     def trace_df(self, df, trace_label, extension):
         assert len(df) > 0
-        self.network_los.whale.trace_df(
+        self.network_los.whale.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, extension),
             slicer="NONE",

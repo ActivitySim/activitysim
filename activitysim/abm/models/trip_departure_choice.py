@@ -184,10 +184,10 @@ def choose_tour_leg_pattern(
     have_trace_targets = whale.tracing.has_trace_targets(trip_segment)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             trip_segment, tracing.extend_trace_label(trace_label, "choosers")
         )
-        whale.trace_df(
+        whale.tracing.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             transpose=False,
@@ -213,7 +213,7 @@ def choose_tour_leg_pattern(
             interaction_df, trip_segment
         )
 
-        whale.trace_df(
+        whale.tracing.trace_df(
             interaction_df,
             tracing.extend_trace_label(trace_label, "interaction_df"),
             transpose=False,
@@ -247,7 +247,7 @@ def choose_tour_leg_pattern(
             tracing.extend_trace_label(trace_label, "eval"),
         )
 
-        whale.trace_df(
+        whale.tracing.trace_df(
             interaction_utilities,
             tracing.extend_trace_label(trace_label, "interaction_utilities"),
             transpose=False,
@@ -312,7 +312,7 @@ def choose_tour_leg_pattern(
     chunk_sizer.log_df(trace_label, "padded_utilities", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             utilities_df,
             tracing.extend_trace_label(trace_label, "utilities"),
             column_labels=["alternative", "utility"],
@@ -330,7 +330,7 @@ def choose_tour_leg_pattern(
     chunk_sizer.log_df(trace_label, "utilities_df", None)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -362,12 +362,12 @@ def choose_tour_leg_pattern(
     chunk_sizer.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             choices,
             tracing.extend_trace_label(trace_label, "choices"),
             columns=[None, PATTERN_ID],
         )
-        whale.trace_df(
+        whale.tracing.trace_df(
             rands,
             tracing.extend_trace_label(trace_label, "rands"),
             columns=[None, "rand"],

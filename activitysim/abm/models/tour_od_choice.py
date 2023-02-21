@@ -137,7 +137,7 @@ def tour_od_choice(
         whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             tours,
             label="tours_od_choice",
             slicer="person_id",

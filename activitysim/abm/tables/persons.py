@@ -40,7 +40,7 @@ def persons(whale: workflow.Whale):
 
     whale.tracing.register_traceable_table("persons", df)
     if trace_hh_id:
-        whale.trace_df(df, "raw.persons", warn_if_empty=True)
+        whale.tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
     logger.debug(f"{len(df.household_id.unique())} unique household_ids in persons")
     logger.debug(f"{len(households.index.unique())} unique household_ids in households")
@@ -81,26 +81,30 @@ def persons_merged(
     accessibility: pd.DataFrame,
     disaggregate_accessibility: pd.DataFrame = None,
 ):
-    households = simple_table_join(
+    n_persons = len(persons)
+    households_ = simple_table_join(
         households,
         land_use,
         left_on="home_zone_id",
     )
-    households = simple_table_join(
-        households,
+    households_ = simple_table_join(
+        households_,
         accessibility,
         left_on="home_zone_id",
     )
-    persons = simple_table_join(
+    persons_ = simple_table_join(
         persons,
-        households,
+        households_,
         left_on="household_id",
     )
     if disaggregate_accessibility is not None and not disaggregate_accessibility.empty:
-        persons = simple_table_join(
-            persons,
+        persons_ = simple_table_join(
+            persons_,
             disaggregate_accessibility,
             left_on="person_id",
         )
 
-    return persons
+    if n_persons != len(persons_):
+        raise RuntimeError("number of persons changed")
+
+    return persons_

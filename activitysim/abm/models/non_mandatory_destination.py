@@ -119,7 +119,7 @@ def non_mandatory_tour_destination(
         whale.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             tours[tours.tour_category == "non_mandatory"],
             label="non_mandatory_tour_destination",
             slicer="person_id",

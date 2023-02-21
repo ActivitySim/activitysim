@@ -146,6 +146,6 @@ def joint_tour_scheduling(
     joint_tours = tours[tours.tour_category == "joint"]
 
     if trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             joint_tours, label="joint_tour_scheduling", slicer="household_id"
         )

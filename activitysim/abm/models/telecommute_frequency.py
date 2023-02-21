@@ -102,4 +102,4 @@ def telecommute_frequency(
     )
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(persons, label=trace_label, warn_if_empty=True)
+        whale.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

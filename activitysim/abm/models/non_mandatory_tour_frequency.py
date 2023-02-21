@@ -131,12 +131,12 @@ def extend_tour_counts(
             tour_counts.loc[choices.index, tour_type] += choices
 
         if have_trace_targets:
-            whale.trace_df(
+            whale.tracing.trace_df(
                 choices,
                 tracing.extend_trace_label(tour_type_trace_label, "choices"),
                 columns=[None, "choice"],
             )
-            whale.trace_df(
+            whale.tracing.trace_df(
                 rands,
                 tracing.extend_trace_label(tour_type_trace_label, "rands"),
                 columns=[None, "rand"],
@@ -412,17 +412,17 @@ def non_mandatory_tour_frequency(
     )
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             non_mandatory_tours,
             label="non_mandatory_tour_frequency.non_mandatory_tours",
             warn_if_empty=True,
         )
 
-        whale.trace_df(
+        whale.tracing.trace_df(
             choosers, label="non_mandatory_tour_frequency.choosers", warn_if_empty=True
         )
 
-        whale.trace_df(
+        whale.tracing.trace_df(
             persons,
             label="non_mandatory_tour_frequency.annotated_persons",
             warn_if_empty=True,

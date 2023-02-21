@@ -236,7 +236,7 @@ def trip_mode_choice(
 
         if whale.settings.trace_hh_id:
             # trace the coefficients
-            whale.trace_df(
+            whale.tracing.trace_df(
                 pd.Series(locals_dict),
                 label=tracing.extend_trace_label(segment_trace_label, "constants"),
                 transpose=False,
@@ -246,7 +246,7 @@ def trip_mode_choice(
             # so we can trace with annotations
             assign_in_place(trips_segment, choices)
 
-            whale.trace_df(
+            whale.tracing.trace_df(
                 trips_segment,
                 label=tracing.extend_trace_label(segment_trace_label, "trip_mode"),
                 slicer="tour_id",
@@ -307,7 +307,7 @@ def trip_mode_choice(
         annotate.annotate_trips(whale, model_settings, trace_label)
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             trips_df,
             label=tracing.extend_trace_label(trace_label, "trip_mode"),
             slicer="trip_id",

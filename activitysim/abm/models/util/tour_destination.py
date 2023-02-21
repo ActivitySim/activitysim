@@ -257,7 +257,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
 
         # write taz choices, pick_counts, probs
         trace_targets = whale.tracing.trace_targets(taz_sample)
-        whale.trace_df(
+        whale.tracing.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -329,7 +329,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             maz_sizes, slicer=CHOOSER_ID
         )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        whale.trace_df(
+        whale.tracing.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -382,7 +382,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             taz_choices, slicer=CHOOSER_ID
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        whale.trace_df(
+        whale.tracing.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -408,7 +408,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        whale.trace_df(
+        whale.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -424,7 +424,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        whale.trace_df(
+        whale.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -438,7 +438,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        whale.trace_df(
+        whale.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,

@@ -251,7 +251,7 @@ def choose_MAZ_for_TAZ(
 
         # write taz choices, pick_counts, probs
         trace_targets = whale.tracing.trace_targets(taz_sample)
-        whale.trace_df(
+        whale.tracing.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -337,7 +337,7 @@ def choose_MAZ_for_TAZ(
             maz_sizes, slicer="trip_id"
         )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        whale.trace_df(
+        whale.tracing.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -394,7 +394,7 @@ def choose_MAZ_for_TAZ(
             taz_choices, slicer="trip_id"
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        whale.trace_df(
+        whale.tracing.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -420,7 +420,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        whale.trace_df(
+        whale.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -436,7 +436,7 @@ def choose_MAZ_for_TAZ(
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        whale.trace_df(
+        whale.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -450,7 +450,7 @@ def choose_MAZ_for_TAZ(
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        whale.trace_df(
+        whale.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,
@@ -1510,7 +1510,7 @@ def trip_destination(
     whale.add_table("trips", trips_df)
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

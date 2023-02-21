@@ -155,10 +155,10 @@ def choose_intermediate_trip_purpose(
     )
 
     if have_trace_targets:
-        whale.trace_df(
+        whale.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, "trip_purpose"]
         )
-        whale.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     choices = choices.map(pd.Series(purpose_cols))
     return choices
@@ -322,7 +322,7 @@ def trip_purpose(whale: workflow.Whale, trips: pd.DataFrame):
     whale.add_table("trips", trips_df)
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(
+        whale.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

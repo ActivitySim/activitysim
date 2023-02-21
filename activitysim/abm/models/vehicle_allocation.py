@@ -244,4 +244,4 @@ def vehicle_allocation(
         annotate_vehicle_allocation(whale, model_settings, trace_label)
 
     if whale.settings.trace_hh_id:
-        whale.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)
+        whale.tracing.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)

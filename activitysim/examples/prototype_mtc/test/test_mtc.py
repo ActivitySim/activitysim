@@ -166,8 +166,6 @@ def test_mtc_progressive():
 
     whale = workflow.create_example("prototype_mtc", temp=True)
 
-    whale.checkpoint.add()
-
     assert whale.settings.models == EXPECTED_MODELS
     assert whale.settings.chunk_size == 0
     assert whale.settings.sharrow == False

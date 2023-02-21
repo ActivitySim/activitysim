@@ -771,7 +771,7 @@ def run_location_choice(
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.modeled_choices"
                 )
-                whale.trace_df(choices_df, label=estimation_trace_label)
+                whale.tracing.trace_df(choices_df, label=estimation_trace_label)
 
             estimator.write_choices(choices_df.choice)
             choices_df.choice = estimator.get_survey_values(
@@ -813,7 +813,7 @@ def run_location_choice(
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.survey_choices"
                 )
-                whale.trace_df(choices_df, estimation_trace_label)
+                whale.tracing.trace_df(choices_df, estimation_trace_label)
 
         choices_list.append(choices_df)
 
@@ -1036,7 +1036,7 @@ def iterate_location_choice(
         whale.add_table("persons", persons_df)
 
         if whale.settings.trace_hh_id:
-            whale.trace_df(persons_df, label=trace_label, warn_if_empty=True)
+            whale.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
 
     # - annotate households table
     if "annotate_households" in model_settings:
@@ -1050,7 +1050,7 @@ def iterate_location_choice(
         whale.add_table("households", households_df)
 
         if whale.settings.trace_hh_id:
-            whale.trace_df(households_df, label=trace_label, warn_if_empty=True)
+            whale.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
 
     if logsum_column_name:
         tracing.print_summary(

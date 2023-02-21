@@ -9,7 +9,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 
-from activitysim.core import workflow
+from activitysim.core import testing, workflow
 
 
 def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=False):
@@ -159,6 +159,7 @@ EXPECTED_MODELS = [
 ]
 
 
+@testing.run_if_exists("prototype_mtc_reference_pipeline.zip")
 def test_mtc_progressive():
 
     import activitysim.abm  # register components

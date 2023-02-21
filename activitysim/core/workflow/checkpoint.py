@@ -147,19 +147,16 @@ class HdfStore(GenericCheckpointStore):
 class ParquetStore(GenericCheckpointStore):
     """Storage interface for parquet-based table storage."""
 
+    extension = ".parquetpipeline"
+
     def __init__(self, directory: Path, mode: str = "a"):
         directory = Path(directory)
         if directory.suffix == ".zip":
             if mode != "r":
                 raise ValueError("can only open a Zip parquet store as read-only.")
-            # import zipfile
-            # import tempfile
-            # self._temp_dir = tempfile.TemporaryDirectory()
-            # with zipfile.ZipFile(directory, mode='r') as zipf:
-            #     zipf.extractall(self._temp_dir.name)
-            #     directory = Path(directory)
-            #
-        self._directory = Path(directory)
+        elif directory.suffix != self.extension:
+            directory = directory.with_suffix(self.extension)
+        self._directory = directory
         self._mode = mode
 
     def _store_table_path(self, table_name, checkpoint_name):
@@ -299,6 +296,9 @@ class Checkpoints(WhaleAccessor):
     checkpoints: list[dict] = FromWhale(default_init=True)
     _checkpoint_store: GenericCheckpointStore | None = FromWhale(default_value=None)
 
+    def __get__(self, instance, objtype=None) -> Checkpoints:
+        return super().__get__(instance, objtype)
+
     def initialize(self):
         self.last_checkpoint = {}
         self.checkpoints: list[dict] = []
@@ -381,12 +381,12 @@ class Checkpoints(WhaleAccessor):
 
     def close_store(self):
         """
-        Close any known open files
+        Close the checkpoint storage.
         """
         if self._checkpoint_store is not None:
             self.store.close()
-        self.__init__()
-        logger.debug("close_store")
+            self._checkpoint_store = None
+        logger.debug("checkpoint.close_store")
 
     @property
     def is_readonly(self):
@@ -784,3 +784,101 @@ class Checkpoints(WhaleAccessor):
                 ) from err
             else:
                 logger.info(f"table {table_name!r}: ok")
+
+    def cleanup(self):
+        """
+        Remove intermediate checkpoints from pipeline.
+
+        These are the steps to clean up:
+        - Open main pipeline if not already open (it may be closed if
+          running with multiprocessing),
+        - Create a new single-checkpoint pipeline file with the latest
+          version of all checkpointed tables,
+        - Delete the original main pipeline and any subprocess pipelines
+
+        This method is generally called at the end of a successful model
+        run, as it removes the intermediate checkpoint files.
+
+        Called if cleanup_pipeline_after_run setting is True
+
+        """
+        # we don't expect to be called unless cleanup_pipeline_after_run setting is True
+        if not self.obj.settings.cleanup_pipeline_after_run:
+            logger.warning("will not clean up, `cleanup_pipeline_after_run` is False")
+            return
+
+        if not self.store_is_open():
+            self.restore(LAST_CHECKPOINT)
+
+        assert self.store_is_open(), f"Pipeline is not open."
+
+        FINAL_PIPELINE_FILE_NAME = f"final_{self.obj.filesystem.pipeline_file_name}"
+        FINAL_CHECKPOINT_NAME = "final"
+
+        if FINAL_PIPELINE_FILE_NAME.endswith(".h5"):
+            # constructing the path manually like this will not create a
+            # subdirectory that competes with the HDF5 filename.
+            final_pipeline_file_path = self.obj.filesystem.get_output_dir().joinpath(
+                FINAL_PIPELINE_FILE_NAME
+            )
+        else:
+            # calling for a subdir ensures that the subdirectory exists.
+            final_pipeline_file_path = self.obj.filesystem.get_output_dir(
+                subdir=FINAL_PIPELINE_FILE_NAME
+            )
+
+        # keep only the last row of checkpoints and patch the last checkpoint name
+        checkpoints_df = self.get_inventory().tail(1).copy()
+        checkpoints_df["checkpoint_name"] = FINAL_CHECKPOINT_NAME
+
+        if final_pipeline_file_path.suffix == ".h5":
+            with pd.HDFStore(
+                str(final_pipeline_file_path), mode="w"
+            ) as final_pipeline_store:
+                for table_name in self.list_tables():
+                    # patch last checkpoint name for all tables
+                    checkpoints_df[table_name] = FINAL_CHECKPOINT_NAME
+
+                    table_df = self.obj.get_table(table_name)
+                    logger.debug(
+                        f"cleanup_pipeline - adding table {table_name} {table_df.shape}"
+                    )
+
+                    final_pipeline_store[table_name] = table_df
+
+                final_pipeline_store[CHECKPOINT_TABLE_NAME] = checkpoints_df
+            self.close_store()
+        else:
+            for table_name in self.list_tables():
+                # patch last checkpoint name for all tables
+                checkpoints_df[table_name] = FINAL_CHECKPOINT_NAME
+
+                table_df = self.obj.get_table(table_name)
+                logger.debug(
+                    f"cleanup_pipeline - adding table {table_name} {table_df.shape}"
+                )
+                table_dir = final_pipeline_file_path.joinpath(table_name)
+                if not table_dir.exists():
+                    table_dir.mkdir(parents=True)
+                table_df.to_parquet(
+                    table_dir.joinpath(f"{FINAL_CHECKPOINT_NAME}.parquet")
+                )
+            final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME).mkdir(
+                parents=True, exist_ok=True
+            )
+            checkpoints_df.to_parquet(
+                final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
+            )
+
+        from activitysim.core.tracing import delete_output_files
+
+        logger.debug(f"deleting all pipeline files except {final_pipeline_file_path}")
+        delete_output_files(self.obj, "h5", ignore=[final_pipeline_file_path])
+
+        # delete all ParquetStore except final
+        pqps = list(
+            self.obj.filesystem.get_output_dir().glob(f"**/*{ParquetStore.extension}")
+        )
+        for pqp in pqps:
+            if pqp.name != final_pipeline_file_path.name:
+                ParquetStore(pqp).wipe()

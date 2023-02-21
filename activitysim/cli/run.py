@@ -362,7 +362,7 @@ def run(args):
             mp_tasks.run_multiprocess(whale, injectables)
 
             if whale.settings.cleanup_pipeline_after_run:
-                whale.cleanup_pipeline()
+                whale.checkpoint.cleanup()
 
         else:
             logger.info("run single process simulation")
@@ -374,7 +374,7 @@ def run(args):
             )
 
             if whale.settings.cleanup_pipeline_after_run:
-                whale.cleanup_pipeline()  # has side effect of closing open pipeline
+                whale.checkpoint.cleanup()  # has side effect of closing open pipeline
             else:
                 whale.checkpoint.close_store()
 

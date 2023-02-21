@@ -115,6 +115,9 @@ class Whale:
     def __del__(self):
         self.close_open_files()
 
+    def copy(self):
+        return self.__class__(context=Context(self.context.copy()))
+
     def init_state(self):
         self.checkpoint.initialize()
 
@@ -216,6 +219,38 @@ class Whale:
         else:
             self.default_settings()
         return self
+
+    @classmethod
+    def make_temp(
+        cls, source: Path = None, checkpoint_name: str = LAST_CHECKPOINT
+    ) -> "Whale":
+        """
+        Initialize state with a temporary directory.
+
+        Parameters
+        ----------
+        source : Path-like, optional
+            Location of pipeline store to use to initialize this object.
+        checkpoint_name : str, optional
+            name of checkpoint to load from source store, defaults to
+            the last checkpoint found
+
+        Returns
+        -------
+        Whale
+        """
+        import tempfile
+
+        temp_dir = tempfile.TemporaryDirectory()
+        temp_dir_path = Path(temp_dir.name)
+        temp_dir_path.joinpath("configs").mkdir()
+        temp_dir_path.joinpath("data").mkdir()
+        temp_dir_path.joinpath("configs/settings.yaml").write_text("# empty\n")
+        whale = cls.make_default(temp_dir_path)
+        whale.context["_TEMP_DIR_"] = temp_dir
+        if source is not None:
+            whale.checkpoint.restore_from(source, checkpoint_name)
+        return whale
 
     def initialize_filesystem(
         self,
@@ -973,94 +1008,6 @@ class Whale:
             )
 
             self.checkpoint.last_checkpoint[table_name] = ""
-
-    def cleanup_pipeline(self):
-        """
-        Cleanup pipeline after successful run
-
-        Open main pipeline if not already open (will be closed if multiprocess)
-        Create a single-checkpoint pipeline file with latest version of all checkpointed tables,
-        Delete main pipeline and any subprocess pipelines
-
-        Called if cleanup_pipeline_after_run setting is True
-
-        Returns
-        -------
-        nothing, but with changed state: pipeline file that was open on call is closed and deleted
-
-        """
-        # we don't expect to be called unless cleanup_pipeline_after_run setting is True
-        assert self.settings.cleanup_pipeline_after_run
-
-        if not self.checkpoint.is_open:
-            self.checkpoint.restore("_")
-
-        assert self.checkpoint.is_open, f"Pipeline is not open."
-
-        FINAL_PIPELINE_FILE_NAME = f"final_{self.filesystem.pipeline_file_name}"
-        FINAL_CHECKPOINT_NAME = "final"
-
-        if FINAL_PIPELINE_FILE_NAME.endswith(".h5"):
-            # constructing the path manually like this will not create a
-            # subdirectory that competes with the HDF5 filename.
-            final_pipeline_file_path = self.filesystem.get_output_dir().joinpath(
-                FINAL_PIPELINE_FILE_NAME
-            )
-        else:
-            # calling for a subdir ensures that the subdirectory exists.
-            final_pipeline_file_path = self.filesystem.get_output_dir(
-                subdir=FINAL_PIPELINE_FILE_NAME
-            )
-
-        # keep only the last row of checkpoints and patch the last checkpoint name
-        checkpoints_df = self.checkpoint.get_inventory().tail(1).copy()
-        checkpoints_df["checkpoint_name"] = FINAL_CHECKPOINT_NAME
-
-        if final_pipeline_file_path.suffix == ".h5":
-            with pd.HDFStore(
-                str(final_pipeline_file_path), mode="w"
-            ) as final_pipeline_store:
-                for table_name in self.checkpoint.list_tables():
-                    # patch last checkpoint name for all tables
-                    checkpoints_df[table_name] = FINAL_CHECKPOINT_NAME
-
-                    table_df = self.get_table(table_name)
-                    logger.debug(
-                        f"cleanup_pipeline - adding table {table_name} {table_df.shape}"
-                    )
-
-                    final_pipeline_store[table_name] = table_df
-
-                final_pipeline_store[CHECKPOINT_TABLE_NAME] = checkpoints_df
-            self.checkpoint.close_store()
-        else:
-            for table_name in self.checkpoint.list_tables():
-                # patch last checkpoint name for all tables
-                checkpoints_df[table_name] = FINAL_CHECKPOINT_NAME
-
-                table_df = self.get_table(table_name)
-                logger.debug(
-                    f"cleanup_pipeline - adding table {table_name} {table_df.shape}"
-                )
-                table_dir = final_pipeline_file_path.joinpath(table_name)
-                if not table_dir.exists():
-                    table_dir.mkdir(parents=True)
-                table_df.to_parquet(
-                    table_dir.joinpath(f"{FINAL_CHECKPOINT_NAME}.parquet")
-                )
-            final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME).mkdir(
-                parents=True, exist_ok=True
-            )
-            checkpoints_df.to_parquet(
-                final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
-            )
-
-        from activitysim.core.tracing import delete_output_files
-
-        logger.debug(f"deleting all pipeline files except {final_pipeline_file_path}")
-        delete_output_files(self, "h5", ignore=[final_pipeline_file_path])
-        # TODO: delete nested directory structure.
-        delete_output_files(self, "parquet", ignore=[final_pipeline_file_path])
 
     # @contextlib.contextmanager
     def chunk_log(self, *args, **kwargs):

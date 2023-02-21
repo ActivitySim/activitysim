@@ -62,9 +62,13 @@ class Logging(WhaleAccessor):
 
         look for conf file in configs_dir, if not found use basicConfig
 
-        Returns
-        -------
-        Nothing
+        Parameters
+        ----------
+        basic : bool or int, default False
+            When set, ignore configuration file and just set logging to
+            use streaming to stdout.  True implies logging level INFO,
+            or set to a different integer for that level.
+
         """
 
         # look for conf file in configs_dir
@@ -101,7 +105,9 @@ class Logging(WhaleAccessor):
                 raise e
 
         else:
-            logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+            if basic is True:
+                basic = logging.INFO
+            logging.basicConfig(level=basic, stream=sys.stdout)
 
         logger = logging.getLogger(ASIM_LOGGER)
 

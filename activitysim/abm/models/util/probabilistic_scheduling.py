@@ -86,7 +86,7 @@ def _report_bad_choices(
     filename = "%s.%s" % (trace_label, filename)
 
     logger.info("dumping %s" % filename)
-    tracing.write_csv(whale, df, file_name=filename, transpose=False)
+    whale.tracing.write_csv(df, file_name=filename, transpose=False)
 
     # log the indexes of the first MAX_PRINT offending rows
     MAX_PRINT = 0
@@ -270,7 +270,7 @@ def make_scheduling_choices(
     ).set_index(choosers_df.index.name)
     chunk_sizer.log_df(trace_label, "choosers", choosers)
 
-    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
+    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
         whale.trace_df(choosers, "%s.choosers" % trace_label)
 
     # different pre-processing is required based on the scheduling mode
@@ -287,7 +287,7 @@ def make_scheduling_choices(
 
     chunk_sizer.log_df(trace_label, "chooser_probs", chooser_probs)
 
-    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
+    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
         whale.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
 
     raw_choices, rands = logit.make_choices(
@@ -297,7 +297,7 @@ def make_scheduling_choices(
     chunk_sizer.log_df(trace_label, "choices", raw_choices)
     chunk_sizer.log_df(trace_label, "rands", rands)
 
-    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
+    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
         whale.trace_df(
             raw_choices,
             "%s.choices" % trace_label,
@@ -328,7 +328,7 @@ def make_scheduling_choices(
         )
 
     # trace before removing failures
-    if trace_hh_id and tracing.has_trace_targets(whale, choosers_df):
+    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
         whale.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_col_name]
         )

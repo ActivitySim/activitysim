@@ -92,8 +92,8 @@ def extend_tour_counts(
         logger.info("extend_tour_counts - no persons eligible for tour_count extension")
         return tour_counts
 
-    have_trace_targets = whale.settings.trace_hh_id and tracing.has_trace_targets(
-        whale, extend_tour_counts
+    have_trace_targets = whale.settings.trace_hh_id and whale.tracing.has_trace_targets(
+        extend_tour_counts
     )
 
     for i, tour_type in enumerate(alternatives.columns):

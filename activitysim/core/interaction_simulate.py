@@ -645,7 +645,7 @@ def _interaction_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
-    have_trace_targets = tracing.has_trace_targets(whale, choosers)
+    have_trace_targets = whale.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         whale.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
@@ -751,8 +751,8 @@ def _interaction_simulate(
         # utilities has utility value for element in the cross product of choosers and alternatives
         # interaction_utilities is a df with one utility column and one row per row in model_design
         if have_trace_targets:
-            trace_rows, trace_ids = tracing.interaction_trace_rows(
-                whale, interaction_df, choosers, sample_size
+            trace_rows, trace_ids = whale.tracing.interaction_trace_rows(
+                interaction_df, choosers, sample_size
             )
 
             whale.trace_df(
@@ -784,8 +784,7 @@ def _interaction_simulate(
         chunk_sizer.log_df(trace_label, "interaction_df", None)
 
         if have_trace_targets:
-            tracing.trace_interaction_eval_results(
-                whale,
+            whale.tracing.trace_interaction_eval_results(
                 trace_eval_results,
                 trace_ids,
                 tracing.extend_trace_label(trace_label, "eval"),
@@ -813,12 +812,12 @@ def _interaction_simulate(
             column_labels=["alternative", "utility"],
         )
 
-    whale.dump_df(DUMP, utilities, trace_label, "utilities")
+    whale.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(
-        utilities, trace_label=trace_label, trace_choosers=choosers
+        whale, utilities, trace_label=trace_label, trace_choosers=choosers
     )
     chunk_sizer.log_df(trace_label, "probs", probs)
 

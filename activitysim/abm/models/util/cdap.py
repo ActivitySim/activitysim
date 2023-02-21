@@ -695,7 +695,7 @@ def household_activity_choices(
     if len(utils.index) == 0:
         return pd.Series(dtype="float64")
 
-    probs = logit.utils_to_probs(utils, trace_label=trace_label)
+    probs = logit.utils_to_probs(whale, utils, trace_label=trace_label)
 
     # select an activity pattern alternative for each household based on probability
     # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs

@@ -642,7 +642,7 @@ def eval_utilities(
         if trace_all_rows:
             trace_targets = pd.Series(True, index=choosers.index)
         else:
-            trace_targets = tracing.trace_targets(whale, choosers)
+            trace_targets = whale.tracing.trace_targets(choosers)
             assert trace_targets.any()  # since they claimed to have targets...
 
         # get int offsets of the trace_targets (offsets of bool=True values)
@@ -1025,6 +1025,7 @@ def compute_nested_probabilities(nested_exp_utilities, nest_spec, trace_label):
 
     for nest in logit.each_nest(nest_spec, type="node", post_order=False):
         probs = logit.utils_to_probs(
+            whale,
             nested_exp_utilities[nest.alternatives],
             trace_label=trace_label,
             exponentiated=True,
@@ -1134,7 +1135,7 @@ def eval_mnl(
     assert not want_logsums
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_mnl")
-    have_trace_targets = tracing.has_trace_targets(whale, choosers)
+    have_trace_targets = whale.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         whale.trace_df(choosers, "%s.choosers" % trace_label)
@@ -1161,7 +1162,7 @@ def eval_mnl(
         )
 
     probs = logit.utils_to_probs(
-        utilities, trace_label=trace_label, trace_choosers=choosers
+        whale, utilities, trace_label=trace_label, trace_choosers=choosers
     )
     chunk_sizer.log_df(trace_label, "probs", probs)
 
@@ -1248,7 +1249,7 @@ def eval_nl(
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_nl")
     assert trace_label
-    have_trace_targets = tracing.has_trace_targets(whale, choosers)
+    have_trace_targets = whale.tracing.has_trace_targets(choosers)
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
@@ -1337,6 +1338,7 @@ def eval_nl(
 
     if no_choices.any():
         logit.report_bad_choices(
+            whale,
             no_choices,
             base_probabilities,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
@@ -1624,7 +1626,7 @@ def eval_mnl_logsums(
     # FIXME - untested and not currently used by any models...
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_mnl_logsums")
-    have_trace_targets = tracing.has_trace_targets(whale, choosers)
+    have_trace_targets = whale.tracing.has_trace_targets(choosers)
 
     logger.debug("running eval_mnl_logsums")
 
@@ -1764,7 +1766,7 @@ def eval_nl_logsums(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_nl_logsums")
-    have_trace_targets = tracing.has_trace_targets(whale, choosers)
+    have_trace_targets = whale.tracing.has_trace_targets(choosers)
 
     logit.validate_nest_spec(nest_spec, trace_label)
 

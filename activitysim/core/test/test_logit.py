@@ -60,7 +60,8 @@ def spec(test_data):
 
 @pytest.fixture
 def utilities(choosers, spec, test_data):
-    vars = eval_variables(workflow.Whale().default_settings(), spec.index, choosers)
+    whale = workflow.Whale().default_settings()
+    vars = eval_variables(whale, spec.index, choosers)
     utils = vars.dot(spec).astype("float")
     return pd.DataFrame(
         utils.values.reshape(test_data["probabilities"].shape),
@@ -69,30 +70,33 @@ def utilities(choosers, spec, test_data):
 
 
 def test_utils_to_probs(utilities, test_data):
-    probs = logit.utils_to_probs(utilities, trace_label=None)
+    whale = workflow.Whale().default_settings()
+    probs = logit.utils_to_probs(whale, utilities, trace_label=None)
     pdt.assert_frame_equal(probs, test_data["probabilities"])
 
 
 def test_utils_to_probs_raises():
+    whale = workflow.Whale().default_settings()
     idx = pd.Index(name="household_id", data=[1])
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
-            pd.DataFrame([[1, 2, np.inf, 3]], index=idx), trace_label=None
+            whale, pd.DataFrame([[1, 2, np.inf, 3]], index=idx), trace_label=None
         )
     assert "infinite exponentiated utilities" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
-            pd.DataFrame([[-999, -999, -999, -999]], index=idx), trace_label=None
+            whale, pd.DataFrame([[-999, -999, -999, -999]], index=idx), trace_label=None
         )
     assert "all probabilities are zero" in str(excinfo.value)
 
 
 def test_make_choices_only_one():
+    whale = workflow.Whale().default_settings()
     probs = pd.DataFrame(
         [[1, 0, 0], [0, 1, 0]], columns=["a", "b", "c"], index=["x", "y"]
     )
-    choices, rands = logit.make_choices(workflow.Whale().default_settings(), probs)
+    choices, rands = logit.make_choices(whale, probs)
 
     pdt.assert_series_equal(
         choices, pd.Series([0, 1], index=["x", "y"]), check_dtype=False
@@ -100,8 +104,9 @@ def test_make_choices_only_one():
 
 
 def test_make_choices_real_probs(utilities):
-    probs = logit.utils_to_probs(utilities, trace_label=None)
-    choices, rands = logit.make_choices(workflow.Whale().default_settings(), probs)
+    whale = workflow.Whale().default_settings()
+    probs = logit.utils_to_probs(whale, utilities, trace_label=None)
+    choices, rands = logit.make_choices(whale, probs)
 
     pdt.assert_series_equal(
         choices,

@@ -1,6 +1,7 @@
 import logging
 import multiprocessing
 import time
+from datetime import timedelta
 from typing import Callable, Iterable
 
 from activitysim.core.exceptions import DuplicateWorkflowNameError
@@ -18,6 +19,16 @@ NO_CHECKPOINT_PREFIX = "_"
 
 
 logger = logging.getLogger(__name__)
+
+
+def _format_elapsed_time(t):
+    t = round(t, 3)
+    if t < 60:
+        return f"{round(t, 3)} seconds"
+    td = str(timedelta(seconds=t)).rstrip("0")
+    if td.startswith("0:"):
+        td = td[2:]
+    return td
 
 
 def split_arg(s, sep, default=""):
@@ -42,6 +53,10 @@ class Runner(WhaleAccessor):
     """
     This accessor provides the tools to actually run ActivitySim workflow steps.
     """
+
+    def __get__(self, instance, objtype=None) -> "Runner":
+        # derived __get__ changes annotation, aids in type checking
+        return super().__get__(instance, objtype)
 
     def __call__(self, models, resume_after=None, memory_sidecar_process=None):
         """
@@ -285,9 +300,7 @@ class Runner(WhaleAccessor):
 
         from activitysim.core.tracing import print_elapsed_time
 
-        self.t0 = print_elapsed_time(
-            "#run_model completed step '%s'" % model_name, self.t0, debug=True
-        )
+        self.t0 = self.log_elapsed_time(f"run.{model_name}", self.t0)
         self.obj.trace_memory_info(f"pipeline.run_model {model_name} finished")
 
         self.obj.add_injectable("step_args", None)
@@ -306,3 +319,11 @@ class Runner(WhaleAccessor):
             resume_after=resume_after,
             memory_sidecar_process=memory_sidecar_process,
         )
+
+    def log_elapsed_time(self, msg, t0=None, level=25):
+        t1 = time.time()
+        assert t0 is not None
+        t = t1 - (t0 or t1)
+        msg = f" time to execute {msg} : {_format_elapsed_time(t)}"
+        logger.log(level, msg)
+        return t1

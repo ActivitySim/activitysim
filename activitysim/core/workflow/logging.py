@@ -56,6 +56,10 @@ def _rewrite_config_dict(whale, x):
 
 
 class Logging(WhaleAccessor):
+    def __get__(self, instance, objtype=None) -> "Logging":
+        # derived __get__ changes annotation, aids in type checking
+        return super().__get__(instance, objtype)
+
     def config_logger(self, basic=False):
         """
         Configure logger
@@ -114,5 +118,4 @@ class Logging(WhaleAccessor):
         if log_config_file:
             logger.info("Read logging configuration from: %s" % log_config_file)
         else:
-            print("Configured logging using basicConfig")
-            logger.info("Configured logging using basicConfig")
+            logger.log(basic, "Configured logging using basicConfig")

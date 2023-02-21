@@ -72,7 +72,7 @@ def choose_intermediate_trip_purpose(
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
 
     num_trips = len(trips.index)
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, trips)
+    have_trace_targets = trace_hh_id and whale.tracing.has_trace_targets(trips)
 
     # probs should sum to 1 across rows
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
@@ -131,8 +131,8 @@ def choose_intermediate_trip_purpose(
                     file_name,
                 )
             )
-            tracing.write_csv(
-                whale, unmatched_choosers, file_name=file_name, transpose=False
+            whale.tracing.write_csv(
+                unmatched_choosers, file_name=file_name, transpose=False
             )
             raise RuntimeError(
                 "Some trips could not be matched to probs based on join columns %s."

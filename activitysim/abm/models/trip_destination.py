@@ -245,12 +245,12 @@ def choose_MAZ_for_TAZ(
     taz_sample.rename(columns={alt_dest_col_name: DEST_TAZ}, inplace=True)
 
     trace_hh_id = whale.settings.trace_hh_id
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, taz_sample)
+    have_trace_targets = trace_hh_id and whale.tracing.has_trace_targets(taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
 
         # write taz choices, pick_counts, probs
-        trace_targets = tracing.trace_targets(whale, taz_sample)
+        trace_targets = whale.tracing.trace_targets(taz_sample)
         whale.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
@@ -333,8 +333,8 @@ def choose_MAZ_for_TAZ(
 
     if have_trace_targets:
         # write maz_sizes: maz_sizes[index,trip_id,dest_TAZ,zone_id,size_term]
-        maz_sizes_trace_targets = tracing.trace_targets(
-            whale, maz_sizes, slicer="trip_id"
+        maz_sizes_trace_targets = whale.tracing.trace_targets(
+            maz_sizes, slicer="trip_id"
         )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
         whale.trace_df(
@@ -390,8 +390,8 @@ def choose_MAZ_for_TAZ(
     taz_choices["prob"] = taz_choices["TAZ_prob"] * taz_choices["MAZ_prob"]
 
     if have_trace_targets:
-        taz_choices_trace_targets = tracing.trace_targets(
-            whale, taz_choices, slicer="trip_id"
+        taz_choices_trace_targets = whale.tracing.trace_targets(
+            taz_choices, slicer="trip_id"
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
         whale.trace_df(
@@ -1468,8 +1468,8 @@ def trip_destination(
         else:
             file_name = f"{trace_label}_failed_trips"
         logger.info("writing failed trips to %s", file_name)
-        tracing.write_csv(
-            whale, trips_df[trips_df.failed], file_name=file_name, transpose=False
+        whale.tracing.write_csv(
+            trips_df[trips_df.failed], file_name=file_name, transpose=False
         )
 
     if estimator:

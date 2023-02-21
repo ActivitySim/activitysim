@@ -184,7 +184,7 @@ def _interaction_sample(
             number of duplicate picks for chooser, alt
     """
 
-    have_trace_targets = tracing.has_trace_targets(whale, choosers)
+    have_trace_targets = whale.tracing.has_trace_targets(choosers)
     trace_ids = None
     trace_rows = None
     num_choosers = len(choosers.index)
@@ -265,8 +265,8 @@ def _interaction_sample(
         # utilities has utility value for element in the cross product of choosers and alternatives
         # interaction_utilities is a df with one utility column and one row per row in interaction_df
         if have_trace_targets:
-            trace_rows, trace_ids = tracing.interaction_trace_rows(
-                whale, interaction_df, choosers, alternative_count
+            trace_rows, trace_ids = whale.tracing.interaction_trace_rows(
+                interaction_df, choosers, alternative_count
             )
 
             whale.trace_df(
@@ -351,8 +351,7 @@ def _interaction_sample(
                 raise
 
     if have_trace_targets and trace_ids is not None:
-        tracing.trace_interaction_eval_results(
-            whale,
+        whale.tracing.trace_interaction_eval_results(
             trace_eval_results,
             trace_ids,
             tracing.extend_trace_label(trace_label, "eval"),
@@ -369,7 +368,9 @@ def _interaction_sample(
         except ValueError:
             pass
 
-    whale.dump_df(DUMP, interaction_utilities, trace_label, "interaction_utilities")
+    whale.tracing.dump_df(
+        DUMP, interaction_utilities, trace_label, "interaction_utilities"
+    )
 
     # reshape utilities (one utility column and one row per row in interaction_utilities)
     # to a dataframe with one row per chooser and one column per alternative
@@ -389,11 +390,12 @@ def _interaction_sample(
             column_labels=["alternative", "utility"],
         )
 
-    whale.dump_df(DUMP, utilities, trace_label, "utilities")
+    whale.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(
+        whale,
         utilities,
         allow_zero_probs=allow_zero_probs,
         trace_label=trace_label,
@@ -471,7 +473,7 @@ def _interaction_sample(
     # set index after groupby so we can trace on it
     choices_df.set_index(choosers.index.name, inplace=True)
 
-    whale.dump_df(DUMP, choices_df, trace_label, "choices_df")
+    whale.tracing.dump_df(DUMP, choices_df, trace_label, "choices_df")
 
     if have_trace_targets:
         whale.trace_df(

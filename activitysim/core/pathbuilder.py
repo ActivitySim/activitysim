@@ -998,7 +998,10 @@ class TransitVirtualPathBuilder(object):
 
                 with memo("#TVPB build_virtual_path make_choices"):
                     probs = logit.utils_to_probs(
-                        utilities_df, allow_zero_probs=True, trace_label=trace_label
+                        whale,
+                        utilities_df,
+                        allow_zero_probs=True,
+                        trace_label=trace_label,
                     )
                     chunk_sizer.log_df(trace_label, "probs", probs)
 
@@ -1116,7 +1119,7 @@ class TransitVirtualPathBuilder(object):
                 trace_hh_id = False
 
             if trace_hh_id:
-                filter_targets = tracing.trace_targets(self.network_los.whale, orig)
+                filter_targets = self.network_los.whale.tracing.trace_targets(orig)
                 # choices from preceding run (because random numbers)
                 override_choices = logsum_df["path_num"] if want_choices else None
                 if filter_targets.any():

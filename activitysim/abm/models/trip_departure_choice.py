@@ -181,7 +181,7 @@ def choose_tour_leg_pattern(
     chunk_sizer: chunk.ChunkSizer
 ):
     alternatives = generate_alternatives(trip_segment, STOP_TIME_DURATION).sort_index()
-    have_trace_targets = tracing.has_trace_targets(whale, trip_segment)
+    have_trace_targets = whale.tracing.has_trace_targets(trip_segment)
 
     if have_trace_targets:
         whale.trace_df(
@@ -209,8 +209,8 @@ def choose_tour_leg_pattern(
     chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
     if have_trace_targets:
-        trace_rows, trace_ids = tracing.interaction_trace_rows(
-            whale, interaction_df, trip_segment
+        trace_rows, trace_ids = whale.tracing.interaction_trace_rows(
+            interaction_df, trip_segment
         )
 
         whale.trace_df(
@@ -241,8 +241,7 @@ def choose_tour_leg_pattern(
     )
 
     if have_trace_targets:
-        tracing.trace_interaction_eval_results(
-            whale,
+        whale.tracing.trace_interaction_eval_results(
             trace_eval_results,
             trace_ids,
             tracing.extend_trace_label(trace_label, "eval"),
@@ -322,7 +321,7 @@ def choose_tour_leg_pattern(
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(
-        utilities_df, trace_label=trace_label, trace_choosers=trip_segment
+        whale, utilities_df, trace_label=trace_label, trace_choosers=trip_segment
     )
 
     chunk_sizer.log_df(trace_label, "probs", probs)

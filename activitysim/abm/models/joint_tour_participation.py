@@ -193,8 +193,7 @@ def participants_chooser(
             )
             diagnostic_cols = ["tour_id", "household_id", "composition", "adult"]
             unsatisfied_candidates = candidates[diagnostic_cols].join(probs)
-            tracing.write_csv(
-                whale,
+            whale.tracing.write_csv(
                 unsatisfied_candidates,
                 file_name="%s.UNSATISFIED" % trace_label,
                 transpose=False,

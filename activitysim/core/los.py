@@ -402,8 +402,7 @@ class Network_LOS(object):
                         )
 
                     if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
-                        tracing.write_csv(
-                            self.whale,
+                        self.whale.tracing.write_csv(
                             df,
                             file_name=f"trimmed_{maz_to_tap_settings['table']}",
                             transpose=False,

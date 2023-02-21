@@ -246,7 +246,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     # 542963          59  0.008628           1      13243
 
     trace_hh_id = whale.settings.trace_hh_id
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(whale, taz_sample)
+    have_trace_targets = trace_hh_id and whale.tracing.has_trace_targets(taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
 
@@ -256,7 +256,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
         assert CHOOSER_ID is not None
 
         # write taz choices, pick_counts, probs
-        trace_targets = tracing.trace_targets(whale, taz_sample)
+        trace_targets = whale.tracing.trace_targets(taz_sample)
         whale.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
@@ -325,8 +325,8 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     if have_trace_targets:
         # write maz_sizes: maz_sizes[index,tour_id,dest_TAZ,zone_id,size_term]
 
-        maz_sizes_trace_targets = tracing.trace_targets(
-            whale, maz_sizes, slicer=CHOOSER_ID
+        maz_sizes_trace_targets = whale.tracing.trace_targets(
+            maz_sizes, slicer=CHOOSER_ID
         )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
         whale.trace_df(
@@ -378,8 +378,8 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     taz_choices["prob"] = taz_choices["TAZ_prob"] * taz_choices["MAZ_prob"]
 
     if have_trace_targets:
-        taz_choices_trace_targets = tracing.trace_targets(
-            whale, taz_choices, slicer=CHOOSER_ID
+        taz_choices_trace_targets = whale.tracing.trace_targets(
+            taz_choices, slicer=CHOOSER_ID
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
         whale.trace_df(
@@ -645,8 +645,8 @@ def run_destination_logsums(
 
     logger.info("Running %s with %s rows", trace_label, len(choosers))
 
-    whale.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
-    whale.dump_df(DUMP, choosers, trace_label, "choosers")
+    whale.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
+    whale.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
     logsums = logsum.compute_logsums(
         whale,
@@ -729,7 +729,7 @@ def run_destination_simulate(
         destination_size_terms.size_term, destination_sample[alt_dest_col_name]
     )
 
-    whale.dump_df(DUMP, destination_sample, trace_label, "alternatives")
+    whale.tracing.dump_df(DUMP, destination_sample, trace_label, "alternatives")
 
     constants = config.get_model_constants(model_settings)
 
@@ -750,7 +750,7 @@ def run_destination_simulate(
     if constants is not None:
         locals_d.update(constants)
 
-    whale.dump_df(DUMP, choosers, trace_label, "choosers")
+    whale.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
     log_alt_losers = whale.settings.log_alt_losers
 

@@ -1075,11 +1075,6 @@ class Whale:
             warn_if_empty=warn_if_empty,
         )
 
-    def dump_df(self, dump_switch, df, trace_label, fname):
-        from activitysim.core.tracing import dump_df
-
-        return dump_df(self, dump_switch, df, trace_label, fname)
-
     def set_step_args(self, args=None):
         assert isinstance(args, dict) or args is None
         self.add_injectable("step_args", args)

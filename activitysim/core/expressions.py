@@ -115,15 +115,15 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
         expressions_spec,
         df,
         _locals_dict,
-        trace_rows=tracing.trace_targets(whale, df),
+        trace_rows=whale.tracing.trace_targets(df),
     )
 
     if trace_results is not None:
         whale.trace_df(trace_results, label=trace_label, slicer="NONE")
 
     if trace_assigned_locals:
-        tracing.write_csv(
-            whale, trace_assigned_locals, file_name="%s_locals" % trace_label
+        whale.tracing.write_csv(
+            trace_assigned_locals, file_name="%s_locals" % trace_label
         )
 
     return results

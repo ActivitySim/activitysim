@@ -633,8 +633,7 @@ class ShadowPriceCalculator(object):
             logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
 
             if write_choices:
-                tracing.write_csv(
-                    whale,
+                whale.tracing.write_csv(
                     self.choices_by_iteration,
                     "%s_choices_by_shadow_price_iteration" % self.model_selector,
                     transpose=False,
@@ -901,23 +900,20 @@ class ShadowPriceCalculator(object):
         logger.info("write_trace_files iteration %s" % iteration)
         if iteration == 1:
             # write desired_size only on first iteration, as it doesn't change
-            tracing.write_csv(
-                whale,
+            whale.tracing.write_csv(
                 self.desired_size,
                 "shadow_price_%s_desired_size" % self.model_selector,
                 transpose=False,
             )
 
-        tracing.write_csv(
-            whale,
+        whale.tracing.write_csv(
             self.modeled_size,
             "shadow_price_%s_modeled_size_%s" % (self.model_selector, iteration),
             transpose=False,
         )
 
         if self.use_shadow_pricing:
-            tracing.write_csv(
-                whale,
+            whale.tracing.write_csv(
                 self.shadow_prices,
                 "shadow_price_%s_shadow_prices_%s" % (self.model_selector, iteration),
                 transpose=False,

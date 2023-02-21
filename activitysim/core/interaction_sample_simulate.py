@@ -98,7 +98,7 @@ def _interaction_sample_simulate(
         alternatives.index[last_repeat]
     )
 
-    have_trace_targets = tracing.has_trace_targets(whale, choosers)
+    have_trace_targets = whale.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
         whale.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
@@ -140,8 +140,8 @@ def _interaction_sample_simulate(
     chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
     if have_trace_targets:
-        trace_rows, trace_ids = tracing.interaction_trace_rows(
-            whale, interaction_df, choosers
+        trace_rows, trace_ids = whale.tracing.interaction_trace_rows(
+            interaction_df, choosers
         )
 
         whale.trace_df(
@@ -179,8 +179,7 @@ def _interaction_sample_simulate(
     chunk_sizer.log_df(trace_label, "interaction_df", None)
 
     if have_trace_targets:
-        tracing.trace_interaction_eval_results(
-            whale,
+        whale.tracing.trace_interaction_eval_results(
             trace_eval_results,
             trace_ids,
             tracing.extend_trace_label(trace_label, "eval"),
@@ -246,6 +245,7 @@ def _interaction_sample_simulate(
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(
+        whale,
         utilities_df,
         allow_zero_probs=allow_zero_probs,
         trace_label=trace_label,

@@ -47,7 +47,7 @@ def non_mandatory_tour_scheduling(
     # updated df for tracing
     non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]
 
-    whale.dump_df(
+    whale.tracing.dump_df(
         DUMP,
         tt.tour_map(persons_merged, non_mandatory_tours, tdd_alts),
         trace_label,

@@ -1,15 +1,20 @@
 import logging
 import logging.config
+import os
 import sys
 from collections.abc import Mapping, MutableMapping, Sequence
+from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
 import yaml
 
+from activitysim.core import tracing
 from activitysim.core.workflow.accessor import FromWhale, WhaleAccessor
 
 logger = logging.getLogger(__name__)
 
+CSV_FILE_TYPE = "csv"
 
 DEFAULT_TRACEABLE_TABLES = [
     "households",
@@ -22,9 +27,14 @@ DEFAULT_TRACEABLE_TABLES = [
 
 
 class Tracing(WhaleAccessor):
+
     traceable_tables: list[str] = FromWhale(default_value=DEFAULT_TRACEABLE_TABLES)
     traceable_table_ids: dict[str, Sequence] = FromWhale(default_init=True)
     traceable_table_indexes: dict[str, str] = FromWhale(default_init=True)
+
+    def __get__(self, instance, objtype=None) -> "Tracing":
+        # derived __get__ changes annotation, aids in type checking
+        return super().__get__(instance, objtype)
 
     def initialize(self):
         self.traceable_table_ids = {}
@@ -159,3 +169,389 @@ class Tracing(WhaleAccessor):
             self.traceable_table_indexes = {
                 k: v for k, v in traceable_table_indexes.items() if v != table_name
             }
+
+    def write_csv(
+        self,
+        df,
+        file_name,
+        index_label=None,
+        columns=None,
+        column_labels=None,
+        transpose=True,
+    ):
+        """
+        Print write_csv
+
+        Parameters
+        ----------
+        df: pandas.DataFrame or pandas.Series or dict
+            traced dataframe
+        file_name: str
+            output file name
+        index_label: str
+            index name
+        columns: list
+            columns to write
+        transpose: bool
+            whether to transpose dataframe (ignored for series)
+        Returns
+        -------
+        Nothing
+        """
+
+        assert len(file_name) > 0
+
+        if not file_name.endswith(".%s" % CSV_FILE_TYPE):
+            file_name = "%s.%s" % (file_name, CSV_FILE_TYPE)
+
+        file_path = self.obj.filesystem.get_trace_file_path(file_name)
+
+        if os.name == "nt":
+            abs_path = os.path.abspath(file_path)
+            if len(abs_path) > 255:
+                msg = f"path length ({len(abs_path)}) may exceed Windows maximum length unless LongPathsEnabled: {abs_path}"
+                logger.warning(msg)
+
+        if os.path.isfile(file_path):
+            logger.debug("write_csv file exists %s %s" % (type(df).__name__, file_name))
+
+        if isinstance(df, pd.DataFrame):
+            # logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
+            tracing.write_df_csv(
+                df, file_path, index_label, columns, column_labels, transpose=transpose
+            )
+        elif isinstance(df, pd.Series):
+            # logger.debug("dumping %s element series to %s" % (df.shape[0], file_name))
+            tracing.write_series_csv(df, file_path, index_label, columns, column_labels)
+        elif isinstance(df, dict):
+            df = pd.Series(data=df)
+            # logger.debug("dumping %s element dict to %s" % (df.shape[0], file_name))
+            tracing.write_series_csv(df, file_path, index_label, columns, column_labels)
+        else:
+            logger.error(
+                "write_csv object for file_name '%s' of unexpected type: %s"
+                % (file_name, type(df))
+            )
+
+    def trace_df(
+        self,
+        df: pd.DataFrame,
+        label: str,
+        slicer=None,
+        columns: Optional[list[str]] = None,
+        index_label=None,
+        column_labels=None,
+        transpose=True,
+        warn_if_empty=False,
+    ):
+        """
+        Slice dataframe by traced household or person id dataframe and write to CSV
+
+        Parameters
+        ----------
+        whale: workflow.Whale
+        df: pandas.DataFrame
+            traced dataframe
+        label: str
+            tracer name
+        slicer: Object
+            slicer for subsetting
+        columns: list
+            columns to write
+        index_label: str
+            index name
+        column_labels: [str, str]
+            labels for columns in csv
+        transpose: boolean
+            whether to transpose file for legibility
+        warn_if_empty: boolean
+            write warning if sliced df is empty
+
+        Returns
+        -------
+        Nothing
+        """
+
+        target_ids, column = self.get_trace_target(df, slicer)
+
+        if target_ids is not None:
+            df = tracing.slice_ids(df, target_ids, column)
+
+        if warn_if_empty and df.shape[0] == 0 and target_ids != []:
+            column_name = column or slicer
+            logger.warning(
+                "slice_canonically: no rows in %s with %s == %s"
+                % (label, column_name, target_ids)
+            )
+
+        if df.shape[0] > 0:
+            self.write_csv(
+                df,
+                file_name=label,
+                index_label=(index_label or slicer),
+                columns=columns,
+                column_labels=column_labels,
+                transpose=transpose,
+            )
+
+    def trace_interaction_eval_results(self, trace_results, trace_ids, label):
+        """
+        Trace model design eval results for interaction_simulate
+
+        Parameters
+        ----------
+        trace_results: pandas.DataFrame
+            traced model_design dataframe
+        trace_ids : tuple (str,  numpy.ndarray)
+            column name and array of trace_ids from interaction_trace_rows()
+            used to filter the trace_results dataframe by traced hh or person id
+        label: str
+            tracer name
+
+        Returns
+        -------
+        Nothing
+        """
+
+        assert type(trace_ids[1]) == np.ndarray
+
+        slicer_column_name = trace_ids[0]
+
+        try:
+            trace_results[slicer_column_name] = trace_ids[1]
+        except ValueError:
+            trace_results[slicer_column_name] = int(trace_ids[1])
+
+        targets = np.unique(trace_ids[1])
+
+        if len(trace_results.index) == 0:
+            return
+
+        # write out the raw dataframe
+
+        file_path = self.obj.filesystem.get_trace_file_path("%s.raw.csv" % label)
+        trace_results.to_csv(file_path, mode="a", index=True, header=True)
+
+        # if there are multiple targets, we want them in separate tables for readability
+        for target in targets:
+            df_target = trace_results[trace_results[slicer_column_name] == target]
+
+            # we want the transposed columns in predictable order
+            df_target.sort_index(inplace=True)
+
+            # # remove the slicer (person_id or hh_id) column?
+            # del df_target[slicer_column_name]
+
+            target_label = "%s.%s.%s" % (label, slicer_column_name, target)
+
+            self.trace_df(
+                df_target,
+                label=target_label,
+                slicer="NONE",
+                transpose=True,
+                column_labels=["expression", None],
+                warn_if_empty=False,
+            )
+
+    def interaction_trace_rows(self, interaction_df, choosers, sample_size=None):
+        """
+        Trace model design for interaction_simulate
+
+        Parameters
+        ----------
+        interaction_df: pandas.DataFrame
+            traced model_design dataframe
+        choosers: pandas.DataFrame
+            interaction_simulate choosers
+            (needed to filter the model_design dataframe by traced hh or person id)
+        sample_size int or None
+            int for constant sample size, or None if choosers have different numbers of alternatives
+        Returns
+        -------
+        trace_rows : numpy.ndarray
+            array of booleans to flag which rows in interaction_df to trace
+
+        trace_ids : tuple (str,  numpy.ndarray)
+            column name and array of trace_ids mapping trace_rows to their target_id
+            for use by trace_interaction_eval_results which needs to know target_id
+            so it can create separate tables for each distinct target for readability
+        """
+
+        # slicer column name and id targets to use for chooser id added to model_design dataframe
+        # currently we only ever slice by person_id, but that could change, so we check here...
+
+        traceable_table_ids = self.traceable_table_ids
+
+        # Determine whether actual tables or proto_ tables for disaggregate accessibilities
+        persons_table_name = set(traceable_table_ids).intersection(
+            ["persons", "proto_persons"]
+        )
+        households_table_name = set(traceable_table_ids).intersection(
+            ["households", "proto_households"]
+        )
+
+        assert len(persons_table_name) == 1 and len(persons_table_name) == 1
+        persons_table_name, households_table_name = (
+            persons_table_name.pop(),
+            households_table_name.pop(),
+        )
+
+        if (
+            choosers.index.name == "person_id"
+            and persons_table_name in traceable_table_ids
+        ):
+            slicer_column_name = choosers.index.name
+            targets = traceable_table_ids["persons"]
+        elif (
+            choosers.index.name == "household_id"
+            and "households" in traceable_table_ids
+        ):
+            slicer_column_name = choosers.index.name
+            targets = traceable_table_ids["households"]
+        elif "household_id" in choosers.columns and "households" in traceable_table_ids:
+            slicer_column_name = "household_id"
+            targets = traceable_table_ids[households_table_name]
+        elif (
+            "person_id" in choosers.columns
+            and persons_table_name in traceable_table_ids
+        ):
+            slicer_column_name = "person_id"
+            targets = traceable_table_ids[persons_table_name]
+        else:
+            print(choosers.columns)
+            raise RuntimeError(
+                "interaction_trace_rows don't know how to slice index '%s'"
+                % choosers.index.name
+            )
+
+        if sample_size is None:
+            # if sample size not constant, we count on either
+            # slicer column being in itneraction_df
+            # or index of interaction_df being same as choosers
+            if slicer_column_name in interaction_df.columns:
+                trace_rows = np.in1d(interaction_df[slicer_column_name], targets)
+                trace_ids = interaction_df.loc[trace_rows, slicer_column_name].values
+            else:
+                assert interaction_df.index.name == choosers.index.name
+                trace_rows = np.in1d(interaction_df.index, targets)
+                trace_ids = interaction_df[trace_rows].index.values
+
+        else:
+            if slicer_column_name == choosers.index.name:
+                trace_rows = np.in1d(choosers.index, targets)
+                trace_ids = np.asanyarray(choosers[trace_rows].index)
+            elif slicer_column_name == "person_id":
+                trace_rows = np.in1d(choosers["person_id"], targets)
+                trace_ids = np.asanyarray(choosers[trace_rows].person_id)
+            elif slicer_column_name == "household_id":
+                trace_rows = np.in1d(choosers["household_id"], targets)
+                trace_ids = np.asanyarray(choosers[trace_rows].household_id)
+            else:
+                assert False
+
+            # simply repeat if sample size is constant across choosers
+            assert sample_size == len(interaction_df.index) / len(choosers.index)
+            trace_rows = np.repeat(trace_rows, sample_size)
+            trace_ids = np.repeat(trace_ids, sample_size)
+
+        assert type(trace_rows) == np.ndarray
+        assert type(trace_ids) == np.ndarray
+
+        trace_ids = (slicer_column_name, trace_ids)
+
+        return trace_rows, trace_ids
+
+    def get_trace_target(self, df: pd.DataFrame, slicer: str, column: Any = None):
+        """
+        get target ids and column or index to identify target trace rows in df
+
+        Parameters
+        ----------
+        df: pandas.DataFrame
+            This dataframe is to be sliced
+        slicer: str
+            name of column or index to use for slicing
+        column : Any
+
+        Returns
+        -------
+        target : int or list of ints
+            id or ids that identify tracer target rows
+        column : str
+            name of column to search for targets or None to search index
+        """
+
+        target_ids = (
+            None  # id or ids to slice by (e.g. hh_id or person_ids or tour_ids)
+        )
+
+        # special do-not-slice code for dumping entire df
+        if slicer == "NONE":
+            return target_ids, column
+
+        if slicer is None:
+            slicer = df.index.name
+
+        if isinstance(df, pd.DataFrame):
+            # always slice by household id if we can
+            if "household_id" in df.columns:
+                slicer = "household_id"
+            if slicer in df.columns:
+                column = slicer
+
+        if column is None and df.index.name != slicer:
+            raise RuntimeError(
+                "bad slicer '%s' for df with index '%s'" % (slicer, df.index.name)
+            )
+
+        traceable_table_indexes = self.traceable_table_indexes
+        traceable_table_ids = self.traceable_table_ids
+
+        if df.empty:
+            target_ids = None
+        elif slicer in traceable_table_indexes:
+            # maps 'person_id' to 'persons', etc
+            table_name = traceable_table_indexes[slicer]
+            target_ids = traceable_table_ids.get(table_name, [])
+        elif slicer == "zone_id":
+            target_ids = self.obj.settings.trace_od
+
+        return target_ids, column
+
+    def trace_targets(self, df, slicer=None, column=None):
+        target_ids, column = self.get_trace_target(df, slicer, column)
+
+        if target_ids is None:
+            targets = None
+        else:
+            if column is None:
+                targets = df.index.isin(target_ids)
+            else:
+                # convert to numpy array for consistency since that is what index.isin returns
+                targets = df[column].isin(target_ids).to_numpy()
+
+        return targets
+
+    def has_trace_targets(self, df, slicer=None, column=None):
+        target_ids, column = self.get_trace_target(df, slicer, column)
+
+        if target_ids is None:
+            found = False
+        else:
+            if column is None:
+                found = df.index.isin(target_ids).any()
+            else:
+                found = df[column].isin(target_ids).any()
+
+        return found
+
+    def dump_df(self, dump_switch, df, trace_label, fname):
+        if dump_switch:
+            trace_label = tracing.extend_trace_label(trace_label, "DUMP.%s" % fname)
+            self.trace_df(
+                df,
+                trace_label,
+                index_label=df.index.name,
+                slicer="NONE",
+                transpose=False,
+            )

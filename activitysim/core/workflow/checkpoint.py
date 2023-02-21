@@ -296,7 +296,8 @@ class Checkpoints(WhaleAccessor):
     checkpoints: list[dict] = FromWhale(default_init=True)
     _checkpoint_store: GenericCheckpointStore | None = FromWhale(default_value=None)
 
-    def __get__(self, instance, objtype=None) -> Checkpoints:
+    def __get__(self, instance, objtype=None) -> "Checkpoints":
+        # derived __get__ changes annotation, aids in type checking
         return super().__get__(instance, objtype)
 
     def initialize(self):

@@ -6,7 +6,7 @@ from builtins import object
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, tracing, workflow
+from activitysim.core import tracing, workflow
 from activitysim.core.choosing import choice_maker
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,13 @@ PROB_MAX = 1.0
 
 
 def report_bad_choices(
-    bad_row_map, df, trace_label, msg, trace_choosers=None, raise_error=True
+    whale: workflow.Whale,
+    bad_row_map,
+    df,
+    trace_label,
+    msg,
+    trace_choosers=None,
+    raise_error=True,
 ):
     """
 
@@ -59,7 +65,7 @@ def report_bad_choices(
 
     if trace_label:
         logger.info("dumping %s" % trace_label)
-        tracing.write_csv(whale, df[:MAX_DUMP], file_name=trace_label, transpose=False)
+        whale.tracing.write_csv(df[:MAX_DUMP], file_name=trace_label, transpose=False)
 
     # log the indexes of the first MAX_DUMP offending rows
     for idx in df.index[:MAX_PRINT].values:
@@ -116,6 +122,7 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
 
 
 def utils_to_probs(
+    whale: workflow.Whale,
     utils,
     trace_label=None,
     exponentiated=False,
@@ -180,6 +187,7 @@ def utils_to_probs(
         zero_probs = arr_sum == 0.0
         if zero_probs.any():
             report_bad_choices(
+                whale,
                 zero_probs,
                 utils,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
@@ -190,6 +198,7 @@ def utils_to_probs(
     inf_utils = np.isinf(arr_sum)
     if inf_utils.any():
         report_bad_choices(
+            whale,
             inf_utils,
             utils,
             trace_label=tracing.extend_trace_label(trace_label, "inf_exp_utils"),
@@ -258,6 +267,7 @@ def make_choices(
     if bad_probs.any() and not allow_bad_probs:
 
         report_bad_choices(
+            whale,
             bad_probs,
             probs,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),

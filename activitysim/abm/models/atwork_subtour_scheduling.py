@@ -116,12 +116,12 @@ def atwork_subtour_scheduling(
         subtours = tours[tours.tour_category == "atwork"]
         parent_tours = tours[tours.index.isin(subtours.parent_tour_id)]
 
-        whale.dump_df(DUMP, subtours, trace_label, "sub_tours")
-        whale.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
+        whale.tracing.dump_df(DUMP, subtours, trace_label, "sub_tours")
+        whale.tracing.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
 
         parent_tours["parent_tour_id"] = parent_tours.index
         subtours = pd.concat([parent_tours, subtours])
-        whale.dump_df(
+        whale.tracing.dump_df(
             DUMP,
             tt.tour_map(
                 parent_tours, subtours, tdd_alts, persons_id_col="parent_tour_id"

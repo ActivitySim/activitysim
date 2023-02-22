@@ -140,10 +140,10 @@ class Runner(WhaleAccessor):
         self._obj.trace_memory_info("pipeline.run before preload_injectables")
 
         # preload any bulky injectables (e.g. skims) not in pipeline
-        # if inject.get_injectable("preload_injectables", None):
-        #     if memory_sidecar_process:
-        #         memory_sidecar_process.set_event("preload_injectables")
-        #     t0 = print_elapsed_time("preload_injectables", t0)
+        if self._obj.get("preload_injectables", None):
+            if memory_sidecar_process:
+                memory_sidecar_process.set_event("preload_injectables")
+            t0 = print_elapsed_time("preload_injectables", t0)
 
         self._obj.trace_memory_info("pipeline.run after preload_injectables")
 

@@ -9,7 +9,7 @@ import pytest
 import yaml
 
 from activitysim.abm.models.util import cdap
-from activitysim.core import chunk, inject, simulate, workflow
+from activitysim.core import chunk, simulate, workflow
 
 
 @pytest.fixture(scope="module")

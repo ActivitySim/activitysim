@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 
-from activitysim.core import chunk, config, inject, mem, tracing, workflow
+from activitysim.core import chunk, config, mem, tracing, workflow
 from activitysim.core.configuration import FileSystem, Settings
 
 logger = logging.getLogger(__name__)

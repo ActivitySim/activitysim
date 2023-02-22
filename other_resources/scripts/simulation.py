@@ -60,8 +60,8 @@ def log_settings(injectables):
 
 if __name__ == "__main__":
 
-    inject.add_injectable("data_dir", "data")
-    inject.add_injectable("configs_dir", "configs")
+    whale.add_injectable("data_dir", "data")
+    whale.add_injectable("configs_dir", "configs")
 
     config.handle_standard_args()
 

@@ -11,7 +11,6 @@ from activitysim.core import (
     config,
     estimation,
     expressions,
-    inject,
     simulate,
     tracing,
     workflow,

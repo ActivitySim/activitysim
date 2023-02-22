@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-from activitysim.core import config, inject, util, workflow
+from activitysim.core import config, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -288,7 +288,7 @@ def get_rss(force_garbage_collect=False, uss=False):
         return info.rss, 0
 
 
-def shared_memory_size(data_buffers=None):
+def shared_memory_size(data_buffers):
     """
     return total size of the multiprocessing shared memory block in data_buffers
 
@@ -300,7 +300,7 @@ def shared_memory_size(data_buffers=None):
     shared_size = 0
 
     if data_buffers is None:
-        data_buffers = inject.get_injectable("data_buffers", {})
+        data_buffers = {}
 
     for k, data_buffer in data_buffers.items():
         if isinstance(data_buffer, str) and data_buffer.startswith("sh.Dataset:"):

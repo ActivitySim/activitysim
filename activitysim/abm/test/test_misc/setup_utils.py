@@ -12,7 +12,7 @@ import pkg_resources
 import pytest
 import yaml
 
-from activitysim.core import config, inject, random, tracing, workflow
+from activitysim.core import config, random, tracing, workflow
 
 # set the max households for all tests (this is to limit memory use on travis)
 HOUSEHOLDS_SAMPLE_SIZE = 50

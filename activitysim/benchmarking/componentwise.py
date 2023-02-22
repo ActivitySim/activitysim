@@ -12,7 +12,7 @@ import yaml
 from activitysim.benchmarking import workspace
 from activitysim.cli.create import get_example
 from activitysim.cli.run import INJECTABLES, config
-from activitysim.core import inject, tracing, workflow
+from activitysim.core import tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ def reload_settings(settings_filename, **kwargs):
     settings = config.read_settings_file(settings_filename, mandatory=True)
     for k in kwargs:
         settings[k] = kwargs[k]
-    inject.add_injectable("settings", settings)
+    whale.add_injectable("settings", settings)
     return settings
 
 
@@ -692,7 +692,7 @@ def template_component_timings_mp(
 
             def track_component(self):
                 durations = []
-                inject.add_injectable("output_dir", model_dir(example_name, output_dir))
+                whale.add_injectable("output_dir", model_dir(example_name, output_dir))
                 logfiler = whale.get_log_file_path(f"timing_log.mp_households_*.csv")
                 for logfile in glob.glob(logfiler):
                     df = pd.read_csv(logfile)

@@ -5,8 +5,6 @@ import pandas as pd
 
 from activitysim.core import workflow
 
-from . import inject
-
 logger = logging.getLogger(__name__)
 
 

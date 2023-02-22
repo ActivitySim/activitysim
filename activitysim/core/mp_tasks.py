@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from activitysim.core import config, inject, mem, tracing, util, workflow
+from activitysim.core import config, mem, tracing, util, workflow
 from activitysim.core.configuration import FileSystem, Settings
 from activitysim.core.workflow.checkpoint import (
     CHECKPOINT_NAME,
@@ -1653,7 +1653,7 @@ def run_multiprocess(whale: workflow.Whale, injectables):
         # release it on exit.
         from . import flow  # make injectable known  # noqa: F401
 
-        inject.get_injectable("skim_dataset")
+        whale.get_injectable("skim_dataset")
 
         tracing.print_elapsed_time("setup skim_dataset", t0)
         whale.trace_memory_info("skim_dataset.completed")
@@ -2182,30 +2182,3 @@ def write_breadcrumbs(whale: workflow.Whale, breadcrumbs):
         # write ordered dict as array
         breadcrumbs = [step for step in list(breadcrumbs.values())]
         yaml.dump(breadcrumbs, f)
-
-
-def if_sub_task(if_is, if_isnt):
-    """
-    select one of two values depending whether current process is primary process or subtask
-
-    This is primarily intended for use in yaml files to select between (e.g.) logging levels
-    so main log file can display only warnings and errors from subtasks
-
-    In yaml file, it can be used like this:
-
-    level:
-      if_sub_task: WARNING
-      if_not_sub_task: NOTSET
-
-
-    Parameters
-    ----------
-    if_is : (any type) value to return if process is a subtask
-    if_isnt : (any type) value to return if process is not a subtask
-
-    Returns
-    -------
-    (any type) (one of parameters if_is or if_isnt)
-    """
-
-    return if_is if inject.get_injectable("is_sub_task", False) else if_isnt

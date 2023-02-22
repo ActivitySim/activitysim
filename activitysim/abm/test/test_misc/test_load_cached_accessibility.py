@@ -12,7 +12,7 @@ import pkg_resources
 import pytest
 import yaml
 
-from activitysim.core import config, configuration, inject, random, tracing, workflow
+from activitysim.core import config, configuration, random, tracing, workflow
 
 from .setup_utils import setup_dirs
 

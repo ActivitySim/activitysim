@@ -65,10 +65,10 @@ if __name__ == "__main__":
     data_dir = "/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data"
     data_dir = "../example/data"
 
-    # inject.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
-    inject.add_injectable("data_dir", ["ancillary_data", data_dir])
-    # inject.add_injectable('data_dir', ['ancillary_data', '../activitysim/abm/test/data'])
-    inject.add_injectable("configs_dir", ["configs", "../example/configs"])
+    # whale.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
+    whale.add_injectable("data_dir", ["ancillary_data", data_dir])
+    # whale.add_injectable('data_dir', ['ancillary_data', '../activitysim/abm/test/data'])
+    whale.add_injectable("configs_dir", ["configs", "../example/configs"])
 
     injectables = config.handle_standard_args()
 

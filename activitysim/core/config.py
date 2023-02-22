@@ -10,7 +10,7 @@ import warnings
 
 import yaml
 
-from activitysim.core import inject, util, workflow
+from activitysim.core import util, workflow
 from activitysim.core.exceptions import SettingsFileNotFoundError
 from activitysim.core.workflow.util import get_formatted_or_default
 

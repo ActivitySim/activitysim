@@ -7,7 +7,7 @@ import pandas as pd
 import pandas.api.types as ptypes
 from sklearn.naive_bayes import CategoricalNB
 
-from activitysim.core import inject, input, util, workflow
+from activitysim.core import input, util, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -279,8 +279,3 @@ def disaggregate_accessibility(whale: workflow.Whale):
     whale.add_table("disaggregate_accessibility", merge_df[accessibility_cols])
 
     return merge_df[accessibility_cols]
-
-
-# inject.broadcast(
-#     "disaggregate_accessibility", "persons", cast_index=True, onto_on="person_id"
-# )

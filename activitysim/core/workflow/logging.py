@@ -1,11 +1,12 @@
 import logging
 import logging.config
+import os
 import sys
 from collections.abc import Mapping, MutableMapping
 
 import yaml
 
-from .accessor import WhaleAccessor
+from activitysim.core.workflow.accessor import WhaleAccessor
 
 logger = logging.getLogger(__name__)
 
@@ -119,3 +120,27 @@ class Logging(WhaleAccessor):
             logger.info("Read logging configuration from: %s" % log_config_file)
         else:
             logger.log(basic, "Configured logging using basicConfig")
+
+    def rotate_log_directory(self):
+
+        output_dir = self._obj.filesystem.get_output_dir()
+        log_dir = output_dir.joinpath("log")
+        if not log_dir.exists():
+            return
+
+        from datetime import datetime
+        from stat import ST_CTIME
+
+        old_log_time = os.stat(log_dir)[ST_CTIME]
+        rotate_name = os.path.join(
+            output_dir,
+            datetime.fromtimestamp(old_log_time).strftime("log--%Y-%m-%d--%H-%M-%S"),
+        )
+        try:
+            os.rename(log_dir, rotate_name)
+        except Exception as err:
+            # if Windows fights us due to permissions or whatever,
+            print(f"unable to rotate log file, {err!r}")
+        else:
+            # on successful rotate, create new empty log directory
+            os.makedirs(log_dir)

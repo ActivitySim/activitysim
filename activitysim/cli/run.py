@@ -266,7 +266,7 @@ def run(args):
     whale = handle_standard_args(whale, args)  # possibly update injectables
 
     if whale.settings.rotate_logs:
-        config.rotate_log_directory(whale=whale)
+        whale.logging.rotate_log_directory()
 
     if whale.settings.memory_profile and not whale.settings.multiprocess:
         # Memory sidecar is only useful for single process runs

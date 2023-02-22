@@ -16,6 +16,14 @@ def main(args):
     Run tests on a registered external example.
     """
     example_name = args.example_name
+    try:
+        resultcode = _main(example_name)
+    except Exception:
+        return 99
+    return resultcode
+
+
+def _main(example_name: str):
     if not example_name:
         print("no example_name given")
         return 101
@@ -26,8 +34,5 @@ def main(args):
 
     tempdir = tempfile.TemporaryDirectory()
     os.chdir(tempdir.name)
-    try:
-        resultcode = exercise_external_example(example_name, tempdir.name)
-    except Exception:
-        return 99
+    resultcode = exercise_external_example(example_name, tempdir.name)
     return resultcode

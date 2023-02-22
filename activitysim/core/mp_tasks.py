@@ -871,7 +871,7 @@ def coalesce_pipelines(whale: workflow.Whale, sub_proc_names, slice_info):
     whale.checkpoint.close_store()
 
 
-def setup_injectables_and_logging(injectables, locutor=True) -> workflow.Whale:
+def setup_injectables_and_logging(injectables, locutor: bool = True) -> workflow.Whale:
     """
     Setup injectables (passed by parent process) within sub process
 
@@ -1069,7 +1069,9 @@ def run_simulation(
 """
 
 
-def mp_run_simulation(locutor, queue, injectables, step_info, resume_after, **kwargs):
+def mp_run_simulation(
+    locutor: bool, queue, injectables, step_info, resume_after, **kwargs
+):
     """
     mp entry point for run_simulation
 

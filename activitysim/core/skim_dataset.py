@@ -587,7 +587,7 @@ def load_sparse_maz_skims(
     from ..core.los import THREE_ZONE, TWO_ZONE
 
     if data_file_resolver is None:
-        data_file_resolver = config.data_file_path
+        raise ValueError("missing file resolver")
 
     if zone_system in [TWO_ZONE, THREE_ZONE]:
         # maz
@@ -770,6 +770,7 @@ def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
                     max_blend_distance=network_los_preload.setting(
                         "maz_to_maz.max_blend_distance", default={}
                     ),
+                    data_file_resolver=whale.filesystem.get_data_file_path,
                 )
 
         d = _drop_unused_names(whale, d)

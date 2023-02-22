@@ -852,7 +852,7 @@ def iterate_location_choice(
     network_los,
     estimator,
     chunk_size,
-    locutor,
+    locutor: bool,
     trace_label,
 ):
     """
@@ -1068,7 +1068,7 @@ def workplace_location(
     households,
     network_los,
     chunk_size,
-    locutor,
+    locutor: bool,
 ):
     """
     workplace location choice model
@@ -1119,7 +1119,7 @@ def school_location(
     households,
     network_los,
     chunk_size,
-    locutor,
+    locutor: bool,
 ):
     """
     School location choice model

@@ -179,6 +179,9 @@ def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, whal
 
     global MEM_TICK
 
+    if whale is None:
+        raise ValueError("whale cannot be None")
+
     tick = time.time()
     if trace_ticks and (tick - MEM_TICK < trace_ticks):
         return
@@ -237,17 +240,12 @@ def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, whal
 
         with mem_log_lock:
             MEM_LOG_HEADER = "process,pid,rss,full_rss,uss,event,children,time"
-            if whale is None:
-                log_file = config.open_log_file(
-                    MEM_LOG_FILE_NAME, "a", header=MEM_LOG_HEADER, prefix=True
-                )
-            else:
-                log_file = whale.filesystem.open_log_file(
-                    MEM_LOG_FILE_NAME,
-                    "a",
-                    header=MEM_LOG_HEADER,
-                    prefix=whale.context.get("log_file_prefix", None),
-                )
+            log_file = whale.filesystem.open_log_file(
+                MEM_LOG_FILE_NAME,
+                "a",
+                header=MEM_LOG_HEADER,
+                prefix=whale.context.get("log_file_prefix", None),
+            )
 
             with log_file:
                 print(

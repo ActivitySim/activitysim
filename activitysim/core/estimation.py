@@ -323,7 +323,7 @@ class Estimator:
         self, settings_file_name, tag="model_settings", bundle_directory=False
     ):
 
-        input_path = config.base_settings_file_path(settings_file_name)
+        input_path = self.whale.filesystem.get_config_file_path(settings_file_name)
 
         output_path = self.output_file_path(tag, "yaml", bundle_directory)
 
@@ -500,7 +500,7 @@ class EstimationManager(object):
                     table_name,
                     ESTIMATION_SETTINGS_FILE_NAME,
                 )
-                file_path = whale.filesystem.data_file_path(
+                file_path = whale.filesystem.get_data_file_path(
                     table_info["file_name"], mandatory=True
                 )
                 assert os.path.exists(

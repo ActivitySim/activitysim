@@ -63,7 +63,9 @@ if __name__ == "__main__":
     whale.add_injectable("data_dir", "data")
     whale.add_injectable("configs_dir", "configs")
 
-    config.handle_standard_args()
+    from activitysim.cli.run import handle_standard_args
+
+    handle_standard_args(whale, None)
 
     config.filter_warnings()
     whale.config_logger()

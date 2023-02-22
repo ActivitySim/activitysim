@@ -27,6 +27,14 @@ def registered_external_example(name, working_dir):
     )
 
 
+def list_registered_examples():
+    with open(
+        Path(__file__).parent.joinpath("external_example_manifest.yaml"), "r"
+    ) as eem:
+        registered_examples = yaml.load(eem, yaml.SafeLoader)
+    return list(registered_examples.keys())
+
+
 def exercise_external_example(
     name, working_dir, maxfail: int = None, verbose=2, durations=0
 ):
@@ -64,7 +72,7 @@ def default_cache_dir() -> Path:
 
 def download_external_example(
     working_dir,
-    url="https://raw.githubusercontent.com/ActivitySim/activitysim/main/activitysim/examples/",
+    url,
     cache_dir=None,
     cache_file_name=None,
     sha256=None,

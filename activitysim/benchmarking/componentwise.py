@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def reload_settings(settings_filename, **kwargs):
-    settings = config.read_settings_file(settings_filename, mandatory=True)
+    settings = whale.filesystem.read_settings_file(settings_filename, mandatory=True)
     for k in kwargs:
         settings[k] = kwargs[k]
     whale.add_injectable("settings", settings)
@@ -410,10 +410,8 @@ def template_setup_cache(
         os.makedirs(model_dir(example_name, config_overload_dir), exist_ok=True)
 
         # Find the settings file and extract the complete set of models included
-        from ..core.config import read_settings_file
-
         try:
-            existing_settings, settings_filenames = read_settings_file(
+            existing_settings, settings_filenames = whale.filesystem.read_settings_file(
                 settings_filename,
                 mandatory=True,
                 include_stack=True,

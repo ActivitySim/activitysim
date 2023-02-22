@@ -1061,7 +1061,7 @@ class ChunkSizer:
             # mem.trace_memory_info(hwm_trace_label, trace_ticks=trace_ticks)
             return
 
-        rss, uss = mem.trace_memory_info(hwm_trace_label)
+        rss, uss = mem.trace_memory_info(hwm_trace_label, whale=self.whale)
 
         # check local hwm for all ledgers
         with ledger_lock:

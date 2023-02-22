@@ -49,7 +49,7 @@ def compute_utilities(
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_utils")
 
-    with chunk.chunk_log(trace_label, settings=whale.settings) as chunk_sizer:
+    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
         logger.debug(
             f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers"
         )
@@ -148,9 +148,7 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, f"maz_tap_utils.{leg}")
 
-        with chunk.chunk_log(
-            trace_label, settings=self.network_los.whale.settings
-        ) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
             maz_tap_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.maz_tap_settings.{mode}"
             )
@@ -301,9 +299,7 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_utils")
 
-        with chunk.chunk_log(
-            trace_label, settings=self.network_los.whale.settings
-        ) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -461,9 +457,7 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "lookup_tap_tap_utils")
 
-        with chunk.chunk_log(
-            trace_label, settings=self.network_los.whale.settings
-        ) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
             with memo("#TVPB CACHE lookup_tap_tap_utilities all_transit_paths"):
                 transit_df = self.all_transit_paths(
                     access_df, egress_df, chooser_attributes, trace_label, trace=False
@@ -533,9 +527,7 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_time")
 
-        with chunk.chunk_log(
-            trace_label, settings=self.network_los.whale.settings
-        ) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -688,9 +680,7 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, "best_paths")
 
-        with chunk.chunk_log(
-            trace_label, settings=self.network_los.whale.settings
-        ) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
             path_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.path_types.{path_type}"
             )
@@ -1099,9 +1089,7 @@ class TransitVirtualPathBuilder(object):
         trace_label = trace_label or "get_tvpb_logsum"
         trace_label = tracing.extend_trace_label(trace_label, path_type)
 
-        with chunk.chunk_log(
-            trace_label, settings=self.network_los.whale.settings
-        ) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
             logsum_df = self.build_virtual_path(
                 recipe,
                 path_type,
@@ -1146,7 +1134,7 @@ class TransitVirtualPathBuilder(object):
         recipe = "accessibility"
         path_type = "WTW"
 
-        with chunk.chunk_log(trace_label, settings=self.network_los.whale.settings):
+        with chunk.chunk_log(self.network_los.whale, trace_label):
             result = self.build_virtual_path(
                 recipe,
                 path_type,

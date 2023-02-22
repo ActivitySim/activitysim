@@ -9,7 +9,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pytest
 
-from activitysim.core import inject, simulate, workflow
+from activitysim.core import simulate, workflow
 
 
 @pytest.fixture

@@ -111,9 +111,7 @@ def initialize_landuse(whale: workflow.Whale):
     trace_label = "initialize_landuse"
     settings_filename = "initialize_landuse.yaml"
 
-    with chunk.chunk_log(
-        trace_label, base=True, settings=whale.settings
-    ) as chunk_sizer:
+    with chunk.chunk_log(whale, trace_label, base=True) as chunk_sizer:
         model_settings = whale.filesystem.read_settings_file(
             settings_filename, mandatory=True
         )
@@ -129,7 +127,7 @@ def initialize_landuse(whale: workflow.Whale):
 def initialize_households(whale: workflow.Whale):
     trace_label = "initialize_households"
 
-    with whale.chunk_log(trace_label, base=True) as chunk_sizer:
+    with whale.chunk_log(whale, trace_label, base=True) as chunk_sizer:
         chunk_sizer.log_rss(f"{trace_label}.inside-yield")
 
         households = whale.get_dataframe("households")
@@ -171,12 +169,6 @@ def preload_injectables(whale: workflow.Whale):
 
     logger.info("preload_injectables")
 
-    table_list = whale.settings.input_table_list
-
-    # default ActivitySim table names and indices
-    if table_list is None:
-        raise ValueError("No 'input_table_list' found in settings.")
-
     # FIXME undocumented feature
     if whale.settings.write_raw_tables:
         # write raw input tables as csv (before annotation)
@@ -184,7 +176,13 @@ def preload_injectables(whale: workflow.Whale):
         if not os.path.exists(csv_dir):
             os.makedirs(csv_dir)  # make directory if needed
 
-        table_names = [t["tablename"] for t in table_list]
+        # default ActivitySim table names and indices
+        if whale.settings.input_table_list is None:
+            raise ValueError(
+                "no `input_table_list` found in settings, " "cannot `write_raw_tables`."
+            )
+
+        table_names = [t["tablename"] for t in whale.settings.input_table_list]
         for t in table_names:
             df = whale.get_dataframe(t)
             df.to_csv(os.path.join(csv_dir, "%s.csv" % t), index=True)

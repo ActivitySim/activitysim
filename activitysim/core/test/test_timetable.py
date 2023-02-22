@@ -59,7 +59,7 @@ def test_basic(persons, tdd_alts):
 
     whale = workflow.Whale().default_settings()
 
-    with chunk.chunk_log("test_basic", base=True, settings=whale.settings):
+    with chunk.chunk_log(whale, "test_basic", base=True):
 
         person_windows = tt.create_timetable_windows(persons, tdd_alts)
 

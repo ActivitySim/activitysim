@@ -54,7 +54,7 @@ def test_assign_cdap_rank(people, model_settings):
     whale = workflow.Whale.make_default(__file__)
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log("test_assign_cdap_rank", base=True, settings=whale.settings):
+    with chunk.chunk_log(whale, "test_assign_cdap_rank", base=True):
         cdap.assign_cdap_rank(whale, people, person_type_map)
 
     expected = pd.Series(
@@ -74,9 +74,7 @@ def test_individual_utilities(people, model_settings):
 
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log(
-        "test_individual_utilities", base=True, settings=whale.settings
-    ) as chunk_sizer:
+    with chunk.chunk_log(whale, "test_individual_utilities", base=True) as chunk_sizer:
         cdap.assign_cdap_rank(whale, people, person_type_map)
         individual_utils = cdap.individual_utilities(
             whale,
@@ -138,7 +136,7 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
     with chunk.chunk_log(
-        "test_build_cdap_spec_hhsize2", base=True, settings=whale.settings
+        whale, "test_build_cdap_spec_hhsize2", base=True
     ) as chunk_sizer:
         cdap.assign_cdap_rank(whale, people, person_type_map)
         indiv_utils = cdap.individual_utilities(

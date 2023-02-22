@@ -136,17 +136,6 @@ def get_logit_model_settings(model_settings):
     return nests
 
 
-def build_output_file_path(file_name, use_prefix=None):
-    output_dir = inject.get_injectable("output_dir")
-
-    if use_prefix:
-        file_name = "%s-%s" % (use_prefix, file_name)
-
-    file_path = os.path.join(output_dir, file_name)
-
-    return file_path
-
-
 def cascading_input_file_path(
     file_name, dir_list_injectable_name, mandatory=True, allow_glob=False
 ):
@@ -239,17 +228,6 @@ def expand_input_file_list(input_files, whale=None):
     return sorted(expanded_files)
 
 
-def config_file_path(file_name, mandatory=True):
-
-    return cascading_input_file_path(file_name, "configs_dir", mandatory)
-
-
-# def output_file_path(file_name):
-#
-#     prefix = inject.get_injectable("output_file_prefix", None)
-#     return build_output_file_path(file_name, use_prefix=prefix)
-
-
 def log_file_path(file_name, prefix=True, whale: workflow.Whale = None):
 
     if whale is not None:
@@ -324,12 +302,6 @@ def rotate_log_directory(whale=None):
     else:
         # on successful rotate, create new empty log directory
         os.makedirs(log_dir)
-
-
-def pipeline_file_path(file_name):
-
-    prefix = inject.get_injectable("pipeline_file_prefix", None)
-    return build_output_file_path(file_name, use_prefix=prefix)
 
 
 class SettingsFileNotFound(Exception):

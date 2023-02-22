@@ -642,9 +642,9 @@ def compute_ood_logsums(
     # in `chunk.chunk_log()` at chunk.py L927. To avoid failing this assertion,
     # the preprocessor must be called from within a "null chunker" as follows:
     with chunk.chunk_log(
+        whale,
         tracing.extend_trace_label(trace_label, "annotate_preprocessor"),
         base=True,
-        settings=whale.settings,
     ):
         expressions.annotate_preprocessors(
             whale, choosers, locals_dict, od_skims, logsum_settings, trace_label

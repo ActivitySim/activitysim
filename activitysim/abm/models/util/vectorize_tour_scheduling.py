@@ -106,7 +106,7 @@ def _compute_logsums(
 
     trace_label = tracing.extend_trace_label(trace_label, "logsums")
 
-    with chunk.chunk_log(trace_label, settings=whale.settings):
+    with chunk.chunk_log(whale, trace_label):
         logsum_settings = whale.filesystem.read_model_settings(
             model_settings["LOGSUM_SETTINGS"]
         )
@@ -184,8 +184,7 @@ def dedupe_alt_tdd(whale: workflow.Whale, alt_tdd, tour_purpose, trace_label):
     logger.info("tdd_alt_segments specified for representative logsums")
 
     with chunk.chunk_log(
-        tracing.extend_trace_label(trace_label, "dedupe_alt_tdd"),
-        settings=whale.settings,
+        whale, tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")
     ) as chunk_sizer:
         if tdd_segments is not None:
             dedupe_columns = ["out_period", "in_period"]
@@ -338,7 +337,7 @@ def compute_tour_scheduling_logsums(
     # outside chunk_log context because we extend log_df call for alt_tdd made by our only caller _schedule_tours
     chunk_sizer.log_df(trace_label, "alt_tdd", alt_tdd)
 
-    with chunk.chunk_log(trace_label, settings=whale.settings) as chunk_sizer:
+    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
         if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS:
             # compute logsums for all the tour alt_tdds (inefficient)
             logsums = _compute_logsums(
@@ -500,7 +499,7 @@ def tdd_interaction_dataset(
 
     trace_label = tracing.extend_trace_label(trace_label, "tdd_interaction_dataset")
 
-    with chunk.chunk_log(trace_label, settings=whale.settings) as chunk_sizer:
+    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
         alts_ids = np.tile(alts.index, len(tours.index))
         chunk_sizer.log_df(trace_label, "alts_ids", alts_ids)
 

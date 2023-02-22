@@ -639,8 +639,7 @@ class TimeTable(object):
         assert len(window_row_ids) == len(periods)
 
         trace_label = "tt.adjacent_window_run_length"
-        settings = self.whale.settings if self.whale is not None else None
-        with chunk.chunk_log(trace_label, settings=settings) as chunk_sizer:
+        with chunk.chunk_log(self.whale, trace_label) as chunk_sizer:
             available_run_length = _available_run_length_2(
                 self.windows,
                 self.window_row_ix._mapper,

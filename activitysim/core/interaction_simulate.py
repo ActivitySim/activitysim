@@ -86,7 +86,7 @@ def eval_interaction_utilities(
 
     trace_eval_results = None
 
-    with chunk.chunk_log(trace_label, settings=whale.settings) as chunk_sizer:
+    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
 
         assert len(spec.columns) == 1
 

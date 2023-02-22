@@ -198,9 +198,9 @@ def trip_mode_choice(
         # have to initialize chunker for preprocessing in order to access
         # tvpb logsum terms in preprocessor expressions.
         with chunk.chunk_log(
+            whale,
             tracing.extend_trace_label(trace_label, "preprocessing"),
             base=True,
-            settings=whale.settings,
         ):
             expressions.annotate_preprocessors(
                 whale,

@@ -1009,12 +1009,6 @@ class Whale:
 
             self.checkpoint.last_checkpoint[table_name] = ""
 
-    # @contextlib.contextmanager
-    def chunk_log(self, *args, **kwargs):
-        from activitysim.core.chunk import chunk_log
-
-        return chunk_log(*args, **kwargs, settings=self.settings)
-
     def get_output_file_path(self, file_name: str, prefix: str | bool = None) -> Path:
         if prefix is None or prefix is True:
             prefix = self.get_injectable("output_file_prefix", None)

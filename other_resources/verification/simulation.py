@@ -6,7 +6,7 @@ import sys
 
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, mem, mp_tasks, tracing, workflow
+from activitysim.core import chunk, config, mem, mp_tasks, tracing, workflow
 
 # from activitysim import abm
 

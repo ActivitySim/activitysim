@@ -7,7 +7,7 @@ import pytest
 import yaml
 
 # Note that the following import statement has the side-effect of registering injectables:
-from activitysim.core import config, configuration, inject, input, workflow
+from activitysim.core import configuration, input, workflow
 
 
 @pytest.fixture(scope="module")

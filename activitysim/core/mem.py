@@ -175,7 +175,7 @@ def log_global_hwm():
         )
 
 
-def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, whale=None):
+def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, whale):
 
     global MEM_TICK
 

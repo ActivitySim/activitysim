@@ -11,7 +11,7 @@ from abc import ABC
 import numpy as np
 import openmatrix as omx
 
-from activitysim.core import config, inject, skim_dictionary, util
+from activitysim.core import skim_dictionary, util
 
 logger = logging.getLogger(__name__)
 

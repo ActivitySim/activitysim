@@ -472,7 +472,7 @@ def trip_scheduling(whale: workflow.Whale, trips: pd.DataFrame, tours: pd.DataFr
         while (i < max_iterations) and not trips_chunk.empty:
             # only chunk log first iteration since memory use declines with each iteration
             with chunk.chunk_log(
-                trace_label, settings=whale.settings
+                whale, trace_label
             ) if i == 0 else chunk.chunk_log_skip():
                 i += 1
                 is_last_iteration = i == max_iterations

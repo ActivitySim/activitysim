@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from activitysim.core import assign, config, inject, tracing, workflow
+from activitysim.core import assign, workflow
 
 
 def close_handlers():

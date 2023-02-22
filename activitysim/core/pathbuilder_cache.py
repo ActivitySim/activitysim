@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import itertools
 import logging
 import multiprocessing
@@ -491,7 +493,7 @@ class TapTapUidCalculator:
 
             yield scalar_attributes
 
-    def scalar_attribute_combinations(self):
+    def scalar_attribute_combinations(self) -> pd.DataFrame:
         attribute_names = list(self.segmentation.keys())
         attribute_tuples = self.attribute_combination_tuples
         x = [list(t) for t in attribute_tuples]

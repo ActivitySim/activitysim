@@ -1,6 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -84,7 +87,7 @@ def find_nearest_accessibility_zone(
 
 
 @workflow.cached_object
-def disaggregate_suffixes(whale: workflow.Whale):
+def disaggregate_suffixes(whale: workflow.Whale) -> dict[str, Any]:
     return {"SUFFIX": None, "ROOTS": []}
 
 

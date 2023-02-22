@@ -1,11 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
 from activitysim.abm.models.util import annotate, tour_destination
-from activitysim.core import estimation, tracing, workflow
+from activitysim.core import estimation, los, tracing, workflow
 from activitysim.core.util import assign_in_place
 
 logger = logging.getLogger(__name__)
@@ -16,7 +18,7 @@ def non_mandatory_tour_destination(
     whale: workflow.Whale,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
-    network_los,
+    network_los: los.Network_LOS,
 ):
     """
     Given the tour generation from the above, each tour needs to have a

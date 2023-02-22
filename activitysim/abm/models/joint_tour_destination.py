@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -16,9 +18,7 @@ def joint_tour_destination(
     whale: workflow.Whale,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
-    households_merged,
     network_los: los.Network_LOS,
-    chunk_size,
 ):
     """
     Given the tour generation from the above, each tour needs to have a

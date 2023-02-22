@@ -1,3 +1,7 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 from typing import Mapping
 
@@ -320,7 +324,12 @@ def run_trip_scheduling_choice(
 
 
 @workflow.step
-def trip_scheduling_choice(whale: workflow.Whale, trips, tours, skim_dict):
+def trip_scheduling_choice(
+    whale: workflow.Whale,
+    trips: pd.DataFrame,
+    tours: pd.DataFrame,
+    skim_dict,
+):
     trace_label = "trip_scheduling_choice"
     model_settings = whale.filesystem.read_model_settings("trip_scheduling_choice.yaml")
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", "stage_one")

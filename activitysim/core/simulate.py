@@ -1,10 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import logging
 import time
 import warnings
-from builtins import range
 from collections import OrderedDict
 from datetime import timedelta
 from typing import Callable, Optional

@@ -1,8 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
+import pandas as pd
 
 from activitysim.core import (
     config,
@@ -17,7 +20,11 @@ logger = logging.getLogger("activitysim")
 
 
 @workflow.step
-def work_from_home(whale: workflow.Whale, persons_merged, persons):
+def work_from_home(
+    whale: workflow.Whale,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+):
     """
     This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).

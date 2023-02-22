@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -41,7 +43,10 @@ def add_null_results(whale, trace_label, mandatory_tour_frequency_settings):
 
 
 @workflow.step
-def mandatory_tour_frequency(whale: workflow.Whale, persons_merged, chunk_size):
+def mandatory_tour_frequency(
+    whale: workflow.Whale,
+    persons_merged: pd.DataFrame,
+):
     """
     This model predicts the frequency of making mandatory trips (see the
     alternatives above) - these trips include work and school in some combination.

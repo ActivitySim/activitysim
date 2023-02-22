@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -26,10 +28,9 @@ def add_null_results(whale, trace_label, tours):
 @workflow.step
 def joint_tour_composition(
     whale: workflow.Whale,
-    tours,
+    tours: pd.DataFrame,
     households: pd.DataFrame,
     persons: pd.DataFrame,
-    chunk_size,
 ):
     """
     This model predicts the makeup of the travel party (adults, children, or mixed).

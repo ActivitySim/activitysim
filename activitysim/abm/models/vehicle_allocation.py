@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import logging
 
@@ -9,6 +10,7 @@ from activitysim.core import (
     config,
     estimation,
     expressions,
+    los,
     simulate,
     tracing,
     workflow,
@@ -82,12 +84,12 @@ def get_skim_dict(network_los, choosers):
 @workflow.step
 def vehicle_allocation(
     whale: workflow.Whale,
-    persons,
-    households,
-    vehicles,
-    tours,
-    tours_merged,
-    network_los,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    vehicles: pd.DataFrame,
+    tours: pd.DataFrame,
+    tours_merged: pd.DataFrame,
+    network_los: los.Network_LOS,
 ):
     """Selects a vehicle for each occupancy level for each tour.
 

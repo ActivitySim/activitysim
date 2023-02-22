@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+
 class PipelineError(ValueError):
     """General class for errors in using a Pipeline."""
 

@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 from builtins import range
 
@@ -356,7 +358,11 @@ def run_trip_scheduling(
 
 
 @workflow.step(copy_tables=False)
-def trip_scheduling(whale: workflow.Whale, trips: pd.DataFrame, tours: pd.DataFrame):
+def trip_scheduling(
+    whale: workflow.Whale,
+    trips: pd.DataFrame,
+    tours: pd.DataFrame,
+):
     """
     Trip scheduling assigns depart times for trips within the start, end limits of the tour.
 

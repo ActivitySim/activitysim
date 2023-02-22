@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -27,8 +29,6 @@ def mandatory_tour_scheduling(
 
     model_name = "mandatory_tour_scheduling"
     trace_label = model_name
-    trace_hh_id = whale.settings.trace_hh_id
-    chunk_size = whale.settings.chunk_size
 
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 
@@ -60,7 +60,6 @@ def mandatory_tour_scheduling(
         persons_merged,
         tdd_alts,
         tour_segment_col,
-        chunk_size,
     )
 
     assign_in_place(tours, choices)
@@ -76,7 +75,7 @@ def mandatory_tour_scheduling(
         "tour_map",
     )
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.tracing.trace_df(
             mandatory_tours,
             label=trace_label,

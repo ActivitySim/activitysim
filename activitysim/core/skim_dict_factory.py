@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 # from builtins import int
+from __future__ import annotations
 
 import logging
 import multiprocessing

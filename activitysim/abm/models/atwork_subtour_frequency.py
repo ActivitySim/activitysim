@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -25,7 +27,11 @@ def add_null_results(whale, trace_label, tours):
 
 
 @workflow.step
-def atwork_subtour_frequency(whale: workflow.Whale, tours, persons_merged, chunk_size):
+def atwork_subtour_frequency(
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+):
     """
     This model predicts the frequency of making at-work subtour tours
     (alternatives for this model come from a separate csv file which is

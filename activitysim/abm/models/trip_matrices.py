@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import logging
 
@@ -14,7 +15,9 @@ logger = logging.getLogger(__name__)
 
 @workflow.step(copy_tables=["trips"])
 def write_trip_matrices(
-    whale: workflow.Whale, network_los: los.Network_LOS, trips: pd.DataFrame
+    whale: workflow.Whale,
+    network_los: los.Network_LOS,
+    trips: pd.DataFrame,
 ):
     """
     Write trip matrices step.

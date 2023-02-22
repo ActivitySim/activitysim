@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -1063,11 +1065,10 @@ def iterate_location_choice(
 @workflow.step
 def workplace_location(
     whale: workflow.Whale,
-    persons_merged,
-    persons,
-    households,
-    network_los,
-    chunk_size,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    network_los: los.Network_LOS,
     locutor: bool,
 ):
     """
@@ -1102,7 +1103,7 @@ def workplace_location(
         households,
         network_los,
         estimator,
-        chunk_size,
+        whale.settings.chunk_size,
         locutor,
         trace_label,
     )
@@ -1114,11 +1115,10 @@ def workplace_location(
 @workflow.step
 def school_location(
     whale: workflow.Whale,
-    persons_merged,
-    persons,
-    households,
-    network_los,
-    chunk_size,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    network_los: los.Network_LOS,
     locutor: bool,
 ):
     """
@@ -1146,7 +1146,7 @@ def school_location(
         households,
         network_los,
         estimator,
-        chunk_size,
+        whale.settings.chunk_size,
         locutor,
         trace_label,
     )

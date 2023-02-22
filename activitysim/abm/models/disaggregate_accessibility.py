@@ -1,3 +1,7 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import random
 from functools import reduce
@@ -671,15 +675,19 @@ def get_disaggregate_logsums(
 
 
 @workflow.step
-def initialize_proto_population(whale: workflow.Whale, network_los, chunk_size):
+def initialize_proto_population(
+    whale: workflow.Whale,
+    network_los: los.Network_LOS,
+):
     # Synthesize the proto-population
-    ProtoPop(whale, network_los, chunk_size)
+    ProtoPop(whale, network_los, whale.settings.chunk_size)
     return
 
 
 @workflow.step
 def compute_disaggregate_accessibility(
-    whale: workflow.Whale, network_los, chunk_size, trace_hh_id
+    whale: workflow.Whale,
+    network_los: los.Network_LOS,
 ):
     """
     Compute enhanced disaggregate accessibility for user specified population segments,
@@ -699,7 +707,9 @@ def compute_disaggregate_accessibility(
         del df
 
     # Run location choice
-    logsums = get_disaggregate_logsums(whale, network_los, chunk_size, trace_hh_id)
+    logsums = get_disaggregate_logsums(
+        whale, network_los, whale.settings.chunk_size, whale.settings.trace_hh_id
+    )
     logsums = {k + "_accessibility": v for k, v in logsums.items()}
 
     # Combined accessibility table

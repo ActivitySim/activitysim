@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -335,11 +337,10 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
 @workflow.step
 def school_escorting(
     whale: workflow.Whale,
-    households,
-    households_merged,
-    persons,
-    tours,
-    chunk_size,
+    households: pd.DataFrame,
+    households_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    tours: pd.DataFrame,
 ):
     """
     school escorting model
@@ -457,7 +458,7 @@ def school_escorting(
             spec=model_spec,
             log_alt_losers=log_alt_losers,
             locals_d=locals_dict,
-            chunk_size=chunk_size,
+            chunk_size=whale.settings.chunk_size,
             trace_label=stage_trace_label,
             trace_choice_name="school_escorting_" + "stage",
             estimator=estimator,

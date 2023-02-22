@@ -1,10 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import ctypes
 import logging
 import multiprocessing
 import time
 from collections import OrderedDict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -79,7 +82,7 @@ def size_table_name(model_selector):
     return "%s_destination_size" % model_selector
 
 
-class ShadowPriceCalculator(object):
+class ShadowPriceCalculator:
     def __init__(
         self,
         whale: workflow.Whale,
@@ -1224,7 +1227,10 @@ def load_shadow_price_calculator(whale, model_settings):
 
 # first define add_size_tables as an orca step with no scale argument at all.
 @workflow.step
-def add_size_tables(whale: workflow.Whale, disaggregate_suffixes):
+def add_size_tables(
+    whale: workflow.Whale,
+    disaggregate_suffixes: dict[str, Any],
+):
     return _add_size_tables(whale, disaggregate_suffixes)
 
 

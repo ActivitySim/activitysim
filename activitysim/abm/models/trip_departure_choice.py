@@ -1,3 +1,7 @@
+# ActivitySim
+# See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -178,7 +182,7 @@ def choose_tour_leg_pattern(
     spec,
     trace_label="trace_label",
     *,
-    chunk_sizer: chunk.ChunkSizer
+    chunk_sizer: chunk.ChunkSizer,
 ):
     alternatives = generate_alternatives(trip_segment, STOP_TIME_DURATION).sort_index()
     have_trace_targets = whale.tracing.has_trace_targets(trip_segment)
@@ -474,7 +478,9 @@ def apply_stage_two_model(whale, omnibus_spec, trips, chunk_size, trace_label):
 
 
 @workflow.step
-def trip_departure_choice(whale: workflow.Whale, trips, trips_merged, skim_dict):
+def trip_departure_choice(
+    whale: workflow.Whale, trips: pd.DataFrame, trips_merged: pd.DataFrame, skim_dict
+):
     trace_label = "trip_departure_choice"
     model_settings = whale.filesystem.read_model_settings("trip_departure_choice.yaml")
 

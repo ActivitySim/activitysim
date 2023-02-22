@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -23,9 +25,8 @@ def atwork_subtour_scheduling(
     whale: workflow.Whale,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
-    tdd_alts,
+    tdd_alts: pd.DataFrame,
     skim_dict,
-    chunk_size,
 ):
     """
     This model predicts the departure time and duration of each activity for at work subtours tours
@@ -83,7 +84,7 @@ def atwork_subtour_scheduling(
         model_spec,
         model_settings,
         estimator=estimator,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         trace_label=trace_label,
         sharrow_skip=sharrow_skip,
     )

@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -174,7 +176,7 @@ def tour_mode_choice_simulate(
     whale: workflow.Whale,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
-    network_los,
+    network_los: los.Network_LOS,
 ):
     """
     Tour mode choice simulate

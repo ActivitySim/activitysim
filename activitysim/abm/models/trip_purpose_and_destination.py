@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -50,7 +52,9 @@ def run_trip_purpose_and_destination(
 
 @workflow.step
 def trip_purpose_and_destination(
-    whale: workflow.Whale, trips: pd.DataFrame, tours_merged: pd.DataFrame
+    whale: workflow.Whale,
+    trips: pd.DataFrame,
+    tours_merged: pd.DataFrame,
 ):
     trace_label = "trip_purpose_and_destination"
     model_settings = whale.filesystem.read_model_settings(

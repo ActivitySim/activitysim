@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -1169,7 +1171,7 @@ def vectorize_subtour_scheduling(
             previous_tour_by_parent_tour_id,
             tour_owner_id_col,
             estimator,
-            chunk_size,
+            whale.settings.chunk_size,
             tour_trace_label,
             tour_chunk_tag,
             sharrow_skip=sharrow_skip,

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import logging
 import os
@@ -10,7 +12,7 @@ import sharrow as sh
 import xarray as xr
 
 from activitysim.core import config
-from activitysim.core import flow as __flow
+from activitysim.core import flow as __flow  # noqa: 401
 from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)

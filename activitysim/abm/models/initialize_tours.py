@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -75,7 +77,11 @@ def patch_tour_ids(whale: workflow.Whale, tours):
 
 
 @workflow.step
-def initialize_tours(whale: workflow.Whale, network_los, households, persons):
+def initialize_tours(
+    whale: workflow.Whale,
+    households: pd.DataFrame,
+    persons: pd.DataFrame,
+):
     trace_label = "initialize_tours"
 
     trace_hh_id = whale.settings.trace_hh_id

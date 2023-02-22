@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -273,7 +275,9 @@ def add_null_results(whale, model_settings, trace_label):
 
 @workflow.step
 def joint_tour_participation(
-    whale: workflow.Whale, tours: pd.DataFrame, persons_merged: pd.DataFrame, chunk_size
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
 ):
     """
     Predicts for each eligible person to participate or not participate in each joint tour.

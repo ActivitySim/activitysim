@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -24,7 +26,6 @@ def cdap_simulate(
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
     households: pd.DataFrame,
-    chunk_size,
 ):
     """
     CDAP stands for Coordinated Daily Activity Pattern, which is a choice of
@@ -149,7 +150,7 @@ def cdap_simulate(
         cdap_interaction_coefficients=cdap_interaction_coefficients,
         cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
         locals_d=constants,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )

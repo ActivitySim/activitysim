@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -9,6 +11,7 @@ from activitysim.core import (
     config,
     estimation,
     expressions,
+    los,
     simulate,
     tracing,
     workflow,
@@ -24,7 +27,7 @@ def stop_frequency(
     tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
     stop_frequency_alts,
-    network_los,
+    network_los: los.Network_LOS,
 ):
     """
     stop frequency model

@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -17,7 +19,6 @@ def run_tour_scheduling(
     persons_merged,
     tdd_alts,
     tour_segment_col,
-    chunk_size,
 ):
     trace_label = model_name
     model_settings_file_name = f"{model_name}.yaml"
@@ -144,7 +145,7 @@ def run_tour_scheduling(
         tour_segments=tour_segments,
         tour_segment_col=tour_segment_col,
         model_settings=model_settings,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         trace_label=trace_label,
     )
 

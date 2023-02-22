@@ -1,11 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
 
 from activitysim.abm.models.util import tour_od
-from activitysim.core import estimation, workflow
+from activitysim.core import estimation, los, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ def tour_od_choice(
     persons: pd.DataFrame,
     households: pd.DataFrame,
     land_use: pd.DataFrame,
-    network_los,
+    network_los: los.Network_LOS,
     chunk_size,
 ):
     """Simulates joint origin/destination choice for all tours.

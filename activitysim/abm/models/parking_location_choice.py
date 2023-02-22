@@ -1,11 +1,21 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import config, expressions, logit, simulate, tracing, workflow
+from activitysim.core import (
+    config,
+    expressions,
+    logit,
+    los,
+    simulate,
+    tracing,
+    workflow,
+)
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place
@@ -277,8 +287,7 @@ def parking_location(
     trips: pd.DataFrame,
     trips_merged: pd.DataFrame,
     land_use: pd.DataFrame,
-    network_los,
-    chunk_size,
+    network_los: los.Network_LOS,
 ):
     """
     Given a set of trips, each trip needs to have a parking location if
@@ -334,7 +343,7 @@ def parking_location(
         model_settings,
         trips_merged_df,
         land_use_df,
-        chunk_size=chunk_size,
+        chunk_size=whale.settings.chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )

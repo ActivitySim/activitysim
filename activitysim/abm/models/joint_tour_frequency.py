@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -20,7 +22,9 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def joint_tour_frequency(whale: workflow.Whale, households, persons, chunk_size):
+def joint_tour_frequency(
+    whale: workflow.Whale, households: pd.DataFrame, persons: pd.DataFrame
+):
     """
     This model predicts the frequency of making fully joint trips (see the
     alternatives above).

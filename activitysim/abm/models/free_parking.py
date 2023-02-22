@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -21,7 +23,6 @@ def free_parking(
     whale: workflow.Whale,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
-    chunk_size,
 ):
     """ """
 

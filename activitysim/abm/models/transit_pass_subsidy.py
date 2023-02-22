@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -21,7 +23,6 @@ def transit_pass_subsidy(
     whale: workflow.Whale,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
-    trace_hh_id,
 ):
     """
     Transit pass subsidy model.
@@ -94,5 +95,5 @@ def transit_pass_subsidy(
         "transit_pass_subsidy", persons.transit_pass_subsidy, value_counts=True
     )
 
-    if trace_hh_id:
+    if whale.settings.trace_hh_id:
         whale.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

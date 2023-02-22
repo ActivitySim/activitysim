@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import multiprocessing
 import os
@@ -8,6 +10,7 @@ from contextlib import contextmanager
 
 import numba
 import numpy as np
+import pandas as pd
 
 from activitysim.core import chunk, los, pathbuilder, tracing, workflow
 
@@ -56,7 +59,7 @@ def num_uninitialized(data, lock=None):
 
 
 @workflow.step
-def initialize_los(whale: workflow.Whale, network_los):
+def initialize_los(whale: workflow.Whale, network_los: los.Network_LOS):
     """
     Currently, this step is only needed for THREE_ZONE systems in which the tap_tap_utilities are precomputed
     in the (presumably subsequent) initialize_tvpb step.
@@ -188,8 +191,8 @@ def compute_utilities_for_attribute_tuple(
 @workflow.step
 def initialize_tvpb(
     whale: workflow.Whale,
-    network_los,
-    attribute_combinations,
+    network_los: los.Network_LOS,
+    attribute_combinations: pd.DataFrame,
 ):
     """
     Initialize STATIC tap_tap_utility cache and write mmap to disk.

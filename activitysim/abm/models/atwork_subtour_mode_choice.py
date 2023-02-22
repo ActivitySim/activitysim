@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -17,8 +19,7 @@ def atwork_subtour_mode_choice(
     whale: workflow.Whale,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
-    network_los,
-    chunk_size,
+    network_los: los.Network_LOS,
 ):
     """
     At-work subtour mode choice simulate

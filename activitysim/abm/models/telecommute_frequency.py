@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import pandas as pd
@@ -18,7 +20,9 @@ logger = logging.getLogger("activitysim")
 
 @workflow.step
 def telecommute_frequency(
-    whale: workflow.Whale, persons_merged: pd.DataFrame, persons: pd.DataFrame
+    whale: workflow.Whale,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
 ):
     """
     This model predicts the frequency of telecommute for a person (worker) who

@@ -1,6 +1,10 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
+
+import pandas as pd
 
 from activitysim.abm.models.util.tour_scheduling import run_tour_scheduling
 from activitysim.core import timetable as tt
@@ -13,7 +17,10 @@ DUMP = False
 
 @workflow.step
 def non_mandatory_tour_scheduling(
-    whale: workflow.Whale, tours, persons_merged, tdd_alts, chunk_size
+    whale: workflow.Whale,
+    tours: pd.DataFrame,
+    persons_merged: pd.DataFrame,
+    tdd_alts: pd.DataFrame,
 ):
     """
     This model predicts the departure time and duration of each activity for non-mandatory tours
@@ -38,7 +45,6 @@ def non_mandatory_tour_scheduling(
         persons_merged,
         tdd_alts,
         tour_segment_col,
-        chunk_size,
     )
 
     assign_in_place(tours, choices)

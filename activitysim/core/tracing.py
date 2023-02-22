@@ -16,7 +16,6 @@ ASIM_LOGGER = "activitysim"
 CSV_FILE_TYPE = "csv"
 LOGGING_CONF_FILE_NAME = "logging.yaml"
 
-logging.INFO
 logger = logging.getLogger(__name__)
 
 timing_notes = set()
@@ -216,70 +215,6 @@ def write_series_csv(
 
     need_header = not os.path.isfile(file_path)
     series.to_csv(file_path, mode="a", index=True, header=need_header)
-
-
-# def write_csv(
-#     whale: workflow.Whale,
-#     df,
-#     file_name,
-#     index_label=None,
-#     columns=None,
-#     column_labels=None,
-#     transpose=True,
-# ):
-#     """
-#     Print write_csv
-#
-#     Parameters
-#     ----------
-#     df: pandas.DataFrame or pandas.Series or dict
-#         traced dataframe
-#     file_name: str
-#         output file name
-#     index_label: str
-#         index name
-#     columns: list
-#         columns to write
-#     transpose: bool
-#         whether to transpose dataframe (ignored for series)
-#     Returns
-#     -------
-#     Nothing
-#     """
-#
-#     assert len(file_name) > 0
-#
-#     if not file_name.endswith(".%s" % CSV_FILE_TYPE):
-#         file_name = "%s.%s" % (file_name, CSV_FILE_TYPE)
-#
-#     file_path = whale.filesystem.get_trace_file_path(file_name)
-#
-#     if os.name == "nt":
-#         abs_path = os.path.abspath(file_path)
-#         if len(abs_path) > 255:
-#             msg = f"path length ({len(abs_path)}) may exceed Windows maximum length unless LongPathsEnabled: {abs_path}"
-#             logger.warning(msg)
-#
-#     if os.path.isfile(file_path):
-#         logger.debug("write_csv file exists %s %s" % (type(df).__name__, file_name))
-#
-#     if isinstance(df, pd.DataFrame):
-#         # logger.debug("dumping %s dataframe to %s" % (df.shape, file_name))
-#         write_df_csv(
-#             df, file_path, index_label, columns, column_labels, transpose=transpose
-#         )
-#     elif isinstance(df, pd.Series):
-#         # logger.debug("dumping %s element series to %s" % (df.shape[0], file_name))
-#         write_series_csv(df, file_path, index_label, columns, column_labels)
-#     elif isinstance(df, dict):
-#         df = pd.Series(data=df)
-#         # logger.debug("dumping %s element dict to %s" % (df.shape[0], file_name))
-#         write_series_csv(df, file_path, index_label, columns, column_labels)
-#     else:
-#         logger.error(
-#             "write_csv object for file_name '%s' of unexpected type: %s"
-#             % (file_name, type(df))
-#         )
 
 
 def slice_ids(df, ids, column=None):

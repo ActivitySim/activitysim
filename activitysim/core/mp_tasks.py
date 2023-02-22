@@ -1461,8 +1461,8 @@ def run_sub_simulations(
         OSError: [WinError 1450] Insufficient system resources exist to complete the requested service.
         Judging by the commented-out assert, this (or a related) issue may have been around in some form for a while.
 
-        def __setstate__(self, state):
-            self.size, self.name = self._state = state
+        def __setstate__(self, state_):
+            self.size, self.name = self._state = state_
             # Reopen existing mmap
             self.buffer = mmap.mmap(-1, self.size, tagname=self.name)
             # XXX Temporarily preventing buildbot failures while determining

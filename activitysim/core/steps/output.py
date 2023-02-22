@@ -11,6 +11,7 @@ import pyarrow as pa
 import pyarrow.csv as csv
 
 from activitysim.core import configuration, workflow
+from activitysim.core.workflow.checkpoint import CHECKPOINT_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -164,7 +165,7 @@ def write_data_dictionary(whale: workflow.Whale):
     # annotate schema.info with name of checkpoint columns were first seen
     if whale.checkpoint.store:
         for _, row in whale.checkpoint.get_inventory().iterrows():
-            checkpoint_name = row[workflow.state.CHECKPOINT_NAME]
+            checkpoint_name = row[CHECKPOINT_NAME]
 
             for table_name in table_names:
                 # no change to table in this checkpoint

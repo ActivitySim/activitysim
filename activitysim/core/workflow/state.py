@@ -24,6 +24,8 @@ from activitysim.core.workflow.runner import Runner
 from activitysim.core.workflow.steps import run_named_step
 from activitysim.core.workflow.tracing import Tracing
 
+from .checkpoint import CHECKPOINT_NAME, LAST_CHECKPOINT
+
 # ActivitySim
 # See full license in LICENSE.txt.
 
@@ -32,19 +34,6 @@ logger = logging.getLogger(__name__)
 
 # name of the checkpoint dict keys
 # (which are also columns in the checkpoints dataframe stored in hte pipeline store)
-TIMESTAMP = "timestamp"
-CHECKPOINT_NAME = "checkpoint_name"
-NON_TABLE_COLUMNS = [CHECKPOINT_NAME, TIMESTAMP]
-
-# name used for storing the checkpoints dataframe to the pipeline store
-CHECKPOINT_TABLE_NAME = "checkpoints"
-
-# name of the first step/checkpoint created when the pipeline is started
-INITIAL_CHECKPOINT_NAME = "init"
-FINAL_CHECKPOINT_NAME = "final"
-
-# special value for resume_after meaning last checkpoint
-LAST_CHECKPOINT = "_"
 
 # single character prefix for run_list model name to indicate that no checkpoint should be saved
 NO_CHECKPOINT_PREFIX = "_"

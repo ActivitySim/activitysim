@@ -171,10 +171,6 @@ def preload_injectables(whale: workflow.Whale):
 
     logger.info("preload_injectables")
 
-    # whale.add_step("track_skim_usage", track_skim_usage)
-    # inject.add_step("write_data_dictionary", write_data_dictionary)
-    # inject.add_step("write_tables", write_tables)
-
     table_list = whale.settings.input_table_list
 
     # default ActivitySim table names and indices

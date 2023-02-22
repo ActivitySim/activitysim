@@ -224,12 +224,12 @@ def cleanup_output_files(whale: workflow.Whale):
         mem_prof_log = whale.get_log_file_path("memory_profile.csv")
         csv_ignore.append(mem_prof_log)
 
-    tracing.delete_output_files(whale, "h5")
-    tracing.delete_output_files(whale, "csv", ignore=csv_ignore)
-    tracing.delete_output_files(whale, "txt")
-    tracing.delete_output_files(whale, "yaml")
-    tracing.delete_output_files(whale, "prof")
-    tracing.delete_output_files(whale, "omx")
+    whale.tracing.delete_output_files("h5")
+    whale.tracing.delete_output_files("csv", ignore=csv_ignore)
+    whale.tracing.delete_output_files("txt")
+    whale.tracing.delete_output_files("yaml")
+    whale.tracing.delete_output_files("prof")
+    whale.tracing.delete_output_files("omx")
 
 
 def run(args):
@@ -249,7 +249,7 @@ def run(args):
     # by default, assume we are running activitysim.abm
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
-    if not inject.is_injectable("preload_injectables"):
+    if not "preload_injectables" in whale.context:
         # register abm steps and other abm-specific injectables
         from activitysim import abm  # noqa: F401
 

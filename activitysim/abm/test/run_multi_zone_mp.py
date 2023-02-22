@@ -18,7 +18,7 @@ def test_mp_run():
     data_dir = example_path("data_3")
 
     whale = setup_dirs(configs_dir, data_dir)
-    inject.add_injectable("settings_file_name", "settings_mp.yaml")
+    whale.add_injectable("settings_file_name", "settings_mp.yaml")
 
     run_list = mp_tasks.get_run_list(whale)
     mp_tasks.print_run_list(run_list)

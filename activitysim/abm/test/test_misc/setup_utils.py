@@ -58,10 +58,10 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
 
     whale.logging.config_logger()
 
-    tracing.delete_output_files(whale, "csv")
-    tracing.delete_output_files(whale, "txt")
-    tracing.delete_output_files(whale, "yaml")
-    tracing.delete_output_files(whale, "omx")
+    whale.tracing.delete_output_files("csv")
+    whale.tracing.delete_output_files("txt")
+    whale.tracing.delete_output_files("yaml")
+    whale.tracing.delete_output_files("omx")
 
     return whale
 

@@ -6,7 +6,7 @@ import sys
 
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, mem, mp_tasks, pipeline, tracing
+from activitysim.core import chunk, config, inject, mem, mp_tasks, tracing, workflow
 
 # from activitysim import abm
 
@@ -14,24 +14,22 @@ from activitysim.core import chunk, config, inject, mem, mp_tasks, pipeline, tra
 logger = logging.getLogger("activitysim")
 
 
-def cleanup_output_files():
-
+def cleanup_output_files(whale: workflow.Whale):
     active_log_files = [
         h.baseFilename
         for h in logger.root.handlers
         if isinstance(h, logging.FileHandler)
     ]
-    tracing.delete_output_files("log", ignore=active_log_files)
+    whale.tracing.delete_output_files("log", ignore=active_log_files)
 
-    tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
-    tracing.delete_output_files("txt")
-    tracing.delete_output_files("yaml")
-    tracing.delete_output_files("prof")
+    whale.tracing.delete_output_files("h5")
+    whale.tracing.delete_output_files("csv")
+    whale.tracing.delete_output_files("txt")
+    whale.tracing.delete_output_files("yaml")
+    whale.tracing.delete_output_files("prof")
 
 
 def run(run_list, injectables=None):
-
     if run_list["multiprocess"]:
         logger.info("run multiprocess simulation")
         mp_tasks.run_multiprocess(run_list, injectables)
@@ -43,7 +41,6 @@ def run(run_list, injectables=None):
 
 
 def log_settings(injectables):
-
     settings = [
         "households_sample_size",
         "chunk_size",
@@ -61,7 +58,6 @@ def log_settings(injectables):
 
 
 if __name__ == "__main__":
-
     # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.set_option.html
     # pd.set_option('display.max_columns', 50)
 

@@ -555,3 +555,63 @@ class Tracing(WhaleAccessor):
                 slicer="NONE",
                 transpose=False,
             )
+
+    def delete_output_files(self, file_type, ignore=None, subdir=None):
+        """
+        Delete files in output directory of specified type.
+
+        Parameters
+        ----------
+        file_type : str
+            File extension to delete.
+        ignore : list[Path-like]
+            Specific files to leave alone.
+        subdir : list[Path-like], optional
+            Subdirectories to scrub.  If not given, the top level output directory
+            plus the 'log' and 'trace' directories will be scrubbed.
+        """
+
+        output_dir = self.obj.filesystem.get_output_dir()
+
+        subdir = [subdir] if subdir else None
+        directories = subdir or ["", "log", "trace"]
+
+        for subdir in directories:
+            dir = output_dir.joinpath(output_dir, subdir) if subdir else output_dir
+
+            if not dir.exists():
+                continue
+
+            if ignore:
+                ignore = [os.path.realpath(p) for p in ignore]
+
+            # logger.debug("Deleting %s files in output dir %s" % (file_type, dir))
+
+            for the_file in os.listdir(dir):
+                if the_file.endswith(file_type):
+                    file_path = os.path.join(dir, the_file)
+
+                    if ignore and os.path.realpath(file_path) in ignore:
+                        continue
+
+                    try:
+                        if os.path.isfile(file_path):
+                            logger.debug("delete_output_files deleting %s" % file_path)
+                            os.unlink(file_path)
+                    except Exception as e:
+                        print(e)
+
+    def delete_trace_files(self):
+        """
+        Delete CSV files in output_dir
+        """
+        self.delete_output_files(CSV_FILE_TYPE, subdir="trace")
+        self.delete_output_files(CSV_FILE_TYPE, subdir="log")
+
+        active_log_files = [
+            h.baseFilename
+            for h in logger.root.handlers
+            if isinstance(h, logging.FileHandler)
+        ]
+
+        self.delete_output_files("log", ignore=active_log_files)

@@ -73,6 +73,7 @@ def setup_cache():
 
 
 template_component_timings_mp(
+    whale,
     globals(),
     COMPONENT_NAMES,
     EXAMPLE_NAME,

@@ -871,10 +871,8 @@ class Checkpoints(WhaleAccessor):
                 final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
             )
 
-        from activitysim.core.tracing import delete_output_files
-
         logger.debug(f"deleting all pipeline files except {final_pipeline_file_path}")
-        delete_output_files(self.obj, "h5", ignore=[final_pipeline_file_path])
+        self.obj.tracing.delete_output_files("h5", ignore=[final_pipeline_file_path])
 
         # delete all ParquetStore except final
         pqps = list(

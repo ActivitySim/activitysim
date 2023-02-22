@@ -4,7 +4,7 @@
 import logging
 import sys
 
-from activitysim.core import chunk, config, inject, mem, mp_tasks, pipeline, tracing
+from activitysim.core import chunk, config, inject, mem, mp_tasks, tracing, workflow
 
 # from activitysim import abm
 
@@ -12,21 +12,21 @@ from activitysim.core import chunk, config, inject, mem, mp_tasks, pipeline, tra
 logger = logging.getLogger("activitysim")
 
 
-def cleanup_output_files():
+def cleanup_output_files(whale: workflow.Whale):
 
     active_log_files = [
         h.baseFilename
         for h in logger.root.handlers
         if isinstance(h, logging.FileHandler)
     ]
-    tracing.delete_output_files("log", ignore=active_log_files)
+    whale.tracing.delete_output_files("log", ignore=active_log_files)
 
-    tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
-    tracing.delete_output_files("txt")
-    tracing.delete_output_files("yaml")
-    tracing.delete_output_files("prof")
-    tracing.delete_output_files("omx")
+    whale.tracing.delete_output_files("h5")
+    whale.tracing.delete_output_files("csv")
+    whale.tracing.delete_output_files("txt")
+    whale.tracing.delete_output_files("yaml")
+    whale.tracing.delete_output_files("prof")
+    whale.tracing.delete_output_files("omx")
 
 
 def run(run_list, injectables=None):
@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # cleanup if not resuming
     if not whale.settings.resume_after:
-        cleanup_output_files()
+        cleanup_output_files(whale)
 
     run_list = mp_tasks.get_run_list(whale)
 

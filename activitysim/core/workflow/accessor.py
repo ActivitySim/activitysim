@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 import warnings
 
+from activitysim.core import workflow
 from activitysim.core.exceptions import WhaleAccessError
 
 NO_DEFAULT = "< no default >"
@@ -22,7 +23,7 @@ class WhaleAccessor:
     def __set_name__(self, owner, name):
         self._name = name
 
-    def __init__(self, whale=None):
+    def __init__(self, whale: "workflow.Whale" = None):
         self.obj = whale
 
     def __get__(self, instance, objtype=None):

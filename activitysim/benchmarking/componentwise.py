@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 import os
 import traceback
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -11,7 +12,7 @@ import yaml
 from activitysim.benchmarking import workspace
 from activitysim.cli.create import get_example
 from activitysim.cli.run import INJECTABLES, config
-from activitysim.core import inject, tracing
+from activitysim.core import inject, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def reload_settings(settings_filename, **kwargs):
     return settings
 
 
-def component_logging(component_name):
+def component_logging(whale: workflow.Whale, component_name):
     root_logger = logging.getLogger()
 
     CLOG_FMT = "%(asctime)s %(levelname)7s - %(name)s: %(message)s"
@@ -75,11 +76,11 @@ def setup_component(
     """
     if isinstance(configs_dirs, str):
         configs_dirs = [configs_dirs]
-    inject.add_injectable(
+    whale.add_injectable(
         "configs_dir", [os.path.join(working_dir, i) for i in configs_dirs]
     )
-    inject.add_injectable("data_dir", os.path.join(working_dir, data_dir))
-    inject.add_injectable("output_dir", os.path.join(working_dir, output_dir))
+    whale.add_injectable("data_dir", os.path.join(working_dir, data_dir))
+    whale.add_injectable("output_dir", os.path.join(working_dir, output_dir))
 
     reload_settings(
         settings_filename,
@@ -88,16 +89,16 @@ def setup_component(
         **other_settings,
     )
 
-    component_logging(component_name)
+    component_logging(whale, component_name)
     logger.info("connected to component logger")
     config.filter_warnings()
     logging.captureWarnings(capture=True)
 
     # register abm steps and other abm-specific injectables outside of
     # benchmark timing loop
-    if not inject.is_injectable("preload_injectables"):
+    if "preload_injectables" not in whale.context:
         logger.info("preload_injectables yes import")
-        from activitysim import abm
+        from activitysim import abm  # noqa: F401
     else:
         logger.info("preload_injectables no import")
 
@@ -230,27 +231,27 @@ def pre_run(
         for a model run.
     """
     if configs_dirs is None:
-        inject.add_injectable("configs_dir", os.path.join(model_working_dir, "configs"))
+        whale.add_injectable("configs_dir", os.path.join(model_working_dir, "configs"))
     else:
         configs_dirs_ = [os.path.join(model_working_dir, i) for i in configs_dirs]
-        inject.add_injectable("configs_dir", configs_dirs_)
-    inject.add_injectable("data_dir", os.path.join(model_working_dir, data_dir))
-    inject.add_injectable("output_dir", os.path.join(model_working_dir, output_dir))
+        whale.add_injectable("configs_dir", configs_dirs_)
+    whale.add_injectable("data_dir", os.path.join(model_working_dir, data_dir))
+    whale.add_injectable("output_dir", os.path.join(model_working_dir, output_dir))
 
     if settings_file_name is not None:
-        inject.add_injectable("settings_file_name", settings_file_name)
+        whale.add_injectable("settings_file_name", settings_file_name)
 
     # Always pre_run from the beginning
     config.override_setting("resume_after", None)
 
     # register abm steps and other abm-specific injectables
-    if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+    if "preload_injectables" not in whale.context:
+        from activitysim import abm  # noqa: F401
+
+        # register abm steps and other abm-specific injectables
 
     if settings_file_name is not None:
-        inject.add_injectable("settings_file_name", settings_file_name)
+        whale.add_injectable("settings_file_name", settings_file_name)
 
     # cleanup
     # cleanup_output_files()
@@ -310,20 +311,20 @@ def pre_run(
     return 0
 
 
-def run_multiprocess():
+def run_multiprocess(whale: workflow.Whale):
     logger.info("run multiprocess simulation")
-    tracing.delete_trace_files()
-    tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
-    tracing.delete_output_files("txt")
-    tracing.delete_output_files("yaml")
-    tracing.delete_output_files("prof")
-    tracing.delete_output_files("omx")
+    whale.tracing.delete_trace_files()
+    whale.tracing.delete_output_files("h5")
+    whale.tracing.delete_output_files("csv")
+    whale.tracing.delete_output_files("txt")
+    whale.tracing.delete_output_files("yaml")
+    whale.tracing.delete_output_files("prof")
+    whale.tracing.delete_output_files("omx")
 
     from activitysim.core import mp_tasks
 
     injectables = {k: whale.get_injectable(k) for k in INJECTABLES}
-    mp_tasks.run_multiprocess(injectables)
+    mp_tasks.run_multiprocess(whale, injectables)
 
     # assert not pipeline.is_open()
     #
@@ -491,6 +492,8 @@ def template_setup_cache(
 
         os.makedirs(model_dir(example_name, output_dir), exist_ok=True)
 
+        whale = workflow.Whale.make_default(Path(model_dir(example_name)))
+
         # Running the model through all the steps and checkpointing everywhere is
         # expensive and only needs to be run once.  Once it is done we will write
         # out a completion token file to indicate to future benchmark attempts
@@ -503,6 +506,7 @@ def template_setup_cache(
         if not os.path.exists(token_file) and not use_multiprocess:
             try:
                 pre_run(
+                    whale,
                     model_dir(example_name),
                     use_config_dirs,
                     data_dir,
@@ -531,13 +535,14 @@ def template_setup_cache(
             asv_commit = os.environ.get("ASV_COMMIT", "ASV_COMMIT_UNKNOWN")
             try:
                 pre_run(
+                    whale,
                     model_dir(example_name),
                     use_config_dirs,
                     data_dir,
                     output_dir,
                     settings_filename,
                 )
-                run_multiprocess()
+                run_multiprocess(whale)
             except Exception as err:
                 with open(
                     model_dir(
@@ -645,6 +650,7 @@ def template_component_timings(
 
 
 def template_component_timings_mp(
+    whale: workflow.Whale,
     module_globals,
     component_names,
     example_name,

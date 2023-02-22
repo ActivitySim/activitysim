@@ -71,16 +71,3 @@ def get_table(name, default=_NO_DEFAULT):
         return orca.get_table(name)
     else:
         return default
-
-
-def is_injectable(name):
-
-    return orca.is_injectable(name)
-
-
-def get_injectable(name, default=_NO_DEFAULT):
-    logger.critical(f"GET-INJECTABLE: {name}")
-    if is_injectable(name) or default == _NO_DEFAULT:
-        return orca.get_injectable(name)
-    else:
-        return default

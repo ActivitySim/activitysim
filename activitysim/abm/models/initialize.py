@@ -127,7 +127,7 @@ def initialize_landuse(whale: workflow.Whale):
 def initialize_households(whale: workflow.Whale):
     trace_label = "initialize_households"
 
-    with whale.chunk_log(whale, trace_label, base=True) as chunk_sizer:
+    with chunk.chunk_log(whale, trace_label, base=True) as chunk_sizer:
         chunk_sizer.log_rss(f"{trace_label}.inside-yield")
 
         households = whale.get_dataframe("households")

@@ -204,8 +204,13 @@ def copy_asset(asset_path, target_path, dirs_exist_ok=False):
         shutil.copy(asset_path, target_path)
 
 
-def download_asset(url, target_path, sha256=None, link=True):
+def download_asset(url, target_path, sha256=None, link=True, base_path=None):
+    if isinstance(target_path, Path):
+        target_path = str(target_path)
+    original_target_path = target_path
     if link:
+        if base_path is not None and os.path.isabs(target_path):
+            target_path = os.path.relpath(target_path, base_path)
         if not isinstance(link, (str, Path)):
             try:
                 import appdirs
@@ -213,7 +218,6 @@ def download_asset(url, target_path, sha256=None, link=True):
                 link = False
             else:
                 link = appdirs.user_data_dir("ActivitySim")
-        original_target_path = target_path
         target_path = os.path.join(link, target_path)
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     if url.endswith(".gz") and not target_path.endswith(".gz"):

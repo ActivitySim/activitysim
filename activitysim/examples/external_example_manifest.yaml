@@ -1,0 +1,20 @@
+#
+# Registered External Examples
+#
+#
+# key:                                         -- a unique name for the example
+#   url:  https://.../*.tar.gz  or  .../*.zip  -- the public url for the archive
+#   sha256: deadbeefdeadbeefdeadbeefdeadbeef   -- the checksum for the archive
+#   assets:                  -- additional files for testing (optional)
+#     test/filename.zip:     -- filename for additional file relative to common root
+#       url: https://*       -- url for each extra file
+#       sha256: deadbeef     -- the checksum for extra file
+#
+
+prototype_mtc:
+  url: https://github.com/jpn--/activitysim-prototype-mtc/archive/refs/tags/v1.3.1.tar.gz
+  sha256: ec53c6e72da1444bd5808de8c644cea75db284dfcc419b776575ba532b3ccb87
+  assets:
+    test/prototype_mtc_reference_pipeline.zip:
+      url: https://github.com/jpn--/activitysim-prototype-mtc/releases/download/v1.3.1/prototype_mtc_reference_pipeline.zip
+      sha256: 394e5b403d4c61d5214493cefe161432db840ba4967c23c999d914178d43a1f0

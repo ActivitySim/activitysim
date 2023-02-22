@@ -80,6 +80,12 @@ def add_run_args(parser, multiprocess=True):
         "but will cause thrashing on MP runs.",
     )
     parser.add_argument(
+        "--persist-sharrow-cache",
+        action="store_true",
+        help="Store the sharrow cache in a persistent user cache directory.",
+    )
+
+    parser.add_argument(
         "-e",
         "--ext",
         type=str,
@@ -209,6 +215,9 @@ def handle_standard_args(whale: workflow.Whale, args, multiprocess=True):
 
     if args.resume:
         whale.settings.resume_after = args.resume
+
+    if args.persist_sharrow_cache:
+        whale.filesystem.persist_sharrow_cache()
 
     return whale
 

@@ -79,7 +79,7 @@ class Logging(WhaleAccessor):
         if basic:
             log_config_file = None
         else:
-            log_config_file = self.obj.filesystem.get_config_file_path(
+            log_config_file = self._obj.filesystem.get_config_file_path(
                 LOGGING_CONF_FILE_NAME, mandatory=False
             )
 
@@ -91,7 +91,7 @@ class Logging(WhaleAccessor):
                 print(f"Unable to read logging config file {log_config_file}")
                 raise e
 
-            config_dict = _rewrite_config_dict(self.obj, config_dict)
+            config_dict = _rewrite_config_dict(self._obj, config_dict)
 
             try:
                 config_dict = config_dict["logging"]

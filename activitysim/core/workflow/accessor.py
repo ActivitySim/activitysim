@@ -24,7 +24,7 @@ class WhaleAccessor:
         self._name = name
 
     def __init__(self, whale: "workflow.Whale" = None):
-        self.obj = whale
+        self._obj = whale
 
     def __get__(self, instance, objtype=None):
         if instance is None:
@@ -88,20 +88,20 @@ class FromWhale:
 
     def __get__(self, instance: WhaleAccessor, objtype=None):
         try:
-            return instance.obj.context[self.name]
+            return instance._obj.context[self.name]
         except (KeyError, AttributeError):
             if self._default_init:
-                instance.obj.context[self.name] = self.member_type()
-                return instance.obj.context[self.name]
+                instance._obj.context[self.name] = self.member_type()
+                return instance._obj.context[self.name]
             elif self._default_value != NO_DEFAULT:
-                instance.obj.context[self.name] = self._default_value
-                return instance.obj.context[self.name]
+                instance._obj.context[self.name] = self._default_value
+                return instance._obj.context[self.name]
             raise WhaleAccessError(f"{self.name} not initialized for this whale")
 
     def __set__(self, instance: WhaleAccessor, value):
         if not self.__validate_type(value):
             raise TypeError(f"{self.name} must be {self.member_type} not {type(value)}")
-        instance.obj.context[self.name] = value
+        instance._obj.context[self.name] = value
 
     def __delete__(self, instance):
         self.__set__(instance, None)

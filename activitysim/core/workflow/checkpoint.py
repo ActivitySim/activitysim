@@ -318,13 +318,13 @@ class Checkpoints(WhaleAccessor):
 
     @property
     def default_pipeline_file_path(self):
-        prefix = self.obj.get("pipeline_file_prefix", None)
+        prefix = self._obj.get("pipeline_file_prefix", None)
         if prefix is None:
-            return self.obj.filesystem.get_pipeline_filepath()
+            return self._obj.filesystem.get_pipeline_filepath()
         else:
-            pipeline_file_name = str(self.obj.filesystem.pipeline_file_name)
+            pipeline_file_name = str(self._obj.filesystem.pipeline_file_name)
             pipeline_file_name = f"{prefix}-{pipeline_file_name}"
-            return self.obj.filesystem.get_output_dir().joinpath(pipeline_file_name)
+            return self._obj.filesystem.get_output_dir().joinpath(pipeline_file_name)
 
     def open_store(
         self, pipeline_file_name: Optional[Path] = None, overwrite=False, mode="a"
@@ -418,14 +418,14 @@ class Checkpoints(WhaleAccessor):
 
         logger.debug("add_checkpoint %s timestamp %s" % (checkpoint_name, timestamp))
 
-        for table_name in self.obj.uncheckpointed_table_names():
-            df = self.obj.get_dataframe(table_name)
+        for table_name in self._obj.uncheckpointed_table_names():
+            df = self._obj.get_dataframe(table_name)
             logger.debug(f"add_checkpoint {checkpoint_name!r} table {table_name!r}")
             self._write_df(df, table_name, checkpoint_name)
 
             # remember which checkpoint it was last written
             self.last_checkpoint[table_name] = checkpoint_name
-            self.obj.existing_table_status[table_name] = False
+            self._obj.existing_table_status[table_name] = False
 
         self.last_checkpoint[CHECKPOINT_NAME] = checkpoint_name
         self.last_checkpoint[TIMESTAMP] = timestamp
@@ -508,7 +508,7 @@ class Checkpoints(WhaleAccessor):
         store.put(
             table_name,
             df,
-            complib=self.obj.settings.pipeline_complib,
+            complib=self._obj.settings.pipeline_complib,
             checkpoint_name=checkpoint_name,
         )
 
@@ -603,7 +603,7 @@ class Checkpoints(WhaleAccessor):
             )
             logger.info("load_checkpoint table %s %s" % (table_name, df.shape))
             # register it as an orca table
-            self.obj.add_table(table_name, df)
+            self._obj.add_table(table_name, df)
             loaded_tables[table_name] = df
             if table_name == "land_use" and "_original_zone_id" in df.columns:
                 # The presence of _original_zone_id indicates this table index was
@@ -613,29 +613,29 @@ class Checkpoints(WhaleAccessor):
                 #       to write and recover particular settings from the pipeline
                 #       store, but we don't have that mechanism yet
                 try:
-                    self.obj.settings.offset_preprocessing = True
+                    self._obj.settings.offset_preprocessing = True
                 except WhaleAccessError:
                     pass
                     # self.obj.default_settings()
                     # self.obj.settings.offset_preprocessing = True
 
         # register for tracing in order that tracing.register_traceable_table wants us to register them
-        traceable_tables = self.obj.tracing.traceable_tables
+        traceable_tables = self._obj.tracing.traceable_tables
 
         for table_name in traceable_tables:
             if table_name in loaded_tables:
-                self.obj.tracing.register_traceable_table(
+                self._obj.tracing.register_traceable_table(
                     table_name, loaded_tables[table_name]
                 )
 
         # add tables of known rng channels
-        rng_channels = self.obj.get_injectable("rng_channels", [])
+        rng_channels = self._obj.get_injectable("rng_channels", [])
         if rng_channels:
             logger.debug("loading random channels %s" % rng_channels)
             for table_name in rng_channels:
                 if table_name in loaded_tables:
                     logger.debug("adding channel %s" % (table_name,))
-                    self.obj.rng().add_channel(table_name, loaded_tables[table_name])
+                    self._obj.rng().add_channel(table_name, loaded_tables[table_name])
 
         if store is not None:
             # we have loaded from an external store, so we make a new checkpoint
@@ -682,7 +682,7 @@ class Checkpoints(WhaleAccessor):
             is not None.  This is here to allow read-only pipeline for benchmarking.
         """
 
-        self.obj.init_state()
+        self._obj.init_state()
 
         if resume_after:
             # open existing pipeline
@@ -729,7 +729,7 @@ class Checkpoints(WhaleAccessor):
         checkpoint_name : str
             name of checkpoint to load from pipeline store
         """
-        self.obj.init_state()
+        self._obj.init_state()
         logger.debug(f"checkpoint.restore_from - opening {location}")
         if isinstance(location, str):
             location = Path(location)
@@ -754,8 +754,8 @@ class Checkpoints(WhaleAccessor):
         AssertionError
             If any registered table does not match.
         """
-        for table_name in self.obj.registered_tables():
-            local_table = self.obj.get_dataframe(table_name)
+        for table_name in self._obj.registered_tables():
+            local_table = self._obj.get_dataframe(table_name)
             logger.info(f"table {table_name!r}: shalpe1 {local_table.shape}")
 
         from .state import Whale
@@ -775,7 +775,7 @@ class Checkpoints(WhaleAccessor):
         if len(registered_tables) == 0:
             logger.warning("no tables checked")
         for table_name in registered_tables:
-            local_table = self.obj.get_dataframe(table_name)
+            local_table = self._obj.get_dataframe(table_name)
             ref_table = ref_whale.get_dataframe(table_name)
             try:
                 pd.testing.assert_frame_equal(local_table, ref_table, check_dtype=False)
@@ -804,7 +804,7 @@ class Checkpoints(WhaleAccessor):
 
         """
         # we don't expect to be called unless cleanup_pipeline_after_run setting is True
-        if not self.obj.settings.cleanup_pipeline_after_run:
+        if not self._obj.settings.cleanup_pipeline_after_run:
             logger.warning("will not clean up, `cleanup_pipeline_after_run` is False")
             return
 
@@ -813,18 +813,18 @@ class Checkpoints(WhaleAccessor):
 
         assert self.store_is_open(), f"Pipeline is not open."
 
-        FINAL_PIPELINE_FILE_NAME = f"final_{self.obj.filesystem.pipeline_file_name}"
+        FINAL_PIPELINE_FILE_NAME = f"final_{self._obj.filesystem.pipeline_file_name}"
         FINAL_CHECKPOINT_NAME = "final"
 
         if FINAL_PIPELINE_FILE_NAME.endswith(".h5"):
             # constructing the path manually like this will not create a
             # subdirectory that competes with the HDF5 filename.
-            final_pipeline_file_path = self.obj.filesystem.get_output_dir().joinpath(
+            final_pipeline_file_path = self._obj.filesystem.get_output_dir().joinpath(
                 FINAL_PIPELINE_FILE_NAME
             )
         else:
             # calling for a subdir ensures that the subdirectory exists.
-            final_pipeline_file_path = self.obj.filesystem.get_output_dir(
+            final_pipeline_file_path = self._obj.filesystem.get_output_dir(
                 subdir=FINAL_PIPELINE_FILE_NAME
             )
 
@@ -840,7 +840,7 @@ class Checkpoints(WhaleAccessor):
                     # patch last checkpoint name for all tables
                     checkpoints_df[table_name] = FINAL_CHECKPOINT_NAME
 
-                    table_df = self.obj.get_table(table_name)
+                    table_df = self._obj.get_table(table_name)
                     logger.debug(
                         f"cleanup_pipeline - adding table {table_name} {table_df.shape}"
                     )
@@ -854,7 +854,7 @@ class Checkpoints(WhaleAccessor):
                 # patch last checkpoint name for all tables
                 checkpoints_df[table_name] = FINAL_CHECKPOINT_NAME
 
-                table_df = self.obj.get_table(table_name)
+                table_df = self._obj.get_table(table_name)
                 logger.debug(
                     f"cleanup_pipeline - adding table {table_name} {table_df.shape}"
                 )
@@ -872,11 +872,11 @@ class Checkpoints(WhaleAccessor):
             )
 
         logger.debug(f"deleting all pipeline files except {final_pipeline_file_path}")
-        self.obj.tracing.delete_output_files("h5", ignore=[final_pipeline_file_path])
+        self._obj.tracing.delete_output_files("h5", ignore=[final_pipeline_file_path])
 
         # delete all ParquetStore except final
         pqps = list(
-            self.obj.filesystem.get_output_dir().glob(f"**/*{ParquetStore.extension}")
+            self._obj.filesystem.get_output_dir().glob(f"**/*{ParquetStore.extension}")
         )
         for pqp in pqps:
             if pqp.name != final_pipeline_file_path.name:

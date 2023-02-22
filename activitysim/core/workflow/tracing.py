@@ -87,7 +87,7 @@ class Tracing(WhaleAccessor):
 
         # add any new indexes associated with trace_hh_id to traceable_table_ids
 
-        trace_hh_id = self.obj.settings.trace_hh_id
+        trace_hh_id = self._obj.settings.trace_hh_id
         if trace_hh_id is None:
             return
 
@@ -204,7 +204,7 @@ class Tracing(WhaleAccessor):
         if not file_name.endswith(".%s" % CSV_FILE_TYPE):
             file_name = "%s.%s" % (file_name, CSV_FILE_TYPE)
 
-        file_path = self.obj.filesystem.get_trace_file_path(file_name)
+        file_path = self._obj.filesystem.get_trace_file_path(file_name)
 
         if os.name == "nt":
             abs_path = os.path.abspath(file_path)
@@ -329,7 +329,7 @@ class Tracing(WhaleAccessor):
 
         # write out the raw dataframe
 
-        file_path = self.obj.filesystem.get_trace_file_path("%s.raw.csv" % label)
+        file_path = self._obj.filesystem.get_trace_file_path("%s.raw.csv" % label)
         trace_results.to_csv(file_path, mode="a", index=True, header=True)
 
         # if there are multiple targets, we want them in separate tables for readability
@@ -514,7 +514,7 @@ class Tracing(WhaleAccessor):
             table_name = traceable_table_indexes[slicer]
             target_ids = traceable_table_ids.get(table_name, [])
         elif slicer == "zone_id":
-            target_ids = self.obj.settings.trace_od
+            target_ids = self._obj.settings.trace_od
 
         return target_ids, column
 
@@ -571,7 +571,7 @@ class Tracing(WhaleAccessor):
             plus the 'log' and 'trace' directories will be scrubbed.
         """
 
-        output_dir = self.obj.filesystem.get_output_dir()
+        output_dir = self._obj.filesystem.get_output_dir()
 
         subdir = [subdir] if subdir else None
         directories = subdir or ["", "log", "trace"]

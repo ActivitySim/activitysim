@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def tour_od_choice(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons: pd.DataFrame,
     households: pd.DataFrame,
@@ -51,15 +51,15 @@ def tour_od_choice(
 
     trace_label = "tour_od_choice"
     model_settings_file_name = "tour_od_choice.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     origin_col_name = model_settings["ORIG_COL_NAME"]
     dest_col_name = model_settings["DEST_COL_NAME"]
     alt_id_col = tour_od.get_od_id_col(origin_col_name, dest_col_name)
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
 
     sample_table_name = model_settings.get("OD_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     logsum_column_name = model_settings.get("OD_CHOICE_LOGSUM_COLUMN_NAME", None)
@@ -68,20 +68,20 @@ def tour_od_choice(
     # interaction_sample_simulate insists choosers appear in same order as alts
     tours = tours.sort_index()
 
-    estimator = estimation.manager.begin_estimation(whale, "tour_od_choice")
+    estimator = estimation.manager.begin_estimation(state, "tour_od_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_spec(model_settings, tag="SAMPLE_SPEC")
         estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(alt_id_col)
         estimator.write_table(
-            whale.get_injectable("size_terms"), "size_terms", append=False
+            state.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
+        estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_od.run_tour_od(
-        whale,
+        state,
         tours,
         persons,
         want_logsums,
@@ -130,16 +130,16 @@ def tour_od_choice(
     households["home_zone_id"] = households[origin_col_name]
     persons["home_zone_id"] = persons[origin_col_name]
 
-    whale.add_table("tours", tours)
-    whale.add_table("persons", persons)
-    whale.add_table("households", households)
+    state.add_table("tours", tours)
+    state.add_table("persons", persons)
+    state.add_table("households", households)
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
-        whale.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             tours,
             label="tours_od_choice",
             slicer="person_id",

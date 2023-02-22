@@ -191,7 +191,7 @@ class workflow_step:
             The function being decorated.  It should return a dictionary
             of context updates.
         """
-        from activitysim.core.workflow import Whale
+        from activitysim.core.workflow import State
 
         _validate_workflow_function(wrapped_func)
         if self._step_name is None:
@@ -212,11 +212,11 @@ class workflow_step:
                 raise DuplicateWorkflowNameError(self._step_name)
 
         # check for duplicate workflow function names
-        if self._step_name in Whale._LOADABLE_OBJECTS:
+        if self._step_name in State._LOADABLE_OBJECTS:
             warn_overload()
-        if self._step_name in Whale._LOADABLE_TABLES:
+        if self._step_name in State._LOADABLE_TABLES:
             warn_overload()
-        if self._step_name in Whale._RUNNABLE_STEPS:
+        if self._step_name in State._RUNNABLE_STEPS:
             warn_overload()
 
         (
@@ -235,9 +235,9 @@ class workflow_step:
             _ndefault = len(_defaults)
             _required_args = _args[:-_ndefault]
 
-        if not _required_args or _required_args[0] != "whale":
+        if not _required_args or _required_args[0] != "state":
             raise TypeError(
-                f"the first argument of a workflow_{self._kind} must be the whale"
+                f"the first argument of a workflow_{self._kind} must be the state"
             )
 
         def run_step(context: Context = None, **override_kwargs) -> None:
@@ -249,7 +249,7 @@ class workflow_step:
             ):
                 return context.get_formatted(self._step_name)
             assert isinstance(context, Context)
-            whale = Whale(context)
+            state = State(context)
             caption = get_override_or_formatted_or_default(
                 override_kwargs, context, "caption", None
             )
@@ -270,18 +270,18 @@ class workflow_step:
             # parse and run function itself
             args = []
             for arg in _required_args:
-                if arg == "whale":
-                    args.append(whale)
+                if arg == "state":
+                    args.append(state)
                 else:
                     if arg in override_kwargs:
                         arg_value = override_kwargs[arg]
                     elif arg in context:
                         arg_value = context.get(arg)
                     else:
-                        if arg in whale._LOADABLE_TABLES:
-                            arg_value = whale._LOADABLE_TABLES[arg](context)
-                        elif arg in whale._LOADABLE_OBJECTS:
-                            arg_value = whale._LOADABLE_OBJECTS[arg](context)
+                        if arg in state._LOADABLE_TABLES:
+                            arg_value = state._LOADABLE_TABLES[arg](context)
+                        elif arg in state._LOADABLE_OBJECTS:
+                            arg_value = state._LOADABLE_OBJECTS[arg](context)
                         else:
                             context.assert_key_has_value(
                                 key=arg, caller=wrapped_func.__module__
@@ -289,7 +289,7 @@ class workflow_step:
                             raise KeyError(arg)
                     if (
                         self._copy_tables
-                        and arg in whale.existing_table_status
+                        and arg in state.existing_table_status
                         and arg not in override_kwargs
                     ):
                         is_df = _annotations.get(arg) is pd.DataFrame
@@ -357,32 +357,32 @@ class workflow_step:
         run_step.__doc__ = docstring
         _create_step(self._step_name, run_step)
 
-        def update_with_cache(whale: Whale, *args, **kwargs):
+        def update_with_cache(state: State, *args, **kwargs):
             ignore_cache = kwargs.pop("_ignore_cache_", False)
-            if self._step_name not in whale.context or ignore_cache:
-                whale.context[self._step_name] = wrapped_func(whale, *args, **kwargs)
-            return whale.context[self._step_name]
+            if self._step_name not in state.context or ignore_cache:
+                state.context[self._step_name] = wrapped_func(state, *args, **kwargs)
+            return state.context[self._step_name]
 
         update_with_cache.__doc__ = docstring
         update_with_cache.__name__ = self._step_name
 
         if self._kind == "cached_object":
-            Whale._LOADABLE_OBJECTS[self._step_name] = run_step
+            State._LOADABLE_OBJECTS[self._step_name] = run_step
             return update_with_cache
         elif self._kind == "table":
-            Whale._LOADABLE_TABLES[self._step_name] = run_step
+            State._LOADABLE_TABLES[self._step_name] = run_step
             return update_with_cache
         elif self._kind == "temp_table":
-            Whale._TEMP_NAMES.add(self._step_name)
-            Whale._LOADABLE_TABLES[self._step_name] = run_step
+            State._TEMP_NAMES.add(self._step_name)
+            State._LOADABLE_TABLES[self._step_name] = run_step
             for i in _args[1:]:
-                if i not in Whale._PREDICATES:
-                    Whale._PREDICATES[i] = {self._step_name}
+                if i not in State._PREDICATES:
+                    State._PREDICATES[i] = {self._step_name}
                 else:
-                    Whale._PREDICATES[i].add(self._step_name)
+                    State._PREDICATES[i].add(self._step_name)
             return update_with_cache
         elif self._kind == "step":
-            Whale._RUNNABLE_STEPS[self._step_name] = run_step
+            State._RUNNABLE_STEPS[self._step_name] = run_step
             return wrapped_func
         else:
             raise ValueError(self._kind)
@@ -410,15 +410,15 @@ class workflow_temp_table(workflow_step):
 
 
 def _validate_workflow_function(f):
-    from activitysim.core.workflow import Whale
+    from activitysim.core.workflow import State
 
     annot = get_annotations(f, eval_str=True)
     argspec = getfullargspec(f)
-    if argspec.args[0] != "whale":
-        raise SyntaxError("workflow.func must have `whale` as the first argument")
-    if annot.get("whale") is not Whale:
+    if argspec.args[0] != "state":
+        raise SyntaxError("workflow.func must have `state` as the first argument")
+    if annot.get("state") is not State:
         raise SyntaxError(
-            "workflow.func must have `Whale` as the first argument annotation"
+            "workflow.func must have `State` as the first argument annotation"
         )
 
 
@@ -426,15 +426,15 @@ def func(function):
     """
     Wrapper for a simple workflow function.
     """
-    from activitysim.core.workflow import Whale
+    from activitysim.core.workflow import State
 
     _validate_workflow_function(function)
 
-    def wrapper(whale, *args, **kwargs):
-        if not isinstance(whale, Whale):
+    def wrapper(state, *args, **kwargs):
+        if not isinstance(state, State):
             raise TypeError(
-                "workflow functions must have a Whale as the first argument"
+                "workflow functions must have a State as the first argument"
             )
-        return function(whale, *args, **kwargs)
+        return function(state, *args, **kwargs)
 
     return wrapper

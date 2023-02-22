@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def trip_mode_choice(
-    whale: workflow.Whale, trips: pd.DataFrame, network_los: los.Network_LOS
+    state: workflow.State, trips: pd.DataFrame, network_los: los.Network_LOS
 ):
     """
     Trip mode choice - compute trip_mode (same values as for tour_mode) for each trip.
@@ -39,7 +39,7 @@ def trip_mode_choice(
 
     trace_label = "trip_mode_choice"
     model_settings_file_name = "trip_mode_choice.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "trip_mode"
@@ -56,7 +56,7 @@ def trip_mode_choice(
         if col not in trips_df.columns
     ]
     if len(tours_cols) > 0:
-        tours_merged = whale.get_dataframe("tours_merged", columns=tours_cols)
+        tours_merged = state.get_dataframe("tours_merged", columns=tours_cols)
     else:
         tours_merged = pd.DataFrame()
 
@@ -152,17 +152,17 @@ def trip_mode_choice(
 
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (e.g. tour mode choice logsum creation)
-    if whale.current_model_name != "trip_mode_choice":
+    if state.current_model_name != "trip_mode_choice":
         estimator = None
     else:
-        estimator = estimation.manager.begin_estimation(whale, "trip_mode_choice")
+        estimator = estimation.manager.begin_estimation(state, "trip_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)
         estimator.write_spec(model_settings)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     nest_spec = config.get_logit_model_settings(model_settings)
 
     choices_list = []
@@ -184,7 +184,7 @@ def trip_mode_choice(
             tvpb_logsum_odt.extend_trace_label(primary_purpose)
             # tvpb_logsum_dot.extend_trace_label(primary_purpose)
 
-        coefficients = whale.filesystem.get_segment_coefficients(
+        coefficients = state.filesystem.get_segment_coefficients(
             model_settings, primary_purpose
         )
 
@@ -199,12 +199,12 @@ def trip_mode_choice(
         # have to initialize chunker for preprocessing in order to access
         # tvpb logsum terms in preprocessor expressions.
         with chunk.chunk_log(
-            whale,
+            state,
             tracing.extend_trace_label(trace_label, "preprocessing"),
             base=True,
         ):
             expressions.annotate_preprocessors(
-                whale,
+                state,
                 trips_segment,
                 locals_dict,
                 skims,
@@ -220,9 +220,9 @@ def trip_mode_choice(
         locals_dict["timeframe"] = "trip"
 
         choices = mode_choice_simulate(
-            whale,
+            state,
             choosers=trips_segment,
-            spec=simulate.eval_coefficients(whale, model_spec, coefficients, estimator),
+            spec=simulate.eval_coefficients(state, model_spec, coefficients, estimator),
             nest_spec=simulate.eval_nest_coefficients(
                 nest_spec, coefficients, segment_trace_label
             ),
@@ -235,9 +235,9 @@ def trip_mode_choice(
             estimator=estimator,
         )
 
-        if whale.settings.trace_hh_id:
+        if state.settings.trace_hh_id:
             # trace the coefficients
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 pd.Series(locals_dict),
                 label=tracing.extend_trace_label(segment_trace_label, "constants"),
                 transpose=False,
@@ -247,7 +247,7 @@ def trip_mode_choice(
             # so we can trace with annotations
             assign_in_place(trips_segment, choices)
 
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 trips_segment,
                 label=tracing.extend_trace_label(segment_trace_label, "trip_mode"),
                 slicer="tour_id",
@@ -285,7 +285,7 @@ def trip_mode_choice(
     trips_df = trips
     assign_in_place(trips_df, choices_df)
 
-    if whale.is_table("school_escort_tours") & model_settings.get(
+    if state.is_table("school_escort_tours") & model_settings.get(
         "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
     ):
         trips_df = (
@@ -302,13 +302,13 @@ def trip_mode_choice(
 
     assert not trips_df[mode_column_name].isnull().any()
 
-    whale.add_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
     if model_settings.get("annotate_trips"):
-        annotate.annotate_trips(whale, model_settings, trace_label)
+        annotate.annotate_trips(state, model_settings, trace_label)
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             trips_df,
             label=tracing.extend_trace_label(trace_label, "trip_mode"),
             slicer="trip_id",

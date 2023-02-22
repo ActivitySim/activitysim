@@ -5,7 +5,7 @@ class PipelineError(ValueError):
     """General class for errors in using a Pipeline."""
 
 
-class WhaleAccessError(PipelineError):
+class StateAccessError(PipelineError):
     """Error trying to access a pipeline feature that is not yet initialized."""
 
 

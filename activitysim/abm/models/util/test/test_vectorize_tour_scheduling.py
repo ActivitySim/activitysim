@@ -12,12 +12,12 @@ from activitysim.core import workflow
 
 
 def test_vts():
-    whale = workflow.Whale.make_default(__file__)
+    state = workflow.State.make_default(__file__)
 
     # note: need 0 duration tour on one end of day to guarantee at least one available tour
     alts = pd.DataFrame({"start": [1, 1, 2, 3], "end": [1, 4, 5, 6]})
     alts["duration"] = alts.end - alts.start
-    whale.add_injectable("tdd_alts", alts)
+    state.add_injectable("tdd_alts", alts)
 
     current_tour_person_ids = pd.Series(["b", "c"], index=["d", "e"])
 
@@ -47,17 +47,17 @@ def test_vts():
 
     persons = pd.DataFrame({"income": [20, 30, 25]}, index=[1, 2, 3])
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
     spec = pd.DataFrame({"Coefficient": [1.2]}, index=["income"])
     spec.index.name = "Expression"
 
-    whale.settings.check_for_variability = True
+    state.settings.check_for_variability = True
 
-    timetable = whale.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
     tdd_choices = vectorize_tour_scheduling(
-        whale,
+        state,
         tours,
         persons,
         alts,

@@ -20,7 +20,7 @@ logger = logging.getLogger("activitysim")
 
 @workflow.step
 def transit_pass_ownership(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
 ):
@@ -34,8 +34,8 @@ def transit_pass_ownership(
     choosers = persons_merged
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation(whale, "transit_pass_ownership")
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation(state, "transit_pass_ownership")
 
     constants = config.get_model_constants(model_settings)
 
@@ -47,17 +47,17 @@ def transit_pass_ownership(
             locals_d.update(constants)
 
         expressions.assign_columns(
-            whale,
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     nest_spec = config.get_logit_model_settings(model_settings)
@@ -69,7 +69,7 @@ def transit_pass_ownership(
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,
@@ -89,11 +89,11 @@ def transit_pass_ownership(
 
     persons["transit_pass_ownership"] = choices.reindex(persons.index)
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "transit_pass_ownership", persons.transit_pass_ownership, value_counts=True
     )
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

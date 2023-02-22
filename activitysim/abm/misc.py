@@ -16,24 +16,24 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.cached_object
-def households_sample_size(whale: workflow.Whale, override_hh_ids):
+def households_sample_size(state: workflow.State, override_hh_ids):
 
     if override_hh_ids is None:
-        return whale.settings, households_sample_size
+        return state.settings, households_sample_size
     else:
         return 0 if override_hh_ids is None else len(override_hh_ids)
 
 
 @workflow.cached_object
-def override_hh_ids(whale: workflow.Whale):
+def override_hh_ids(state: workflow.State):
 
-    hh_ids_filename = whale.settings.hh_ids
+    hh_ids_filename = state.settings.hh_ids
     if hh_ids_filename is None:
         return None
 
-    file_path = whale.filesystem.get_data_file_path(hh_ids_filename, mandatory=False)
+    file_path = state.filesystem.get_data_file_path(hh_ids_filename, mandatory=False)
     if not file_path:
-        file_path = whale.filesystem.get_config_file_path(
+        file_path = state.filesystem.get_config_file_path(
             hh_ids_filename, mandatory=False
         )
     if not file_path:
@@ -63,9 +63,9 @@ def override_hh_ids(whale: workflow.Whale):
 
 
 @workflow.cached_object
-def trace_od(whale: workflow.Whale):
+def trace_od(state: workflow.State):
 
-    od = whale.settings.trace_od
+    od = state.settings.trace_od
 
     if od and not (
         isinstance(od, (list, tuple))
@@ -81,12 +81,12 @@ def trace_od(whale: workflow.Whale):
 
 
 @workflow.cached_object
-def chunk_size(whale: workflow.Whale):
-    _chunk_size = int(whale.settings.chunk_size or 0)
+def chunk_size(state: workflow.State):
+    _chunk_size = int(state.settings.chunk_size or 0)
 
     return _chunk_size
 
 
 @workflow.cached_object
-def check_for_variability(whale: workflow.Whale):
-    return bool(whale.settings.check_for_variability)
+def check_for_variability(state: workflow.State):
+    return bool(state.settings.check_for_variability)

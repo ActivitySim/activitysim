@@ -19,15 +19,15 @@ from activitysim.core import (
 logger = logging.getLogger(__name__)
 
 
-def add_null_results(whale, trace_label, tours):
+def add_null_results(state, trace_label, tours):
     logger.info("Skipping %s: add_null_results" % trace_label)
     tours["composition"] = ""
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
 
 @workflow.step
 def joint_tour_composition(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     households: pd.DataFrame,
     persons: pd.DataFrame,
@@ -42,11 +42,11 @@ def joint_tour_composition(
 
     # - if no joint tours
     if joint_tours.shape[0] == 0:
-        add_null_results(whale, trace_label, tours)
+        add_null_results(state, trace_label, tours)
         return
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation(whale, "joint_tour_composition")
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation(state, "joint_tour_composition")
 
     # - only interested in households with joint_tours
     households = households[households.num_hh_joint_tours > 0]
@@ -62,11 +62,11 @@ def joint_tour_composition(
     if preprocessor_settings:
         locals_dict = {
             "persons": persons,
-            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(whale, *x),
+            "hh_time_window_overlap": lambda *x: hh_time_window_overlap(state, *x),
         }
 
         expressions.assign_columns(
-            whale,
+            state,
             df=households,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -78,10 +78,10 @@ def joint_tour_composition(
     )
 
     # - simple_simulate
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     nest_spec = config.get_logit_model_settings(model_settings)
@@ -94,7 +94,7 @@ def joint_tour_composition(
         estimator.write_choosers(joint_tours_merged)
 
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=joint_tours_merged,
         spec=model_spec,
         nest_spec=nest_spec,
@@ -118,14 +118,14 @@ def joint_tour_composition(
 
     # reindex since we ran model on a subset of households
     tours["composition"] = choices.reindex(tours.index).fillna("").astype(str)
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     tracing.print_summary(
         "joint_tour_composition", joint_tours.composition, value_counts=True
     )
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             joint_tours,
             label="joint_tour_composition.joint_tours",
             slicer="household_id",

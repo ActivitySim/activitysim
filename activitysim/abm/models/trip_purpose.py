@@ -48,7 +48,7 @@ def map_coefficients(spec, coefficients):
 
 
 def choose_intermediate_trip_purpose(
-    whale: workflow.Whale,
+    state: workflow.State,
     trips,
     probs_spec,
     estimator,
@@ -74,7 +74,7 @@ def choose_intermediate_trip_purpose(
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
 
     num_trips = len(trips.index)
-    have_trace_targets = trace_hh_id and whale.tracing.has_trace_targets(trips)
+    have_trace_targets = trace_hh_id and state.tracing.has_trace_targets(trips)
 
     # probs should sum to 1 across rows
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
@@ -104,7 +104,7 @@ def choose_intermediate_trip_purpose(
             ]
 
             # join to persons for better diagnostics
-            persons = whale.get_dataframe("persons")
+            persons = state.get_dataframe("persons")
             persons_cols = [
                 "age",
                 "is_worker",
@@ -133,7 +133,7 @@ def choose_intermediate_trip_purpose(
                     file_name,
                 )
             )
-            whale.tracing.write_csv(
+            state.tracing.write_csv(
                 unmatched_choosers, file_name=file_name, transpose=False
             )
             raise RuntimeError(
@@ -153,20 +153,20 @@ def choose_intermediate_trip_purpose(
         estimator.write_table(choosers[probs_cols], "probs", append=True)
 
     choices, rands = logit.make_choices(
-        whale, choosers[purpose_cols], trace_label=trace_label, trace_choosers=choosers
+        state, choosers[purpose_cols], trace_label=trace_label, trace_choosers=choosers
     )
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, "trip_purpose"]
         )
-        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     choices = choices.map(pd.Series(purpose_cols))
     return choices
 
 
-def run_trip_purpose(whale: workflow.Whale, trips_df, estimator, trace_label):
+def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
     """
     trip purpose - main functionality separated from model step so it can be called iteratively
 
@@ -187,17 +187,17 @@ def run_trip_purpose(whale: workflow.Whale, trips_df, estimator, trace_label):
     chunk_tag = "trip_purpose"
 
     model_settings_file_name = "trip_purpose.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     probs_join_cols = model_settings.get("probs_join_cols", PROBS_JOIN_COLUMNS)
 
     spec_file_name = model_settings.get("PROBS_SPEC", "trip_purpose_probs.csv")
     probs_spec = pd.read_csv(
-        whale.filesystem.get_config_file_path(spec_file_name), comment="#"
+        state.filesystem.get_config_file_path(spec_file_name), comment="#"
     )
     # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
     # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
-    # coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    # coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     # probs_spec = map_coefficients(probs_spec, coefficients_df)
 
     if estimator:
@@ -229,7 +229,7 @@ def run_trip_purpose(whale: workflow.Whale, trips_df, estimator, trace_label):
     if preprocessor_settings:
         locals_dict = config.get_model_constants(model_settings)
         expressions.assign_columns(
-            whale,
+            state,
             df=trips_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -243,15 +243,15 @@ def run_trip_purpose(whale: workflow.Whale, trips_df, estimator, trace_label):
         trips_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(whale, trips_df, chunk_tag, trace_label):
+    ) in chunk.adaptive_chunked_choosers(state, trips_df, chunk_tag, trace_label):
         choices = choose_intermediate_trip_purpose(
-            whale,
+            state,
             trips_chunk,
             probs_spec,
             estimator,
             probs_join_cols=probs_join_cols,
             use_depart_time=use_depart_time,
-            trace_hh_id=whale.settings.trace_hh_id,
+            trace_hh_id=state.settings.trace_hh_id,
             trace_label=chunk_trace_label,
             chunk_sizer=chunk_sizer,
         )
@@ -267,7 +267,7 @@ def run_trip_purpose(whale: workflow.Whale, trips_df, estimator, trace_label):
 
 
 @workflow.step
-def trip_purpose(whale: workflow.Whale, trips: pd.DataFrame):
+def trip_purpose(state: workflow.State, trips: pd.DataFrame):
     """
     trip purpose model step - calls run_trip_purpose to run the actual model
 
@@ -277,14 +277,14 @@ def trip_purpose(whale: workflow.Whale, trips: pd.DataFrame):
 
     trips_df = trips
 
-    if whale.is_table("school_escort_trips"):
-        school_escort_trips = whale.get_dataframe("school_escort_trips")
+    if state.is_table("school_escort_trips"):
+        school_escort_trips = state.get_dataframe("school_escort_trips")
         # separate out school escorting trips to exclude them from the model and estimation data bundle
         trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
             trips_df, school_escort_trips
         )
 
-    estimator = estimation.manager.begin_estimation(whale, "trip_purpose")
+    estimator = estimation.manager.begin_estimation(state, "trip_purpose")
     if estimator:
         chooser_cols_for_estimation = [
             "person_id",
@@ -295,7 +295,7 @@ def trip_purpose(whale: workflow.Whale, trips: pd.DataFrame):
         estimator.write_choosers(trips_df[chooser_cols_for_estimation])
 
     choices = run_trip_purpose(
-        whale,
+        state,
         trips_df,
         estimator,
         trace_label=trace_label,
@@ -311,7 +311,7 @@ def trip_purpose(whale: workflow.Whale, trips: pd.DataFrame):
 
     trips_df["purpose"] = choices
 
-    if whale.is_table("school_escort_trips"):
+    if state.is_table("school_escort_trips"):
         # setting purpose for school escort trips
         se_trips_df["purpose"] = reindex(school_escort_trips.purpose, se_trips_df.index)
         # merge trips back together preserving index order
@@ -321,10 +321,10 @@ def trip_purpose(whale: workflow.Whale, trips: pd.DataFrame):
     # we should have assigned a purpose to all trips
     assert not trips_df.purpose.isnull().any()
 
-    whale.add_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

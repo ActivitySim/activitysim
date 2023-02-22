@@ -494,20 +494,20 @@ def _apply_digital_encoding(dataset, digital_encodings):
     return dataset
 
 
-def _scan_for_unused_names(whale, tokens):
+def _scan_for_unused_names(state, tokens):
     """
     Scan all spec files to find unused skim variable names.
 
     Parameters
     ----------
-    whale : Whale
+    state : State
     tokens : Collection[str]
 
     Returns
     -------
     Set[str]
     """
-    configs_dir_list = whale.filesystem.get_configs_dir()
+    configs_dir_list = state.filesystem.get_configs_dir()
     configs_dir_list = (
         [configs_dir_list]
         if isinstance(configs_dir_list, (str, Path))
@@ -533,10 +533,10 @@ def _scan_for_unused_names(whale, tokens):
     return tokens
 
 
-def _drop_unused_names(whale, dataset):
+def _drop_unused_names(state, dataset):
     logger.info("scanning for unused skims")
     tokens = set(dataset.variables.keys()) - set(dataset.coords.keys())
-    unused_tokens = _scan_for_unused_names(whale, tokens)
+    unused_tokens = _scan_for_unused_names(state, tokens)
     if unused_tokens:
         baggage = dataset.digital_encoding.baggage(None)
         unused_tokens -= baggage
@@ -654,13 +654,13 @@ def load_sparse_maz_skims(
     return dataset
 
 
-def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
+def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
     """
     Load skims from disk into shared memory.
 
     Parameters
     ----------
-    whale : Whale
+    state : State
     skim_tag : str, default "taz"
 
     Returns
@@ -670,17 +670,17 @@ def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
     from activitysim.core.los import ONE_ZONE
 
     # TODO:SHARROW: taz and maz are the same
-    network_los_preload = whale.get_injectable("network_los_preload")
+    network_los_preload = state.get_injectable("network_los_preload")
     if network_los_preload is None:
         raise ValueError("missing network_los_preload")
 
     # find which OMX files are to be used.
-    omx_file_paths = whale.filesystem.expand_input_file_list(
+    omx_file_paths = state.filesystem.expand_input_file_list(
         network_los_preload.omx_file_names(skim_tag),
     )
     zarr_file = network_los_preload.zarr_file_name(skim_tag)
 
-    if whale.settings.disable_zarr:
+    if state.settings.disable_zarr:
         # we can disable the zarr optimizations by setting the `disable_zarr`
         # flag in the master config file to True
         zarr_file = None
@@ -702,7 +702,7 @@ def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
         )
         backing = f"memmap:{mmap_file}"
 
-    land_use = whale.get_dataframe("land_use")
+    land_use = state.get_dataframe("land_use")
 
     if f"_original_{land_use.index.name}" in land_use:
         land_use_zone_ids = land_use[f"_original_{land_use.index.name}"]
@@ -772,10 +772,10 @@ def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
                     max_blend_distance=network_los_preload.setting(
                         "maz_to_maz.max_blend_distance", default={}
                     ),
-                    data_file_resolver=whale.filesystem.get_data_file_path,
+                    data_file_resolver=state.filesystem.get_data_file_path,
                 )
 
-        d = _drop_unused_names(whale, d)
+        d = _drop_unused_names(state, d)
         # apply non-zarr dependent digital encoding
         d = _apply_digital_encoding(d, skim_digital_encoding)
 
@@ -827,10 +827,10 @@ def load_skim_dataset_to_shared_memory(whale, skim_tag="taz") -> xr.Dataset:
 
 
 @workflow.cached_object
-def skim_dataset(whale: workflow.Whale) -> xr.Dataset:
-    return load_skim_dataset_to_shared_memory(whale)
+def skim_dataset(state: workflow.State) -> xr.Dataset:
+    return load_skim_dataset_to_shared_memory(state)
 
 
 @workflow.cached_object
-def tap_dataset(whale: workflow.Whale) -> xr.Dataset:
-    return load_skim_dataset_to_shared_memory(whale, "tap")
+def tap_dataset(state: workflow.State) -> xr.Dataset:
+    return load_skim_dataset_to_shared_memory(state, "tap")

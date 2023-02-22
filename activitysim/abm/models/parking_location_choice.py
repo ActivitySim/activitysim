@@ -50,7 +50,7 @@ def wrap_skims(model_settings):
         dict containing skims, keyed by canonical names relative to tour orientation
     """
 
-    network_los = whale.get_injectable("network_los")
+    network_los = state.get_injectable("network_los")
     skim_dict = network_los.get_default_skim_dict()
 
     origin = model_settings["TRIP_ORIGIN"]
@@ -81,7 +81,7 @@ def wrap_skims(model_settings):
 
 
 def get_spec_for_segment(model_settings, spec_name, segment):
-    omnibus_spec = whale.filesystem.read_model_spec(file_name=model_settings[spec_name])
+    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[segment]]
 
@@ -93,7 +93,7 @@ def get_spec_for_segment(model_settings, spec_name, segment):
 
 
 def parking_destination_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     segment_name,
     trips,
     destination_sample,
@@ -118,8 +118,8 @@ def parking_destination_simulate(
 
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
-    spec = simulate.eval_coefficients(whale, spec, coefficients_df, None)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    spec = simulate.eval_coefficients(state, spec, coefficients_df, None)
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
@@ -131,7 +131,7 @@ def parking_destination_simulate(
     locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     parking_locations = interaction_sample_simulate(
-        whale,
+        state,
         choosers=trips,
         alternatives=destination_sample,
         spec=spec,
@@ -158,7 +158,7 @@ def parking_destination_simulate(
 
 
 def choose_parking_location(
-    whale: workflow.Whale,
+    state: workflow.State,
     segment_name,
     trips,
     alternatives,
@@ -175,7 +175,7 @@ def choose_parking_location(
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
     destination_sample = logit.interaction_dataset(
-        whale, trips, alternatives, alt_index_id=alt_dest_col_name
+        state, trips, alternatives, alt_index_id=alt_dest_col_name
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
@@ -205,7 +205,7 @@ def choose_parking_location(
 
 
 def run_parking_destination(
-    whale: workflow.Whale,
+    state: workflow.State,
     model_settings,
     trips,
     land_use,
@@ -220,7 +220,7 @@ def run_parking_destination(
     parking_location_column_name = model_settings["ALT_DEST_COL_NAME"]
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     choosers = trips[trips[chooser_filter_column]]
@@ -246,7 +246,7 @@ def run_parking_destination(
             continue
 
         choices, destination_sample = choose_parking_location(
-            whale,
+            state,
             segment_name,
             chooser_segment,
             alternatives,
@@ -283,7 +283,7 @@ def run_parking_destination(
 
 @workflow.step
 def parking_location(
-    whale: workflow.Whale,
+    state: workflow.State,
     trips: pd.DataFrame,
     trips_merged: pd.DataFrame,
     land_use: pd.DataFrame,
@@ -295,10 +295,10 @@ def parking_location(
     """
 
     trace_label = "parking_location"
-    model_settings = whale.filesystem.read_model_settings(
+    model_settings = state.filesystem.read_model_settings(
         "parking_location_choice.yaml"
     )
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
     alt_destination_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     preprocessor_settings = model_settings.get("PREPROCESSOR", None)
@@ -331,7 +331,7 @@ def parking_location(
 
     if preprocessor_settings:
         expressions.assign_columns(
-            whale,
+            state,
             df=trips_merged_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -339,21 +339,21 @@ def parking_location(
         )
 
     parking_locations, save_sample_df = run_parking_destination(
-        whale,
+        state,
         model_settings,
         trips_merged_df,
         land_use_df,
-        chunk_size=whale.settings.chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
     assign_in_place(trips_df, parking_locations.to_frame(alt_destination_col_name))
 
-    whale.add_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",
@@ -374,6 +374,6 @@ def parking_location(
         )
 
         # lest they try to put tour samples into the same table
-        if whale.is_table(sample_table_name):
+        if state.is_table(sample_table_name):
             raise RuntimeError("sample table %s already exists" % sample_table_name)
-        whale.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)

@@ -11,5 +11,5 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.temp_table
-def trips_merged(whale: workflow.Whale, trips, tours):
+def trips_merged(state: workflow.State, trips, tours):
     return simple_table_join(trips, tours, "tour_id")

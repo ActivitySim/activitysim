@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.cached_object
-def size_terms(whale: workflow.Whale):
-    f = whale.filesystem.get_config_file_path("destination_choice_size_terms.csv")
+def size_terms(state: workflow.State):
+    f = state.filesystem.get_config_file_path("destination_choice_size_terms.csv")
     return pd.read_csv(f, comment="#", index_col="segment")
 
 

@@ -24,17 +24,17 @@ def spec_name(data_dir):
 
 
 @pytest.fixture
-def whale(data_dir) -> workflow.Whale:
-    whale = workflow.Whale()
-    whale.initialize_filesystem(
+def state(data_dir) -> workflow.State:
+    state = workflow.State()
+    state.initialize_filesystem(
         working_dir=os.path.dirname(__file__), data_dir=(data_dir,)
     ).default_settings()
-    return whale
+    return state
 
 
 @pytest.fixture
-def spec(whale, spec_name):
-    return whale.filesystem.read_model_spec(file_name=spec_name)
+def spec(state, spec_name):
+    return state.filesystem.read_model_spec(file_name=spec_name)
 
 
 @pytest.fixture
@@ -42,9 +42,9 @@ def data(data_dir):
     return pd.read_csv(os.path.join(data_dir, "data.csv"))
 
 
-def test_read_model_spec(whale, spec_name):
+def test_read_model_spec(state, spec_name):
 
-    spec = whale.filesystem.read_model_spec(file_name=spec_name)
+    spec = state.filesystem.read_model_spec(file_name=spec_name)
 
     assert len(spec) == 4
     assert spec.index.name == "Expression"
@@ -52,9 +52,9 @@ def test_read_model_spec(whale, spec_name):
     npt.assert_array_equal(spec.values, [[1.1, 11], [2.2, 22], [3.3, 33], [4.4, 44]])
 
 
-def test_eval_variables(whale, spec, data):
+def test_eval_variables(state, spec, data):
 
-    result = simulate.eval_variables(whale, spec.index, data)
+    result = simulate.eval_variables(state, spec.index, data)
 
     expected = pd.DataFrame(
         [[1, 0, 4, 1], [0, 1, 4, 1], [0, 1, 5, 1]], index=data.index, columns=spec.index
@@ -71,21 +71,21 @@ def test_eval_variables(whale, spec, data):
     pdt.assert_frame_equal(result, expected, check_names=False)
 
 
-def test_simple_simulate(whale, data, spec):
+def test_simple_simulate(state, data, spec):
 
-    whale.settings.check_for_variability = False
+    state.settings.check_for_variability = False
 
-    choices = simulate.simple_simulate(whale, choosers=data, spec=spec, nest_spec=None)
+    choices = simulate.simple_simulate(state, choosers=data, spec=spec, nest_spec=None)
     expected = pd.Series([1, 1, 1], index=data.index)
     pdt.assert_series_equal(choices, expected, check_dtype=False)
 
 
-def test_simple_simulate_chunked(whale, data, spec):
+def test_simple_simulate_chunked(state, data, spec):
 
-    whale.settings.check_for_variability = False
-    whale.settings.chunk_size = 2
+    state.settings.check_for_variability = False
+    state.settings.chunk_size = 2
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=data,
         spec=spec,
         nest_spec=None,

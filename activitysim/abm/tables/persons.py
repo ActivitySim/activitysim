@@ -14,10 +14,10 @@ from activitysim.core.input import read_input_table
 logger = logging.getLogger(__name__)
 
 
-def read_raw_persons(whale, households):
-    df = read_input_table(whale, "persons")
+def read_raw_persons(state, households):
+    df = read_input_table(state, "persons")
 
-    if whale.get_injectable("households_sliced", False):
+    if state.get_injectable("households_sliced", False):
         # keep only persons in the sampled households
         df = df[df.household_id.isin(households.index)]
 
@@ -25,10 +25,10 @@ def read_raw_persons(whale, households):
 
 
 @workflow.table
-def persons(whale: workflow.Whale):
-    households = whale.get_dataframe("households")
-    trace_hh_id = whale.settings.trace_hh_id
-    df = read_raw_persons(whale, households)
+def persons(state: workflow.State):
+    households = state.get_dataframe("households")
+    trace_hh_id = state.settings.trace_hh_id
+    df = read_raw_persons(state, households)
 
     logger.info("loaded persons %s" % (df.shape,))
     buffer = io.StringIO()
@@ -36,13 +36,13 @@ def persons(whale: workflow.Whale):
     logger.debug("persons.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
-    whale.add_table("persons", df)
+    state.add_table("persons", df)
 
-    whale.get_rn_generator().add_channel("persons", df)
+    state.get_rn_generator().add_channel("persons", df)
 
-    whale.tracing.register_traceable_table("persons", df)
+    state.tracing.register_traceable_table("persons", df)
     if trace_hh_id:
-        whale.tracing.trace_df(df, "raw.persons", warn_if_empty=True)
+        state.tracing.trace_df(df, "raw.persons", warn_if_empty=True)
 
     logger.debug(f"{len(df.household_id.unique())} unique household_ids in persons")
     logger.debug(f"{len(households.index.unique())} unique household_ids in households")
@@ -76,7 +76,7 @@ def persons(whale: workflow.Whale):
 
 @workflow.temp_table
 def persons_merged(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons: pd.DataFrame,
     land_use: pd.DataFrame,
     households: pd.DataFrame,

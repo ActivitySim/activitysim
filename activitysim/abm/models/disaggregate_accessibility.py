@@ -19,11 +19,11 @@ from activitysim.core.expressions import assign_columns
 logger = logging.getLogger(__name__)
 
 
-def read_disaggregate_accessibility_yaml(whale: workflow.Whale, file_name):
+def read_disaggregate_accessibility_yaml(state: workflow.State, file_name):
     """
     Adds in default table suffixes 'proto_' if not defined in the settings file
     """
-    model_settings = whale.filesystem.read_model_settings(file_name)
+    model_settings = state.filesystem.read_model_settings(file_name)
     if not model_settings.get("suffixes"):
         model_settings["suffixes"] = {
             "SUFFIX": "proto_",
@@ -42,22 +42,22 @@ def read_disaggregate_accessibility_yaml(whale: workflow.Whale, file_name):
         size = model_settings.get(sample, 0)
         if size > 0 and size < 1:
             model_settings[sample] = round(
-                size * len(whale.get_dataframe("land_use").index)
+                size * len(state.get_dataframe("land_use").index)
             )
 
     return model_settings
 
 
 class ProtoPop:
-    def __init__(self, whale: workflow.Whale, network_los, chunk_size):
-        self.whale = whale
+    def __init__(self, state: workflow.State, network_los, chunk_size):
+        self.state = state
         # Run necessary inits for later
-        initialize.initialize_landuse(whale)
+        initialize.initialize_landuse(state)
 
         # Initialization
         self.proto_pop = {}
         self.zone_list = []
-        self.land_use = whale.get_dataframe("land_use")
+        self.land_use = state.get_dataframe("land_use")
         self.network_los = network_los
         self.chunk_size = chunk_size
         self.model_settings = read_disaggregate_accessibility_yaml(
@@ -80,8 +80,8 @@ class ProtoPop:
                 self.model_settings["DESTINATION_SAMPLE_SIZE"],
             )
         )
-        self.inject_tables(whale)
-        self.annotate_tables(whale)
+        self.inject_tables(state)
+        self.annotate_tables(state)
         self.merge_persons()
 
         # - initialize shadow_pricing size tables after annotating household and person tables
@@ -91,7 +91,7 @@ class ProtoPop:
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
             shadow_pricing._add_size_tables(
-                whale, self.model_settings.get("suffixes"), scale=False
+                state, self.model_settings.get("suffixes"), scale=False
             )
 
     def zone_sampler(self):
@@ -168,7 +168,7 @@ class ProtoPop:
             ), "K-Means only implemented for 2-zone systems for now"
 
             # Performs a simple k-means clustering using centroid XY coordinates
-            centroids_df = self.whale.get_dataframe("maz_centroids")
+            centroids_df = self.state.get_dataframe("maz_centroids")
 
             # Assert that land_use zone ids is subset of centroid zone ids
             assert set(self.land_use.index).issubset(set(centroids_df.index))
@@ -467,7 +467,7 @@ class ProtoPop:
         if self.model_settings.get("FROM_TEMPLATES"):
             table_params = {k: self.params.get(k) for k in klist}
             tables = {
-                k: pd.read_csv(whale.filesystem.get_config_file_path(v.get("file")))
+                k: pd.read_csv(state.filesystem.get_config_file_path(v.get("file")))
                 for k, v in table_params.items()
             }
             households, persons, tours = self.expand_template_zones(tables)
@@ -520,25 +520,25 @@ class ProtoPop:
             if len(colnames) > 0:
                 df.rename(columns=colnames, inplace=True)
 
-    def inject_tables(self, whale: workflow.Whale):
+    def inject_tables(self, state: workflow.State):
         # Update canonical tables lists
-        whale.tracing.traceable_tables = whale.tracing.traceable_tables + list(
+        state.tracing.traceable_tables = state.tracing.traceable_tables + list(
             self.proto_pop.keys()
         )
         for tablename, df in self.proto_pop.items():
-            whale.add_table(tablename, df)
-            self.whale.get_rn_generator().add_channel(tablename, df)
-            whale.tracing.register_traceable_table(tablename, df)
+            state.add_table(tablename, df)
+            self.state.get_rn_generator().add_channel(tablename, df)
+            state.tracing.register_traceable_table(tablename, df)
 
-    def annotate_tables(self, whale: workflow.Whale):
+    def annotate_tables(self, state: workflow.State):
         # Extract annotations
         for annotations in self.model_settings["annotate_proto_tables"]:
             tablename = annotations["tablename"]
-            df = self.whale.get_dataframe(tablename)
+            df = self.state.get_dataframe(tablename)
             assert df is not None
             assert annotations is not None
             assign_columns(
-                whale,
+                state,
                 df=df,
                 model_settings={
                     **annotations["annotate"],
@@ -546,11 +546,11 @@ class ProtoPop:
                 },
                 trace_label=tracing.extend_trace_label("ProtoPop.annotate", tablename),
             )
-            self.whale.add_table(tablename, df)
+            self.state.add_table(tablename, df)
 
     def merge_persons(self):
-        persons = self.whale.get_dataframe("proto_persons")
-        households = self.whale.get_dataframe("proto_households")
+        persons = self.state.get_dataframe("proto_persons")
+        households = self.state.get_dataframe("proto_households")
 
         # For dropping any extra columns created during merge
         cols_to_use = households.columns.difference(persons.columns)
@@ -569,18 +569,18 @@ class ProtoPop:
         self.proto_pop["proto_persons_merged"] = persons_merged
 
         # Store in pipeline
-        whale.add_table("proto_persons_merged", persons_merged)
+        state.add_table("proto_persons_merged", persons_merged)
 
 
 def get_disaggregate_logsums(
-    whale: workflow.Whale, network_los, chunk_size, trace_hh_id
+    state: workflow.State, network_los, chunk_size, trace_hh_id
 ):
     logsums = {}
-    persons_merged = whale.get_dataframe("proto_persons_merged").sort_index(
+    persons_merged = state.get_dataframe("proto_persons_merged").sort_index(
         inplace=False
     )
     disagg_model_settings = read_disaggregate_accessibility_yaml(
-        whale, "disaggregate_accessibility.yaml"
+        state, "disaggregate_accessibility.yaml"
     )
 
     for model_name in [
@@ -590,14 +590,14 @@ def get_disaggregate_logsums(
     ]:
         trace_label = tracing.extend_trace_label(model_name, "accessibilities")
         print("Running model {}".format(trace_label))
-        model_settings = whale.filesystem.read_model_settings(model_name + ".yaml")
+        model_settings = state.filesystem.read_model_settings(model_name + ".yaml")
         model_settings["SAMPLE_SIZE"] = disagg_model_settings.get(
             "DESTINATION_SAMPLE_SIZE"
         )
-        estimator = estimation.manager.begin_estimation(whale, trace_label)
+        estimator = estimation.manager.begin_estimation(state, trace_label)
         if estimator:
             location_choice.write_estimation_specs(
-                whale, estimator, model_settings, model_name + ".yaml"
+                state, estimator, model_settings, model_name + ".yaml"
             )
 
         # Append table references in settings with "proto_"
@@ -621,7 +621,7 @@ def get_disaggregate_logsums(
 
             # run location choice and return logsums
             _logsums, _ = location_choice.run_location_choice(
-                whale,
+                state,
                 choosers,
                 network_los,
                 shadow_price_calculator=spc,
@@ -643,11 +643,11 @@ def get_disaggregate_logsums(
                 )
 
         else:
-            tours = whale.get_dataframe("proto_tours")
+            tours = state.get_dataframe("proto_tours")
             tours = tours[tours.tour_category == "non_mandatory"]
 
             _logsums, _ = tour_destination.run_tour_destination(
-                whale,
+                state,
                 tours,
                 persons_merged,
                 want_logsums=True,
@@ -676,17 +676,17 @@ def get_disaggregate_logsums(
 
 @workflow.step
 def initialize_proto_population(
-    whale: workflow.Whale,
+    state: workflow.State,
     network_los: los.Network_LOS,
 ):
     # Synthesize the proto-population
-    ProtoPop(whale, network_los, whale.settings.chunk_size)
+    ProtoPop(state, network_los, state.settings.chunk_size)
     return
 
 
 @workflow.step
 def compute_disaggregate_accessibility(
-    whale: workflow.Whale,
+    state: workflow.State,
     network_los: los.Network_LOS,
 ):
     """
@@ -697,18 +697,18 @@ def compute_disaggregate_accessibility(
 
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:
-        df = whale.get_dataframe(tablename)
-        traceables = whale.tracing.traceable_tables
-        if tablename not in whale.get_rn_generator().channels:
-            whale.get_rn_generator().add_channel(tablename, df)
+        df = state.get_dataframe(tablename)
+        traceables = state.tracing.traceable_tables
+        if tablename not in state.get_rn_generator().channels:
+            state.get_rn_generator().add_channel(tablename, df)
         if tablename not in traceables:
-            whale.tracing.traceable_tables = traceables + [tablename]
-            whale.tracing.register_traceable_table(tablename, df)
+            state.tracing.traceable_tables = traceables + [tablename]
+            state.tracing.register_traceable_table(tablename, df)
         del df
 
     # Run location choice
     logsums = get_disaggregate_logsums(
-        whale, network_los, whale.settings.chunk_size, whale.settings.trace_hh_id
+        state, network_los, state.settings.chunk_size, state.settings.trace_hh_id
     )
     logsums = {k + "_accessibility": v for k, v in logsums.items()}
 
@@ -738,7 +738,7 @@ def compute_disaggregate_accessibility(
     # Merge in the proto pop data and inject it
     access_df = (
         access_df.merge(
-            whale.get_dataframe("proto_persons_merged").reset_index(),
+            state.get_dataframe("proto_persons_merged").reset_index(),
             on="proto_household_id",
         )
         .set_index("proto_person_id")
@@ -752,14 +752,14 @@ def compute_disaggregate_accessibility(
         "school_destination_size",
         "workplace_destination_size",
     ]:
-        whale.drop_table(tablename)
+        state.drop_table(tablename)
 
-    for ch in list(whale.get_rn_generator().channels.keys()):
-        whale.get_rn_generator().drop_channel(ch)
+    for ch in list(state.get_rn_generator().channels.keys()):
+        state.get_rn_generator().drop_channel(ch)
 
     # Drop any prematurely added traceables
-    for trace in [x for x in whale.tracing.traceable_tables if "proto_" not in x]:
-        whale.tracing.deregister_traceable_table(trace)
+    for trace in [x for x in state.tracing.traceable_tables if "proto_" not in x]:
+        state.tracing.deregister_traceable_table(trace)
 
     # # need to clear any premature tables that were added during the previous run
     # orca._TABLES.clear()
@@ -768,6 +768,6 @@ def compute_disaggregate_accessibility(
     #     orca.add_table(name, func)
 
     # Inject accessibility results into pipeline
-    [whale.add_table(k, df) for k, df in logsums.items()]
+    [state.add_table(k, df) for k, df in logsums.items()]
 
     return

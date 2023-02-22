@@ -9,8 +9,8 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from activitysim.core.exceptions import WhaleAccessError
-from activitysim.core.workflow.accessor import FromWhale, WhaleAccessor
+from activitysim.core.exceptions import StateAccessError
+from activitysim.core.workflow.accessor import FromState, StateAccessor
 
 logger = logging.getLogger(__name__)
 
@@ -290,11 +290,11 @@ class NullStore(GenericCheckpointStore):
         pass
 
 
-class Checkpoints(WhaleAccessor):
+class Checkpoints(StateAccessor):
 
-    last_checkpoint: dict = FromWhale(default_init=True)
-    checkpoints: list[dict] = FromWhale(default_init=True)
-    _checkpoint_store: GenericCheckpointStore | None = FromWhale(default_value=None)
+    last_checkpoint: dict = FromState(default_init=True)
+    checkpoints: list[dict] = FromState(default_init=True)
+    _checkpoint_store: GenericCheckpointStore | None = FromState(default_value=None)
 
     def __get__(self, instance, objtype=None) -> "Checkpoints":
         # derived __get__ changes annotation, aids in type checking
@@ -614,7 +614,7 @@ class Checkpoints(WhaleAccessor):
                 #       store, but we don't have that mechanism yet
                 try:
                     self._obj.settings.offset_preprocessing = True
-                except WhaleAccessError:
+                except StateAccessError:
                     pass
                     # self.obj.default_settings()
                     # self.obj.settings.offset_preprocessing = True
@@ -742,7 +742,7 @@ class Checkpoints(WhaleAccessor):
 
     def check_against(self, location: Path, checkpoint_name: str):
         """
-        Check that the tables in this Whale match those in an archived pipeline.
+        Check that the tables in this State match those in an archived pipeline.
 
         Parameters
         ----------
@@ -758,11 +758,11 @@ class Checkpoints(WhaleAccessor):
             local_table = self._obj.get_dataframe(table_name)
             logger.info(f"table {table_name!r}: shalpe1 {local_table.shape}")
 
-        from .state import Whale
+        from .state import State
 
-        ref_whale = Whale()
-        ref_whale.default_settings()
-        ref_whale.checkpoint._checkpoint_store = NullStore()
+        ref_state = State()
+        ref_state.default_settings()
+        ref_state.checkpoint._checkpoint_store = NullStore()
 
         if isinstance(location, str):
             location = Path(location)
@@ -770,13 +770,13 @@ class Checkpoints(WhaleAccessor):
             from_store = HdfStore(location, mode="r")
         else:
             from_store = ParquetStore(location, mode="r")
-        ref_whale.checkpoint.load(checkpoint_name, store=from_store)
-        registered_tables = ref_whale.registered_tables()
+        ref_state.checkpoint.load(checkpoint_name, store=from_store)
+        registered_tables = ref_state.registered_tables()
         if len(registered_tables) == 0:
             logger.warning("no tables checked")
         for table_name in registered_tables:
             local_table = self._obj.get_dataframe(table_name)
-            ref_table = ref_whale.get_dataframe(table_name)
+            ref_table = ref_state.get_dataframe(table_name)
             try:
                 pd.testing.assert_frame_equal(local_table, ref_table, check_dtype=False)
             except Exception as err:

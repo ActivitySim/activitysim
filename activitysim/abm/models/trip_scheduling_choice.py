@@ -201,7 +201,7 @@ def get_spec_for_segment(model_settings, spec_name, segment):
     :return: array of utility equations
     """
 
-    omnibus_spec = whale.filesystem.read_model_spec(file_name=model_settings[spec_name])
+    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[segment]]
 
@@ -213,7 +213,7 @@ def get_spec_for_segment(model_settings, spec_name, segment):
 
 
 def run_trip_scheduling_choice(
-    whale: workflow.Whale,
+    state: workflow.State,
     spec: pd.DataFrame,
     tours: pd.DataFrame,
     skims,
@@ -266,7 +266,7 @@ def run_trip_scheduling_choice(
             choosers,
             chunk_trace_label,
             chunk_sizer,
-        ) in chunk.adaptive_chunked_choosers(whale, indirect_tours, trace_label):
+        ) in chunk.adaptive_chunked_choosers(state, indirect_tours, trace_label):
             # Sort the choosers and get the schedule alternatives
             choosers = choosers.sort_index()
             schedules = generate_schedule_alternatives(choosers).sort_index()
@@ -277,7 +277,7 @@ def run_trip_scheduling_choice(
 
             # Run the simulation
             choices = _interaction_sample_simulate(
-                whale,
+                state,
                 choosers=choosers,
                 alternatives=schedules,
                 spec=spec,
@@ -325,13 +325,13 @@ def run_trip_scheduling_choice(
 
 @workflow.step
 def trip_scheduling_choice(
-    whale: workflow.Whale,
+    state: workflow.State,
     trips: pd.DataFrame,
     tours: pd.DataFrame,
     skim_dict,
 ):
     trace_label = "trip_scheduling_choice"
-    model_settings = whale.filesystem.read_model_settings("trip_scheduling_choice.yaml")
+    model_settings = state.filesystem.read_model_settings("trip_scheduling_choice.yaml")
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", "stage_one")
 
     trips_df = trips
@@ -387,7 +387,7 @@ def trip_scheduling_choice(
         simulate.set_skim_wrapper_targets(tours_df, skims)
 
         expressions.assign_columns(
-            whale,
+            state,
             df=tours_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -395,7 +395,7 @@ def trip_scheduling_choice(
         )
 
     tours_df = run_trip_scheduling_choice(
-        whale, spec, tours_df, skims, locals_dict, trace_label
+        state, spec, tours_df, skims, locals_dict, trace_label
     )
 
-    whale.add_table("tours", tours_df)
+    state.add_table("tours", tours_df)

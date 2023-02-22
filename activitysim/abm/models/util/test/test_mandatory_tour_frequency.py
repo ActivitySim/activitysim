@@ -26,7 +26,7 @@ def mandatory_tour_frequency_alternatives():
 
 
 def test_mtf():
-    whale = workflow.Whale.make_default(__file__)
+    state = workflow.State.make_default(__file__)
 
     persons = pd.DataFrame(
         {
@@ -48,7 +48,7 @@ def test_mtf():
     tour_frequency_alternatives = mandatory_tour_frequency_alternatives()
 
     mandatory_tours = process_mandatory_tours(
-        whale, persons, tour_frequency_alternatives
+        state, persons, tour_frequency_alternatives
     )
 
     idx = mandatory_tours.index

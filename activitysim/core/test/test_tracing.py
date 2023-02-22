@@ -24,28 +24,28 @@ def close_handlers():
 
 def add_canonical_dirs():
 
-    whale = workflow.Whale()
+    state = workflow.State()
 
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
-    whale.add_injectable("configs_dir", configs_dir)
+    state.add_injectable("configs_dir", configs_dir)
 
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    whale.add_injectable("output_dir", output_dir)
+    state.add_injectable("output_dir", output_dir)
 
-    whale.initialize_filesystem(
+    state.initialize_filesystem(
         working_dir=os.path.dirname(__file__),
         configs_dir=(configs_dir,),
         output_dir=output_dir,
     )
 
-    return whale
+    return state
 
 
 def test_config_logger(capsys):
 
-    whale = add_canonical_dirs()
+    state = add_canonical_dirs()
 
-    whale.logging.config_logger()
+    state.logging.config_logger()
 
     logger = logging.getLogger("activitysim")
 
@@ -82,9 +82,9 @@ def test_config_logger(capsys):
 
 def test_print_summary(capsys):
 
-    whale = add_canonical_dirs()
+    state = add_canonical_dirs()
 
-    whale.logging.config_logger()
+    state.logging.config_logger()
 
     tracing.print_summary(
         "label", df=pd.DataFrame(), describe=False, value_counts=False
@@ -102,24 +102,24 @@ def test_print_summary(capsys):
 
 def test_register_households(capsys):
 
-    whale = add_canonical_dirs()
-    whale.load_settings()
+    state = add_canonical_dirs()
+    state.load_settings()
 
-    whale.logging.config_logger()
+    state.logging.config_logger()
 
     df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[1, 2, 3])
 
-    whale.tracing.traceable_tables = ["households"]
-    whale.settings.trace_hh_id = 5
+    state.tracing.traceable_tables = ["households"]
+    state.settings.trace_hh_id = 5
 
-    whale.tracing.register_traceable_table("households", df)
+    state.tracing.register_traceable_table("households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
     assert "Can't register table 'households' without index name" in out
 
     df.index.name = "household_id"
-    whale.tracing.register_traceable_table("households", df)
+    state.tracing.register_traceable_table("households", df)
     out, err = capsys.readouterr()
     # print out   # don't consume output
 
@@ -131,20 +131,20 @@ def test_register_households(capsys):
 
 def test_register_tours(capsys):
 
-    whale = add_canonical_dirs().load_settings()
+    state = add_canonical_dirs().load_settings()
 
-    whale.logging.config_logger()
+    state.logging.config_logger()
 
-    whale.tracing.traceable_tables = ["households", "tours"]
+    state.tracing.traceable_tables = ["households", "tours"]
 
     # in case another test injected this
-    whale.add_injectable("trace_tours", [])
-    whale.settings.trace_hh_id = 3
+    state.add_injectable("trace_tours", [])
+    state.settings.trace_hh_id = 3
 
     tours_df = pd.DataFrame({"zort": ["a", "b", "c"]}, index=[10, 11, 12])
     tours_df.index.name = "tour_id"
 
-    whale.tracing.register_traceable_table("tours", tours_df)
+    state.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     assert (
@@ -152,12 +152,12 @@ def test_register_tours(capsys):
         in out
     )
 
-    whale.add_injectable("trace_hh_id", 3)
+    state.add_injectable("trace_hh_id", 3)
     households_df = pd.DataFrame({"dzing": ["a", "b", "c"]}, index=[1, 2, 3])
     households_df.index.name = "household_id"
-    whale.tracing.register_traceable_table("households", households_df)
+    state.tracing.register_traceable_table("households", households_df)
 
-    whale.tracing.register_traceable_table("tours", tours_df)
+    state.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     # print out  # don't consume output
@@ -165,13 +165,13 @@ def test_register_tours(capsys):
 
     tours_df["household_id"] = [1, 5, 3]
 
-    whale.tracing.register_traceable_table("tours", tours_df)
+    state.tracing.register_traceable_table("tours", tours_df)
 
     out, err = capsys.readouterr()
     print(out)  # don't consume output
 
     # should be tracing tour with tour_id 3
-    traceable_table_ids = whale.tracing.traceable_table_ids
+    traceable_table_ids = state.tracing.traceable_table_ids
     assert traceable_table_ids["tours"] == [12]
 
     close_handlers()
@@ -179,12 +179,12 @@ def test_register_tours(capsys):
 
 def test_write_csv(capsys):
 
-    whale = add_canonical_dirs()
+    state = add_canonical_dirs()
 
-    whale.logging.config_logger()
+    state.logging.config_logger()
 
     # should complain if df not a DataFrame or Series
-    whale.tracing.write_csv(df="not a df or series", file_name="baddie")
+    state.tracing.write_csv(df="not a df or series", file_name="baddie")
 
     out, err = capsys.readouterr()
 
@@ -217,12 +217,12 @@ def test_basic(capsys):
 
     close_handlers()
 
-    whale = add_canonical_dirs()
+    state = add_canonical_dirs()
 
     # remove existing handlers or basicConfig is a NOP
     logging.getLogger().handlers = []
 
-    whale.logging.config_logger(basic=True)
+    state.logging.config_logger(basic=True)
 
     logger = logging.getLogger()
     file_handlers = [h for h in logger.handlers if type(h) is logging.FileHandler]

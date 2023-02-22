@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step(copy_tables=["trips"])
 def write_trip_matrices(
-    whale: workflow.Whale,
+    state: workflow.State,
     network_los: los.Network_LOS,
     trips: pd.DataFrame,
 ):
@@ -46,14 +46,14 @@ def write_trip_matrices(
         )
         return
 
-    model_settings = whale.filesystem.read_model_settings("write_trip_matrices.yaml")
-    trips_df = annotate_trips(whale, trips, network_los, model_settings)
+    model_settings = state.filesystem.read_model_settings("write_trip_matrices.yaml")
+    trips_df = annotate_trips(state, trips, network_los, model_settings)
 
     if bool(model_settings.get("SAVE_TRIPS_TABLE")):
-        whale.add_table("trips", trips_df)
+        state.add_table("trips", trips_df)
 
-    if "parking_location" in whale.settings.models:
-        parking_settings = whale.filesystem.read_model_settings(
+    if "parking_location" in state.settings.models:
+        parking_settings = state.filesystem.read_model_settings(
             "parking_location_choice.yaml"
         )
         parking_taz_col_name = parking_settings["ALT_DEST_COL_NAME"]
@@ -84,7 +84,7 @@ def write_trip_matrices(
         dest_vals = aggregate_trips.index.get_level_values("destination")
 
         # use the land use table for the set of possible tazs
-        land_use = whale.get_dataframe("land_use")
+        land_use = state.get_dataframe("land_use")
         zone_index = land_use.index
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
@@ -98,16 +98,16 @@ def write_trip_matrices(
             zone_labels = land_use.index
 
         write_matrices(
-            whale, aggregate_trips, zone_labels, orig_index, dest_index, model_settings
+            state, aggregate_trips, zone_labels, orig_index, dest_index, model_settings
         )
 
     elif network_los.zone_system == los.TWO_ZONE:  # maz trips written to taz matrices
         logger.info("aggregating trips two zone...")
         trips_df["otaz"] = (
-            whale.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            state.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
         )
         trips_df["dtaz"] = (
-            whale.get_dataframe("land_use")
+            state.get_dataframe("land_use")
             .reindex(trips_df["destination"])
             .TAZ.tolist()
         )
@@ -128,7 +128,7 @@ def write_trip_matrices(
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
         try:
-            land_use_taz = whale.get_dataframe("land_use_taz")
+            land_use_taz = state.get_dataframe("land_use_taz")
         except (KeyError, RuntimeError):
             pass  # table missing, ignore
         else:
@@ -144,7 +144,7 @@ def write_trip_matrices(
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            whale, aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            state, aggregate_trips, zone_index, orig_index, dest_index, model_settings
         )
 
     elif (
@@ -152,10 +152,10 @@ def write_trip_matrices(
     ):  # maz trips written to taz and tap matrices
         logger.info("aggregating trips three zone taz...")
         trips_df["otaz"] = (
-            whale.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            state.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
         )
         trips_df["dtaz"] = (
-            whale.get_dataframe("land_use")
+            state.get_dataframe("land_use")
             .reindex(trips_df["destination"])
             .TAZ.tolist()
         )
@@ -176,7 +176,7 @@ def write_trip_matrices(
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
         try:
-            land_use_taz = whale.get_dataframe("land_use_taz")
+            land_use_taz = state.get_dataframe("land_use_taz")
         except (KeyError, RuntimeError):
             pass  # table missing, ignore
         else:
@@ -184,7 +184,7 @@ def write_trip_matrices(
                 orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
                 dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
 
-        zone_index = pd.Index(network_los.get_tazs(whale), name="TAZ")
+        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 
@@ -192,7 +192,7 @@ def write_trip_matrices(
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            whale, aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            state, aggregate_trips, zone_index, orig_index, dest_index, model_settings
         )
 
         logger.info("aggregating trips three zone tap...")
@@ -220,7 +220,7 @@ def write_trip_matrices(
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            whale,
+            state,
             aggregate_trips,
             zone_index,
             orig_index,
@@ -232,7 +232,7 @@ def write_trip_matrices(
 
 @workflow.func
 def annotate_trips(
-    whale: workflow.Whale, trips: pd.DataFrame, network_los, model_settings
+    state: workflow.State, trips: pd.DataFrame, network_los, model_settings
 ):
     """
     Add columns to local trips table. The annotator has
@@ -264,7 +264,7 @@ def annotate_trips(
         locals_dict.update(constants)
 
     expressions.annotate_preprocessors(
-        whale, trips_df, locals_dict, skims, model_settings, trace_label
+        state, trips_df, locals_dict, skims, model_settings, trace_label
     )
 
     if not np.issubdtype(trips_df["trip_period"].dtype, np.integer):
@@ -281,14 +281,14 @@ def annotate_trips(
 
     if hh_weight_col and hh_weight_col not in trips_df:
         logger.info("adding '%s' from households to trips table" % hh_weight_col)
-        household_weights = whale.get_dataframe("households")[hh_weight_col]
+        household_weights = state.get_dataframe("households")[hh_weight_col]
         trips_df[hh_weight_col] = trips_df.household_id.map(household_weights)
 
     return trips_df
 
 
 def write_matrices(
-    whale: workflow.Whale,
+    state: workflow.State,
     aggregate_trips,
     zone_index,
     orig_index,
@@ -318,7 +318,7 @@ def write_matrices(
 
         if matrix_is_tap == is_tap:  # only write tap matrices to tap matrix files
             filename = matrix.get("file_name")
-            filepath = whale.get_output_file_path(filename)
+            filepath = state.get_output_file_path(filename)
             logger.info("opening %s" % filepath)
             file = omx.open_file(str(filepath), "w")  # possibly overwrite existing file
             table_settings = matrix.get("tables")

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def non_mandatory_tour_destination(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
@@ -28,15 +28,15 @@ def non_mandatory_tour_destination(
 
     trace_label = "non_mandatory_tour_destination"
     model_settings_file_name = "non_mandatory_tour_destination.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    trace_hh_id = whale.settings.trace_hh_id
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    trace_hh_id = state.settings.trace_hh_id
 
     logsum_column_name = model_settings.get("DEST_CHOICE_LOGSUM_COLUMN_NAME")
     want_logsums = logsum_column_name is not None
 
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     # choosers are tours - in a sense tours are choosing their destination
@@ -44,7 +44,7 @@ def non_mandatory_tour_destination(
 
     # separating out pure escort school tours
     # they already have their destination set
-    if whale.is_table("school_escort_tours"):
+    if state.is_table("school_escort_tours"):
         nm_tour_index = non_mandatory_tours.index
         pure_school_escort_tours = non_mandatory_tours[
             (non_mandatory_tours["school_esc_outbound"] == "pure_escort")
@@ -59,7 +59,7 @@ def non_mandatory_tour_destination(
         return
 
     estimator = estimation.manager.begin_estimation(
-        whale, "non_mandatory_tour_destination"
+        state, "non_mandatory_tour_destination"
     )
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
@@ -67,13 +67,13 @@ def non_mandatory_tour_destination(
         estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
         estimator.write_table(
-            whale.get_injectable("size_terms"), "size_terms", append=False
+            state.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
+        estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(
-        whale,
+        state,
         non_mandatory_tours,
         persons_merged,
         want_logsums,
@@ -95,7 +95,7 @@ def non_mandatory_tour_destination(
     non_mandatory_tours["destination"] = choices_df.choice
 
     # merging back in school escort tours and preserving index
-    if whale.is_table("school_escort_tours"):
+    if state.is_table("school_escort_tours"):
         non_mandatory_tours = pd.concat(
             [pure_school_escort_tours, non_mandatory_tours]
         ).set_index(nm_tour_index)
@@ -110,18 +110,18 @@ def non_mandatory_tour_destination(
         ~tours["destination"].isna()
     ), f"Tours are missing destination: {tours[tours['destination'].isna()]}"
 
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     if model_settings.get("annotate_tours"):
-        annotate.annotate_tours(whale, model_settings, trace_label)
+        annotate.annotate_tours(state, model_settings, trace_label)
 
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
-        whale.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             tours[tours.tour_category == "non_mandatory"],
             label="non_mandatory_tour_destination",
             slicer="person_id",

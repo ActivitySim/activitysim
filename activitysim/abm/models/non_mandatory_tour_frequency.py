@@ -27,8 +27,8 @@ from activitysim.core.interaction_simulate import interaction_simulate
 logger = logging.getLogger(__name__)
 
 
-def extension_probs(whale: workflow.Whale):
-    f = whale.filesystem.get_config_file_path(
+def extension_probs(state: workflow.State):
+    f = state.filesystem.get_config_file_path(
         "non_mandatory_tour_frequency_extension_probs.csv"
     )
     df = pd.read_csv(f, comment="#")
@@ -41,7 +41,7 @@ def extension_probs(whale: workflow.Whale):
 
 
 def extend_tour_counts(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons: pd.DataFrame,
     tour_counts: pd.DataFrame,
     alternatives,
@@ -85,7 +85,7 @@ def extend_tour_counts(
     JOIN_COLUMNS = ["ptype", "has_mandatory_tour", "has_joint_tour"]
     TOUR_TYPE_COL = "nonmandatory_tour_type"
 
-    probs_spec = extension_probs(whale)
+    probs_spec = extension_probs(state)
     persons = persons[JOIN_COLUMNS]
 
     # only extend if there are 1 - 4 non_mandatory tours to start with
@@ -94,7 +94,7 @@ def extend_tour_counts(
         logger.info("extend_tour_counts - no persons eligible for tour_count extension")
         return tour_counts
 
-    have_trace_targets = whale.settings.trace_hh_id and whale.tracing.has_trace_targets(
+    have_trace_targets = state.settings.trace_hh_id and state.tracing.has_trace_targets(
         extend_tour_counts
     )
 
@@ -122,7 +122,7 @@ def extend_tour_counts(
 
         # - random choice of extension magnitude based on relative probs
         choices, rands = logit.make_choices(
-            whale,
+            state,
             choosers[PROBABILITY_COLUMNS],
             trace_label=tour_type_trace_label,
             trace_choosers=choosers,
@@ -133,12 +133,12 @@ def extend_tour_counts(
             tour_counts.loc[choices.index, tour_type] += choices
 
         if have_trace_targets:
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 choices,
                 tracing.extend_trace_label(tour_type_trace_label, "choices"),
                 columns=[None, "choice"],
             )
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 rands,
                 tracing.extend_trace_label(tour_type_trace_label, "rands"),
                 columns=[None, "rand"],
@@ -149,7 +149,7 @@ def extend_tour_counts(
 
 @workflow.step
 def non_mandatory_tour_frequency(
-    whale: workflow.Whale, persons: pd.DataFrame, persons_merged: pd.DataFrame
+    state: workflow.State, persons: pd.DataFrame, persons_merged: pd.DataFrame
 ):
     """
     This model predicts the frequency of making non-mandatory trips
@@ -161,12 +161,12 @@ def non_mandatory_tour_frequency(
     trace_label = "non_mandatory_tour_frequency"
     model_settings_file_name = "non_mandatory_tour_frequency.yaml"
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     # FIXME kind of tacky both that we know to add this here and del it below
     # 'tot_tours' is used in model_spec expressions
     alternatives = simulate.read_model_alts(
-        whale, "non_mandatory_tour_frequency_alternatives.csv", set_index=None
+        state, "non_mandatory_tour_frequency_alternatives.csv", set_index=None
     )
     alternatives["tot_tours"] = alternatives.sum(axis=1)
 
@@ -177,10 +177,10 @@ def non_mandatory_tour_frequency(
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-        locals_dict = {"person_max_window": lambda x: person_max_window(whale, x)}
+        locals_dict = {"person_max_window": lambda x: person_max_window(state, x)}
 
         expressions.assign_columns(
-            whale,
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -191,7 +191,7 @@ def non_mandatory_tour_frequency(
 
     constants = config.get_model_constants(model_settings)
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     spec_segments = model_settings.get("SPEC_SEGMENTS", {})
 
     # segment by person type and pick the right spec for each person type
@@ -214,12 +214,12 @@ def non_mandatory_tour_frequency(
             continue
 
         estimator = estimation.manager.begin_estimation(
-            whale, model_name=segment_name, bundle_name="non_mandatory_tour_frequency"
+            state, model_name=segment_name, bundle_name="non_mandatory_tour_frequency"
         )
 
-        coefficients_df = whale.filesystem.read_model_coefficients(segment_settings)
+        coefficients_df = state.filesystem.read_model_coefficients(segment_settings)
         segment_spec = simulate.eval_coefficients(
-            whale, segment_spec, coefficients_df, estimator
+            state, segment_spec, coefficients_df, estimator
         )
 
         if estimator:
@@ -246,16 +246,16 @@ def non_mandatory_tour_frequency(
 
             estimator.set_chooser_id(chooser_segment.index.name)
 
-        log_alt_losers = whale.settings.log_alt_losers
+        log_alt_losers = state.settings.log_alt_losers
 
         choices = interaction_simulate(
-            whale,
+            state,
             chooser_segment,
             alternatives,
             spec=segment_spec,
             log_alt_losers=log_alt_losers,
             locals_d=constants,
-            chunk_size=whale.settings.chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label="non_mandatory_tour_frequency.%s" % segment_name,
             trace_choice_name="non_mandatory_tour_frequency",
             estimator=estimator,
@@ -310,7 +310,7 @@ def non_mandatory_tour_frequency(
 
     # - extend_tour_counts - probabalistic
     extended_tour_counts = extend_tour_counts(
-        whale,
+        state,
         choosers,
         modeled_tour_counts.copy(),
         alternatives,
@@ -350,7 +350,7 @@ def non_mandatory_tour_frequency(
     create the non_mandatory tours based on extended_tour_counts
     """
     non_mandatory_tours = process_non_mandatory_tours(
-        whale, persons, extended_tour_counts
+        state, persons, extended_tour_counts
     )
     assert len(non_mandatory_tours) == extended_tour_counts.sum().sum()
 
@@ -386,26 +386,26 @@ def non_mandatory_tour_frequency(
 
         assert not tours_differ.any()
 
-    whale.extend_table("tours", non_mandatory_tours)
+    state.extend_table("tours", non_mandatory_tours)
 
-    whale.tracing.register_traceable_table("tours", non_mandatory_tours)
-    whale.get_rn_generator().add_channel("tours", non_mandatory_tours)
+    state.tracing.register_traceable_table("tours", non_mandatory_tours)
+    state.get_rn_generator().add_channel("tours", non_mandatory_tours)
 
-    if whale.is_table("school_escort_tours"):
+    if state.is_table("school_escort_tours"):
         # need to re-compute tour frequency statistics to account for school escort tours
-        recompute_tour_count_statistics(whale)
+        recompute_tour_count_statistics(state)
 
     if model_settings.get("annotate_tours"):
-        annotate.annotate_tours(whale, model_settings, trace_label)
+        annotate.annotate_tours(state, model_settings, trace_label)
 
     expressions.assign_columns(
-        whale,
+        state,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         trace_label=trace_label,
     )
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "non_mandatory_tour_frequency",
@@ -413,18 +413,18 @@ def non_mandatory_tour_frequency(
         value_counts=True,
     )
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             non_mandatory_tours,
             label="non_mandatory_tour_frequency.non_mandatory_tours",
             warn_if_empty=True,
         )
 
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choosers, label="non_mandatory_tour_frequency.choosers", warn_if_empty=True
         )
 
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             persons,
             label="non_mandatory_tour_frequency.annotated_persons",
             warn_if_empty=True,

@@ -20,15 +20,15 @@ from activitysim.core import (
 logger = logging.getLogger(__name__)
 
 
-def add_null_results(whale, trace_label, tours):
+def add_null_results(state, trace_label, tours):
     logger.info("Skipping %s: add_null_results", trace_label)
     tours["atwork_subtour_frequency"] = np.nan
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
 
 @workflow.step
 def atwork_subtour_frequency(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
 ):
@@ -40,25 +40,25 @@ def atwork_subtour_frequency(
 
     trace_label = "atwork_subtour_frequency"
     model_settings_file_name = "atwork_subtour_frequency.yaml"
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
     work_tours = tours[tours.tour_type == "work"]
 
     # - if no work_tours
     if len(work_tours) == 0:
-        add_null_results(whale, trace_label, tours)
+        add_null_results(state, trace_label, tours)
         return
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_frequency")
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation(state, "atwork_subtour_frequency")
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     alternatives = simulate.read_model_alts(
-        whale, "atwork_subtour_frequency_alternatives.csv", set_index="alt"
+        state, "atwork_subtour_frequency_alternatives.csv", set_index="alt"
     )
 
     # merge persons into work_tours
@@ -75,7 +75,7 @@ def atwork_subtour_frequency(
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
         expressions.assign_columns(
-            whale,
+            state,
             df=work_tours,
             model_settings=preprocessor_settings,
             trace_label=trace_label,
@@ -88,7 +88,7 @@ def atwork_subtour_frequency(
         estimator.write_choosers(work_tours)
 
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=work_tours,
         spec=model_spec,
         nest_spec=nest_spec,
@@ -112,22 +112,22 @@ def atwork_subtour_frequency(
     # add atwork_subtour_frequency column to tours
     # reindex since we are working with a subset of tours
     tours["atwork_subtour_frequency"] = choices.reindex(tours.index)
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     # - create atwork_subtours based on atwork_subtour_frequency choice names
     work_tours = tours[tours.tour_type == "work"]
     assert not work_tours.atwork_subtour_frequency.isnull().any()
 
-    subtours = process_atwork_subtours(whale, work_tours, alternatives)
+    subtours = process_atwork_subtours(state, work_tours, alternatives)
 
-    tours = whale.extend_table("tours", subtours)
+    tours = state.extend_table("tours", subtours)
 
-    whale.tracing.register_traceable_table("tours", subtours)
-    whale.get_rn_generator().add_channel("tours", subtours)
+    state.tracing.register_traceable_table("tours", subtours)
+    state.get_rn_generator().add_channel("tours", subtours)
 
     tracing.print_summary(
         "atwork_subtour_frequency", tours.atwork_subtour_frequency, value_counts=True
     )
 
     if trace_hh_id:
-        whale.tracing.trace_df(tours, label="atwork_subtour_frequency.tours")
+        state.tracing.trace_df(tours, label="atwork_subtour_frequency.tours")

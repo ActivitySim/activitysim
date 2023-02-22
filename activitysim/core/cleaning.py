@@ -34,14 +34,14 @@ def recode_to_zero_based(values, mapping):
     return result
 
 
-def should_recode_based_on_table(whale: workflow.Whale, tablename):
+def should_recode_based_on_table(state: workflow.State, tablename):
     try:
-        base_df = whale.get_dataframe(tablename)
+        base_df = state.get_dataframe(tablename)
     except (KeyError, RuntimeError):
         # the basis table is missing, do not
         return False
     except AssertionError:
-        if whale.settings.input_table_list is None:
+        if state.settings.input_table_list is None:
             # some tests don't include table definitions.
             return False
         raise
@@ -50,15 +50,15 @@ def should_recode_based_on_table(whale: workflow.Whale, tablename):
     return False
 
 
-def recode_based_on_table(whale: workflow.Whale, values, tablename):
+def recode_based_on_table(state: workflow.State, values, tablename):
     try:
-        base_df = whale.get_dataframe(tablename)
+        base_df = state.get_dataframe(tablename)
     except (KeyError, RuntimeError):
         # the basis table is missing, do nothing
         logger.warning(f"unable to recode based on missing {tablename} table")
         return values
     except AssertionError:
-        if whale.settings.input_table_list is None:
+        if state.settings.input_table_list is None:
             # some tests don't include table definitions.
             logger.warning(f"unable to recode based on missing {tablename} table")
             return values

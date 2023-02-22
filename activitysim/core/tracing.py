@@ -58,13 +58,13 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def delete_output_files(whale, file_type, ignore=None, subdir=None):
+def delete_output_files(state, file_type, ignore=None, subdir=None):
     """
     Delete files in output directory of specified type.
 
     Parameters
     ----------
-    whale : Pipeline
+    state : Pipeline
         The output directory is read from the Pipeline.
     file_type : str
         File extension to delete.
@@ -75,7 +75,7 @@ def delete_output_files(whale, file_type, ignore=None, subdir=None):
         plus the 'log' and 'trace' directories will be scrubbed.
     """
 
-    output_dir = whale.filesystem.get_output_dir()
+    output_dir = state.filesystem.get_output_dir()
 
     subdir = [subdir] if subdir else None
     directories = subdir or ["", "log", "trace"]
@@ -106,12 +106,12 @@ def delete_output_files(whale, file_type, ignore=None, subdir=None):
                     print(e)
 
 
-def delete_trace_files(whale):
+def delete_trace_files(state):
     """
     Delete CSV files in output_dir
     """
-    delete_output_files(whale, CSV_FILE_TYPE, subdir="trace")
-    delete_output_files(whale, CSV_FILE_TYPE, subdir="log")
+    delete_output_files(state, CSV_FILE_TYPE, subdir="trace")
+    delete_output_files(state, CSV_FILE_TYPE, subdir="log")
 
     active_log_files = [
         h.baseFilename
@@ -119,7 +119,7 @@ def delete_trace_files(whale):
         if isinstance(h, logging.FileHandler)
     ]
 
-    delete_output_files(whale, "log", ignore=active_log_files)
+    delete_output_files(state, "log", ignore=active_log_files)
 
 
 def print_summary(label, df, describe=False, value_counts=False):

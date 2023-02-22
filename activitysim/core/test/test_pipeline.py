@@ -17,14 +17,14 @@ HH_ID = 961042
 
 
 @pytest.fixture
-def whale():
+def state():
 
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
     data_dir = os.path.join(os.path.dirname(__file__), "data")
 
-    whale = (
-        workflow.Whale()
+    state = (
+        workflow.State()
         .initialize_filesystem(
             configs_dir=(configs_dir,),
             output_dir=output_dir,
@@ -33,8 +33,8 @@ def whale():
         .load_settings()
     )
 
-    whale.logging.config_logger()
-    return whale
+    state.logging.config_logger()
+    return state
 
 
 def close_handlers():
@@ -48,7 +48,7 @@ def close_handlers():
 
 
 # @pytest.mark.filterwarnings('ignore::tables.NaturalNameWarning')
-def test_pipeline_run(whale):
+def test_pipeline_run(state):
 
     # workflow.steps.workflow_step(steps.step1, step_name="step1")
     # workflow.steps.workflow_step(steps.step2, step_name="step2")
@@ -62,37 +62,37 @@ def test_pipeline_run(whale):
         "step_add_col.table_name=table2;column_name=c2",
     ]
 
-    whale.run(models=_MODELS, resume_after=None)
+    state.run(models=_MODELS, resume_after=None)
 
-    checkpoints = whale.checkpoint.get_inventory()
+    checkpoints = state.checkpoint.get_inventory()
     print("checkpoints\n", checkpoints)
 
-    c2 = whale.get_table("table2").c2
+    c2 = state.get_table("table2").c2
 
     # get table from
-    whale.get_table("table1", checkpoint_name="step3")
+    state.get_table("table1", checkpoint_name="step3")
 
     # try to get a table from a step before it was checkpointed
     with pytest.raises(RuntimeError) as excinfo:
-        whale.get_table("table2", checkpoint_name="step1")
+        state.get_table("table2", checkpoint_name="step1")
     assert "not in checkpoint 'step1'" in str(excinfo.value)
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
-        whale.get_table("bogus")
+        state.get_table("bogus")
     assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
     with pytest.raises(RuntimeError) as excinfo:
-        whale.get_table("table1", checkpoint_name="bogus")
+        state.get_table("table1", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
 
     close_handlers()
 
 
-def test_pipeline_checkpoint_drop(whale):
+def test_pipeline_checkpoint_drop(state):
 
     # workflow.steps.workflow_step(steps.step1, step_name="step1")
     # workflow.steps.workflow_step(steps.step2, step_name="step2")
@@ -108,26 +108,26 @@ def test_pipeline_checkpoint_drop(whale):
         "step3",
         "step_forget_tab.table_name=table3",
     ]
-    whale.run(models=_MODELS, resume_after=None)
+    state.run(models=_MODELS, resume_after=None)
 
-    checkpoints = whale.checkpoint.get_inventory()
+    checkpoints = state.checkpoint.get_inventory()
     print("checkpoints\n", checkpoints)
 
-    whale.get_table("table1")
+    state.get_table("table1")
 
     with pytest.raises(RuntimeError) as excinfo:
-        whale.get_table("table2")
+        state.get_table("table2")
     # assert "never checkpointed" in str(excinfo.value)
 
     # can't get a dropped table from current checkpoint
     with pytest.raises(RuntimeError) as excinfo:
-        whale.get_table("table3")
+        state.get_table("table3")
     # assert "was dropped" in str(excinfo.value)
 
     # ensure that we can still get table3 from a checkpoint at which it existed
-    whale.get_table("table3", checkpoint_name="step3")
+    state.get_table("table3", checkpoint_name="step3")
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
     close_handlers()
 
 

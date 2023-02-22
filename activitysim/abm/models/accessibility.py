@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def compute_accessibilities_for_zones(
-    whale,
+    state,
     accessibility_df,
     land_use_df,
     assignment_spec,
@@ -42,7 +42,7 @@ def compute_accessibilities_for_zones(
         }
     )
 
-    trace_od = whale.settings.trace_od
+    trace_od = state.settings.trace_od
     if trace_od:
         trace_orig, trace_dest = trace_od
         trace_od_rows = (od_df.orig == trace_orig) & (od_df.dest == trace_dest)
@@ -70,7 +70,7 @@ def compute_accessibilities_for_zones(
 
     logger.info(f"{trace_label}: assign.assign_variables")
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        whale,
+        state,
         assignment_spec,
         od_df,
         locals_d,
@@ -100,7 +100,7 @@ def compute_accessibilities_for_zones(
             df = pd.concat([od_df[trace_od_rows], trace_results], axis=1)
 
             # dump the trace results table (with _temp variables) to aid debugging
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 df,
                 label="accessibility",
                 index_label="skim_offset",
@@ -109,7 +109,7 @@ def compute_accessibilities_for_zones(
             )
 
             if trace_assigned_locals:
-                whale.tracing.write_csv(
+                state.tracing.write_csv(
                     trace_assigned_locals, file_name="accessibility_locals"
                 )
 
@@ -118,7 +118,7 @@ def compute_accessibilities_for_zones(
 
 @workflow.step
 def compute_accessibility(
-    whale: workflow.Whale,
+    state: workflow.State,
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,
     network_los: los.Network_LOS,
@@ -141,9 +141,9 @@ def compute_accessibility(
     """
 
     trace_label = "compute_accessibility"
-    model_settings = whale.filesystem.read_model_settings("accessibility.yaml")
+    model_settings = state.filesystem.read_model_settings("accessibility.yaml")
     assignment_spec = assign.read_assignment_spec(
-        whale.filesystem.get_config_file_path("accessibility.csv")
+        state.filesystem.get_config_file_path("accessibility.csv")
     )
 
     accessibility_df = accessibility
@@ -171,10 +171,10 @@ def compute_accessibility(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(whale, accessibility_df, trace_label):
+    ) in chunk.adaptive_chunked_choosers(state, accessibility_df, trace_label):
 
         accessibilities = compute_accessibilities_for_zones(
-            whale,
+            state,
             chooser_chunk,
             land_use_df,
             assignment_spec,
@@ -190,4 +190,4 @@ def compute_accessibility(
     logger.info(f"{trace_label} computed accessibilities {accessibility_df.shape}")
 
     # - write table to pipeline
-    whale.add_table("accessibility", accessibility_df)
+    state.add_table("accessibility", accessibility_df)

@@ -7,7 +7,7 @@ from datetime import timedelta
 from typing import Callable, Iterable
 
 from activitysim.core.exceptions import DuplicateWorkflowNameError
-from activitysim.core.workflow.accessor import FromWhale, WhaleAccessor
+from activitysim.core.workflow.accessor import FromState, StateAccessor
 from activitysim.core.workflow.checkpoint import (
     CHECKPOINT_NAME,
     CHECKPOINT_TABLE_NAME,
@@ -51,7 +51,7 @@ def split_arg(s, sep, default=""):
     return arg, val
 
 
-class Runner(WhaleAccessor):
+class Runner(StateAccessor):
     """
     This accessor provides the tools to actually run ActivitySim workflow steps.
     """
@@ -185,7 +185,7 @@ class Runner(WhaleAccessor):
             return f
         raise AttributeError(item)
 
-    timing_notes: set[str] = FromWhale(default_init=True)
+    timing_notes: set[str] = FromState(default_init=True)
 
     def log_runtime(self, model_name, start_time=None, timing=None, force=False):
         assert (start_time or timing) and not (start_time and timing)

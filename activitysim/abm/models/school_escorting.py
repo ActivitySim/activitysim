@@ -336,7 +336,7 @@ def create_school_escorting_bundles_table(choosers, tours, stage):
 
 @workflow.step
 def school_escorting(
-    whale: workflow.Whale,
+    state: workflow.State,
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
     persons: pd.DataFrame,
@@ -367,10 +367,10 @@ def school_escorting(
     """
     trace_label = "school_escorting_simulate"
     model_settings_file_name = "school_escorting.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    trace_hh_id = whale.settings.trace_hh_id
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    trace_hh_id = state.settings.trace_hh_id
 
-    alts = simulate.read_model_alts(whale, model_settings["ALTS"], set_index="Alt")
+    alts = simulate.read_model_alts(state, model_settings["ALTS"], set_index="Alt")
 
     households_merged, participant_columns = determine_escorting_participants(
         households_merged, persons, model_settings
@@ -388,17 +388,17 @@ def school_escorting(
     for stage_num, stage in enumerate(school_escorting_stages):
         stage_trace_label = trace_label + "_" + stage
         estimator = estimation.manager.begin_estimation(
-            whale, "school_escorting_" + stage
+            state, "school_escorting_" + stage
         )
 
-        model_spec_raw = whale.filesystem.read_model_spec(
+        model_spec_raw = state.filesystem.read_model_spec(
             file_name=model_settings[stage.upper() + "_SPEC"]
         )
-        coefficients_df = whale.filesystem.read_model_coefficients(
+        coefficients_df = state.filesystem.read_model_coefficients(
             file_name=model_settings[stage.upper() + "_COEFFICIENTS"]
         )
         model_spec = simulate.eval_coefficients(
-            whale, model_spec_raw, coefficients_df, estimator
+            state, model_spec_raw, coefficients_df, estimator
         )
 
         # allow for skipping sharrow entirely in this model with `sharrow_skip: true`
@@ -436,7 +436,7 @@ def school_escorting(
         preprocessor_settings = model_settings.get("preprocessor_" + stage, None)
         if preprocessor_settings:
             expressions.assign_columns(
-                whale,
+                state,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -449,16 +449,16 @@ def school_escorting(
             estimator.write_coefficients(coefficients_df, model_settings)
             estimator.write_choosers(choosers)
 
-        log_alt_losers = whale.settings.log_alt_losers
+        log_alt_losers = state.settings.log_alt_losers
 
         choices = interaction_simulate(
-            whale,
+            state,
             choosers=choosers,
             alternatives=alts,
             spec=model_spec,
             log_alt_losers=log_alt_losers,
             locals_d=locals_dict,
-            chunk_size=whale.settings.chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=stage_trace_label,
             trace_choice_name="school_escorting_" + "stage",
             estimator=estimator,
@@ -482,7 +482,7 @@ def school_escorting(
         )
 
         if trace_hh_id:
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 households, label=escorting_choice, warn_if_empty=True
             )
 
@@ -528,17 +528,17 @@ def school_escorting(
     )
 
     # update pipeline
-    whale.add_table("households", households)
-    whale.add_table("tours", tours)
-    whale.get_rn_generator().drop_channel("tours")
-    whale.get_rn_generator().add_channel("tours", tours)
-    whale.add_table("escort_bundles", escort_bundles)
+    state.add_table("households", households)
+    state.add_table("tours", tours)
+    state.get_rn_generator().drop_channel("tours")
+    state.get_rn_generator().add_channel("tours", tours)
+    state.add_table("escort_bundles", escort_bundles)
     # save school escorting tours and trips in pipeline so we can overwrite results from downstream models
-    whale.add_table("school_escort_tours", school_escort_tours)
-    whale.add_table("school_escort_trips", school_escort_trips)
+    state.add_table("school_escort_tours", school_escort_tours)
+    state.add_table("school_escort_trips", school_escort_trips)
 
     # updating timetable object with pure escort tours so joint tours do not schedule ontop
-    timetable = whale.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
     # Need to do this such that only one person is in nth_tours
     # thus, looping through tour_category and tour_num

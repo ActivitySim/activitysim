@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours: pd.DataFrame):
+def reassign_tour_purpose_by_poe(state: workflow.State, tours: pd.DataFrame):
 
     """
     Simulates tour purpose choices after tour origin has been assigned. This
@@ -23,7 +23,7 @@ def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours: pd.DataFrame):
 
     trace_label = "reassign_tour_purpose_by_poe"
     probs_df = pd.read_csv(
-        whale.filesystem.get_config_file_path("tour_purpose_probs_by_poe.csv")
+        state.filesystem.get_config_file_path("tour_purpose_probs_by_poe.csv")
     )
     probs_df.columns = [
         col if col in ["Purpose", "Description"] else int(col)
@@ -40,7 +40,7 @@ def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours: pd.DataFrame):
         num_tours = len(group)
         purpose_probs = probs_df[poe]
         purpose_cum_probs = purpose_probs.values.cumsum()
-        rands = whale.get_rn_generator().random_for_df(group)
+        rands = state.get_rn_generator().random_for_df(group)
         purpose_scaled_probs = np.subtract(purpose_cum_probs, rands)
         purpose = np.argmax((purpose_scaled_probs + 1.0).astype("i4"), axis=1)
         tours_df.loc[group.index, "purpose_id"] = purpose
@@ -51,6 +51,6 @@ def reassign_tour_purpose_by_poe(whale: workflow.Whale, tours: pd.DataFrame):
     tours["tour_category"] = "non_mandatory"
     tours.loc[tours["tour_type"].isin(["home", "work"]), "tour_category"] = "mandatory"
 
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     return

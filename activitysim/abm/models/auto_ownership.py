@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def auto_ownership_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     households: pd.DataFrame,
     households_merged: pd.DataFrame,
 ):
@@ -23,14 +23,14 @@ def auto_ownership_simulate(
     """
     trace_label = "auto_ownership_simulate"
     model_settings_file_name = "auto_ownership.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    trace_hh_id = whale.settings.trace_hh_id
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    trace_hh_id = state.settings.trace_hh_id
 
-    estimator = estimation.manager.begin_estimation(whale, "auto_ownership")
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    estimator = estimation.manager.begin_estimation(state, "auto_ownership")
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     nest_spec = config.get_logit_model_settings(model_settings)
@@ -46,10 +46,10 @@ def auto_ownership_simulate(
         estimator.write_coefficients(coefficients_df, model_settings)
         estimator.write_choosers(choosers)
 
-    log_alt_losers = whale.settings.log_alt_losers
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,
@@ -69,11 +69,11 @@ def auto_ownership_simulate(
     # no need to reindex as we used all households
     households["auto_ownership"] = choices
 
-    whale.add_table("households", households)
+    state.add_table("households", households)
 
     tracing.print_summary(
         "auto_ownership", households.auto_ownership, value_counts=True
     )
 
     if trace_hh_id:
-        whale.tracing.trace_df(households, label="auto_ownership", warn_if_empty=True)
+        state.tracing.trace_df(households, label="auto_ownership", warn_if_empty=True)

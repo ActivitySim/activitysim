@@ -22,7 +22,7 @@ ALT_CHOOSER_ID = "_chooser_id"
 
 
 def eval_interaction_utilities(
-    whale,
+    state,
     spec,
     df,
     locals_d,
@@ -76,7 +76,7 @@ def eval_interaction_utilities(
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
-    sharrow_enabled = whale.settings.sharrow
+    sharrow_enabled = state.settings.sharrow
 
     if locals_d is not None and locals_d.get("_sharrow_skip", False):
         sharrow_enabled = False
@@ -88,7 +88,7 @@ def eval_interaction_utilities(
 
     trace_eval_results = None
 
-    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
+    with chunk.chunk_log(state, trace_label) as chunk_sizer:
 
         assert len(spec.columns) == 1
 
@@ -174,7 +174,7 @@ def eval_interaction_utilities(
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
             sh_util, sh_flow = apply_flow(
-                whale,
+                state,
                 spec_sh,
                 df,
                 locals_d,
@@ -216,7 +216,7 @@ def eval_interaction_utilities(
             else:
                 trace_eval_results = None
 
-            check_for_variability = whale.settings.check_for_variability
+            check_for_variability = state.settings.check_for_variability
 
             # need to be able to identify which variables causes an error, which keeps
             # this from being expressed more parsimoniously
@@ -585,7 +585,7 @@ def eval_interaction_utilities(
 
 
 def _interaction_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers: pd.DataFrame,
     alternatives: pd.DataFrame,
     spec: pd.DataFrame,
@@ -647,13 +647,13 @@ def _interaction_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
-    have_trace_targets = whale.tracing.has_trace_targets(choosers)
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choosers, tracing.extend_trace_label(trace_label, "choosers")
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             slicer="NONE",
@@ -684,7 +684,7 @@ def _interaction_simulate(
     alt_index_id = estimator.get_alt_id() if estimator else None
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
-    sharrow_enabled = whale.settings.sharrow
+    sharrow_enabled = state.settings.sharrow
     interaction_utilities = None
 
     if locals_d is not None and locals_d.get("_sharrow_skip", False):
@@ -703,7 +703,7 @@ def _interaction_simulate(
         trace_rows = trace_ids = None
 
         interaction_utilities, trace_eval_results = eval_interaction_utilities(
-            whale,
+            state,
             spec,
             choosers,
             locals_d,
@@ -737,7 +737,7 @@ def _interaction_simulate(
     ):
 
         interaction_df = logit.interaction_dataset(
-            whale,
+            state,
             choosers,
             alternatives,
             sample_size,
@@ -755,11 +755,11 @@ def _interaction_simulate(
         # utilities has utility value for element in the cross product of choosers and alternatives
         # interaction_utilities is a df with one utility column and one row per row in model_design
         if have_trace_targets:
-            trace_rows, trace_ids = whale.tracing.interaction_trace_rows(
+            trace_rows, trace_ids = state.tracing.interaction_trace_rows(
                 interaction_df, choosers, sample_size
             )
 
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 interaction_df[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_df"),
                 slicer="NONE",
@@ -769,7 +769,7 @@ def _interaction_simulate(
             trace_rows = trace_ids = None
 
         interaction_utilities, trace_eval_results = eval_interaction_utilities(
-            whale,
+            state,
             spec,
             interaction_df,
             locals_d,
@@ -788,13 +788,13 @@ def _interaction_simulate(
         chunk_sizer.log_df(trace_label, "interaction_df", None)
 
         if have_trace_targets:
-            whale.tracing.trace_interaction_eval_results(
+            state.tracing.trace_interaction_eval_results(
                 trace_eval_results,
                 trace_ids,
                 tracing.extend_trace_label(trace_label, "eval"),
             )
 
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 interaction_utilities[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_utils"),
                 slicer="NONE",
@@ -810,18 +810,18 @@ def _interaction_simulate(
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             utilities,
             tracing.extend_trace_label(trace_label, "utils"),
             column_labels=["alternative", "utility"],
         )
 
-    whale.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
+    state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(
-        whale, utilities, trace_label=trace_label, trace_choosers=choosers
+        state, utilities, trace_label=trace_label, trace_choosers=choosers
     )
     chunk_sizer.log_df(trace_label, "probs", probs)
 
@@ -829,7 +829,7 @@ def _interaction_simulate(
     chunk_sizer.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -839,7 +839,7 @@ def _interaction_simulate(
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
     positions, rands = logit.make_choices(
-        whale, probs, trace_label=trace_label, trace_choosers=choosers
+        state, probs, trace_label=trace_label, trace_choosers=choosers
     )
     chunk_sizer.log_df(trace_label, "positions", positions)
     chunk_sizer.log_df(trace_label, "rands", rands)
@@ -857,12 +857,12 @@ def _interaction_simulate(
     chunk_sizer.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choices,
             tracing.extend_trace_label(trace_label, "choices"),
             columns=[None, trace_choice_name],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             rands,
             tracing.extend_trace_label(trace_label, "rands"),
             columns=[None, "rand"],
@@ -872,7 +872,7 @@ def _interaction_simulate(
 
 
 def interaction_simulate(
-    whale,
+    state,
     choosers,
     alternatives,
     spec,
@@ -945,10 +945,10 @@ def interaction_simulate(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(whale, choosers, trace_label):
+    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label):
 
         choices = _interaction_simulate(
-            whale,
+            state,
             chooser_chunk,
             alternatives,
             spec,

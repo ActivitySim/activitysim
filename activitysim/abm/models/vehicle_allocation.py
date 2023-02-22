@@ -19,7 +19,7 @@ from activitysim.core import (
 logger = logging.getLogger(__name__)
 
 
-def annotate_vehicle_allocation(whale: workflow.Whale, model_settings, trace_label):
+def annotate_vehicle_allocation(state: workflow.State, model_settings, trace_label):
     """
     Add columns to the tours table in the pipeline according to spec.
 
@@ -28,14 +28,14 @@ def annotate_vehicle_allocation(whale: workflow.Whale, model_settings, trace_lab
     model_settings : dict
     trace_label : str
     """
-    tours = whale.get_dataframe("tours")
+    tours = state.get_dataframe("tours")
     expressions.assign_columns(
-        whale,
+        state,
         df=tours,
         model_settings=model_settings.get("annotate_tours"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
     )
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
 
 def get_skim_dict(network_los, choosers):
@@ -83,7 +83,7 @@ def get_skim_dict(network_los, choosers):
 
 @workflow.step
 def vehicle_allocation(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons: pd.DataFrame,
     households: pd.DataFrame,
     vehicles: pd.DataFrame,
@@ -104,7 +104,7 @@ def vehicle_allocation(
 
     Parameters
     ----------
-    whale : workflow.Whale
+    state : workflow.State
     persons : orca.DataFrameWrapper
     households : orca.DataFrameWrapper
     vehicles : orca.DataFrameWrapper
@@ -115,16 +115,16 @@ def vehicle_allocation(
     """
     trace_label = "vehicle_allocation"
     model_settings_file_name = "vehicle_allocation.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
 
-    estimator = estimation.manager.begin_estimation(whale, "vehicle_allocation")
+    estimator = estimation.manager.begin_estimation(state, "vehicle_allocation")
 
-    model_spec_raw = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    model_spec_raw = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec_raw, coefficients_df, estimator
+        state, model_spec_raw, coefficients_df, estimator
     )
 
     nest_spec = config.get_logit_model_settings(model_settings)
@@ -175,7 +175,7 @@ def vehicle_allocation(
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
         expressions.assign_columns(
-            whale,
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -198,7 +198,7 @@ def vehicle_allocation(
         locals_dict.update({"occup": occup})
 
         choices = simulate.simple_simulate(
-            whale,
+            state,
             choosers=choosers,
             spec=model_spec,
             nest_spec=nest_spec,
@@ -235,7 +235,7 @@ def vehicle_allocation(
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     tracing.print_summary(
         "vehicle_allocation", tours[tours_veh_occup_cols], value_counts=True
@@ -243,7 +243,7 @@ def vehicle_allocation(
 
     annotate_settings = model_settings.get("annotate_tours", None)
     if annotate_settings:
-        annotate_vehicle_allocation(whale, model_settings, trace_label)
+        annotate_vehicle_allocation(state, model_settings, trace_label)
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(tours, label="vehicle_allocation", warn_if_empty=True)

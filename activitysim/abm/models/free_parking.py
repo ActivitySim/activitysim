@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def free_parking(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
 ):
@@ -28,14 +28,14 @@ def free_parking(
 
     trace_label = "free_parking"
     model_settings_file_name = "free_parking.yaml"
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
 
     choosers = pd.DataFrame(persons_merged)
     choosers = choosers[choosers.workplace_zone_id > -1]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation(whale, "free_parking")
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation(state, "free_parking")
 
     constants = config.get_model_constants(model_settings)
 
@@ -47,17 +47,17 @@ def free_parking(
             locals_d.update(constants)
 
         expressions.assign_columns(
-            whale,
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     nest_spec = config.get_logit_model_settings(model_settings)
@@ -69,7 +69,7 @@ def free_parking(
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,
@@ -94,11 +94,11 @@ def free_parking(
         choices.reindex(persons.index).fillna(0).astype(bool)
     )
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "free_parking", persons.free_parking_at_work, value_counts=True
     )
 
     if trace_hh_id:
-        whale.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+        state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def joint_tour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
@@ -35,9 +35,9 @@ def joint_tour_scheduling(
     trace_label = "joint_tour_scheduling"
 
     model_settings_file_name = "joint_tour_scheduling.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
     joint_tours = tours[tours.tour_category == "joint"]
 
     # - if no joint tours
@@ -45,8 +45,8 @@ def joint_tour_scheduling(
         tracing.no_results(trace_label)
         return
 
-    # use whale.get_dataframe as this won't exist if there are no joint_tours
-    joint_tour_participants = whale.get_dataframe("joint_tour_participants")
+    # use state.get_dataframe as this won't exist if there are no joint_tours
+    joint_tour_participants = state.get_dataframe("joint_tour_participants")
 
     logger.info("Running %s with %d joint tours", trace_label, joint_tours.shape[0])
 
@@ -71,22 +71,22 @@ def joint_tour_scheduling(
             locals_d.update(constants)
 
         expressions.assign_columns(
-            whale,
+            state,
             df=joint_tours,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    timetable = whale.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
-    estimator = estimation.manager.begin_estimation(whale, "joint_tour_scheduling")
+    estimator = estimation.manager.begin_estimation(state, "joint_tour_scheduling")
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     sharrow_skip = model_settings.get("sharrow_skip", False)
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     if estimator:
@@ -96,7 +96,7 @@ def joint_tour_scheduling(
         timetable.begin_transaction(estimator)
 
     choices = vectorize_joint_tour_scheduling(
-        whale,
+        state,
         joint_tours,
         joint_tour_participants,
         persons_merged,
@@ -105,7 +105,7 @@ def joint_tour_scheduling(
         spec=model_spec,
         model_settings=model_settings,
         estimator=estimator,
-        chunk_size=whale.settings.chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
         sharrow_skip=sharrow_skip,
     )
@@ -132,7 +132,7 @@ def joint_tour_scheduling(
                 nth_participants.person_id, reindex(choices, nth_participants.tour_id)
             )
 
-    timetable.replace_table(whale)
+    timetable.replace_table(state)
 
     # choices are tdd alternative ids
     # we want to add start, end, and duration columns to tours, which we have in tdd_alts table
@@ -141,12 +141,12 @@ def joint_tour_scheduling(
     )
 
     assign_in_place(tours, choices)
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     # updated df for tracing
     joint_tours = tours[tours.tour_category == "joint"]
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             joint_tours, label="joint_tour_scheduling", slicer="household_id"
         )

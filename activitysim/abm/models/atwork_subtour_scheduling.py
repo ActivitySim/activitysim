@@ -22,7 +22,7 @@ DUMP = False
 
 @workflow.step
 def atwork_subtour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
@@ -34,7 +34,7 @@ def atwork_subtour_scheduling(
 
     trace_label = "atwork_subtour_scheduling"
     model_settings_file_name = "tour_scheduling_atwork.yaml"
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
     subtours = tours[tours.tour_category == "atwork"]
 
     # - if no atwork subtours
@@ -42,14 +42,14 @@ def atwork_subtour_scheduling(
         tracing.no_results(trace_label)
         return
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
-    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_scheduling")
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
+    estimator = estimation.manager.begin_estimation(state, "atwork_subtour_scheduling")
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
     sharrow_skip = model_settings.get("sharrow_skip")
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     logger.info("Running %s with %d tours", trace_label, len(subtours))
@@ -61,7 +61,7 @@ def atwork_subtour_scheduling(
         "od_skims": od_skim_wrapper,
     }
     expressions.annotate_preprocessors(
-        whale, subtours, constants, skims, model_settings, trace_label
+        state, subtours, constants, skims, model_settings, trace_label
     )
 
     # parent_tours table with columns ['tour_id', 'tdd'] index = tour_id
@@ -76,7 +76,7 @@ def atwork_subtour_scheduling(
         # we don't need to update timetable because subtours are scheduled inside work trip windows
 
     choices = vectorize_subtour_scheduling(
-        whale,
+        state,
         parent_tours,
         subtours,
         persons_merged,
@@ -84,7 +84,7 @@ def atwork_subtour_scheduling(
         model_spec,
         model_settings,
         estimator=estimator,
-        chunk_size=whale.settings.chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
         sharrow_skip=sharrow_skip,
     )
@@ -102,10 +102,10 @@ def atwork_subtour_scheduling(
     )
 
     assign_in_place(tours, tdd_choices)
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             tours[tours.tour_category == "atwork"],
             label="atwork_subtour_scheduling",
             slicer="person_id",
@@ -117,12 +117,12 @@ def atwork_subtour_scheduling(
         subtours = tours[tours.tour_category == "atwork"]
         parent_tours = tours[tours.index.isin(subtours.parent_tour_id)]
 
-        whale.tracing.dump_df(DUMP, subtours, trace_label, "sub_tours")
-        whale.tracing.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
+        state.tracing.dump_df(DUMP, subtours, trace_label, "sub_tours")
+        state.tracing.dump_df(DUMP, parent_tours, trace_label, "parent_tours")
 
         parent_tours["parent_tour_id"] = parent_tours.index
         subtours = pd.concat([parent_tours, subtours])
-        whale.tracing.dump_df(
+        state.tracing.dump_df(
             DUMP,
             tt.tour_map(
                 parent_tours, subtours, tdd_alts, persons_id_col="parent_tour_id"

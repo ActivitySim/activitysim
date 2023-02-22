@@ -21,7 +21,7 @@ logger = logging.getLogger("activitysim")
 
 @workflow.step
 def work_from_home(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
 ):
@@ -36,14 +36,14 @@ def work_from_home(
     model_settings_file_name = "work_from_home.yaml"
 
     choosers = persons_merged
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     chooser_filter_column_name = model_settings.get(
         "CHOOSER_FILTER_COLUMN_NAME", "is_worker"
     )
     choosers = choosers[choosers[chooser_filter_column_name]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    estimator = estimation.manager.begin_estimation(whale, "work_from_home")
+    estimator = estimation.manager.begin_estimation(state, "work_from_home")
 
     constants = config.get_model_constants(model_settings)
     work_from_home_alt = model_settings["WORK_FROM_HOME_ALT"]
@@ -56,15 +56,15 @@ def work_from_home(
             locals_d.update(constants)
 
         expressions.assign_columns(
-            whale,
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
@@ -98,13 +98,13 @@ def work_from_home(
         )
 
         # re-read spec to reset substitution
-        model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+        model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
         model_spec = simulate.eval_coefficients(
-            whale, model_spec, coefficients_df, estimator
+            state, model_spec, coefficients_df, estimator
         )
 
         choices = simulate.simple_simulate(
-            whale,
+            state,
             choosers=choosers,
             spec=model_spec,
             nest_spec=nest_spec,
@@ -182,9 +182,9 @@ def work_from_home(
             persons.work_from_home == True, -1, persons[dest_choice_column_name]
         )
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary("work_from_home", persons.work_from_home, value_counts=True)
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

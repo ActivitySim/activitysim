@@ -24,10 +24,10 @@ def close_handlers():
 
 
 @pytest.fixture
-def whale() -> workflow.Whale:
-    whale = workflow.Whale()
-    whale.initialize_filesystem(working_dir=os.path.dirname(__file__))
-    return whale
+def state() -> workflow.State:
+    state = workflow.State()
+    state.initialize_filesystem(working_dir=os.path.dirname(__file__))
+    return state
 
 
 @pytest.fixture(scope="module")
@@ -50,9 +50,9 @@ def data(data_name):
     return pd.read_csv(data_name)
 
 
-def test_read_model_spec(whale: workflow.Whale):
+def test_read_model_spec(state: workflow.State):
     spec = assign.read_assignment_spec(
-        whale.filesystem.get_config_file_path("assignment_spec.csv")
+        state.filesystem.get_config_file_path("assignment_spec.csv")
     )
 
     assert len(spec) == 8
@@ -60,17 +60,17 @@ def test_read_model_spec(whale: workflow.Whale):
     assert list(spec.columns) == ["description", "target", "expression"]
 
 
-def test_assign_variables(whale: workflow.Whale, capsys, data):
-    whale.default_settings()
+def test_assign_variables(state: workflow.State, capsys, data):
+    state.default_settings()
 
     spec = assign.read_assignment_spec(
-        whale.filesystem.get_config_file_path("assignment_spec.csv")
+        state.filesystem.get_config_file_path("assignment_spec.csv")
     )
 
     locals_d = {"CONSTANT": 7, "_shadow": 99}
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        whale, spec, data, locals_d, trace_rows=None
+        state, spec, data, locals_d, trace_rows=None
     )
 
     print(results)
@@ -85,7 +85,7 @@ def test_assign_variables(whale: workflow.Whale, capsys, data):
     trace_rows = [False, True, False]
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        whale, spec, data, locals_d, trace_rows=trace_rows
+        state, spec, data, locals_d, trace_rows=trace_rows
     )
 
     # should get same results as before
@@ -112,11 +112,11 @@ def test_assign_variables(whale: workflow.Whale, capsys, data):
     out, err = capsys.readouterr()
 
 
-def test_assign_variables_aliased(whale: workflow.Whale, capsys, data):
-    whale.default_settings()
+def test_assign_variables_aliased(state: workflow.State, capsys, data):
+    state.default_settings()
 
     spec = assign.read_assignment_spec(
-        whale.filesystem.get_config_file_path("assignment_spec_alias_df.csv")
+        state.filesystem.get_config_file_path("assignment_spec_alias_df.csv")
     )
 
     locals_d = {"CONSTANT": 7, "_shadow": 99}
@@ -124,7 +124,7 @@ def test_assign_variables_aliased(whale: workflow.Whale, capsys, data):
     trace_rows = [False, True, False]
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        whale, spec, data, locals_d, df_alias="aliased_df", trace_rows=trace_rows
+        state, spec, data, locals_d, df_alias="aliased_df", trace_rows=trace_rows
     )
 
     print(results)
@@ -151,18 +151,18 @@ def test_assign_variables_aliased(whale: workflow.Whale, capsys, data):
     out, err = capsys.readouterr()
 
 
-def test_assign_variables_failing(whale: workflow.Whale, capsys, data):
-    whale.default_settings()
+def test_assign_variables_failing(state: workflow.State, capsys, data):
+    state.default_settings()
 
     close_handlers()
 
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    whale.filesystem.output_dir = output_dir
+    state.filesystem.output_dir = output_dir
 
-    whale.logging.config_logger(basic=True)
+    state.logging.config_logger(basic=True)
 
     spec = assign.read_assignment_spec(
-        whale.filesystem.get_config_file_path("assignment_spec_failing.csv")
+        state.filesystem.get_config_file_path("assignment_spec_failing.csv")
     )
 
     locals_d = {
@@ -173,7 +173,7 @@ def test_assign_variables_failing(whale: workflow.Whale, capsys, data):
 
     with pytest.raises(NameError) as excinfo:
         results, trace_results, trace_assigned_locals = assign.assign_variables(
-            whale, spec, data, locals_d, trace_rows=None
+            state, spec, data, locals_d, trace_rows=None
         )
 
     out, err = capsys.readouterr()

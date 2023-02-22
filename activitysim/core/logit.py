@@ -21,7 +21,7 @@ PROB_MAX = 1.0
 
 
 def report_bad_choices(
-    whale: workflow.Whale,
+    state: workflow.State,
     bad_row_map,
     df,
     trace_label,
@@ -67,7 +67,7 @@ def report_bad_choices(
 
     if trace_label:
         logger.info("dumping %s" % trace_label)
-        whale.tracing.write_csv(df[:MAX_DUMP], file_name=trace_label, transpose=False)
+        state.tracing.write_csv(df[:MAX_DUMP], file_name=trace_label, transpose=False)
 
     # log the indexes of the first MAX_DUMP offending rows
     for idx in df.index[:MAX_PRINT].values:
@@ -124,7 +124,7 @@ def utils_to_logsums(utils, exponentiated=False, allow_zero_probs=False):
 
 
 def utils_to_probs(
-    whale: workflow.Whale,
+    state: workflow.State,
     utils,
     trace_label=None,
     exponentiated=False,
@@ -189,7 +189,7 @@ def utils_to_probs(
         zero_probs = arr_sum == 0.0
         if zero_probs.any():
             report_bad_choices(
-                whale,
+                state,
                 zero_probs,
                 utils,
                 trace_label=tracing.extend_trace_label(trace_label, "zero_prob_utils"),
@@ -200,7 +200,7 @@ def utils_to_probs(
     inf_utils = np.isinf(arr_sum)
     if inf_utils.any():
         report_bad_choices(
-            whale,
+            state,
             inf_utils,
             utils,
             trace_label=tracing.extend_trace_label(trace_label, "inf_exp_utils"),
@@ -226,7 +226,7 @@ def utils_to_probs(
 
 
 def make_choices(
-    whale: workflow.Whale,
+    state: workflow.State,
     probs: pd.DataFrame,
     trace_label: str = None,
     trace_choosers=None,
@@ -269,7 +269,7 @@ def make_choices(
     if bad_probs.any() and not allow_bad_probs:
 
         report_bad_choices(
-            whale,
+            state,
             bad_probs,
             probs,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
@@ -277,7 +277,7 @@ def make_choices(
             trace_choosers=trace_choosers,
         )
 
-    rands = whale.get_rn_generator().random_for_df(probs)
+    rands = state.get_rn_generator().random_for_df(probs)
 
     choices = pd.Series(choice_maker(probs.values, rands), index=probs.index)
 
@@ -287,7 +287,7 @@ def make_choices(
 
 
 def interaction_dataset(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     alternatives,
     sample_size=None,
@@ -332,7 +332,7 @@ def interaction_dataset(
     alts_idx = np.arange(numalts)
 
     if sample_size < numalts:
-        sample = whale.get_rn_generator().choice_for_df(
+        sample = state.get_rn_generator().choice_for_df(
             choosers, alts_idx, sample_size, replace=False
         )
     else:

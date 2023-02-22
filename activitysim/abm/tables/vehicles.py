@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.table
-def vehicles(whale: workflow.Whale, households: pd.DataFrame):
+def vehicles(state: workflow.State, households: pd.DataFrame):
     """Creates the vehicles table and load it as an injectable
 
     This method initializes the `vehicles` table, where the number of rows
@@ -38,17 +38,17 @@ def vehicles(whale: workflow.Whale, households: pd.DataFrame):
     vehicles.set_index("vehicle_id", inplace=True)
 
     # replace table function with dataframe
-    whale.add_table("vehicles", vehicles)
+    state.add_table("vehicles", vehicles)
 
-    whale.get_rn_generator().add_channel("vehicles", vehicles)
-    whale.tracing.register_traceable_table("vehicles", vehicles)
+    state.get_rn_generator().add_channel("vehicles", vehicles)
+    state.tracing.register_traceable_table("vehicles", vehicles)
 
     return vehicles
 
 
 @workflow.temp_table
 def vehicles_merged(
-    whale: workflow.Whale, vehicles: pd.DataFrame, households_merged: pd.DataFrame
+    state: workflow.State, vehicles: pd.DataFrame, households_merged: pd.DataFrame
 ):
     """Augments the vehicles table with household attributes
 

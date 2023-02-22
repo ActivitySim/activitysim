@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_tour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     model_name,
     chooser_tours,
     persons_merged,
@@ -23,10 +23,10 @@ def run_tour_scheduling(
     trace_label = model_name
     model_settings_file_name = f"{model_name}.yaml"
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     if "LOGSUM_SETTINGS" in model_settings:
-        logsum_settings = whale.filesystem.read_model_settings(
+        logsum_settings = state.filesystem.read_model_settings(
             model_settings["LOGSUM_SETTINGS"]
         )
         logsum_columns = logsum_settings.get("LOGSUM_CHOOSER_COLUMNS", [])
@@ -41,16 +41,16 @@ def run_tour_scheduling(
 
     persons_merged = expressions.filter_chooser_columns(persons_merged, chooser_columns)
 
-    timetable = whale.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
     # - run preprocessor to annotate choosers
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-        locals_d = {"tt": timetable.attach_state(whale)}
+        locals_d = {"tt": timetable.attach_state(state)}
         locals_d.update(config.get_model_constants(model_settings))
 
         expressions.assign_columns(
-            whale,
+            state,
             df=chooser_tours,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
@@ -68,14 +68,14 @@ def run_tour_scheduling(
 
             # estimator for this tour_segment
             estimator = estimation.manager.begin_estimation(
-                whale, model_name=bundle_name, bundle_name=bundle_name
+                state, model_name=bundle_name, bundle_name=bundle_name
             )
 
             spec_file_name = spec_settings["SPEC"]
-            model_spec = whale.filesystem.read_model_spec(file_name=spec_file_name)
-            coefficients_df = whale.filesystem.read_model_coefficients(spec_settings)
+            model_spec = state.filesystem.read_model_spec(file_name=spec_file_name)
+            coefficients_df = state.filesystem.read_model_coefficients(spec_settings)
             specs[spec_segment_name] = simulate.eval_coefficients(
-                whale, model_spec, coefficients_df, estimator
+                state, model_spec, coefficients_df, estimator
             )
             sharrow_skips[spec_segment_name] = spec_settings.get("sharrow_skip", False)
 
@@ -109,14 +109,14 @@ def run_tour_scheduling(
         assert "TOUR_SPEC_SEGMENTS" not in model_settings
         assert tour_segment_col is None
 
-        estimator = estimation.manager.begin_estimation(whale, model_name)
+        estimator = estimation.manager.begin_estimation(state, model_name)
 
         spec_file_name = model_settings["SPEC"]
-        model_spec = whale.filesystem.read_model_spec(file_name=spec_file_name)
+        model_spec = state.filesystem.read_model_spec(file_name=spec_file_name)
         sharrow_skip = model_settings.get("sharrow_skip", False)
-        coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+        coefficients_df = state.filesystem.read_model_coefficients(model_settings)
         model_spec = simulate.eval_coefficients(
-            whale, model_spec, coefficients_df, estimator
+            state, model_spec, coefficients_df, estimator
         )
 
         if estimator:
@@ -137,7 +137,7 @@ def run_tour_scheduling(
 
     logger.info(f"Running {model_name} with %d tours", len(chooser_tours))
     choices = vts.vectorize_tour_scheduling(
-        whale,
+        state,
         chooser_tours,
         persons_merged,
         tdd_alts,
@@ -145,7 +145,7 @@ def run_tour_scheduling(
         tour_segments=tour_segments,
         tour_segment_col=tour_segment_col,
         model_settings=model_settings,
-        chunk_size=whale.settings.chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_label=trace_label,
     )
 
@@ -176,7 +176,7 @@ def run_tour_scheduling(
                 tdds=choices.reindex(nth_tours.index),
             )
 
-    timetable.replace_table(whale)
+    timetable.replace_table(state)
 
     # choices are tdd alternative ids
     # we want to add start, end, and duration columns to tours, which we have in tdd_alts table

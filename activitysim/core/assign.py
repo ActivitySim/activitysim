@@ -137,7 +137,7 @@ class NumpyLogger(object):
         )
 
 
-def local_utilities(whale):
+def local_utilities(state):
     """
     Dict of useful modules and functions to provides as locals for use in eval of expressions
 
@@ -152,12 +152,12 @@ def local_utilities(whale):
         "np": np,
         "reindex": util.reindex,
         "reindex_i": util.reindex_i,
-        "setting": lambda *arg: whale.settings._get_attr(*arg),
+        "setting": lambda *arg: state.settings._get_attr(*arg),
         "other_than": util.other_than,
-        "rng": whale.get_rn_generator(),
+        "rng": state.get_rn_generator(),
     }
 
-    utility_dict.update(whale.get_global_constants())
+    utility_dict.update(state.get_global_constants())
 
     return utility_dict
 
@@ -175,7 +175,7 @@ def is_temp(target):
 
 
 def assign_variables(
-    whale,
+    state,
     assignment_expressions,
     df,
     locals_dict,
@@ -254,7 +254,7 @@ def assign_variables(
             trace_assigned_locals = OrderedDict()
 
     # avoid touching caller's passed-in locals_d parameter (they may be looping)
-    _locals_dict = local_utilities(whale)
+    _locals_dict = local_utilities(state)
     if locals_dict is not None:
         _locals_dict.update(locals_dict)
     if df_alias:
@@ -282,7 +282,7 @@ def assign_variables(
     if n_randoms:
 
         try:
-            random_draws = whale.get_rn_generator().normal_for_df(
+            random_draws = state.get_rn_generator().normal_for_df(
                 df, broadcast=True, size=n_randoms
             )
         except RuntimeError:
@@ -300,7 +300,7 @@ def assign_variables(
 
             _locals_dict["rng_lognormal"] = rng_lognormal
 
-    sharrow_enabled = whale.settings.sharrow
+    sharrow_enabled = state.settings.sharrow
 
     # need to be able to identify which variables causes an error, which keeps
     # this from being expressed more parsimoniously

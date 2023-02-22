@@ -59,7 +59,7 @@ def num_uninitialized(data, lock=None):
 
 
 @workflow.step
-def initialize_los(whale: workflow.Whale, network_los: los.Network_LOS):
+def initialize_los(state: workflow.State, network_los: los.Network_LOS):
     """
     Currently, this step is only needed for THREE_ZONE systems in which the tap_tap_utilities are precomputed
     in the (presumably subsequent) initialize_tvpb step.
@@ -79,7 +79,7 @@ def initialize_los(whale: workflow.Whale, network_los: los.Network_LOS):
         attribute_combinations_df = uid_calculator.scalar_attribute_combinations()
 
         # - write table to pipeline (so we can slice it, when multiprocessing)
-        whale.add_table("attribute_combinations", attribute_combinations_df)
+        state.add_table("attribute_combinations", attribute_combinations_df)
 
         # clean up any unwanted cache files from previous run
         if network_los.rebuild_tvpb_cache:
@@ -107,7 +107,7 @@ def initialize_los(whale: workflow.Whale, network_los: los.Network_LOS):
 
 
 def compute_utilities_for_attribute_tuple(
-    whale, network_los, scalar_attributes, data, trace_label
+    state, network_los, scalar_attributes, data, trace_label
 ):
     # scalar_attributes is a dict of attribute name/value pairs for this combination
     # (e.g. {'demographic_segment': 0, 'tod': 'AM', 'access_mode': 'walk'})
@@ -144,7 +144,7 @@ def compute_utilities_for_attribute_tuple(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(
-        whale, choosers_df, trace_label, chunk_tag=chunk_tag
+        state, choosers_df, trace_label, chunk_tag=chunk_tag
     ):
         # we should count choosers_df as chunk overhead since its pretty big and was custom made for compute_utilities
         if chooser_chunk._is_view:
@@ -166,7 +166,7 @@ def compute_utilities_for_attribute_tuple(
         chunk_sizer.log_df(trace_label, "attribute_chooser_chunk", chooser_chunk)
 
         utilities_df = pathbuilder.compute_utilities(
-            whale,
+            state,
             network_los,
             model_settings=model_settings,
             choosers=chooser_chunk,
@@ -190,7 +190,7 @@ def compute_utilities_for_attribute_tuple(
 
 @workflow.step
 def initialize_tvpb(
-    whale: workflow.Whale,
+    state: workflow.State,
     network_los: los.Network_LOS,
     attribute_combinations: pd.DataFrame,
 ):
@@ -256,7 +256,7 @@ def initialize_tvpb(
         tuple_trace_label = tracing.extend_trace_label(trace_label, f"offset{offset}")
 
         compute_utilities_for_attribute_tuple(
-            whale, network_los, scalar_attributes, data, tuple_trace_label
+            state, network_los, scalar_attributes, data, tuple_trace_label
         )
 
         # make sure we populated the entire offset
@@ -264,10 +264,10 @@ def initialize_tvpb(
             data.reshape(uid_calculator.skim_shape)[offset], lock
         )
 
-    if multiprocess and not whale.get_injectable("locutor", False):
+    if multiprocess and not state.get_injectable("locutor", False):
         return
 
-    write_results = not multiprocess or whale.get_injectable("locutor", False)
+    write_results = not multiprocess or state.get_injectable("locutor", False)
     if write_results:
         if multiprocess:
             # if multiprocessing, wait for all processes to fully populate share data before writing results

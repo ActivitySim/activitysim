@@ -12,10 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.table
-def land_use(whale: workflow.Whale):
-    df = read_input_table(whale, "land_use")
+def land_use(state: workflow.State):
+    df = read_input_table(state, "land_use")
 
-    sharrow_enabled = whale.settings.sharrow
+    sharrow_enabled = state.settings.sharrow
     if sharrow_enabled:
         # when using sharrow, the land use file must be organized (either in raw
         # form or via recoding) so that the index is zero-based and contiguous
@@ -38,8 +38,8 @@ def land_use(whale: workflow.Whale):
 
 
 @workflow.table
-def land_use_taz(whale: workflow.Whale):
-    df = read_input_table(whale, "land_use_taz")
+def land_use_taz(state: workflow.State):
+    df = read_input_table(state, "land_use_taz")
 
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
@@ -50,6 +50,6 @@ def land_use_taz(whale: workflow.Whale):
     logger.debug("land_use_taz.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
-    whale.add_table("land_use_taz", df)
+    state.add_table("land_use_taz", df)
 
     return df

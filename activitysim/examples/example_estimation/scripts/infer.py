@@ -400,8 +400,8 @@ def infer_tour_scheduling(configs_dir, tours):
     return tdds.tdd
 
 
-def patch_tour_ids(whale: workflow.Whale, persons, tours, joint_tour_participants):
-    def set_tour_index(whale, tours, parent_tour_num_col, is_joint):
+def patch_tour_ids(state: workflow.State, persons, tours, joint_tour_participants):
+    def set_tour_index(state, tours, parent_tour_num_col, is_joint):
         group_cols = ["person_id", "tour_category", "tour_type"]
 
         if "parent_tour_num" in tours:
@@ -412,7 +412,7 @@ def patch_tour_ids(whale: workflow.Whale, persons, tours, joint_tour_participant
         )
 
         return cid.set_tour_index(
-            whale, tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
+            state, tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
         )
 
     assert "mandatory_tour_frequency" in persons
@@ -423,7 +423,7 @@ def patch_tour_ids(whale: workflow.Whale, persons, tours, joint_tour_participant
     # mandatory tours
     #####################
     mandatory_tours = set_tour_index(
-        whale,
+        state,
         tours[tours.tour_category == "mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -449,7 +449,7 @@ def patch_tour_ids(whale: workflow.Whale, persons, tours, joint_tour_participant
     )
 
     joint_tours = set_tour_index(
-        whale, joint_tours, parent_tour_num_col=None, is_joint=True
+        state, joint_tours, parent_tour_num_col=None, is_joint=True
     )
     joint_tours["person_id"] = joint_tours["cache_point_person_id"]
     del joint_tours["cache_point_person_id"]
@@ -475,7 +475,7 @@ def patch_tour_ids(whale: workflow.Whale, persons, tours, joint_tour_participant
     #####################
 
     non_mandatory_tours = set_tour_index(
-        whale,
+        state,
         tours[tours.tour_category == "non_mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -524,7 +524,7 @@ def patch_tour_ids(whale: workflow.Whale, persons, tours, joint_tour_participant
     )
 
     atwork_tours = set_tour_index(
-        whale, atwork_tours, parent_tour_num_col="parent_tour_num", is_joint=False
+        state, atwork_tours, parent_tour_num_col="parent_tour_num", is_joint=False
     )
 
     del atwork_tours["parent_tour_num"]
@@ -640,7 +640,7 @@ def infer_atwork_subtour_frequency(configs_dir, tours):
     return atwork_subtour_frequency
 
 
-def patch_trip_ids(whale: workflow.Whale, tours, trips):
+def patch_trip_ids(state: workflow.State, tours, trips):
     """
     replace survey trip_ids with asim standard trip_id
     replace survey tour_id foreign key with asim standard tour_id
@@ -672,7 +672,7 @@ def patch_trip_ids(whale: workflow.Whale, tours, trips):
             + 1
         )
 
-    cid.set_trip_index(whale, trips)
+    cid.set_trip_index(state, trips)
 
     assert trips.index.name == ASIM_TRIP_ID
     trips = trips.reset_index().rename(columns={"trip_id": ASIM_TRIP_ID})
@@ -751,7 +751,7 @@ def check_controls(table_name, column_name):
     return True
 
 
-def infer(whale: workflow.Whale, configs_dir, input_dir, output_dir):
+def infer(state: workflow.State, configs_dir, input_dir, output_dir):
     households, persons, tours, joint_tour_participants, trips = read_tables(
         input_dir, survey_tables
     )
@@ -797,7 +797,7 @@ def infer(whale: workflow.Whale, configs_dir, input_dir, output_dir):
 
     # patch_tour_ids
     tours, joint_tour_participants = patch_tour_ids(
-        whale, persons, tours, joint_tour_participants
+        state, persons, tours, joint_tour_participants
     )
     survey_tables["tours"]["table"] = tours
     survey_tables["joint_tour_participants"]["table"] = joint_tour_participants
@@ -860,4 +860,4 @@ output_dir = input_dir
 if apply_controls:
     read_tables(input_dir, control_tables)
 
-infer(whale, configs_dir, input_dir, output_dir)
+infer(state, configs_dir, input_dir, output_dir)

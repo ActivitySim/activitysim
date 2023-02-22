@@ -11,13 +11,13 @@ def test_misc():
     configs_dir = os.path.join(os.path.dirname(__file__), "configs_test_misc")
     data_dir = os.path.join(os.path.dirname(__file__), "data")
 
-    whale = workflow.Whale().initialize_filesystem(
+    state = workflow.State().initialize_filesystem(
         configs_dir=configs_dir,
         data_dir=data_dir,
     )
 
-    whale.load_settings()
-    assert isinstance(whale.settings, configuration.Settings)
+    state.load_settings()
+    assert isinstance(state.settings, configuration.Settings)
 
     # default values if not specified in settings
-    assert whale.settings.chunk_size == 0
+    assert state.settings.chunk_size == 0

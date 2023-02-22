@@ -20,7 +20,7 @@ def canonical_table_index_name(table_name):
     return table_index_names and table_index_names.get(table_name, None)
 
 
-def read_input_table(whale: workflow.Whale, tablename, required=True):
+def read_input_table(state: workflow.State, tablename, required=True):
     """Reads input table name and returns cleaned DataFrame.
 
     Uses settings found in input_table_list in global settings file
@@ -28,13 +28,13 @@ def read_input_table(whale: workflow.Whale, tablename, required=True):
     Parameters
     ----------
     tablename : string
-    settings : Whale
+    settings : State
 
     Returns
     -------
     pandas DataFrame
     """
-    table_list = whale.settings.input_table_list
+    table_list = state.settings.input_table_list
     if required and table_list is None:
         raise AssertionError("no input_table_list found in settings")
     if not required and table_list is None:
@@ -46,7 +46,7 @@ def read_input_table(whale: workflow.Whale, tablename, required=True):
             table_info = info
 
     if table_info is not None:
-        df = read_from_table_info(table_info, whale)
+        df = read_from_table_info(table_info, state)
     else:
         if required:
             raise RuntimeError(
@@ -57,7 +57,7 @@ def read_input_table(whale: workflow.Whale, tablename, required=True):
     return df
 
 
-def read_from_table_info(table_info: InputTable, whale):
+def read_from_table_info(table_info: InputTable, state):
     """
     Read input text files and return cleaned up DataFrame.
 
@@ -78,8 +78,8 @@ def read_from_table_info(table_info: InputTable, whale):
     +--------------+----------------------------------------------------------+
 
     """
-    input_store = whale.settings.input_store
-    create_input_store = whale.settings.create_input_store
+    input_store = state.settings.input_store
+    create_input_store = state.settings.create_input_store
 
     tablename = table_info.tablename
     data_filename = table_info.filename or input_store
@@ -122,7 +122,7 @@ def read_from_table_info(table_info: InputTable, whale):
     assert tablename is not None, "no tablename provided"
     assert data_filename is not None, "no input file provided"
 
-    data_file_path = whale.filesystem.get_data_file_path(data_filename)
+    data_file_path = state.filesystem.get_data_file_path(data_filename)
 
     df = _read_input_file(
         str(data_file_path), h5_tablename=h5_tablename, csv_dtypes=csv_dtypes
@@ -133,11 +133,11 @@ def read_from_table_info(table_info: InputTable, whale):
 
     if create_input_store:
         raise NotImplementedError("the input store functionality has been disabled")
-        # h5_filepath = whale.get_output_file_path("input_data.h5")
+        # h5_filepath = state.get_output_file_path("input_data.h5")
         # logger.info("writing %s to %s" % (h5_tablename, h5_filepath))
         # df.to_hdf(h5_filepath, key=h5_tablename, mode="a")
         #
-        # csv_dir = whale.get_output_file_path("input_data")
+        # csv_dir = state.get_output_file_path("input_data")
         # if not os.path.exists(csv_dir):
         #     os.makedirs(csv_dir)  # make directory if needed
         # df.to_csv(os.path.join(csv_dir, "%s.csv" % tablename), index=False)
@@ -152,7 +152,7 @@ def read_from_table_info(table_info: InputTable, whale):
         df.rename(columns=rename_columns, inplace=True)
 
     # recode columns, can simplify data structure
-    if recode_columns and whale.settings.recode_pipeline_columns:
+    if recode_columns and state.settings.recode_pipeline_columns:
         for colname, recode_instruction in recode_columns.items():
             logger.info(f"recoding column {colname}: {recode_instruction}")
             if recode_instruction == "zero-based":
@@ -171,10 +171,10 @@ def read_from_table_info(table_info: InputTable, whale):
                         # We need to keep track if we have recoded the land_use
                         # table's index to zero-based, as we need to disable offset
                         # processing for legacy skim access.
-                        whale.settings.offset_preprocessing = True
+                        state.settings.offset_preprocessing = True
             else:
                 source_table, lookup_col = recode_instruction.split(".")
-                parent_table = whale.get_dataframe(source_table)
+                parent_table = state.get_dataframe(source_table)
                 try:
                     map_col = parent_table[f"_original_{lookup_col}"]
                 except KeyError:

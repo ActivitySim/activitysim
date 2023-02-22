@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.table
-def households(whale: workflow.Whale):
-    households_sample_size = whale.settings.households_sample_size
-    _override_hh_ids = override_hh_ids(whale)
-    _trace_hh_id = whale.settings.trace_hh_id
+def households(state: workflow.State):
+    households_sample_size = state.settings.households_sample_size
+    _override_hh_ids = override_hh_ids(state)
+    _trace_hh_id = state.settings.trace_hh_id
 
-    df_full = read_input_table(whale, "households")
+    df_full = read_input_table(state, "households")
     tot_households = df_full.shape[0]
 
     logger.info("full household list contains %s households" % tot_households)
@@ -69,7 +69,7 @@ def households(whale: workflow.Whale):
         if the pipeline rng's base_seed is changed
         """
 
-        prng = whale.get_rn_generator().get_external_rng("sample_households")
+        prng = state.get_rn_generator().get_external_rng("sample_households")
         df = df_full.take(
             prng.choice(len(df_full), size=households_sample_size, replace=False)
         )
@@ -92,7 +92,7 @@ def households(whale: workflow.Whale):
     else:
         df = df_full
 
-    whale.set("households_sliced", households_sliced)
+    state.set("households_sliced", households_sliced)
 
     if "sample_rate" not in df.columns:
         if households_sample_size == 0:
@@ -108,13 +108,13 @@ def households(whale: workflow.Whale):
     logger.debug("households.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
-    whale.add_table("households", df)
+    state.add_table("households", df)
 
-    whale.get_rn_generator().add_channel("households", df)
+    state.get_rn_generator().add_channel("households", df)
 
-    whale.tracing.register_traceable_table("households", df)
+    state.tracing.register_traceable_table("households", df)
     if _trace_hh_id:
-        whale.tracing.trace_df(df, "raw.households", warn_if_empty=True)
+        state.tracing.trace_df(df, "raw.households", warn_if_empty=True)
 
     return df
 
@@ -122,7 +122,7 @@ def households(whale: workflow.Whale):
 # this is a common merge so might as well define it once here and use it
 @workflow.temp_table
 def households_merged(
-    whale: workflow.Whale,
+    state: workflow.State,
     households: pd.DataFrame,
     land_use: pd.DataFrame,
     accessibility: pd.DataFrame,

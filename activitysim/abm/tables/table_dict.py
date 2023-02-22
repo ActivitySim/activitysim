@@ -17,13 +17,13 @@ should be registered as random number generator channels.
 
 
 @workflow.cached_object
-def rng_channels(whale: workflow.Whale):
+def rng_channels(state: workflow.State):
 
     return cid.RANDOM_CHANNELS
 
 
 @workflow.cached_object
-def traceable_tables(whale: workflow.Whale):
+def traceable_tables(state: workflow.State):
 
     # names of all traceable tables ordered by dependency on household_id
     # e.g. 'persons' has to be registered AFTER 'households'
@@ -32,13 +32,13 @@ def traceable_tables(whale: workflow.Whale):
 
 
 @workflow.cached_object
-def traceable_table_indexes(whale: workflow.Whale):
+def traceable_table_indexes(state: workflow.State):
     # traceable_table_indexes is OrderedDict {<index_name>: <table_name>}
     # so we can find first registered table to slice by ref_col
     return OrderedDict()
 
 
 @workflow.cached_object
-def canonical_table_index_names(whale: workflow.Whale):
+def canonical_table_index_names(state: workflow.State):
     # traceable_table_ids is dict {<table_name>: [<id>, <id>]}
     return cid.CANONICAL_TABLE_INDEX_NAMES

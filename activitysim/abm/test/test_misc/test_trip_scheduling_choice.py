@@ -168,14 +168,14 @@
 #
 #
 # def test_run_trip_scheduling_choice(
-#     whale: workflow.Whale, model_spec, tours, skims, locals_dict
+#     state: workflow.State, model_spec, tours, skims, locals_dict
 # ):
 #     """
 #     Test run the model.
 #     """
 #
 #     out_tours = tsc.run_trip_scheduling_choice(
-#         whale,
+#         state,
 #         model_spec,
 #         tours,
 #         skims,

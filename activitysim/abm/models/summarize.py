@@ -202,7 +202,7 @@ def manual_breaks(
 
 @workflow.step
 def summarize(
-    whale: workflow.Whale,
+    state: workflow.State,
     network_los: Network_LOS,
     persons: pd.DataFrame,
     persons_merged: pd.DataFrame,
@@ -226,15 +226,15 @@ def summarize(
     """
     trace_label = "summarize"
     model_settings_file_name = "summarize.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     output_location = (
         model_settings["OUTPUT"] if "OUTPUT" in model_settings else "summaries"
     )
-    os.makedirs(whale.get_output_file_path(output_location), exist_ok=True)
+    os.makedirs(state.get_output_file_path(output_location), exist_ok=True)
 
     spec = pd.read_csv(
-        whale.filesystem.get_config_file_path(model_settings["SPECIFICATION"]),
+        state.filesystem.get_config_file_path(model_settings["SPECIFICATION"]),
         comment="#",
     )
 
@@ -268,7 +268,7 @@ def summarize(
 
     # Annotate trips_merged
     expressions.annotate_preprocessors(
-        whale, trips_merged, locals_d, skims, model_settings, "summarize"
+        state, trips_merged, locals_d, skims, model_settings, "summarize"
     )
 
     for table_name, df in locals_d.items():
@@ -313,10 +313,10 @@ def summarize(
     # Output pipeline tables for expression development
     if model_settings["EXPORT_PIPELINE_TABLES"] is True:
         pipeline_table_dir = os.path.join(output_location, "pipeline_tables")
-        os.makedirs(whale.get_output_file_path(pipeline_table_dir), exist_ok=True)
+        os.makedirs(state.get_output_file_path(pipeline_table_dir), exist_ok=True)
         for name, df in locals_d.items():
             df.to_csv(
-                whale.get_output_file_path(
+                state.get_output_file_path(
                     os.path.join(pipeline_table_dir, f"{name}.csv")
                 )
             )
@@ -346,7 +346,7 @@ def summarize(
 
         resultset = eval(expr, globals(), locals_d)
         resultset.to_csv(
-            whale.get_output_file_path(
+            state.get_output_file_path(
                 os.path.join(output_location, f"{out_file}.csv")
             ),
             index=False,

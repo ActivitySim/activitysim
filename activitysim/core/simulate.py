@@ -34,15 +34,15 @@ from activitysim.core.simulate_consts import (
 logger = logging.getLogger(__name__)
 
 CustomChooser_T = Callable[
-    [workflow.Whale, pd.DataFrame, pd.DataFrame, pd.DataFrame, str],
+    [workflow.State, pd.DataFrame, pd.DataFrame, pd.DataFrame, str],
     tuple[pd.Series, pd.Series],
 ]
 
 
-def random_rows(whale: workflow.Whale, df, n):
+def random_rows(state: workflow.State, df, n):
     # only sample if df has more than n rows
     if len(df.index) > n:
-        prng = whale.get_rn_generator().get_global_rng()
+        prng = state.get_rn_generator().get_global_rng()
         return df.take(prng.choice(len(df), size=n, replace=False))
 
     else:
@@ -64,8 +64,8 @@ def uniquify_spec_index(spec):
     assert spec.index.is_unique
 
 
-def read_model_alts(whale: workflow.Whale, file_name, set_index=None):
-    file_path = whale.filesystem.get_config_file_path(file_name)
+def read_model_alts(state: workflow.State, file_name, set_index=None):
+    file_path = state.filesystem.get_config_file_path(file_name)
     df = pd.read_csv(file_path, comment="#")
     if set_index:
         df.set_index(set_index, inplace=True)
@@ -181,7 +181,7 @@ def read_model_coefficients(
 
 @workflow.func
 def spec_for_segment(
-    whale: workflow.Whale,
+    state: workflow.State,
     model_settings,
     spec_id: str,
     segment_name: str,
@@ -204,7 +204,7 @@ def spec_for_segment(
     """
 
     spec_file_name = model_settings[spec_id]
-    spec = read_model_spec(whale.filesystem, file_name=spec_file_name)
+    spec = read_model_spec(state.filesystem, file_name=spec_file_name)
 
     if len(spec.columns) > 1:
         # if spec is segmented
@@ -228,9 +228,9 @@ def spec_for_segment(
 
         return spec
 
-    coefficients = whale.filesystem.read_model_coefficients(model_settings)
+    coefficients = state.filesystem.read_model_coefficients(model_settings)
 
-    spec = eval_coefficients(whale, spec, coefficients, estimator)
+    spec = eval_coefficients(state, spec, coefficients, estimator)
 
     return spec
 
@@ -277,24 +277,24 @@ def read_model_coefficient_template(
     return template
 
 
-def dump_mapped_coefficients(whale: workflow.Whale, model_settings):
+def dump_mapped_coefficients(state: workflow.State, model_settings):
     """
     dump template_df with coefficient values
     """
 
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
-    template_df = read_model_coefficient_template(whale.filesystem, model_settings)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    template_df = read_model_coefficient_template(state.filesystem, model_settings)
 
     for c in template_df.columns:
         template_df[c] = template_df[c].map(coefficients_df.value)
 
     coefficients_template_file_name = model_settings["COEFFICIENT_TEMPLATE"]
-    file_path = whale.get_output_file_path(coefficients_template_file_name)
+    file_path = state.get_output_file_path(coefficients_template_file_name)
     template_df.to_csv(file_path, index=True)
     logger.info(f"wrote mapped coefficient template to {file_path}")
 
     coefficients_file_name = model_settings["COEFFICIENTS"]
-    file_path = whale.get_output_file_path(coefficients_file_name)
+    file_path = state.get_output_file_path(coefficients_file_name)
     coefficients_df.to_csv(file_path, index=True)
     logger.info(f"wrote raw coefficients to {file_path}")
 
@@ -411,7 +411,7 @@ def eval_nest_coefficients(nest_spec, coefficients, trace_label):
 
 
 def eval_coefficients(
-    whale: workflow.Whale,
+    state: workflow.State,
     spec: pd.DataFrame,
     coefficients: dict | pd.DataFrame,
     estimator: Optional[Estimator],
@@ -433,7 +433,7 @@ def eval_coefficients(
             spec[c].apply(lambda x: eval(str(x), {}, coefficients)).astype(np.float32)
         )
 
-    sharrow_enabled = whale.settings.sharrow
+    sharrow_enabled = state.settings.sharrow
     if sharrow_enabled:
         # keep all zero rows, reduces the number of unique flows to compile and store.
         return spec
@@ -452,7 +452,7 @@ def eval_coefficients(
 
 
 def eval_utilities(
-    whale,
+    state,
     spec,
     choosers,
     locals_d=None,
@@ -512,7 +512,7 @@ def eval_utilities(
     """
     start_time = time.time()
 
-    sharrow_enabled = whale.settings.sharrow
+    sharrow_enabled = state.settings.sharrow
 
     expression_values = None
 
@@ -533,11 +533,11 @@ def eval_utilities(
         from .flow import apply_flow  # import inside func to prevent circular imports
 
         locals_dict = {}
-        locals_dict.update(whale.get_global_constants())
+        locals_dict.update(state.get_global_constants())
         if locals_d is not None:
             locals_dict.update(locals_d)
         sh_util, sh_flow = apply_flow(
-            whale,
+            state,
             spec_sh,
             choosers,
             locals_dict,
@@ -556,7 +556,7 @@ def eval_utilities(
         trace_label = tracing.extend_trace_label(trace_label, "eval_utils")
 
         # avoid altering caller's passed-in locals_d parameter (they may be looping)
-        locals_dict = assign.local_utilities(whale)
+        locals_dict = assign.local_utilities(state)
 
         if locals_d is not None:
             locals_dict.update(locals_d)
@@ -642,7 +642,7 @@ def eval_utilities(
         if trace_all_rows:
             trace_targets = pd.Series(True, index=choosers.index)
         else:
-            trace_targets = whale.tracing.trace_targets(choosers)
+            trace_targets = state.tracing.trace_targets(choosers)
             assert trace_targets.any()  # since they claimed to have targets...
 
         # get int offsets of the trace_targets (offsets of bool=True values)
@@ -682,14 +682,14 @@ def eval_utilities(
             expression_values_df = None
 
         if expression_values_sh is not None:
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 expression_values_sh,
                 tracing.extend_trace_label(trace_label, "expression_values_sh"),
                 slicer=None,
                 transpose=False,
             )
         if expression_values_df is not None:
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 expression_values_df,
                 tracing.extend_trace_label(trace_label, "expression_values"),
                 slicer=None,
@@ -700,7 +700,7 @@ def eval_utilities(
                 for c in spec.columns:
                     name = f"expression_value_{c}"
 
-                    whale.tracing.trace_df(
+                    state.tracing.trace_df(
                         expression_values_df.multiply(spec[c].values, axis=0),
                         tracing.extend_trace_label(trace_label, name),
                         slicer=None,
@@ -764,7 +764,7 @@ def eval_utilities(
     return utilities
 
 
-def eval_variables(whale: workflow.Whale, exprs, df, locals_d=None):
+def eval_variables(state: workflow.State, exprs, df, locals_d=None):
     """
     Evaluate a set of variable expressions from a spec in the context
     of a given data table.
@@ -799,7 +799,7 @@ def eval_variables(whale: workflow.Whale, exprs, df, locals_d=None):
     """
 
     # avoid altering caller's passed-in locals_d parameter (they may be looping)
-    locals_dict = assign.local_utilities(whale)
+    locals_dict = assign.local_utilities(state)
     if locals_d is not None:
         locals_dict.update(locals_d)
     globals_dict = {}
@@ -1002,7 +1002,7 @@ def compute_nested_exp_utilities(raw_utilities, nest_spec):
 
 
 def compute_nested_probabilities(
-    whale: workflow.Whale, nested_exp_utilities, nest_spec, trace_label
+    state: workflow.State, nested_exp_utilities, nest_spec, trace_label
 ):
     """
     compute nested probabilities for nest leafs and nodes
@@ -1027,7 +1027,7 @@ def compute_nested_probabilities(
 
     for nest in logit.each_nest(nest_spec, type="node", post_order=False):
         probs = logit.utils_to_probs(
-            whale,
+            state,
             nested_exp_utilities[nest.alternatives],
             trace_label=trace_label,
             exponentiated=True,
@@ -1077,7 +1077,7 @@ def compute_base_probabilities(nested_probabilities, nests, spec):
 
 
 def eval_mnl(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     locals_d,
@@ -1137,13 +1137,13 @@ def eval_mnl(
     assert not want_logsums
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_mnl")
-    have_trace_targets = whale.tracing.has_trace_targets(choosers)
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
-        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
+        state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     utilities = eval_utilities(
-        whale,
+        state,
         spec,
         choosers,
         locals_d,
@@ -1157,14 +1157,14 @@ def eval_mnl(
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             utilities,
             "%s.utilities" % trace_label,
             column_labels=["alternative", "utility"],
         )
 
     probs = logit.utils_to_probs(
-        whale, utilities, trace_label=trace_label, trace_choosers=choosers
+        state, utilities, trace_label=trace_label, trace_choosers=choosers
     )
     chunk_sizer.log_df(trace_label, "probs", probs)
 
@@ -1173,31 +1173,31 @@ def eval_mnl(
 
     if have_trace_targets:
         # report these now in case make_choices throws error on bad_choices
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             probs,
             "%s.probs" % trace_label,
             column_labels=["alternative", "probability"],
         )
 
     if custom_chooser:
-        choices, rands = custom_chooser(whale, probs, choosers, spec, trace_label)
+        choices, rands = custom_chooser(state, probs, choosers, spec, trace_label)
     else:
-        choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
+        choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
 
     del probs
     chunk_sizer.log_df(trace_label, "probs", None)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_name]
         )
-        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     return choices
 
 
 def eval_nl(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     nest_spec,
@@ -1251,17 +1251,17 @@ def eval_nl(
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_nl")
     assert trace_label
-    have_trace_targets = whale.tracing.has_trace_targets(choosers)
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
     if have_trace_targets:
-        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
+        state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     choosers, spec_sh = _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d)
 
     raw_utilities = eval_utilities(
-        whale,
+        state,
         spec_sh,
         choosers,
         locals_d,
@@ -1276,7 +1276,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             raw_utilities,
             "%s.raw_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1290,7 +1290,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "raw_utilities", None)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             nested_exp_utilities,
             "%s.nested_exp_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1298,7 +1298,7 @@ def eval_nl(
 
     # probabilities of alternatives relative to siblings sharing the same nest
     nested_probabilities = compute_nested_probabilities(
-        whale, nested_exp_utilities, nest_spec, trace_label=trace_label
+        state, nested_exp_utilities, nest_spec, trace_label=trace_label
     )
     chunk_sizer.log_df(trace_label, "nested_probabilities", nested_probabilities)
 
@@ -1311,7 +1311,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "nested_exp_utilities", None)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             nested_probabilities,
             "%s.nested_probabilities" % trace_label,
             column_labels=["alternative", "probability"],
@@ -1327,7 +1327,7 @@ def eval_nl(
     chunk_sizer.log_df(trace_label, "nested_probabilities", None)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             base_probabilities,
             "%s.base_probabilities" % trace_label,
             column_labels=["alternative", "probability"],
@@ -1340,7 +1340,7 @@ def eval_nl(
 
     if no_choices.any():
         logit.report_bad_choices(
-            whale,
+            state,
             no_choices,
             base_probabilities,
             trace_label=tracing.extend_trace_label(trace_label, "bad_probs"),
@@ -1357,19 +1357,19 @@ def eval_nl(
         )
     else:
         choices, rands = logit.make_choices(
-            whale, base_probabilities, trace_label=trace_label
+            state, base_probabilities, trace_label=trace_label
         )
 
     del base_probabilities
     chunk_sizer.log_df(trace_label, "base_probabilities", None)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_name]
         )
-        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
         if want_logsums:
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 logsums, "%s.logsums" % trace_label, columns=[None, "logsum"]
             )
 
@@ -1382,7 +1382,7 @@ def eval_nl(
 
 @workflow.func
 def _simple_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     nest_spec,
@@ -1448,7 +1448,7 @@ def _simple_simulate(
 
     if nest_spec is None:
         choices = eval_mnl(
-            whale,
+            state,
             choosers,
             spec,
             locals_d,
@@ -1463,7 +1463,7 @@ def _simple_simulate(
         )
     else:
         choices = eval_nl(
-            whale,
+            state,
             choosers,
             spec,
             nest_spec,
@@ -1501,7 +1501,7 @@ def tvpb_skims(skims):
 
 
 def simple_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     nest_spec,
@@ -1532,9 +1532,9 @@ def simple_simulate(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(whale, choosers, trace_label):
+    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label):
         choices = _simple_simulate(
-            whale,
+            state,
             chooser_chunk,
             spec,
             nest_spec,
@@ -1563,7 +1563,7 @@ def simple_simulate(
 
 
 def simple_simulate_by_chunk_id(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     nest_spec,
@@ -1586,9 +1586,9 @@ def simple_simulate_by_chunk_id(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(whale, choosers, trace_label):
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(state, choosers, trace_label):
         choices = _simple_simulate(
-            whale,
+            state,
             chooser_chunk,
             spec,
             nest_spec,
@@ -1614,7 +1614,7 @@ def simple_simulate_by_chunk_id(
 
 
 def eval_mnl_logsums(
-    whale: workflow.Whale, choosers, spec, locals_d, trace_label=None, *, chunk_sizer
+    state: workflow.State, choosers, spec, locals_d, trace_label=None, *, chunk_sizer
 ):
     """
     like eval_nl except return logsums instead of making choices
@@ -1628,16 +1628,16 @@ def eval_mnl_logsums(
     # FIXME - untested and not currently used by any models...
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_mnl_logsums")
-    have_trace_targets = whale.tracing.has_trace_targets(choosers)
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
 
     logger.debug("running eval_mnl_logsums")
 
     # trace choosers
     if have_trace_targets:
-        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
+        state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     utilities = eval_utilities(
-        whale,
+        state,
         spec,
         choosers,
         locals_d,
@@ -1648,7 +1648,7 @@ def eval_mnl_logsums(
     chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             utilities,
             "%s.raw_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1662,7 +1662,7 @@ def eval_mnl_logsums(
 
     # trace utilities
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             logsums, "%s.logsums" % trace_label, column_labels=["alternative", "logsum"]
         )
 
@@ -1749,7 +1749,7 @@ def _preprocess_tvpb_logsums_on_choosers(choosers, spec, locals_d):
 
 
 def eval_nl_logsums(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     nest_spec,
@@ -1768,7 +1768,7 @@ def eval_nl_logsums(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "eval_nl_logsums")
-    have_trace_targets = whale.tracing.has_trace_targets(choosers)
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
 
     logit.validate_nest_spec(nest_spec, trace_label)
 
@@ -1776,10 +1776,10 @@ def eval_nl_logsums(
 
     # trace choosers
     if have_trace_targets:
-        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
+        state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     raw_utilities = eval_utilities(
-        whale,
+        state,
         spec_sh,
         choosers,
         locals_d,
@@ -1791,7 +1791,7 @@ def eval_nl_logsums(
     chunk_sizer.log_df(trace_label, "raw_utilities", raw_utilities)
 
     if have_trace_targets:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             raw_utilities,
             "%s.raw_utilities" % trace_label,
             column_labels=["alternative", "utility"],
@@ -1812,12 +1812,12 @@ def eval_nl_logsums(
     if have_trace_targets:
         # add logsum to nested_exp_utilities for tracing
         nested_exp_utilities["logsum"] = logsums
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             nested_exp_utilities,
             "%s.nested_exp_utilities" % trace_label,
             column_labels=["alternative", "utility"],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             logsums, "%s.logsums" % trace_label, column_labels=["alternative", "logsum"]
         )
 
@@ -1828,7 +1828,7 @@ def eval_nl_logsums(
 
 
 def _simple_simulate_logsums(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     nest_spec,
@@ -1852,7 +1852,7 @@ def _simple_simulate_logsums(
 
     if nest_spec is None:
         logsums = eval_mnl_logsums(
-            whale,
+            state,
             choosers,
             spec,
             locals_d,
@@ -1861,7 +1861,7 @@ def _simple_simulate_logsums(
         )
     else:
         logsums = eval_nl_logsums(
-            whale,
+            state,
             choosers,
             spec,
             nest_spec,
@@ -1875,7 +1875,7 @@ def _simple_simulate_logsums(
 
 @workflow.func
 def simple_simulate_logsums(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     spec,
     nest_spec,
@@ -1904,9 +1904,9 @@ def simple_simulate_logsums(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(whale, choosers, trace_label, chunk_tag):
+    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label, chunk_tag):
         logsums = _simple_simulate_logsums(
-            whale,
+            state,
             chooser_chunk,
             spec,
             nest_spec,

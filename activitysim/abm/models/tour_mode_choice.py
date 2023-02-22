@@ -22,7 +22,7 @@ will be used for the tour
 
 
 def get_alts_from_segmented_nested_logit(
-    whale: workflow.Whale, model_settings, segment_name, trace_label
+    state: workflow.State, model_settings, segment_name, trace_label
 ):
     """Infer alts from logit spec
 
@@ -38,7 +38,7 @@ def get_alts_from_segmented_nested_logit(
     """
 
     nest_spec = config.get_logit_model_settings(model_settings)
-    coefficients = whale.filesystem.get_segment_coefficients(
+    coefficients = state.filesystem.get_segment_coefficients(
         model_settings, segment_name
     )
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
@@ -51,7 +51,7 @@ def get_alts_from_segmented_nested_logit(
 
 
 def create_logsum_trips(
-    whale: workflow.Whale, tours, segment_column_name, model_settings, trace_label
+    state: workflow.State, tours, segment_column_name, model_settings, trace_label
 ):
     """
     Construct table of trips from half-tours (1 inbound, 1 outbound) for each tour-mode.
@@ -69,11 +69,11 @@ def create_logsum_trips(
     pandas.DataFrame
         Table of trips: 2 per tour, with O/D and purpose inherited from tour
     """
-    stop_frequency_alts = whale.get_injectable("stop_frequency_alts")
+    stop_frequency_alts = state.get_injectable("stop_frequency_alts")
     stop_freq = "0out_0in"  # no intermediate stops
     tours["stop_frequency"] = stop_freq
     tours["primary_purpose"] = tours["tour_purpose"]
-    trips = trip.initialize_from_tours(whale, tours, stop_frequency_alts)
+    trips = trip.initialize_from_tours(state, tours, stop_frequency_alts)
     trips["stop_frequency"] = stop_freq
     outbound = trips["outbound"]
     trips["depart"] = reindex(tours.start, trips.tour_id)
@@ -83,7 +83,7 @@ def create_logsum_trips(
     # to get a set of coefficients from the spec
     segment_name = tours.iloc[0][segment_column_name]
     tour_mode_alts = get_alts_from_segmented_nested_logit(
-        whale, model_settings, segment_name, trace_label
+        state, model_settings, segment_name, trace_label
     )
 
     # repeat rows from the trips table iterating over tour mode
@@ -97,7 +97,7 @@ def create_logsum_trips(
     return logsum_trips
 
 
-def append_tour_leg_trip_mode_choice_logsums(whale: workflow.Whale, tours):
+def append_tour_leg_trip_mode_choice_logsums(state: workflow.State, tours):
     """Creates trip mode choice logsum column in tours table for each tour mode and leg
 
     Parameters
@@ -109,7 +109,7 @@ def append_tour_leg_trip_mode_choice_logsums(whale: workflow.Whale, tours):
     tours : pd.DataFrame
         Adds two * n_modes logsum columns to each tour row, e.g. "logsum_DRIVE_outbound"
     """
-    trips = whale.get_dataframe("trips")
+    trips = state.get_dataframe("trips")
     trip_dir_mode_logsums = trips.pivot(
         index="tour_id",
         columns=["tour_mode", "outbound"],
@@ -127,7 +127,7 @@ def append_tour_leg_trip_mode_choice_logsums(whale: workflow.Whale, tours):
 
 
 def get_trip_mc_logsums_for_all_modes(
-    whale: workflow.Whale, tours, segment_column_name, model_settings, trace_label
+    state: workflow.State, tours, segment_column_name, model_settings, trace_label
 ):
     """Creates pseudo-trips from tours and runs trip mode choice to get logsums
 
@@ -147,33 +147,33 @@ def get_trip_mc_logsums_for_all_modes(
 
     # create pseudo-trips from tours for all tour modes
     logsum_trips = create_logsum_trips(
-        whale, tours, segment_column_name, model_settings, trace_label
+        state, tours, segment_column_name, model_settings, trace_label
     )
 
     # temporarily register trips in the pipeline
-    whale.add_table("trips", logsum_trips)
-    whale.tracing.register_traceable_table("trips", logsum_trips)
-    whale.get_rn_generator().add_channel("trips", logsum_trips)
+    state.add_table("trips", logsum_trips)
+    state.tracing.register_traceable_table("trips", logsum_trips)
+    state.get_rn_generator().add_channel("trips", logsum_trips)
 
     # run trip mode choice on pseudo-trips. use a direct call instead of pipeline to
     # execute the step because pipeline can only handle one open step at a time
     from .trip_mode_choice import trip_mode_choice
 
-    trip_mode_choice(whale, logsum_trips, whale.get("network_los"))
+    trip_mode_choice(state, logsum_trips, state.get("network_los"))
 
     # add trip mode choice logsums as new cols in tours
-    tours = append_tour_leg_trip_mode_choice_logsums(whale, tours)
+    tours = append_tour_leg_trip_mode_choice_logsums(state, tours)
 
     # de-register logsum trips table
-    whale.get_rn_generator().drop_channel("trips")
-    whale.tracing.deregister_traceable_table("trips")
+    state.get_rn_generator().drop_channel("trips")
+    state.tracing.deregister_traceable_table("trips")
 
     return tours
 
 
 @workflow.step
 def tour_mode_choice_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
@@ -183,7 +183,7 @@ def tour_mode_choice_simulate(
     """
     trace_label = "tour_mode_choice"
     model_settings_file_name = "tour_mode_choice.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "tour_mode"
@@ -279,10 +279,10 @@ def tour_mode_choice_simulate(
 
     # don't create estimation data bundle if trip mode choice is being called
     # from another model step (i.e. tour mode choice logsum creation)
-    if whale.get_rn_generator().step_name != "tour_mode_choice_simulate":
+    if state.get_rn_generator().step_name != "tour_mode_choice_simulate":
         estimator = None
     else:
-        estimator = estimation.manager.begin_estimation(whale, "tour_mode_choice")
+        estimator = estimation.manager.begin_estimation(state, "tour_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)
@@ -305,7 +305,7 @@ def tour_mode_choice_simulate(
     # if trip logsums are used, run trip mode choice and append the logsums
     if model_settings.get("COMPUTE_TRIP_MODE_CHOICE_LOGSUMS", False):
         primary_tours_merged = get_trip_mc_logsums_for_all_modes(
-            whale,
+            state,
             primary_tours_merged,
             segment_column_name,
             model_settings,
@@ -332,7 +332,7 @@ def tour_mode_choice_simulate(
         assert tours_segment.index.name == "tour_id"
 
         choices_df = run_tour_mode_choice_simulate(
-            whale,
+            state,
             tours_segment,
             tour_purpose,
             model_settings,
@@ -403,7 +403,7 @@ def tour_mode_choice_simulate(
     all_tours = tours
     assign_in_place(all_tours, choices_df)
 
-    if whale.is_table("school_escort_tours") & model_settings.get(
+    if state.is_table("school_escort_tours") & model_settings.get(
         "FORCE_ESCORTEE_CHAUFFEUR_MODE_MATCH", True
     ):
         all_tours = (
@@ -412,14 +412,14 @@ def tour_mode_choice_simulate(
             )
         )
 
-    whale.add_table("tours", all_tours)
+    state.add_table("tours", all_tours)
 
     # - annotate tours table
     if model_settings.get("annotate_tours"):
-        annotate.annotate_tours(whale, model_settings, trace_label)
+        annotate.annotate_tours(state, model_settings, trace_label)
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             primary_tours,
             label=tracing.extend_trace_label(trace_label, mode_column_name),
             slicer="tour_id",

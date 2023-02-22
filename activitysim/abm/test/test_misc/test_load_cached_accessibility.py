@@ -48,14 +48,14 @@ def close_handlers():
 
 def test_load_cached_accessibility():
     data_dir = [os.path.join(os.path.dirname(__file__), "data"), example_path("data")]
-    whale = setup_dirs(data_dir=data_dir)
+    state = setup_dirs(data_dir=data_dir)
 
     #
     # add OPTIONAL ceched table accessibility to input_table_list
     # activitysim.abm.tables.land_use.accessibility() will load this table if listed here
     # presumably independently calculated outside activitysim or a cached copy created during a previous run
     #
-    settings = whale.settings
+    settings = state.settings
     input_table_list = settings.input_table_list
     input_table_list.append(
         configuration.InputTable.parse_obj(
@@ -66,8 +66,8 @@ def test_load_cached_accessibility():
             }
         )
     )
-    whale.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
-    whale.settings.input_table_list = input_table_list
+    state.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
+    state.settings.input_table_list = input_table_list
 
     _MODELS = [
         "initialize_landuse",
@@ -76,9 +76,9 @@ def test_load_cached_accessibility():
     ]
 
     try:
-        whale.run(models=_MODELS, resume_after=None)
+        state.run(models=_MODELS, resume_after=None)
 
-        accessibility_df = whale.get_table("accessibility")
+        accessibility_df = state.get_table("accessibility")
 
         assert "auPkRetail" in accessibility_df
 

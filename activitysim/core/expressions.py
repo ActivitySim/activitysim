@@ -10,7 +10,7 @@ from .util import assign_in_place, parse_suffix_args, suffix_expressions_df_str
 logger = logging.getLogger(__name__)
 
 
-def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None):
+def compute_columns(state, df, model_settings, locals_dict={}, trace_label=None):
     """
     Evaluate expressions_spec in context of df, with optional additional pipeline tables in locals
 
@@ -38,7 +38,7 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
 
     if isinstance(model_settings, str):
         model_settings_name = model_settings
-        model_settings = whale.filesystem.read_model_settings(
+        model_settings = state.filesystem.read_model_settings(
             "%s.yaml" % model_settings
         )
         assert model_settings, "Found no model settings for %s" % model_settings_name
@@ -80,7 +80,7 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
     )
 
     expressions_spec = assign.read_assignment_spec(
-        whale.filesystem.get_config_file_path(expressions_spec_name),
+        state.filesystem.get_config_file_path(expressions_spec_name),
     )
 
     if suffix is not None and roots:
@@ -90,7 +90,7 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
         "Expected to find some assignment expressions in %s" % expressions_spec_name
     )
 
-    tables = {t: whale.get_dataframe(t) for t in helper_table_names}
+    tables = {t: state.get_dataframe(t) for t in helper_table_names}
 
     # if df was passed in, df might be a slice, or any other table, but DF is it's local alias
     assert df_name not in tables, "Did not expect to find df '%s' in TABLES" % df_name
@@ -99,32 +99,32 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
     # be nice and also give it to them as df?
     tables["df"] = df
 
-    _locals_dict = assign.local_utilities(whale)
+    _locals_dict = assign.local_utilities(state)
     _locals_dict.update(locals_dict)
     _locals_dict.update(tables)
 
     # FIXME a number of asim model preprocessors want skim_dict - should they request it in model_settings.TABLES?
-    if whale.settings.sharrow:
+    if state.settings.sharrow:
         from activitysim.core.flow import skim_dataset_dict
         from activitysim.core.skim_dataset import skim_dataset
 
-        _locals_dict["skim_dict"] = whale.get_injectable("skim_dataset_dict")
+        _locals_dict["skim_dict"] = state.get_injectable("skim_dataset_dict")
     else:
-        _locals_dict["skim_dict"] = whale.get_injectable("skim_dict")
+        _locals_dict["skim_dict"] = state.get_injectable("skim_dict")
 
     results, trace_results, trace_assigned_locals = assign.assign_variables(
-        whale,
+        state,
         expressions_spec,
         df,
         _locals_dict,
-        trace_rows=whale.tracing.trace_targets(df),
+        trace_rows=state.tracing.trace_targets(df),
     )
 
     if trace_results is not None:
-        whale.tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
+        state.tracing.trace_df(trace_results, label=trace_label, slicer="NONE")
 
     if trace_assigned_locals:
-        whale.tracing.write_csv(
+        state.tracing.write_csv(
             trace_assigned_locals, file_name="%s_locals" % trace_label
         )
 
@@ -132,7 +132,7 @@ def compute_columns(whale, df, model_settings, locals_dict={}, trace_label=None)
 
 
 def assign_columns(
-    whale: workflow.Whale, df, model_settings, locals_dict={}, trace_label=None
+    state: workflow.State, df, model_settings, locals_dict={}, trace_label=None
 ):
     """
     Evaluate expressions in context of df and assign resulting target columns to df
@@ -146,7 +146,7 @@ def assign_columns(
     assert df is not None
     assert model_settings is not None
 
-    results = compute_columns(whale, df, model_settings, locals_dict, trace_label)
+    results = compute_columns(state, df, model_settings, locals_dict, trace_label)
 
     assign_in_place(df, results)
 
@@ -157,7 +157,7 @@ def assign_columns(
 
 
 def annotate_preprocessors(
-    whale: workflow.Whale, df, locals_dict, skims, model_settings, trace_label
+    state: workflow.State, df, locals_dict, skims, model_settings, trace_label
 ):
 
     locals_d = {}
@@ -174,7 +174,7 @@ def annotate_preprocessors(
     for model_settings in preprocessor_settings:
 
         results = compute_columns(
-            whale,
+            state,
             df=df,
             model_settings=model_settings,
             locals_dict=locals_d,

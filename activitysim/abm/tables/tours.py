@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.temp_table
 def tours_merged(
-    whale: workflow.Whale, tours: pd.DataFrame, persons_merged: pd.DataFrame
+    state: workflow.State, tours: pd.DataFrame, persons_merged: pd.DataFrame
 ):
     return simple_table_join(
         tours,

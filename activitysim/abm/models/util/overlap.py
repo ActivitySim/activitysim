@@ -92,7 +92,7 @@ def rle(a):
     return row_id, start_pos, run_length, run_val
 
 
-def p2p_time_window_overlap(whale: workflow.Whale, p1_ids, p2_ids):
+def p2p_time_window_overlap(state: workflow.State, p1_ids, p2_ids):
     """
 
     Parameters
@@ -105,7 +105,7 @@ def p2p_time_window_overlap(whale: workflow.Whale, p1_ids, p2_ids):
 
     """
 
-    timetable = whale.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
     assert len(p1_ids) == len(p2_ids)
     # if series, ought to have same index
@@ -165,11 +165,11 @@ def person_pairs(persons):
     return p2p
 
 
-def hh_time_window_overlap(whale: workflow.Whale, households, persons):
+def hh_time_window_overlap(state: workflow.State, households, persons):
 
     p2p = person_pairs(persons)
 
-    p2p["max_overlap"] = p2p_time_window_overlap(whale, p2p.person1, p2p.person2)
+    p2p["max_overlap"] = p2p_time_window_overlap(state, p2p.person1, p2p.person2)
 
     hh_overlap = (
         p2p.groupby(["household_id", "p2p_type"])
@@ -188,11 +188,11 @@ def hh_time_window_overlap(whale: workflow.Whale, households, persons):
     return hh_overlap
 
 
-def person_time_window_overlap(whale: workflow.Whale, persons):
+def person_time_window_overlap(state: workflow.State, persons):
 
     p2p = person_pairs(persons)
 
-    p2p["max_overlap"] = p2p_time_window_overlap(whale, p2p.person1, p2p.person2)
+    p2p["max_overlap"] = p2p_time_window_overlap(state, p2p.person1, p2p.person2)
 
     p_overlap = (
         pd.concat(
@@ -223,9 +223,9 @@ def person_time_window_overlap(whale: workflow.Whale, persons):
     return p_overlap
 
 
-def person_max_window(whale: workflow.Whale, persons):
+def person_max_window(state: workflow.State, persons):
 
-    timetable = whale.get_injectable("timetable")
+    timetable = state.get_injectable("timetable")
 
     # ndarray with one row per person and one column per time period
     # array value of 1 where free periods and 0 elsewhere

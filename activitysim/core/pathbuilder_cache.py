@@ -85,7 +85,7 @@ class TVPBCache(object):
     def cache_path(self):
         file_type = "mmap"
         return os.path.join(
-            self.network_los.whale.filesystem.get_cache_dir(),
+            self.network_los.state.filesystem.get_cache_dir(),
             f"{self.cache_tag}.{file_type}",
         )
 
@@ -93,7 +93,7 @@ class TVPBCache(object):
     def csv_trace_path(self):
         file_type = "csv"
         return os.path.join(
-            self.network_los.whale.filesystem.get_cache_dir(),
+            self.network_los.state.filesystem.get_cache_dir(),
             f"{self.cache_tag}.{file_type}",
         )
 
@@ -112,7 +112,7 @@ class TVPBCache(object):
                 while True:
                     n += 1
                     candidate = os.path.join(
-                        self.network_los.whale.filesystem.get_cache_dir(),
+                        self.network_los.state.filesystem.get_cache_dir(),
                         f"{self.cache_tag}.{n}.mmap",
                     )
                     if not os.path.isfile(candidate):
@@ -315,7 +315,7 @@ class TVPBCache(object):
         -------
         either multiprocessing.Array and lock or multiprocessing.RawArray and None according to RAWARRAY
         """
-        data_buffers = self.network_los.whale.get_injectable("data_buffers", None)
+        data_buffers = self.network_los.state.get_injectable("data_buffers", None)
         assert self.cache_tag in data_buffers  # internal error
         logger.debug(f"TVPBCache.get_data_and_lock_from_buffers")
         data_buffer = data_buffers[self.cache_tag]
@@ -371,7 +371,7 @@ class TapTapUidCalculator:
             f"TVPB_SETTINGS.tour_mode_choice.tap_tap_settings.SPEC"
         )
         self.set_names = list(
-            self.network_los.whale.filesystem.read_model_spec(
+            self.network_los.state.filesystem.read_model_spec(
                 file_name=spec_name
             ).columns
         )

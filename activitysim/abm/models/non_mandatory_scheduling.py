@@ -17,7 +17,7 @@ DUMP = False
 
 @workflow.step
 def non_mandatory_tour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
@@ -28,7 +28,7 @@ def non_mandatory_tour_scheduling(
 
     model_name = "non_mandatory_tour_scheduling"
     trace_label = model_name
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
     non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]
 
     # - if no mandatory_tours
@@ -39,7 +39,7 @@ def non_mandatory_tour_scheduling(
     tour_segment_col = None
 
     choices = run_tour_scheduling(
-        whale,
+        state,
         model_name,
         non_mandatory_tours,
         persons_merged,
@@ -48,12 +48,12 @@ def non_mandatory_tour_scheduling(
     )
 
     assign_in_place(tours, choices)
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     # updated df for tracing
     non_mandatory_tours = tours[tours.tour_category == "non_mandatory"]
 
-    whale.tracing.dump_df(
+    state.tracing.dump_df(
         DUMP,
         tt.tour_map(persons_merged, non_mandatory_tours, tdd_alts),
         trace_label,
@@ -61,7 +61,7 @@ def non_mandatory_tour_scheduling(
     )
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             non_mandatory_tours,
             label=trace_label,
             slicer="person_id",

@@ -10,7 +10,7 @@ from activitysim.core import workflow
 
 
 def test_nmtf():
-    whale = workflow.Whale.make_default(__file__)
+    state = workflow.State.make_default(__file__)
 
     persons = pd.DataFrame(
         {
@@ -32,7 +32,7 @@ def test_nmtf():
     tour_counts.index = persons.index  # assign person ids to the index
 
     # - create the non_mandatory tours
-    nmt = process_non_mandatory_tours(whale, persons, tour_counts)
+    nmt = process_non_mandatory_tours(state, persons, tour_counts)
 
     idx = nmt.index
 

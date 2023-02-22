@@ -33,7 +33,7 @@ def filter_chooser_columns(choosers, logsum_settings, model_settings):
 
 
 def compute_logsums(
-    whale,
+    state,
     choosers,
     tour_purpose,
     logsum_settings,
@@ -129,13 +129,13 @@ def compute_logsums(
     else:
         logger.error("Choosers table already has column 'duration'.")
 
-    logsum_spec = whale.filesystem.read_model_spec(file_name=logsum_settings["SPEC"])
-    coefficients = whale.filesystem.get_segment_coefficients(
+    logsum_spec = state.filesystem.read_model_spec(file_name=logsum_settings["SPEC"])
+    coefficients = state.filesystem.get_segment_coefficients(
         logsum_settings, tour_purpose
     )
 
     logsum_spec = simulate.eval_coefficients(
-        whale, logsum_spec, coefficients, estimator=None
+        state, logsum_spec, coefficients, estimator=None
     )
 
     nest_spec = config.get_logit_model_settings(logsum_settings)
@@ -217,7 +217,7 @@ def compute_logsums(
         simulate.set_skim_wrapper_targets(choosers, skims)
 
         expressions.assign_columns(
-            whale,
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -225,7 +225,7 @@ def compute_logsums(
         )
 
     logsums = simulate.simple_simulate_logsums(
-        whale,
+        state,
         choosers,
         logsum_spec,
         nest_spec,

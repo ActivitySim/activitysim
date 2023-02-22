@@ -20,17 +20,17 @@ logger = logging.getLogger(__name__)
 
 @workflow.func
 def run_trip_purpose_and_destination(
-    whale: workflow.Whale,
+    state: workflow.State,
     trips_df,
     tours_merged_df,
     chunk_size,
     trace_label,
 ):
     assert not trips_df.empty
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
 
     choices = run_trip_purpose(
-        whale,
+        state,
         trips_df,
         estimator=None,
         trace_label=tracing.extend_trace_label(trace_label, "purpose"),
@@ -39,7 +39,7 @@ def run_trip_purpose_and_destination(
     trips_df["purpose"] = choices
 
     trips_df, save_sample_df = run_trip_destination(
-        whale,
+        state,
         trips_df,
         tours_merged_df,
         estimator=None,
@@ -52,24 +52,24 @@ def run_trip_purpose_and_destination(
 
 @workflow.step
 def trip_purpose_and_destination(
-    whale: workflow.Whale,
+    state: workflow.State,
     trips: pd.DataFrame,
     tours_merged: pd.DataFrame,
 ):
     trace_label = "trip_purpose_and_destination"
-    model_settings = whale.filesystem.read_model_settings(
+    model_settings = state.filesystem.read_model_settings(
         "trip_purpose_and_destination.yaml"
     )
 
     # for consistency, read sample_table_name setting from trip_destination settings file
-    trip_destination_model_settings = whale.filesystem.read_model_settings(
+    trip_destination_model_settings = state.filesystem.read_model_settings(
         "trip_destination.yaml"
     )
     sample_table_name = trip_destination_model_settings.get(
         "DEST_CHOICE_SAMPLE_TABLE_NAME"
     )
     want_sample_table = (
-        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     MAX_ITERATIONS = model_settings.get("MAX_ITERATIONS", 5)
@@ -96,7 +96,7 @@ def trip_purpose_and_destination(
             # 'failed' column but no failed trips from prior run of trip_destination
             logger.info("%s - no failed trips from prior model run." % trace_label)
             trips_df.drop(columns="failed", inplace=True)
-            whale.add_table("trips", trips_df)
+            state.add_table("trips", trips_df)
             return
 
         else:
@@ -109,19 +109,19 @@ def trip_purpose_and_destination(
             logger.info("Rerunning %s failed trips and leg-mates" % trips_df.shape[0])
 
             # drop any previously saved samples of failed trips
-            if want_sample_table and whale.is_table(sample_table_name):
+            if want_sample_table and state.is_table(sample_table_name):
                 logger.info("Dropping any previously saved samples of failed trips")
-                save_sample_df = whale.get_dataframe(sample_table_name)
+                save_sample_df = state.get_dataframe(sample_table_name)
                 save_sample_df.drop(trips_df.index, level="trip_id", inplace=True)
-                whale.add_table(sample_table_name, save_sample_df)
+                state.add_table(sample_table_name, save_sample_df)
                 del save_sample_df
 
     # if we estimated trip_destination, there should have been no failed trips
     # if we didn't, but it is enabled, it is probably a configuration error
     # if we just estimated trip_purpose, it isn't clear what they are trying to do , nor how to handle it
     assert not (
-        estimation.manager.begin_estimation(whale, "trip_purpose")
-        or estimation.manager.begin_estimation(whale, "trip_destination")
+        estimation.manager.begin_estimation(state, "trip_purpose")
+        or estimation.manager.begin_estimation(state, "trip_destination")
     )
 
     processed_trips = []
@@ -136,16 +136,16 @@ def trip_purpose_and_destination(
                 del trips_df[c]
 
         trips_df, save_sample_df = run_trip_purpose_and_destination(
-            whale,
+            state,
             trips_df,
             tours_merged_df,
-            chunk_size=whale.settings.chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % i),
         )
 
         # # if testing, make sure at least one trip fails
         if (
-            whale.settings.testing_fail_trip_destination
+            state.settings.testing_fail_trip_destination
             and (i == 1)
             and not trips_df.failed.any()
         ):
@@ -168,7 +168,7 @@ def trip_purpose_and_destination(
         )
         file_name = "%s_i%s_failed_trips" % (trace_label, i)
         logger.info("writing failed trips to %s" % file_name)
-        whale.tracing.write_csv(
+        state.tracing.write_csv(
             trips_df[trips_df.failed], file_name=file_name, transpose=False
         )
 
@@ -208,7 +208,7 @@ def trip_purpose_and_destination(
         logger.info(
             "adding %s samples to %s" % (len(save_sample_df), sample_table_name)
         )
-        whale.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)
 
     logger.info(
         "%s %s failed trips after %s iterations"
@@ -220,22 +220,22 @@ def trip_purpose_and_destination(
 
     trips_df = cleanup_failed_trips(trips_df)
 
-    whale.add_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
     # check to make sure we wrote sample file if requestsd
     if want_sample_table and len(trips_df) > 0:
-        assert whale.is_table(sample_table_name)
+        assert state.is_table(sample_table_name)
         # since we have saved samples for all successful trips
         # once we discard failed trips, we should samples for all trips
-        save_sample_df = whale.get_dataframe(sample_table_name)
+        save_sample_df = state.get_dataframe(sample_table_name)
         # expect samples only for intermediate trip destinatinos
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(
             trips_df[trips_df.trip_num < trips_df.trip_count]
         )
         del save_sample_df
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

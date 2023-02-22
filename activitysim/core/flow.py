@@ -132,7 +132,7 @@ def only_simple(x, exclude_keys=()):
 
 
 def get_flow(
-    whale,
+    state,
     spec,
     local_d,
     trace_label=None,
@@ -166,7 +166,7 @@ def get_flow(
     else:
         aux_vars = {}
     flow = new_flow(
-        whale,
+        state,
         spec,
         extra_vars,
         orig_col_name,
@@ -214,7 +214,7 @@ def should_invalidate_cache_file(cache_filename, *source_filenames):
     return False
 
 
-def scan_for_unused_names(whale: workflow.Whale, tokens):
+def scan_for_unused_names(state: workflow.State, tokens):
     """
     Scan all spec files to find unused skim variable names.
 
@@ -226,7 +226,7 @@ def scan_for_unused_names(whale: workflow.Whale, tokens):
     -------
     Set[str]
     """
-    configs_dir_list = whale.filesystem.get_configs_dir()
+    configs_dir_list = state.filesystem.get_configs_dir()
     configs_dir_list = (
         [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
     )
@@ -249,14 +249,14 @@ def scan_for_unused_names(whale: workflow.Whale, tokens):
 
 
 @workflow.cached_object
-def skim_dataset_dict(whale: workflow.Whale, skim_dataset):
+def skim_dataset_dict(state: workflow.State, skim_dataset):
     from .skim_dataset import SkimDataset
 
     return SkimDataset(skim_dataset)
 
 
 def skims_mapping(
-    whale: workflow.Whale,
+    state: workflow.State,
     orig_col_name,
     dest_col_name,
     timeframe="tour",
@@ -270,7 +270,7 @@ def skims_mapping(
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
     logger.info(f"- primary_origin_col_name: {primary_origin_col_name}")
-    skim_dataset = whale.get_injectable("skim_dataset")
+    skim_dataset = state.get_injectable("skim_dataset")
     if zone_layer == "maz" or zone_layer is None:
         odim = "omaz" if "omaz" in skim_dataset.dims else "otaz"
         ddim = "dmaz" if "dmaz" in skim_dataset.dims else "dtaz"
@@ -442,7 +442,7 @@ def skims_mapping(
 
 
 def new_flow(
-    whale: workflow.Whale,
+    state: workflow.State,
     spec,
     extra_vars,
     orig_col_name,
@@ -520,10 +520,10 @@ def new_flow(
         else:
             chooser_cols = list(choosers.columns)
 
-        cache_dir = whale.filesystem.get_sharrow_cache_dir()
+        cache_dir = state.filesystem.get_sharrow_cache_dir()
         logger.debug(f"flow.cache_dir: {cache_dir}")
         skims_mapping_ = skims_mapping(
-            whale,
+            state,
             orig_col_name,
             dest_col_name,
             timeframe,
@@ -724,7 +724,7 @@ def size_terms_on_flow(locals_d):
 
 
 def apply_flow(
-    whale,
+    state,
     spec,
     choosers,
     locals_d=None,
@@ -779,7 +779,7 @@ def apply_flow(
     with logtime("apply_flow"):
         try:
             flow = get_flow(
-                whale,
+                state,
                 spec,
                 locals_d,
                 trace_label,

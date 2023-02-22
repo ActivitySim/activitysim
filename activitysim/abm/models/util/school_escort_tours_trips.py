@@ -372,7 +372,7 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     tours.loc[bad_end_times, "end"] = tours.loc[bad_end_times, "start"]
 
     # updating tdd to match start and end times
-    tdd_alts = whale.get_injectable("tdd_alts")
+    tdd_alts = state.get_injectable("tdd_alts")
     tdd_alts["tdd"] = tdd_alts.index
     tours.drop(columns="tdd", inplace=True)
 
@@ -390,10 +390,10 @@ def process_tours_after_escorting_model(escort_bundles, tours):
     return tours
 
 
-def merge_school_escort_trips_into_pipeline(whale: workflow.Whale):
-    school_escort_trips = whale.get_dataframe("school_escort_trips")
-    tours = whale.get_dataframe("tours")
-    trips = whale.get_dataframe("trips")
+def merge_school_escort_trips_into_pipeline(state: workflow.State):
+    school_escort_trips = state.get_dataframe("school_escort_trips")
+    tours = state.get_dataframe("tours")
+    trips = state.get_dataframe("trips")
 
     # want to remove stops if school escorting takes place on that half tour so we can replace them with the actual stops
     out_se_tours = tours[
@@ -465,7 +465,7 @@ def merge_school_escort_trips_into_pipeline(whale: workflow.Whale):
     trips["destination"] = trips["destination"].astype(int)
 
     # updating trip_id now that we have all trips
-    trips = canonical_ids.set_trip_index(whale, trips)
+    trips = canonical_ids.set_trip_index(state, trips)
     school_escort_trip_id_map = {
         v: k
         for k, v in trips.loc[
@@ -488,10 +488,10 @@ def merge_school_escort_trips_into_pipeline(whale: workflow.Whale):
     trips.drop(columns="school_escort_trip_id", inplace=True)
 
     # replace trip table and pipeline and register with the random number generator
-    whale.add_table("trips", trips)
+    state.add_table("trips", trips)
     pipeline.get_rn_generator().drop_channel("trips")
     pipeline.get_rn_generator().add_channel("trips", trips)
-    whale.add_table("school_escort_trips", school_escort_trips)
+    state.add_table("school_escort_trips", school_escort_trips)
 
     # updating stop frequency in tours tabel to be consistent
     num_outbound_stops = (
@@ -506,13 +506,13 @@ def merge_school_escort_trips_into_pipeline(whale: workflow.Whale):
     tours.loc[stop_freq.index, "stop_frequency"] = stop_freq
 
     # no need to reset random number generator since no tours added
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     return trips
 
 
-def recompute_tour_count_statistics(whale: workflow.Whale):
-    tours = whale.get_dataframe("tours")
+def recompute_tour_count_statistics(state: workflow.State):
+    tours = state.get_dataframe("tours")
 
     grouped = tours.groupby(["person_id", "tour_type"])
     tours["tour_type_num"] = grouped.cumcount() + 1
@@ -524,7 +524,7 @@ def recompute_tour_count_statistics(whale: workflow.Whale):
     tours["tour_num"] = grouped.cumcount() + 1
     tours["tour_count"] = tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
 
 def create_pure_school_escort_tours(bundles):
@@ -578,7 +578,7 @@ def create_pure_school_escort_tours(bundles):
     pe_tours["tour_num"] = grouped.cumcount() + 1
     pe_tours["tour_count"] = pe_tours["tour_num"] + grouped.cumcount(ascending=False)
 
-    pe_tours = canonical_ids.set_tour_index(whale, pe_tours, is_school_escorting=True)
+    pe_tours = canonical_ids.set_tour_index(state, pe_tours, is_school_escorting=True)
 
     return pe_tours
 
@@ -597,7 +597,7 @@ def force_escortee_tour_modes_to_match_chauffeur(tours):
     # FIXME: escortee tour can have different chauffeur in outbound vs inbound direction
     # which tour mode should it be set to?  Currently it's whatever comes last.
     # Does it even matter if trip modes are getting matched later?
-    escort_bundles = whale.get_dataframe("escort_bundles")
+    escort_bundles = state.get_dataframe("escort_bundles")
 
     # grabbing the school tour ids for each school escort bundle
     se_tours = escort_bundles[["school_tour_ids", "chauf_tour_id"]].copy()
@@ -625,7 +625,7 @@ def force_escortee_tour_modes_to_match_chauffeur(tours):
 
 
 def force_escortee_trip_modes_to_match_chauffeur(trips):
-    school_escort_trips = whale.get_dataframe("school_escort_trips")
+    school_escort_trips = state.get_dataframe("school_escort_trips")
 
     # starting with only trips that are created as part of the school escorting model
     se_trips = trips[trips.index.isin(school_escort_trips.index)].copy()

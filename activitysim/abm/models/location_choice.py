@@ -72,7 +72,7 @@ logger = logging.getLogger(__name__)
 ALT_LOGSUM = "mode_choice_logsum"
 
 
-def write_estimation_specs(whale, estimator, model_settings, settings_file):
+def write_estimation_specs(state, estimator, model_settings, settings_file):
     """
     write sample_spec, spec, and coefficients to estimation data bundle
 
@@ -88,13 +88,13 @@ def write_estimation_specs(whale, estimator, model_settings, settings_file):
     estimator.write_coefficients(model_settings=model_settings)
 
     estimator.write_table(
-        whale.get_injectable("size_terms"), "size_terms", append=False
+        state.get_injectable("size_terms"), "size_terms", append=False
     )
-    estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
+    estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
 
 
 def _location_sample(
-    whale: workflow.Whale,
+    state: workflow.State,
     segment_name,
     choosers,
     alternatives,
@@ -133,7 +133,7 @@ def _location_sample(
     if "sched" in trace_label:
         print()
 
-    if whale.settings.disable_destination_sampling or (
+    if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
@@ -154,7 +154,7 @@ def _location_sample(
     locals_d.update(constants)
 
     spec = simulate.spec_for_segment(
-        whale,
+        state,
         model_settings,
         spec_id="SAMPLE_SPEC",
         segment_name=segment_name,
@@ -162,10 +162,10 @@ def _location_sample(
     )
 
     # here since presumably we want this when called for either sample or presample
-    log_alt_losers = whale.settings.log_alt_losers
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample(
-        whale,
+        state,
         choosers,
         alternatives,
         spec=spec,
@@ -184,7 +184,7 @@ def _location_sample(
 
 
 def location_sample(
-    whale,
+    state,
     segment_name,
     persons_merged,
     network_los,
@@ -209,7 +209,7 @@ def location_sample(
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     choices = _location_sample(
-        whale,
+        state,
         segment_name,
         choosers,
         dest_size_terms,
@@ -314,7 +314,7 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
 
 
 def location_presample(
-    whale,
+    state,
     segment_name,
     persons_merged,
     network_los,
@@ -357,7 +357,7 @@ def location_presample(
     skims = skim_dict.wrap(HOME_TAZ, DEST_TAZ)
 
     taz_sample = _location_sample(
-        whale,
+        state,
         segment_name,
         choosers,
         TAZ_size_terms,
@@ -381,7 +381,7 @@ def location_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = tour_destination.choose_MAZ_for_TAZ(
-        whale, taz_sample, MAZ_size_terms, trace_label
+        state, taz_sample, MAZ_size_terms, trace_label
     )
 
     assert DEST_MAZ in maz_choices
@@ -391,7 +391,7 @@ def location_presample(
 
 
 def run_location_sample(
-    whale: workflow.Whale,
+    state: workflow.State,
     segment_name,
     persons_merged,
     network_los,
@@ -428,7 +428,7 @@ def run_location_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
-    if pre_sample_taz and not whale.setting.want_dest_choice_presampling:
+    if pre_sample_taz and not state.setting.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -442,7 +442,7 @@ def run_location_sample(
         )
 
         choices = location_presample(
-            whale,
+            state,
             segment_name,
             persons_merged,
             network_los,
@@ -456,7 +456,7 @@ def run_location_sample(
 
     else:
         choices = location_sample(
-            whale,
+            state,
             segment_name,
             persons_merged,
             network_los,
@@ -472,7 +472,7 @@ def run_location_sample(
 
 
 def run_location_logsums(
-    whale,
+    state,
     segment_name,
     persons_merged_df,
     network_los,
@@ -505,7 +505,7 @@ def run_location_logsums(
 
     assert not location_sample_df.empty
 
-    logsum_settings = whale.filesystem.read_model_settings(
+    logsum_settings = state.filesystem.read_model_settings(
         model_settings["LOGSUM_SETTINGS"]
     )
 
@@ -525,7 +525,7 @@ def run_location_logsums(
         tour_purpose = tour_purpose[segment_name]
 
     logsums = logsum.compute_logsums(
-        whale,
+        state,
         choosers,
         tour_purpose,
         logsum_settings,
@@ -546,7 +546,7 @@ def run_location_logsums(
 
 
 def run_location_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     segment_name,
     persons_merged,
     location_sample_df,
@@ -616,17 +616,17 @@ def run_location_simulate(
         estimator.write_interaction_sample_alternatives(alternatives)
 
     spec = simulate.spec_for_segment(
-        whale,
+        state,
         model_settings,
         spec_id="SPEC",
         segment_name=segment_name,
         estimator=estimator,
     )
 
-    log_alt_losers = whale.settings.log_alt_losers
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
-        whale,
+        state,
         choosers,
         alternatives,
         spec=spec,
@@ -654,7 +654,7 @@ def run_location_simulate(
 
 
 def run_location_choice(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged_df,
     network_los,
     shadow_price_calculator,
@@ -720,7 +720,7 @@ def run_location_choice(
 
         # - location_sample
         location_sample_df = run_location_sample(
-            whale,
+            state,
             segment_name,
             choosers,
             network_los,
@@ -736,7 +736,7 @@ def run_location_choice(
 
         # - location_logsums
         location_sample_df = run_location_logsums(
-            whale,
+            state,
             segment_name,
             choosers,
             network_los,
@@ -751,7 +751,7 @@ def run_location_choice(
 
         # - location_simulate
         choices_df = run_location_simulate(
-            whale,
+            state,
             segment_name,
             choosers,
             location_sample_df,
@@ -769,11 +769,11 @@ def run_location_choice(
         )
 
         if estimator:
-            if whale.settings.trace_hh_id:
+            if state.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.modeled_choices"
                 )
-                whale.tracing.trace_df(choices_df, label=estimation_trace_label)
+                state.tracing.trace_df(choices_df, label=estimation_trace_label)
 
             estimator.write_choices(choices_df.choice)
             choices_df.choice = estimator.get_survey_values(
@@ -811,11 +811,11 @@ def run_location_choice(
                     f"{trace_label} segment {segment_name} estimation: override logsums"
                 )
 
-            if whale.settings.trace_hh_id:
+            if state.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.survey_choices"
                 )
-                whale.tracing.trace_df(choices_df, estimation_trace_label)
+                state.tracing.trace_df(choices_df, estimation_trace_label)
 
         choices_list.append(choices_df)
 
@@ -846,7 +846,7 @@ def run_location_choice(
 
 
 def iterate_location_choice(
-    whale: workflow.Whale,
+    state: workflow.State,
     model_settings,
     persons_merged,
     persons,
@@ -891,7 +891,7 @@ def iterate_location_choice(
 
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     persons_merged_df = persons_merged
@@ -910,7 +910,7 @@ def iterate_location_choice(
         chooser_segment_column in persons_merged_df
     ), f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' not in persons_merged table."
 
-    spc = shadow_pricing.load_shadow_price_calculator(whale, model_settings)
+    spc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
     max_iterations = spc.max_iterations
     assert not (spc.use_shadow_pricing and estimator)
 
@@ -922,7 +922,7 @@ def iterate_location_choice(
         persons_merged_df_ = persons_merged_df.copy()
 
         if spc.use_shadow_pricing and iteration > 1:
-            spc.update_shadow_prices(whale)
+            spc.update_shadow_prices(state)
 
             if spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation":
                 # filter from the sampled persons
@@ -932,7 +932,7 @@ def iterate_location_choice(
                 persons_merged_df_ = persons_merged_df_.sort_index()
 
         choices_df_, save_sample_df = run_location_choice(
-            whale,
+            state,
             persons_merged_df_,
             network_los,
             shadow_price_calculator=spc,
@@ -980,9 +980,9 @@ def iterate_location_choice(
         )
 
         if locutor:
-            spc.write_trace_files(whale, iteration)
+            spc.write_trace_files(state, iteration)
 
-        if spc.use_shadow_pricing and spc.check_fit(whale, iteration):
+        if spc.use_shadow_pricing and spc.check_fit(state, iteration):
             logging.info(
                 "%s converged after iteration %s"
                 % (
@@ -995,9 +995,9 @@ def iterate_location_choice(
     # - shadow price table
     if locutor:
         if spc.use_shadow_pricing and "SHADOW_PRICE_TABLE" in model_settings:
-            whale.add_table(model_settings["SHADOW_PRICE_TABLE"], spc.shadow_prices)
+            state.add_table(model_settings["SHADOW_PRICE_TABLE"], spc.shadow_prices)
         if "MODELED_SIZE_TABLE" in model_settings:
-            whale.add_table(model_settings["MODELED_SIZE_TABLE"], spc.modeled_size)
+            state.add_table(model_settings["MODELED_SIZE_TABLE"], spc.modeled_size)
 
     persons_df = persons
 
@@ -1020,39 +1020,39 @@ def iterate_location_choice(
         # might be None for tiny samples even if sample_table_name was specified
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # lest they try to put school and workplace samples into the same table
-        if whale.is_table(sample_table_name):
+        if state.is_table(sample_table_name):
             raise RuntimeError(
                 "dest choice sample table %s already exists" % sample_table_name
             )
-        whale.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)
 
     # - annotate persons table
     if "annotate_persons" in model_settings:
         expressions.assign_columns(
-            whale,
+            state,
             df=persons_df,
             model_settings=model_settings.get("annotate_persons"),
             trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
         )
 
-        whale.add_table("persons", persons_df)
+        state.add_table("persons", persons_df)
 
-        if whale.settings.trace_hh_id:
-            whale.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
+        if state.settings.trace_hh_id:
+            state.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
 
     # - annotate households table
     if "annotate_households" in model_settings:
         households_df = households
         expressions.assign_columns(
-            whale,
+            state,
             df=households_df,
             model_settings=model_settings.get("annotate_households"),
             trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
         )
-        whale.add_table("households", households_df)
+        state.add_table("households", households_df)
 
-        if whale.settings.trace_hh_id:
-            whale.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
+        if state.settings.trace_hh_id:
+            state.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
 
     if logsum_column_name:
         tracing.print_summary(
@@ -1064,7 +1064,7 @@ def iterate_location_choice(
 
 @workflow.step
 def workplace_location(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
     households: pd.DataFrame,
@@ -1078,12 +1078,12 @@ def workplace_location(
     """
 
     trace_label = "workplace_location"
-    model_settings = whale.filesystem.read_model_settings("workplace_location.yaml")
+    model_settings = state.filesystem.read_model_settings("workplace_location.yaml")
 
-    estimator = estimation.manager.begin_estimation(whale, whale, "workplace_location")
+    estimator = estimation.manager.begin_estimation(state, state, "workplace_location")
     if estimator:
         write_estimation_specs(
-            whale, estimator, model_settings, "workplace_location.yaml"
+            state, estimator, model_settings, "workplace_location.yaml"
         )
 
     # FIXME - debugging code to test multiprocessing failure handling
@@ -1092,18 +1092,18 @@ def workplace_location(
     #     raise RuntimeError(f"fake fail {process_name}")
 
     # disable locutor for benchmarking
-    if whale.settings.benchmarking:
+    if state.settings.benchmarking:
         locutor = False
 
     iterate_location_choice(
-        whale,
+        state,
         model_settings,
         persons_merged,
         persons,
         households,
         network_los,
         estimator,
-        whale.settings.chunk_size,
+        state.settings.chunk_size,
         locutor,
         trace_label,
     )
@@ -1114,7 +1114,7 @@ def workplace_location(
 
 @workflow.step
 def school_location(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
     households: pd.DataFrame,
@@ -1128,25 +1128,25 @@ def school_location(
     """
 
     trace_label = "school_location"
-    model_settings = whale.filesystem.read_model_settings("school_location.yaml")
+    model_settings = state.filesystem.read_model_settings("school_location.yaml")
 
-    estimator = estimation.manager.begin_estimation(whale, whale, "school_location")
+    estimator = estimation.manager.begin_estimation(state, state, "school_location")
     if estimator:
-        write_estimation_specs(whale, estimator, model_settings, "school_location.yaml")
+        write_estimation_specs(state, estimator, model_settings, "school_location.yaml")
 
     # disable locutor for benchmarking
-    if whale.settings.benchmarking:
+    if state.settings.benchmarking:
         locutor = False
 
     iterate_location_choice(
-        whale,
+        state,
         model_settings,
         persons_merged,
         persons,
         households,
         network_los,
         estimator,
-        whale.settings.chunk_size,
+        state.settings.chunk_size,
         locutor,
         trace_label,
     )

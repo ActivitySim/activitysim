@@ -12,7 +12,7 @@ import pandas as pd
 import yaml
 
 from activitysim.core import tracing
-from activitysim.core.workflow.accessor import FromWhale, WhaleAccessor
+from activitysim.core.workflow.accessor import FromState, StateAccessor
 
 logger = logging.getLogger(__name__)
 
@@ -28,11 +28,11 @@ DEFAULT_TRACEABLE_TABLES = [
 ]
 
 
-class Tracing(WhaleAccessor):
+class Tracing(StateAccessor):
 
-    traceable_tables: list[str] = FromWhale(default_value=DEFAULT_TRACEABLE_TABLES)
-    traceable_table_ids: dict[str, Sequence] = FromWhale(default_init=True)
-    traceable_table_indexes: dict[str, str] = FromWhale(default_init=True)
+    traceable_tables: list[str] = FromState(default_value=DEFAULT_TRACEABLE_TABLES)
+    traceable_table_ids: dict[str, Sequence] = FromState(default_init=True)
+    traceable_table_indexes: dict[str, str] = FromState(default_init=True)
 
     def __get__(self, instance, objtype=None) -> "Tracing":
         # derived __get__ changes annotation, aids in type checking
@@ -251,7 +251,7 @@ class Tracing(WhaleAccessor):
 
         Parameters
         ----------
-        whale: workflow.Whale
+        state: workflow.State
         df: pandas.DataFrame
             traced dataframe
         label: str

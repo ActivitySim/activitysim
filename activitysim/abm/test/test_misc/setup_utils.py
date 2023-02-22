@@ -52,20 +52,20 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
     if not data_dir:
         data_dir = example_path("data")
 
-    whale = workflow.Whale.make_default(
+    state = workflow.State.make_default(
         configs_dir=configs_dir,
         output_dir=output_dir,
         data_dir=data_dir,
     )
 
-    whale.logging.config_logger()
+    state.logging.config_logger()
 
-    whale.tracing.delete_output_files("csv")
-    whale.tracing.delete_output_files("txt")
-    whale.tracing.delete_output_files("yaml")
-    whale.tracing.delete_output_files("omx")
+    state.tracing.delete_output_files("csv")
+    state.tracing.delete_output_files("txt")
+    state.tracing.delete_output_files("yaml")
+    state.tracing.delete_output_files("omx")
 
-    return whale
+    return state
 
 
 def close_handlers():

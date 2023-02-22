@@ -19,10 +19,10 @@ from activitysim.core import (
 logger = logging.getLogger(__name__)
 
 
-def add_null_results(whale, trace_label, mandatory_tour_frequency_settings):
+def add_null_results(state, trace_label, mandatory_tour_frequency_settings):
     logger.info("Skipping %s: add_null_results", trace_label)
 
-    persons = whale.get_dataframe("persons")
+    persons = state.get_dataframe("persons")
     persons["mandatory_tour_frequency"] = ""
 
     tours = pd.DataFrame()
@@ -30,21 +30,21 @@ def add_null_results(whale, trace_label, mandatory_tour_frequency_settings):
     tours["tour_type"] = None
     tours["person_id"] = None
     tours.index.name = "tour_id"
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     expressions.assign_columns(
-        whale,
+        state,
         df=persons,
         model_settings=mandatory_tour_frequency_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
 
 @workflow.step
 def mandatory_tour_frequency(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged: pd.DataFrame,
 ):
     """
@@ -53,9 +53,9 @@ def mandatory_tour_frequency(
     """
     trace_label = "mandatory_tour_frequency"
     model_settings_file_name = "mandatory_tour_frequency.yaml"
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     choosers = persons_merged
     # filter based on results of CDAP
@@ -64,7 +64,7 @@ def mandatory_tour_frequency(
 
     # - if no mandatory tours
     if choosers.shape[0] == 0:
-        add_null_results(whale, trace_label, model_settings)
+        add_null_results(state, trace_label, model_settings)
         return
 
     # - preprocessor
@@ -73,19 +73,19 @@ def mandatory_tour_frequency(
         locals_dict = {}
 
         expressions.assign_columns(
-            whale,
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
             trace_label=trace_label,
         )
 
-    estimator = estimation.manager.begin_estimation(whale, "mandatory_tour_frequency")
+    estimator = estimation.manager.begin_estimation(state, "mandatory_tour_frequency")
 
-    model_spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     model_spec = simulate.eval_coefficients(
-        whale, model_spec, coefficients_df, estimator
+        state, model_spec, coefficients_df, estimator
     )
 
     nest_spec = config.get_logit_model_settings(model_settings)
@@ -98,7 +98,7 @@ def mandatory_tour_frequency(
         estimator.write_choosers(choosers)
 
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=choosers,
         spec=model_spec,
         nest_spec=nest_spec,
@@ -126,20 +126,20 @@ def mandatory_tour_frequency(
     the same as got non_mandatory_tours except trip types are "work" and "school"
     """
     alternatives = simulate.read_model_alts(
-        whale, "mandatory_tour_frequency_alternatives.csv", set_index="alt"
+        state, "mandatory_tour_frequency_alternatives.csv", set_index="alt"
     )
     choosers["mandatory_tour_frequency"] = choices.reindex(choosers.index)
 
     mandatory_tours = process_mandatory_tours(
-        whale, persons=choosers, mandatory_tour_frequency_alts=alternatives
+        state, persons=choosers, mandatory_tour_frequency_alts=alternatives
     )
 
-    tours = whale.extend_table("tours", mandatory_tours)
-    whale.tracing.register_traceable_table("tours", mandatory_tours)
-    whale.get_rn_generator().add_channel("tours", mandatory_tours)
+    tours = state.extend_table("tours", mandatory_tours)
+    state.tracing.register_traceable_table("tours", mandatory_tours)
+    state.get_rn_generator().add_channel("tours", mandatory_tours)
 
     # - annotate persons
-    persons = whale.get_dataframe("persons")
+    persons = state.get_dataframe("persons")
 
     # need to reindex as we only handled persons with cdap_activity == 'M'
     persons["mandatory_tour_frequency"] = (
@@ -147,25 +147,25 @@ def mandatory_tour_frequency(
     )
 
     expressions.assign_columns(
-        whale,
+        state,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary(
         "mandatory_tour_frequency", persons.mandatory_tour_frequency, value_counts=True
     )
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             mandatory_tours,
             label="mandatory_tour_frequency.mandatory_tours",
             warn_if_empty=True,
         )
 
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             persons, label="mandatory_tour_frequency.persons", warn_if_empty=True
         )

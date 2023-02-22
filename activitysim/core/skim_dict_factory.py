@@ -53,7 +53,7 @@ class SkimData(object):
 
 
 class SkimInfo(object):
-    def __init__(self, whale, skim_tag, network_los):
+    def __init__(self, state, skim_tag, network_los):
         """
 
         skim_tag:           str             (e.g. 'TAZ')
@@ -90,9 +90,9 @@ class SkimInfo(object):
         self.block_offsets = None
 
         if skim_tag:
-            self.load_skim_info(whale, skim_tag)
+            self.load_skim_info(state, skim_tag)
 
-    def load_skim_info(self, whale, skim_tag):
+    def load_skim_info(self, state, skim_tag):
         """
         Read omx files for skim <skim_tag> (e.g. 'TAZ') and build skim_info dict
 
@@ -104,7 +104,7 @@ class SkimInfo(object):
 
         omx_file_names = self.network_los.omx_file_names(skim_tag)
 
-        self.omx_file_paths = whale.filesystem.expand_input_file_list(omx_file_names)
+        self.omx_file_paths = state.filesystem.expand_input_file_list(omx_file_names)
 
         # ignore any 3D skims not in skim_time_periods
         # specifically, load all skims except those with key2 not in dim3_tags_to_load
@@ -265,11 +265,11 @@ class AbstractSkimFactory(ABC):
 
     def _memmap_skim_data_path(self, skim_tag):
         return os.path.join(
-            self.network_los.whale.filesystem.get_cache_dir(), f"cached_{skim_tag}.mmap"
+            self.network_los.state.filesystem.get_cache_dir(), f"cached_{skim_tag}.mmap"
         )
 
-    def load_skim_info(self, whale, skim_tag):
-        return SkimInfo(whale, skim_tag, self.network_los)
+    def load_skim_info(self, state, skim_tag):
+        return SkimInfo(state, skim_tag, self.network_los)
 
     def _read_skims_from_omx(self, skim_info, skim_data):
         """
@@ -506,7 +506,7 @@ class NumpyArraySkimFactory(AbstractSkimFactory):
         SkimData
         """
 
-        data_buffers = self.network_los.whale.get_injectable("data_buffers", None)
+        data_buffers = self.network_los.state.get_injectable("data_buffers", None)
         if data_buffers:
             # we assume any existing skim buffers will already have skim data loaded into them
             logger.info(
@@ -597,7 +597,7 @@ class MemMapSkimFactory(AbstractSkimFactory):
         """
 
         # don't expect legacy shared memory buffers
-        assert not self.network_los.whale.get_injectable("data_buffers", {}).get(
+        assert not self.network_los.state.get_injectable("data_buffers", {}).get(
             skim_tag
         )
 

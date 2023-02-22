@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def find_nearest_accessibility_zone(
-    whale: workflow.Whale, choosers, accessibility_df, method="skims"
+    state: workflow.State, choosers, accessibility_df, method="skims"
 ):
     """
     Matches choosers zone to the nearest accessibility zones.
@@ -51,7 +51,7 @@ def find_nearest_accessibility_zone(
 
     if method == "centroids":
         # Extract and vectorize TAZ centroids
-        centroids = whale.get_dataframe("maz_centroids")
+        centroids = state.get_dataframe("maz_centroids")
 
         # TODO.NF This is a bit hacky, needs some work for variable zone names
         if "TAZ" in centroids.columns:
@@ -69,7 +69,7 @@ def find_nearest_accessibility_zone(
         nearest = [nearest_node(Oz, _centroids.XY) for Oz in unmatched_zones]
 
     else:
-        skim_dict = whale.get_injectable("skim_dict")
+        skim_dict = state.get_injectable("skim_dict")
         nearest = [nearest_skim(Oz, accessibility_zones) for Oz in unmatched_zones]
 
     # Add the nearest zones to the matched zones
@@ -87,13 +87,13 @@ def find_nearest_accessibility_zone(
 
 
 @workflow.cached_object
-def disaggregate_suffixes(whale: workflow.Whale) -> dict[str, Any]:
+def disaggregate_suffixes(state: workflow.State) -> dict[str, Any]:
     return {"SUFFIX": None, "ROOTS": []}
 
 
 @workflow.table
-def maz_centroids(whale: workflow.Whale):
-    df = input.read_input_table(whale, "maz_centroids")
+def maz_centroids(state: workflow.State):
+    df = input.read_input_table(state, "maz_centroids")
 
     if not df.index.is_monotonic_increasing:
         df = df.sort_index()
@@ -101,16 +101,16 @@ def maz_centroids(whale: workflow.Whale):
     logger.info("loaded maz_centroids %s" % (df.shape,))
 
     # replace table function with dataframe
-    whale.add_table("maz_centroids", df)
+    state.add_table("maz_centroids", df)
 
     return df
 
 
 @workflow.table
-def proto_disaggregate_accessibility(whale: workflow.Whale):
+def proto_disaggregate_accessibility(state: workflow.State):
     # Read existing accessibilities, but is not required to enable model compatibility
     df = input.read_input_table(
-        whale, "proto_disaggregate_accessibility", required=False
+        state, "proto_disaggregate_accessibility", required=False
     )
 
     # If no df, return empty dataframe to skip this model
@@ -124,26 +124,26 @@ def proto_disaggregate_accessibility(whale: workflow.Whale):
     logger.info("loaded proto_disaggregate_accessibility %s" % (df.shape,))
 
     # replace table function with dataframe
-    whale.add_table("proto_disaggregate_accessibility", df)
+    state.add_table("proto_disaggregate_accessibility", df)
 
     return df
 
 
 @workflow.table
-def disaggregate_accessibility(whale: workflow.Whale):
+def disaggregate_accessibility(state: workflow.State):
     """
     This step initializes pre-computed disaggregate accessibility and merges it onto the full synthetic population.
     Function adds merged all disaggregate accessibility tables to the pipeline but returns nothing.
 
     """
 
-    persons = whale.get_dataframe("persons")
-    households = whale.get_dataframe("households")
-    land_use = whale.get_dataframe("land_use")
-    accessibility = whale.get_dataframe("accessibility")
+    persons = state.get_dataframe("persons")
+    households = state.get_dataframe("households")
+    land_use = state.get_dataframe("land_use")
+    accessibility = state.get_dataframe("accessibility")
 
     # If disaggregate_accessibilities do not exist in the pipeline, it will try loading csv of that name
-    proto_accessibility_df = whale.get_dataframe("proto_disaggregate_accessibility")
+    proto_accessibility_df = state.get_dataframe("proto_disaggregate_accessibility")
 
     # If there is no table, skip. We do this first to skip as fast as possible
     if proto_accessibility_df.empty:
@@ -153,7 +153,7 @@ def disaggregate_accessibility(whale: workflow.Whale):
     from activitysim.abm.tables.persons import persons_merged
 
     persons_merged_df = persons_merged(
-        whale,
+        state,
         persons,
         land_use,
         households,
@@ -162,7 +162,7 @@ def disaggregate_accessibility(whale: workflow.Whale):
     )
 
     # Extract model settings
-    model_settings = whale.filesystem.read_model_settings(
+    model_settings = state.filesystem.read_model_settings(
         "disaggregate_accessibility.yaml"
     )
     merging_params = model_settings.get("MERGE_ON")
@@ -184,7 +184,7 @@ def disaggregate_accessibility(whale: workflow.Whale):
     # Note that from here on the 'home_zone_id' is the matched name
     if "nearest_accessibility_zone_id" not in persons_merged_df.columns:
         persons_merged_df = find_nearest_accessibility_zone(
-            whale, persons_merged_df, proto_accessibility_df, nearest_method
+            state, persons_merged_df, proto_accessibility_df, nearest_method
         )
 
     # Copy home_zone_id in proto-table to match the temporary 'nearest_zone_id'
@@ -279,6 +279,6 @@ def disaggregate_accessibility(whale: workflow.Whale):
     assert any(merge_df[accessibility_cols].isnull())
 
     # Inject merged accessibilities so that it can be included in persons_merged function
-    whale.add_table("disaggregate_accessibility", merge_df[accessibility_cols])
+    state.add_table("disaggregate_accessibility", merge_df[accessibility_cols])
 
     return merge_df[accessibility_cols]

@@ -85,7 +85,7 @@ def size_table_name(model_selector):
 class ShadowPriceCalculator:
     def __init__(
         self,
-        whale: workflow.Whale,
+        state: workflow.State,
         model_settings,
         num_processes,
         shared_data=None,
@@ -111,14 +111,14 @@ class ShadowPriceCalculator:
         """
 
         self.num_processes = num_processes
-        self.use_shadow_pricing = bool(whale.settings.use_shadow_pricing)
+        self.use_shadow_pricing = bool(state.settings.use_shadow_pricing)
         self.saved_shadow_price_file_path = (
             None  # set by read_saved_shadow_prices if loaded
         )
 
         self.model_selector = model_settings["MODEL_SELECTOR"]
 
-        if (self.num_processes > 1) and not whale.settings.fail_fast:
+        if (self.num_processes > 1) and not state.settings.fail_fast:
             # if we are multiprocessing, then fail_fast should be true or we will wait forever for failed processes
             logger.warning(
                 "deprecated combination of multiprocessing and not fail_fast"
@@ -133,7 +133,7 @@ class ShadowPriceCalculator:
         self.modeled_size = None
 
         if self.use_shadow_pricing:
-            self.shadow_settings = whale.filesystem.read_model_settings(
+            self.shadow_settings = state.filesystem.read_model_settings(
                 "shadow_pricing.yaml"
             )
 
@@ -142,7 +142,7 @@ class ShadowPriceCalculator:
                     "shadow_settings %s: %s" % (k, self.shadow_settings.get(k))
                 )
 
-        full_model_run = whale.settings.households_sample_size == 0
+        full_model_run = state.settings.households_sample_size == 0
         if (
             self.use_shadow_pricing
             and not full_model_run
@@ -168,7 +168,7 @@ class ShadowPriceCalculator:
             self.use_shadow_pricing = False
 
         # - destination_size_table (desired_size)
-        self.desired_size = whale.get_dataframe(size_table_name(self.model_selector))
+        self.desired_size = state.get_dataframe(size_table_name(self.model_selector))
         self.desired_size = self.desired_size.sort_index()
 
         assert (
@@ -205,7 +205,7 @@ class ShadowPriceCalculator:
             if self.shadow_settings["LOAD_SAVED_SHADOW_PRICES"]:
                 # read_saved_shadow_prices logs error and returns None if file not found
                 self.shadow_prices = self.read_saved_shadow_prices(
-                    whale, model_settings
+                    state, model_settings
                 )
 
             if self.shadow_prices is None:
@@ -242,7 +242,7 @@ class ShadowPriceCalculator:
         ):
             assert self.model_selector in ["workplace", "school"]
             self.target = {}
-            land_use = whale.get_dataframe("land_use")
+            land_use = state.get_dataframe("land_use")
 
             if self.model_selector == "workplace":
                 employment_targets = self.shadow_settings[
@@ -276,7 +276,7 @@ class ShadowPriceCalculator:
                     ), f"{target} is not in landuse columns: {land_use.columns}"
                     self.target[segment] = land_use[target]
 
-    def read_saved_shadow_prices(self, whale, model_settings):
+    def read_saved_shadow_prices(self, state, model_settings):
         """
         Read saved shadow_prices from csv file in data_dir (so-called warm start)
         returns None if no saved shadow price file name specified or named file not found
@@ -298,7 +298,7 @@ class ShadowPriceCalculator:
         )
         if saved_shadow_price_file_name:
             # FIXME - where should we look for this file?
-            file_path = whale.filesystem.get_data_file_path(
+            file_path = state.filesystem.get_data_file_path(
                 saved_shadow_price_file_name, mandatory=False
             )
             if file_path:
@@ -511,7 +511,7 @@ class ShadowPriceCalculator:
 
             self.choices_synced = self.synchronize_choices(choice_merged)
 
-    def check_fit(self, whale: workflow.Whale, iteration):
+    def check_fit(self, state: workflow.State, iteration):
         """
         Check convergence criteria fit of modeled_size to target desired_size
         (For multiprocessing, this is global modeled_size summed across processes,
@@ -636,7 +636,7 @@ class ShadowPriceCalculator:
             logger.info("\nshadow_pricing num_fail\n%s" % self.num_fail)
 
             if write_choices:
-                whale.tracing.write_csv(
+                state.tracing.write_csv(
                     self.choices_by_iteration,
                     "%s_choices_by_shadow_price_iteration" % self.model_selector,
                     transpose=False,
@@ -644,7 +644,7 @@ class ShadowPriceCalculator:
 
         return converged
 
-    def update_shadow_prices(self, whale):
+    def update_shadow_prices(self, state):
         """
         Adjust shadow_prices based on relative values of modeled_size and desired_size.
 
@@ -769,7 +769,7 @@ class ShadowPriceCalculator:
             """
             percent_tolerance = self.shadow_settings["PERCENT_TOLERANCE"]
             sampled_persons = pd.DataFrame()
-            persons_merged = whale.get_dataframe("persons_merged")
+            persons_merged = state.get_dataframe("persons_merged")
 
             # need to join the segment to the choices to sample correct persons
             segment_to_name_dict = self.shadow_settings.get(
@@ -841,7 +841,7 @@ class ShadowPriceCalculator:
                         index=choices.index,
                     )
                     # using ActivitySim's RNG to make choices for repeatability
-                    current_sample, rands = logit.make_choices(whale, probs)
+                    current_sample, rands = logit.make_choices(state, probs)
                     current_sample = current_sample[current_sample == 1]
 
                     if len(sampled_persons) == 0:
@@ -887,7 +887,7 @@ class ShadowPriceCalculator:
 
         return size_terms
 
-    def write_trace_files(self, whale: workflow.Whale, iteration):
+    def write_trace_files(self, state: workflow.State, iteration):
         """
         Write trace files for this iteration
         Writes desired_size, modeled_size, and shadow_prices tables
@@ -903,20 +903,20 @@ class ShadowPriceCalculator:
         logger.info("write_trace_files iteration %s" % iteration)
         if iteration == 1:
             # write desired_size only on first iteration, as it doesn't change
-            whale.tracing.write_csv(
+            state.tracing.write_csv(
                 self.desired_size,
                 "shadow_price_%s_desired_size" % self.model_selector,
                 transpose=False,
             )
 
-        whale.tracing.write_csv(
+        state.tracing.write_csv(
             self.modeled_size,
             "shadow_price_%s_modeled_size_%s" % (self.model_selector, iteration),
             transpose=False,
         )
 
         if self.use_shadow_pricing:
-            whale.tracing.write_csv(
+            state.tracing.write_csv(
                 self.shadow_prices,
                 "shadow_price_%s_shadow_prices_%s" % (self.model_selector, iteration),
                 transpose=False,
@@ -997,7 +997,7 @@ def buffers_for_shadow_pricing(shadow_pricing_info):
     return data_buffers
 
 
-def buffers_for_shadow_pricing_choice(whale, shadow_pricing_choice_info):
+def buffers_for_shadow_pricing_choice(state, shadow_pricing_choice_info):
     """
     Same as above buffers_for_shadow_price function except now we need to store
     the actual choices for the simulation based shadow pricing method
@@ -1043,7 +1043,7 @@ def buffers_for_shadow_pricing_choice(whale, shadow_pricing_choice_info):
 
         data_buffers[block_key + "_choice"] = shared_data_buffer
 
-        persons = read_input_table(whale, "persons")
+        persons = read_input_table(state, "persons")
         sp_choice_df = persons.reset_index()["person_id"].to_frame()
 
         # declare a shared Array with data from sp_choice_df
@@ -1156,7 +1156,7 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_sele
     return np.frombuffer(data.get_obj(), dtype=dtype).reshape(shape), data.get_lock()
 
 
-def load_shadow_price_calculator(whale, model_settings):
+def load_shadow_price_calculator(state, model_settings):
     """
     Initialize ShadowPriceCalculator for model_selector (e.g. school or workplace)
 
@@ -1172,20 +1172,20 @@ def load_shadow_price_calculator(whale, model_settings):
     spc : ShadowPriceCalculator
     """
 
-    num_processes = whale.get_injectable("num_processes", 1)
+    num_processes = state.get_injectable("num_processes", 1)
 
     model_selector = model_settings["MODEL_SELECTOR"]
 
     # - get shared_data from data_buffers (if multiprocessing)
-    data_buffers = whale.get_injectable("data_buffers", None)
+    data_buffers = state.get_injectable("data_buffers", None)
     if data_buffers is not None:
         logger.info("Using existing data_buffers for shadow_price")
 
         # - shadow_pricing_info
-        shadow_pricing_info = whale.get_injectable("shadow_pricing_info", None)
+        shadow_pricing_info = state.get_injectable("shadow_pricing_info", None)
         assert shadow_pricing_info is not None
 
-        shadow_pricing_choice_info = whale.get_injectable(
+        shadow_pricing_choice_info = state.get_injectable(
             "shadow_pricing_choice_info", None
         )
         assert shadow_pricing_choice_info is not None
@@ -1212,7 +1212,7 @@ def load_shadow_price_calculator(whale, model_settings):
 
     # - ShadowPriceCalculator
     spc = ShadowPriceCalculator(
-        whale,
+        state,
         model_settings,
         num_processes,
         data,
@@ -1228,17 +1228,17 @@ def load_shadow_price_calculator(whale, model_settings):
 # first define add_size_tables as an orca step with no scale argument at all.
 @workflow.step
 def add_size_tables(
-    whale: workflow.Whale,
+    state: workflow.State,
     disaggregate_suffixes: dict[str, Any],
 ):
-    return _add_size_tables(whale, disaggregate_suffixes)
+    return _add_size_tables(state, disaggregate_suffixes)
 
 
 # then define _add_size_tables as a second method which also offers an optional
 # default argument to not scale sizes.  This is used only in disaggregate
 # accessibility (for now) and is not called via orca.  We need to do this to
 # avoid having to create a new orca variable for the scale argument.
-def _add_size_tables(whale, disaggregate_suffixes, scale=True):
+def _add_size_tables(state, disaggregate_suffixes, scale=True):
     """
     inject tour_destination_size_terms tables for each model_selector (e.g. school, workplace)
 
@@ -1258,9 +1258,9 @@ def _add_size_tables(whale, disaggregate_suffixes, scale=True):
     (size table) counts.
     """
 
-    use_shadow_pricing = bool(whale.settings.use_shadow_pricing)
+    use_shadow_pricing = bool(state.settings.use_shadow_pricing)
 
-    shadow_settings = whale.filesystem.read_model_settings("shadow_pricing.yaml")
+    shadow_settings = state.filesystem.read_model_settings("shadow_pricing.yaml")
     shadow_pricing_models = shadow_settings.get("shadow_pricing_models")
 
     if shadow_pricing_models is None:
@@ -1293,7 +1293,7 @@ def _add_size_tables(whale, disaggregate_suffixes, scale=True):
     # since these are scaled to model size, they have to be created while single-process
 
     for model_selector, model_name in shadow_pricing_models.items():
-        model_settings = whale.filesystem.read_model_settings(model_name)
+        model_settings = state.filesystem.read_model_settings(model_name)
 
         if suffix is not None and roots:
             model_settings = util.suffix_tables_in_settings(
@@ -1309,19 +1309,19 @@ def _add_size_tables(whale, disaggregate_suffixes, scale=True):
         chooser_table_name = model_settings["CHOOSER_TABLE_NAME"]
         chooser_segment_column = model_settings["CHOOSER_SEGMENT_COLUMN_NAME"]
 
-        choosers_df = whale.get_dataframe(chooser_table_name)
+        choosers_df = state.get_dataframe(chooser_table_name)
         if "CHOOSER_FILTER_COLUMN_NAME" in model_settings:
             choosers_df = choosers_df[
                 choosers_df[model_settings["CHOOSER_FILTER_COLUMN_NAME"]] != 0
             ]
 
         # - raw_desired_size
-        land_use = whale.get_dataframe("land_use")
-        size_terms = get_size_terms(whale)
+        land_use = state.get_dataframe("land_use")
+        size_terms = get_size_terms(state)
         raw_size = tour_destination_size_terms(land_use, size_terms, model_selector)
         assert set(raw_size.columns) == set(segment_ids.keys())
 
-        full_model_run = whale.settings.households_sample_size == 0
+        full_model_run = state.settings.households_sample_size == 0
 
         scale_size_table = scale and scale_size_table
 
@@ -1383,10 +1383,10 @@ def _add_size_tables(whale, disaggregate_suffixes, scale=True):
             scaled_size.index.is_monotonic_increasing
         ), f"size table {size_table_name(model_selector)} not is_monotonic_increasing"
 
-        whale.add_table(size_table_name(model_selector), scaled_size)
+        state.add_table(size_table_name(model_selector), scaled_size)
 
 
-def get_shadow_pricing_info(whale):
+def get_shadow_pricing_info(state):
     """
     return dict with info about dtype and shapes of desired and modeled size tables
 
@@ -1400,10 +1400,10 @@ def get_shadow_pricing_info(whale):
         block_shapes: dict {<model_selector>: <block_shape>}
     """
 
-    land_use = whale.get_dataframe("land_use")
-    size_terms = whale.get_injectable("size_terms")
+    land_use = state.get_dataframe("land_use")
+    size_terms = state.get_injectable("size_terms")
 
-    shadow_settings = whale.filesystem.read_model_settings("shadow_pricing.yaml")
+    shadow_settings = state.filesystem.read_model_settings("shadow_pricing.yaml")
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     shadow_pricing_models = shadow_settings.get("shadow_pricing_models", {})
@@ -1429,7 +1429,7 @@ def get_shadow_pricing_info(whale):
     return shadow_pricing_info
 
 
-def get_shadow_pricing_choice_info(whale):
+def get_shadow_pricing_choice_info(state):
     """
     return dict with info about dtype and shapes of desired and modeled size tables
 
@@ -1443,9 +1443,9 @@ def get_shadow_pricing_choice_info(whale):
         block_shapes: dict {<model_selector>: <block_shape>}
     """
 
-    persons = read_input_table(whale, "persons")
+    persons = read_input_table(state, "persons")
 
-    shadow_settings = whale.filesystem.read_model_settings("shadow_pricing.yaml")
+    shadow_settings = state.filesystem.read_model_settings("shadow_pricing.yaml")
 
     # shadow_pricing_models is dict of {<model_selector>: <model_name>}
     shadow_pricing_models = shadow_settings.get("shadow_pricing_models", {})
@@ -1475,18 +1475,18 @@ def get_shadow_pricing_choice_info(whale):
 
 
 @workflow.cached_object
-def shadow_pricing_info(whale: workflow.Whale):
+def shadow_pricing_info(state: workflow.State):
     # when multiprocessing with shared data mp_tasks has to call network_los methods
     # get_shadow_pricing_info() and buffers_for_shadow_pricing()
     logger.debug("loading shadow_pricing_info injectable")
 
-    return get_shadow_pricing_info(whale)
+    return get_shadow_pricing_info(state)
 
 
 @workflow.cached_object
-def shadow_pricing_choice_info(whale: workflow.Whale):
+def shadow_pricing_choice_info(state: workflow.State):
     # when multiprocessing with shared data mp_tasks has to call network_los methods
     # get_shadow_pricing_info() and buffers_for_shadow_pricing()
     logger.debug("loading shadow_pricing_choice_info injectable")
 
-    return get_shadow_pricing_choice_info(whale)
+    return get_shadow_pricing_choice_info(state)

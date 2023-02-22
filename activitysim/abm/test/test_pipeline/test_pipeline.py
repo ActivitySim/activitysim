@@ -49,20 +49,20 @@ def setup_dirs(ancillary_configs_dir=None, data_dir=None):
     if not data_dir:
         data_dir = example_path("data")
 
-    whale = workflow.Whale.make_default(
+    state = workflow.State.make_default(
         configs_dir=configs_dir,
         output_dir=output_dir,
         data_dir=data_dir,
     )
 
-    whale.logging.config_logger()
+    state.logging.config_logger()
 
-    whale.tracing.delete_output_files("csv")
-    whale.tracing.delete_output_files("txt")
-    whale.tracing.delete_output_files("yaml")
-    whale.tracing.delete_output_files("omx")
+    state.tracing.delete_output_files("csv")
+    state.tracing.delete_output_files("txt")
+    state.tracing.delete_output_files("yaml")
+    state.tracing.delete_output_files("omx")
 
-    return whale
+    return state
 
 
 def close_handlers():
@@ -77,19 +77,19 @@ def close_handlers():
 
 def test_rng_access():
 
-    whale = setup_dirs()
-    whale.settings.rng_base_seed = 0
+    state = setup_dirs()
+    state.settings.rng_base_seed = 0
 
-    whale.checkpoint.restore()
+    state.checkpoint.restore()
 
-    rng = whale.get_rn_generator()
+    rng = state.get_rn_generator()
 
     assert isinstance(rng, random.Random)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
 
 
-def regress_mini_auto(whale: workflow.Whale):
+def regress_mini_auto(state: workflow.State):
 
     # regression test: these are among the middle households in households table
     # should be the same results as in run_mp (multiprocessing) test case
@@ -99,7 +99,7 @@ def regress_mini_auto(whale: workflow.Whale):
         choices, index=pd.Index(hh_ids, name="household_id"), name="auto_ownership"
     )
 
-    auto_choice = whale.get_table("households").sort_index().auto_ownership
+    auto_choice = state.get_table("households").sort_index().auto_ownership
 
     offset = (
         HOUSEHOLDS_SAMPLE_SIZE // 2
@@ -120,9 +120,9 @@ def regress_mini_auto(whale: workflow.Whale):
     pdt.assert_series_equal(auto_choice, expected_choice, check_dtype=False)
 
 
-def regress_mini_mtf(whale: workflow.Whale):
+def regress_mini_mtf(state: workflow.State):
 
-    mtf_choice = whale.get_table("persons").sort_index().mandatory_tour_frequency
+    mtf_choice = state.get_table("persons").sort_index().mandatory_tour_frequency
 
     # these choices are for pure regression - their appropriateness has not been checked
     per_ids = [2566701, 2566702, 3061895]
@@ -151,9 +151,9 @@ def regress_mini_mtf(whale: workflow.Whale):
     )
 
 
-def regress_mini_location_choice_logsums(whale: workflow.Whale):
+def regress_mini_location_choice_logsums(state: workflow.State):
 
-    persons = whale.get_table("persons")
+    persons = state.get_table("persons")
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
     assert "school_location_logsum" in persons
@@ -167,11 +167,11 @@ def test_mini_pipeline_run():
 
     from activitysim.abm.tables.skims import network_los_preload
 
-    whale = setup_dirs()
-    whale.get(network_los_preload)
+    state = setup_dirs()
+    state.get(network_los_preload)
 
-    whale.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
-    whale.network_settings.write_skim_cache = True
+    state.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
+    state.network_settings.write_skim_cache = True
 
     _MODELS = [
         "initialize_landuse",
@@ -182,31 +182,31 @@ def test_mini_pipeline_run():
         "auto_ownership_simulate",
     ]
 
-    whale.run(models=_MODELS, resume_after=None)
+    state.run(models=_MODELS, resume_after=None)
 
-    regress_mini_auto(whale)
+    regress_mini_auto(state)
 
-    whale.run_model("cdap_simulate")
-    whale.run_model("mandatory_tour_frequency")
+    state.run_model("cdap_simulate")
+    state.run_model("mandatory_tour_frequency")
 
-    regress_mini_mtf(whale)
-    regress_mini_location_choice_logsums(whale)
+    regress_mini_mtf(state)
+    regress_mini_location_choice_logsums(state)
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
-        whale.get_table("bogus")
+        state.get_table("bogus")
     assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
     with pytest.raises(RuntimeError) as excinfo:
-        whale.get_table("households", checkpoint_name="bogus")
+        state.get_table("households", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
     # should create optional workplace_location_sample table
-    workplace_location_sample_df = whale.get_table("workplace_location_sample")
+    workplace_location_sample_df = state.get_table("workplace_location_sample")
     assert "mode_choice_logsum" in workplace_location_sample_df
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
     close_handlers()
 
 
@@ -216,50 +216,50 @@ def test_mini_pipeline_run2():
     # exactly the same results as for test_mini_pipeline_run
     # when we restart pipeline
 
-    whale = setup_dirs()
+    state = setup_dirs()
     from activitysim.abm.tables.skims import network_los_preload
 
-    whale.get(network_los_preload)
+    state.get(network_los_preload)
 
-    whale.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
-    whale.network_settings.read_skim_cache = True
+    state.settings.households_sample_size = HOUSEHOLDS_SAMPLE_SIZE
+    state.network_settings.read_skim_cache = True
 
     # should be able to get this BEFORE pipeline is opened
-    checkpoints_df = whale.checkpoint.get_inventory()
+    checkpoints_df = state.checkpoint.get_inventory()
     prev_checkpoint_count = len(checkpoints_df.index)
 
     assert "auto_ownership_simulate" in checkpoints_df.checkpoint_name.values
     assert "cdap_simulate" in checkpoints_df.checkpoint_name.values
     assert "mandatory_tour_frequency" in checkpoints_df.checkpoint_name.values
 
-    whale.checkpoint.restore("auto_ownership_simulate")
+    state.checkpoint.restore("auto_ownership_simulate")
 
-    regress_mini_auto(whale)
+    regress_mini_auto(state)
 
     # try to run a model already in pipeline
     with pytest.raises(RuntimeError) as excinfo:
-        whale.run_model("auto_ownership_simulate")
+        state.run_model("auto_ownership_simulate")
     assert "run model 'auto_ownership_simulate' more than once" in str(excinfo.value)
 
     # and these new ones
-    whale.run_model("cdap_simulate")
-    whale.run_model("mandatory_tour_frequency")
+    state.run_model("cdap_simulate")
+    state.run_model("mandatory_tour_frequency")
 
-    regress_mini_mtf(whale)
+    regress_mini_mtf(state)
 
     # should be able to get this before pipeline is closed (from existing open store)
-    checkpoints_df = whale.checkpoint.get_inventory()
+    checkpoints_df = state.checkpoint.get_inventory()
     assert len(checkpoints_df.index) == prev_checkpoint_count
 
     # - write list of override_hh_ids to override_hh_ids.csv in data for use in next test
     num_hh_ids = 10
-    hh_ids = whale.get_table("households").head(num_hh_ids).index.values
+    hh_ids = state.get_table("households").head(num_hh_ids).index.values
     hh_ids = pd.DataFrame({"household_id": hh_ids})
 
-    hh_ids_path = whale.filesystem.get_data_file_path("override_hh_ids.csv")
+    hh_ids_path = state.filesystem.get_data_file_path("override_hh_ids.csv")
     hh_ids.to_csv(hh_ids_path, index=False, header=True)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
     close_handlers()
 
 
@@ -267,13 +267,13 @@ def test_mini_pipeline_run3():
 
     # test that hh_ids setting overrides household sampling
 
-    whale = setup_dirs()
-    whale.settings.hh_ids = "override_hh_ids.csv"
+    state = setup_dirs()
+    state.settings.hh_ids = "override_hh_ids.csv"
 
-    households = whale.get_dataframe("households")
+    households = state.get_dataframe("households")
 
     override_hh_ids = pd.read_csv(
-        whale.filesystem.get_data_file_path("override_hh_ids.csv")
+        state.filesystem.get_data_file_path("override_hh_ids.csv")
     )
 
     print("\noverride_hh_ids\n%s" % override_hh_ids)
@@ -295,27 +295,27 @@ def full_run(
     check_for_variability=None,
 ):
 
-    whale = setup_dirs()
+    state = setup_dirs()
 
-    whale.settings.households_sample_size = households_sample_size
-    whale.settings.chunk_size = chunk_size
-    whale.settings.trace_hh_id = trace_hh_id
-    whale.settings.trace_od = trace_od
-    whale.settings.testing_fail_trip_destination = False
-    whale.settings.check_for_variability = check_for_variability
-    whale.settings.want_dest_choice_sample_tables = False
-    whale.settings.use_shadow_pricing = False
+    state.settings.households_sample_size = households_sample_size
+    state.settings.chunk_size = chunk_size
+    state.settings.trace_hh_id = trace_hh_id
+    state.settings.trace_od = trace_od
+    state.settings.testing_fail_trip_destination = False
+    state.settings.check_for_variability = check_for_variability
+    state.settings.want_dest_choice_sample_tables = False
+    state.settings.use_shadow_pricing = False
 
     # FIXME should enable testing_fail_trip_destination?
 
-    MODELS = whale.settings.models
+    MODELS = state.settings.models
 
-    whale.run(models=MODELS, resume_after=resume_after)
+    state.run(models=MODELS, resume_after=resume_after)
 
-    tours = whale.get_table("tours")
+    tours = state.get_table("tours")
     tour_count = len(tours.index)
 
-    return whale, tour_count
+    return state, tour_count
 
 
 EXPECT_TOUR_COUNT = 121
@@ -367,9 +367,9 @@ def regress_tour_modes(tours_df):
     assert (tours_df.tour_mode.values == EXPECT_MODES).all()
 
 
-def regress(whale: workflow.Whale):
+def regress(state: workflow.State):
 
-    persons_df = whale.get_table("persons")
+    persons_df = state.get_table("persons")
     persons_df = persons_df[persons_df.household_id == HH_ID]
     print("persons_df\n%s" % persons_df[["value_of_time", "distance_to_work"]])
 
@@ -381,7 +381,7 @@ def regress(whale: workflow.Whale):
     3249923        23.349532              0.62
     """
 
-    tours_df = whale.get_table("tours")
+    tours_df = state.get_table("tours")
 
     regress_tour_modes(tours_df)
 
@@ -409,7 +409,7 @@ def regress(whale: workflow.Whale):
     assert "mode_choice_logsum" in tours_df
     assert not tours_df.mode_choice_logsum.isnull().any()
 
-    trips_df = whale.get_table("trips")
+    trips_df = state.get_table("trips")
     assert trips_df.shape[0] > 0
     assert not trips_df.purpose.isnull().any()
     assert not trips_df.depart.isnull().any()
@@ -422,7 +422,7 @@ def regress(whale: workflow.Whale):
     assert trips_df.shape[0] >= 2 * tours_df.shape[0]
 
     # write_trip_matrices
-    trip_matrices_file = whale.get_output_file_path("trips_md.omx")
+    trip_matrices_file = state.get_output_file_path("trips_md.omx")
     assert os.path.exists(trip_matrices_file)
     trip_matrices = omx.open_file(trip_matrices_file)
     assert trip_matrices.shape() == (25, 25)
@@ -439,7 +439,7 @@ def test_full_run1():
     if SKIP_FULL_RUN:
         return
 
-    whale, tour_count = full_run(
+    state, tour_count = full_run(
         trace_hh_id=HH_ID,
         check_for_variability=True,
         households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
@@ -451,9 +451,9 @@ def test_full_run1():
         tour_count == EXPECT_TOUR_COUNT
     ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
-    regress(whale)
+    regress(state)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
 
 
 def test_full_run2():
@@ -463,7 +463,7 @@ def test_full_run2():
     if SKIP_FULL_RUN:
         return
 
-    whale, tour_count = full_run(
+    state, tour_count = full_run(
         resume_after="non_mandatory_tour_scheduling", trace_hh_id=HH_ID
     )
 
@@ -471,9 +471,9 @@ def test_full_run2():
         tour_count == EXPECT_TOUR_COUNT
     ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
-    regress(whale)
+    regress(state)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
 
 
 def test_full_run3_with_chunks():
@@ -483,7 +483,7 @@ def test_full_run3_with_chunks():
     if SKIP_FULL_RUN:
         return
 
-    whale, tour_count = full_run(
+    state, tour_count = full_run(
         trace_hh_id=HH_ID,
         households_sample_size=HOUSEHOLDS_SAMPLE_SIZE,
         chunk_size=500000,
@@ -493,9 +493,9 @@ def test_full_run3_with_chunks():
         tour_count == EXPECT_TOUR_COUNT
     ), "EXPECT_TOUR_COUNT %s but got tour_count %s" % (EXPECT_TOUR_COUNT, tour_count)
 
-    regress(whale)
+    regress(state)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
 
 
 def test_full_run4_stability():
@@ -505,13 +505,13 @@ def test_full_run4_stability():
     if SKIP_FULL_RUN:
         return
 
-    whale, tour_count = full_run(
+    state, tour_count = full_run(
         trace_hh_id=HH_ID, households_sample_size=HOUSEHOLDS_SAMPLE_SIZE - 10
     )
 
-    regress(whale)
+    regress(state)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
 
 
 def test_full_run5_singleton():
@@ -523,13 +523,13 @@ def test_full_run5_singleton():
     if SKIP_FULL_RUN:
         return
 
-    whale, tour_count = full_run(
+    state, tour_count = full_run(
         trace_hh_id=HH_ID, households_sample_size=1, chunk_size=1
     )
 
-    regress(whale)
+    regress(state)
 
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
 
 
 if __name__ == "__main__":

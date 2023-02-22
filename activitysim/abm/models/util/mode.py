@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 def mode_choice_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers: pd.DataFrame,
     spec: pd.DataFrame,
     nest_spec,
@@ -57,7 +57,7 @@ def mode_choice_simulate(
     want_logsums = logsum_column_name is not None
 
     choices = simulate.simple_simulate(
-        whale,
+        state,
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,
@@ -87,7 +87,7 @@ def mode_choice_simulate(
 
 
 def run_tour_mode_choice_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers,
     tour_purpose,
     model_settings,
@@ -107,12 +107,12 @@ def run_tour_mode_choice_simulate(
     you want to use in the evaluation of variables.
     """
 
-    spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients = whale.filesystem.get_segment_coefficients(
+    spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients = state.filesystem.get_segment_coefficients(
         model_settings, tour_purpose
     )
 
-    spec = simulate.eval_coefficients(whale, spec, coefficients, estimator)
+    spec = simulate.eval_coefficients(state, spec, coefficients, estimator)
 
     nest_spec = config.get_logit_model_settings(model_settings)
     nest_spec = simulate.eval_nest_coefficients(nest_spec, coefficients, trace_label)
@@ -134,7 +134,7 @@ def run_tour_mode_choice_simulate(
     choosers["out_period"] = network_los.skim_time_period_label(choosers[out_time])
 
     expressions.annotate_preprocessors(
-        whale, choosers, locals_dict, skims, model_settings, trace_label
+        state, choosers, locals_dict, skims, model_settings, trace_label
     )
 
     trace_column_names = choosers.index.name
@@ -147,7 +147,7 @@ def run_tour_mode_choice_simulate(
         estimator.write_choosers(choosers)
 
     choices = mode_choice_simulate(
-        whale,
+        state,
         choosers=choosers,
         spec=spec,
         nest_spec=nest_spec,

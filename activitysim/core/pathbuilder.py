@@ -37,7 +37,7 @@ CACHE_TAG = "tap_tap_utilities"
 
 
 def compute_utilities(
-    whale: workflow.Whale,
+    state: workflow.State,
     network_los,
     model_settings,
     choosers,
@@ -51,7 +51,7 @@ def compute_utilities(
     """
     trace_label = tracing.extend_trace_label(trace_label, "compute_utils")
 
-    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
+    with chunk.chunk_log(state, trace_label) as chunk_sizer:
         logger.debug(
             f"{trace_label} Running compute_utilities with {choosers.shape[0]} choosers"
         )
@@ -60,7 +60,7 @@ def compute_utilities(
         locals_dict.update(model_constants)
 
         # we don't grok coefficients, but allow them to use constants in spec alt columns
-        spec = whale.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+        spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
         for c in spec.columns:
             if c != simulate.SPEC_LABEL_NAME:
                 spec[c] = spec[c].map(lambda s: model_constants.get(s, s)).astype(float)
@@ -72,7 +72,7 @@ def compute_utilities(
             choosers = choosers.copy()
 
             expressions.assign_columns(
-                whale,
+                state,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -80,7 +80,7 @@ def compute_utilities(
             )
 
         utilities = simulate.eval_utilities(
-            whale,
+            state,
             spec,
             choosers,
             locals_d=locals_dict,
@@ -114,7 +114,7 @@ class TransitVirtualPathBuilder(object):
 
     def trace_df(self, df, trace_label, extension):
         assert len(df) > 0
-        self.network_los.whale.tracing.trace_df(
+        self.network_los.state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, extension),
             slicer="NONE",
@@ -150,7 +150,7 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, f"maz_tap_utils.{leg}")
 
-        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.state, trace_label) as chunk_sizer:
             maz_tap_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.maz_tap_settings.{mode}"
             )
@@ -197,7 +197,7 @@ class TransitVirtualPathBuilder(object):
 
             if self.units_for_recipe(recipe) == "utility":
                 utilities_df[leg] = compute_utilities(
-                    self.network_los.whale,
+                    self.network_los.state,
                     self.network_los,
                     maz_tap_settings,
                     utilities_df,
@@ -213,13 +213,13 @@ class TransitVirtualPathBuilder(object):
 
             else:
                 assignment_spec = assign.read_assignment_spec(
-                    file_name=self.network_los.whale.filesystem.get_config_file_path(
+                    file_name=self.network_los.state.filesystem.get_config_file_path(
                         maz_tap_settings["SPEC"]
                     )
                 )
 
                 results, _, _ = assign.assign_variables(
-                    self.network_los.whale,
+                    self.network_los.state,
                     assignment_spec,
                     utilities_df,
                     model_constants,
@@ -301,7 +301,7 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_utils")
 
-        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.state, trace_label) as chunk_sizer:
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -365,7 +365,7 @@ class TransitVirtualPathBuilder(object):
 
             with memo("#TVPB compute_tap_tap_utilities compute_utilities"):
                 unique_utilities_df = compute_utilities(
-                    self.network_los.whale,
+                    self.network_los.state,
                     self.network_los,
                     tap_tap_settings,
                     choosers=unique_transit_df,
@@ -459,7 +459,7 @@ class TransitVirtualPathBuilder(object):
 
         trace_label = tracing.extend_trace_label(trace_label, "lookup_tap_tap_utils")
 
-        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.state, trace_label) as chunk_sizer:
             with memo("#TVPB CACHE lookup_tap_tap_utilities all_transit_paths"):
                 transit_df = self.all_transit_paths(
                     access_df, egress_df, chooser_attributes, trace_label, trace=False
@@ -529,7 +529,7 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, "compute_tap_tap_time")
 
-        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.state, trace_label) as chunk_sizer:
             model_constants = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.CONSTANTS"
             )
@@ -550,7 +550,7 @@ class TransitVirtualPathBuilder(object):
             locals_dict.update(model_constants)
 
             assignment_spec = assign.read_assignment_spec(
-                file_name=self.network_los.whale.filesystem.get_config_file_path(
+                file_name=self.network_los.state.filesystem.get_config_file_path(
                     tap_tap_settings["SPEC"]
                 )
             )
@@ -576,7 +576,7 @@ class TransitVirtualPathBuilder(object):
 
                 # assign_variables
                 results, _, _ = assign.assign_variables(
-                    self.network_los.whale,
+                    self.network_los.state,
                     assignment_spec,
                     unique_transit_df,
                     locals_dict,
@@ -597,7 +597,7 @@ class TransitVirtualPathBuilder(object):
 
             else:
                 results, _, _ = assign.assign_variables(
-                    self.network_los.whale, assignment_spec, transit_df, locals_dict
+                    self.network_los.state, assignment_spec, transit_df, locals_dict
                 )
                 assert len(results.columns == 1)
                 transit_df["transit"] = results
@@ -682,7 +682,7 @@ class TransitVirtualPathBuilder(object):
     ):
         trace_label = tracing.extend_trace_label(trace_label, "best_paths")
 
-        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.state, trace_label) as chunk_sizer:
             path_settings = self.network_los.setting(
                 f"TVPB_SETTINGS.{recipe}.path_types.{path_type}"
             )
@@ -978,7 +978,7 @@ class TransitVirtualPathBuilder(object):
                                 np.nansum(np.exp(utilities_df.values), axis=1) == 0
                             ]
                             zero_utilities_df.to_csv(
-                                self.network_los.whale.get_output_file_path(
+                                self.network_los.state.get_output_file_path(
                                     "warning_utilities_df.csv"
                                 ),
                                 index=True,
@@ -990,7 +990,7 @@ class TransitVirtualPathBuilder(object):
 
                 with memo("#TVPB build_virtual_path make_choices"):
                     probs = logit.utils_to_probs(
-                        whale,
+                        state,
                         utilities_df,
                         allow_zero_probs=True,
                         trace_label=trace_label,
@@ -1007,7 +1007,7 @@ class TransitVirtualPathBuilder(object):
                         self.trace_df(probs, trace_label, "probs")
                     else:
                         choices, rands = logit.make_choices(
-                            self.network_los.whale,
+                            self.network_los.state,
                             probs,
                             allow_bad_probs=True,
                             trace_label=trace_label,
@@ -1091,7 +1091,7 @@ class TransitVirtualPathBuilder(object):
         trace_label = trace_label or "get_tvpb_logsum"
         trace_label = tracing.extend_trace_label(trace_label, path_type)
 
-        with chunk.chunk_log(self.network_los.whale, trace_label) as chunk_sizer:
+        with chunk.chunk_log(self.network_los.state, trace_label) as chunk_sizer:
             logsum_df = self.build_virtual_path(
                 recipe,
                 path_type,
@@ -1104,12 +1104,12 @@ class TransitVirtualPathBuilder(object):
                 chunk_sizer=chunk_sizer,
             )
 
-            trace_hh_id = self.network_los.whale.settings.trace_hh_id
+            trace_hh_id = self.network_los.state.settings.trace_hh_id
             if (all(logsum_df["logsum"] == UNAVAILABLE)) or (len(logsum_df) == 0):
                 trace_hh_id = False
 
             if trace_hh_id:
-                filter_targets = self.network_los.whale.tracing.trace_targets(orig)
+                filter_targets = self.network_los.state.tracing.trace_targets(orig)
                 # choices from preceding run (because random numbers)
                 override_choices = logsum_df["path_num"] if want_choices else None
                 if filter_targets.any():
@@ -1136,7 +1136,7 @@ class TransitVirtualPathBuilder(object):
         recipe = "accessibility"
         path_type = "WTW"
 
-        with chunk.chunk_log(self.network_los.whale, trace_label):
+        with chunk.chunk_log(self.network_los.state, trace_label):
             result = self.build_virtual_path(
                 recipe,
                 path_type,
@@ -1148,7 +1148,7 @@ class TransitVirtualPathBuilder(object):
                 trace_label=trace_label,
             )
 
-            trace_od = self.network_los.whale.get_injectable("trace_od", None)
+            trace_od = self.network_los.state.get_injectable("trace_od", None)
             if trace_od:
                 filter_targets = (orig == trace_od[0]) & (dest == trace_od[1])
                 if filter_targets.any():

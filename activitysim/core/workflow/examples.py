@@ -7,7 +7,7 @@ from activitysim.core import workflow
 
 def create_example(
     example_name, directory: Path = None, temp: bool = False
-) -> "workflow.Whale":
+) -> "workflow.State":
     """
     Create an example model.
 
@@ -18,7 +18,7 @@ def create_example(
 
     Returns
     -------
-    Whale
+    State
     """
     if temp:
         if directory is not None:
@@ -35,9 +35,9 @@ def create_example(
     # import inside function to prevent circular references.
     from activitysim.examples import get_example
 
-    whale = workflow.Whale.make_default(
+    state = workflow.State.make_default(
         get_example(example_name, destination=directory)
     )
     if temp:
-        whale.context["_TEMP_DIR_"] = temp_dir
-    return whale
+        state.context["_TEMP_DIR_"] = temp_dir
+    return state

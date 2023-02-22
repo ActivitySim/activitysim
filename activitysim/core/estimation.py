@@ -30,11 +30,11 @@ def unlink_files(directory_path, file_types=("csv", "yaml")):
 
 
 class Estimator:
-    def __init__(self, whale, bundle_name, model_name, estimation_table_recipes):
+    def __init__(self, state, bundle_name, model_name, estimation_table_recipes):
 
         logger.info("Initialize Estimator for'%s'" % (model_name,))
 
-        self.whale = whale
+        self.state = state
         self.bundle_name = bundle_name
         self.model_name = model_name
         self.settings_name = model_name
@@ -42,16 +42,16 @@ class Estimator:
         self.estimating = True
 
         # ensure the output data directory exists
-        output_dir = self.output_directory(whale)
+        output_dir = self.output_directory(state)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)  # make directory if needed
 
         # delete estimation files
-        unlink_files(self.output_directory(whale), file_types=("csv", "yaml"))
+        unlink_files(self.output_directory(state), file_types=("csv", "yaml"))
         if self.bundle_name != self.model_name:
             # kind of inelegant to always delete these, but ok as they are redundantly recreated for each sub model
             unlink_files(
-                self.output_directory(whale, bundle_directory=True),
+                self.output_directory(state, bundle_directory=True),
                 file_types=("csv", "yaml"),
             )
 
@@ -127,7 +127,7 @@ class Estimator:
         assert self.model_name is not None
 
         dir = os.path.join(
-            self.whale.filesystem.get_output_dir("estimation_data_bundle"),
+            self.state.filesystem.get_output_dir("estimation_data_bundle"),
             self.bundle_name,
         )
 
@@ -280,7 +280,7 @@ class Estimator:
         assert file_name is not None
 
         if coefficients_df is None:
-            coefficients_df = whale.filesystem.read_model_coefficients(
+            coefficients_df = state.filesystem.read_model_coefficients(
                 file_name=file_name
             )
 
@@ -294,7 +294,7 @@ class Estimator:
         assert self.estimating
 
         coefficients_df = simulate.read_model_coefficient_template(
-            self.whale, model_settings
+            self.state, model_settings
         )
         tag = "coefficients_template"
         self.write_table(coefficients_df, tag, append=False)
@@ -324,7 +324,7 @@ class Estimator:
         self, settings_file_name, tag="model_settings", bundle_directory=False
     ):
 
-        input_path = self.whale.filesystem.get_config_file_path(settings_file_name)
+        input_path = self.state.filesystem.get_config_file_path(settings_file_name)
 
         output_path = self.output_file_path(tag, "yaml", bundle_directory)
 
@@ -452,7 +452,7 @@ class Estimator:
             assert file_name is None
             file_name = model_settings[tag]
 
-        input_path = whale.filesystem.get_config_file_path(file_name)
+        input_path = state.filesystem.get_config_file_path(file_name)
 
         table_name = tag  # more readable than full spec file_name
         output_path = self.output_file_path(table_name, "csv", bundle_directory)
@@ -469,14 +469,14 @@ class EstimationManager(object):
         self.model_estimation_table_types = {}
         self.estimating = {}
 
-    def initialize_settings(self, whale):
+    def initialize_settings(self, state):
 
         # FIXME - can't we just initialize in init and handle no-presence of settings file as not enabled
         if self.settings_initialized:
             return
 
         assert not self.settings_initialized
-        settings = whale.filesystem.read_model_settings(
+        settings = state.filesystem.read_model_settings(
             ESTIMATION_SETTINGS_FILE_NAME, mandatory=False
         )
         if not settings:
@@ -501,7 +501,7 @@ class EstimationManager(object):
                     table_name,
                     ESTIMATION_SETTINGS_FILE_NAME,
                 )
-                file_path = whale.filesystem.get_data_file_path(
+                file_path = state.filesystem.get_data_file_path(
                     table_info["file_name"], mandatory=True
                 )
                 assert os.path.exists(
@@ -521,7 +521,7 @@ class EstimationManager(object):
         self.settings_initialized = True
 
     def begin_estimation(
-        self, whale: workflow.Whale, model_name: str, bundle_name=None
+        self, state: workflow.State, model_name: str, bundle_name=None
     ) -> Estimator:
         """
         begin estimating of model_name is specified as model to estimate, otherwise return False
@@ -536,7 +536,7 @@ class EstimationManager(object):
         """
         # load estimation settings file
         if not self.settings_initialized:
-            self.initialize_settings(whale)
+            self.initialize_settings(state)
 
         # global estimation setting
         if not self.enabled:

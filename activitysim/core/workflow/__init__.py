@@ -1,5 +1,5 @@
 from .examples import create_example
-from .state import Whale
+from .state import State
 from .steps import func
 from .steps import workflow_cached_object as cached_object
 from .steps import workflow_step as step

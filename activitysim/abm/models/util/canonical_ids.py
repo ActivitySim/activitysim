@@ -57,9 +57,9 @@ def enumerate_tour_types(tour_flavors):
     return channels
 
 
-def read_alts_file(whale: workflow.Whale, file_name, set_index=None):
+def read_alts_file(state: workflow.State, file_name, set_index=None):
     try:
-        alts = simulate.read_model_alts(whale, file_name, set_index=set_index)
+        alts = simulate.read_model_alts(state, file_name, set_index=set_index)
     except (RuntimeError, FileNotFoundError):
         logger.warning(f"Could not find file {file_name} to determine tour flavors.")
         return pd.DataFrame()
@@ -209,7 +209,7 @@ def determine_flavors_from_alts_file(
     return flavors
 
 
-def canonical_tours(whale: workflow.Whale):
+def canonical_tours(state: workflow.State):
     """
         create labels for every the possible tour by combining tour_type/tour_num.
 
@@ -220,14 +220,14 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- non_mandatory_channels
     nm_model_settings_file_name = "non_mandatory_tour_frequency.yaml"
-    nm_model_settings = whale.filesystem.read_model_settings(
+    nm_model_settings = state.filesystem.read_model_settings(
         nm_model_settings_file_name
     )
-    nm_alts = read_alts_file(whale, "non_mandatory_tour_frequency_alternatives.csv")
+    nm_alts = read_alts_file(state, "non_mandatory_tour_frequency_alternatives.csv")
 
     # first need to determine max extension
     try:
-        ext_probs_f = whale.filesystem.get_config_file_path(
+        ext_probs_f = state.filesystem.get_config_file_path(
             "non_mandatory_tour_frequency_extension_probs.csv"
         )
         extension_probs = pd.read_csv(ext_probs_f, comment="#")
@@ -259,11 +259,11 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- mandatory_channels
     mtf_model_settings_file_name = "mandatory_tour_frequency.yaml"
-    mtf_model_settings = whale.filesystem.read_model_settings(
+    mtf_model_settings = state.filesystem.read_model_settings(
         mtf_model_settings_file_name
     )
     mtf_spec = mtf_model_settings.get("SPEC", "mandatory_tour_frequency.csv")
-    mtf_model_spec = read_alts_file(whale, file_name=mtf_spec)
+    mtf_model_spec = read_alts_file(state, file_name=mtf_spec)
     default_mandatory_tour_flavors = {"work": 2, "school": 2}
 
     mandatory_tour_flavors = determine_mandatory_tour_flavors(
@@ -275,10 +275,10 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- atwork_subtour_channels
     atwork_model_settings_file_name = "atwork_subtour_frequency.yaml"
-    atwork_model_settings = whale.filesystem.read_model_settings(
+    atwork_model_settings = state.filesystem.read_model_settings(
         atwork_model_settings_file_name
     )
-    atwork_alts = read_alts_file(whale, "atwork_subtour_frequency_alternatives.csv")
+    atwork_alts = read_alts_file(state, "atwork_subtour_frequency_alternatives.csv")
 
     provided_atwork_flavors = atwork_model_settings.get("ATWORK_SUBTOUR_FLAVORS", None)
     default_atwork_flavors = {"eat": 1, "business": 2, "maint": 1}
@@ -301,10 +301,10 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- joint_tour_channels
     jtf_model_settings_file_name = "joint_tour_frequency.yaml"
-    jtf_model_settings = whale.filesystem.read_model_settings(
+    jtf_model_settings = state.filesystem.read_model_settings(
         jtf_model_settings_file_name
     )
-    jtf_alts = read_alts_file(whale, "joint_tour_frequency_alternatives.csv")
+    jtf_alts = read_alts_file(state, "joint_tour_frequency_alternatives.csv")
     provided_joint_flavors = jtf_model_settings.get("JOINT_TOUR_FLAVORS", None)
 
     default_joint_flavors = {
@@ -331,12 +331,12 @@ def canonical_tours(whale: workflow.Whale):
 
     # ---- school escort channels
     # only include if model is run
-    if whale.is_table("school_escort_tours") | (
-        whale.settings.models is not None
-        and "school_escorting" in whale.settings.models
+    if state.is_table("school_escort_tours") | (
+        state.settings.models is not None
+        and "school_escorting" in state.settings.models
     ):
         se_model_settings_file_name = "school_escorting.yaml"
-        se_model_settings = whale.filesystem.read_model_settings(
+        se_model_settings = state.filesystem.read_model_settings(
             se_model_settings_file_name
         )
         num_escortees = se_model_settings.get("NUM_ESCORTEES", 3)
@@ -353,7 +353,7 @@ def canonical_tours(whale: workflow.Whale):
 
 
 def set_tour_index(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours,
     parent_tour_num_col=None,
     is_joint=False,
@@ -377,7 +377,7 @@ def set_tour_index(
     """
 
     tour_num_col = "tour_type_num"
-    possible_tours = canonical_tours(whale)
+    possible_tours = canonical_tours(state)
     possible_tours_count = len(possible_tours)
 
     assert tour_num_col in tours.columns
@@ -431,16 +431,16 @@ def set_tour_index(
     return tours
 
 
-def determine_max_trips_per_leg(whale: workflow.Whale, default_max_trips_per_leg=4):
+def determine_max_trips_per_leg(state: workflow.State, default_max_trips_per_leg=4):
     model_settings_file_name = "stop_frequency.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     # first see if flavors given explicitly
     provided_max_trips_per_leg = model_settings.get("MAX_TRIPS_PER_LEG", None)
 
     # determine flavors from alternative file
     try:
-        alts = read_alts_file(whale, "stop_frequency_alternatives.csv")
+        alts = read_alts_file(state, "stop_frequency_alternatives.csv")
         trips_per_leg = [
             int(alts[c].max())
             for c in alts.columns
@@ -466,10 +466,10 @@ def determine_max_trips_per_leg(whale: workflow.Whale, default_max_trips_per_leg
     return default_max_trips_per_leg
 
 
-def set_trip_index(whale: workflow.Whale, trips, tour_id_column="tour_id"):
+def set_trip_index(state: workflow.State, trips, tour_id_column="tour_id"):
     # max number of trips per leg (inbound or outbound) of tour
     #  = stops + 1 for primary half-tour destination
-    max_trips_per_leg = determine_max_trips_per_leg(whale)
+    max_trips_per_leg = determine_max_trips_per_leg(state)
 
     # canonical_trip_num: 1st trip out = 1, 2nd trip out = 2, 1st in = 5, etc.
     canonical_trip_num = (~trips.outbound * max_trips_per_leg) + trips.trip_num

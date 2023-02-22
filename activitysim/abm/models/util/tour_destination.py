@@ -25,10 +25,10 @@ class SizeTermCalculator:
     returns size terms for specified segment in df or series form
     """
 
-    def __init__(self, whale: workflow.Whale, size_term_selector):
+    def __init__(self, state: workflow.State, size_term_selector):
         # do this once so they can request size_terms for various segments (tour_type or purpose)
-        land_use = whale.get_dataframe("land_use")
-        size_terms = whale.get_injectable("size_terms")
+        land_use = state.get_dataframe("land_use")
+        size_terms = state.get_injectable("size_terms")
         self.destination_size_terms = tour_destination_size_terms(
             land_use, size_terms, size_term_selector
         )
@@ -61,7 +61,7 @@ class SizeTermCalculator:
 
 
 def _destination_sample(
-    whale: workflow.Whale,
+    state: workflow.State,
     spec_segment_name: str,
     choosers: pd.DataFrame,
     destination_size_terms,
@@ -74,7 +74,7 @@ def _destination_sample(
     zone_layer=None,
 ):
     model_spec = simulate.spec_for_segment(
-        whale,
+        state,
         model_settings,
         spec_id="SAMPLE_SPEC",
         segment_name=spec_segment_name,
@@ -84,7 +84,7 @@ def _destination_sample(
     logger.info("running %s with %d tours", trace_label, len(choosers))
 
     sample_size = model_settings["SAMPLE_SIZE"]
-    if whale.settings.disable_destination_sampling or (
+    if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
@@ -104,10 +104,10 @@ def _destination_sample(
     if constants is not None:
         locals_d.update(constants)
 
-    log_alt_losers = whale.settings.log_alt_losers
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample(
-        whale,
+        state,
         choosers,
         alternatives=destination_size_terms,
         sample_size=sample_size,
@@ -116,7 +116,7 @@ def _destination_sample(
         spec=model_spec,
         skims=skims,
         locals_d=locals_d,
-        chunk_size=whale.settings.chunk_size,
+        chunk_size=state.settings.chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
         zone_layer=zone_layer,
@@ -133,7 +133,7 @@ def _destination_sample(
 
 
 def destination_sample(
-    whale: workflow.Whale,
+    state: workflow.State,
     spec_segment_name,
     choosers,
     model_settings,
@@ -160,7 +160,7 @@ def destination_sample(
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     choices = _destination_sample(
-        whale,
+        state,
         spec_segment_name,
         choosers,
         destination_size_terms,
@@ -225,7 +225,7 @@ def aggregate_size_terms(dest_size_terms, network_los):
     return MAZ_size_terms, TAZ_size_terms
 
 
-def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_label):
+def choose_MAZ_for_TAZ(state: workflow.State, taz_sample, MAZ_size_terms, trace_label):
     """
     Convert taz_sample table with TAZ zone sample choices to a table with a MAZ zone chosen for each TAZ
     choose MAZ probabilistically (proportionally by size_term) from set of MAZ zones in parent TAZ
@@ -247,8 +247,8 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     # 542963          53  0.004224           2      13243
     # 542963          59  0.008628           1      13243
 
-    trace_hh_id = whale.settings.trace_hh_id
-    have_trace_targets = trace_hh_id and whale.tracing.has_trace_targets(taz_sample)
+    trace_hh_id = state.settings.trace_hh_id
+    have_trace_targets = trace_hh_id and state.tracing.has_trace_targets(taz_sample)
     if have_trace_targets:
         trace_label = tracing.extend_trace_label(trace_label, "choose_MAZ_for_TAZ")
 
@@ -258,8 +258,8 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
         assert CHOOSER_ID is not None
 
         # write taz choices, pick_counts, probs
-        trace_targets = whale.tracing.trace_targets(taz_sample)
-        whale.tracing.trace_df(
+        trace_targets = state.tracing.trace_targets(taz_sample)
+        state.tracing.trace_df(
             taz_sample[trace_targets],
             label=tracing.extend_trace_label(trace_label, "taz_sample"),
             transpose=False,
@@ -327,11 +327,11 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     if have_trace_targets:
         # write maz_sizes: maz_sizes[index,tour_id,dest_TAZ,zone_id,size_term]
 
-        maz_sizes_trace_targets = whale.tracing.trace_targets(
+        maz_sizes_trace_targets = state.tracing.trace_targets(
             maz_sizes, slicer=CHOOSER_ID
         )
         trace_maz_sizes = maz_sizes[maz_sizes_trace_targets]
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             trace_maz_sizes,
             label=tracing.extend_trace_label(trace_label, "maz_sizes"),
             transpose=False,
@@ -362,7 +362,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     maz_probs = np.divide(padded_maz_sizes, row_sums.reshape(-1, 1))
     assert maz_probs.shape == (num_choosers * taz_sample_size, max_maz_count)
 
-    rands = whale.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
+    rands = state.get_rn_generator().random_for_df(chooser_df, n=taz_sample_size)
     rands = rands.reshape(-1, 1)
     assert len(rands) == num_choosers * taz_sample_size
     assert len(rands) == maz_probs.shape[0]
@@ -380,11 +380,11 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
     taz_choices["prob"] = taz_choices["TAZ_prob"] * taz_choices["MAZ_prob"]
 
     if have_trace_targets:
-        taz_choices_trace_targets = whale.tracing.trace_targets(
+        taz_choices_trace_targets = state.tracing.trace_targets(
             taz_choices, slicer=CHOOSER_ID
         )
         trace_taz_choices_df = taz_choices[taz_choices_trace_targets]
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             trace_taz_choices_df,
             label=tracing.extend_trace_label(trace_label, "taz_choices"),
             transpose=False,
@@ -410,7 +410,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_alts"),
             transpose=False,
@@ -426,7 +426,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
             index=trace_taz_choices_df.index,
         )
         df = pd.concat([lhs_df, df], axis=1)
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_size_terms"),
             transpose=False,
@@ -440,7 +440,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
         )
         df = pd.concat([lhs_df, df], axis=1)
         df["rand"] = rands[taz_choices_trace_targets]
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             df,
             label=tracing.extend_trace_label(trace_label, "dest_maz_probs"),
             transpose=False,
@@ -457,7 +457,7 @@ def choose_MAZ_for_TAZ(whale: workflow.Whale, taz_sample, MAZ_size_terms, trace_
 
 
 def destination_presample(
-    whale: workflow.Whale,
+    state: workflow.State,
     spec_segment_name,
     choosers,
     model_settings,
@@ -490,7 +490,7 @@ def destination_presample(
     skims = skim_dict.wrap(ORIG_TAZ, DEST_TAZ)
 
     taz_sample = _destination_sample(
-        whale,
+        state,
         spec_segment_name,
         choosers,
         TAZ_size_terms,
@@ -504,7 +504,7 @@ def destination_presample(
     )
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
-    maz_choices = choose_MAZ_for_TAZ(whale, taz_sample, MAZ_size_terms, trace_label)
+    maz_choices = choose_MAZ_for_TAZ(state, taz_sample, MAZ_size_terms, trace_label)
 
     assert DEST_MAZ in maz_choices
     maz_choices = maz_choices.rename(columns={DEST_MAZ: alt_dest_col_name})
@@ -513,7 +513,7 @@ def destination_presample(
 
 
 def run_destination_sample(
-    whale,
+    state,
     spec_segment_name,
     tours,
     persons_merged,
@@ -549,7 +549,7 @@ def run_destination_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
-    if pre_sample_taz and not whale.settings.want_dest_choice_presampling:
+    if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -562,7 +562,7 @@ def run_destination_sample(
         )
 
         choices = destination_presample(
-            whale,
+            state,
             spec_segment_name,
             choosers,
             model_settings,
@@ -574,7 +574,7 @@ def run_destination_sample(
 
     else:
         choices = destination_sample(
-            whale,
+            state,
             spec_segment_name,
             choosers,
             model_settings,
@@ -593,7 +593,7 @@ def run_destination_sample(
 
 
 def run_destination_logsums(
-    whale: workflow.Whale,
+    state: workflow.State,
     tour_purpose,
     persons_merged,
     destination_sample,
@@ -623,7 +623,7 @@ def run_destination_logsums(
     +-----------+--------------+----------------+------------+----------------+
     """
 
-    logsum_settings = whale.filesystem.read_model_settings(
+    logsum_settings = state.filesystem.read_model_settings(
         model_settings["LOGSUM_SETTINGS"]
     )
     # if special person id is passed
@@ -647,11 +647,11 @@ def run_destination_logsums(
 
     logger.info("Running %s with %s rows", trace_label, len(choosers))
 
-    whale.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
-    whale.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    state.tracing.dump_df(DUMP, persons_merged, trace_label, "persons_merged")
+    state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
     logsums = logsum.compute_logsums(
-        whale,
+        state,
         choosers,
         tour_purpose,
         logsum_settings,
@@ -668,7 +668,7 @@ def run_destination_logsums(
 
 
 def run_destination_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     spec_segment_name,
     tours,
     persons_merged,
@@ -689,7 +689,7 @@ def run_destination_simulate(
     chunk_tag = "tour_destination.simulate"
 
     model_spec = simulate.spec_for_segment(
-        whale,
+        state,
         model_settings,
         spec_id="SPEC",
         segment_name=spec_segment_name,
@@ -731,7 +731,7 @@ def run_destination_simulate(
         destination_size_terms.size_term, destination_sample[alt_dest_col_name]
     )
 
-    whale.tracing.dump_df(DUMP, destination_sample, trace_label, "alternatives")
+    state.tracing.dump_df(DUMP, destination_sample, trace_label, "alternatives")
 
     constants = config.get_model_constants(model_settings)
 
@@ -752,12 +752,12 @@ def run_destination_simulate(
     if constants is not None:
         locals_d.update(constants)
 
-    whale.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
+    state.tracing.dump_df(DUMP, choosers, trace_label, "choosers")
 
-    log_alt_losers = whale.settings.log_alt_losers
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
-        whale,
+        state,
         choosers,
         destination_sample,
         spec=model_spec,
@@ -783,7 +783,7 @@ def run_destination_simulate(
 
 
 def run_tour_destination(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     want_logsums: bool,
@@ -795,7 +795,7 @@ def run_tour_destination(
     skip_choice=False,
 ):
     size_term_calculator = SizeTermCalculator(
-        whale, model_settings["SIZE_TERM_SELECTOR"]
+        state, model_settings["SIZE_TERM_SELECTOR"]
     )
 
     # maps segment names to compact (integer) ids
@@ -831,7 +831,7 @@ def run_tour_destination(
         # - destination_sample
         spec_segment_name = segment_name  # spec_segment_name is segment_name
         location_sample_df = run_destination_sample(
-            whale,
+            state,
             spec_segment_name,
             choosers,
             persons_merged,
@@ -839,27 +839,27 @@ def run_tour_destination(
             network_los,
             segment_destination_size_terms,
             estimator,
-            chunk_size=whale.settings.chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "sample"),
         )
 
         # - destination_logsums
         tour_purpose = segment_name  # tour_purpose is segment_name
         location_sample_df = run_destination_logsums(
-            whale,
+            state,
             tour_purpose,
             persons_merged,
             location_sample_df,
             model_settings,
             network_los,
-            chunk_size=whale.settings.chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "logsums"),
         )
 
         # - destination_simulate
         spec_segment_name = segment_name  # spec_segment_name is segment_name
         choices = run_destination_simulate(
-            whale,
+            state,
             spec_segment_name,
             choosers,
             persons_merged,
@@ -869,7 +869,7 @@ def run_tour_destination(
             network_los=network_los,
             destination_size_terms=segment_destination_size_terms,
             estimator=estimator,
-            chunk_size=whale.settings.chunk_size,
+            chunk_size=state.settings.chunk_size,
             trace_label=tracing.extend_trace_label(segment_trace_label, "simulate"),
             skip_choice=skip_choice,
         )

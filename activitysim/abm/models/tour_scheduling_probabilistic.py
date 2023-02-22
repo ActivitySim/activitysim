@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def run_tour_scheduling_probabilistic(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours_df: pd.DataFrame,
     scheduling_probs: pd.DataFrame,
     probs_join_cols: str | list[str],
@@ -24,7 +24,7 @@ def run_tour_scheduling_probabilistic(
 
     Parameters
     ----------
-    whale: workflow.Whale
+    state: workflow.State
     tours_df : pandas.DataFrame
         table of tours
     scheduling_probs : pandas.DataFrame
@@ -48,9 +48,9 @@ def run_tour_scheduling_probabilistic(
         chooser_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers(whale, tours_df, trace_label, trace_label):
+    ) in chunk.adaptive_chunked_choosers(state, tours_df, trace_label, trace_label):
         choices = ps.make_scheduling_choices(
-            whale,
+            state,
             chooser_chunk,
             "departure",
             scheduling_probs,
@@ -70,7 +70,7 @@ def run_tour_scheduling_probabilistic(
 
 
 @workflow.step
-def tour_scheduling_probabilistic(whale: workflow.Whale, tours: pd.DataFrame):
+def tour_scheduling_probabilistic(state: workflow.State, tours: pd.DataFrame):
     """Makes tour departure and arrival choices by sampling from a probability lookup table
 
     This model samples tour scheduling choices from an exogenously defined probability
@@ -91,9 +91,9 @@ def tour_scheduling_probabilistic(whale: workflow.Whale, tours: pd.DataFrame):
 
     trace_label = "tour_scheduling_probabilistic"
     model_settings_file_name = "tour_scheduling_probabilistic.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     depart_alt_base = model_settings.get("depart_alt_base", 0)
-    scheduling_probs_filepath = whale.filesystem.get_config_file_path(
+    scheduling_probs_filepath = state.filesystem.get_config_file_path(
         model_settings["PROBS_SPEC"]
     )
     scheduling_probs = pd.read_csv(scheduling_probs_filepath)
@@ -103,7 +103,7 @@ def tour_scheduling_probabilistic(whale: workflow.Whale, tours: pd.DataFrame):
     # trip_scheduling is a probabilistic model ane we don't support estimation,
     # but we do need to override choices in estimation mode
     estimator = estimation.manager.begin_estimation(
-        whale, "tour_scheduling_probabilistic"
+        state, "tour_scheduling_probabilistic"
     )
     if estimator:
         estimator.write_spec(model_settings, tag="PROBS_SPEC")
@@ -112,7 +112,7 @@ def tour_scheduling_probabilistic(whale: workflow.Whale, tours: pd.DataFrame):
         estimator.write_choosers(tours_df[chooser_cols_for_estimation])
 
     choices = run_tour_scheduling_probabilistic(
-        whale,
+        state,
         tours_df,
         scheduling_probs,
         probs_join_cols,
@@ -150,4 +150,4 @@ def tour_scheduling_probabilistic(whale: workflow.Whale, tours: pd.DataFrame):
     assert not tours_df["end"].isnull().any()
     assert not tours_df["duration"].isnull().any()
 
-    whale.add_table("tours", tours_df)
+    state.add_table("tours", tours_df)

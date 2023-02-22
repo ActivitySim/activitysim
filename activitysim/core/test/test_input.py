@@ -23,7 +23,7 @@ def seed_households():
 
 
 @pytest.fixture(scope="module")
-def whale():
+def state():
     configs_dir = os.path.join(os.path.dirname(__file__), "configs")
 
     output_dir = os.path.join(os.path.dirname(__file__), "output")
@@ -33,13 +33,13 @@ def whale():
     if not os.path.exists(data_dir):
         os.mkdir(data_dir)
 
-    whale = workflow.Whale().initialize_filesystem(
+    state = workflow.State().initialize_filesystem(
         configs_dir=(configs_dir,),
         output_dir=output_dir,
         data_dir=(data_dir,),
     )
 
-    yield whale
+    yield state
 
     for file in os.listdir(data_dir):
         os.remove(os.path.join(data_dir, file))
@@ -47,17 +47,17 @@ def whale():
     os.rmdir(data_dir)
 
 
-def test_missing_table_list(whale):
+def test_missing_table_list(state):
 
-    whale.load_settings()
-    assert isinstance(whale.settings, configuration.Settings)
+    state.load_settings()
+    assert isinstance(state.settings, configuration.Settings)
 
     with pytest.raises(AssertionError) as excinfo:
-        input.read_input_table(whale, "households")
+        input.read_input_table(state, "households")
     assert "no input_table_list found" in str(excinfo.value)
 
 
-def test_csv_reader(seed_households, whale):
+def test_csv_reader(seed_households, state):
 
     settings_yaml = """
         input_table_list:
@@ -70,19 +70,19 @@ def test_csv_reader(seed_households, whale):
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
     settings = configuration.Settings.parse_obj(settings)
-    whale.settings = settings
+    state.settings = settings
 
-    hh_file = whale.filesystem.get_data_dir()[0].joinpath("households.csv")
+    hh_file = state.filesystem.get_data_dir()[0].joinpath("households.csv")
     seed_households.to_csv(hh_file, index=False)
 
     assert os.path.isfile(hh_file)
 
-    df = input.read_input_table(whale, "households")
+    df = input.read_input_table(state, "households")
 
     assert df.index.name == "household_id"
 
 
-def test_hdf_reader1(seed_households, whale):
+def test_hdf_reader1(seed_households, state):
 
     settings_yaml = """
         input_table_list:
@@ -95,19 +95,19 @@ def test_hdf_reader1(seed_households, whale):
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
     settings = configuration.Settings.parse_obj(settings)
-    whale.settings = settings
+    state.settings = settings
 
-    hh_file = whale.filesystem.get_data_dir()[0].joinpath("households.h5")
+    hh_file = state.filesystem.get_data_dir()[0].joinpath("households.h5")
     seed_households.to_hdf(hh_file, key="households", mode="w")
 
     assert os.path.isfile(hh_file)
 
-    df = input.read_input_table(whale, "households")
+    df = input.read_input_table(state, "households")
 
     assert df.index.name == "household_id"
 
 
-def test_hdf_reader2(seed_households, whale):
+def test_hdf_reader2(seed_households, state):
 
     settings_yaml = """
         input_table_list:
@@ -121,19 +121,19 @@ def test_hdf_reader2(seed_households, whale):
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
     settings = configuration.Settings.parse_obj(settings)
-    whale.settings = settings
+    state.settings = settings
 
-    hh_file = whale.filesystem.get_data_dir()[0].joinpath("households.h5")
+    hh_file = state.filesystem.get_data_dir()[0].joinpath("households.h5")
     seed_households.to_hdf(hh_file, key="seed_households", mode="w")
 
     assert os.path.isfile(hh_file)
 
-    df = input.read_input_table(whale, "households")
+    df = input.read_input_table(state, "households")
 
     assert df.index.name == "household_id"
 
 
-def test_hdf_reader3(seed_households, whale):
+def test_hdf_reader3(seed_households, state):
 
     settings_yaml = """
         input_store: input_data.h5
@@ -146,19 +146,19 @@ def test_hdf_reader3(seed_households, whale):
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
     settings = configuration.Settings.parse_obj(settings)
-    whale.settings = settings
+    state.settings = settings
 
-    hh_file = whale.filesystem.get_data_dir()[0].joinpath("input_data.h5")
+    hh_file = state.filesystem.get_data_dir()[0].joinpath("input_data.h5")
     seed_households.to_hdf(hh_file, key="households", mode="w")
 
     assert os.path.isfile(hh_file)
 
-    df = input.read_input_table(whale, "households")
+    df = input.read_input_table(state, "households")
 
     assert df.index.name == "household_id"
 
 
-def test_missing_filename(seed_households, whale):
+def test_missing_filename(seed_households, state):
 
     settings_yaml = """
         input_table_list:
@@ -170,14 +170,14 @@ def test_missing_filename(seed_households, whale):
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
     settings = configuration.Settings.parse_obj(settings)
-    whale.settings = settings
+    state.settings = settings
 
     with pytest.raises(AssertionError) as excinfo:
-        input.read_input_table(whale, "households")
+        input.read_input_table(state, "households")
     assert "no input file provided" in str(excinfo.value)
 
 
-def test_create_input_store(seed_households, whale):
+def test_create_input_store(seed_households, state):
 
     settings_yaml = """
         create_input_store: True
@@ -192,15 +192,15 @@ def test_create_input_store(seed_households, whale):
 
     settings = yaml.load(settings_yaml, Loader=yaml.SafeLoader)
     settings = configuration.Settings.parse_obj(settings)
-    whale.settings = settings
+    state.settings = settings
 
-    hh_file = whale.filesystem.get_data_dir()[0].joinpath("households.csv")
+    hh_file = state.filesystem.get_data_dir()[0].joinpath("households.csv")
     seed_households.to_csv(hh_file, index=False)
 
     assert os.path.isfile(hh_file)
 
     with pytest.raises(NotImplementedError):
-        df = input.read_input_table(whale, "households")
+        df = input.read_input_table(state, "households")
 
     # TODO if create_input_store is ever implemented
     #

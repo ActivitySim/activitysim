@@ -72,8 +72,8 @@ class Network_LOS(object):
       tap_tap_uid: TapTapUidCalculator
     """
 
-    def __init__(self, whale, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
-        self.whale = whale
+    def __init__(self, state, los_settings_file_name=LOS_SETTINGS_FILE_NAME):
+        self.state = state
         # Note: we require all skims to be of same dtype so they can share buffer - is that ok?
         # fixme is it ok to require skims be all the same type? if so, is this the right choice?
         self.skim_dtype_name = "float32"
@@ -95,7 +95,7 @@ class Network_LOS(object):
 
         self.los_settings_file_name = los_settings_file_name
         self.load_settings()
-        self.sharrow_enabled = whale.settings.sharrow
+        self.sharrow_enabled = state.settings.sharrow
 
         # dependency injection of skim factory (of type specified in skim_dict_factory setting)
         skim_dict_factory_name = self.setting("skim_dict_factory")
@@ -122,12 +122,12 @@ class Network_LOS(object):
 
     def get_network_cache_dir(self) -> Path:
         if self.los_settings.network_cache_dir:
-            result = self.whale.filesystem.get_working_subdir(
+            result = self.state.filesystem.get_working_subdir(
                 self.los_settings.network_cache_dir
             )
             result.mkdir(parents=True, exist_ok=True)
             return result
-        return self.whale.filesystem.get_cache_dir()
+        return self.state.filesystem.get_cache_dir()
 
     def setting(self, keys, default: Any = "<REQUIRED>"):
         # if they dont specify a default, check the default defaults
@@ -171,7 +171,7 @@ class Network_LOS(object):
         """
 
         try:
-            self.los_settings = self.whale.filesystem.read_settings_file(
+            self.los_settings = self.state.filesystem.read_settings_file(
                 self.los_settings_file_name,
                 mandatory=True,
                 validator_class=NetworkSettings,
@@ -180,10 +180,10 @@ class Network_LOS(object):
             err_msg = str(err)
             print(err_msg)
             raise
-        self.whale.network_settings = self.los_settings
+        self.state.network_settings = self.los_settings
 
         # validate skim_time_periods
-        self.skim_time_periods = self.whale.network_settings.skim_time_periods
+        self.skim_time_periods = self.state.network_settings.skim_time_periods
         if "hours" in self.skim_time_periods:
             self.skim_time_periods["periods"] = self.skim_time_periods.pop("hours")
             warnings.warn(
@@ -230,19 +230,19 @@ class Network_LOS(object):
         assert self.skim_dict_factory is not None
         # load taz skim_info
         self.skims_info["taz"] = self.skim_dict_factory.load_skim_info(
-            self.whale, "taz"
+            self.state, "taz"
         )
 
         if self.zone_system == THREE_ZONE:
             # load tap skim_info
             self.skims_info["tap"] = self.skim_dict_factory.load_skim_info(
-                self.whale, "tap"
+                self.state, "tap"
             )
 
         if self.zone_system == THREE_ZONE:
             # load this here rather than in load_data as it is required during multiprocessing to size TVPBCache
             self.tap_df = pd.read_csv(
-                self.whale.filesystem.get_data_file_path(
+                self.state.filesystem.get_data_file_path(
                     self.setting("tap"), mandatory=True
                 )
             ).sort_values("TAP")
@@ -260,7 +260,7 @@ class Network_LOS(object):
             # maz
             file_name = self.setting("maz")
             self.maz_taz_df = pd.read_csv(
-                self.whale.filesystem.get_data_file_path(file_name, mandatory=True)
+                self.state.filesystem.get_data_file_path(file_name, mandatory=True)
             )
             self.maz_taz_df = self.maz_taz_df[["MAZ", "TAZ"]].sort_values(
                 by="MAZ"
@@ -268,10 +268,10 @@ class Network_LOS(object):
 
             # recode MAZs if needed
             self.maz_taz_df["MAZ"] = recode_based_on_table(
-                self.whale, self.maz_taz_df["MAZ"], "land_use"
+                self.state, self.maz_taz_df["MAZ"], "land_use"
             )
             self.maz_taz_df["TAZ"] = recode_based_on_table(
-                self.whale, self.maz_taz_df["TAZ"], "land_use_taz"
+                self.state, self.maz_taz_df["TAZ"], "land_use_taz"
             )
 
             self.maz_ceiling = self.maz_taz_df.MAZ.max() + 1
@@ -285,12 +285,12 @@ class Network_LOS(object):
             )
             for file_name in maz_to_maz_tables:
                 df = pd.read_csv(
-                    self.whale.filesystem.get_data_file_path(file_name, mandatory=True)
+                    self.state.filesystem.get_data_file_path(file_name, mandatory=True)
                 )
 
                 # recode MAZs if needed
-                df["OMAZ"] = recode_based_on_table(self.whale, df["OMAZ"], "land_use")
-                df["DMAZ"] = recode_based_on_table(self.whale, df["DMAZ"], "land_use")
+                df["OMAZ"] = recode_based_on_table(self.state, df["OMAZ"], "land_use")
+                df["DMAZ"] = recode_based_on_table(self.state, df["DMAZ"], "land_use")
 
                 df["i"] = df.OMAZ.astype(np.int32) * self.maz_ceiling.astype(
                     np.int32
@@ -316,7 +316,7 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
             # tap_df should already have been loaded by load_skim_info because,
             # during multiprocessing, it is required by TapTapUidCalculator to size TVPBCache
-            # self.tap_df = pd.read_csv(self.whale.filesystem.get_data_file_path(self.setting('tap'), mandatory=True))
+            # self.tap_df = pd.read_csv(self.state.filesystem.get_data_file_path(self.setting('tap'), mandatory=True))
             assert self.tap_df is not None
 
             # maz_to_tap_dfs - different sized sparse arrays with different columns, so we keep them seperate
@@ -327,11 +327,11 @@ class Network_LOS(object):
 
                 file_name = maz_to_tap_settings["table"]
                 df = pd.read_csv(
-                    self.whale.filesystem.get_data_file_path(file_name, mandatory=True)
+                    self.state.filesystem.get_data_file_path(file_name, mandatory=True)
                 )
 
                 # recode MAZs if needed
-                df["MAZ"] = recode_based_on_table(self.whale, df["MAZ"], "land_use")
+                df["MAZ"] = recode_based_on_table(self.state, df["MAZ"], "land_use")
 
                 # trim tap set
                 # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
@@ -344,7 +344,7 @@ class Network_LOS(object):
                             "tap_lines",
                         )
                         self.tap_lines_df = pd.read_csv(
-                            self.whale.filesystem.get_data_file_path(
+                            self.state.filesystem.get_data_file_path(
                                 tap_lines_file_name, mandatory=True
                             )
                         )
@@ -402,7 +402,7 @@ class Network_LOS(object):
                         )
 
                     if TRACE_TRIMMED_MAZ_TO_TAP_TABLES:
-                        self.whale.tracing.write_csv(
+                        self.state.tracing.write_csv(
                             df,
                             file_name=f"trimmed_{maz_to_tap_settings['table']}",
                             transpose=False,
@@ -427,7 +427,7 @@ class Network_LOS(object):
             assert "taz" not in self.skim_dicts
             # If offset_preprocessing was completed, then TAZ values
             # will be pre-offset and there's no need to re-offset them.
-            if self.whale.settings.offset_preprocessing:
+            if self.state.settings.offset_preprocessing:
                 _override_offset_int = 0
             else:
                 _override_offset_int = None
@@ -502,13 +502,13 @@ class Network_LOS(object):
             ), f"create_skim_dict 'maz': backing taz skim_dict not in skim_dicts"
             taz_skim_dict = self.skim_dicts["taz"]
             skim_dict = skim_dictionary.MazSkimDict(
-                self.whale, "maz", self, taz_skim_dict
+                self.state, "maz", self, taz_skim_dict
             )
         else:
             skim_info = self.skims_info[skim_tag]
             skim_data = self.skim_dict_factory.get_skim_data(skim_tag, skim_info)
             skim_dict = skim_dictionary.SkimDict(
-                self.whale, skim_tag, skim_info, skim_data
+                self.state, skim_tag, skim_info, skim_data
             )
 
         logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_dict.omx_shape}")
@@ -603,7 +603,7 @@ class Network_LOS(object):
         -------
             bool
         """
-        is_multiprocess = self.whale.settings.multiprocess
+        is_multiprocess = self.state.settings.multiprocess
         return is_multiprocess
 
     def load_shared_data(self, shared_data_buffers):
@@ -631,7 +631,7 @@ class Network_LOS(object):
         if self.zone_system == THREE_ZONE:
             assert self.tvpb is not None
 
-            if self.rebuild_tvpb_cache and not self.whale.settings.resume_after:
+            if self.rebuild_tvpb_cache and not self.state.settings.resume_after:
                 # delete old cache at start of new run so that stale cache is not loaded by load_data_to_buffer
                 # when singleprocess, this call is made (later in program flow) in the initialize_los step
                 self.tvpb.tap_cache.cleanup()
@@ -689,7 +689,7 @@ class Network_LOS(object):
             # non-global import avoids circular references
             from .skim_dataset import SkimDataset
 
-            skim_dataset = self.whale.get_injectable("skim_dataset")
+            skim_dataset = self.state.get_injectable("skim_dataset")
             if skim_tag == "maz":
                 return SkimDataset(skim_dataset)
             else:
@@ -700,7 +700,7 @@ class Network_LOS(object):
                         del skim_dataset.attrs[f"dim_redirection_{dd}"]
                 return SkimDataset(skim_dataset)
         elif sharrow_enabled and skim_tag in ("tap"):
-            tap_dataset = self.whale.get_injectable("tap_dataset")
+            tap_dataset = self.state.get_injectable("tap_dataset")
             from .skim_dataset import SkimDataset
 
             return SkimDataset(tap_dataset)
@@ -852,13 +852,13 @@ class Network_LOS(object):
 
         return result
 
-    def get_tazs(self, whale):
+    def get_tazs(self, state):
         # FIXME - should compute on init?
         if self.zone_system == ONE_ZONE:
-            tazs = whale.get_dataframe("land_use").index.values
+            tazs = state.get_dataframe("land_use").index.values
         else:
             try:
-                land_use_taz = whale.get_dataframe("land_use_taz")
+                land_use_taz = state.get_dataframe("land_use_taz")
             except (RuntimeError, KeyError):
                 # land_use_taz is missing, use fallback
                 tazs = self.maz_taz_df.TAZ.unique()
@@ -884,7 +884,7 @@ class Network_LOS(object):
         assert isinstance(taps, np.ndarray)
         return taps
 
-    def get_maz_to_taz_series(self, whale):
+    def get_maz_to_taz_series(self, state):
         """
         pd.Series: Index is the MAZ, value is the corresponding TAZ
         """
@@ -892,7 +892,7 @@ class Network_LOS(object):
             # FIXME:SHARROW - this assumes that both MAZ and TAZ have been recoded to
             #                 zero-based indexes, but what if that was not done?
             #                 Should we check it and error out here or bravely march forward?
-            skim_dataset = whale.get_injectable("skim_dataset")
+            skim_dataset = state.get_injectable("skim_dataset")
             maz_to_taz = skim_dataset["_digitized_otaz_of_omaz"].to_series()
         else:
             maz_to_taz = self.maz_taz_df[["MAZ", "TAZ"]].set_index("MAZ").TAZ
@@ -917,7 +917,7 @@ class Network_LOS(object):
             input_was_series = False
         else:
             input_was_series = True
-        out = s.map(self.get_maz_to_taz_series(self.whale))
+        out = s.map(self.get_maz_to_taz_series(self.state))
         if np.issubdtype(out, np.floating):
             if out.isna().any():
                 raise KeyError("failed in mapping MAZ to TAZ")

@@ -8,7 +8,7 @@ from collections.abc import Mapping, MutableMapping
 
 import yaml
 
-from activitysim.core.workflow.accessor import WhaleAccessor
+from activitysim.core.workflow.accessor import StateAccessor
 
 logger = logging.getLogger(__name__)
 
@@ -17,14 +17,14 @@ CSV_FILE_TYPE = "csv"
 LOGGING_CONF_FILE_NAME = "logging.yaml"
 
 
-def _rewrite_config_dict(whale, x):
+def _rewrite_config_dict(state, x):
     if isinstance(x, Mapping):
         # When a log config is a mapping of a single key that is `get_log_file_path`
         # we apply the get_log_file_path method to the value, which can add a
         # prefix (usually for multiprocessing)
         if len(x.keys()) == 1 and "get_log_file_path" in x.keys():
             return _rewrite_config_dict(
-                whale, whale.get_log_file_path(x["get_log_file_path"])
+                state, state.get_log_file_path(x["get_log_file_path"])
             )
         # When a log config is a mapping of two keys that are `is_sub_task`
         # and `is_not_sub_task`, we check the `is_sub_task` value in this context,
@@ -34,9 +34,9 @@ def _rewrite_config_dict(whale, x):
             and "is_sub_task" in x.keys()
             and "is_not_sub_task" in x.keys()
         ):
-            is_sub_task = whale.get_injectable("is_sub_task", False)
+            is_sub_task = state.get_injectable("is_sub_task", False)
             return _rewrite_config_dict(
-                whale, x["is_sub_task"] if is_sub_task else x["is_not_sub_task"]
+                state, x["is_sub_task"] if is_sub_task else x["is_not_sub_task"]
             )
         # accept alternate spelling "if_sub_task" in addition to "is_sub_task"
         elif (
@@ -44,21 +44,21 @@ def _rewrite_config_dict(whale, x):
             and "if_sub_task" in x.keys()
             and "if_not_sub_task" in x.keys()
         ):
-            is_sub_task = whale.get_injectable("is_sub_task", False)
+            is_sub_task = state.get_injectable("is_sub_task", False)
             return _rewrite_config_dict(
-                whale, x["if_sub_task"] if is_sub_task else x["if_not_sub_task"]
+                state, x["if_sub_task"] if is_sub_task else x["if_not_sub_task"]
             )
         else:
-            return {k: _rewrite_config_dict(whale, v) for (k, v) in x.items()}
+            return {k: _rewrite_config_dict(state, v) for (k, v) in x.items()}
     elif isinstance(x, list):
-        return [_rewrite_config_dict(whale, v) for v in x]
+        return [_rewrite_config_dict(state, v) for v in x]
     elif isinstance(x, tuple):
-        return tuple(_rewrite_config_dict(whale, v) for v in x)
+        return tuple(_rewrite_config_dict(state, v) for v in x)
     else:
         return x
 
 
-class Logging(WhaleAccessor):
+class Logging(StateAccessor):
     def __get__(self, instance, objtype=None) -> "Logging":
         # derived __get__ changes annotation, aids in type checking
         return super().__get__(instance, objtype)

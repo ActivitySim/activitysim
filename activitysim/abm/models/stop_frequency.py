@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def stop_frequency(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     tours_merged: pd.DataFrame,
     stop_frequency_alts,
@@ -57,9 +57,9 @@ def stop_frequency(
 
     trace_label = "stop_frequency"
     model_settings_file_name = "stop_frequency.yaml"
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
 
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     assert not tours_merged.household_id.isnull().any()
     assert not (tours_merged.origin == -1).any()
@@ -86,7 +86,7 @@ def stop_frequency(
 
         # this should be pre-slice as some expressions may count tours by type
         annotations = expressions.compute_columns(
-            whale,
+            state,
             df=tours_merged,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -126,10 +126,10 @@ def stop_frequency(
         )
 
         estimator = estimation.manager.begin_estimation(
-            whale, model_name=segment_name, bundle_name="stop_frequency"
+            state, model_name=segment_name, bundle_name="stop_frequency"
         )
 
-        segment_spec = whale.filesystem.read_model_spec(
+        segment_spec = state.filesystem.read_model_spec(
             file_name=segment_settings["SPEC"]
         )
         assert segment_spec is not None, (
@@ -137,11 +137,11 @@ def stop_frequency(
         )
 
         coefficients_file_name = segment_settings["COEFFICIENTS"]
-        coefficients_df = whale.filesystem.read_model_coefficients(
+        coefficients_df = state.filesystem.read_model_coefficients(
             file_name=coefficients_file_name
         )
         segment_spec = simulate.eval_coefficients(
-            whale, segment_spec, coefficients_df, estimator
+            state, segment_spec, coefficients_df, estimator
         )
 
         if estimator:
@@ -155,7 +155,7 @@ def stop_frequency(
             estimator.set_chooser_id(chooser_segment.index.name)
 
         choices = simulate.simple_simulate(
-            whale,
+            state,
             choosers=chooser_segment,
             spec=segment_spec,
             nest_spec=nest_spec,
@@ -191,13 +191,13 @@ def stop_frequency(
         # if not already there, then it will have been added by stop_freq_annotate_tours_preprocessor
         assign_in_place(tours, tours_merged[["primary_purpose"]])
 
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     # create trips table
-    trips = trip.initialize_from_tours(whale, tours, stop_frequency_alts)
-    whale.add_table("trips", trips)
-    whale.tracing.register_traceable_table("trips", trips)
-    whale.get_rn_generator().add_channel("trips", trips)
+    trips = trip.initialize_from_tours(state, tours, stop_frequency_alts)
+    state.add_table("trips", trips)
+    state.tracing.register_traceable_table("trips", trips)
+    state.get_rn_generator().add_channel("trips", trips)
 
     if estimator:
         # make sure they created trips with the expected tour_ids
@@ -230,24 +230,24 @@ def stop_frequency(
         assert not trips_differ.any()
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             tours, label="stop_frequency.tours", slicer="person_id", columns=None
         )
 
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             trips, label="stop_frequency.trips", slicer="person_id", columns=None
         )
 
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             annotations, label="stop_frequency.annotations", columns=None
         )
 
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             tours_merged,
             label="stop_frequency.tours_merged",
             slicer="person_id",
             columns=None,
         )
 
-    if whale.is_table("school_escort_trips"):
-        school_escort_tours_trips.merge_school_escort_trips_into_pipeline(whale)
+    if state.is_table("school_escort_trips"):
+        school_escort_tours_trips.merge_school_escort_trips_into_pipeline(state)

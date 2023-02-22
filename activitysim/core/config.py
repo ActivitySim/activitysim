@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.cached_object
-def locutor(whale: workflow.Whale) -> bool:
+def locutor(state: workflow.State) -> bool:
     # when multiprocessing, sometimes you only want one process to write trace files
     # mp_tasks overrides this definition to designate a single sub-process as locutor
     return True
@@ -92,15 +92,15 @@ def get_logit_model_settings(model_settings):
     return nests
 
 
-def filter_warnings(whale=None):
+def filter_warnings(state=None):
     """
     set warning filter to 'strict' if specified in settings
     """
 
-    if whale is None:
+    if state is None:
         strict = False
     else:
-        strict = whale.settings.treat_warnings_as_errors
+        strict = state.settings.treat_warnings_as_errors
 
     if strict:  # noqa: E402
         warnings.filterwarnings("error", category=Warning)

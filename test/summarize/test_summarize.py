@@ -16,15 +16,15 @@ def initialize_pipeline(
     tables: dict[str, str],
     initialize_network_los: bool,
     base_dir: Path,
-) -> workflow.Whale:
+) -> workflow.State:
     if base_dir is None:
         base_dir = Path("test").joinpath(module)
     configs_dir = base_dir.joinpath("configs")
     data_dir = base_dir.joinpath("data")
     output_dir = base_dir.joinpath("output")
 
-    whale = (
-        workflow.Whale()
+    state = (
+        workflow.State()
         .initialize_filesystem(
             configs_dir=configs_dir,
             data_dir=data_dir,
@@ -39,23 +39,23 @@ def initialize_pipeline(
             data_dir.joinpath(f"{dataframe_name}.csv"),
             index_col=idx_name,
         )
-        whale.add_table(dataframe_name, df)
+        state.add_table(dataframe_name, df)
 
     if initialize_network_los:
-        net_los = los.Network_LOS(whale)
+        net_los = los.Network_LOS(state)
         net_los.load_data()
-        whale.add_injectable("network_los", net_los)
+        state.add_injectable("network_los", net_los)
 
     # Add the dataframes to the pipeline
-    whale.checkpoint.restore()
-    whale.checkpoint.add(module)
-    whale.checkpoint.close_store()
+    state.checkpoint.restore()
+    state.checkpoint.add(module)
+    state.checkpoint.close_store()
 
     # By convention, this method needs to yield something
-    yield whale
+    yield state
 
     # pytest teardown code
-    whale.checkpoint.close_store()
+    state.checkpoint.close_store()
     pipeline_file_path = os.path.join(output_dir, "pipeline.h5")
     if os.path.exists(pipeline_file_path):
         os.unlink(pipeline_file_path)
@@ -109,35 +109,35 @@ def initialize_network_los() -> bool:
     return True
 
 
-def test_summarize(initialize_pipeline: workflow.Whale, caplog):
-    whale = initialize_pipeline
+def test_summarize(initialize_pipeline: workflow.State, caplog):
+    state = initialize_pipeline
     # Run summarize model
     caplog.set_level(logging.DEBUG)
-    whale.run(models=["summarize"])
+    state.run(models=["summarize"])
 
     # Retrieve output tables to check contents
-    model_settings = whale.filesystem.read_model_settings("summarize.yaml")
+    model_settings = state.filesystem.read_model_settings("summarize.yaml")
     output_location = (
         model_settings["OUTPUT"] if "OUTPUT" in model_settings else "summaries"
     )
-    output_dir = whale.get_output_file_path(output_location)
+    output_dir = state.get_output_file_path(output_location)
 
     # Check that households are counted correctly
     households_count = pd.read_csv(
-        whale.get_output_file_path(
+        state.get_output_file_path(
             os.path.join(output_location, f"households_count.csv")
         )
     )
-    households = pd.read_csv(whale.filesystem.get_data_file_path("households.csv"))
+    households = pd.read_csv(state.filesystem.get_data_file_path("households.csv"))
     assert int(households_count.iloc[0]) == len(households)
 
     # Check that bike trips are counted correctly
     trips_by_mode_count = pd.read_csv(
-        whale.get_output_file_path(
+        state.get_output_file_path(
             os.path.join(output_location, f"trips_by_mode_count.csv")
         )
     )
-    trips = pd.read_csv(whale.filesystem.get_data_file_path("trips.csv"))
+    trips = pd.read_csv(state.filesystem.get_data_file_path("trips.csv"))
     assert int(trips_by_mode_count.BIKE.iloc[0]) == len(
         trips[trips.trip_mode == "BIKE"]
     )

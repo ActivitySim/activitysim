@@ -17,7 +17,7 @@ import xarray as xr
 from pypyr.context import Context
 
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
-from activitysim.core.exceptions import WhaleAccessError
+from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import Checkpoints
 from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.runner import Runner
@@ -59,7 +59,7 @@ def split_arg(s, sep, default=""):
     return arg, val
 
 
-class WhaleAttr:
+class StateAttr:
     def __init__(self, member_type, default_init=False):
         self.member_type = member_type
         self._default_init = default_init
@@ -74,7 +74,7 @@ class WhaleAttr:
             if self._default_init:
                 instance.context[self.name] = self.member_type()
                 return instance.context[self.name]
-            raise WhaleAccessError(f"{self.name} not initialized for this whale")
+            raise StateAccessError(f"{self.name} not initialized for this state")
 
     def __set__(self, instance, value):
         if not isinstance(value, self.member_type):
@@ -85,13 +85,13 @@ class WhaleAttr:
         self.__set__(instance, None)
 
 
-class Whale:
+class State:
     def __init__(self, context=None):
         self._pipeline_store: pd.HDFStore | Path | None = None
         """Location of checkpoint storage"""
 
         self.open_files: dict[str, io.TextIOBase] = {}
-        """Files to close when whale is destroyed or re-initialized."""
+        """Files to close when state is destroyed or re-initialized."""
 
         if context is None:
             self.context = Context()
@@ -99,7 +99,7 @@ class Whale:
         elif isinstance(context, Context):
             self.context = context
         else:
-            raise TypeError(f"cannot init Whale with {type(context)}")
+            raise TypeError(f"cannot init State with {type(context)}")
 
     def __del__(self):
         self.close_open_files()
@@ -127,7 +127,7 @@ class Whale:
         if base_seed is None:
             try:
                 self.settings
-            except WhaleAccessError:
+            except StateAccessError:
                 base_seed = 0
             else:
                 base_seed = self.settings.rng_base_seed
@@ -164,10 +164,10 @@ class Whale:
             extensions.append(e)
         self.set("imported_extensions", extensions)
 
-    filesystem = WhaleAttr(FileSystem)
-    settings = WhaleAttr(Settings)
-    network_settings = WhaleAttr(NetworkSettings)
-    predicates = WhaleAttr(dict, default_init=True)
+    filesystem = StateAttr(FileSystem)
+    settings = StateAttr(Settings)
+    network_settings = StateAttr(NetworkSettings)
+    predicates = StateAttr(dict, default_init=True)
     checkpoint = Checkpoints()
     logging = Logging()
     tracing: Tracing = Tracing()
@@ -175,9 +175,9 @@ class Whale:
     @classmethod
     def make_default(
         cls, working_dir: Path = None, settings: dict[str, Any] = None, **kwargs
-    ) -> "Whale":
+    ) -> "State":
         """
-        Convenience constructor for mostly default Whales.
+        Convenience constructor for mostly default States.
 
         Parameters
         ----------
@@ -194,7 +194,7 @@ class Whale:
 
         Returns
         -------
-        Whale
+        State
         """
         if working_dir:
             working_dir = Path(working_dir)
@@ -212,7 +212,7 @@ class Whale:
     @classmethod
     def make_temp(
         cls, source: Path = None, checkpoint_name: str = LAST_CHECKPOINT
-    ) -> "Whale":
+    ) -> "State":
         """
         Initialize state with a temporary directory.
 
@@ -226,7 +226,7 @@ class Whale:
 
         Returns
         -------
-        Whale
+        State
         """
         import tempfile
 
@@ -235,11 +235,11 @@ class Whale:
         temp_dir_path.joinpath("configs").mkdir()
         temp_dir_path.joinpath("data").mkdir()
         temp_dir_path.joinpath("configs/settings.yaml").write_text("# empty\n")
-        whale = cls.make_default(temp_dir_path)
-        whale.context["_TEMP_DIR_"] = temp_dir
+        state = cls.make_default(temp_dir_path)
+        state.context["_TEMP_DIR_"] = temp_dir
         if source is not None:
-            whale.checkpoint.restore_from(source, checkpoint_name)
-        return whale
+            state.checkpoint.restore_from(source, checkpoint_name)
+        return state
 
     def initialize_filesystem(
         self,
@@ -253,7 +253,7 @@ class Whale:
         settings_file_name="settings.yaml",
         pipeline_file_name="pipeline",
         **silently_ignored_kwargs,
-    ) -> "Whale":
+    ) -> "State":
         if isinstance(configs_dir, (str, Path)):
             configs_dir = (configs_dir,)
         if isinstance(data_dir, (str, Path)):
@@ -279,7 +279,7 @@ class Whale:
             raise
         return self
 
-    def default_settings(self, force=False) -> "Whale":
+    def default_settings(self, force=False) -> "State":
         """
         Initialize with all default settings, rather than reading from a file.
 
@@ -293,12 +293,12 @@ class Whale:
         try:
             _ = self.settings
             if force:
-                raise WhaleAccessError
-        except WhaleAccessError:
+                raise StateAccessError
+        except StateAccessError:
             self.settings = Settings()
         return self
 
-    def load_settings(self) -> "Whale":
+    def load_settings(self) -> "State":
         # read settings file
         raw_settings = self.filesystem.read_settings_file(
             self.filesystem.settings_file_name,
@@ -382,7 +382,7 @@ class Whale:
         logger.debug(f"loading table {tablename}")
         try:
             t = self._LOADABLE_TABLES[tablename](self.context)
-        except WhaleAccessError:
+        except StateAccessError:
             if not swallow_errors:
                 raise
             else:
@@ -491,13 +491,13 @@ class Whale:
                 key = key_name
             if key_name in self._RUNNABLE_STEPS:
                 raise ValueError(
-                    f"cannot `get` {key_name}, it is a step, try Whale.run.{key_name}()"
+                    f"cannot `get` {key_name}, it is a step, try State.run.{key_name}()"
                 )
         result = self.context.get(key, None)
         if result is None:
             try:
                 result = getattr(self.filesystem, key, None)
-            except WhaleAccessError:
+            except StateAccessError:
                 result = None
         if result is None:
             if key in self._LOADABLE_TABLES:
@@ -645,7 +645,7 @@ class Whale:
         """
         try:
             filesystem = self.filesystem
-        except WhaleAccessError:
+        except StateAccessError:
             return {}
         else:
             return filesystem.read_settings_file("constants.yaml", mandatory=False)
@@ -869,7 +869,7 @@ class Whale:
     def trace_memory_info(self, event, trace_ticks=0):
         from activitysim.core.mem import trace_memory_info
 
-        return trace_memory_info(event, whale=self, trace_ticks=trace_ticks)
+        return trace_memory_info(event, state=self, trace_ticks=trace_ticks)
 
     run = Runner()
 

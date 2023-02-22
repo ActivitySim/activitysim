@@ -14,19 +14,19 @@ from activitysim.core import chunk, config, mem, mp_tasks, tracing, workflow
 logger = logging.getLogger("activitysim")
 
 
-def cleanup_output_files(whale: workflow.Whale):
+def cleanup_output_files(state: workflow.State):
     active_log_files = [
         h.baseFilename
         for h in logger.root.handlers
         if isinstance(h, logging.FileHandler)
     ]
-    whale.tracing.delete_output_files("log", ignore=active_log_files)
+    state.tracing.delete_output_files("log", ignore=active_log_files)
 
-    whale.tracing.delete_output_files("h5")
-    whale.tracing.delete_output_files("csv")
-    whale.tracing.delete_output_files("txt")
-    whale.tracing.delete_output_files("yaml")
-    whale.tracing.delete_output_files("prof")
+    state.tracing.delete_output_files("h5")
+    state.tracing.delete_output_files("csv")
+    state.tracing.delete_output_files("txt")
+    state.tracing.delete_output_files("yaml")
+    state.tracing.delete_output_files("prof")
 
 
 def run(run_list, injectables=None):
@@ -65,14 +65,14 @@ if __name__ == "__main__":
     data_dir = "/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data"
     data_dir = "../example/data"
 
-    # whale.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
-    whale.add_injectable("data_dir", ["ancillary_data", data_dir])
-    # whale.add_injectable('data_dir', ['ancillary_data', '../activitysim/abm/test/data'])
-    whale.add_injectable("configs_dir", ["configs", "../example/configs"])
+    # state.add_injectable('data_dir', '/Users/jeff.doyle/work/activitysim-data/mtc_tm1/data')
+    state.add_injectable("data_dir", ["ancillary_data", data_dir])
+    # state.add_injectable('data_dir', ['ancillary_data', '../activitysim/abm/test/data'])
+    state.add_injectable("configs_dir", ["configs", "../example/configs"])
 
     injectables = config.handle_standard_args()
 
-    whale.config_logger()
+    state.config_logger()
     config.filter_warnings()
 
     log_settings(injectables)
@@ -80,10 +80,10 @@ if __name__ == "__main__":
     t0 = tracing.print_elapsed_time()
 
     # cleanup if not resuming
-    if not whale.settings.resume_after:
+    if not state.settings.resume_after:
         cleanup_output_files()
 
-    run_list = mp_tasks.get_run_list(whale)
+    run_list = mp_tasks.get_run_list(state)
 
     if run_list["multiprocess"]:
         # do this after config.handle_standard_args, as command line args may override injectables

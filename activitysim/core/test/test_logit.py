@@ -61,8 +61,8 @@ def spec(test_data):
 
 @pytest.fixture
 def utilities(choosers, spec, test_data):
-    whale = workflow.Whale().default_settings()
-    vars = eval_variables(whale, spec.index, choosers)
+    state = workflow.State().default_settings()
+    vars = eval_variables(state, spec.index, choosers)
     utils = vars.dot(spec).astype("float")
     return pd.DataFrame(
         utils.values.reshape(test_data["probabilities"].shape),
@@ -71,33 +71,33 @@ def utilities(choosers, spec, test_data):
 
 
 def test_utils_to_probs(utilities, test_data):
-    whale = workflow.Whale().default_settings()
-    probs = logit.utils_to_probs(whale, utilities, trace_label=None)
+    state = workflow.State().default_settings()
+    probs = logit.utils_to_probs(state, utilities, trace_label=None)
     pdt.assert_frame_equal(probs, test_data["probabilities"])
 
 
 def test_utils_to_probs_raises():
-    whale = workflow.Whale().default_settings()
+    state = workflow.State().default_settings()
     idx = pd.Index(name="household_id", data=[1])
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
-            whale, pd.DataFrame([[1, 2, np.inf, 3]], index=idx), trace_label=None
+            state, pd.DataFrame([[1, 2, np.inf, 3]], index=idx), trace_label=None
         )
     assert "infinite exponentiated utilities" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
         logit.utils_to_probs(
-            whale, pd.DataFrame([[-999, -999, -999, -999]], index=idx), trace_label=None
+            state, pd.DataFrame([[-999, -999, -999, -999]], index=idx), trace_label=None
         )
     assert "all probabilities are zero" in str(excinfo.value)
 
 
 def test_make_choices_only_one():
-    whale = workflow.Whale().default_settings()
+    state = workflow.State().default_settings()
     probs = pd.DataFrame(
         [[1, 0, 0], [0, 1, 0]], columns=["a", "b", "c"], index=["x", "y"]
     )
-    choices, rands = logit.make_choices(whale, probs)
+    choices, rands = logit.make_choices(state, probs)
 
     pdt.assert_series_equal(
         choices, pd.Series([0, 1], index=["x", "y"]), check_dtype=False
@@ -105,9 +105,9 @@ def test_make_choices_only_one():
 
 
 def test_make_choices_real_probs(utilities):
-    whale = workflow.Whale().default_settings()
-    probs = logit.utils_to_probs(whale, utilities, trace_label=None)
-    choices, rands = logit.make_choices(whale, probs)
+    state = workflow.State().default_settings()
+    probs = logit.utils_to_probs(state, utilities, trace_label=None)
+    choices, rands = logit.make_choices(state, probs)
 
     pdt.assert_series_equal(
         choices,
@@ -136,7 +136,7 @@ def test_interaction_dataset_no_sample(interaction_choosers, interaction_alts):
     )
 
     interacted = logit.interaction_dataset(
-        workflow.Whale().default_settings(), interaction_choosers, interaction_alts
+        workflow.State().default_settings(), interaction_choosers, interaction_alts
     )
 
     interacted, expected = interacted.align(expected, axis=1)
@@ -156,7 +156,7 @@ def test_interaction_dataset_sampled(interaction_choosers, interaction_alts):
     )
 
     interacted = logit.interaction_dataset(
-        workflow.Whale().default_settings(),
+        workflow.State().default_settings(),
         interaction_choosers,
         interaction_alts,
         sample_size=2,

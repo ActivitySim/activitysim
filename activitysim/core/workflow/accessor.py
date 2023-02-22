@@ -4,17 +4,17 @@ import inspect
 import warnings
 
 from activitysim.core import workflow
-from activitysim.core.exceptions import WhaleAccessError
+from activitysim.core.exceptions import StateAccessError
 
 NO_DEFAULT = "< no default >"
 
 
-class WhaleAccessor:
+class StateAccessor:
     """
     Boilerplate code for accessors.
 
     Accessors consolidate groups of related functions in a common interface,
-    without requiring the main Whale class to become bloated by including all
+    without requiring the main State class to become bloated by including all
     relevant functionality.  They also allow setting and storing attributes
     without worrying about conflicting with similarly named attributes of
     other accessors.
@@ -23,8 +23,8 @@ class WhaleAccessor:
     def __set_name__(self, owner, name):
         self._name = name
 
-    def __init__(self, whale: "workflow.Whale" = None):
-        self._obj = whale
+    def __init__(self, state: "workflow.State" = None):
+        self._obj = state
 
     def __get__(self, instance, objtype=None):
         if instance is None:
@@ -32,9 +32,9 @@ class WhaleAccessor:
         cached_accessor = getattr(instance, f"_cached_accessor_{self._name}", None)
         if cached_accessor is not None:
             return cached_accessor
-        from .state import Whale
+        from .state import State
 
-        assert isinstance(instance, Whale)
+        assert isinstance(instance, State)
         accessor_obj = self.__class__(instance)
         object.__setattr__(instance, self._name, accessor_obj)
         return accessor_obj
@@ -49,7 +49,7 @@ class WhaleAccessor:
         raise ValueError(f"cannot delete accessor {self._name}")
 
 
-class FromWhale:
+class FromState:
     def __init__(self, member_type=None, default_init=False, default_value=NO_DEFAULT):
         """
         Creates a property to access an element from the current context.
@@ -86,7 +86,7 @@ class FromWhale:
             if name in annot:
                 self.member_type = annot[name]
 
-    def __get__(self, instance: WhaleAccessor, objtype=None):
+    def __get__(self, instance: StateAccessor, objtype=None):
         try:
             return instance._obj.context[self.name]
         except (KeyError, AttributeError):
@@ -96,9 +96,9 @@ class FromWhale:
             elif self._default_value != NO_DEFAULT:
                 instance._obj.context[self.name] = self._default_value
                 return instance._obj.context[self.name]
-            raise WhaleAccessError(f"{self.name} not initialized for this whale")
+            raise StateAccessError(f"{self.name} not initialized for this state")
 
-    def __set__(self, instance: WhaleAccessor, value):
+    def __set__(self, instance: StateAccessor, value):
         if not self.__validate_type(value):
             raise TypeError(f"{self.name} must be {self.member_type} not {type(value)}")
         instance._obj.context[self.name] = value

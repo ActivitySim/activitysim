@@ -164,16 +164,16 @@ def test_mtc_progressive():
 
     import activitysim.abm  # register components
 
-    whale = workflow.create_example("prototype_mtc", temp=True)
+    state = workflow.create_example("prototype_mtc", temp=True)
 
-    assert whale.settings.models == EXPECTED_MODELS
-    assert whale.settings.chunk_size == 0
-    assert whale.settings.sharrow == False
+    assert state.settings.models == EXPECTED_MODELS
+    assert state.settings.chunk_size == 0
+    assert state.settings.sharrow == False
 
     for step_name in EXPECTED_MODELS:
-        whale.run.by_name(step_name)
+        state.run.by_name(step_name)
         try:
-            whale.checkpoint.check_against(
+            state.checkpoint.check_against(
                 Path(__file__).parent.joinpath("prototype_mtc_reference_pipeline.zip"),
                 checkpoint_name=step_name,
             )

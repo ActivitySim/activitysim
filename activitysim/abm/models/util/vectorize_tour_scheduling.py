@@ -21,10 +21,10 @@ USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS = False
 RUN_ALTS_PREPROCESSOR_BEFORE_MERGE = True  # see FIXME below before changing this
 
 
-def skims_for_logsums(whale: workflow.Whale, tour_purpose, model_settings, trace_label):
+def skims_for_logsums(state: workflow.State, tour_purpose, model_settings, trace_label):
     assert "LOGSUM_SETTINGS" in model_settings
 
-    network_los = whale.get_injectable("network_los")
+    network_los = state.get_injectable("network_los")
 
     skim_dict = network_los.get_default_skim_dict()
 
@@ -93,7 +93,7 @@ def skims_for_logsums(whale: workflow.Whale, tour_purpose, model_settings, trace
 
 
 def _compute_logsums(
-    whale: workflow.Whale,
+    state: workflow.State,
     alt_tdd,
     tours_merged,
     tour_purpose,
@@ -108,8 +108,8 @@ def _compute_logsums(
 
     trace_label = tracing.extend_trace_label(trace_label, "logsums")
 
-    with chunk.chunk_log(whale, trace_label):
-        logsum_settings = whale.filesystem.read_model_settings(
+    with chunk.chunk_log(state, trace_label):
+        logsum_settings = state.filesystem.read_model_settings(
             model_settings["LOGSUM_SETTINGS"]
         )
         choosers = alt_tdd.join(tours_merged, how="left", rsuffix="_chooser")
@@ -131,7 +131,7 @@ def _compute_logsums(
         locals_dict.update(skims)
 
         # constrained coefficients can appear in expressions
-        coefficients = whale.filesystem.get_segment_coefficients(
+        coefficients = state.filesystem.get_segment_coefficients(
             logsum_settings, tour_purpose
         )
         locals_dict.update(coefficients)
@@ -145,7 +145,7 @@ def _compute_logsums(
             simulate.set_skim_wrapper_targets(choosers, skims)
 
             expressions.assign_columns(
-                whale,
+                state,
                 df=choosers,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -153,11 +153,11 @@ def _compute_logsums(
             )
 
         # - compute logsums
-        logsum_spec = whale.filesystem.read_model_spec(
+        logsum_spec = state.filesystem.read_model_spec(
             file_name=logsum_settings["SPEC"]
         )
         logsum_spec = simulate.eval_coefficients(
-            whale, logsum_spec, coefficients, estimator=None
+            state, logsum_spec, coefficients, estimator=None
         )
 
         nest_spec = config.get_logit_model_settings(logsum_settings)
@@ -166,7 +166,7 @@ def _compute_logsums(
         )
 
         logsums = simulate.simple_simulate_logsums(
-            whale,
+            state,
             choosers,
             logsum_spec,
             nest_spec,
@@ -179,14 +179,14 @@ def _compute_logsums(
     return logsums
 
 
-def dedupe_alt_tdd(whale: workflow.Whale, alt_tdd, tour_purpose, trace_label):
-    tdd_segments = whale.get_injectable("tdd_alt_segments", None)
+def dedupe_alt_tdd(state: workflow.State, alt_tdd, tour_purpose, trace_label):
+    tdd_segments = state.get_injectable("tdd_alt_segments", None)
     alt_tdd_periods = None
 
     logger.info("tdd_alt_segments specified for representative logsums")
 
     with chunk.chunk_log(
-        whale, tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")
+        state, tracing.extend_trace_label(trace_label, "dedupe_alt_tdd")
     ) as chunk_sizer:
         if tdd_segments is not None:
             dedupe_columns = ["out_period", "in_period"]
@@ -299,7 +299,7 @@ def dedupe_alt_tdd(whale: workflow.Whale, alt_tdd, tour_purpose, trace_label):
 
 
 def compute_tour_scheduling_logsums(
-    whale: workflow.Whale,
+    state: workflow.State,
     alt_tdd,
     tours_merged,
     tour_purpose,
@@ -322,7 +322,7 @@ def compute_tour_scheduling_logsums(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "compute_logsums")
-    network_los = whale.get_injectable("network_los")
+    network_los = state.get_injectable("network_los")
 
     # - in_period and out_period
     assert "out_period" not in alt_tdd
@@ -339,11 +339,11 @@ def compute_tour_scheduling_logsums(
     # outside chunk_log context because we extend log_df call for alt_tdd made by our only caller _schedule_tours
     chunk_sizer.log_df(trace_label, "alt_tdd", alt_tdd)
 
-    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
+    with chunk.chunk_log(state, trace_label) as chunk_sizer:
         if USE_BRUTE_FORCE_TO_COMPUTE_LOGSUMS:
             # compute logsums for all the tour alt_tdds (inefficient)
             logsums = _compute_logsums(
-                whale,
+                state,
                 alt_tdd,
                 tours_merged,
                 tour_purpose,
@@ -356,7 +356,7 @@ def compute_tour_scheduling_logsums(
 
         index_name = alt_tdd.index.name
         deduped_alt_tdds, redupe_columns = dedupe_alt_tdd(
-            whale, alt_tdd, tour_purpose, trace_label
+            state, alt_tdd, tour_purpose, trace_label
         )
         chunk_sizer.log_df(trace_label, "deduped_alt_tdds", deduped_alt_tdds)
 
@@ -371,7 +371,7 @@ def compute_tour_scheduling_logsums(
 
         # - compute logsums for the alt_tdd_periods
         deduped_alt_tdds["logsums"] = _compute_logsums(
-            whale,
+            state,
             deduped_alt_tdds,
             tours_merged,
             tour_purpose,
@@ -404,7 +404,7 @@ def compute_tour_scheduling_logsums(
         if TRACE:
             trace_logsums_df = logsums.to_frame("representative_logsum")
             trace_logsums_df["brute_force_logsum"] = _compute_logsums(
-                whale,
+                state,
                 alt_tdd,
                 tours_merged,
                 tour_purpose,
@@ -413,7 +413,7 @@ def compute_tour_scheduling_logsums(
                 skims,
                 trace_label,
             )
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 trace_logsums_df,
                 label=tracing.extend_trace_label(trace_label, "representative_logsums"),
                 slicer="NONE",
@@ -466,7 +466,7 @@ def get_previous_tour_by_tourid(
 
 
 def tdd_interaction_dataset(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours,
     alts,
     timetable,
@@ -501,7 +501,7 @@ def tdd_interaction_dataset(
 
     trace_label = tracing.extend_trace_label(trace_label, "tdd_interaction_dataset")
 
-    with chunk.chunk_log(whale, trace_label) as chunk_sizer:
+    with chunk.chunk_log(state, trace_label) as chunk_sizer:
         alts_ids = np.tile(alts.index, len(tours.index))
         chunk_sizer.log_df(trace_label, "alts_ids", alts_ids)
 
@@ -552,7 +552,7 @@ def tdd_interaction_dataset(
 
 
 def run_alts_preprocessor(
-    whale: workflow.Whale, model_settings, alts, segment, locals_dict, trace_label
+    state: workflow.State, model_settings, alts, segment, locals_dict, trace_label
 ):
     """
     run preprocessor on alts, as specified by ALTS_PREPROCESSOR in model_settings
@@ -603,7 +603,7 @@ def run_alts_preprocessor(
         alts = alts.copy()
 
         expressions.assign_columns(
-            whale,
+            state,
             df=alts,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -614,7 +614,7 @@ def run_alts_preprocessor(
 
 
 def _schedule_tours(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours,
     persons_merged,
     alts,
@@ -706,7 +706,7 @@ def _schedule_tours(
     # indexed (not unique) on tour_id
     choice_column = TDD_CHOICE_COLUMN
     alt_tdd = tdd_interaction_dataset(
-        whale, tours, alts, timetable, choice_column, window_id_col, tour_trace_label
+        state, tours, alts, timetable, choice_column, window_id_col, tour_trace_label
     )
     # print(f"tours {tours.shape} alts {alts.shape}")
 
@@ -715,7 +715,7 @@ def _schedule_tours(
     # - add logsums
     if logsum_tour_purpose:
         logsums = compute_tour_scheduling_logsums(
-            whale,
+            state,
             alt_tdd,
             tours,
             logsum_tour_purpose,
@@ -739,7 +739,7 @@ def _schedule_tours(
     chunk_sizer.log_df(tour_trace_label, "tours", tours)
 
     # - make choices
-    locals_d = {"tt": timetable.attach_state(whale)}
+    locals_d = {"tt": timetable.attach_state(state)}
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
@@ -761,7 +761,7 @@ def _schedule_tours(
             logsum_tour_purpose  # FIXME this is not always right - see note above
         )
         alt_tdd = run_alts_preprocessor(
-            whale, model_settings, alt_tdd, spec_segment, locals_d, tour_trace_label
+            state, model_settings, alt_tdd, spec_segment, locals_d, tour_trace_label
         )
         chunk_sizer.log_df(tour_trace_label, "alt_tdd", alt_tdd)
 
@@ -771,10 +771,10 @@ def _schedule_tours(
         estimator.set_alt_id(choice_column)
         estimator.write_interaction_sample_alternatives(alt_tdd)
 
-    log_alt_losers = whale.settings.log_alt_losers
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
-        whale,
+        state,
         tours,
         alt_tdd,
         spec,
@@ -799,7 +799,7 @@ def _schedule_tours(
 
 
 def schedule_tours(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours,
     persons_merged,
     alts,
@@ -843,7 +843,7 @@ def schedule_tours(
     if "LOGSUM_SETTINGS" in model_settings:
         # we need skims to calculate tvpb skim overhead in 3_ZONE systems for use by calc_rows_per_chunk
         skims = skims_for_logsums(
-            whale, logsum_tour_purpose, model_settings, tour_trace_label
+            state, logsum_tour_purpose, model_settings, tour_trace_label
         )
     else:
         skims = None
@@ -855,10 +855,10 @@ def schedule_tours(
         chunk_trace_label,
         chunk_sizer,
     ) in chunk.adaptive_chunked_choosers(
-        whale, tours, tour_trace_label, tour_chunk_tag
+        state, tours, tour_trace_label, tour_chunk_tag
     ):
         choices = _schedule_tours(
-            whale,
+            state,
             chooser_chunk,
             persons_merged,
             alts,
@@ -892,7 +892,7 @@ def schedule_tours(
 
 
 def vectorize_tour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours,
     persons_merged,
     alts,
@@ -1001,7 +1001,7 @@ def vectorize_tour_scheduling(
                 if RUN_ALTS_PREPROCESSOR_BEFORE_MERGE:
                     locals_dict = {}
                     alts = run_alts_preprocessor(
-                        whale,
+                        state,
                         model_settings,
                         alts,
                         spec_segment_name,
@@ -1010,7 +1010,7 @@ def vectorize_tour_scheduling(
                     )
 
                 choices = schedule_tours(
-                    whale,
+                    state,
                     nth_tours_in_segment,
                     persons_merged,
                     alts,
@@ -1040,7 +1040,7 @@ def vectorize_tour_scheduling(
             assert tour_segments.get("spec_segment_name") is None
 
             choices = schedule_tours(
-                whale,
+                state,
                 nth_tours,
                 persons_merged,
                 alts,
@@ -1065,7 +1065,7 @@ def vectorize_tour_scheduling(
 
 
 def vectorize_subtour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     parent_tours,
     subtours,
     persons_merged,
@@ -1159,7 +1159,7 @@ def vectorize_subtour_scheduling(
         assert not nth_tours.parent_tour_id.duplicated().any()
 
         choices = schedule_tours(
-            whale,
+            state,
             nth_tours,
             persons_merged,
             alts,
@@ -1171,7 +1171,7 @@ def vectorize_subtour_scheduling(
             previous_tour_by_parent_tour_id,
             tour_owner_id_col,
             estimator,
-            whale.settings.chunk_size,
+            state.settings.chunk_size,
             tour_trace_label,
             tour_chunk_tag,
             sharrow_skip=sharrow_skip,
@@ -1218,7 +1218,7 @@ def build_joint_tour_timetables(
 
 
 def vectorize_joint_tour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     joint_tours,
     joint_tour_participants,
     persons_merged,
@@ -1307,7 +1307,7 @@ def vectorize_joint_tour_scheduling(
         )
 
         choices = schedule_tours(
-            whale,
+            state,
             nth_tours,
             persons_merged,
             alts,

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.table
-def accessibility(whale: workflow.Whale):
+def accessibility(state: workflow.State):
     """
     If 'accessibility' is in input_tables list, then read it in,
     otherwise create skeleton table with same index as landuse.
@@ -25,8 +25,8 @@ def accessibility(whale: workflow.Whale):
     otherwise it will simply be replaced when accessibility model is run
     """
 
-    land_use = whale.get_dataframe("land_use")
-    accessibility_df = read_input_table(whale, "accessibility", required=False)
+    land_use = state.get_dataframe("land_use")
+    accessibility_df = read_input_table(state, "accessibility", required=False)
 
     if accessibility_df is None:
         accessibility_df = pd.DataFrame(index=land_use.index)
@@ -52,6 +52,6 @@ def accessibility(whale: workflow.Whale):
         logger.info("loaded land_use %s" % (accessibility_df.shape,))
 
     # replace table function with dataframe
-    whale.add_table("accessibility", accessibility_df)
+    state.add_table("accessibility", accessibility_df)
 
     return accessibility_df

@@ -16,25 +16,25 @@ from activitysim.core import exceptions, los, workflow
 
 def add_canonical_dirs(configs_dir_name):
 
-    whale = workflow.Whale()
+    state = workflow.State()
     configs_dir = os.path.join(os.path.dirname(__file__), f"los/{configs_dir_name}")
     data_dir = os.path.join(os.path.dirname(__file__), f"los/data")
     output_dir = os.path.join(os.path.dirname(__file__), "output")
-    whale.initialize_filesystem(
+    state.initialize_filesystem(
         working_dir=os.path.dirname(__file__),
         configs_dir=(configs_dir,),
         output_dir=output_dir,
         data_dir=(data_dir,),
     )
-    return whale
+    return state
 
 
 def test_legacy_configs():
 
-    whale = add_canonical_dirs("configs_legacy_settings").load_settings()
+    state = add_canonical_dirs("configs_legacy_settings").load_settings()
 
     with pytest.raises(exceptions.SettingsFileNotFoundError):
-        network_los = los.Network_LOS(whale)
+        network_los = los.Network_LOS(state)
 
     # if backwards compatability is ever fixed...
     # assert network_los.setting("zone_system") == los.ONE_ZONE
@@ -43,9 +43,9 @@ def test_legacy_configs():
 
 def test_one_zone():
 
-    whale = add_canonical_dirs("configs_1z").load_settings()
+    state = add_canonical_dirs("configs_1z").load_settings()
 
-    network_los = los.Network_LOS(whale)
+    network_los = los.Network_LOS(state)
 
     assert network_los.setting("zone_system") == los.ONE_ZONE
 
@@ -89,9 +89,9 @@ def test_one_zone():
 
 def test_two_zone():
 
-    whale = add_canonical_dirs("configs_2z").load_settings()
+    state = add_canonical_dirs("configs_2z").load_settings()
 
-    network_los = los.Network_LOS(whale)
+    network_los = los.Network_LOS(state)
 
     assert network_los.setting("zone_system") == los.TWO_ZONE
 
@@ -139,9 +139,9 @@ def test_two_zone():
 
 def test_three_zone():
 
-    whale = add_canonical_dirs("configs_3z").load_settings()
+    state = add_canonical_dirs("configs_3z").load_settings()
 
-    network_los = los.Network_LOS(whale)
+    network_los = los.Network_LOS(state)
 
     assert network_los.setting("zone_system") == los.THREE_ZONE
 
@@ -164,8 +164,8 @@ def test_three_zone():
 
 def test_30_minute_windows():
 
-    whale = add_canonical_dirs("configs_test_misc").default_settings()
-    network_los = los.Network_LOS(whale, los_settings_file_name="settings_30_min.yaml")
+    state = add_canonical_dirs("configs_test_misc").default_settings()
+    network_los = los.Network_LOS(state, los_settings_file_name="settings_30_min.yaml")
 
     assert network_los.skim_time_period_label(1) == "EA"
     assert network_los.skim_time_period_label(16) == "AM"
@@ -181,8 +181,8 @@ def test_30_minute_windows():
 
 def test_60_minute_windows():
 
-    whale = add_canonical_dirs("configs_test_misc").default_settings()
-    network_los = los.Network_LOS(whale, los_settings_file_name="settings_60_min.yaml")
+    state = add_canonical_dirs("configs_test_misc").default_settings()
+    network_los = los.Network_LOS(state, los_settings_file_name="settings_60_min.yaml")
 
     assert network_los.skim_time_period_label(1) == "EA"
     assert network_los.skim_time_period_label(8) == "AM"
@@ -198,8 +198,8 @@ def test_60_minute_windows():
 
 def test_1_week_time_window():
 
-    whale = add_canonical_dirs("configs_test_misc").default_settings()
-    network_los = los.Network_LOS(whale, los_settings_file_name="settings_1_week.yaml")
+    state = add_canonical_dirs("configs_test_misc").default_settings()
+    network_los = los.Network_LOS(state, los_settings_file_name="settings_1_week.yaml")
 
     assert network_los.skim_time_period_label(1) == "Sunday"
     assert network_los.skim_time_period_label(2) == "Monday"
@@ -229,9 +229,9 @@ def test_1_week_time_window():
 
 def test_skim_time_periods_future_warning():
 
-    whale = add_canonical_dirs("configs_test_misc").default_settings()
+    state = add_canonical_dirs("configs_test_misc").default_settings()
 
     with pytest.warns(FutureWarning) as warning_test:
         network_los = los.Network_LOS(
-            whale, los_settings_file_name="settings_legacy_hours_key.yaml"
+            state, los_settings_file_name="settings_legacy_hours_key.yaml"
         )

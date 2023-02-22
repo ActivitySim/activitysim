@@ -93,21 +93,21 @@ EXPECTED_MODELS = [
 def test_sandag_xborder_progressive():
     import activitysim.abm  # register components # noqa: F401
 
-    whale = workflow.create_example("prototype_sandag_xborder", temp=True)
-    whale.settings.multiprocess = False
-    whale.settings.num_processes = 1
-    whale.settings.households_sample_size = 10
-    whale.settings.chunk_size = 0
-    whale.settings.recode_pipeline_columns = False
-    whale.import_extensions("extensions")
+    state = workflow.create_example("prototype_sandag_xborder", temp=True)
+    state.settings.multiprocess = False
+    state.settings.num_processes = 1
+    state.settings.households_sample_size = 10
+    state.settings.chunk_size = 0
+    state.settings.recode_pipeline_columns = False
+    state.import_extensions("extensions")
 
-    assert whale.settings.models == EXPECTED_MODELS
-    assert whale.settings.sharrow == False
+    assert state.settings.models == EXPECTED_MODELS
+    assert state.settings.sharrow == False
 
     for step_name in EXPECTED_MODELS:
-        whale.run.by_name(step_name)
+        state.run.by_name(step_name)
         try:
-            whale.checkpoint.check_against(
+            state.checkpoint.check_against(
                 Path(__file__).parent.joinpath(
                     "prototype_sandag_xborder_reference_pipeline.zip"
                 ),

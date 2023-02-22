@@ -26,12 +26,12 @@ DEFAULT_TABLE_LIST = [
 logger = logging.getLogger(__name__)
 
 
-def annotate_tables(whale: workflow.Whale, model_settings, trace_label, chunk_sizer):
+def annotate_tables(state: workflow.State, model_settings, trace_label, chunk_sizer):
     """
 
     Parameters
     ----------
-    whale : workflow.Whale
+    state : workflow.State
     model_settings :
     trace_label : str
     chunk_sizer : ChunkSizer
@@ -63,7 +63,7 @@ def annotate_tables(whale: workflow.Whale, model_settings, trace_label, chunk_si
 
         chunk_sizer.log_rss(f"{trace_label}.pre-get_table.{tablename}")
 
-        df = whale.get_dataframe(tablename)
+        df = state.get_dataframe(tablename)
         chunk_sizer.log_df(trace_label, tablename, df)
 
         # - rename columns
@@ -85,26 +85,26 @@ def annotate_tables(whale: workflow.Whale, model_settings, trace_label, chunk_si
                 f"{trace_label} - annotating {tablename} SPEC {annotate['SPEC']}"
             )
             expressions.assign_columns(
-                whale, df=df, model_settings=annotate, trace_label=trace_label
+                state, df=df, model_settings=annotate, trace_label=trace_label
             )
 
         chunk_sizer.log_df(trace_label, tablename, df)
 
         # - write table to pipeline
-        whale.add_table(tablename, df)
+        state.add_table(tablename, df)
 
         del df
         chunk_sizer.log_df(trace_label, tablename, None)
 
 
 @workflow.step
-def initialize_landuse(whale: workflow.Whale):
+def initialize_landuse(state: workflow.State):
     """
     Initialize the land use table.
 
     Parameters
     ----------
-    whale : Whale
+    state : State
 
     Returns
     -------
@@ -113,41 +113,41 @@ def initialize_landuse(whale: workflow.Whale):
     trace_label = "initialize_landuse"
     settings_filename = "initialize_landuse.yaml"
 
-    with chunk.chunk_log(whale, trace_label, base=True) as chunk_sizer:
-        model_settings = whale.filesystem.read_settings_file(
+    with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
+        model_settings = state.filesystem.read_settings_file(
             settings_filename, mandatory=True
         )
 
-        annotate_tables(whale, model_settings, trace_label, chunk_sizer)
+        annotate_tables(state, model_settings, trace_label, chunk_sizer)
 
         # instantiate accessibility (must be checkpointed to be be used to slice accessibility)
-        accessibility = whale.get_dataframe("accessibility")
+        accessibility = state.get_dataframe("accessibility")
         chunk_sizer.log_df(trace_label, "accessibility", accessibility)
 
 
 @workflow.step
-def initialize_households(whale: workflow.Whale):
+def initialize_households(state: workflow.State):
     trace_label = "initialize_households"
 
-    with chunk.chunk_log(whale, trace_label, base=True) as chunk_sizer:
+    with chunk.chunk_log(state, trace_label, base=True) as chunk_sizer:
         chunk_sizer.log_rss(f"{trace_label}.inside-yield")
 
-        households = whale.get_dataframe("households")
+        households = state.get_dataframe("households")
         assert not households._is_view
         chunk_sizer.log_df(trace_label, "households", households)
         del households
         chunk_sizer.log_df(trace_label, "households", None)
 
-        persons = whale.get_dataframe("persons")
+        persons = state.get_dataframe("persons")
         assert not persons._is_view
         chunk_sizer.log_df(trace_label, "persons", persons)
         del persons
         chunk_sizer.log_df(trace_label, "persons", None)
 
-        model_settings = whale.filesystem.read_settings_file(
+        model_settings = state.filesystem.read_settings_file(
             "initialize_households.yaml", mandatory=True
         )
-        annotate_tables(whale, model_settings, trace_label, chunk_sizer)
+        annotate_tables(state, model_settings, trace_label, chunk_sizer)
 
         # - initialize shadow_pricing size tables after annotating household and person tables
         # since these are scaled to model size, they have to be created while single-process
@@ -155,16 +155,16 @@ def initialize_households(whale: workflow.Whale):
         add_size_tables = model_settings.get("add_size_tables", True)
         if add_size_tables:
             # warnings.warn(f"Calling add_size_tables from initialize will be removed in the future.", FutureWarning)
-            suffixes = disaggregate_accessibility.disaggregate_suffixes(whale)
-            shadow_pricing.add_size_tables(whale, suffixes)
+            suffixes = disaggregate_accessibility.disaggregate_suffixes(state)
+            shadow_pricing.add_size_tables(state, suffixes)
 
         # - preload person_windows
-        person_windows = whale.get_dataframe("person_windows")
+        person_windows = state.get_dataframe("person_windows")
         chunk_sizer.log_df(trace_label, "person_windows", person_windows)
 
 
 @workflow.cached_object
-def preload_injectables(whale: workflow.Whale):
+def preload_injectables(state: workflow.State):
     """
     preload bulky injectables up front - stuff that isn't inserted into the pipeline
     """
@@ -172,30 +172,30 @@ def preload_injectables(whale: workflow.Whale):
     logger.info("preload_injectables")
 
     # FIXME undocumented feature
-    if whale.settings.write_raw_tables:
+    if state.settings.write_raw_tables:
         # write raw input tables as csv (before annotation)
-        csv_dir = whale.get_output_file_path("raw_tables")
+        csv_dir = state.get_output_file_path("raw_tables")
         if not os.path.exists(csv_dir):
             os.makedirs(csv_dir)  # make directory if needed
 
         # default ActivitySim table names and indices
-        if whale.settings.input_table_list is None:
+        if state.settings.input_table_list is None:
             raise ValueError(
                 "no `input_table_list` found in settings, " "cannot `write_raw_tables`."
             )
 
-        table_names = [t["tablename"] for t in whale.settings.input_table_list]
+        table_names = [t["tablename"] for t in state.settings.input_table_list]
         for t in table_names:
-            df = whale.get_dataframe(t)
+            df = state.get_dataframe(t)
             df.to_csv(os.path.join(csv_dir, "%s.csv" % t), index=True)
 
     t0 = tracing.print_elapsed_time()
 
-    if whale.settings.benchmarking:
+    if state.settings.benchmarking:
         # we don't want to pay for skim_dict inside any model component during
         # benchmarking, so we'll preload skim_dict here.  Preloading is not needed
         # for regular operation, as activitysim components can load-on-demand.
-        if whale.get_injectable("skim_dict", None) is not None:
+        if state.get_injectable("skim_dict", None) is not None:
             t0 = tracing.print_elapsed_time("preload skim_dict", t0, debug=True)
 
     return True

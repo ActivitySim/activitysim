@@ -18,7 +18,7 @@ DUMP = False
 
 @workflow.step
 def mandatory_tour_scheduling(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     tdd_alts: pd.DataFrame,
@@ -54,7 +54,7 @@ def mandatory_tour_scheduling(
     )
 
     choices = run_tour_scheduling(
-        whale,
+        state,
         model_name,
         mandatory_tours,
         persons_merged,
@@ -63,20 +63,20 @@ def mandatory_tour_scheduling(
     )
 
     assign_in_place(tours, choices)
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     # updated df for tracing
     mandatory_tours = tours[tours.tour_category == "mandatory"]
 
-    whale.tracing.dump_df(
+    state.tracing.dump_df(
         DUMP,
         tt.tour_map(persons_merged, mandatory_tours, tdd_alts),
         trace_label,
         "tour_map",
     )
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             mandatory_tours,
             label=trace_label,
             slicer="person_id",

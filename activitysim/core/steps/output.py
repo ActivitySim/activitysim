@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @workflow.step
-def track_skim_usage(whale: workflow.Whale):
+def track_skim_usage(state: workflow.State):
     """
     write statistics on skim usage (diagnostic to detect loading of un-needed skims)
 
@@ -33,11 +33,11 @@ def track_skim_usage(whale: workflow.Whale):
     pd.options.display.max_columns = 500
     pd.options.display.max_rows = 100
 
-    skim_dict = whale.get_injectable("skim_dict")
+    skim_dict = state.get_injectable("skim_dict")
 
     mode = "wb" if sys.version_info < (3,) else "w"
     with open(
-        whale.filesystem.get_output_file_path("skim_usage.txt"), mode
+        state.filesystem.get_output_file_path("skim_usage.txt"), mode
     ) as output_file:
         print("\n### skim_dict usage", file=output_file)
         for key in skim_dict.get_skim_usage():
@@ -58,7 +58,7 @@ def track_skim_usage(whale: workflow.Whale):
             print(key, file=output_file)
 
 
-def previous_write_data_dictionary(whale: workflow.Whale, output_dir):
+def previous_write_data_dictionary(state: workflow.State, output_dir):
     """
     Write table_name, number of rows, columns, and bytes for each checkpointed table
 
@@ -68,23 +68,23 @@ def previous_write_data_dictionary(whale: workflow.Whale, output_dir):
 
     """
 
-    model_settings = whale.filesystem.read_model_settings("write_data_dictionary")
+    model_settings = state.filesystem.read_model_settings("write_data_dictionary")
     txt_format = model_settings.get("txt_format", "data_dict.txt")
     csv_format = model_settings.get("csv_format", "data_dict.csv")
 
     if txt_format:
-        output_file_path = whale.get_output_file_path(txt_format)
+        output_file_path = state.get_output_file_path(txt_format)
 
         pd.options.display.max_columns = 500
         pd.options.display.max_rows = 100
 
-        output_tables = whale.checkpoint.list_tables()
+        output_tables = state.checkpoint.list_tables()
 
         # write data dictionary for all checkpointed_tables
 
         with open(output_file_path, "w") as output_file:
             for table_name in output_tables:
-                df = whale.get_dataframe(table_name)
+                df = state.get_dataframe(table_name)
 
                 print("\n### %s %s" % (table_name, df.shape), file=output_file)
                 print("index:", df.index.name, df.index.dtype, file=output_file)
@@ -92,7 +92,7 @@ def previous_write_data_dictionary(whale: workflow.Whale, output_dir):
 
 
 @workflow.step
-def write_data_dictionary(whale: workflow.Whale):
+def write_data_dictionary(state: workflow.State):
     """
     Write table schema for all tables
 
@@ -113,7 +113,7 @@ def write_data_dictionary(whale: workflow.Whale):
 
     """
 
-    model_settings = whale.filesystem.read_model_settings("write_data_dictionary")
+    model_settings = state.filesystem.read_model_settings("write_data_dictionary")
     txt_format = model_settings.get("txt_format", "data_dict.txt")
     csv_format = model_settings.get("csv_format", "data_dict.csv")
 
@@ -123,7 +123,7 @@ def write_data_dictionary(whale: workflow.Whale):
         )
         return
 
-    table_names = whale.registered_tables()
+    table_names = state.registered_tables()
 
     # use table_names list from model_settings, if provided
     schema_tables = model_settings.get("tables", None)
@@ -135,7 +135,7 @@ def write_data_dictionary(whale: workflow.Whale):
     final_shapes = dict()
     for table_name in table_names:
         try:
-            df = whale.get_dataframe(table_name)
+            df = state.get_dataframe(table_name)
         except RuntimeError as run_err:
             if run_err.args and "dropped" in run_err.args[0]:
                 # if a checkpointed table was dropped, that's not ideal, so we should
@@ -163,8 +163,8 @@ def write_data_dictionary(whale: workflow.Whale):
         schema[table_name] = info
 
     # annotate schema.info with name of checkpoint columns were first seen
-    if whale.checkpoint.store:
-        for _, row in whale.checkpoint.get_inventory().iterrows():
+    if state.checkpoint.store:
+        for _, row in state.checkpoint.get_inventory().iterrows():
             checkpoint_name = row[CHECKPOINT_NAME]
 
             for table_name in table_names:
@@ -173,7 +173,7 @@ def write_data_dictionary(whale: workflow.Whale):
                     continue
 
                 # get the checkpointed version of the table
-                df = whale.get_table(table_name, checkpoint_name)
+                df = state.get_table(table_name, checkpoint_name)
 
                 if df.index.name and df.index.name not in df.columns:
                     df = df.reset_index()
@@ -194,11 +194,11 @@ def write_data_dictionary(whale: workflow.Whale):
 
     if csv_format:
         schema_df.to_csv(
-            whale.get_output_file_path(csv_format), header=True, index=False
+            state.get_output_file_path(csv_format), header=True, index=False
         )
 
     if txt_format:
-        with open(whale.get_output_file_path(txt_format), "w") as output_file:
+        with open(state.get_output_file_path(txt_format), "w") as output_file:
             # get max schema column widths from omnibus table
             col_width = {c: schema_df[c].str.len().max() + 2 for c in schema_df}
 
@@ -224,7 +224,7 @@ def write_data_dictionary(whale: workflow.Whale):
 
 
 @workflow.step
-def write_tables(whale: workflow.Whale):
+def write_tables(state: workflow.State):
     """
     Write pipeline tables as csv files (in output directory) as specified by output_tables list
     in settings file.
@@ -267,7 +267,7 @@ def write_tables(whale: workflow.Whale):
 
     """
 
-    output_tables_settings = whale.settings.output_tables
+    output_tables_settings = state.settings.output_tables
 
     if output_tables_settings is None:
         logger.info("No output_tables specified in settings file. Nothing to write.")
@@ -279,7 +279,7 @@ def write_tables(whale: workflow.Whale):
     h5_store = output_tables_settings.h5_store
     sort = output_tables_settings.sort
 
-    registered_tables = whale.registered_tables()
+    registered_tables = state.registered_tables()
     if action == "include":
         # interpret empty or missing tables setting to mean include all registered tables
         output_tables_list = tables if tables is not None else registered_tables
@@ -300,7 +300,7 @@ def write_tables(whale: workflow.Whale):
 
         if table_name == "checkpoints":
             dt = pa.Table.from_pandas(
-                whale.checkpoint.get_inventory(), preserve_index=True
+                state.checkpoint.get_inventory(), preserve_index=True
             )
         else:
             if table_name not in registered_tables:
@@ -310,11 +310,11 @@ def write_tables(whale: workflow.Whale):
             # the write tables method now uses pyarrow to avoid making edits to
             # the internal pipeline dataframes, which need to remain un-decoded
             # for any subsequent summarize step[s].
-            dt = whale.get_pyarrow(table_name)
-            dt_index_name = whale.get_dataframe_index_name(table_name)
+            dt = state.get_pyarrow(table_name)
+            dt_index_name = state.get_dataframe_index_name(table_name)
 
             if sort:
-                traceable_table_indexes = whale.tracing.traceable_table_indexes
+                traceable_table_indexes = state.tracing.traceable_table_indexes
 
                 if dt_index_name in traceable_table_indexes:
                     dt = dt.sort_by(dt_index_name)
@@ -340,7 +340,7 @@ def write_tables(whale: workflow.Whale):
                         )
                         dt = dt.sort_by(dt_index_name)
 
-        if whale.settings.recode_pipeline_columns:
+        if state.settings.recode_pipeline_columns:
             for colname, decode_instruction in table_decode_cols.items():
                 if "|" in decode_instruction:
                     decode_filter, decode_instruction = decode_instruction.split("|")
@@ -354,7 +354,7 @@ def write_tables(whale: workflow.Whale):
                     parent_table = dt
                 else:
                     source_table, lookup_col = decode_instruction.split(".")
-                    parent_table = whale.get_pyarrow(source_table)
+                    parent_table = state.get_pyarrow(source_table)
                 try:
                     map_col = parent_table.column(f"_original_{lookup_col}")
                 except KeyError:
@@ -384,13 +384,13 @@ def write_tables(whale: workflow.Whale):
                     dt = dt.drop([f"_original_{lookup_col}"])
 
         if h5_store:
-            file_path = whale.get_output_file_path("%soutput_tables.h5" % prefix)
+            file_path = state.get_output_file_path("%soutput_tables.h5" % prefix)
             dt.to_pandas().to_hdf(
                 str(file_path), key=table_name, mode="a", format="fixed"
             )
         else:
             file_name = "%s%s.csv" % (prefix, table_name)
-            file_path = whale.get_output_file_path(file_name)
+            file_path = state.get_output_file_path(file_name)
 
             # include the index if it has a name or is a MultiIndex
             csv.write_csv(dt, file_path)

@@ -62,7 +62,7 @@ def _clip_probs(choosers_df, probs, depart_alt_base):
 
 
 def _report_bad_choices(
-    whale: workflow.Whale, bad_row_map, df, filename, trace_label, trace_choosers=None
+    state: workflow.State, bad_row_map, df, filename, trace_label, trace_choosers=None
 ):
     """
 
@@ -88,7 +88,7 @@ def _report_bad_choices(
     filename = "%s.%s" % (trace_label, filename)
 
     logger.info("dumping %s" % filename)
-    whale.tracing.write_csv(df, file_name=filename, transpose=False)
+    state.tracing.write_csv(df, file_name=filename, transpose=False)
 
     # log the indexes of the first MAX_PRINT offending rows
     MAX_PRINT = 0
@@ -226,7 +226,7 @@ def _postprocess_scheduling_choices(
 
 
 def make_scheduling_choices(
-    whale: workflow.Whale,
+    state: workflow.State,
     choosers_df,
     scheduling_mode,
     probs_spec,
@@ -266,14 +266,14 @@ def make_scheduling_choices(
     choices: pd.Series
         time periods depart choices, one per trip (except for trips with zero probs)
     """
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
     choosers = pd.merge(
         choosers_df.reset_index(), probs_spec, on=probs_join_cols, how="left"
     ).set_index(choosers_df.index.name)
     chunk_sizer.log_df(trace_label, "choosers", choosers)
 
-    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
-        whale.tracing.trace_df(choosers, "%s.choosers" % trace_label)
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     # different pre-processing is required based on the scheduling mode
     chooser_probs = _preprocess_scheduling_probs(
@@ -289,23 +289,23 @@ def make_scheduling_choices(
 
     chunk_sizer.log_df(trace_label, "chooser_probs", chooser_probs)
 
-    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
-        whale.tracing.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
 
     raw_choices, rands = logit.make_choices(
-        whale, chooser_probs, trace_label=trace_label, trace_choosers=choosers
+        state, chooser_probs, trace_label=trace_label, trace_choosers=choosers
     )
 
     chunk_sizer.log_df(trace_label, "choices", raw_choices)
     chunk_sizer.log_df(trace_label, "rands", rands)
 
-    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
-        whale.tracing.trace_df(
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(
             raw_choices,
             "%s.choices" % trace_label,
             columns=[None, trace_choice_col_name],
         )
-        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     # different post-processing is required based on the scheduling mode
     choices, failed = _postprocess_scheduling_choices(
@@ -321,7 +321,7 @@ def make_scheduling_choices(
     # report failed trips while we have the best diagnostic info
     if report_failed_trips and failed.any():
         _report_bad_choices(
-            whale,
+            state,
             bad_row_map=failed,
             df=choosers,
             filename="failed_choosers",
@@ -330,11 +330,11 @@ def make_scheduling_choices(
         )
 
     # trace before removing failures
-    if trace_hh_id and whale.tracing.has_trace_targets(choosers_df):
-        whale.tracing.trace_df(
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_col_name]
         )
-        whale.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     # remove any failed choices
     if failed.any():

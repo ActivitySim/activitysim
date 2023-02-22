@@ -36,9 +36,9 @@ def configs_dir():
 
 
 def test_bad_coefficients():
-    whale = workflow.Whale.make_default(__file__)
+    state = workflow.State.make_default(__file__)
     coefficients = pd.read_csv(
-        whale.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
+        state.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
         comment="#",
     )
     coefficients = cdap.preprocess_interaction_coefficients(coefficients)
@@ -51,11 +51,11 @@ def test_bad_coefficients():
 
 
 def test_assign_cdap_rank(people, model_settings):
-    whale = workflow.Whale.make_default(__file__)
+    state = workflow.State.make_default(__file__)
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log(whale, "test_assign_cdap_rank", base=True):
-        cdap.assign_cdap_rank(whale, people, person_type_map)
+    with chunk.chunk_log(state, "test_assign_cdap_rank", base=True):
+        cdap.assign_cdap_rank(state, people, person_type_map)
 
     expected = pd.Series(
         [1, 1, 1, 2, 2, 1, 3, 1, 2, 1, 3, 2, 1, 3, 2, 4, 1, 3, 4, 2], index=people.index
@@ -67,17 +67,17 @@ def test_assign_cdap_rank(people, model_settings):
 
 
 def test_individual_utilities(people, model_settings):
-    whale = workflow.Whale.make_default(__file__)
-    cdap_indiv_and_hhsize1 = whale.filesystem.read_model_spec(
+    state = workflow.State.make_default(__file__)
+    cdap_indiv_and_hhsize1 = state.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
-    with chunk.chunk_log(whale, "test_individual_utilities", base=True) as chunk_sizer:
-        cdap.assign_cdap_rank(whale, people, person_type_map)
+    with chunk.chunk_log(state, "test_individual_utilities", base=True) as chunk_sizer:
+        cdap.assign_cdap_rank(state, people, person_type_map)
         individual_utils = cdap.individual_utilities(
-            whale,
+            state,
             people,
             cdap_indiv_and_hhsize1,
             locals_d=None,
@@ -119,14 +119,14 @@ def test_individual_utilities(people, model_settings):
 
 
 def test_build_cdap_spec_hhsize2(people, model_settings):
-    whale = workflow.Whale.make_default(__file__)
+    state = workflow.State.make_default(__file__)
     hhsize = 2
-    cdap_indiv_and_hhsize1 = whale.filesystem.read_model_spec(
+    cdap_indiv_and_hhsize1 = state.filesystem.read_model_spec(
         file_name="cdap_indiv_and_hhsize1.csv"
     )
 
     interaction_coefficients = pd.read_csv(
-        whale.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
+        state.filesystem.get_config_file_path("cdap_interaction_coefficients.csv"),
         comment="#",
     )
     interaction_coefficients = cdap.preprocess_interaction_coefficients(
@@ -136,11 +136,11 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
     person_type_map = model_settings.get("PERSON_TYPE_MAP", {})
 
     with chunk.chunk_log(
-        whale, "test_build_cdap_spec_hhsize2", base=True
+        state, "test_build_cdap_spec_hhsize2", base=True
     ) as chunk_sizer:
-        cdap.assign_cdap_rank(whale, people, person_type_map)
+        cdap.assign_cdap_rank(state, people, person_type_map)
         indiv_utils = cdap.individual_utilities(
-            whale,
+            state,
             people,
             cdap_indiv_and_hhsize1,
             locals_d=None,
@@ -150,14 +150,14 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
         choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
 
         spec = cdap.build_cdap_spec(
-            whale, interaction_coefficients, hhsize=hhsize, cache=False
+            state, interaction_coefficients, hhsize=hhsize, cache=False
         )
 
         # pandas.dot depends on column names of expression_values matching spec index values
         # expressions should have been uniquified when spec was read
         assert spec.index.is_unique
 
-        vars = simulate.eval_variables(whale, spec.index, choosers)
+        vars = simulate.eval_variables(state, spec.index, choosers)
         assert (spec.index.values == vars.columns.values).all()
 
     # spec = spec.astype(np.float64)

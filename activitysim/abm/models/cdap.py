@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def cdap_simulate(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
     households: pd.DataFrame,
@@ -38,21 +38,21 @@ def cdap_simulate(
     """
 
     trace_label = "cdap"
-    model_settings = whale.filesystem.read_model_settings("cdap.yaml")
-    trace_hh_id = whale.settings.trace_hh_id
+    model_settings = state.filesystem.read_model_settings("cdap.yaml")
+    trace_hh_id = state.settings.trace_hh_id
     person_type_map = model_settings.get("PERSON_TYPE_MAP", None)
     assert (
         person_type_map is not None
     ), f"Expected to find PERSON_TYPE_MAP setting in cdap.yaml"
-    estimator = estimation.manager.begin_estimation(whale, "cdap")
+    estimator = estimation.manager.begin_estimation(state, "cdap")
 
-    cdap_indiv_spec = whale.filesystem.read_model_spec(
+    cdap_indiv_spec = state.filesystem.read_model_spec(
         file_name=model_settings["INDIV_AND_HHSIZE1_SPEC"]
     )
 
-    coefficients_df = whale.filesystem.read_model_coefficients(model_settings)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     cdap_indiv_spec = simulate.eval_coefficients(
-        whale, cdap_indiv_spec, coefficients_df, estimator
+        state, cdap_indiv_spec, coefficients_df, estimator
     )
 
     # Rules and coefficients for generating interaction specs for different household sizes
@@ -60,7 +60,7 @@ def cdap_simulate(
         "INTERACTION_COEFFICIENTS", "cdap_interaction_coefficients.csv"
     )
     cdap_interaction_coefficients = pd.read_csv(
-        whale.filesystem.get_config_file_path(interaction_coefficients_file_name),
+        state.filesystem.get_config_file_path(interaction_coefficients_file_name),
         comment="#",
     )
 
@@ -89,7 +89,7 @@ def cdap_simulate(
     EXCEPT that the values computed are relative proportions, not utilities
     (i.e. values are not exponentiated before being normalized to probabilities summing to 1.0)
     """
-    cdap_fixed_relative_proportions = whale.filesystem.read_model_spec(
+    cdap_fixed_relative_proportions = state.filesystem.read_model_spec(
         file_name=model_settings["FIXED_RELATIVE_PROPORTIONS_SPEC"]
     )
 
@@ -115,11 +115,11 @@ def cdap_simulate(
     logger.info("Pre-building cdap specs")
     for hhsize in range(2, cdap.MAX_HHSIZE + 1):
         spec = cdap.build_cdap_spec(
-            whale, cdap_interaction_coefficients, hhsize, cache=True
+            state, cdap_interaction_coefficients, hhsize, cache=True
         )
-        if whale.get_injectable("locutor", False):
+        if state.get_injectable("locutor", False):
             spec.to_csv(
-                whale.get_output_file_path("cdap_spec_%s.csv" % hhsize), index=True
+                state.get_output_file_path("cdap_spec_%s.csv" % hhsize), index=True
             )
 
     if estimator:
@@ -137,20 +137,20 @@ def cdap_simulate(
         )
         estimator.write_choosers(persons_merged)
         for hhsize in range(2, cdap.MAX_HHSIZE + 1):
-            spec = cdap.get_cached_spec(whale, hhsize)
+            spec = cdap.get_cached_spec(state, hhsize)
             estimator.write_table(spec, "spec_%s" % hhsize, append=False)
 
     logger.info("Running cdap_simulate with %d persons", len(persons_merged.index))
 
     choices = cdap.run_cdap(
-        whale,
+        state,
         persons=persons_merged,
         person_type_map=person_type_map,
         cdap_indiv_spec=cdap_indiv_spec,
         cdap_interaction_coefficients=cdap_interaction_coefficients,
         cdap_fixed_relative_proportions=cdap_fixed_relative_proportions,
         locals_d=constants,
-        chunk_size=whale.settings.chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
@@ -165,22 +165,22 @@ def cdap_simulate(
     persons["cdap_activity"] = choices
 
     expressions.assign_columns(
-        whale,
+        state,
         df=persons,
         model_settings=model_settings.get("annotate_persons"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
     )
 
-    whale.add_table("persons", persons)
+    state.add_table("persons", persons)
 
     # - annotate households table
     expressions.assign_columns(
-        whale,
+        state,
         df=households,
         model_settings=model_settings.get("annotate_households"),
         trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
     )
-    whale.add_table("households", households)
+    state.add_table("households", households)
 
     tracing.print_summary("cdap_activity", persons.cdap_activity, value_counts=True)
     logger.info(

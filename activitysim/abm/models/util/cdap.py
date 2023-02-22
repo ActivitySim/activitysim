@@ -48,7 +48,7 @@ def add_pn(col, pnum):
 
 
 def assign_cdap_rank(
-    whale: workflow.Whale, persons, person_type_map, trace_hh_id=None, trace_label=None
+    state: workflow.State, persons, person_type_map, trace_hh_id=None, trace_label=None
 ):
     """
     Assign an integer index, cdap_rank, to each household member. (Starting with 1, not 0)
@@ -129,7 +129,7 @@ def assign_cdap_rank(
 
     # choose up to MAX_HHSIZE, choosing randomly
     others = persons[[_hh_id_, "cdap_rank"]].copy()
-    others["random_order"] = whale.get_rn_generator().random_for_df(persons)
+    others["random_order"] = state.get_rn_generator().random_for_df(persons)
     others = (
         others.sort_values(by=[_hh_id_, "random_order"], ascending=[True, True])
         .groupby(_hh_id_)
@@ -155,17 +155,17 @@ def assign_cdap_rank(
     persons["cdap_rank"] = p["cdap_rank"]  # assignment aligns on index values
 
     # if DUMP:
-    #     whale.tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
+    #     state.tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
     #                      transpose=False, slicer='NONE')
 
     if trace_hh_id:
-        whale.tracing.trace_df(persons, "%s.cdap_rank" % trace_label)
+        state.tracing.trace_df(persons, "%s.cdap_rank" % trace_label)
 
     return persons["cdap_rank"]
 
 
 def individual_utilities(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons,
     cdap_indiv_spec,
     locals_d,
@@ -194,7 +194,7 @@ def individual_utilities(
 
     # calculate single person utilities
     indiv_utils = simulate.eval_utilities(
-        whale,
+        state,
         cdap_indiv_spec,
         persons,
         locals_d,
@@ -207,7 +207,7 @@ def individual_utilities(
     indiv_utils[useful_columns] = persons[useful_columns]
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             indiv_utils,
             "%s.indiv_utils" % trace_label,
             column_labels=["activity", "person"],
@@ -270,10 +270,10 @@ def cached_spec_name(hhsize):
     return "cdap_spec_%s" % hhsize
 
 
-def get_cached_spec(whale: workflow.Whale, hhsize):
+def get_cached_spec(state: workflow.State, hhsize):
     spec_name = cached_spec_name(hhsize)
 
-    spec = whale.get_injectable(spec_name, None)
+    spec = state.get_injectable(spec_name, None)
     if spec is not None:
         logger.debug("build_cdap_spec returning cached injectable spec %s", spec_name)
         return spec
@@ -283,22 +283,22 @@ def get_cached_spec(whale: workflow.Whale, hhsize):
     # cached spec will be available as an injectable to subsequent chunks
 
     # # try data dir
-    # if os.path.exists(whale.get_output_file_path(spec_name)):
-    #     spec_path = whale.get_output_file_path(spec_name)
+    # if os.path.exists(state.get_output_file_path(spec_name)):
+    #     spec_path = state.get_output_file_path(spec_name)
     #     logger.info("build_cdap_spec reading cached spec %s from %s", spec_name, spec_path)
     #     return pd.read_csv(spec_path, index_col='Expression')
 
     return None
 
 
-def cache_spec(whale: workflow.Whale, hhsize, spec):
+def cache_spec(state: workflow.State, hhsize, spec):
     spec_name = cached_spec_name(hhsize)
     # cache as injectable
-    whale.add_injectable(spec_name, spec)
+    state.add_injectable(spec_name, spec)
 
 
 def build_cdap_spec(
-    whale: workflow.Whale,
+    state: workflow.State,
     interaction_coefficients,
     hhsize,
     trace_spec=False,
@@ -352,7 +352,7 @@ def build_cdap_spec(
 
     # if DUMP:
     #     # dump the interaction_coefficients table because it has been preprocessed
-    #     whale.tracing.trace_df(interaction_coefficients,
+    #     state.tracing.trace_df(interaction_coefficients,
     #                      '%s.hhsize%d_interaction_coefficients' % (trace_label, hhsize),
     #                      transpose=False, slicer='NONE')
 
@@ -360,7 +360,7 @@ def build_cdap_spec(
     hhsize = min(hhsize, MAX_HHSIZE)
 
     if cache:
-        spec = get_cached_spec(whale, hhsize)
+        spec = get_cached_spec(state, hhsize)
         if spec is not None:
             return spec
 
@@ -465,7 +465,7 @@ def build_cdap_spec(
     simulate.uniquify_spec_index(spec)
 
     if trace_spec:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             spec,
             "%s.hhsize%d_spec" % (trace_label, hhsize),
             transpose=False,
@@ -478,7 +478,7 @@ def build_cdap_spec(
         spec[c] = spec[c].map(lambda x: d.get(x, x or 0.0)).fillna(0)
 
     if trace_spec:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             spec,
             "%s.hhsize%d_spec_patched" % (trace_label, hhsize),
             transpose=False,
@@ -486,7 +486,7 @@ def build_cdap_spec(
         )
 
     if cache:
-        cache_spec(whale, hhsize, spec)
+        cache_spec(state, hhsize, spec)
 
     t0 = tracing.print_elapsed_time("build_cdap_spec hh_size %s" % hhsize, t0)
 
@@ -634,7 +634,7 @@ def hh_choosers(indiv_utils, hhsize):
 
 
 def household_activity_choices(
-    whale: workflow.Whale,
+    state: workflow.State,
     indiv_utils,
     interaction_coefficients,
     hhsize,
@@ -681,7 +681,7 @@ def household_activity_choices(
         choosers = hh_choosers(indiv_utils, hhsize=hhsize)
 
         spec = build_cdap_spec(
-            whale,
+            state,
             interaction_coefficients,
             hhsize,
             trace_spec=(trace_hh_id in choosers.index),
@@ -689,45 +689,45 @@ def household_activity_choices(
         )
 
         utils = simulate.eval_utilities(
-            whale, spec, choosers, trace_label=trace_label, chunk_sizer=chunk_sizer
+            state, spec, choosers, trace_label=trace_label, chunk_sizer=chunk_sizer
         )
 
     if len(utils.index) == 0:
         return pd.Series(dtype="float64")
 
-    probs = logit.utils_to_probs(whale, utils, trace_label=trace_label)
+    probs = logit.utils_to_probs(state, utils, trace_label=trace_label)
 
     # select an activity pattern alternative for each household based on probability
     # result is a series indexed on _hh_index_ with the (0 based) index of the column from probs
-    idx_choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
+    idx_choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
 
     # convert choice expressed as index into alternative name from util column label
     choices = pd.Series(utils.columns[idx_choices].values, index=utils.index)
 
     if trace_hh_id:
         if hhsize > 1:
-            whale.tracing.trace_df(
+            state.tracing.trace_df(
                 choosers,
                 "%s.hhsize%d_choosers" % (trace_label, hhsize),
                 column_labels=["expression", "person"],
             )
 
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             utils,
             "%s.hhsize%d_utils" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             probs,
             "%s.hhsize%d_probs" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choices,
             "%s.hhsize%d_activity_choices" % (trace_label, hhsize),
             column_labels=["expression", "household"],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             rands, "%s.hhsize%d_rands" % (trace_label, hhsize), columns=[None, "rand"]
         )
 
@@ -776,7 +776,7 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices, trace_hh_id, trace_l
     cdap_indiv_activity_choices = indiv_activity["cdap_activity"]
 
     # if DUMP:
-    #     whale.tracing.trace_df(cdap_indiv_activity_choices,
+    #     state.tracing.trace_df(cdap_indiv_activity_choices,
     #                      '%s.DUMP.cdap_indiv_activity_choices' % trace_label,
     #                      transpose=False, slicer='NONE')
 
@@ -784,7 +784,7 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices, trace_hh_id, trace_l
 
 
 def extra_hh_member_choices(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons,
     cdap_fixed_relative_proportions,
     locals_d,
@@ -830,7 +830,7 @@ def extra_hh_member_choices(
 
     # eval the expression file
     values = simulate.eval_variables(
-        whale, cdap_fixed_relative_proportions.index, choosers, locals_d
+        state, cdap_fixed_relative_proportions.index, choosers, locals_d
     )
 
     # cdap_fixed_relative_proportions computes relative proportions by ptype, not utilities
@@ -842,37 +842,37 @@ def extra_hh_member_choices(
     # select an activity pattern alternative for each person based on probability
     # idx_choices is a series (indexed on _persons_index_ ) with the chosen alternative represented
     # as the integer (0 based) index of the chosen column from probs
-    idx_choices, rands = logit.make_choices(whale, probs, trace_label=trace_label)
+    idx_choices, rands = logit.make_choices(state, probs, trace_label=trace_label)
 
     # convert choice from column index to activity name
     choices = pd.Series(probs.columns[idx_choices].values, index=probs.index)
 
     # if DUMP:
-    #     whale.tracing.trace_df(proportions, '%s.DUMP.extra_proportions' % trace_label,
+    #     state.tracing.trace_df(proportions, '%s.DUMP.extra_proportions' % trace_label,
     #                      transpose=False, slicer='NONE')
-    #     whale.tracing.trace_df(probs, '%s.DUMP.extra_probs' % trace_label,
+    #     state.tracing.trace_df(probs, '%s.DUMP.extra_probs' % trace_label,
     #                      transpose=False, slicer='NONE')
-    #     whale.tracing.trace_df(choices, '%s.DUMP.extra_choices' % trace_label,
+    #     state.tracing.trace_df(choices, '%s.DUMP.extra_choices' % trace_label,
     #                      transpose=False,
     #                      slicer='NONE')
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             proportions,
             "%s.extra_hh_member_choices_proportions" % trace_label,
             column_labels=["expression", "person"],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             probs,
             "%s.extra_hh_member_choices_probs" % trace_label,
             column_labels=["expression", "person"],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             choices,
             "%s.extra_hh_member_choices_choices" % trace_label,
             column_labels=["expression", "person"],
         )
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             rands,
             "%s.extra_hh_member_choices_rands" % trace_label,
             columns=[None, "rand"],
@@ -882,7 +882,7 @@ def extra_hh_member_choices(
 
 
 def _run_cdap(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons,
     person_type_map,
     cdap_indiv_spec,
@@ -909,14 +909,14 @@ def _run_cdap(
     # assign integer cdap_rank to each household member
     # persons with cdap_rank 1..MAX_HHSIZE will be have their activities chose by CDAP model
     # extra household members, will have activities assigned by in fixed proportions
-    assign_cdap_rank(whale, persons, person_type_map, trace_hh_id, trace_label)
+    assign_cdap_rank(state, persons, person_type_map, trace_hh_id, trace_label)
     chunk_sizer.log_df(trace_label, "persons", persons)
 
     # Calculate CDAP utilities for each individual, ignoring interactions
     # ind_utils has index of 'person_id' and a column for each alternative
     # i.e. three columns 'M' (Mandatory), 'N' (NonMandatory), 'H' (Home)
     indiv_utils = individual_utilities(
-        whale,
+        state,
         persons[persons.cdap_rank <= MAX_HHSIZE],
         cdap_indiv_spec,
         locals_d,
@@ -931,7 +931,7 @@ def _run_cdap(
     hh_choices_list = []
     for hhsize in range(1, MAX_HHSIZE + 1):
         choices = household_activity_choices(
-            whale,
+            state,
             indiv_utils,
             interaction_coefficients,
             hhsize=hhsize,
@@ -958,7 +958,7 @@ def _run_cdap(
     # assign activities to extra household members (with cdap_rank > MAX_HHSIZE)
     # resulting series contains one activity per individual hh member, indexed on _persons_index_
     extra_person_choices = extra_hh_member_choices(
-        whale,
+        state,
         persons,
         cdap_fixed_relative_proportions,
         locals_d,
@@ -975,9 +975,9 @@ def _run_cdap(
     chunk_sizer.log_df(trace_label, "persons", persons)
 
     # if DUMP:
-    #     whale.tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
+    #     state.tracing.trace_df(hh_activity_choices, '%s.DUMP.hh_activity_choices' % trace_label,
     #                      transpose=False, slicer='NONE')
-    #     whale.tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
+    #     state.tracing.trace_df(cdap_results, '%s.DUMP.cdap_results' % trace_label,
     #                      transpose=False, slicer='NONE')
 
     result = persons[["cdap_rank", "cdap_activity"]]
@@ -989,7 +989,7 @@ def _run_cdap(
 
 
 def run_cdap(
-    whale: workflow.Whale,
+    state: workflow.State,
     persons,
     person_type_map,
     cdap_indiv_spec,
@@ -1045,9 +1045,9 @@ def run_cdap(
         persons_chunk,
         chunk_trace_label,
         chunk_sizer,
-    ) in chunk.adaptive_chunked_choosers_by_chunk_id(whale, persons, trace_label):
+    ) in chunk.adaptive_chunked_choosers_by_chunk_id(state, persons, trace_label):
         cdap_results = _run_cdap(
-            whale,
+            state,
             persons_chunk,
             person_type_map,
             cdap_indiv_spec,
@@ -1070,7 +1070,7 @@ def run_cdap(
         cdap_results = pd.concat(result_list)
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             cdap_results,
             label="cdap",
             columns=["cdap_rank", "cdap_activity"],

@@ -171,7 +171,7 @@ def process_tours(
 
 
 def process_mandatory_tours(
-    whale: workflow.Whale, persons, mandatory_tour_frequency_alts
+    state: workflow.State, persons, mandatory_tour_frequency_alts
 ):
     """
     This method processes the mandatory_tour_frequency column that comes out of
@@ -243,7 +243,7 @@ def process_mandatory_tours(
     tours["household_id"] = tours_merged.household_id
 
     # assign stable (predictable) tour_id
-    set_tour_index(whale, tours)
+    set_tour_index(state, tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -262,7 +262,7 @@ def process_mandatory_tours(
     return tours
 
 
-def process_non_mandatory_tours(whale: workflow.Whale, persons, tour_counts):
+def process_non_mandatory_tours(state: workflow.State, persons, tour_counts):
     """
     This method processes the non_mandatory_tour_frequency column that comes
     out of the model of the same name and turns into a DataFrame that
@@ -296,7 +296,7 @@ def process_non_mandatory_tours(whale: workflow.Whale, persons, tour_counts):
     tours["origin"] = reindex(persons.home_zone_id, tours.person_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(whale, tours)
+    set_tour_index(state, tours)
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num   tour_count
@@ -316,7 +316,7 @@ def process_non_mandatory_tours(whale: workflow.Whale, persons, tour_counts):
 
 
 def process_atwork_subtours(
-    whale: workflow.Whale,
+    state: workflow.State,
     work_tours: pd.DataFrame,
     atwork_subtour_frequency_alts: pd.DataFrame,
 ):
@@ -386,7 +386,7 @@ def process_atwork_subtours(
     tours = pd.merge(tours, work_tours, left_on=parent_col, right_index=True)
 
     # assign stable (predictable) tour_id
-    set_tour_index(whale, tours, parent_tour_num_col="parent_tour_num")
+    set_tour_index(state, tours, parent_tour_num_col="parent_tour_num")
 
     """
                person_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count
@@ -408,7 +408,7 @@ def process_atwork_subtours(
 
 
 def process_joint_tours(
-    whale: workflow.Whale,
+    state: workflow.State,
     joint_tour_frequency,
     joint_tour_frequency_alts,
     point_persons,
@@ -456,7 +456,7 @@ def process_joint_tours(
     tours["origin"] = reindex(point_persons.home_zone_id, tours.household_id)
 
     # assign stable (predictable) tour_id
-    set_tour_index(whale, tours, is_joint=True)
+    set_tour_index(state, tours, is_joint=True)
 
     """
                    household_id tour_type  tour_type_count  tour_type_num  tour_num  tour_count

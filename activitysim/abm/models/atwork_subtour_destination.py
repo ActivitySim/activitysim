@@ -16,14 +16,14 @@ DUMP = False
 
 @workflow.step
 def atwork_subtour_destination(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
 ):
     trace_label = "atwork_subtour_destination"
     model_settings_file_name = "atwork_subtour_destination.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     future_settings = {
         "SIZE_TERM_SELECTOR": "atwork",
@@ -40,7 +40,7 @@ def atwork_subtour_destination(
 
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        whale.settings.want_dest_choice_sample_tables and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     subtours = tours[tours.tour_category == "atwork"]
@@ -50,20 +50,20 @@ def atwork_subtour_destination(
         tracing.no_results("atwork_subtour_destination")
         return
 
-    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_destination")
+    estimator = estimation.manager.begin_estimation(state, "atwork_subtour_destination")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         # estimator.write_spec(model_settings, tag='SAMPLE_SPEC')
         estimator.write_spec(model_settings, tag="SPEC")
         estimator.set_alt_id(model_settings["ALT_DEST_COL_NAME"])
         estimator.write_table(
-            whale.get_injectable("size_terms"), "size_terms", append=False
+            state.get_injectable("size_terms"), "size_terms", append=False
         )
-        estimator.write_table(whale.get_dataframe("land_use"), "landuse", append=False)
+        estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
         estimator.write_model_settings(model_settings, model_settings_file_name)
 
     choices_df, save_sample_df = tour_destination.run_tour_destination(
-        whale,
+        state,
         subtours,
         persons_merged,
         want_logsums,
@@ -89,7 +89,7 @@ def atwork_subtour_destination(
         subtours[logsum_column_name] = choices_df["logsum"]
         assign_in_place(tours, subtours[[logsum_column_name]])
 
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     tracing.print_summary(
         destination_column_name, subtours[destination_column_name], describe=True
@@ -98,9 +98,9 @@ def atwork_subtour_destination(
     if want_sample_table:
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # save_sample_df.set_index(model_settings['ALT_DEST_COL_NAME'], append=True, inplace=True)
-        whale.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)
 
-    if whale.settings.trace_hh_id:
-        whale.tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             tours, label="atwork_subtour_destination", columns=["destination"]
         )

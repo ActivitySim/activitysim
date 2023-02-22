@@ -13,17 +13,17 @@ Read in the omx files and create the skim objects
 
 
 @workflow.cached_object
-def network_los_preload(whale: workflow.Whale) -> los.Network_LOS:
+def network_los_preload(state: workflow.State) -> los.Network_LOS:
     # when multiprocessing with shared data mp_tasks has to call network_los methods
     # allocate_shared_skim_buffers() and load_shared_data() BEFORE network_los.load_data()
     logger.debug("loading network_los_without_data_loaded injectable")
-    nw_los = los.Network_LOS(whale)
+    nw_los = los.Network_LOS(state)
     return nw_los
 
 
 @workflow.cached_object
 def network_los(
-    whale: workflow.Whale,  # noqa: F841
+    state: workflow.State,  # noqa: F841
     network_los_preload: los.Network_LOS,
 ) -> los.Network_LOS:
     logger.debug("loading network_los injectable")
@@ -33,7 +33,7 @@ def network_los(
 
 @workflow.cached_object
 def skim_dict(
-    whale: workflow.Whale,  # noqa: F841
+    state: workflow.State,  # noqa: F841
     network_los: los.Network_LOS,
 ):
     result = network_los.get_default_skim_dict()
@@ -42,7 +42,7 @@ def skim_dict(
 
 @workflow.cached_object
 def log_settings(
-    whale: workflow.Whale,  # noqa: F841
+    state: workflow.State,  # noqa: F841
 ):
     # abm settings to log on startup
     return [

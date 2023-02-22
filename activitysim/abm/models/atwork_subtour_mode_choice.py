@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 @workflow.step
 def atwork_subtour_mode_choice(
-    whale: workflow.Whale,
+    state: workflow.State,
     tours: pd.DataFrame,
     persons_merged: pd.DataFrame,
     network_los: los.Network_LOS,
@@ -27,10 +27,10 @@ def atwork_subtour_mode_choice(
 
     trace_label = "atwork_subtour_mode_choice"
 
-    trace_hh_id = whale.settings.trace_hh_id
+    trace_hh_id = state.settings.trace_hh_id
 
     model_settings_file_name = "tour_mode_choice.yaml"
-    model_settings = whale.filesystem.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     logsum_column_name = model_settings.get("MODE_CHOICE_LOGSUM_COLUMN_NAME")
     mode_column_name = "tour_mode"
@@ -124,7 +124,7 @@ def atwork_subtour_mode_choice(
             network_los.setting("TVPB_SETTINGS.tour_mode_choice.CONSTANTS")
         )
 
-    estimator = estimation.manager.begin_estimation(whale, "atwork_subtour_mode_choice")
+    estimator = estimation.manager.begin_estimation(state, "atwork_subtour_mode_choice")
     if estimator:
         estimator.write_coefficients(model_settings=model_settings)
         estimator.write_coefficients_template(model_settings=model_settings)
@@ -133,7 +133,7 @@ def atwork_subtour_mode_choice(
         # FIXME run_tour_mode_choice_simulate writes choosers post-annotation
 
     choices_df = run_tour_mode_choice_simulate(
-        whale,
+        state,
         subtours_merged,
         tour_purpose="atwork",
         model_settings=model_settings,
@@ -186,21 +186,21 @@ def atwork_subtour_mode_choice(
     )
 
     assign_in_place(tours, choices_df)
-    whale.add_table("tours", tours)
+    state.add_table("tours", tours)
 
     # - annotate tours table
     if model_settings.get("annotate_tours"):
-        tours = whale.get_dataframe("tours")
+        tours = state.get_dataframe("tours")
         expressions.assign_columns(
-            whale,
+            state,
             df=tours,
             model_settings=model_settings.get("annotate_tours"),
             trace_label=tracing.extend_trace_label(trace_label, "annotate_tours"),
         )
-        whale.add_table("tours", tours)
+        state.add_table("tours", tours)
 
     if trace_hh_id:
-        whale.tracing.trace_df(
+        state.tracing.trace_df(
             tours[tours.tour_category == "atwork"],
             label=tracing.extend_trace_label(trace_label, mode_column_name),
             slicer="tour_id",

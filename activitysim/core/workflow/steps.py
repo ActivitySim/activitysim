@@ -412,10 +412,11 @@ class workflow_temp_table(workflow_step):
 def _validate_workflow_function(f):
     from activitysim.core.workflow import Whale
 
+    annot = get_annotations(f, eval_str=True)
     argspec = getfullargspec(f)
     if argspec.args[0] != "whale":
         raise SyntaxError("workflow.func must have `whale` as the first argument")
-    if argspec.annotations.get("whale") is not Whale:
+    if annot.get("whale") is not Whale:
         raise SyntaxError(
             "workflow.func must have `Whale` as the first argument annotation"
         )

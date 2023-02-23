@@ -95,7 +95,9 @@ def create_tours(tour_counts, tour_category, parent_col="person_id"):
     """
 
     # set these here to ensure consistency across different tour categories
-    assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
+
+    # do not enforce this here, other categories are possible
+    # assert tour_category in ["mandatory", "non_mandatory", "atwork", "joint"]
     tours["tour_category"] = tour_category
 
     # for joint tours, the correct number will be filled in after participation step

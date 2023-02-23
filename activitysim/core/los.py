@@ -803,7 +803,7 @@ class Network_LOS(object):
 
         return s.values
 
-    def skim_time_period_label(self, time_period):
+    def skim_time_period_label(self, time_period, fillna=None):
         """
         convert time period times to skim time period labels (e.g. 9 -> 'AM')
 
@@ -841,14 +841,22 @@ class Network_LOS(object):
                 )[0]
                 - 1
             )
-            result = self.skim_time_periods["labels"][bin]
+            if fillna is not None:
+                default = self.skim_time_periods["labels"][fillna]
+                result = self.skim_time_periods["labels"].get(bin, default=default)
+            else:
+                result = self.skim_time_periods["labels"][bin]
         else:
             result = pd.cut(
                 time_period,
                 self.skim_time_periods["periods"],
                 labels=self.skim_time_periods["labels"],
                 ordered=False,
-            ).astype(str)
+            )
+            if fillna is not None:
+                default = self.skim_time_periods["labels"][fillna]
+                result = result.fillna(default)
+            result = result.astype(str)
 
         return result
 

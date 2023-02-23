@@ -207,6 +207,9 @@ class State:
             self.load_settings()
         else:
             self.default_settings()
+        if settings:
+            for k, v in settings.items():
+                setattr(self.settings, k, v)
         return self
 
     @classmethod
@@ -273,7 +276,7 @@ class State:
         if cache_dir is not None:
             fs["cache_dir"] = cache_dir
         try:
-            self.filesystem = FileSystem.parse_obj(fs)
+            self.filesystem: FileSystem = FileSystem.parse_obj(fs)
         except Exception as err:
             print(err)
             raise
@@ -312,7 +315,7 @@ class State:
             if self.filesystem.cache_dir != cache_dir:
                 logger.warning(f"settings file changes cache_dir to {cache_dir}")
                 self.filesystem.cache_dir = cache_dir
-        self.settings = Settings.parse_obj(raw_settings)
+        self.settings: Settings = Settings.parse_obj(raw_settings)
 
         extra_settings = set(self.settings.__dict__) - set(Settings.__fields__)
 

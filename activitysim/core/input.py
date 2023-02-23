@@ -240,9 +240,12 @@ def _read_input_file(filepath, h5_tablename=None, csv_dtypes=None):
         logger.info("reading %s table from %s" % (h5_tablename, filepath))
         return pd.read_hdf(filepath, h5_tablename)
 
+    if filepath.endswith(".parquet"):
+        return pd.read_parquet(filepath)
+
     raise IOError(
         "Unsupported file type: %s. "
-        "ActivitySim supports CSV and HDF5 files only" % filepath
+        "ActivitySim supports CSV, HDF5, and Parquet files only" % filepath
     )
 
 

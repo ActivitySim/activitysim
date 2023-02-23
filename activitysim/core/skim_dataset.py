@@ -233,7 +233,8 @@ class DatasetWrapper:
         }
         if self.time_key:
             if (
-                np.issubdtype(df[self.time_key].dtype, np.integer)
+                not df[self.time_key].dtype == "category"
+                and np.issubdtype(df[self.time_key].dtype, np.integer)
                 and df[self.time_key].max() < self.dataset.dims["time_period"]
             ):
                 logger.info(f"natural use for time_period={self.time_key}")

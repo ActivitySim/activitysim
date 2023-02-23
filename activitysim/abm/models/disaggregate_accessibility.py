@@ -61,7 +61,7 @@ class ProtoPop:
         self.network_los = network_los
         self.chunk_size = chunk_size
         self.model_settings = read_disaggregate_accessibility_yaml(
-            "disaggregate_accessibility.yaml"
+            state, "disaggregate_accessibility.yaml"
         )
 
         # Random seed

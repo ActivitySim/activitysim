@@ -93,7 +93,7 @@ def compute_utilities(
     return utilities
 
 
-class TransitVirtualPathBuilder(object):
+class TransitVirtualPathBuilder:
     """
     Transit virtual path builder for three zone systems
     """
@@ -990,7 +990,7 @@ class TransitVirtualPathBuilder(object):
 
                 with memo("#TVPB build_virtual_path make_choices"):
                     probs = logit.utils_to_probs(
-                        state,
+                        self.network_los.state,
                         utilities_df,
                         allow_zero_probs=True,
                         trace_label=trace_label,
@@ -1125,6 +1125,7 @@ class TransitVirtualPathBuilder(object):
                         trace_label=trace_label,
                         filter_targets=filter_targets,
                         trace=True,
+                        chunk_sizer=chunk_sizer,
                     )
 
         return logsum_df
@@ -1136,7 +1137,7 @@ class TransitVirtualPathBuilder(object):
         recipe = "accessibility"
         path_type = "WTW"
 
-        with chunk.chunk_log(self.network_los.state, trace_label):
+        with chunk.chunk_log(self.network_los.state, trace_label) as chunk_sizer:
             result = self.build_virtual_path(
                 recipe,
                 path_type,
@@ -1146,6 +1147,7 @@ class TransitVirtualPathBuilder(object):
                 demographic_segment=None,
                 want_choices=False,
                 trace_label=trace_label,
+                chunk_sizer=chunk_sizer,
             )
 
             trace_od = self.network_los.state.get_injectable("trace_od", None)
@@ -1163,6 +1165,7 @@ class TransitVirtualPathBuilder(object):
                         trace_label=trace_label,
                         filter_targets=filter_targets,
                         trace=True,
+                        chunk_sizer=chunk_sizer,
                     )
 
         return result

@@ -560,7 +560,7 @@ class Settings(PydanticBase, extra="allow"):
     have any other effect on the operation of the model(s).
     """
 
-    rng_base_seed: int = 0
+    rng_base_seed: int | None = 0
     """Base seed for pseudo-random number generator."""
 
     other_settings: dict[str, Any] = None

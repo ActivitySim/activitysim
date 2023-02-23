@@ -8,8 +8,6 @@ import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 
-from activitysim.core import inject
-
 
 def test_semcog():
     def example_path(dirname):

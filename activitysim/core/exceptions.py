@@ -32,3 +32,7 @@ class SettingsFileNotFoundError(FileNotFoundError):
 
     def __str__(self):
         return repr(f"Settings file '{self.file_name}' not found in {self.configs_dir}")
+
+
+class CheckpointFileNotFoundError(FileNotFoundError):
+    """The checpoints files is not found."""

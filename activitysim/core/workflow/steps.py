@@ -9,7 +9,8 @@ from collections.abc import Container
 from inspect import get_annotations, getfullargspec
 from typing import Callable, Collection, Mapping, NamedTuple
 
-import pandas as pd
+import numpy as np  # noqa: 401
+import pandas as pd  # noqa: 401
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 
@@ -228,6 +229,8 @@ class workflow_step:
             _kwonlydefaults,
             _annotations,
         ) = getfullargspec(wrapped_func)
+        _annotations = get_annotations(wrapped_func, eval_str=True)
+
         if _defaults is None:
             _ndefault = 0
             _required_args = _args

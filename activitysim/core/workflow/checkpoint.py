@@ -9,7 +9,7 @@ from typing import Optional, Union
 
 import pandas as pd
 
-from activitysim.core.exceptions import StateAccessError
+from activitysim.core.exceptions import CheckpointFileNotFoundError, StateAccessError
 from activitysim.core.workflow.accessor import FromState, StateAccessor
 
 logger = logging.getLogger(__name__)
@@ -536,7 +536,10 @@ class Checkpoints(StateAccessor):
 
         logger.info("load_checkpoint %s" % (checkpoint_name))
 
-        checkpoints = self._read_df(CHECKPOINT_TABLE_NAME, store=store)
+        try:
+            checkpoints = self._read_df(CHECKPOINT_TABLE_NAME, store=store)
+        except FileNotFoundError as err:
+            raise CheckpointFileNotFoundError(err)
 
         if checkpoint_name == LAST_CHECKPOINT:
             checkpoint_name = checkpoints[CHECKPOINT_NAME].iloc[-1]
@@ -691,8 +694,11 @@ class Checkpoints(StateAccessor):
                 self.open_store(overwrite=False, mode=mode)
             try:
                 self.load(resume_after)
-            except KeyError as err:
-                if "checkpoints" in err.args[0]:
+            except (KeyError, CheckpointFileNotFoundError) as err:
+                if (
+                    isinstance(err, CheckpointFileNotFoundError)
+                    or "checkpoints" in err.args[0]
+                ):
                     # no checkpoints initialized, fall back to restart
                     self.last_checkpoint[CHECKPOINT_NAME] = INITIAL_CHECKPOINT_NAME
                     self.add(INITIAL_CHECKPOINT_NAME)

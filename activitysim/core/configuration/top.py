@@ -568,5 +568,5 @@ class Settings(PydanticBase, extra="allow"):
     def _get_attr(self, attr):
         try:
             return getattr(self, attr)
-        except:
+        except AttributeError:
             return self.other_settings.get(attr)

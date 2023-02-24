@@ -687,7 +687,7 @@ def load_skim_dataset_to_shared_memory(state, skim_tag="taz") -> xr.Dataset:
         zarr_file = None
 
     if zarr_file is not None:
-        zarr_file = os.path.join(config.get_cache_dir(), zarr_file)
+        zarr_file = os.path.join(state.filesystem.get_cache_dir(), zarr_file)
 
     max_float_precision = network_los_preload.skim_max_float_precision(skim_tag)
 

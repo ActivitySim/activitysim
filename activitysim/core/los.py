@@ -557,11 +557,13 @@ class Network_LOS(object):
 
         Returns
         -------
-        list of str
+        str
         """
         skim_setting = self.setting(f"{skim_tag}_skims")
         if isinstance(skim_setting, dict):
             return skim_setting.get("zarr", None)
+        elif isinstance(skim_setting, TAZ_Settings):
+            return skim_setting.zarr
         else:
             return None
 

@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import pandas as pd
+import pyarrow as pa
 
 from activitysim.core.exceptions import CheckpointFileNotFoundError, StateAccessError
 from activitysim.core.workflow.accessor import FromState, StateAccessor
@@ -173,9 +174,9 @@ class ParquetStore(GenericCheckpointStore):
     def _to_parquet(df: pd.DataFrame, filename, *args, **kwargs):
         try:
             df.to_parquet(filename, *args, **kwargs)
-        except pa.lib.ArrowInvalid as err:
+        except (pa.lib.ArrowInvalid, pa.lib.ArrowTypeError) as err:
             logger.exception(err)
-            print("pa.lib.ArrowInvalid, do something?")
+            print(f"{type(err)}, do something?")
             raise
 
     def __init__(self, directory: Path, mode: str = "a"):

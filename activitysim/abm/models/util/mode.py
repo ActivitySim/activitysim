@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from typing import Optional
 
 import pandas as pd
@@ -138,7 +139,10 @@ def run_tour_mode_choice_simulate(
     )
 
     trace_column_names = choosers.index.name
-    assert trace_column_names == "tour_id"
+    if trace_column_names != "tour_id":
+        # TODO suppress this warning?  It should not be relevant in regular
+        #      activitysim models, but could be annoying in extensions.
+        warnings.warn(f"trace_column_names is {trace_column_names!r} not 'tour_id'")
     if trace_column_names not in choosers:
         choosers[trace_column_names] = choosers.index
 

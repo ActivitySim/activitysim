@@ -242,14 +242,19 @@ class DatasetWrapper:
             else:
                 logger.info(f"vectorize lookup for time_period={self.time_key}")
                 positions["time_period"] = pd.Series(
-                    np.vectorize(self.time_map.get)(df[self.time_key]),
+                    np.vectorize(self.time_map.get, "I")(df[self.time_key], 0),
                     index=df.index,
                 )
 
         if POSITIONS_AS_DICT:
             self.positions = {}
             for k, v in positions.items():
-                self.positions[k] = v.astype(int)
+                try:
+                    self.positions[k] = v.astype(int)
+                except TypeError:
+                    # possibly some missing values that are not relevant,
+                    # fill with zeros to continue.
+                    self.positions[k] = v.fillna(0).astype(int)
         else:
             self.positions = pd.DataFrame(positions).astype(int)
 

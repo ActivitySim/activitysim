@@ -165,6 +165,8 @@ def annotate_preprocessors(
     locals_d.update(skims)
 
     preprocessor_settings = model_settings.get("preprocessor", [])
+    if preprocessor_settings is None:
+        preprocessor_settings = []
     if not isinstance(preprocessor_settings, list):
         assert isinstance(preprocessor_settings, dict)
         preprocessor_settings = [preprocessor_settings]

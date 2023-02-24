@@ -61,7 +61,7 @@ class GenericCheckpointStore:
 
         Parameters
         ----------
-        key : str
+        table_name : str
         checkpoint_name : str, optional
             The checkpoint version name to use for this table.
 
@@ -92,6 +92,26 @@ class GenericCheckpointStore:
             return []
         else:
             return list(df.checkpoint_name)
+
+    @classmethod
+    def from_hdf(cls, source_filename, dest_filename, mode="a"):
+        hdf_store = HdfStore(source_filename, "r")
+        output_store = cls(dest_filename, mode)
+        checkpoint_df = hdf_store.get_dataframe(CHECKPOINT_TABLE_NAME)
+        output_store.put(CHECKPOINT_TABLE_NAME, checkpoint_df)
+        for table_name in checkpoint_df.columns:
+            if table_name in NON_TABLE_COLUMNS:
+                continue
+            checkpoints_written = set()
+            for checkpoint_name in checkpoint_df[table_name]:
+                if checkpoint_name:
+                    df = hdf_store.get_dataframe(table_name, checkpoint_name)
+                    if checkpoint_name and checkpoint_name not in checkpoints_written:
+                        output_store.put(
+                            table_name, df, checkpoint_name=checkpoint_name
+                        )
+                        checkpoints_written.add(checkpoint_name)
+        return output_store
 
 
 class HdfStore(GenericCheckpointStore):
@@ -149,6 +169,15 @@ class ParquetStore(GenericCheckpointStore):
 
     extension = ".parquetpipeline"
 
+    @staticmethod
+    def _to_parquet(df: pd.DataFrame, filename, *args, **kwargs):
+        try:
+            df.to_parquet(filename, *args, **kwargs)
+        except pa.lib.ArrowInvalid as err:
+            logger.exception(err)
+            print("pa.lib.ArrowInvalid, do something?")
+            raise
+
     def __init__(self, directory: Path, mode: str = "a"):
         directory = Path(directory)
         if directory.suffix == ".zip":
@@ -177,11 +206,9 @@ class ParquetStore(GenericCheckpointStore):
         filepath = self._store_table_path(table_name, checkpoint_name)
         filepath.parent.mkdir(parents=True, exist_ok=True)
         if complib == "NOTSET":
-            pd.DataFrame(df).to_parquet(
-                path=filepath,
-            )
+            self._to_parquet(pd.DataFrame(df), filepath)
         else:
-            pd.DataFrame(df).to_parquet(path=filepath, compression=complib)
+            self._to_parquet(pd.DataFrame(df), filepath, compression=complib)
 
     def get_dataframe(
         self, table_name: str, checkpoint_name: str = None
@@ -760,6 +787,8 @@ class Checkpoints(StateAccessor):
         AssertionError
             If any registered table does not match.
         """
+        __tracebackhide__ = True  # don't show this code in pytest outputs
+
         for table_name in self._obj.registered_tables():
             local_table = self._obj.get_dataframe(table_name)
             logger.info(f"table {table_name!r}: shalpe1 {local_table.shape}")
@@ -783,14 +812,47 @@ class Checkpoints(StateAccessor):
         for table_name in registered_tables:
             local_table = self._obj.get_dataframe(table_name)
             ref_table = ref_state.get_dataframe(table_name)
-            try:
-                pd.testing.assert_frame_equal(local_table, ref_table, check_dtype=False)
-            except Exception as err:
-                raise AssertionError(
-                    f"checkpoint {checkpoint_name} table {table_name!r}, {str(err)}"
-                ) from err
+            cols_in_run_but_not_ref = set(local_table.columns) - set(ref_table.columns)
+            cols_in_ref_but_not_run = set(ref_table.columns) - set(local_table.columns)
+            if cols_in_ref_but_not_run:
+                msg = f"checkpoint {checkpoint_name} table {table_name!r} column names mismatch"
+                if cols_in_run_but_not_ref:
+                    msg += (
+                        f"\ncolumns found but not expected: {cols_in_run_but_not_ref}"
+                    )
+                if cols_in_ref_but_not_run:
+                    msg += (
+                        f"\ncolumns expected but not found: {cols_in_ref_but_not_run}"
+                    )
+                raise AssertionError(msg)
+            elif cols_in_run_but_not_ref:
+                # if there are extra columns output that were not expected, but
+                # we at least have all the column names that were expected, just
+                # warn, not error
+                warnings.warn(
+                    f"checkpoint {checkpoint_name} table {table_name!r}\n"
+                    f"columns found but not expected: {cols_in_run_but_not_ref}"
+                )
+            if len(ref_table.columns) == 0:
+                try:
+                    pd.testing.assert_index_equal(local_table.index, ref_table.index)
+                except Exception as err:
+                    raise AssertionError(
+                        f"checkpoint {checkpoint_name} table {table_name!r}, {str(err)}"
+                    )
+                else:
+                    logger.info(f"table {table_name!r}: ok")
             else:
-                logger.info(f"table {table_name!r}: ok")
+                try:
+                    pd.testing.assert_frame_equal(
+                        local_table[ref_table.columns], ref_table, check_dtype=False
+                    )
+                except Exception as err:
+                    raise AssertionError(
+                        f"checkpoint {checkpoint_name} table {table_name!r}, {str(err)}"
+                    )
+                else:
+                    logger.info(f"table {table_name!r}: ok")
 
     def cleanup(self):
         """
@@ -867,14 +929,17 @@ class Checkpoints(StateAccessor):
                 table_dir = final_pipeline_file_path.joinpath(table_name)
                 if not table_dir.exists():
                     table_dir.mkdir(parents=True)
-                table_df.to_parquet(
-                    table_dir.joinpath(f"{FINAL_CHECKPOINT_NAME}.parquet")
+                ParquetStore._to_parquet(
+                    table_df, table_dir.joinpath(f"{FINAL_CHECKPOINT_NAME}.parquet")
                 )
             final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME).mkdir(
                 parents=True, exist_ok=True
             )
-            checkpoints_df.to_parquet(
-                final_pipeline_file_path.joinpath(CHECKPOINT_TABLE_NAME, "None.parquet")
+            ParquetStore._to_parquet(
+                checkpoints_df,
+                final_pipeline_file_path.joinpath(
+                    CHECKPOINT_TABLE_NAME, "None.parquet"
+                ),
             )
 
         logger.debug(f"deleting all pipeline files except {final_pipeline_file_path}")

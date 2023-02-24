@@ -1098,7 +1098,7 @@ def mp_run_simulation(
     try:
         if step_info["num_processes"] > 1:
             pipeline_prefix = multiprocessing.current_process().name
-            logger.debug(state, f"injecting pipeline_file_prefix '{pipeline_prefix}'")
+            logger.debug(f"injecting pipeline_file_prefix '{pipeline_prefix}'")
             state.add_injectable("pipeline_file_prefix", pipeline_prefix)
 
         shared_data_buffer = kwargs

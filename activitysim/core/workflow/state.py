@@ -19,6 +19,7 @@ from pypyr.context import Context
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import Checkpoints
+from activitysim.core.workflow.extending import Extend
 from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.runner import Runner
 from activitysim.core.workflow.steps import run_named_step
@@ -170,7 +171,8 @@ class State:
     predicates = StateAttr(dict, default_init=True)
     checkpoint = Checkpoints()
     logging = Logging()
-    tracing: Tracing = Tracing()
+    tracing = Tracing()
+    extend = Extend()
 
     @classmethod
     def make_default(

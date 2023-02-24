@@ -2,6 +2,10 @@ from activitysim.core.workflow.accessor import StateAccessor
 
 
 class Extend(StateAccessor):
+    """
+    Methods to extend the capabilities of ActivitySim.
+    """
+
     def __get__(self, instance, objtype=None) -> "Extend":
         # derived __get__ changes annotation, aids in type checking
         return super().__get__(instance, objtype)

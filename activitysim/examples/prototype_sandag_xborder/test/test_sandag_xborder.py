@@ -29,7 +29,12 @@ def _test_sandag_xborder(sharrow=False, mp=True):
                 test_path("regress/final_trips_1_process.csv")
             )
         final_trips_df = pd.read_csv(test_path("output/final_trips.csv"))
-        pdt.assert_frame_equal(final_trips_df, regress_trips_df)
+        # column ordering not important
+        assert sorted(regress_trips_df.columns) == sorted(final_trips_df.columns)
+        pdt.assert_frame_equal(
+            final_trips_df[sorted(regress_trips_df.columns)],
+            regress_trips_df[sorted(regress_trips_df.columns)],
+        )
 
     file_path = os.path.join(os.path.dirname(__file__), "../simulation.py")
 

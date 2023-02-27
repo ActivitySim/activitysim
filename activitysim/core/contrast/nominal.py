@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import logging
 
-import altair as alt
 import numpy as np
 import pandas as pd
 
 from activitysim.core import workflow
+from activitysim.core.contrast import altair as alt
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +56,9 @@ def compare_nominal(
     ----------
     states : Mapping[str, BasicState]
     """
+    if isinstance(alt, Exception):
+        raise alt
+
     if isinstance(states, workflow.State):
         states = {"results": states}
 

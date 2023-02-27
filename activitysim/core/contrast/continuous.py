@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import logging
 
-import altair as alt
 import pandas as pd
 
 from activitysim.core import workflow
+from activitysim.core.contrast import altair as alt
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +47,9 @@ def compare_histogram(
     -------
     altair.Chart
     """
+    if isinstance(alt, Exception):
+        raise alt
+
     if relabel_whales is None:
         relabel_whales = {}
 

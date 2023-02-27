@@ -15,6 +15,7 @@ import pandas as pd
 import pyarrow as pa
 import xarray as xr
 from pypyr.context import Context
+from sharrow.dataset import construct as _dataset_construct
 
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import StateAccessError
@@ -382,39 +383,78 @@ class State:
                 uncheckpointed.append(tablename)
         return uncheckpointed
 
-    def _load_or_create_table(self, tablename, overwrite=False, swallow_errors=False):
+    def _load_or_create_dataset(
+        self, table_name, overwrite=False, swallow_errors=False
+    ):
         """
         Load a table from disk or otherwise programmatically create it.
 
         Parameters
         ----------
-        tablename : str
+        table_name : str
         overwrite : bool
         swallow_errors : bool
 
         Returns
         -------
-        pandas.DataFrame or xarray.Dataset
+        xarray.Dataset
         """
-        if tablename in self.existing_table_names and not overwrite:
+        if table_name in self.existing_table_names and not overwrite:
+            if swallow_errors:
+                return self.get_dataframe(table_name)
+            raise ValueError(f"table {table_name} already loaded")
+        if table_name not in self._LOADABLE_TABLES:
             if swallow_errors:
                 return
-            raise ValueError(f"table {tablename} already loaded")
-        if tablename not in self._LOADABLE_TABLES:
-            if swallow_errors:
-                return
-            raise ValueError(f"table {tablename} has no loading function")
-        logger.debug(f"loading table {tablename}")
+            raise ValueError(f"table {table_name} has no loading function")
+        logger.debug(f"loading table {table_name}")
         try:
-            t = self._LOADABLE_TABLES[tablename](self._context)
+            t = self._LOADABLE_TABLES[table_name](self._context)
         except StateAccessError:
             if not swallow_errors:
                 raise
             else:
                 t = None
         if t is not None:
-            self.add_table(tablename, t)
+            self.add_table(table_name, t)
         return t
+
+    def get_dataset(
+        self,
+        table_name: str,
+        column_names: Optional[list[str]] = None,
+        as_copy: bool = False,
+    ) -> xr.Dataset:
+        """
+        Get a workflow table or dataset as a xarray.Dataset.
+
+        Parameters
+        ----------
+        table_name : str
+            Name of table or dataset to get.
+        column_names : list[str], optional
+            Include only these columns or variables in the dataset.
+        as_copy : bool, default False
+            Return a copy of the dataset instead of the original.
+
+        Returns
+        -------
+        xarray.Dataset
+        """
+        t = self._context.get(table_name, None)
+        if t is None:
+            t = self._load_or_create_dataset(table_name, swallow_errors=False)
+        if t is None:
+            raise KeyError(table_name)
+        t = _dataset_construct(t)
+        if isinstance(t, xr.Dataset):
+            if column_names is not None:
+                t = t[column_names]
+            if as_copy:
+                return t.copy()
+            else:
+                return t
+        raise TypeError(f"cannot convert {table_name} to Dataset")
 
     def get_dataframe(
         self,
@@ -440,7 +480,7 @@ class State:
         """
         t = self._context.get(tablename, None)
         if t is None:
-            t = self._load_or_create_table(tablename, swallow_errors=False)
+            t = self._load_or_create_dataset(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
@@ -450,6 +490,9 @@ class State:
                 return t.copy()
             else:
                 return t
+        elif isinstance(t, xr.Dataset):
+            # this route through pyarrow is generally faster than xarray.to_pandas
+            return t.single_dim.to_pyarrow().to_pandas()
         raise TypeError(f"cannot convert {tablename} to DataFrame")
 
     def get_dataarray(
@@ -476,7 +519,7 @@ class State:
         """
         t = self._context.get(tablename, None)
         if t is None:
-            t = self._load_or_create_table(tablename, swallow_errors=False)
+            t = self._load_or_create_dataset(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
@@ -501,7 +544,7 @@ class State:
         """
         t = self._context.get(tablename, None)
         if t is None:
-            t = self._load_or_create_table(tablename, swallow_errors=False)
+            t = self._load_or_create_dataset(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
@@ -509,7 +552,7 @@ class State:
         raise TypeError(f"cannot get index name for {tablename}")
 
     def get_pyarrow(
-        self, tablename: str, columns: Optional[list[str]] = None
+        self, tablename: str, columns: Optional[list[str] | str] = None
     ) -> pa.Table:
         """
         Get a workflow table as a pyarrow.Table.
@@ -518,16 +561,18 @@ class State:
         ----------
         tablename : str
             Name of table to get.
-        columns : list[str], optional
+        columns : list[str] or str, optional
             Include only these columns in the dataframe.
 
         Returns
         -------
         pyarrow.Table
         """
+        if isinstance(columns, str):
+            columns = [columns]
         t = self._context.get(tablename, None)
         if t is None:
-            t = self._load_or_create_table(tablename, swallow_errors=False)
+            t = self._load_or_create_dataset(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
@@ -708,87 +753,6 @@ class State:
             return {}
         else:
             return filesystem.read_settings_file("constants.yaml", mandatory=False)
-
-    # def read_df(self, table_name, checkpoint_name=None):
-    #     """
-    #     Read a pandas dataframe from the pipeline store.
-    #
-    #     We store multiple versions of all simulation tables, for every checkpoint in which they change,
-    #     so we need to know both the table_name and the checkpoint_name of hte desired table.
-    #
-    #     The only exception is the checkpoints dataframe, which just has a table_name
-    #
-    #     An error will be raised by HDFStore if the table is not found
-    #
-    #     Parameters
-    #     ----------
-    #     table_name : str
-    #     checkpoint_name : str
-    #
-    #     Returns
-    #     -------
-    #     df : pandas.DataFrame
-    #         the dataframe read from the store
-    #
-    #     """
-    #     store = self.pipeline_store
-    #     if isinstance(store, Path):
-    #         df = pd.read_parquet(
-    #             store.joinpath(table_name, f"{checkpoint_name}.parquet"),
-    #         )
-    #     else:
-    #         df = store[self.pipeline_table_key(table_name, checkpoint_name)]
-    #
-    #     return df
-
-    # def write_df(self, df, table_name, checkpoint_name=None):
-    #     """
-    #     Write a pandas dataframe to the pipeline store.
-    #
-    #     We store multiple versions of all simulation tables, for every checkpoint in which they change,
-    #     so we need to know both the table_name and the checkpoint_name to label the saved table
-    #
-    #     The only exception is the checkpoints dataframe, which just has a table_name,
-    #     although when using the parquet storage format this file is stored as "None.parquet"
-    #     to maintain a simple consistent file directory structure.
-    #
-    #
-    #     Parameters
-    #     ----------
-    #     df : pandas.DataFrame
-    #         dataframe to store
-    #     table_name : str
-    #         also conventionally the injected table name
-    #     checkpoint_name : str
-    #         the checkpoint at which the table was created/modified
-    #     """
-    #
-    #     # coerce column names to str as unicode names will cause PyTables to pickle them
-    #     df.columns = df.columns.astype(str)
-    #
-    #     store = self.pipeline_store
-    #     if isinstance(store, Path):
-    #         store.joinpath(table_name).mkdir(parents=True, exist_ok=True)
-    #         df.to_parquet(store.joinpath(table_name, f"{checkpoint_name}.parquet"))
-    #     else:
-    #         complib = self.settings.pipeline_complib
-    #         if complib is None or len(df.columns) == 0:
-    #             # tables with no columns can't be compressed successfully, so to
-    #             # avoid them getting just lost and dropped they are instead written
-    #             # in fixed format with no compression, which should be just fine
-    #             # since they have no data anyhow.
-    #             store.put(
-    #                 self.pipeline_table_key(table_name, checkpoint_name),
-    #                 df,
-    #             )
-    #         else:
-    #             store.put(
-    #                 self.pipeline_table_key(table_name, checkpoint_name),
-    #                 df,
-    #                 "table",
-    #                 complib=complib,
-    #             )
-    #         store.flush()
 
     def add_table(self, name, content, salient=None):
         if salient is None:

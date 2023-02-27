@@ -25,7 +25,7 @@ def compare_histogram(
     number_format=",.2f",
     *,
     title=None,
-    tickCount=None,
+    tickCount=4,
 ):
     """
 
@@ -56,12 +56,8 @@ def compare_histogram(
 
     if grouping:
         groupings = [grouping]
-        if tickCount is None:
-            tickCount = 15
     else:
         groupings = []
-        if tickCount is None:
-            tickCount = 10
 
     targets = {}
     for key, tableset in states.items():
@@ -79,12 +75,10 @@ def compare_histogram(
             result = result[result[column_name] >= bounds[0]]
         if bounds[1] is not None:
             result = result[result[column_name] <= bounds[1]]
+        if bounds == (None, None):
+            bounds = (result[column_name].min(), result[column_name].max())
         result[column_name] = pd.cut(result[column_name], bins)
         targets = {k: result.loc[k] for k in targets.keys()}
-
-    # data = {}
-    # for key, tableset in states.items():
-    #     data[key] = tableset[table_name].assign(**{"distance": targets[key]})
 
     n = f"n_{table_name}"
     s = f"share_{table_name}"
@@ -173,6 +167,9 @@ def compare_histogram(
             width=400,
             height=240,
         )
+
+    if bounds[0] is not None and bounds[1] is not None:
+        encode_kwds["x"]["scale"] = alt.Scale(domain=bounds)
 
     if len(states) != 1:
         fig = (

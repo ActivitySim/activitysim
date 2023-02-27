@@ -67,24 +67,24 @@ def test_pipeline_run(state):
     checkpoints = state.checkpoint.get_inventory()
     print("checkpoints\n", checkpoints)
 
-    c2 = state.get_table("table2").c2
+    c2 = state.checkpoint.load_dataframe("table2").c2
 
     # get table from
-    state.get_table("table1", checkpoint_name="step3")
+    state.checkpoint.load_dataframe("table1", checkpoint_name="step3")
 
     # try to get a table from a step before it was checkpointed
     with pytest.raises(RuntimeError) as excinfo:
-        state.get_table("table2", checkpoint_name="step1")
+        state.checkpoint.load_dataframe("table2", checkpoint_name="step1")
     assert "not in checkpoint 'step1'" in str(excinfo.value)
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
-        state.get_table("bogus")
+        state.checkpoint.load_dataframe("bogus")
     assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
     with pytest.raises(RuntimeError) as excinfo:
-        state.get_table("table1", checkpoint_name="bogus")
+        state.checkpoint.load_dataframe("table1", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
     state.checkpoint.close_store()
@@ -113,19 +113,19 @@ def test_pipeline_checkpoint_drop(state):
     checkpoints = state.checkpoint.get_inventory()
     print("checkpoints\n", checkpoints)
 
-    state.get_table("table1")
+    state.checkpoint.load_dataframe("table1")
 
     with pytest.raises(RuntimeError) as excinfo:
-        state.get_table("table2")
+        state.checkpoint.load_dataframe("table2")
     # assert "never checkpointed" in str(excinfo.value)
 
     # can't get a dropped table from current checkpoint
     with pytest.raises(RuntimeError) as excinfo:
-        state.get_table("table3")
+        state.checkpoint.load_dataframe("table3")
     # assert "was dropped" in str(excinfo.value)
 
     # ensure that we can still get table3 from a checkpoint at which it existed
-    state.get_table("table3", checkpoint_name="step3")
+    state.checkpoint.load_dataframe("table3", checkpoint_name="step3")
 
     state.checkpoint.close_store()
     close_handlers()

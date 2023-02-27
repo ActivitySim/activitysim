@@ -648,7 +648,7 @@ def od_presample(
 #
 #     def __init__(self, size_term_selector):
 #         # do this once so they can request size_terms for various segments (tour_type or purpose)
-#         land_use = state.get_table("land_use")
+#         land_use = state.checkpoint.load_dataframe("land_use")
 #         self.land_use = land_use
 #         size_terms = state.get_injectable("size_terms")
 #         self.destination_size_terms = tour_destination_size_terms(

@@ -99,7 +99,9 @@ def regress_mini_auto(state: workflow.State):
         choices, index=pd.Index(hh_ids, name="household_id"), name="auto_ownership"
     )
 
-    auto_choice = state.get_table("households").sort_index().auto_ownership
+    auto_choice = (
+        state.checkpoint.load_dataframe("households").sort_index().auto_ownership
+    )
 
     offset = (
         HOUSEHOLDS_SAMPLE_SIZE // 2
@@ -122,7 +124,9 @@ def regress_mini_auto(state: workflow.State):
 
 def regress_mini_mtf(state: workflow.State):
 
-    mtf_choice = state.get_table("persons").sort_index().mandatory_tour_frequency
+    mtf_choice = (
+        state.checkpoint.load_dataframe("persons").sort_index().mandatory_tour_frequency
+    )
 
     # these choices are for pure regression - their appropriateness has not been checked
     per_ids = [2566701, 2566702, 3061895]
@@ -153,7 +157,7 @@ def regress_mini_mtf(state: workflow.State):
 
 def regress_mini_location_choice_logsums(state: workflow.State):
 
-    persons = state.get_table("persons")
+    persons = state.checkpoint.load_dataframe("persons")
 
     # DEST_CHOICE_LOGSUM_COLUMN_NAME is specified in school_location.yaml and should be assigned
     assert "school_location_logsum" in persons
@@ -194,16 +198,18 @@ def test_mini_pipeline_run():
 
     # try to get a non-existant table
     with pytest.raises(RuntimeError) as excinfo:
-        state.get_table("bogus")
+        state.checkpoint.load_dataframe("bogus")
     assert "never checkpointed" in str(excinfo.value)
 
     # try to get an existing table from a non-existant checkpoint
     with pytest.raises(RuntimeError) as excinfo:
-        state.get_table("households", checkpoint_name="bogus")
+        state.checkpoint.load_dataframe("households", checkpoint_name="bogus")
     assert "not in checkpoints" in str(excinfo.value)
 
     # should create optional workplace_location_sample table
-    workplace_location_sample_df = state.get_table("workplace_location_sample")
+    workplace_location_sample_df = state.checkpoint.load_dataframe(
+        "workplace_location_sample"
+    )
     assert "mode_choice_logsum" in workplace_location_sample_df
 
     state.checkpoint.close_store()
@@ -253,7 +259,7 @@ def test_mini_pipeline_run2():
 
     # - write list of override_hh_ids to override_hh_ids.csv in data for use in next test
     num_hh_ids = 10
-    hh_ids = state.get_table("households").head(num_hh_ids).index.values
+    hh_ids = state.checkpoint.load_dataframe("households").head(num_hh_ids).index.values
     hh_ids = pd.DataFrame({"household_id": hh_ids})
 
     hh_ids_path = state.filesystem.get_data_file_path("override_hh_ids.csv")
@@ -312,7 +318,7 @@ def full_run(
 
     state.run(models=MODELS, resume_after=resume_after)
 
-    tours = state.get_table("tours")
+    tours = state.checkpoint.load_dataframe("tours")
     tour_count = len(tours.index)
 
     return state, tour_count
@@ -369,7 +375,7 @@ def regress_tour_modes(tours_df):
 
 def regress(state: workflow.State):
 
-    persons_df = state.get_table("persons")
+    persons_df = state.checkpoint.load_dataframe("persons")
     persons_df = persons_df[persons_df.household_id == HH_ID]
     print("persons_df\n%s" % persons_df[["value_of_time", "distance_to_work"]])
 
@@ -381,7 +387,7 @@ def regress(state: workflow.State):
     3249923        23.349532              0.62
     """
 
-    tours_df = state.get_table("tours")
+    tours_df = state.checkpoint.load_dataframe("tours")
 
     regress_tour_modes(tours_df)
 
@@ -409,7 +415,7 @@ def regress(state: workflow.State):
     assert "mode_choice_logsum" in tours_df
     assert not tours_df.mode_choice_logsum.isnull().any()
 
-    trips_df = state.get_table("trips")
+    trips_df = state.checkpoint.load_dataframe("trips")
     assert trips_df.shape[0] > 0
     assert not trips_df.purpose.isnull().any()
     assert not trips_df.depart.isnull().any()

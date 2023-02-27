@@ -78,7 +78,7 @@ def test_load_cached_accessibility():
     try:
         state.run(models=_MODELS, resume_after=None)
 
-        accessibility_df = state.get_table("accessibility")
+        accessibility_df = state.checkpoint.load_dataframe("accessibility")
 
         assert "auPkRetail" in accessibility_df
 

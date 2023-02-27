@@ -953,3 +953,64 @@ class Checkpoints(StateAccessor):
         for pqp in pqps:
             if pqp.name != final_pipeline_file_path.name:
                 ParquetStore(pqp).wipe()
+
+    def load_dataframe(self, table_name, checkpoint_name=None):
+        """
+        Return pandas dataframe corresponding to table_name
+
+        if checkpoint_name is None, return the current (most recent) version of the table.
+        The table can be a checkpointed table or any registered orca table (e.g. function table)
+
+        if checkpoint_name is specified, return table as it was at that checkpoint
+        (the most recently checkpointed version of the table at or before checkpoint_name)
+
+        Parameters
+        ----------
+        table_name : str
+        checkpoint_name : str or None
+
+        Returns
+        -------
+        df : pandas.DataFrame
+        """
+
+        if table_name not in self.last_checkpoint and self._obj.is_table(table_name):
+            if checkpoint_name is not None:
+                raise RuntimeError(
+                    f"checkpoint.dataframe: checkpoint_name ({checkpoint_name!r}) not "
+                    f"supported for non-checkpointed table {table_name!r}"
+                )
+
+            return self._obj.get_dataframe(table_name)
+
+        # if there is no checkpoint name given, do not attempt to read from store
+        if checkpoint_name is None:
+            if table_name not in self.last_checkpoint:
+                raise RuntimeError("table '%s' never checkpointed." % table_name)
+
+            if not self.last_checkpoint[table_name]:
+                raise RuntimeError("table '%s' was dropped." % table_name)
+
+            return self._obj.get_dataframe(table_name)
+
+        # find the requested checkpoint
+        checkpoint = next(
+            (x for x in self.checkpoints if x["checkpoint_name"] == checkpoint_name),
+            None,
+        )
+        if checkpoint is None:
+            raise RuntimeError("checkpoint '%s' not in checkpoints." % checkpoint_name)
+
+        # find the checkpoint that table was written to store
+        last_checkpoint_name = checkpoint.get(table_name, None)
+
+        if not last_checkpoint_name:
+            raise RuntimeError(
+                "table '%s' not in checkpoint '%s'." % (table_name, checkpoint_name)
+            )
+
+        # if this version of table is same as current
+        if self.last_checkpoint.get(table_name, None) == last_checkpoint_name:
+            return self._obj.get_dataframe(table_name)
+
+        return self._read_df(table_name, last_checkpoint_name)

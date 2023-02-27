@@ -7,9 +7,9 @@ from collections.abc import Mapping, MutableMapping
 
 import yaml
 
+from activitysim.core import workflow
 from activitysim.core.contrast import NominalTarget, compare_nominal
 from activitysim.core.contrast.continuous import compare_histogram
-from activitysim.core.workflow._state import BasicState
 from activitysim.core.workflow.accessor import StateAccessor
 
 logger = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ class Reporting(StateAccessor):
     ):
         states = {"model": self._obj}
         if target is not None:
-            if not isinstance(target, (NominalTarget, BasicState)):
+            if not isinstance(target, (NominalTarget, workflow.State)):
                 target = NominalTarget(counts=target)
             states["target"] = target
         return compare_nominal(states, tablename, nominal_col, *args, **kwargs)

@@ -39,8 +39,8 @@ class NominalTarget:
 
 def compare_nominal(
     states: dict[str, workflow.State],
-    tablename,
-    nominal_col,
+    table_name: str,
+    column_name: str,
     row_grouping=None,
     col_grouping=None,
     count_label=None,
@@ -55,21 +55,14 @@ def compare_nominal(
     Parameters
     ----------
     states : Mapping[str, BasicState]
-    title : str, optional
-    grouping : str
-    relabel_tablesets : Mapping[str,str]
-        Remap the keys in `tablesets` with these values. Any
-        missing values are retained.  This allows you to modify
-        the figure to e.g. change "reference" to "v1.0.4" without
-        editing the original input data.
     """
     if isinstance(states, workflow.State):
         states = {"results": states}
 
     if count_label is None:
-        count_label = f"# of {tablename}"
+        count_label = f"# of {table_name}"
     if share_label is None:
-        share_label = f"share of {tablename}"
+        share_label = f"share of {table_name}"
     if relabel_tablesets is None:
         relabel_tablesets = {}
 
@@ -85,9 +78,10 @@ def compare_nominal(
 
     for key, state in states.items():
         if isinstance(state, workflow.State):
+            raw = state.get_dataarray(table_name, column_name)
             df = (
-                state.get_dataframe(tablename)
-                .groupby(groupings + [nominal_col])
+                state.get_dataframe(table_name)
+                .groupby(groupings + [column_name])
                 .size()
                 .rename(count_label)
                 .reset_index()
@@ -101,7 +95,7 @@ def compare_nominal(
             d[relabel_tablesets.get(key, key)] = df
         elif isinstance(state, NominalTarget):
             d[relabel_tablesets.get(key, key)] = state.as_dataframe(
-                tablename, nominal_col
+                table_name, column_name
             )
         else:
             raise TypeError(f"states cannot be {type(state)!r}")
@@ -109,7 +103,7 @@ def compare_nominal(
     all_d = pd.concat(d, names=["source"]).reset_index()
 
     selection = alt.selection_multi(
-        fields=[nominal_col],
+        fields=[column_name],
         bind="legend",
     )
 
@@ -129,14 +123,14 @@ def compare_nominal(
 
     encode = dict(
         color=alt.Color(
-            nominal_col,
+            column_name,
             type="ordinal" if ordinal else "nominal",
         ),
         y=alt.Y("source", axis=alt.Axis(grid=False, title=""), sort=None),
         x=x,
         opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
         tooltip=[
-            nominal_col,
+            column_name,
             "source",
             count_label,
             alt.Tooltip(f"{share_label}:Q", format=".2%"),

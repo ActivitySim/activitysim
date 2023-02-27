@@ -382,7 +382,7 @@ class State:
                 uncheckpointed.append(tablename)
         return uncheckpointed
 
-    def load_table(self, tablename, overwrite=False, swallow_errors=False):
+    def _load_or_create_table(self, tablename, overwrite=False, swallow_errors=False):
         """
         Load a table from disk or otherwise programmatically create it.
 
@@ -440,7 +440,7 @@ class State:
         """
         t = self._context.get(tablename, None)
         if t is None:
-            t = self.load_table(tablename, swallow_errors=False)
+            t = self._load_or_create_table(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
@@ -451,6 +451,40 @@ class State:
             else:
                 return t
         raise TypeError(f"cannot convert {tablename} to DataFrame")
+
+    def get_dataarray(
+        self,
+        tablename: str,
+        item: str,
+        as_copy: bool = True,
+    ) -> xr.DataArray:
+        """
+        Get a workflow table item as ax xarray.DataArray.
+
+        Parameters
+        ----------
+        tablename : str
+            Name of table to get.
+        item : str
+            Name of item within table.
+        as_copy : bool, default True
+            Return a copy of the data instead of the original.
+
+        Returns
+        -------
+        DataArray
+        """
+        t = self._context.get(tablename, None)
+        if t is None:
+            t = self._load_or_create_table(tablename, swallow_errors=False)
+        if t is None:
+            raise KeyError(tablename)
+        if isinstance(t, pd.DataFrame):
+            if as_copy:
+                return t[item].to_xarray().copy()
+            else:
+                return t[item].to_xarray()
+        raise TypeError(f"cannot convert {tablename}.{item} to DataArray")
 
     def get_dataframe_index_name(self, tablename: str) -> str:
         """
@@ -467,7 +501,7 @@ class State:
         """
         t = self._context.get(tablename, None)
         if t is None:
-            t = self.load_table(tablename, swallow_errors=False)
+            t = self._load_or_create_table(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
@@ -493,7 +527,7 @@ class State:
         """
         t = self._context.get(tablename, None)
         if t is None:
-            t = self.load_table(tablename, swallow_errors=False)
+            t = self._load_or_create_table(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
@@ -1020,7 +1054,6 @@ class State:
             logger.debug(
                 "drop_table removing table %s from last_checkpoint" % table_name
             )
-
             self.checkpoint.last_checkpoint[table_name] = ""
 
     def get_output_file_path(self, file_name: str, prefix: str | bool = None) -> Path:

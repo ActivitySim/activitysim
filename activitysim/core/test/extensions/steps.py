@@ -35,7 +35,7 @@ def step_add_col(state: workflow.State):
     col_name = state.get_step_arg("column_name")
     assert col_name is not None
 
-    table = state.get_table(table_name)
+    table = state.get_dataframe(table_name)
 
     assert col_name not in table.columns
 
@@ -50,7 +50,7 @@ def step_forget_tab(state: workflow.State):
     table_name = state.get_step_arg("table_name")
     assert table_name is not None
 
-    table = state.get_table(table_name)
+    table = state.get_dataframe(table_name)
 
     state.drop_table(table_name)
 

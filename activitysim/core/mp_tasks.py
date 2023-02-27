@@ -563,7 +563,7 @@ def apportion_pipeline(state: workflow.State, sub_proc_names, step_info):
         # patch last checkpoint name for all tables
         checkpoints_df[table_name] = checkpoint_name
         # load the dataframe
-        tables[table_name] = state.get_table(table_name)
+        tables[table_name] = state.checkpoint.load_dataframe(table_name)
 
         debug(state, f"loaded table {table_name} {tables[table_name].shape}")
 

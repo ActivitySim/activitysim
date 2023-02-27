@@ -173,7 +173,7 @@ def write_data_dictionary(state: workflow.State):
                     continue
 
                 # get the checkpointed version of the table
-                df = state.get_table(table_name, checkpoint_name)
+                df = state.checkpoint.load_dataframe(table_name, checkpoint_name)
 
                 if df.index.name and df.index.name not in df.columns:
                     df = df.reset_index()

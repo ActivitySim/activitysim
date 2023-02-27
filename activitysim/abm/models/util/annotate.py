@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from activitysim.core import expressions, tracing, workflow
@@ -21,7 +23,7 @@ def annotate_tours(state: workflow.State, model_settings, trace_label):
     model_settings : dict
     trace_label : str
     """
-    tours = state.get_table("tours")
+    tours = state.get_dataframe("tours")
     expressions.assign_columns(
         state,
         df=tours,
@@ -40,7 +42,7 @@ def annotate_trips(state: workflow.State, model_settings, trace_label):
     model_settings : dict
     trace_label : str
     """
-    trips = state.get_table("trips")
+    trips = state.get_dataframe("trips")
     expressions.assign_columns(
         state,
         df=trips,

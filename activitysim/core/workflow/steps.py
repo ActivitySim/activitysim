@@ -362,9 +362,9 @@ class workflow_step:
 
         def update_with_cache(state: State, *args, **kwargs):
             ignore_cache = kwargs.pop("_ignore_cache_", False)
-            if self._step_name not in state.context or ignore_cache:
-                state.context[self._step_name] = wrapped_func(state, *args, **kwargs)
-            return state.context[self._step_name]
+            if self._step_name not in state._context or ignore_cache:
+                state._context[self._step_name] = wrapped_func(state, *args, **kwargs)
+            return state._context[self._step_name]
 
         update_with_cache.__doc__ = docstring
         update_with_cache.__name__ = self._step_name

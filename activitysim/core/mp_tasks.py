@@ -900,7 +900,7 @@ def setup_injectables_and_logging(injectables, locutor: bool = True) -> workflow
     # by default, assume we are running activitysim.abm
     # other callers (e.g. piopulationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
-    if not "preload_injectables" in state.context:
+    if not "preload_injectables" in state:
         # register abm steps and other abm-specific injectables
         from activitysim import abm  # noqa: F401
 

@@ -88,20 +88,20 @@ class FromState:
 
     def __get__(self, instance: StateAccessor, objtype=None):
         try:
-            return instance._obj.context[self.name]
+            return instance._obj._context[self.name]
         except (KeyError, AttributeError):
             if self._default_init:
-                instance._obj.context[self.name] = self.member_type()
-                return instance._obj.context[self.name]
+                instance._obj._context[self.name] = self.member_type()
+                return instance._obj._context[self.name]
             elif self._default_value != NO_DEFAULT:
-                instance._obj.context[self.name] = self._default_value
-                return instance._obj.context[self.name]
+                instance._obj._context[self.name] = self._default_value
+                return instance._obj._context[self.name]
             raise StateAccessError(f"{self.name} not initialized for this state")
 
     def __set__(self, instance: StateAccessor, value):
         if not self.__validate_type(value):
             raise TypeError(f"{self.name} must be {self.member_type} not {type(value)}")
-        instance._obj.context[self.name] = value
+        instance._obj._context[self.name] = value
 
     def __delete__(self, instance):
         self.__set__(instance, None)

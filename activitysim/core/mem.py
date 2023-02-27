@@ -245,7 +245,7 @@ def trace_memory_info(event, trace_ticks=0, force_garbage_collect=False, *, stat
                 MEM_LOG_FILE_NAME,
                 "a",
                 header=MEM_LOG_HEADER,
-                prefix=state.context.get("log_file_prefix", None),
+                prefix=state.get("log_file_prefix", None),
             )
 
             with log_file:

@@ -21,6 +21,7 @@ from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import Checkpoints
 from activitysim.core.workflow.extending import Extend
 from activitysim.core.workflow.logging import Logging
+from activitysim.core.workflow.report import Reporting
 from activitysim.core.workflow.runner import Runner
 from activitysim.core.workflow.steps import run_named_step
 from activitysim.core.workflow.tracing import Tracing
@@ -70,17 +71,17 @@ class StateAttr:
 
     def __get__(self, instance, objtype=None):
         try:
-            return instance.context[self.name]
+            return instance._context[self.name]
         except (KeyError, AttributeError):
             if self._default_init:
-                instance.context[self.name] = self.member_type()
-                return instance.context[self.name]
+                instance._context[self.name] = self.member_type()
+                return instance._context[self.name]
             raise StateAccessError(f"{self.name} not initialized for this state")
 
     def __set__(self, instance, value):
         if not isinstance(value, self.member_type):
             raise TypeError(f"{self.name} must be {self.member_type} not {type(value)}")
-        instance.context[self.name] = value
+        instance._context[self.name] = value
 
     def __delete__(self, instance):
         self.__set__(instance, None)
@@ -95,18 +96,35 @@ class State:
         """Files to close when state is destroyed or re-initialized."""
 
         if context is None:
-            self.context = Context()
+            self._context = Context()
             self.init_state()
         elif isinstance(context, Context):
-            self.context = context
+            self._context = context
         else:
-            raise TypeError(f"cannot init State with {type(context)}")
+            raise TypeError(f"cannot init {type(self)} with {type(context)}")
 
     def __del__(self):
         self.close_open_files()
 
+    def __contains__(self, key):
+        """
+        Check if a key is already stored in this state's context.
+
+        This does *not* check if the key is automatically loadable, it only
+        checks if a cached value has already been stored.
+
+        Parameters
+        ----------
+        key : str
+
+        Returns
+        -------
+        bool
+        """
+        return self._context.__contains__(key)
+
     def copy(self):
-        return self.__class__(context=Context(self.context.copy()))
+        return self.__class__(context=Context(self._context.copy()))
 
     def init_state(self):
         self.checkpoint.initialize()
@@ -115,16 +133,16 @@ class State:
 
         from activitysim.core.random import Random  # TOP?
 
-        self.context["prng"] = Random()
+        self._context["prng"] = Random()
         self._initialize_prng()
 
         self.tracing.initialize()
-        self.context["_salient_tables"] = {}
+        self._context["_salient_tables"] = {}
 
     def _initialize_prng(self, base_seed=None):
         from activitysim.core.random import Random
 
-        self.context["prng"] = Random()
+        self._context["prng"] = Random()
         if base_seed is None:
             try:
                 self.settings
@@ -132,7 +150,7 @@ class State:
                 base_seed = 0
             else:
                 base_seed = self.settings.rng_base_seed
-        self.context["prng"].set_base_seed(base_seed)
+        self._context["prng"].set_base_seed(base_seed)
 
     def import_extensions(self, ext: str | Iterable[str] = None, append=True):
         if ext is None:
@@ -169,10 +187,12 @@ class State:
     settings = StateAttr(Settings)
     network_settings = StateAttr(NetworkSettings)
     predicates = StateAttr(dict, default_init=True)
+
     checkpoint = Checkpoints()
     logging = Logging()
     tracing = Tracing()
     extend = Extend()
+    report = Reporting()
 
     @classmethod
     def make_default(
@@ -241,7 +261,7 @@ class State:
         temp_dir_path.joinpath("data").mkdir()
         temp_dir_path.joinpath("configs/settings.yaml").write_text("# empty\n")
         state = cls.make_default(temp_dir_path)
-        state.context["_TEMP_DIR_"] = temp_dir
+        state._context["_TEMP_DIR_"] = temp_dir
         if source is not None:
             state.checkpoint.restore_from(source, checkpoint_name)
         return state
@@ -353,7 +373,7 @@ class State:
 
     @property
     def existing_table_status(self) -> dict:
-        return self.context["_salient_tables"]
+        return self._context["_salient_tables"]
 
     def uncheckpointed_table_names(self):
         uncheckpointed = []
@@ -386,7 +406,7 @@ class State:
             raise ValueError(f"table {tablename} has no loading function")
         logger.debug(f"loading table {tablename}")
         try:
-            t = self._LOADABLE_TABLES[tablename](self.context)
+            t = self._LOADABLE_TABLES[tablename](self._context)
         except StateAccessError:
             if not swallow_errors:
                 raise
@@ -418,7 +438,7 @@ class State:
         -------
         DataFrame
         """
-        t = self.context.get(tablename, None)
+        t = self._context.get(tablename, None)
         if t is None:
             t = self.load_table(tablename, swallow_errors=False)
         if t is None:
@@ -445,7 +465,7 @@ class State:
         -------
         str
         """
-        t = self.context.get(tablename, None)
+        t = self._context.get(tablename, None)
         if t is None:
             t = self.load_table(tablename, swallow_errors=False)
         if t is None:
@@ -471,7 +491,7 @@ class State:
         -------
         pyarrow.Table
         """
-        t = self.context.get(tablename, None)
+        t = self._context.get(tablename, None)
         if t is None:
             t = self.load_table(tablename, swallow_errors=False)
         if t is None:
@@ -485,9 +505,9 @@ class State:
         raise TypeError(f"cannot convert {tablename} to pyarrow.Table")
 
     def access(self, key, initializer):
-        if key not in self.context:
+        if key not in self._context:
             self.set(key, initializer)
-        return self.context[key]
+        return self._context[key]
 
     def get(self, key, default: Any = NO_DEFAULT):
         if not isinstance(key, str):
@@ -498,7 +518,7 @@ class State:
                 raise ValueError(
                     f"cannot `get` {key_name}, it is a step, try State.run.{key_name}()"
                 )
-        result = self.context.get(key, None)
+        result = self._context.get(key, None)
         if result is None:
             try:
                 result = getattr(self.filesystem, key, None)
@@ -506,19 +526,19 @@ class State:
                 result = None
         if result is None:
             if key in self._LOADABLE_TABLES:
-                result = self._LOADABLE_TABLES[key](self.context)
+                result = self._LOADABLE_TABLES[key](self._context)
             elif key in self._LOADABLE_OBJECTS:
-                result = self._LOADABLE_OBJECTS[key](self.context)
+                result = self._LOADABLE_OBJECTS[key](self._context)
         if result is None:
             if default != NO_DEFAULT:
                 result = default
             else:
-                self.context.assert_key_has_value(
+                self._context.assert_key_has_value(
                     key=key, caller=self.__class__.__name__
                 )
                 raise KeyError(key)
         if not isinstance(result, (xr.Dataset, xr.DataArray, pd.DataFrame, pd.Series)):
-            result = self.context.get_formatted_value(result)
+            result = self._context.get_formatted_value(result)
         return result
 
     def set(self, key, value):
@@ -532,9 +552,9 @@ class State:
         ----------
         key : str
         """
-        self.context[key] = value
+        self._context[key] = value
         for i in self._PREDICATES.get(key, []):
-            if i in self.context:
+            if i in self._context:
                 logger.debug(f"update of {key} clears cached {i}")
                 self.drop(i)
 
@@ -548,9 +568,9 @@ class State:
         ----------
         key : str
         """
-        del self.context[key]
+        del self._context[key]
         for i in self._PREDICATES.get(key, []):
-            if i in self.context:
+            if i in self._context:
                 logger.debug(f"dropping {key} clears cached {i}")
                 self.drop(i)
 
@@ -561,7 +581,7 @@ class State:
     add_injectable = set  # legacy function name
 
     def rng(self):
-        return self.context["prng"]
+        return self._context["prng"]
 
     def pipeline_table_key(self, table_name, checkpoint_name):
         if checkpoint_name:
@@ -752,7 +772,7 @@ class State:
         """
         Return a list of the names of all currently registered dataframe tables
         """
-        return [name for name in self.existing_table_status if name in self.context]
+        return [name for name in self.existing_table_status if name in self._context]
 
     @property
     def current_model_name(self) -> str:
@@ -827,12 +847,12 @@ class State:
             from pyinstrument import Profiler
 
             with Profiler() as profiler:
-                self.context = run_named_step(step_name, self.context)
+                self._context = run_named_step(step_name, self._context)
             out_file = self.filesystem.get_profiling_file_path(f"{step_name}.html")
             with open(out_file, "wt") as f:
                 f.write(profiler.output_html())
         else:
-            self.context = run_named_step(step_name, self.context)
+            self._context = run_named_step(step_name, self._context)
 
         t0 = print_elapsed_time(
             "#run_model completed step '%s'" % model_name, t0, debug=True
@@ -907,7 +927,7 @@ class State:
                     f"supported for non-checkpointed table {table_name!r}"
                 )
 
-            return self.context.get(table_name)
+            return self._context.get(table_name)
 
         # if they want current version of table, no need to read from pipeline store
         if checkpoint_name is None:
@@ -917,7 +937,7 @@ class State:
             if not self.checkpoint.last_checkpoint[table_name]:
                 raise RuntimeError("table '%s' was dropped." % table_name)
 
-            return self.context.get(table_name)
+            return self._context.get(table_name)
 
         # find the requested checkpoint
         checkpoint = next(
@@ -944,7 +964,7 @@ class State:
             self.checkpoint.last_checkpoint.get(table_name, None)
             == last_checkpoint_name
         ):
-            return self.context.get(table_name)
+            return self._context.get(table_name)
 
         return self.checkpoint._read_df(table_name, last_checkpoint_name)
 
@@ -993,7 +1013,7 @@ class State:
     def drop_table(self, table_name):
         if self.is_table(table_name):
             logger.debug("drop_table dropping orca table '%s'" % table_name)
-            self.context.pop(table_name, None)
+            self._context.pop(table_name, None)
             self.existing_table_status.pop(table_name)
 
         if table_name in self.checkpoint.last_checkpoint:

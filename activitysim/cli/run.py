@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import argparse
@@ -114,8 +116,7 @@ def add_run_args(parser, multiprocess=True):
 
 def validate_injectable(state: workflow.State, name, make_if_missing=False):
     try:
-        dir_paths = state.context.get_formatted(name)
-        # dir_paths = state.get_injectable(name)
+        dir_paths = state.get(name)
     except RuntimeError:
         # injectable is missing, meaning is hasn't been explicitly set
         # and defaults cannot be found.
@@ -140,7 +141,7 @@ def validate_injectable(state: workflow.State, name, make_if_missing=False):
 def handle_standard_args(state: workflow.State, args, multiprocess=True):
     def inject_arg(name, value):
         assert name in INJECTABLES
-        state.context[name] = value
+        state.set(name, value)
 
     if args.working_dir:
         # activitysim will look in the current working directory for
@@ -258,7 +259,7 @@ def run(args):
     # by default, assume we are running activitysim.abm
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
-    if not "preload_injectables" in state.context:
+    if not "preload_injectables" in state:
         # register abm steps and other abm-specific injectables
         from activitysim import abm  # noqa: F401
 

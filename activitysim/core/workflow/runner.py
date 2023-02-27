@@ -177,9 +177,6 @@ class Runner(StateAccessor):
 
     def __getattr__(self, item):
         if item in self._obj._RUNNABLE_STEPS:
-            # f = lambda **kwargs: self.obj._RUNNABLE_STEPS[item](
-            #     self.obj.context, **kwargs
-            # )
             f = lambda **kwargs: self.by_name(item)
             f.__doc__ = self._obj._RUNNABLE_STEPS[item].__doc__
             return f
@@ -291,14 +288,14 @@ class Runner(StateAccessor):
             from pyinstrument import Profiler
 
             with Profiler() as profiler:
-                self._obj.context = run_named_step(self.step_name, self._obj.context)
+                self._obj._context = run_named_step(self.step_name, self._obj._context)
             out_file = self._obj.filesystem.get_profiling_file_path(
                 f"{self.step_name}.html"
             )
             with open(out_file, "wt") as f:
                 f.write(profiler.output_html())
         else:
-            self._obj.context = run_named_step(self.step_name, self._obj.context)
+            self._obj._context = run_named_step(self.step_name, self._obj._context)
 
         from activitysim.core.tracing import print_elapsed_time
 

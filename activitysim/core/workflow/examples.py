@@ -39,5 +39,5 @@ def create_example(
         get_example(example_name, destination=directory)
     )
     if temp:
-        state.context["_TEMP_DIR_"] = temp_dir
+        state.set("_TEMP_DIR_", temp_dir)
     return state

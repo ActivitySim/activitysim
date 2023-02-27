@@ -25,6 +25,7 @@ def compare_histogram(
     number_format=",.2f",
     *,
     title=None,
+    tickCount=None,
 ):
     """
 
@@ -55,8 +56,12 @@ def compare_histogram(
 
     if grouping:
         groupings = [grouping]
+        if tickCount is None:
+            tickCount = 15
     else:
         groupings = []
+        if tickCount is None:
+            tickCount = 10
 
     targets = {}
     for key, tableset in states.items():
@@ -113,24 +118,48 @@ def compare_histogram(
     )
     all_d[column_name] = all_d[column_name].apply(lambda x: x.mid)
 
-    encode_kwds = dict(
-        color="source",
-        y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
-        x=alt.X(
-            column_name,
-            axis=alt.Axis(
-                grid=False, title=axis_label or column_name, format=number_format
+    if len(states) != 1:
+        encode_kwds = dict(
+            color="source",
+            y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
+            x=alt.X(
+                f"{column_name}:Q",
+                axis=alt.Axis(
+                    grid=False,
+                    title=axis_label or column_name,
+                    format=number_format,
+                    tickCount=tickCount,
+                ),
             ),
-        ),
-        # opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
-        tooltip=[
-            "source",
-            alt.Tooltip(column_name, format=number_format),
-            n,
-            alt.Tooltip(f"{s}:Q", format=".2%"),
-        ],
-        strokeWidth="source",
-    )
+            # opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
+            tooltip=[
+                "source",
+                alt.Tooltip(column_name, format=number_format),
+                n,
+                alt.Tooltip(f"{s}:Q", format=".2%"),
+            ],
+            strokeWidth="source",
+        )
+    else:
+        encode_kwds = dict(
+            color="source",
+            y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
+            x=alt.X(
+                f"{column_name}:Q",
+                axis=alt.Axis(
+                    grid=False,
+                    title=axis_label or column_name,
+                    format=number_format,
+                    tickCount=tickCount,
+                ),
+            ),
+            tooltip=[
+                alt.Tooltip(column_name, format=number_format),
+                n,
+                alt.Tooltip(f"{s}:Q", format=".2%"),
+            ],
+        )
+
     if grouping:
         encode_kwds["facet"] = alt.Facet(grouping, columns=3)
 
@@ -145,14 +174,22 @@ def compare_histogram(
             height=240,
         )
 
-    fig = (
-        alt.Chart(all_d)
-        .mark_line(
-            interpolate=interpolate,
+    if len(states) != 1:
+        fig = (
+            alt.Chart(all_d)
+            .mark_line(
+                interpolate=interpolate,
+            )
+            .encode(**encode_kwds)
+            .properties(**properties_kwds)
         )
-        .encode(**encode_kwds)
-        .properties(**properties_kwds)
-    )
+    else:
+        fig = (
+            alt.Chart(all_d)
+            .mark_bar(binSpacing=0)
+            .encode(**encode_kwds)
+            .properties(**properties_kwds)
+        )
 
     if title:
         fig = fig.properties(title=title).configure_title(

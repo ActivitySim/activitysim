@@ -81,13 +81,12 @@ def compare_nominal(
 
     for key, state in states.items():
         if isinstance(state, workflow.State):
-            raw = state.get_dataarray(table_name, column_name)
+            raw = state.get_pyarrow(table_name, groupings + [column_name])
             df = (
-                state.get_dataframe(table_name)
-                .groupby(groupings + [column_name])
-                .size()
-                .rename(count_label)
-                .reset_index()
+                raw.group_by(groupings + [column_name])
+                .aggregate([(column_name, "count")])
+                .to_pandas()
+                .rename(columns={f"{column_name}_count": count_label})
             )
             if not groupings:
                 df[share_label] = df[count_label] / df[count_label].sum()

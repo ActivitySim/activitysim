@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import enum
 import logging
 
 import numpy as np
 import pandas as pd
+import pyarrow.compute as pc
 
 from activitysim.core import workflow
 from activitysim.core.contrast import altair as alt
@@ -50,11 +52,15 @@ def compare_nominal(
     ordinal=False,
     plot_type="share",
     relabel_tablesets=None,
+    categories=None,
+    table_filter=None,
 ):
     """
     Parameters
     ----------
     states : Mapping[str, BasicState]
+    categories : Mapping
+        Maps the values found in the referred column into readable names.
     """
     if isinstance(alt, Exception):
         raise alt
@@ -79,9 +85,22 @@ def compare_nominal(
     if col_g is not None:
         groupings.append(col_g)
 
+    if isinstance(table_filter, str):
+        table_filters = [table_filter]
+        mask = pc.field(table_filter)
+    elif table_filter is None:
+        table_filters = []
+        mask = None
+    else:
+        raise NotImplementedError(f"{type(table_filter)=}")
+
     for key, state in states.items():
         if isinstance(state, workflow.State):
-            raw = state.get_pyarrow(table_name, groupings + [column_name])
+            raw = state.get_pyarrow(
+                table_name, groupings + [column_name] + table_filters
+            )
+            if mask is not None:
+                raw = raw.filter(mask)
             df = (
                 raw.group_by(groupings + [column_name])
                 .aggregate([(column_name, "count")])
@@ -143,6 +162,11 @@ def compare_nominal(
         encode["row"] = alt.Row(**row_g_kwd)
     if col_g is not None:
         encode["column"] = alt.Column(**col_g_kwd)
+
+    if isinstance(categories, enum.EnumMeta):
+        categories = {i.value: i.name for i in categories}
+    if categories:
+        all_d[column_name] = all_d[column_name].map(categories)
 
     fig = (
         alt.Chart(all_d)

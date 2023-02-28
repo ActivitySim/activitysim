@@ -563,6 +563,11 @@ class Settings(PydanticBase, extra="allow"):
     rng_base_seed: int | None = 0
     """Base seed for pseudo-random number generator."""
 
+    duplicate_step_execution: Literal["raise", "warn", "allow"] = "raise"
+    """
+    How activitysim should handle attempts to re-run a step with the same name.
+    """
+
     other_settings: dict[str, Any] = None
 
     def _get_attr(self, attr):

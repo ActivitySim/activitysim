@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import multiprocessing
 import time
+import warnings
 from datetime import timedelta
 from typing import Callable, Iterable
 
@@ -216,12 +217,29 @@ class Runner(StateAccessor):
 
         self.timing_notes.clear()
 
-    def _pre_run_step(self, model_name: str):
+    def _pre_run_step(self, model_name: str) -> bool | None:
+        """
+
+        Parameters
+        ----------
+        model_name
+
+        Returns
+        -------
+        bool
+            True if the run of this step should be skipped.
+        """
         if model_name in [
             checkpoint[CHECKPOINT_NAME]
             for checkpoint in self._obj.checkpoint.checkpoints
         ]:
-            raise RuntimeError("Cannot run model '%s' more than once" % model_name)
+            if self._obj.settings.duplicate_step_execution == "raise":
+                raise RuntimeError("Cannot run model '%s' more than once" % model_name)
+            elif self._obj.settings.duplicate_step_execution == "warn":
+                warnings.warn(
+                    f"aborting attempt to re-run step {model_name!r} more than once"
+                )
+                return True
 
         self._obj.rng().begin_step(model_name)
 
@@ -270,7 +288,9 @@ class Runner(StateAccessor):
         model_name : str
             model_name is assumed to be the name of a registered orca step
         """
-        self._pre_run_step(model_name)
+        should_skip = self._pre_run_step(model_name)
+        if should_skip:
+            return
 
         instrument = self._obj.settings.instrument
         if instrument is not None:

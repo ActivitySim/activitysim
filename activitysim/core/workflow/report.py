@@ -8,8 +8,8 @@ from collections.abc import Mapping, MutableMapping
 import yaml
 
 from activitysim.core import workflow
-from activitysim.core.contrast import NominalTarget, compare_nominal
 from activitysim.core.contrast.continuous import compare_histogram
+from activitysim.core.contrast.nominal import NominalTarget, compare_nominal
 from activitysim.core.workflow.accessor import StateAccessor
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,17 @@ class Reporting(StateAccessor):
                 target = NominalTarget(counts=target)
             states["target"] = target
         return compare_nominal(states, tablename, nominal_col, *args, **kwargs)
+
+    def ordinal_distribution(
+        self, table_name, column_name, *args, target=None, **kwargs
+    ):
+        states = {"model": self._obj}
+        if target is not None:
+            # if not isinstance(target, (NominalTarget, workflow.State)):
+            #     target = NominalTarget(counts=target)
+            states["target"] = target
+        kwargs["ordinal"] = True
+        return compare_nominal(states, table_name, column_name, *args, **kwargs)
 
     def histogram(self, table_name, column_name, *args, target=None, **kwargs):
         states = {"model": self._obj}

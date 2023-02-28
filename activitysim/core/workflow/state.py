@@ -20,6 +20,7 @@ from sharrow.dataset import construct as _dataset_construct
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import Checkpoints
+from activitysim.core.workflow.dataset import Datasets
 from activitysim.core.workflow.extending import Extend
 from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.report import Reporting
@@ -194,6 +195,7 @@ class State:
     tracing = Tracing()
     extend = Extend()
     report = Reporting()
+    dataset = Datasets()
 
     @classmethod
     def make_default(

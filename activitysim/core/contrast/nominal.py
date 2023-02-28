@@ -136,7 +136,8 @@ def compare_nominal(
             "source",
             count_label,
             alt.Tooltip(f"{share_label}:Q", format=".2%"),
-        ],
+        ]
+        + groupings,
     )
     if row_g is not None:
         encode["row"] = alt.Row(**row_g_kwd)

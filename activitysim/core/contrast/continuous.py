@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core import workflow
@@ -18,7 +19,7 @@ def compare_histogram(
     table_filter=None,
     grouping=None,
     relabel_whales=None,
-    bins=10,
+    bins: int = 10,
     bounds=(None, None),
     axis_label=None,
     interpolate="step",
@@ -26,6 +27,9 @@ def compare_histogram(
     *,
     title=None,
     tickCount=4,
+    style="histogram",
+    bandwidth=1,
+    kde_support=100,
 ):
     """
 
@@ -69,38 +73,60 @@ def compare_histogram(
             df = df.query(table_filter)
         targets[key] = df[[column_name] + groupings]
 
-    if bins is not None:
-        result = pd.concat(targets, names=["source"])
-        if bounds[0] is not None:
-            result = result[result[column_name] >= bounds[0]]
-        if bounds[1] is not None:
-            result = result[result[column_name] <= bounds[1]]
-        if bounds == (None, None):
-            bounds = (result[column_name].min(), result[column_name].max())
+    result = pd.concat(targets, names=["source"])
+    if bounds[0] is not None:
+        result = result[result[column_name] >= bounds[0]]
+    if bounds[1] is not None:
+        result = result[result[column_name] <= bounds[1]]
+    lower_bound = result[column_name].min()
+    upper_bound = result[column_name].max()
+    bin_width = (upper_bound - lower_bound) / bins
+    if style == "histogram":
         result[column_name] = pd.cut(result[column_name], bins)
-        targets = {k: result.loc[k] for k in targets.keys()}
+    targets = {k: result.loc[k] for k in targets.keys()}
 
     n = f"n_{table_name}"
     s = f"share_{table_name}"
 
     d = {}
-    for key, dat in targets.items():
-        if groupings:
-            df = (
-                dat.groupby(groupings + [column_name])
-                .size()
-                .rename(n)
-                .unstack(column_name)
-                .fillna(0)
-                .stack()
-                .rename(n)
-                .reset_index()
-            )
-            df[s] = df[n] / df.groupby(groupings)[n].transform("sum")
-        else:
-            df = dat.groupby(column_name).size().rename(n).reset_index()
-            df[s] = df[n] / df[n].sum()
-        d[relabel_whales.get(key, key)] = df
+    if style == "histogram":
+        for key, dat in targets.items():
+            if groupings:
+                df = (
+                    dat.groupby(groupings + [column_name])
+                    .size()
+                    .rename(n)
+                    .unstack(column_name)
+                    .fillna(0)
+                    .stack()
+                    .rename(n)
+                    .reset_index()
+                )
+                df[s] = df[n] / df.groupby(groupings)[n].transform("sum")
+            else:
+                df = dat.groupby(column_name).size().rename(n).reset_index()
+                df[s] = df[n] / df[n].sum()
+
+            if groupings:
+                dummy = df.groupby(groupings).size().index.to_frame()
+            else:
+                dummy = pd.DataFrame(index=[0])
+
+            df[column_name] = df[column_name].apply(lambda x: x.mid)
+            lower_edge = lower_bound - (bin_width / 2)
+            upper_edge = upper_bound + (bin_width / 2)
+            df = pd.concat(
+                [
+                    dummy.assign(**{column_name: lower_edge, n: 0, s: 0}),
+                    df,
+                    dummy.assign(**{column_name: upper_edge, n: 0, s: 0}),
+                ]
+            ).reset_index(drop=True)
+            d[relabel_whales.get(key, key)] = df
+    elif style == "kde":
+        for key, dat in targets.items():
+            df, bw = _kde(dat[column_name], bandwidth=bandwidth, n=kde_support)
+            d[relabel_whales.get(key, key)] = df
 
     # This is sorted in reverse alphabetical order by source, so that
     # the stroke width for the first line plotted is fattest, and progressively
@@ -110,49 +136,81 @@ def compare_histogram(
         .reset_index()
         .sort_values("source", ascending=False)
     )
-    all_d[column_name] = all_d[column_name].apply(lambda x: x.mid)
 
-    if len(states) != 1:
-        encode_kwds = dict(
-            color="source",
-            y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
-            x=alt.X(
-                f"{column_name}:Q",
-                axis=alt.Axis(
-                    grid=False,
-                    title=axis_label or column_name,
-                    format=number_format,
-                    tickCount=tickCount,
+    if style == "histogram":
+        if len(states) != 1:
+            encode_kwds = dict(
+                color="source",
+                y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
+                x=alt.X(
+                    f"{column_name}:Q",
+                    axis=alt.Axis(
+                        grid=False,
+                        title=axis_label or column_name,
+                        format=number_format,
+                        tickCount=tickCount,
+                    ),
                 ),
-            ),
-            # opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
-            tooltip=[
-                "source",
-                alt.Tooltip(column_name, format=number_format),
-                n,
-                alt.Tooltip(f"{s}:Q", format=".2%"),
-            ],
-            strokeWidth="source",
-        )
+                # opacity=alt.condition(selection, alt.value(1), alt.value(0.2)),
+                tooltip=[
+                    "source",
+                    alt.Tooltip(column_name, format=number_format),
+                    n,
+                    alt.Tooltip(f"{s}:Q", format=".2%"),
+                ],
+                strokeWidth="source",
+            )
+        else:
+            encode_kwds = dict(
+                color="source",
+                y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
+                x=alt.X(
+                    f"{column_name}:Q",
+                    axis=alt.Axis(
+                        grid=False,
+                        title=axis_label or column_name,
+                        format=number_format,
+                        tickCount=tickCount,
+                    ),
+                ),
+                tooltip=[
+                    alt.Tooltip(column_name, format=number_format),
+                    n,
+                    alt.Tooltip(f"{s}:Q", format=".2%"),
+                ],
+            )
+    elif style == "kde":
+        if len(states) != 1:
+            encode_kwds = dict(
+                color="source",
+                y=alt.Y("density", axis=alt.Axis(grid=False, title="")),
+                x=alt.X(
+                    f"{column_name}:Q",
+                    axis=alt.Axis(
+                        grid=False,
+                        title=axis_label or column_name,
+                        format=number_format,
+                        tickCount=tickCount,
+                    ),
+                ),
+                strokeWidth="source",
+            )
+        else:
+            encode_kwds = dict(
+                color="source",
+                y=alt.Y("density", axis=alt.Axis(grid=False, title="")),
+                x=alt.X(
+                    f"{column_name}:Q",
+                    axis=alt.Axis(
+                        grid=False,
+                        title=axis_label or column_name,
+                        format=number_format,
+                        tickCount=tickCount,
+                    ),
+                ),
+            )
     else:
-        encode_kwds = dict(
-            color="source",
-            y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
-            x=alt.X(
-                f"{column_name}:Q",
-                axis=alt.Axis(
-                    grid=False,
-                    title=axis_label or column_name,
-                    format=number_format,
-                    tickCount=tickCount,
-                ),
-            ),
-            tooltip=[
-                alt.Tooltip(column_name, format=number_format),
-                n,
-                alt.Tooltip(f"{s}:Q", format=".2%"),
-            ],
-        )
+        raise ValueError(f"unknown {style=}")
 
     if grouping:
         encode_kwds["facet"] = alt.Facet(grouping, columns=3)
@@ -174,16 +232,14 @@ def compare_histogram(
     if len(states) != 1:
         fig = (
             alt.Chart(all_d)
-            .mark_line(
-                interpolate=interpolate,
-            )
+            .mark_line(interpolate=interpolate)
             .encode(**encode_kwds)
             .properties(**properties_kwds)
         )
     else:
         fig = (
             alt.Chart(all_d)
-            .mark_bar(binSpacing=0)
+            .mark_area(interpolate=interpolate)
             .encode(**encode_kwds)
             .properties(**properties_kwds)
         )
@@ -196,3 +252,30 @@ def compare_histogram(
         )
 
     return fig
+
+
+def _kde(values, n=5, bandwidth=0.2, **kwargs):
+    """Kernel Density Estimation with Scikit-learn"""
+    from sklearn.neighbors import KernelDensity
+
+    x = np.asarray(values)
+
+    if isinstance(bandwidth, (float, int)):
+        kde_skl = KernelDensity(bandwidth=bandwidth, **kwargs)
+        kde_skl.fit(x[:, np.newaxis])
+    else:
+        from sklearn.model_selection import GridSearchCV
+
+        grid = GridSearchCV(
+            KernelDensity(), {"bandwidth": bandwidth}, cv=3
+        )  # 20-fold cross-validation
+        grid.fit(x[:, None])
+        bandwidth = grid.best_params_["bandwidth"]
+        kde_skl = grid.best_estimator_
+
+    x_grid = np.linspace(values.min(), values.max(), n)
+
+    # score_samples() returns the log-likelihood of the samples
+    log_pdf = kde_skl.score_samples(x_grid[:, np.newaxis])
+    name = getattr(values, "name", "x")
+    return (pd.DataFrame({name: x_grid, "density": np.exp(log_pdf)}), bandwidth)

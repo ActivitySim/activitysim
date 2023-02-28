@@ -1047,7 +1047,7 @@ def run_simulation(
         t1 = tracing.print_elapsed_time()
 
         try:
-            state.run_model(model)
+            state.run.by_name(model)
         except Exception as e:
             warning(
                 state, f"{type(e).__name__} exception running {model} model: {str(e)}"

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import logging
 import logging.handlers
@@ -167,7 +169,7 @@ def run_component(state, component_name):
             # components.  Instead, those benchmarks are generated in
             # aggregate during setup and then extracted from logs later.
         else:
-            state.run_model(component_name)
+            state.run.by_name(component_name)
     except Exception as err:
         logger.exception("run_component exception: %s", component_name)
         raise

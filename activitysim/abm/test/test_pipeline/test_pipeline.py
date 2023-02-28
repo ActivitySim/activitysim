@@ -190,8 +190,8 @@ def test_mini_pipeline_run():
 
     regress_mini_auto(state)
 
-    state.run_model("cdap_simulate")
-    state.run_model("mandatory_tour_frequency")
+    state.run.by_name("cdap_simulate")
+    state.run.by_name("mandatory_tour_frequency")
 
     regress_mini_mtf(state)
     regress_mini_location_choice_logsums(state)
@@ -244,12 +244,12 @@ def test_mini_pipeline_run2():
 
     # try to run a model already in pipeline
     with pytest.raises(RuntimeError) as excinfo:
-        state.run_model("auto_ownership_simulate")
+        state.run.by_name("auto_ownership_simulate")
     assert "run model 'auto_ownership_simulate' more than once" in str(excinfo.value)
 
     # and these new ones
-    state.run_model("cdap_simulate")
-    state.run_model("mandatory_tour_frequency")
+    state.run.by_name("cdap_simulate")
+    state.run.by_name("mandatory_tour_frequency")
 
     regress_mini_mtf(state)
 

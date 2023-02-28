@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 import pandas as pd
 
@@ -23,18 +24,33 @@ def free_parking(
     state: workflow.State,
     persons_merged: pd.DataFrame,
     persons: pd.DataFrame,
+    model_settings_file_name: str = "free_parking.yaml",
+    model_settings: dict[str, Any] = workflow.from_yaml("free_parking.yaml"),
+    trace_label: str = "free_parking",
 ):
-    """ """
+    """
+    Determine for each person whether they have free parking available at work.
 
-    trace_label = "free_parking"
-    model_settings_file_name = "free_parking.yaml"
-    trace_hh_id = state.settings.trace_hh_id
+    Parameters
+    ----------
+    state : workflow.State
+    persons_merged : DataFrame
+    persons : DataFrame
+    model_settings_file_name : str
+        This filename is used to write settings files in estimation mode.
+    model_settings : dict
+        The settings used in this model component.
+    trace_label : str
+
+    Returns
+    -------
+
+    """
 
     choosers = pd.DataFrame(persons_merged)
     choosers = choosers[choosers.workplace_zone_id > -1]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     estimator = estimation.manager.begin_estimation(state, "free_parking")
 
     constants = config.get_model_constants(model_settings)
@@ -100,5 +116,5 @@ def free_parking(
         "free_parking", persons.free_parking_at_work, value_counts=True
     )
 
-    if trace_hh_id:
+    if state.settings.trace_hh_id:
         state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

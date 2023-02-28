@@ -5,6 +5,7 @@ import importlib.machinery
 import importlib.util
 import logging
 import time
+from collections import namedtuple
 from collections.abc import Container
 from inspect import get_annotations, getfullargspec
 from typing import Callable, Collection, Mapping, NamedTuple
@@ -28,6 +29,12 @@ from activitysim.core.workflow.util import (
 logger = logging.getLogger(__name__)
 
 _STEP_LIBRARY = {}
+
+ExtendedArgSpec = namedtuple(
+    "ExtendedArgSpec",
+    "args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, "
+    "annotations, ndefault, required_args",
+)
 
 
 class TableInfo(NamedTuple):
@@ -67,7 +74,7 @@ def _create_step(step_name, step_func):
     _STEP_LIBRARY[step_name] = step_func
 
 
-def run_named_step(name, context):
+def run_named_step(name, context, **kwargs):
     try:
         step_func = _STEP_LIBRARY[name]
     except KeyError:
@@ -75,8 +82,21 @@ def run_named_step(name, context):
         for n in sorted(_STEP_LIBRARY.keys()):
             logger.error(f" - {n}")
         raise
-    step_func(context)
+    step_func(context, **kwargs)
     return context
+
+
+class StepArgInit:
+    def __call__(self, state, **other_overrides):
+        raise NotImplementedError
+
+
+class ModelSettingsFromYaml(StepArgInit):
+    def __init__(self, model_settings_file_name):
+        self.model_settings_file_name = model_settings_file_name
+
+    def __call__(self, state, **other_overrides):
+        return state.filesystem.read_model_settings(self.model_settings_file_name)
 
 
 class workflow_step:
@@ -229,6 +249,8 @@ class workflow_step:
             _kwonlydefaults,
             _annotations,
         ) = getfullargspec(wrapped_func)
+
+        # getfullargspec does not eval stringized annotations, so re-get those
         _annotations = get_annotations(wrapped_func, eval_str=True)
 
         if _defaults is None:
@@ -237,6 +259,18 @@ class workflow_step:
         else:
             _ndefault = len(_defaults)
             _required_args = _args[:-_ndefault]
+
+        self._fullargspec = ExtendedArgSpec(
+            _args,
+            _varargs,
+            _varkw,
+            _defaults,
+            _kwonlyargs,
+            _kwonlydefaults,
+            _annotations,
+            _ndefault,
+            _required_args,
+        )
 
         if not _required_args or _required_args[0] != "state":
             raise TypeError(
@@ -253,6 +287,22 @@ class workflow_step:
                 return context.get_formatted(self._step_name)
             assert isinstance(context, Context)
             state = State(context)
+
+            # initialize step-specific arguments if they are not provided in override_kwargs
+            if _ndefault:
+                for arg, default in zip(_args[-_ndefault:], _defaults):
+                    if isinstance(default, StepArgInit):
+                        override_kwargs[arg] = default(state, **override_kwargs)
+                    else:
+                        override_kwargs[arg] = default
+            if _kwonlydefaults:
+                for karg in _kwonlyargs:
+                    karg_default = _kwonlydefaults.get(karg, None)
+                    if isinstance(karg_default, StepArgInit):
+                        override_kwargs[karg] = karg_default(state, **override_kwargs)
+                    else:
+                        override_kwargs[karg] = karg_default
+
             caption = get_override_or_formatted_or_default(
                 override_kwargs, context, "caption", None
             )
@@ -272,54 +322,53 @@ class workflow_step:
             )
             # parse and run function itself
             args = []
-            for arg in _required_args:
-                if arg == "state":
-                    args.append(state)
+            for arg in _required_args[1:]:
+                # first arg is always state
+                if arg in override_kwargs:
+                    arg_value = override_kwargs[arg]
+                elif arg in context:
+                    arg_value = context.get(arg)
                 else:
-                    if arg in override_kwargs:
-                        arg_value = override_kwargs[arg]
-                    elif arg in context:
-                        arg_value = context.get(arg)
+                    if arg in state._LOADABLE_TABLES:
+                        arg_value = state._LOADABLE_TABLES[arg](context)
+                    elif arg in state._LOADABLE_OBJECTS:
+                        arg_value = state._LOADABLE_OBJECTS[arg](context)
                     else:
-                        if arg in state._LOADABLE_TABLES:
-                            arg_value = state._LOADABLE_TABLES[arg](context)
-                        elif arg in state._LOADABLE_OBJECTS:
-                            arg_value = state._LOADABLE_OBJECTS[arg](context)
-                        else:
-                            context.assert_key_has_value(
-                                key=arg, caller=wrapped_func.__module__
-                            )
-                            raise KeyError(arg)
-                    if (
-                        self._copy_tables
-                        and arg in state.existing_table_status
-                        and arg not in override_kwargs
-                    ):
-                        is_df = _annotations.get(arg) is pd.DataFrame
-                        if is_df:
-                            if isinstance(self._copy_tables, Container):
-                                if arg in self._copy_tables:
-                                    arg_value = arg_value.copy()
-                            else:
-                                # copy_tables is truthy
-                                arg_value = arg_value.copy()
-                    try:
-                        args.append(arg_value)
-                    except Exception as err:
-                        raise ValueError(f"extracting {arg} from context") from err
-            if _ndefault:
-                for arg, default in zip(_args[-_ndefault:], _defaults):
-                    args.append(
-                        get_override_or_formatted_or_default(
-                            override_kwargs, context, arg, default
+                        context.assert_key_has_value(
+                            key=arg, caller=wrapped_func.__module__
                         )
-                    )
+                        raise KeyError(arg)
+                if (
+                    self._copy_tables
+                    and arg in state.existing_table_status
+                    and arg not in override_kwargs
+                ):
+                    is_df = _annotations.get(arg) is pd.DataFrame
+                    if is_df:
+                        if isinstance(self._copy_tables, Container):
+                            if arg in self._copy_tables:
+                                arg_value = arg_value.copy()
+                        else:
+                            # copy_tables is truthy
+                            arg_value = arg_value.copy()
+                try:
+                    args.append(arg_value)
+                except Exception as err:
+                    raise ValueError(f"extracting {arg} from context") from err
+            if _ndefault:
+                # step arguments with defaults are never taken from the context
+                # they use the defaults always unless overridden manually
+                for arg, default in zip(_args[-_ndefault:], _defaults):
+                    if arg in override_kwargs:
+                        args.append(override_kwargs[arg])
+                    else:
+                        args.append(default)
             kwargs = {}
             for karg in _kwonlyargs:
                 if karg in _kwonlydefaults:
-                    kwargs[karg] = get_override_or_formatted_or_default(
-                        override_kwargs, context, karg, _kwonlydefaults[karg]
-                    )
+                    # step arguments with defaults are never taken from the context
+                    # they use the defaults always unless overridden manually
+                    kwargs[karg] = override_kwargs.get(karg, _kwonlydefaults[karg])
                 else:
                     if karg in override_kwargs:
                         kwargs[karg] = override_kwargs[karg]
@@ -336,7 +385,11 @@ class workflow_step:
                 for arg in _required_args:
                     if arg in kwargs:
                         kwargs.pop(arg)
-            outcome = error_logging(wrapped_func)(*args, **kwargs)
+            try:
+                state.this_step = self
+                outcome = error_logging(wrapped_func)(state, *args, **kwargs)
+            finally:
+                del state.this_step
             if self._kind == "table":
                 context[self._step_name] = outcome
                 if "_salient_tables" not in context:

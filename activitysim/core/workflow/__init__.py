@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from .examples import create_example
 from .state import State
+from .steps import ModelSettingsFromYaml as from_yaml
 from .steps import func
 from .steps import workflow_cached_object as cached_object
 from .steps import workflow_step as step

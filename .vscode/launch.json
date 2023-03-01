@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "MTC Extended Test",
+            "type": "python",
+            "request": "launch",
+            "program": "activitysim/cli/run.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "-c",
+                "activitysim/examples/prototype_mtc_extended/configs",
+                "-c",
+                "activitysim/examples/prototype_mtc/configs",
+                "-d",
+                "activitysim/examples/prototype_mtc/data",
+                "-o",
+                "activitysim/examples/prototype_mtc_extended/output",
+            ]
+        }
+    ]
+}

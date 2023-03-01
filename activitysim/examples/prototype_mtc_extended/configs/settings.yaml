@@ -182,6 +182,7 @@ checkpoints: True
 
 
 models:
+  - input_checker
   ## Disaggregate Accessibility steps
   - initialize_proto_population # Separate step so proto tables can be split for multiprocess.
   - compute_disaggregate_accessibility

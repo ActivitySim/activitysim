@@ -1,0 +1,11 @@
+
+***********************************************************
+	 Summary of Input Checker Fails 
+***********************************************************
+
+ Number of Fatal Errors: 0
+
+ Number of Logical Errors: 0
+
+ Number of Warnings: 0
+

@@ -12,11 +12,11 @@
 # ////                                                                       ///
 # //////////////////////////////////////////////////////////////////////////////
 #
-# Reviews all inputs to SANDAG ABM for possible issues that will result in model errors
+# Reviews all inputs to ActivitySim for possible issues that will result in model errors
 #
 #
 # Files referenced:
-# 	input_checker\config\inputs_checks.csv
+# 	input_checker\config\input_checker_spec.csv
 # 	input_checker\config\inputs_list.csv
 #
 # Script example:
@@ -36,7 +36,7 @@ import warnings
 import pandas as pd
 
 from activitysim.abm.tables import shadow_pricing, disaggregate_accessibility
-from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing
+from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing, simulate
 from activitysim.core.steps.output import (
     track_skim_usage,
     write_data_dictionary,
@@ -52,19 +52,14 @@ warnings.filterwarnings("ignore")
 _join = os.path.join
 _dir = os.path.dirname
 
-# gen_utils = _m.Modeller().module("sandag.utilities.general")
-
-
 class InputChecker:
     def __init__(self):
-        project_dir = _dir(_m.Modeller().desktop.project.path)
-        self.path = _dir(project_dir)
+        # project_dir = _dir(_m.Modeller().desktop.project.path)
+        # self.path = _dir(project_dir)
         self.input_checker_path = ""
         self.inputs_list_path = ""
-        self.inputs_checks_path = ""
         self.prop_input_paths = {}
         self.inputs_list = pd.DataFrame()
-        self.inputs_checks = pd.DataFrame()
         self.inputs = {}
         self.results = {}
         self.result_list = {}
@@ -74,110 +69,72 @@ class InputChecker:
         self.num_warning = int()
         self.num_logical = int()
 
+        self. trace_label = "input_checker"
+        self.model_settings_file_name = "input_checker.yaml"
+        model_settings = config.read_model_settings(self.model_settings_file_name)
+
+        # input_item_list = self.read_model_spec(file_name=model_settings["INPUT_ITEM_LIST"])
+        # model_spec = self.read_model_spec(file_name=model_settings["SPEC"])
+
+        #TEMP fix for now since the read_model_spec is not working for some reason
+        file_name=model_settings['INPUT_ITEM_LIST']
+        file_path = config.config_file_path(file_name)
+        self.inputs_list = pd.read_csv(file_path, comment="#")
+
+        file_name=model_settings['SPEC']
+        file_path = config.config_file_path(file_name)
+        self.input_checker_spec = pd.read_csv(file_path, comment="#")
+
+
+
+
+        logger.info("Running %s", self.trace_label)
+
         self.read_inputs()
         self.check_inputs()
 
-    def read_inputs(self):
+    #TODO: make sure we do not need to set index 
+    # def read_model_spec(file_name):
 
-        self.persons = read_input_table("persons")
+    #     assert isinstance(file_name, str)
+    #     # if not file_name.lower().endswith(".csv"):
+    #     #     file_name = "%s.csv" % (file_name,)
 
-    def check_inputs(self):
-        # _m.logbook_write("Started running input checker...")
+    #     file_path = config.config_file_path(file_name)
 
-        self.input_checker_path = _join(self.path, "input_checker")
-        self.inputs_list_path = _join(
-            self.input_checker_path, "config", "inputs_list.csv"
-        )
-        self.inputs_checks_path = _join(
-            self.input_checker_path, "config", "inputs_checks.csv"
-        )
-
-        # attributes = {"path": self.path}
-        # gen_utils.log_snapshot("Run Input Checker", str(self), attributes)
-
-        file_paths = [self.inputs_list_path, self.inputs_checks_path]
-        for path in file_paths:
-            if not os.path.exists(path):
-                raise Exception("missing file '%s'" % (path))
-
-        _m.logbook_write("Reading inputs...")
-        self.read_inputs()
-
-        _m.logbook_write("Conducting checks...")
-        self.checks()
-
-        _m.logbook_write("Writing logs...")
-        self.write_log()
-
-        _m.logbook_write("Checking for fatal errors...")
-        self.check_num_fatal()
-
-        _m.logbook_write("Finisehd running input checker")
+    #     try:
+    #         spec = pd.read_csv(file_path, comment="#")
+    #     except Exception as err:
+    #         logger.error(f"read_model_spec error reading {file_path}")
+    #         logger.error(f"read_model_spec error {type(err).__name__}: {str(err)}")
+    #         raise (err)
+        
+    #     return spec
 
     def read_inputs(self):
-        # read list of inputs from CSV file
-        self.inputs_list = pd.read_csv(self.inputs_list_path)
 
-        # remove all commented inputs from the inputs list
-        self.inputs_list = self.inputs_list.loc[
-            [not i for i in (self.inputs_list["Input_Table"].str.startswith("#"))]
-        ]
+        self.inputs['persons'] = read_input_table("persons")
+        self.inputs['persons'].reset_index(inplace=True) 
+        self.inputs['households'] = read_input_table("households")
+        self.inputs['households'].reset_index(inplace=True)
+        self.inputs['land_use'] = read_input_table("land_use")
+        self.inputs['land_use'].reset_index(inplace=True)
 
-        # obtain file paths from the sandag_abm.properties
-        self.prop_file_paths()
+        #check to see if input list has any additional files to read in
+        if not self.inputs_list.empty:
+            self.inputs_list = self.inputs_list.loc[
+                [not i for i in (self.inputs_list["Input_Table"].str.startswith("#"))]
+            ]
 
-        # load emme network
-        network = _m.Modeller().emmebank.scenario(100).get_network()
+            for _, row in self.inputs_list.iterrows():
 
-        def get_emme_object(emme_network, emme_network_object, fields_to_export):
-            # Emme network attribute and object names
-            net_attr = {
-                "NODE": "nodes",
-                "LINK": "links",
-                "TRANSIT_SEGMENT": "transit_segments",
-                "TRANSIT_LINE": "transit_lines",
-            }
+                print("Adding Input: " + row["Input_Table"])
 
-            # read-in entire emme network object as a list
-            get_objs = "list(emme_network." + net_attr[emme_network_object] + "())"
-            uda = eval(get_objs)
+                table_name = row["Input_Table"]
+                column_map = row["Column_Map"]
+                fields_to_export = row["Fields"].split(",")
 
-            # get list of network object attributes
-            obj_attr = []
-            if fields_to_export[0] in ["all", "All", "ALL"]:
-                obj_attr = emme_network.attributes(emme_network_object)
-            else:
-                obj_attr = fields_to_export
-
-            # instantiate list of network objects
-            net_objs = []
-            for i in range(len(uda)):
-                obj_fields = []
-                get_id = "uda[i].id"
-                obj_fields.append(eval(get_id))
-                for attr in obj_attr:
-                    get_field = 'uda[i]["' + attr + '"]'
-                    obj_fields.append(eval(get_field))
-                net_objs.append(obj_fields)
-            net_obj_df = pd.DataFrame(net_objs, columns=["id"] + obj_attr)
-
-            return net_obj_df
-
-        for item, row in self.inputs_list.iterrows():
-
-            print("Adding Input: " + row["Input_Table"])
-
-            table_name = row["Input_Table"]
-            emme_network_object = row["Emme_Object"]
-            column_map = row["Column_Map"]
-            fields_to_export = row["Fields"].split(",")
-
-            # obtain emme network object, csv or dbf input
-            if not (pd.isnull(emme_network_object)):
-                df = get_emme_object(network, emme_network_object, fields_to_export)
-                self.inputs[table_name] = df
-                print(" - " + table_name + " added")
-            else:
+                # TOFIX: inpit path is not set; dbf5 is not working
                 input_path = self.prop_input_paths[table_name]
                 input_ext = os.path.splitext(input_path)[1]
                 if input_ext == ".csv":
@@ -200,16 +157,16 @@ class InputChecker:
         calc_dict = locals()
 
         # read list of checks from CSV file
-        self.inputs_checks = pd.read_csv(self.inputs_checks_path)
+        # self.input_checker_spec = pd.read_csv(self.input_checker_spec_path)
 
         # remove all commented checks from the checks list
-        self.inputs_checks = self.inputs_checks.loc[
-            [not i for i in (self.inputs_checks["Test"].str.startswith("#"))]
+        self.input_checker_spec = self.input_checker_spec.loc[
+            [not i for i in (self.input_checker_spec["Test"].str.startswith("#"))]
         ]
 
         # loop through list of checks and conduct all checks
         # checks must evaluate to True if inputs are correct
-        for item, row in self.inputs_checks.iterrows():
+        for _, row in self.input_checker_spec.iterrows():
 
             test = row["Test"]
             table = row["Input_Table"]
@@ -225,7 +182,7 @@ class InputChecker:
 
             if test_type == "Test":
 
-                print("Performing Check: " + row["Test"])
+                logger.info("Performing Check: " + row["Test"])
 
                 if pd.isnull(row["Test_Vals"]):
 
@@ -291,16 +248,39 @@ class InputChecker:
                 exec(calc_expr, {}, calc_dict)
                 print(" - Calculation Complete")
 
-    def prop_file_paths(self):
-        prop_files = self.inputs_list[["Input_Table", "Property_Token"]].dropna()
+    def check_inputs(self):
+        # logger.info("Started running input checker...")
 
-        load_properties = _m.Modeller().tool("sandag.utilities.properties")
-        props = load_properties(_join(self.path, "conf", "sandag_abm.properties"))
+        # self.input_checker_path = _join(self.path, "input_checker")
+        # self.inputs_list_path = _join(
+        #     self.input_checker_path, "config", "inputs_list.csv"
+        # )
+        # self.input_checker_spec_path = _join(
+        #     self.input_checker_path, "config", "input_checker_spec.csv"
+        # )
 
-        for item, row in prop_files.iterrows():
-            input_table = row["Input_Table"]
-            input_path = props[row["Property_Token"]]
-            self.prop_input_paths[input_table] = input_path
+        # attributes = {"path": self.path}
+        # gen_utils.log_snapshot("Run Input Checker", str(self), attributes)
+
+        # file_paths = [self.inputs_list_path, self.input_checker_spec_path]
+        # for path in file_paths:
+        #     if not os.path.exists(path):
+        #         raise Exception("missing file '%s'" % (path))
+
+        self.read_inputs()
+
+        logger.info("Conducting input checks...")
+        self.checks()
+
+        logger.info("Writing logs...")
+        self.write_log()
+
+        logger.info("Checking for fatal errors...")
+        self.check_num_fatal()
+
+        logger.info("Finisehd running input checker")
+
+    
 
     def write_log(self):
         # function to write out the input checker log file
@@ -317,13 +297,16 @@ class InputChecker:
         if not os.path.exists(log_path):
             os.makedirs(log_path)
 
+        print(config.output_file_path('test.csv'))
+
+        # use fstring to create a file name with the current date
+
+
+
+
         f = open(
-            _join(
-                self.input_checker_path,
-                "logs",
-                ("inputCheckerLog " + now.strftime("[%Y-%m-%d]") + ".LOG"),
-            ),
-            "wb",
+                config.output_file_path(f'inputCheckerLog{now.strftime("[%Y-%m-%d]")}.log'),
+            "w",
         )
 
         # define re-usable elements
@@ -333,31 +316,31 @@ class InputChecker:
         # write out Header
         f.write(seperator1 + seperator1 + "\r\n")
         f.write(seperator1 + seperator1 + "\r\n\r\n")
-        f.write("\t SANDAG ABM Input Checker Log File \r\n")
+        f.write("\t ActivitySim Input Checker Log File \r\n")
         f.write("\t ____________________________ \r\n\r\n\r\n")
         f.write("\t Log created on: " + now.strftime("%Y-%m-%d %H:%M") + "\r\n\r\n")
         f.write("\t Notes:-\r\n")
         f.write(
-            "\t The SANDAG ABM Input Checker performs various QA/QC checks on SANDAG ABM inputs as specified by the user.\r\n"
+            "\t The ActivitySim Input Checker performs various QA/QC checks on ActivitySIm inputs as specified by the user.\r\n"
         )
         f.write(
             "\t The Input Checker allows the user to specify three severity levels for each QA/QC check:\r\n\r\n"
         )
         f.write("\t 1) FATAL  2) LOGICAL  3) WARNING\r\n\r\n")
         f.write(
-            "\t FATAL Checks:   The failure of these checks would result in a FATAL errors in the SANDAG ABM run.\r\n"
+            "\t FATAL Checks:   The failure of these checks would result in a FATAL errors in the ActivitySim ABM run.\r\n"
         )
         f.write(
             "\t                 In case of FATAL failure, the Input Checker returns a return code of 1 to the\r\n"
         )
         f.write(
-            "\t                 main SANDAG ABM model, cauing the model run to halt.\r\n"
+            "\t                 main ActivitySim ABM model, cauing the model run to halt.\r\n"
         )
         f.write(
             "\t LOGICAL Checks: The failure of these checks indicate logical inconsistencies in the inputs.\r\n"
         )
         f.write(
-            "\t                 With logical errors in inputs, the SANDAG ABM outputs may not be meaningful.\r\n"
+            "\t                 With logical errors in inputs, the ActivitySim ABM outputs may not be meaningful.\r\n"
         )
         f.write(
             "\t WARNING Checks: The failure of Warning checks would indicate problems in data that would not.\r\n"
@@ -387,9 +370,9 @@ class InputChecker:
         f.write(seperator1 + seperator1 + "\r\n")
         f.write(seperator1 + seperator1 + "\r\n\r\n\r\n\r\n")
 
-        # combine results, inputs_checks and inputs_list
-        self.inputs_checks["result"] = self.inputs_checks["Test"].map(self.results)
-        checks_df = pd.merge(self.inputs_checks, self.inputs_list, on="Input_Table")
+        # combine results, input_checker_spec and inputs_list
+        self.input_checker_spec["result"] = self.input_checker_spec["Test"].map(self.results)
+        checks_df = pd.merge(self.input_checker_spec, self.inputs_list, on="Input_Table")
         checks_df = checks_df[checks_df.Type == "Test"]
         checks_df["reverse_result"] = [not i for i in checks_df.result]
 
@@ -573,7 +556,7 @@ class InputChecker:
         # write out a summary of results from input checker for main model
         f = open(
             _join(self.input_checker_path, "logs", ("inputCheckerSummary" + ".txt")),
-            "wb",
+            "w",
         )
         f.write("\r\n" + seperator2 + "\r\n")
         f.write("\t Summary of Input Checker Fails \r\n")
@@ -586,8 +569,8 @@ class InputChecker:
     def check_num_fatal(self):
         # return code to the main model based on input checks and results
         if self.num_fatal > 0:
-            _m.logbook_write("At least one fatal error in the inputs.")
-            _m.logbook_write("Input Checker Failed")
+            logger.info("At least one fatal error in the inputs.")
+            logger.info("Input Checker Failed")
             sys.exit(2)
 
 

@@ -42,7 +42,8 @@ trace_od:
 #resume_after: trip_purpose_and_destination
 
 models:
-  ### mp_initialize_proto step (Create the proto tables in single process to be shared across cores)
+  - Input_checker
+  # mp_initialize_proto step (Create the proto tables in single process to be shared across cores)
   - initialize_proto_population
   ### mp_disaggregate_accessibility (Slice and run proto tables in multiprocess)
   - compute_disaggregate_accessibility

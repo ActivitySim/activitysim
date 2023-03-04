@@ -5,6 +5,7 @@ import logging.config
 import os
 import sys
 from collections.abc import Mapping, MutableMapping, Sequence
+from pathlib import Path
 from typing import Any, Optional
 
 import numpy as np
@@ -29,10 +30,14 @@ DEFAULT_TRACEABLE_TABLES = [
 
 
 class Tracing(StateAccessor):
+    """
+    Methods to provide the tracing capabilities of ActivitySim.
+    """
 
     traceable_tables: list[str] = FromState(default_value=DEFAULT_TRACEABLE_TABLES)
     traceable_table_ids: dict[str, Sequence] = FromState(default_init=True)
     traceable_table_indexes: dict[str, str] = FromState(default_init=True)
+    validation_directory: Path | None = FromState(default_value=None)
 
     def __get__(self, instance, objtype=None) -> "Tracing":
         # derived __get__ changes annotation, aids in type checking
@@ -295,6 +300,18 @@ class Tracing(StateAccessor):
                 column_labels=column_labels,
                 transpose=transpose,
             )
+
+        if self.validation_directory:
+            try:
+                that_path = self._obj.filesystem.find_trace_file_path(
+                    label, trace_dir=self.validation_directory
+                )
+            except FileNotFoundError as err:
+                logger.warning(f"trace validation: {err}")
+            else:
+                that_df = pd.read_csv(that_path)
+                this_df = pd.read_csv(self._obj.filesystem.get_trace_file_path(label))
+                pd.testing.assert_frame_equal(this_df, that_df)
 
     def trace_interaction_eval_results(self, trace_results, trace_ids, label):
         """

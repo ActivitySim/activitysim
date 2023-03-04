@@ -207,7 +207,9 @@ class FileSystem(PydanticBase, validate_assignment=True):
 
         return Path(file_path)
 
-    def get_trace_file_path(self, file_name):
+    def get_trace_file_path(
+        self, file_name, tail=None, trace_dir=None, create_dirs=True
+    ):
         """
         Get the complete path to a trace file.
 
@@ -215,30 +217,96 @@ class FileSystem(PydanticBase, validate_assignment=True):
         ----------
         file_name : str
             Base name of the trace file.
+        tail : str or False, optional
+            Add this suffix to filenames.  If not given, a quasi-random short
+            string is derived from the current time.  Set to `False` to omit
+            the suffix entirely.  Having a unique suffix makes it easier to
+            open multiple comparable trace files side-by-side in Excel, which
+            doesn't allow identically named files to be open simultaneously.
+            Omitting the suffix can be valuable for using automated tools to
+            find file differences across many files simultaneously.
+        trace_dir : path-like, optional
+            Construct the trace file path within this directory.  If not
+            provided (typically for normal operation) the "trace" sub-directory
+            of the normal output directory given by `get_output_dir` is used.
+            The option to give a different location is primarily used to
+            conduct trace file validation testing.
+        create_dirs : bool, default True
+            If the path to the containing directory of the trace file does not
+            yet exist, create it.
 
         Returns
         -------
         Path
         """
+        if trace_dir is None:
+            output_dir = self.get_output_dir()
 
-        output_dir = self.get_output_dir()
+            # - check for trace subfolder, create it if missing
+            trace_dir = output_dir.joinpath("trace")
+            if not trace_dir.exists():
+                trace_dir.mkdir(parents=True)
 
-        # - check for trace subfolder, create it if missing
-        trace_dir = output_dir.joinpath("trace")
-        if not trace_dir.exists():
-            trace_dir.mkdir(parents=True)
-
-        # construct a unique tail string from the time
-        # this is a convenience for opening multiple similarly named trace files
-        tail = hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:]
+        if tail is None:
+            # construct a unique tail string from the time
+            # this is a convenience for opening multiple similarly named trace files
+            tail = (
+                "-" + hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:]
+            )
+        elif not tail:
+            tail = ""
 
         file_parts = str(file_name).split(".")
 
         file_path = (
-            os.path.join(trace_dir, *file_parts[:-1]) + f"-{tail}.{file_parts[-1]}"
+            os.path.join(trace_dir, *file_parts[:-1]) + f"{tail}.{file_parts[-1]}"
         )
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        if create_dirs:
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
         return Path(file_path)
+
+    def find_trace_file_path(self, file_name, trace_dir=None, return_all=False):
+        """
+        Find the complete path to one or more existing trace file(s).
+
+        Parameters
+        ----------
+        file_name : str
+            Base name of the trace file.
+        trace_dir : path-like, optional
+            Construct the trace file path within this directory.  If not
+            provided (typically for normal operation) the "trace" sub-directory
+            of the normal output directory given by `get_output_dir` is used.
+            The option to give a different location is primarily used to
+            conduct trace file validation testing.
+        return_all : bool, default False
+            By default, only a single matching filename is returned, otherwise
+            an exception is raised.  Alternatively, set this to true to return
+            all matches.
+
+        Returns
+        -------
+        Path or list[Path]
+            A single Path if return_all is False, otherwise a list
+
+        Raises
+        ------
+        FileNotFoundError
+            If there are zero OR multiple matches.
+        """
+        target = self.get_trace_file_path(
+            file_name, trace_dir=trace_dir, tail="*", create_dirs=False
+        )
+        target = str(target).replace("-*", "*")
+        result = list(glob.glob(target))
+        if return_all:
+            return result
+        elif len(result) == 0:
+            raise FileNotFoundError(file_name)
+        elif len(result) == 1:
+            return result[0]
+        else:
+            raise FileNotFoundError(f"multiple matches for {file_name}")
 
     def get_cache_dir(self, subdir=None) -> Path:
         """

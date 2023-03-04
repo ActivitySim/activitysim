@@ -607,7 +607,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         include_stack : boolean or list
             Only used for recursive calls, provides a list of files included
             so far to detect and prevent cycles.
-        validator_class : pydantic.BaseModel, optional
+        validator_class : type[pydantic.BaseModel], optional
             This model is used to validate the loaded settings.
 
         Returns

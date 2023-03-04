@@ -109,6 +109,7 @@ def compare_nominal(
                     sh.DataTree(base=state.get_pyarrow(table_name))
                     .setup_flow({"out": table_filter})
                     .load(dtype=np.bool_)
+                    .reshape(-1)
                 )
             if mask is not None:
                 raw = raw.filter(mask)

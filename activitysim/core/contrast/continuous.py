@@ -160,7 +160,7 @@ def compare_histogram(
                 color="source",
                 y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
                 x=alt.X(
-                    f"{column_name}:Q",
+                    f"{column_name}:Q" if bin_width else f"{column_name}:O",
                     axis=alt.Axis(
                         grid=False,
                         title=axis_label or column_name,
@@ -173,7 +173,7 @@ def compare_histogram(
                     "source",
                     alt.Tooltip(column_name, format=number_format),
                     n,
-                    alt.Tooltip(f"{s}:Q", format=".2%"),
+                    alt.Tooltip(s, format=".2%"),
                 ],
                 strokeWidth="source",
             )
@@ -182,7 +182,7 @@ def compare_histogram(
                 color="source",
                 y=alt.Y(s, axis=alt.Axis(grid=False, title="")),
                 x=alt.X(
-                    f"{column_name}:Q",
+                    f"{column_name}:Q" if bin_width else f"{column_name}:O",
                     axis=alt.Axis(
                         grid=False,
                         title=axis_label or column_name,
@@ -193,7 +193,7 @@ def compare_histogram(
                 tooltip=[
                     alt.Tooltip(column_name, format=number_format),
                     n,
-                    alt.Tooltip(f"{s}:Q", format=".2%"),
+                    alt.Tooltip(s, format=".2%"),
                 ],
             )
     elif style == "kde":
@@ -254,12 +254,20 @@ def compare_histogram(
             .properties(**properties_kwds)
         )
     else:
-        fig = (
-            alt.Chart(all_d)
-            .mark_area(interpolate=interpolate)
-            .encode(**encode_kwds)
-            .properties(**properties_kwds)
-        )
+        if bin_width:
+            fig = (
+                alt.Chart(all_d)
+                .mark_area(interpolate=interpolate)
+                .encode(**encode_kwds)
+                .properties(**properties_kwds)
+            )
+        else:
+            fig = (
+                alt.Chart(all_d)
+                .mark_bar()
+                .encode(**encode_kwds)
+                .properties(**properties_kwds)
+            )
 
     if title:
         fig = fig.properties(title=title).configure_title(

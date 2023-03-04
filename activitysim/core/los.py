@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import logging
 import warnings
 from pathlib import Path
@@ -171,10 +173,10 @@ class Network_LOS(object):
         """
 
         try:
-            self.los_settings = self.state.filesystem.read_settings_file(
-                self.los_settings_file_name,
+            self.los_settings = NetworkSettings.read_settings_file(
+                self.state.filesystem,
+                file_name=self.los_settings_file_name,
                 mandatory=True,
-                validator_class=NetworkSettings,
             )
         except ValidationError as err:
             err_msg = str(err)

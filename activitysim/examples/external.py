@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 import os
 import tarfile
@@ -13,6 +15,24 @@ logger = logging.getLogger(__name__)
 
 
 def registered_external_example(name, working_dir):
+    """
+    Download a registered external example and copy into a working directory.
+
+    Parameters
+    ----------
+    name : str
+        The unique name for the registered external example.  See
+        `activitysim/examples/external_example_manifest.yaml` or run
+        `list_registered_examples()` for the names of the registered examples.
+    working_dir : path-like
+        The location to install the external example.
+
+    Returns
+    -------
+    Path
+        The location where the example was installed, generally a subdirectory
+        of `working_dir`.
+    """
     with open(
         Path(__file__).parent.joinpath("external_example_manifest.yaml"), "r"
     ) as eem:
@@ -28,6 +48,13 @@ def registered_external_example(name, working_dir):
 
 
 def list_registered_examples():
+    """
+    Read a list of registered example names.
+
+    Returns
+    -------
+    list[str]
+    """
     with open(
         Path(__file__).parent.joinpath("external_example_manifest.yaml"), "r"
     ) as eem:
@@ -38,6 +65,31 @@ def list_registered_examples():
 def exercise_external_example(
     name, working_dir, maxfail: int = None, verbose=2, durations=0
 ):
+    """
+    Use pytest to ensure that an external example is functioning correctly.
+
+    Parameters
+    ----------
+    name : str
+        The unique name for the registered external example.  See
+        `activitysim/examples/external_example_manifest.yaml` or run
+        `list_registered_examples()` for the names of the registered examples.
+    working_dir : path-like
+        The location to install a copy of the external example for testing.
+    maxfail : int, optional
+        Stop testing after this many failures have been detected.
+    verbose : int, default 2
+        Verbosity level given to pytest.
+    durations : int, default 0
+        Report the durations of this many of the slowest tests conducted.
+        Leave as 0 to report all durations, or set to None to report no
+        durations.
+
+    Returns
+    -------
+    int
+        The result code returned by pytest.
+    """
     try:
         directory = registered_external_example(name, working_dir)
     except Exception as err:

@@ -3,7 +3,12 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
-from activitysim.core.configuration.base import Any, PydanticBase, Union
+from activitysim.core.configuration.base import (
+    Any,
+    PydanticBase,
+    PydanticReadable,
+    Union,
+)
 
 
 class DigitalEncoding(PydanticBase):
@@ -151,7 +156,7 @@ class MazToMazSettings(PydanticBase, extra="forbid"):
     """The name of the skim table used to blend distances for MAZs."""
 
 
-class NetworkSettings(PydanticBase, extra="forbid"):
+class NetworkSettings(PydanticReadable, extra="forbid"):
     """
     Network level of service and skims settings
 

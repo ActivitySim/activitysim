@@ -52,7 +52,7 @@ def persons(state: workflow.State):
     persons_without_households = ~df.household_id.isin(households.index)
     if persons_without_households.any():
         logger.error(
-            f"{persons_without_households.sum()} persons out of {len(persons)} without households\n"
+            f"{persons_without_households.sum()} persons out of {len(df)} without households\n"
             f"{pd.Series({'person_id': persons_without_households.index.values})}"
         )
         raise RuntimeError(

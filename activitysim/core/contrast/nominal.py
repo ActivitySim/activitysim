@@ -96,9 +96,20 @@ def compare_nominal(
 
     for key, state in states.items():
         if isinstance(state, workflow.State):
-            raw = state.get_pyarrow(
-                table_name, groupings + [column_name] + table_filters
-            )
+            try:
+                raw = state.get_pyarrow(
+                    table_name, groupings + [column_name] + table_filters
+                )
+            except KeyError:
+                # table filter is maybe complex, try using sharrow
+                raw = state.get_pyarrow(table_name, groupings + [column_name])
+                import sharrow as sh
+
+                mask = (
+                    sh.DataTree(base=state.get_pyarrow(table_name))
+                    .setup_flow({"out": table_filter})
+                    .load(dtype=np.bool_)
+                )
             if mask is not None:
                 raw = raw.filter(mask)
             df = (

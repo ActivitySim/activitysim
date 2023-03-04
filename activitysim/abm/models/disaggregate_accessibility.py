@@ -467,7 +467,9 @@ class ProtoPop:
         if self.model_settings.get("FROM_TEMPLATES"):
             table_params = {k: self.params.get(k) for k in klist}
             tables = {
-                k: pd.read_csv(state.filesystem.get_config_file_path(v.get("file")))
+                k: pd.read_csv(
+                    self.state.filesystem.get_config_file_path(v.get("file"))
+                )
                 for k, v in table_params.items()
             }
             households, persons, tours = self.expand_template_zones(tables)
@@ -569,7 +571,7 @@ class ProtoPop:
         self.proto_pop["proto_persons_merged"] = persons_merged
 
         # Store in pipeline
-        state.add_table("proto_persons_merged", persons_merged)
+        self.state.add_table("proto_persons_merged", persons_merged)
 
 
 def get_disaggregate_logsums(
@@ -612,7 +614,7 @@ def get_disaggregate_logsums(
             model_settings["LOGSUM_SETTINGS"] = " ".join(suffixes)
 
         if model_name != "non_mandatory_tour_destination":
-            spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+            spc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
             # explicitly turning off shadow pricing for disaggregate accessibilities
             spc.use_shadow_pricing = False
             # filter to only workers or students

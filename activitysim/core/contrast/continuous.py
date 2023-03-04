@@ -15,34 +15,33 @@ def compare_histogram(
     states: dict[str, workflow.State],
     table_name,
     column_name,
+    *,
     checkpoint_name=None,
     table_filter=None,
     grouping=None,
-    relabel_whales=None,
-    bins: int = 10,
+    bins: int | str = 10,
     bounds=(None, None),
     axis_label=None,
     interpolate="step",
     number_format=",.2f",
-    *,
     title=None,
     tickCount=4,
     style="histogram",
     bandwidth=1,
     kde_support=100,
+    relabel_states=None,
 ):
     """
 
     Parameters
     ----------
     states
-    skims
-    dist_skim_name
-    dist_bins
-    grouping
-    title
-    max_dist
-    relabel_whales : Mapping[str,str]
+    bins : int or str, default 10
+        If an integer, then the range of data will be divided into this many
+        bins.  If a string, no binning is undertaken, but the values are
+        converted to this datatype, usually "int" to achieve the general effect
+        of binning.
+    relabel_states : Mapping[str,str]
         Remap the keys in `states` with these values. Any
         missing values are retained.  This allows you to modify
         the figure to e.g. change "reference" to "v1.0.4" without
@@ -55,8 +54,11 @@ def compare_histogram(
     if isinstance(alt, Exception):
         raise alt
 
-    if relabel_whales is None:
-        relabel_whales = {}
+    if relabel_states is None:
+        relabel_states = {}
+
+    if bins == "int" and number_format == ",.2f":
+        number_format = ",d"
 
     if grouping:
         groupings = [grouping]
@@ -70,7 +72,18 @@ def compare_histogram(
         else:
             df = tableset.get_dataframe(table_name, checkpoint_name=checkpoint_name)
         if isinstance(table_filter, str):
-            df = df.query(table_filter)
+            try:
+                df = df.query(table_filter)
+            except NotImplementedError:
+                # pandas.eval can't handle, try sharrow
+                import sharrow as sh
+
+                q = (
+                    sh.DataTree(base=df)
+                    .setup_flow({"out": table_filter})
+                    .load(dtype=np.bool_)
+                )
+                df = df.loc[q]
         targets[key] = df[[column_name] + groupings]
 
     result = pd.concat(targets, names=["source"])
@@ -80,9 +93,13 @@ def compare_histogram(
         result = result[result[column_name] <= bounds[1]]
     lower_bound = result[column_name].min()
     upper_bound = result[column_name].max()
-    bin_width = (upper_bound - lower_bound) / bins
-    if style == "histogram":
-        result[column_name] = pd.cut(result[column_name], bins)
+    if isinstance(bins, str):
+        bin_width = 0
+        result[column_name] = result[column_name].astype(bins)
+    else:
+        bin_width = (upper_bound - lower_bound) / bins
+        if style == "histogram":
+            result[column_name] = pd.cut(result[column_name], bins)
     targets = {k: result.loc[k] for k in targets.keys()}
 
     n = f"n_{table_name}"
@@ -107,26 +124,26 @@ def compare_histogram(
                 df = dat.groupby(column_name).size().rename(n).reset_index()
                 df[s] = df[n] / df[n].sum()
 
-            if groupings:
-                dummy = df.groupby(groupings).size().index.to_frame()
-            else:
-                dummy = pd.DataFrame(index=[0])
-
-            df[column_name] = df[column_name].apply(lambda x: x.mid)
-            lower_edge = lower_bound - (bin_width / 2)
-            upper_edge = upper_bound + (bin_width / 2)
-            df = pd.concat(
-                [
-                    dummy.assign(**{column_name: lower_edge, n: 0, s: 0}),
-                    df,
-                    dummy.assign(**{column_name: upper_edge, n: 0, s: 0}),
-                ]
-            ).reset_index(drop=True)
-            d[relabel_whales.get(key, key)] = df
+            if bin_width:
+                if groupings:
+                    dummy = df.groupby(groupings).size().index.to_frame()
+                else:
+                    dummy = pd.DataFrame(index=[0])
+                df[column_name] = df[column_name].apply(lambda x: x.mid)
+                lower_edge = lower_bound - (bin_width / 2)
+                upper_edge = upper_bound + (bin_width / 2)
+                df = pd.concat(
+                    [
+                        dummy.assign(**{column_name: lower_edge, n: 0, s: 0}),
+                        df,
+                        dummy.assign(**{column_name: upper_edge, n: 0, s: 0}),
+                    ]
+                ).reset_index(drop=True)
+            d[relabel_states.get(key, key)] = df
     elif style == "kde":
         for key, dat in targets.items():
             df, bw = _kde(dat[column_name], bandwidth=bandwidth, n=kde_support)
-            d[relabel_whales.get(key, key)] = df
+            d[relabel_states.get(key, key)] = df
 
     # This is sorted in reverse alphabetical order by source, so that
     # the stroke width for the first line plotted is fattest, and progressively

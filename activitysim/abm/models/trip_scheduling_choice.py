@@ -192,7 +192,7 @@ def get_pattern_index_and_arrays(tour_indexes, durations, one_way=True):
     return indexes, patterns, pattern_sizes
 
 
-def get_spec_for_segment(model_settings, spec_name, segment):
+def get_spec_for_segment(state: workflow.State, model_settings, spec_name, segment):
     """
     Read in the model spec
     :param model_settings: model settings file
@@ -332,7 +332,7 @@ def trip_scheduling_choice(
 ):
     trace_label = "trip_scheduling_choice"
     model_settings = state.filesystem.read_model_settings("trip_scheduling_choice.yaml")
-    spec = get_spec_for_segment(model_settings, "SPECIFICATION", "stage_one")
+    spec = get_spec_for_segment(state, model_settings, "SPECIFICATION", "stage_one")
 
     trips_df = trips
     tours_df = tours

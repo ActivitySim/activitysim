@@ -9,7 +9,7 @@ import shutil
 import pandas as pd
 import yaml
 
-from activitysim.core import config, simulate, workflow
+from activitysim.core import simulate, workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger("estimation")
@@ -42,16 +42,16 @@ class Estimator:
         self.estimating = True
 
         # ensure the output data directory exists
-        output_dir = self.output_directory(state)
+        output_dir = self.output_directory()
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)  # make directory if needed
 
         # delete estimation files
-        unlink_files(self.output_directory(state), file_types=("csv", "yaml"))
+        unlink_files(self.output_directory(), file_types=("csv", "yaml"))
         if self.bundle_name != self.model_name:
             # kind of inelegant to always delete these, but ok as they are redundantly recreated for each sub model
             unlink_files(
-                self.output_directory(state, bundle_directory=True),
+                self.output_directory(bundle_directory=True),
                 file_types=("csv", "yaml"),
             )
 
@@ -280,7 +280,7 @@ class Estimator:
         assert file_name is not None
 
         if coefficients_df is None:
-            coefficients_df = state.filesystem.read_model_coefficients(
+            coefficients_df = self.state.filesystem.read_model_coefficients(
                 file_name=file_name
             )
 
@@ -452,7 +452,7 @@ class Estimator:
             assert file_name is None
             file_name = model_settings[tag]
 
-        input_path = state.filesystem.get_config_file_path(file_name)
+        input_path = self.state.filesystem.get_config_file_path(file_name)
 
         table_name = tag  # more readable than full spec file_name
         output_path = self.output_file_path(table_name, "csv", bundle_directory)
@@ -522,17 +522,19 @@ class EstimationManager(object):
 
     def begin_estimation(
         self, state: workflow.State, model_name: str, bundle_name=None
-    ) -> Estimator:
+    ) -> Estimator | None:
         """
         begin estimating of model_name is specified as model to estimate, otherwise return False
 
         Parameters
         ----------
-        model_name
+        state : workflow.State
+        model_name : str
+        bundle_name : str, optional
 
         Returns
         -------
-        Estimator
+        Estimator or None
         """
         # load estimation settings file
         if not self.settings_initialized:
@@ -573,6 +575,7 @@ class EstimationManager(object):
         )
 
         self.estimating[model_name] = Estimator(
+            state,
             bundle_name,
             model_name,
             estimation_table_recipes=self.estimation_table_recipes[

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
@@ -6,9 +8,10 @@ import subprocess
 import sys
 
 import pandas as pd
-import pandas.testing as pdt
 import pkg_resources
 import pytest
+
+from activitysim.core import testing
 
 
 def example_path(dirname):
@@ -60,7 +63,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
             test_path(f"regress/final_{zone}_zone_tours_last_run.csv"), index=False
         )
         print("regress tours")
-        pdt.assert_frame_equal(
+        testing.assert_frame_substantively_equal(
             tours_df, regress_tours_df, rtol=1e-03, check_dtype=False
         )
 
@@ -80,7 +83,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
             test_path(f"regress/final_{zone}_zone_trips_last_run.csv"), index=False
         )
         print("regress trips")
-        pdt.assert_frame_equal(
+        testing.assert_frame_substantively_equal(
             trips_df, regress_trips_df, rtol=1e-03, check_dtype=False
         )
 
@@ -103,7 +106,9 @@ def run_test(zone, multiprocess=False, sharrow=False):
                     if not c.startswith("_original_")
                 ]
             ]
-            pdt.assert_frame_equal(final_accessibility_df, regress_accessibility_df)
+            testing.assert_frame_substantively_equal(
+                final_accessibility_df, regress_accessibility_df
+            )
 
     # run test
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")

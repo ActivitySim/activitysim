@@ -80,7 +80,7 @@ def wrap_skims(model_settings):
     return skims
 
 
-def get_spec_for_segment(model_settings, spec_name, segment):
+def get_spec_for_segment(state: workflow.State, model_settings, spec_name, segment):
     omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[segment]]
@@ -116,7 +116,7 @@ def parking_destination_simulate(
         trace_label, "parking_destination_simulate"
     )
 
-    spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
+    spec = get_spec_for_segment(state, model_settings, "SPECIFICATION", segment_name)
 
     coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     spec = simulate.eval_coefficients(state, spec, coefficients_df, None)

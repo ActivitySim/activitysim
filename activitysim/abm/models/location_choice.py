@@ -72,12 +72,19 @@ logger = logging.getLogger(__name__)
 ALT_LOGSUM = "mode_choice_logsum"
 
 
-def write_estimation_specs(state, estimator, model_settings, settings_file):
+def write_estimation_specs(
+    state: workflow.State,
+    estimator: estimation.Estimator,
+    model_settings,
+    settings_file,
+):
     """
     write sample_spec, spec, and coefficients to estimation data bundle
 
     Parameters
     ----------
+    state : workflow.State
+    estimator : estimation.Estimator
     model_settings
     settings_file
     """
@@ -231,7 +238,9 @@ HOME_MAZ = "home_zone_id"
 DEST_MAZ = "dest_MAZ"
 
 
-def aggregate_size_terms(dest_size_terms, network_los, model_settings):
+def aggregate_size_terms(
+    state: workflow.State, dest_size_terms, network_los, model_settings
+):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
     #
@@ -267,7 +276,7 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
     for c in weighted_average_cols:
         TAZ_size_terms[c] /= TAZ_size_terms["size_term"]  # weighted average
 
-    spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+    spc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
     if spc.use_shadow_pricing and (
         spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
     ):
@@ -333,7 +342,7 @@ def location_presample(
     assert DEST_TAZ != alt_dest_col_name
 
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
-        dest_size_terms, network_los, model_settings
+        state, dest_size_terms, network_los, model_settings
     )
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
@@ -428,7 +437,7 @@ def run_location_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
-    if pre_sample_taz and not state.setting.want_dest_choice_presampling:
+    if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -916,7 +925,9 @@ def iterate_location_choice(
 
     logger.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
-    choices_df = None  # initialize to None, will be populated in first iteration
+    save_sample_df = (
+        choices_df
+    ) = None  # initialize to None, will be populated in first iteration
 
     for iteration in range(1, max_iterations + 1):
         persons_merged_df_ = persons_merged_df.copy()

@@ -1156,7 +1156,7 @@ def shadow_price_data_from_buffers(data_buffers, shadow_pricing_info, model_sele
     return np.frombuffer(data.get_obj(), dtype=dtype).reshape(shape), data.get_lock()
 
 
-def load_shadow_price_calculator(state, model_settings):
+def load_shadow_price_calculator(state: workflow.State, model_settings):
     """
     Initialize ShadowPriceCalculator for model_selector (e.g. school or workplace)
 

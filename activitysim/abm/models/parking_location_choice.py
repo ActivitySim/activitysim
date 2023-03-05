@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 NO_DESTINATION = -1
 
 
-def wrap_skims(model_settings):
+def wrap_skims(state: workflow.State, model_settings):
     """
     wrap skims of trip destination using origin, dest column names from model settings.
     Various of these are used by destination_sample, compute_logsums, and destination_simulate
@@ -181,6 +181,7 @@ def choose_parking_location(
     destination_sample.index.name = trips.index.name
 
     destinations = parking_destination_simulate(
+        state,
         segment_name=segment_name,
         trips=trips,
         destination_sample=destination_sample,
@@ -229,7 +230,7 @@ def run_parking_destination(
     # Placeholder for trips without a parking choice
     trips[parking_location_column_name] = -1
 
-    skims = wrap_skims(model_settings)
+    skims = wrap_skims(state, model_settings)
 
     alt_column_filter_name = model_settings.get("ALTERNATIVE_FILTER_COLUMN_NAME")
     alternatives = land_use[land_use[alt_column_filter_name]]

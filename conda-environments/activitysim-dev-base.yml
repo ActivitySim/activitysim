@@ -15,6 +15,7 @@ channels:
 dependencies:
 - python=3.10
 - pip
+- appdirs
 - asv  # for benchmarking
 - black >= 22.0,<23
 - bump2version  # for making a release

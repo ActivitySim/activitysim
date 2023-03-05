@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 import logging.config
 import os
+import struct
 import sys
+import time
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import Any, Optional
@@ -29,6 +31,15 @@ DEFAULT_TRACEABLE_TABLES = [
 ]
 
 
+class RunId(str):
+    def __new__(cls, x=None):
+        if x is None:
+            return cls(
+                hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:].lower()
+            )
+        return super().__new__(cls, x)
+
+
 class Tracing(StateAccessor):
     """
     Methods to provide the tracing capabilities of ActivitySim.
@@ -38,6 +49,7 @@ class Tracing(StateAccessor):
     traceable_table_ids: dict[str, Sequence] = FromState(default_init=True)
     traceable_table_indexes: dict[str, str] = FromState(default_init=True)
     validation_directory: Path | None = FromState(default_value=None)
+    run_id: RunId = FromState(default_init=True)
 
     def __get__(self, instance, objtype=None) -> "Tracing":
         # derived __get__ changes annotation, aids in type checking
@@ -211,7 +223,9 @@ class Tracing(StateAccessor):
         if not file_name.endswith(".%s" % CSV_FILE_TYPE):
             file_name = "%s.%s" % (file_name, CSV_FILE_TYPE)
 
-        file_path = self._obj.filesystem.get_trace_file_path(file_name)
+        file_path = self._obj.filesystem.get_trace_file_path(
+            file_name, tail=self.run_id
+        )
 
         if os.name == "nt":
             abs_path = os.path.abspath(file_path)
@@ -302,16 +316,36 @@ class Tracing(StateAccessor):
             )
 
         if self.validation_directory:
-            try:
-                that_path = self._obj.filesystem.find_trace_file_path(
-                    label, trace_dir=self.validation_directory
+            skip_validation = False
+            if label.endswith("constants"):
+                skip_validation = (
+                    True  # contants sometimes has skimwrapper objects added
                 )
-            except FileNotFoundError as err:
-                logger.warning(f"trace validation: {err}")
-            else:
-                that_df = pd.read_csv(that_path)
-                this_df = pd.read_csv(self._obj.filesystem.get_trace_file_path(label))
-                pd.testing.assert_frame_equal(this_df, that_df)
+            if not skip_validation:
+                try:
+                    that_path = self._obj.filesystem.find_trace_file_path(
+                        label, trace_dir=self.validation_directory, file_type="csv"
+                    )
+                except FileNotFoundError as err:
+                    logger.warning(f"trace validation file not found: {err}")
+                else:
+                    that_df = pd.read_csv(that_path)
+                    if transpose:
+                        pass  # wreaks havoc with pandas dtypes and column names, cannot check
+                    else:
+                        # check against the file we just wrote
+                        this_path = self._obj.filesystem.get_trace_file_path(
+                            label, tail=self.run_id, file_type="csv"
+                        )
+                        this_df = pd.read_csv(this_path)
+                        if not this_df.columns.has_duplicates:
+                            from activitysim.core.testing import (
+                                assert_frame_substantively_equal,
+                            )
+
+                            assert_frame_substantively_equal(this_df, that_df)
+                        else:
+                            pd.testing.assert_frame_equal(this_df, that_df)
 
     def trace_interaction_eval_results(self, trace_results, trace_ids, label):
         """
@@ -348,7 +382,9 @@ class Tracing(StateAccessor):
 
         # write out the raw dataframe
 
-        file_path = self._obj.filesystem.get_trace_file_path("%s.raw.csv" % label)
+        file_path = self._obj.filesystem.get_trace_file_path(
+            "%s.raw.csv" % label, tail=self.run_id
+        )
         trace_results.to_csv(file_path, mode="a", index=True, header=True)
 
         # if there are multiple targets, we want them in separate tables for readability

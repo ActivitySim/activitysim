@@ -208,7 +208,7 @@ class FileSystem(PydanticBase, validate_assignment=True):
         return Path(file_path)
 
     def get_trace_file_path(
-        self, file_name, tail=None, trace_dir=None, create_dirs=True
+        self, file_name, tail=None, trace_dir=None, create_dirs=True, file_type=None
     ):
         """
         Get the complete path to a trace file.
@@ -234,6 +234,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
         create_dirs : bool, default True
             If the path to the containing directory of the trace file does not
             yet exist, create it.
+        file_type : str, optional
+            If provided, ensure that the generated file path has this extension.
 
         Returns
         -------
@@ -251,10 +253,17 @@ class FileSystem(PydanticBase, validate_assignment=True):
             # construct a unique tail string from the time
             # this is a convenience for opening multiple similarly named trace files
             tail = (
-                "-" + hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[-6:]
+                "-"
+                + hex(struct.unpack("<Q", struct.pack("<d", time.time()))[0])[
+                    -6:
+                ].lower()
             )
         elif not tail:
             tail = ""
+
+        if file_type is not None:
+            if not file_name.endswith(f".{file_type}"):
+                file_name = f"{file_name}.{file_type}"
 
         file_parts = str(file_name).split(".")
 
@@ -265,7 +274,9 @@ class FileSystem(PydanticBase, validate_assignment=True):
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
         return Path(file_path)
 
-    def find_trace_file_path(self, file_name, trace_dir=None, return_all=False):
+    def find_trace_file_path(
+        self, file_name, trace_dir=None, return_all=False, file_type=None
+    ):
         """
         Find the complete path to one or more existing trace file(s).
 
@@ -283,6 +294,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
             By default, only a single matching filename is returned, otherwise
             an exception is raised.  Alternatively, set this to true to return
             all matches.
+        file_type : str, optional
+            If provided, ensure that the located file path(s) have this extension.
 
         Returns
         -------
@@ -295,10 +308,17 @@ class FileSystem(PydanticBase, validate_assignment=True):
             If there are zero OR multiple matches.
         """
         target = self.get_trace_file_path(
-            file_name, trace_dir=trace_dir, tail="*", create_dirs=False
+            file_name,
+            trace_dir=trace_dir,
+            tail="-*",
+            create_dirs=False,
+            file_type=file_type,
         )
-        target = str(target).replace("-*", "*")
-        result = list(glob.glob(target))
+        target1 = str(target).replace(
+            "-*", "-" + "[0123456789abcdef]" * 6
+        )  # targets with hex tails
+        target2 = str(target).replace("-*", "")  # targets without any tail
+        result = list(glob.glob(target1)) + list(glob.glob(target2))
         if return_all:
             return result
         elif len(result) == 0:

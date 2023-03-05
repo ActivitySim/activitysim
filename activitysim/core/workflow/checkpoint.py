@@ -816,7 +816,7 @@ class Checkpoints(StateAccessor):
             cols_in_run_but_not_ref = set(local_table.columns) - set(ref_table.columns)
             cols_in_ref_but_not_run = set(ref_table.columns) - set(local_table.columns)
             if cols_in_ref_but_not_run:
-                msg = f"checkpoint {checkpoint_name} table {table_name!r} column names mismatch"
+                msg = f"checkpoint {checkpoint_name!r} table {table_name!r} column names mismatch"
                 if cols_in_run_but_not_ref:
                     msg += (
                         f"\ncolumns found but not expected: {cols_in_run_but_not_ref}"
@@ -831,7 +831,7 @@ class Checkpoints(StateAccessor):
                 # we at least have all the column names that were expected, just
                 # warn, not error
                 warnings.warn(
-                    f"checkpoint {checkpoint_name} table {table_name!r}\n"
+                    f"checkpoint {checkpoint_name!r} table {table_name!r}\n"
                     f"columns found but not expected: {cols_in_run_but_not_ref}"
                 )
             if len(ref_table.columns) == 0:
@@ -839,7 +839,7 @@ class Checkpoints(StateAccessor):
                     pd.testing.assert_index_equal(local_table.index, ref_table.index)
                 except Exception as err:
                     raise AssertionError(
-                        f"checkpoint {checkpoint_name} table {table_name!r}, {str(err)}"
+                        f"checkpoint {checkpoint_name!r} table {table_name!r}, {str(err)}"
                     )
                 else:
                     logger.info(f"table {table_name!r}: ok")
@@ -850,7 +850,7 @@ class Checkpoints(StateAccessor):
                     )
                 except Exception as err:
                     raise AssertionError(
-                        f"checkpoint {checkpoint_name} table {table_name!r}, {str(err)}"
+                        f"checkpoint {checkpoint_name!r} table {table_name!r}, {str(err)}"
                     )
                 else:
                     logger.info(f"table {table_name!r}: ok")

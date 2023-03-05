@@ -68,7 +68,7 @@ class FromState:
             value (i.e. via a no-argument constructor) for the given type.
         default_value : Any, optional
             When set to some value, if this context value is accessed and it has
-            not already been set, it is automatically initialized with the this
+            not already been set, it is automatically initialized with this
             default value.
 
         """

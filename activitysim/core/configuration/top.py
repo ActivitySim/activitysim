@@ -458,7 +458,7 @@ class Settings(PydanticBase, extra="allow"):
 
     disable_destination_sampling: bool = False
 
-    want_dest_choice_presampling: bool = False
+    want_dest_choice_presampling: bool = True
 
     testing_fail_trip_destination: bool = False
 

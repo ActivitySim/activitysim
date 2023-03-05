@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import importlib
 import importlib.machinery
 import importlib.util
@@ -15,6 +16,7 @@ import pandas as pd  # noqa: 401
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 
+from activitysim.core import workflow
 from activitysim.core.exceptions import (
     DuplicateWorkflowNameError,
     DuplicateWorkflowTableError,
@@ -86,8 +88,13 @@ def run_named_step(name, context, **kwargs):
     return context
 
 
-class StepArgInit:
-    def __call__(self, state, **other_overrides):
+class StepArgInit(abc.ABC):
+    """
+    Base class for things that initialize default workflow.step args from state.
+    """
+
+    @abc.abstractmethod
+    def __call__(self, state: workflow.State, **other_overrides):
         raise NotImplementedError
 
 
@@ -95,7 +102,7 @@ class ModelSettingsFromYaml(StepArgInit):
     def __init__(self, model_settings_file_name):
         self.model_settings_file_name = model_settings_file_name
 
-    def __call__(self, state, **other_overrides):
+    def __call__(self, state: workflow.State, **other_overrides):
         return state.filesystem.read_model_settings(self.model_settings_file_name)
 
 
@@ -466,13 +473,11 @@ class workflow_temp_table(workflow_step):
 
 
 def _validate_workflow_function(f):
-    from activitysim.core.workflow import State
-
     annot = get_annotations(f, eval_str=True)
     argspec = getfullargspec(f)
     if argspec.args[0] != "state":
         raise SyntaxError("workflow.func must have `state` as the first argument")
-    if annot.get("state") is not State:
+    if annot.get("state") is not workflow.State:
         raise SyntaxError(
             "workflow.func must have `State` as the first argument annotation"
         )
@@ -482,12 +487,10 @@ def func(function):
     """
     Wrapper for a simple workflow function.
     """
-    from activitysim.core.workflow import State
-
     _validate_workflow_function(function)
 
     def wrapper(state, *args, **kwargs):
-        if not isinstance(state, State):
+        if not isinstance(state, workflow.State):
             raise TypeError(
                 "workflow functions must have a State as the first argument"
             )

@@ -5,6 +5,8 @@ import logging.config
 import os
 import struct
 import sys
+import tarfile
+import tempfile
 import time
 from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
@@ -48,8 +50,29 @@ class Tracing(StateAccessor):
     traceable_tables: list[str] = FromState(default_value=DEFAULT_TRACEABLE_TABLES)
     traceable_table_ids: dict[str, Sequence] = FromState(default_init=True)
     traceable_table_indexes: dict[str, str] = FromState(default_init=True)
-    validation_directory: Path | None = FromState(default_value=None)
     run_id: RunId = FromState(default_init=True)
+
+    @property
+    def validation_directory(self) -> Path | None:
+        result = self._obj._context.get("tracing_validation_directory", None)
+        if isinstance(result, tempfile.TemporaryDirectory):
+            return Path(result.name)
+        return result
+
+    @validation_directory.setter
+    def validation_directory(self, directory: Path | None):
+        if directory is None:
+            self._obj._context.pop("tracing_validation_directory", None)
+        else:
+            directory = Path(directory)
+            # decompress cache file into working directory
+            if directory.suffixes[-2:] == [".tar", ".gz"]:
+                tempdir = tempfile.TemporaryDirectory()
+                with tarfile.open(directory) as tfile:
+                    tfile.extractall(tempdir.name)
+                self._obj._context["tracing_validation_directory"] = tempdir
+            else:
+                self._obj._context["tracing_validation_directory"] = directory
 
     def __get__(self, instance, objtype=None) -> "Tracing":
         # derived __get__ changes annotation, aids in type checking

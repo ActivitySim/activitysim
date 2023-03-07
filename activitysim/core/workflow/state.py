@@ -133,9 +133,6 @@ class State:
 
         self.close_open_files()
 
-        from activitysim.core.random import Random  # TOP?
-
-        self._context["prng"] = Random()
         self._initialize_prng()
 
         self.tracing.initialize()
@@ -344,6 +341,7 @@ class State:
                 raise StateAccessError
         except StateAccessError:
             self.settings = Settings()
+        self.init_state()
         return self
 
     def load_settings(self) -> "State":
@@ -378,6 +376,7 @@ class State:
                 self.settings.other_settings[k] = getattr(self.settings, k)
                 delattr(self.settings, k)
 
+        self.init_state()
         return self
 
     _RUNNABLE_STEPS = {}
@@ -682,6 +681,8 @@ class State:
     add_injectable = set  # legacy function name
 
     def rng(self):
+        if "prng" not in self._context:
+            self._initialize_prng()
         return self._context["prng"]
 
     def pipeline_table_key(self, table_name, checkpoint_name):

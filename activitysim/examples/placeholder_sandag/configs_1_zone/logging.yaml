@@ -41,7 +41,7 @@ logging:
     logfile:
       class: logging.FileHandler
       filename:
-        get_log_file_path: 'activitysim.log']
+        get_log_file_path: 'activitysim.log'
       mode: w
       formatter: fileFormatter
       level: NOTSET

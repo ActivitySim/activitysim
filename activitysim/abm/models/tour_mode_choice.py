@@ -408,7 +408,7 @@ def tour_mode_choice_simulate(
     ):
         all_tours = (
             school_escort_tours_trips.force_escortee_tour_modes_to_match_chauffeur(
-                all_tours
+                state, all_tours
             )
         )
 

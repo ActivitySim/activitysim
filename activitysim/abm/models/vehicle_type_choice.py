@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import itertools
 import logging
 import os
@@ -33,7 +35,6 @@ def append_probabilistic_vehtype_type_choices(
     ----------
     choices : pandas.DataFrame
         selection of {body_type}_{age} to append vehicle type to
-    probs_spec_file : str
     trace_label : str
 
     Returns
@@ -162,7 +163,6 @@ def get_combinatorial_vehicle_alternatives(alts_cats_dict):
     Parameters
     ----------
     alts_cats_dict : dict
-    model_settings : dict
 
     Returns
     -------
@@ -189,6 +189,7 @@ def construct_model_alternatives(
 
     Parameters
     ----------
+    state : workflow.State
     model_settings : dict
     alts_cats_dict : dict
         nested dictionary of vehicle body, age, and fuel options
@@ -242,7 +243,9 @@ def construct_model_alternatives(
     return alts_wide, alts_long
 
 
-def get_vehicle_type_data(model_settings, vehicle_type_data_file):
+def get_vehicle_type_data(
+    state: workflow.State, model_settings, vehicle_type_data_file
+):
     """
     Read in the vehicle type data and computes the vehicle age.
 
@@ -327,17 +330,21 @@ def iterate_vehicle_type_choice(
     # adding vehicle type data to be available to locals_dict regardless of option
     if vehicle_type_data_file:
         vehicle_type_data = get_vehicle_type_data(
-            model_settings, vehicle_type_data_file
+            state, model_settings, vehicle_type_data_file
         )
         locals_dict.update({"vehicle_type_data": vehicle_type_data})
+    else:
+        vehicle_type_data = None
 
     # - Preparing alternatives
     # create alts on-the-fly as cartesian product of categorical values
     if alts_cats_dict:
         # do not include fuel types as alternatives if probability file is supplied
         alts_wide, alts_long = construct_model_alternatives(
-            model_settings, alts_cats_dict, vehicle_type_data
+            state, model_settings, alts_cats_dict, vehicle_type_data
         )
+    else:
+        alts_wide = alts_long = None
 
     # - preparing choosers for iterating
     vehicles_merged["already_owned_veh"] = ""
@@ -414,6 +421,8 @@ def iterate_vehicle_type_choice(
                 trace_choice_name="vehicle_type",
                 estimator=estimator,
             )
+        else:
+            raise NotImplementedError(simulation_type)
 
         if isinstance(choices, pd.Series):
             choices = choices.to_frame("choice")
@@ -563,8 +572,7 @@ def vehicle_type_choice(
         estimator.end_estimation()
 
     # update vehicles table
-    # vehicles = pd.merge(vehicles.to_frame(), choices, left_index=True, right_index=True)
-    vehicles = pd.concat([vehicles.to_frame(), choices], axis=1)
+    vehicles = pd.concat([vehicles, choices], axis=1)
     state.add_table("vehicles", vehicles)
 
     # - annotate tables

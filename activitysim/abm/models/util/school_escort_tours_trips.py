@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -334,7 +336,7 @@ def add_school_escorting_type_to_tours_table(escort_bundles, tours):
     return tours
 
 
-def process_tours_after_escorting_model(escort_bundles, tours):
+def process_tours_after_escorting_model(state: workflow.State, escort_bundles, tours):
     # adding indicators to tours that include school escorting
     tours = add_school_escorting_type_to_tours_table(escort_bundles, tours)
 
@@ -489,8 +491,8 @@ def merge_school_escort_trips_into_pipeline(state: workflow.State):
 
     # replace trip table and pipeline and register with the random number generator
     state.add_table("trips", trips)
-    pipeline.get_rn_generator().drop_channel("trips")
-    pipeline.get_rn_generator().add_channel("trips", trips)
+    state.get_rn_generator().drop_channel("trips")
+    state.get_rn_generator().add_channel("trips", trips)
     state.add_table("school_escort_trips", school_escort_trips)
 
     # updating stop frequency in tours tabel to be consistent
@@ -527,7 +529,7 @@ def recompute_tour_count_statistics(state: workflow.State):
     state.add_table("tours", tours)
 
 
-def create_pure_school_escort_tours(bundles):
+def create_pure_school_escort_tours(state: workflow.State, bundles):
     # creating home to school tour for chauffers making pure escort tours
     # ride share tours are already created since they go off the mandatory tour
     pe_tours = bundles[bundles["escort_type"] == "pure_escort"]
@@ -593,7 +595,7 @@ def split_out_school_escorting_trips(trips, school_escort_trips):
     return trips, se_trips, full_trips_index
 
 
-def force_escortee_tour_modes_to_match_chauffeur(tours):
+def force_escortee_tour_modes_to_match_chauffeur(state: workflow.State, tours):
     # FIXME: escortee tour can have different chauffeur in outbound vs inbound direction
     # which tour mode should it be set to?  Currently it's whatever comes last.
     # Does it even matter if trip modes are getting matched later?
@@ -624,7 +626,7 @@ def force_escortee_tour_modes_to_match_chauffeur(tours):
     return tours
 
 
-def force_escortee_trip_modes_to_match_chauffeur(trips):
+def force_escortee_trip_modes_to_match_chauffeur(state: workflow.State, trips):
     school_escort_trips = state.get_dataframe("school_escort_trips")
 
     # starting with only trips that are created as part of the school escorting model

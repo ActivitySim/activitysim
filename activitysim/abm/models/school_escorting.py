@@ -507,7 +507,7 @@ def school_escorting(
     )
 
     school_escort_tours = school_escort_tours_trips.create_pure_school_escort_tours(
-        escort_bundles
+        state, escort_bundles
     )
     chauf_tour_id_map = {
         v: k for k, v in school_escort_tours["bundle_id"].to_dict().items()
@@ -520,7 +520,7 @@ def school_escorting(
 
     tours = school_escort_tours_trips.add_pure_escort_tours(tours, school_escort_tours)
     tours = school_escort_tours_trips.process_tours_after_escorting_model(
-        escort_bundles, tours
+        state, escort_bundles, tours
     )
 
     school_escort_trips = school_escort_tours_trips.create_school_escort_trips(
@@ -552,4 +552,4 @@ def school_escorting(
                 window_row_ids=nth_tours["person_id"], tdds=nth_tours["tdd"]
             )
 
-    timetable.replace_table()
+    timetable.replace_table(state)

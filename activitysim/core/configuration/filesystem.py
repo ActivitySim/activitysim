@@ -260,6 +260,8 @@ class FileSystem(PydanticBase, validate_assignment=True):
             )
         elif not tail:
             tail = ""
+        elif not tail.startswith("-"):
+            tail = f"-{tail}"
 
         if file_type is not None:
             if not file_name.endswith(f".{file_type}"):

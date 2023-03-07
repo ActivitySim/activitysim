@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import ast
+import csv
 import logging
 import logging.config
 import os
@@ -350,12 +352,36 @@ class Tracing(StateAccessor):
                         label, trace_dir=self.validation_directory, file_type="csv"
                     )
                 except FileNotFoundError as err:
-                    logger.warning(f"trace validation file not found: {err}")
+                    logger.warning(
+                        f"trace validation file not found: {err}\n"
+                        f" in validation_directory: {self.validation_directory}"
+                    )
                 else:
-                    that_df = pd.read_csv(that_path)
                     if transpose:
-                        pass  # wreaks havoc with pandas dtypes and column names, cannot check
+                        # wreaks havoc with pandas dtypes and column names
+                        # check as a simple list of lists instead
+                        def literal_eval(x):
+                            try:
+                                return ast.literal_eval(x)
+                            except Exception:
+                                return x
+
+                        def read_csv_as_list_of_lists(finame):
+                            with open(finame, newline="") as csvfile:
+                                x = [
+                                    map(literal_eval, row)
+                                    for row in csv.reader(csvfile)
+                                ]
+
+                        that_blob = read_csv_as_list_of_lists(that_path)
+                        this_path = self._obj.filesystem.get_trace_file_path(
+                            label, tail=self.run_id, file_type="csv"
+                        )
+                        this_blob = read_csv_as_list_of_lists(this_path)
+                        assert this_blob == that_blob
+                        logger.debug(f"trace validation OK: {label}")
                     else:
+                        that_df = pd.read_csv(that_path)
                         # check against the file we just wrote
                         this_path = self._obj.filesystem.get_trace_file_path(
                             label, tail=self.run_id, file_type="csv"
@@ -369,6 +395,7 @@ class Tracing(StateAccessor):
                             assert_frame_substantively_equal(this_df, that_df)
                         else:
                             pd.testing.assert_frame_equal(this_df, that_df)
+                        logger.debug(f"trace validation OK: {label}")
 
     def trace_interaction_eval_results(self, trace_results, trace_ids, label):
         """

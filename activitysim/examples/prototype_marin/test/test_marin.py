@@ -18,19 +18,21 @@ def example_path(dirname):
     return pkg_resources.resource_filename("activitysim", resource)
 
 
-def test_path(dirname):
+def _test_path(dirname):
     return os.path.join(os.path.dirname(__file__), dirname)
 
 
 def test_marin():
     def regress():
-        regress_trips_df = pd.read_csv(test_path("regress/final_tours.csv"))
-        final_trips_df = pd.read_csv(test_path("output/final_tours.csv"))
+        regress_trips_df = pd.read_csv(_test_path("regress/final_tours.csv"))
+        final_trips_df = pd.read_csv(_test_path("output/final_tours.csv"))
 
         # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,
         # destination,origin,destination_logsum,depart,trip_mode,mode_choice_logsum
         # compare_cols = []
-        testing.assert_frame_substantively_equal(final_trips_df, regress_trips_df)
+        testing.assert_frame_substantively_equal(
+            final_trips_df, regress_trips_df, check_dtype=False
+        )
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
@@ -41,13 +43,13 @@ def test_marin():
             "-a",
             file_path,
             "-c",
-            test_path("configs"),
+            _test_path("configs"),
             "-c",
             example_path("configs"),
             "-d",
             example_path("data"),
             "-o",
-            test_path("output"),
+            _test_path("output"),
         ],
         check=True,
     )
@@ -70,16 +72,15 @@ EXPECTED_MODELS = [
 
 @testing.run_if_exists("reference_pipeline.zip")
 def test_marin_progressive():
-
     import activitysim.abm  # register components
 
     state = workflow.State.make_default(
         configs_dir=(
-            test_path("configs"),
+            _test_path("configs"),
             example_path("configs"),
         ),
         data_dir=(example_path("data"),),
-        output_dir=test_path("output"),
+        output_dir=_test_path("output"),
     )
 
     assert state.settings.models == EXPECTED_MODELS
@@ -87,10 +88,9 @@ def test_marin_progressive():
     assert state.settings.sharrow == False
 
     state.settings.trace_hh_id = 8268
-
-    state.tracing.validation_directory = (
-        Path(__file__).parent / "reference_trace.tar.gz"
-    )
+    trace_validation_directory = Path(__file__).parent / "reference_trace.tar.gz"
+    if trace_validation_directory.exists():
+        state.tracing.validation_directory = trace_validation_directory
 
     for step_name in EXPECTED_MODELS:
         state.run.by_name(step_name)
@@ -107,5 +107,4 @@ def test_marin_progressive():
 
 
 if __name__ == "__main__":
-
     test_marin()

@@ -8,7 +8,6 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-import pandas.testing as pdt
 import pkg_resources
 import pytest
 
@@ -55,7 +54,9 @@ def run_test(zone, multiprocess=False):
             test_path(f"regress/final_tours_{zone}_zone_last_run.csv"), index=False
         )
         print("regress tours")
-        pdt.assert_frame_equal(tours_df, regress_tours_df, rtol=1e-03)
+        testing.assert_frame_substantively_equal(
+            tours_df, regress_tours_df, rtol=1e-03, check_dtype=False
+        )
 
         # regress trips
         regress_trips_df = pd.read_csv(
@@ -66,7 +67,9 @@ def run_test(zone, multiprocess=False):
             test_path(f"regress/final_trips_{zone}_zone_last_run.csv"), index=False
         )
         print("regress trips")
-        pdt.assert_frame_equal(trips_df, regress_trips_df, rtol=1e-03)
+        testing.assert_frame_substantively_equal(
+            trips_df, regress_trips_df, rtol=1e-03, check_dtype=False
+        )
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 

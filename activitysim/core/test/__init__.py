@@ -3,9 +3,12 @@
 
 from __future__ import annotations
 
-import pytest
-
-pytest.register_assert_rewrite("activitysim.core.test._tools")
+try:
+    import pytest
+except ImportError:
+    pass
+else:
+    pytest.register_assert_rewrite("activitysim.core.test._tools")
 
 from activitysim.core.test._tools import (  # isort: skip
     assert_equal,

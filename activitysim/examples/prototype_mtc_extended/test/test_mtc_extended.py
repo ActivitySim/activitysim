@@ -11,7 +11,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 
-from activitysim.core import configuration, testing, workflow
+from activitysim.core import configuration, test, workflow
 
 
 def _test_prototype_mtc_extended(
@@ -61,17 +61,17 @@ def _test_prototype_mtc_extended(
                 if i not in regress_accessibility_df.columns
             ]
         )
-        testing.assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             final_accessibiliy_df,
             regress_accessibility_df,
             rtol=1.0e-4,
             check_dtype=False,
         )
 
-        testing.assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             final_trips_df, regress_trips_df, rtol=1.0e-4
         )
-        testing.assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             final_vehicles_df, regress_vehicles_df, rtol=1.0e-4
         )
 
@@ -193,7 +193,7 @@ EXPECTED_MODELS = [
 ]
 
 
-@testing.run_if_exists("prototype_mtc_extended_reference_pipeline.zip")
+@test.run_if_exists("prototype_mtc_extended_reference_pipeline.zip")
 def test_prototype_mtc_extended_progressive():
     import activitysim.abm  # register components
 

@@ -11,7 +11,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 
-from activitysim.core import testing, workflow
+from activitysim.core import test, workflow
 
 
 def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=False):
@@ -25,7 +25,7 @@ def run_test_mtc(multiprocess=False, chunkless=False, recode=False, sharrow=Fals
     def regress():
         regress_trips_df = pd.read_csv(test_path("regress/final_trips.csv"))
         final_trips_df = pd.read_csv(test_path("output/final_trips.csv"))
-        testing.assert_frame_substantively_equal(final_trips_df, regress_trips_df)
+        test.assert_frame_substantively_equal(final_trips_df, regress_trips_df)
 
     file_path = os.path.join(os.path.dirname(__file__), "simulation.py")
 
@@ -153,7 +153,7 @@ EXPECTED_MODELS = [
 ]
 
 
-@testing.run_if_exists("prototype_mtc_reference_pipeline.zip")
+@test.run_if_exists("prototype_mtc_reference_pipeline.zip")
 def test_mtc_progressive():
     import activitysim.abm  # register components
 

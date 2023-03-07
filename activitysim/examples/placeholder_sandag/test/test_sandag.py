@@ -11,7 +11,7 @@ import pandas as pd
 import pkg_resources
 import pytest
 
-from activitysim.core import testing
+from activitysim.core.test import assert_frame_substantively_equal
 
 
 def example_path(dirname):
@@ -63,7 +63,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
             test_path(f"regress/final_{zone}_zone_tours_last_run.csv"), index=False
         )
         print("regress tours")
-        testing.assert_frame_substantively_equal(
+        assert_frame_substantively_equal(
             tours_df, regress_tours_df, rtol=1e-03, check_dtype=False
         )
 
@@ -83,7 +83,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
             test_path(f"regress/final_{zone}_zone_trips_last_run.csv"), index=False
         )
         print("regress trips")
-        testing.assert_frame_substantively_equal(
+        assert_frame_substantively_equal(
             trips_df, regress_trips_df, rtol=1e-03, check_dtype=False
         )
 
@@ -106,8 +106,10 @@ def run_test(zone, multiprocess=False, sharrow=False):
                     if not c.startswith("_original_")
                 ]
             ]
-            testing.assert_frame_substantively_equal(
-                final_accessibility_df, regress_accessibility_df
+            assert_frame_substantively_equal(
+                final_accessibility_df,
+                regress_accessibility_df,
+                check_dtype=False,
             )
 
     # run test

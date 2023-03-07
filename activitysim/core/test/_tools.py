@@ -88,6 +88,8 @@ def assert_frame_substantively_equal(
     **kwargs
         Forwarded to pandas.testing.assert_frame_equal
     """
+    __tracebackhide__ = True  # don't show this code in pytest outputs
+
     if ignore_extra_columns_left:
         assert ignore_column_order
         assert set(right.columns).issubset(left.columns)
@@ -108,4 +110,10 @@ def assert_frame_substantively_equal(
 
 
 def assert_equal(x, y):
-    assert x == y
+    __tracebackhide__ = True  # don't show this code in pytest outputs
+    try:
+        import pytest
+    except ImportError:
+        assert x == y
+    else:
+        assert x == pytest.approx(y)

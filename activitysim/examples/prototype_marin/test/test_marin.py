@@ -10,7 +10,7 @@ import pandas as pd
 import pandas.testing as pdt
 import pkg_resources
 
-from activitysim.core import testing, workflow
+from activitysim.core import test, workflow
 
 
 def example_path(dirname):
@@ -30,7 +30,7 @@ def test_marin():
         # person_id,household_id,tour_id,primary_purpose,trip_num,outbound,trip_count,purpose,
         # destination,origin,destination_logsum,depart,trip_mode,mode_choice_logsum
         # compare_cols = []
-        testing.assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             final_trips_df, regress_trips_df, check_dtype=False
         )
 
@@ -70,7 +70,7 @@ EXPECTED_MODELS = [
 ]
 
 
-@testing.run_if_exists("reference_pipeline.zip")
+@test.run_if_exists("reference_pipeline.zip")
 def test_marin_progressive():
     import activitysim.abm  # register components
 

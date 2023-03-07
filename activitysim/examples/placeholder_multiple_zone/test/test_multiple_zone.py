@@ -11,7 +11,7 @@ import pandas as pd
 import pkg_resources
 import pytest
 
-from activitysim.core import testing, workflow
+from activitysim.core import test, workflow
 
 
 def example_path(dirname):
@@ -67,7 +67,7 @@ def run_test(zone, multiprocess=False):
             test_path(f"regress/final_trips_{zone}_zone_last_run.csv"), index=False
         )
         print("regress trips")
-        testing.assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             trips_df, regress_trips_df, rtol=1e-03, check_dtype=False
         )
 
@@ -155,7 +155,7 @@ EXPECTED_MODELS = [
 ]
 
 
-@testing.run_if_exists("reference_pipeline_2_zone.zip")
+@test.run_if_exists("reference_pipeline_2_zone.zip")
 def test_multizone_progressive(zone="2"):
 
     zone = str(zone)

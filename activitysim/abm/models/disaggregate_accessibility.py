@@ -696,6 +696,7 @@ def compute_disaggregate_accessibility(
     as well as each zone in land use file using expressions from accessibility_spec.
 
     """
+    tables_prior = list(state.existing_table_status)
 
     # Re-Register tables in this step, necessary for multiprocessing
     for tablename in ["proto_households", "proto_persons", "proto_tours"]:
@@ -710,7 +711,10 @@ def compute_disaggregate_accessibility(
 
     # Run location choice
     logsums = get_disaggregate_logsums(
-        state, network_los, state.settings.chunk_size, state.settings.trace_hh_id
+        state,
+        network_los,
+        state.settings.chunk_size,
+        state.settings.trace_hh_id,
     )
     logsums = {k + "_accessibility": v for k, v in logsums.items()}
 
@@ -764,12 +768,16 @@ def compute_disaggregate_accessibility(
         state.tracing.deregister_traceable_table(trace)
 
     # # need to clear any premature tables that were added during the previous run
+    for name in list(state.existing_table_status):
+        if name not in tables_prior:
+            state.drop_table(name)
     # orca._TABLES.clear()
     # for name, func in inject._DECORATED_TABLES.items():
     #     logger.debug("reinject decorated table %s" % name)
     #     orca.add_table(name, func)
 
     # Inject accessibility results into pipeline
-    [state.add_table(k, df) for k, df in logsums.items()]
+    for k, df in logsums.items():
+        state.add_table(k, df)
 
     return

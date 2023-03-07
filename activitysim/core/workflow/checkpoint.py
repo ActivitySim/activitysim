@@ -4,6 +4,7 @@ import abc
 import datetime as dt
 import logging
 import os
+import warnings
 from pathlib import Path
 from typing import Optional, Union
 
@@ -166,7 +167,12 @@ class HdfStore(GenericCheckpointStore):
 
 
 class ParquetStore(GenericCheckpointStore):
-    """Storage interface for parquet-based table storage."""
+    """Storage interface for parquet-based table storage.
+
+    This interface will fall back to storing tables in a gzipped pickle if
+    the parquet format fails (as might happen if datatypes for some columns
+    are not homogenous and values are stored as "object").
+    """
 
     extension = ".parquetpipeline"
 
@@ -175,9 +181,11 @@ class ParquetStore(GenericCheckpointStore):
         try:
             df.to_parquet(filename, *args, **kwargs)
         except (pa.lib.ArrowInvalid, pa.lib.ArrowTypeError) as err:
-            logger.exception(err)
-            print(f"{type(err)}, do something?")
-            raise
+            logger.error(
+                f"Problem writing to {filename}\n" f"{err}\n" f"falling back to pickle"
+            )
+            # fallback to pickle, compatible with more dtypes
+            df.to_pickle(Path(filename).with_suffix(".pickle.gz"))
 
     def __init__(self, directory: Path, mode: str = "a"):
         directory = Path(directory)
@@ -218,16 +226,26 @@ class ParquetStore(GenericCheckpointStore):
             import io
             import zipfile
 
+            zip_internal_filename = self._store_table_path(
+                table_name, checkpoint_name
+            ).relative_to(self._directory)
             with zipfile.ZipFile(self._directory, mode="r") as zipf:
-                content = zipf.read(
-                    str(
-                        self._store_table_path(table_name, checkpoint_name).relative_to(
-                            self._directory
-                        )
+                try:
+                    content = zipf.read(str(zip_internal_filename))
+                except KeyError:
+                    content = zipf.read(
+                        str(zip_internal_filename.with_suffix(".pickle.gz"))
                     )
-                )
-                return pd.read_parquet(io.BytesIO(content))
-        return pd.read_parquet(self._store_table_path(table_name, checkpoint_name))
+                    return pd.read_pickle(io.BytesIO(content), compression="gzip")
+                else:
+                    return pd.read_parquet(io.BytesIO(content))
+        target_path = self._store_table_path(table_name, checkpoint_name)
+        if target_path.exists():
+            return pd.read_parquet(target_path)
+        elif target_path.with_suffix(".pickle.gz").exists():
+            return pd.read_pickle(target_path.with_suffix(".pickle.gz"))
+        else:
+            raise FileNotFoundError(target_path)
 
     @property
     def is_readonly(self) -> bool:
@@ -319,7 +337,6 @@ class NullStore(GenericCheckpointStore):
 
 
 class Checkpoints(StateAccessor):
-
     last_checkpoint: dict = FromState(default_init=True)
     checkpoints: list[dict] = FromState(default_init=True)
     _checkpoint_store: GenericCheckpointStore | None = FromState(default_value=None)

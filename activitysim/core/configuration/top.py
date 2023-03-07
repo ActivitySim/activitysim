@@ -496,7 +496,7 @@ class Settings(PydanticBase, extra="allow"):
 
     keep_mem_logs: bool = False
 
-    pipeline_complib: str = None
+    pipeline_complib: str = "NOTSET"
     """
     Compression library to use when storing pipeline tables in an HDF5 file.
 

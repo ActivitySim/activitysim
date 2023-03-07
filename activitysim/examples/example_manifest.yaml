@@ -48,6 +48,10 @@
     - prototype_mtc_extended/configs_mp
     - prototype_mtc_extended/output
     - prototype_mtc_extended/README.MD
+  subdirs:
+    configs_dir:
+      - configs_extended/configs
+      - configs
 
 - name: prototype_mtc_extended_full
   description: Prototype MTC example model using data from the full 1475-zone MTC region with 2.8M households and 7.5M persons

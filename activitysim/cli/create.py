@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import hashlib
 import logging
@@ -98,7 +100,12 @@ def list_examples():
 
 
 def get_example(
-    example_name, destination, benchmarking=False, optimize=True, link=True
+    example_name,
+    destination,
+    benchmarking=False,
+    optimize=True,
+    link=True,
+    with_subdirs=False,
 ):
     """
     Copy project data to user-specified directory.
@@ -124,10 +131,14 @@ def get_example(
         value, then a cache directory is created using in a location
         selected by the appdirs library (or, if not installed,
         linking is skipped.)
+    with_subdirs: bool, default False
+        Also return any instructions about sub-directories.
 
     Returns
     -------
-    Path :
+    Path or (Path, dict)
+        The path to the location where the example was installed, and
+        optionally also a mapping of example subdirectory locations.
     """
     if example_name not in EXAMPLES:
         sys.exit(f"error: could not find example '{example_name}'")
@@ -186,7 +197,15 @@ def get_example(
     if instructions:
         print(instructions)
 
-    return Path(dest_path)
+    if with_subdirs:
+        subdirs = example.get("subdirs", {})
+        subdirs.setdefault("configs_dir", ("configs",))
+        subdirs.setdefault("data_dir", ("data",))
+        subdirs.setdefault("output_dir", "output")
+
+        return Path(dest_path), subdirs
+    else:
+        return Path(dest_path)
 
 
 def copy_asset(asset_path, target_path, dirs_exist_ok=False):

@@ -19,6 +19,7 @@ import pandas as pd
 import yaml
 
 from activitysim.core import tracing
+from activitysim.core.test import assert_equal, assert_frame_substantively_equal
 from activitysim.core.workflow.accessor import FromState, StateAccessor
 
 logger = logging.getLogger(__name__)
@@ -368,8 +369,8 @@ class Tracing(StateAccessor):
 
                         def read_csv_as_list_of_lists(finame):
                             with open(finame, newline="") as csvfile:
-                                x = [
-                                    map(literal_eval, row)
+                                return [
+                                    list(map(literal_eval, row))
                                     for row in csv.reader(csvfile)
                                 ]
 
@@ -378,8 +379,31 @@ class Tracing(StateAccessor):
                             label, tail=self.run_id, file_type="csv"
                         )
                         this_blob = read_csv_as_list_of_lists(this_path)
-                        assert this_blob == that_blob
-                        logger.debug(f"trace validation OK: {label}")
+
+                        _this_index = [i[0] for i in this_blob]
+                        if len(set(_this_index)) == len(_this_index):
+                            # indexes are unique, convert to dict
+                            this_dict = dict(
+                                zip(
+                                    [i[0] for i in this_blob],
+                                    [i[1:] for i in this_blob],
+                                )
+                            )
+                            that_dict = dict(
+                                zip(
+                                    [i[0] for i in that_blob],
+                                    [i[1:] for i in that_blob],
+                                )
+                            )
+                            assert_equal(this_dict, that_dict)
+                        else:
+                            try:
+                                assert_equal(this_blob, that_blob)
+                            except:
+                                logger.error(f"trace validation BAD: {label}")
+                                raise
+                            else:
+                                logger.debug(f"trace validation OK: {label}")
                     else:
                         that_df = pd.read_csv(that_path)
                         # check against the file we just wrote
@@ -387,14 +411,7 @@ class Tracing(StateAccessor):
                             label, tail=self.run_id, file_type="csv"
                         )
                         this_df = pd.read_csv(this_path)
-                        if not this_df.columns.has_duplicates:
-                            from activitysim.core.testing import (
-                                assert_frame_substantively_equal,
-                            )
-
-                            assert_frame_substantively_equal(this_df, that_df)
-                        else:
-                            pd.testing.assert_frame_equal(this_df, that_df)
+                        assert_frame_substantively_equal(this_df, that_df)
                         logger.debug(f"trace validation OK: {label}")
 
     def trace_interaction_eval_results(self, trace_results, trace_ids, label):

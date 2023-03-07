@@ -6,7 +6,9 @@ from activitysim.core import workflow
 
 
 def create_example(
-    example_name, directory: Path = None, temp: bool = False
+    example_name: str,
+    directory: Path = None,
+    temp: bool = False,
 ) -> "workflow.State":
     """
     Create an example model.
@@ -15,6 +17,10 @@ def create_example(
     ----------
     example_name : str
     directory : Path-like, optional
+        Install the example into this directory.
+    temp : bool, default False
+        Install the example into a temporary directory tied to the returned
+        State object. Cannot be set to True if `directory` is given.
 
     Returns
     -------
@@ -35,9 +41,10 @@ def create_example(
     # import inside function to prevent circular references.
     from activitysim.examples import get_example
 
-    state = workflow.State.make_default(
-        get_example(example_name, destination=directory)
+    installed_to, subdirs = get_example(
+        example_name, destination=directory, with_subdirs=True
     )
+    state = workflow.State.make_default(installed_to, **subdirs)
     if temp:
         state.set("_TEMP_DIR_", temp_dir)
     return state

@@ -435,7 +435,9 @@ class Random(object):
         step_name : str
             name of current step (just a consistency check)
         """
-        assert self.step_name is not None
+        if self.step_name is None:
+            # maybe a step was aborted, this is fine
+            return
         assert self.step_name == step_name
 
         for c in self.channels:

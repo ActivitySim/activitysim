@@ -1,14 +1,17 @@
+# The conftest.py file serves as a means of providing fixtures for an entire directory.
+# Fixtures defined in a conftest.py can be used by any test in that package without
+# needing to import them (pytest will automatically discover them).
+# https://docs.pytest.org/en/7.2.x/reference/fixtures.html#conftest-py-sharing-fixtures-across-multiple-files
+
 from __future__ import annotations
 
-import tempfile
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
 from activitysim.core.workflow import State
 from activitysim.core.workflow.checkpoint import INITIAL_CHECKPOINT_NAME, ParquetStore
-
-tempdir = tempfile.TemporaryDirectory()
 
 
 def _person_df() -> pd.DataFrame:
@@ -27,6 +30,9 @@ def _person_df() -> pd.DataFrame:
 
 @pytest.fixture
 def person_df() -> pd.DataFrame:
+    """
+    Sample persons dataframe with dummy data.
+    """
     return _person_df()
 
 
@@ -41,11 +47,28 @@ def _los_df() -> pd.DataFrame:
 
 @pytest.fixture
 def los_df() -> pd.DataFrame:
+    """
+    Sample LOS dataframe with dummy data.
+    """
     return _los_df()
 
 
 @pytest.fixture(scope="session")
-def sample_parquet_store(tmp_path_factory):
+def sample_parquet_store(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    """
+    Generate sample parquet store for testing.
+
+    Parameters
+    ----------
+    tmp_path_factory : pytest.TempPathFactory
+        PyTest's own temporary path fixture, the sample parquet store
+        will be created in a temporary directory here.
+
+    Returns
+    -------
+    Path
+        Location of zip archive
+    """
     t = tmp_path_factory.mktemp("core-workflow")
 
     s = t.joinpath("sample-1")
@@ -73,7 +96,20 @@ def sample_parquet_store(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def sample_parquet_zip(sample_parquet_store):
+def sample_parquet_zip(sample_parquet_store: Path) -> Path:
+    """
+    Copy the sample parquet store into a read-only Zip archive.
+
+    Parameters
+    ----------
+    sample_parquet_store : Path
+        Location of original ParquetStore files.
+
+    Returns
+    -------
+    Path
+        Location of zip archive
+    """
     ps = ParquetStore(sample_parquet_store, mode="r")
     return ps.make_zip_archive(
         output_filename=ps.filename.parent.joinpath("samplepipeline")

@@ -269,13 +269,11 @@ class Runner(StateAccessor):
 
         from activitysim.core.tracing import print_elapsed_time
 
-        t0 = print_elapsed_time()
         logger.info(f"#run_model running step {step_name}")
 
         # these values are cached in the runner object itself, not in the context.
         self.step_name = step_name
         self.checkpoint = checkpoint
-        self.t0 = t0
 
     def by_name(self, model_name, **kwargs):
         """
@@ -288,6 +286,7 @@ class Runner(StateAccessor):
         model_name : str
             model_name is assumed to be the name of a registered orca step
         """
+        self.t0 = time.time()
         try:
             should_skip = self._pre_run_step(model_name)
             if should_skip:

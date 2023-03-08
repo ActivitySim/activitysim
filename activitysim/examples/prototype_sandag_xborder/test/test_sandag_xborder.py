@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
@@ -10,7 +12,7 @@ import pandas.testing as pdt
 import pkg_resources
 
 from activitysim.core import workflow
-from activitysim.core.testing import run_if_exists
+from activitysim.core.test import run_if_exists
 
 
 def _test_sandag_xborder(sharrow=False, mp=True):

@@ -22,13 +22,14 @@ def est_data():
     if not working_dir.joinpath("success.txt").exists():
         import activitysim.abm
 
-        state = workflow.create_example("example_estimation_sf", temp=True)
+        state = workflow.create_example("example_estimation_sf", directory=working_dir)
         state.run.all()
         working_dir.joinpath("success.txt").write_text(
             datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")
         )
 
-    yield str(working_dir)
+    os.chdir(working_dir.joinpath("example_estimation_sf"))
+    yield str(working_dir.joinpath("example_estimation_sf"))
 
     os.chdir(cwd)
 

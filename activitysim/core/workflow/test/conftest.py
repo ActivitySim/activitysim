@@ -53,6 +53,22 @@ def los_df() -> pd.DataFrame:
     return _los_df()
 
 
+@pytest.fixture
+def los_messy_df() -> pd.DataFrame:
+    """
+    Sample LOS dataframe with messy data.
+    """
+    return _los_messy_df()
+
+
+def _los_messy_df() -> pd.DataFrame:
+    los_df = _los_df()
+    los_df["int_first"] = [123, "text", 456.7]
+    los_df["text_first"] = ["klondike", 5, 12.34]
+    los_df["float_first"] = [456.7, "text", 555]
+    return los_df
+
+
 @pytest.fixture(scope="session")
 def sample_parquet_store(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """
@@ -91,6 +107,10 @@ def sample_parquet_store(tmp_path_factory: pytest.TempPathFactory) -> Path:
     person_df["status"] = [11, 22, 33, 44, 55]
     state.add_table("persons", person_df)
     state.checkpoint.add("mod_persons")
+
+    # modify table messy
+    state.add_table("level_of_service", _los_messy_df())
+    state.checkpoint.add("mod_los")
 
     return state.checkpoint.store.filename
 

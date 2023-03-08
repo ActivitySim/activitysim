@@ -307,11 +307,16 @@ class ParquetStore(GenericCheckpointStore):
             ).relative_to(self._directory)
             with zipfile.ZipFile(self._directory, mode="r") as zipf:
                 namelist = set(zipf.namelist())
-                if str(zip_internal_filename) in namelist:
-                    with zipf.open(str(zip_internal_filename)) as zipo:
+                if zip_internal_filename.as_posix() in namelist:
+                    with zipf.open(zip_internal_filename.as_posix()) as zipo:
                         return pd.read_parquet(zipo)
-                elif str(zip_internal_filename.with_suffix(".pickle.gz")) in namelist:
-                    with zipf.open(str(zip_internal_filename)) as zipo:
+                elif (
+                    zip_internal_filename.with_suffix(".pickle.gz").as_posix()
+                    in namelist
+                ):
+                    with zipf.open(
+                        zip_internal_filename.with_suffix(".pickle.gz").as_posix()
+                    ) as zipo:
                         return pd.read_pickle(zipo, compression="gzip")
                 checkpoint_name_ = self._get_store_checkpoint_from_named_checkpoint(
                     table_name, checkpoint_name

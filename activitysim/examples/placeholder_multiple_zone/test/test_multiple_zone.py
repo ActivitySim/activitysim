@@ -54,7 +54,7 @@ def run_test(zone, multiprocess=False):
             test_path(f"regress/final_tours_{zone}_zone_last_run.csv"), index=False
         )
         print("regress tours")
-        testing.assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             tours_df, regress_tours_df, rtol=1e-03, check_dtype=False
         )
 

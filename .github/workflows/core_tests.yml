@@ -402,7 +402,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Install Larch
-        run: mamba install "larch>=5.5.3"
+        run: mamba install "larch>=5.7.1"
 
       - name: Install activitysim
         # installing without dependencies is faster, we trust that all needed dependencies

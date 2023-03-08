@@ -1091,7 +1091,7 @@ def workplace_location(
     trace_label = "workplace_location"
     model_settings = state.filesystem.read_model_settings("workplace_location.yaml")
 
-    estimator = estimation.manager.begin_estimation(state, state, "workplace_location")
+    estimator = estimation.manager.begin_estimation(state, "workplace_location")
     if estimator:
         write_estimation_specs(
             state, estimator, model_settings, "workplace_location.yaml"
@@ -1141,7 +1141,7 @@ def school_location(
     trace_label = "school_location"
     model_settings = state.filesystem.read_model_settings("school_location.yaml")
 
-    estimator = estimation.manager.begin_estimation(state, state, "school_location")
+    estimator = estimation.manager.begin_estimation(state, "school_location")
     if estimator:
         write_estimation_specs(state, estimator, model_settings, "school_location.yaml")
 

@@ -288,53 +288,62 @@ class Runner(StateAccessor):
         model_name : str
             model_name is assumed to be the name of a registered orca step
         """
-        should_skip = self._pre_run_step(model_name)
-        if should_skip:
-            return
+        try:
+            should_skip = self._pre_run_step(model_name)
+            if should_skip:
+                return
 
-        instrument = self._obj.settings.instrument
-        if instrument is not None:
-            try:
+            instrument = self._obj.settings.instrument
+            if instrument is not None:
+                try:
+                    from pyinstrument import Profiler
+                except ImportError:
+                    instrument = False
+            if isinstance(instrument, (list, set, tuple)):
+                if self.step_name not in instrument:
+                    instrument = False
+                else:
+                    instrument = True
+
+            if instrument:
                 from pyinstrument import Profiler
-            except ImportError:
-                instrument = False
-        if isinstance(instrument, (list, set, tuple)):
-            if self.step_name not in instrument:
-                instrument = False
+
+                with Profiler() as profiler:
+                    self._obj._context = run_named_step(
+                        self.step_name, self._obj._context, **kwargs
+                    )
+                out_file = self._obj.filesystem.get_profiling_file_path(
+                    f"{self.step_name}.html"
+                )
+                with open(out_file, "wt") as f:
+                    f.write(profiler.output_html())
             else:
-                instrument = True
-
-        if instrument:
-            from pyinstrument import Profiler
-
-            with Profiler() as profiler:
                 self._obj._context = run_named_step(
                     self.step_name, self._obj._context, **kwargs
                 )
-            out_file = self._obj.filesystem.get_profiling_file_path(
-                f"{self.step_name}.html"
-            )
-            with open(out_file, "wt") as f:
-                f.write(profiler.output_html())
+
+        except Exception as err:
+            self.t0 = self.log_elapsed_time(f"run.{model_name} UNTIL ERROR", self.t0)
+            self._obj.add_injectable("step_args", None)
+            self._obj.rng().end_step(model_name)
+            raise
+
         else:
-            self._obj._context = run_named_step(
-                self.step_name, self._obj._context, **kwargs
-            )
+            # no error, finish as normal
+            from activitysim.core.tracing import print_elapsed_time
 
-        from activitysim.core.tracing import print_elapsed_time
+            self.t0 = self.log_elapsed_time(f"run.{model_name}", self.t0)
+            self._obj.trace_memory_info(f"pipeline.run_model {model_name} finished")
 
-        self.t0 = self.log_elapsed_time(f"run.{model_name}", self.t0)
-        self._obj.trace_memory_info(f"pipeline.run_model {model_name} finished")
+            self._obj.add_injectable("step_args", None)
 
-        self._obj.add_injectable("step_args", None)
-
-        self._obj.rng().end_step(model_name)
-        if self.checkpoint:
-            self._obj.checkpoint.add(model_name)
-        else:
-            logger.info(
-                "##### skipping %s checkpoint for %s" % (self.step_name, model_name)
-            )
+            self._obj.rng().end_step(model_name)
+            if self.checkpoint:
+                self._obj.checkpoint.add(model_name)
+            else:
+                logger.info(
+                    "##### skipping %s checkpoint for %s" % (self.step_name, model_name)
+                )
 
     def all(self, resume_after=LAST_CHECKPOINT, memory_sidecar_process=None):
         self(

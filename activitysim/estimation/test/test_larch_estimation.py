@@ -1,43 +1,34 @@
-import os
-import subprocess
-import tempfile
+from __future__ import annotations
 
+import datetime
+import os
+from pathlib import Path
+
+import appdirs
 import pandas as pd
 import pytest
 
-from activitysim.cli.create import get_example
+from activitysim.core import workflow
 
 
 @pytest.fixture(scope="module")
 def est_data():
-
     cwd = os.getcwd()
-    tempdir = tempfile.TemporaryDirectory()
-    os.chdir(tempdir.name)
-
-    get_example("example_estimation_sf", "_test_est")
-    os.chdir("_test_est")
-
-    # !activitysim run -c configs_estimation/configs -c configs -o output -d data_sf
-    print(f"List of files now in {os.getcwd()}")
-    subprocess.run(["find", "."])
-    print(f"\n\nrunning activitysim estimation mode in {os.getcwd()}")
-    subprocess.run(
-        [
-            "activitysim",
-            "run",
-            "-c",
-            "configs_estimation/configs",
-            "-c",
-            "configs",
-            "-o",
-            "output",
-            "-d",
-            "data_sf",
-        ],
+    working_dir = Path(appdirs.user_cache_dir(appname="ActivitySim")).joinpath(
+        f"estimation-test-base"
     )
+    working_dir.mkdir(parents=True, exist_ok=True)
+    os.chdir(working_dir)
+    if not working_dir.joinpath("success.txt").exists():
+        import activitysim.abm
 
-    yield os.getcwd()
+        state = workflow.create_example("example_estimation_sf", temp=True)
+        state.run.all()
+        working_dir.joinpath("success.txt").write_text(
+            datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S.%f")
+        )
+
+    yield str(working_dir)
 
     os.chdir(cwd)
 

@@ -172,7 +172,9 @@ def get_example(
             sha256 = None
 
         if assets.startswith("http"):
-            download_asset(assets, target_path, sha256, link=link)
+            download_asset(
+                assets, target_path, sha256, link=link, base_path=destination
+            )
 
         else:
             for asset_path in glob.glob(_example_path(assets)):

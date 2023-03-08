@@ -21,7 +21,7 @@ class InputTable(PydanticBase):
     If not provided, defaults to `input_store`
     """
 
-    index_col: str = None
+    index_col: str | None = "NOTSET"
     """table column to use for the index"""
 
     rename_columns: dict[str, str] = None

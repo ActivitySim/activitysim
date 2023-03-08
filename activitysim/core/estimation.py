@@ -30,7 +30,9 @@ def unlink_files(directory_path, file_types=("csv", "yaml")):
 
 
 class Estimator:
-    def __init__(self, state, bundle_name, model_name, estimation_table_recipes):
+    def __init__(
+        self, state: workflow.State, bundle_name, model_name, estimation_table_recipes
+    ):
 
         logger.info("Initialize Estimator for'%s'" % (model_name,))
 
@@ -294,7 +296,7 @@ class Estimator:
         assert self.estimating
 
         coefficients_df = simulate.read_model_coefficient_template(
-            self.state, model_settings
+            self.state.filesystem, model_settings
         )
         tag = "coefficients_template"
         self.write_table(coefficients_df, tag, append=False)

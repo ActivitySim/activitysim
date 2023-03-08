@@ -96,7 +96,7 @@ def read_from_table_info(table_info: InputTable, state):
     canonical_index_col = canonical_table_index_name(tablename)
 
     # if there is an explicit index_col entry in table_info
-    if "index_col" in table_info or hasattr(table_info, "index_col"):
+    if table_info.index_col != "NOTSET":
         # honor explicit index_col unless it conflicts with canonical name
 
         index_col = table_info.index_col

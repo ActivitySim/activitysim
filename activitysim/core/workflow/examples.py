@@ -38,6 +38,8 @@ def create_example(
     if directory is None:
         directory = Path.cwd()
 
+    directory = Path(directory)
+
     # import inside function to prevent circular references.
     from activitysim.examples import get_example
 

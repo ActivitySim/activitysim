@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import itertools
 import logging
 
+import numpy as np
 import pandas as pd
 
 from activitysim.core import chunk, logit, simulate, tracing, workflow
@@ -48,7 +51,11 @@ def add_pn(col, pnum):
 
 
 def assign_cdap_rank(
-    state: workflow.State, persons, person_type_map, trace_hh_id=None, trace_label=None
+    state: workflow.State | None,
+    persons,
+    person_type_map,
+    trace_hh_id=None,
+    trace_label=None,
 ):
     """
     Assign an integer index, cdap_rank, to each household member. (Starting with 1, not 0)
@@ -129,7 +136,11 @@ def assign_cdap_rank(
 
     # choose up to MAX_HHSIZE, choosing randomly
     others = persons[[_hh_id_, "cdap_rank"]].copy()
-    others["random_order"] = state.get_rn_generator().random_for_df(persons)
+    if state is None:
+        # typically in estimation, no state is available, just use stable but simple random
+        others["random_order"] = np.random.default_rng(seed=0).uniform(size=len(others))
+    else:
+        others["random_order"] = state.get_rn_generator().random_for_df(persons)
     others = (
         others.sort_values(by=[_hh_id_, "random_order"], ascending=[True, True])
         .groupby(_hh_id_)
@@ -158,7 +169,7 @@ def assign_cdap_rank(
     #     state.tracing.trace_df(persons, '%s.DUMP.cdap_person_array' % trace_label,
     #                      transpose=False, slicer='NONE')
 
-    if trace_hh_id:
+    if trace_hh_id and state is not None:
         state.tracing.trace_df(persons, "%s.cdap_rank" % trace_label)
 
     return persons["cdap_rank"]

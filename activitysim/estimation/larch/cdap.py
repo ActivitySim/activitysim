@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib
 import itertools
 import logging
@@ -326,7 +328,7 @@ def cdap_data(
     if person_type_map is None:
         raise KeyError("PERSON_TYPE_MAP missing from cdap_settings.yaml")
 
-    person_rank = cdap.assign_cdap_rank(state, persons, person_type_map)
+    person_rank = cdap.assign_cdap_rank(None, persons, person_type_map)
 
     coefficients = read_csv(
         coefficients_file,

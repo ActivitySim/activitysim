@@ -788,15 +788,10 @@ def coalesce_pipelines(state: workflow.State, sub_proc_names, slice_info):
                 tables[table_name] = pipeline_store[hdf5_key]
     else:
         checkpoint_name, hdf5_keys = parquet_pipeline_table_keys(pipeline_path)
-        base_pipeline_path = ParquetStore(pipeline_path)._directory
+        pqstore = ParquetStore(pipeline_path, mode="r")
         for table_name, parquet_path in hdf5_keys.items():
-            debug(
-                state,
-                f"loading table {table_name} {base_pipeline_path.joinpath(parquet_path)}",
-            )
-            tables[table_name] = pd.read_parquet(
-                base_pipeline_path.joinpath(parquet_path)
-            )
+            debug(state, f"loading table {table_name} from {pqstore.filename}")
+            tables[table_name] = pqstore.get_dataframe(table_name)
 
     # slice.coalesce is an override  list of omnibus tables created by subprocesses that should be coalesced,
     # whether or not they satisfy the slice rules. Ordinarily all tables qualify for slicing by the slice rules
@@ -847,11 +842,9 @@ def coalesce_pipelines(state: workflow.State, sub_proc_names, slice_info):
                 for table_name, hdf5_key in omnibus_keys.items():
                     omnibus_tables[table_name].append(pipeline_store[hdf5_key])
         else:
-            base_pipeline_path = ParquetStore(pipeline_path)._directory
+            pqstore = ParquetStore(pipeline_path, mode="r")
             for table_name, hdf5_key in omnibus_keys.items():
-                omnibus_tables[table_name].append(
-                    pd.read_parquet(base_pipeline_path.joinpath(hdf5_key))
-                )
+                omnibus_tables[table_name].append(pqstore.get_dataframe(table_name))
 
     # open pipeline, preserving existing checkpoints (so resume_after will work for prior steps)
     state.checkpoint.restore(resume_after="_")

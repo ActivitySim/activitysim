@@ -243,9 +243,10 @@ class State:
             if working_dir.is_file():
                 working_dir = working_dir.parent
         self = cls().initialize_filesystem(working_dir, **kwargs)
-        if self.filesystem.get_config_file_path(
-            self.filesystem.settings_file_name
-        ).exists():
+        settings_file = self.filesystem.get_config_file_path(
+            self.filesystem.settings_file_name, mandatory=False
+        )
+        if settings_file is not None and settings_file.exists():
             self.load_settings()
         else:
             self.default_settings()

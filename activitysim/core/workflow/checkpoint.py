@@ -11,7 +11,12 @@ from typing import Optional, Union
 import pandas as pd
 import pyarrow as pa
 
-from activitysim.core.exceptions import CheckpointFileNotFoundError, StateAccessError
+from activitysim.core.exceptions import (
+    CheckpointFileNotFoundError,
+    CheckpointNameNotFoundError,
+    StateAccessError,
+    TableNameNotFound,
+)
 from activitysim.core.workflow.accessor import FromState, StateAccessor
 
 logger = logging.getLogger(__name__)
@@ -86,6 +91,11 @@ class GenericCheckpointStore:
     def close(self) -> None:
         """Close this store."""
 
+    @property
+    @abc.abstractmethod
+    def filename(self) -> Path:
+        """Location of this store."""
+
     def list_checkpoint_names(self) -> list[str]:
         """Get a list of all checkpoint names in this store."""
         try:
@@ -115,12 +125,52 @@ class GenericCheckpointStore:
                         checkpoints_written.add(checkpoint_name)
         return output_store
 
+    def _get_store_checkpoint_from_named_checkpoint(
+        self, table_name: str, checkpoint_name: str = LAST_CHECKPOINT
+    ):
+        f"""
+        Get the name of the checkpoint where a table is actually written.
+
+        Checkpoint tables are not re-written if the content has not changed, so
+        retrieving a particular table at a given checkpoint can involve back-tracking
+        to find where the file was last actually written.
+
+        Parameters
+        ----------
+        table_name : str
+        checkpoint_name : str, default {LAST_CHECKPOINT!r}
+            The name of the checkpoint to load.  If not given, {LAST_CHECKPOINT!r}
+            is assumed, indicating that this function should load the last stored
+            checkpoint value.
+
+        Returns
+        -------
+        str
+            The checkpoint to actually load.
+        """
+        cp_df = self.get_dataframe(CHECKPOINT_TABLE_NAME).set_index(CHECKPOINT_NAME)
+        if checkpoint_name == LAST_CHECKPOINT:
+            checkpoint_name = cp_df.index[-1]
+        try:
+            return cp_df.loc[checkpoint_name, table_name]
+        except KeyError:
+            if checkpoint_name not in cp_df.index:
+                raise CheckpointNameNotFoundError(checkpoint_name)
+            elif table_name not in cp_df.columns:
+                raise TableNameNotFound(table_name)
+            else:
+                raise
+
 
 class HdfStore(GenericCheckpointStore):
     """Storage interface for HDF5-based table storage."""
 
     def __init__(self, filename: Path, mode="a"):
         self._hdf5 = pd.HDFStore(str(filename), mode=mode)
+
+    @property
+    def filename(self) -> Path:
+        return Path(self._hdf5.filename)
 
     def _store_table_key(self, table_name, checkpoint_name):
         if checkpoint_name:
@@ -187,7 +237,22 @@ class ParquetStore(GenericCheckpointStore):
             # fallback to pickle, compatible with more dtypes
             df.to_pickle(Path(filename).with_suffix(".pickle.gz"))
 
-    def __init__(self, directory: Path, mode: str = "a"):
+    def __init__(self, directory: Path, mode: str = "a", gitignore: bool = True):
+        """Initialize a storage interface for parquet-based table storage.
+
+        Parameters
+        ----------
+        directory : Path
+            The file directory for this ParquetStore. If this location does not
+            include a ".parquetpipeline" or ".zip" suffix, one is added.
+        mode : {"a", "r"}, default "a"
+            Mode to open this store, "a"ppend or "r"ead-only.  Zipped stores
+            can only be opened in read-only mode.
+        gitignore : bool, default True
+            If not opened in read-only mode, should a ".gitignore" file be added
+            with a global wildcard (**)?  Doing so will help prevent this store
+            from being accidentally committed to git.
+        """
         directory = Path(directory)
         if directory.suffix == ".zip":
             if mode != "r":
@@ -196,6 +261,15 @@ class ParquetStore(GenericCheckpointStore):
             directory = directory.with_suffix(self.extension)
         self._directory = directory
         self._mode = mode
+        if self._mode != "r":
+            self._directory.mkdir(parents=True, exist_ok=True)
+            if gitignore and not self._directory.joinpath(".gitignore").exists():
+                self._directory.joinpath(".gitignore").write_text("**\n")
+
+    @property
+    def filename(self) -> Path:
+        """The directory location of this ParquetStore."""
+        return self._directory
 
     def _store_table_path(self, table_name, checkpoint_name):
         if checkpoint_name:
@@ -222,6 +296,8 @@ class ParquetStore(GenericCheckpointStore):
     def get_dataframe(
         self, table_name: str, checkpoint_name: str = None
     ) -> pd.DataFrame:
+        if table_name != CHECKPOINT_TABLE_NAME and checkpoint_name is None:
+            checkpoint_name = LAST_CHECKPOINT
         if self._directory.suffix == ".zip":
             import io
             import zipfile
@@ -230,21 +306,31 @@ class ParquetStore(GenericCheckpointStore):
                 table_name, checkpoint_name
             ).relative_to(self._directory)
             with zipfile.ZipFile(self._directory, mode="r") as zipf:
-                try:
-                    content = zipf.read(str(zip_internal_filename))
-                except KeyError:
-                    content = zipf.read(
-                        str(zip_internal_filename.with_suffix(".pickle.gz"))
-                    )
-                    return pd.read_pickle(io.BytesIO(content), compression="gzip")
-                else:
-                    return pd.read_parquet(io.BytesIO(content))
+                namelist = set(zipf.namelist())
+                if str(zip_internal_filename) in namelist:
+                    with zipf.open(str(zip_internal_filename)) as zipo:
+                        return pd.read_parquet(zipo)
+                elif str(zip_internal_filename.with_suffix(".pickle.gz")) in namelist:
+                    with zipf.open(str(zip_internal_filename)) as zipo:
+                        return pd.read_pickle(zipo, compression="gzip")
+                checkpoint_name_ = self._get_store_checkpoint_from_named_checkpoint(
+                    table_name, checkpoint_name
+                )
+                if checkpoint_name_ != checkpoint_name:
+                    return self.get_dataframe(table_name, checkpoint_name_)
+                raise FileNotFoundError(str(zip_internal_filename))
         target_path = self._store_table_path(table_name, checkpoint_name)
         if target_path.exists():
             return pd.read_parquet(target_path)
         elif target_path.with_suffix(".pickle.gz").exists():
             return pd.read_pickle(target_path.with_suffix(".pickle.gz"))
         else:
+            # the direct-read failed, check for backtracking checkpoint
+            checkpoint_name_ = self._get_store_checkpoint_from_named_checkpoint(
+                table_name, checkpoint_name
+            )
+            if checkpoint_name_ != checkpoint_name:
+                return self.get_dataframe(table_name, checkpoint_name_)
             raise FileNotFoundError(target_path)
 
     @property
@@ -259,7 +345,7 @@ class ParquetStore(GenericCheckpointStore):
         """Close this store."""
         pass
 
-    def make_zip_archive(self, output_filename):
+    def make_zip_archive(self, output_filename) -> Path:
         """
         Compress this pipeline into a zip archive.
 

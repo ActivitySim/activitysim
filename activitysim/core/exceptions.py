@@ -35,4 +35,12 @@ class SettingsFileNotFoundError(FileNotFoundError):
 
 
 class CheckpointFileNotFoundError(FileNotFoundError):
-    """The checpoints files is not found."""
+    """The checkpoints file is not found."""
+
+
+class CheckpointNameNotFoundError(KeyError):
+    """The checkpoint_name is not found."""
+
+
+class TableNameNotFound(KeyError):
+    """The table_name is not found."""

@@ -116,9 +116,16 @@ def assert_equal(x, y):
     except ImportError:
         assert x == y
     else:
-        try:
-            assert x == pytest.approx(y)
-        except TypeError:
-            # pytest.approx() does not support nested data structures
-            for x_, y_ in zip(x, y):
-                assert x_ == pytest.approx(y_)
+        if isinstance(x, list) and isinstance(y, list) and len(x) == len(y):
+            for n_, (x_, y_) in enumerate(zip(x, y)):
+                assert x_ == pytest.approx(y_), f"error at index {n_}"
+        elif isinstance(x, dict) and isinstance(y, dict) and x.keys() == y.keys():
+            for n_ in x.keys():
+                assert x[n_] == pytest.approx(y[n_]), f"error at key {n_}"
+        else:
+            try:
+                assert x == pytest.approx(y)
+            except (TypeError, AssertionError):
+                # pytest.approx() does not support nested data structures
+                for x_, y_ in zip(x, y):
+                    assert x_ == pytest.approx(y_)

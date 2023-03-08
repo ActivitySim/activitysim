@@ -108,3 +108,4 @@ def test_marin_progressive():
 
 if __name__ == "__main__":
     test_marin()
+    test_marin_progressive()

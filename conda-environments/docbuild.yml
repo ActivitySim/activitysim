@@ -12,7 +12,7 @@ channels:
 dependencies:
 - python=3.9
 - pip
-- black
+- black >= 22.0,<23
 - bump2version
 - coveralls
 - cytoolz >= 0.8.1

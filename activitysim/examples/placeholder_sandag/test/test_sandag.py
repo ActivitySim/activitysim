@@ -271,7 +271,7 @@ def test_3_zone_progressive():
     assert state.settings.chunk_size == 0
     assert state.settings.sharrow == False
 
-    state.settings.recode_pipeline_columns = False
+    state.settings.recode_pipeline_columns = True
     state.settings.treat_warnings_as_errors = False
     state.settings.households_sample_size = 30
     state.settings.use_shadow_pricing = False
@@ -291,8 +291,6 @@ def test_3_zone_progressive():
     state.network_settings.read_skim_cache = False
     state.network_settings.write_skim_cache = False
     state.network_settings.rebuild_tvpb_cache = False
-
-    print(state.network_settings)
 
     for step_name in EXPECTED_MODELS_3_ZONE:
         state.run.by_name(step_name)

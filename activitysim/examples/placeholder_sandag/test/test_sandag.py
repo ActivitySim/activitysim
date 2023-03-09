@@ -6,12 +6,13 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import pandas as pd
 import pkg_resources
 import pytest
 
-from activitysim.core.test import assert_frame_substantively_equal
+from activitysim.core import configuration, test, workflow
 
 
 def example_path(dirname):
@@ -63,7 +64,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
             test_path(f"regress/final_{zone}_zone_tours_last_run.csv"), index=False
         )
         print("regress tours")
-        assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             tours_df, regress_tours_df, rtol=1e-03, check_dtype=False
         )
 
@@ -83,7 +84,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
             test_path(f"regress/final_{zone}_zone_trips_last_run.csv"), index=False
         )
         print("regress trips")
-        assert_frame_substantively_equal(
+        test.assert_frame_substantively_equal(
             trips_df, regress_trips_df, rtol=1e-03, check_dtype=False
         )
 
@@ -106,7 +107,7 @@ def run_test(zone, multiprocess=False, sharrow=False):
                     if not c.startswith("_original_")
                 ]
             ]
-            assert_frame_substantively_equal(
+            test.assert_frame_substantively_equal(
                 final_accessibility_df,
                 regress_accessibility_df,
                 check_dtype=False,
@@ -217,6 +218,96 @@ def test_3_zone_sharrow(data):
     # guarantees that compile happens in single
     run_test(zone="3", multiprocess=False, sharrow=True)
     run_test(zone="3", multiprocess=True, sharrow=True)
+
+
+EXPECTED_MODELS_3_ZONE = [
+    "initialize_landuse",
+    "initialize_households",
+    "compute_accessibility",
+    "initialize_los",
+    "initialize_tvpb",
+    "school_location",
+    "workplace_location",
+    "auto_ownership_simulate",
+    "free_parking",
+    "cdap_simulate",
+    "mandatory_tour_frequency",
+    "mandatory_tour_scheduling",
+    "joint_tour_frequency",
+    "joint_tour_composition",
+    "joint_tour_participation",
+    "joint_tour_destination",
+    "joint_tour_scheduling",
+    "non_mandatory_tour_frequency",
+    "non_mandatory_tour_destination",
+    "non_mandatory_tour_scheduling",
+    "tour_mode_choice_simulate",
+    "atwork_subtour_frequency",
+    "atwork_subtour_destination",
+    "atwork_subtour_scheduling",
+    "atwork_subtour_mode_choice",
+    "stop_frequency",
+    "trip_purpose",
+    "trip_destination",
+    "trip_purpose_and_destination",
+    "trip_scheduling",
+    "trip_mode_choice",
+    "write_data_dictionary",
+    "track_skim_usage",
+    "write_trip_matrices",
+    "write_tables",
+]
+
+
+@test.run_if_exists("placeholder_sandag_3_zone_reference_pipeline.zip")
+def test_3_zone_progressive():
+    import activitysim.abm  # register components
+
+    state = workflow.create_example(
+        "placeholder_sandag_3_zone", directory="/tmp/placeholder_sandag_3_zone"
+    )
+
+    assert state.settings.models == EXPECTED_MODELS_3_ZONE
+    assert state.settings.chunk_size == 0
+    assert state.settings.sharrow == False
+
+    state.settings.recode_pipeline_columns = False
+    state.settings.treat_warnings_as_errors = False
+    state.settings.households_sample_size = 30
+    state.settings.use_shadow_pricing = False
+    state.settings.want_dest_choice_sample_tables = False
+    state.settings.want_dest_choice_presampling = True
+    state.settings.cleanup_pipeline_after_run = True
+    state.settings.output_tables = configuration.OutputTables(
+        h5_store=False,
+        action="include",
+        prefix="final_3_zone_",
+        sort=True,
+        tables=["trips", "tours"],
+    )
+    from activitysim.abm.tables.skims import network_los_preload
+
+    state.get(network_los_preload)
+    state.network_settings.read_skim_cache = False
+    state.network_settings.write_skim_cache = False
+    state.network_settings.rebuild_tvpb_cache = False
+
+    print(state.network_settings)
+
+    for step_name in EXPECTED_MODELS_3_ZONE:
+        state.run.by_name(step_name)
+        try:
+            state.checkpoint.check_against(
+                Path(__file__).parent.joinpath(
+                    "placeholder_sandag_3_zone_reference_pipeline.zip"
+                ),
+                checkpoint_name=step_name,
+            )
+        except Exception:
+            print(f"> placeholder_sandag_3_zone {step_name}: ERROR")
+            raise
+        else:
+            print(f"> placeholder_sandag_3_zone {step_name}: ok")
 
 
 if __name__ == "__main__":

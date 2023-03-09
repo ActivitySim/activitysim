@@ -772,6 +772,12 @@
     - placeholder_sandag/configs_3_zone
     - placeholder_sandag/configs_skip_accessibility
     - placeholder_sandag/output_3
+  subdirs:
+    configs_dir:
+      - configs_3_zone
+      - prototype_mtc/configs
+    data_dir: data_3
+    output_dir: output_3
 
 - name: placeholder_sandag_3_zone_full
   description: full 3-zone example for the SANDAG region

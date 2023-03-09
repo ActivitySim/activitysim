@@ -7,7 +7,7 @@ from activitysim.core import workflow
 
 def create_example(
     example_name: str,
-    directory: Path = None,
+    directory: Path | str = None,
     temp: bool = False,
 ) -> "workflow.State":
     """

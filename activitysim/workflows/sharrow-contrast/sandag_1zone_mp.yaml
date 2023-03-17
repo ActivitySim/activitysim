@@ -1,0 +1,46 @@
+#
+# sandag_1zone_mp
+#   - activitysim workflow sharrow-contrast/sandag_1zone_mp
+#
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: placeholder_sandag_1_zone_full
+      workflow_name: sharrow-contrast/sandag_1zone_mp
+      workspace: workspace
+      multiprocess: -4
+      settings_file: settings_mp.yaml
+      chunk_size_pct_of_available: 0.75
+      chunk_size_minimum_gb: 40
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: False
+      tag:
+      resume_after:
+      fast: False
+      compile_n_households: 1000
+      main_n_households: 0
+      config_dirs:
+      - configs_1_zone
+      - prototype_mtc/configs
+      data_dir: data_1
+      instrument: False
+      memory_profile: True
+      trace_hh_id:
+      trace_od:
+      workplace_zone_agg:
+        caption: Workplaces by County
+        district_id: county_id
+      distance_skim: DIST
+      household_income: income
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner_chunked

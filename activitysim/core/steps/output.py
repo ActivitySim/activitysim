@@ -37,9 +37,16 @@ def track_skim_usage(output_dir):
         for key in skim_dict.get_skim_usage():
             print(key, file=output_file)
 
-        unused = set(k for k in skim_dict.skim_info.base_keys) - set(
-            k for k in skim_dict.get_skim_usage()
-        )
+        try:
+            unused = set(k for k in skim_dict.skim_info.base_keys) - set(
+                k for k in skim_dict.get_skim_usage()
+            )
+        except AttributeError:
+            base_keys = set(skim_dict.dataset.variables.keys()) - set(
+                skim_dict.dataset.coords.keys()
+            )
+            # using dataset
+            unused = base_keys - set(k for k in skim_dict.get_skim_usage())
 
         for key in unused:
             print(key, file=output_file)
@@ -121,7 +128,16 @@ def write_data_dictionary(output_dir):
     schema = dict()
     final_shapes = dict()
     for table_name in table_names:
-        df = pipeline.get_table(table_name)
+        try:
+            df = pipeline.get_table(table_name)
+        except RuntimeError as run_err:
+            if run_err.args and "dropped" in run_err.args[0]:
+                # if a checkpointed table was dropped, that's not ideal, so we should
+                # log a warning about it, but not allow the error to stop execution here
+                logger.warning(run_err.args[0])
+                # note actually emitting a warnings.warn instead of a logger message will
+                # unfortunately cause some of our excessively strict tests to fail
+                continue
 
         final_shapes[table_name] = df.shape
 
@@ -157,15 +173,15 @@ def write_data_dictionary(output_dir):
 
             info = schema.get(table_name, None)
 
-            # tag any new columns with checkpoint name
-            prev_columns = info[info.checkpoint != ""].column_name.values
-            new_cols = [c for c in df.columns.values if c not in prev_columns]
-            is_new_column_this_checkpoont = info.column_name.isin(new_cols)
-            info.checkpoint = np.where(
-                is_new_column_this_checkpoont, checkpoint_name, info.checkpoint
-            )
-
-            schema[table_name] = info
+            if info is not None:
+                # tag any new columns with checkpoint name
+                prev_columns = info[info.checkpoint != ""].column_name.values
+                new_cols = [c for c in df.columns.values if c not in prev_columns]
+                is_new_column_this_checkpoont = info.column_name.isin(new_cols)
+                info.checkpoint = np.where(
+                    is_new_column_this_checkpoont, checkpoint_name, info.checkpoint
+                )
+                schema[table_name] = info
 
     schema_df = pd.concat(schema.values())
 
@@ -180,7 +196,8 @@ def write_data_dictionary(output_dir):
 
             for table_name in table_names:
                 info = schema.get(table_name, None)
-
+                if info is None:
+                    continue
                 columns_to_print = ["column_name", "dtype", "checkpoint"]
                 info = info[columns_to_print].copy()
 
@@ -269,6 +286,12 @@ def write_tables(output_dir):
 
     for table_name in output_tables_list:
 
+        if not isinstance(table_name, str):
+            table_decode_cols = table_name.get("decode_columns", {})
+            table_name = table_name["tablename"]
+        else:
+            table_decode_cols = {}
+
         if table_name == "checkpoints":
             df = pipeline.get_checkpoints()
         else:
@@ -303,6 +326,43 @@ def write_tables(output_dir):
                             f"write_tables sorting {table_name} on unrecognized index {df.index.name}"
                         )
                         df = df.sort_index()
+
+        if config.setting("recode_pipeline_columns", True):
+            for colname, decode_instruction in table_decode_cols.items():
+                if "|" in decode_instruction:
+                    decode_filter, decode_instruction = decode_instruction.split("|")
+                    decode_filter = decode_filter.strip()
+                    decode_instruction = decode_instruction.strip()
+                else:
+                    decode_filter = None
+                if "." not in decode_instruction:
+                    lookup_col = decode_instruction
+                    source_table = table_name
+                    parent_table = df
+                else:
+                    source_table, lookup_col = decode_instruction.split(".")
+                    parent_table = inject.get_table(source_table)
+                try:
+                    map_col = parent_table[f"_original_{lookup_col}"]
+                except KeyError:
+                    map_col = parent_table[lookup_col]
+                map_col = np.asarray(map_col)
+                map_func = map_col.__getitem__
+                if decode_filter:
+                    if decode_filter == "nonnegative":
+
+                        def map_func(x):
+                            return x if x < 0 else map_col[x]
+
+                    else:
+                        raise ValueError(f"unknown decode_filter {decode_filter}")
+                if colname in df.columns:
+                    df[colname] = df[colname].astype(int).map(map_func)
+                elif colname == df.index.name:
+                    df.index = df.index.astype(int).map(map_func)
+                # drop _original_x from table if it is duplicative
+                if source_table == table_name and f"_original_{lookup_col}" in df:
+                    df = df.drop(columns=[f"_original_{lookup_col}"])
 
         if h5_store:
             file_path = config.output_file_path("%soutput_tables.h5" % prefix)

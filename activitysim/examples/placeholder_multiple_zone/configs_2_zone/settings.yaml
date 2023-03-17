@@ -64,6 +64,11 @@ input_table_list:
       - TOPOLOGY
       - TERMINAL
       - access_dist_transit
+  - tablename: land_use_taz
+    filename: taz.csv
+    index_col: TAZ
+    recode_columns:
+      TAZ: zero-based
 
 #resume_after: initialize_landuse
 
@@ -82,3 +87,5 @@ output_tables:
 
 # trace origin, destination in accessibility calculation; comment out or leave empty for no trace
 trace_od: [5000, 11000]
+
+recode_pipeline_columns: False

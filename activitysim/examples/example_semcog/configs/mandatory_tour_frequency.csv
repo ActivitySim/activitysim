@@ -25,10 +25,10 @@ util_can_walk_to_work_retired,Can walk to work - Retired interaction,(ptype == 5
 util_can_walk_to_school_univ,Can walk to school - University student interaction,(ptype == 3) & (distance_to_school < 3),,,,coef_can_walk_to_work_school2,
 util_can_walk_to_school_driving_age_child,Can walk to school - Driving-age child interaction,(ptype == 6) & (distance_to_school < 3),,,,coef_can_walk_to_work_school2,
 util_can_walk_to_school_pre_driving_age_child,Can walk to school - Pre-driving age child who is in school interaction,(ptype == 7) & (distance_to_school < 3),,,,coef_can_walk_to_work_school2,
-util_can_walk_to_work_or_school_ft,Can walk to work or school - Full-time worker interaction,(ptype == 1) & (distance_to_work < 3 | distance_to_school < 3),,,,,coef_can_walk_to_work_and_school
-util_can_walk_to_work_or_school_pt,Can walk to work or school - Part-time worker interaction,(ptype == 2) & (distance_to_work < 3 | distance_to_school < 3),,,,,coef_can_walk_to_work_and_school
-util_can_walk_to_work_or_school_univ,Can walk to work or school - University student interaction,(ptype == 3) & (distance_to_work < 3 | distance_to_school < 3),,,,,coef_can_walk_to_work_and_school
-util_can_walk_to_work_or_school_driving_age_child,Can walk to work or school - Driving-age child interaction,(ptype == 6) & (distance_to_work < 3 | distance_to_school < 3),,,,,coef_can_walk_to_work_and_school
+util_can_walk_to_work_or_school_ft,Can walk to work or school - Full-time worker interaction,(ptype == 1) & ((distance_to_work < 3) | (distance_to_school < 3)),,,,,coef_can_walk_to_work_and_school
+util_can_walk_to_work_or_school_pt,Can walk to work or school - Part-time worker interaction,(ptype == 2) & ((distance_to_work < 3) | (distance_to_school < 3)),,,,,coef_can_walk_to_work_and_school
+util_can_walk_to_work_or_school_univ,Can walk to work or school - University student interaction,(ptype == 3) & ((distance_to_work < 3) | (distance_to_school < 3)),,,,,coef_can_walk_to_work_and_school
+util_can_walk_to_work_or_school_driving_age_child,Can walk to work or school - Driving-age child interaction,(ptype == 6) & ((distance_to_work < 3) | (distance_to_school < 3)),,,,,coef_can_walk_to_work_and_school
 util_round_trip_auto_time_to_work_ft,Round trip auto time to work - Full-time worker interaction,(ptype == 1) * roundtrip_auto_time_to_work,,coef_round_trip_auto_time_to_work_work2,,,coef_round_trip_auto_time_to_work_school2
 util_round_trip_auto_time_to_work_pt,Round trip auto time to work - Part-time worker interaction,(ptype == 2) * roundtrip_auto_time_to_work,,coef_round_trip_auto_time_to_work_work2,,,coef_round_trip_auto_time_to_work_school2
 util_round_trip_auto_time_to_work_univ,Round trip auto time to work - University student interaction,(ptype == 3) * roundtrip_auto_time_to_work,,coef_round_trip_auto_time_to_work_work2,,,coef_round_trip_auto_time_to_work_school2

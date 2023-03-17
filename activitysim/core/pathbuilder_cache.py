@@ -1,19 +1,16 @@
 # ActivitySim
 # See full license in LICENSE.txt.
-import gc as _gc
 import itertools
 import logging
 import multiprocessing
 import os
-import time
 from builtins import range
 from contextlib import contextmanager
 
 import numpy as np
 import pandas as pd
-import psutil
 
-from activitysim.core import config, inject, simulate, tracing, util
+from activitysim.core import config, inject, simulate, util
 
 logger = logging.getLogger(__name__)
 
@@ -30,37 +27,38 @@ MEMO_STACK = []
 
 @contextmanager
 def memo(tag, console=False, disable_gc=True):
-    t0 = time.time()
-
-    MEMO_STACK.append(tag)
-
-    gc_was_enabled = _gc.isenabled()
-    if gc_was_enabled:
-        _gc.collect()
-        if disable_gc:
-            _gc.disable()
-
-    previous_mem = psutil.Process().memory_info().rss
-    try:
-        yield
-    finally:
-        elapsed_time = time.time() - t0
-
-        current_mem = psutil.Process().memory_info().rss
-        marginal_mem = current_mem - previous_mem
-        mem_str = f"net {util.GB(marginal_mem)} ({util.INT(marginal_mem)}) total {util.GB(current_mem)}"
-
-        if gc_was_enabled and disable_gc:
-            _gc.enable()
-        if _gc.isenabled():
-            _gc.collect()
-
-        if console:
-            print(f"MEMO {tag} Time: {util.SEC(elapsed_time)} Memory: {mem_str} ")
-        else:
-            logger.debug(f"MEM  {tag} {mem_str} in {util.SEC(elapsed_time)}")
-
-        MEMO_STACK.pop()
+    yield  # make this a noop for performance
+    # t0 = time.time()
+    #
+    # MEMO_STACK.append(tag)
+    #
+    # gc_was_enabled = _gc.isenabled()
+    # if gc_was_enabled:
+    #     _gc.collect()
+    #     if disable_gc:
+    #         _gc.disable()
+    #
+    # previous_mem = psutil.Process().memory_info().rss
+    # try:
+    #     yield
+    # finally:
+    #     elapsed_time = time.time() - t0
+    #
+    #     current_mem = psutil.Process().memory_info().rss
+    #     marginal_mem = current_mem - previous_mem
+    #     mem_str = f"net {util.GB(marginal_mem)} ({util.INT(marginal_mem)}) total {util.GB(current_mem)}"
+    #
+    #     if gc_was_enabled and disable_gc:
+    #         _gc.enable()
+    #     if _gc.isenabled():
+    #         _gc.collect()
+    #
+    #     if console:
+    #         print(f"MEMO {tag} Time: {util.SEC(elapsed_time)} Memory: {mem_str} ")
+    #     else:
+    #         logger.debug(f"MEM  {tag} {mem_str} in {util.SEC(elapsed_time)}")
+    #
+    #     MEMO_STACK.pop()
 
 
 class TVPBCache(object):
@@ -97,7 +95,20 @@ class TVPBCache(object):
         """
         if os.path.isfile(self.cache_path):
             logger.debug(f"deleting cache {self.cache_path}")
-            os.unlink(self.cache_path)
+            try:
+                os.unlink(self.cache_path)
+            except PermissionError:
+                # windows may complain if the cache was not completely closed
+                # in an earlier run, so let's just cache in a new file
+                n = 0
+                while True:
+                    n += 1
+                    candidate = os.path.join(
+                        config.get_cache_dir(), f"{self.cache_tag}.{n}.mmap"
+                    )
+                    if not os.path.isfile(candidate):
+                        self.cache_tag = f"{self.cache_tag}.{n}"
+                        break
 
     def write_static_cache(self, data):
 
@@ -400,13 +411,19 @@ class TapTapUidCalculator(object):
 
             if name in df:
                 # if there is a column, use it
-                uid = uid * cardinality + np.asanyarray(df[name].map(ordinalizer))
+                if name == "tod" and df[name].dtype.kind == "i":
+                    # when time of day is an integer, assume it is already ordinalized
+                    ticker = np.asanyarray(df[name])
+                else:
+                    ticker = np.asanyarray(df[name].map(ordinalizer))
+                uid = uid * cardinality + ticker
             else:
                 # otherwise it should be in scalar_attributes
                 assert (
                     name in scalar_attributes
                 ), f"attribute '{name}' not found in df.columns or scalar_attributes."
-                uid = uid * cardinality + ordinalizer.at[scalar_attributes[name]]
+                ticker = ordinalizer.at[scalar_attributes[name]]
+                uid = uid * cardinality + ticker
 
         return uid
 

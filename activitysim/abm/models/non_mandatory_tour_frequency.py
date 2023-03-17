@@ -17,6 +17,9 @@ from activitysim.core import (
 from activitysim.core.interaction_simulate import interaction_simulate
 
 from .util import estimation
+from .util import annotate
+from .util.school_escort_tours_trips import recompute_tour_count_statistics
+
 from .util.overlap import person_max_window
 from .util.tour_frequency import process_non_mandatory_tours
 
@@ -375,6 +378,13 @@ def non_mandatory_tour_frequency(persons, persons_merged, chunk_size, trace_hh_i
 
     tracing.register_traceable_table("tours", non_mandatory_tours)
     pipeline.get_rn_generator().add_channel("tours", non_mandatory_tours)
+
+    if pipeline.is_table("school_escort_tours"):
+        # need to re-compute tour frequency statistics to account for school escort tours
+        recompute_tour_count_statistics()
+
+    if model_settings.get("annotate_tours"):
+        annotate.annotate_tours(model_settings, trace_label)
 
     expressions.assign_columns(
         df=persons,

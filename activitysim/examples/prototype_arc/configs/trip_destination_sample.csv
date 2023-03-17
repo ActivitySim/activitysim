@@ -13,5 +13,5 @@ not available if walk tour not within walking distance,@(df.tour_mode=='WALK') &
 not available if bike tour not within biking distance,@(df.tour_mode=='BIKE') & (odt_skims['SOV_FREE_DISTANCE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 not available if bike tour not within biking distance,@(df.tour_mode=='BIKE') & (dpt_skims['SOV_FREE_DISTANCE'] > max_bike_distance),-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
 "stop not available if tourMode is transit, and stop isn't walkable or accessible by transit","@np.where((((df.tour_mode=='WALK_ALLTRN')|(df.tour_mode=='WALK_PRMTRN')) & (((_od_AllIVT > 0) & (_od_DIST > 3) & (_dp_AllIVT > 0) & (_dp_DIST > 3)) | ((_od_AllIVT > 0) & (_od_DIST > 3) & (_dp_AllIVT > 0) & (_dp_DIST > 3)))), 1, 0)",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
-Size variable ,"@np.log1p(size_terms.get(df.dest_zone_id, df.purpose))",1,1,1,1,1,1,1,1,1,1
-No attractions,"@np.where(size_terms.get(df.dest_zone_id, df.purpose) == 0, 1, 0)",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999
+Size variable ,"@np.log1p(size_terms.get(df.dest_zone_id, df.purpose)) # sharrow: np.log1p(size_terms['sizearray'])",1,1,1,1,1,1,1,1,1,1
+No attractions,"@np.where(size_terms.get(df.dest_zone_id, df.purpose) == 0, 1, 0) # sharrow: size_terms['sizearray'] == 0",-999,-999,-999,-999,-999,-999,-999,-999,-999,-999

@@ -1,6 +1,9 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+import argparse
+import collections
+import itertools
 import logging
 import os
 from builtins import zip
@@ -10,6 +13,7 @@ import cytoolz as tz
 import cytoolz.curried
 import numpy as np
 import pandas as pd
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -168,15 +172,12 @@ def reindex(series1, series2):
 
     """
 
-    # turns out the merge is much faster than the .loc below
-    df = pd.merge(
-        series2.to_frame(name="left"),
-        series1.to_frame(name="right"),
-        left_on="left",
-        right_index=True,
-        how="left",
-    )
-    return df.right
+    result = series1.reindex(series2)
+    try:
+        result.index = series2.index
+    except AttributeError:
+        pass
+    return result
 
     # return pd.Series(series1.loc[series2.values].values, index=series2.index)
 
@@ -378,3 +379,92 @@ def df_from_dict(values, index=None):
     #     del values[c]
 
     return df
+
+
+# for disaggregate accessibilities
+
+
+def ordered_load(
+    stream, Loader=yaml.SafeLoader, object_pairs_hook=collections.OrderedDict
+):
+    class OrderedLoader(Loader):
+        pass
+
+    def construct_mapping(loader, node):
+        loader.flatten_mapping(node)
+        return object_pairs_hook(loader.construct_pairs(node))
+
+    OrderedLoader.add_constructor(
+        yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, construct_mapping
+    )
+    return yaml.load(stream, OrderedLoader)
+
+
+def named_product(**d):
+    names = d.keys()
+    vals = d.values()
+    for res in itertools.product(*vals):
+        yield dict(zip(names, res))
+
+
+def recursive_replace(obj, search, replace):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            obj[k] = recursive_replace(v, search, replace)
+    if isinstance(obj, list):
+        obj = [replace if x == search else x for x in obj]
+    if search == obj:
+        obj = replace
+    return obj
+
+
+def suffix_tables_in_settings(
+    model_settings,
+    suffix="proto_",
+    tables=["persons", "households", "tours", "persons_merged"],
+):
+    for k in tables:
+        model_settings = recursive_replace(model_settings, k, suffix + k)
+    return model_settings
+
+
+def suffix_expressions_df_str(
+    df, suffix="proto_", tables=["persons", "households", "tours", "persons_merged"]
+):
+    for k in tables:
+        df["expression"] = df.expression.str.replace(k, suffix + k)
+    return df
+
+
+def parse_suffix_args(args):
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filename", help="file name")
+    parser.add_argument("-s", "--SUFFIX", "-s", help="suffix to replace root targets")
+    parser.add_argument(
+        "-r", "--ROOTS", nargs="*", help="roots be suffixed", default=[]
+    )
+    return parser.parse_args(args.split())
+
+
+def concat_suffix_dict(args):
+    if isinstance(args, dict):
+        args = sum([["--" + k, v] for k, v in args.items()], [])
+    if isinstance(args, list):
+        args = list(flatten(args))
+    return args
+
+
+def flatten(lst):
+    for sublist in lst:
+        if isinstance(sublist, list):
+            for item in sublist:
+                yield item
+        else:
+            yield sublist
+
+
+def nearest_node_index(node, nodes):
+    nodes = np.asarray(nodes)
+    deltas = nodes - node
+    dist_2 = np.einsum("ij,ij->i", deltas, deltas)
+    return np.argmin(dist_2)

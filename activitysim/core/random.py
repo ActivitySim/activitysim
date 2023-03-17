@@ -247,7 +247,7 @@ class SimpleChannel(object):
         self.row_states.loc[df.index, "offset"] += n
         return rands
 
-    def normal_for_df(self, df, step_name, mu, sigma, lognormal=False):
+    def normal_for_df(self, df, step_name, mu, sigma, lognormal=False, size=None):
         """
         Return a floating point random number in normal (or lognormal) distribution
         for each row in df using the appropriate random channel for each row.
@@ -296,20 +296,24 @@ class SimpleChannel(object):
         if lognormal:
             rands = np.asanyarray(
                 [
-                    prng.lognormal(mean=mu[i], sigma=sigma[i])
+                    prng.lognormal(mean=mu[i], sigma=sigma[i], size=size)
                     for i, prng in enumerate(generators)
                 ]
             )
         else:
             rands = np.asanyarray(
                 [
-                    prng.normal(loc=mu[i], scale=sigma[i])
+                    prng.normal(loc=mu[i], scale=sigma[i], size=size)
                     for i, prng in enumerate(generators)
                 ]
             )
 
         # update offset for rows we handled
-        self.row_states.loc[df.index, "offset"] += 1
+        if size is not None:
+            consume_offsets = int(size)
+        else:
+            consume_offsets = 1
+        self.row_states.loc[df.index, "offset"] += consume_offsets
 
         return rands
 
@@ -531,7 +535,7 @@ class Random(object):
         assert len(list(self.channels.keys())) == 0
 
         if seed is None:
-            self.base_seed = np.random.RandomState().randint(_MAX_SEED)
+            self.base_seed = np.random.RandomState().randint(_MAX_SEED, dtype=np.uint32)
             logger.debug("Set random seed randomly to %s" % self.base_seed)
         else:
             logger.debug("Set random seed base to %s" % seed)
@@ -612,7 +616,7 @@ class Random(object):
         rands = channel.random_for_df(df, self.step_name, n)
         return rands
 
-    def normal_for_df(self, df, mu=0, sigma=1, broadcast=False):
+    def normal_for_df(self, df, mu=0, sigma=1, broadcast=False, size=None):
         """
         Return a single floating point normal random number in range (-inf, inf) for each row in df
         using the appropriate random channel for each row.
@@ -651,13 +655,16 @@ class Random(object):
             alts_df = df
             df = df.index.unique().to_series()
             rands = channel.normal_for_df(
-                df, self.step_name, mu=0, sigma=1, lognormal=False
+                df, self.step_name, mu=0, sigma=1, lognormal=False, size=size
             )
-            rands = reindex(pd.Series(rands, index=df.index), alts_df.index)
+            if size is not None:
+                rands = reindex(pd.DataFrame(rands, index=df.index), alts_df.index)
+            else:
+                rands = reindex(pd.Series(rands, index=df.index), alts_df.index)
             rands = rands * sigma + mu
         else:
             rands = channel.normal_for_df(
-                df, self.step_name, mu, sigma, lognormal=False
+                df, self.step_name, mu, sigma, lognormal=False, size=size
             )
 
         return rands

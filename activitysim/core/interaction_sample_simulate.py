@@ -25,6 +25,7 @@ def _interaction_sample_simulate(
     trace_label,
     trace_choice_name,
     estimator,
+    skip_choice=False,
 ):
 
     """
@@ -121,7 +122,9 @@ def _interaction_sample_simulate(
     # here, alternatives is sparsely repeated once for each (non-dup) sample
     # we expect alternatives to have same index of choosers (but with duplicate index values)
     # so we just need to left join alternatives with choosers
-    assert alternatives.index.name == choosers.index.name
+
+    # assert alternatives.index.name == choosers.index.name
+    # asserting the index names are the same tells us nothing about the underlying data so why?
 
     interaction_df = alternatives.join(choosers, how="left", rsuffix="_chooser")
 
@@ -266,66 +269,70 @@ def _interaction_sample_simulate(
             # FIXME this is kind of gnarly, but we force choice of first alt
             probs.loc[zero_probs, 0] = 1.0
 
-    # make choices
-    # positions is series with the chosen alternative represented as a column index in probs
-    # which is an integer between zero and num alternatives in the alternative sample
-    positions, rands = logit.make_choices(
-        probs, trace_label=trace_label, trace_choosers=choosers
-    )
+    if skip_choice:
+        return choosers.join(logsums.to_frame("logsums"))
 
-    chunk.log_df(trace_label, "positions", positions)
-    chunk.log_df(trace_label, "rands", rands)
-
-    del probs
-    chunk.log_df(trace_label, "probs", None)
-
-    # shouldn't have chosen any of the dummy pad utilities
-    assert positions.max() < max_sample_count
-
-    # need to get from an integer offset into the alternative sample to the alternative index
-    # that is, we want the index value of the row that is offset by <position> rows into the
-    # tranche of this choosers alternatives created by cross join of alternatives and choosers
-
-    # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
-    choices = alternatives[choice_column].take(positions + first_row_offsets)
-
-    # create a series with index from choosers and the index of the chosen alternative
-    choices = pd.Series(choices, index=choosers.index)
-
-    chunk.log_df(trace_label, "choices", choices)
-
-    if allow_zero_probs and zero_probs.any():
-        # FIXME this is kind of gnarly, patch choice for zero_probs
-        choices.loc[zero_probs] = zero_prob_choice_val
-
-    if have_trace_targets:
-        tracing.trace_df(
-            choices,
-            tracing.extend_trace_label(trace_label, "choices"),
-            columns=[None, trace_choice_name],
+    else:
+        # make choices
+        # positions is series with the chosen alternative represented as a column index in probs
+        # which is an integer between zero and num alternatives in the alternative sample
+        positions, rands = logit.make_choices(
+            probs, trace_label=trace_label, trace_choosers=choosers
         )
-        tracing.trace_df(
-            rands,
-            tracing.extend_trace_label(trace_label, "rands"),
-            columns=[None, "rand"],
-        )
-        if want_logsums:
+
+        chunk.log_df(trace_label, "positions", positions)
+        chunk.log_df(trace_label, "rands", rands)
+
+        del probs
+        chunk.log_df(trace_label, "probs", None)
+
+        # shouldn't have chosen any of the dummy pad utilities
+        assert positions.max() < max_sample_count
+
+        # need to get from an integer offset into the alternative sample to the alternative index
+        # that is, we want the index value of the row that is offset by <position> rows into the
+        # tranche of this choosers alternatives created by cross join of alternatives and choosers
+
+        # resulting pandas Int64Index has one element per chooser row and is in same order as choosers
+        choices = alternatives[choice_column].take(positions + first_row_offsets)
+
+        # create a series with index from choosers and the index of the chosen alternative
+        choices = pd.Series(choices, index=choosers.index)
+
+        chunk.log_df(trace_label, "choices", choices)
+
+        if allow_zero_probs and zero_probs.any() and zero_prob_choice_val is not None:
+            # FIXME this is kind of gnarly, patch choice for zero_probs
+            choices.loc[zero_probs] = zero_prob_choice_val
+
+        if have_trace_targets:
             tracing.trace_df(
-                logsums,
-                tracing.extend_trace_label(trace_label, "logsum"),
-                columns=[None, "logsum"],
+                choices,
+                tracing.extend_trace_label(trace_label, "choices"),
+                columns=[None, trace_choice_name],
             )
+            tracing.trace_df(
+                rands,
+                tracing.extend_trace_label(trace_label, "rands"),
+                columns=[None, "rand"],
+            )
+            if want_logsums:
+                tracing.trace_df(
+                    logsums,
+                    tracing.extend_trace_label(trace_label, "logsum"),
+                    columns=[None, "logsum"],
+                )
 
-    if want_logsums:
-        choices = choices.to_frame("choice")
-        choices["logsum"] = logsums
+        if want_logsums:
+            choices = choices.to_frame("choice")
+            choices["logsum"] = logsums
 
-    chunk.log_df(trace_label, "choices", choices)
+        chunk.log_df(trace_label, "choices", choices)
 
-    # handing this off to our caller
-    chunk.log_df(trace_label, "choices", None)
+        # handing this off to our caller
+        chunk.log_df(trace_label, "choices", None)
 
-    return choices
+        return choices
 
 
 def interaction_sample_simulate(
@@ -344,6 +351,7 @@ def interaction_sample_simulate(
     trace_label=None,
     trace_choice_name=None,
     estimator=None,
+    skip_choice=False,
 ):
 
     """
@@ -383,6 +391,9 @@ def interaction_sample_simulate(
         when household tracing enabled. No tracing occurs if label is empty or None.
     trace_choice_name: str
         This is the column label to be used in trace file csv dump of choices
+    skip_choice: bool
+        This skips the logit choice step and simply returns the alternatives table with logsums
+        (used in disaggregate accessibility)
 
     Returns
     -------
@@ -428,6 +439,7 @@ def interaction_sample_simulate(
             chunk_trace_label,
             trace_choice_name,
             estimator,
+            skip_choice,
         )
 
         result_list.append(choices)

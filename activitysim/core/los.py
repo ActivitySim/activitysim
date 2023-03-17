@@ -2,21 +2,14 @@
 # See full license in LICENSE.txt.
 
 import logging
-import os
 import warnings
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import (
-    config,
-    inject,
-    mem,
-    pathbuilder,
-    skim_dictionary,
-    tracing,
-    util,
-)
+from activitysim.core import skim_dataset  # noqa: F401
+from activitysim.core import config, inject, pathbuilder, skim_dictionary, tracing, util
+from activitysim.core.cleaning import recode_based_on_table
 from activitysim.core.skim_dict_factory import MemMapSkimFactory, NumpyArraySkimFactory
 from activitysim.core.skim_dictionary import NOT_IN_SKIM_ZONE_ID
 
@@ -137,15 +130,19 @@ class Network_LOS(object):
         s = self.los_settings
         for key in key_list[:-1]:
             s = s.get(key)
-            assert isinstance(
-                s, dict
-            ), f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
+            if default == "<REQUIRED>":
+                assert isinstance(
+                    s, dict
+                ), f"expected key '{key}' not found in '{keys}' in {self.los_settings_file_name}"
         key = key_list[-1]  # last key
         if default == "<REQUIRED>":
             assert (
                 key in s
             ), f"Expected setting {keys} not found in in {LOS_SETTINGS_FILE_NAME}"
-        return s.get(key, default)
+        if isinstance(s, dict):
+            return s.get(key, default)
+        else:
+            return default
 
     def load_settings(self):
         """
@@ -276,6 +273,14 @@ class Network_LOS(object):
                 by="MAZ"
             )  # only fields we need
 
+            # recode MAZs if needed
+            self.maz_taz_df["MAZ"] = recode_based_on_table(
+                self.maz_taz_df["MAZ"], "land_use"
+            )
+            self.maz_taz_df["TAZ"] = recode_based_on_table(
+                self.maz_taz_df["TAZ"], "land_use_taz"
+            )
+
             self.maz_ceiling = self.maz_taz_df.MAZ.max() + 1
 
             # maz_to_maz_df
@@ -324,6 +329,9 @@ class Network_LOS(object):
 
                 file_name = maz_to_tap_settings["table"]
                 df = pd.read_csv(config.data_file_path(file_name, mandatory=True))
+
+                # recode MAZs if needed
+                df["MAZ"] = recode_based_on_table(df["MAZ"], "land_use")
 
                 # trim tap set
                 # if provided, use tap_line_distance_col together with tap_lines table to trim the near tap set
@@ -414,44 +422,67 @@ class Network_LOS(object):
                 self.maz_to_tap_dfs[mode] = df
 
         # create taz skim dict
-        assert "taz" not in self.skim_dicts
-        self.skim_dicts["taz"] = self.create_skim_dict("taz")
-
-        # make sure skim has all taz_ids
-        # FIXME - weird that there is no list of tazs?
+        if not config.setting("sharrow", False):
+            assert "taz" not in self.skim_dicts
+            # If offset_preprocessing was completed, then TAZ values
+            # will be pre-offset and there's no need to re-offset them.
+            if config.setting("offset_preprocessing", False):
+                _override_offset_int = 0
+            else:
+                _override_offset_int = None
+            self.skim_dicts["taz"] = self.create_skim_dict(
+                "taz", _override_offset_int=_override_offset_int
+            )
+            # make sure skim has all taz_ids
+            # FIXME - weird that there is no list of tazs?
+        else:
+            self.skim_dicts["taz"] = self.get_skim_dict("taz")
 
         # create MazSkimDict facade
         if self.zone_system in [TWO_ZONE, THREE_ZONE]:
-            # create MazSkimDict facade skim_dict
-            # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
-            assert "maz" not in self.skim_dicts
-            maz_skim_dict = self.create_skim_dict("maz")
-            self.skim_dicts["maz"] = maz_skim_dict
+            if not config.setting("sharrow", False):
+                # create MazSkimDict facade skim_dict
+                # (must have already loaded dependencies: taz skim_dict, maz_to_maz_df, and maz_taz_df)
+                assert "maz" not in self.skim_dicts
+                maz_skim_dict = self.create_skim_dict("maz")
+                self.skim_dicts["maz"] = maz_skim_dict
 
-            # make sure skim has all maz_ids
-            assert not (
-                maz_skim_dict.offset_mapper.map(self.maz_taz_df["MAZ"].values)
-                == NOT_IN_SKIM_ZONE_ID
-            ).any()
+                # make sure skim has all maz_ids
+                assert not (
+                    maz_skim_dict.offset_mapper.map(self.maz_taz_df["MAZ"].values)
+                    == NOT_IN_SKIM_ZONE_ID
+                ).any(), (
+                    "every MAZ in the MAZ-to-TAZ mapping must map to a TAZ that exists"
+                )
+            else:
+                self.skim_dicts["maz"] = self.get_skim_dict("maz")
+                # TODO:SHARROW: make sure skim has all maz_ids
 
         # create tap skim dict
         if self.zone_system == THREE_ZONE:
-            assert "tap" not in self.skim_dicts
-            tap_skim_dict = self.create_skim_dict("tap")
-            self.skim_dicts["tap"] = tap_skim_dict
-            # make sure skim has all tap_ids
-            assert not (
-                tap_skim_dict.offset_mapper.map(self.tap_df["TAP"].values)
-                == NOT_IN_SKIM_ZONE_ID
-            ).any()
+            if not config.setting("sharrow", False):
+                assert "tap" not in self.skim_dicts
+                tap_skim_dict = self.create_skim_dict("tap")
+                self.skim_dicts["tap"] = tap_skim_dict
+                # make sure skim has all tap_ids
+                assert not (
+                    tap_skim_dict.offset_mapper.map(self.tap_df["TAP"].values)
+                    == NOT_IN_SKIM_ZONE_ID
+                ).any()
+            else:
+                self.skim_dicts["tap"] = self.get_skim_dict("tap")
 
-    def create_skim_dict(self, skim_tag):
+    def create_skim_dict(self, skim_tag, _override_offset_int=None):
         """
         Create a new SkimDict of type specified by skim_tag (e.g. 'taz', 'maz' or 'tap')
 
         Parameters
         ----------
-        skim_tag: str
+        skim_tag : str
+        _override_offset_int : int, optional
+            Override the offset int for this dictionary.  Use this to set that
+            offset to zero when zone id's have been pre-processed to be zero-based
+            contiguous integers.
 
         Returns
         -------
@@ -477,6 +508,11 @@ class Network_LOS(object):
 
         logger.debug(f"create_skim_dict {skim_tag} omx_shape {skim_dict.omx_shape}")
 
+        if _override_offset_int is not None:
+            skim_dict.offset_mapper.set_offset_int(
+                _override_offset_int
+            )  # default is -1
+
         return skim_dict
 
     def omx_file_names(self, skim_tag):
@@ -492,8 +528,65 @@ class Network_LOS(object):
         list of str
         """
         file_names = self.setting(f"{skim_tag}_skims")
+        if isinstance(file_names, dict):
+            for i in ("file", "files", "omx"):
+                if i in file_names:
+                    file_names = file_names[i]
+                    break
+        if isinstance(file_names, dict):
+            raise ValueError(
+                f"must specify `{skim_tag}_skims.file` in network_los settings file"
+            )
         file_names = [file_names] if isinstance(file_names, str) else file_names
         return file_names
+
+    def zarr_file_name(self, skim_tag):
+        """
+        Return zarr directory name from network_los settings file for the specified skim_tag (e.g. 'taz')
+
+        Parameters
+        ----------
+        skim_tag: str (e.g. 'taz')
+
+        Returns
+        -------
+        list of str
+        """
+        skim_setting = self.setting(f"{skim_tag}_skims")
+        if isinstance(skim_setting, dict):
+            return skim_setting.get("zarr", None)
+        else:
+            return None
+
+    def zarr_pre_encoding(self, skim_tag):
+        """
+        Return digital encoding pre-processing before writing to zarr for the specified skim_tag (e.g. 'taz')
+
+        Parameters
+        ----------
+        skim_tag: str (e.g. 'taz')
+
+        Returns
+        -------
+        list or None
+        """
+        skim_setting = self.setting(f"{skim_tag}_skims")
+        if isinstance(skim_setting, dict):
+            return skim_setting.get("zarr-digital-encoding", None)
+        else:
+            return None
+
+    def skim_backing_store(self, skim_tag):
+        name = self.setting("name", "unnamed")
+        return self.setting(
+            f"{skim_tag}_skims.backend", f"shared_memory_{skim_tag}_{name}"
+        )
+
+    def skim_max_float_precision(self, skim_tag):
+        return self.setting(f"{skim_tag}_skims.max_float_precision", 32)
+
+    def skim_digital_encoding(self, skim_tag):
+        return self.setting(f"{skim_tag}_skims.digital-encoding", [])
 
     def multiprocess(self):
         """
@@ -584,11 +677,31 @@ class Network_LOS(object):
         -------
         SkimDict or subclass (e.g. MazSkimDict)
         """
+        sharrow_enabled = config.setting("sharrow", False)
+        if sharrow_enabled and skim_tag in ("taz", "maz"):
+            skim_dataset = inject.get_injectable("skim_dataset")
+            # non-global import avoids circular references
+            from .skim_dataset import SkimDataset
 
-        assert (
-            skim_tag in self.skim_dicts
-        ), f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
-        return self.skim_dicts[skim_tag]
+            if skim_tag == "maz":
+                return SkimDataset(skim_dataset)
+            else:
+                dropdims = ["omaz", "dmaz"]
+                skim_dataset = skim_dataset.drop_dims(dropdims, errors="ignore")
+                for dd in dropdims:
+                    if f"dim_redirection_{dd}" in skim_dataset.attrs:
+                        del skim_dataset.attrs[f"dim_redirection_{dd}"]
+                return SkimDataset(skim_dataset)
+        elif sharrow_enabled and skim_tag in ("tap"):
+            tap_dataset = inject.get_injectable("tap_dataset")
+            from .skim_dataset import SkimDataset
+
+            return SkimDataset(tap_dataset)
+        else:
+            assert (
+                skim_tag in self.skim_dicts
+            ), f"network_los.get_skim_dict: skim tag '{skim_tag}' not in skim_dicts"
+            return self.skim_dicts[skim_tag]
 
     def get_default_skim_dict(self):
         """
@@ -601,6 +714,7 @@ class Network_LOS(object):
         if self.zone_system == ONE_ZONE:
             return self.get_skim_dict("taz")
         else:
+            # TODO:SHARROW: taz and maz are the same
             return self.get_skim_dict("maz")
 
     def get_mazpairs(self, omaz, dmaz, attribute):
@@ -651,9 +765,36 @@ class Network_LOS(object):
         -------
             Numpy.ndarray: list of tap skim values for odt tuples
         """
+        tap_skim = self.get_skim_dict("tap")
 
-        s = self.get_skim_dict("tap").lookup_3d(otap, dtap, dim3, key)
-        return s
+        if isinstance(tap_skim, skim_dictionary.SkimDict):
+            return tap_skim.lookup_3d(otap, dtap, dim3, key)
+        elif isinstance(dim3, str):
+            s = (
+                tap_skim.dataset[[key]]
+                .sel(time_period=dim3)
+                .at(
+                    otap=otap.values,
+                    dtap=dtap.values,
+                    _name=key,
+                )
+            )
+        elif dim3.dtype.kind == "i":
+            s = tap_skim.dataset.at(
+                otap=otap.values,
+                dtap=dtap.values,
+                time_period=tap_skim.dataset.time_period.values[dim3],
+                _name=key,
+            )
+        else:
+            s = tap_skim.dataset.at(
+                otap=otap.values,
+                dtap=dtap.values,
+                time_period=dim3,
+                _name=key,
+            )
+
+        return s.values
 
     def skim_time_period_label(self, time_period):
         """
@@ -665,7 +806,7 @@ class Network_LOS(object):
 
         Returns
         -------
-        numpy.array
+        pandas Series
             string time period labels
         """
 
@@ -683,22 +824,42 @@ class Network_LOS(object):
         assert 0 == model_time_window_min % period_minutes
         total_periods = model_time_window_min / period_minutes
 
-        bins = (
-            np.digitize(
-                [np.array(time_period) % total_periods],
+        # FIXME - eventually test and use np version always?
+        if np.isscalar(time_period):
+            bin = (
+                np.digitize(
+                    [time_period % total_periods],
+                    self.skim_time_periods["periods"],
+                    right=True,
+                )[0]
+                - 1
+            )
+            result = self.skim_time_periods["labels"][bin]
+        else:
+            result = pd.cut(
+                time_period,
                 self.skim_time_periods["periods"],
-                right=True,
-            )[0]
-            - 1
-        )
-        return np.array(self.skim_time_periods["labels"])[bins]
+                labels=self.skim_time_periods["labels"],
+                ordered=False,
+            ).astype(str)
+
+        return result
 
     def get_tazs(self):
         # FIXME - should compute on init?
         if self.zone_system == ONE_ZONE:
             tazs = inject.get_table("land_use").index.values
         else:
-            tazs = self.maz_taz_df.TAZ.unique()
+            try:
+                land_use_taz = inject.get_table("land_use_taz").to_frame()
+            except (RuntimeError, KeyError):
+                # land_use_taz is missing, use fallback
+                tazs = self.maz_taz_df.TAZ.unique()
+            else:
+                if "_original_TAZ" in land_use_taz:
+                    tazs = land_use_taz["_original_TAZ"].values
+                else:
+                    tazs = self.maz_taz_df.TAZ.unique()
         assert isinstance(tazs, np.ndarray)
         return tazs
 
@@ -715,3 +876,49 @@ class Network_LOS(object):
         taps = self.tap_df.TAP.values
         assert isinstance(taps, np.ndarray)
         return taps
+
+    @property
+    def get_maz_to_taz_series(self):
+        """
+        pd.Series: Index is the MAZ, value is the corresponding TAZ
+        """
+        sharrow_enabled = config.setting("sharrow", False)
+        if sharrow_enabled:
+            # FIXME:SHARROW - this assumes that both MAZ and TAZ have been recoded to
+            #                 zero-based indexes, but what if that was not done?
+            #                 Should we check it and error out here or bravely march forward?
+            skim_dataset = inject.get_injectable("skim_dataset")
+            maz_to_taz = skim_dataset["_digitized_otaz_of_omaz"].to_series()
+        else:
+            maz_to_taz = self.maz_taz_df[["MAZ", "TAZ"]].set_index("MAZ").TAZ
+        return maz_to_taz
+
+    def map_maz_to_taz(self, s):
+        """
+        Convert MAZ's to TAZ's
+
+        Parameters
+        ----------
+        s : Array-like
+            Integer MAZ values
+
+        Returns
+        -------
+        pd.Series
+            Integer TAZ values
+        """
+        if not isinstance(s, (pd.Series, pd.Index)):
+            s = pd.Series(s)
+            input_was_series = False
+        else:
+            input_was_series = True
+        out = s.map(self.get_maz_to_taz_series)
+        if np.issubdtype(out, np.floating):
+            if out.isna().any():
+                raise KeyError("failed in mapping MAZ to TAZ")
+            else:
+                out = out.astype(np.int32)
+        if input_was_series:
+            return out
+        else:
+            return out.to_numpy()

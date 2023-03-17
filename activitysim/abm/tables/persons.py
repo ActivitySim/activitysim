@@ -1,10 +1,11 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+import io
 import logging
 
 import pandas as pd
 
-from activitysim.core import inject, mem, pipeline, tracing
+from activitysim.core import inject, pipeline, tracing
 from activitysim.core.input import read_input_table
 
 logger = logging.getLogger(__name__)
@@ -27,6 +28,9 @@ def persons(households, trace_hh_id):
     df = read_raw_persons(households)
 
     logger.info("loaded persons %s" % (df.shape,))
+    buffer = io.StringIO()
+    df.info(buf=buffer)
+    logger.debug("persons.info:\n" + buffer.getvalue())
 
     # replace table function with dataframe
     inject.add_table("persons", df)
@@ -69,8 +73,19 @@ def persons(households, trace_hh_id):
 
 # another common merge for persons
 @inject.table()
-def persons_merged(persons, households, land_use, accessibility):
+def persons_merged(
+    persons, households, land_use, accessibility, disaggregate_accessibility
+):
 
-    return inject.merge_tables(
-        persons.name, tables=[persons, households, land_use, accessibility]
-    )
+    if not disaggregate_accessibility.to_frame().empty:
+        tables = [
+            persons,
+            households,
+            land_use,
+            accessibility,
+            disaggregate_accessibility,
+        ]
+    else:
+        tables = [persons, households, land_use, accessibility]
+
+    return inject.merge_tables(persons.name, tables=tables)

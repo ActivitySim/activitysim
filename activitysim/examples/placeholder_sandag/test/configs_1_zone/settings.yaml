@@ -24,3 +24,5 @@ output_tables:
   tables:
     - trips
     - tours
+
+recode_pipeline_columns: False

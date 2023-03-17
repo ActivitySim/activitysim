@@ -10,9 +10,7 @@ from activitysim.core import (
     config,
     expressions,
     inject,
-    logit,
     los,
-    mem,
     pipeline,
     simulate,
     tracing,
@@ -116,6 +114,7 @@ def _location_sample(
     chunk_size,
     chunk_tag,
     trace_label,
+    zone_layer=None,
 ):
     """
     select a sample of alternative locations.
@@ -149,7 +148,13 @@ def _location_sample(
         )
         sample_size = 0
 
-    locals_d = {"skims": skims, "segment_size": segment_name}
+    locals_d = {
+        "skims": skims,
+        "segment_size": segment_name,
+        "orig_col_name": skims.orig_key,  # added for sharrow flows
+        "dest_col_name": skims.dest_key,  # added for sharrow flows
+        "timeframe": "timeless",
+    }
     constants = config.get_model_constants(model_settings)
     locals_d.update(constants)
 
@@ -175,6 +180,7 @@ def _location_sample(
         chunk_size=chunk_size,
         chunk_tag=chunk_tag,
         trace_label=trace_label,
+        zone_layer=zone_layer,
     )
 
     return choices
@@ -227,7 +233,7 @@ HOME_MAZ = "home_zone_id"
 DEST_MAZ = "dest_MAZ"
 
 
-def aggregate_size_terms(dest_size_terms, network_los):
+def aggregate_size_terms(dest_size_terms, network_los, model_settings):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
     #
@@ -235,13 +241,14 @@ def aggregate_size_terms(dest_size_terms, network_los):
     MAZ_size_terms = dest_size_terms.copy()
 
     # add crosswalk DEST_TAZ column to MAZ_size_terms
-    maz_to_taz = (
-        network_los.maz_taz_df[["MAZ", "TAZ"]]
-        .set_index("MAZ")
-        .sort_values(by="TAZ")
-        .TAZ
+    MAZ_size_terms[DEST_TAZ] = network_los.map_maz_to_taz(MAZ_size_terms.index)
+
+    MAZ_size_terms["avail_MAZ"] = np.where(
+        (MAZ_size_terms.size_term > 0)
+        & (MAZ_size_terms.shadow_price_utility_adjustment > -999),
+        1,
+        0,
     )
-    MAZ_size_terms[DEST_TAZ] = MAZ_size_terms.index.map(maz_to_taz)
 
     weighted_average_cols = [
         "shadow_price_size_term_adjustment",
@@ -255,11 +262,30 @@ def aggregate_size_terms(dest_size_terms, network_los):
             "size_term": "sum",
             "shadow_price_size_term_adjustment": "sum",
             "shadow_price_utility_adjustment": "sum",
+            "avail_MAZ": "sum",
         }
     )
 
     for c in weighted_average_cols:
         TAZ_size_terms[c] /= TAZ_size_terms["size_term"]  # weighted average
+
+    spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+    if spc.use_shadow_pricing and (
+        spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+    ):
+        # allow TAZs with at least one underassigned MAZ in them, therefore with a shadowprice larger than -999, to be selected again
+        TAZ_size_terms["shadow_price_utility_adjustment"] = np.where(
+            (TAZ_size_terms["shadow_price_utility_adjustment"] > -999)
+            & (TAZ_size_terms["avail_MAZ"] > 0),
+            0,
+            -999,
+        )
+        # now, negative size term means shadow price is -999. Setting size_term to 0 so the prob of that MAZ being selected becomes 0
+        MAZ_size_terms["size_term"] = np.where(
+            MAZ_size_terms["shadow_price_utility_adjustment"] < 0,
+            0,
+            MAZ_size_terms["size_term"],
+        )
 
     if TAZ_size_terms.isna().any(axis=None):
         logger.warning(
@@ -308,7 +334,9 @@ def location_presample(
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
     assert DEST_TAZ != alt_dest_col_name
 
-    MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(dest_size_terms, network_los)
+    MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
+        dest_size_terms, network_los, model_settings
+    )
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
     # persons_merged[HOME_TAZ] = persons_merged[HOME_MAZ].map(maz_to_taz)
@@ -341,6 +369,7 @@ def location_presample(
         chunk_size,
         chunk_tag,
         trace_label,
+        zone_layer="taz",
     )
 
     # print(f"taz_sample\n{taz_sample}")
@@ -524,6 +553,7 @@ def run_location_simulate(
     chunk_size,
     chunk_tag,
     trace_label,
+    skip_choice=False,
 ):
     """
     run location model on location_sample annotated with mode_choice logsum
@@ -563,7 +593,13 @@ def run_location_simulate(
     skim_dict = network_los.get_default_skim_dict()
     skims = skim_dict.wrap("home_zone_id", alt_dest_col_name)
 
-    locals_d = {"skims": skims, "segment_size": segment_name}
+    locals_d = {
+        "skims": skims,
+        "segment_size": segment_name,
+        "orig_col_name": skims.orig_key,  # added for sharrow flows
+        "dest_col_name": skims.dest_key,  # added for sharrow flows
+        "timeframe": "timeless",
+    }
     constants = config.get_model_constants(model_settings)
     if constants is not None:
         locals_d.update(constants)
@@ -594,6 +630,7 @@ def run_location_simulate(
         trace_label=trace_label,
         trace_choice_name=model_settings["DEST_CHOICE_COLUMN_NAME"],
         estimator=estimator,
+        skip_choice=skip_choice,
     )
 
     if not want_logsums:
@@ -618,6 +655,7 @@ def run_location_choice(
     chunk_tag,
     trace_hh_id,
     trace_label,
+    skip_choice=False,
 ):
     """
     Run the three-part location choice algorithm to generate a location choice for each chooser
@@ -716,6 +754,7 @@ def run_location_choice(
             trace_label=tracing.extend_trace_label(
                 trace_label, "simulate.%s" % segment_name
             ),
+            skip_choice=skip_choice,
         )
 
         if estimator:
@@ -856,6 +895,7 @@ def iterate_location_choice(
 
     # chooser segmentation allows different sets coefficients for e.g. different income_segments or tour_types
     chooser_segment_column = model_settings["CHOOSER_SEGMENT_COLUMN_NAME"]
+    segment_ids = model_settings["SEGMENT_IDS"]
 
     assert (
         chooser_segment_column in persons_merged_df
@@ -867,13 +907,24 @@ def iterate_location_choice(
 
     logger.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
+    choices_df = None  # initialize to None, will be populated in first iteration
+
     for iteration in range(1, max_iterations + 1):
+
+        persons_merged_df_ = persons_merged_df.copy()
 
         if spc.use_shadow_pricing and iteration > 1:
             spc.update_shadow_prices()
 
-        choices_df, save_sample_df = run_location_choice(
-            persons_merged_df,
+            if spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation":
+                # filter from the sampled persons
+                persons_merged_df_ = persons_merged_df_[
+                    persons_merged_df_.index.isin(spc.sampled_persons.index)
+                ]
+                persons_merged_df_ = persons_merged_df_.sort_index()
+
+        choices_df_, save_sample_df = run_location_choice(
+            persons_merged_df_,
             network_los,
             shadow_price_calculator=spc,
             want_logsums=logsum_column_name is not None,
@@ -886,9 +937,32 @@ def iterate_location_choice(
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % iteration),
         )
 
-        # choices_df is a pandas DataFrame with columns 'choice' and (optionally) 'logsum'
-        if choices_df is None:
+        # choices_df is a pandas DataFrame with columns "choice" and (optionally) "logsum"
+        if choices_df_ is None:
             break
+
+        if spc.use_shadow_pricing:
+            # handle simulation method
+            if (
+                spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
+                and iteration > 1
+            ):
+                # if a process ends up with no sampled workers in it, hence an empty choice_df_, then choice_df wil be what it was previously
+                if len(choices_df_) != 0:
+                    choices_df = pd.concat([choices_df, choices_df_], axis=0)
+                    choices_df_index = choices_df_.index.name
+                    choices_df = choices_df.reset_index()
+                    # update choices of workers/students
+                    choices_df = choices_df.drop_duplicates(
+                        subset=[choices_df_index], keep="last"
+                    )
+                    choices_df = choices_df.set_index(choices_df_index)
+                    choices_df = choices_df.sort_index()
+            else:
+                choices_df = choices_df_.copy()
+
+        else:
+            choices_df = choices_df_
 
         spc.set_choices(
             choices=choices_df["choice"],

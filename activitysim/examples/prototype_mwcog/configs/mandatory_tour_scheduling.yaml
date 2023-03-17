@@ -20,13 +20,17 @@ SIMULATE_CHOOSER_COLUMNS:
   - school_zone_id
   - home_zone_id
   - TAZ
-  
+
 LOGSUM_SETTINGS: tour_mode_choice.yaml
 
 TOUR_SPEC_SEGMENTS:
   work: work
   school: school
   univ: univ
+
+preprocessor:
+  SPEC: mandatory_tour_scheduling_annotate_choosers_preprocessor.csv
+  DF: df
 
 ALTS_PREPROCESSOR:
   work:

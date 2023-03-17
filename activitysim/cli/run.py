@@ -1,6 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import argparse
+import importlib
 import logging
 import os
 import sys
@@ -13,7 +14,13 @@ from activitysim.core import chunk, config, inject, mem, pipeline, tracing
 logger = logging.getLogger(__name__)
 
 
-INJECTABLES = ["data_dir", "configs_dir", "output_dir", "settings_file_name"]
+INJECTABLES = [
+    "data_dir",
+    "configs_dir",
+    "output_dir",
+    "settings_file_name",
+    "imported_extensions",
+]
 
 
 def add_run_args(parser, multiprocess=True):
@@ -64,6 +71,22 @@ def add_run_args(parser, multiprocess=True):
     parser.add_argument(
         "--households_sample_size", type=int, metavar="N", help="households sample size"
     )
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Do not limit process to one thread. "
+        "Can make single process runs faster, "
+        "but will cause thrashing on MP runs.",
+    )
+    parser.add_argument(
+        "-e",
+        "--ext",
+        type=str,
+        action="append",
+        metavar="PATH",
+        help="Package of extension modules to load. Use of this option is not "
+        "generally secure.",
+    )
 
     if multiprocess:
         parser.add_argument(
@@ -87,7 +110,7 @@ def validate_injectable(name):
         # injectable is missing, meaning is hasn't been explicitly set
         # and defaults cannot be found.
         sys.exit(
-            "Error: please specify either a --working_dir "
+            f"Error({name}): please specify either a --working_dir "
             "containing 'configs', 'data', and 'output' folders "
             "or all three of --config, --data, and --output"
         )
@@ -110,6 +133,26 @@ def handle_standard_args(args, multiprocess=True):
         # activitysim will look in the current working directory for
         # 'configs', 'data', and 'output' folders by default
         os.chdir(args.working_dir)
+
+    if args.ext:
+        for e in args.ext:
+            basepath, extpath = os.path.split(e)
+            if not basepath:
+                basepath = "."
+            sys.path.insert(0, os.path.abspath(basepath))
+            try:
+                importlib.import_module(extpath)
+            except ImportError as err:
+                logger.exception("ImportError")
+                raise
+            except Exception as err:
+                logger.exception(f"Error {err}")
+                raise
+            finally:
+                del sys.path[0]
+        inject_arg("imported_extensions", args.ext)
+    else:
+        inject_arg("imported_extensions", ())
 
     # settings_file_name should be cached or else it gets squashed by config.py
     if args.settings_file:
@@ -159,8 +202,16 @@ def cleanup_output_files():
 
     tracing.delete_trace_files()
 
+    csv_ignore = []
+    if config.setting("memory_profile", False):
+        # memory profiling is opened potentially before `cleanup_output_files`
+        # is called, but we want to leave any (newly created) memory profiling
+        # log files that may have just been created.
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        csv_ignore.append(mem_prof_log)
+
     tracing.delete_output_files("h5")
-    tracing.delete_output_files("csv")
+    tracing.delete_output_files("csv", ignore=csv_ignore)
     tracing.delete_output_files("txt")
     tracing.delete_output_files("yaml")
     tracing.delete_output_files("prof")
@@ -183,12 +234,26 @@ def run(args):
     # other callers (e.g. populationsim) will have to arrange to register their own steps and injectables
     # (presumably) in a custom run_simulation.py instead of using the 'activitysim run' command
     if not inject.is_injectable("preload_injectables"):
-        from activitysim import (  # register abm steps and other abm-specific injectables
-            abm,
-        )
+        # register abm steps and other abm-specific injectables
+        from activitysim import abm  # noqa: F401
 
     tracing.config_logger(basic=True)
     handle_standard_args(args)  # possibly update injectables
+
+    if config.setting("rotate_logs", False):
+        config.rotate_log_directory()
+
+    if config.setting("memory_profile", False) and not config.setting(
+        "multiprocess", False
+    ):
+        # Memory sidecar is only useful for single process runs
+        # multiprocess runs log memory usage without blocking in the controlling process.
+        mem_prof_log = config.log_file_path("memory_profile.csv")
+        from ..core.memory_sidecar import MemorySidecar
+
+        memory_sidecar_process = MemorySidecar(mem_prof_log)
+    else:
+        memory_sidecar_process = None
 
     # legacy support for run_list setting nested 'models' and 'resume_after' settings
     if config.setting("run_list"):
@@ -238,7 +303,12 @@ def run(args):
     # OMP_NUM_THREADS: openmp
     # OPENBLAS_NUM_THREADS: openblas
     # MKL_NUM_THREADS: mkl
-    for env in ["MKL_NUM_THREADS", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS"]:
+    for env in [
+        "MKL_NUM_THREADS",
+        "OMP_NUM_THREADS",
+        "OPENBLAS_NUM_THREADS",
+        "NUMBA_NUM_THREADS",
+    ]:
         logger.info(f"ENV {env}: {os.getenv(env)}")
 
     np_info_keys = [
@@ -281,7 +351,11 @@ def run(args):
         else:
             logger.info("run single process simulation")
 
-            pipeline.run(models=config.setting("models"), resume_after=resume_after)
+            pipeline.run(
+                models=config.setting("models"),
+                resume_after=resume_after,
+                memory_sidecar_process=memory_sidecar_process,
+            )
 
             if config.setting("cleanup_pipeline_after_run", False):
                 pipeline.cleanup_pipeline()  # has side effect of closing open pipeline
@@ -298,18 +372,23 @@ def run(args):
     chunk.consolidate_logs()
     mem.consolidate_logs()
 
+    from ..core.flow import TimeLogger
+
+    TimeLogger.aggregate_summary(logger)
+
     tracing.print_elapsed_time("all models", t0)
+
+    if memory_sidecar_process:
+        memory_sidecar_process.stop()
 
     return 0
 
 
 if __name__ == "__main__":
 
-    from activitysim import abm  # register injectables
+    from activitysim import abm  # register injectables  # noqa: F401
 
     parser = argparse.ArgumentParser()
     add_run_args(parser)
     args = parser.parse_args()
-
-    parser.parse_args(["--sum", "7", "-1", "42"])
     sys.exit(run(args))

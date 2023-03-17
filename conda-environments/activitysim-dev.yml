@@ -1,11 +1,18 @@
 # Environment for development
-# usage: $ conda env create --file=activitysim-dev.yml -n ASIM-DEV-TMP
+#  This is a set of recommended dependencies for ActivitySim developers.
+#  It includes a variety of tools and packages not necessary for actually
+#  running models, but useful for writing code, running tests and
+#  experiments, etc.
+#
+#  usage: $ mamba env create --file=activitysim-dev.yml -n ASIM-SH
 channels:
 - conda-forge
+- nodefaults
 dependencies:
 - python=3.9
 - pip
 - asv  # for benchmarking
+- black >= 22.0,<23
 - bump2version  # for making a release
 - coveralls
 - cytoolz >= 0.8.1
@@ -17,15 +24,16 @@ dependencies:
 - gh
 - git
 - ipykernel  # so this env will appear in jupyter as a selection
+- isort
 - jupyterlab
 - larch >= 5.5.8
 - matplotlib
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat
-- numba >= 0.51.2
+- numba >= 0.56.4
 - numexpr
-- numpy >= 1.16.1,<=1.21
+- numpy >= 1.16.1
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
@@ -34,6 +42,7 @@ dependencies:
 - psutil >= 4.1
 - pyarrow >= 2.0
 - pycodestyle
+- pydantic
 - pydata-sphinx-theme
 - pyinstrument
 - pypyr
@@ -45,6 +54,9 @@ dependencies:
 - requests >= 2.7
 - rich
 - ruby  # required for benchmarking pre-commit hooks
+- setuptools_scm
+- scikit-learn >= 1.1
+- sharrow >= 2.5.2
 - simwrapper > 1.7
 - snakeviz  # for profiling
 - sphinx
@@ -55,4 +67,5 @@ dependencies:
 - zarr
 
 - pip:
+  - autodoc_pydantic
   - -e ..

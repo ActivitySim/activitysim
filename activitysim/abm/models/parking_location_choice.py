@@ -116,12 +116,17 @@ def parking_destination_simulate(
 
     spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
 
+    coefficients_df = simulate.read_model_coefficients(model_settings)
+    spec = simulate.eval_coefficients(spec, coefficients_df, None)
+
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     logger.info("Running trip_destination_simulate with %d trips", len(trips))
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update(skims)
+    locals_dict["timeframe"] = "trip"
+    locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     parking_locations = interaction_sample_simulate(
         choosers=trips,
@@ -171,7 +176,6 @@ def choose_parking_location(
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
-    destination_sample = destination_sample[[alt_dest_col_name]].copy()
 
     # # - trip_destination_simulate
     destinations = parking_destination_simulate(
@@ -229,8 +233,6 @@ def run_parking_destination(
     alt_column_filter_name = model_settings.get("ALTERNATIVE_FILTER_COLUMN_NAME")
     alternatives = land_use[land_use[alt_column_filter_name]]
 
-    # don't need size terms in alternatives, just TAZ index
-    alternatives = alternatives.drop(alternatives.columns, axis=1)
     alternatives.index.name = parking_location_column_name
 
     choices_list = []
@@ -296,8 +298,27 @@ def parking_location(
     trips_merged_df = trips_merged.to_frame()
     land_use_df = land_use.to_frame()
 
+    proposed_trip_departure_period = model_settings["TRIP_DEPARTURE_PERIOD"]
+    # TODO: the number of skim time periods should be more readily available than this
+    n_skim_time_periods = np.unique(
+        network_los.los_settings["skim_time_periods"]["labels"]
+    ).size
+    if trips_merged_df[proposed_trip_departure_period].max() > n_skim_time_periods:
+        # max proposed_trip_departure_period is out of range,
+        # it is most likely the high-resolution time period, we need the skim-level time period
+        if "trip_period" not in trips_merged_df:
+            # TODO: resolve this to the skim time period index not the label, it will be faster
+            trips_merged_df["trip_period"] = network_los.skim_time_period_label(
+                trips_merged_df[proposed_trip_departure_period]
+            )
+        model_settings["TRIP_DEPARTURE_PERIOD"] = "trip_period"
+
     locals_dict = {"network_los": network_los}
-    locals_dict.update(config.get_model_constants(model_settings))
+
+    constants = config.get_model_constants(model_settings)
+
+    if constants is not None:
+        locals_dict.update(constants)
 
     if preprocessor_settings:
         expressions.assign_columns(

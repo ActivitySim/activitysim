@@ -63,7 +63,7 @@ dest terminal time not counted at home,_dest_terminal_time,"np.where(inbound & l
 ,destination_walk_time,shortWalk*60/walkSpeed
 # RIDEHAIL,,
 ,origin_density_measure,"(reindex(land_use.TOTPOP, df[orig_col_name]) + reindex(land_use.TOTEMP, df[orig_col_name])) / (reindex(land_use.TOTACRE, df[orig_col_name]) / 640)"
-,origin_density,"pd.cut(origin_density_measure, bins=[-np.inf, 500, 2000, 5000, 15000, np.inf], labels=[5, 4, 3, 2, 1]).astype(int)"
+,origin_density,"pd.cut(origin_density_measure.fillna(0), bins=[-np.inf, 500, 2000, 5000, 15000, np.inf], labels=[5, 4, 3, 2, 1]).astype(int)"
 ,origin_zone_taxi_wait_time_mean,"origin_density.map({k: v for k, v in Taxi_waitTime_mean.items()})"
 ,origin_zone_taxi_wait_time_sd,"origin_density.map({k: v for k, v in Taxi_waitTime_sd.items()})"
 # ,, Note that the mean and standard deviation are not the values for the distribution itself, but of the underlying normal distribution it is derived from
@@ -108,3 +108,5 @@ dest terminal time not counted at home,_dest_terminal_time,"np.where(inbound & l
 ,distance,od_skims['DIST']
 ,distance_walk_od,od_skims['DIST']
 ,distance_bike_od,od_skims['DISTBIKE']
+# added for school escorting model,,
+Number of school children in vehicle on trip,num_escortees,"0 if 'escort_participants' not in df.columns else df.escort_participants.fillna('').apply(lambda x: len(x.split('_')))"

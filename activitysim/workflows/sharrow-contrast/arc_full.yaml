@@ -1,0 +1,33 @@
+context_parser: pypyr.parser.keyvaluepairs
+steps:
+
+- description: Setting default workflow parameters
+  name: pypyr.steps.default
+  in:
+    defaults:
+      example_name: prototype_arc_full
+      workspace: workspace
+      create: True
+      compile: True
+      sharrow: True
+      legacy: True
+      reference: True
+      reference_asim_version: "1.1.3"
+      tag:
+      resume_after: _
+      fast: False
+      compile_n_households: 500
+      main_n_households: 10000
+      config_dirs: configs
+      data_dir: data
+      instrument: False
+#      workplace_zone_agg:
+#        caption: Workplaces by County
+#        district_id: county_id
+      distance_skim: SOV_FREE_DISTANCE
+      household_income: income_in_thousands
+
+- name: activitysim.workflows.steps.pype
+  in:
+    pype:
+      name: sharrow-contrast/_contrast_runner

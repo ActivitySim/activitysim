@@ -1,7 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 import logging
-
 import numpy as np
 import pandas as pd
 
@@ -17,6 +16,8 @@ from activitysim.core import (
 )
 
 from .util import estimation
+from activitysim.core.util import reindex
+from .util.school_escort_tours_trips import split_out_school_escorting_trips
 
 logger = logging.getLogger(__name__)
 
@@ -71,9 +72,7 @@ def choose_intermediate_trip_purpose(
 
     # probs should sum to 1 across rows
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
-    probs_spec.loc[:, purpose_cols] = probs_spec.loc[:, purpose_cols].div(
-        sum_probs, axis=0
-    )
+    probs_spec[purpose_cols] = probs_spec[purpose_cols].div(sum_probs, axis=0)
 
     # left join trips to probs (there may be multiple rows per trip for multiple depart ranges)
     choosers = pd.merge(
@@ -265,6 +264,13 @@ def trip_purpose(trips, chunk_size, trace_hh_id):
 
     trips_df = trips.to_frame()
 
+    if pipeline.is_table("school_escort_trips"):
+        school_escort_trips = pipeline.get_table("school_escort_trips")
+        # separate out school escorting trips to exclude them from the model and estimation data bundle
+        trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
+            trips_df, school_escort_trips
+        )
+
     estimator = estimation.manager.begin_estimation("trip_purpose")
     if estimator:
         chooser_cols_for_estimation = [
@@ -292,6 +298,13 @@ def trip_purpose(trips, chunk_size, trace_hh_id):
         estimator.end_estimation()
 
     trips_df["purpose"] = choices
+
+    if pipeline.is_table("school_escort_trips"):
+        # setting purpose for school escort trips
+        se_trips_df["purpose"] = reindex(school_escort_trips.purpose, se_trips_df.index)
+        # merge trips back together preserving index order
+        trips_df = pd.concat([trips_df, se_trips_df])
+        trips_df = trips_df.reindex(full_trips_index)
 
     # we should have assigned a purpose to all trips
     assert not trips_df.purpose.isnull().any()

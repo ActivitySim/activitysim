@@ -38,7 +38,7 @@ def vehicles(households):
     inject.add_table("vehicles", vehicles)
 
     pipeline.get_rn_generator().add_channel("vehicles", vehicles)
-    tracing.register_traceable_table("households", vehicles)
+    tracing.register_traceable_table("vehicles", vehicles)
 
     return vehicles
 

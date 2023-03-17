@@ -1,11 +1,18 @@
 # Environment for building docs
+#
+#   This conda environment is used to build the documentation.  It includes a
+#   number of dependencies needed for the documentation only, and not to run or
+#   test ActivitySim itself.  Note that ActivitySim itself is *not* installed
+#   in this environment, you must install it separately after using this recipe,
+#   which allows you to install the specific version you want.
+
 name: docbuild
 channels:
 - conda-forge
 dependencies:
 - python=3.9
 - pip
-- black
+- black >= 22.0,<23
 - bump2version
 - coveralls
 - cytoolz >= 0.8.1
@@ -18,8 +25,8 @@ dependencies:
 - larch >=5.5.3
 - matplotlib
 - myst-parser
-- numba >= 0.51.2
-- numpy >= 1.16.1,<=1.21
+- numba >= 0.56.4
+- numpy >= 1.16.1
 - numpydoc
 - openmatrix >= 0.3.4.1
 - orca >= 1.6
@@ -34,7 +41,8 @@ dependencies:
 - pytest-regressions
 - pyyaml >= 5.1
 - requests >= 2.7
-- sharrow >= 2.2.4
+- scikit-learn >= 1.1
+- sharrow >= 2.5.2
 - simwrapper > 1.7
 - sphinx-argparse
 - sphinx_rtd_theme

@@ -7,8 +7,6 @@ from builtins import object, range
 import numpy as np
 import pandas as pd
 
-from activitysim.core.util import quick_loc_series
-
 logger = logging.getLogger(__name__)
 
 NOT_IN_SKIM_ZONE_ID = -1
@@ -125,9 +123,6 @@ class OffsetMapper(object):
         if self.offset_series is not None:
             assert self.offset_int is None
             assert isinstance(self.offset_series, pd.Series)
-
-            # FIXME - turns out it is faster to use series.map if zone_ids is a series
-            # offsets = quick_loc_series(zone_ids, self.offset_series).fillna(NOT_IN_SKIM_ZONE_ID).astype(int)
 
             if isinstance(zone_ids, np.ndarray):
                 zone_ids = pd.Series(zone_ids)
@@ -266,6 +261,7 @@ class SkimDict(object):
             result = self.skim_data[mapped_orig, mapped_dest, block_offsets]
 
         # FIXME - should return nan if not in skim (negative indices wrap around)
+        # FIXME - this check only works if # of origin zones match # of dest zones!
         in_skim = (
             (mapped_orig >= 0)
             & (mapped_orig < self.omx_shape[0])
@@ -279,9 +275,12 @@ class SkimDict(object):
         #     print(f"in_skim\n{in_skim}")
 
         # check for bad indexes (other than NOT_IN_SKIM_ZONE_ID)
-        assert (
+        if not (
             in_skim | (orig == NOT_IN_SKIM_ZONE_ID) | (dest == NOT_IN_SKIM_ZONE_ID)
-        ).all(), f"{(~in_skim).sum()} od pairs not in skim"
+        ).all():
+            raise AssertionError(
+                f"{(~in_skim).sum()} od pairs not in skim including [{orig[~in_skim][:5]}]->[{dest[~in_skim][:5]}]"
+            )
 
         if not in_skim.all():
             result = np.where(in_skim, result, NOT_IN_SKIM_NAN).astype(self.dtype)
@@ -634,7 +633,33 @@ class MazSkimDict(SkimDict):
 
         self.network_los = network_los
 
-        super().__init__(skim_tag, taz_skim_dict.skim_info, taz_skim_dict.skim_data)
+        from activitysim.core.cleaning import (
+            recode_based_on_table,
+            should_recode_based_on_table,
+        )
+
+        if should_recode_based_on_table("land_use_taz"):
+            from .skim_dict_factory import SkimInfo
+
+            skim_info = SkimInfo(None, network_los)
+            skim_info.skim_tag = taz_skim_dict.skim_info.skim_tag
+            skim_info.dtype_name = network_los.skim_dtype_name
+            skim_info.omx_manifest = taz_skim_dict.skim_info.omx_manifest
+            skim_info.omx_shape = taz_skim_dict.skim_info.omx_shape
+            skim_info.num_skims = taz_skim_dict.skim_info.num_skims
+            skim_info.skim_data_shape = taz_skim_dict.skim_info.skim_data_shape
+            skim_info.offset_map_name = taz_skim_dict.skim_info.offset_map_name
+            skim_info.omx_keys = taz_skim_dict.skim_info.omx_keys
+            skim_info.base_keys = taz_skim_dict.skim_info.base_keys
+            skim_info.block_offsets = taz_skim_dict.skim_info.block_offsets
+
+            skim_info.offset_map = recode_based_on_table(
+                taz_skim_dict.skim_info.offset_map, "land_use_taz"
+            )
+        else:
+            skim_info = taz_skim_dict.skim_info
+
+        super().__init__(skim_tag, skim_info, taz_skim_dict.skim_data)
         assert (
             self.offset_mapper is not None
         )  # should have been set with _init_offset_mapper
@@ -658,20 +683,15 @@ class MazSkimDict(SkimDict):
         OffsetMapper
         """
 
-        # start with a series with MAZ zone_id index and TAZ zone id values
-        maz_to_taz = (
-            self.network_los.maz_taz_df[["MAZ", "TAZ"]]
-            .set_index("MAZ")
-            .sort_values(by="TAZ")
-            .TAZ
-        )
-
         # use taz offset_mapper to create series mapping directly from MAZ to TAZ skim index
         taz_offset_mapper = super()._offset_mapper()
-        maz_to_skim_offset = taz_offset_mapper.map(maz_to_taz)
+        maz_taz = self.network_los.get_maz_to_taz_series
+        maz_to_skim_offset = taz_offset_mapper.map(maz_taz)
 
         if isinstance(maz_to_skim_offset, np.ndarray):
-            maz_to_skim_offset = pd.Series(maz_to_skim_offset, maz_to_taz.index)  # bug
+            maz_to_skim_offset = pd.Series(
+                maz_to_skim_offset, self.network_los.get_maz_to_taz_series.index
+            )  # bug
 
         # MAZ
         # 19062    330 <- The TAZ would be, say, 331, and the offset is 330
@@ -685,6 +705,8 @@ class MazSkimDict(SkimDict):
             offset_mapper = OffsetMapper(offset_series=maz_to_skim_offset)
         elif isinstance(maz_to_skim_offset, np.ndarray):
             offset_mapper = OffsetMapper(offset_list=maz_to_skim_offset)
+        else:
+            raise NotImplementedError
 
         return offset_mapper
 
@@ -877,3 +899,9 @@ class DataFrameMatrix(object):
             result = pd.Series(result, index=row_ids.index)
 
         return result
+
+    def get_rows(self, row_ids):
+        return self.offset_mapper.map(np.asanyarray(row_ids))
+
+    def get_cols(self, col_ids):
+        return np.vectorize(self.cols_to_indexes.get)(col_ids)

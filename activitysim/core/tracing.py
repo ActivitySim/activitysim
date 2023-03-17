@@ -26,6 +26,8 @@ LOGGING_CONF_FILE_NAME = "logging.yaml"
 
 logger = logging.getLogger(__name__)
 
+timing_notes = set()
+
 
 class ElapsedTimeFormatter(logging.Formatter):
     def format(self, record):
@@ -64,7 +66,8 @@ def print_elapsed_time(msg=None, t0=None, debug=False):
     return t1
 
 
-def log_runtime(model_name, start_time=None, timing=None):
+def log_runtime(model_name, start_time=None, timing=None, force=False):
+    global timing_notes
 
     assert (start_time or timing) and not (start_time and timing)
 
@@ -74,7 +77,7 @@ def log_runtime(model_name, start_time=None, timing=None):
 
     process_name = multiprocessing.current_process().name
 
-    if config.setting("multiprocess", False):
+    if config.setting("multiprocess", False) and not force:
         # when benchmarking, log timing for each processes in its own log
         if config.setting("benchmarking", False):
             header = "component_name,duration"
@@ -86,9 +89,12 @@ def log_runtime(model_name, start_time=None, timing=None):
         if not inject.get_injectable("locutor", False):
             return
 
-    header = "process_name,model_name,seconds,minutes"
+    header = "process_name,model_name,seconds,minutes,notes"
+    note = " ".join(timing_notes)
     with config.open_log_file("timing_log.csv", "a", header) as log_file:
-        print(f"{process_name},{model_name},{seconds},{minutes}", file=log_file)
+        print(f"{process_name},{model_name},{seconds},{minutes},{note}", file=log_file)
+
+    timing_notes.clear()
 
 
 def delete_output_files(file_type, ignore=None, subdir=None):
@@ -303,7 +309,8 @@ def register_traceable_table(table_name, df):
         return
 
     new_traced_ids = []
-    if table_name == "households":
+    # if table_name == "households":
+    if table_name in ["households", "proto_households"]:
         if trace_hh_id not in df.index:
             logger.warning("trace_hh_id %s not in dataframe" % trace_hh_id)
             new_traced_ids = []
@@ -755,15 +762,32 @@ def interaction_trace_rows(interaction_df, choosers, sample_size=None):
 
     traceable_table_ids = inject.get_injectable("traceable_table_ids", {})
 
-    if choosers.index.name == "person_id" and "persons" in traceable_table_ids:
+    # Determine whether actual tables or proto_ tables for disaggregate accessibilities
+    persons_table_name = set(traceable_table_ids).intersection(
+        ["persons", "proto_persons"]
+    )
+    households_table_name = set(traceable_table_ids).intersection(
+        ["households", "proto_households"]
+    )
+
+    assert len(persons_table_name) == 1 and len(persons_table_name) == 1
+    persons_table_name, households_table_name = (
+        persons_table_name.pop(),
+        households_table_name.pop(),
+    )
+
+    if choosers.index.name == "person_id" and persons_table_name in traceable_table_ids:
         slicer_column_name = choosers.index.name
         targets = traceable_table_ids["persons"]
+    elif choosers.index.name == "household_id" and "households" in traceable_table_ids:
+        slicer_column_name = choosers.index.name
+        targets = traceable_table_ids["households"]
     elif "household_id" in choosers.columns and "households" in traceable_table_ids:
         slicer_column_name = "household_id"
-        targets = traceable_table_ids["households"]
-    elif "person_id" in choosers.columns and "persons" in traceable_table_ids:
+        targets = traceable_table_ids[households_table_name]
+    elif "person_id" in choosers.columns and persons_table_name in traceable_table_ids:
         slicer_column_name = "person_id"
-        targets = traceable_table_ids["persons"]
+        targets = traceable_table_ids[persons_table_name]
     else:
         print(choosers.columns)
         raise RuntimeError(
@@ -833,7 +857,10 @@ def trace_interaction_eval_results(trace_results, trace_ids, label):
 
     slicer_column_name = trace_ids[0]
 
-    trace_results[slicer_column_name] = trace_ids[1]
+    try:
+        trace_results[slicer_column_name] = trace_ids[1]
+    except ValueError:
+        trace_results[slicer_column_name] = int(trace_ids[1])
 
     targets = np.unique(trace_ids[1])
 

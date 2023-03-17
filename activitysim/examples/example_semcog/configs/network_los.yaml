@@ -18,7 +18,7 @@ taz_skims: skims.omx
 #  - peak_skims.omx
 #  - offpeak_skims.omx
 
-maz: mazs.csv  
+maz: land_use.csv  
 
 maz_to_maz:
   tables:

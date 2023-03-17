@@ -67,3 +67,4 @@ is_fulltime_worker,is_fulltime_worker,"((age_16_p) & (wkhp >=35) & (wkw>=1) & (w
 is_parttime_worker,is_parttime_worker,"((age_16_p) & (~esr.isin([3,6])) & (is_fulltime_worker == False))"
 recoding existing as legacy,naicsp_recode,"persons['naicsp'].replace('-9', '0000')"
 coding industry according to pums,industry_naics,naicsp_recode.str[0].astype(int)*10
+coding naicsp for telecommuting freq model, naics_category,naicsp_recode.str[0:2]

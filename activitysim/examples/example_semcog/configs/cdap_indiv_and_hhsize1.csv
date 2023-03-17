@@ -72,10 +72,11 @@ Telecommutes 4 days per week,telecommute_frequency=='4_days_week',,1.848,1.711
 "Full time worker, works from home",(ptype == 1) & (work_from_home),-999,,
 "Part time worker, works from home",(ptype == 2) & (work_from_home),-999,,
 #,,,,
-full-time worker calibration send more ftworker to M,ptype==1,0.2,,-0.1
-part-time worker calibration send more ptworker to N,ptype==2,0.1,0.2,-0.15
-col students calibration send more univ student to M,ptype==3,-0.5,0.5,0.28
-,ptype==4,,-0.1,0
+full-time worker calibration send more ftworker to M,ptype==1,-0.1,0.32,0.12
+part-time worker calibration send more ptworker to N,ptype==2,-0.3,0.45,0.22
+col students calibration send more univ student to M,ptype==3,-0.41,0.2,0.3
+,ptype==4,-0.15,-0.17,0.68
+,ptype==5,0,-0.06,0.25
 ,ptype==6,0.47,,-0.6
 ,ptype==7,0.27,,-0.2
 ,ptype==8,-0.73,1,0.1

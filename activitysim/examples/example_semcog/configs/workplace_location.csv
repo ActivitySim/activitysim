@@ -16,6 +16,8 @@ util_no_attractions,No attractions,@df['size_term']==0,-999
 util_mode_logsum,Mode choice logsum,mode_choice_logsum,coef_mode_logsum
 util_sample_of_corrections_factor,Sample of alternatives correction factor,"@np.minimum(np.log(df.pick_count/df.prob), 60)",1
 #,,,
+util_dist_calib,Distance,@_DIST * -0.28,coef_dist
+#,,,
 util_Detroit_Detroit_ASC,Detroit_Detroit calibration constant,"@np.where((df['home_county']==1) & (_COUNTY==1), 1, 0)",coef_Detroit_Detroit_asc
 util_Detroit_Wayne_ASC,Detroit_Wayne calibration constant,"@np.where((df['home_county']==1) & (_COUNTY==2), 1, 0)",coef_Detroit_Wayne_asc
 util_Detroit_Oakland_ASC,Detroit_Oakland calibration constant,"@np.where((df['home_county']==1) & (_COUNTY==3), 1, 0)",coef_Detroit_Oakland_asc

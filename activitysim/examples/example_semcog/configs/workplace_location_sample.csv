@@ -14,6 +14,8 @@ util_size_variable,Size variable,@(df['size_term'] * df['shadow_price_size_term_
 util_utility_adjustment,utility adjustment,@df['shadow_price_utility_adjustment'],1
 util_no_attractions,No attractions,@df['size_term']==0,-999
 #,,,
+util_dist_calib,Distance,@_DIST * -0.28,coef_dist
+#,,,
 util_Detroit_Detroit_ASC,Detroit_Detroit calibration constant,"@np.where((df['home_county']==1) & (_COUNTY==1), 1, 0)",coef_Detroit_Detroit_asc
 util_Detroit_Wayne_ASC,Detroit_Wayne calibration constant,"@np.where((df['home_county']==1) & (_COUNTY==2), 1, 0)",coef_Detroit_Wayne_asc
 util_Detroit_Oakland_ASC,Detroit_Oakland calibration constant,"@np.where((df['home_county']==1) & (_COUNTY==3), 1, 0)",coef_Detroit_Oakland_asc

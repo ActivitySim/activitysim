@@ -63,7 +63,7 @@ util_2nd_or_later_of_2_plus_mandatory_tour_Departure_after_2_pm,2nd or later of 
 util_2nd_or_later_of_2_plus_mandatory_tour_Duration_lt_dur_ref,2nd or later of 2+ mandatory tour - Duration < 9.5 hours,@(((df.tour_count>1) & (df.tour_num > 1)) & (df.end < df.durationRefBin)) * df.durationShift,coef_2nd_or_later_of_2_plus_mandatory_tour_Duration_lt_dur_ref
 util_2nd_or_later_of_2_plus_mandatory_tour_Duration_gt_dur_ref,2nd or later of 2+ mandatory tour - Duration > 9.5 hours,@(((df.tour_count>1) & (df.tour_num > 1)) & (df.end > df.durationRefBin)) * df.durationShift,coef_2nd_or_later_of_2_plus_mandatory_tour_Duration_gt_dur_ref
 #,#Departure Constants,,coef_Departure_Constants
-util_Departure_Constant_Shift_for_every_30_minutes_before_6_am,Departure Constant: Shift for every 30 minutes before 6:00 am - Linear,"@((df.start<7) * (7-df.start))",coef_Departure_Constant_Shift_for_every_30_minutes_before_6_am
+util_Departure_Constant_Shift_for_every_30_minutes_before_6_am,Departure Constant: Shift for every 30 minutes before 6:00 am - Linear,@((df.start<7) * (7-df.start)),coef_Departure_Constant_Shift_for_every_30_minutes_before_6_am
 util_Departure_Constant_Before_06_AM,Departure Constant: Before 06:00 AM,start<7,coef_Departure_Constant_Before_06_AM
 util_Departure_Constant_06_AM_06_AM_7,Departure Constant: 06:00 AM - 06:30 AM (7) ,start==7,coef_Departure_Constant_06_AM_06_AM_7
 util_Departure_Constant_06_AM_07_AM_8,Departure Constant: 06:30 AM - 07:00 AM (8) ,start==8,coef_Departure_Constant_06_AM_07_AM_8
@@ -74,7 +74,7 @@ util_Departure_Constant_08_AM_09_AM_12,Departure Constant: 08:30 AM - 09:00 AM (
 util_Departure_Constant_After_09_AM,Departure Constant: After 09:00 AM,start>12,coef_Departure_Constant_After_09_AM
 util_Departure_Constant_Shift_for_every_30_minutes_after_9_am_Square_Root,Departure Constant: Shift for every 30 minutes after 9:30 am - Square Root,"@((df.start>13) * (np.maximum(df.start-13,0) ** 0.5))",coef_Departure_Constant_Shift_for_every_30_minutes_after_9_am_Square_Root
 #,#Arrival Constants,,coef_Arrival_Constants
-util_Arrival_Constant_Shift_for_every_30_minutes_before_3_pm,Arrival Constant: Shift for every 30 minutes before 3:00 pm - Linear,"@((df.end<25) * (25-df.end))",coef_Arrival_Constant_Shift_for_every_30_minutes_before_3_pm
+util_Arrival_Constant_Shift_for_every_30_minutes_before_3_pm,Arrival Constant: Shift for every 30 minutes before 3:00 pm - Linear,@((df.end<25) * (25-df.end)),coef_Arrival_Constant_Shift_for_every_30_minutes_before_3_pm
 util_Arrival_Constant_Before_03_PM,Arrival Constant: Before 03:30 PM,end<26,coef_Arrival_Constant_Before_03_PM
 util_Arrival_Constant_03_PM_04_PM_26,Arrival Constant: 03:30 PM - 04:00 PM (26) ,end==26,coef_Arrival_Constant_03_PM_04_PM_26
 util_Arrival_Constant_04_PM_04_PM_27,Arrival Constant: 04:00 PM - 04:30 PM (27) ,end==27,coef_Arrival_Constant_04_PM_04_PM_27
@@ -88,7 +88,7 @@ util_Arrival_Constant_7_PM_8_PM_34,Arrival Constant: 7:30 PM - 8:00 PM (34) ,end
 util_Arrival_Constant_After_08_PM,Arrival Constant: After 08:00 PM,end>34,coef_Arrival_Constant_After_08_PM
 util_Arrival_Constant_Shift_for_every_30_minutes_after_830_pm_Square_root,Arrival Constant: Shift for every 30 minutes after 830 pm - Square root,"@((df.end>35) * (np.maximum(df.end-35,0) ** 0.5))",coef_Arrival_Constant_Shift_for_every_30_minutes_after_830_pm_Square_root
 #,#Duration Constants,,coef_Duration_Constants
-util_Duration_Constant_Shift_for_every_30_minutes_less_than_8p5_hrs,Duration Constant: Shift for every 30 minutes less than 8.5 hrs - Linear,"@((df.duration<17) * (17-df.duration))",coef_Duration_Constant_Shift_for_every_30_minutes_less_than_8p5_hrs
+util_Duration_Constant_Shift_for_every_30_minutes_less_than_8p5_hrs,Duration Constant: Shift for every 30 minutes less than 8.5 hrs - Linear,@((df.duration<17) * (17-df.duration)),coef_Duration_Constant_Shift_for_every_30_minutes_less_than_8p5_hrs
 util_Duration_Constant_Shorter_than_8p5_hrs,Duration Constant: Shorter than 8.5 hrs,duration<17,coef_Duration_Constant_Shorter_than_8p5_hrs
 util_Duration_Constant_8p5_hours,Duration Constant: 8.5 hours,duration==17,coef_Duration_Constant_8p5_hours
 util_Duration_Constant_9_hours,Duration Constant: 9 hours,duration==18,coef_Duration_Constant_9_hours
@@ -99,5 +99,9 @@ util_Duration_Constant_11_hours,Duration Constant: 11 hours,duration==22,coef_Du
 util_Duration_Constant_11p5_hours,Duration Constant: 11.5 hours,duration==23,coef_Duration_Constant_11p5_hours
 util_Duration_Constant_12_hours,Duration Constant: 12 hours,duration==24,coef_Duration_Constant_12_hours
 util_Duration_Constant_Longer_than_12_hrs,Duration Constant: Longer than 12 hrs,duration>24,coef_Duration_Constant_Longer_than_12_hrs
-util_Duration_Constant_Shift_for_every_30_minutes_more_than_12_hrs,Duration Constant: Shift for every 30 minutes more than 12 hrs - Linear,"@((df.duration>24) * (df.duration-24))",coef_Duration_Constant_Shift_for_every_30_minutes_more_than_12_hrs
+util_Duration_Constant_Shift_for_every_30_minutes_more_than_12_hrs,Duration Constant: Shift for every 30 minutes more than 12 hrs - Linear,@((df.duration>24) * (df.duration-24)),coef_Duration_Constant_Shift_for_every_30_minutes_more_than_12_hrs
 util_Calibration_constant_Duration_0,Calibration constant: Duration = 0,duration == 0,coef_Calibration_constant_Duration_0
+#,,,
+#,,,
+util_Departure_Constant_EA,Departure Constant: Before 06:30 AM,start<8,0.25
+util_Departure_Constant_Before_AM,Departure Constant: AM period,start>7 & start <13,-0.12

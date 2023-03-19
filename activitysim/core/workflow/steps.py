@@ -13,6 +13,7 @@ from typing import Callable, Collection, Mapping, NamedTuple
 
 import numpy as np  # noqa: 401
 import pandas as pd  # noqa: 401
+import xarray as xr  # noqa: 401
 from pypyr.context import Context
 from pypyr.errors import KeyNotInContextError
 
@@ -358,6 +359,18 @@ class workflow_step:
                         else:
                             # copy_tables is truthy
                             arg_value = arg_value.copy()
+                if _annotations.get(arg) is pd.DataFrame and isinstance(
+                    arg_value, xr.Dataset
+                ):
+                    # convert to dataframe if asking for that
+                    arg_value = arg_value.single_dim.to_pandas()
+                if _annotations.get(arg) is xr.Dataset and isinstance(
+                    arg_value, pd.DataFrame
+                ):
+                    # convert to dataset if asking for that
+                    from sharrow.dataset import construct
+
+                    arg_value = construct(arg_value)
                 try:
                     args.append(arg_value)
                 except Exception as err:

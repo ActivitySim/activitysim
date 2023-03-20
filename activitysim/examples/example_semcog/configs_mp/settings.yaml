@@ -8,7 +8,7 @@ strict: False
 mem_tick: 30
 use_shadow_pricing: True
 ## - example sample
-households_sample_size: 0
+households_sample_size: 20
 chunk_size: 0
 num_processes: 2
 chunk_method: hybrid_uss

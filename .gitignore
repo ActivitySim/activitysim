@@ -77,3 +77,4 @@ _test_est
 **/output/
 **/_generated_version.py
 docs/**/_generated
+activitysim/examples/example_semcog/configs_mp/settings.yaml

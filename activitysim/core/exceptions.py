@@ -44,3 +44,11 @@ class CheckpointNameNotFoundError(KeyError):
 
 class TableNameNotFound(KeyError):
     """The table_name is not found."""
+
+
+class MissingNameError(KeyError):
+    """The name is not found."""
+
+
+class ReadOnlyError(IOError):
+    """This object is read-only."""

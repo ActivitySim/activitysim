@@ -8,7 +8,7 @@ import pytest
 import xarray as xr
 from sharrow.dataset import construct
 
-from activitysim.core.datastore import new_store
+from activitysim.core.datastore import copy_hdf, new_store
 from activitysim.core.datastore.parquet import ParquetStore
 from activitysim.core.exceptions import ReadOnlyError
 
@@ -89,6 +89,19 @@ def test_datasstore_checkpointing(tmp_path: Path, person_dataset, storage_format
             tm_ro_x = new_store(tmp_path, mode="r", storage_format=fmt)
             tm_ro_x.restore_checkpoint("annot_persons")
             xr.testing.assert_equal(tm_ro_x.get_dataset("persons"), person_dataset)
+    else:
+        copied_store = copy_hdf(tm.filename, tmp_path.joinpath("copied"))
+        copied_store_z = copied_store.make_zip_archive(tmp_path.joinpath("copied2"))
+        tm_z = new_store(copied_store_z, mode="r")
+        tm_z.restore_checkpoint("annot_persons")
+        xr.testing.assert_equal(tm_z.get_dataset("persons"), person_dataset)
+
+    if storage_format == "parquet":
+        pth_z = tmp_path.joinpath("zipper.zip")
+        store_z = tm.make_zip_archive(pth_z)
+        tm_z = new_store(store_z, mode="r", storage_format=fmt)
+        tm_z.restore_checkpoint("annot_persons")
+        xr.testing.assert_equal(tm_z.get_dataset("persons"), person_dataset)
 
 
 def test_datasstore_relationships(

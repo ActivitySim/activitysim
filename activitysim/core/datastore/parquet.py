@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import gzip
 import logging
 import os
 import pickle
 import shutil
+import zipfile
 from pathlib import Path
 
 import pandas as pd
@@ -38,7 +40,23 @@ def _read_parquet(filename, index_col=None) -> xr.Dataset:
     import pyarrow.parquet as pq
     from sharrow.dataset import from_table
 
-    content = pq.read_table(filename)
+    if not isinstance(filename, (Path, zipfile.Path)):
+        filename = Path(filename)
+    try:
+        with filename.open("rb") as f:
+            content = pq.read_table(f)
+    except FileNotFoundError:
+        if isinstance(filename, zipfile.Path):
+            filename2 = zipfile.Path(
+                filename.root, Path(filename.at).with_suffix(".pickle.gz").as_posix()
+            )
+        else:
+            filename2 = filename.with_suffix(".pickle.gz")
+        if filename2.exists():
+            with filename2.open("rb") as f:
+                return pickle.loads(gzip.decompress(f.read()))
+        else:
+            raise
     if index_col is not None:
         index = content.column(index_col)
         content = content.drop([index_col])
@@ -152,7 +170,6 @@ class ParquetStore(CheckpointStore):
                     f"falling back to pickle"
                 )
                 # fallback to pickle, compatible with more dtypes
-                import gzip
 
                 with gzip.open(target.with_suffix(".pickle.gz"), "w") as f:
                     pickle.dump(data, f)
@@ -190,8 +207,6 @@ class ParquetStore(CheckpointStore):
             Filename of the resulting zipped store.
         """
         output_filename = Path(output_filename)
-        import zipfile
-
         if output_filename.suffix != ".zip":
             output_filename = output_filename.with_suffix(".zip")
         with zipfile.ZipFile(output_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
@@ -225,12 +240,20 @@ class ParquetStore(CheckpointStore):
                 os.rmdir(root)
 
     def _zarr_subdir(self, table_name, checkpoint_name):
-        return self.filename.joinpath(table_name, checkpoint_name).with_suffix(".zarr")
+        if self.filename.suffix == ".zip":
+            basepath = zipfile.Path(self.filename)
+        else:
+            basepath = self.filename
+        rel_path = Path(table_name, checkpoint_name).with_suffix(".zarr")
+        return basepath.joinpath(rel_path)
 
     def _parquet_name(self, table_name, checkpoint_name):
-        return self.filename.joinpath(table_name, checkpoint_name).with_suffix(
-            ".parquet"
-        )
+        if self.filename.suffix == ".zip":
+            basepath = zipfile.Path(self.filename)
+        else:
+            basepath = self.filename
+        rel_path = Path(table_name, checkpoint_name).with_suffix(".parquet")
+        return basepath.joinpath(rel_path)
 
     def make_checkpoint(self, checkpoint_name: str, overwrite: bool = True) -> None:
         if self._mode == "r":
@@ -318,7 +341,11 @@ class ParquetStore(CheckpointStore):
             Read only these checkpoints.  If not provided, only the latest
             checkpoint metadata is read. Set to "*" to read all.
         """
-        with open(self.filename.joinpath(self.metadata_filename)) as f:
+        if self.filename.suffix == ".zip":
+            basepath = zipfile.Path(self.filename)
+        else:
+            basepath = self.filename
+        with basepath.joinpath(self.metadata_filename).open() as f:
             metadata = yaml.safe_load(f)
         datastore_format_version = metadata.get("datastore_format_version", "missing")
         if datastore_format_version == 1:
@@ -333,10 +360,16 @@ class ParquetStore(CheckpointStore):
             else:
                 checkpoints = [checkpoints]
         for c in checkpoints:
-            with open(self.filename.joinpath(self.checkpoint_subdir, f"{c}.yaml")) as f:
+            with basepath.joinpath(self.checkpoint_subdir, f"{c}.yaml").open() as f:
                 self._checkpoints[c] = yaml.safe_load(f)
 
-    def restore_checkpoint(self, checkpoint_name: str):
+    def restore_checkpoint(self, checkpoint_name: str = LAST_CHECKPOINT):
+        if checkpoint_name == LAST_CHECKPOINT:
+            if not self._checkpoint_order:
+                self.read_metadata()
+            if not self._checkpoint_order:
+                raise ValueError("no checkpoints found")
+            checkpoint_name = self._checkpoint_order[-1]
         if checkpoint_name not in self._checkpoints:
             try:
                 self.read_metadata(checkpoint_name)
@@ -356,37 +389,39 @@ class ParquetStore(CheckpointStore):
                 index_name = None
             for coord_name, coord_def in coords.items():
                 target = self._zarr_subdir(table_name, coord_def["last_checkpoint"])
-                if target.exists():
-                    if target not in opened_targets:
-                        opened_targets[target] = from_zarr_with_attr(target)
-                else:
-                    # zarr not found, try parquet
-                    target2 = self._parquet_name(
-                        table_name, coord_def["last_checkpoint"]
-                    )
-                    if target2.exists():
-                        if target not in opened_targets:
-                            opened_targets[target] = _read_parquet(target2, index_name)
+                key = str(target)
+                if key not in opened_targets:
+                    if target.exists():
+                        opened_targets[key] = from_zarr_with_attr(target)
                     else:
-                        raise FileNotFoundError(target)
-                t = t.assign_coords({coord_name: opened_targets[target][coord_name]})
+                        # zarr not found, try parquet
+                        target2 = self._parquet_name(
+                            table_name, coord_def["last_checkpoint"]
+                        )
+                        try:
+                            opened_targets[key] = _read_parquet(target2, index_name)
+                        except FileNotFoundError as err:
+                            raise FileNotFoundError(target) from None
+                t = t.assign_coords({coord_name: opened_targets[key][coord_name]})
             data_vars = table_def.get("data_vars", {})
             for var_name, var_def in data_vars.items():
                 if var_def["last_checkpoint"] == "MISSING":
                     raise ValueError(f"missing checkpoint for {table_name}.{var_name}")
                 target = self._zarr_subdir(table_name, var_def["last_checkpoint"])
-                if target.exists():
-                    if target not in opened_targets:
-                        opened_targets[target] = from_zarr_with_attr(target)
-                else:
-                    # zarr not found, try parquet
-                    target2 = self._parquet_name(table_name, var_def["last_checkpoint"])
-                    if target2.exists():
-                        if target not in opened_targets:
-                            opened_targets[target] = _read_parquet(target2, index_name)
+                key = str(target)
+                if key not in opened_targets:
+                    if target.exists():
+                        opened_targets[key] = from_zarr_with_attr(target)
                     else:
-                        raise FileNotFoundError(target)
-                t = t.assign({var_name: opened_targets[target][var_name]})
+                        # zarr not found, try parquet
+                        target2 = self._parquet_name(
+                            table_name, var_def["last_checkpoint"]
+                        )
+                        try:
+                            opened_targets[key] = _read_parquet(target2, index_name)
+                        except FileNotFoundError:
+                            raise FileNotFoundError(target) from None
+                t = t.assign({var_name: opened_targets[key][var_name]})
             self._tree.add_dataset(table_name, t)
         for r in checkpoint["relationships"]:
             self._tree.add_relationship(Relationship(**r))

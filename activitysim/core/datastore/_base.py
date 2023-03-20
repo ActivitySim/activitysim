@@ -348,26 +348,6 @@ class CheckpointStore:
                 result[table_name] = table_data if everything else uncheckpointed
         return result
 
-    # @classmethod
-    # def from_hdf(cls, source_filename, dest_filename, mode="a"):
-    #     hdf_store = HdfStore(source_filename, "r")
-    #     output_store = cls(dest_filename, mode)
-    #     checkpoint_df = hdf_store.get_dataframe(CHECKPOINT_TABLE_NAME)
-    #     output_store.put(CHECKPOINT_TABLE_NAME, checkpoint_df)
-    #     for table_name in checkpoint_df.columns:
-    #         if table_name in NON_TABLE_COLUMNS:
-    #             continue
-    #         checkpoints_written = set()
-    #         for checkpoint_name in checkpoint_df[table_name]:
-    #             if checkpoint_name:
-    #                 df = hdf_store.get_dataframe(table_name, checkpoint_name)
-    #                 if checkpoint_name and checkpoint_name not in checkpoints_written:
-    #                     output_store.put(
-    #                         table_name, df, checkpoint_name=checkpoint_name
-    #                     )
-    #                     checkpoints_written.add(checkpoint_name)
-    #     return output_store
-    #
     # def _get_store_checkpoint_from_named_checkpoint(
     #     self, table_name: str, checkpoint_name: str = LAST_CHECKPOINT
     # ):

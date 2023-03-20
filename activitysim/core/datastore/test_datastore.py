@@ -73,7 +73,14 @@ def test_datasstore_checkpointing(tmp_path: Path, person_dataset, storage_format
     tm.add_data("persons", person_dataset["DoubleAge"])
     tm.make_checkpoint("annot_persons")
 
-    tm2 = new_store(tmp_path, storage_format=storage_format)
+    if storage_format != "hdf":
+        tmp_path2 = tmp_path.joinpath("dupe.pipeline")
+        shutil.copytree(tm.filename, tmp_path2)
+    else:
+        tmp_path2 = tmp_path.joinpath("dupe.h5")
+        shutil.copyfile(tm.filename, tmp_path2)
+
+    tm2 = new_store(tmp_path2, storage_format=storage_format)
     tm2.restore_checkpoint("annot_persons")
     xr.testing.assert_equal(tm2.get_dataset("persons"), person_dataset)
 

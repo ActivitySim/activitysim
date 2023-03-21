@@ -13,8 +13,9 @@ channels:
 - conda-forge
 - nodefaults
 dependencies:
-- python=3.9
+- python=3.10
 - pip
+- appdirs
 - asv  # for benchmarking
 - black >= 22.0,<23
 - bump2version  # for making a release
@@ -35,6 +36,7 @@ dependencies:
 - myst-parser  # allows markdown in sphinx
 - nbconvert
 - nbformat
+- nbmake
 - numba >= 0.55.2
 - numexpr
 - numpy >= 1.16.1

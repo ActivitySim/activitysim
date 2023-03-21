@@ -1,5 +1,7 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
@@ -8,24 +10,22 @@ import pandas as pd
 from activitysim.core import (
     config,
     expressions,
-    inject,
     logit,
-    pipeline,
+    los,
     simulate,
     tracing,
+    workflow,
 )
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
 from activitysim.core.tracing import print_elapsed_time
 from activitysim.core.util import assign_in_place
-
-from .util import estimation
 
 logger = logging.getLogger(__name__)
 
 NO_DESTINATION = -1
 
 
-def wrap_skims(model_settings):
+def wrap_skims(state: workflow.State, model_settings):
     """
     wrap skims of trip destination using origin, dest column names from model settings.
     Various of these are used by destination_sample, compute_logsums, and destination_simulate
@@ -50,7 +50,7 @@ def wrap_skims(model_settings):
         dict containing skims, keyed by canonical names relative to tour orientation
     """
 
-    network_los = inject.get_injectable("network_los")
+    network_los = state.get_injectable("network_los")
     skim_dict = network_los.get_default_skim_dict()
 
     origin = model_settings["TRIP_ORIGIN"]
@@ -80,9 +80,8 @@ def wrap_skims(model_settings):
     return skims
 
 
-def get_spec_for_segment(model_settings, spec_name, segment):
-
-    omnibus_spec = simulate.read_model_spec(file_name=model_settings[spec_name])
+def get_spec_for_segment(state: workflow.State, model_settings, spec_name, segment):
+    omnibus_spec = state.filesystem.read_model_spec(file_name=model_settings[spec_name])
 
     spec = omnibus_spec[[segment]]
 
@@ -94,6 +93,7 @@ def get_spec_for_segment(model_settings, spec_name, segment):
 
 
 def parking_destination_simulate(
+    state: workflow.State,
     segment_name,
     trips,
     destination_sample,
@@ -112,16 +112,18 @@ def parking_destination_simulate(
     choices - pandas.Series
         destination alt chosen
     """
-    trace_label = tracing.extend_trace_label(trace_label, "trip_destination_simulate")
+    trace_label = tracing.extend_trace_label(
+        trace_label, "parking_destination_simulate"
+    )
 
-    spec = get_spec_for_segment(model_settings, "SPECIFICATION", segment_name)
+    spec = get_spec_for_segment(state, model_settings, "SPECIFICATION", segment_name)
 
-    coefficients_df = simulate.read_model_coefficients(model_settings)
-    spec = simulate.eval_coefficients(spec, coefficients_df, None)
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
+    spec = simulate.eval_coefficients(state, spec, coefficients_df, None)
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
-    logger.info("Running trip_destination_simulate with %d trips", len(trips))
+    logger.info("Running parking_destination_simulate with %d trips", len(trips))
 
     locals_dict = config.get_model_constants(model_settings).copy()
     locals_dict.update(skims)
@@ -129,6 +131,7 @@ def parking_destination_simulate(
     locals_dict["PARKING"] = skims["op_skims"].dest_key
 
     parking_locations = interaction_sample_simulate(
+        state,
         choosers=trips,
         alternatives=destination_sample,
         spec=spec,
@@ -155,6 +158,7 @@ def parking_destination_simulate(
 
 
 def choose_parking_location(
+    state: workflow.State,
     segment_name,
     trips,
     alternatives,
@@ -165,20 +169,19 @@ def choose_parking_location(
     trace_hh_id,
     trace_label,
 ):
-
     logger.info("choose_parking_location %s with %d trips", trace_label, trips.shape[0])
 
     t0 = print_elapsed_time()
 
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
     destination_sample = logit.interaction_dataset(
-        trips, alternatives, alt_index_id=alt_dest_col_name
+        state, trips, alternatives, alt_index_id=alt_dest_col_name
     )
     destination_sample.index = np.repeat(trips.index.values, len(alternatives))
     destination_sample.index.name = trips.index.name
 
-    # # - trip_destination_simulate
     destinations = parking_destination_simulate(
+        state,
         segment_name=segment_name,
         trips=trips,
         destination_sample=destination_sample,
@@ -203,6 +206,7 @@ def choose_parking_location(
 
 
 def run_parking_destination(
+    state: workflow.State,
     model_settings,
     trips,
     land_use,
@@ -211,15 +215,13 @@ def run_parking_destination(
     trace_label,
     fail_some_trips_for_testing=False,
 ):
-
     chooser_filter_column = model_settings.get("CHOOSER_FILTER_COLUMN_NAME")
     chooser_segment_column = model_settings.get("CHOOSER_SEGMENT_COLUMN_NAME")
 
     parking_location_column_name = model_settings["ALT_DEST_COL_NAME"]
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
     choosers = trips[trips[chooser_filter_column]]
@@ -228,7 +230,7 @@ def run_parking_destination(
     # Placeholder for trips without a parking choice
     trips[parking_location_column_name] = -1
 
-    skims = wrap_skims(model_settings)
+    skims = wrap_skims(state, model_settings)
 
     alt_column_filter_name = model_settings.get("ALTERNATIVE_FILTER_COLUMN_NAME")
     alternatives = land_use[land_use[alt_column_filter_name]]
@@ -244,6 +246,7 @@ def run_parking_destination(
             continue
 
         choices, destination_sample = choose_parking_location(
+            state,
             segment_name,
             chooser_segment,
             alternatives,
@@ -278,9 +281,13 @@ def run_parking_destination(
     return trips[parking_location_column_name], save_sample_df
 
 
-@inject.step()
+@workflow.step
 def parking_location(
-    trips, trips_merged, land_use, network_los, chunk_size, trace_hh_id
+    state: workflow.State,
+    trips: pd.DataFrame,
+    trips_merged: pd.DataFrame,
+    land_use: pd.DataFrame,
+    network_los: los.Network_LOS,
 ):
     """
     Given a set of trips, each trip needs to have a parking location if
@@ -288,19 +295,22 @@ def parking_location(
     """
 
     trace_label = "parking_location"
-    model_settings = config.read_model_settings("parking_location_choice.yaml")
+    model_settings = state.filesystem.read_model_settings(
+        "parking_location_choice.yaml"
+    )
+    trace_hh_id = state.settings.trace_hh_id
     alt_destination_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     preprocessor_settings = model_settings.get("PREPROCESSOR", None)
 
-    trips_df = trips.to_frame()
-    trips_merged_df = trips_merged.to_frame()
-    land_use_df = land_use.to_frame()
+    trips_df = trips
+    trips_merged_df = trips_merged
+    land_use_df = land_use
 
     proposed_trip_departure_period = model_settings["TRIP_DEPARTURE_PERIOD"]
     # TODO: the number of skim time periods should be more readily available than this
     n_skim_time_periods = np.unique(
-        network_los.los_settings["skim_time_periods"]["labels"]
+        network_los.los_settings.skim_time_periods["labels"]
     ).size
     if trips_merged_df[proposed_trip_departure_period].max() > n_skim_time_periods:
         # max proposed_trip_departure_period is out of range,
@@ -321,6 +331,7 @@ def parking_location(
 
     if preprocessor_settings:
         expressions.assign_columns(
+            state,
             df=trips_merged_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -328,20 +339,21 @@ def parking_location(
         )
 
     parking_locations, save_sample_df = run_parking_destination(
+        state,
         model_settings,
         trips_merged_df,
         land_use_df,
-        chunk_size=chunk_size,
+        chunk_size=state.settings.chunk_size,
         trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
     assign_in_place(trips_df, parking_locations.to_frame(alt_destination_col_name))
 
-    pipeline.replace_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
     if trace_hh_id:
-        tracing.trace_df(
+        state.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",
@@ -362,6 +374,6 @@ def parking_location(
         )
 
         # lest they try to put tour samples into the same table
-        if pipeline.is_table(sample_table_name):
+        if state.is_table(sample_table_name):
             raise RuntimeError("sample table %s already exists" % sample_table_name)
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)

@@ -1,17 +1,30 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
+import pandas as pd
 
-from activitysim.abm.models.util import estimation
-from activitysim.core import config, expressions, inject, pipeline, simulate, tracing
+from activitysim.core import (
+    config,
+    estimation,
+    expressions,
+    simulate,
+    tracing,
+    workflow,
+)
 
 logger = logging.getLogger("activitysim")
 
 
-@inject.step()
-def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
+@workflow.step
+def work_from_home(
+    state: workflow.State,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+):
     """
     This model predicts whether a person (worker) works from home. The output
     from this model is TRUE (if works from home) or FALSE (works away from home).
@@ -22,15 +35,15 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     trace_label = "work_from_home"
     model_settings_file_name = "work_from_home.yaml"
 
-    choosers = persons_merged.to_frame()
-    model_settings = config.read_model_settings(model_settings_file_name)
+    choosers = persons_merged
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
     chooser_filter_column_name = model_settings.get(
         "CHOOSER_FILTER_COLUMN_NAME", "is_worker"
     )
     choosers = choosers[choosers[chooser_filter_column_name]]
     logger.info("Running %s with %d persons", trace_label, len(choosers))
 
-    estimator = estimation.manager.begin_estimation("work_from_home")
+    estimator = estimation.manager.begin_estimation(state, "work_from_home")
 
     constants = config.get_model_constants(model_settings)
     work_from_home_alt = model_settings["WORK_FROM_HOME_ALT"]
@@ -38,20 +51,20 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     # - preprocessor
     preprocessor_settings = model_settings.get("preprocessor", None)
     if preprocessor_settings:
-
         locals_d = {}
         if constants is not None:
             locals_d.update(constants)
 
         expressions.assign_columns(
+            state,
             df=choosers,
             model_settings=preprocessor_settings,
             locals_dict=locals_d,
             trace_label=trace_label,
         )
 
-    model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-    coefficients_df = simulate.read_model_coefficients(model_settings)
+    model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+    coefficients_df = state.filesystem.read_model_coefficients(model_settings)
 
     nest_spec = config.get_logit_model_settings(model_settings)
 
@@ -77,7 +90,6 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
     )
 
     for iteration in range(iterations):
-
         logger.info(
             "Running %s with %d persons iteration %d",
             trace_label,
@@ -86,15 +98,17 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
         )
 
         # re-read spec to reset substitution
-        model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
-        model_spec = simulate.eval_coefficients(model_spec, coefficients_df, estimator)
+        model_spec = state.filesystem.read_model_spec(file_name=model_settings["SPEC"])
+        model_spec = simulate.eval_coefficients(
+            state, model_spec, coefficients_df, estimator
+        )
 
         choices = simulate.simple_simulate(
+            state,
             choosers=choosers,
             spec=model_spec,
             nest_spec=nest_spec,
             locals_d=constants,
-            chunk_size=chunk_size,
             trace_label=trace_label,
             trace_choice_name="work_from_home",
             estimator=estimator,
@@ -152,7 +166,6 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
         estimator.write_override_choices(choices)
         estimator.end_estimation()
 
-    persons = persons.to_frame()
     persons["work_from_home"] = choices.reindex(persons.index).fillna(0).astype(bool)
     persons["is_out_of_home_worker"] = (
         persons[chooser_filter_column_name] & ~persons["work_from_home"]
@@ -169,9 +182,9 @@ def work_from_home(persons_merged, persons, chunk_size, trace_hh_id):
             persons.work_from_home == True, -1, persons[dest_choice_column_name]
         )
 
-    pipeline.replace_table("persons", persons)
+    state.add_table("persons", persons)
 
     tracing.print_summary("work_from_home", persons.work_from_home, value_counts=True)
 
-    if trace_hh_id:
-        tracing.trace_df(persons, label=trace_label, warn_if_empty=True)
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(persons, label=trace_label, warn_if_empty=True)

@@ -1,11 +1,13 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
-from activitysim.core import chunk, config, inject, logit, pipeline, simulate, tracing
+from activitysim.core import chunk, logit, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +61,9 @@ def _clip_probs(choosers_df, probs, depart_alt_base):
     return probs
 
 
-def _report_bad_choices(bad_row_map, df, filename, trace_label, trace_choosers=None):
+def _report_bad_choices(
+    state: workflow.State, bad_row_map, df, filename, trace_label, trace_choosers=None
+):
     """
 
     Parameters
@@ -84,7 +88,7 @@ def _report_bad_choices(bad_row_map, df, filename, trace_label, trace_choosers=N
     filename = "%s.%s" % (trace_label, filename)
 
     logger.info("dumping %s" % filename)
-    tracing.write_csv(df, file_name=filename, transpose=False)
+    state.tracing.write_csv(df, file_name=filename, transpose=False)
 
     # log the indexes of the first MAX_PRINT offending rows
     MAX_PRINT = 0
@@ -240,6 +244,7 @@ def _postprocess_scheduling_choices(
 
 
 def make_scheduling_choices(
+    state: workflow.State,
     choosers_df,
     scheduling_mode,
     probs_spec,
@@ -247,10 +252,11 @@ def make_scheduling_choices(
     depart_alt_base,
     first_trip_in_leg,
     report_failed_trips,
-    trace_hh_id,
     trace_label,
     trace_choice_col_name="depart",
     clip_earliest_latest=True,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     """
     We join each trip with the appropriate row in probs_spec by joining on probs_join_cols,
@@ -271,7 +277,6 @@ def make_scheduling_choices(
         int to add to probs column index to get time period it represents.
         e.g. depart_alt_base = 5 means first column (column 0) represents 5 am
     report_failed_trips : bool
-    trace_hh_id
     trace_label
 
     Returns
@@ -279,14 +284,14 @@ def make_scheduling_choices(
     choices: pd.Series
         time periods depart choices, one per trip (except for trips with zero probs)
     """
-
+    trace_hh_id = state.settings.trace_hh_id
     choosers = pd.merge(
         choosers_df.reset_index(), probs_spec, on=probs_join_cols, how="left"
     ).set_index(choosers_df.index.name)
-    chunk.log_df(trace_label, "choosers", choosers)
+    chunk_sizer.log_df(trace_label, "choosers", choosers)
 
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
-        tracing.trace_df(choosers, "%s.choosers" % trace_label)
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(choosers, "%s.choosers" % trace_label)
 
     # different pre-processing is required based on the scheduling mode
     chooser_probs = _preprocess_scheduling_probs(
@@ -300,25 +305,25 @@ def make_scheduling_choices(
         first_trip_in_leg,
     )
 
-    chunk.log_df(trace_label, "chooser_probs", chooser_probs)
+    chunk_sizer.log_df(trace_label, "chooser_probs", chooser_probs)
 
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
-        tracing.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(chooser_probs, "%s.chooser_probs" % trace_label)
 
     raw_choices, rands = logit.make_choices(
-        chooser_probs, trace_label=trace_label, trace_choosers=choosers
+        state, chooser_probs, trace_label=trace_label, trace_choosers=choosers
     )
 
-    chunk.log_df(trace_label, "choices", raw_choices)
-    chunk.log_df(trace_label, "rands", rands)
+    chunk_sizer.log_df(trace_label, "choices", raw_choices)
+    chunk_sizer.log_df(trace_label, "rands", rands)
 
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
-        tracing.trace_df(
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(
             raw_choices,
             "%s.choices" % trace_label,
             columns=[None, trace_choice_col_name],
         )
-        tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     # different post-processing is required based on the scheduling mode
     choices, failed = _postprocess_scheduling_choices(
@@ -329,11 +334,12 @@ def make_scheduling_choices(
         choosers_df,
     )
 
-    chunk.log_df(trace_label, "failed", failed)
+    chunk_sizer.log_df(trace_label, "failed", failed)
 
     # report failed trips while we have the best diagnostic info
     if report_failed_trips and failed.any():
         _report_bad_choices(
+            state,
             bad_row_map=failed,
             df=choosers,
             filename="failed_choosers",
@@ -342,11 +348,11 @@ def make_scheduling_choices(
         )
 
     # trace before removing failures
-    if trace_hh_id and tracing.has_trace_targets(choosers_df):
-        tracing.trace_df(
+    if trace_hh_id and state.tracing.has_trace_targets(choosers_df):
+        state.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, trace_choice_col_name]
         )
-        tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     # remove any failed choices
     if failed.any():

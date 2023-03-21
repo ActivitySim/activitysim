@@ -11,11 +11,10 @@ from stat import ST_MTIME
 import numpy as np
 import pandas as pd
 
-from .. import __version__
-from ..core import tracing
-from . import config, inject
-from .simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
-from .timetable import (
+from activitysim import __version__
+from activitysim.core import tracing, workflow
+from activitysim.core.simulate_consts import SPEC_EXPRESSION_NAME, SPEC_LABEL_NAME
+from activitysim.core.timetable import (
     sharrow_tt_adjacent_window_after,
     sharrow_tt_adjacent_window_before,
     sharrow_tt_max_time_block_available,
@@ -133,7 +132,13 @@ def only_simple(x, exclude_keys=()):
 
 
 def get_flow(
-    spec, local_d, trace_label=None, choosers=None, interacts=None, zone_layer=None
+    state,
+    spec,
+    local_d,
+    trace_label=None,
+    choosers=None,
+    interacts=None,
+    zone_layer=None,
 ):
     extra_vars = only_simple(local_d)
     orig_col_name = local_d.get("orig_col_name", None)
@@ -161,6 +166,7 @@ def get_flow(
     else:
         aux_vars = {}
     flow = new_flow(
+        state,
         spec,
         extra_vars,
         orig_col_name,
@@ -208,7 +214,7 @@ def should_invalidate_cache_file(cache_filename, *source_filenames):
     return False
 
 
-def scan_for_unused_names(tokens):
+def scan_for_unused_names(state: workflow.State, tokens):
     """
     Scan all spec files to find unused skim variable names.
 
@@ -220,11 +226,11 @@ def scan_for_unused_names(tokens):
     -------
     Set[str]
     """
-    configs_dir_list = inject.get_injectable("configs_dir")
+    configs_dir_list = state.filesystem.get_configs_dir()
     configs_dir_list = (
         [configs_dir_list] if isinstance(configs_dir_list, str) else configs_dir_list
     )
-    assert isinstance(configs_dir_list, list)
+    assert isinstance(configs_dir_list, (list, tuple))
 
     for directory in configs_dir_list:
         logger.debug(f"scanning for unused skims in {directory}")
@@ -242,14 +248,15 @@ def scan_for_unused_names(tokens):
     return tokens
 
 
-@inject.injectable(cache=True)
-def skim_dataset_dict(skim_dataset):
+@workflow.cached_object
+def skim_dataset_dict(state: workflow.State, skim_dataset):
     from .skim_dataset import SkimDataset
 
     return SkimDataset(skim_dataset)
 
 
 def skims_mapping(
+    state: workflow.State,
     orig_col_name,
     dest_col_name,
     timeframe="tour",
@@ -263,7 +270,7 @@ def skims_mapping(
     logger.info(f"- dest_col_name: {dest_col_name}")
     logger.info(f"- stop_col_name: {stop_col_name}")
     logger.info(f"- primary_origin_col_name: {primary_origin_col_name}")
-    skim_dataset = inject.get_injectable("skim_dataset")
+    skim_dataset = state.get_injectable("skim_dataset")
     if zone_layer == "maz" or zone_layer is None:
         odim = "omaz" if "omaz" in skim_dataset.dims else "otaz"
         ddim = "dmaz" if "dmaz" in skim_dataset.dims else "dtaz"
@@ -435,6 +442,7 @@ def skims_mapping(
 
 
 def new_flow(
+    state: workflow.State,
     spec,
     extra_vars,
     orig_col_name,
@@ -512,13 +520,10 @@ def new_flow(
         else:
             chooser_cols = list(choosers.columns)
 
-        cache_dir = os.path.join(
-            config.get_cache_dir(),
-            "__sharrowcache__",
-        )
-        os.makedirs(cache_dir, exist_ok=True)
+        cache_dir = state.filesystem.get_sharrow_cache_dir()
         logger.debug(f"flow.cache_dir: {cache_dir}")
         skims_mapping_ = skims_mapping(
+            state,
             orig_col_name,
             dest_col_name,
             timeframe,
@@ -719,6 +724,7 @@ def size_terms_on_flow(locals_d):
 
 
 def apply_flow(
+    state,
     spec,
     choosers,
     locals_d=None,
@@ -773,6 +779,7 @@ def apply_flow(
     with logtime("apply_flow"):
         try:
             flow = get_flow(
+                state,
                 spec,
                 locals_d,
                 trace_label,

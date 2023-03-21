@@ -3,7 +3,7 @@
 
 import pandas as pd
 
-from ..canonical_ids import (
+from activitysim.abm.models.util.canonical_ids import (
     determine_flavors_from_alts_file,
     determine_mandatory_tour_flavors,
 )

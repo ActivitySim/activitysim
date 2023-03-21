@@ -1,23 +1,26 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
+
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util.school_escort_tours_trips import (
+    split_out_school_escorting_trips,
+)
 from activitysim.core import (
     chunk,
     config,
+    estimation,
     expressions,
-    inject,
     logit,
-    pipeline,
     simulate,
     tracing,
+    workflow,
 )
-
-from .util import estimation
 from activitysim.core.util import reindex
-from .util.school_escort_tours_trips import split_out_school_escorting_trips
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,7 @@ def map_coefficients(spec, coefficients):
 
 
 def choose_intermediate_trip_purpose(
+    state: workflow.State,
     trips,
     probs_spec,
     estimator,
@@ -52,6 +56,8 @@ def choose_intermediate_trip_purpose(
     use_depart_time,
     trace_hh_id,
     trace_label,
+    *,
+    chunk_sizer: chunk.ChunkSizer,
 ):
     """
     chose purpose for intermediate trips based on probs_spec
@@ -68,7 +74,7 @@ def choose_intermediate_trip_purpose(
     purpose_cols = [c for c in probs_spec.columns if c not in non_purpose_cols]
 
     num_trips = len(trips.index)
-    have_trace_targets = trace_hh_id and tracing.has_trace_targets(trips)
+    have_trace_targets = trace_hh_id and state.tracing.has_trace_targets(trips)
 
     # probs should sum to 1 across rows
     sum_probs = probs_spec[purpose_cols].sum(axis=1)
@@ -78,10 +84,9 @@ def choose_intermediate_trip_purpose(
     choosers = pd.merge(
         trips.reset_index(), probs_spec, on=probs_join_cols, how="left"
     ).set_index("trip_id")
-    chunk.log_df(trace_label, "choosers", choosers)
+    chunk_sizer.log_df(trace_label, "choosers", choosers)
 
     if use_depart_time:
-
         # select the matching depart range (this should result on in exactly one chooser row per trip)
         chooser_probs = (choosers.start >= choosers["depart_range_start"]) & (
             choosers.start <= choosers["depart_range_end"]
@@ -89,7 +94,6 @@ def choose_intermediate_trip_purpose(
 
         # if we failed to match a row in probs_spec
         if chooser_probs.sum() < num_trips:
-
             # this can happen if the spec doesn't have probs for the trips matching a trip's probs_join_cols
             missing_trip_ids = trips.index[
                 ~trips.index.isin(choosers.index[chooser_probs])
@@ -100,7 +104,7 @@ def choose_intermediate_trip_purpose(
             ]
 
             # join to persons for better diagnostics
-            persons = inject.get_table("persons").to_frame()
+            persons = state.get_dataframe("persons")
             persons_cols = [
                 "age",
                 "is_worker",
@@ -129,7 +133,9 @@ def choose_intermediate_trip_purpose(
                     file_name,
                 )
             )
-            tracing.write_csv(unmatched_choosers, file_name=file_name, transpose=False)
+            state.tracing.write_csv(
+                unmatched_choosers, file_name=file_name, transpose=False
+            )
             raise RuntimeError(
                 "Some trips could not be matched to probs based on join columns %s."
                 % probs_join_cols
@@ -147,20 +153,20 @@ def choose_intermediate_trip_purpose(
         estimator.write_table(choosers[probs_cols], "probs", append=True)
 
     choices, rands = logit.make_choices(
-        choosers[purpose_cols], trace_label=trace_label, trace_choosers=choosers
+        state, choosers[purpose_cols], trace_label=trace_label, trace_choosers=choosers
     )
 
     if have_trace_targets:
-        tracing.trace_df(
+        state.tracing.trace_df(
             choices, "%s.choices" % trace_label, columns=[None, "trip_purpose"]
         )
-        tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
+        state.tracing.trace_df(rands, "%s.rands" % trace_label, columns=[None, "rand"])
 
     choices = choices.map(pd.Series(purpose_cols))
     return choices
 
 
-def run_trip_purpose(trips_df, estimator, chunk_size, trace_hh_id, trace_label):
+def run_trip_purpose(state: workflow.State, trips_df, estimator, trace_label):
     """
     trip purpose - main functionality separated from model step so it can be called iteratively
 
@@ -181,15 +187,17 @@ def run_trip_purpose(trips_df, estimator, chunk_size, trace_hh_id, trace_label):
     chunk_tag = "trip_purpose"
 
     model_settings_file_name = "trip_purpose.yaml"
-    model_settings = config.read_model_settings(model_settings_file_name)
+    model_settings = state.filesystem.read_model_settings(model_settings_file_name)
 
     probs_join_cols = model_settings.get("probs_join_cols", PROBS_JOIN_COLUMNS)
 
     spec_file_name = model_settings.get("PROBS_SPEC", "trip_purpose_probs.csv")
-    probs_spec = pd.read_csv(config.config_file_path(spec_file_name), comment="#")
+    probs_spec = pd.read_csv(
+        state.filesystem.get_config_file_path(spec_file_name), comment="#"
+    )
     # FIXME for now, not really doing estimation for probabilistic model - just overwriting choices
     # besides, it isn't clear that named coefficients would be helpful if we had some form of estimation
-    # coefficients_df = simulate.read_model_coefficients(model_settings)
+    # coefficients_df = state.filesystem.read_model_coefficients(model_settings)
     # probs_spec = map_coefficients(probs_spec, coefficients_df)
 
     if estimator:
@@ -221,6 +229,7 @@ def run_trip_purpose(trips_df, estimator, chunk_size, trace_hh_id, trace_label):
     if preprocessor_settings:
         locals_dict = config.get_model_constants(model_settings)
         expressions.assign_columns(
+            state,
             df=trips_df,
             model_settings=preprocessor_settings,
             locals_dict=locals_dict,
@@ -229,22 +238,27 @@ def run_trip_purpose(trips_df, estimator, chunk_size, trace_hh_id, trace_label):
 
     use_depart_time = model_settings.get("use_depart_time", True)
 
-    for i, trips_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        trips_df, chunk_size, chunk_tag, trace_label
-    ):
+    for (
+        i,
+        trips_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(state, trips_df, chunk_tag, trace_label):
         choices = choose_intermediate_trip_purpose(
+            state,
             trips_chunk,
             probs_spec,
             estimator,
             probs_join_cols=probs_join_cols,
             use_depart_time=use_depart_time,
-            trace_hh_id=trace_hh_id,
+            trace_hh_id=state.settings.trace_hh_id,
             trace_label=chunk_trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, f"result_list", result_list)
 
     if len(result_list) > 1:
         choices = pd.concat(result_list)
@@ -252,9 +266,8 @@ def run_trip_purpose(trips_df, estimator, chunk_size, trace_hh_id, trace_label):
     return choices
 
 
-@inject.step()
-def trip_purpose(trips, chunk_size, trace_hh_id):
-
+@workflow.step
+def trip_purpose(state: workflow.State, trips: pd.DataFrame):
     """
     trip purpose model step - calls run_trip_purpose to run the actual model
 
@@ -262,16 +275,16 @@ def trip_purpose(trips, chunk_size, trace_hh_id):
     """
     trace_label = "trip_purpose"
 
-    trips_df = trips.to_frame()
+    trips_df = trips
 
-    if pipeline.is_table("school_escort_trips"):
-        school_escort_trips = pipeline.get_table("school_escort_trips")
+    if state.is_table("school_escort_trips"):
+        school_escort_trips = state.get_dataframe("school_escort_trips")
         # separate out school escorting trips to exclude them from the model and estimation data bundle
         trips_df, se_trips_df, full_trips_index = split_out_school_escorting_trips(
             trips_df, school_escort_trips
         )
 
-    estimator = estimation.manager.begin_estimation("trip_purpose")
+    estimator = estimation.manager.begin_estimation(state, "trip_purpose")
     if estimator:
         chooser_cols_for_estimation = [
             "person_id",
@@ -282,10 +295,9 @@ def trip_purpose(trips, chunk_size, trace_hh_id):
         estimator.write_choosers(trips_df[chooser_cols_for_estimation])
 
     choices = run_trip_purpose(
+        state,
         trips_df,
         estimator,
-        chunk_size=chunk_size,
-        trace_hh_id=trace_hh_id,
         trace_label=trace_label,
     )
 
@@ -299,7 +311,7 @@ def trip_purpose(trips, chunk_size, trace_hh_id):
 
     trips_df["purpose"] = choices
 
-    if pipeline.is_table("school_escort_trips"):
+    if state.is_table("school_escort_trips"):
         # setting purpose for school escort trips
         se_trips_df["purpose"] = reindex(school_escort_trips.purpose, se_trips_df.index)
         # merge trips back together preserving index order
@@ -309,10 +321,10 @@ def trip_purpose(trips, chunk_size, trace_hh_id):
     # we should have assigned a purpose to all trips
     assert not trips_df.purpose.isnull().any()
 
-    pipeline.replace_table("trips", trips_df)
+    state.add_table("trips", trips_df)
 
-    if trace_hh_id:
-        tracing.trace_df(
+    if state.settings.trace_hh_id:
+        state.tracing.trace_df(
             trips_df,
             label=trace_label,
             slicer="trip_id",

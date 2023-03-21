@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
-from . import inject
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
 
@@ -32,24 +34,35 @@ def recode_to_zero_based(values, mapping):
     return result
 
 
-def should_recode_based_on_table(tablename):
+def should_recode_based_on_table(state: workflow.State, tablename):
     try:
-        base_df = inject.get_table(tablename).to_frame()
+        base_df = state.get_dataframe(tablename)
     except (KeyError, RuntimeError):
         # the basis table is missing, do not
         return False
+    except AssertionError:
+        if state.settings.input_table_list is None:
+            # some tests don't include table definitions.
+            return False
+        raise
     if base_df.index.name and f"_original_{base_df.index.name}" in base_df:
         return True
     return False
 
 
-def recode_based_on_table(values, tablename):
+def recode_based_on_table(state: workflow.State, values, tablename):
     try:
-        base_df = inject.get_table(tablename).to_frame()
+        base_df = state.get_dataframe(tablename)
     except (KeyError, RuntimeError):
         # the basis table is missing, do nothing
         logger.warning(f"unable to recode based on missing {tablename} table")
         return values
+    except AssertionError:
+        if state.settings.input_table_list is None:
+            # some tests don't include table definitions.
+            logger.warning(f"unable to recode based on missing {tablename} table")
+            return values
+        raise
     if base_df.index.name and f"_original_{base_df.index.name}" in base_df:
         source_ids = base_df[f"_original_{base_df.index.name}"]
         if (

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import glob
 import hashlib
 import logging
@@ -98,7 +100,12 @@ def list_examples():
 
 
 def get_example(
-    example_name, destination, benchmarking=False, optimize=True, link=True
+    example_name,
+    destination,
+    benchmarking=False,
+    optimize=True,
+    link=True,
+    with_subdirs=False,
 ):
     """
     Copy project data to user-specified directory.
@@ -110,13 +117,12 @@ def get_example(
 
     Parameters
     ----------
-
     example_name: str, name of the example to copy.
         Options can be found via list_examples()
     destination: name of target directory to copy files to.
-        If the target directory already exists, project files
-        will be copied into a subdirectory with the same name
-        as the example
+        If the target directory does not exist, it is created.
+        Project files will then be copied into a subdirectory
+        with the same name as the example
     benchmarking: bool
     optimize: bool
     link: bool or path-like
@@ -125,14 +131,25 @@ def get_example(
         value, then a cache directory is created using in a location
         selected by the appdirs library (or, if not installed,
         linking is skipped.)
+    with_subdirs: bool, default False
+        Also return any instructions about sub-directories.
+
+    Returns
+    -------
+    Path or (Path, dict)
+        The path to the location where the example was installed, and
+        optionally also a mapping of example subdirectory locations.
     """
     if example_name not in EXAMPLES:
         sys.exit(f"error: could not find example '{example_name}'")
 
     if os.path.isdir(destination):
         dest_path = os.path.join(destination, example_name)
+    elif os.path.isfile(destination):
+        raise FileExistsError(destination)
     else:
-        dest_path = destination
+        os.makedirs(destination)
+        dest_path = os.path.join(destination, example_name)
 
     example = EXAMPLES[example_name]
     itemlist = example.get("include", [])
@@ -155,7 +172,9 @@ def get_example(
             sha256 = None
 
         if assets.startswith("http"):
-            download_asset(assets, target_path, sha256, link=link)
+            download_asset(
+                assets, target_path, sha256, link=link, base_path=destination
+            )
 
         else:
             for asset_path in glob.glob(_example_path(assets)):
@@ -180,6 +199,16 @@ def get_example(
     if instructions:
         print(instructions)
 
+    if with_subdirs:
+        subdirs = example.get("subdirs", {})
+        subdirs.setdefault("configs_dir", ("configs",))
+        subdirs.setdefault("data_dir", ("data",))
+        subdirs.setdefault("output_dir", "output")
+
+        return Path(dest_path), subdirs
+    else:
+        return Path(dest_path)
+
 
 def copy_asset(asset_path, target_path, dirs_exist_ok=False):
 
@@ -196,8 +225,13 @@ def copy_asset(asset_path, target_path, dirs_exist_ok=False):
         shutil.copy(asset_path, target_path)
 
 
-def download_asset(url, target_path, sha256=None, link=True):
+def download_asset(url, target_path, sha256=None, link=True, base_path=None):
+    if isinstance(target_path, Path):
+        target_path = str(target_path)
+    original_target_path = target_path
     if link:
+        if base_path is not None and os.path.isabs(target_path):
+            target_path = os.path.relpath(target_path, base_path)
         if not isinstance(link, (str, Path)):
             try:
                 import appdirs
@@ -205,7 +239,6 @@ def download_asset(url, target_path, sha256=None, link=True):
                 link = False
             else:
                 link = appdirs.user_data_dir("ActivitySim")
-        original_target_path = target_path
         target_path = os.path.join(link, target_path)
     os.makedirs(os.path.dirname(target_path), exist_ok=True)
     if url.endswith(".gz") and not target_path.endswith(".gz"):

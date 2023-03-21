@@ -77,3 +77,6 @@ _test_est
 **/output/
 **/_generated_version.py
 docs/**/_generated
+activitysim/examples/prototype_mtc_extended/test/*.ipynb
+activitysim/examples/prototype_mtc/*.ipynb
+Untitled.ipynb

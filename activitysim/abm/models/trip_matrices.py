@@ -1,5 +1,6 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
 
 import logging
 
@@ -7,13 +8,17 @@ import numpy as np
 import openmatrix as omx
 import pandas as pd
 
-from activitysim.core import config, expressions, inject, los, pipeline
+from activitysim.core import config, expressions, los, workflow
 
 logger = logging.getLogger(__name__)
 
 
-@inject.step()
-def write_trip_matrices(network_los):
+@workflow.step(copy_tables=["trips"])
+def write_trip_matrices(
+    state: workflow.State,
+    network_los: los.Network_LOS,
+    trips: pd.DataFrame,
+):
     """
     Write trip matrices step.
 
@@ -32,7 +37,6 @@ def write_trip_matrices(network_los):
 
     """
 
-    trips = inject.get_table("trips", None)
     if trips is None:
         # this step is a NOP if there is no trips table
         # this might legitimately happen if they comment out some steps to debug but still want write_tables
@@ -42,14 +46,16 @@ def write_trip_matrices(network_los):
         )
         return
 
-    model_settings = config.read_model_settings("write_trip_matrices.yaml")
-    trips_df = annotate_trips(trips, network_los, model_settings)
+    model_settings = state.filesystem.read_model_settings("write_trip_matrices.yaml")
+    trips_df = annotate_trips(state, trips, network_los, model_settings)
 
     if bool(model_settings.get("SAVE_TRIPS_TABLE")):
-        pipeline.replace_table("trips", trips_df)
+        state.add_table("trips", trips_df)
 
-    if "parking_location" in config.setting("models"):
-        parking_settings = config.read_model_settings("parking_location_choice.yaml")
+    if "parking_location" in state.settings.models:
+        parking_settings = state.filesystem.read_model_settings(
+            "parking_location_choice.yaml"
+        )
         parking_taz_col_name = parking_settings["ALT_DEST_COL_NAME"]
         if parking_taz_col_name in trips_df:
             # TODO make parking zone negative, not zero, if not used
@@ -78,7 +84,7 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("destination")
 
         # use the land use table for the set of possible tazs
-        land_use = pipeline.get_table("land_use")
+        land_use = state.get_dataframe("land_use")
         zone_index = land_use.index
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
@@ -92,16 +98,18 @@ def write_trip_matrices(network_los):
             zone_labels = land_use.index
 
         write_matrices(
-            aggregate_trips, zone_labels, orig_index, dest_index, model_settings
+            state, aggregate_trips, zone_labels, orig_index, dest_index, model_settings
         )
 
     elif network_los.zone_system == los.TWO_ZONE:  # maz trips written to taz matrices
         logger.info("aggregating trips two zone...")
         trips_df["otaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            state.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
         )
         trips_df["dtaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
+            state.get_dataframe("land_use")
+            .reindex(trips_df["destination"])
+            .TAZ.tolist()
         )
         aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
             numeric_only=True
@@ -120,7 +128,7 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
         try:
-            land_use_taz = pipeline.get_table("land_use_taz")
+            land_use_taz = state.get_dataframe("land_use_taz")
         except (KeyError, RuntimeError):
             pass  # table missing, ignore
         else:
@@ -128,7 +136,7 @@ def write_trip_matrices(network_los):
                 orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
                 dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
 
-        zone_index = pd.Index(network_los.get_tazs(), name="TAZ")
+        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 
@@ -136,19 +144,20 @@ def write_trip_matrices(network_los):
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            state, aggregate_trips, zone_index, orig_index, dest_index, model_settings
         )
 
     elif (
         network_los.zone_system == los.THREE_ZONE
     ):  # maz trips written to taz and tap matrices
-
         logger.info("aggregating trips three zone taz...")
         trips_df["otaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["origin"]).TAZ.tolist()
+            state.get_dataframe("land_use").reindex(trips_df["origin"]).TAZ.tolist()
         )
         trips_df["dtaz"] = (
-            pipeline.get_table("land_use").reindex(trips_df["destination"]).TAZ.tolist()
+            state.get_dataframe("land_use")
+            .reindex(trips_df["destination"])
+            .TAZ.tolist()
         )
         aggregate_trips = trips_df.groupby(["otaz", "dtaz"], sort=False).sum(
             numeric_only=True
@@ -167,7 +176,7 @@ def write_trip_matrices(network_los):
         dest_vals = aggregate_trips.index.get_level_values("dtaz")
 
         try:
-            land_use_taz = pipeline.get_table("land_use_taz")
+            land_use_taz = state.get_dataframe("land_use_taz")
         except (KeyError, RuntimeError):
             pass  # table missing, ignore
         else:
@@ -175,7 +184,7 @@ def write_trip_matrices(network_los):
                 orig_vals = orig_vals.map(land_use_taz["_original_TAZ"])
                 dest_vals = dest_vals.map(land_use_taz["_original_TAZ"])
 
-        zone_index = pd.Index(network_los.get_tazs(), name="TAZ")
+        zone_index = pd.Index(network_los.get_tazs(state), name="TAZ")
         assert all(zone in zone_index for zone in orig_vals)
         assert all(zone in zone_index for zone in dest_vals)
 
@@ -183,7 +192,7 @@ def write_trip_matrices(network_los):
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            aggregate_trips, zone_index, orig_index, dest_index, model_settings
+            state, aggregate_trips, zone_index, orig_index, dest_index, model_settings
         )
 
         logger.info("aggregating trips three zone tap...")
@@ -211,11 +220,20 @@ def write_trip_matrices(network_los):
         _, dest_index = zone_index.reindex(dest_vals)
 
         write_matrices(
-            aggregate_trips, zone_index, orig_index, dest_index, model_settings, True
+            state,
+            aggregate_trips,
+            zone_index,
+            orig_index,
+            dest_index,
+            model_settings,
+            True,
         )
 
 
-def annotate_trips(trips, network_los, model_settings):
+@workflow.func
+def annotate_trips(
+    state: workflow.State, trips: pd.DataFrame, network_los, model_settings
+):
     """
     Add columns to local trips table. The annotator has
     access to the origin/destination skims and everything
@@ -225,7 +243,7 @@ def annotate_trips(trips, network_los, model_settings):
     TABLES in the preprocessor settings.
     """
 
-    trips_df = trips.to_frame()
+    trips_df = trips
 
     trace_label = "trip_matrices"
 
@@ -246,7 +264,7 @@ def annotate_trips(trips, network_los, model_settings):
         locals_dict.update(constants)
 
     expressions.annotate_preprocessors(
-        trips_df, locals_dict, skims, model_settings, trace_label
+        state, trips_df, locals_dict, skims, model_settings, trace_label
     )
 
     if not np.issubdtype(trips_df["trip_period"].dtype, np.integer):
@@ -263,14 +281,20 @@ def annotate_trips(trips, network_los, model_settings):
 
     if hh_weight_col and hh_weight_col not in trips_df:
         logger.info("adding '%s' from households to trips table" % hh_weight_col)
-        household_weights = pipeline.get_table("households")[hh_weight_col]
+        household_weights = state.get_dataframe("households")[hh_weight_col]
         trips_df[hh_weight_col] = trips_df.household_id.map(household_weights)
 
     return trips_df
 
 
 def write_matrices(
-    aggregate_trips, zone_index, orig_index, dest_index, model_settings, is_tap=False
+    state: workflow.State,
+    aggregate_trips,
+    zone_index,
+    orig_index,
+    dest_index,
+    model_settings,
+    is_tap=False,
 ):
     """
     Write aggregated trips to OMX format.
@@ -294,9 +318,9 @@ def write_matrices(
 
         if matrix_is_tap == is_tap:  # only write tap matrices to tap matrix files
             filename = matrix.get("file_name")
-            filepath = config.output_file_path(filename)
+            filepath = state.get_output_file_path(filename)
             logger.info("opening %s" % filepath)
-            file = omx.open_file(filepath, "w")  # possibly overwrite existing file
+            file = omx.open_file(str(filepath), "w")  # possibly overwrite existing file
             table_settings = matrix.get("tables")
 
             for table in table_settings:

@@ -10,7 +10,7 @@ import pandas as pd
 import yaml
 
 from activitysim.abm.models.util import canonical_ids as cid
-from activitysim.abm.models.util import tour_frequency as tf
+from activitysim.core import workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -69,7 +69,6 @@ def unmangle_ids(ids):
 
 
 def infer_cdap_activity(persons, tours, joint_tour_participants):
-
     mandatory_tour_types = ["work", "school"]
     non_mandatory_tour_types = [
         "escort",
@@ -118,7 +117,6 @@ def infer_cdap_activity(persons, tours, joint_tour_participants):
 
 
 def infer_mandatory_tour_frequency(persons, tours):
-
     num_work_tours = (
         tours[tours.tour_type == "work"]
         .groupby("person_id")
@@ -402,9 +400,8 @@ def infer_tour_scheduling(configs_dir, tours):
     return tdds.tdd
 
 
-def patch_tour_ids(persons, tours, joint_tour_participants):
-    def set_tour_index(tours, parent_tour_num_col, is_joint):
-
+def patch_tour_ids(state: workflow.State, persons, tours, joint_tour_participants):
+    def set_tour_index(state, tours, parent_tour_num_col, is_joint):
         group_cols = ["person_id", "tour_category", "tour_type"]
 
         if "parent_tour_num" in tours:
@@ -415,7 +412,7 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
         )
 
         return cid.set_tour_index(
-            tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
+            state, tours, parent_tour_num_col=parent_tour_num_col, is_joint=is_joint
         )
 
     assert "mandatory_tour_frequency" in persons
@@ -426,6 +423,7 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
     # mandatory tours
     #####################
     mandatory_tours = set_tour_index(
+        state,
         tours[tours.tour_category == "mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -450,7 +448,9 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
         temp_point_persons.person_id, joint_tours.household_id
     )
 
-    joint_tours = set_tour_index(joint_tours, parent_tour_num_col=None, is_joint=True)
+    joint_tours = set_tour_index(
+        state, joint_tours, parent_tour_num_col=None, is_joint=True
+    )
     joint_tours["person_id"] = joint_tours["cache_point_person_id"]
     del joint_tours["cache_point_person_id"]
 
@@ -475,6 +475,7 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
     #####################
 
     non_mandatory_tours = set_tour_index(
+        state,
         tours[tours.tour_category == "non_mandatory"],
         parent_tour_num_col=None,
         is_joint=False,
@@ -523,7 +524,7 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
     )
 
     atwork_tours = set_tour_index(
-        atwork_tours, parent_tour_num_col="parent_tour_num", is_joint=False
+        state, atwork_tours, parent_tour_num_col="parent_tour_num", is_joint=False
     )
 
     del atwork_tours["parent_tour_num"]
@@ -565,7 +566,6 @@ def patch_tour_ids(persons, tours, joint_tour_participants):
 
 
 def infer_atwork_subtour_frequency(configs_dir, tours):
-
     # first column is 'atwork_subtour_frequency' nickname, remaining columns are trip type counts
     alts = pd.read_csv(
         os.path.join(configs_dir, "atwork_subtour_frequency_alternatives.csv"),
@@ -640,7 +640,7 @@ def infer_atwork_subtour_frequency(configs_dir, tours):
     return atwork_subtour_frequency
 
 
-def patch_trip_ids(tours, trips):
+def patch_trip_ids(state: workflow.State, tours, trips):
     """
     replace survey trip_ids with asim standard trip_id
     replace survey tour_id foreign key with asim standard tour_id
@@ -672,7 +672,7 @@ def patch_trip_ids(tours, trips):
             + 1
         )
 
-    cid.set_trip_index(trips)
+    cid.set_trip_index(state, trips)
 
     assert trips.index.name == ASIM_TRIP_ID
     trips = trips.reset_index().rename(columns={"trip_id": ASIM_TRIP_ID})
@@ -681,7 +681,6 @@ def patch_trip_ids(tours, trips):
 
 
 def infer_stop_frequency(configs_dir, tours, trips):
-
     # alt,out,in
     # 0out_0in,0,0
     # 0out_1in,0,1
@@ -707,7 +706,6 @@ def infer_stop_frequency(configs_dir, tours, trips):
 
 
 def read_tables(input_dir, tables):
-
     for table, info in tables.items():
         table = pd.read_csv(
             os.path.join(input_dir, info["file_name"]), index_col=info.get("index")
@@ -730,7 +728,6 @@ def read_tables(input_dir, tables):
 
 
 def check_controls(table_name, column_name):
-
     table = survey_tables[table_name].get("table")
     c_table = control_tables[table_name].get("table")
 
@@ -754,8 +751,7 @@ def check_controls(table_name, column_name):
     return True
 
 
-def infer(configs_dir, input_dir, output_dir):
-
+def infer(state: workflow.State, configs_dir, input_dir, output_dir):
     households, persons, tours, joint_tour_participants, trips = read_tables(
         input_dir, survey_tables
     )
@@ -801,7 +797,7 @@ def infer(configs_dir, input_dir, output_dir):
 
     # patch_tour_ids
     tours, joint_tour_participants = patch_tour_ids(
-        persons, tours, joint_tour_participants
+        state, persons, tours, joint_tour_participants
     )
     survey_tables["tours"]["table"] = tours
     survey_tables["joint_tour_participants"]["table"] = joint_tour_participants
@@ -864,4 +860,4 @@ output_dir = input_dir
 if apply_controls:
     read_tables(input_dir, control_tables)
 
-infer(configs_dir, input_dir, output_dir)
+infer(state, configs_dir, input_dir, output_dir)

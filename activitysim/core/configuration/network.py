@@ -1,4 +1,14 @@
-from .base import Any, PydanticBase, Union
+from __future__ import annotations
+
+from pathlib import Path
+from typing import Literal
+
+from activitysim.core.configuration.base import (
+    Any,
+    PydanticBase,
+    PydanticReadable,
+    Union,
+)
 
 
 class DigitalEncoding(PydanticBase):
@@ -137,13 +147,25 @@ class TAZ_Settings(PydanticBase):
     """
 
 
-class NetworkSettings(PydanticBase):
+class MazToMazSettings(PydanticBase, extra="forbid"):
+    tables: list[str]
+
+    max_blend_distance: dict[str, float] = None
+
+    blend_distance_skim_name: str = None
+    """The name of the skim table used to blend distances for MAZs."""
+
+
+class NetworkSettings(PydanticReadable, extra="forbid"):
     """
     Network level of service and skims settings
 
     The input for these settings is typically stored in one YAML file,
     usually called ``network_los.yaml``.
     """
+
+    name: str = None
+    """Name of this network, not used for anything?"""
 
     zone_system: int
     """Which zone system type is used.
@@ -153,14 +175,14 @@ class NetworkSettings(PydanticBase):
     * 3 - MAZ, TAZ, and TAP
     """
 
-    taz_skims: Union[str, TAZ_Settings] = None
+    taz_skims: Union[str, list[str], TAZ_Settings] = None
     """Instructions for how to load and pre-process skim matrices.
 
-    If given as a string, it is interpreted as the location for OMX file(s),
-    either as a single file or as a glob-matching pattern for multiple files.
-    The time period for the matrix must be represented at the end of the matrix
-    name and be seperated by a double_underscore (e.g. `BUS_IVT__AM` indicates base
-    skim BUS_IVT with a time period of AM.
+    If given as a string or a list of strings, it is interpreted as the location
+    for OMX file(s), either as a single file or as a glob-matching pattern for
+    multiple files. The time period for the matrix must be represented at the end
+    of the matrix name and be seperated by a double_underscore (e.g. `BUS_IVT__AM`
+    indicates base skim BUS_IVT with a time period of AM.
 
     Alternatively, this can be given as a nested dictionary defined via the
     TAZ_Settings class, which allows for ZARR transformation and pre-processing.
@@ -189,5 +211,65 @@ class NetworkSettings(PydanticBase):
     runs.
     """
 
-    cache_dir: str = None
+    network_cache_dir: str = None
     """alternate dir to read/write cache files (defaults to output_dir)"""
+
+    #### 2 ZONE ####
+
+    maz: str = None
+    """Filename for the MAZ data file.
+
+    This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes
+    """
+
+    maz_to_maz: MazToMazSettings = None
+    """Settings to manage maz-to-maz level of service in 2- and 3-zone models."""
+
+    #### 3 ZONE ####
+
+    tap: str = None
+    """Filename for the TAP data file.
+
+    This file should contain the MAZ ID, TAZ, and land use and other MAZ attributes
+    """
+
+    maz_to_tap: dict[str, Any] = None
+    """Settings to manage maz-to-tap level of service in 3-zone models."""
+
+    demographic_segments: Any = None
+
+    tap_skims: str | list[str] = None
+
+    tap_lines: str = None
+    """TAP lines filename."""
+
+    TVPB_SETTINGS: Any = None
+
+    rebuild_tvpb_cache: bool = True
+    """
+    rebuild and overwrite existing pre-computed TAP to TAP utilities cache
+    """
+
+    trace_tvpb_cache_as_csv: bool = False
+    """Write a CSV version of TVPB cache for tracing
+
+    Not currently implemented."""
+
+    skim_dict_factory: Literal[
+        "NumpyArraySkimFactory",
+        "MemMapSkimFactory",
+    ] = "NumpyArraySkimFactory"
+    """The skim dict factory to use.
+
+    The MemMapSkimFactory is strictly experimental.
+    """
+
+    source_file_paths: list[Path] = None
+    """
+    A list of source files from which these settings were loaded.
+
+    This value should not be set by the user within the YAML settings files,
+    instead it is populated as those files are loaded.  It is primarily
+    provided for debugging purposes, and does not actually affect the operation
+    of the model.
+    """

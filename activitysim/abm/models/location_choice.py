@@ -1,26 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 
 import numpy as np
 import pandas as pd
 
+from activitysim.abm.models.util import logsums as logsum
+from activitysim.abm.models.util import tour_destination
 from activitysim.abm.tables import shadow_pricing
-from activitysim.core import (
-    config,
-    expressions,
-    inject,
-    los,
-    pipeline,
-    simulate,
-    tracing,
-)
+from activitysim.core import estimation, expressions, los, simulate, tracing, workflow
 from activitysim.core.interaction_sample import interaction_sample
 from activitysim.core.interaction_sample_simulate import interaction_sample_simulate
-
-from .util import estimation
-from .util import logsums as logsum
-from .util import tour_destination
 
 # import multiprocessing
 
@@ -80,12 +72,19 @@ logger = logging.getLogger(__name__)
 ALT_LOGSUM = "mode_choice_logsum"
 
 
-def write_estimation_specs(estimator, model_settings, settings_file):
+def write_estimation_specs(
+    state: workflow.State,
+    estimator: estimation.Estimator,
+    model_settings,
+    settings_file,
+):
     """
     write sample_spec, spec, and coefficients to estimation data bundle
 
     Parameters
     ----------
+    state : workflow.State
+    estimator : estimation.Estimator
     model_settings
     settings_file
     """
@@ -96,14 +95,13 @@ def write_estimation_specs(estimator, model_settings, settings_file):
     estimator.write_coefficients(model_settings=model_settings)
 
     estimator.write_table(
-        inject.get_injectable("size_terms"), "size_terms", append=False
+        state.get_injectable("size_terms"), "size_terms", append=False
     )
-    estimator.write_table(
-        inject.get_table("land_use").to_frame(), "landuse", append=False
-    )
+    estimator.write_table(state.get_dataframe("land_use"), "landuse", append=False)
 
 
 def _location_sample(
+    state: workflow.State,
     segment_name,
     choosers,
     alternatives,
@@ -138,7 +136,11 @@ def _location_sample(
     logger.info("Running %s with %d persons" % (trace_label, len(choosers.index)))
 
     sample_size = model_settings["SAMPLE_SIZE"]
-    if config.setting("disable_destination_sampling", False) or (
+
+    if "sched" in trace_label:
+        print()
+
+    if state.settings.disable_destination_sampling or (
         estimator and estimator.want_unsampled_alternatives
     ):
         # FIXME interaction_sample will return unsampled complete alternatives with probs and pick_count
@@ -155,10 +157,11 @@ def _location_sample(
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
     }
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.get("CONSTANTS", {})
     locals_d.update(constants)
 
     spec = simulate.spec_for_segment(
+        state,
         model_settings,
         spec_id="SAMPLE_SPEC",
         segment_name=segment_name,
@@ -166,9 +169,10 @@ def _location_sample(
     )
 
     # here since presumably we want this when called for either sample or presample
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample(
+        state,
         choosers,
         alternatives,
         spec=spec,
@@ -187,6 +191,7 @@ def _location_sample(
 
 
 def location_sample(
+    state,
     segment_name,
     persons_merged,
     network_los,
@@ -197,7 +202,6 @@ def location_sample(
     chunk_tag,
     trace_label,
 ):
-
     # FIXME - MEMORY HACK - only include columns actually used in spec
     chooser_columns = model_settings["SIMULATE_CHOOSER_COLUMNS"]
     choosers = persons_merged[chooser_columns]
@@ -212,6 +216,7 @@ def location_sample(
     alt_dest_col_name = model_settings["ALT_DEST_COL_NAME"]
 
     choices = _location_sample(
+        state,
         segment_name,
         choosers,
         dest_size_terms,
@@ -233,7 +238,9 @@ HOME_MAZ = "home_zone_id"
 DEST_MAZ = "dest_MAZ"
 
 
-def aggregate_size_terms(dest_size_terms, network_los, model_settings):
+def aggregate_size_terms(
+    state: workflow.State, dest_size_terms, network_los, model_settings
+):
     #
     # aggregate MAZ_size_terms to TAZ_size_terms
     #
@@ -269,7 +276,7 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
     for c in weighted_average_cols:
         TAZ_size_terms[c] /= TAZ_size_terms["size_term"]  # weighted average
 
-    spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+    spc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
     if spc.use_shadow_pricing and (
         spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation"
     ):
@@ -316,6 +323,7 @@ def aggregate_size_terms(dest_size_terms, network_los, model_settings):
 
 
 def location_presample(
+    state,
     segment_name,
     persons_merged,
     network_los,
@@ -326,7 +334,6 @@ def location_presample(
     chunk_tag,
     trace_label,
 ):
-
     trace_label = tracing.extend_trace_label(trace_label, "presample")
 
     logger.info(f"{trace_label} location_presample")
@@ -335,7 +342,7 @@ def location_presample(
     assert DEST_TAZ != alt_dest_col_name
 
     MAZ_size_terms, TAZ_size_terms = aggregate_size_terms(
-        dest_size_terms, network_los, model_settings
+        state, dest_size_terms, network_los, model_settings
     )
 
     # convert MAZ zone_id to 'TAZ' in choosers (persons_merged)
@@ -359,6 +366,7 @@ def location_presample(
     skims = skim_dict.wrap(HOME_TAZ, DEST_TAZ)
 
     taz_sample = _location_sample(
+        state,
         segment_name,
         choosers,
         TAZ_size_terms,
@@ -382,7 +390,7 @@ def location_presample(
 
     # choose a MAZ for each DEST_TAZ choice, choice probability based on MAZ size_term fraction of TAZ total
     maz_choices = tour_destination.choose_MAZ_for_TAZ(
-        taz_sample, MAZ_size_terms, trace_label
+        state, taz_sample, MAZ_size_terms, trace_label
     )
 
     assert DEST_MAZ in maz_choices
@@ -392,6 +400,7 @@ def location_presample(
 
 
 def run_location_sample(
+    state: workflow.State,
     segment_name,
     persons_merged,
     network_los,
@@ -430,7 +439,7 @@ def run_location_sample(
 
     # by default, enable presampling for multizone systems, unless they disable it in settings file
     pre_sample_taz = not (network_los.zone_system == los.ONE_ZONE)
-    if pre_sample_taz and not config.setting("want_dest_choice_presampling", True):
+    if pre_sample_taz and not state.settings.want_dest_choice_presampling:
         pre_sample_taz = False
         logger.info(
             f"Disabled destination zone presampling for {trace_label} "
@@ -438,13 +447,13 @@ def run_location_sample(
         )
 
     if pre_sample_taz:
-
         logger.info(
             "Running %s location_presample with %d persons"
             % (trace_label, len(persons_merged))
         )
 
         choices = location_presample(
+            state,
             segment_name,
             persons_merged,
             network_los,
@@ -457,8 +466,8 @@ def run_location_sample(
         )
 
     else:
-
         choices = location_sample(
+            state,
             segment_name,
             persons_merged,
             network_los,
@@ -474,6 +483,7 @@ def run_location_sample(
 
 
 def run_location_logsums(
+    state,
     segment_name,
     persons_merged_df,
     network_los,
@@ -506,7 +516,9 @@ def run_location_logsums(
 
     assert not location_sample_df.empty
 
-    logsum_settings = config.read_model_settings(model_settings["LOGSUM_SETTINGS"])
+    logsum_settings = state.filesystem.read_model_settings(
+        model_settings["LOGSUM_SETTINGS"]
+    )
 
     # FIXME - MEMORY HACK - only include columns actually used in spec
     persons_merged_df = logsum.filter_chooser_columns(
@@ -524,6 +536,7 @@ def run_location_logsums(
         tour_purpose = tour_purpose[segment_name]
 
     logsums = logsum.compute_logsums(
+        state,
         choosers,
         tour_purpose,
         logsum_settings,
@@ -544,6 +557,7 @@ def run_location_logsums(
 
 
 def run_location_simulate(
+    state: workflow.State,
     segment_name,
     persons_merged,
     location_sample_df,
@@ -602,7 +616,7 @@ def run_location_simulate(
         "dest_col_name": skims.dest_key,  # added for sharrow flows
         "timeframe": "timeless",
     }
-    constants = config.get_model_constants(model_settings)
+    constants = model_settings.get("CONSTANTS", {})
     if constants is not None:
         locals_d.update(constants)
 
@@ -613,12 +627,17 @@ def run_location_simulate(
         estimator.write_interaction_sample_alternatives(alternatives)
 
     spec = simulate.spec_for_segment(
-        model_settings, spec_id="SPEC", segment_name=segment_name, estimator=estimator
+        state,
+        model_settings,
+        spec_id="SPEC",
+        segment_name=segment_name,
+        estimator=estimator,
     )
 
-    log_alt_losers = config.setting("log_alt_losers", False)
+    log_alt_losers = state.settings.log_alt_losers
 
     choices = interaction_sample_simulate(
+        state,
         choosers,
         alternatives,
         spec=spec,
@@ -646,6 +665,7 @@ def run_location_simulate(
 
 
 def run_location_choice(
+    state: workflow.State,
     persons_merged_df,
     network_los,
     shadow_price_calculator,
@@ -655,7 +675,6 @@ def run_location_choice(
     model_settings,
     chunk_size,
     chunk_tag,
-    trace_hh_id,
     trace_label,
     skip_choice=False,
 ):
@@ -676,7 +695,6 @@ def run_location_choice(
     estimator: Estimator object
     model_settings : dict
     chunk_size : int
-    trace_hh_id : int
     trace_label : str
 
     Returns
@@ -696,7 +714,6 @@ def run_location_choice(
     choices_list = []
     sample_list = []
     for segment_name, segment_id in segment_ids.items():
-
         choosers = persons_merged_df[
             persons_merged_df[chooser_segment_column] == segment_id
         ]
@@ -714,6 +731,7 @@ def run_location_choice(
 
         # - location_sample
         location_sample_df = run_location_sample(
+            state,
             segment_name,
             choosers,
             network_los,
@@ -729,6 +747,7 @@ def run_location_choice(
 
         # - location_logsums
         location_sample_df = run_location_logsums(
+            state,
             segment_name,
             choosers,
             network_los,
@@ -743,6 +762,7 @@ def run_location_choice(
 
         # - location_simulate
         choices_df = run_location_simulate(
+            state,
             segment_name,
             choosers,
             location_sample_df,
@@ -760,11 +780,11 @@ def run_location_choice(
         )
 
         if estimator:
-            if trace_hh_id:
+            if state.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.modeled_choices"
                 )
-                tracing.trace_df(choices_df, label=estimation_trace_label)
+                state.tracing.trace_df(choices_df, label=estimation_trace_label)
 
             estimator.write_choices(choices_df.choice)
             choices_df.choice = estimator.get_survey_values(
@@ -802,11 +822,11 @@ def run_location_choice(
                     f"{trace_label} segment {segment_name} estimation: override logsums"
                 )
 
-            if trace_hh_id:
+            if state.settings.trace_hh_id:
                 estimation_trace_label = tracing.extend_trace_label(
                     trace_label, f"estimation.{segment_name}.survey_choices"
                 )
-                tracing.trace_df(choices_df, estimation_trace_label)
+                state.tracing.trace_df(choices_df, estimation_trace_label)
 
         choices_list.append(choices_df)
 
@@ -837,6 +857,7 @@ def run_location_choice(
 
 
 def iterate_location_choice(
+    state: workflow.State,
     model_settings,
     persons_merged,
     persons,
@@ -844,8 +865,7 @@ def iterate_location_choice(
     network_los,
     estimator,
     chunk_size,
-    trace_hh_id,
-    locutor,
+    locutor: bool,
     trace_label,
 ):
     """
@@ -861,7 +881,6 @@ def iterate_location_choice(
     persons : injected table
     network_los : los.Network_LOS
     chunk_size : int
-    trace_hh_id : int
     locutor : bool
         whether this process is the privileged logger of shadow_pricing when multiprocessing
     trace_label : str
@@ -883,11 +902,10 @@ def iterate_location_choice(
 
     sample_table_name = model_settings.get("DEST_CHOICE_SAMPLE_TABLE_NAME")
     want_sample_table = (
-        config.setting("want_dest_choice_sample_tables")
-        and sample_table_name is not None
+        state.settings.want_dest_choice_sample_tables and sample_table_name is not None
     )
 
-    persons_merged_df = persons_merged.to_frame()
+    persons_merged_df = persons_merged
 
     persons_merged_df = persons_merged_df[persons_merged[chooser_filter_column]]
 
@@ -903,20 +921,21 @@ def iterate_location_choice(
         chooser_segment_column in persons_merged_df
     ), f"CHOOSER_SEGMENT_COLUMN '{chooser_segment_column}' not in persons_merged table."
 
-    spc = shadow_pricing.load_shadow_price_calculator(model_settings)
+    spc = shadow_pricing.load_shadow_price_calculator(state, model_settings)
     max_iterations = spc.max_iterations
     assert not (spc.use_shadow_pricing and estimator)
 
     logger.debug("%s max_iterations: %s" % (trace_label, max_iterations))
 
-    choices_df = None  # initialize to None, will be populated in first iteration
+    save_sample_df = (
+        choices_df
+    ) = None  # initialize to None, will be populated in first iteration
 
     for iteration in range(1, max_iterations + 1):
-
         persons_merged_df_ = persons_merged_df.copy()
 
         if spc.use_shadow_pricing and iteration > 1:
-            spc.update_shadow_prices()
+            spc.update_shadow_prices(state)
 
             if spc.shadow_settings["SHADOW_PRICE_METHOD"] == "simulation":
                 # filter from the sampled persons
@@ -926,6 +945,7 @@ def iterate_location_choice(
                 persons_merged_df_ = persons_merged_df_.sort_index()
 
         choices_df_, save_sample_df = run_location_choice(
+            state,
             persons_merged_df_,
             network_los,
             shadow_price_calculator=spc,
@@ -935,7 +955,6 @@ def iterate_location_choice(
             model_settings=model_settings,
             chunk_size=chunk_size,
             chunk_tag=chunk_tag,
-            trace_hh_id=trace_hh_id,
             trace_label=tracing.extend_trace_label(trace_label, "i%s" % iteration),
         )
 
@@ -974,9 +993,9 @@ def iterate_location_choice(
         )
 
         if locutor:
-            spc.write_trace_files(iteration)
+            spc.write_trace_files(state, iteration)
 
-        if spc.use_shadow_pricing and spc.check_fit(iteration):
+        if spc.use_shadow_pricing and spc.check_fit(state, iteration):
             logging.info(
                 "%s converged after iteration %s"
                 % (
@@ -989,11 +1008,11 @@ def iterate_location_choice(
     # - shadow price table
     if locutor:
         if spc.use_shadow_pricing and "SHADOW_PRICE_TABLE" in model_settings:
-            inject.add_table(model_settings["SHADOW_PRICE_TABLE"], spc.shadow_prices)
+            state.add_table(model_settings["SHADOW_PRICE_TABLE"], spc.shadow_prices)
         if "MODELED_SIZE_TABLE" in model_settings:
-            inject.add_table(model_settings["MODELED_SIZE_TABLE"], spc.modeled_size)
+            state.add_table(model_settings["MODELED_SIZE_TABLE"], spc.modeled_size)
 
-    persons_df = persons.to_frame()
+    persons_df = persons
 
     # add the choice values to the dest_choice_column in persons dataframe
     # We only chose school locations for the subset of persons who go to school
@@ -1014,38 +1033,39 @@ def iterate_location_choice(
         # might be None for tiny samples even if sample_table_name was specified
         assert len(save_sample_df.index.get_level_values(0).unique()) == len(choices_df)
         # lest they try to put school and workplace samples into the same table
-        if pipeline.is_table(sample_table_name):
+        if state.is_table(sample_table_name):
             raise RuntimeError(
                 "dest choice sample table %s already exists" % sample_table_name
             )
-        pipeline.extend_table(sample_table_name, save_sample_df)
+        state.extend_table(sample_table_name, save_sample_df)
 
     # - annotate persons table
     if "annotate_persons" in model_settings:
         expressions.assign_columns(
+            state,
             df=persons_df,
             model_settings=model_settings.get("annotate_persons"),
             trace_label=tracing.extend_trace_label(trace_label, "annotate_persons"),
         )
 
-        pipeline.replace_table("persons", persons_df)
+        state.add_table("persons", persons_df)
 
-        if trace_hh_id:
-            tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
+        if state.settings.trace_hh_id:
+            state.tracing.trace_df(persons_df, label=trace_label, warn_if_empty=True)
 
     # - annotate households table
     if "annotate_households" in model_settings:
-
-        households_df = households.to_frame()
+        households_df = households
         expressions.assign_columns(
+            state,
             df=households_df,
             model_settings=model_settings.get("annotate_households"),
             trace_label=tracing.extend_trace_label(trace_label, "annotate_households"),
         )
-        pipeline.replace_table("households", households_df)
+        state.add_table("households", households_df)
 
-        if trace_hh_id:
-            tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
+        if state.settings.trace_hh_id:
+            state.tracing.trace_df(households_df, label=trace_label, warn_if_empty=True)
 
     if logsum_column_name:
         tracing.print_summary(
@@ -1055,9 +1075,14 @@ def iterate_location_choice(
     return persons_df
 
 
-@inject.step()
+@workflow.step
 def workplace_location(
-    persons_merged, persons, households, network_los, chunk_size, trace_hh_id, locutor
+    state: workflow.State,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    network_los: los.Network_LOS,
+    locutor: bool,
 ):
     """
     workplace location choice model
@@ -1066,11 +1091,13 @@ def workplace_location(
     """
 
     trace_label = "workplace_location"
-    model_settings = config.read_model_settings("workplace_location.yaml")
+    model_settings = state.filesystem.read_model_settings("workplace_location.yaml")
 
-    estimator = estimation.manager.begin_estimation("workplace_location")
+    estimator = estimation.manager.begin_estimation(state, "workplace_location")
     if estimator:
-        write_estimation_specs(estimator, model_settings, "workplace_location.yaml")
+        write_estimation_specs(
+            state, estimator, model_settings, "workplace_location.yaml"
+        )
 
     # FIXME - debugging code to test multiprocessing failure handling
     # process_name = multiprocessing.current_process().name
@@ -1078,18 +1105,18 @@ def workplace_location(
     #     raise RuntimeError(f"fake fail {process_name}")
 
     # disable locutor for benchmarking
-    if config.setting("benchmarking", False):
+    if state.settings.benchmarking:
         locutor = False
 
     iterate_location_choice(
+        state,
         model_settings,
         persons_merged,
         persons,
         households,
         network_los,
         estimator,
-        chunk_size,
-        trace_hh_id,
+        state.settings.chunk_size,
         locutor,
         trace_label,
     )
@@ -1098,9 +1125,14 @@ def workplace_location(
         estimator.end_estimation()
 
 
-@inject.step()
+@workflow.step
 def school_location(
-    persons_merged, persons, households, network_los, chunk_size, trace_hh_id, locutor
+    state: workflow.State,
+    persons_merged: pd.DataFrame,
+    persons: pd.DataFrame,
+    households: pd.DataFrame,
+    network_los: los.Network_LOS,
+    locutor: bool,
 ):
     """
     School location choice model
@@ -1109,25 +1141,25 @@ def school_location(
     """
 
     trace_label = "school_location"
-    model_settings = config.read_model_settings("school_location.yaml")
+    model_settings = state.filesystem.read_model_settings("school_location.yaml")
 
-    estimator = estimation.manager.begin_estimation("school_location")
+    estimator = estimation.manager.begin_estimation(state, "school_location")
     if estimator:
-        write_estimation_specs(estimator, model_settings, "school_location.yaml")
+        write_estimation_specs(state, estimator, model_settings, "school_location.yaml")
 
     # disable locutor for benchmarking
-    if config.setting("benchmarking", False):
+    if state.settings.benchmarking:
         locutor = False
 
     iterate_location_choice(
+        state,
         model_settings,
         persons_merged,
         persons,
         households,
         network_los,
         estimator,
-        chunk_size,
-        trace_hh_id,
+        state.settings.chunk_size,
         locutor,
         trace_label,
     )

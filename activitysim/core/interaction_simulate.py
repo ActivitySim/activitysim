@@ -1,15 +1,18 @@
 # ActivitySim
 # See full license in LICENSE.txt.
+from __future__ import annotations
+
 import logging
 import time
 from builtins import zip
 from collections import OrderedDict
 from datetime import timedelta
+from typing import Mapping
 
 import numpy as np
 import pandas as pd
 
-from . import chunk, config, logit, simulate, tracing
+from . import chunk, config, logit, simulate, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +22,7 @@ ALT_CHOOSER_ID = "_chooser_id"
 
 
 def eval_interaction_utilities(
+    state,
     spec,
     df,
     locals_d,
@@ -72,7 +76,7 @@ def eval_interaction_utilities(
     trace_label = tracing.extend_trace_label(trace_label, "eval_interaction_utils")
     logger.info("Running eval_interaction_utilities on %s rows" % df.shape[0])
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = state.settings.sharrow
 
     if locals_d is not None and locals_d.get("_sharrow_skip", False):
         sharrow_enabled = False
@@ -84,7 +88,7 @@ def eval_interaction_utilities(
 
     trace_eval_results = None
 
-    with chunk.chunk_log(trace_label):
+    with chunk.chunk_log(state, trace_label) as chunk_sizer:
 
         assert len(spec.columns) == 1
 
@@ -170,6 +174,7 @@ def eval_interaction_utilities(
             timelogger.mark("sharrow preamble", True, logger, trace_label)
 
             sh_util, sh_flow = apply_flow(
+                state,
                 spec_sh,
                 df,
                 locals_d,
@@ -178,12 +183,12 @@ def eval_interaction_utilities(
                 zone_layer=zone_layer,
             )
             if sh_util is not None:
-                chunk.log_df(trace_label, "sh_util", sh_util)
+                chunk_sizer.log_df(trace_label, "sh_util", sh_util)
                 utilities = pd.DataFrame(
                     {"utility": sh_util.reshape(-1)},
                     index=df.index if extra_data is None else None,
                 )
-                chunk.log_df(trace_label, "sh_util", None)  # hand off to caller
+                chunk_sizer.log_df(trace_label, "sh_util", None)  # hand off to caller
 
             timelogger.mark("sharrow flow", True, logger, trace_label)
         else:
@@ -211,14 +216,14 @@ def eval_interaction_utilities(
             else:
                 trace_eval_results = None
 
-            check_for_variability = config.setting("check_for_variability")
+            check_for_variability = state.settings.check_for_variability
 
             # need to be able to identify which variables causes an error, which keeps
             # this from being expressed more parsimoniously
 
             utilities = pd.DataFrame({"utility": 0.0}, index=df.index)
 
-            chunk.log_df(trace_label, "eval.utilities", utilities)
+            chunk_sizer.log_df(trace_label, "eval.utilities", utilities)
 
             no_variability = has_missing_vals = 0
 
@@ -262,7 +267,7 @@ def eval_interaction_utilities(
 
                         # update locals to allows us to ref previously assigned targets
                         locals_d[target] = v
-                        chunk.log_df(
+                        chunk_sizer.log_df(
                             trace_label, target, v
                         )  # track temps stored in locals
 
@@ -342,7 +347,7 @@ def eval_interaction_utilities(
                         trace_eval_results[k] = v[trace_rows] * coefficient
 
                     del v
-                    # chunk.log_df(trace_label, 'v', None)
+                    # chunk_sizer.log_df(trace_label, 'v', None)
 
                 except Exception as err:
                     logger.exception(
@@ -379,11 +384,15 @@ def eval_interaction_utilities(
                 trace_eval_results = pd.concat(
                     [df[trace_rows], trace_eval_results], axis=1
                 )
-                chunk.log_df(trace_label, "eval.trace_eval_results", trace_eval_results)
+                chunk_sizer.log_df(
+                    trace_label, "eval.trace_eval_results", trace_eval_results
+                )
 
-            chunk.log_df(trace_label, "v", None)
-            chunk.log_df(trace_label, "eval.utilities", None)  # out of out hands...
-            chunk.log_df(trace_label, "eval.trace_eval_results", None)
+            chunk_sizer.log_df(trace_label, "v", None)
+            chunk_sizer.log_df(
+                trace_label, "eval.utilities", None
+            )  # out of out hands...
+            chunk_sizer.log_df(trace_label, "eval.trace_eval_results", None)
 
             timelogger.mark("regular interact flow", True, logger, trace_label)
         else:
@@ -441,7 +450,9 @@ def eval_interaction_utilities(
                     trace_eval_results.index = df[trace_rows].index
                 except ValueError:
                     pass
-                chunk.log_df(trace_label, "eval.trace_eval_results", trace_eval_results)
+                chunk_sizer.log_df(
+                    trace_label, "eval.trace_eval_results", trace_eval_results
+                )
             else:
                 # in test mode, trace from non-sharrow exists
                 trace_eval_results = pd.concat(
@@ -456,7 +467,9 @@ def eval_interaction_utilities(
                     axis=1,
                 )
                 trace_eval_results.index = df[trace_rows].index
-                chunk.log_df(trace_label, "eval.trace_eval_results", trace_eval_results)
+                chunk_sizer.log_df(
+                    trace_label, "eval.trace_eval_results", trace_eval_results
+                )
 
             # sh_utility_fat1 = np.dot(sh_utility_fat, spec.values)
             # sh_utility_fat2 = sh_flow.dot(
@@ -572,16 +585,18 @@ def eval_interaction_utilities(
 
 
 def _interaction_simulate(
-    choosers,
-    alternatives,
-    spec,
+    state: workflow.State,
+    choosers: pd.DataFrame,
+    alternatives: pd.DataFrame,
+    spec: pd.DataFrame,
     skims=None,
-    locals_d=None,
+    locals_d: Mapping = None,
     sample_size=None,
     trace_label=None,
     trace_choice_name=None,
     log_alt_losers=False,
     estimator=None,
+    chunk_sizer=None,
 ):
     """
     Run a MNL simulation in the situation in which alternatives must
@@ -632,11 +647,13 @@ def _interaction_simulate(
     """
 
     trace_label = tracing.extend_trace_label(trace_label, "interaction_simulate")
-    have_trace_targets = tracing.has_trace_targets(choosers)
+    have_trace_targets = state.tracing.has_trace_targets(choosers)
 
     if have_trace_targets:
-        tracing.trace_df(choosers, tracing.extend_trace_label(trace_label, "choosers"))
-        tracing.trace_df(
+        state.tracing.trace_df(
+            choosers, tracing.extend_trace_label(trace_label, "choosers")
+        )
+        state.tracing.trace_df(
             alternatives,
             tracing.extend_trace_label(trace_label, "alternatives"),
             slicer="NONE",
@@ -667,7 +684,7 @@ def _interaction_simulate(
     alt_index_id = estimator.get_alt_id() if estimator else None
     chooser_index_id = ALT_CHOOSER_ID if log_alt_losers else None
 
-    sharrow_enabled = config.setting("sharrow", False)
+    sharrow_enabled = state.settings.sharrow
     interaction_utilities = None
 
     if locals_d is not None and locals_d.get("_sharrow_skip", False):
@@ -686,6 +703,7 @@ def _interaction_simulate(
         trace_rows = trace_ids = None
 
         interaction_utilities, trace_eval_results = eval_interaction_utilities(
+            state,
             spec,
             choosers,
             locals_d,
@@ -699,7 +717,7 @@ def _interaction_simulate(
         # set this index here as this is how later code extracts the chosen alt id's
         interaction_utilities.index = np.tile(alternatives.index, len(choosers))
 
-        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+        chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
         # mem.trace_memory_info(f"{trace_label}.init interaction_utilities sh", force_garbage_collect=True)
         if sharrow_enabled == "test" or True:
             interaction_utilities_sh, trace_eval_results_sh = (
@@ -719,13 +737,14 @@ def _interaction_simulate(
     ):
 
         interaction_df = logit.interaction_dataset(
+            state,
             choosers,
             alternatives,
             sample_size,
             alt_index_id=alt_index_id,
             chooser_index_id=chooser_index_id,
         )
-        chunk.log_df(trace_label, "interaction_df", interaction_df)
+        chunk_sizer.log_df(trace_label, "interaction_df", interaction_df)
 
         if skims is not None:
             simulate.set_skim_wrapper_targets(interaction_df, skims)
@@ -736,11 +755,11 @@ def _interaction_simulate(
         # utilities has utility value for element in the cross product of choosers and alternatives
         # interaction_utilities is a df with one utility column and one row per row in model_design
         if have_trace_targets:
-            trace_rows, trace_ids = tracing.interaction_trace_rows(
+            trace_rows, trace_ids = state.tracing.interaction_trace_rows(
                 interaction_df, choosers, sample_size
             )
 
-            tracing.trace_df(
+            state.tracing.trace_df(
                 interaction_df[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_df"),
                 slicer="NONE",
@@ -750,6 +769,7 @@ def _interaction_simulate(
             trace_rows = trace_ids = None
 
         interaction_utilities, trace_eval_results = eval_interaction_utilities(
+            state,
             spec,
             interaction_df,
             locals_d,
@@ -758,23 +778,23 @@ def _interaction_simulate(
             estimator=estimator,
             log_alt_losers=log_alt_losers,
         )
-        chunk.log_df(trace_label, "interaction_utilities", interaction_utilities)
+        chunk_sizer.log_df(trace_label, "interaction_utilities", interaction_utilities)
         # mem.trace_memory_info(f"{trace_label}.init interaction_utilities", force_garbage_collect=True)
 
         # print(f"interaction_df {interaction_df.shape}")
         # print(f"interaction_utilities {interaction_utilities.shape}")
 
         del interaction_df
-        chunk.log_df(trace_label, "interaction_df", None)
+        chunk_sizer.log_df(trace_label, "interaction_df", None)
 
         if have_trace_targets:
-            tracing.trace_interaction_eval_results(
+            state.tracing.trace_interaction_eval_results(
                 trace_eval_results,
                 trace_ids,
                 tracing.extend_trace_label(trace_label, "eval"),
             )
 
-            tracing.trace_df(
+            state.tracing.trace_df(
                 interaction_utilities[trace_rows],
                 tracing.extend_trace_label(trace_label, "interaction_utils"),
                 slicer="NONE",
@@ -787,29 +807,29 @@ def _interaction_simulate(
         interaction_utilities.values.reshape(len(choosers), sample_size),
         index=choosers.index,
     )
-    chunk.log_df(trace_label, "utilities", utilities)
+    chunk_sizer.log_df(trace_label, "utilities", utilities)
 
     if have_trace_targets:
-        tracing.trace_df(
+        state.tracing.trace_df(
             utilities,
             tracing.extend_trace_label(trace_label, "utils"),
             column_labels=["alternative", "utility"],
         )
 
-    tracing.dump_df(DUMP, utilities, trace_label, "utilities")
+    state.tracing.dump_df(DUMP, utilities, trace_label, "utilities")
 
     # convert to probabilities (utilities exponentiated and normalized to probs)
     # probs is same shape as utilities, one row per chooser and one column for alternative
     probs = logit.utils_to_probs(
-        utilities, trace_label=trace_label, trace_choosers=choosers
+        state, utilities, trace_label=trace_label, trace_choosers=choosers
     )
-    chunk.log_df(trace_label, "probs", probs)
+    chunk_sizer.log_df(trace_label, "probs", probs)
 
     del utilities
-    chunk.log_df(trace_label, "utilities", None)
+    chunk_sizer.log_df(trace_label, "utilities", None)
 
     if have_trace_targets:
-        tracing.trace_df(
+        state.tracing.trace_df(
             probs,
             tracing.extend_trace_label(trace_label, "probs"),
             column_labels=["alternative", "probability"],
@@ -819,10 +839,10 @@ def _interaction_simulate(
     # positions is series with the chosen alternative represented as a column index in probs
     # which is an integer between zero and num alternatives in the alternative sample
     positions, rands = logit.make_choices(
-        probs, trace_label=trace_label, trace_choosers=choosers
+        state, probs, trace_label=trace_label, trace_choosers=choosers
     )
-    chunk.log_df(trace_label, "positions", positions)
-    chunk.log_df(trace_label, "rands", rands)
+    chunk_sizer.log_df(trace_label, "positions", positions)
+    chunk_sizer.log_df(trace_label, "rands", rands)
 
     # need to get from an integer offset into the alternative sample to the alternative index
     # that is, we want the index value of the row that is offset by <position> rows into the
@@ -834,15 +854,15 @@ def _interaction_simulate(
 
     # create a series with index from choosers and the index of the chosen alternative
     choices = pd.Series(choices, index=choosers.index)
-    chunk.log_df(trace_label, "choices", choices)
+    chunk_sizer.log_df(trace_label, "choices", choices)
 
     if have_trace_targets:
-        tracing.trace_df(
+        state.tracing.trace_df(
             choices,
             tracing.extend_trace_label(trace_label, "choices"),
             columns=[None, trace_choice_name],
         )
-        tracing.trace_df(
+        state.tracing.trace_df(
             rands,
             tracing.extend_trace_label(trace_label, "rands"),
             columns=[None, "rand"],
@@ -852,6 +872,7 @@ def _interaction_simulate(
 
 
 def interaction_simulate(
+    state,
     choosers,
     alternatives,
     spec,
@@ -919,11 +940,15 @@ def interaction_simulate(
     assert len(choosers) > 0
 
     result_list = []
-    for i, chooser_chunk, chunk_trace_label in chunk.adaptive_chunked_choosers(
-        choosers, chunk_size, trace_label
-    ):
+    for (
+        i,
+        chooser_chunk,
+        chunk_trace_label,
+        chunk_sizer,
+    ) in chunk.adaptive_chunked_choosers(state, choosers, trace_label):
 
         choices = _interaction_simulate(
+            state,
             chooser_chunk,
             alternatives,
             spec,
@@ -934,11 +959,12 @@ def interaction_simulate(
             trace_choice_name=trace_choice_name,
             log_alt_losers=log_alt_losers,
             estimator=estimator,
+            chunk_sizer=chunk_sizer,
         )
 
         result_list.append(choices)
 
-        chunk.log_df(trace_label, "result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

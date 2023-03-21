@@ -550,34 +550,36 @@ class Checkpoints(StateAccessor):
         ----------
         checkpoint_name : str
         """
-        timestamp = dt.datetime.now()
-
-        logger.debug("add_checkpoint %s timestamp %s" % (checkpoint_name, timestamp))
-
-        for table_name in self._obj.uncheckpointed_table_names():
-            df = self._obj.get_dataframe(table_name)
-            logger.debug(f"add_checkpoint {checkpoint_name!r} table {table_name!r}")
-            self._write_df(df, table_name, checkpoint_name)
-
-            # remember which checkpoint it was last written
-            self.last_checkpoint[table_name] = checkpoint_name
-            self._obj.existing_table_status[table_name] = False
-
-        self.last_checkpoint[CHECKPOINT_NAME] = checkpoint_name
-        self.last_checkpoint[TIMESTAMP] = timestamp
-
-        # append to the array of checkpoint history
-        self.checkpoints.append(self.last_checkpoint.copy())
-
-        # create a pandas dataframe of the checkpoint history, one row per checkpoint
-        checkpoints = pd.DataFrame(self.checkpoints)
-
-        # convert empty values to str so PyTables doesn't pickle object types
-        for c in checkpoints.columns:
-            checkpoints[c] = checkpoints[c].fillna("")
-
-        # write it to the store, overwriting any previous version (no way to simply extend)
-        self._write_df(checkpoints, CHECKPOINT_TABLE_NAME)
+        self._obj.store.make_checkpoint(checkpoint_name)
+        #
+        # timestamp = dt.datetime.now()
+        #
+        # logger.debug("add_checkpoint %s timestamp %s" % (checkpoint_name, timestamp))
+        #
+        # for table_name in self._obj.uncheckpointed_table_names():
+        #     df = self._obj.get_dataframe(table_name)
+        #     logger.debug(f"add_checkpoint {checkpoint_name!r} table {table_name!r}")
+        #     self._write_df(df, table_name, checkpoint_name)
+        #
+        #     # remember which checkpoint it was last written
+        #     self.last_checkpoint[table_name] = checkpoint_name
+        #     self._obj.existing_table_status[table_name] = False
+        #
+        # self.last_checkpoint[CHECKPOINT_NAME] = checkpoint_name
+        # self.last_checkpoint[TIMESTAMP] = timestamp
+        #
+        # # append to the array of checkpoint history
+        # self.checkpoints.append(self.last_checkpoint.copy())
+        #
+        # # create a pandas dataframe of the checkpoint history, one row per checkpoint
+        # checkpoints = pd.DataFrame(self.checkpoints)
+        #
+        # # convert empty values to str so PyTables doesn't pickle object types
+        # for c in checkpoints.columns:
+        #     checkpoints[c] = checkpoints[c].fillna("")
+        #
+        # # write it to the store, overwriting any previous version (no way to simply extend)
+        # self._write_df(checkpoints, CHECKPOINT_TABLE_NAME)
 
     def _read_df(
         self, table_name, checkpoint_name=None, store: GenericCheckpointStore = None

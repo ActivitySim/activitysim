@@ -153,6 +153,19 @@ class HdfStore(CheckpointStore):
                 store.put(key, df, "table", complib=self.complib)
             store.flush()
 
+    def list_checkpoint_names(self) -> list[str]:
+        """Get a list of all checkpoint names in this store."""
+        if not self.checkpoints:
+            checkpoints = self.read_dataframe(CHECKPOINT_TABLE_NAME, None)
+            checkpoints = checkpoints.to_dict(orient="records")
+            # drop tables with empty names
+            for checkpoint in checkpoints:
+                for key in list(checkpoint.keys()):
+                    if key not in NON_TABLE_COLUMNS and not checkpoint[key]:
+                        del checkpoint[key]
+            self.checkpoints = checkpoints
+        return [i["checkpoint_name"] for i in self.checkpoints]
+
     def make_checkpoint(self, checkpoint_name: str, overwrite: bool = True) -> None:
         if self.is_readonly:
             raise ReadOnlyError

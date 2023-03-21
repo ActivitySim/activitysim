@@ -68,10 +68,12 @@ def test_datasstore_checkpointing(tmp_path: Path, person_dataset, storage_format
     tm = new_store(tmp_path, storage_format=storage_format)
     tm["persons"] = person_dataset
     tm.make_checkpoint("init_persons")
+    assert tm.list_checkpoint_names() == ["init_persons"]
 
     person_dataset["DoubleAge"] = person_dataset["Age"] * 2
     tm.add_data("persons", person_dataset["DoubleAge"])
     tm.make_checkpoint("annot_persons")
+    assert tm.list_checkpoint_names() == ["init_persons", "annot_persons"]
 
     if storage_format != "hdf":
         tmp_path2 = tmp_path.joinpath("dupe.pipeline")
@@ -81,6 +83,7 @@ def test_datasstore_checkpointing(tmp_path: Path, person_dataset, storage_format
         shutil.copyfile(tm.filename, tmp_path2)
 
     tm2 = new_store(tmp_path2, storage_format=storage_format)
+    assert tm2.list_checkpoint_names() == ["init_persons", "annot_persons"]
     tm2.restore_checkpoint("annot_persons")
     xr.testing.assert_equal(tm2.get_dataset("persons"), person_dataset)
 
@@ -88,6 +91,7 @@ def test_datasstore_checkpointing(tmp_path: Path, person_dataset, storage_format
     assert "DoubleAge" not in tm2.get_dataset("persons")
 
     tm_ro = new_store(tmp_path, mode="r", storage_format=storage_format)
+    assert tm_ro.list_checkpoint_names() == ["init_persons", "annot_persons"]
     with pytest.raises(ReadOnlyError):
         tm_ro.make_checkpoint("will-fail")
 
@@ -106,7 +110,7 @@ def test_datasstore_checkpointing(tmp_path: Path, person_dataset, storage_format
     if storage_format == "parquet":
         pth_z = tmp_path.joinpath("zipper.zip")
         store_z = tm.make_zip_archive(pth_z)
-        tm_z = new_store(store_z, mode="r", storage_format=fmt)
+        tm_z = new_store(store_z, mode="r")
         tm_z.restore_checkpoint("annot_persons")
         xr.testing.assert_equal(tm_z.get_dataset("persons"), person_dataset)
 

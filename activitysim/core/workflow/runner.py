@@ -118,13 +118,13 @@ class Runner(StateAccessor):
 
             if (
                 _resume_after != self._obj.checkpoint.last_checkpoint_name
-                or self._obj.uncheckpointed_table_names()
+                or self._obj.store.to_be_checkpointed()
             ):
                 logger.debug(
                     f"last_checkpoint_name = {self._obj.checkpoint.last_checkpoint_name}"
                 )
                 logger.debug(
-                    f"uncheckpointed_table_names = {self._obj.uncheckpointed_table_names()}"
+                    f"to_be_checkpointed = {self._obj.store.to_be_checkpointed()}"
                 )
                 logger.debug(f"restoring from store with resume_after = {resume_after}")
                 self._obj.checkpoint.restore(resume_after)

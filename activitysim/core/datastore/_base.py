@@ -39,6 +39,7 @@ class CheckpointStore:
         self._mode = mode
         self._tree = DataTree(root_node_name=False)
         self._keep_digitized = False
+        self.do_not_persist = set()
 
     def write_data(
         self,
@@ -173,6 +174,12 @@ class CheckpointStore:
 
     def __setitem__(self, key, value):
         return self.set_data(key, value)
+
+    def keys(self):
+        return self._tree._graph.nodes.keys()
+
+    def __contains__(self, item):
+        return item in self.keys()
 
     def _update_dataset(
         self,
@@ -344,42 +351,6 @@ class CheckpointStore:
                     v.attrs["last_checkpoint"] = None
             # collect everything not checkpointed
             uncheckpointed = table_data.filter_by_attrs(last_checkpoint=None)
-            if uncheckpointed:
+            if uncheckpointed and table_name not in self.do_not_persist:
                 result[table_name] = table_data if everything else uncheckpointed
         return result
-
-    # def _get_store_checkpoint_from_named_checkpoint(
-    #     self, table_name: str, checkpoint_name: str = LAST_CHECKPOINT
-    # ):
-    #     f"""
-    #     Get the name of the checkpoint where a table is actually written.
-    #
-    #     Checkpoint tables are not re-written if the content has not changed, so
-    #     retrieving a particular table at a given checkpoint can involve back-tracking
-    #     to find where the file was last actually written.
-    #
-    #     Parameters
-    #     ----------
-    #     table_name : str
-    #     checkpoint_name : str, default {LAST_CHECKPOINT!r}
-    #         The name of the checkpoint to load.  If not given, {LAST_CHECKPOINT!r}
-    #         is assumed, indicating that this function should load the last stored
-    #         checkpoint value.
-    #
-    #     Returns
-    #     -------
-    #     str
-    #         The checkpoint to actually load.
-    #     """
-    #     cp_df = self.get_dataframe(CHECKPOINT_TABLE_NAME).set_index(CHECKPOINT_NAME)
-    #     if checkpoint_name == LAST_CHECKPOINT:
-    #         checkpoint_name = cp_df.index[-1]
-    #     try:
-    #         return cp_df.loc[checkpoint_name, table_name]
-    #     except KeyError:
-    #         if checkpoint_name not in cp_df.index:
-    #             raise CheckpointNameNotFoundError(checkpoint_name)
-    #         elif table_name not in cp_df.columns:
-    #             raise TableNameNotFound(table_name)
-    #         else:
-    #             raise

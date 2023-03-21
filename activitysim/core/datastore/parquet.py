@@ -181,6 +181,12 @@ class ParquetStore(CheckpointStore):
             target.mkdir(parents=True, exist_ok=True)
             data.to_zarr_with_attr(target)
 
+    def list_checkpoint_names(self) -> list[str]:
+        """Get a list of all checkpoint names in this store."""
+        if not self._checkpoint_order:
+            self.read_metadata()
+        return list(self._checkpoint_order)
+
     @property
     def is_readonly(self) -> bool:
         return self._mode == "r"
@@ -329,6 +335,8 @@ class ParquetStore(CheckpointStore):
                 datastore_format_version=1,
                 checkpoint_order=self._checkpoint_order,
             )
+            if self.do_not_persist:
+                metadata["do_not_persist"] = self.do_not_persist
             yaml.safe_dump(metadata, f)
 
     def read_metadata(self, checkpoints=None):
@@ -352,6 +360,7 @@ class ParquetStore(CheckpointStore):
             self._checkpoint_order = metadata["checkpoint_order"]
         else:
             raise NotImplementedError(f"{datastore_format_version=}")
+        self.do_not_persist = set(metadata.get("do_not_persist", []))
         if checkpoints is None or checkpoints == self.LATEST:
             checkpoints = [self._checkpoint_order[-1]]
         elif isinstance(checkpoints, str):

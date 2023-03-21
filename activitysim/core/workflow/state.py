@@ -18,6 +18,7 @@ from pypyr.context import Context
 from sharrow.dataset import construct as _dataset_construct
 
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
+from activitysim.core.datastore import CheckpointStore
 from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import Checkpoints
 from activitysim.core.workflow.dataset import Datasets
@@ -91,8 +92,6 @@ class StateAttr:
 
 class State:
     def __init__(self, context=None):
-        self._pipeline_store: pd.HDFStore | Path | None = None
-        """Location of checkpoint storage"""
 
         self.open_files: dict[str, io.TextIOBase] = {}
         """Files to close when state is destroyed or re-initialized."""
@@ -186,6 +185,7 @@ class State:
     settings = StateAttr(Settings)
     network_settings = StateAttr(NetworkSettings)
     predicates = StateAttr(dict, default_init=True)
+    store: CheckpointStore = StateAttr(CheckpointStore)
 
     checkpoint = Checkpoints()
     logging = Logging()
@@ -392,11 +392,7 @@ class State:
 
     @property
     def existing_table_names(self):
-        return self.existing_table_status.keys()
-
-    @property
-    def existing_table_status(self) -> dict:
-        return self._context["_salient_tables"]
+        return self.store.keys()
 
     def uncheckpointed_table_names(self):
         uncheckpointed = []
@@ -463,15 +459,16 @@ class State:
         -------
         xarray.Dataset
         """
-        t = self._context.get(table_name, None)
-        if t is None:
+        if table_name in self.store:
+            t = self.store.get_dataset(table_name, column_names)
+        else:
             t = self._load_or_create_dataset(table_name, swallow_errors=False)
+            if column_names is not None:
+                t = t[column_names]
         if t is None:
             raise KeyError(table_name)
         t = _dataset_construct(t)
         if isinstance(t, xr.Dataset):
-            if column_names is not None:
-                t = t[column_names]
             if as_copy:
                 return t.copy()
             else:
@@ -500,19 +497,22 @@ class State:
         -------
         DataFrame
         """
-        t = self._context.get(tablename, None)
-        if t is None:
+        if tablename in self.store:
+            t = self.store.get_dataset(tablename, columns)
+        else:
             t = self._load_or_create_dataset(tablename, swallow_errors=False)
+            if columns:
+                t = t[columns]
         if t is None:
             raise KeyError(tablename)
-        if isinstance(t, pd.DataFrame):
-            if columns is not None:
-                t = t[columns]
-            if as_copy:
-                return t.copy()
-            else:
-                return t
-        elif isinstance(t, xr.Dataset):
+        # if isinstance(t, pd.DataFrame):
+        #     if columns is not None:
+        #         t = t[columns]
+        #     if as_copy:
+        #         return t.copy()
+        #     else:
+        #         return t
+        if isinstance(t, xr.Dataset):
             # this route through pyarrow is generally faster than xarray.to_pandas
             return t.single_dim.to_pyarrow().to_pandas()
         raise TypeError(f"cannot convert {tablename} to DataFrame")
@@ -524,7 +524,7 @@ class State:
         as_copy: bool = True,
     ) -> xr.DataArray:
         """
-        Get a workflow table item as ax xarray.DataArray.
+        Get a workflow table item as a xarray.DataArray.
 
         Parameters
         ----------
@@ -785,10 +785,12 @@ class State:
             # mark this salient table as edited, so it can be checkpointed
             # at some later time if desired.
             self.existing_table_status[name] = True
-        self.set(name, content)
+        self.store.set_data(name, content)
+        if not salient:
+            self.store.do_not_persist.add(name)
 
     def is_table(self, name):
-        return name in self.existing_table_status
+        return name in self.store
 
     def registered_tables(self):
         """

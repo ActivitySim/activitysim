@@ -1,563 +1,348 @@
 
+
 <!DOCTYPE html>
 
-<html>
+
+<html >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Models &#8212; ActivitySim 1.2.1.dev9+g3790e7ec</title>
-    
+    <title>Models &#8212; ActivitySim 1.2.1.dev10+g2cd06a68</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <link href="_static/styles/theme.css?digest=12da95d707ffb74b382d" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=12da95d707ffb74b382d" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=12da95d707ffb74b382d" rel="stylesheet" />
 
-    
-  <link rel="stylesheet"
-    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=12da95d707ffb74b382d" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
-    <link rel="stylesheet" type="text/css" href="_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.4045f2051d55cab465a707391d5b2007.min.css" />
     <link rel="stylesheet" type="text/css" href="_static/theme_overrides.css" />
-    
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=12da95d707ffb74b382d" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=12da95d707ffb74b382d" />
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
     <script src="_static/design-tabs.js"></script>
-    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'models';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://activitysim.github.io/activitysim/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = '1.2.1';
+        </script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Components" href="dev-guide/components/index.html" />
     <link rel="prev" title="Software Development" href="development.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="None"/>
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-    
-    <div class="container-fluid" id="banner"></div>
-
-    
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
-
-  <div id="navbar-start">
-    
-    
-<a class="navbar-brand" href="index.html">
-<p class="title">ActivitySim</p>
-</a>
-
-    
-  </div>
-
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
   
-  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
-    <div id="navbar-center" class="mr-auto">
-      
-      <div class="navbar-center-item">
-        <ul id="navbar-main-elements" class="navbar-nav">
-    <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="users-guide/index.html">
-  Users Guide
- </a>
-</li>
-
-<li class="toctree-l1 current active nav-item">
- <a class="reference internal nav-link" href="dev-guide/index.html">
-  Developers
- </a>
-</li>
-
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
     
-</ul>
-      </div>
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    <p class="title logo__title">ActivitySim 1.2.1.dev10+g2cd06a68</p>
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="users-guide/index.html">
+                        Users Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="dev-guide/index.html">
+                        Developers
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
       
     </div>
-
-    <div id="navbar-end">
+    
+    
+    <div class="navbar-header-items__end">
       
-      <div class="navbar-end-item">
-        <div class="dropdown" id="version_switcher">
-    <button type="button" class="btn btn-primary btn-sm navbar-btn dropdown-toggle" id="version_switcher_button" data-toggle="dropdown">
-        1.2.1  <!-- this text may get changed later by javascript -->
-        <span class="caret"></span>
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      1.2.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
     </button>
-    <div id="version_switcher_menu" class="dropdown-menu list-group-flush py-0" aria-labelledby="version_switcher_button">
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
     <!-- dropdown will be populated by javascript on page load -->
     </div>
-</div>
-
-<!-- NOTE: this JS must live here (not in our global JS file) because it relies
-     on being processed by Jinja before it is run (specifically for replacing
-     variables models and {'json_url': 'https://activitysim.github.io/activitysim/switcher.json', 'version_match': '1.2.1'}.
--->
-
-<script type="text/javascript">
-// Check if corresponding page path exists in other version of docs
-// and, if so, go there instead of the homepage of the other docs version
-function checkPageExistsAndRedirect(event) {
-    const currentFilePath = "models.html",
-          tryUrl = event.target.getAttribute("href");
-    let otherDocsHomepage = tryUrl.replace(currentFilePath, "");
-    $.ajax({
-        type: 'HEAD',
-        url: tryUrl,
-        // if the page exists, go there
-        success: function() {
-            location.href = tryUrl;
-        }
-    }).fail(function() {
-        location.href = otherDocsHomepage;
-    });
-    // this prevents the browser from following the href of the clicked node
-    // (which is fine because this function takes care of redirecting)
-    return false;
-}
-
-// Populate the version switcher from the JSON config file
-(function () {
-    $.getJSON("https://activitysim.github.io/activitysim/switcher.json", function(data, textStatus, jqXHR) {
-        const currentFilePath = "models.html";
-        // create links to the corresponding page in the other docs versions
-        $.each(data, function(index, entry) {
-            // if no custom name specified (e.g., "latest"), use version string
-            if (!("name" in entry)) {
-                entry.name = entry.version;
-            }
-            // create the node
-            const node = document.createElement("a");
-            node.setAttribute("class", "list-group-item list-group-item-action py-1");
-            node.textContent = `${entry.name}`;
-            node.setAttribute("href", `${entry.url}${currentFilePath}`);
-            // on click, AJAX calls will check if the linked page exists before
-            // trying to redirect, and if not, will redirect to the homepage
-            // for that version of the docs.
-            node.onclick = checkPageExistsAndRedirect;
-            // Add dataset values for the version and name in case people want
-            // to apply CSS styling based on this information.
-            node.dataset["versionName"] = entry.name;
-            node.dataset["version"] = entry.version;
-
-            $("#version_switcher_menu").append(node);
-            // replace dropdown button text with the preferred display name of
-            // this version, rather than using sphinx's 1.2.1 variable.
-            // also highlight the dropdown entry for the currently-viewed
-            // version's entry
-            if (entry.version == "1.2.1") {
-                node.classList.add("active");
-                let btn = document.getElementById("version_switcher_button");
-                btn.innerText = btn.dataset["activeVersionName"] = entry.name;
-                btn.dataset["activeVersion"] = entry.version;
-            }
-        });
-    });
-})();
-</script>
-      </div>
+  </div>
+`);
+</script></div>
       
     </div>
-  </div>
-</div>
-    </nav>
     
-
-    <div class="container-xl">
-      <div class="row">
-          
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
-    <ul class="current nav bd-sidenav">
- <li class="toctree-l1">
-  <a class="reference internal" href="dev-guide/install.html">
-   Developer Installation
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="dev-guide/using-sharrow.html">
-   Using Sharrow
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="dev-guide/skim-dataset.html">
-   Using Skim Dataset
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="dev-guide/workflows.html">
-   Workflows
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="development.html">
-   Software Development
-  </a>
- </li>
- <li class="toctree-l1 current active">
-  <a class="current reference internal" href="#">
-   Models
-  </a>
- </li>
- <li class="toctree-l1 has-children">
-  <a class="reference internal" href="dev-guide/components/index.html">
-   Components
-  </a>
-  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
-  <label for="toctree-checkbox-1">
-   <i class="fas fa-chevron-down">
-   </i>
-  </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="dev-guide/components/trip_destination.html">
-     Trip Destination
-    </a>
-   </li>
-  </ul>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="core.html">
-   Core Components
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="benchmarking.html">
-   Benchmarking
-  </a>
- </li>
-</ul>
-
   </div>
-</nav>
-              </div>
-              <div class="sidebar-end-items">
-              </div>
-            </div>
-            
-          
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
 
-          
-          <div class="d-none d-xl-block col-xl-2 bd-toc">
-            
-              
-              <div class="toc-item">
-                
-<div class="tocsection onthispage mt-5 pt-1 pb-3">
-    <i class="fas fa-list"></i> On this page
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
 </div>
 
-<nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#initialize">
-   Initialize
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#initialize-tvpb">
-   Initialize LOS
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#accessibility">
-   Accessibility
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#disaggregate-accessibility">
-   Disaggregate Accessibility
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#work-from-home">
-   Work From Home
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#work-location">
-   School Location
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#id7">
-   Work Location
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#shadow-pricing">
-   Shadow Pricing
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#transit-pass-subsidy">
-   Transit Pass Subsidy
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#transit-pass-ownership">
-   Transit Pass Ownership
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#auto-ownership">
-   Auto Ownership
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#vehicle-type-choice">
-   Vehicle Type Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#telecommute-frequency">
-   Telecommute Frequency
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#free-parking-eligibility">
-   Free Parking Eligibility
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#coordinated-daily-activity-pattern">
-   Coordinated Daily Activity Pattern
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#mandatory-tour-frequency">
-   Mandatory Tour Frequency
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#representative-logsums">
-   Mandatory Tour Scheduling
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#school-escorting">
-   School Escorting
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#joint-tour-frequency">
-   Joint Tour Frequency
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#joint-tour-composition">
-   Joint Tour Composition
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#joint-tour-participation">
-   Joint Tour Participation
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#joint-tour-destination-choice">
-   Joint Tour Destination Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#joint-tour-scheduling">
-   Joint Tour Scheduling
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#non-mandatory-tour-frequency">
-   Non-Mandatory Tour Frequency
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#non-mandatory-tour-destination-choice">
-   Non-Mandatory Tour Destination Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#non-mandatory-tour-scheduling">
-   Non-Mandatory Tour Scheduling
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#vehicle-allocation">
-   Vehicle Allocation
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#tour-mode-choice">
-   Tour Mode Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#at-work-subtours-frequency">
-   At-work Subtours Frequency
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#at-work-subtours-destination-choice">
-   At-work Subtours Destination Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#at-work-subtour-scheduling">
-   At-work Subtour Scheduling
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#at-work-subtour-mode">
-   At-work Subtour Mode
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#intermediate-stop-frequency">
-   Intermediate Stop Frequency
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#trip-purpose">
-   Trip Purpose
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#trip-destination-choice">
-   Trip Destination Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#trip-purpose-and-destination">
-   Trip Purpose and Destination
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#trip-scheduling-probablistic">
-   Trip Scheduling (Probablistic)
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#trip-scheduling-choice-logit-choice">
-   Trip Scheduling Choice (Logit Choice)
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#trip-departure-choice-logit-choice">
-   Trip Departure Choice (Logit Choice)
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#trip-mode-choice">
-   Trip Mode Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#parking-location-choice">
-   Parking Location Choice
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#write-trip-matrices">
-   Write Trip Matrices
-  </a>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#util">
-   Util
-  </a>
-  <ul class="nav section-nav flex-column">
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#id33">
-     CDAP
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#estimation">
-     Estimation
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#module-activitysim.abm.models.util.logsums">
-     Logsums
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#module-activitysim.abm.models.util.mode">
-     Mode
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#module-activitysim.abm.models.util.overlap">
-     Overlap
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#module-activitysim.abm.models.util.tour_destination">
-     Tour Destination
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#module-activitysim.abm.models.util.tour_frequency">
-     Tour Frequency
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#module-activitysim.abm.models.util.trip">
-     Trip
-    </a>
-   </li>
-   <li class="toc-h3 nav-item toc-entry">
-    <a class="reference internal nav-link" href="#module-activitysim.abm.models.util.vectorize_tour_scheduling">
-     Vectorize Tour Scheduling
-    </a>
-   </li>
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="users-guide/index.html">
+                        Users Guide
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item current active">
+                      <a class="nav-link nav-internal" href="dev-guide/index.html">
+                        Developers
+                      </a>
+                    </li>
+                
   </ul>
- </li>
- <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#tests">
-   Tests
-  </a>
- </li>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <div class="version-switcher__container dropdown">
+    <button type="button" class="version-switcher__button btn btn-sm navbar-btn dropdown-toggle" data-bs-toggle="dropdown">
+      1.2.1  <!-- this text may get changed later by javascript -->
+      <span class="caret"></span>
+    </button>
+    <div class="version-switcher__menu dropdown-menu list-group-flush py-0">
+    <!-- dropdown will be populated by javascript on page load -->
+    </div>
+  </div>
+`);
+</script></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item"><nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/install.html">Developer Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/using-sharrow.html">Using Sharrow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/skim-dataset.html">Using Skim Dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dev-guide/workflows.html">Workflows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development.html">Software Development</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Models</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="dev-guide/components/index.html">Components</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/><label class="toctree-toggle" for="toctree-checkbox-1"><i class="fa-solid fa-chevron-down"></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="dev-guide/components/trip_destination.html">Trip Destination</a></li>
 </ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
 
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="dev-guide/index.html" class="nav-link">Developers</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">Models</li>
+  </ul>
 </nav>
-              </div>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
               
-              <div class="toc-item">
+              
+              
                 
-              </div>
-              
-            
-          </div>
-          
-
-          
-          
-            
-          
-          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
-              
-              <div>
-                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
   <section id="models">
 <span id="index-0"></span><span id="id1"></span><h1>Models<a class="headerlink" href="#models" title="Permalink to this headline">#</a></h1>
 <p>The currently implemented example ActivitySim AB models are described below.  See the example
@@ -2701,6 +2486,27 @@ the previous trip’s choice (i.e. assumed to happen right after the previous tr
 The trip scheduling model does not use mode choice logsums.</p>
 <p>Alternatives: Available time periods in the tour window (i.e. tour start and end period).  When processing stops on
 work tours, the available time periods is constrained by the at-work subtour start and end period as well.</p>
+<p>In order to avoid trip failing, a new probabalisitic trip scheduling mode was developed named “relative”.
+When setting the _scheduling_mode_ option to relative, trips are scheduled relative to the previously scheduled trips.
+The first trip still departs when the tour starts and for every subsequet trip, the choices are selected with respect to
+the previous trip depart time. Inbound trips are no longer handled in reverse order.  The key to this relative mode is to
+index the probabilities based on how much time is remaining on the tour.  For tours that include subtours, the time remaining will
+be based on the subtour start time for outbound trips and will resume again for inbound trips after the subtour ends.
+By indexing the probabilities based on time remaining and scheduling relative to the previous trip, scheduling trips in relative
+mode will not fail.</p>
+<p>An example of trip scheduling in relative mode is included in the <a class="reference internal" href="examples.html#prototype-mwcog"><span class="std std-ref">prototype_mwcog</span></a> example.  In this example, trip
+scheduling probabilities are indexed by the following columns:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>periods_left_min: the minimum bin for the number of time periods left on the tour.</p></li>
+<li><p>periods_left_max: the maximum bin for the number of time periods left on the tour.  This is the same as periods_left_min until the final time period bin.</p></li>
+<li><p>outbound: whether the trip occurs on the outbound leg of a tour.</p></li>
+<li><p>tour_purpose_grouped: Tour purpose grouped into mandatory and non-mandatory categories</p></li>
+<li><p>half_tour_stops_remaining_grouped: The number of stops remaining on the half tour with the categories of 0 and 1+</p></li>
+</ul>
+</div></blockquote>
+<p>Each of these variables are listed as merge columns in the trip_scheduling.yaml file and are declared in the trip scheduling preprocessor.
+The variables above attempt to balance the statistics available for probability creation with the amount of segmentation of trip characteristics.</p>
 <p>The main interface to the trip scheduling model is the
 <a class="reference internal" href="#activitysim.abm.models.trip_scheduling.trip_scheduling" title="activitysim.abm.models.trip_scheduling.trip_scheduling"><code class="xref py py-func docutils literal notranslate"><span class="pre">trip_scheduling()</span></code></a> function.
 This function is registered as an Inject step in the example Pipeline.</p>
@@ -3173,8 +2979,47 @@ The pair _hh_id_, cdap_rank will uniquely identify each household member.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.util.cdap.build_cdap_joint_spec">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">build_cdap_joint_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_tour_coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hhsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.build_cdap_joint_spec" title="Permalink to this definition">#</a></dt>
+<dd><p>Build a spec file for computing joint tour utilities of alternative household member for households of specified size.
+We generate this spec automatically from a table of rules and coefficients because the
+interaction rules are fairly simple and can be expressed compactly whereas
+there is a lot of redundancy between the spec files for different household sizes, as well as
+in the vectorized expression of the interaction alternatives within the spec file itself
+joint_tour_coefficients has five columns:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>label</dt><dd><p>label of the expression</p>
+</dd>
+<dt>description</dt><dd><p>description of the expression</p>
+</dd>
+<dt>dependency</dt><dd><p>if the expression is dependent on alternative, and which alternative is it dependent on
+(e.g. M_px, N_px, H_px)</p>
+</dd>
+<dt>expression</dt><dd><p>expression of the utility term</p>
+</dd>
+<dt>coefficient</dt><dd><p>The coefficient to apply for the alternative</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The generated spec will have the eval expression in the index, and a utility column for each
+alternative (e.g. [‘HH’, ‘HM’, ‘HN’, ‘MH’, ‘MM’, ‘MN’, ‘NH’, ‘NM’, ‘NN’, ‘MMJ’, ‘MNJ’, ‘NMJ’, ‘NNJ’] for hhsize 2 with joint alts)
+Parameters
+———-
+joint_tour_coefficients : pandas.DataFrame</p>
+<blockquote>
+<div><p>Rules and coefficients for generating joint tour specs for different household sizes</p>
+</div></blockquote>
+<dl class="simple">
+<dt>hhsize<span class="classifier">int</span></dt><dd><p>household size for which the spec should be built.</p>
+</dd>
+</dl>
+<p>spec: pandas.DataFrame</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.util.cdap.build_cdap_spec">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">build_cdap_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interaction_coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hhsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.build_cdap_spec" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">build_cdap_spec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interaction_coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hhsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_spec</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_tour_alt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.build_cdap_spec" title="Permalink to this definition">#</a></dt>
 <dd><p>Build a spec file for computing utilities of alternative household member interaction patterns
 for households of specified size.</p>
 <p>We generate this spec automatically from a table of rules and coefficients because the
@@ -3293,7 +3138,7 @@ for all (non-extra) household members</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.util.cdap.household_activity_choices">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">household_activity_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indiv_utils</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hhsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.household_activity_choices" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">household_activity_choices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indiv_utils</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interaction_coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hhsize</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint_tour_utility</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.household_activity_choices" title="Permalink to this definition">#</a></dt>
 <dd><p>Calculate household utilities for each activity pattern alternative for households of hhsize
 The resulting activity pattern for each household will be coded as a string of activity codes.
 e.g. ‘MNHH’ for a 4 person household with activities Mandatory, NonMandatory, Home, Home</p>
@@ -3368,7 +3213,7 @@ this slug is then replaced with the numerical coefficient value prior to evaluat
 
 <dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.util.cdap.run_cdap">
-<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">run_cdap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">person_type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cdap_indiv_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cdap_interaction_coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cdap_fixed_relative_proportions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.run_cdap" title="Permalink to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.cdap.</span></span><span class="sig-name descname"><span class="pre">run_cdap</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">persons</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">person_type_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cdap_indiv_spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cdap_interaction_coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cdap_fixed_relative_proportions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">locals_d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunk_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_hh_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">add_joint_tour_utility</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.cdap.run_cdap" title="Permalink to this definition">#</a></dt>
 <dd><p>Choose individual activity patterns for persons.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -3392,6 +3237,8 @@ in either the cdap_indiv_spec or cdap_fixed_relative_proportions expression file
 <dt><strong>trace_hh_id</strong><span class="classifier">int</span></dt><dd><p>hh_id to trace or None if no hh tracing</p>
 </dd>
 <dt><strong>trace_label</strong><span class="classifier">str</span></dt><dd><p>label for tracing or None if no tracing</p>
+</dd>
+<dt><strong>add_joint_tour_utility</strong><span class="classifier">Bool</span></dt><dd><p>cdap model include joint tour utility or not</p>
 </dd>
 </dl>
 </dd>
@@ -3647,6 +3494,42 @@ annotated with mode_choice logsum to select a destination from sample alternativ
 <section id="module-activitysim.abm.models.util.tour_frequency">
 <span id="tour-frequency"></span><h3>Tour Frequency<a class="headerlink" href="#module-activitysim.abm.models.util.tour_frequency" title="Permalink to this headline">#</a></h3>
 <dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.util.tour_frequency.create_joint_tours">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.tour_frequency.</span></span><span class="sig-name descname"><span class="pre">create_joint_tours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tour_counts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tour_category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'person_id'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.create_joint_tours" title="Permalink to this definition">#</a></dt>
+<dd><p>This method processes the tour_frequency column that comes
+out of the model of the same name and turns into a DataFrame that
+represents the tours that were generated</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>tour_counts: DataFrame</strong></dt><dd><p>table specifying how many tours of each type to create
+one row per person (or parent_tour for atwork subtours)
+one (int) column per tour_type, with number of tours to create</p>
+</dd>
+<dt><strong>tour_category</strong><span class="classifier">str</span></dt><dd><p>one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>tours</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>An example of a tours DataFrame is supplied as a comment in the
+source code - it has an index which is a unique tour identifier,
+a person_id column, and a tour type column which comes from the
+column names of the alternatives DataFrame supplied above.</p>
+<p>tours.tour_type       - tour type (e.g. school, work, shopping, eat)
+tours.composition     - tour composition (e.g. adults, children, mixed)
+tours.tour_type_num   - if there are two ‘school’ type tours, they will be numbered 1 and 2
+tours.tour_type_count - number of tours of tour_type parent has (parent’s max tour_type_num)
+tours.tour_num        - index of tour (of any type) for parent
+tours.tour_count      - number of tours of any type) for parent (parent’s max tour_num)
+tours.tour_category   - one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="activitysim.abm.models.util.tour_frequency.create_tours">
 <span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.tour_frequency.</span></span><span class="sig-name descname"><span class="pre">create_tours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tour_counts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tour_category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'person_id'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.create_tours" title="Permalink to this definition">#</a></dt>
 <dd><p>This method processes the tour_frequency column that comes
@@ -3734,6 +3617,38 @@ and frequency counts for the tours to be generated for that choice</p>
 <dt><strong>tours</strong><span class="classifier">DataFrame</span></dt><dd><p>An example of a tours DataFrame is supplied as a comment in the
 source code - it has an index which is a tour identifier, a household_id
 column, a tour_type column and tour_type_num and tour_num columns
+which is set to 1 or 2 depending whether it is the first or second joint tour
+made by the household.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.util.tour_frequency.process_joint_tours_frequency_composition">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.tour_frequency.</span></span><span class="sig-name descname"><span class="pre">process_joint_tours_frequency_composition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_tour_frequency_composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_tour_frequency_composition_alts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point_persons</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.process_joint_tours_frequency_composition" title="Permalink to this definition">#</a></dt>
+<dd><p>This method processes the joint_tour_frequency_composition column that comes out of
+the model of the same name and turns into a DataFrame that represents the
+joint tours that were generated</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>joint_tour_frequency_composition</strong><span class="classifier">pandas.Series</span></dt><dd><p>household joint_tour_frequency_composition (which came out of the joint tour frequency composition model)
+indexed by household_id</p>
+</dd>
+<dt><strong>joint_tour_frequency_composition_alts: DataFrame</strong></dt><dd><p>A DataFrame which has as a unique index with joint_tour_frequency_composition values
+and frequency counts for the tours to be generated for that choice</p>
+</dd>
+<dt><strong>point_persons</strong><span class="classifier">pandas DataFrame</span></dt><dd><p>table with columns for (at least) person_ids and home_zone_id indexed by household_id</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>tours</strong><span class="classifier">DataFrame</span></dt><dd><p>An example of a tours DataFrame is supplied as a comment in the
+source code - it has an index which is a tour identifier, a household_id
+column, a tour_type column, composition column and tour_type_num and tour_num columns
 which is set to 1 or 2 depending whether it is the first or second joint tour
 made by the household.</p>
 </dd>
@@ -3840,6 +3755,51 @@ source code - it has an index which is a unique tour identifier,
 a person_id column, and a tour type column which comes from the
 column names of the alternatives DataFrame supplied above.</p>
 <p>tours.tour_type       - tour type (e.g. school, work, shopping, eat)
+tours.tour_type_num   - if there are two ‘school’ type tours, they will be numbered 1 and 2
+tours.tour_type_count - number of tours of tour_type parent has (parent’s max tour_type_num)
+tours.tour_num        - index of tour (of any type) for parent
+tours.tour_count      - number of tours of any type) for parent (parent’s max tour_num)
+tours.tour_category   - one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="activitysim.abm.models.util.tour_frequency.process_tours_frequency_composition">
+<span class="sig-prename descclassname"><span class="pre">activitysim.abm.models.util.tour_frequency.</span></span><span class="sig-name descname"><span class="pre">process_tours_frequency_composition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">joint_tour_frequency_composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">joint_tour_frequency_composition_alts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tour_category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parent_col</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'person_id'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activitysim.abm.models.util.tour_frequency.process_tours_frequency_composition" title="Permalink to this definition">#</a></dt>
+<dd><p>This method processes the joint_tour_frequency_composition column that comes
+out of the model of the same name and turns into a DataFrame that
+represents the tours that were generated</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>joint_tour_frequency_composition: Series</strong></dt><dd><p>A series which has &lt;parent_col&gt; as the index and the chosen alternative
+index as the value</p>
+</dd>
+<dt><strong>joint_tour_frequency_composition_alts: DataFrame</strong></dt><dd><p>A DataFrame which has as a unique index which relates to the values
+in the series above typically includes columns which are named for trip
+purposes with values which are counts for that trip purpose, and tour composition.  Example
+trip purposes include escort, shopping, othmaint, othdiscr, eatout,
+social, etc. Tour composition includes adults, children, and mixed.
+A row would be an alternative which might be to take
+one shopping trip in a adult-only tour and zero trips of other purposes, etc.</p>
+</dd>
+<dt><strong>tour_category</strong><span class="classifier">str</span></dt><dd><p>one of ‘mandatory’, ‘non_mandatory’, ‘atwork’, or ‘joint’</p>
+</dd>
+<dt><strong>parent_col: str</strong></dt><dd><p>the name of the index (parent_tour_id for atwork subtours, otherwise person_id)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>tours</strong><span class="classifier">pandas.DataFrame</span></dt><dd><p>An example of a tours DataFrame is supplied as a comment in the
+source code - it has an index which is a unique tour identifier,
+a person_id column, and a tour type column which comes from the
+column names of the alternatives DataFrame supplied above.</p>
+<p>tours.tour_type       - tour type (e.g. school, work, shopping, eat)
+tours.composition     - tour composition (e.g. adults, children, mixed)
 tours.tour_type_num   - if there are two ‘school’ type tours, they will be numbered 1 and 2
 tours.tour_type_count - number of tours of tour_type parent has (parent’s max tour_type_num)
 tours.tour_num        - index of tour (of any type) for parent
@@ -4145,52 +4105,158 @@ DataFrame and the values are the index of the alts DataFrame.</p>
 </section>
 
 
-              </div>
+                </article>
               
               
-              <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="development.html" title="previous page">
-        <i class="fas fa-angle-left"></i>
-        <div class="prev-next-info">
-            <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Software Development</p>
-        </div>
+              
+                <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="development.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Software Development</p>
+      </div>
     </a>
-    <a class='right-next' id="next-link" href="dev-guide/components/index.html" title="next page">
-    <div class="prev-next-info">
+    <a class="right-next"
+       href="dev-guide/components/index.html"
+       title="next page">
+      <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
         <p class="prev-next-title">Components</p>
-    </div>
-    <i class="fas fa-angle-right"></i>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
     </a>
 </div>
+                </footer>
               
-          </main>
-          
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
 
-      </div>
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initialize">Initialize</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#initialize-tvpb">Initialize LOS</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#accessibility">Accessibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#disaggregate-accessibility">Disaggregate Accessibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-from-home">Work From Home</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-location">School Location</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Work Location</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#shadow-pricing">Shadow Pricing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transit-pass-subsidy">Transit Pass Subsidy</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transit-pass-ownership">Transit Pass Ownership</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#auto-ownership">Auto Ownership</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vehicle-type-choice">Vehicle Type Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#telecommute-frequency">Telecommute Frequency</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#free-parking-eligibility">Free Parking Eligibility</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#coordinated-daily-activity-pattern">Coordinated Daily Activity Pattern</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mandatory-tour-frequency">Mandatory Tour Frequency</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#representative-logsums">Mandatory Tour Scheduling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#school-escorting">School Escorting</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-tour-frequency">Joint Tour Frequency</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-tour-composition">Joint Tour Composition</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-tour-participation">Joint Tour Participation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-tour-destination-choice">Joint Tour Destination Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#joint-tour-scheduling">Joint Tour Scheduling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#non-mandatory-tour-frequency">Non-Mandatory Tour Frequency</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#non-mandatory-tour-destination-choice">Non-Mandatory Tour Destination Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#non-mandatory-tour-scheduling">Non-Mandatory Tour Scheduling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vehicle-allocation">Vehicle Allocation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tour-mode-choice">Tour Mode Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-work-subtours-frequency">At-work Subtours Frequency</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-work-subtours-destination-choice">At-work Subtours Destination Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-work-subtour-scheduling">At-work Subtour Scheduling</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#at-work-subtour-mode">At-work Subtour Mode</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#intermediate-stop-frequency">Intermediate Stop Frequency</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-purpose">Trip Purpose</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-destination-choice">Trip Destination Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-purpose-and-destination">Trip Purpose and Destination</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-scheduling-probablistic">Trip Scheduling (Probablistic)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-scheduling-choice-logit-choice">Trip Scheduling Choice (Logit Choice)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-departure-choice-logit-choice">Trip Departure Choice (Logit Choice)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#trip-mode-choice">Trip Mode Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#parking-location-choice">Parking Location Choice</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#write-trip-matrices">Write Trip Matrices</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#util">Util</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id33">CDAP</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#estimation">Estimation</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.abm.models.util.logsums">Logsums</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.abm.models.util.mode">Mode</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.abm.models.util.overlap">Overlap</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.abm.models.util.tour_destination">Tour Destination</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.abm.models.util.tour_frequency">Tour Frequency</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.abm.models.util.trip">Trip</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#module-activitysim.abm.models.util.vectorize_tour_scheduling">Vectorize Tour Scheduling</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tests">Tests</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="_sources/models.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            <div class="bd-footer-content__inner"></div>
+          </footer>
+        
+      </main>
     </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-<footer class="footer mt-5 mt-md-0">
-  <div class="container">
-    
-    <div class="footer-item">
-      <!-- This will display the version of the docs -->
+  <script src="_static/scripts/bootstrap.js?digest=12da95d707ffb74b382d"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=12da95d707ffb74b382d"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item"><!-- This will display the version of the docs -->
 <p class="last-updated">
-ActivitySim 1.2.1.dev9+g3790e7ec, documentation last updated Feb 10, 2023.<br/>
-</p>
+ActivitySim 1.2.1.dev10+g2cd06a68, documentation last updated Mar 21, 2023.<br/>
+</p></div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://sphinx-doc.org/">Sphinx</a> 4.5.0.
+    <br/>
+  </p>
+</div>
+      
     </div>
-    
-    <div class="footer-item">
-      <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
-</p>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.1.
+</p></div>
+      
     </div>
-    
-  </div>
-</footer>
+  
+</div>
+
+  </footer>
   </body>
 </html>

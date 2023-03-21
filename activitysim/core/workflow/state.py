@@ -539,17 +539,7 @@ class State:
         -------
         DataArray
         """
-        t = self._context.get(tablename, None)
-        if t is None:
-            t = self._load_or_create_dataset(tablename, swallow_errors=False)
-        if t is None:
-            raise KeyError(tablename)
-        if isinstance(t, pd.DataFrame):
-            if as_copy:
-                return t[item].to_xarray().copy()
-            else:
-                return t[item].to_xarray()
-        raise TypeError(f"cannot convert {tablename}.{item} to DataArray")
+        return self.get_dataset(tablename, column_names=[item])[item]
 
     def get_dataframe_index_name(self, tablename: str) -> str:
         """
@@ -564,14 +554,15 @@ class State:
         -------
         str
         """
-        t = self._context.get(tablename, None)
-        if t is None:
+        if tablename in self.store:
+            t = self.store.get_dataset(tablename)
+        else:
             t = self._load_or_create_dataset(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
             return t.index.name
-        raise TypeError(f"cannot get index name for {tablename}")
+        return t.single_dim.dim_name
 
     def get_pyarrow(
         self, tablename: str, columns: Optional[list[str] | str] = None
@@ -592,18 +583,8 @@ class State:
         """
         if isinstance(columns, str):
             columns = [columns]
-        t = self._context.get(tablename, None)
-        if t is None:
-            t = self._load_or_create_dataset(tablename, swallow_errors=False)
-        if t is None:
-            raise KeyError(tablename)
-        if isinstance(t, pd.DataFrame):
-            t = pa.Table.from_pandas(t, preserve_index=True, columns=columns)
-        if isinstance(t, pa.Table):
-            if columns is not None:
-                t = t.select(columns)
-            return t
-        raise TypeError(f"cannot convert {tablename} to pyarrow.Table")
+        t = self.get_dataset(tablename, column_names=columns)
+        return t.single_dim.to_pyarrow()
 
     def access(self, key, initializer):
         if key not in self._context:
@@ -702,55 +683,6 @@ class State:
             print("Closing %s" % name)
             file.close()
         self.open_files.clear()
-
-    # def open_pipeline_store(self, pipeline_file_name:Optional[Path]=None, overwrite=False, mode="a"):
-    #     """
-    #     Open the pipeline checkpoint store.
-    #
-    #     If the pipeline_file_name setting ends in ".h5", then the pandas
-    #     HDFStore file format is used, otherwise pipeline files are stored
-    #     as parquet files organized in regular file system directories.
-    #
-    #     Parameters
-    #     ----------
-    #     pipeline_file_name : Path-like, optional
-    #         An explicit pipeline file path.  If not given, the default pipeline
-    #         file path is opened.
-    #     overwrite : bool, default False
-    #         delete file before opening (unless resuming)
-    #     mode : {'a', 'w', 'r', 'r+'}, default 'a'
-    #         ``'r'``
-    #             Read-only; no data can be modified.
-    #         ``'w'``
-    #             Write; a new file is created (an existing file with the same
-    #             name would be deleted).
-    #         ``'a'``
-    #             Append; an existing file is opened for reading and writing,
-    #             and if the file does not exist it is created.
-    #         ``'r+'``
-    #             It is similar to ``'a'``, but the file must already exist.
-    #     """
-    #
-    #     if self._pipeline_store is not None:
-    #         raise RuntimeError("Pipeline store is already open!")
-    #
-    #     pipeline_file_path = pipeline_file_name or self.filesystem.get_pipeline_filepath()
-    #
-    #     if pipeline_file_path.suffix == ".h5":
-    #         if overwrite:
-    #             try:
-    #                 if os.path.isfile(pipeline_file_path):
-    #                     logger.debug("removing pipeline store: %s" % pipeline_file_path)
-    #                     os.unlink(pipeline_file_path)
-    #             except Exception as e:
-    #                 print(e)
-    #                 logger.warning("Error removing %s: %s" % (pipeline_file_path, e))
-    #
-    #         self._pipeline_store = pd.HDFStore(str(pipeline_file_path), mode=mode)
-    #     else:
-    #         self._pipeline_store = Path(pipeline_file_path)
-    #
-    #     logger.debug(f"opened pipeline_store {pipeline_file_path}")
 
     def get_rn_generator(self):
         """

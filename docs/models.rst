@@ -1232,6 +1232,25 @@ The trip scheduling model does not use mode choice logsums.
 Alternatives: Available time periods in the tour window (i.e. tour start and end period).  When processing stops on
 work tours, the available time periods is constrained by the at-work subtour start and end period as well.
 
+In order to avoid trip failing, a new probabalisitic trip scheduling mode was developed named "relative".
+When setting the _scheduling_mode_ option to relative, trips are scheduled relative to the previously scheduled trips.
+The first trip still departs when the tour starts and for every subsequet trip, the choices are selected with respect to
+the previous trip depart time. Inbound trips are no longer handled in reverse order.  The key to this relative mode is to
+index the probabilities based on how much time is remaining on the tour.  For tours that include subtours, the time remaining will
+be based on the subtour start time for outbound trips and will resume again for inbound trips after the subtour ends.
+By indexing the probabilities based on time remaining and scheduling relative to the previous trip, scheduling trips in relative
+mode will not fail.
+
+An example of trip scheduling in relative mode is included in the :ref:`prototype_mwcog` example.  In this example, trip
+scheduling probabilities are indexed by the following columns:
+  * periods_left_min: the minimum bin for the number of time periods left on the tour.
+  * periods_left_max: the maximum bin for the number of time periods left on the tour.  This is the same as periods_left_min until the final time period bin.
+  * outbound: whether the trip occurs on the outbound leg of a tour.
+  * tour_purpose_grouped: Tour purpose grouped into mandatory and non-mandatory categories
+  * half_tour_stops_remaining_grouped: The number of stops remaining on the half tour with the categories of 0 and 1+
+Each of these variables are listed as merge columns in the trip_scheduling.yaml file and are declared in the trip scheduling preprocessor.
+The variables above attempt to balance the statistics available for probability creation with the amount of segmentation of trip characteristics.
+
 The main interface to the trip scheduling model is the
 :py:func:`~activitysim.abm.models.trip_scheduling.trip_scheduling` function.
 This function is registered as an Inject step in the example Pipeline.

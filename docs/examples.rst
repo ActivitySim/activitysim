@@ -513,7 +513,6 @@ Configuration
 
 This section has been moved to :ref:`configuration`.
 
-
 .. _sub-model-spec-files:
 
 Sub-Model Specification Files

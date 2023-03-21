@@ -1,0 +1,60 @@
+# input tables
+input_table_list:
+  - tablename: households
+    filename: households.csv
+    index_col: household_id
+    rename_columns:
+      unique_hh_id: household_id
+      NP: hhsize
+      hh_workers_from_esr: num_workers
+      VEH: auto_ownership
+      MAZ: home_zone_id
+      HINCP: income
+    keep_columns:
+      - home_zone_id
+      - income
+      - hhsize
+      - HHT
+      - auto_ownership
+      - num_workers
+  - tablename: persons
+    filename: persons.csv
+    index_col: person_id
+    rename_columns:
+      unique_hh_id: household_id
+      AGEP: age
+      SPORDER: PNUM
+      SEX: sex
+      employed: pemploy
+      student_status: pstudent
+      person_type: ptype
+    keep_columns:
+      - household_id
+      - age
+      - PNUM
+      - sex
+      - pemploy
+      - pstudent
+      - ptype
+  - tablename: land_use
+    filename: land_use.csv
+    index_col: zone_id
+    rename_columns:
+      MAZ_ORIGINAL: zone_id
+      CountyID: county_id
+      TAZ_ORIGINAL: TAZ
+      DistID: DISTRICT
+      HH: TOTHH
+      POP: TOTPOP
+      ACRES: TOTACRE
+      emp_total: TOTEMP
+    keep_columns:
+      - TAZ
+      - DISTRICT
+      - SD
+      - county_id
+      - TOTHH
+      - TOTPOP
+      - TOTACRE
+
+trace_hh_id: 2

@@ -164,8 +164,10 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
 
     model_spec = simulate.read_model_spec(file_name=model_settings["SPEC"])
     nest_spec = config.get_logit_model_settings(model_settings)
+    cols_to_keep = model_settings.get("CHOOSER_COLS_TO_KEEP", None)
 
     choices_list = []
+    cols_to_keep_list = []
     for primary_purpose, trips_segment in trips_merged.groupby("primary_purpose"):
 
         segment_trace_label = tracing.extend_trace_label(trace_label, primary_purpose)
@@ -250,6 +252,14 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
             )
 
         choices_list.append(choices)
+        if cols_to_keep:
+            cols_not_in_choosers = [
+                col for col in cols_to_keep if col not in trips_segment.columns
+            ]
+            assert (
+                len(cols_not_in_choosers) == 0
+            ), "{cols_not_in_choosers} from CHOOSER_COLS_TO_KEEP is not in the choosers dataframe"
+            cols_to_keep_list.append(trips_segment[cols_to_keep])
 
     choices_df = pd.concat(choices_list)
 
@@ -279,6 +289,12 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
         estimator.write_override_choices(choices_df.trip_mode)
         estimator.end_estimation()
     trips_df = trips.to_frame()
+
+    # adding columns from the chooser table to include in final output
+    if len(cols_to_keep_list) > 0:
+        cols_to_keep_df = pd.concat(cols_to_keep_list)
+        choices_df = pd.concat([choices_df, cols_to_keep_df], axis=1)
+
     assign_in_place(trips_df, choices_df)
 
     if pipeline.is_table("school_escort_tours") & model_settings.get(
@@ -301,7 +317,7 @@ def trip_mode_choice(trips, network_los, chunk_size, trace_hh_id):
     pipeline.replace_table("trips", trips_df)
 
     if model_settings.get("annotate_trips"):
-        annotate.annotate_trips(model_settings, trace_label)
+        annotate.annotate_trips(model_settings, trace_label, locals_dict)
 
     if trace_hh_id:
         tracing.trace_df(

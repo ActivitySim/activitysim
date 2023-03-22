@@ -20,16 +20,14 @@ from sharrow.dataset import construct as _dataset_construct
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
 from activitysim.core.datastore import CheckpointStore
 from activitysim.core.exceptions import StateAccessError
-from activitysim.core.workflow.checkpoint import Checkpoints
+from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
 from activitysim.core.workflow.dataset import Datasets
 from activitysim.core.workflow.extending import Extend
 from activitysim.core.workflow.logging import Logging
 from activitysim.core.workflow.report import Reporting
 from activitysim.core.workflow.runner import Runner
-from activitysim.core.workflow.steps import run_named_step, workflow_step
+from activitysim.core.workflow.steps import workflow_step
 from activitysim.core.workflow.tracing import Tracing
-
-from .checkpoint import CHECKPOINT_NAME, LAST_CHECKPOINT
 
 # ActivitySim
 # See full license in LICENSE.txt.
@@ -170,7 +168,7 @@ class State:
             sys.path.insert(0, os.path.abspath(basepath))
             try:
                 importlib.import_module(extpath)
-            except ImportError as err:
+            except ImportError:
                 logger.exception("ImportError")
                 raise
             except Exception as err:
@@ -369,7 +367,7 @@ class State:
                 "is deprecated, make them sub-keys of `other_settings` instead.",
                 DeprecationWarning,
             )
-            logger.warning(f"Found the following unexpected settings:")
+            logger.warning("Found the following unexpected settings:")
             if self.settings.other_settings is None:
                 self.settings.other_settings = {}
             for k in extra_settings:
@@ -847,7 +845,7 @@ class State:
 
         assert isinstance(
             checkpoints, list
-        ), f"setting 'checkpoints'' should be True or False or a list"
+        ), "setting 'checkpoints'' should be True or False or a list"
 
         return checkpoint_name in checkpoints
 

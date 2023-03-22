@@ -33,3 +33,14 @@ filterwarnings = [
 ]
 log_cli = true
 tb = "native"
+
+[tool.ruff]
+select = ["E", "F", "B", "UP", "TID"]
+line-length = 140
+
+[tool.ruff.isort]
+known-first-party = ["activitysim"]
+required-imports = ["from __future__ import annotations"]
+
+[tool.ruff.pydocstyle]
+convention = "numpy"

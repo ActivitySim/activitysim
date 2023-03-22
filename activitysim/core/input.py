@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def canonical_table_index_name(table_name):
-    from ..abm.models.util import canonical_ids
+    from activitysim.abm.models.util import canonical_ids
 
     table_index_names = canonical_ids.CANONICAL_TABLE_INDEX_NAMES
     return table_index_names and table_index_names.get(table_name, None)
@@ -129,7 +129,7 @@ def read_from_table_info(table_info: InputTable, state):
     )
 
     # logger.debug('raw %s table columns: %s' % (tablename, df.columns.values))
-    logger.debug("raw %s table size: %s" % (tablename, util.df_size(df)))
+    logger.debug(f"raw {tablename} table size: {util.df_size(df)}")
 
     if create_input_store:
         raise NotImplementedError("the input store functionality has been disabled")
@@ -222,9 +222,9 @@ def read_from_table_info(table_info: InputTable, state):
             not df.columns.duplicated().any()
         ), f"duplicate columns names in {tablename}: {duplicate_column_names}"
 
-    logger.debug("%s table columns: %s" % (tablename, df.columns.values))
-    logger.debug("%s table size: %s" % (tablename, util.df_size(df)))
-    logger.debug("%s index name: %s" % (tablename, df.index.name))
+    logger.debug(f"{tablename} table columns: {df.columns.values}")
+    logger.debug(f"{tablename} table size: {util.df_size(df)}")
+    logger.debug(f"{tablename} index name: {df.index.name}")
 
     return df
 
@@ -237,13 +237,13 @@ def _read_input_file(filepath, h5_tablename=None, csv_dtypes=None):
 
     if filepath.endswith(".h5"):
         assert h5_tablename is not None, "must provide a tablename to read HDF5 table"
-        logger.info("reading %s table from %s" % (h5_tablename, filepath))
+        logger.info(f"reading {h5_tablename} table from {filepath}")
         return pd.read_hdf(filepath, h5_tablename)
 
     if filepath.endswith(".parquet"):
         return pd.read_parquet(filepath)
 
-    raise IOError(
+    raise OSError(
         "Unsupported file type: %s. "
         "ActivitySim supports CSV, HDF5, and Parquet files only" % filepath
     )

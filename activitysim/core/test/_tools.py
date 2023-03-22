@@ -26,6 +26,7 @@ def assert_frame_substantively_equal(
     *args,
     ignore_column_order=True,
     ignore_extra_columns_left=False,
+    check_column_type_loosely=False,
     **kwargs,
 ):
     """
@@ -46,6 +47,9 @@ def assert_frame_substantively_equal(
         Keyword only argument.
     ignore_extra_columns_left : bool, default False
         This cannot be True unless `ignore_column_order` is also True
+    check_column_type_loosely : bool, default False
+        Check that the dtype kind matches, not the dtype itself, for example
+        if one column is int32 and the other is int64 that is ok.
     check_dtype : bool, default True
         Whether to check the DataFrame dtype is identical.
     check_index_type : bool or {'equiv'}, default 'equiv'
@@ -101,6 +105,12 @@ def assert_frame_substantively_equal(
         # if there are duplicate column names, we disavow this option
         if not left.columns.has_duplicates:
             left = left[right.columns]
+
+    if check_column_type_loosely:
+        left_kinds = {k: i.kind for k, i in left.dtypes.items()}
+        right_kinds = {k: i.kind for k, i in left.dtypes.items()}
+        assert left_kinds == right_kinds
+        kwargs["check_column_type"] = False
 
     try:
         pd.testing.assert_frame_equal(left, right, *args, **kwargs)

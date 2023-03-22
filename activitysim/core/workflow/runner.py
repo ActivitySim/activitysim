@@ -7,6 +7,7 @@ import warnings
 from datetime import timedelta
 from typing import Callable, Iterable
 
+from activitysim.core import tracing
 from activitysim.core.exceptions import DuplicateWorkflowNameError
 from activitysim.core.workflow.accessor import FromState, StateAccessor
 from activitysim.core.workflow.checkpoint import (
@@ -100,9 +101,7 @@ class Runner(StateAccessor):
         if isinstance(models, str):
             return self.by_name(models)
 
-        from activitysim.core.tracing import print_elapsed_time
-
-        t0 = print_elapsed_time()
+        t0 = tracing.print_elapsed_time()
 
         if resume_after == LAST_CHECKPOINT:
             _checkpoints = self._obj.checkpoint.store.list_checkpoint_names()
@@ -128,7 +127,7 @@ class Runner(StateAccessor):
                 )
                 logger.debug(f"restoring from store with resume_after = {resume_after}")
                 self._obj.checkpoint.restore(resume_after)
-                t0 = print_elapsed_time("checkpoint.restore", t0)
+                t0 = tracing.print_elapsed_time("checkpoint.restore", t0)
             else:
                 logger.debug(f"good to go with resume_after = {resume_after}")
 
@@ -146,15 +145,15 @@ class Runner(StateAccessor):
         if self._obj.get("preload_injectables", None):
             if memory_sidecar_process:
                 memory_sidecar_process.set_event("preload_injectables")
-            t0 = print_elapsed_time("preload_injectables", t0)
+            t0 = tracing.print_elapsed_time("preload_injectables", t0)
 
         self._obj.trace_memory_info("pipeline.run after preload_injectables")
 
-        t0 = print_elapsed_time()
+        t0 = tracing.print_elapsed_time()
         for model in models:
             if memory_sidecar_process:
                 memory_sidecar_process.set_event(model)
-            t1 = print_elapsed_time()
+            t1 = tracing.print_elapsed_time()
             self.by_name(model)
             self._obj.trace_memory_info(f"pipeline.run after {model}")
 
@@ -169,7 +168,7 @@ class Runner(StateAccessor):
 
         self._obj.trace_memory_info("pipeline.run after run_models")
 
-        t0 = print_elapsed_time("run_model (%s models)" % len(models), t0)
+        t0 = tracing.print_elapsed_time("run_model (%s models)" % len(models), t0)
 
         # don't close the pipeline, as the user may want to read intermediate results from the store
 
@@ -267,8 +266,6 @@ class Runner(StateAccessor):
 
         self._obj.trace_memory_info(f"pipeline.run_model {model_name} start")
 
-        from activitysim.core.tracing import print_elapsed_time
-
         logger.info(f"#run_model running step {step_name}")
 
         # these values are cached in the runner object itself, not in the context.
@@ -322,16 +319,14 @@ class Runner(StateAccessor):
                 )
 
         except Exception as err:
-            self.t0 = self.log_elapsed_time(f"run.{model_name} UNTIL ERROR", self.t0)
+            self.t0 = self._log_elapsed_time(f"run.{model_name} UNTIL ERROR", self.t0)
             self._obj.add_injectable("step_args", None)
             self._obj.rng().end_step(model_name)
             raise
 
         else:
             # no error, finish as normal
-            from activitysim.core.tracing import print_elapsed_time
-
-            self.t0 = self.log_elapsed_time(f"run.{model_name}", self.t0)
+            self.t0 = self._log_elapsed_time(f"run.{model_name}", self.t0)
             self._obj.trace_memory_info(f"pipeline.run_model {model_name} finished")
 
             self._obj.add_injectable("step_args", None)
@@ -341,17 +336,39 @@ class Runner(StateAccessor):
                 self._obj.checkpoint.add(model_name)
             else:
                 logger.info(
-                    "##### skipping %s checkpoint for %s" % (self.step_name, model_name)
+                    f"##### skipping {self.step_name} checkpoint for {model_name}"
                 )
 
     def all(self, resume_after=LAST_CHECKPOINT, memory_sidecar_process=None):
-        self(
-            models=self._obj.settings.models,
-            resume_after=resume_after,
-            memory_sidecar_process=memory_sidecar_process,
-        )
+        try:
+            t0 = tracing.print_elapsed_time()
 
-    def log_elapsed_time(self, msg, t0=None, level=25):
+            if self._obj.settings.multiprocess:
+                logger.info("run multiprocess simulation")
+
+                from activitysim.cli.run import INJECTABLES
+                from activitysim.core import mp_tasks
+
+                injectables = {k: self._obj.get_injectable(k) for k in INJECTABLES}
+                injectables["settings"] = self._obj.settings
+                # injectables["settings_package"] = state.settings.dict()
+                mp_tasks.run_multiprocess(self._obj, injectables)
+
+            else:
+                logger.info("run single process simulation")
+                self(
+                    models=self._obj.settings.models,
+                    resume_after=resume_after,
+                    memory_sidecar_process=memory_sidecar_process,
+                )
+
+        except Exception:
+            # log time until error and the error traceback
+            tracing.print_elapsed_time("all models until this error", t0)
+            logger.exception("activitysim run encountered an unrecoverable error")
+            raise
+
+    def _log_elapsed_time(self, msg, t0=None, level=25):
         t1 = time.time()
         assert t0 is not None
         t = t1 - (t0 or t1)

@@ -1,22 +1,29 @@
 from __future__ import annotations
 
+import atexit
+import importlib.resources
+
 # ActivitySim
 # See full license in LICENSE.txt.
 import os
 import subprocess
 import sys
+from contextlib import ExitStack
 
 import pandas as pd
 import pandas.testing as pdt
-import pkg_resources
 
 from activitysim.core.test import assert_frame_substantively_equal
 
 
 def _test_psrc(sharrow=False):
     def example_path(dirname):
-        resource = os.path.join("examples", "placeholder_psrc", dirname)
-        return pkg_resources.resource_filename("activitysim", resource)
+        file_manager = ExitStack()
+        atexit.register(file_manager.close)
+        ref = importlib.resources.files("activitysim").joinpath(
+            "examples", "example_psrc", dirname
+        )
+        return file_manager.enter_context(importlib.resources.as_file(ref))
 
     def test_path(dirname):
         return os.path.join(os.path.dirname(__file__), dirname)
@@ -65,5 +72,4 @@ def test_psrc_sharrow():
 
 
 if __name__ == "__main__":
-
     test_psrc()

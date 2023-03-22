@@ -132,7 +132,7 @@ class SkimInfo(object):
                 for skim_name in omx_file.listMatrices():
                     if skim_name in self.omx_manifest:
                         warnings.warn(
-                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file}"
+                            f"duplicate skim '{skim_name}' found in {self.omx_manifest[skim_name]} and {omx_file.filename}"
                         )
                     self.omx_manifest[skim_name] = omx_file_path
 

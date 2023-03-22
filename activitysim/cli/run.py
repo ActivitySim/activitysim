@@ -398,7 +398,7 @@ def run(args):
     chunk.consolidate_logs(state)
     mem.consolidate_logs(state)
 
-    from ..core.flow import TimeLogger
+    from activitysim.core.flow import TimeLogger
 
     TimeLogger.aggregate_summary(logger)
 

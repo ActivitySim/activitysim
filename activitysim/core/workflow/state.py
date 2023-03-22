@@ -18,7 +18,6 @@ from pypyr.context import Context
 from sharrow.dataset import construct as _dataset_construct
 
 from activitysim.core.configuration import FileSystem, NetworkSettings, Settings
-from activitysim.core.datastore import CheckpointStore
 from activitysim.core.exceptions import StateAccessError
 from activitysim.core.workflow.checkpoint import LAST_CHECKPOINT, Checkpoints
 from activitysim.core.workflow.dataset import Datasets
@@ -183,7 +182,6 @@ class State:
     settings = StateAttr(Settings)
     network_settings = StateAttr(NetworkSettings)
     predicates = StateAttr(dict, default_init=True)
-    store: CheckpointStore = StateAttr(CheckpointStore)
 
     checkpoint = Checkpoints()
     logging = Logging()

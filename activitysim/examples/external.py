@@ -124,7 +124,7 @@ def default_cache_dir() -> Path:
 
 def download_external_example(
     working_dir,
-    url,
+    url=None,
     cache_dir=None,
     cache_file_name=None,
     sha256=None,
@@ -141,60 +141,70 @@ def download_external_example(
         cache_dir = cache_dir.joinpath(name)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    # check if target file exists in cache dir
-    if cache_file_name is None:
-        cache_file_name = url
-        if cache_file_name.startswith("https://github.com/"):
-            cache_file_name = cache_file_name.replace("https://github.com/", "")
-        if "//" in cache_file_name:
-            cache_file_name = cache_file_name.split("//", 1)[1]
-        cache_file_name = cache_file_name.replace("/", "_").replace("\\", "_")
-
-    target_path = cache_dir.joinpath(cache_file_name)
-
-    download_asset(url, target_path, sha256, link=False)
-
     working_dir = Path(working_dir)
     working_dir.mkdir(parents=True, exist_ok=True)
+    common_prefix = "."
 
-    # decompress cache file into working directory
-    if target_path.suffixes[-2:] == [".tar", ".gz"]:
-        with tarfile.open(target_path) as tfile:
-            common_prefix = os.path.commonprefix(tfile.getnames())
-            if name is not None and common_prefix in {"", ".", "./", None}:
-                common_prefix = name
-                working_dir = working_dir.joinpath(name)
-                working_dir.mkdir(parents=True, exist_ok=True)
-            tfile.extractall(working_dir)
-    elif target_path.suffix == ".zip":
-        with zipfile.ZipFile(target_path, "r") as zf:
-            common_prefix = os.path.commonprefix(zf.namelist())
-            if name is not None and common_prefix in {"", ".", "./", None}:
-                common_prefix = name
-                working_dir = working_dir.joinpath(name)
-                working_dir.mkdir(parents=True, exist_ok=True)
-            zf.extractall(working_dir)
-    else:
-        raise ValueError(f"unknown archive file type {''.join(target_path.suffixes)}")
+    if url:
+        # check if target file exists in cache dir
+        if cache_file_name is None:
+            cache_file_name = url
+            if cache_file_name.startswith("https://github.com/"):
+                cache_file_name = cache_file_name.replace("https://github.com/", "")
+            if "//" in cache_file_name:
+                cache_file_name = cache_file_name.split("//", 1)[1]
+            cache_file_name = cache_file_name.replace("/", "_").replace("\\", "_")
+
+        target_path = cache_dir.joinpath(cache_file_name)
+
+        download_asset(url, target_path, sha256, link=False)
+
+        # decompress cache file into working directory
+        if target_path.suffixes[-2:] == [".tar", ".gz"]:
+            with tarfile.open(target_path) as tfile:
+                common_prefix = os.path.commonprefix(tfile.getnames())
+                if name is not None and common_prefix in {"", ".", "./", None}:
+                    common_prefix = name
+                    working_dir = working_dir.joinpath(name)
+                    working_dir.mkdir(parents=True, exist_ok=True)
+                    working_subdir = working_dir
+                else:
+                    working_subdir = working_dir.joinpath(common_prefix)
+                tfile.extractall(working_dir)
+        elif target_path.suffix == ".zip":
+            with zipfile.ZipFile(target_path, "r") as zf:
+                common_prefix = os.path.commonprefix(zf.namelist())
+                if name is not None and common_prefix in {"", ".", "./", None}:
+                    common_prefix = name
+                    working_dir = working_dir.joinpath(name)
+                    working_dir.mkdir(parents=True, exist_ok=True)
+                    working_subdir = working_dir
+                else:
+                    working_subdir = working_dir.joinpath(common_prefix)
+                zf.extractall(working_dir)
+        else:
+            raise ValueError(
+                f"unknown archive file type {''.join(target_path.suffixes)}"
+            )
 
     # download assets if any:
     if assets:
         for asset_name, asset_info in assets.items():
             if link_assets:
-                asset_target_path = working_dir.joinpath(common_prefix, asset_name)
+                asset_target_path = working_subdir.joinpath(asset_name)
                 download_asset(
                     asset_info.get("url"),
                     asset_target_path,
                     sha256=asset_info.get("sha256", "deadbeef"),
                     link=cache_dir,
-                    base_path=working_dir.joinpath(common_prefix),
+                    base_path=working_subdir,
                 )
             else:
                 # TODO should cache and copy, this just downloads to new locations
                 download_asset(
                     asset_info.get("url"),
-                    working_dir.joinpath(common_prefix, asset_name),
+                    working_subdir.joinpath(asset_name),
                     sha256=asset_info.get("sha256", "deadbeef"),
                 )
 
-    return working_dir.joinpath(common_prefix)
+    return working_subdir

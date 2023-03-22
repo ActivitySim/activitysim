@@ -1,19 +1,22 @@
+from __future__ import annotations
+
 import logging
-import pytest
 import os
 import shutil
-import pandas as pd
+from pathlib import Path
+
 import numpy as np
+import orca
+import pandas as pd
+import pytest
+import scipy.stats as stats
 from numpy import dot
 from numpy.linalg import norm
-import orca
 from numpy.random import randint
-import scipy.stats as stats
 
 # import models is necessary to initalize the model steps with orca
-from activitysim.abm import models
-from activitysim.core import pipeline, config
-from activitysim.core import tracing
+from activitysim.abm import models  # noqa: F401
+from activitysim.core import config, tracing, workflow
 
 logger = logging.getLogger(__name__)
 
@@ -68,27 +71,29 @@ def load_checkpoint() -> bool:
     os.path.isfile("test/auto_ownership/output/pipeline.h5"),
     reason="no need to recreate pipeline store if alreayd exist",
 )
-def test_prepare_input_pipeline(initialize_pipeline: pipeline.Pipeline, caplog):
+def test_prepare_input_pipeline(initialize_pipeline: workflow.State, caplog):
     # Run summarize model
     caplog.set_level(logging.INFO)
 
+    state = initialize_pipeline
+
     # run model step
-    pipeline.run(models=["initialize_landuse", "initialize_households"])
+    state.run(models=["initialize_landuse", "initialize_households"])
 
-    pipeline.close_pipeline()
+    state.close_pipeline()
 
 
-def test_auto_ownership(reconnect_pipeline: pipeline.Pipeline, caplog):
+def test_auto_ownership(reconnect_pipeline: workflow.State, caplog):
 
     caplog.set_level(logging.INFO)
 
+    state = reconnect_pipeline
+
     # run model step
-    pipeline.run(
-        models=["auto_ownership_simulate"], resume_after="initialize_households"
-    )
+    state.run(models=["auto_ownership_simulate"], resume_after="initialize_households")
 
     # get the updated pipeline data
-    household_df = pipeline.get_table("households")
+    household_df = state.get_table("households")
     # logger.info("household_df columns: ", household_df.columns.tolist())
 
     # target_col = "autos"
@@ -149,9 +154,11 @@ def test_auto_ownership(reconnect_pipeline: pipeline.Pipeline, caplog):
 
 
 @pytest.mark.skip
-def test_auto_ownership_variation(reconnect_pipeline: pipeline.Pipeline, caplog):
+def test_auto_ownership_variation(reconnect_pipeline: workflow.State, caplog):
 
     caplog.set_level(logging.INFO)
+
+    state = reconnect_pipeline
 
     output_file = os.path.join(
         "test", "auto_ownership", "output", "ao_results_variation.csv"
@@ -160,9 +167,9 @@ def test_auto_ownership_variation(reconnect_pipeline: pipeline.Pipeline, caplog)
     if os.path.isfile(output_file):
         out_df = pd.read_csv(output_file)
 
-        pipeline.open_pipeline(resume_after="initialize_households")
+        state.checkpoint.restore(resume_after="initialize_households")
 
-        household_df = pipeline.get_table("households")
+        household_df = state.get_table("households")
 
     else:
         target_col = "pre_autos"
@@ -196,12 +203,12 @@ def test_auto_ownership_variation(reconnect_pipeline: pipeline.Pipeline, caplog)
             orca.add_injectable("rng_base_seed", base_seed)
 
             # run model step
-            pipeline.run(
+            state.run(
                 models=["auto_ownership_simulate"], resume_after="initialize_households"
             )
 
             # get the updated pipeline data
-            household_df = pipeline.get_table("households")
+            household_df = state.get_table("households")
 
             household_df = pd.merge(
                 household_df, ao_alternatives_df, how="left", on=choice_col
@@ -222,7 +229,7 @@ def test_auto_ownership_variation(reconnect_pipeline: pipeline.Pipeline, caplog)
 
             # since model_name is used as checkpoint name, the same model can not be run more than once.
             # have to close the pipeline before running the same model again.
-            pipeline.close_pipeline()
+            state.close_pipeline()
 
         out_df["simulation_min"] = out_df.filter(like="simulation_").min(axis=1)
         out_df["simulation_max"] = out_df.filter(like="simulation_").max(axis=1)
@@ -285,32 +292,44 @@ def prepare_module_inputs() -> None:
 
     :return: None
     """
-    # https://wsponlinenam.sharepoint.com/sites/US-TM2ConversionProject/Shared%20Documents/Forms/
-    # AllItems.aspx?id=%2Fsites%2FUS%2DTM2ConversionProject%2FShared%20Documents%2FTask%203%20ActivitySim&viewid=7a1eaca7%2D3999%2D4d45%2D9701%2D9943cc3d6ab1
-    accessibility_file = os.path.join(
-        "test", "auto_ownership", "data", "accessibilities.csv"
-    )
-    household_file = os.path.join(
-        "test", "auto_ownership", "data", "popsyn", "households.csv"
-    )
-    person_file = os.path.join(
-        "test", "auto_ownership", "data", "popsyn", "persons.csv"
-    )
-    landuse_file = os.path.join(
-        "test", "auto_ownership", "data", "landuse", "maz_data_withDensity.csv"
-    )
+    print("\ncwd=", Path.cwd())
+    tmp_path = Path(f"/tmp/{__name__}")
+    tmp_path.mkdir(parents=True, exist_ok=True)
 
-    test_dir = os.path.join("test", "auto_ownership", "data")
+    from activitysim.examples.external import registered_external_example
 
-    shutil.copy(accessibility_file, os.path.join(test_dir, "accessibility.csv"))
-    shutil.copy(household_file, os.path.join(test_dir, "households.csv"))
-    shutil.copy(person_file, os.path.join(test_dir, "persons.csv"))
-    shutil.copy(landuse_file, os.path.join(test_dir, "land_use.csv"))
+    workdir = registered_external_example("legacy_mtc", tmp_path)
+
+    this_dir = Path(__file__).parent
+
+    # # https://wsponlinenam.sharepoint.com/sites/US-TM2ConversionProject/Shared%20Documents/Forms/
+    # # AllItems.aspx?id=%2Fsites%2FUS%2DTM2ConversionProject%2FShared%20Documents%2FTask%203%20ActivitySim&viewid=7a1eaca7%2D3999%2D4d45%2D9701%2D9943cc3d6ab1
+    # accessibility_file = this_dir.joinpath(
+    #     "data", "accessibilities.csv.gz"
+    # )
+    # household_file = this_dir.joinpath(
+    #     "data", "popsyn", "households.csv.gz"
+    # )
+    # person_file = this_dir.joinpath(
+    #     "data", "popsyn", "persons.csv.gz"
+    # )
+    # landuse_file = this_dir.joinpath(
+    #     "data", "landuse", "maz_data_withDensity.csv.gz"
+    # )
+    #
+    # shutil.copy(accessibility_file, tmp_path.joinpath("accessibility.csv.gz"))
+    # shutil.copy(household_file, tmp_path.joinpath("households.csv.gz"))
+    # shutil.copy(person_file, tmp_path.joinpath("persons.csv.gz"))
+    # shutil.copy(landuse_file, tmp_path.joinpath("land_use.csv.gz"))
 
     # add original maz id to accessibility table
-    land_use_df = pd.read_csv(os.path.join(test_dir, "land_use.csv"))
+    land_use_df = pd.read_csv(
+        workdir.joinpath("land_use", "maz_data_withDensity.csv.gz")
+    )
 
-    accessibility_df = pd.read_csv(os.path.join(test_dir, "accessibility.csv"))
+    accessibility_df = pd.read_csv(
+        workdir.joinpath("tm2_outputs", "accessibilities.csv.gz")
+    )
 
     accessibility_df = pd.merge(
         accessibility_df,
@@ -319,7 +338,7 @@ def prepare_module_inputs() -> None:
         on="mgra",
     )
 
-    accessibility_df.to_csv(os.path.join(test_dir, "accessibility.csv"), index=False)
+    accessibility_df.to_csv(tmp_path.joinpath("accessibility.csv"), index=False)
 
     # currently household file has to have these two columns, even before annotation
     # because annotate person happens before household and uses these two columns
@@ -327,7 +346,7 @@ def prepare_module_inputs() -> None:
     ####
 
     # household file from populationsim
-    household_df = pd.read_csv(os.path.join(test_dir, "households.csv"))
+    household_df = pd.read_csv(workdir.joinpath("popsyn", "households.csv.gz"))
 
     household_columns_dict = {"HHID": "household_id", "MAZ": "home_zone_id"}
 
@@ -335,7 +354,7 @@ def prepare_module_inputs() -> None:
 
     # get columns from ctramp output
     tm2_simulated_household_df = pd.read_csv(
-        os.path.join(test_dir, "tm2_outputs", "householdData_3.csv")
+        workdir.joinpath("tm2_outputs", "householdData_1.csv")
     )
     tm2_simulated_household_df.rename(columns={"hh_id": "household_id"}, inplace=True)
 
@@ -356,7 +375,7 @@ def prepare_module_inputs() -> None:
     )
 
     tm2_pre_ao_results_df = pd.read_csv(
-        os.path.join(test_dir, "tm2_outputs", "aoResults_pre.csv")
+        tmp_path.joinpath("tm2_outputs", "aoResults_pre.csv")
     )
     tm2_pre_ao_results_df.rename(
         columns={"HHID": "household_id", "AO": "pre_autos"}, inplace=True
@@ -366,10 +385,10 @@ def prepare_module_inputs() -> None:
         household_df, tm2_pre_ao_results_df, how="inner", on="household_id"
     )
 
-    household_df.to_csv(os.path.join(test_dir, "households.csv"), index=False)
+    household_df.to_csv(tmp_path.joinpath("households.csv"), index=False)
 
     # person file from populationsim
-    person_df = pd.read_csv(os.path.join(test_dir, "persons.csv"))
+    person_df = pd.read_csv(tmp_path.joinpath("persons.csv"))
 
     person_columns_dict = {"HHID": "household_id", "PERID": "person_id"}
 
@@ -377,7 +396,7 @@ def prepare_module_inputs() -> None:
 
     # get columns from ctramp result
     tm2_simulated_person_df = pd.read_csv(
-        os.path.join(test_dir, "tm2_outputs", "personData_3.csv")
+        tmp_path.joinpath("tm2_outputs", "personData_3.csv")
     )
     tm2_simulated_person_df.rename(columns={"hh_id": "household_id"}, inplace=True)
 
@@ -402,7 +421,7 @@ def prepare_module_inputs() -> None:
         on=["household_id", "person_id"],
     )
 
-    person_df.to_csv(os.path.join(test_dir, "persons.csv"), index=False)
+    person_df.to_csv(tmp_path.joinpath("persons.csv"), index=False)
 
 
 def create_summary(input_df, key, out_col="Share") -> pd.DataFrame:

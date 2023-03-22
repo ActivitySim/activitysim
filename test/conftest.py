@@ -1,31 +1,33 @@
+from __future__ import annotations
+
 import os
 
-import orca
 import pandas as pd
 import pytest
-from activitysim.core import pipeline
+
+from activitysim.core import workflow
 from activitysim.core.los import Network_LOS as los
 
 
-@pytest.fixture(scope="module")
-def initialize_pipeline(
-    module: str, tables: dict[str, str], initialize_network_los: bool
-) -> pipeline.Pipeline:
+def _initialize_pipeline(
+    module: str,
+    tables: dict[str, str],
+    initialize_network_los: bool,
+    load_checkpoint: str = None,
+) -> workflow.State:
     test_dir = os.path.join("test", module)
     configs_dir = os.path.join(test_dir, "configs")
     data_dir = os.path.join(test_dir, "data")
     output_dir = os.path.join(test_dir, "output")
 
-    if os.path.isdir(configs_dir):
-        orca.add_injectable("configs_dir", configs_dir)
+    state = workflow.State()
+    state.initialize_filesystem(
+        configs_dir=(configs_dir,),
+        data_dir=(data_dir,),
+        output_dir=output_dir,
+    )
 
-    if os.path.isdir(data_dir):
-        orca.add_injectable("data_dir", data_dir)
-
-    if os.path.isdir(test_dir):
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-        orca.add_injectable("output_dir", output_dir)
+    assert not (load_checkpoint and tables)
 
     # Read in the input test dataframes
     for dataframe_name, idx_name in tables.items():
@@ -33,12 +35,12 @@ def initialize_pipeline(
             os.path.join("test", module, "data", f"{dataframe_name}.csv"),
             index_col=idx_name,
         )
-        orca.add_table(dataframe_name, df)
+        state.add_table(dataframe_name, df)
 
     if initialize_network_los:
-        net_los = los()
+        net_los = los(state)
         net_los.load_data()
-        orca.add_injectable("network_los", net_los)
+        state.add_injectable("network_los", net_los)
 
     # Add an output directory in current working directory if it's not already there
     try:
@@ -47,59 +49,28 @@ def initialize_pipeline(
         # directory already exists
         pass
 
-    # Add the dataframes to the pipeline
-    pipeline.open_pipeline()
-    pipeline.add_checkpoint(module)
-    pipeline.close_pipeline()
+    if load_checkpoint:
+        state.checkpoint.restore(resume_after=load_checkpoint)
+    else:
+        # Add the dataframes to the pipeline
+        state.checkpoint.open_store()
+        state.checkpoint.add(module)
 
     # By convention, this method needs to yield something
-    yield pipeline._PIPELINE
+    yield state
 
-    if pipeline.is_open():
-        pipeline.close_pipeline()
+    state.close_pipeline()
+
+
+@pytest.fixture(scope="module")
+def initialize_pipeline(
+    module: str, tables: dict[str, str], initialize_network_los: bool
+) -> workflow.State:
+    yield from _initialize_pipeline(module, tables, initialize_network_los)
 
 
 @pytest.fixture(scope="module")
 def reconnect_pipeline(
     module: str, initialize_network_los: bool, load_checkpoint: str
-) -> pipeline.Pipeline:
-    test_dir = os.path.join("test", module)
-    configs_dir = os.path.join(test_dir, "configs")
-    data_dir = os.path.join(test_dir, "data")
-    output_dir = os.path.join(test_dir, "output")
-
-    if os.path.isdir(configs_dir):
-        orca.add_injectable("configs_dir", configs_dir)
-
-    if os.path.isdir(data_dir):
-        orca.add_injectable("data_dir", data_dir)
-
-    if os.path.isdir(test_dir):
-        if not os.path.isdir(output_dir):
-            os.mkdir(output_dir)
-        orca.add_injectable("output_dir", output_dir)
-
-    # Read in the existing pipeline
-    orca.add_injectable("pipeline_file_path", output_dir)
-
-    if initialize_network_los:
-        net_los = los()
-        net_los.load_data()
-        orca.add_injectable("network_los", net_los)
-
-    # Add an output directory in current working directory if it's not already there
-    try:
-        os.makedirs("output")
-    except FileExistsError:
-        # directory already exists
-        pass
-
-    pipeline.open_pipeline(resume_after=load_checkpoint)
-    pipeline.add_checkpoint(module)
-    pipeline.close_pipeline()
-    # By convention, this method needs to yield something
-    yield pipeline._PIPELINE
-
-    # pytest teardown code
-    if pipeline.is_open():
-        pipeline.close_pipeline()
+) -> workflow.State:
+    yield from _initialize_pipeline(module, {}, initialize_network_los, load_checkpoint)

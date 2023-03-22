@@ -14,7 +14,9 @@ Code for annotating tables
 logger = logging.getLogger(__name__)
 
 
-def annotate_tours(state: workflow.State, model_settings, trace_label, locals_dict=None):
+def annotate_tours(
+    state: workflow.State, model_settings, trace_label, locals_dict=None
+):
     """
     Add columns to the tours table in the pipeline according to spec.
 
@@ -36,7 +38,9 @@ def annotate_tours(state: workflow.State, model_settings, trace_label, locals_di
     state.add_table("tours", tours)
 
 
-def annotate_trips(state: workflow.State, model_settings, trace_label, locals_dict=None):
+def annotate_trips(
+    state: workflow.State, model_settings, trace_label, locals_dict=None
+):
     """
     Add columns to the trips table in the pipeline according to spec.
 

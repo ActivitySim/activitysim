@@ -126,8 +126,11 @@ def cdap_simulate(
     logger.info("Pre-building cdap specs")
     for hhsize in range(2, cdap.MAX_HHSIZE + 1):
         spec = cdap.build_cdap_spec(
-            state, cdap_interaction_coefficients, hhsize, cache=True,
-            joint_tour_alt=add_joint_tour_utility
+            state,
+            cdap_interaction_coefficients,
+            hhsize,
+            cache=True,
+            joint_tour_alt=add_joint_tour_utility,
         )
         if state.get_injectable("locutor", False):
             spec.to_csv(

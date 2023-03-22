@@ -21,7 +21,7 @@ class InputTable(PydanticBase):
     If not provided, defaults to `input_store`
     """
 
-    index_col: str | None = "NOTSET"
+    index_col: Union[str, None] = "NOTSET"
     """table column to use for the index"""
 
     rename_columns: dict[str, str] = None
@@ -560,7 +560,7 @@ class Settings(PydanticBase, extra="allow"):
     have any other effect on the operation of the model(s).
     """
 
-    rng_base_seed: int | None = 0
+    rng_base_seed: Union[int, None] = 0
     """Base seed for pseudo-random number generator."""
 
     duplicate_step_execution: Literal["raise", "warn", "allow"] = "raise"

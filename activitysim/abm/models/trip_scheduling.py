@@ -13,7 +13,7 @@ from activitysim.abm.models.util.school_escort_tours_trips import (
     split_out_school_escorting_trips,
 )
 from activitysim.abm.models.util.trip import cleanup_failed_trips, failed_trip_cohorts
-from activitysim.core import chunk, estimation, tracing, workflow, expressions
+from activitysim.core import chunk, config, estimation, expressions, tracing, workflow
 from activitysim.core.util import reindex
 
 logger = logging.getLogger(__name__)
@@ -209,6 +209,7 @@ def schedule_trips_in_leg(
             "Invalid scheduling mode specified: {0}.".format(scheduling_mode),
             "Please select one of ['departure', 'stop_duration', 'relative'] and try again.",
         )
+        raise ValueError(f"Invalid scheduling mode specified: {scheduling_mode}")
 
     # logger.debug("%s scheduling %s trips" % (trace_label, trips.shape[0]))
 
@@ -246,7 +247,7 @@ def schedule_trips_in_leg(
         ADJUST_NEXT_DEPART_COL = "latest"
     trips.next_trip_id = trips.next_trip_id.where(~is_final, NO_TRIP_ID)
 
-    network_los = inject.get_injectable("network_los")
+    network_los = state.get_injectable("network_los")
     locals_dict = {"network_los": network_los}
     locals_dict.update(config.get_model_constants(model_settings))
 
@@ -258,6 +259,7 @@ def schedule_trips_in_leg(
         # - annotate trips
         if preprocessor_settings:
             expressions.assign_columns(
+                state,
                 df=trips,
                 model_settings=preprocessor_settings,
                 locals_dict=locals_dict,
@@ -316,7 +318,7 @@ def schedule_trips_in_leg(
 
         result_list.append(choices)
 
-        chunk_sizer.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
         first_trip_in_leg = False
 
@@ -363,7 +365,7 @@ def run_trip_scheduling(
         )
         result_list.append(choices)
 
-        chunk_sizer.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
         # departure time of last outbound trips must constrain
         # departure times for initial inbound trips
@@ -384,7 +386,7 @@ def run_trip_scheduling(
         )
         result_list.append(choices)
 
-        chunk_sizer.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
     choices = pd.concat(result_list)
 

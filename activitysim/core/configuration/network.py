@@ -238,7 +238,7 @@ class NetworkSettings(PydanticReadable, extra="forbid"):
 
     demographic_segments: Any = None
 
-    tap_skims: str | list[str] = None
+    tap_skims: Union[str, list[str]] = None
 
     tap_lines: str = None
     """TAP lines filename."""

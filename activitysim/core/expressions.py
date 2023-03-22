@@ -132,7 +132,7 @@ def compute_columns(state, df, model_settings, locals_dict={}, trace_label=None)
 
 
 def assign_columns(
-    state: workflow.State, df, model_settings, locals_dict={}, trace_label=None
+    state: workflow.State, df, model_settings, locals_dict=None, trace_label=None
 ):
     """
     Evaluate expressions in context of df and assign resulting target columns to df
@@ -142,6 +142,8 @@ def assign_columns(
     Parameters - same as for compute_columns except df must not be None
     Returns - nothing since we modify df in place
     """
+    if locals_dict is None:
+        locals_dict = {}
 
     assert df is not None
     assert model_settings is not None

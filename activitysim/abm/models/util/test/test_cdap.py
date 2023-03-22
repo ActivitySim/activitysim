@@ -1,6 +1,8 @@
 # ActivitySim
 # See full license in LICENSE.txt.
 
+from __future__ import annotations
+
 import os.path
 
 import pandas as pd
@@ -147,7 +149,7 @@ def test_build_cdap_spec_hhsize2(people, model_settings):
             chunk_sizer=chunk_sizer,
         )
 
-        choosers = cdap.hh_choosers(indiv_utils, hhsize=hhsize)
+        choosers = cdap.hh_choosers(state, indiv_utils, hhsize=hhsize)
 
         spec = cdap.build_cdap_spec(
             state, interaction_coefficients, hhsize=hhsize, cache=False

@@ -392,7 +392,11 @@ class State:
 
     @property
     def existing_table_names(self):
-        return self.store.keys()
+        return self.existing_table_status.keys()
+
+    @property
+    def existing_table_status(self) -> dict:
+        return self._context["_salient_tables"]
 
     def uncheckpointed_table_names(self):
         uncheckpointed = []
@@ -459,16 +463,15 @@ class State:
         -------
         xarray.Dataset
         """
-        if table_name in self.store:
-            t = self.store.get_dataset(table_name, column_names)
-        else:
+        t = self._context.get(table_name, None)
+        if t is None:
             t = self._load_or_create_dataset(table_name, swallow_errors=False)
-            if column_names is not None:
-                t = t[column_names]
         if t is None:
             raise KeyError(table_name)
         t = _dataset_construct(t)
         if isinstance(t, xr.Dataset):
+            if column_names is not None:
+                t = t[column_names]
             if as_copy:
                 return t.copy()
             else:
@@ -497,22 +500,19 @@ class State:
         -------
         DataFrame
         """
-        if tablename in self.store:
-            t = self.store.get_dataset(tablename, columns)
-        else:
+        t = self._context.get(tablename, None)
+        if t is None:
             t = self._load_or_create_dataset(tablename, swallow_errors=False)
-            if columns:
-                t = t[columns]
         if t is None:
             raise KeyError(tablename)
-        # if isinstance(t, pd.DataFrame):
-        #     if columns is not None:
-        #         t = t[columns]
-        #     if as_copy:
-        #         return t.copy()
-        #     else:
-        #         return t
-        if isinstance(t, xr.Dataset):
+        if isinstance(t, pd.DataFrame):
+            if columns is not None:
+                t = t[columns]
+            if as_copy:
+                return t.copy()
+            else:
+                return t
+        elif isinstance(t, xr.Dataset):
             # this route through pyarrow is generally faster than xarray.to_pandas
             return t.single_dim.to_pyarrow().to_pandas()
         raise TypeError(f"cannot convert {tablename} to DataFrame")
@@ -554,15 +554,14 @@ class State:
         -------
         str
         """
-        if tablename in self.store:
-            t = self.store.get_dataset(tablename)
-        else:
+        t = self._context.get(tablename, None)
+        if t is None:
             t = self._load_or_create_dataset(tablename, swallow_errors=False)
         if t is None:
             raise KeyError(tablename)
         if isinstance(t, pd.DataFrame):
             return t.index.name
-        return t.single_dim.dim_name
+        raise TypeError(f"cannot get index name for {tablename}")
 
     def get_pyarrow(
         self, tablename: str, columns: Optional[list[str] | str] = None
@@ -583,8 +582,18 @@ class State:
         """
         if isinstance(columns, str):
             columns = [columns]
-        t = self.get_dataset(tablename, column_names=columns)
-        return t.single_dim.to_pyarrow()
+        t = self._context.get(tablename, None)
+        if t is None:
+            t = self._load_or_create_dataset(tablename, swallow_errors=False)
+        if t is None:
+            raise KeyError(tablename)
+        if isinstance(t, pd.DataFrame):
+            t = pa.Table.from_pandas(t, preserve_index=True, columns=columns)
+        if isinstance(t, pa.Table):
+            if columns is not None:
+                t = t.select(columns)
+            return t
+        raise TypeError(f"cannot convert {tablename} to pyarrow.Table")
 
     def access(self, key, initializer):
         if key not in self._context:
@@ -717,12 +726,10 @@ class State:
             # mark this salient table as edited, so it can be checkpointed
             # at some later time if desired.
             self.existing_table_status[name] = True
-        self.store.set_data(name, content)
-        if not salient:
-            self.store.do_not_persist.add(name)
+        self.set(name, content)
 
     def is_table(self, name):
-        return name in self.store
+        return name in self.existing_table_status
 
     def registered_tables(self):
         """
@@ -827,12 +834,9 @@ class State:
         """
         Close any known open files
         """
-
         self.close_open_files()
         self.checkpoint.close_store()
-
         self.init_state()
-
         logger.debug("close_pipeline")
 
     def should_save_checkpoint(self, checkpoint_name=None) -> bool:

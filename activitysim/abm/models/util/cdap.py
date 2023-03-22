@@ -218,7 +218,7 @@ def individual_utilities(
     indiv_utils[useful_columns] = persons[useful_columns]
 
     # add attributes for joint tour utility
-    model_settings = config.read_model_settings("cdap.yaml")
+    model_settings = state.filesystem.read_model_settings("cdap.yaml")
     additional_useful_columns = model_settings.get("JOINT_TOUR_USEFUL_COLUMNS", None)
     if additional_useful_columns is not None:
         indiv_utils[additional_useful_columns] = persons[additional_useful_columns]
@@ -286,8 +286,10 @@ def preprocess_interaction_coefficients(interaction_coefficients):
 def cached_spec_name(hhsize):
     return "cdap_spec_%s" % hhsize
 
+
 def cached_joint_spec_name(hhsize):
     return "cdap_joint_spec_%s" % hhsize
+
 
 def get_cached_spec(state: workflow.State, hhsize):
 
@@ -311,11 +313,11 @@ def get_cached_spec(state: workflow.State, hhsize):
     return None
 
 
-def get_cached_joint_spec(hhsize):
+def get_cached_joint_spec(state: workflow.State, hhsize):
 
     spec_name = cached_joint_spec_name(hhsize)
 
-    spec = inject.get_injectable(spec_name, None)
+    spec = state.get_injectable(spec_name, None)
     if spec is not None:
         logger.debug(
             "build_cdap_joint_spec returning cached injectable spec %s", spec_name
@@ -543,7 +545,12 @@ def build_cdap_spec(
 
 
 def build_cdap_joint_spec(
-    joint_tour_coefficients, hhsize, trace_spec=False, trace_label=None, cache=True
+    state: workflow.State,
+    joint_tour_coefficients,
+    hhsize,
+    trace_spec=False,
+    trace_label=None,
+    cache=True,
 ):
     """
     Build a spec file for computing joint tour utilities of alternative household member for households of specified size.
@@ -582,7 +589,7 @@ def build_cdap_joint_spec(
     hhsize = min(hhsize, MAX_HHSIZE)
 
     if cache:
-        spec = get_cached_joint_spec(hhsize)
+        spec = get_cached_joint_spec(state, hhsize)
         if spec is not None:
             return spec
 
@@ -720,7 +727,7 @@ def build_cdap_joint_spec(
             spec[c] = 0
 
     if trace_spec:
-        tracing.trace_df(
+        state.tracing.trace_df(
             spec,
             "%s.hhsize%d_joint_spec" % (trace_label, hhsize),
             transpose=False,
@@ -728,7 +735,7 @@ def build_cdap_joint_spec(
         )
 
     if trace_spec:
-        tracing.trace_df(
+        state.tracing.trace_df(
             spec,
             "%s.hhsize%d_joint_spec_patched" % (trace_label, hhsize),
             transpose=False,
@@ -736,7 +743,7 @@ def build_cdap_joint_spec(
         )
 
     if cache:
-        cache_joint_spec(hhsize, spec)
+        cache_joint_spec(state, hhsize, spec)
 
     t0 = tracing.print_elapsed_time("build_cdap_joint_spec hh_size %s" % hhsize, t0)
 
@@ -801,7 +808,7 @@ def add_interaction_column(choosers, p_tup):
     )
 
 
-def hh_choosers(indiv_utils, hhsize):
+def hh_choosers(state: workflow.State, indiv_utils, hhsize):
     """
     Build a chooser table for calculating house utilities for all households of specified hhsize
 
@@ -840,7 +847,7 @@ def hh_choosers(indiv_utils, hhsize):
     merge_cols = [_hh_id_, _ptype_, "M", "N", "H"]
 
     # add attributes for joint tour utility
-    model_settings = config.read_model_settings("cdap.yaml")
+    model_settings = state.filesystem.read_model_settings("cdap.yaml")
     additional_merge_cols = model_settings.get("JOINT_TOUR_USEFUL_COLUMNS", None)
     if additional_merge_cols is not None:
         merge_cols.extend(additional_merge_cols)
@@ -938,7 +945,7 @@ def household_activity_choices(
         # index on household_id, not person_id
         set_hh_index(utils)
     else:
-        choosers = hh_choosers(indiv_utils, hhsize=hhsize)
+        choosers = hh_choosers(state, indiv_utils, hhsize=hhsize)
 
         spec = build_cdap_spec(
             state,
@@ -961,6 +968,7 @@ def household_activity_choices(
     if add_joint_tour_utility & (hhsize > 1):
         # calculate joint utils
         joint_tour_spec = build_cdap_joint_spec(
+            state,
             interaction_coefficients,
             hhsize,
             trace_spec=(trace_hh_id in choosers.index),
@@ -968,7 +976,11 @@ def household_activity_choices(
         )
 
         joint_tour_utils = simulate.eval_utilities(
-            joint_tour_spec, choosers, trace_label=trace_label
+            state,
+            joint_tour_spec,
+            choosers,
+            trace_label=trace_label,
+            chunk_sizer=chunk_sizer,
         )
 
         # add joint util to util
@@ -1065,7 +1077,7 @@ def unpack_cdap_indiv_activity_choices(persons, hh_choices, trace_hh_id, trace_l
 def extra_hh_member_choices(
     state: workflow.State,
     persons,
-    cdap_fixed_relative_proportions,
+    cdap_fixed_relative_proportions: pd.DataFrame,
     locals_d,
     trace_hh_id,
     trace_label,
@@ -1173,7 +1185,7 @@ def _run_cdap(
     add_joint_tour_utility,
     *,
     chunk_sizer,
-) -> pd.DataFrame:
+) -> pd.DataFrame | tuple:
     """
     Implements core run_cdap functionality on persons df (or chunked subset thereof)
     Aside from chunking of persons df, params are passed through from run_cdap unchanged
@@ -1332,6 +1344,7 @@ def run_cdap(
 
     trace_label = tracing.extend_trace_label(trace_label, "cdap")
 
+    cdap_results = hh_choice_results = None
     result_list = []
     # segment by person type and pick the right spec for each person type
     for (
@@ -1351,6 +1364,7 @@ def run_cdap(
                 trace_hh_id,
                 chunk_trace_label,
                 add_joint_tour_utility,
+                chunk_sizer=chunk_sizer,
             )
         else:
             cdap_results = _run_cdap(
@@ -1369,7 +1383,7 @@ def run_cdap(
 
         result_list.append(cdap_results)
 
-        chunk_sizer.log_df(trace_label, f"result_list", result_list)
+        chunk_sizer.log_df(trace_label, "result_list", result_list)
 
     # FIXME: this will require 2X RAM
     # if necessary, could append to hdf5 store on disk:

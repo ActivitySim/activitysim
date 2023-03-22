@@ -11,7 +11,6 @@ import sys
 from contextlib import ExitStack
 
 import pandas as pd
-import pandas.testing as pdt
 
 from activitysim.core.test import assert_frame_substantively_equal
 
@@ -21,7 +20,7 @@ def _test_psrc(sharrow=False):
         file_manager = ExitStack()
         atexit.register(file_manager.close)
         ref = importlib.resources.files("activitysim").joinpath(
-            "examples", "example_psrc", dirname
+            "examples", "placeholder_psrc", dirname
         )
         return file_manager.enter_context(importlib.resources.as_file(ref))
 

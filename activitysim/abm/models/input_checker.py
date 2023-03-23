@@ -23,11 +23,10 @@
 # python C:\ABM_runs\maint_2020_RSG\Tasks\input_checker\emme_toolbox\emme\toolbox\import\input_checker.py
 
 
-import os, shutil, sys, time, csv, logging
+import os, sys, logging
 import win32com.client as com
 import numpy as np
 import pandas as pd
-import traceback as _traceback
 import datetime
 import warnings
 
@@ -35,13 +34,7 @@ import warnings
 
 import pandas as pd
 
-from activitysim.abm.tables import shadow_pricing, disaggregate_accessibility
-from activitysim.core import chunk, config, expressions, inject, mem, pipeline, tracing, simulate
-from activitysim.core.steps.output import (
-    track_skim_usage,
-    write_data_dictionary,
-    write_tables,
-)
+from activitysim.core import config, inject
 
 from activitysim.core.input import read_input_table
 
@@ -51,6 +44,7 @@ warnings.filterwarnings("ignore")
 
 _join = os.path.join
 _dir = os.path.dirname
+
 
 class InputChecker:
     def __init__(self):
@@ -69,19 +63,19 @@ class InputChecker:
         self.num_warning = int()
         self.num_logical = int()
 
-        self. trace_label = "input_checker"
+        self.trace_label = "input_checker"
         self.model_settings_file_name = "input_checker.yaml"
         model_settings = config.read_model_settings(self.model_settings_file_name)
 
         # input_item_list = self.read_model_spec(file_name=model_settings["INPUT_ITEM_LIST"])
         # model_spec = self.read_model_spec(file_name=model_settings["SPEC"])
 
-        #TEMP fix for now since the read_model_spec is not working for some reason
-        file_name=model_settings['INPUT_ITEM_LIST']
+        # TEMP fix for now since the read_model_spec is not working for some reason
+        file_name = model_settings["INPUT_ITEM_LIST"]
         file_path = config.config_file_path(file_name)
         self.inputs_list = pd.read_csv(file_path, comment="#")
 
-        file_name=model_settings['SPEC']
+        file_name = model_settings["SPEC"]
         file_path = config.config_file_path(file_name)
         self.input_checker_spec = pd.read_csv(file_path, comment="#")
 
@@ -90,7 +84,7 @@ class InputChecker:
         self.read_inputs()
         self.check_inputs()
 
-    #TODO: make sure we do not need to set index 
+    # TODO: make sure we do not need to set index
     # def read_model_spec(file_name):
 
     #     assert isinstance(file_name, str)
@@ -105,19 +99,19 @@ class InputChecker:
     #         logger.error(f"read_model_spec error reading {file_path}")
     #         logger.error(f"read_model_spec error {type(err).__name__}: {str(err)}")
     #         raise (err)
-        
+
     #     return spec
 
     def read_inputs(self):
 
-        self.inputs['persons'] = read_input_table("persons")
-        self.inputs['persons'].reset_index(inplace=True) 
-        self.inputs['households'] = read_input_table("households")
-        self.inputs['households'].reset_index(inplace=True)
-        self.inputs['land_use'] = read_input_table("land_use")
-        self.inputs['land_use'].reset_index(inplace=True)
+        self.inputs["persons"] = read_input_table("persons")
+        self.inputs["persons"].reset_index(inplace=True)
+        self.inputs["households"] = read_input_table("households")
+        self.inputs["households"].reset_index(inplace=True)
+        self.inputs["land_use"] = read_input_table("land_use")
+        self.inputs["land_use"].reset_index(inplace=True)
 
-        #check to see if input list has any additional files to read in
+        # check to see if input list has any additional files to read in
         if not self.inputs_list.empty:
             self.inputs_list = self.inputs_list.loc[
                 [not i for i in (self.inputs_list["Input_Table"].str.startswith("#"))]
@@ -277,8 +271,6 @@ class InputChecker:
 
         logger.info("Finisehd running input checker")
 
-    
-
     def write_log(self):
         # function to write out the input checker log file
         # there are three blocks:
@@ -295,7 +287,7 @@ class InputChecker:
             os.makedirs(log_path)
 
         f = open(
-                config.output_file_path(f'inputCheckerLog{now.strftime("[%Y-%m-%d]")}.log'),
+            config.output_file_path(f'inputCheckerLog{now.strftime("[%Y-%m-%d]")}.log'),
             "w",
         )
 
@@ -359,10 +351,14 @@ class InputChecker:
         f.write("\t A complete listing of results of all passed checks\r\n\r\n")
         f.write(seperator1 + seperator1 + "\r\n")
         f.write(seperator1 + seperator1 + "\r\n\r\n\r\n\r\n")
-        
+
         # combine results, input_checker_spec and inputs_list
-        self.input_checker_spec["result"] = self.input_checker_spec["Test"].map(self.results)
-        checks_df = pd.merge(self.input_checker_spec, self.inputs_list, how='left', on="Input_Table")
+        self.input_checker_spec["result"] = self.input_checker_spec["Test"].map(
+            self.results
+        )
+        checks_df = pd.merge(
+            self.input_checker_spec, self.inputs_list, how="left", on="Input_Table"
+        )
         checks_df = checks_df[checks_df.Type == "Test"]
         checks_df["reverse_result"] = [not i for i in checks_df.result]
 
@@ -391,10 +387,7 @@ class InputChecker:
 
             # write check summary
             fh.write("\r\n\r\n" + seperator2 + seperator2)
-            fh.write(
-                "\r\n\t Input File Name: "
-                + (row["Input_Table"]) 
-            )
+            fh.write("\r\n\t Input File Name: " + (row["Input_Table"]))
             fh.write(
                 "\r\n\t Input Description: "
                 + (

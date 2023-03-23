@@ -1232,7 +1232,7 @@ The trip scheduling model does not use mode choice logsums.
 Alternatives: Available time periods in the tour window (i.e. tour start and end period).  When processing stops on
 work tours, the available time periods is constrained by the at-work subtour start and end period as well.
 
-In order to avoid trip failing, a new probabalisitic trip scheduling mode was developed named "relative".
+In order to avoid trip failing, a new probabilistic trip scheduling mode was developed named "relative".
 When setting the _scheduling_mode_ option to relative, trips are scheduled relative to the previously scheduled trips.
 The first trip still departs when the tour starts and for every subsequet trip, the choices are selected with respect to
 the previous trip depart time. Inbound trips are no longer handled in reverse order.  The key to this relative mode is to
@@ -1250,6 +1250,17 @@ scheduling probabilities are indexed by the following columns:
   * half_tour_stops_remaining_grouped: The number of stops remaining on the half tour with the categories of 0 and 1+
 Each of these variables are listed as merge columns in the trip_scheduling.yaml file and are declared in the trip scheduling preprocessor.
 The variables above attempt to balance the statistics available for probability creation with the amount of segmentation of trip characteristics.
+
+Earlier versions of ActivitySim contained a logic error in this model, whereby
+the earliest departure time for inbound legs was bounded by the maximum outbound
+departure time, even if there was a scheduling failure and one or more outbound
+leg departures and that bound was NA.  For continuity, this process has been
+retained in this ActivitySim component as *logic_version* 1, and it remains the
+default process if the user does not explicitly specify a logic version in the
+model settings yaml file. The revised logic includes bounding inbound legs only
+when the maximum outbound departure time is well defined.  This version of the
+model can be used by explicitly setting `logic_version: 2` (or greater) in the
+model settings yaml file.
 
 The main interface to the trip scheduling model is the
 :py:func:`~activitysim.abm.models.trip_scheduling.trip_scheduling` function.

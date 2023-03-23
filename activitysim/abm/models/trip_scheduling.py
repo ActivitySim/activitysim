@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import warnings
 from builtins import range
 
 import numpy as np
@@ -47,6 +48,22 @@ PROBS_JOIN_COLUMNS_DEPARTURE_BASED = [
 ]
 PROBS_JOIN_COLUMNS_DURATION_BASED = ["outbound", "stop_num"]
 PROBS_JOIN_COLUMNS_RELATIVE_BASED = ["outbound", "periods_left"]
+
+
+def _logic_version(model_settings):
+    logic_version = model_settings.get("logic_version", None)
+    if logic_version is None:
+        warnings.warn(
+            "The trip_scheduling component now has a logic_version setting "
+            "to control how the scheduling rules are applied.  The default "
+            "logic_version is currently set at `1` but may be moved up in "
+            "the future. Explicitly set `logic_version` to 2 in the model "
+            "settings to upgrade your model logic now, or set it to 1 to "
+            "suppress this message.",
+            FutureWarning,
+        )
+        logic_version = 1
+    return logic_version
 
 
 def set_tour_hour(trips, tours):
@@ -110,7 +127,7 @@ def set_stop_num(trips):
     trips["stop_num"] = trips.stop_num.where(trips["outbound"], trips["trip_num"])
 
 
-def update_tour_earliest(trips, outbound_choices):
+def update_tour_earliest(trips, outbound_choices, logic_version: int):
     """
     Updates "earliest" column for inbound trips based on
     the maximum outbound trip departure time of the tour.
@@ -123,6 +140,14 @@ def update_tour_earliest(trips, outbound_choices):
     outbound_choices: pd.Series
         time periods depart choices, one per trip (except for trips with
         zero probs)
+    logic_version : int
+        Logic version 1 is the original ActivitySim implementation, which
+        sets the "earliest" value to the max outbound departure for all
+        inbound trips, regardless of what that max outbound departure value
+        is (even if it is NA).  Logic version 2 introduces a change whereby
+        that assignment is only made if the max outbound departure value is
+        not NA.
+
     Returns
     -------
     modifies trips in place
@@ -147,11 +172,18 @@ def update_tour_earliest(trips, outbound_choices):
     # set the trips "earliest" column equal to the max outbound departure
     # time for all inbound trips. preserve values that were used for outbound trips
     # FIXME - extra logic added because max_outbound_departure can be NA if previous failed trip was removed
-    tmp_trips["earliest"] = np.where(
-        ~tmp_trips["outbound"] & ~tmp_trips["max_outbound_departure"].isna(),
-        tmp_trips["max_outbound_departure"],
-        tmp_trips["earliest"],
-    )
+    if logic_version == 1:
+        tmp_trips["earliest"] = tmp_trips["earliest"].where(
+            tmp_trips["outbound"], tmp_trips["max_outbound_departure"]
+        )
+    elif logic_version > 1:
+        tmp_trips["earliest"] = np.where(
+            ~tmp_trips["outbound"] & ~tmp_trips["max_outbound_departure"].isna(),
+            tmp_trips["max_outbound_departure"],
+            tmp_trips["earliest"],
+        )
+    else:
+        raise ValueError(f"bad logic_version: {logic_version}")
 
     trips["earliest"] = tmp_trips["earliest"].reindex(trips.index)
 
@@ -253,7 +285,6 @@ def schedule_trips_in_leg(
 
     first_trip_in_leg = True
     for i in range(trips.trip_num.min(), trips.trip_num.max() + 1):
-
         nth_trace_label = tracing.extend_trace_label(trace_label, "num_%s" % i)
 
         # - annotate trips
@@ -303,7 +334,7 @@ def schedule_trips_in_leg(
             # choices are relative to the previous departure time
             choices = nth_trips.earliest + choices
             # need to update the departure time based on the choice
-            update_tour_earliest(trips, choices)
+            update_tour_earliest(trips, choices, _logic_version(model_settings))
 
         # adjust allowed depart range of next trip
         has_next_trip = nth_trips.next_trip_id != NO_TRIP_ID
@@ -369,7 +400,7 @@ def run_trip_scheduling(
 
         # departure time of last outbound trips must constrain
         # departure times for initial inbound trips
-        update_tour_earliest(trips_chunk, choices)
+        update_tour_earliest(trips_chunk, choices, _logic_version(model_settings))
 
     if (~trips_chunk.outbound).any():
         leg_chunk = trips_chunk[~trips_chunk.outbound]

@@ -85,9 +85,6 @@ class InputChecker:
         file_path = config.config_file_path(file_name)
         self.input_checker_spec = pd.read_csv(file_path, comment="#")
 
-
-
-
         logger.info("Running %s", self.trace_label)
 
         self.read_inputs()
@@ -297,13 +294,6 @@ class InputChecker:
         if not os.path.exists(log_path):
             os.makedirs(log_path)
 
-        print(config.output_file_path('test.csv'))
-
-        # use fstring to create a file name with the current date
-
-
-
-
         f = open(
                 config.output_file_path(f'inputCheckerLog{now.strftime("[%Y-%m-%d]")}.log'),
             "w",
@@ -321,7 +311,7 @@ class InputChecker:
         f.write("\t Log created on: " + now.strftime("%Y-%m-%d %H:%M") + "\r\n\r\n")
         f.write("\t Notes:-\r\n")
         f.write(
-            "\t The ActivitySim Input Checker performs various QA/QC checks on ActivitySIm inputs as specified by the user.\r\n"
+            "\t The ActivitySim Input Checker performs various QA/QC checks on ActivitySim inputs as specified by the user.\r\n"
         )
         f.write(
             "\t The Input Checker allows the user to specify three severity levels for each QA/QC check:\r\n\r\n"
@@ -369,10 +359,10 @@ class InputChecker:
         f.write("\t A complete listing of results of all passed checks\r\n\r\n")
         f.write(seperator1 + seperator1 + "\r\n")
         f.write(seperator1 + seperator1 + "\r\n\r\n\r\n\r\n")
-
+        
         # combine results, input_checker_spec and inputs_list
         self.input_checker_spec["result"] = self.input_checker_spec["Test"].map(self.results)
-        checks_df = pd.merge(self.input_checker_spec, self.inputs_list, on="Input_Table")
+        checks_df = pd.merge(self.input_checker_spec, self.inputs_list, how='left', on="Input_Table")
         checks_df = checks_df[checks_df.Type == "Test"]
         checks_df["reverse_result"] = [not i for i in checks_df.result]
 
@@ -403,30 +393,7 @@ class InputChecker:
             fh.write("\r\n\r\n" + seperator2 + seperator2)
             fh.write(
                 "\r\n\t Input File Name: "
-                + (
-                    "NA"
-                    if not pd.isnull(row["Emme_Object"])
-                    else (self.prop_input_paths[row["Input_Table"]].rsplit("/", 1)[-1])
-                )
-            )
-            fh.write(
-                "\r\n\t Input File Location: "
-                + (
-                    "NA"
-                    if not pd.isnull(row["Emme_Object"])
-                    else (
-                        _join(
-                            self.input_checker_path,
-                            self.prop_input_paths[row["Input_Table"]].replace(
-                                "/", "\\"
-                            ),
-                        )
-                    )
-                )
-            )
-            fh.write(
-                "\r\n\t Emme Object: "
-                + (row["Emme_Object"] if not pd.isnull(row["Emme_Object"]) else "NA")
+                + (row["Input_Table"]) 
             )
             fh.write(
                 "\r\n\t Input Description: "

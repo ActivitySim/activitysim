@@ -1648,7 +1648,7 @@ def run_multiprocess(state: workflow.State, injectables):
         # Loading skim_dataset must be done in the main process, not a subprocess,
         # so that this min process can hold on to the shared memory and then cleanly
         # release it on exit.
-        from . import flow  # make injectable known  # noqa: F401
+        from . import flow, skim_dataset  # make injectables known  # noqa: F401
 
         state.get_injectable("skim_dataset")
 

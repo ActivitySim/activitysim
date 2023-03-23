@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -14,14 +15,17 @@ def _initialize_pipeline(
     tables: dict[str, str],
     initialize_network_los: bool,
     load_checkpoint: str = None,
+    *,
+    prepared_module_inputs: Path,
 ) -> workflow.State:
-    test_dir = os.path.join("test", module)
-    configs_dir = os.path.join(test_dir, "configs")
-    data_dir = os.path.join(test_dir, "data")
-    output_dir = os.path.join(test_dir, "output")
+    local_dir = Path(__file__).parent
 
-    state = workflow.State()
-    state.initialize_filesystem(
+    module_test_dir = local_dir.joinpath(module)
+    configs_dir = module_test_dir.joinpath("configs")
+    data_dir = module_test_dir.joinpath("data")
+    output_dir = module_test_dir.joinpath("output")
+
+    state = workflow.State.make_default(
         configs_dir=(configs_dir,),
         data_dir=(data_dir,),
         output_dir=output_dir,
@@ -31,10 +35,22 @@ def _initialize_pipeline(
 
     # Read in the input test dataframes
     for dataframe_name, idx_name in tables.items():
-        df = pd.read_csv(
-            os.path.join("test", module, "data", f"{dataframe_name}.csv"),
-            index_col=idx_name,
-        )
+        if prepared_module_inputs.joinpath(f"{dataframe_name}.csv").exists():
+            df = pd.read_csv(
+                prepared_module_inputs.joinpath(f"{dataframe_name}.csv"),
+                index_col=idx_name,
+            )
+        elif prepared_module_inputs.joinpath(f"{dataframe_name}.csv.gz").exists():
+            df = pd.read_csv(
+                prepared_module_inputs.joinpath(f"{dataframe_name}.csv.gz"),
+            )
+            try:
+                df = df.set_index(idx_name)
+            except Exception:
+                print(df.info(1))
+                raise
+        else:
+            raise FileNotFoundError(data_dir.joinpath(f"{dataframe_name}.csv"))
         state.add_table(dataframe_name, df)
 
     if initialize_network_los:
@@ -64,13 +80,30 @@ def _initialize_pipeline(
 
 @pytest.fixture(scope="module")
 def initialize_pipeline(
-    module: str, tables: dict[str, str], initialize_network_los: bool
+    module: str,
+    tables: dict[str, str],
+    initialize_network_los: bool,
+    prepare_module_inputs: Path,
 ) -> workflow.State:
-    yield from _initialize_pipeline(module, tables, initialize_network_los)
+    yield from _initialize_pipeline(
+        module,
+        tables,
+        initialize_network_los,
+        prepared_module_inputs=prepare_module_inputs,
+    )
 
 
 @pytest.fixture(scope="module")
 def reconnect_pipeline(
-    module: str, initialize_network_los: bool, load_checkpoint: str
+    module: str,
+    initialize_network_los: bool,
+    load_checkpoint: str,
+    prepare_module_inputs: Path,
 ) -> workflow.State:
-    yield from _initialize_pipeline(module, {}, initialize_network_los, load_checkpoint)
+    yield from _initialize_pipeline(
+        module,
+        {},
+        initialize_network_los,
+        load_checkpoint,
+        prepared_module_inputs=prepare_module_inputs,
+    )

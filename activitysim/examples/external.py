@@ -33,9 +33,7 @@ def registered_external_example(name, working_dir):
         The location where the example was installed, generally a subdirectory
         of `working_dir`.
     """
-    with open(
-        Path(__file__).parent.joinpath("external_example_manifest.yaml"), "r"
-    ) as eem:
+    with open(Path(__file__).parent.joinpath("external_example_manifest.yaml")) as eem:
         registered_examples = yaml.load(eem, yaml.SafeLoader)
     if name not in registered_examples:
         raise KeyError(f"{name!r} is not a registered external example")
@@ -55,9 +53,7 @@ def list_registered_examples():
     -------
     list[str]
     """
-    with open(
-        Path(__file__).parent.joinpath("external_example_manifest.yaml"), "r"
-    ) as eem:
+    with open(Path(__file__).parent.joinpath("external_example_manifest.yaml")) as eem:
         registered_examples = yaml.load(eem, yaml.SafeLoader)
     return list(registered_examples.keys())
 

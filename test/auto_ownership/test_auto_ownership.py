@@ -2,23 +2,23 @@ from __future__ import annotations
 
 import logging
 import os
-import shutil
 from pathlib import Path
 
-import numpy as np
-import orca
 import pandas as pd
+import pyarrow as pa
 import pytest
 import scipy.stats as stats
 from numpy import dot
 from numpy.linalg import norm
 from numpy.random import randint
+from pyarrow import csv
 
 # import models is necessary to initalize the model steps with orca
 from activitysim.abm import models  # noqa: F401
-from activitysim.core import config, tracing, workflow
+from activitysim.core import workflow
 
 logger = logging.getLogger(__name__)
+
 
 # Used by conftest.py initialize_pipeline method
 @pytest.fixture(scope="module")
@@ -84,7 +84,6 @@ def test_prepare_input_pipeline(initialize_pipeline: workflow.State, caplog):
 
 
 def test_auto_ownership(reconnect_pipeline: workflow.State, caplog):
-
     caplog.set_level(logging.INFO)
 
     state = reconnect_pipeline
@@ -144,8 +143,9 @@ def test_auto_ownership(reconnect_pipeline: workflow.State, caplog):
     )
 
     # save the results to disk
-    merged_df.to_csv(
-        os.path.join("test", "auto_ownership", "output", "ao_test_results.csv"),
+    to_csv(
+        merged_df,
+        state.filesystem.get_output_dir().joinpath("ao_test_results.csv"),
         index=False,
     )
 
@@ -155,14 +155,11 @@ def test_auto_ownership(reconnect_pipeline: workflow.State, caplog):
 
 @pytest.mark.skip
 def test_auto_ownership_variation(reconnect_pipeline: workflow.State, caplog):
-
     caplog.set_level(logging.INFO)
 
     state = reconnect_pipeline
 
-    output_file = os.path.join(
-        "test", "auto_ownership", "output", "ao_results_variation.csv"
-    )
+    output_file = state.filesystem.get_output_dir().joinpath("ao_results_variation.csv")
 
     if os.path.isfile(output_file):
         out_df = pd.read_csv(output_file)
@@ -200,7 +197,7 @@ def test_auto_ownership_variation(reconnect_pipeline: workflow.State, caplog):
 
         for i in range(1, NUM_SEEDS + 1):
             base_seed = randint(1, 99999)
-            orca.add_injectable("rng_base_seed", base_seed)
+            state.settings.rng_base_seed = base_seed
 
             # run model step
             state.run(
@@ -246,7 +243,7 @@ def test_auto_ownership_variation(reconnect_pipeline: workflow.State, caplog):
         cols = cols + [x for x in out_df.columns if x not in cols]
         out_df = out_df[cols]
 
-        out_df.to_csv(output_file, index=False)
+        to_csv(out_df, output_file, index=False)
 
     # chi-square test
     alpha = 0.05
@@ -281,10 +278,29 @@ def test_auto_ownership_variation(reconnect_pipeline: workflow.State, caplog):
     assert p_value < alpha
 
 
+def read_csv(filename):
+    return csv.read_csv(filename).to_pandas()
+
+
+def to_csv(df, filename, index=False):
+    filename = Path(filename)
+    if filename.suffix == ".gz":
+        with pa.CompressedOutputStream(filename, "gzip") as out:
+            csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), out)
+    else:
+        csv.write_csv(pa.Table.from_pandas(df, preserve_index=index), filename)
+
+
+@pytest.fixture(scope="module")
+def tmp_path_module(request, tmp_path_factory):
+    """A tmpdir fixture for the module scope. Persists throughout the module."""
+    return tmp_path_factory.mktemp(request.module.__name__)
+
+
 # fetch/prepare existing files for model inputs
 # e.g. read accessibilities.csv from ctramp result, rename columns, write out to accessibility.csv which is the input to activitysim
 @pytest.fixture(scope="module")
-def prepare_module_inputs() -> None:
+def prepare_module_inputs(tmp_path_module: Path) -> Path:
     """
     copy input files from sharepoint into test folder
 
@@ -292,43 +308,21 @@ def prepare_module_inputs() -> None:
 
     :return: None
     """
-    print("\ncwd=", Path.cwd())
-    tmp_path = Path(f"/tmp/{__name__}")
+    tmp_path = tmp_path_module
     tmp_path.mkdir(parents=True, exist_ok=True)
 
     from activitysim.examples.external import registered_external_example
 
-    workdir = registered_external_example("legacy_mtc", tmp_path)
+    ext_examp_dir = registered_external_example("legacy_mtc", tmp_path)
 
-    this_dir = Path(__file__).parent
-
-    # # https://wsponlinenam.sharepoint.com/sites/US-TM2ConversionProject/Shared%20Documents/Forms/
-    # # AllItems.aspx?id=%2Fsites%2FUS%2DTM2ConversionProject%2FShared%20Documents%2FTask%203%20ActivitySim&viewid=7a1eaca7%2D3999%2D4d45%2D9701%2D9943cc3d6ab1
-    # accessibility_file = this_dir.joinpath(
-    #     "data", "accessibilities.csv.gz"
-    # )
-    # household_file = this_dir.joinpath(
-    #     "data", "popsyn", "households.csv.gz"
-    # )
-    # person_file = this_dir.joinpath(
-    #     "data", "popsyn", "persons.csv.gz"
-    # )
-    # landuse_file = this_dir.joinpath(
-    #     "data", "landuse", "maz_data_withDensity.csv.gz"
-    # )
-    #
-    # shutil.copy(accessibility_file, tmp_path.joinpath("accessibility.csv.gz"))
-    # shutil.copy(household_file, tmp_path.joinpath("households.csv.gz"))
-    # shutil.copy(person_file, tmp_path.joinpath("persons.csv.gz"))
-    # shutil.copy(landuse_file, tmp_path.joinpath("land_use.csv.gz"))
+    landuse_file = ext_examp_dir.joinpath("landuse", "maz_data_withDensity.csv.gz")
 
     # add original maz id to accessibility table
-    land_use_df = pd.read_csv(
-        workdir.joinpath("land_use", "maz_data_withDensity.csv.gz")
-    )
+    land_use_df = read_csv(landuse_file)
+    to_csv(land_use_df, tmp_path.joinpath("land_use.csv"), index=False)
 
-    accessibility_df = pd.read_csv(
-        workdir.joinpath("tm2_outputs", "accessibilities.csv.gz")
+    accessibility_df = read_csv(
+        ext_examp_dir.joinpath("tm2_outputs", "accessibilities.csv.gz")
     )
 
     accessibility_df = pd.merge(
@@ -338,7 +332,7 @@ def prepare_module_inputs() -> None:
         on="mgra",
     )
 
-    accessibility_df.to_csv(tmp_path.joinpath("accessibility.csv"), index=False)
+    to_csv(accessibility_df, tmp_path.joinpath("accessibility.csv"), index=False)
 
     # currently household file has to have these two columns, even before annotation
     # because annotate person happens before household and uses these two columns
@@ -346,15 +340,15 @@ def prepare_module_inputs() -> None:
     ####
 
     # household file from populationsim
-    household_df = pd.read_csv(workdir.joinpath("popsyn", "households.csv.gz"))
+    household_df = read_csv(ext_examp_dir.joinpath("popsyn", "households.csv.gz"))
 
     household_columns_dict = {"HHID": "household_id", "MAZ": "home_zone_id"}
 
     household_df.rename(columns=household_columns_dict, inplace=True)
 
     # get columns from ctramp output
-    tm2_simulated_household_df = pd.read_csv(
-        workdir.joinpath("tm2_outputs", "householdData_1.csv")
+    tm2_simulated_household_df = read_csv(
+        ext_examp_dir.joinpath("tm2_outputs", "householdData_1.csv.gz")
     )
     tm2_simulated_household_df.rename(columns={"hh_id": "household_id"}, inplace=True)
 
@@ -374,8 +368,8 @@ def prepare_module_inputs() -> None:
         on="household_id",
     )
 
-    tm2_pre_ao_results_df = pd.read_csv(
-        tmp_path.joinpath("tm2_outputs", "aoResults_pre.csv")
+    tm2_pre_ao_results_df = read_csv(
+        ext_examp_dir.joinpath("tm2_outputs", "aoResults_pre.csv.gz")
     )
     tm2_pre_ao_results_df.rename(
         columns={"HHID": "household_id", "AO": "pre_autos"}, inplace=True
@@ -385,18 +379,18 @@ def prepare_module_inputs() -> None:
         household_df, tm2_pre_ao_results_df, how="inner", on="household_id"
     )
 
-    household_df.to_csv(tmp_path.joinpath("households.csv"), index=False)
+    to_csv(household_df, tmp_path.joinpath("households.csv"), index=False)
 
     # person file from populationsim
-    person_df = pd.read_csv(tmp_path.joinpath("persons.csv"))
+    person_df = read_csv(ext_examp_dir.joinpath("popsyn", "persons.csv.gz"))
 
     person_columns_dict = {"HHID": "household_id", "PERID": "person_id"}
 
     person_df.rename(columns=person_columns_dict, inplace=True)
 
     # get columns from ctramp result
-    tm2_simulated_person_df = pd.read_csv(
-        tmp_path.joinpath("tm2_outputs", "personData_3.csv")
+    tm2_simulated_person_df = read_csv(
+        ext_examp_dir.joinpath("tm2_outputs", "personData_3.csv.gz")
     )
     tm2_simulated_person_df.rename(columns={"hh_id": "household_id"}, inplace=True)
 
@@ -421,7 +415,9 @@ def prepare_module_inputs() -> None:
         on=["household_id", "person_id"],
     )
 
-    person_df.to_csv(tmp_path.joinpath("persons.csv"), index=False)
+    to_csv(person_df, tmp_path.joinpath("persons.csv"), index=False)
+
+    return tmp_path
 
 
 def create_summary(input_df, key, out_col="Share") -> pd.DataFrame:

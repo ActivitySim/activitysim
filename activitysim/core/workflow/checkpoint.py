@@ -331,11 +331,12 @@ class ParquetStore(GenericCheckpointStore):
             return pd.read_pickle(target_path.with_suffix(".pickle.gz"))
         else:
             # the direct-read failed, check for backtracking checkpoint
-            checkpoint_name_ = self._get_store_checkpoint_from_named_checkpoint(
-                table_name, checkpoint_name
-            )
-            if checkpoint_name_ != checkpoint_name:
-                return self.get_dataframe(table_name, checkpoint_name_)
+            if checkpoint_name is not None:
+                checkpoint_name_ = self._get_store_checkpoint_from_named_checkpoint(
+                    table_name, checkpoint_name
+                )
+                if checkpoint_name_ != checkpoint_name:
+                    return self.get_dataframe(table_name, checkpoint_name_)
             raise FileNotFoundError(target_path)
 
     @property
